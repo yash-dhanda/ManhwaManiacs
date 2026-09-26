@@ -25,6 +25,7 @@ class SeriesCoverImage extends ConsumerWidget {
     this.displayWidth,
     this.borderRadius,
     this.fit = BoxFit.cover,
+    this.withCredentials = true,
   });
 
   final String url;
@@ -49,12 +50,19 @@ class SeriesCoverImage extends ConsumerWidget {
   final double? borderRadius;
   final BoxFit fit;
 
+  /// False for a cover on somebody else's host (the worldwide catalog's CDN):
+  /// the session token and profile id are this server's, and sending them to
+  /// a third party with every image request is a leak, not a login.
+  final bool withCredentials;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final headers = apiImageHttpHeaders(
-      ref.watch(authTokenStoreProvider).token,
-      profileId: ref.watch(activeProfileProvider)?.id,
-    );
+    final headers = withCredentials
+        ? apiImageHttpHeaders(
+            ref.watch(authTokenStoreProvider).token,
+            profileId: ref.watch(activeProfileProvider)?.id,
+          )
+        : null;
     final imageUrl = coverUrlAtWidth(
       url,
       coverRequestWidth(
