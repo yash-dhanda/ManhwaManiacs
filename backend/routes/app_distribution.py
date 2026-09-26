@@ -138,6 +138,27 @@ class Changelog(BaseModel):
 # consume the exact same source of truth.
 _RELEASE_NOTES: list[ChangelogEntry] = [
     ChangelogEntry(
+        version="3.4.3",
+        build=56,
+        date="September 2026",
+        highlights=[
+            "Recommendations come from the whole world, not just what has "
+            "been browsed here: \"Because you read ...\" rows built from "
+            "readers' recommendations for the series you read most, and a "
+            "\"For you\" list across all of them",
+            "Every recommendation shows what it is, its status, how many "
+            "chapters it has and its rating. One of your sources carries it? "
+            "The card opens it. None does? It says so, offers a search, and "
+            "links the official place to read it",
+            "The AI box suggests real titles from anywhere and shows up to "
+            "12, each checked against a worldwide catalogue first, so nothing "
+            "it names is made up",
+            "It no longer keeps offering the same Asura titles: those came "
+            "from the local cache, where Asura's renamed links took up a "
+            "third of the space",
+        ],
+    ),
+    ChangelogEntry(
         version="3.4.2",
         build=55,
         date="September 2026",
