@@ -1,6 +1,4 @@
 import { env } from "@/config/env";
-import { sourceImageUrl } from "@/features/sources/api";
-import { withResolvedCover } from "@/features/sources/global-search";
 import { withCoverWidth } from "@/lib/cover-url";
 import { http } from "@/services/http";
 import type { SeriesId } from "@/types/api";
@@ -9,7 +7,6 @@ import type {
   CollectionDetail,
   ContinueReadingItem,
   FollowedSeries,
-  RecommendationsResponse,
   SearchResponse,
   SeriesDetail,
   SeriesFilter,
@@ -17,7 +14,8 @@ import type {
   SeriesSort,
   Statistics,
   SuggestAvailability,
-  SuggestResponse,
+  WorldRecommendations,
+  WorldSuggestResponse,
 } from "./types";
 
 /**
@@ -109,29 +107,27 @@ export const libraryApi = {
   recentlyUpdated: (limit = 10) =>
     http.get<FollowedSeries[]>("/library/recently-updated", { query: { limit } }),
 
-  recommendations: (limit = 10) =>
-    http.get<RecommendationsResponse>("/library/recommendations", {
-      query: { limit },
-    }),
+  /**
+   * Titles from the worldwide catalogue, seeded by what this profile reads,
+   * each marked with which of the reader's sources carry it. Several seconds
+   * on a cold server cache (external lookups), fast afterwards.
+   */
+  worldRecommendations: () =>
+    http.get<WorldRecommendations>("/library/world/recommendations"),
 
   /**
-   * Describe what you feel like reading; get series this server can open.
+   * Describe what you feel like reading; get titles from anywhere, each marked
+   * with whether a source here carries it.
    *
    * One call is one paid API request on the server, so this is only ever
-   * fired by an explicit submit — never on mount, never per keystroke.
+   * fired by an explicit submit — never on mount, never per keystroke. It can
+   * take ~90 s; the /api rewrite's `proxyTimeout` (next.config.ts) is what
+   * waits it out, as it did for the old `/library/suggest`.
    */
-  suggest: (body: { prompt: string; limit?: number }) =>
-    http
-      .post<SuggestResponse>("/library/suggest", body)
-      // Covers arrive relative, like a search hit's; see `withResolvedCover`.
-      .then((response) => ({
-        ...response,
-        items: response.items.map((item) =>
-          withResolvedCover(item, (path) => sourceImageUrl(path)),
-        ),
-      })),
+  worldSuggest: (body: { prompt: string; limit?: number }) =>
+    http.post<WorldSuggestResponse>("/library/world/suggest", body),
 
-  /** Whether `suggest` can run. Free and local on the server. */
+  /** Whether `worldSuggest` can run. Free and local on the server. */
   suggestAvailability: () =>
     http.get<SuggestAvailability>("/library/suggest/availability"),
 

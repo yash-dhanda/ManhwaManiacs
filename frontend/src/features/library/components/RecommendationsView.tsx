@@ -1,55 +1,81 @@
 "use client";
 
-import Link from "next/link";
+import type { ReactNode } from "react";
 import { Heart, TriangleAlert } from "lucide-react";
-import {
-  GlobalSearchResultCard,
-  SearchResultCardSkeleton,
-} from "@/features/library/components/GlobalSearchResultCard";
+import { SearchResultCardSkeleton } from "@/features/library/components/GlobalSearchResultCard";
 import { SuggestionPromptBox } from "@/features/library/components/SuggestionPromptBox";
+import { WorldTitleCard } from "@/features/library/components/WorldTitleCard";
+import { suggestionsSubtitle } from "@/features/library/suggestions";
 import {
-  droppedNotice,
-  suggestionKey,
-  suggestionsSubtitle,
-} from "@/features/library/suggestions";
-import {
-  useRecommendations,
-  useSuggest,
   useSuggestAvailability,
+  useWorldRecommendations,
+  useWorldSuggest,
 } from "@/features/library/hooks";
+import type { WorldItem } from "@/features/library/types";
 import { EmptyState } from "@/components/ui/empty-state";
 import { OfflineState } from "@/components/ui/offline-state";
 import { apiErrorMessage, resolveViewState } from "@/lib/view-state";
 
+const GRID_CLASS = "grid gap-3 md:grid-cols-2 xl:grid-cols-3";
+
+function SectionTitle({ children }: { children: ReactNode }) {
+  return (
+    <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+      {children}
+    </h2>
+  );
+}
+
+function WorldGrid({ items }: { items: WorldItem[] }) {
+  return (
+    <div className={GRID_CLASS}>
+      {items.map((item) => (
+        <WorldTitleCard key={item.anilist_id} item={item} />
+      ))}
+    </div>
+  );
+}
+
+function SkeletonGrid({ count }: { count: number }) {
+  return (
+    <div className={GRID_CLASS}>
+      {Array.from({ length: count }).map((_, i) => (
+        <SearchResultCardSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
+
 /**
- * "Describe what you feel like reading" → series this server can open.
+ * "Find something to read": titles from the whole world, not just what this
+ * server's sources happen to have cached.
  *
- * Grounded twice over. The server only ever picks from its own catalog cache,
- * so every card opens — a model asked to *recall* titles answers with
- * excellent books nothing here carries, and every one of those is a dead tap.
- * And the prompt carries what this profile has actually read, deepest first,
- * so the answer is this reader's rather than the same famous seven.
+ * Each card says whether one of the reader's sources carries the title — if
+ * one does, it opens there; if none does, the reader still learns what it is,
+ * how far along it is and how it rates, and gets a search and the official
+ * platform instead of a dead tap.
  *
- * The genre chips below are the old feature, kept: they are the cheapest start
- * when you do not feel like typing a sentence.
+ * The genre chips that used to sit at the bottom are gone: they searched
+ * titles for a genre word and returned noise.
  */
 export function RecommendationsView() {
-  const recommendationsQuery = useRecommendations(20);
+  const worldQuery = useWorldRecommendations();
   const availabilityQuery = useSuggestAvailability();
-  const suggest = useSuggest();
-
-  const genres = recommendationsQuery.data ?? [];
-  const suggestions = suggest.data?.items ?? [];
-  const dropped = suggest.data?.dropped ?? 0;
+  const suggest = useWorldSuggest();
 
   // An unconfigured server is a deployment state, not something to put in
-  // front of a reader: the box is simply absent and the chips remain.
+  // front of a reader: the box is simply absent and the picks remain.
   const canAsk = availabilityQuery.data?.available === true;
+  const suggestions = suggest.data?.items ?? [];
+
+  const forYou = worldQuery.data?.for_you ?? [];
+  const sections = (worldQuery.data?.sections ?? []).filter((s) => s.items.length > 0);
+  const unavailableReason = worldQuery.data?.unavailable_reason ?? null;
 
   const viewState = resolveViewState({
-    isLoading: recommendationsQuery.isLoading,
-    error: recommendationsQuery.error,
-    isEmpty: genres.length === 0,
+    isLoading: worldQuery.isLoading,
+    error: worldQuery.error,
+    isEmpty: forYou.length === 0 && sections.length === 0,
   });
 
   return (
@@ -71,10 +97,8 @@ export function RecommendationsView() {
         ) : null}
 
         {suggest.isPending ? (
-          <div className="mb-10 space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <SearchResultCardSkeleton key={i} />
-            ))}
+          <div className="mb-10">
+            <SkeletonGrid count={4} />
           </div>
         ) : suggest.isError ? (
           <div className="mb-10">
@@ -82,76 +106,64 @@ export function RecommendationsView() {
               tone="error"
               icon={TriangleAlert}
               title="Couldn't suggest anything"
-              description={apiErrorMessage(
-                suggest.error,
-                "Try describing it differently.",
-              )}
+              description={apiErrorMessage(suggest.error, "Try describing it differently.")}
             />
           </div>
         ) : suggestions.length > 0 ? (
-          <div className="mb-10 space-y-3">
-            {suggestions.map((item) => (
-              <div key={suggestionKey(item)}>
-                <GlobalSearchResultCard item={item} />
-                {item.why ? (
-                  <p className="mt-1.5 pl-1 text-sm text-muted">{item.why}</p>
-                ) : null}
-              </div>
-            ))}
-            {/* Said plainly rather than hidden: the model named things no
-                source here carries, and those were thrown away rather than
-                shown as cards that go nowhere. */}
-            {droppedNotice(dropped) ? (
-              <p className="pt-1 text-xs text-muted">{droppedNotice(dropped)}</p>
-            ) : null}
+          <div className="mb-10">
+            <WorldGrid items={suggestions} />
           </div>
         ) : null}
 
-        {canAsk && genres.length > 0 ? (
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
-            Or start from a genre
-          </h2>
+        {/* Quiet on purpose: the catalogue being unreachable is not the
+            reader's problem to solve, and the rest of the page still works. */}
+        {unavailableReason ? (
+          <p className="mb-6 text-sm text-muted">{unavailableReason}</p>
         ) : null}
 
         {viewState === "loading" ? (
-          <div className="flex flex-wrap gap-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-9 w-28 animate-pulse rounded-full bg-surface-2" />
-            ))}
-          </div>
+          <section>
+            <SectionTitle>For you</SectionTitle>
+            <SkeletonGrid count={6} />
+          </section>
         ) : viewState === "offline" ? (
           <OfflineState
             reason="Recommendations need a connection to load."
-            onRetry={() => void recommendationsQuery.refetch()}
+            onRetry={() => void worldQuery.refetch()}
           />
         ) : viewState === "error" ? (
           <EmptyState
             tone="error"
             icon={TriangleAlert}
             title="Couldn't load recommendations"
-            description={apiErrorMessage(recommendationsQuery.error, "Something went wrong.")}
-            action={{ label: "Try again", onClick: () => void recommendationsQuery.refetch() }}
+            description={apiErrorMessage(worldQuery.error, "Something went wrong.")}
+            action={{ label: "Try again", onClick: () => void worldQuery.refetch() }}
           />
         ) : viewState === "empty" ? (
-          <EmptyState
-            icon={Heart}
-            title="No recommendations yet"
-            description="Follow a few series and their genres will show up here."
-            action={{ label: "Browse Sources", href: "/sources" }}
-          />
+          // Empty with a reason means the catalogue was unreachable, which
+          // the notice above already says; empty without one means there is
+          // no reading history to start from yet.
+          unavailableReason ? null : (
+            <EmptyState
+              icon={Heart}
+              title="Nothing to go on yet"
+              description="Read or follow a few series first — picks here start from what you read."
+              action={{ label: "Browse Sources", href: "/sources" }}
+            />
+          )
         ) : (
-          <div className="flex flex-wrap gap-3">
-            {genres.map((entry) => (
-              <Link
-                key={entry.genre}
-                href={`/search?q=${encodeURIComponent(entry.genre)}`}
-                className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-white/[0.03] px-4 py-2 text-sm text-fg transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
-              >
-                <span className="capitalize">{entry.genre}</span>
-                <span className="rounded-full bg-white/10 px-1.5 text-xs tabular-nums text-muted">
-                  {entry.weight}
-                </span>
-              </Link>
+          <div className="space-y-10">
+            {forYou.length > 0 ? (
+              <section>
+                <SectionTitle>For you</SectionTitle>
+                <WorldGrid items={forYou} />
+              </section>
+            ) : null}
+            {sections.map((section) => (
+              <section key={`${section.because.source_id}:${section.because.series_key}`}>
+                <SectionTitle>Because you read {section.because.title}</SectionTitle>
+                <WorldGrid items={section.items} />
+              </section>
             ))}
           </div>
         )}

@@ -201,10 +201,14 @@ export function useToggleFavorite() {
 
 // --- Discovery ---
 
-export function useRecommendations(limit = 10) {
+/**
+ * "For you" plus one "Because you read X" row per seed. Under the discovery
+ * root so an 18+ gate flip and a profile switch both drop it.
+ */
+export function useWorldRecommendations() {
   return useQuery({
-    queryKey: [...DISCOVERY_KEY, "recommendations", limit],
-    queryFn: () => libraryApi.recommendations(limit),
+    queryKey: [...DISCOVERY_KEY, "world-recommendations"],
+    queryFn: () => libraryApi.worldRecommendations(),
   });
 }
 
@@ -227,10 +231,10 @@ export function useSuggestAvailability() {
  * paid API request, and a query would re-fire on remount, refocus and retry.
  * Nothing here runs until somebody presses the button.
  */
-export function useSuggest() {
+export function useWorldSuggest() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { prompt: string; limit?: number }) => libraryApi.suggest(body),
+    mutationFn: (body: { prompt: string; limit?: number }) => libraryApi.worldSuggest(body),
     onSuccess: () => {
       // The day's allowance just moved, and the box shows what is left.
       void queryClient.invalidateQueries({

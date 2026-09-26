@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   canSubmitPrompt,
-  droppedNotice,
   MAX_PROMPT_LENGTH,
   MIN_PROMPT_LENGTH,
-  suggestionKey,
   suggestionsSubtitle,
 } from "./suggestions";
 
@@ -36,32 +34,6 @@ describe("spending a request", () => {
   });
 });
 
-describe("titles nothing carries", () => {
-  it("says nothing when nothing was dropped", () => {
-    expect(droppedNotice(0)).toBeNull();
-    expect(droppedNotice(-1)).toBeNull();
-  });
-
-  it("counts one in the singular", () => {
-    expect(droppedNotice(1)).toBe(
-      "1 more suggestion skipped — no source here carries them.",
-    );
-  });
-
-  it("counts several in the plural", () => {
-    expect(droppedNotice(3)).toContain("3 more suggestions skipped");
-  });
-});
-
-describe("identity", () => {
-  it("keys on the source as well as the series", () => {
-    // The same book on two sources is two openable rows, not one.
-    const a = suggestionKey({ source: "asurascans", series_id: "nano-machine" });
-    const b = suggestionKey({ source: "demonicscans", series_id: "nano-machine" });
-    expect(a).not.toBe(b);
-  });
-});
-
 describe("why the box is hidden", () => {
   it("describes the working state when the box can ask", () => {
     expect(suggestionsSubtitle(true, "ok")).toContain("Describe it");
@@ -75,9 +47,15 @@ describe("why the box is hidden", () => {
     expect(copy).toContain("midnight UTC");
   });
 
-  it("falls back to the genre pitch for a server with no key at all", () => {
+  it("never points at the genre chips, which are gone", () => {
+    for (const reason of ["budget_exhausted", "not_configured", undefined]) {
+      expect(suggestionsSubtitle(false, reason)).not.toMatch(/genre/i);
+    }
+  });
+
+  it("falls back to the picks pitch for a server with no key at all", () => {
     expect(suggestionsSubtitle(false, "not_configured")).toContain(
-      "genres you read most",
+      "picked from what you already read",
     );
   });
 
@@ -85,8 +63,8 @@ describe("why the box is hidden", () => {
     // availabilityQuery.data can be undefined before the first response
     // lands; that must read as "nothing to explain yet", not crash or claim
     // a budget was spent that was never checked.
-    expect(suggestionsSubtitle(false, undefined)).toContain(
-      "genres you read most",
+    expect(suggestionsSubtitle(false, undefined)).toBe(
+      suggestionsSubtitle(false, "not_configured"),
     );
   });
 });

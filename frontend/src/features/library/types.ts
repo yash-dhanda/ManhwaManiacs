@@ -8,7 +8,6 @@
  * mutations (`PATCH`/`DELETE /library/...`).
  */
 
-import type { GlobalSearchItem } from "@/features/sources/types";
 import type { SeriesId } from "@/types/api";
 
 export type { SeriesId };
@@ -204,15 +203,73 @@ export interface CollectionDetail extends Collection {
 
 export type SearchResponse = SeriesListResponse;
 
-// --- Recommendations ---
+// --- World recommendations ---
 
-/** `GET /library/recommendations` — top genres over the followed set. */
-export interface RecommendationGenre {
-  genre: string;
-  weight: number;
+/** One of the reader's own sources that carries a `WorldItem`. */
+export interface WorldAvailability {
+  source_id: string;
+  source_name: string;
+  series_key: string;
 }
 
-export type RecommendationsResponse = RecommendationGenre[];
+/** An official place to read a title, e.g. `{site: "Webtoon", url}`. */
+export interface WorldPlatform {
+  site: string;
+  url: string;
+}
+
+/**
+ * A title from the worldwide catalogue (AniList + MangaUpdates), not only
+ * from what this server's sources have cached. `available` lists the reader's
+ * own sources that carry it; empty means none known, so the card offers a
+ * search instead of a series page.
+ */
+export interface WorldItem {
+  anilist_id: number;
+  title: string;
+  alt_titles: string[];
+  /** "Manhwa" · "Manga" · "Manhua" · "Novel" · "One-shot" · "Comic". */
+  format: string | null;
+  country: string | null;
+  /** "Ongoing" · "Completed" · "Hiatus" · "Cancelled" · "Upcoming". */
+  status: string | null;
+  /** Latest known chapter number. */
+  chapters: number | null;
+  /** 0–10, one decimal. */
+  rating: number | null;
+  genres: string[];
+  /** External (AniList CDN), so rendered with no referrer. */
+  cover_url: string | null;
+  is_adult: boolean;
+  platforms: WorldPlatform[];
+  anilist_url: string;
+  available: WorldAvailability[];
+  /** Set on AI answers; null on "because you read" rows. */
+  why: string | null;
+}
+
+export interface WorldSection {
+  because: { title: string; source_id: string; series_key: string };
+  items: WorldItem[];
+}
+
+/** `GET /library/world/recommendations`. */
+export interface WorldRecommendations {
+  for_you: WorldItem[];
+  sections: WorldSection[];
+  /** Set when AniList could not be reached; shown as a quiet notice. */
+  unavailable_reason: string | null;
+}
+
+/** `POST /library/world/suggest`. */
+export interface WorldSuggestResponse {
+  items: WorldItem[];
+  /** Titles the model named that AniList could not verify. Never shown. */
+  dropped: number;
+  model: string;
+  /** Requests left in today's allowance. */
+  remaining_today: number;
+}
 
 // --- Reading history ---
 
@@ -360,30 +417,6 @@ export interface Statistics {
   by_series: SeriesReading[];
   /** The last few sessions, deliberately NOT clipped to the window. */
   recent_sessions: RecentSession[];
-}
-
-/**
- * One AI suggestion: a series this server can actually open, plus why.
- *
- * It extends `GlobalSearchItem` because that is literally what it is — the
- * server only ever picks suggestions out of its own catalog cache, so a
- * suggestion opens through the same route a search hit does. Titles the model
- * named that no configured source carries never arrive here; they are counted
- * in `dropped` and discarded, because a card that cannot be opened is worse
- * than one fewer card.
- */
-export interface Suggestion extends GlobalSearchItem {
-  /** The model's one line on why this fits. May be empty. */
-  why: string;
-}
-
-export interface SuggestResponse {
-  items: Suggestion[];
-  /** How many titles the model named that nothing here carries. */
-  dropped: number;
-  /** Requests left in today's allowance. */
-  remaining_today: number;
-  model: string;
 }
 
 /**

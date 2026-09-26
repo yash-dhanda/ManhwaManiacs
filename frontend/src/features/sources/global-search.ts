@@ -99,10 +99,10 @@ export function splitSearchGroups(groups: GlobalSearchGroup[]): {
 /**
  * One search hit with its `cover_url` resolved by `resolveCoverUrl`.
  *
- * The backend serves search and suggestion covers as the same relative
+ * The backend serves search covers as the same relative
  * `/sources/{id}/series/{key}/cover` path the browse listing does: it cannot
  * build an absolute one, because the host it sees behind the `/api` rewrite is
- * its own container name. Generic so a `Suggestion` keeps its `why`.
+ * its own container name. Generic so a subtype keeps its extra fields.
  */
 export function withResolvedCover<T extends GlobalSearchItem>(
   item: T,
