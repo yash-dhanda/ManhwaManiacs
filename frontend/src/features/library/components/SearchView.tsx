@@ -8,6 +8,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   BookOpen,
   ChevronDown,
@@ -129,7 +130,10 @@ function SectionLabel({
 }
 
 export function SearchView() {
-  const [query, setQuery] = useState("");
+  // `/search?q=` opens with that search already running — the "Search" action
+  // on a recommendation for a title none of the reader's sources carry.
+  const initialQuery = useSearchParams().get("q") ?? "";
+  const [query, setQuery] = useState(initialQuery);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [quietOpen, setQuietOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
