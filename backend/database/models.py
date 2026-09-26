@@ -1191,6 +1191,26 @@ class SourceBrowseCache(Base):
     fetched_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
+class WorldCatalogCache(Base):
+    """Answers from the worldwide catalogs (AniList, MangaUpdates), by key.
+
+    ``key`` names the lookup ("al:search:<title>", "al:recs:<id>",
+    "mu:<title>") and ``payload`` is its JSON answer, so a recommendation page
+    does not re-ask two public APIs the same question on every visit. Purely a
+    cache: any row may be deleted at any time, a backup drops the table
+    (``core.cache_tables``), and rows past their TTL are pruned by the service
+    that writes them. Catalog metadata only -- titles, format, chapter count,
+    rating -- never descriptions or anything scraped from a source.
+    """
+
+    __tablename__ = "world_catalog_cache"
+    __table_args__ = (Index("ix_world_catalog_cache_fetched_at", "fetched_at"),)
+
+    key: Mapped[str] = mapped_column(String(300), primary_key=True)
+    payload: Mapped[str] = mapped_column(Text, nullable=False)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
 class SourceCoverCache(Base):
     """One DOWNSCALED series cover, ready to serve (GLOBAL, TTL + LRU).
 

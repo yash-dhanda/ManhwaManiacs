@@ -27,4 +27,5 @@ CACHE_TABLES = (
     "novel_chapter_cache",
     "source_cover_cache",
     "source_browse_cache",
+    "world_catalog_cache",
 )
