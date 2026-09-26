@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
-import 'package:manhwamaniacs/features/library/models/recommendation.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 final statisticsProvider = FutureProvider.autoDispose<LibraryStatistics>((ref) async {
@@ -12,10 +12,15 @@ final statisticsProvider = FutureProvider.autoDispose<LibraryStatistics>((ref) a
   return result.value;
 });
 
+/// "For you" and the "Because you read …" rows, from the worldwide catalog.
+///
+/// Profile-scoped and 18+-gated on the server (which sources a title is "on"
+/// depends on both), so it sits in the profile and mature invalidator lists
+/// under this name — the genre list it replaced was wired in there already.
 final recommendationsProvider =
-    FutureProvider.autoDispose<List<RecommendationGenre>>((ref) async {
+    FutureProvider.autoDispose<WorldRecommendations>((ref) async {
   final repo = ref.watch(libraryRepositoryProvider);
-  final result = await repo.recommendations(limit: 12);
+  final result = await repo.worldRecommendations();
   if (result.isErr) throw result.error;
   return result.value;
 });
@@ -40,18 +45,19 @@ final suggestAvailabilityProvider =
   return result.value;
 });
 
-/// The AI suggestions for the last description the reader submitted.
+/// The AI suggestions (worldwide titles) for the last description the reader
+/// submitted.
 ///
 /// A notifier with an explicit [SuggestionsNotifier.submit], deliberately NOT
 /// a `FutureProvider`: every rebuild of one of those would be another paid API
 /// request, and a pull-to-refresh would be a second. It starts empty and only
 /// ever runs when somebody presses the button.
 final suggestionsProvider =
-    AsyncNotifierProvider.autoDispose<SuggestionsNotifier, SuggestionResult?>(
+    AsyncNotifierProvider.autoDispose<SuggestionsNotifier, WorldSuggestResponse?>(
   SuggestionsNotifier.new,
 );
 
-class SuggestionsNotifier extends AutoDisposeAsyncNotifier<SuggestionResult?> {
+class SuggestionsNotifier extends AutoDisposeAsyncNotifier<WorldSuggestResponse?> {
   /// Guards against a slow first answer overwriting a faster second one.
   int _requestId = 0;
 
@@ -65,7 +71,7 @@ class SuggestionsNotifier extends AutoDisposeAsyncNotifier<SuggestionResult?> {
   bool _disposed = false;
 
   @override
-  Future<SuggestionResult?> build() async {
+  Future<WorldSuggestResponse?> build() async {
     ref.onDispose(() => _disposed = true);
     return null;
   }
@@ -74,23 +80,23 @@ class SuggestionsNotifier extends AutoDisposeAsyncNotifier<SuggestionResult?> {
     final trimmed = prompt.trim();
     if (trimmed.length < 3) return;
     final id = ++_requestId;
-    state = const AsyncValue<SuggestionResult?>.loading();
-    final result = await ref.read(libraryRepositoryProvider).suggest(trimmed);
+    state = const AsyncValue<WorldSuggestResponse?>.loading();
+    final result = await ref.read(libraryRepositoryProvider).worldSuggest(trimmed);
     if (_disposed || id != _requestId) return;
     if (result.isErr) {
-      state = AsyncValue<SuggestionResult?>.error(
+      state = AsyncValue<WorldSuggestResponse?>.error(
         result.error,
         StackTrace.current,
       );
       return;
     }
-    state = AsyncValue<SuggestionResult?>.data(result.value);
+    state = AsyncValue<WorldSuggestResponse?>.data(result.value);
     // The allowance just moved, and the box shows what is left of it.
     ref.invalidate(suggestAvailabilityProvider);
   }
 
   void clear() {
     _requestId++;
-    state = const AsyncValue<SuggestionResult?>.data(null);
+    state = const AsyncValue<WorldSuggestResponse?>.data(null);
   }
 }

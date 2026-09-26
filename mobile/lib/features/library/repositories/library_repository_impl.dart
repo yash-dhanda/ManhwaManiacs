@@ -8,10 +8,10 @@ import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
-import 'package:manhwamaniacs/features/library/models/recommendation.dart';
 import 'package:manhwamaniacs/features/library/models/series_detail.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 
 class LibraryRepositoryImpl implements LibraryRepository {
@@ -118,30 +118,40 @@ class LibraryRepositoryImpl implements LibraryRepository {
       );
 
   @override
-  Future<Result<List<RecommendationGenre>>> recommendations({int limit = 10}) =>
-      _requestList(
-        () => _dio.get<List<dynamic>>(
-          '/library/recommendations',
-          queryParameters: {'limit': limit},
+  Future<Result<WorldRecommendations>> worldRecommendations({
+    int seeds = 5,
+    int perSeed = 10,
+  }) =>
+      _request(
+        () => _dio.get<Map<String, dynamic>>(
+          '/library/world/recommendations',
+          queryParameters: {'seeds': seeds, 'per_seed': perSeed},
+          // A cold cache means external catalog lookups for every seed before
+          // the server can answer — seconds, occasionally past the default
+          // 30s. Fast afterwards; the ceiling only matters the first time.
+          options: Options(receiveTimeout: const Duration(seconds: 90)),
         ),
-        RecommendationGenre.fromJson,
+        WorldRecommendations.fromJson,
       );
 
   @override
-  Future<Result<SuggestionResult>> suggest(String prompt, {int limit = 6}) =>
+  Future<Result<WorldSuggestResponse>> worldSuggest(
+    String prompt, {
+    int limit = 12,
+  }) =>
       _request(
         () => _dio.post<Map<String, dynamic>>(
-          '/library/suggest',
+          '/library/world/suggest',
           data: {'prompt': prompt, 'limit': limit},
-          // The server's own timeout is 180s (suggestion_service.TIMEOUT_
-          // SECONDS — deepseek-flash bills its reasoning as output tokens
-          // before any visible answer, so this is a genuinely slow call, not
-          // a stuck one). This has to sit above that: a client timeout that
-          // fires first wastes a request that was already paid for and still
-          // running on the server.
+          // The server's own model timeout is 180s (suggestion_service.
+          // TIMEOUT_SECONDS — deepseek-flash bills its reasoning as output
+          // tokens before any visible answer, so this is a genuinely slow
+          // call, not a stuck one). This has to sit above that: a client
+          // timeout that fires first wastes a request that was already paid
+          // for and still running on the server.
           options: Options(receiveTimeout: const Duration(seconds: 210)),
         ),
-        SuggestionResult.fromJson,
+        WorldSuggestResponse.fromJson,
       );
 
   @override

@@ -6,10 +6,10 @@ import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
-import 'package:manhwamaniacs/features/library/models/recommendation.dart';
 import 'package:manhwamaniacs/features/library/models/series_detail.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 
 /// The per-profile library — source-native (spec §4.2). A series is in the
 /// library iff a `followed_series` row exists for it; identity is
@@ -47,15 +47,26 @@ abstract interface class LibraryRepository {
 
   Future<Result<List<FollowedSeries>>> recentlyUpdated({int limit = 10});
 
-  Future<Result<List<RecommendationGenre>>> recommendations({int limit = 10});
+  /// "For you" plus one "Because you read …" row per seed, drawn from the
+  /// worldwide catalog; each title says which of the reader's sources carry
+  /// it. [seeds] 1–8, [perSeed] 3–15.
+  Future<Result<WorldRecommendations>> worldRecommendations({
+    int seeds = 5,
+    int perSeed = 10,
+  });
 
-  /// Describe what you feel like reading; get series this server can open.
+  /// Describe what you feel like reading; get titles from the worldwide
+  /// catalog, each with why it fits. [limit] 1–15.
   ///
   /// One call here is one paid API request on the server, so this is only ever
   /// fired by an explicit submit — never on mount, never per keystroke.
-  Future<Result<SuggestionResult>> suggest(String prompt, {int limit = 6});
+  Future<Result<WorldSuggestResponse>> worldSuggest(
+    String prompt, {
+    int limit = 12,
+  });
 
-  /// Whether [suggest] can run. Free and local on the server; call it on mount.
+  /// Whether [worldSuggest] can run. Free and local on the server; call it on
+  /// mount.
   Future<Result<SuggestionAvailability>> suggestAvailability();
 
   Future<Result<PagedResult<FollowedSeries>>> search(

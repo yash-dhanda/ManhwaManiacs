@@ -5,27 +5,24 @@ import 'package:manhwamaniacs/app/router/routes.dart';
 import 'package:manhwamaniacs/app/theme/app_colors.dart';
 import 'package:manhwamaniacs/app/theme/app_presets.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
-import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
-import 'package:manhwamaniacs/features/library/models/recommendation.dart';
-import 'package:manhwamaniacs/features/library/models/suggestion.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
-import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
-import 'package:manhwamaniacs/features/library/widgets/search/global_search_result_card.dart';
+import 'package:manhwamaniacs/features/library/widgets/recommendations/world_title_card.dart';
 import 'package:manhwamaniacs/shared/widgets/empty_state.dart';
 import 'package:manhwamaniacs/shared/widgets/premium/hero_heading.dart';
 import 'package:manhwamaniacs/shared/widgets/premium/primary_pill_button.dart';
 import 'package:manhwamaniacs/shared/widgets/skeleton_box.dart';
 
-/// "Describe what you feel like reading" → series this server can open.
+/// "Find something to read" — titles from the whole world, not only from the
+/// series this server happens to have cached.
 ///
-/// The suggestions are grounded twice over. The server only ever picks from
-/// its own catalog cache, so every card opens — a model asked to recall titles
-/// answers with excellent books nothing here carries. And the prompt carries
-/// what this profile has actually read, deepest first, so the answer is this
-/// reader's rather than a generic list of the same famous seven.
+/// Three parts, top to bottom: the AI prompt box and its answers (when the
+/// server can run it), "For you", and one "Because you read …" row per book
+/// the reader has been deepest into. Every card says whether one of the
+/// reader's own sources carries the title; see [WorldTitleCard].
 ///
-/// The genre chips below are the old feature, kept: they are the cheapest way
-/// to start when you do not feel like typing a sentence.
+/// The genre chips that used to close the page are gone: they searched titles
+/// for a genre word and came back with noise.
 class RecommendationsScreen extends ConsumerStatefulWidget {
   const RecommendationsScreen({super.key});
 
@@ -48,21 +45,14 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
     ref.read(suggestionsProvider.notifier).submit(_controller.text);
   }
 
-  void _openItem(GlobalSearchItem item) {
-    final source = item.source;
-    if (source != null && source.isNotEmpty) {
-      context.push(RoutePaths.sourceSeriesDetail(source, item.seriesId));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final availability = ref.watch(suggestAvailabilityProvider);
     final suggestions = ref.watch(suggestionsProvider);
-    final genresAsync = ref.watch(recommendationsProvider);
+    final recommendations = ref.watch(recommendationsProvider);
 
     // An unconfigured server is a deployment state, not an error to put in
-    // front of a reader: the box is simply absent and the genre chips remain.
+    // front of a reader: the box is simply absent and the rows remain.
     final state = availability.asData?.value;
     final canAsk = state?.available ?? false;
     // "not_configured" and "budget_exhausted" both hide the box, but only one
@@ -81,7 +71,7 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
         ),
         title: const Text('Find something to read'),
       ),
-      // Pull-to-refresh re-asks for the genres and for whether the box can
+      // Pull-to-refresh re-asks for the rows and for whether the box can
       // run — the two things a flaky connection leaves stale. Never the
       // suggestions: a pull is not a request to spend another AI call.
       body: RefreshIndicator(
@@ -90,7 +80,7 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
           ref
             ..invalidate(recommendationsProvider)
             ..invalidate(suggestAvailabilityProvider);
-          // Held until the genres answer, so the spinner means something. A
+          // Held until the rows answer, so the spinner means something. A
           // failure is not rethrown: the section below draws it with Retry.
           try {
             await ref.read(recommendationsProvider.future);
@@ -106,12 +96,13 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
             SizedBox(height: context.space.xs),
             Text(
               canAsk
-                  ? 'Describe it in your own words. Suggestions are weighed '
-                      'against what you already read.'
+                  ? 'Describe it in your own words. Answers come from '
+                      "everything out there, weighed against what you've read."
                   : budgetExhausted
                       ? "You've used today's AI suggestions. They reset at "
-                          'midnight UTC — pick a genre below meanwhile.'
-                      : 'Pick a genre you read a lot of.',
+                          'midnight UTC — the picks below are still yours.'
+                      : 'Picks from everything out there, based on what you '
+                          'read.',
               style: context.text.body.copyWith(color: context.colors.muted),
             ),
             if (canAsk) ...[
@@ -124,12 +115,8 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
               ),
             ],
             SizedBox(height: context.space.xl2),
-            _SuggestionsSection(
-              suggestions: suggestions,
-              onOpen: _openItem,
-              onRetry: _submit,
-            ),
-            _GenreSection(genresAsync: genresAsync),
+            _SuggestionsSection(suggestions: suggestions, onRetry: _submit),
+            _WorldSection(recommendations: recommendations),
           ],
         ),
       ),
@@ -261,25 +248,16 @@ class _PromptBoxState extends State<_PromptBox> {
 class _SuggestionsSection extends StatelessWidget {
   const _SuggestionsSection({
     required this.suggestions,
-    required this.onOpen,
     required this.onRetry,
   });
 
-  final AsyncValue<SuggestionResult?> suggestions;
-  final void Function(GlobalSearchItem) onOpen;
+  final AsyncValue<WorldSuggestResponse?> suggestions;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     return suggestions.when(
-      loading: () => Column(
-        children: [
-          for (var i = 0; i < 3; i++) ...[
-            const SkeletonBox(width: double.infinity, height: 124),
-            SizedBox(height: context.space.md),
-          ],
-        ],
-      ),
+      loading: () => const _CardSkeletons(),
       error: (error, _) => Padding(
         padding: EdgeInsets.only(bottom: context.space.xl2),
         child: Column(
@@ -296,6 +274,8 @@ class _SuggestionsSection extends StatelessWidget {
           ],
         ),
       ),
+      // `dropped` is deliberately not mentioned: those are titles the model
+      // named that the catalog could not verify, i.e. possibly invented.
       data: (result) {
         if (result == null || result.isEmpty) return const SizedBox.shrink();
         return Padding(
@@ -303,25 +283,10 @@ class _SuggestionsSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final suggestion in result.items) ...[
-                GlobalSearchResultCard(
-                  item: suggestion.item,
-                  footnote: suggestion.why,
-                  onTap: () => onOpen(suggestion.item),
-                ),
+              for (final item in result.items) ...[
+                WorldTitleCard(item: item),
                 SizedBox(height: context.space.md),
               ],
-              if (result.dropped > 0)
-                Text(
-                  // Said plainly rather than hidden: the model named things
-                  // no source here carries, and those were thrown away rather
-                  // than shown as cards that go nowhere.
-                  '${result.dropped} more suggestion'
-                  '${result.dropped == 1 ? '' : 's'} skipped — no source here '
-                  'carries them.',
-                  style: context.text.caption
-                      .copyWith(color: context.colors.muted),
-                ),
             ],
           ),
         );
@@ -330,54 +295,51 @@ class _SuggestionsSection extends StatelessWidget {
   }
 }
 
-/// The genre chips, with every state the request can be in.
-///
-/// It used to render only the data case and `SizedBox.shrink()` for the rest,
-/// so loading, a failed request and a profile with no genres all looked the
-/// same: nothing. Offline, with the prompt box hidden too, the screen was a
-/// heading and a sentence pointing at a section that never appeared, with no
-/// error and no way to retry. These are the states the web page has always
-/// drawn, and the ones this screen drew before the suggestions rewrite.
-class _GenreSection extends ConsumerWidget {
-  const _GenreSection({required this.genresAsync});
+/// "For you" and the "Because you read …" rows, with every state the request
+/// can be in: a blank space for loading, failure and "nothing yet" alike is
+/// how the page used to read as broken offline.
+class _WorldSection extends ConsumerWidget {
+  const _WorldSection({required this.recommendations});
 
-  final AsyncValue<List<RecommendationGenre>> genresAsync;
+  final AsyncValue<WorldRecommendations> recommendations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return genresAsync.when(
-      // Chip-shaped, so the section does not jump when the real ones land.
-      loading: () => Wrap(
-        key: const Key('genres-loading'),
-        spacing: context.space.sm,
-        runSpacing: context.space.sm,
-        children: [
-          for (var i = 0; i < 6; i++)
-            const SkeletonBox(width: 96, height: 36, borderRadius: 999),
-        ],
-      ),
-      error: (error, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            error is AppError
-                ? error.userMessage
-                : "Couldn't load recommendations.",
-            style: context.text.body.copyWith(color: context.colors.danger),
-          ),
-          SizedBox(height: context.space.md),
-          FilledButton(
-            onPressed: () => ref.invalidate(recommendationsProvider),
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-      data: (genres) {
-        if (genres.isEmpty) {
+    void retry() => ref.invalidate(recommendationsProvider);
+
+    return recommendations.when(
+      loading: () => const _CardSkeletons(key: Key('world-loading')),
+      error: (error, _) {
+        if (error is NetworkError) {
+          return EmptyState(
+            icon: Icons.cloud_off_outlined,
+            message: "You're offline",
+            subtitle: error.userMessage,
+            action: FilledButton(onPressed: retry, child: const Text('Retry')),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              error is AppError
+                  ? error.userMessage
+                  : "Couldn't load recommendations.",
+              style: context.text.body.copyWith(color: context.colors.danger),
+            ),
+            SizedBox(height: context.space.md),
+            FilledButton(onPressed: retry, child: const Text('Retry')),
+          ],
+        );
+      },
+      data: (recs) {
+        final notice = recs.unavailableReason;
+        // Nothing AND no reason: this profile has no reading to seed from.
+        if (recs.isEmpty && notice == null) {
           return EmptyState(
             icon: Icons.auto_awesome_outlined,
-            message: 'No recommendations yet',
-            subtitle: 'Follow a few series and their genres will show up here.',
+            message: 'Read or follow a few series first',
+            subtitle: 'Recommendations are built from what you read.',
             action: PrimaryPillButton(
               label: 'Browse Sources',
               onPressed: () => context.go(Routes.sources),
@@ -387,26 +349,15 @@ class _GenreSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Or start from a genre',
-              style: context.text.labelLg,
-            ),
-            SizedBox(height: context.space.md),
-            Wrap(
-              spacing: context.space.sm,
-              runSpacing: context.space.sm,
-              children: [
-                for (final genre in genres)
-                  _GenreChip(
-                    genre: genre.genre,
-                    weight: genre.weight,
-                    onTap: () {
-                      ref.read(searchQueryProvider.notifier).state = genre.genre;
-                      context.go(Routes.search);
-                    },
-                  ),
-              ],
-            ),
+            if (notice != null) _QuietNotice(text: notice),
+            if (recs.forYou.isNotEmpty)
+              _TitleRow(title: 'For you', items: recs.forYou),
+            for (final section in recs.sections)
+              if (section.items.isNotEmpty)
+                _TitleRow(
+                  title: 'Because you read ${section.becauseTitle}',
+                  items: section.items,
+                ),
           ],
         );
       },
@@ -414,43 +365,90 @@ class _GenreSection extends ConsumerWidget {
   }
 }
 
-class _GenreChip extends StatelessWidget {
-  const _GenreChip({
-    required this.genre,
-    required this.weight,
-    required this.onTap,
-  });
+/// A titled, horizontally scrolling row of cards.
+///
+/// Not a lazy `ListView`: that needs a fixed height, and a card's height
+/// depends on its title, its actions and the reader's text size — a guess
+/// clips or overflows. A row holds at most ~24 cards, so building them all is
+/// cheap next to getting that wrong.
+class _TitleRow extends StatelessWidget {
+  const _TitleRow({required this.title, required this.items});
 
-  final String genre;
-  final int weight;
-  final VoidCallback onTap;
+  final String title;
+  final List<WorldItem> items;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: context.colors.panel,
-      borderRadius: BorderRadius.circular(context.radii.full),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(context.radii.full),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: context.space.lg,
-            vertical: context.space.sm,
+    return Padding(
+      padding: EdgeInsets.only(bottom: context.space.xl2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: context.text.labelLg),
+          SizedBox(height: context.space.md),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final item in items)
+                  Padding(
+                    padding: EdgeInsets.only(right: context.space.md),
+                    child: SizedBox(
+                      width: 300,
+                      child: WorldTitleCard(item: item),
+                    ),
+                  ),
+              ],
+            ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(genre, style: context.text.label),
-              SizedBox(width: context.space.xs),
-              Text(
-                '$weight',
-                style: context.text.caption.copyWith(color: context.colors.muted),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
+    );
+  }
+}
+
+/// Why the rows are thin or missing when the worldwide catalog could not be
+/// reached. Deliberately not an error: whatever did load is still usable.
+class _QuietNotice extends StatelessWidget {
+  const _QuietNotice({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = context.colors.muted;
+    return Padding(
+      padding: EdgeInsets.only(bottom: context.space.xl),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 16, color: muted),
+          SizedBox(width: context.space.sm),
+          Expanded(
+            child: Text(
+              text,
+              style: context.text.caption.copyWith(color: muted),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CardSkeletons extends StatelessWidget {
+  const _CardSkeletons({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (var i = 0; i < 3; i++) ...[
+          const SkeletonBox(width: double.infinity, height: 124),
+          SizedBox(height: context.space.md),
+        ],
+      ],
     );
   }
 }

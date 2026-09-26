@@ -9,10 +9,10 @@ import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
-import 'package:manhwamaniacs/features/library/models/recommendation.dart';
 import 'package:manhwamaniacs/features/library/models/series_detail.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/screens/reading_history_screen.dart';
 import 'package:manhwamaniacs/features/library/screens/recommendations_screen.dart';
@@ -67,8 +67,13 @@ FollowedSeries _series({required int id, required String title}) {
 /// fails loudly instead of silently returning empty data.
 class _FakeIntelligenceRepository implements LibraryRepository {
   @override
-  Future<Result<List<RecommendationGenre>>> recommendations({int limit = 10}) async =>
-      const Ok([RecommendationGenre(genre: 'Action', weight: 5)]);
+  Future<Result<WorldRecommendations>> worldRecommendations({
+    int seeds = 5,
+    int perSeed = 10,
+  }) async =>
+      const Ok(
+        WorldRecommendations(forYou: [WorldItem(title: 'Nano Machine')]),
+      );
 
   @override
   Future<Result<LibraryStatistics>> statistics() async => const Ok(
@@ -225,8 +230,11 @@ class _FakeIntelligenceRepository implements LibraryRepository {
       throw UnimplementedError();
 
   @override
-  Future<Result<SuggestionResult>> suggest(String prompt, {int limit = 6}) async =>
-      const Ok(SuggestionResult());
+  Future<Result<WorldSuggestResponse>> worldSuggest(
+    String prompt, {
+    int limit = 12,
+  }) async =>
+      const Ok(WorldSuggestResponse());
 
   @override
   Future<Result<SuggestionAvailability>> suggestAvailability() async => const Ok(
@@ -478,7 +486,7 @@ void main() {
       expect(find.text('Followed Series'), findsOneWidget);
     });
 
-    testWidgets('RecommendationsScreen renders a genre chip', (tester) async {
+    testWidgets('RecommendationsScreen renders a For you row', (tester) async {
       await tester.pumpWidget(
         await _wrap(
           const RecommendationsScreen(),
@@ -489,7 +497,8 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('Action'), findsWidgets);
+      expect(find.text('For you'), findsOneWidget);
+      expect(find.text('Nano Machine'), findsOneWidget);
     });
 
     testWidgets('ReadingHistoryScreen renders a book, not a position',

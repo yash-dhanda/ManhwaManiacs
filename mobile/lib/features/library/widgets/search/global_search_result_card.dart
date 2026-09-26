@@ -19,16 +19,10 @@ class GlobalSearchResultCard extends ConsumerWidget {
     super.key,
     required this.item,
     required this.onTap,
-    this.footnote,
   });
 
   final GlobalSearchItem item;
   final VoidCallback onTap;
-
-  /// One line under the source badge. Used by AI suggestions to say why this
-  /// one was picked — the reason is the whole value of a suggestion, and a
-  /// card that just names a book is indistinguishable from a search hit.
-  final String? footnote;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,16 +65,6 @@ class GlobalSearchResultCard extends ConsumerWidget {
                 ],
                 SizedBox(height: context.space.md),
                 SourceBadge(item: item),
-                if (footnote != null && footnote!.trim().isNotEmpty) ...[
-                  SizedBox(height: context.space.sm),
-                  Text(
-                    footnote!,
-                    style: context.text.caption.copyWith(
-                      color: context.colors.muted,
-                      height: 1.35,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

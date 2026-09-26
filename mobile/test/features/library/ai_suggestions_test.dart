@@ -16,9 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
-import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
-import 'package:manhwamaniacs/features/library/models/recommendation.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/screens/recommendations_screen.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -55,23 +54,25 @@ class _SuggestRepository implements LibraryRepository {
   Completer<void>? holdUntil;
 
   @override
-  Future<Result<SuggestionResult>> suggest(String prompt, {int limit = 6}) async {
+  Future<Result<WorldSuggestResponse>> worldSuggest(
+    String prompt, {
+    int limit = 12,
+  }) async {
     suggestCalls++;
     lastPrompt = prompt;
     if (holdUntil != null) await holdUntil!.future;
     return Ok(
-      // Not const: `dropped` below is this instance's own field, not a
-      // compile-time constant, so `prefer_const_constructors` is wrong on
-      // THIS constructor — but the item inside it has no such dependency.
-      SuggestionResult( // ignore: prefer_const_constructors
-        items: [
-          const Suggestion(
-            item: GlobalSearchItem(
-              kind: 'source',
-              source: 'asurascans',
-              seriesId: 'nano-machine',
-              title: 'Nano Machine',
-            ),
+      WorldSuggestResponse(
+        items: const [
+          WorldItem(
+            title: 'Nano Machine',
+            available: [
+              WorldAvailability(
+                sourceId: 'asurascans',
+                sourceName: 'Asura Scans',
+                seriesKey: 'nano-machine',
+              ),
+            ],
             why: 'Murim and a weak-to-strong lead, like the ones you finished.',
           ),
         ],
@@ -95,8 +96,13 @@ class _SuggestRepository implements LibraryRepository {
   }
 
   @override
-  Future<Result<List<RecommendationGenre>>> recommendations({int limit = 10}) async =>
-      const Ok([RecommendationGenre(genre: 'martial arts', weight: 9)]);
+  Future<Result<WorldRecommendations>> worldRecommendations({
+    int seeds = 5,
+    int perSeed = 10,
+  }) async =>
+      const Ok(
+        WorldRecommendations(forYou: [WorldItem(title: 'Return of the Blossoming Blade')]),
+      );
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -139,7 +145,7 @@ void main() {
     // The screen is a ListView and the button sits below the fold in a
     // test viewport; tapping an off-screen widget silently misses.
     await tester.ensureVisible(find.text('SUGGEST SOMETHING'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await tester.tap(find.text('SUGGEST SOMETHING'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
@@ -161,7 +167,7 @@ void main() {
     // The screen is a ListView and the button sits below the fold in a
     // test viewport; tapping an off-screen widget silently misses.
     await tester.ensureVisible(find.text('SUGGEST SOMETHING'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await tester.tap(find.text('SUGGEST SOMETHING'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
@@ -172,8 +178,10 @@ void main() {
     );
   });
 
-  testWidgets('titles nothing carries are reported, never rendered',
+  testWidgets('titles the catalog could not verify are never mentioned',
       (tester) async {
+    // `dropped` counts titles the model named that no catalog knows — quite
+    // possibly invented. Neither they nor a count of them belongs on screen.
     final repo = _SuggestRepository(dropped: 2);
     await tester.pumpWidget(await _wrap(repo));
     await tester.pump();
@@ -183,15 +191,14 @@ void main() {
     // The screen is a ListView and the button sits below the fold in a
     // test viewport; tapping an off-screen widget silently misses.
     await tester.ensureVisible(find.text('SUGGEST SOMETHING'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await tester.tap(find.text('SUGGEST SOMETHING'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(
-      find.textContaining('2 more suggestions skipped'),
-      findsOneWidget,
-    );
+    expect(find.text('Nano Machine'), findsOneWidget);
+    expect(find.textContaining('skipped'), findsNothing);
+    expect(find.textContaining('2 more'), findsNothing);
   });
 
   testWidgets('an unconfigured server hides the box instead of failing',
@@ -204,8 +211,8 @@ void main() {
     expect(find.byType(TextField), findsNothing);
     // PrimaryPillButton uppercases its label.
     expect(find.text('SUGGEST SOMETHING'), findsNothing);
-    // The genre chips are the fallback, and they still work.
-    expect(find.text('martial arts'), findsOneWidget);
+    // The rows below are the fallback, and they still work.
+    expect(find.text('Return of the Blossoming Blade'), findsOneWidget);
   });
 
   testWidgets(
@@ -227,9 +234,12 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('midnight UTC'), findsOneWidget);
-    // Still not "Pick a genre" copy meant for a server with no key at all.
-    expect(find.text('Pick a genre you read a lot of.'), findsNothing);
-    expect(find.text('martial arts'), findsOneWidget);
+    // Still not the copy meant for a server with no key at all.
+    expect(
+      find.text('Picks from everything out there, based on what you read.'),
+      findsNothing,
+    );
+    expect(find.text('Return of the Blossoming Blade'), findsOneWidget);
   });
 
   testWidgets("a low daily allowance is shown, a healthy one isn't",
@@ -290,7 +300,7 @@ void main() {
     await tester.enterText(find.byType(TextField), 'murim regressor');
     final button = find.byType(PrimaryPillButton);
     await tester.ensureVisible(button);
-    await tester.pump();
+    await tester.pumpAndSettle();
     await tester.tap(button);
     await tester.pump();
     expect(repo.suggestCalls, 1);

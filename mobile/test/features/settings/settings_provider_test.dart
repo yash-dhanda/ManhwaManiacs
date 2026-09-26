@@ -8,10 +8,10 @@ import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
-import 'package:manhwamaniacs/features/library/models/recommendation.dart';
 import 'package:manhwamaniacs/features/library/models/series_detail.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
@@ -85,8 +85,11 @@ class _EmptyLibraryRepository implements LibraryRepository {
   Future<Result<List<FollowedSeries>>> recentlyUpdated({int limit = 10}) async => const Ok([]);
 
   @override
-  Future<Result<List<RecommendationGenre>>> recommendations({int limit = 10}) async =>
-      const Ok([]);
+  Future<Result<WorldRecommendations>> worldRecommendations({
+    int seeds = 5,
+    int perSeed = 10,
+  }) async =>
+      const Ok(WorldRecommendations());
 
   @override
   Future<Result<PagedResult<FollowedSeries>>> search(
@@ -189,8 +192,11 @@ class _EmptyLibraryRepository implements LibraryRepository {
       const Ok([]);
 
   @override
-  Future<Result<SuggestionResult>> suggest(String prompt, {int limit = 6}) async =>
-      const Ok(SuggestionResult());
+  Future<Result<WorldSuggestResponse>> worldSuggest(
+    String prompt, {
+    int limit = 12,
+  }) async =>
+      const Ok(WorldSuggestResponse());
 
   @override
   Future<Result<SuggestionAvailability>> suggestAvailability() async => const Ok(

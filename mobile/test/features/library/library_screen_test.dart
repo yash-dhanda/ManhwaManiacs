@@ -15,10 +15,10 @@ import 'package:manhwamaniacs/features/library/models/library_query.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/models/read_state.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
-import 'package:manhwamaniacs/features/library/models/recommendation.dart';
 import 'package:manhwamaniacs/features/library/models/series_detail.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/screens/library_screen.dart';
 import 'package:manhwamaniacs/features/library/utils/library_preferences.dart';
@@ -172,7 +172,10 @@ class _FakeLibraryRepository implements LibraryRepository {
       throw UnimplementedError();
 
   @override
-  Future<Result<List<RecommendationGenre>>> recommendations({int limit = 10}) =>
+  Future<Result<WorldRecommendations>> worldRecommendations({
+    int seeds = 5,
+    int perSeed = 10,
+  }) =>
       throw UnimplementedError();
 
   @override
@@ -267,8 +270,11 @@ class _FakeLibraryRepository implements LibraryRepository {
       throw UnimplementedError();
 
   @override
-  Future<Result<SuggestionResult>> suggest(String prompt, {int limit = 6}) async =>
-      const Ok(SuggestionResult());
+  Future<Result<WorldSuggestResponse>> worldSuggest(
+    String prompt, {
+    int limit = 12,
+  }) async =>
+      const Ok(WorldSuggestResponse());
 
   @override
   Future<Result<SuggestionAvailability>> suggestAvailability() async => const Ok(
