@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from core.profile_context import require_profile_context
-from core.rate_limit import limiter, suggest_limit
+from core.rate_limit import limiter, sources_limit, suggest_limit
 from services.followed_series_service import (
     FollowedSeriesService,
     get_followed_series_service,
@@ -21,12 +21,14 @@ from services.suggestion_service import (
     SuggestionService,
     get_suggestion_service,
 )
+from services.world_recs import WorldRecs, get_world_recs
 from utils.api_pagination import set_list_total_header
 
 router = APIRouter(prefix="/library", tags=["library"])
 
 ServiceDep = Annotated[FollowedSeriesService, Depends(get_followed_series_service)]
 SuggestDep = Annotated[SuggestionService, Depends(get_suggestion_service)]
+WorldDep = Annotated[WorldRecs, Depends(get_world_recs)]
 
 
 class FollowRequest(BaseModel):
@@ -212,6 +214,48 @@ def suggest(
         base_url=str(request.base_url),
         limit=body.limit,
     )
+
+
+class WorldSuggestRequest(BaseModel):
+    prompt: str = Field(min_length=3, max_length=600)
+    limit: int = Field(default=12, ge=1, le=15)
+
+
+@router.get("/world/recommendations")
+@limiter.limit(sources_limit)
+def world_recommendations(
+    request: Request,
+    response: Response,  # slowapi injects X-RateLimit-* headers into this
+    world: WorldDep,
+    seeds: int = Query(5, ge=1, le=8),
+    per_seed: int = Query(10, ge=3, le=15),
+) -> dict[str, object]:
+    """Worldwide recommendations for the series this profile reads most.
+
+    Candidates come from AniList, chapter counts from MangaUpdates; each item
+    says which of this reader's sources carry it (``available``), and an item
+    none of them carries is still returned, as information. Rate-limited on
+    the sources bucket: a cold page makes a few dozen public-API calls.
+    """
+    return world.recommendations(seeds=seeds, per_seed=per_seed)
+
+
+@router.post("/world/suggest")
+@limiter.limit(suggest_limit)
+def world_suggest(
+    body: WorldSuggestRequest,
+    request: Request,
+    response: Response,  # slowapi injects X-RateLimit-* headers into this
+    service: SuggestDep,
+    world: WorldDep,
+) -> dict[str, object]:
+    """The AI box, answered from the whole medium rather than the local cache.
+
+    Every title the model names is confirmed against AniList before it is
+    returned; the ones AniList cannot match are counted in ``dropped``.
+    Shares ``/suggest``'s daily ledger and rate-limit bucket.
+    """
+    return service.world_suggest(body.prompt, world=world, limit=body.limit)
 
 
 @router.get("/statistics")

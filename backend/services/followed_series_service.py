@@ -1481,6 +1481,8 @@ class FollowedSeriesService:
             read = depth.get(key, 0)
             entries.append(
                 {
+                    "source_id": key[0],
+                    "series_key": key[1],
                     "title": title,
                     "genres": [str(g) for g in genres],
                     "chapters_read": read,
@@ -1517,6 +1519,8 @@ class FollowedSeriesService:
             "titles": [
                 {
                     "title": e["title"],
+                    "source_id": e["source_id"],
+                    "series_key": e["series_key"],
                     "chapters_read": e["chapters_read"],
                     "is_favorite": e["is_favorite"],
                 }

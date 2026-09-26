@@ -283,6 +283,29 @@ At most {limit} suggestions, fewest if the shelf genuinely cannot answer. No \
 other keys, no prose, no markdown.\
 """
 
+WORLD_SYSTEM_PROMPT = """\
+You recommend comics (manhwa, manga, manhua, webtoons) and web novels to ONE \
+reader whose taste you are given.
+
+You will receive: what the reader feels like reading right now, the titles \
+they have actually read (with how many chapters deep they got), and the \
+genres that dominate their reading.
+
+Rules:
+- Recommend REAL, published titles from anywhere in the world. Use each \
+title's most common official English name (or its romanized name if it has \
+no English one). Never invent a title.
+- Weigh BOTH things: what they asked for now, and what they already read.
+- Never suggest something on their read list.
+- Prefer variety: not several near-clones of one book.
+- Every "why" is ONE sentence under 20 words, written to this reader, naming \
+what it shares with their request or their reading. Never write a blurb.
+{mature_clause}
+Answer with JSON only, exactly this shape:
+{{"suggestions":[{{"title":"...","why":"..."}}]}}
+Exactly {limit} suggestions if you can. No other keys, no prose, no markdown.\
+"""
+
 _MATURE_CLAUSE_CLOSED = (
     "- This reader's account does not show adult or 18+ material. "
     "Do not suggest any.\n"
@@ -544,11 +567,78 @@ class SuggestionService:
                 "" if taste.get("gate_open") else _MATURE_CLAUSE_CLOSED
             ),
         )
+        completion = self._complete(system, self._user_message(prompt, taste, shelf))
+        return self._build(completion, by_title, base_url=base_url, limit=limit)
+
+    def world_suggest(self, prompt: str, *, world: Any, limit: int = 12) -> dict[str, Any]:
+        """The AI box without the shelf: the model names real titles from what
+        it knows of the whole medium, and AniList confirms each one before it
+        becomes a card. A name AniList cannot match is dropped, never shown, so
+        an invented title costs one fewer card, not a dead one. Whether one of
+        the reader's sources carries it is marked on the card
+        (``services.world_recs``).
+        """
+        self._library._require_owner()
+        taste = self._library.taste_profile()
+        gate_open = bool(taste.get("gate_open"))
+        system = WORLD_SYSTEM_PROMPT.format(
+            limit=limit + 4,
+            mature_clause="" if gate_open else _MATURE_CLAUSE_CLOSED,
+        )
+        completion = self._complete(system, self._world_message(prompt, taste))
+        try:
+            payload = completion.json()
+        except LLMError as exc:
+            raise AppError(
+                "The AI couldn't answer that one. Try describing it "
+                "differently.",
+                code="ai_failed",
+                status_code=502,
+            ) from exc
+        raw = payload.get("suggestions") if isinstance(payload, dict) else None
+        entries = [
+            (str(e.get("title") or "").strip()[:200], str(e.get("why") or "").strip()[:160])
+            for e in (raw if isinstance(raw, list) else [])
+            if isinstance(e, dict) and str(e.get("title") or "").strip()
+        ]
+        items, dropped = world.verify(entries, gate_open=gate_open, limit=limit)
+        if not items:
+            raise AppError(
+                "The AI's picks couldn't be matched to real titles. Try "
+                "describing it differently.",
+                code="ai_no_matches",
+                status_code=502,
+            )
+        return {
+            "items": items,
+            "dropped": dropped,
+            "model": completion.model,
+            "remaining_today": self._remaining_today(),
+        }
+
+    def _world_message(self, prompt: str, taste: dict[str, Any]) -> str:
+        read = [
+            f"- {t['title']}"
+            + (f" ({t['chapters_read']} chapters in)" if t["chapters_read"] else "")
+            for t in taste.get("titles", [])
+        ]
+        genres = ", ".join(g["genre"] for g in taste.get("genres", [])[:8])
+        return (
+            "WHAT THEY FEEL LIKE READING:\n"
+            f"{prompt.strip()}\n\n"
+            "WHAT THEY HAVE READ (deepest first) — never suggest these:\n"
+            f"{chr(10).join(read) if read else '- (nothing yet)'}\n\n"
+            "GENRES THEY READ MOST:\n"
+            f"{genres or '(none yet)'}"
+        )
+
+    def _complete(self, system: str, message: str) -> Any:
+        """One paid call under the daily ledgers and the wall-clock deadline."""
         deadline = _DeadlineTransport(TIMEOUT_SECONDS)
         account_budget = self._account_budget()
         try:
-            completion = deepseek_client.complete_json(
-                self._user_message(prompt, taste, shelf),
+            return deepseek_client.complete_json(
+                message,
                 system=system,
                 max_tokens=MAX_TOKENS,
                 temperature=TEMPERATURE,
@@ -590,8 +680,6 @@ class SuggestionService:
                 code="ai_failed",
                 status_code=502,
             ) from exc
-
-        return self._build(completion, by_title, base_url=base_url, limit=limit)
 
     def _user_message(
         self, prompt: str, taste: dict[str, Any], shelf: list[dict[str, Any]]

@@ -872,6 +872,12 @@ NOT_SERIES_DERIVED = {
         "THEMSELVES are gated three ways and walked by "
         "tests/test_suggestion_service.py -- the adult rows never reach the "
         "prompt, let alone the response"
+    ),    "/library/world/recommendations": (
+        "worldwide recommendations from AniList. Gated three ways, each walked "
+        "in tests/test_world_recs.py: the seeds are taste_profile's (already "
+        "gated), catalog entries flagged isAdult or Hentai are dropped while "
+        "the gate is shut, and the 'On: <source>' availability never names a "
+        "mature source to a shut gate"
     ),
 }
 
