@@ -53,6 +53,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   void initState() {
     super.initState();
+    // Another screen can open this one on a query (a recommendation's
+    // "Search"); the field has to show what the results are for.
+    _searchController.text = ref.read(searchQueryProvider);
     _scrollController.addListener(_onScroll);
     _loadRecentSearches();
   }
@@ -139,6 +142,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final groupFilter = ref.watch(searchGroupFilterProvider);
     final pinnedIds = ref.watch(pinnedSourceIdsProvider);
     final hasQuery = query.isNotEmpty;
+
+    // The tab stays mounted once visited, so a query set from elsewhere
+    // after that arrives here rather than in initState.
+    ref.listen<String>(searchQueryProvider, (_, next) {
+      if (_searchController.text.trim() != next.trim()) {
+        _searchController.text = next;
+      }
+    });
 
     ref.listen<AsyncValue<GroupedSearchResult>>(searchListProvider,
         (previous, next) {

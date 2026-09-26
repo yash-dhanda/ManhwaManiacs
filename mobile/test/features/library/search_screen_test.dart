@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
+import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/screens/search_screen.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
@@ -475,6 +476,26 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pumpAndSettle();
       expect(repo.queries, ['solo']);
+    });
+
+    testWidgets('a query set from another screen shows up in the field',
+        (tester) async {
+      // A recommendation's "Search" sets the query and switches to this tab,
+      // which stays mounted once visited — the field must follow, or the
+      // results are for a title the reader cannot see was searched.
+      final repo = _FakeSourcesRepository();
+      await _pumpSearch(tester, repo);
+
+      ProviderScope.containerOf(tester.element(find.byType(SearchScreen)))
+          .read(searchQueryProvider.notifier)
+          .state = 'Nano Machine';
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'Nano Machine',
+      );
+      expect(repo.queries, ['Nano Machine']);
     });
   });
 }
