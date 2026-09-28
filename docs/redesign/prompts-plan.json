@@ -1,0 +1,1267 @@
+{
+ "files": [
+  {
+   "path": "docs/redesign/prompts/shared/00-design-contract-and-token-generator.md",
+   "title": "Foundation: design/ contract, Cinematic tokens and the generator",
+   "track": "shared",
+   "order": 1,
+   "group": 8,
+   "depends_on": [],
+   "scope": "TRACK RULE (every shared/* file): the shared track owns design/ and brand/ plus the generated files they write into frontend/, mobile/ and backend/media/; stage only those paths with explicit git add (never git add -A: the web, mobile and backend sessions commit in the same checkout). This step, per stack-decision \u00a72.1 and cinematic/DESIGN.md \u00a72.8, \u00a73.5, \u00a78.0.3, \u00a715.1, \u00a715.10 S2/S7/S8/S13/S16: design/contract.json with every ScreenId and path of cinematic \u00a78.0.3 (mobile aliases, setup and readerLanding as cross-client redirects, Glass's extra query state and the settings slug ai from glass \u00a715.6), flags.glass_available=false (cinematic \u00a78.0.7), the HapticEvent union of cinematic \u00a75 plus every name glass \u00a715.6 lists, SoundEvent incl. sheet.open, sheet.close, splash.reveal. design/tokens/cinematic.json with every key of cinematic \u00a72.8, \u00a73.5, \u00a74.2\u20134.6, \u00a75, \u00a76 in the \u00a715.1 value kinds (colour, length, integer, curve, spring, scalar, haptic sequences). design/build.mjs (Node 22 stdlib, about 150 lines plus helpers) writing frontend/src/skins/cinematic/tokens.generated.{css,ts}, frontend/src/skins/theme.generated.css (@theme inline + @utility type-*/scrim-*), frontend/src/skins/contract.generated.ts (SCREEN_IDS, ROUTES with percent-encoding route builders, FLAGS, HapticEvent, SoundEvent), mobile/lib/skins/cinematic/tokens.g.dart (CineTokens ThemeExtension + static const classes), mobile/lib/skins/contract.g.dart (enum ScreenId, Routes builders with Uri.encodeComponent, Flags, enums); springs to Motion {visualDuration, bounce}, CSS linear() + settle time from a stdlib port of Motion's spring (reference vectors now; the parity test against the installed motion lands in web/01), Flutter ms x 1.2; a --check mode; design/lint-utilities.mjs; node design/build.mjs --check added to the web job of .github/workflows/tests.yml; a node:test self-check for the spring sampler and route encoding. Glass tokens follow in shared/01."
+  },
+  {
+   "path": "docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md",
+   "title": "Backend: per-profile skin and profile columns, plus the dev stack",
+   "track": "backend",
+   "order": 2,
+   "group": 7,
+   "depends_on": [],
+   "scope": "TRACK RULE (every backend/* file): work only in backend/ (never backend/connectors/) plus ops/ compose mounts when a step says so; stage only those paths explicitly; Alembic revisions continue after 0017_world_catalog_cache; every endpoint is profile-scoped and applies the 18+ gate when serving, never when storing (shared caches too); changes are additive so today's clients keep working; tests run with backend/.venv/bin/python -m pytest -q --no-header (CI pins pytest 9.1.1). This step: create backend/.venv from requirements.txt + pytest==9.1.1 (none exists on this box); one migration adding reading_profiles.skin ('cinematic' | 'glass' | NULL), notify_enabled (bool, default true; the update checker creates no notifications for a profile with it off), onboarding_step (existing rows 'done', new rows NULL) and daily_goal_minutes (nullable int); PATCH /profiles/{id}, ProfileUpdate and service.serialize carry all four; GET /profiles rows include onboarding_step (stack-decision \u00a72.4, cinematic \u00a715.5, glass \u00a715.5). Tests: unknown skin 422, another account's profile 404, notify_enabled honoured. Dev stack for proof screenshots: backend/scripts/dev_stack.sh (uvicorn on 127.0.0.1:8010 against a dev SQLite DB under /srv/manhwamaniacs/dev/data/, never production data) and backend/scripts/seed_demo.py (account demo, two profiles with one 18+ gate closed, a few non-18+ follows from healthy sources, progress, bookmarks, one collection), documented in backend/scripts/README-dev-stack.md."
+  },
+  {
+   "path": "docs/redesign/prompts/shared/01-glass-tokens-haptics-motion-names-contrast.md",
+   "title": "Foundation: Glass tokens, haptic patterns, motion names and the contrast gate",
+   "track": "shared",
+   "order": 3,
+   "group": 8,
+   "depends_on": [
+    "docs/redesign/prompts/shared/00-design-contract-and-token-generator.md"
+   ],
+   "scope": "Per glass/DESIGN.md \u00a72.8, \u00a73.7, \u00a74.2\u20134.8, \u00a75, \u00a76, \u00a715.1, \u00a715.8, \u00a715.10 G1/G2: design/tokens/glass.json with every key (colour incl. mood and paper sets, space and layout lengths, radius, glass tiers t1\u2013t5 with thickness, bezel, displacement, blur, saturate, fill, specular, shadow, dispersion, rond, the tinted finish and snap [36, 57, 97, 401], dim and edge values, springs, thresholds, haptics, sounds) with 'spring': {'format': 'physical'}; generator additions: frontend/src/skins/glass/tokens.generated.{css,ts} with physical springs {stiffness, damping, mass} for Motion and linear() for CSS, mobile/lib/skins/glass/tokens.g.dart (GlassTokens ThemeExtension); design/build-haptics.mjs writing mobile/assets/haptics/{cinematic,glass}/*.ahap.json from cinematic \u00a75 compound patterns and glass \u00a75.3 AHAP signatures; motion-name unions frontend/src/skins/{cinematic,glass}/motion.generated.ts and mobile/lib/skins/{cinematic,glass}/motion_names.g.dart from cinematic \u00a74.5 and glass \u00a74.10; design/check-contrast.mjs covering every pair of glass \u00a715.8 (onGlass on T3 over #FFFFFF at dim 0.64 and under the 0.72 edgeSoft plateau at 0.22, onTint on glassTinted, the iris300 two-tone focus ring) plus Cinematic's ink-on-paper pairs (ink.45 only on paper.0, cinematic \u00a72.1.1, \u00a714.2); all called from build.mjs --check; lint-utilities.mjs extended to src/skins/glass/**. Self-checks: {ms 520, bounce 0} gives k 146.0, c 24.17; {ms 150, bounce 0.14} gives k 1754.6, c 72.05."
+  },
+  {
+   "path": "docs/redesign/prompts/web/00-foundation-skin-engine-and-routes.md",
+   "title": "Web foundation: skin engine, route groups and the completeness contract",
+   "track": "web",
+   "order": 4,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/shared/00-design-contract-and-token-generator.md",
+    "docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md"
+   ],
+   "scope": "TRACK RULE (every web/* file): work in frontend/ only (plus regenerating design/ outputs with node design/build.mjs); stage only your paths explicitly (mobile, backend and shared sessions commit in the same checkout); run npm run typecheck, lint, test and build in frontend/ one at a time after free -m; capture proof with frontend/scripts/proof.mjs (from web/03) into docs/redesign/proof/web-NN/ at 1440x900 and 390x844; remove every ScreenId you finish from the skin's PENDING set; web/NN and mobile/NN with the same number are the same cluster and run in parallel; until release/00 the new skins are reachable only through the debug row. This step (stack-decision \u00a72.2, \u00a72.4; cinematic \u00a78.0.3, \u00a715.2, \u00a715.10 S7/S17): frontend/src/skins/{index,server,types}.ts (SkinId, Skin interface, getSkin() reading mm-skin then mm-skin-debug, fallback legacy until the flip); skins/legacy/index.ts mapping ScreenIds to today's page bodies (Partial); skins/cinematic/index.ts and skins/glass/index.ts whose screens satisfy Record<ScreenId, Screen> through a PENDING map to one skin-neutral skins/pending.tsx screen (the set must be empty before release/00); move every route folder with its error.tsx and not-found.tsx under app/(app)/, Home at app/(app)/page.tsx, app/(app)/[...missing]/page.tsx calling notFound(), an app/(preview)/ root layout stub, both root layouts importing app/globals.css (which imports theme.generated.css and each skin's tokens.generated.css); thin route files for every ScreenId path (setup redirects to /login); html data-skin stamped server-side; next.config.ts gains experimental.viewTransition true and keeps the / to /library redirect for legacy only with the two-cookie missing list; eslint no-restricted-imports on src/skins/** (bans @/components/**, @/features/*/components/** and the other skin); a vitest completeness test over SCREEN_IDS. No visual change for legacy users."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/00-foundation-reader-engine-extraction.md",
+   "title": "Mobile foundation: pixel-free reader engine extraction",
+   "track": "mobile",
+   "order": 5,
+   "group": 4,
+   "depends_on": [],
+   "scope": "TRACK RULE (every mobile/* file): work in mobile/ only (plus design/ regeneration); stage only your paths explicitly (web, backend and shared sessions commit in the same checkout); Flutter at /srv/manhwamaniacs/dev/flutter/bin, flutter analyze and flutter test after free -m and never alongside a next build; no Gradle or Xcode on this box (CI runs the iOS dry run and the APK build); proof via the screenshot harness into docs/redesign/proof/mobile-NN/ at phone and tablet sizes; device checks batched as a checklist for the owner (iPhone via SideStore, Android flagship); remove every ScreenId you finish from the skin's PENDING set; mobile/NN and web/NN with the same number are the same cluster. This step (stack-decision \u00a72.3, \u00a74 risk 6; cinematic \u00a715.4): one commit that changes no pixels, extracting features/reader/engine/ from features/reader/widgets/reader_content.dart (feed reconcile, restore, extents, prefetch, progress, auto-scroll, taps) into ReaderEngine (controller + Riverpod provider) with ReaderEngineState (current page and chapter, page count, progress fraction, neighbours, nextState, bookmarks, zoom, auto-scroll state and speed) and commands (seek, next, previous, toggle auto-scroll, set speed, zoom, bookmark), the next-chapter auto-queue and a chromeBuilder(context, ReaderEngineState) slot; ReaderScreen and SourceReaderScreen move onto it in the same commit; every existing reader test stays green (2012 tests baseline); the 120-page, 2,880 px webtoon device check written as a checklist; then separate no-pixel commits moving widget-held logic (download_chapter_state.dart and similar) into providers/ or utils/."
+  },
+  {
+   "path": "docs/redesign/prompts/shared/02-icon-sets-and-custom-glyphs.md",
+   "title": "Foundation: icon sets and custom glyphs for both skins",
+   "track": "shared",
+   "order": 6,
+   "group": 8,
+   "depends_on": [
+    "docs/redesign/prompts/shared/00-design-contract-and-token-generator.md"
+   ],
+   "scope": "Both skins' iconography from cinematic \u00a72.7 and glass \u00a72.7: Phosphor 2.1.x weights and sizes per role, and every custom glyph with its geometry. Deliver SVG masters in brand/cinematic/glyphs/ and brand/glass/glyphs/ (each custom glyph in every weight its skin uses); design/icons.json mapping each semantic role (back, close, follow, download, bell, certificate-18, age-gate and the rest named in both \u00a72.7 tables) to a Phosphor name + weight or a custom glyph per skin; brand/build-glyphs.mjs that emits typed React components into frontend/src/skins/{cinematic,glass}/icons/ and runs fantasticon 4.1.0 through npx to build mobile/assets/fonts/CineGlyphs.ttf and GlassGlyphs.ttf with generated Dart IconData classes in mobile/lib/skins/{cinematic,glass}/icons/; the glyph part of brand/check.mjs asserting every glyph in each \u00a72.7 exists in every required weight. Runtime wiring is web/01 and mobile/03."
+  },
+  {
+   "path": "docs/redesign/prompts/web/01-foundation-motion-deps-fonts-icons.md",
+   "title": "Web foundation: Motion 13, dependencies, fonts and icons for both skins",
+   "track": "web",
+   "order": 7,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/00-foundation-skin-engine-and-routes.md",
+    "docs/redesign/prompts/shared/02-icon-sets-and-custom-glyphs.md"
+   ],
+   "scope": "Per stack-decision \u00a73 and the ledgers cinematic \u00a715.11 and glass \u00a715.11: framer-motion 12 to motion 13.4.4 across the legacy code (imports from motion/react, no behaviour change); add exact pins @base-ui/react 1.8.0, embla-carousel-react 8.6.0, sonner 2.0.8, lenis 1.3.26, @use-gesture/react 10.3.1, @phosphor-icons/react 2.1.10 (in optimizePackageImports; /ssr in server components), fast-average-color 9.6.0; npm ci, npm ls --all clean and next build green; a vitest parity test of design/build.mjs's spring port against the installed motion (cinematic S13). Fonts: skins/cinematic/fonts.ts (Bodoni Moda display block + preload with opsz and italics, Archivo wdth, Newsreader opsz, IBM Plex Mono 400/500/600, per cinematic \u00a73.1 and \u00a715.2), skins/cinematic/reading-fonts.ts (the \u00a73.4 reading faces, loaded only by the novel reader layout or with Hyperlegible text on), skins/glass/fonts.ts (Google Sans Flex with ROND, GRAD and opsz axes, Google Sans Code, Literata preload false, Atkinson Hyperlegible Next preloaded only with legible=1, glass \u00a73.1 and \u00a715.2), Noto KR/JP/SC fallbacks with preload false; only the active skin's faces load (checked in the network log). Icons: an Icon component per skin reading design/icons.json and the generated glyph components from shared/02."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/01-foundation-skin-engine-and-restart.md",
+   "title": "Mobile foundation: Skin interface, AppRestart and the restart-to-switch mechanics",
+   "track": "mobile",
+   "order": 8,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/00-foundation-reader-engine-extraction.md",
+    "docs/redesign/prompts/shared/00-design-contract-and-token-generator.md",
+    "docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md"
+   ],
+   "scope": "Per stack-decision \u00a72.3\u20132.5 and cinematic \u00a78.0.7, \u00a78.30.3 (mechanics only), \u00a715.9 SKIN RESTART, \u00a715.10 S5/S12/S15: skins/skin.dart (enum SkinId cinematic, glass, legacy; Skin interface with theme, buildRouter, splash, haptics, sounds); skins/legacy/legacy_skin.dart wrapping today's app_router.dart and AppTheme unchanged; skins/cinematic and skins/glass skeleton skins whose routers cover every ScreenId through a PENDING map to one skin-neutral pending screen (debug row only, empty before release/00); app/app_restart.dart whose builder re-reads SkinBoot and feeds the return route into initialLocation; main.dart SkinBoot.read (SharedPreferences mm.skin.active, mm.skin.debug, mm.skin.return cleared after read); boot resolution steps 1\u20135 with a queued outbox PATCH winning over the server's profile.skin; switchSkin() (PATCH /profiles/{id} through the offline outbox, prefs, mm.skin.t0 timestamp, AppRestart, under 1.5 s to the new splash); downloads found in downloading state re-queued at startup; Settings \u2192 Diagnostics 'Edition (debug)' segmented LEGACY | CINEMATIC with the 200 ms fade restart; skins/contract.g.dart Routes adopted; test/skins/import_boundary_test.dart and test/skins/completeness_test.dart; android:enableOnBackInvokedCallback='true'. Legacy UI unchanged."
+  },
+  {
+   "path": "docs/redesign/prompts/shared/03-ui-sounds-and-soundscape-audio.md",
+   "title": "Foundation: UI sound sets and soundscape audio assets",
+   "track": "shared",
+   "order": 9,
+   "group": 8,
+   "depends_on": [
+    "docs/redesign/prompts/shared/01-glass-tokens-haptics-motion-names-contrast.md"
+   ],
+   "scope": "Reproducible audio for both skins: the Cinematic 'Press Room' cues (cinematic \u00a76) and the Glass 'Meniscus' cues (glass \u00a76), each synthesised from a recipe in design/sounds/recipes.json by design/sounds/render.mjs using sox 14.4.2 (install with sudo apt-get install -y sox; if that fails, the pure-Node WAV writer both ledgers name as fallback), exported to frontend/public/sounds/{cinematic,glass}/ as .ogg + .m4a and to mobile/assets/sounds/{cinematic,glass}/ as .wav, levels and durations exactly as each \u00a76 table; Cinematic's eight synthesised soundscape loops (cinematic \u00a79.4.2: projector-room, rain-on-glass, night-city, cafe, night-wind, low-drone, afternoon-park, temple-bells) into backend/media/soundscapes/ as ogg + m4a with seamless loop points and SOURCES.md recording each command line; the intake for Glass's 18 recorded layers (glass \u00a79.4.2 and \u00a712.7: {scene}-{bed|detail|tone}, owner-picked CC0 freesound files): backend/media/soundscapes/glass/, a SOURCES.md template with URL and licence per file, and design/sounds/trim-loop.mjs that trims, loops and normalises whatever the owner drops in, with a check that lists missing files by name. Glass's procedural layers stay code (web/44, mobile/44)."
+  },
+  {
+   "path": "docs/redesign/prompts/web/02-foundation-restart-haptics-sound.md",
+   "title": "Web foundation: restart-to-switch, first-paint accessibility, haptics and sound",
+   "track": "web",
+   "order": 10,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/01-foundation-motion-deps-fonts-icons.md",
+    "docs/redesign/prompts/shared/01-glass-tokens-haptics-motion-names-contrast.md",
+    "docs/redesign/prompts/shared/03-ui-sounds-and-soundscape-audio.md"
+   ],
+   "scope": "Per stack-decision \u00a72.4\u20132.5, cinematic \u00a78.0.7, \u00a78.30.3 (mechanics), \u00a715.2 service worker, \u00a715.9, \u00a715.10 S5/S6/S12 and glass \u00a715.5 keys, \u00a715.10 G4/G5: features/skin/switchSkin() doing the awaited PATCH /profiles/{id} {skin} (1,000 ms timeout, then undo with an error toast), the mm-skin cookie (Path=/; Max-Age=31536000; SameSite=Lax; Secure), sessionStorage mm.skin.return, mm.skin.t0 and the per-skin splash flag mm.skin.splash.<skin>; service worker messages {type:'skin'} on boot and {type:'skin-changed'} on a switch, public/sw.js storing the skin in the mm-sw-meta cache, dropping the pages cache and re-fetching saved chapter documents, offline-fallback-cinematic.html and offline-fallback-glass.html; boot resolution steps 1\u20135 reading the debug override first; the pre-flip debug row at /settings/diagnostics?debug=1 (sessionStorage mm.debug) with LEGACY | CINEMATIC and its 200 ms fade restart; appearance-boot-source.ts stamping data-motion, data-legible, data-solid and data-contrast from the profile's scoped mm.boot.a11y before paint; skins/cinematic/haptics.ts (the five navigator.vibrate events of cinematic \u00a75) and skins/glass/haptics.ts (the seven of glass \u00a75.2), both skipped when localStorage mm.haptics is off; skins/{cinematic,glass}/sounds.ts Web Audio loaders for the shared/03 cues (decode on first gesture, off by default per profile, suppressed while narration or a soundscape plays); the motion-timings recorder core (ring buffer of 200 entries and the SKIN RESTART entry)."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/02-foundation-native-plugins-haptics-sound.md",
+   "title": "Mobile foundation: isolated native-plugin commit, haptics channel and sound layer",
+   "track": "mobile",
+   "order": 11,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/01-foundation-skin-engine-and-restart.md",
+    "docs/redesign/prompts/shared/01-glass-tokens-haptics-motion-names-contrast.md",
+    "docs/redesign/prompts/shared/03-ui-sounds-and-soundscape-audio.md"
+   ],
+   "scope": "Per cinematic \u00a75, \u00a76, \u00a715.3, \u00a715.10 S14, \u00a715.11 and glass \u00a75, \u00a715.3 native notes: one isolated pubspec commit with every native plugin (haptic_feedback 0.6.5, gaimon 1.5.0, flutter_soloud 4.1.7 for both skins, because glass \u00a715.11's 5.1.4 cannot resolve on Flutter 3.44.6 with meta 1.18.0; share_plus 12.0.2 for both skins, because 13.x needs win32 ^6; audio_service 0.18.19, sensors_plus 7.1.0, flutter_dynamic_icon_plus 1.4.1) plus the pure-Dart stack packages (flutter_animate 4.5.2, swipeable_page_route 0.4.8, custom_refresh_indicator 4.0.2, flutter_reorderable_grid_view 5.7.0, phosphor_flutter 2.1.0); a flutter build apk --release job added to .github/workflows/tests.yml next to the iOS dry run, and CI green before anything uses them (fallback per ledger row, never dependency_overrides); audio_service wiring (MainActivity extends AudioServiceActivity, AudioService service, MediaButtonReceiver, the two foreground-service permissions, AudioService.init once in main); skins/skin_haptics.dart mapping HapticEvent to pattern names to haptic_feedback, gaimon AHAP from mobile/assets/haptics/ or the one mm/platform method channel (haptics.* in AppDelegate.swift with intensity and in MainActivity.kt performHapticFeedback constants behind SDK checks), honouring the per-profile haptics toggle; skins/skin_audio.dart: flutter_soloud init, the shared/03 cue sets declared under flutter: assets, the iOS State A ambient session re-applied after init, off by default, suppressed during narration or a soundscape."
+  },
+  {
+   "path": "docs/redesign/prompts/web/03-foundation-reader-seam-limiter-proof.md",
+   "title": "Web foundation: reader engine seam, request limiter and the proof harness",
+   "track": "web",
+   "order": 12,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/00-foundation-skin-engine-and-routes.md",
+    "docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md"
+   ],
+   "scope": "Pixel-free shared data-layer work every cluster needs (cinematic \u00a715.4, \u00a715.6; glass \u00a715.4): features/reader/useReaderEngine() and a renderChrome(state) slot over today's strip, preload, scrub and progress code, exposing the base state fields (current page and chapter, page count, progress, neighbours, nextState, bookmarks, zoom, auto-scroll state and speed) and commands (seek, next, previous, toggle auto-scroll, set speed, zoom, bookmark, jumpToPage), the next-chapter auto-queue owned by the engine, the legacy reader moved onto it with npm run verify:reader and every existing reader test green; the sources request limiter of cinematic \u00a715.6 in features/sources/ (sliding window of 50 starts per 60 s, priorities P0\u2013P3, 150 ms hover dwell, P3 only with 20 or more free slots and 2 in flight, 429 Retry-After pauses) with a vitest; coverTransitionName() (cover- + 8-hex FNV-1a of sourceId + U+0000 + seriesKey) in features/; frontend/scripts/proof.mjs (Playwright headless chromium with a named session) that signs in to the backend/00 dev stack (uvicorn 127.0.0.1:8010, next dev on port 3010), sets the skin through the mm-skin-debug cookie, captures a route list at 1440x900 and 390x844 (and 440x956 at DPR 3 on request) into docs/redesign/proof/<step>/, with an optional grid-overlay flag."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/03-foundation-fonts-icons-harness-glass-gate.md",
+   "title": "Mobile foundation: fonts, icons, screenshot harness, request limiter and the Glass device gate",
+   "track": "mobile",
+   "order": 13,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/02-foundation-native-plugins-haptics-sound.md",
+    "docs/redesign/prompts/shared/02-icon-sets-and-custom-glyphs.md"
+   ],
+   "scope": "Bundled fonts for both skins in pubspec (Bodoni Moda, Archivo, Newsreader, IBM Plex Mono, the reading faces of cinematic \u00a73.4, a GoogleSansFlexMM subset with ROND and GRAD, Google Sans Code, Literata + italic, Atkinson Hyperlegible Next) with every OFL.txt registered through LicenseRegistry (cinematic \u00a73.1, glass \u00a73.1, \u00a715.3); icons: phosphor_flutter plus the CineGlyphs and GlassGlyphs fonts and generated IconData from shared/02 behind one Icon-role widget per skin; the screenshot harness (test/screenshots/marketing_screenshots_test.dart looped over both skins at phone 390x844 and tablet sizes, fake providers, writing into docs/redesign/proof/); the sources request limiter of cinematic \u00a715.6 in core/network/ with a test; the Glass device gate of stack-decision \u00a71: liquid_glass_widgets 1.7.2 pinned exactly in its own isolated commit, LiquidGlassWidgets.initialize() before runApp, a Diagnostics-only demo of the floating tab bar plus a detented sheet over a scrolling rail, an owner checklist for 120 Hz on the iPhone (CI IPA via SideStore) and the Android flagship, and the decision (liquid engine, or BackdropFilter + BackdropGroup frost with a painted rim) recorded in docs/redesign/proof/mobile-03/glass-gate.md for mobile/25."
+  },
+  {
+   "path": "docs/redesign/prompts/backend/01-cover-ambient-and-palette.md",
+   "title": "Backend: cover ambient colours and palettes",
+   "track": "backend",
+   "order": 14,
+   "group": 7,
+   "depends_on": [
+    "docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md"
+   ],
+   "scope": "Per cinematic \u00a72.1.5, \u00a715.5 and glass \u00a72.1.8, \u00a715.5, \u00a715.10 G6: one Pillow pass in the cover proxy's resize path, run the first time a cover URL is served at any width and cached with it, computing ambient {duo, tint, ink} (Cinematic, colorsys) and palette {a: [hex, hex, hex], l} (Glass, median cut on w=96), stored in a new cover_palette table with a 30-day TTL; exposed on SourceSeries, FollowedSeries, continue-reading rows and search/browse rows (null until the cover has been served once; list, search and browse never fetch a cover to fill it), and on WorldItem through a background AniList-cover fetch through the same extractor limited to 20 per minute; the image proxy does no analysis of chapter pages; backend/tests/test_ambient.py: ambient.ink at least 7:1 on #000000 over 360 hues, the greyscale rules, TTL expiry, WorldItem 18+ gating on serve."
+  },
+  {
+   "path": "docs/redesign/prompts/shared/04-brand-cinematic-and-platform-icons.md",
+   "title": "Brand: Cinematic masters, shared platform icons, splash frame and demo art",
+   "track": "shared",
+   "order": 15,
+   "group": 8,
+   "depends_on": [
+    "docs/redesign/prompts/shared/02-icon-sets-and-custom-glyphs.md"
+   ],
+   "scope": "Per cinematic \u00a712.1\u201312.7 and glass \u00a712.3 (shared native frame): brand/cinematic/ SVG masters (masthead wordmark from Bodoni Moda outlines with the Oxford rule, stacked lockup, the mm-mark monogram with the spot intersection on the 1024 canvas, single-colour versions, the simplified favicon pair, ic_stat_mm); brand/cinematic/export.mjs (@resvg/resvg-js 2.6.2 via npx) rendering the iOS 1024 opaque master plus iOS 18 dark and tinted, Android adaptive foreground, #000000 background and monochrome layer, ic_stat_mm at 24/36/48/72/96 px into mobile/android/app/src/main/res/drawable-*/, frontend/public favicon.svg, favicon.ico (16, 32), icon-192, icon-512, maskable-512, apple-touch-icon 180, the four black iOS PWA startup images (1290x2796, 1179x2556, 1170x2532, 2048x2732) and og.png 1200x630 (\u00a712.6 layout; its UI capture is replaced in web/24); flutter_launcher_icons 0.14.4 and flutter_native_splash 2.4.8 config in mobile/pubspec.yaml for the plain #000000 native frame (Android 12 transparent 288x288 icon) with the generated native files; CFBundleDisplayName and the launcher android:label 'Maniacs'; frontend/src/app/manifest.ts per cinematic \u00a715.2 (name ManhwaManiacs, short_name Maniacs, id, start_url and scope '/', standalone, #000000, no orientation key); Bodoni Moda and Archivo woff2 subsets into backend/media/fonts/ for the install page; procedural demo art made only from shapes and type by brand/demo/make-demo.mjs: 24 demo covers (2:3, 720x1080 WebP, invented titles, 6 warm, 6 cool, 4 dark, 4 pale, 4 greyscale incl. 2 white-dominant) and 40 demo webtoon pages (800 px wide, speech bubbles, 2 all-white panels, 2 near-black splash pages) for previews, screenshots and the edition preview fixture; brand/check.mjs sizes, iOS alpha and safe-circle checks; the SideStore source fields of \u00a712.3 written to brand/cinematic/sidestore.md for release/00. The splash choreography is code in web/06 and mobile/06."
+  },
+  {
+   "path": "docs/redesign/prompts/shared/05-brand-glass-and-art-intake.md",
+   "title": "Brand: Glass masters, the alternate icon and the art intake",
+   "track": "shared",
+   "order": 16,
+   "group": 8,
+   "depends_on": [
+    "docs/redesign/prompts/shared/04-brand-cinematic-and-platform-icons.md"
+   ],
+   "scope": "Per glass \u00a712.1\u201312.7: brand/glass/ SVG masters (the stacked 'MM column' wordmark with the meniscus gutter bar on the 1024 geometry, single-line fallback, the neutral mark, the favicon silhouette, the field with the three aurora blobs at the listed centres and radii, the three icon slabs bottom-m, gutter-bar and top-m, the droplet texture); brand/glass/export.mjs rendering the Glass alternate icon sets (iOS 1024 opaque + iOS 18 dark and tinted; Android adaptive field, flattened foreground inside the 66 dp circle, monochrome) and the Icon Composer bundle mobile/ios/Runner/AppIcon-Glass.icon/ (icon.json + Assets/ layers, compiled by actool in CI); the alternate-icon registration assets for flutter_dynamic_icon_plus 1.4.1 (iOS CFBundleAlternateIcons 'GlassIcon'; Android activity-aliases .CinematicIcon and .GlassIcon labelled Maniacs) kept unregistered while glass_available is false; frontend/public/favicon-glass.svg for the per-skin link swap; brand/check.mjs extended (sizes, alpha, 66 dp and PWA 40 % safe circles); the art intake for the owner: brand/onboarding/styles/ with the exact brief of the nine art-style crops (320x320 WebP under 40 KB, one subject, nine styles, CC0 or own work, no named-artist imitation) and a check that names each missing file. Skin preview loops are captured later by the harness (web/39, mobile/39)."
+  },
+  {
+   "path": "docs/redesign/prompts/web/04-cinematic-primitives-core-and-reveals.md",
+   "title": "Web Cinematic primitives 1: core components and the two signature reveals",
+   "track": "web",
+   "order": 17,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/02-foundation-restart-haptics-sound.md",
+    "docs/redesign/prompts/web/03-foundation-reader-seam-limiter-proof.md"
+   ],
+   "scope": "frontend/src/skins/cinematic/primitives/ with every state (default, hover, pressed, focus-visible, disabled, loading, selected, error) and its reduced-motion variant: cinematic \u00a77.1 buttons, \u00a77.2 icon buttons (44 px targets), \u00a77.3 inputs, \u00a77.4 search fields, \u00a77.5 chips ('slug lines'), \u00a77.6 cards, \u00a77.7 posters (duotone, badges, the 16 px certificate), \u00a77.8 rails (native scroll-snap, virtualised beyond 30), \u00a77.17 skeletons ('galley proofs'), \u00a77.18 progress and loading, \u00a77.19 badges, \u00a77.25 avatars, \u00a77.26 keycaps (\u232b on Mac, Del elsewhere), \u00a77.27 masthead block and section header, \u00a77.28 layout primitives (Grid with 4/8/12 columns and the 4 px baseline, the mod+shift+g grid overlay); the required signature animations exactly as \u00a710.1 (SetHeading: per-letter fade + slide up + un-blur, stagger capped at 560 ms, smooth colour on hover and state, where it plays and where not) and \u00a710.2 (TypedHeadline at one character every 50 ms, caret, skip on tap or key, the Playwright check); motion.ts play() for the \u00a74.5 moves these use and motion.css; Grain.tsx with assets/grain.png from design/make-grain.mjs; duotone.tsx; tint.ts with the 1,440-case contrast test (\u00a72.1.5); a dev-only primitives gallery under app/(preview)/ used for proof screenshots."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/04-cinematic-primitives-core-and-reveals.md",
+   "title": "Mobile Cinematic primitives 1: core components and the two signature reveals",
+   "track": "mobile",
+   "order": 18,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/03-foundation-fonts-icons-harness-glass-gate.md"
+   ],
+   "scope": "The same component list and states as web/04 (cinematic \u00a77.1\u20137.8, \u00a77.17\u20137.19, \u00a77.25\u20137.28) as Flutter widgets in lib/skins/cinematic/primitives/ on CineTokens: CineButton, icon buttons (44 pt), inputs with the right keyboard types, search field, slug-line chips, cards, CinePoster (duotone.dart ColorFilter.matrix, badges), CineRail (virtualised beyond 30), skeletons, progress, badges, avatars, keycaps for hardware keyboards, masthead and section header, Grid with phone 4 and tablet 8 columns and the Diagnostics grid overlay; SetHeading per \u00a710.1.6 (one AnimationController per heading, no package, set_heading_test.dart) and TypedHeadline per \u00a710.2.4; CineMotion.play and motion_timings.dart (Settings \u2192 Diagnostics 'Show motion timings'); shaders/grain.frag declared under flutter: shaders; tint.dart with test/skins/cinematic/tint_test.dart; the skin ScrollBehavior (ClampingScrollPhysics + StretchingOverscrollIndicator); Dynamic Type and font scale per \u00a73.3; a Diagnostics-only primitives gallery for the harness."
+  },
+  {
+   "path": "docs/redesign/prompts/backend/02-library-series-ocr-extensions.md",
+   "title": "Backend: library, collections, tags, series enrichment and OCR boxes",
+   "track": "backend",
+   "order": 19,
+   "group": 7,
+   "depends_on": [
+    "docs/redesign/prompts/backend/01-cover-ambient-and-palette.md"
+   ],
+   "scope": "The rows of cinematic \u00a715.5 the library, series and discover clusters need: POST /reader/progress/batch items accept manual: true (saved without record_session); DELETE /reader/progress {source_id, series_key, chapter_keys[] up to 200} returning 204; POST /library/series/{followed_id}/repoint {source_id, series_key, keep_old} returning {followed, mapped_chapter_key, mapped_chapter_number | null} (progress mapped by chapter number, migrated_from_* filled when repointing); collections gain rules (null or {all: [{field, op, value}]}, smart = rules != null, stored only) on POST, PATCH and both GETs, and list rows gain preview_covers (up to 4) and preview_ambient_duo; FollowedSeries list rows carry tags; GET /library/series gains tag_ids= (any-of), sort=last_read_at, -last_read_at, -new_count and new_only=true evaluated server-side over the whole library; PATCH /library/tags/{id} {name?, color?}; GET /series/enrichment?source&series returning {anilist_id, format, score, official: [{site, url}]} | null (AniList match by title and alternate titles, cached 30 days, 18+ gated on serve); /ocr/search items gain page and box {x, y, w, h} in page fractions of the first matching OCR box, or null. Tests for each, incl. profile isolation and gate-closed absence."
+  },
+  {
+   "path": "docs/redesign/prompts/web/05-cinematic-primitives-overlays-controls-states.md",
+   "title": "Web Cinematic primitives 2: overlays, controls, lists and states",
+   "track": "web",
+   "order": 20,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/04-cinematic-primitives-core-and-reveals.md"
+   ],
+   "scope": "Cinematic primitives on Base UI 1.8.0 dressed with the tokens: \u00a77.9 sheets (Drawer; Rise), \u00a77.10 dialogs (Insert clip), \u00a77.11 toasts 'subtitles' (sonner 2.0.8 queue, Alt+T region, holds pause on focus), \u00a77.12 contents tabs, \u00a77.16 lists and rows (row menus, select mode, reorder with Motion Reorder), \u00a77.20 sliders and the scrubber, \u00a77.21 toggles, checkboxes, radios and steppers, \u00a77.22 menus and context menus, \u00a77.23 notices (empty, error, offline), \u00a77.24 the certificate mark and certificate dialog shell (the gate flow is web/07), \u00a77.29 other primitives (pull to reprint), \u00a77.30 Lightbox (pinch through @use-gesture/react), destructive confirms with the 1,000 ms arm; every state, keyboard access (Esc, arrows, Home/End, typeahead in menus), focus return, reduced motion; the primitives gallery extended."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/05-cinematic-primitives-overlays-controls-states.md",
+   "title": "Mobile Cinematic primitives 2: overlays, controls, lists and states",
+   "track": "mobile",
+   "order": 21,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/04-cinematic-primitives-core-and-reveals.md"
+   ],
+   "scope": "The same list as web/05 (cinematic \u00a77.9\u20137.12, \u00a77.16, \u00a77.20\u20137.24, \u00a77.29, \u00a77.30) in Flutter: CineSheet pushed as CineSheetRoute<T> extends PageRoute<T> in primitives/sheet_route.dart (opaque false, barrierColor scrimModal, barrierDismissible true; Android back and iOS swipe-down close), CineDialog over a RawDialogRoute with the Insert clip, toasts, contents tabs, rows with row menus, select and reorder modes (flutter_reorderable_grid_view 5.7.0 for walls), sliders and the scrubber, toggles, checkboxes, radios, steppers, menus and context menus, notices, the certificate mark and dialog shell, pull to reprint (custom_refresh_indicator 4.0.2), Lightbox (Hero + InteractiveViewer), the 1,000 ms destructive arm; each wired to its \u00a75 haptic event; widget tests for the arm and the sheet route."
+  },
+  {
+   "path": "docs/redesign/prompts/backend/03-stats-streaks-annual-listen-sessions.md",
+   "title": "Backend: statistics, streaks, the Annual and listen sessions (new feature 2)",
+   "track": "backend",
+   "order": 22,
+   "group": 7,
+   "depends_on": [
+    "docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md"
+   ],
+   "scope": "Per cinematic \u00a79.2.7, \u00a715.5 and glass \u00a79.2, \u00a715.5, \u00a715.6: the one streak object {current_days, longest_days, at_risk, last_active_date, milestones_seen} on GET /library/statistics (with tz_offset_minutes) and reused by /home; POST /library/statistics/milestones/{days}/seen returning 204; POST /reader/progress answers with streak {current_days, extended_today} and today_seconds (seconds read today in the profile's offset) beside advanced; GET /library/annual?year=&tz_offset_minutes= with available_years, totals, top series, top_voices [{voice_id, name, seconds}], busiest_day {date, chapters, series}, firsts_lasts {first, last}, and shareable {genre_weights, top_series, art_series} computed only from series that are not mature (source not mature and resolved rating not mature after mature_override), the same shareable block on the range payload behind The Numbers' Share; POST /novels/listen-sessions (array up to 200 of {source_id, series_key, chapter_key, seconds, voice_ids up to 3, started_at}); a per-profile composed cache for /library/annual keyed (profile_id, mature_content_enabled, year, tz). Tests: streaks across timezone midnights, at_risk, milestone once per profile, shareable never contains a mature title, cover or genre."
+  },
+  {
+   "path": "docs/redesign/prompts/web/06-cinematic-shell-navigation-transitions.md",
+   "title": "Web Cinematic shell, navigation, transitions, overlays and the Press start splash",
+   "track": "web",
+   "order": 23,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/05-cinematic-primitives-overlays-controls-states.md",
+    "docs/redesign/prompts/shared/04-brand-cinematic-and-platform-icons.md"
+   ],
+   "scope": "Cinematic frame per \u00a78.0.1\u20138.0.9 and \u00a715.2: Shell.tsx with the Contents sidebar \u00a77.15 (248 px, the 72 px spine at 768\u20131279, 8 columns at 768\u20131023, the under-500 px height rule), running head \u00a77.13 (56 desktop, 44 phone), thumb index \u00a77.14 (56; Tonight \u00b7 Library \u00b7 Discover \u00b7 Downloads \u00b7 Index, the unread badge on Library), toast host, stop-press banner \u00a78.33.3, first-run note \u00a78.33.4, offline badge and rating card host \u00a78.33.5; transitions of \u00a78.0.4 through ViewTransition (nav-forward and nav-back types on Link and router.push, page wrapper classes, popstate none, match cut on coverTransitionName, Cut + Set + Folio flip on phones, Dip 160/40/240 on desktop), ColumnWipe and Iris overlays that await their close before router.push; global keys \u00a78.0.6 (mod+k, mod+b, ?, /, Alt+T, the g-sequence with its 1,500 ms and 600 ms rules, Esc, mod+shift+g, mod+shift+m) and the long-press rules for mobile web; command palette 'Index' \u00a78.33.1 and the keyboard sheet \u00a78.33.2; status screens \u00a78.32 (in-frame 404, route error, root error, offline fallback); the 'no longer available' notice \u00a78.0.10; content mode \u00a78.0.8; Splash.tsx 'Press start' per \u00a712.4 (0\u20131,180 ms choreography, 220 ms hand-off, warm fade, reduced-motion fade, splash flag) from the shared/04 masters with the per-skin favicon link; the motion-timings overlay \u00a715.9; Lenis only on Tonight and The Annual."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/06-cinematic-shell-navigation-transitions.md",
+   "title": "Mobile Cinematic shell, router, transitions, overlays and the Press start splash",
+   "track": "mobile",
+   "order": 24,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/05-cinematic-primitives-overlays-controls-states.md",
+    "docs/redesign/prompts/shared/04-brand-cinematic-and-platform-icons.md"
+   ],
+   "scope": "Cinematic frame per cinematic \u00a78.0 and \u00a715.3: router.dart with the StatefulShellRoute.indexedStack branches of \u00a78.0.3 (nested Library hub, static /library/... paths before /library/:followedId, mobile aliases, root-navigator routes), SwipeablePage on iOS (edge only, 20 pt, 320/224 ms and 480/336 ms for match cuts, the finger-tracked slide) and CinePageTransitionsBuilder + CineMatchCutPage in transitions.dart on Android (Page for button pops, the predictive-back fade-through), the modal back order and PopScope rules of \u00a78.0.5, system bars and edge-swipe rules, shell.dart with the thumb index, the running head (44 iOS, 48 Android, plus the top inset), toast overlay host and stop-press banner, tablet and landscape rules \u00a78.0.9, status screens \u00a78.32, global overlays \u00a78.33 (the web key map on iPad and Android keyboards through Shortcuts/Actions), the unavailable notice \u00a78.0.10, content mode, the splash 'Press start' \u00a712.4 fading in from the black native frame, the Column wipe / Dip / Iris route builders, the motion-timings overlay."
+  },
+  {
+   "path": "docs/redesign/prompts/backend/04-ai-home-composition.md",
+   "title": "Backend: GET /home composition for the AI home (new feature 1, part 1)",
+   "track": "backend",
+   "order": 25,
+   "group": 7,
+   "depends_on": [
+    "docs/redesign/prompts/backend/01-cover-ambient-and-palette.md",
+    "docs/redesign/prompts/backend/03-stats-streaks-annual-listen-sessions.md"
+   ],
+   "scope": "Per cinematic \u00a78.8, \u00a79.1.1, \u00a79.1.2, \u00a79.1.7, \u00a79.1.8, \u00a715.5 and glass \u00a79.1.1, \u00a79.1.6: GET /home?content_kind=manga|novel&tz_offset_minutes= composing the section types and generated_at of cinematic \u00a79.1.7 (the cover story with its headline, continue, where_were_we, recently updated, because_you_read, world picks, the numbers item reusing the streak object, also[]), recap availability on cover, continue and where_were_we items and on GET /library/continue-reading rows, the new-profile fallback to the 3 healthiest non-18+ sources when a profile has no pins, AI calls only through the existing external-API client (capabilities \u00a79) with the shared AI state vocabulary and a deterministic non-AI fallback per section; a per-profile composed cache keyed (profile_id, mature_content_enabled, content_kind); the circle sections are added by backend/08. Tests: a gate change recomposes with a valid cover story, an AI outage still returns ready non-AI sections with the AI ones marked unavailable, isolation."
+  },
+  {
+   "path": "docs/redesign/prompts/web/07-cinematic-auth-profiles-18plus.md",
+   "title": "Web Cinematic login, register, profiles and the 18+ gate",
+   "track": "web",
+   "order": 26,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/06-cinematic-shell-navigation-transitions.md",
+    "docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md"
+   ],
+   "scope": "Cinematic \u00a78.2 splash as AuthPending, \u00a78.3 login (web L1\u2013L9), \u00a78.4 register (RG1\u2013RG5), \u00a78.5 profile picker 'Who's reading tonight?' (P1\u2013P8, the Iris into the shell, the boot-time skin-mismatch restart inside the profile-entry transition, Switch profile as a pushed takeover), \u00a78.6 profile form and Manage profiles (PF1\u2013PF8, PM1\u2013PM8; the Skin row hidden while glass_available is false), every element of web inventory \u00a73\u20134 and all states; the 18+ gate end to end: the certificate dialog from Settings \u2192 Content and the profile form (\u00a77.24 checkbox, Enable 18+, the stamp, gate.confirm haptic, invalidation of every mature-gated query), turning off with its toast, the rating card, absence never a lock, and features/offline/mature-filter.ts filtering every local store (service-worker download index and page cache entries, offline follow cache, bookmark store and outbox, offline Tonight and Library payloads) with queued downloads pausing silently; the 18+ on-device checklist of \u00a715.7."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/07-cinematic-auth-profiles-18plus.md",
+   "title": "Mobile Cinematic setup, login, register, profiles and the 18+ gate",
+   "track": "mobile",
+   "order": 27,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/06-cinematic-shell-navigation-transitions.md",
+    "docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md"
+   ],
+   "scope": "The same scope as web/07 on Flutter (mobile S02\u2013S07) plus cinematic \u00a78.1 Setup (S01: server address, URL keyboard, IME go, HTTPS rule in release builds, the underline-to-Oxford-rule signature moment); the 18+ gate end to end with features/downloads/utils/mature_filter.dart over sqflite download rows (series and chapter), the offline bookmark store and outbox, the offline follow cache, the progress outbox and saved narration audio, re-stamped when mature_override changes; queued or running downloads of a hidden series pause silently."
+  },
+  {
+   "path": "docs/redesign/prompts/backend/05-ai-similar-recap-taste-onboarding.md",
+   "title": "Backend: similar, recaps, feedback, taste and onboarding catalogue (new feature 1, part 2)",
+   "track": "backend",
+   "order": 28,
+   "group": 7,
+   "depends_on": [
+    "docs/redesign/prompts/backend/04-ai-home-composition.md"
+   ],
+   "scope": "Per cinematic \u00a79.1.3\u20139.1.8, \u00a78.7, \u00a715.5 and glass \u00a79.1, \u00a715.5, \u00a715.6: GET /ai/similar (source + series, or anilist_id; fallback=genres returns items with why null and basis 'genres', restricted to the profile's sources), GET /ai/recap/availability, GET /ai/recap as SSE with the cinematic \u00a79.1.7 framing (shape=prose, default) plus glass shape=deck and scope=series|chapter with the section, delta, phase and done events carrying model and covered_through, GET /ai/tags, POST /ai/feedback (liked, not_interested, clear), PUT /profiles/{id}/taste {formats, genres, styles, seeds, step}, GET /onboarding/catalog?formats=&genres=&styles=, POST /library/taste/seed {formats, genres, styles} returning 24 SourceSeries (18+ filtered), GET /library/world/recommendations?genre=; per-series caches (/ai/similar, /ai/tags, /series/enrichment) gate 18+ on serve. Tests with the AI client mocked: SSE framing, a recap never covers past covered_through, the fallbacks, 18+ absence."
+  },
+  {
+   "path": "docs/redesign/prompts/web/08-cinematic-tonight.md",
+   "title": "Web Cinematic Tonight (home)",
+   "track": "web",
+   "order": 29,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/07-cinematic-auth-profiles-18plus.md",
+    "docs/redesign/prompts/backend/04-ai-home-composition.md",
+    "docs/redesign/prompts/backend/01-cover-ambient-and-palette.md"
+   ],
+   "scope": "Cinematic Tonight at / per \u00a78.8, \u00a79.1.1, \u00a79.1.2: the cover story spread with the TypedHeadline (50 ms per character) and selection rules, the trailer scrub (transform and opacity only), continue reading (web LS4\u2013LS5), recently updated, Also in this issue (embla pager on phones), world picks, Because you read rails, the numbers teaser with the streak flame mark, the Coming up band, the novel-mode title page (\u00a78.0.8), the Saved on this device offline edition, SetHeading on section headers, loading, empty, new-profile, AI-unavailable and offline states (\u00a79.1.6, \u00a79.1.8), Lenis on desktop only, keys; data through a features/home/ hook (useHomeFeed) that both skins share."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/08-cinematic-tonight.md",
+   "title": "Mobile Cinematic Tonight (home)",
+   "track": "mobile",
+   "order": 30,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/07-cinematic-auth-profiles-18plus.md",
+    "docs/redesign/prompts/backend/04-ai-home-composition.md",
+    "docs/redesign/prompts/backend/01-cover-ambient-and-palette.md"
+   ],
+   "scope": "The same scope as web/08 on Flutter (cinematic \u00a78.8, \u00a79.1.1\u20139.1.2; mobile S08 continue strip): the trailer scrub relayouting one pinned sliver header, the pagers, the tablet layout of \u00a78.0.9, and a features/home/ homeFeedProvider shared by both skins."
+  },
+  {
+   "path": "docs/redesign/prompts/backend/06-reader-tints-panels-novel-audio.md",
+   "title": "Backend: page tints, panel reports and novel audio fields",
+   "track": "backend",
+   "order": 31,
+   "group": 7,
+   "depends_on": [
+    "docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md"
+   ],
+   "scope": "Per cinematic \u00a72.1.5, \u00a79.4.3, \u00a78.16.5, \u00a78.16.8, \u00a715.5, \u00a715.10 S1/S11 and glass \u00a715.5 (the prompt records the S1/S11/G6 sign-off as a precondition): POST /reader/page-tints {source_id, series_key, chapter_key, tints: [{page, hex}]} returning 204, stored per page ETag, unknown pages ignored, and pages[].tint in manifests; POST /reader/panels {source_id, series_key, chapter_key, pages: [{page, panels}]} stored per page ETag, pages[].panels in manifests, GET /reader/panels and panels_ready; the image proxy does no image analysis; GET /novels/audio/series gains chapters[].rendered_at and cast_changed_at (latest POST /novels/cast, /novels/cast/alias or /novels/narrator for the book); narrate requests accept force for already narrated keys. Tests for each, incl. profile scoping and 18+ gating."
+  },
+  {
+   "path": "docs/redesign/prompts/web/09-cinematic-library-shelf-browse.md",
+   "title": "Web Cinematic Library shelf and browse",
+   "track": "web",
+   "order": 32,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/08-cinematic-tonight.md",
+    "docs/redesign/prompts/backend/02-library-series-ocr-extensions.md"
+   ],
+   "scope": "Cinematic \u00a78.9 and \u00a78.9.1: the shelf (web LS1\u2013LS12, LB1\u2013LB26), /library/browse with the toolbar open (phones open the Filters sheet once), wall and list views on @tanstack/react-virtual, sorts incl. Recently read, Most unread and NEW ONLY (server-side), filters, the tag filter and tag sheet, favourites, bulk select and bulk actions (BA1\u2013BA10), manual order, the book list for novels mode, the Library hub contents tabs SHELF \u00b7 UPDATES \u00b7 COLLECTIONS \u00b7 HISTORY \u00b7 BOOKMARKS as separate routes with no back arrow, featureByFollow rendering the feature in place, keys 1\u20137, offline and gate states."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/09-cinematic-library-shelf-browse.md",
+   "title": "Mobile Cinematic Library shelf and browse",
+   "track": "mobile",
+   "order": 33,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/08-cinematic-tonight.md",
+    "docs/redesign/prompts/backend/02-library-series-ocr-extensions.md"
+   ],
+   "scope": "The same scope as web/09 on Flutter (cinematic \u00a78.9, \u00a78.9.1; mobile S08, S09, M1): the nested hub branch with the five tabs as branch roots, Android back from a non-SHELF tab to SHELF then Tonight, walls on SliverGrid with manual order via flutter_reorderable_grid_view, sorts, filters, tags, bulk actions, featureByFollow, offline and gate states."
+  },
+  {
+   "path": "docs/redesign/prompts/backend/07-media-routes-and-install-page.md",
+   "title": "Backend: soundscape and font routes, and the new install page",
+   "track": "backend",
+   "order": 34,
+   "group": 7,
+   "depends_on": [
+    "docs/redesign/prompts/shared/03-ui-sounds-and-soundscape-audio.md",
+    "docs/redesign/prompts/shared/04-brand-cinematic-and-platform-icons.md"
+   ],
+   "scope": "Per cinematic \u00a79.4.2, \u00a78.34, \u00a715.5 and glass \u00a79.4.2, \u00a712.6: GET /app/soundscapes/{id}.{ext} (public under /app/*, the eight Cinematic ids, ogg or m4a, from backend/media/soundscapes/ or MM_SOUNDSCAPES_DIR, FileResponse with Range, Cache-Control public, max-age=31536000, immutable, anything else 404) and Glass's recorded layers at /app/soundscapes/glass/{scene}-{bed|detail|tone}.{ogg|m4a} (this reconciles glass \u00a715.5's /app/media/soundscapes/glass path with cinematic \u00a715.5's rule that /app/media/{name} serves screenshots only); GET /app/fonts/{file}.woff2 with an allowlist of the Bodoni Moda and Archivo subsets; the public install page (GET / with Accept text/html on the app subdomain, backend/routes/app_distribution.py) rebuilt skin-neutral in the Cinematic brand of \u00a78.34 with og.png and the new icons; ops/vps/docker-compose.yml checked so backend/media reaches the container. Tests: allowlists, traversal attempts 404, Range 206, cache headers."
+  },
+  {
+   "path": "docs/redesign/prompts/web/10-cinematic-updates-collections-history-bookmarks.md",
+   "title": "Web Cinematic Updates, Collections, History and Bookmarks",
+   "track": "web",
+   "order": 35,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/09-cinematic-library-shelf-browse.md"
+   ],
+   "scope": "Cinematic \u00a78.10 Updates (web UP1\u2013UP8, the following tab, mark all read, the admin aside), \u00a78.11 Collections and collection detail (CO1\u2013CO10, CD1\u2013CD12: plates from preview_covers, smart shelves whose rules are evaluated on the device, Reorder, the reversed match cut), \u00a78.12 History (RH1\u2013RH5, the log with its time margin), \u00a78.13 Bookmarks (BM1\u2013BM5, marked passages for both media), every state; then the re-estimate gate of stack-decision \u00a71: actual sessions for primitives + library vs stack-keep \u00a76, written to docs/redesign/proof/web-10/estimate.md with a proceed or reopen recommendation."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/10-cinematic-updates-collections-history-bookmarks.md",
+   "title": "Mobile Cinematic Updates, Collections, History and Bookmarks",
+   "track": "mobile",
+   "order": 36,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/09-cinematic-library-shelf-browse.md"
+   ],
+   "scope": "The same scope as web/10 on Flutter (cinematic \u00a78.10\u20138.13; mobile S23, G39, S24, S25, S13, S14), incl. the Hero-reversed match cut on iOS and the re-estimate note in docs/redesign/proof/mobile-10/estimate.md."
+  },
+  {
+   "path": "docs/redesign/prompts/backend/08-circle-core-sharing-presence.md",
+   "title": "Backend: Circle core, sharing, feed and presence (new feature 3, part 1)",
+   "track": "backend",
+   "order": 37,
+   "group": 7,
+   "depends_on": [
+    "docs/redesign/prompts/backend/04-ai-home-composition.md",
+    "docs/redesign/prompts/backend/03-stats-streaks-annual-listen-sessions.md"
+   ],
+   "scope": "Per cinematic \u00a79.3.1\u20139.3.2, \u00a79.3.6\u20139.3.8, \u00a715.5 and glass \u00a79.3, \u00a715.5, \u00a715.6: Circle tables and migration; GET and PATCH /profiles/{id}/sharing with every Cinematic switch plus show_presence (default off) and share_streak; the shareable activity set S(member, viewer) computed at serve time, honouring per-profile isolation, series hidden from Circle and the 18+ rule (a mature item reaches a viewer only when the member shares 18+ and the viewer's gate is open); GET /circle/members with now (null unless show_presence), last_active_at and streak when shared; GET /circle/members/{profile_id}; GET /circle/feed with reading and reaction filters; GET /circle/series; DELETE /circle/activity; the circle and circle_top sections on GET /home and every Circle-derived Annual figure (overlaps, WITH) computed from S; reciprocity per cinematic \u00a715.10 (a profile that shares nothing still sees sharers). Tests: isolation across accounts and profiles, the both-sided 18+ rule, presence privacy."
+  },
+  {
+   "path": "docs/redesign/prompts/web/11-cinematic-feature-and-book-pages.md",
+   "title": "Web Cinematic Feature page, Book page and chapter downloads",
+   "track": "web",
+   "order": 38,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/10-cinematic-updates-collections-history-bookmarks.md",
+    "docs/redesign/prompts/backend/02-library-series-ocr-extensions.md"
+   ],
+   "scope": "Cinematic \u00a78.17 manga Feature page (web SD1\u2013SD21, SS1\u2013SS18: the spread, credits with GET /series/enrichment, follow, the rating card, the mature_override radio menu, Mark read / Mark read up to here / Mark unread, Move to another source via repoint, contents tabs, At a glance, the Lightbox), \u00a78.18 novel Book page (NB1\u2013NB19), \u00a78.19 chapter selection and downloads on series pages (DP1\u2013DP7, SD14\u2013SD17, SS13\u2013SS16, NB12\u2013NB18: picker, ranges, per-chapter states), the match cut in and out, one series page for both the follow route and the source route, the unavailable notice, keys 1\u20134, every state. More like this and Previously on entry points are added in web/19."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/11-cinematic-feature-and-book-pages.md",
+   "title": "Mobile Cinematic Feature page, Book page and chapter downloads",
+   "track": "mobile",
+   "order": 39,
+   "group": 4,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/10-cinematic-updates-collections-history-bookmarks.md",
+    "docs/redesign/prompts/backend/02-library-series-ocr-extensions.md"
+   ],
+   "scope": "The same scope as web/11 on Flutter (cinematic \u00a78.17\u20138.19; mobile S10, S18, M2, N2, N3): Hero covers with transitionOnUserGestures on iOS and CineMatchCutPage on Android, the download picker writing to the existing sqflite store, mark read and unread, repoint, enrichment credits, mature_override, the tablet spread of \u00a78.0.9."
+  },
+  {
+   "path": "docs/redesign/prompts/backend/09-circle-reactions-letters-shelves.md",
+   "title": "Backend: reactions, letters and shared shelves (new feature 3, part 2)",
+   "track": "backend",
+   "order": 40,
+   "group": 7,
+   "depends_on": [
+    "docs/redesign/prompts/backend/08-circle-core-sharing-presence.md",
+    "docs/redesign/prompts/backend/02-library-series-ocr-extensions.md"
+   ],
+   "scope": "Per cinematic \u00a79.3.3\u20139.3.5, \u00a79.3.8 and glass \u00a79.3.2\u20139.3.4, \u00a715.6: reactions on chapters with one enum of seven kinds (loved, shook, laughed, tears, chefs_kiss, hype, wrecked), the spoiler guard (a reaction reads 'reacted to Ch. N' until the viewer has completed that chapter, unsealed by progress), DELETE /circle/reactions with its body; letters for Recommend to (create, list, PATCH /circle/letters/{id} {state: read | kept | dismissed}, 409 recipient_unavailable when the recipient's gate or sharing hides the series); shared shelves: collections gain shared and shared_with_me, member-readable detail rows with title, cover_url and ambient, can_add series adds, DELETE .../share/me, added_by_profile_id on shelf rows and the role-based series DELETE. Tests: spoiler guard on unread, half-read and finished chapters; letters never leak a mature title; shared-shelf permissions."
+  },
+  {
+   "path": "docs/redesign/prompts/web/12-cinematic-manga-reader-strip.md",
+   "title": "Web Cinematic manga reader 1: strip, chrome, ruler, credits",
+   "track": "web",
+   "order": 41,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/11-cinematic-feature-and-book-pages.md"
+   ],
+   "scope": "Cinematic manga reader part 1 on useReaderEngine (record the S1/S11 sign-off first): \u00a78.14.1 frame and layout, \u00a78.14.2 the Column wipe entry and Dip entries, \u00a78.14.3 running head and folio bar with their scrims, \u00a78.14.4 the ruler scrubber with bookmarks, \u00a78.14.5 strip mode (webtoon default, hide 24 / show 56 px, 3,000 ms idle, preload at 70 %), \u00a78.14.6 chapter-end credits and the next-chapter card, \u00a78.14.9 keys and the escape order, \u00a78.14.10 gestures incl. pinch and anchored double-tap zoom through the new skin-neutral engine commands pinchZoom and zoomAt in features/reader (glass \u00a715.4 row), \u00a78.14.11 states (loading, failed page, offline, end of series, gate, no longer available), readerLanding at /reader; both entry points verified."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/12-cinematic-manga-reader-strip.md",
+   "title": "Mobile Cinematic manga reader 1: strip, chrome, ruler, credits",
+   "track": "mobile",
+   "order": 42,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/11-cinematic-feature-and-book-pages.md"
+   ],
+   "scope": "The same scope as web/12 on Flutter over ReaderEngine.chromeBuilder (cinematic \u00a78.14.1\u20138.14.6, \u00a78.14.9\u20138.14.11; mobile S15, S19): one reader SwipeablePage painting Column wipe, Dip or the finger-tracked slide by the entry kind in GoRouterState.extra, the SystemUiMode rules of \u00a78.0.5 (overlays [] on iOS, immersiveSticky on Android, chrome in 240 ms and out 160 ms, edgeToEdge on exit), edge rules (max 24 px and the system gesture insets), volume keys opt-in, pinchZoom and zoomAt as engine commands in features/reader/engine, the 120 Hz strip untouched; ReaderScreen and SourceReaderScreen both verified."
+  },
+  {
+   "path": "docs/redesign/prompts/web/13-cinematic-manga-reader-paged-readall-panels.md",
+   "title": "Web Cinematic manga reader 2: paged, read-all, setup sheet, side panels",
+   "track": "web",
+   "order": 43,
+   "group": 1,
+   "depends_on": [
+    "docs/redesign/prompts/web/12-cinematic-manga-reader-strip.md"
+   ],
+   "scope": "Cinematic manga reader part 2: \u00a78.14.7 paged single and double (RTL spreads, page-turn fade), the read-all route /read-all/:sourceId/:seriesKey (?from&page&at), \u00a78.14.8 the reading setup sheet with every control, \u00a78.14.12 desktop side panels (column panels on tablets), \u00a78.14.13 page actions (long-press or right-click), the reader parts of the gesture matrix \u00a711, every state; both entry points verified."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/13-cinematic-manga-reader-paged-readall-panels.md",
+   "title": "Mobile Cinematic manga reader 2: paged, read-all, setup sheet, panels",
+   "track": "mobile",
+   "order": 44,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/12-cinematic-manga-reader-strip.md"
+   ],
+   "scope": "The same scope as web/13 on Flutter plus the new engine command setLayout(single | double, {direction}) with a PageView and the Slide/Fade page-turn hook (glass \u00a715.4: no PageView exists today; today's LTR/RTL are continuous strips), read-all, the reader settings sheet, tablet column panels, page actions."
+  },
+  {
+   "path": "docs/redesign/prompts/web/14-cinematic-novel-reader.md",
+   "title": "Web Cinematic novel reader 'The page'",
+   "track": "web",
+   "order": 45,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/13-cinematic-manga-reader-paged-readall-panels.md"
+   ],
+   "scope": "Cinematic \u00a78.15 (web NR1\u2013NR19, NT1\u2013NT7): layout, the chapter opener, body and end matter, chrome fading in 240 ms settle and out 160 ms lift, reading modes and page turns with the new skin-neutral engine command paginateNovel (CSS multi-column), the Type sheet 'Text and page' with the five faces and seven paper stocks incl. Issue, the Contents sheet (o) and Type (t), bookmarks and notices, keys and gestures, states, the speaker palette for dialogue attribution; reading-fonts.ts loaded only here."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/14-cinematic-novel-reader.md",
+   "title": "Mobile Cinematic novel reader 'The page'",
+   "track": "mobile",
+   "order": 46,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/13-cinematic-manga-reader-paged-readall-panels.md"
+   ],
+   "scope": "The same scope as web/14 on Flutter (cinematic \u00a78.15; mobile S26, N1, N2, N4) with the engine command paginateNovel (TextPainter pages in a PageView), the bundled reading faces and the system UI rules of \u00a78.15.1."
+  },
+  {
+   "path": "docs/redesign/prompts/web/15-cinematic-listen-mode.md",
+   "title": "Web Cinematic Listen mode with the 31 voices",
+   "track": "web",
+   "order": 47,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/14-cinematic-novel-reader.md",
+    "docs/redesign/prompts/backend/06-reader-tints-panels-novel-audio.md",
+    "docs/redesign/prompts/backend/03-stats-streaks-annual-listen-sessions.md"
+   ],
+   "scope": "Cinematic \u00a78.16 'The reading' (web NR9\u2013NR15): entry points, the mini player, the full player 'The reading room', the speed ruler, voices and the cast for all 31 named voices (samples, Hear, cast assignment, RE-VOICE and RE-VOICING from rendered_at, cast_changed_at and force), the sleep timer, the chapter boundary, audiobook narrate-and-save (owner), saved audio on the device through the service worker, the highlighter stroke through the sentence being read, states, keys; listen sessions reported to POST /novels/listen-sessions."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/15-cinematic-listen-mode.md",
+   "title": "Mobile Cinematic Listen mode with the 31 voices and the lock screen",
+   "track": "mobile",
+   "order": 48,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/14-cinematic-novel-reader.md",
+    "docs/redesign/prompts/backend/06-reader-tints-panels-novel-audio.md",
+    "docs/redesign/prompts/backend/03-stats-streaks-annual-listen-sessions.md"
+   ],
+   "scope": "The same scope as web/15 on Flutter (cinematic \u00a78.16; mobile S26 #15\u201316, N3, N4) plus \u00a78.16.10 lock screen and background through audio_service 0.18.19 (notification with ic_stat_mm and accent #F4D03F), \u00a78.16.6 shake to extend with sensors_plus 7.1.0, voice samples fetched with the authenticated client into SoLoud.instance.loadMem with the RMS pulse, \u00a78.16.9 saved audio on the device, listen sessions queued through the outbox."
+  },
+  {
+   "path": "docs/redesign/prompts/web/16-cinematic-discover-search-sources-dialogue.md",
+   "title": "Web Cinematic Discover: search, sources, catalogues and dialogue search",
+   "track": "web",
+   "order": 49,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/15-cinematic-listen-mode.md",
+    "docs/redesign/prompts/backend/02-library-series-ocr-extensions.md"
+   ],
+   "scope": "Cinematic \u00a78.20 search (web SE1\u2013SE11; scopes all, library, sources, dialogue, ask; the index field, genre tiles, results rails, group jump), \u00a78.21 sources (SL1\u2013SL13: the table, health, pins with reorder, 18+ marks), \u00a78.22 source catalogue (SB1\u2013SB15: modes, genres, the source_not_browsable notice), \u00a78.24 dialogue search 'What they said' (OC1\u2013OC8: subtitled stills from page + box, the novels-mode notice), keys 1\u20135, request-limiter priorities (P1 lists, P2 covers, P3 prefetch), every state. Picks is web/19."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/16-cinematic-discover-search-sources-dialogue.md",
+   "title": "Mobile Cinematic Discover: search, sources, catalogues and dialogue search",
+   "track": "mobile",
+   "order": 50,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/15-cinematic-listen-mode.md",
+    "docs/redesign/prompts/backend/02-library-series-ocr-extensions.md"
+   ],
+   "scope": "The same scope as web/16 on Flutter (cinematic \u00a78.20\u20138.22, \u00a78.24; mobile S16, S17, S20, S27) inside shell branch 2, with the on-device OCR indexing flow of capabilities \u00a720 kept on the existing OcrChannel."
+  },
+  {
+   "path": "docs/redesign/prompts/web/17-cinematic-downloads-index-status.md",
+   "title": "Web Cinematic Downloads, Index, What's new and System status",
+   "track": "web",
+   "order": 51,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/16-cinematic-discover-search-sources-dialogue.md"
+   ],
+   "scope": "Cinematic \u00a78.23 Downloads and storage 'The offline edition' (web DL1\u2013DL9: queue, saved library, storage meter, retention, Free up space, the mature filter), \u00a78.28 Index / More (M1\u2013M6), \u00a78.29 What's new (web G40), \u00a78.31 System status for admins (AS1\u2013AS10), every state and key."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/17-cinematic-downloads-index-status.md",
+   "title": "Mobile Cinematic Downloads, Index, app updates and System status",
+   "track": "mobile",
+   "order": 52,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/16-cinematic-discover-search-sources-dialogue.md"
+   ],
+   "scope": "Cinematic \u00a78.23 Downloads and storage on Flutter (mobile S21, S32, M5, G10: the native queue on the existing sqflite store, retention, Free up space, the mature filter, downloads resuming after a restart), \u00a78.28 Index (S22), \u00a78.29 What's new and app updates (G8, G9: the APK update prompt on Android and the SideStore note on iOS), \u00a78.31 System status for admins."
+  },
+  {
+   "path": "docs/redesign/prompts/web/18-cinematic-settings-and-edition-restart.md",
+   "title": "Web Cinematic Settings, the edition picker and Stop the press",
+   "track": "web",
+   "order": 53,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/17-cinematic-downloads-index-status.md"
+   ],
+   "scope": "Cinematic \u00a78.30 Settings (web SG1\u2013SG40 and the web keys among K01\u2013K51): \u00a78.30.1 structure and the settings search, every section and control of \u00a78.30.2 (appearance, reader defaults, novels, content with the certificate, notifications with notify_enabled, sound and haptics, shortcuts, account), \u00a78.30.3 the edition picker with live preview iframes from app/(preview)/skin-preview/[skin] (its own root layout and query client, preview-feed.generated.json and the demo covers under public/skin-preview/covers/), Stop the press (500 ms outgoing) and the incoming 10 s undo toast, the Glass card as the disabled NEXT ISSUE plate while glass_available is false, \u00a78.30.4 password and security (SG29\u2013SG39), \u00a78.30.5 members (MB1\u2013MB7), \u00a78.30.6 backup and restore (BK1\u2013BK5), the debug-only diagnostics row."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/18-cinematic-settings-and-edition-restart.md",
+   "title": "Mobile Cinematic Settings, the edition picker and Stop the press",
+   "track": "mobile",
+   "order": 54,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/17-cinematic-downloads-index-status.md"
+   ],
+   "scope": "The same scope as web/18 on Flutter (cinematic \u00a78.30; mobile S28\u2013S34, K01\u2013K51) plus the server section, \u00a78.30.7 Diagnostics (S34: FPS and jank, motion timings, grid overlay, the Edition (debug) row), the edition picker's PNG preview loops mobile/assets/skin_previews/cinematic/000\u2013035.png captured by the screenshot harness, Stop the press with AppRestart, and flutter_dynamic_icon_plus left unregistered while glass_available is false."
+  },
+  {
+   "path": "docs/redesign/prompts/web/19-cinematic-ai-picks-similar-recap.md",
+   "title": "Web Cinematic AI: Picks, More like this and Previously on (new feature 1)",
+   "track": "web",
+   "order": 55,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/18-cinematic-settings-and-edition-restart.md",
+    "docs/redesign/prompts/backend/05-ai-similar-recap-taste-onboarding.md"
+   ],
+   "scope": "Cinematic \u00a79.1.3 Picks at /library/recommendations (the Ask block, the World grid with dismiss and More-like-this buttons, the aside, genres; web R12 RC1\u2013RC11), \u00a79.1.4 More like this on the feature page and Because you read on Tonight, \u00a79.1.5 the 'Previously on' recap takeover (/recap/:sourceId/:seriesKey?to=, SSE prose, countdown, Skip recap, entries from Continue and series pages), \u00a79.1.6 fallbacks when the AI desk is closed, \u00a79.1.8 the state vocabulary on every AI surface, POST /ai/feedback, the recap setting stored as mm.recap exactly as glass \u00a715.6 resolves it."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/19-cinematic-ai-picks-similar-recap.md",
+   "title": "Mobile Cinematic AI: Picks, More like this and Previously on (new feature 1)",
+   "track": "mobile",
+   "order": 56,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/18-cinematic-settings-and-edition-restart.md",
+    "docs/redesign/prompts/backend/05-ai-similar-recap-taste-onboarding.md"
+   ],
+   "scope": "The same scope as web/19 on Flutter (cinematic \u00a79.1.3\u20139.1.6, \u00a79.1.8; mobile S11) with the recap takeover consuming the SSE stream and the per-profile mm.recap SharedPreferences key."
+  },
+  {
+   "path": "docs/redesign/prompts/web/20-cinematic-onboarding.md",
+   "title": "Web Cinematic onboarding 'the first issue'",
+   "track": "web",
+   "order": 57,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/19-cinematic-ai-picks-similar-recap.md",
+    "docs/redesign/prompts/backend/05-ai-similar-recap-taste-onboarding.md"
+   ],
+   "scope": "Cinematic \u00a78.7 for a new profile at /welcome?step=1..5 (steps 1..4, Formats, Genres, Art style, Seeds, while glass_available is false): GET /onboarding/catalog, PUT /profiles/{id}/taste with step, resume from onboarding_step, the Cut to home fly (at most 12 posters), back rules, embla pager on phones, every state."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/20-cinematic-onboarding.md",
+   "title": "Mobile Cinematic onboarding 'the first issue'",
+   "track": "mobile",
+   "order": 58,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/19-cinematic-ai-picks-similar-recap.md",
+    "docs/redesign/prompts/backend/05-ai-similar-recap-taste-onboarding.md"
+   ],
+   "scope": "The same scope as web/20 on Flutter (cinematic \u00a78.7), with the pager swiping backward only, Android back from step n to n \u2212 1 and PopScope on iOS (\u00a78.0.5)."
+  },
+  {
+   "path": "docs/redesign/prompts/web/21-cinematic-numbers-streak-annual.md",
+   "title": "Web Cinematic The Numbers, the streak flame and The Annual (new feature 2)",
+   "track": "web",
+   "order": 59,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/20-cinematic-onboarding.md",
+    "docs/redesign/prompts/backend/03-stats-streaks-annual-listen-sessions.md"
+   ],
+   "scope": "Cinematic \u00a79.2.1 The Numbers at /library/statistics (web R13 ST1\u2013ST13: stat blocks, chapters per day, time read, genre radar, the clock, ranges, keys 1\u20134; totals cover both modes), \u00a79.2.2 the streak flame with milestone cards once per profile, \u00a79.2.3 chart rules (no chart library), \u00a79.2.4 The Annual takeover at /library/statistics/annual/:year (embla pager, previous Annuals, the NARRATED BY colophon), \u00a79.2.5 share cards 'press run' from share-card.ts (Canvas 2D; Web Share level 2 with files, else download) using only shareable fields, \u00a79.2.6 entry points."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/21-cinematic-numbers-streak-annual.md",
+   "title": "Mobile Cinematic The Numbers, the streak flame and The Annual (new feature 2)",
+   "track": "mobile",
+   "order": 60,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/20-cinematic-onboarding.md",
+    "docs/redesign/prompts/backend/03-stats-streaks-annual-listen-sessions.md"
+   ],
+   "scope": "The same scope as web/21 on Flutter (cinematic \u00a79.2; mobile S12) with share cards through RepaintBoundary.toImage to PNG to share_plus 12.0.2, the flame on flutter_animate 4.5.2 and the tablet 9:16 Annual column."
+  },
+  {
+   "path": "docs/redesign/prompts/web/22-cinematic-circle.md",
+   "title": "Web Cinematic Circle (new feature 3)",
+   "track": "web",
+   "order": 61,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/21-cinematic-numbers-streak-annual.md",
+    "docs/redesign/prompts/backend/08-circle-core-sharing-presence.md",
+    "docs/redesign/prompts/backend/09-circle-reactions-letters-shelves.md"
+   ],
+   "scope": "Cinematic \u00a79.3.2 the Circle screen at /circle (activity, now dots following the server, keys 1\u20135), \u00a79.3.3 reactions on chapters (the five stamps plus HYPE and WRECKED, the spoiler guard seal and unseal on chapterCompleted, entry in the reader credits), \u00a79.3.4 Recommend to 'Pass it on' and letters with Keep, \u00a79.3.5 shared shelves inside Collections, \u00a79.3.6 Settings \u2192 Circle & privacy (every switch), \u00a79.3.7 the member page at /circle/:profileId, the Circle rails on Tonight, every 18+ and isolation state."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/22-cinematic-circle.md",
+   "title": "Mobile Cinematic Circle (new feature 3)",
+   "track": "mobile",
+   "order": 62,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/21-cinematic-numbers-streak-annual.md",
+    "docs/redesign/prompts/backend/08-circle-core-sharing-presence.md",
+    "docs/redesign/prompts/backend/09-circle-reactions-letters-shelves.md"
+   ],
+   "scope": "The same scope as web/22 on Flutter (cinematic \u00a79.3), inside shell branch 4 with the member page pushed."
+  },
+  {
+   "path": "docs/redesign/prompts/web/23-cinematic-ambient-reader-extras.md",
+   "title": "Web Cinematic ambient reader extras (new feature 4)",
+   "track": "web",
+   "order": 63,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/22-cinematic-circle.md",
+    "docs/redesign/prompts/backend/06-reader-tints-panels-novel-audio.md",
+    "docs/redesign/prompts/backend/07-media-routes-and-install-page.md"
+   ],
+   "scope": "Cinematic \u00a79.4 in both readers: \u00a79.4.1 auto-scroll 'projection speed' (chip, speed, pace by dialogue from words on screen via GET /ocr/chapter), \u00a79.4.2 soundscape 'house sound' (the eight loops from /app/soundscapes on a Web Audio mixer, ducking under narration), \u00a79.4.3 the panel-by-panel guided view (client panel detection in features/reader/page-tint.worker.ts at 360 px one page ahead, design/panel-vectors.json parity in panels.test.ts, the new engine commands setCamera and pageToViewport, the words-per-panel hold, POST /reader/panels on exit), \u00a79.4.4 page-tinted chrome (16x16 OffscreenCanvas sampler at most every 600 ms, design/tint-vectors.json parity, @property transitions, POST /reader/page-tints on exit), \u00a79.4.5 entry points and states."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/23-cinematic-ambient-reader-extras.md",
+   "title": "Mobile Cinematic ambient reader extras (new feature 4)",
+   "track": "mobile",
+   "order": 64,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/22-cinematic-circle.md",
+    "docs/redesign/prompts/backend/06-reader-tints-panels-novel-audio.md",
+    "docs/redesign/prompts/backend/07-media-routes-and-install-page.md"
+   ],
+   "scope": "The same scope as web/23 on Flutter (cinematic \u00a79.4): features/reader/engine/page_tint.dart (16x16 decode in compute() exposing pageTint), panel detection in the same isolate at 360 px one page ahead, the tint and panel vector parity tests (panels_test.dart), setCamera and pageToViewport as engine commands, soundscape loops from /app/soundscapes through flutter_soloud with ducking under narration, the auto-scroll chip."
+  },
+  {
+   "path": "docs/redesign/prompts/web/24-cinematic-qa-polish.md",
+   "title": "Web Cinematic QA and polish before the flip",
+   "track": "web",
+   "order": 65,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/23-cinematic-ambient-reader-extras.md"
+   ],
+   "scope": "Cinematic web QA: the PENDING set empty and the completeness test strict; cinematic \u00a714 (contrast incl. the over-art table, focus order and rings, labels and tooltips, screen-reader rules, 44 px targets, text size, gesture alternatives, flashing, content safety) and every \u00a715.7 check across every screen; reduced motion per \u00a74.8 and \u00a714.1; the \u00a715.6 performance guards; the motion-timings overlay pass (no move drops frames or overruns by more than one frame); Playwright screenshots of every ScreenId at 1440x900, 390x844 and 440x956 at DPR 3 with and without the grid overlay; the 'Front pages' set of \u00a712.6 and the real og.png capture; the signature-animation checks; fix everything found and write docs/redesign/proof/web-24/qa.md."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/24-cinematic-qa-polish.md",
+   "title": "Mobile Cinematic QA and polish before the flip",
+   "track": "mobile",
+   "order": 66,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/23-cinematic-ambient-reader-extras.md"
+   ],
+   "scope": "The same checklist as web/24 on Flutter plus the cinematic \u00a715.8 device pass for the owner on the iPhone (SideStore) and the Android flagship (Column wipe, Iris, trailer scrub, Cut to home, Lightbox, the reader at 120 Hz with page tint, the Listen highlighter, AVAudioSession category .ambient after SoLoud init and after Hear), text scale 1.0, 1.3 and 2.0, Bold Text and Increase Contrast, TalkBack and VoiceOver, harness screenshots of every ScreenId at phone and tablet sizes, the PENDING set empty, CI APK build and iOS dry run green; docs/redesign/proof/mobile-24/qa.md."
+  },
+  {
+   "path": "docs/redesign/prompts/release/00-cinematic-flip-release.md",
+   "title": "Release: Cinematic becomes the default on web, Android and iOS (minor bump)",
+   "track": "release",
+   "order": 67,
+   "group": 8,
+   "depends_on": [
+    "docs/redesign/prompts/web/24-cinematic-qa-polish.md",
+    "docs/redesign/prompts/mobile/24-cinematic-qa-polish.md",
+    "docs/redesign/prompts/backend/07-media-routes-and-install-page.md",
+    "docs/redesign/prompts/backend/09-circle-reactions-letters-shelves.md"
+   ],
+   "scope": "The flip release of stack-decision \u00a73 'Release model': default skin fallback cinematic in getSkin() and SkinBoot; delete the legacy skin on both clients (web: skins/legacy, components/{ui,layout,premium,settings}, features/*/components, the features/preferences theme, preset and accent system, themes.generated.ts, scripts/themes/*, next.config redirects(); mobile: skins/legacy, features/*/{screens,widgets}, app/theme/*, app/router/app_router.dart, app/router/routes.dart, tool/themes/build_palettes.dart, app_palettes.generated.dart and the legacy widget tests, replaced by the completeness, boundary and per-cluster smoke tests); reconcile cinematic \u00a78.0.7 with the Glass build that follows: keep the debug row reduced to CINEMATIC | GLASS (Glass stays reachable only there) and delete only the legacy segment; flags.glass_available stays false. Version: bump the MINOR in mobile/pubspec.yaml from whatever it holds then (for example 3.4.3+56 to 3.5.0+57, both halves), frontend/package.json minor, a _RELEASE_NOTES entry in backend/routes/app_distribution.py, the SideStore source fields from brand/cinematic/sidestore.md. Gates one at a time: backend pytest, web typecheck, lint, test and build, flutter analyze and test. Ship per mobile/RELEASE.md, codemagic.yaml, ops/vps/push.sh and ops/vps/deploy.sh: push the branch and master (iOS through ios-build.yml then mm-fetch-ios), web + backend deploy, the signed APK to app.manhwamaniacs.xyz (built where the signing key lives, never Gradle on this box), then verify /api/app/changelog, /app/version and /app/source.json report the same new version and gh run list shows the Publish step green."
+  },
+  {
+   "path": "docs/redesign/prompts/web/25-glass-foundation-material-physics.md",
+   "title": "Web Glass foundation: materials, ambient field, physics and motion",
+   "track": "web",
+   "order": 68,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/release/00-cinematic-flip-release.md",
+    "docs/redesign/prompts/shared/05-brand-glass-and-art-intake.md"
+   ],
+   "scope": "Glass on the web per glass \u00a72.1.7\u20132.1.9, \u00a72.4, \u00a72.5, \u00a74.1\u20134.11, \u00a715.2, \u00a715.7, \u00a715.8: skins/glass/glass/GlassSurface.tsx (tiers T1\u2013T5, finishes regular, clear and tinted; rendering tier A liquid via SVG feDisplacementMap on Chromium, B frosted blur + saturate + dim + rim, C solid for Reduce Transparency, Solid glass and Increase Contrast), liquid-map.ts (squircle bezel, Snell n 1.5, cached per (w, h, r, tier), rebuilt at rest after a 100 ms ResizeObserver debounce), Caustic.tsx, useLightAngle.ts (\u00b125\u00b0, frozen under reduced motion), useLb.ts, AmbientField.tsx (three radial gradients on one fixed element), rain.ts; physics/ project.ts, rubberband.ts, tracker.ts (100 ms velocity window, catch()), magnet.ts with physics.test.ts asserting every \u00a715.8 value (project(0, 1000) \u2248 499, rubberband(100, 800, 0.55) \u2248 51.5, the rail snap to 816, tierFor, dimFor, depth 0.54); motion.ts play() over the generated MotionName union with MotionConfig reducedMotion='user'; the six-live-surface budget counter; /dev/glass-calibration checkerboard page; document defaults (color-scheme dark, viewport-fit=cover, interactive-widget=resizes-content, the autofill override)."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/25-glass-foundation-material-physics.md",
+   "title": "Mobile Glass foundation: SkinGlass, physics, motion and the dependency gate",
+   "track": "mobile",
+   "order": 69,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/release/00-cinematic-flip-release.md",
+    "docs/redesign/prompts/mobile/03-foundation-fonts-icons-harness-glass-gate.md",
+    "docs/redesign/prompts/shared/05-brand-glass-and-art-intake.md"
+   ],
+   "scope": "Per glass \u00a72.4, \u00a74, \u00a715.3, \u00a715.7, \u00a715.8, \u00a715.11: one isolated dependency commit through the CI resolution gate (motor 1.1.0, heroine 0.7.2, smooth_sheets 1.2.0, material_color_utilities: any; stupid_simple_sheet is not used because sheets are GlassModalSheet; flutter_soloud and share_plus stay at the versions mobile/02 pinned); skin_glass.dart as the only wrapper around liquid_glass_widgets 1.7.2 (tier to LiquidGlassSettings, premium on chrome, standard for the two page-level controls and transient glass in scroll views, content twins for in-list items, GlassAccessibilityScope, the BackdropFilter + BackdropGroup frost fallback chosen by the mobile/03 gate record, GlassTextAxes for ROND and GRAD); physics/glass_physics.dart with test/skins/glass/glass_physics_test.dart asserting every \u00a715.8 value; GlassMotion.play over motion_names.g.dart; mm/platform additions (a11y.reduceTransparency on iOS, audio.isMusicActive and gestures.setExclusionRects on Android); Settings \u2192 Diagnostics 'Glass calibration' checkerboard and the 'Glass layers on screen' row (limit 8); the ambient field as one CustomPaint; phone orientation lock of \u00a78.0.1."
+  },
+  {
+   "path": "docs/redesign/prompts/web/26-glass-primitives-controls-and-reveals.md",
+   "title": "Web Glass primitives 1: controls, posters, rails and the two reveals",
+   "track": "web",
+   "order": 70,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/25-glass-foundation-material-physics.md"
+   ],
+   "scope": "skins/glass/primitives/ with every state and the press physics: glass \u00a77.1 buttons incl. HoldToConfirm (1,200 ms, hold.ramp) and the visible fallback button, \u00a77.2 icon buttons (44 px), \u00a77.3 inputs, \u00a77.4 search, \u00a77.5 chips, \u00a77.6 segmented control, \u00a77.7 cards (content layer and twins), \u00a77.8 posters (press-and-hold lift 150/450 ms, throw), \u00a77.9 rails (projection snap), \u00a77.18 skeletons 'wet glass', \u00a77.19 progress incl. LiquidProgress, \u00a77.20 badges and markers, \u00a77.26 avatars and profile orbs, \u00a77.27 tooltips and keycaps; the Glass versions of the signature animations: \u00a710.1 LetterReveal (at most 60 graphemes, two at once, waits until 25 % in view) and \u00a710.2 TypedHeadline (50 ms per character, the caret on the track spring, skip rules) with the \u00a715.8 Playwright checks; a primitives gallery."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/26-glass-primitives-controls-and-reveals.md",
+   "title": "Mobile Glass primitives 1: controls, posters, rails and the two reveals",
+   "track": "mobile",
+   "order": 71,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/25-glass-foundation-material-physics.md"
+   ],
+   "scope": "The same list as web/26 on Flutter through SkinGlass: GlassButton, HoldToConfirm, icon buttons, inputs, search, chips, segmented, cards with content twins, posters with lift and throw on motor springs, rails with SnapPhysics, LiquidProgress, wet-glass skeletons, badges, orbs, tooltips and keycaps; LetterReveal and typed_headline.dart per glass \u00a710.1 and \u00a710.2 Flutter notes with widget tests (focus does not skip the typing)."
+  },
+  {
+   "path": "docs/redesign/prompts/web/27-glass-primitives-overlays.md",
+   "title": "Web Glass primitives 2: sheets, alerts, menus, toasts and controls",
+   "track": "web",
+   "order": 72,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/26-glass-primitives-controls-and-reveals.md"
+   ],
+   "scope": "Glass \u00a77.10 sheets (Motion drag='y', projection and sheetSnap over detents, rubber band, the recession), \u00a77.11 dialogs and alerts blooming from their source, \u00a77.12 toasts (sonner toast.custom queue, draining rim), \u00a77.13 in-page tabs and pagers, \u00a77.21 sliders, scrubbers and dials, \u00a77.22 toggles, checkboxes, radios and the Stepper, \u00a77.23 menus and context menus (lift preview, right-click, shift+F10), \u00a77.30 banners and inline notices, \u00a77.31 image viewer, \u00a77.32 scroll edges and scrollbars, \u00a77.33 pull to refresh (meniscus at 100 raw px), \u00a77.36 the content-mode switch; Base UI focus management, keyboard access, reduced motion and Solid glass variants."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/27-glass-primitives-overlays.md",
+   "title": "Mobile Glass primitives 2: sheets, alerts, menus, toasts and controls",
+   "track": "mobile",
+   "order": 73,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/26-glass-primitives-controls-and-reveals.md"
+   ],
+   "scope": "The same list as web/27 on Flutter: GlassModalSheet with peekSize 96, halfSize 0.52, horizontalMargin 8, the device-corner full radius and barrierColor 0x47000000 (smooth_sheets 1.2.0 only for the 1,000-row chapter list if scroll hand-off stutters), alerts, toasts, pagers, sliders and dials, toggles, the stepper, menus and context menus, banners, image viewer, scroll edges, the meniscus pull to refresh, the content-mode switch."
+  },
+  {
+   "path": "docs/redesign/prompts/web/28-glass-primitives-lists-states-ai-charts.md",
+   "title": "Web Glass primitives 3: lists, states, 18+ gate, AI surfaces and charts",
+   "track": "web",
+   "order": 74,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/27-glass-primitives-overlays.md"
+   ],
+   "scope": "Glass \u00a77.17 lists, \u00a77.34 swipe row actions (coarse pointers; hover icons on desktop), \u00a77.35 drag to reorder and bulk selection (range paint, assist chips), \u00a77.24 empty, error and offline states with copy/errors.ts (\u00a78.0.10), \u00a77.25 the 18+ gate alert with hold-to-confirm, the always-visible fallback button and every state, \u00a77.29 the per-chapter download control, \u00a77.37 the depth glyph, \u00a77.38 AI surfaces (machine light, ThinkingOrbit, AiNotice, copy/ai.ts), \u00a77.39 charts (bars, heatmap, radar, clock, sparkline, table view), ReactionPicker with the six named reactions."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/28-glass-primitives-lists-states-ai-charts.md",
+   "title": "Mobile Glass primitives 3: lists, states, 18+ gate, AI surfaces and charts",
+   "track": "mobile",
+   "order": 75,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/27-glass-primitives-overlays.md"
+   ],
+   "scope": "The same list as web/28 on Flutter with copy/errors.dart and copy/ai.dart, GlassChart, ReactionPicker, swipe rows with VoiceOver and TalkBack custom actions, and the StackOverview snapshot primitive (captured at 0.5x pixel ratio, dropped on memory pressure)."
+  },
+  {
+   "path": "docs/redesign/prompts/web/29-glass-shell-navigation-depth.md",
+   "title": "Web Glass shell: sidebar, dock, sheet host, depth and the Droplet splash",
+   "track": "web",
+   "order": 76,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/28-glass-primitives-lists-states-ai-charts.md",
+    "docs/redesign/prompts/shared/05-brand-glass-and-art-intake.md"
+   ],
+   "scope": "Glass frame per glass \u00a78.0 and \u00a715.2: Shell.tsx with the sidebar \u00a77.16 (280 px at 1180 and up, 76 px collapsed at 768\u20131179, the desktop accessory at its foot), dock + search orb + bottom accessory \u00a77.15 below 768 (minimise after 20 px, restore after 12 px, drag across tabs, long-press menus), top bars \u00a77.14, the SheetHost (history.pushState sheet routes for feature, featureByFollow, recap, circleMember, profileNew and profileEdit; the recession through --sheet-progress; history.back closing; hard-load rules; focus handling), the command palette \u00a77.28, the back menu and depth recorder mm.glass.stack \u00a77.37, transitions \u00a78.0.4 with the poster-zoom ViewTransition, back per platform \u00a78.0.5, global keys \u00a78.0.6, cross-cutting rules \u00a78.0.8 incl. the 18+ purge, session and profile loss \u00a78.0.9, error codes \u00a78.0.10, status screens \u00a78.28, global overlays \u00a78.29, Splash.tsx with the Droplet reveal \u00a712.4 (1,200 ms cold, 400 ms warm, 200 ms reduced), the haptic and sound maps and the audio-session state machine of \u00a76, the live glass-layer budget."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/29-glass-shell-navigation-depth.md",
+   "title": "Mobile Glass shell: dock, router, depth stack and the Droplet splash",
+   "track": "mobile",
+   "order": 77,
+   "group": 5,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/28-glass-primitives-lists-states-ai-charts.md",
+    "docs/redesign/prompts/shared/05-brand-glass-and-art-intake.md"
+   ],
+   "scope": "Glass frame per glass \u00a78.0 and \u00a715.3: glass_skin.dart (dark ThemeData, BouncingScrollPhysics everywhere, PredictiveBackPageTransitionsBuilder), router.dart (StatefulShellRoute.indexedStack for Home, Library, Sources and You; SwipeablePage with canOnlySwipeFromEdge false on iOS, MaterialPage on Android; sheet routes for series, recap, friend and the ?sheet= family; a NavigatorObserver tracking depth per branch and capturing snapshots for the stack overview), shell.dart (GlassDock on liquid_glass_widgets GlassTabBar with barHeight 64, minimizedBarHeight 50 and search 50, the accessory, the collapsed 76 px rail for tablet and desktop frames), the stack overview fan on long-press Back, heroine 0.7.2 poster zoom, back rules, hardware keys, the 18+ purge, session flows, status screens, overlays, the Droplet splash fading in from the black native frame, haptics, sounds and the audio-session state machine."
+  },
+  {
+   "path": "docs/redesign/prompts/web/30-glass-auth-profiles-onboarding.md",
+   "title": "Web Glass login, register, profiles, onboarding and the 18+ gate",
+   "track": "web",
+   "order": 78,
+   "group": 2,
+   "depends_on": [
+    "docs/redesign/prompts/web/29-glass-shell-navigation-depth.md",
+    "docs/redesign/prompts/backend/05-ai-similar-recap-taste-onboarding.md"
+   ],
+   "scope": "Glass \u00a78.2 splash hand-off, \u00a78.3 login (known accounts mm.known-accounts), \u00a78.4 register, \u00a78.5 profile picker 'Who's reading?' (orbs, mood refraction, the hand-off with the skin-mismatch restart), \u00a78.6 profile form and Manage profiles (mood, the \u00a77.25 18+ flow, daily goal minutes, the Skin row), \u00a78.7 onboarding at /welcome?step=1..7 (taste seed, the art-style crops from brand/onboarding/styles, onboarding_step resume), setup redirect, every state and key."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/30-glass-auth-profiles-onboarding.md",
+   "title": "Mobile Glass setup, login, register, profiles, onboarding and the 18+ gate",
+   "track": "mobile",
+   "order": 79,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/29-glass-shell-navigation-depth.md",
+    "docs/redesign/prompts/backend/05-ai-similar-recap-taste-onboarding.md"
+   ],
+   "scope": "The same scope as web/30 on Flutter plus glass \u00a78.1 Setup (server address), with the local mature filter from mobile/07 reused unchanged."
+  },
+  {
+   "path": "docs/redesign/prompts/web/31-glass-home.md",
+   "title": "Web Glass Home with AI rails",
+   "track": "web",
+   "order": 80,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/30-glass-auth-profiles-onboarding.md"
+   ],
+   "scope": "Glass \u00a78.8 Home with \u00a79.1.1 AI rails: the greeting TypedHeadline, the spotlight pager with projection, continue, AI rails with machine light and 'why', throwing an AI card sideways for Not interested with Undo, dragging a poster onto a friend orb, the Updates bell with count, the ambient field following the story, pull to refresh, the dock long-press items, loading, empty, AI-unavailable and offline states; data through the shared useHomeFeed."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/31-glass-home.md",
+   "title": "Mobile Glass Home with AI rails",
+   "track": "mobile",
+   "order": 81,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/30-glass-auth-profiles-onboarding.md"
+   ],
+   "scope": "The same scope as web/31 on Flutter with the gyroscope light and hero tilt from sensors_plus 7.1.0 sampled at 30 Hz only while Home is visible, and the shared homeFeedProvider."
+  },
+  {
+   "path": "docs/redesign/prompts/web/32-glass-library-hub-downloads.md",
+   "title": "Web Glass Library hub: shelf, collections, history, bookmarks, updates, downloads",
+   "track": "web",
+   "order": 82,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/31-glass-home.md"
+   ],
+   "scope": "Glass \u00a78.17 Library (shelf and Browse all; density by pinch or Ctrl/\u2318 + wheel and the Density menu, filters incl. reading_status and tags, sections as in-page tabs), \u00a78.18 collections and detail (fanned stacks from preview covers, shared-collection markers), \u00a78.19 History, \u00a78.20 Bookmarks (?source&series), \u00a78.21 Updates, \u00a78.22 Downloads (queue, storage, the accessory progress, the mature filter), swipe rows, reorder, bulk select, every state and key."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/32-glass-library-hub-downloads.md",
+   "title": "Mobile Glass Library hub: shelf, collections, history, bookmarks, updates, downloads",
+   "track": "mobile",
+   "order": 83,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/31-glass-home.md"
+   ],
+   "scope": "The same scope as web/32 on Flutter, with the Library tab badge, the downloads accessory and the Glass reading of the stored library-density values (glass \u00a78.25.3 migration table)."
+  },
+  {
+   "path": "docs/redesign/prompts/web/33-glass-series-and-book.md",
+   "title": "Web Glass series detail and book page",
+   "track": "web",
+   "order": 84,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/32-glass-library-hub-downloads.md"
+   ],
+   "scope": "Glass \u00a78.12 series detail as a SheetHost sheet route (poster zoom, tinted band with the series palette, the chapter list with download controls, mark read, repoint, enrichment, the rating, the More like this entry) and \u00a78.13 the book page, the chapter selection and download picker, the hard-load full-page rendering, every state and key."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/33-glass-series-and-book.md",
+   "title": "Mobile Glass series detail and book page",
+   "track": "mobile",
+   "order": 85,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/32-glass-library-hub-downloads.md"
+   ],
+   "scope": "The same scope as web/33 on Flutter as sheet routes with the heroine poster zoom, hero tilt from sensors_plus while visible, and the 1,000-row chapter list (smooth_sheets fallback only if hand-off stutters)."
+  },
+  {
+   "path": "docs/redesign/prompts/web/34-reader-engine-glass-commands.md",
+   "title": "Web reader engine: the commands Glass needs",
+   "track": "web",
+   "order": 86,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/33-glass-series-and-book.md"
+   ],
+   "scope": "Skin-neutral engine work in features/reader per glass \u00a715.4 commit order steps 1, 3, 4 and 5 (pinch, paged and paginateNovel landed with Cinematic): the state fields currentPageSample, scrollVelocity, seamProgress, overscrollExtent and panelBoxes; overscrollExtent, armNeighbour (48 px), commitNeighbour (72 px) and continueFling; swipeNeighbour (rubber band c 0.35); pageLayerTransform (the 1.12x hit lens); autoScroll.engageFromVelocity; each with vitest coverage, npm run verify:reader green, and the 120-page 2,880 px scroll check with the motion-timings overlay; no chrome."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/34-reader-engine-glass-commands.md",
+   "title": "Mobile reader engine: the commands Glass needs",
+   "track": "mobile",
+   "order": 87,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/33-glass-series-and-book.md"
+   ],
+   "scope": "The same scope as web/34 in mobile/lib/features/reader/engine/, each command gated by the existing reader tests and the 120-page 2,880 px device check at 120 Hz, page samples on a 64 px decode with material_color_utilities QuantizerCelebi in compute()."
+  },
+  {
+   "path": "docs/redesign/prompts/web/35-glass-manga-reader.md",
+   "title": "Web Glass manga reader",
+   "track": "web",
+   "order": 88,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/34-reader-engine-glass-commands.md"
+   ],
+   "scope": "Glass \u00a78.14: the canvas, page-tinted floating chrome capsules with the legibility dim, gestures (scrub rail with the magnifier lens, pinch, anchored double tap, pull past the chapter end to arm at 48 and commit at 72 with momentum, the opt-in sideways chapter swipe), chapter boundaries and the seam chip, the reader settings sheet (with the migrated values of \u00a78.25.3), states, keys, the in-reader chapter list, the dialogue overlay and hit lens, the reader landing, platform deltas, desktop page-lit gutters and material side panels, the manga-reader rows of the live-surface budget."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/35-glass-manga-reader.md",
+   "title": "Mobile Glass manga reader",
+   "track": "mobile",
+   "order": 89,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/34-reader-engine-glass-commands.md"
+   ],
+   "scope": "The same scope as web/35 on Flutter plus the left-edge brightness band (12 %, from x 24 px), gestures.setExclusionRects for the scrub rail and the band's middle 200 dp on Android, orientations widened on enter and restored on exit, the landscape corner capsules, volume keys, the 8-member BackdropGroup budget."
+  },
+  {
+   "path": "docs/redesign/prompts/web/36-glass-novel-reader.md",
+   "title": "Web Glass novel reader",
+   "track": "web",
+   "order": 90,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/35-glass-manga-reader.md"
+   ],
+   "scope": "Glass \u00a78.15: the seven dark papers, layout, capsules tinted to the paper, scroll and paged modes with Slide, Lift and Fade turns on paginateNovel, the Aa type and page sheet, the contents sheet, pinch for text size, the long-press menu (Copy, Bookmark, Play from here, React, Recommend), states, keys."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/36-glass-novel-reader.md",
+   "title": "Mobile Glass novel reader",
+   "track": "mobile",
+   "order": 91,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/35-glass-manga-reader.md"
+   ],
+   "scope": "The same scope as web/36 on Flutter with TextPainter pagination in a PageView and native selection plus the custom menu."
+  },
+  {
+   "path": "docs/redesign/prompts/web/37-glass-listen-mode.md",
+   "title": "Web Glass Listen mode with the 31 voices",
+   "track": "web",
+   "order": 92,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/36-glass-novel-reader.md"
+   ],
+   "scope": "Glass \u00a78.16: the mini player as the bottom accessory, the full player, the speed dial, the voice orbit and the cast for all 31 voices, the audiobook sheet from the book page, the sleep timer, highlight-as-read, every state and key."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/37-glass-listen-mode.md",
+   "title": "Mobile Glass Listen mode with the 31 voices",
+   "track": "mobile",
+   "order": 93,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/36-glass-novel-reader.md"
+   ],
+   "scope": "The same scope as web/37 on Flutter with the shared audio_service lock screen (notification accent iris600 #7563F2 at runtime), shake to extend and the voice orbit on SnapPhysics."
+  },
+  {
+   "path": "docs/redesign/prompts/web/38-glass-search-sources-dialogue.md",
+   "title": "Web Glass search, sources, catalogues and dialogue search",
+   "track": "web",
+   "order": 94,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/37-glass-listen-mode.md"
+   ],
+   "scope": "Glass \u00a78.9 search (the orb, scopes incl. text, Ask in the idle state), \u00a78.10 sources (pins with reorder, health), \u00a78.11 source catalogue (modes as pagers), \u00a78.23 dialogue search with hit-lens stills, every state and key."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/38-glass-search-sources-dialogue.md",
+   "title": "Mobile Glass search, sources, catalogues and dialogue search",
+   "track": "mobile",
+   "order": 95,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/37-glass-listen-mode.md"
+   ],
+   "scope": "The same scope as web/38 on Flutter, search opened from the dock orb and Sources as dock tab 3."
+  },
+  {
+   "path": "docs/redesign/prompts/web/39-glass-settings-and-skin-switch.md",
+   "title": "Web Glass Settings and the skin switch",
+   "track": "web",
+   "order": 96,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/38-glass-search-sources-dialogue.md"
+   ],
+   "scope": "Glass \u00a78.25.1 appearance and skin (live previews, 'App icon follows the skin' default off), \u00a78.25.2 the skin switch and restart (the alert, the 620 ms melt, persist, restart, the arriving skin's 10 s Undo, offline wording), \u00a78.25.3 reader defaults with the one-time per-profile migration of stored values (the full table), \u00a78.25.4 content, \u00a78.25.5 sound and haptics, \u00a78.25.13 shortcuts, \u00a78.25.14 account, language and about, \u00a78.25.15 Circle and privacy, \u00a78.25.16 AI and recaps; capture the two skin preview loops (animated WebP 360x780 under 900 KB plus stills) for both skins with the harness."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/39-glass-settings-and-skin-switch.md",
+   "title": "Mobile Glass Settings and the skin switch",
+   "track": "mobile",
+   "order": 97,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/38-glass-search-sources-dialogue.md"
+   ],
+   "scope": "The same scope as web/39 on Flutter plus the icon rules of glass \u00a712.2 (iOS setAlternateIconName('GlassIcon') inside the restart moment; the Android activity-alias swap queued until AppLifecycleState.paused), the migration table's mobile rows, and mobile/assets/skin_previews/glass/000\u2013035.png captured by the harness."
+  },
+  {
+   "path": "docs/redesign/prompts/web/40-glass-you-about-admin-status.md",
+   "title": "Web Glass You, About, admin settings and System status",
+   "track": "web",
+   "order": 98,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/39-glass-settings-and-skin-switch.md"
+   ],
+   "scope": "Glass \u00a78.24 You and About (licences incl. OFL and CC0 credits), \u00a78.25.6 notifications (admin), \u00a78.25.7 security, \u00a78.25.8 members, \u00a78.25.9 storage, \u00a78.25.10 backup and restore, \u00a78.25.12 diagnostics (debug), \u00a78.26 System status; the server section \u00a78.25.11 is phones only; every state."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/40-glass-you-about-admin-status.md",
+   "title": "Mobile Glass You, About, admin settings, server and System status",
+   "track": "mobile",
+   "order": 99,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/39-glass-settings-and-skin-switch.md"
+   ],
+   "scope": "The same scope as web/40 on Flutter plus \u00a78.25.11 Server and \u00a78.25.12 Diagnostics (motion timings, Glass calibration, glass layers on screen, FPS and jank)."
+  },
+  {
+   "path": "docs/redesign/prompts/web/41-glass-ai-for-you-recaps.md",
+   "title": "Web Glass AI: For you, Ask, recaps and More like this (new feature 1)",
+   "track": "web",
+   "order": 100,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/40-glass-you-about-admin-status.md"
+   ],
+   "scope": "Glass \u00a79.1.2 For you and Ask at /library/recommendations (?genre=), \u00a79.1.3 'Previously on' recaps (shape=deck, scope=series and chapter, the sheet over the series page, mm.recap modes), \u00a79.1.4 More like this (fallback=genres), \u00a79.1.5 AI states and the one voice for 'unavailable', every state."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/41-glass-ai-for-you-recaps.md",
+   "title": "Mobile Glass AI: For you, Ask, recaps and More like this (new feature 1)",
+   "track": "mobile",
+   "order": 101,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/40-glass-you-about-admin-status.md"
+   ],
+   "scope": "The same scope as web/41 on Flutter, with the recap deck consuming the SSE events and the recap.ready haptic."
+  },
+  {
+   "path": "docs/redesign/prompts/web/42-glass-stats-streak-wrapped.md",
+   "title": "Web Glass statistics, streak flame and Wrapped (new feature 2)",
+   "track": "web",
+   "order": 102,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/41-glass-ai-for-you-recaps.md"
+   ],
+   "scope": "Glass \u00a79.2.1 'Your reading' at /library/statistics (charts with table views, ranges in mm.stats.range, the daily goal ring from today_seconds), \u00a79.2.2 the streak flame (the flare from POST /reader/progress fields, record sparks, milestones once), \u00a79.2.3 Wrapped at /library/statistics/annual/:year (every card incl. busiest day and firsts and lasts), \u00a79.2.4 share cards from share-card.ts."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/42-glass-stats-streak-wrapped.md",
+   "title": "Mobile Glass statistics, streak flame and Wrapped (new feature 2)",
+   "track": "mobile",
+   "order": 103,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/41-glass-ai-for-you-recaps.md"
+   ],
+   "scope": "The same scope as web/42 on Flutter with wrapped/share_card.dart (RepaintBoundary to PNG to share_plus), the flame and genre field tilting with sensors_plus while visible."
+  },
+  {
+   "path": "docs/redesign/prompts/web/43-glass-circle.md",
+   "title": "Web Glass Circle (new feature 3)",
+   "track": "web",
+   "order": 104,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/42-glass-stats-streak-wrapped.md"
+   ],
+   "scope": "Glass \u00a79.3.1 Circle at /circle (presence arc following show_presence, shared streaks), \u00a79.3.2 the six named reactions (a stored laughed rendered as 'Laughed'), \u00a79.3.3 shared collections, \u00a79.3.4 Recommend to a friend (letters, drag-to-orb), \u00a79.3.5 a friend sheet at /circle/:profileId, \u00a79.3.6 settings (show_presence, share_streak, Clear my activity), every 18+ and isolation state."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/43-glass-circle.md",
+   "title": "Mobile Glass Circle (new feature 3)",
+   "track": "mobile",
+   "order": 105,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/42-glass-stats-streak-wrapped.md"
+   ],
+   "scope": "The same scope as web/43 on Flutter, the friend as a sheet route and the reaction.bloom haptics."
+  },
+  {
+   "path": "docs/redesign/prompts/web/44-glass-ambient-reader-extras.md",
+   "title": "Web Glass ambient reader extras (new feature 4)",
+   "track": "web",
+   "order": 106,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/43-glass-circle.md"
+   ],
+   "scope": "Glass \u00a79.4.1 Cruise (the pill, vertical drag 8 px per 0.05x with a magnet at 1.0x, engage from a decaying fling, the 400 ms ramp, cruiseSpeed per series), \u00a79.4.2 the soundscape (soundscape.ts: procedural graphs, the recorded layers from /app/soundscapes/glass, the mixer, lower under narration, mm.soundscape.defaults, Rain on glass on tier A), \u00a79.4.3 guided view (camera spring, lens, counter, pinch-out overview), \u00a79.4.4 page-tinted chrome from currentPageSample with the legibility dim, in both readers."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/44-glass-ambient-reader-extras.md",
+   "title": "Mobile Glass ambient reader extras (new feature 4)",
+   "track": "mobile",
+   "order": 107,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/43-glass-circle.md"
+   ],
+   "scope": "The same scope as web/44 on Flutter with soundscape/generator.dart (an isolate rendering the procedural 30 s loops to WAV bytes for SoLoud.loadMem), soundscape/mixer.dart (three layers per scene, cross-fade, ducking, audio.isMusicActive music detection) and shaders/rain_on_glass.frag running only while the Rain scene plays with chrome visible."
+  },
+  {
+   "path": "docs/redesign/prompts/web/45-glass-qa-polish.md",
+   "title": "Web Glass QA and polish",
+   "track": "web",
+   "order": 108,
+   "group": 3,
+   "depends_on": [
+    "docs/redesign/prompts/web/44-glass-ambient-reader-extras.md"
+   ],
+   "scope": "Glass web QA: every glass \u00a715.8 check (physics, the contrast gate, the calibration comparison with Flutter, completeness and boundary, screenshots at 1440x900, 390x844 and 440x956 at DPR 3 plus Reduce Motion, Solid glass and Increase Contrast snapshots, motion names, signature animations, the accessibility pass, the gate-close checklist of \u00a714.11), the \u00a715.7 budget incl. at most six live backdrop-filter elements, the 'Float' showcase set (\u00a712.5), a cross-skin switch in both directions through the debug row; fix everything and write docs/redesign/proof/web-45/qa.md."
+  },
+  {
+   "path": "docs/redesign/prompts/mobile/45-glass-qa-polish.md",
+   "title": "Mobile Glass QA and polish",
+   "track": "mobile",
+   "order": 109,
+   "group": 6,
+   "depends_on": [
+    "docs/redesign/prompts/mobile/44-glass-ambient-reader-extras.md"
+   ],
+   "scope": "The same checklist as web/45 on Flutter plus the owner device pass at 120 Hz on the iPhone and the Android flagship (the dock, sheets, poster zoom, stack overview, the reader with the hit lens, cruise, rain, Wrapped), at most eight BackdropGroup members per frame, VoiceOver and TalkBack custom actions, text scale 1.0, 1.3 and 2.0, harness screenshots of every ScreenId, the PENDING set empty, CI APK and iOS dry run green; docs/redesign/proof/mobile-45/qa.md."
+  },
+  {
+   "path": "docs/redesign/prompts/release/01-glass-final-release.md",
+   "title": "Final release: Glass joins Cinematic, cross-skin QA, minor bump, three platforms",
+   "track": "release",
+   "order": 110,
+   "group": 8,
+   "depends_on": [
+    "docs/redesign/prompts/web/45-glass-qa-polish.md",
+    "docs/redesign/prompts/mobile/45-glass-qa-polish.md",
+    "docs/redesign/prompts/release/00-cinematic-flip-release.md"
+   ],
+   "scope": "Set flags.glass_available true in design/contract.json and regenerate; turn on every surface cinematic \u00a78.0.7 gates (the onboarding Edition step, the profile-form Skin row, the palette EDITION group, the live Glass edition card, the Settings footer restart sentence, alternate-icon registration) and Glass's equivalents (glass \u00a78.0.8 flag rows, 'App icon follows the skin' off by default); delete the debug row and the mm-skin-debug and mm.skin.debug keys on both clients; cross-skin QA on web, the iPhone and Android with the motion-timings overlay: switches in both directions with SKIN RESTART under 1,500 ms, the return route restored, the 10 s Undo, downloads resuming, the service-worker pages cache rebuilt, the per-skin offline fallback, the profile hand-off switch with no alert, the shared-device icon rule; the \u00a714 checks for both skins; the install page gallery gains the Glass screenshots (glass \u00a712.6). Bump the MINOR again in mobile/pubspec.yaml (for example 3.5.x to 3.6.0 with +code incremented), frontend/package.json minor, a _RELEASE_NOTES entry; the same gates, the same three-platform ship through ops/vps/push.sh, ops/vps/deploy.sh, ios-build.yml and mobile/RELEASE.md, and the same verification of /api/app/changelog, /app/version, /app/source.json and a green Publish step as release/00."
+  }
+ ]
+}

@@ -1,0 +1,352 @@
+{
+"chunks": [
+[
+"docs/redesign/prompts/shared/00-design-contract-and-token-generator.md",
+"docs/redesign/prompts/shared/01-glass-tokens-haptics-motion-names-contrast.md",
+"docs/redesign/prompts/shared/02-icon-sets-and-custom-glyphs.md",
+"docs/redesign/prompts/shared/03-ui-sounds-and-soundscape-audio.md"
+],
+[
+"docs/redesign/prompts/shared/04-brand-cinematic-and-platform-icons.md",
+"docs/redesign/prompts/shared/05-brand-glass-and-art-intake.md"
+],
+[
+"docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md",
+"docs/redesign/prompts/backend/01-cover-ambient-and-palette.md",
+"docs/redesign/prompts/backend/02-library-series-ocr-extensions.md",
+"docs/redesign/prompts/backend/03-stats-streaks-annual-listen-sessions.md"
+],
+[
+"docs/redesign/prompts/backend/04-ai-home-composition.md",
+"docs/redesign/prompts/backend/05-ai-similar-recap-taste-onboarding.md",
+"docs/redesign/prompts/backend/06-reader-tints-panels-novel-audio.md",
+"docs/redesign/prompts/backend/07-media-routes-and-install-page.md"
+],
+[
+"docs/redesign/prompts/backend/08-circle-core-sharing-presence.md",
+"docs/redesign/prompts/backend/09-circle-reactions-letters-shelves.md"
+],
+[
+"docs/redesign/prompts/web/00-foundation-skin-engine-and-routes.md",
+"docs/redesign/prompts/web/01-foundation-motion-deps-fonts-icons.md",
+"docs/redesign/prompts/web/02-foundation-restart-haptics-sound.md",
+"docs/redesign/prompts/web/03-foundation-reader-seam-limiter-proof.md"
+],
+[
+"docs/redesign/prompts/web/04-cinematic-primitives-core-and-reveals.md",
+"docs/redesign/prompts/web/05-cinematic-primitives-overlays-controls-states.md",
+"docs/redesign/prompts/web/06-cinematic-shell-navigation-transitions.md",
+"docs/redesign/prompts/web/07-cinematic-auth-profiles-18plus.md"
+],
+[
+"docs/redesign/prompts/web/08-cinematic-tonight.md",
+"docs/redesign/prompts/web/09-cinematic-library-shelf-browse.md",
+"docs/redesign/prompts/web/10-cinematic-updates-collections-history-bookmarks.md",
+"docs/redesign/prompts/web/11-cinematic-feature-and-book-pages.md"
+],
+[
+"docs/redesign/prompts/web/12-cinematic-manga-reader-strip.md",
+"docs/redesign/prompts/web/13-cinematic-manga-reader-paged-readall-panels.md",
+"docs/redesign/prompts/web/14-cinematic-novel-reader.md",
+"docs/redesign/prompts/web/15-cinematic-listen-mode.md"
+],
+[
+"docs/redesign/prompts/web/16-cinematic-discover-search-sources-dialogue.md",
+"docs/redesign/prompts/web/17-cinematic-downloads-index-status.md",
+"docs/redesign/prompts/web/18-cinematic-settings-and-edition-restart.md",
+"docs/redesign/prompts/web/19-cinematic-ai-picks-similar-recap.md"
+],
+[
+"docs/redesign/prompts/web/20-cinematic-onboarding.md",
+"docs/redesign/prompts/web/21-cinematic-numbers-streak-annual.md",
+"docs/redesign/prompts/web/22-cinematic-circle.md",
+"docs/redesign/prompts/web/23-cinematic-ambient-reader-extras.md"
+],
+[
+"docs/redesign/prompts/web/24-cinematic-qa-polish.md",
+"docs/redesign/prompts/web/25-glass-foundation-material-physics.md",
+"docs/redesign/prompts/web/26-glass-primitives-controls-and-reveals.md",
+"docs/redesign/prompts/web/27-glass-primitives-overlays.md"
+],
+[
+"docs/redesign/prompts/web/28-glass-primitives-lists-states-ai-charts.md",
+"docs/redesign/prompts/web/29-glass-shell-navigation-depth.md",
+"docs/redesign/prompts/web/30-glass-auth-profiles-onboarding.md",
+"docs/redesign/prompts/web/31-glass-home.md"
+],
+[
+"docs/redesign/prompts/web/32-glass-library-hub-downloads.md",
+"docs/redesign/prompts/web/33-glass-series-and-book.md",
+"docs/redesign/prompts/web/34-reader-engine-glass-commands.md",
+"docs/redesign/prompts/web/35-glass-manga-reader.md"
+],
+[
+"docs/redesign/prompts/web/36-glass-novel-reader.md",
+"docs/redesign/prompts/web/37-glass-listen-mode.md",
+"docs/redesign/prompts/web/38-glass-search-sources-dialogue.md",
+"docs/redesign/prompts/web/39-glass-settings-and-skin-switch.md"
+],
+[
+"docs/redesign/prompts/web/40-glass-you-about-admin-status.md",
+"docs/redesign/prompts/web/41-glass-ai-for-you-recaps.md",
+"docs/redesign/prompts/web/42-glass-stats-streak-wrapped.md",
+"docs/redesign/prompts/web/43-glass-circle.md"
+],
+[
+"docs/redesign/prompts/web/44-glass-ambient-reader-extras.md",
+"docs/redesign/prompts/web/45-glass-qa-polish.md"
+],
+[
+"docs/redesign/prompts/mobile/00-foundation-reader-engine-extraction.md",
+"docs/redesign/prompts/mobile/01-foundation-skin-engine-and-restart.md",
+"docs/redesign/prompts/mobile/02-foundation-native-plugins-haptics-sound.md",
+"docs/redesign/prompts/mobile/03-foundation-fonts-icons-harness-glass-gate.md"
+],
+[
+"docs/redesign/prompts/mobile/04-cinematic-primitives-core-and-reveals.md",
+"docs/redesign/prompts/mobile/05-cinematic-primitives-overlays-controls-states.md",
+"docs/redesign/prompts/mobile/06-cinematic-shell-navigation-transitions.md",
+"docs/redesign/prompts/mobile/07-cinematic-auth-profiles-18plus.md"
+],
+[
+"docs/redesign/prompts/mobile/08-cinematic-tonight.md",
+"docs/redesign/prompts/mobile/09-cinematic-library-shelf-browse.md",
+"docs/redesign/prompts/mobile/10-cinematic-updates-collections-history-bookmarks.md",
+"docs/redesign/prompts/mobile/11-cinematic-feature-and-book-pages.md"
+],
+[
+"docs/redesign/prompts/mobile/12-cinematic-manga-reader-strip.md",
+"docs/redesign/prompts/mobile/13-cinematic-manga-reader-paged-readall-panels.md",
+"docs/redesign/prompts/mobile/14-cinematic-novel-reader.md",
+"docs/redesign/prompts/mobile/15-cinematic-listen-mode.md"
+],
+[
+"docs/redesign/prompts/mobile/16-cinematic-discover-search-sources-dialogue.md",
+"docs/redesign/prompts/mobile/17-cinematic-downloads-index-status.md",
+"docs/redesign/prompts/mobile/18-cinematic-settings-and-edition-restart.md",
+"docs/redesign/prompts/mobile/19-cinematic-ai-picks-similar-recap.md"
+],
+[
+"docs/redesign/prompts/mobile/20-cinematic-onboarding.md",
+"docs/redesign/prompts/mobile/21-cinematic-numbers-streak-annual.md",
+"docs/redesign/prompts/mobile/22-cinematic-circle.md",
+"docs/redesign/prompts/mobile/23-cinematic-ambient-reader-extras.md"
+],
+[
+"docs/redesign/prompts/mobile/24-cinematic-qa-polish.md",
+"docs/redesign/prompts/mobile/25-glass-foundation-material-physics.md",
+"docs/redesign/prompts/mobile/26-glass-primitives-controls-and-reveals.md",
+"docs/redesign/prompts/mobile/27-glass-primitives-overlays.md"
+],
+[
+"docs/redesign/prompts/mobile/28-glass-primitives-lists-states-ai-charts.md",
+"docs/redesign/prompts/mobile/29-glass-shell-navigation-depth.md",
+"docs/redesign/prompts/mobile/30-glass-auth-profiles-onboarding.md",
+"docs/redesign/prompts/mobile/31-glass-home.md"
+],
+[
+"docs/redesign/prompts/mobile/32-glass-library-hub-downloads.md",
+"docs/redesign/prompts/mobile/33-glass-series-and-book.md",
+"docs/redesign/prompts/mobile/34-reader-engine-glass-commands.md",
+"docs/redesign/prompts/mobile/35-glass-manga-reader.md"
+],
+[
+"docs/redesign/prompts/mobile/36-glass-novel-reader.md",
+"docs/redesign/prompts/mobile/37-glass-listen-mode.md",
+"docs/redesign/prompts/mobile/38-glass-search-sources-dialogue.md",
+"docs/redesign/prompts/mobile/39-glass-settings-and-skin-switch.md"
+],
+[
+"docs/redesign/prompts/mobile/40-glass-you-about-admin-status.md",
+"docs/redesign/prompts/mobile/41-glass-ai-for-you-recaps.md",
+"docs/redesign/prompts/mobile/42-glass-stats-streak-wrapped.md",
+"docs/redesign/prompts/mobile/43-glass-circle.md"
+],
+[
+"docs/redesign/prompts/mobile/44-glass-ambient-reader-extras.md",
+"docs/redesign/prompts/mobile/45-glass-qa-polish.md"
+],
+[
+"docs/redesign/prompts/release/00-cinematic-flip-release.md",
+"docs/redesign/prompts/release/01-glass-final-release.md"
+]
+],
+"slices": [
+{
+"track": "shared",
+"name": "1",
+"paths": [
+"docs/redesign/prompts/shared/00-design-contract-and-token-generator.md",
+"docs/redesign/prompts/shared/01-glass-tokens-haptics-motion-names-contrast.md",
+"docs/redesign/prompts/shared/02-icon-sets-and-custom-glyphs.md",
+"docs/redesign/prompts/shared/03-ui-sounds-and-soundscape-audio.md",
+"docs/redesign/prompts/shared/04-brand-cinematic-and-platform-icons.md",
+"docs/redesign/prompts/shared/05-brand-glass-and-art-intake.md"
+]
+},
+{
+"track": "backend",
+"name": "1",
+"paths": [
+"docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md",
+"docs/redesign/prompts/backend/01-cover-ambient-and-palette.md",
+"docs/redesign/prompts/backend/02-library-series-ocr-extensions.md",
+"docs/redesign/prompts/backend/03-stats-streaks-annual-listen-sessions.md",
+"docs/redesign/prompts/backend/04-ai-home-composition.md",
+"docs/redesign/prompts/backend/05-ai-similar-recap-taste-onboarding.md",
+"docs/redesign/prompts/backend/06-reader-tints-panels-novel-audio.md",
+"docs/redesign/prompts/backend/07-media-routes-and-install-page.md",
+"docs/redesign/prompts/backend/08-circle-core-sharing-presence.md",
+"docs/redesign/prompts/backend/09-circle-reactions-letters-shelves.md"
+]
+},
+{
+"track": "web",
+"name": "1",
+"paths": [
+"docs/redesign/prompts/web/00-foundation-skin-engine-and-routes.md",
+"docs/redesign/prompts/web/01-foundation-motion-deps-fonts-icons.md",
+"docs/redesign/prompts/web/02-foundation-restart-haptics-sound.md",
+"docs/redesign/prompts/web/03-foundation-reader-seam-limiter-proof.md",
+"docs/redesign/prompts/web/04-cinematic-primitives-core-and-reveals.md",
+"docs/redesign/prompts/web/05-cinematic-primitives-overlays-controls-states.md",
+"docs/redesign/prompts/web/06-cinematic-shell-navigation-transitions.md",
+"docs/redesign/prompts/web/07-cinematic-auth-profiles-18plus.md",
+"docs/redesign/prompts/web/08-cinematic-tonight.md",
+"docs/redesign/prompts/web/09-cinematic-library-shelf-browse.md",
+"docs/redesign/prompts/web/10-cinematic-updates-collections-history-bookmarks.md",
+"docs/redesign/prompts/web/11-cinematic-feature-and-book-pages.md"
+]
+},
+{
+"track": "web",
+"name": "2",
+"paths": [
+"docs/redesign/prompts/web/12-cinematic-manga-reader-strip.md",
+"docs/redesign/prompts/web/13-cinematic-manga-reader-paged-readall-panels.md",
+"docs/redesign/prompts/web/14-cinematic-novel-reader.md",
+"docs/redesign/prompts/web/15-cinematic-listen-mode.md",
+"docs/redesign/prompts/web/16-cinematic-discover-search-sources-dialogue.md",
+"docs/redesign/prompts/web/17-cinematic-downloads-index-status.md",
+"docs/redesign/prompts/web/18-cinematic-settings-and-edition-restart.md",
+"docs/redesign/prompts/web/19-cinematic-ai-picks-similar-recap.md",
+"docs/redesign/prompts/web/20-cinematic-onboarding.md",
+"docs/redesign/prompts/web/21-cinematic-numbers-streak-annual.md",
+"docs/redesign/prompts/web/22-cinematic-circle.md",
+"docs/redesign/prompts/web/23-cinematic-ambient-reader-extras.md"
+]
+},
+{
+"track": "web",
+"name": "3",
+"paths": [
+"docs/redesign/prompts/web/24-cinematic-qa-polish.md",
+"docs/redesign/prompts/web/25-glass-foundation-material-physics.md",
+"docs/redesign/prompts/web/26-glass-primitives-controls-and-reveals.md",
+"docs/redesign/prompts/web/27-glass-primitives-overlays.md",
+"docs/redesign/prompts/web/28-glass-primitives-lists-states-ai-charts.md",
+"docs/redesign/prompts/web/29-glass-shell-navigation-depth.md",
+"docs/redesign/prompts/web/30-glass-auth-profiles-onboarding.md",
+"docs/redesign/prompts/web/31-glass-home.md",
+"docs/redesign/prompts/web/32-glass-library-hub-downloads.md",
+"docs/redesign/prompts/web/33-glass-series-and-book.md",
+"docs/redesign/prompts/web/34-reader-engine-glass-commands.md",
+"docs/redesign/prompts/web/35-glass-manga-reader.md"
+]
+},
+{
+"track": "web",
+"name": "4",
+"paths": [
+"docs/redesign/prompts/web/36-glass-novel-reader.md",
+"docs/redesign/prompts/web/37-glass-listen-mode.md",
+"docs/redesign/prompts/web/38-glass-search-sources-dialogue.md",
+"docs/redesign/prompts/web/39-glass-settings-and-skin-switch.md",
+"docs/redesign/prompts/web/40-glass-you-about-admin-status.md",
+"docs/redesign/prompts/web/41-glass-ai-for-you-recaps.md",
+"docs/redesign/prompts/web/42-glass-stats-streak-wrapped.md",
+"docs/redesign/prompts/web/43-glass-circle.md",
+"docs/redesign/prompts/web/44-glass-ambient-reader-extras.md",
+"docs/redesign/prompts/web/45-glass-qa-polish.md"
+]
+},
+{
+"track": "mobile",
+"name": "1",
+"paths": [
+"docs/redesign/prompts/mobile/00-foundation-reader-engine-extraction.md",
+"docs/redesign/prompts/mobile/01-foundation-skin-engine-and-restart.md",
+"docs/redesign/prompts/mobile/02-foundation-native-plugins-haptics-sound.md",
+"docs/redesign/prompts/mobile/03-foundation-fonts-icons-harness-glass-gate.md",
+"docs/redesign/prompts/mobile/04-cinematic-primitives-core-and-reveals.md",
+"docs/redesign/prompts/mobile/05-cinematic-primitives-overlays-controls-states.md",
+"docs/redesign/prompts/mobile/06-cinematic-shell-navigation-transitions.md",
+"docs/redesign/prompts/mobile/07-cinematic-auth-profiles-18plus.md",
+"docs/redesign/prompts/mobile/08-cinematic-tonight.md",
+"docs/redesign/prompts/mobile/09-cinematic-library-shelf-browse.md",
+"docs/redesign/prompts/mobile/10-cinematic-updates-collections-history-bookmarks.md",
+"docs/redesign/prompts/mobile/11-cinematic-feature-and-book-pages.md"
+]
+},
+{
+"track": "mobile",
+"name": "2",
+"paths": [
+"docs/redesign/prompts/mobile/12-cinematic-manga-reader-strip.md",
+"docs/redesign/prompts/mobile/13-cinematic-manga-reader-paged-readall-panels.md",
+"docs/redesign/prompts/mobile/14-cinematic-novel-reader.md",
+"docs/redesign/prompts/mobile/15-cinematic-listen-mode.md",
+"docs/redesign/prompts/mobile/16-cinematic-discover-search-sources-dialogue.md",
+"docs/redesign/prompts/mobile/17-cinematic-downloads-index-status.md",
+"docs/redesign/prompts/mobile/18-cinematic-settings-and-edition-restart.md",
+"docs/redesign/prompts/mobile/19-cinematic-ai-picks-similar-recap.md",
+"docs/redesign/prompts/mobile/20-cinematic-onboarding.md",
+"docs/redesign/prompts/mobile/21-cinematic-numbers-streak-annual.md",
+"docs/redesign/prompts/mobile/22-cinematic-circle.md",
+"docs/redesign/prompts/mobile/23-cinematic-ambient-reader-extras.md"
+]
+},
+{
+"track": "mobile",
+"name": "3",
+"paths": [
+"docs/redesign/prompts/mobile/24-cinematic-qa-polish.md",
+"docs/redesign/prompts/mobile/25-glass-foundation-material-physics.md",
+"docs/redesign/prompts/mobile/26-glass-primitives-controls-and-reveals.md",
+"docs/redesign/prompts/mobile/27-glass-primitives-overlays.md",
+"docs/redesign/prompts/mobile/28-glass-primitives-lists-states-ai-charts.md",
+"docs/redesign/prompts/mobile/29-glass-shell-navigation-depth.md",
+"docs/redesign/prompts/mobile/30-glass-auth-profiles-onboarding.md",
+"docs/redesign/prompts/mobile/31-glass-home.md",
+"docs/redesign/prompts/mobile/32-glass-library-hub-downloads.md",
+"docs/redesign/prompts/mobile/33-glass-series-and-book.md",
+"docs/redesign/prompts/mobile/34-reader-engine-glass-commands.md",
+"docs/redesign/prompts/mobile/35-glass-manga-reader.md"
+]
+},
+{
+"track": "mobile",
+"name": "4",
+"paths": [
+"docs/redesign/prompts/mobile/36-glass-novel-reader.md",
+"docs/redesign/prompts/mobile/37-glass-listen-mode.md",
+"docs/redesign/prompts/mobile/38-glass-search-sources-dialogue.md",
+"docs/redesign/prompts/mobile/39-glass-settings-and-skin-switch.md",
+"docs/redesign/prompts/mobile/40-glass-you-about-admin-status.md",
+"docs/redesign/prompts/mobile/41-glass-ai-for-you-recaps.md",
+"docs/redesign/prompts/mobile/42-glass-stats-streak-wrapped.md",
+"docs/redesign/prompts/mobile/43-glass-circle.md",
+"docs/redesign/prompts/mobile/44-glass-ambient-reader-extras.md",
+"docs/redesign/prompts/mobile/45-glass-qa-polish.md"
+]
+},
+{
+"track": "release",
+"name": "1",
+"paths": [
+"docs/redesign/prompts/release/00-cinematic-flip-release.md",
+"docs/redesign/prompts/release/01-glass-final-release.md"
+]
+}
+]
+}
