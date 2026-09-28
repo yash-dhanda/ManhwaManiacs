@@ -23,7 +23,7 @@
 # =============================================================================
 set -uo pipefail
 
-REPO="${MM_IOS_REPO:-yashleell11-ship-it/ManhwaManiacs}"
+REPO="${MM_IOS_REPO:-yash-dhanda/ManhwaManiacs}"
 WORKFLOW="${MM_IOS_WORKFLOW:-ios-build.yml}"
 BRANCH="${MM_IOS_BRANCH:-feat/vps-slim-source-native}"
 ARTIFACT="${MM_IOS_ARTIFACT:-ManhwaManiacs-ipa}"
@@ -57,13 +57,15 @@ if [ -z "$TOKEN" ] && [ -r "$HOME/.gh_token" ]; then
 fi
 
 api(){
+  # -L: a renamed account or repository answers 301 with the new path, and
+  # without it the redirect body ("Moved Permanently") is what gets parsed.
   if [ -n "$TOKEN" ]; then
-    curl -sS -m 60 -H "Authorization: Bearer $TOKEN" \
-                   -H "Accept: application/vnd.github+json" \
-                   -H "X-GitHub-Api-Version: 2022-11-28" "$@"
+    curl -sSL -m 60 -H "Authorization: Bearer $TOKEN" \
+                    -H "Accept: application/vnd.github+json" \
+                    -H "X-GitHub-Api-Version: 2022-11-28" "$@"
   else
-    curl -sS -m 60 -H "Accept: application/vnd.github+json" \
-                   -H "X-GitHub-Api-Version: 2022-11-28" "$@"
+    curl -sSL -m 60 -H "Accept: application/vnd.github+json" \
+                    -H "X-GitHub-Api-Version: 2022-11-28" "$@"
   fi
 }
 
