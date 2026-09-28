@@ -35,7 +35,7 @@ const SKINS = [
 
 const A = args || {}
 const skin = SKINS.find(s => s.key === A.skin)
-const V = `${OUT}/${skin.key}/verify`
+const V = `${OUT}/${skin.key}/verify${A.tag ? '-' + A.tag : ''}` // args.tag keeps a later sweep's reports apart from the first pass
 const DOC = `${OUT}/${skin.key}/DESIGN.md`
 
 const LENSES = {
