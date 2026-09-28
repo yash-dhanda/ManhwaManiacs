@@ -75,17 +75,20 @@ if (A.do === 'findjudge') {
 }
 
 if (A.do === 'fix') {
-  const fixOnce = (extra, n) => agent(`${LOCK}\n${PRODUCT}\n\nTASK: apply to ${DOC} every finding in the "Confirmed" sections of ${V}/judge-*.md${extra}. Edit DESIGN.md in place. Keep the skin's personality and every existing decision. When a fix changes a token, motion, haptic or sound value, update every table and section that repeats it so the file stays internally consistent (grep for the old value). Update the Coverage appendix if screens change. Append to ${V}/fixed.md (round ${n}) each finding id and the sections you changed. Return a summary and the ids fixed as highlights.`, { ...M, label: `fix:${skin.key}:r${n}`, phase: 'Fix', schema: REPORT })
-  const recheck = n => agent(`${LOCK}\n${PRODUCT}\n\nTASK: recheck round ${n} for the "${skin.name}" skin. For every finding in the "Confirmed" sections of ${V}/judge-*.md, verify that ${DOC} now resolves it exactly as the final fix says, and that no fix introduced a contradiction (grep for old values that should be gone and for every place a changed value is repeated). Do not edit DESIGN.md. Write ${V}/recheck-${n}.md. Return the unresolved ids with reasons (empty when everything is resolved).`, { ...M, label: `recheck:${skin.key}:r${n}`, phase: 'Fix', schema: RECHECK })
-  let fx = await fixOnce('', 1)
-  let rc = await recheck(1), n = 1
-  while (rc && rc.unresolved.length && n < 3) {
+  // one fixer per lens, in sequence (they all edit the same file); rechecks are read-only so they fan out
+  const order = A.order || ['consistency', 'stack', 'product', 'mobile', 'web', 'a11y']
+  const fixLens = (key, extra, n) => agent(`${LOCK}\n${PRODUCT}\n\nTASK: apply to ${DOC} every finding in the "Confirmed" section of ${V}/judge-${key}.md${extra}. Edit DESIGN.md in place; it is very large, so locate each spot with grep and read only the lines around it, and re-read a region right before editing it. Keep the skin's personality and every existing decision. When a fix changes a token, motion, haptic or sound value, update every table and section that repeats it so the file stays internally consistent (grep for the old value). Update the Coverage appendix if screens change. Append to ${V}/fixed-${key}.md (round ${n}) each finding id and the sections you changed. Return a summary and the ids fixed as highlights.`, { ...M, label: `fix:${skin.key}:${key}:r${n}`, phase: 'Fix', schema: REPORT })
+  const recheck = (key, n) => agent(`${LOCK}\n${PRODUCT}\n\nTASK: recheck round ${n} for the "${skin.name}" skin, lens ${key}. For every finding in the "Confirmed" section of ${V}/judge-${key}.md, verify that ${DOC} now resolves it exactly as the final fix says, and that the fix introduced no contradiction (grep for old values that should be gone and for every place a changed value is repeated). Do not edit DESIGN.md. Write ${V}/recheck-${key}-${n}.md. Return the unresolved ids with reasons (empty when everything is resolved).`, { ...M, label: `recheck:${skin.key}:${key}:r${n}`, phase: 'Fix', schema: RECHECK })
+  let todo = order.map(key => ({ key, extra: '' })), n = 0, left = []
+  while (todo.length && n < 3) {
     n++
-    log(`${skin.name}: ${rc.unresolved.length} unresolved after round ${n - 1}`)
-    fx = await fixOnce(`, prioritising these ids that round ${n - 1} left unresolved: ${rc.unresolved.map(u => u.id + ' (' + u.reason + ')').join('; ')}`, n)
-    rc = await recheck(n)
+    for (const t of todo) await fixLens(t.key, t.extra, n)
+    const rcs = await parallel(todo.map(t => () => recheck(t.key, n).then(r => ({ key: t.key, r }))))
+    left = rcs.filter(x => x && x.r && x.r.unresolved.length)
+    log(`${skin.name} round ${n}: ${left.map(x => x.key + ' ' + x.r.unresolved.length).join(', ') || 'all resolved'}`)
+    todo = left.map(x => ({ key: x.key, extra: `, prioritising these ids that round ${n} left unresolved: ${x.r.unresolved.map(u => u.id + ' (' + u.reason + ')').join('; ')}` }))
   }
-  return { rounds: n, unresolved: rc ? rc.unresolved : null }
+  return { rounds: n, unresolved: left.map(x => ({ key: x.key, ids: x.r.unresolved })) }
 }
 
 return { error: 'unknown args.do', args: A }
