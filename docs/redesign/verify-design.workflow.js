@@ -91,4 +91,21 @@ if (A.do === 'fix') {
   return { rounds: n, unresolved: left.map(x => ({ key: x.key, ids: x.r.unresolved })) }
 }
 
+if (A.do === 'fixlens') {
+  // one lens per workflow so several lenses fix concurrently; edits re-read before writing, and the recheck loop catches any lost edit
+  const key = A.lens
+  const fixLens = (extra, n) => agent(`${LOCK}\n${PRODUCT}\n\nTASK: apply to ${DOC} every finding in the "Confirmed" section of ${V}/judge-${key}.md${extra}. Other agents are editing other parts of DESIGN.md at the same time: locate each spot with grep, read only the lines around it right before editing, keep each edit small and local, and if an edit fails because the file changed, re-read that region and retry. Keep the skin's personality and every existing decision. When a fix changes a token, motion, haptic or sound value, update every table and section that repeats it (grep for the old value). Update the Coverage appendix if screens change. Append to ${V}/fixed-${key}.md (round ${n}) each finding id and the sections you changed. Return a summary and the ids fixed as highlights.`, { ...M, label: `fix:${skin.key}:${key}:r${n}`, phase: 'Fix', schema: REPORT })
+  const recheck = n => agent(`${LOCK}\n${PRODUCT}\n\nTASK: recheck round ${n} for the "${skin.name}" skin, lens ${key}. For every finding in the "Confirmed" section of ${V}/judge-${key}.md, verify that ${DOC} now resolves it exactly as the final fix says, and that the fix introduced no contradiction (grep for old values that should be gone and for every place a changed value is repeated). Do not edit DESIGN.md. Write ${V}/recheck-${key}-${n}.md. Return the unresolved ids with reasons (empty when everything is resolved).`, { ...M, label: `recheck:${skin.key}:${key}:r${n}`, phase: 'Fix', schema: RECHECK })
+  let extra = '', n = 0, rc = null
+  while (n < 3) {
+    n++
+    await fixLens(extra, n)
+    rc = await recheck(n)
+    if (!rc || !rc.unresolved.length) break
+    log(`${skin.name}/${key} round ${n}: ${rc.unresolved.length} unresolved`)
+    extra = `, prioritising these ids that round ${n} left unresolved: ${rc.unresolved.map(u => u.id + ' (' + u.reason + ')').join('; ')}`
+  }
+  return { lens: key, rounds: n, unresolved: rc ? rc.unresolved : null }
+}
+
 return { error: 'unknown args.do', args: A }
