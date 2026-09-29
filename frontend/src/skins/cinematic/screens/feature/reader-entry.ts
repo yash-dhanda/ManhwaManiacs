@@ -2,21 +2,22 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
+import { columnWipe } from "./wipe";
 
 /**
- * TODO(web/06): stand-in for `enterReader(href, { entry: "wipe" })`. Plays a
- * 200 ms cross-fade through black (the reduced-motion form of the Column
- * wipe) then navigates; web/06's re-export replaces this file's body.
+ * TODO(web/06): stand-in for `enterReader(href, { entry: "wipe" })` from
+ * `motion.ts`. It is the real Column wipe (12/8/4 blades, reduced-motion
+ * cross-fade); web/06's re-export replaces this body.
  */
 export function useReaderEntry() {
   const router = useRouter();
   return useCallback(
     (href: string) => {
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const go = () => router.push(href);
-      const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
-      if (!reduce && doc.startViewTransition) doc.startViewTransition(go);
-      else go();
+      const from = window.location.pathname + window.location.search;
+      void columnWipe(
+        () => router.push(href),
+        () => window.location.pathname + window.location.search !== from,
+      );
     },
     [router],
   );

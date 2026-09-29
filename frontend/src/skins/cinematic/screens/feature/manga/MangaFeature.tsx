@@ -5,14 +5,16 @@ import { libraryCoverUrl, seriesCoverUrl } from "@/features/library/api";
 import type { SourceSeriesSummary } from "@/features/sources/types";
 import { useSources } from "@/features/sources/hooks";
 import { useReaderEntry } from "../reader-entry";
-import { focusRow, useFeatureKeys } from "../use-feature-keys";
+import { FeatureKeys, focusRow } from "../use-feature-keys";
 import type { SeriesPage } from "../use-series-page";
 import { AddToShelfSheet, TagSheet } from "../standins";
 import { Lightbox } from "../Lightbox";
 import { AtAGlance } from "./AtAGlance";
 import { ChaptersPanel } from "./ChaptersPanel";
 import { DetailsPanel } from "./DetailsPanel";
+import { FeaturePhoneHero } from "./FeaturePhoneHero";
 import { FeatureSpread, type Ambient } from "./FeatureSpread";
+import { PHONE, useMedia } from "../use-media";
 import { FeatureTabs, type FeatureTab } from "./FeatureTabs";
 import { RepointPanel } from "./RepointPanel";
 import { useRouter } from "next/navigation";
@@ -33,6 +35,8 @@ export function MangaFeature({
   setCover: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const phone = useMedia(PHONE);
+  const Hero = phone ? FeaturePhoneHero : FeatureSpread;
   const enter = useReaderEntry();
   const sources = useSources().data;
   const source = sources?.find((x) => x.id === page.sourceId);
@@ -82,34 +86,33 @@ export function MangaFeature({
   const idx = tabs.findIndex((x) => x.id === tab);
   const followed = page.followedId !== null;
 
-  useFeatureKeys({
-    Enter: () => page.primaryHref && enter(page.primaryHref),
-    c: () => page.primaryHref && enter(page.primaryHref),
-    a: () => page.readAll && enter(page.readAll),
-    v: () => setCover(true),
-    f: () => followed && page.patch({ is_favorite: !page.follow?.is_favorite }),
-    n: () => followed && page.patch({ notify: !page.follow?.notify }),
-    "+": () => void page.toggleFollow(),
-    d: () => page.picker.begin(),
-    x: () => (page.picker.selecting ? page.picker.end() : page.picker.begin()),
-    "/": () => {
-      setTab("chapters");
-      setTimeout(() => goTo.current?.focus(), 0);
-    },
-    o: () => page.setSort(page.sort === "newest" ? "oldest" : "newest"),
-    m: () => followed && page.online && setSheet("move"),
-    j: () => focusRow(1),
-    k: () => focusRow(-1),
-    "[": () => at((idx - 1 + tabs.length) % tabs.length),
-    "]": () => at((idx + 1) % tabs.length),
-    ...Object.fromEntries(tabs.map((_, i) => [String(i + 1), () => at(i)])),
-  });
+  const tabKeys = tabs.map((tb, i) => ({ id: `tab${i + 1}`, keys: String(i + 1), label: `Tab ${i + 1}: ${tb.label.toLowerCase()}`, run: () => at(i) }));
+  const keys = [
+    { id: "continue", keys: ["c", "Enter"], label: "Continue reading", run: () => page.primaryHref && enter(page.primaryHref) },
+    { id: "all", keys: "a", label: "Read all", run: () => page.readAll && enter(page.readAll) },
+    { id: "cover", keys: "v", label: "View cover", run: () => setCover(true) },
+    { id: "fav", keys: "f", label: "Favourite", run: () => followed && page.patch({ is_favorite: !page.follow?.is_favorite }) },
+    { id: "notify", keys: "n", label: "Notify", run: () => followed && page.patch({ notify: !page.follow?.notify }) },
+    { id: "follow", keys: "+", label: "Follow or unfollow", run: () => void page.toggleFollow() },
+    { id: "download", keys: "d", label: "Download (select chapters)", run: () => page.picker.begin() },
+    { id: "select", keys: "x", label: "Select mode", run: () => (page.picker.selecting ? page.picker.end() : page.picker.begin()) },
+    { id: "goto", keys: "/", label: "Go to chapter", run: () => { setTab("chapters"); setTimeout(() => goTo.current?.focus(), 0); } },
+    { id: "order", keys: "o", label: "Newest or oldest first", run: () => page.setSort(page.sort === "newest" ? "oldest" : "newest") },
+    { id: "move", keys: "m", label: "Move to another source", run: () => followed && page.online && setSheet("move") },
+    { id: "next", keys: "j", label: "Next chapter", run: () => focusRow(1) },
+    { id: "prev", keys: "k", label: "Previous chapter", run: () => focusRow(-1) },
+    { id: "tabprev", keys: "[", label: "Previous tab", run: () => at((idx - 1 + tabs.length) % tabs.length) },
+    { id: "tabnext", keys: "]", label: "Next tab", run: () => at((idx + 1) % tabs.length) },
+    ...tabKeys,
+  ];
+
 
   const coverSrc = page.follow?.cover_url ? libraryCoverUrl(page.follow.cover_url) : seriesCoverUrl(page.ref);
 
   return (
     <>
-      <FeatureSpread
+      <FeatureKeys keys={keys} />
+      <Hero
         page={page}
         series={series}
         source={source}

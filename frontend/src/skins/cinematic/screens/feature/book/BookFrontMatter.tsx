@@ -7,6 +7,8 @@ import { useCachedNovelWordCounts } from "@/features/novels/hooks";
 import { coverPath, shelfBlurb, shelfGenres } from "@/features/novels/shelf";
 import { seriesCoverUrl, libraryCoverUrl } from "@/features/library/api";
 import type { SourceSeriesSummary, SourceSummary } from "@/features/sources/types";
+import { ViewTransition } from "react";
+import { coverTransitionName } from "../cover-name";
 import { Glyph } from "../Glyph";
 import { SetHeading } from "../SetHeading";
 import { FeatureOverflow } from "../manga/FeatureOverflow";
@@ -146,8 +148,10 @@ export function BookFrontMatter({
             <div className={s.artDuo} />
             <div className={s.artGrain} />
             {cover ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img className={s.plate} src={cover} alt={`${series.title} cover`} onDoubleClick={onViewCover} onContextMenu={(e) => e.preventDefault()} />
+              <ViewTransition name={coverTransitionName(page.sourceId, page.seriesKey)} share="mm-match-cut" default="none">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className={s.plate} src={cover} alt={`${series.title} cover`} onDoubleClick={onViewCover} onContextMenu={(e) => e.preventDefault()} />
+              </ViewTransition>
             ) : (
               <div className={s.plate} aria-hidden="true" />
             )}

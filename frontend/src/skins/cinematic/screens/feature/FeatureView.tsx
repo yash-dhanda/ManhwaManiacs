@@ -1,14 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { ViewTransition, useCallback, useEffect, useState } from "react";
 import { useIsNovelSource } from "@/features/novels/hooks";
 import { ApiError } from "@/types/api";
 import { BookFeature } from "./book/BookFeature";
 import { BookError, BookOffline } from "./book/BookStates";
 import { Galley, NotAvailable, Notice } from "./FeatureStates";
 import { MangaFeature } from "./manga/MangaFeature";
+import { MotionTimings } from "./MotionTimings";
+import { sampleTransitions } from "./motion-log";
 import { ToastStack } from "./toasts";
 import { useSeriesPage } from "./use-series-page";
+import "./view-transitions.css";
 import s from "./feature.module.css";
 
 export interface FeatureViewProps {
@@ -54,6 +57,24 @@ export function FeatureView({ sourceId, seriesKey, followedId, focusChapterKey =
     if (title) document.title = `${title} · ManhwaManiacs`;
   }, [title]);
 
+  // Back (in-page or browser) plays the 336 ms reverse match cut; a page arriving samples its own.
+  useEffect(() => {
+    sampleTransitions("in");
+    const html = document.documentElement;
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const back = () => {
+      html.dataset.mmNav = "back";
+      sampleTransitions("out");
+      clearTimeout(t);
+      t = setTimeout(() => delete html.dataset.mmNav, 900);
+    };
+    window.addEventListener("popstate", back);
+    return () => {
+      window.removeEventListener("popstate", back);
+      clearTimeout(t);
+    };
+  }, []);
+
   const err = seriesQuery.error;
   const gone = err instanceof ApiError && (GONE.has(err.code) || err.status === 404);
   let body;
@@ -79,9 +100,12 @@ export function FeatureView({ sourceId, seriesKey, followedId, focusChapterKey =
   }
 
   return (
-    <div className={s.page} data-screen="feature" data-kind={isNovel ? "book" : "feature"}>
-      {body}
-      <ToastStack toasts={page.toasts.toasts} dismiss={page.toasts.dismiss} />
-    </div>
+    <ViewTransition enter="mm-page-in" exit="mm-page-out" default="none">
+      <div className={s.page} data-screen="feature" data-kind={isNovel ? "book" : "feature"}>
+        {body}
+        <ToastStack toasts={page.toasts.toasts} dismiss={page.toasts.dismiss} />
+        <MotionTimings />
+      </div>
+    </ViewTransition>
   );
 }

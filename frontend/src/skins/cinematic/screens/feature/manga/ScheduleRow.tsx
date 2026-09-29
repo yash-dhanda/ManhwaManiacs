@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { downloadMarkState } from "@/features/offline/download-mark";
 import { Glyph } from "../Glyph";
 import { Menu, type MenuEntry } from "../Menu";
@@ -9,6 +9,7 @@ import { DownloadMark } from "../downloads/DownloadMark";
 import type { ChapterRow } from "../chapter-rows";
 import type { SeriesPage } from "../use-series-page";
 import { useReaderEntry } from "../reader-entry";
+import { useSwipeRow } from "../swipe-row";
 import s from "../feature.module.css";
 import t from "../type.module.css";
 
@@ -30,9 +31,7 @@ export function ScheduleRow({
   const enter = useReaderEntry();
   const href = page.chapterHref(row.id);
   const [menu, setMenu] = useState(false);
-  const [dx, setDx] = useState(0);
-  const start = useRef<{ x: number; t: number } | null>(null);
-  const long = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const swipe = useSwipeRow({ enabled: page.online && !picker.selecting, onCommit: () => page.markOne(row.id), onLongPress: () => setMenu(true) });
   const selected = picker.selecting && picker.isSelected(row.id);
   const dlState = picker.stateOf(row.id);
   const saved = dlState === "saved";
@@ -65,78 +64,61 @@ export function ScheduleRow({
   ].join(" ");
 
   return (
-    <div role="listitem"
-      className={cls}
-      data-row={index}
-      data-focused={focused || undefined}
-      style={{ transform: dx ? `translateX(${dx}px)` : undefined, transition: dx ? "none" : "transform 420ms var(--mm-spring-release)" }}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        setMenu(true);
-      }}
-      onTouchStart={(e) => {
-        start.current = { x: e.touches[0].clientX, t: Date.now() };
-        long.current = setTimeout(() => setMenu(true), 450);
-      }}
-      onTouchMove={(e) => {
-        if (!start.current) return;
-        const d = e.touches[0].clientX - start.current.x;
-        if (Math.abs(d) > 8 && long.current) clearTimeout(long.current);
-        if (d < 0) setDx(Math.max(d, -72));
-      }}
-      onTouchEnd={() => {
-        if (long.current) clearTimeout(long.current);
-        if (dx <= -50 && page.online) page.markOne(row.id);
-        setDx(0);
-        start.current = null;
-      }}
-    >
-      <Link
-        href={href}
-        className={s.rowMain}
-        aria-current={current ? "location" : undefined}
-        onClick={open}
-        onMouseEnter={() => page.hover.enter(row.id)}
-        onMouseLeave={() => page.hover.leave()}
-        onFocus={() => page.hover.enter(row.id)}
-        onBlur={() => page.hover.leave()}
-      >
-        <span className={`${t.folioLg} ${s.num}`}>
-          {picker.selecting ? (
-            <span className={`${s.check} ${selected || saved ? s.checkOn : ""} ${saved ? s.checkDim : ""}`} aria-hidden="true" style={{ marginRight: 12 }} />
-          ) : null}
-          {row.ordinal ?? "·"}
-        </span>
-        <span className={s.rowTitle}>
-          <div className={t.title}>
-            {row.title ?? (row.ordinal ? `Chapter ${row.ordinal}` : "Chapter")}
-            {current ? <span className={`${t.micro} ${s.badge}`}>READING</span> : null}
-          </div>
-          <div className={`${t.caption} ${s.rowCap} ${mark.kind === "failed" ? s.err : ""}`}>
-            {[row.date, row.pages > 0 ? `${row.pages} PAGES` : null].filter(Boolean).join(" · ")}
-          </div>
-        </span>
-        <span className={t.folio}>
-          {row.completed ? (
-            <span className={`${t.micro} ${s.readMark}`}>READ</span>
-          ) : row.inProgress && row.pages > 0 ? (
-            <span className={s.progress}>{row.page}/{row.pages}</span>
-          ) : null}
-        </span>
-      </Link>
-      <span className={s.rowTools}>
-        <DownloadMark
-          state={mark}
-          onPress={() => void picker.downloads.download([row.id])}
-          disabled={picker.downloads.unavailable}
-        />
-        <Menu entries={entries} label={`Chapter ${row.ordinal ?? ""} actions`} open={menu} onOpenChange={setMenu} />
-      </span>
-      {dx < 0 ? (
-        <div aria-hidden="true" style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 72, background: "var(--mm-color-ink-100)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", zIndex: -1 }}>
+    <div role="listitem" className={s.swipeWrap} data-row={index} data-focused={focused || undefined} data-swiping={swipe.swiping || undefined} onContextMenu={(e) => { e.preventDefault(); setMenu(true); }}>
+      {swipe.swiping ? (
+        <div aria-hidden="true" className={s.slab} style={{ width: swipe.slab }}>
           <Glyph name="check" />
         </div>
       ) : null}
+      <div className={cls} style={swipe.style} {...swipe.handlers}>
+        <Link
+          href={href}
+          className={s.rowMain}
+          aria-current={current ? "location" : undefined}
+          onClick={open}
+          onPointerDown={() => page.prefetchP1(row.id)}
+          onMouseEnter={() => page.hover.enter(row.id)}
+          onMouseLeave={() => page.hover.leave()}
+          onFocus={() => page.hover.enter(row.id)}
+          onBlur={() => page.hover.leave()}
+        >
+          <span className={`${t.folioLg} ${s.num}`}>
+            {picker.selecting ? (
+              <span className={`${s.check} ${selected || saved ? s.checkOn : ""} ${saved ? s.checkDim : ""}`} aria-hidden="true" style={{ marginRight: 12 }} />
+            ) : null}
+            {row.ordinal ?? "·"}
+          </span>
+          <span className={s.rowTitle}>
+            <div className={t.title}>
+              {row.title ?? (row.ordinal ? `Chapter ${row.ordinal}` : "Chapter")}
+              {current ? <span className={`${t.micro} ${s.badge}`}>READING</span> : null}
+            </div>
+            <div className={`${t.caption} ${s.rowCap} ${mark.kind === "failed" ? s.err : ""}`}>
+              {[row.date, row.pages > 0 ? `${row.pages} PAGES` : null].filter(Boolean).join(" · ")}
+            </div>
+          </span>
+          <span className={t.folio}>
+            {row.completed ? (
+              <span className={`${t.micro} ${s.readMark}`}>READ</span>
+            ) : row.inProgress && row.pages > 0 ? (
+              <span className={s.progress}>{row.page}/{row.pages}</span>
+            ) : null}
+          </span>
+        </Link>
+        <span className={s.rowTools}>
+          {!row.completed && !picker.selecting ? (
+            <button type="button" className={`${s.icon} ${s.hoverTool}`} aria-label={`Mark chapter ${row.ordinal ?? ""} read`} title={need ?? "Mark read"} disabled={!page.online} onClick={() => page.markOne(row.id)}>
+              <Glyph name="check" size={20} />
+            </button>
+          ) : null}
+          <DownloadMark
+            state={mark}
+            onPress={() => void picker.downloads.download([row.id])}
+            disabled={picker.downloads.unavailable}
+          />
+          <Menu entries={entries} label={`Chapter ${row.ordinal ?? ""} actions`} open={menu} onOpenChange={setMenu} />
+        </span>
+      </div>
     </div>
   );
 }

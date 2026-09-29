@@ -26,8 +26,9 @@ import { useSeriesProgress } from "@/features/reader/hooks";
 import { readAllHref, readerChapterHref } from "@/features/reader/reader-link";
 import { useSeriesEnrichment } from "@/features/sources/enrichment";
 import { resolveChapterListState } from "@/features/sources/chapter-list-state";
+import { prefetchChapterManifest } from "@/features/reader/hooks";
+import { runP3 } from "@/features/sources/p3-limiter";
 import {
-  prefetchSourceReaderChapter,
   useSourceChapters,
   useSourceSeriesDetail,
 } from "@/features/sources/hooks";
@@ -127,14 +128,29 @@ export function useSeriesPage(opts: {
   const readAll = !isNovel && chapters.length > 1 ? readAllHref(ref, point?.chapterKey ?? null) : null;
 
   // --- hover prefetch (150 ms dwell) -----------------------------------
-  const hover = useMemo(
-    () =>
-      createHoverIntent<string>((id) => {
-        if (!isNovel) prefetchSourceReaderChapter(qc, sourceId, seriesKey, id);
-      }, 150),
+  const prefetchP3 = useCallback(
+    (id: string) => {
+      if (!isNovel) void runP3(() => prefetchChapterManifest(qc, { sourceId, seriesKey, chapterKey: id }));
+    },
     [isNovel, qc, sourceId, seriesKey],
   );
+  const hover = useMemo(() => createHoverIntent<string>(prefetchP3, 150), [prefetchP3]);
   useEffect(() => () => hover.dispose(), [hover]);
+  // A press is P1: straight to the network, ahead of the limiter.
+  const prefetchP1 = useCallback(
+    (id: string) => {
+      if (!isNovel) void prefetchChapterManifest(qc, { sourceId, seriesKey, chapterKey: id });
+    },
+    [isNovel, qc, sourceId, seriesKey],
+  );
+  // The first two rows on load, as P3.
+  const firstTwo = rows
+    .slice(0, 2)
+    .map((r) => r.id)
+    .join("|");
+  useEffect(() => {
+    if (firstTwo) firstTwo.split("|").forEach(prefetchP3);
+  }, [firstTwo, prefetchP3]);
 
   // --- downloads -------------------------------------------------------
   const titleOf = useCallback(
@@ -260,7 +276,7 @@ export function useSeriesPage(opts: {
     followError: followM.error,
     enrichment, suggested, coverage, allTags, tagIds, tagSeries, untagSeries,
     progress, progressRows, readCount, continueTo, primaryHref, readAll, chapterHref,
-    sort, setSort, hover, picker, title,
+    sort, setSort, hover, prefetchP1, picker, title,
     toggleFollow, patch, setMature, markOne, markUpTo, markUnread,
     timeSpent: timeHere(progressRows),
     toasts,

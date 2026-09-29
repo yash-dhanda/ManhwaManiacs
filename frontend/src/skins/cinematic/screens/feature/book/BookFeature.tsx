@@ -12,7 +12,7 @@ import type { Ambient } from "../manga/FeatureSpread";
 import { RepointPanel } from "../manga/RepointPanel";
 import { useReaderEntry } from "../reader-entry";
 import { AddToShelfSheet, TagSheet } from "../standins";
-import { useFeatureKeys } from "../use-feature-keys";
+import { FeatureKeys } from "../use-feature-keys";
 import type { SeriesPage } from "../use-series-page";
 import { BookContents } from "./BookContents";
 import { BookFrontMatter } from "./BookFrontMatter";
@@ -50,21 +50,22 @@ export function BookFeature({
   const dead = healthOf(source) === "dead";
   const currentNumber = point ? (page.rows.find((r) => r.id === point.chapterKey)?.number ?? null) : null;
 
-  useFeatureKeys({
-    Enter: () => page.primaryHref && enter(page.primaryHref),
-    c: () => page.primaryHref && enter(page.primaryHref),
-    l: () => listenHref && enter(listenHref),
-    v: () => setCover(true),
-    "+": () => void page.toggleFollow(),
-    d: () => page.picker.startKeys(page.picker.unsaved),
-    "/": () => goTo.current?.focus(),
-    o: () => page.setSort(page.sort === "oldest" ? "newest" : "oldest"),
-    m: () => followed && page.online && setSheet("move"),
-  });
+  const keys = [
+    { id: "continue", keys: ["c", "Enter"], label: "Start or continue reading", run: () => page.primaryHref && enter(page.primaryHref) },
+    { id: "listen", keys: "l", label: "Listen", run: () => listenHref && enter(listenHref) },
+    { id: "cover", keys: "v", label: "View cover", run: () => setCover(true) },
+    { id: "library", keys: "+", label: "Add to or remove from library", run: () => void page.toggleFollow() },
+    { id: "download", keys: "d", label: "Download book", run: () => page.picker.startKeys(page.picker.unsaved) },
+    { id: "goto", keys: "/", label: "Go to chapter", run: () => goTo.current?.focus() },
+    { id: "order", keys: "o", label: "Change the order", run: () => page.setSort(page.sort === "oldest" ? "newest" : "oldest") },
+    { id: "move", keys: "m", label: "Move to another source", run: () => followed && page.online && setSheet("move") },
+  ];
+
 
   const coverSrc = page.follow?.cover_url ? libraryCoverUrl(page.follow.cover_url) : seriesCoverUrl(page.ref);
   return (
     <>
+      <FeatureKeys keys={keys} />
       <BookFrontMatter
         page={page}
         series={series}
