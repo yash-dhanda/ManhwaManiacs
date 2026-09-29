@@ -115,13 +115,11 @@ class _GlassStatusCapsuleState extends State<GlassStatusCapsule> {
         constraints: const BoxConstraints(minHeight: 32),
         child: widget.inGroup
             ? Center(widthFactor: 1, heightFactor: 1, child: content)
-            : GlassHost(
-                child: Stack(
-                  children: [
-                    Positioned.fill(child: SkinGlass(key: _glass, tier: GlassTierId.t2, layer: GlassLayerKind.hud, debugLabel: 'GlassStatusCapsule', child: const SizedBox.shrink())),
-                    Center(widthFactor: 1, heightFactor: 1, child: content),
-                  ],
-                ),
+            : Stack(
+                children: [
+                  Positioned.fill(child: SkinGlass(key: _glass, tier: GlassTierId.t2, layer: GlassLayerKind.hud, debugLabel: 'GlassStatusCapsule', child: const SizedBox.shrink())),
+                  GlassHost(child: Center(widthFactor: 1, heightFactor: 1, child: content)),
+                ],
               ),
       ),
     );

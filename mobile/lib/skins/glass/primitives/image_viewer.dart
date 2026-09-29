@@ -535,11 +535,10 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
                   ),
                   if (_error)
                     Center(
-                      child: GlassHost(
-                        child: Stack(
+                      child: Stack(
                           children: [
                             Positioned.fill(child: SkinGlass(tier: GlassTierId.t4, shape: GlassShape.superellipse(gt.radiusXl), layer: GlassLayerKind.hud, debugLabel: 'GlassViewerError', child: const SizedBox.shrink())),
-                            Padding(
+                            GlassHost(child: Padding(
                               padding: const EdgeInsets.all(20),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -559,10 +558,10 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
                                 ],
                               ),
                             ),
+                            ),
                           ],
                         ),
                       ),
-                    ),
                   AnimatedBuilder(
                     animation: _chrome,
                     builder: (context, _) => IgnorePointer(

@@ -118,13 +118,11 @@ class _CapsuleSurface extends StatelessWidget {
         customSemanticsActions: {if (onDismiss != null) const CustomSemanticsAction(label: 'Dismiss'): onDismiss!},
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480, minHeight: 48),
-          child: GlassHost(
-            child: Stack(
-              children: [
-                Positioned.fill(child: SkinGlass(tier: tier, shape: const GlassShape.superellipse(24), layer: GlassLayerKind.hud, debugLabel: 'GlassCapsule', child: const SizedBox.shrink())),
-                Center(widthFactor: 1, heightFactor: 1, child: child),
-              ],
-            ),
+          child: Stack(
+            children: [
+              Positioned.fill(child: SkinGlass(tier: tier, shape: const GlassShape.superellipse(24), layer: GlassLayerKind.hud, debugLabel: 'GlassCapsule', child: const SizedBox.shrink())),
+              GlassHost(child: Center(widthFactor: 1, heightFactor: 1, child: child)),
+            ],
           ),
         ),
       );

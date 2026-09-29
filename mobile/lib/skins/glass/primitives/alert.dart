@@ -316,16 +316,14 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
         explicitChildNodes: true,
         label: widget.title,
         hint: widget.body,
-        child: GlassHost(
-          child: Stack(
-            key: _boxKey,
-            children: [
-              Positioned.fill(
-                child: SkinGlass(key: _glass, tier: GlassTierId.t4, shape: GlassShape.superellipse(gt.radiusXl), layer: GlassLayerKind.interruptions, debugLabel: 'GlassAlert', child: const SizedBox.shrink()),
-              ),
-              content,
-            ],
-          ),
+        child: Stack(
+          key: _boxKey,
+          children: [
+            Positioned.fill(
+              child: SkinGlass(key: _glass, tier: GlassTierId.t4, shape: GlassShape.superellipse(gt.radiusXl), layer: GlassLayerKind.interruptions, debugLabel: 'GlassAlert', child: const SizedBox.shrink()),
+            ),
+            GlassHost(child: content),
+          ],
         ),
       ),
     );

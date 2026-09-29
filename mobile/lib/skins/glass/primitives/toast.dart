@@ -356,8 +356,7 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
       ),
     );
 
-    final capsule = GlassHost(
-      child: Stack(
+    final capsule = Stack(
           children: [
             const Positioned.fill(
               child: SkinGlass(tier: GlassTierId.t2, shape: GlassShape.superellipse(22), layer: GlassLayerKind.hud, debugLabel: 'GlassToast', child: SizedBox.shrink()),
@@ -371,10 +370,9 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
                   ),
                 ),
               ),
-            content,
+            GlassHost(child: content),
           ],
-        ),
-    );
+        );
 
     return MouseRegion(
       onEnter: (_) {
