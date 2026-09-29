@@ -98,3 +98,13 @@ void bindReduced(WidgetTester tester) {
   GlassMotion.isReduced = () => primContainer(tester).read(glassMotionPrefsProvider).reduced;
   addTearDown(() => GlassMotion.isReduced = () => false);
 }
+
+/// Pumps [ms] in 16 ms frames, like a real device (a single long pump renders one frame).
+Future<void> pumpFor(WidgetTester tester, int ms) async {
+  var left = ms;
+  while (left > 0) {
+    final step = left < 16 ? left : 16;
+    await tester.pump(Duration(milliseconds: step));
+    left -= step;
+  }
+}

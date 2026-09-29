@@ -78,6 +78,7 @@ class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProvid
   @override
   void initState() {
     super.initState();
+    _ticker.isActive; // create the ticker while the element is active
     _drain.value = 0;
   }
 
