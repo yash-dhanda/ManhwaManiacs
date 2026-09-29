@@ -143,6 +143,10 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/haptics/cinematic/
+    - assets/haptics/glass/
+    - assets/sounds/cinematic/
+    - assets/sounds/glass/
   fonts:
     # Syne (display / headings) and DM Sans (body / UI) are bundled as variable
     # fonts so the app NEVER depends on runtime fetching from fonts.gstatic.com.

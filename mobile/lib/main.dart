@@ -17,7 +17,7 @@ import 'package:manhwamaniacs/features/novels/providers/narration_audio_handler_
 import 'package:manhwamaniacs/features/novels/services/narration_audio_handler.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
-import 'package:manhwamaniacs/features/novels/utils/novel_audio_session.dart';
+import 'package:manhwamaniacs/skins/skin_audio.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -58,7 +58,7 @@ Future<void> main() async {
   // it to spoken word while a chapter plays). SkinAudio owns the session for
   // the process, so a skin restart never resets it. Not awaited: nothing plays
   // before a reader presses play and the first frame must not wait.
-  unawaited(configureNovelAudioSession());
+  unawaited(SkinAudio.instance.start());
 
   // Once per engine, before runApp and never inside the restart builder (it
   // asserts a single init; a skin switch restarts inside the same engine).
