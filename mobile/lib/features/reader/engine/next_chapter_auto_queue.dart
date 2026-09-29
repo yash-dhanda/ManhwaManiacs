@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/network_connectivity.dart';
+import 'package:manhwamaniacs/features/downloads/providers/download_switches_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -55,6 +56,8 @@ class NextChapterAutoQueue {
     required String nextId,
   }) async {
     if (ref.read(activeDownloadsScopeIdProvider) == null) return;
+    // The per-profile "Save the next chapter while I read" switch (default on).
+    if (!ref.read(saveNextProvider)) return;
 
     if (ref.read(preferencesProvider).wifiOnlyDownloads) {
       final onWifi = await ref.read(networkConnectivityProvider).isOnWifi();
