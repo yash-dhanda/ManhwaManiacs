@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { SCREEN_IDS, type ScreenId } from "./contract.generated";
 import { screens as cine, PENDING as cinePending } from "./cinematic/index";
@@ -39,5 +41,16 @@ describe.each(SKINS)("%s skin completeness", (name, screens, pending) => {
   it("is complete when its release gate says so", () => {
     console.info(`${name} pending: ${pending.size} / ${SCREEN_IDS.length}`);
     if (MUST_BE_COMPLETE[name]) expect([...pending] as ScreenId[]).toEqual([]);
+  });
+});
+
+// The (app) layout waits for the page to settle the 404 status (see
+// ./screen-status): a route file that never does would hang the request.
+describe("(app) route files", () => {
+  const dir = join(process.cwd(), "src", "app", "(app)");
+  const pages = readdirSync(dir, { recursive: true, encoding: "utf8" }).filter((f) => /(^|\/)page\.tsx$/.test(f));
+
+  it.each(pages)("%s settles the screen status", (file) => {
+    expect(readFileSync(join(dir, file), "utf8")).toMatch(/\b(renderScreen|markScreenMissing)\(/);
   });
 });

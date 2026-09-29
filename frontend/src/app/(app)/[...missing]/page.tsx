@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation";
+import { markScreenMissing } from "@/skins/screen-status";
 
 export default function Missing() {
-  notFound();
+  markScreenMissing();
 }

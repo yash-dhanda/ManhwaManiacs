@@ -1,7 +1,7 @@
 import { createElement } from "react";
-import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import type { ScreenId } from "../contract.generated";
+import { markScreenFound, markScreenMissing, settlesItself } from "../screen-status";
 import type { Screen, ScreenProps, Skin } from "../types";
 import { legacyFontClassName } from "./fonts";
 import AdminStatus from "./pages/admin-status";
@@ -47,10 +47,11 @@ const library: Screen = (props: ScreenProps) =>
 
 // `/settings/anything` stays a 404 for legacy users, as it was before the
 // `[section]` route existed (web/02 adds the one diagnostics exception).
-const settings: Screen = async ({ params }: ScreenProps) => {
-  if ((await params).section !== undefined) notFound();
+const settings: Screen = settlesItself(async ({ params }: ScreenProps) => {
+  if ((await params).section !== undefined) markScreenMissing();
+  markScreenFound();
   return createElement(Settings);
-};
+});
 
 const screens: Partial<Record<ScreenId, Screen>> = {
   login: page(Login),
