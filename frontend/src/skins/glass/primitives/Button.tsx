@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type CSSProperties, type Ref } from "react";
+import { useCallback, useRef, type CSSProperties, type Ref } from "react";
 import { CausticWrap } from "../glass/Caustic";
 import { GlassSurface, type GlassTwin } from "../glass/GlassSurface";
 import { Icon, type IconName } from "./Icon";
@@ -49,7 +49,8 @@ const HEIGHT = { L: 50, M: 44, S: 34 } as const;
 const PAD = { L: 24, M: 20, S: 14 } as const;
 
 export function Button({ variant = "secondary", size = "M", label, icon, selected, onPress, disabled, disabledReason, loading, error, overMedia, twin, overContent = true, download, onRetry, forceState, ref, className, "data-testid": tid }: ButtonProps) {
-  const host = useRef<HTMLButtonElement | null>(null);
+  const own = useRef<HTMLButtonElement | null>(null);
+  const setBoth = useCallback((el: HTMLButtonElement | null) => { own.current = el; if (typeof ref === "function") ref(el); else if (ref) (ref as { current: HTMLButtonElement | null }).current = el; }, [ref]);
   const dl = download ?? { status: "idle" as const };
   const isProgress = variant === "progress";
   const failed = isProgress && dl.status === "failed";
@@ -59,10 +60,11 @@ export function Button({ variant = "secondary", size = "M", label, icon, selecte
     disabled, loading: busy && !isProgress, selected, error: !!error || failed, forceState,
     haptic: selected === undefined ? (isProgress ? (dl.status === "idle" ? "download.start" : false) : "tap.primary") : selected ? "toggle.off" : "toggle.on",
     onPress: () => (failed ? onRetry?.() : onPress?.()),
+    forwardRef: setBoth,
   });
-  const lit = useLit(p.ref, false, variant === "primary");
-  const { flashing, text } = useErrorFlash(error, p.ref, 8);
-  const setRef = (el: HTMLButtonElement | null) => { p.ref.current = el; host.current = el; if (typeof ref === "function") ref(el); else if (ref) (ref as { current: HTMLButtonElement | null }).current = el; };
+  const getEl = useCallback(() => own.current, []);
+  const lit = useLit(getEl, false, variant === "primary");
+  const { flashing, text } = useErrorFlash(error, getEl, 8);
 
   const glassy = variant !== "plain" && variant !== "destructiveConfirm";
   const tinted = variant === "primary" && !lit.suppressed;
@@ -99,7 +101,7 @@ export function Button({ variant = "secondary", size = "M", label, icon, selecte
   if (isProgress && dl.status === "saving") { aria.role = "progressbar"; aria["aria-valuemin"] = 0; aria["aria-valuemax"] = 100; aria["aria-valuenow"] = Math.round(value * 100); aria["aria-valuetext"] = `${dl.done} of ${dl.total} pages saved`; }
   const button = (
     <button
-      {...p.props} {...aria} ref={setRef} type="button" data-testid={tid}
+      {...p.props} {...aria} type="button" data-testid={tid}
       className={`g-btn${className ? ` ${className}` : ""}`} data-variant={variant} data-size={size} data-tinted={tinted ? "" : undefined}
       style={style} onClick={(e) => { p.props.onClick(e); if (failed && e.detail === 0) announce("Retrying"); }}
     >

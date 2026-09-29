@@ -1,7 +1,7 @@
 "use client";
 
 import { motionValue } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type RefObject } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import type { HapticEvent } from "../../contract.generated";
 import { haptic } from "../haptics";
 import { isGlassReduced, play, useGlassReduced } from "../motion";
@@ -29,7 +29,7 @@ export function isCancelled(x: number, y: number, r: { left: number; top: number
   return Math.abs(x - cx) > w / 2 || Math.abs(y - cy) > h / 2;
 }
 
-export interface UsePressOptions {
+export interface UsePressOptions<T extends HTMLElement = HTMLElement> {
   /** glass swells and its content sinks; content only sinks */
   material: "glass" | "content";
   /** glass: Medium class +12 px, Feather/Light +17 px capped at 0.35 x side */
@@ -53,6 +53,8 @@ export interface UsePressOptions {
   stretch?: boolean;
   /** minimum hit box used for the cancel distance */
   hit?: number;
+  /** an outside ref (a forwarded `ref` prop) that receives the element too */
+  forwardRef?: React.Ref<T> | undefined;
 }
 
 /**
@@ -61,8 +63,15 @@ export interface UsePressOptions {
  * one), animates `--mm-swell` 0..1 on the `press` spring, and writes `scale` (glass growth x stretch, or content sink).
  * Spread `props` on the interactive element and hand `glow` to GlassSurface as `pressedGlow`.
  */
-export function usePress<T extends HTMLElement = HTMLElement>(o: UsePressOptions) {
+export function usePress<T extends HTMLElement = HTMLElement>(o: UsePressOptions<T>) {
   const ref = useRef<T | null>(null);
+  const oRef = useRef<UsePressOptions<T>>(o);
+  useEffect(() => { oRef.current = o; });
+  const setRef = useCallback((el: T | null) => {
+    ref.current = el;
+    const f = oRef.current.forwardRef;
+    if (typeof f === "function") f(el); else if (f) (f as { current: T | null }).current = el;
+  }, []);
   const reduced = useGlassReduced();
   const [hover, setHover] = useState(false);
   const [pressed, setPressed] = useState(false);
@@ -71,8 +80,6 @@ export function usePress<T extends HTMLElement = HTMLElement>(o: UsePressOptions
   const swell = useMemo(() => motionValue(0), []);
   const st = useRef({ id: -1, active: false, cancelled: false, dx: 0, x0: 0, base: 1, w: 1, ctl: null as { stop: () => void } | null });
   const blocked = !!(o.disabled || o.loading);
-  const oRef = useRef(o);
-  useEffect(() => { oRef.current = o; });
 
   const write = useCallback(() => {
     const el = ref.current;
@@ -175,6 +182,7 @@ export function usePress<T extends HTMLElement = HTMLElement>(o: UsePressOptions
   }, [f, o.material, o.growth, swell]);
   const on = (name: PressState, real: boolean | undefined) => (real || f === name ? "" : undefined);
   const props = {
+    ref: setRef,
     onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onClick,
     onPointerEnter: (e: PointerEvent<T>) => { if (e.pointerType === "mouse") setHover(true); },
     onPointerLeave: () => setHover(false),
@@ -193,6 +201,6 @@ export function usePress<T extends HTMLElement = HTMLElement>(o: UsePressOptions
     "aria-busy": o.loading ? true : undefined,
   } as const;
 
-  const glowOut = f === "pressed" && !glow.on ? { x: (ref.current?.offsetWidth ?? 0) / 2, y: (ref.current?.offsetHeight ?? 0) / 2, on: true } : glow;
-  return { ref: ref as RefObject<T | null>, props, glow: glowOut, pressed, onKeyDown, swell };
+  const glowOut = f === "pressed" && !glow.on ? { x: 24, y: 24, on: true } : glow;
+  return { props, glow: glowOut, pressed, onKeyDown, swell };
 }

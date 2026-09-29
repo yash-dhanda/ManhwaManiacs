@@ -17,12 +17,16 @@ export function GoalRing({ orbSize, minutes, goal, onDisc = false }: { orbSize: 
   const was = useRef(met);
   useEffect(() => {
     if (met && !was.current) {
-      setPhase("flash");
-      const t = setTimeout(() => setPhase("closed"), reduced ? 0 : 600);
       was.current = true;
-      return () => clearTimeout(t);
+      const a = setTimeout(() => setPhase("flash"), 0);
+      const b = setTimeout(() => setPhase("closed"), reduced ? 0 : 600);
+      return () => { clearTimeout(a); clearTimeout(b); };
     }
-    if (!met) { was.current = false; setPhase("open"); }
+    if (!met && was.current) {
+      was.current = false;
+      const a = setTimeout(() => setPhase("open"), 0);
+      return () => clearTimeout(a);
+    }
   }, [met, reduced]);
   const pad = onDisc ? 8 : 0;
   const box = orbSize + 2 * (3 + 1) + pad;

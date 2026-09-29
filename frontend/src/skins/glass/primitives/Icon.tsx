@@ -3,7 +3,7 @@ import {
   CaretLeftIcon, CaretRightIcon, CatIcon, CheckCircleIcon, CheckIcon, CloudArrowDownIcon, CoffeeIcon, DotsThreeIcon,
   EyeIcon, EyeSlashIcon, FlameIcon, GhostIcon, GlobeIcon, HeartIcon, ImageBrokenIcon, MagicWandIcon,
   MagnifyingGlassIcon, MoonIcon, PlayIcon, PlusIcon, PushPinIcon, RocketLaunchIcon, SparkleIcon, StarIcon,
-  SwordIcon, TrashSimpleIcon, WarningCircleIcon, WarningIcon, WifiSlashIcon, XIcon, BookOpenTextIcon, ArrowLeftIcon, ArrowRightIcon,
+  SwordIcon, TrashSimpleIcon, WarningCircleIcon, WarningIcon, WifiSlashIcon, XIcon, BookOpenTextIcon, ArrowLeftIcon, ArrowRightIcon, ExportIcon,
 } from "@phosphor-icons/react/ssr";
 import type { ComponentType } from "react";
 import { AgeGate, Droplet, StripScroll } from "../icons/glyphs.generated";
@@ -23,7 +23,7 @@ const PH = {
   globe: GlobeIcon, heart: HeartIcon, "image-broken": ImageBrokenIcon, "magic-wand": MagicWandIcon, "magnifying-glass": MagnifyingGlassIcon,
   moon: MoonIcon, play: PlayIcon, plus: PlusIcon, "push-pin": PushPinIcon, "rocket-launch": RocketLaunchIcon, sparkle: SparkleIcon,
   star: StarIcon, sword: SwordIcon, trash: TrashSimpleIcon, "warning-circle": WarningCircleIcon, warning: WarningIcon,
-  "wifi-slash": WifiSlashIcon, x: XIcon, "arrow-left": ArrowLeftIcon, "arrow-right": ArrowRightIcon,
+  "wifi-slash": WifiSlashIcon, x: XIcon, share: ExportIcon, "arrow-left": ArrowLeftIcon, "arrow-right": ArrowRightIcon,
 } as const satisfies Record<string, ComponentType<PhProps>>;
 
 const GL = { droplet: Droplet, "age-gate": AgeGate, "strip-scroll": StripScroll } as const;

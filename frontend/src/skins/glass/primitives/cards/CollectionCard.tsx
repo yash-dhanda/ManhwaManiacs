@@ -1,5 +1,6 @@
 "use client";
 
+import { Cover } from "../Cover";
 import { CardBase } from "./CardBase";
 
 const ROT = [-8, -3, 3, 8];
@@ -10,7 +11,7 @@ export function CollectionCard({ name, count, covers, onOpen, fanOpen }: { name:
   return (
     <CardBase label={`${name}, ${count} series`} onPress={onOpen} className="g-collection">
       <div className="g-collection__fan" data-open={fanOpen ? "" : undefined} aria-hidden="true">
-        {c.map((src, i) => <img key={i} src={src} alt="" draggable={false} style={{ ["--rot" as string]: `${ROT[i + (4 - c.length) / 2 | 0] ?? 0}deg`, ["--i" as string]: i }} />)}
+        {c.map((src, i) => <Cover key={i} src={src} style={{ ["--rot" as string]: `${ROT[i + (4 - c.length) / 2 | 0] ?? 0}deg`, ["--i" as string]: i }} />)}
       </div>
       <div className="g-collection__text"><h4 className="type-title3">{name}</h4><p className="type-footnote">{count} series</p></div>
     </CardBase>

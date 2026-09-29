@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { haptic } from "../haptics";
 import { GlassSurface, type GlassTwin } from "../glass/GlassSurface";
 import { threshold } from "../tokens.generated";
@@ -47,6 +47,8 @@ const disc = (on: boolean, node: ReactNode) => (on ? <span className="g-disc">{n
 
 export function IconButton({ variant = "nav", icon, label, onPress, onLongPress, pressed, tone = "iris", badge, disabled, disabledReason, loading, error, onGlass, twin, forceState, tooltipLevel, className }: IconButtonProps) {
   const group = useGroup();
+  const own = useRef<HTMLButtonElement | null>(null);
+  const setOwn = useCallback((el: HTMLButtonElement | null) => { own.current = el; }, []);
   const isGlass = variant === "nav" || variant === "group";
   const long = useRef({ timer: undefined as ReturnType<typeof setTimeout> | undefined, fired: false });
   const p = usePress<HTMLButtonElement>({
@@ -63,8 +65,10 @@ export function IconButton({ variant = "nav", icon, label, onPress, onLongPress,
     },
     onCancel: () => { clearTimeout(long.current.timer); group?.light(0, 0, false); },
     stretch: false,
+    forwardRef: setOwn,
   });
-  const { flashing } = useErrorFlash(error, p.ref, 8);
+  const getEl = useCallback(() => own.current, []);
+  const { flashing } = useErrorFlash(error, getEl, 8);
   const icon2 = useRef<HTMLSpanElement>(null);
   const first = useRef(true);
   useEffect(() => { if (first.current) { first.current = false; return; } if (pressed) pop(icon2.current); }, [pressed]);
@@ -99,13 +103,13 @@ export function IconButton({ variant = "nav", icon, label, onPress, onLongPress,
   if (variant === "nav") {
     return (
       <Tooltip label={tip} level={tooltipLevel}>
-        <GlassSurface {...props} as="button" ref={p.ref} tier="t2" capsule twin={twin} pressedGlow={p.glow} overContent={false} layer="controls">{body}</GlassSurface>
+        <GlassSurface {...props} as="button" tier="t2" capsule twin={twin} pressedGlow={p.glow} overContent={false} layer="controls">{body}</GlassSurface>
       </Tooltip>
     );
   }
   return (
     <Tooltip label={tip} level={tooltipLevel}>
-      <button {...props} ref={p.ref}>{body}</button>
+      <button {...props}>{body}</button>
     </Tooltip>
   );
 }

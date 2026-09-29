@@ -2,6 +2,7 @@
 
 import type { KeyboardEvent } from "react";
 import { Button } from "../Button";
+import { Cover } from "../Cover";
 import { IconButton } from "../IconButton";
 import { Progress } from "../Progress";
 import { CardBase } from "./CardBase";
@@ -33,8 +34,8 @@ export function ContinueStack({ title, cover, nextThumb, chapter, page, pageCoun
   return (
     <CardBase label={`${title}, ${fresh ? `up next, chapter ${chapter}` : `chapter ${chapter}, page ${page} of ${pageCount}`}`} onPress={onContinue} className="g-continue" onKeyDown={onKey} forceState={forceState}>
       <div className="g-continue__deck" aria-hidden="true">
-        {nextThumb ? <img className="g-continue__next" src={nextThumb} alt="" draggable={false} /> : <span className="g-continue__next" />}
-        <img className="g-continue__cover" src={cover} alt="" draggable={false} />
+        {nextThumb ? <Cover className="g-continue__next" src={nextThumb} /> : <span className="g-continue__next" />}
+        <Cover className="g-continue__cover" src={cover} />
       </div>
       <div className="g-continue__text">
         <h4 className="g-continue__title type-headline">{title}</h4>

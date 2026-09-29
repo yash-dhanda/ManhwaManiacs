@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type CSSProperties } from "react";
+import { Cover } from "./Cover";
 import { Icon } from "./Icon";
 import { ProfileOrb } from "./ProfileOrb";
 import { Spinner } from "./Progress";
@@ -67,7 +68,7 @@ export function Badge(b: BadgeProps) {
     case "mature":
       return b.glyph ? <span className="g-badge" data-kind="mature-glyph"><Icon name="age-gate" size={14} color="var(--mm-color-mature)" /></span> : <span className="g-badge" data-kind="mature" data-on-cover={b.onCover ? "" : undefined}>18+</span>;
     case "source":
-      return <span className="g-badge" data-kind="source">{b.iconUrl ? <img src={b.iconUrl} alt="" width={12} height={12} /> : <span className="g-badge__mono">{b.name.slice(0, 1).toUpperCase()}</span>}{b.name}</span>;
+      return <span className="g-badge" data-kind="source">{b.iconUrl ? <Cover src={b.iconUrl} width={12} height={12} /> : <span className="g-badge__mono">{b.name.slice(0, 1).toUpperCase()}</span>}{b.name}</span>;
     case "downloaded": return <span className="g-badge" data-kind="downloaded" data-on-cover={b.onCover ? "" : undefined}><Icon name="droplet" size={14} color="var(--mm-color-success)" weight="fill" /></span>;
     case "offline": return <span className="g-badge" data-kind="offline">{b.text}</span>;
     case "role": return <span className="g-badge" data-kind="role">{b.text}</span>;

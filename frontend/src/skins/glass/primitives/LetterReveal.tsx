@@ -65,6 +65,7 @@ export function LetterReveal({ text, revealKey, as: Tag = "h3", typeClass = "typ
     if (mode === "live") return;
     const el = ref.current;
     if (!el) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing with sessionStorage and the reduced-motion setting, which only exist on the client
     if (reduced || (revealKey && readSeen().includes(revealKey))) { setState("done"); return; }
     setState("wait");
     let held = false, timer: ReturnType<typeof setTimeout> | undefined, finished = false;
@@ -125,8 +126,10 @@ function LiveReveal({ text, as: Tag, typeClass, className, tid }: { text: string
     if (!el) return;
     ctl.current.forEach((c) => c.stop());
     ctl.current = [];
+    /* eslint-disable react-hooks/set-state-in-effect -- the live text follows the prop after the leaving letters fade out */
     if (isGlassReduced()) { setShown(text); return; }
     if (first.current) { first.current = false; setShown(text); return; }
+    /* eslint-enable react-hooks/set-state-in-effect */
     const old = Array.from(el.querySelectorAll<HTMLElement>(".g"));
     if (!old.length || text === shown) { setShown(text); return; }
     const out = old.map((l) => animate(l, { opacity: 0, filter: "blur(4px)" }, { duration: 0.12, ease: [0.4, 0, 1, 1] }));

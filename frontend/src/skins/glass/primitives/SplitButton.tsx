@@ -24,18 +24,19 @@ export interface SplitButtonProps {
 /** One glass container: a tinted primary segment (padding 0 20) and a trailing `glassThin` 50 x 50 segment with `caret-down`, a 0.5 px separator between. Pressing either lights both, the pressed one more (16 % / 8 %). */
 export function SplitButton({ label, icon, onPress, moreLabel, onMore, menuOpen, disabled, forceState, "data-testid": tid }: SplitButtonProps) {
   const box = useRef<HTMLElement | null>(null);
+  const bEl = useRef<HTMLButtonElement | null>(null);
   const [active, setActive] = useState<"a" | "b" | null>(null);
   const a = usePress<HTMLButtonElement>({ material: "glass", growth: "medium", disabled, forceState, onPress, onPressStart: () => setActive("a"), onCancel: () => setActive(null), stretch: false });
-  const b = usePress<HTMLButtonElement>({ material: "glass", growth: "medium", disabled, forceState, onPress: () => b.ref.current && onMore(b.ref.current), onPressStart: () => setActive("b"), onCancel: () => setActive(null), stretch: false });
-  const lit = useLit(box, false, true);
+  const b = usePress<HTMLButtonElement>({ material: "glass", growth: "medium", disabled, forceState, onPress: () => { if (bEl.current) onMore(bEl.current); }, forwardRef: bEl, onPressStart: () => setActive("b"), onCancel: () => setActive(null), stretch: false });
+  const lit = useLit(() => box.current, false, true);
   const done = (h: (e: React.PointerEvent<HTMLButtonElement>) => void) => (e: React.PointerEvent<HTMLButtonElement>) => { h(e); setActive(null); };
   return (
     <GlassSurface ref={box} tier="t2" capsule finish="regular" overContent className="g-split" data-lit-suppressed={lit.suppressed ? "" : undefined} data-active={active ?? undefined}>
-      <button {...a.props} onPointerUp={done(a.props.onPointerUp)} ref={a.ref} type="button" className="g-split__a" data-testid={tid}>
+      <button {...a.props} onPointerUp={done(a.props.onPointerUp)} type="button" className="g-split__a" data-testid={tid}>
         <span className="g-btn__inner">{icon ? <span className="g-icon"><Icon name={icon} size={20} /></span> : null}<span className="g-label type-headline">{label}</span></span>
       </button>
       <span className="g-split__sep" aria-hidden="true" />
-      <button {...b.props} onPointerUp={done(b.props.onPointerUp)} ref={b.ref} type="button" className="g-split__b" aria-label={moreLabel} aria-haspopup="menu" aria-expanded={menuOpen ?? false} data-testid={tid ? `${tid}-more` : undefined}>
+      <button {...b.props} onPointerUp={done(b.props.onPointerUp)} type="button" className="g-split__b" aria-label={moreLabel} aria-haspopup="menu" aria-expanded={menuOpen ?? false} data-testid={tid ? `${tid}-more` : undefined}>
         <span className="g-icon"><Icon name="caret-down" size={20} /></span>
       </button>
     </GlassSurface>

@@ -33,7 +33,7 @@ export function CardBase({ label, onPress, slab = "slab", sink = 0.97, selectMod
   const p = usePress<HTMLButtonElement>({ material: "content", sink, disabled, selected, error, forceState, haptic: selectMode ? "select" : "tap.primary", onPress: () => onPress?.() });
   return (
     <div className={`g-card${className ? ` ${className}` : ""}`} data-slab={slab} data-select-mode={selectMode ? "" : undefined} data-selected={selected ? "" : undefined} data-disabled={disabled ? "" : undefined} data-error={error ? "" : undefined} style={style} data-testid={tid}>
-      <button {...p.props} ref={p.ref} type="button" className="g-card__main" aria-label={label} onKeyDown={onKeyDown} />
+      <button {...p.props} type="button" className="g-card__main" aria-label={label} onKeyDown={onKeyDown} />
       <div className="g-card__body">{children}</div>
       {selectMode ? <span className="g-card__check" data-on={selected ? "" : undefined} aria-hidden="true">{selected ? <Icon name="check" size={16} weight="fill" /> : null}</span> : null}
       {disabled && disabledReason ? <p className="g-card__reason type-caption1">{disabledReason}</p> : null}

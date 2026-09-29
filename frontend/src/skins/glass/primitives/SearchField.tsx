@@ -59,6 +59,7 @@ export function SearchField({ variant = "page", value, onQuery, status = "idle",
   const [dq] = useDebouncedValue(q, 300);
   const last = useRef(value ?? "");
   useEffect(() => { if (dq !== last.current) { last.current = dq; onQuery?.(dq); } }, [dq]); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- a controlled value from the parent replaces the draft
   useEffect(() => { if (value !== undefined) setQ(value); }, [value]);
   useVisualViewport(focused && variant === "bottom");
   const tracker = useRef(createTracker("y"));
@@ -68,7 +69,7 @@ export function SearchField({ variant = "page", value, onQuery, status = "idle",
   void side;
   if (variant === "sidebar") {
     return (
-      <button {...press.props} ref={press.ref} type="button" className="g-search g-search--sidebar" onClick={press.props.onClick} data-testid={tid} aria-label="Search" aria-keyshortcuts="Meta+K Control+K">
+      <button {...press.props} type="button" className="g-search g-search--sidebar" onClick={press.props.onClick} data-testid={tid} aria-label="Search" aria-keyshortcuts="Meta+K Control+K">
         <Icon name="magnifying-glass" size={16} /><span className="g-search__ph">Search</span><KeyCombos combo="mod+k" />
       </button>
     );

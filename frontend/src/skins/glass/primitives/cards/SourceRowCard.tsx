@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Badge } from "../Badge";
+import { Cover } from "../Cover";
 import { IconButton } from "../IconButton";
 import { CardBase } from "./CardBase";
 import { HealthBead, type Health } from "./HealthBead";
@@ -28,7 +29,7 @@ export function SourceRowCard({ id, name, description, iconUrl, language, health
   const [broken, setBroken] = useState(false);
   return (
     <CardBase label={`${name}, ${health === "ok" ? "working" : health}`} onPress={onOpen} slab="bare" sink={0.99} disabled={disabled} disabledReason={disabledReason} className="g-sourcerow">
-      <span className="g-sourcerow__logo">{iconUrl && !broken ? <img src={iconUrl} alt="" width={44} height={44} onError={() => setBroken(true)} /> : <SourceMonogram id={id} name={name} />}</span>
+      <span className="g-sourcerow__logo">{iconUrl && !broken ? <Cover src={iconUrl} width={44} height={44} onError={() => setBroken(true)} /> : <SourceMonogram id={id} name={name} />}</span>
       <div className="g-sourcerow__text">
         <div className="g-sourcerow__name"><span className="type-headline">{name}</span><HealthBead health={health} demoted={demoted} />{language ? <span className="type-caption1 g-sourcerow__lang">{language.toUpperCase()}</span> : null}{mature ? <Badge kind="mature" /> : null}</div>
         <p className="type-footnote g-sourcerow__desc">{description}</p>

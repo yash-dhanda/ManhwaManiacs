@@ -1,8 +1,12 @@
 "use client";
 
 import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
-import { useEffect, useState, type ReactElement, type ReactNode } from "react";
+import { useSyncExternalStore, type ReactElement, type ReactNode } from "react";
 import { GlassSurface } from "../glass/GlassSurface";
+
+const noop = () => () => {};
+/** The element that carries the Glass tokens (the popup portals inside it so the custom properties resolve). */
+const host = () => document.querySelector<HTMLElement>('[data-skin="glass"]') ?? document.body;
 
 /** Hover delay by level: 600 ms everywhere, 150 ms for the dock and the collapsed sidebar. Keyboard focus opens at once (Base UI). */
 export const TOOLTIP_DELAY = { default: 600, bar: 150 } as const;
@@ -13,8 +17,7 @@ export const TOOLTIP_DELAY = { default: 600, bar: 150 } as const;
  * focus or the pointer, and it never disappears on its own while the target is hovered or focused.
  */
 export function Tooltip({ label, level = "default", disabled = false, children }: { label: ReactNode; level?: "default" | "bar"; disabled?: boolean; children: ReactElement }): ReactElement {
-  const [container, setContainer] = useState<HTMLElement | null>(null);
-  useEffect(() => { setContainer(document.querySelector<HTMLElement>('[data-skin="glass"]') ?? document.body); }, []);
+  const container = useSyncExternalStore(noop, host, () => null);
   if (label == null || label === "") return children;
   return (
     <BaseTooltip.Root disabled={disabled}>

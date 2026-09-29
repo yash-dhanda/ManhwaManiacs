@@ -21,3 +21,5 @@
 .gal-label { font: 500 11px/14px var(--mm-font-mono, ui-monospace, monospace); opacity: 0.7; }
 .gal-specimens { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; min-width: 0; }
 .gal-readout { font: 12px/16px var(--mm-font-mono, ui-monospace, monospace); color: var(--mm-color-label2); }
+.gal-cur { min-width: 88px; min-height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid rgb(255 255 255 / 0.3); background: rgb(255 255 255 / 0.08); color: inherit; font: inherit; display: inline-grid; place-items: center; }
+.gal-ground[data-ground="white"] .gal-cur { border-color: rgb(0 0 0 / 0.3); background: rgb(0 0 0 / 0.06); }

@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useSyncExternalStore, type RefObject } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 /**
  * One lit object per screen (DESIGN 2.4.2 rule 8). Every mounted `tinted` object registers here. In development,
  * two visible lit objects outside an overlay log one console.warn. suppressLit() (sheets and alerts, web/27)
  * drops the screen's lit object to glassThin and fades its caustic over 180 ms until released.
  */
-interface Entry { el: RefObject<HTMLElement | null>; overlay: boolean }
+interface Entry { el: () => HTMLElement | null; overlay: boolean }
 const entries = new Set<Entry>();
 const subs = new Set<() => void>();
 let suppressors = 0;
@@ -15,7 +15,7 @@ let warned = false;
 const emit = () => subs.forEach((s) => s());
 
 const visible = (e: Entry) => {
-  const el = e.el.current;
+  const el = e.el();
   return !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden";
 };
 
@@ -30,7 +30,7 @@ function check() {
   } else warned = false;
 }
 
-export function useLit(el: RefObject<HTMLElement | null>, overlay = false, active = true): { suppressed: boolean } {
+export function useLit(el: () => HTMLElement | null, overlay = false, active = true): { suppressed: boolean } {
   useEffect(() => {
     if (!active) return;
     const e: Entry = { el, overlay };

@@ -73,9 +73,12 @@ export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, 
     if (r.state.phase === "done" || r.state.phase === "aborted" || r.state.phase === "cancelled" || r.state.phase === "clicked") { cancelAnimationFrame(raf.current); raf.current = 0; }
   }, [reduced, onClick, showHelper]);
 
-  const loop = useCallback(() => {
-    feed({ type: "tick", t: performance.now() });
-    if (raf.current) raf.current = requestAnimationFrame(loop);
+  const loop = useRef<() => void>(() => {});
+  useEffect(() => {
+    loop.current = () => {
+      feed({ type: "tick", t: performance.now() });
+      if (raf.current) raf.current = requestAnimationFrame(loop.current);
+    };
   }, [feed]);
   useEffect(() => () => { cancelAnimationFrame(raf.current); clearTimeout(helperT.current); }, []);
 
@@ -87,7 +90,7 @@ export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, 
     setDraining(false);
     setHelper(null);
     feed({ type: "down", t: performance.now() });
-    raf.current = requestAnimationFrame(loop);
+    raf.current = requestAnimationFrame(loop.current);
   };
   const dist = (e: PointerEvent) => Math.hypot(e.clientX - origin.current.x, e.clientY - origin.current.y);
   const move = (e: PointerEvent<HTMLButtonElement>) => { p.props.onPointerMove(e); feed({ type: "move", t: performance.now(), dist: dist(e) }); };
@@ -102,7 +105,7 @@ export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, 
       <GlassSurface
         {...p.props}
         onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}
-        as="button" type="button" ref={p.ref} tier="t2" capsule finish={flash ? "tinted" : "regular"} pressedGlow={p.glow}
+        as="button" type="button" tier="t2" capsule finish={flash ? "tinted" : "regular"} pressedGlow={p.glow}
         className="g-hold__btn" data-testid={tid} data-phase={phase} data-level={shown.toFixed(2)} data-reduced-steps={reduced ? "" : undefined}
         aria-disabled={disabled ? true : undefined}
       >

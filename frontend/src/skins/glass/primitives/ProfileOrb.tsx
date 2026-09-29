@@ -66,7 +66,7 @@ export function ProfileOrb({ preset, size = 44, name, mood, friend, onGlass, dri
   return (
     <span ref={drifting} className="g-orb-host" style={{ width: size, height: size }}>
       {interactive ? (
-        <button {...common} {...p.props} ref={p.ref as React.Ref<HTMLButtonElement>} type="button">{inner}</button>
+        <button {...common} {...p.props} type="button">{inner}</button>
       ) : (
         <span {...common} role="img" data-disabled={disabled ? "" : undefined}>{inner}</span>
       )}

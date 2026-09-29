@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useId, useLayoutEffect, useRef, type KeyboardEvent } from "react";
+import { useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, type KeyboardEvent } from "react";
 import { GlassHostContext } from "../glass/GlassSurface";
 import { Icon } from "./Icon";
 import { Spinner } from "./Progress";
@@ -35,7 +35,7 @@ export function TextArea({ label, helper, error, shakeKey, value, defaultValue, 
   const ta = useRef<HTMLTextAreaElement>(null);
   const well = useRef<HTMLDivElement>(null);
   const count = useRef<HTMLSpanElement>(null);
-  const grow = () => {
+  const grow = useCallback(() => {
     const el = ta.current;
     if (!el) return;
     el.style.height = "auto";
@@ -47,8 +47,8 @@ export function TextArea({ label, helper, error, shakeKey, value, defaultValue, 
       count.current.textContent = `${n}/${maxLength}`;
       if (f >= 0.95) count.current.dataset.warn = ""; else delete count.current.dataset.warn;
     }
-  };
-  useLayoutEffect(grow, [value]);
+  }, [maxLength]);
+  useLayoutEffect(grow, [value, grow]);
   const first = useRef(true);
   useEffect(() => {
     if (first.current) { first.current = false; return; }

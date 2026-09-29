@@ -8,6 +8,7 @@ import { haptic } from "../haptics";
 import { isGlassReduced, play, useGlassReduced } from "../motion";
 import { createTracker } from "../physics/tracker";
 import { Badge, badgeLabel, type StatusKey } from "./Badge";
+import { Cover } from "./Cover";
 import { Icon } from "./Icon";
 import { Skeleton } from "./Skeleton";
 import { decideThrow, isTap, liftScale, LIFT, magnetTarget, throwIntensity, type ThrowTarget } from "./poster-throw";
@@ -61,7 +62,6 @@ export function Poster(props: PosterProps) {
   const { title, src, lMax = 0.5, width, status, newCount, downloaded, mature, gateLocked, favourite, following, progress, selectMode, selected, loading, error, disabled, disabledReason, onOpen, onContextPreview, onThrowOpen, onThrowAway, allowAway, targets, onDropOnTarget, onMagnet, onFavourite, onFollow, peek, onMore, forceState, "data-testid": tid } = props;
   const reduced = useGlassReduced();
   const host = useRef<HTMLDivElement>(null);
-  const main = useRef<HTMLButtonElement | null>(null);
   useLbItem(host, lMax);
   const [loaded, setLoaded] = useState(false);
   const [peekOpen, setPeekOpen] = useState(false);
@@ -71,13 +71,16 @@ export function Poster(props: PosterProps) {
   const lastType = useRef("mouse");
   const tx = useMemo(() => motionValue(0), []);
   const ty = useMemo(() => motionValue(0), []);
-  const t = useRef({ active: false, t0: 0, x0: 0, y0: 0, slop: false, menu: false, raf: 0, id: -1, magnet: null as string | null, tracker: createTracker("x"), trackerY: createTracker("y") });
+  const t = useRef({ active: false, t0: 0, x0: 0, y0: 0, slop: false, menu: false, raf: 0, id: -1, magnet: null as string | null, tracker: null as ReturnType<typeof createTracker> | null, trackerY: null as ReturnType<typeof createTracker> | null });
 
   const p = usePress<HTMLButtonElement>({ material: "content", sink: 0.97, disabled: disabled || loading, selected, error, forceState: forceState === "peek" ? undefined : forceState, haptic: "tap.primary", onPress: () => onOpen?.() });
   const label = [title, newCount ? badgeLabel({ kind: "new", count: newCount }) : null, downloaded ? "downloaded" : null, status ? badgeLabel({ kind: "status", status }) : null, mature ? "18+" : null, favourite ? "favourite" : null, selectMode ? (selected ? "selected" : "not selected") : null].filter(Boolean).join(", ");
 
-  const writeMove = () => { const el = host.current; if (el) el.style.translate = `${tx.get()}px ${ty.get()}px`; };
-  useEffect(() => { const a = tx.on("change", writeMove), b = ty.on("change", writeMove); return () => { a(); b(); }; }, [tx, ty]);
+  useEffect(() => {
+    const write = () => { const el = host.current; if (el) el.style.translate = `${tx.get()}px ${ty.get()}px`; };
+    const a = tx.on("change", write), b = ty.on("change", write);
+    return () => { a(); b(); };
+  }, [tx, ty]);
   useEffect(() => () => { cancelAnimationFrame(t.current.raf); clearTimeout(peekT.current); }, []);
   useEffect(() => {
     if (!peekOpen) return;
@@ -87,7 +90,9 @@ export function Poster(props: PosterProps) {
   }, [peekOpen]);
 
   const isTouch = (e: PointerEvent) => e.pointerType === "touch" || e.pointerType === "pen";
-  const frame = () => {
+  const frame = useRef<() => void>(() => {});
+  useEffect(() => {
+    frame.current = () => {
     const s = t.current;
     if (!s.active) return;
     const el = host.current;
@@ -99,15 +104,16 @@ export function Poster(props: PosterProps) {
     }
     if (elapsed >= LIFT.start && !lifted) { setLifted(true); haptic("press.lift"); }
     if (elapsed >= LIFT.menu && !s.menu && !s.slop) { s.menu = true; haptic("longpress.open"); onContextPreview?.(); }
-    s.raf = requestAnimationFrame(frame);
-  };
+    s.raf = requestAnimationFrame(frame.current);
+    };
+  });
   const onTouchDown = (e: PointerEvent<HTMLButtonElement>) => {
     const s = t.current;
     s.active = true; s.slop = false; s.menu = false; s.t0 = performance.now(); s.x0 = e.clientX; s.y0 = e.clientY; s.id = e.pointerId; s.magnet = null;
     tx.stop(); ty.stop();
     s.tracker = createTracker("x"); s.trackerY = createTracker("y");
     s.tracker.start(e, tx.get()); s.trackerY.start(e, ty.get());
-    s.raf = requestAnimationFrame(frame);
+    s.raf = requestAnimationFrame(frame.current);
   };
   const reset = (drop: boolean) => {
     const el = host.current;
@@ -119,7 +125,7 @@ export function Poster(props: PosterProps) {
   const onTouchMove = (e: PointerEvent<HTMLButtonElement>) => {
     const s = t.current;
     if (!s.active || e.pointerId !== s.id) return;
-    const ox = s.tracker.move(e), oy = s.trackerY.move(e);
+    const ox = s.tracker?.move(e) ?? null, oy = s.trackerY?.move(e) ?? null;
     if (ox === null && oy === null) return;
     if (!s.slop) {
       // moving before the lift begins is a scroll, not a lift; once lifted the poster follows the finger 1:1
@@ -141,7 +147,7 @@ export function Poster(props: PosterProps) {
     const elapsed = performance.now() - s.t0;
     if (isTap(elapsed, s.slop)) { reset(false); haptic("tap.primary"); onOpen?.(); return; }
     if (!s.slop) { reset(false); return; } // held to the menu without dragging: the menu owns it now
-    const vx = s.tracker.end().velocity, vy = s.trackerY.end().velocity;
+    const vx = s.tracker?.end().velocity ?? 0, vy = s.trackerY?.end().velocity ?? 0;
     const r = host.current!.getBoundingClientRect();
     const d = decideThrow({ centre: { x: r.left + r.width / 2, y: r.top + r.height / 2 }, velocity: { x: vx, y: vy }, viewport: { w: innerWidth, h: innerHeight }, targets, allowAway });
     if (s.magnet) { s.magnet = null; onMagnet?.(null); }
@@ -176,7 +182,7 @@ export function Poster(props: PosterProps) {
   return (
     <div ref={host} className="g-poster" style={w as CSSProperties} data-selected-mode={selectMode ? "" : undefined} data-selected={selected ? "" : undefined} data-lifted={lifted ? "" : undefined} data-disabled={disabled ? "" : undefined} data-cursor={lifted ? "grab" : undefined} data-dragging={lifted ? "" : undefined} data-mature={mature ? "" : undefined} data-testid={tid} onPointerLeave={onLeave}>
       <button
-        {...p.props} ref={(el) => { p.ref.current = el; main.current = el; }} type="button" className="g-poster__main" aria-label={label} aria-disabled={disabled ? true : undefined}
+        {...p.props} type="button" className="g-poster__main" aria-label={label} aria-disabled={disabled ? true : undefined}
         onPointerDown={(e) => { lastType.current = e.pointerType; if (isTouch(e)) { if (!disabled) onTouchDown(e); } else p.props.onPointerDown(e); }}
         onPointerMove={(e) => { if (isTouch(e)) onTouchMove(e); else { p.props.onPointerMove(e); onMouseMove(e); } }}
         onPointerUp={(e) => { if (isTouch(e)) onTouchUp(e); else p.props.onPointerUp(e); }}
@@ -185,7 +191,7 @@ export function Poster(props: PosterProps) {
         onKeyDown={onKey}
       >
         <span className="g-poster__media" data-loaded={loaded ? "" : undefined} data-error={error ? "" : undefined}>
-          {error ? <Icon name="image-broken" size={24} color="var(--mm-color-g600)" /> : src ? <img src={src} alt="" draggable={false} onLoad={() => setLoaded(true)} onError={() => setLoaded(true)} /> : null}
+          {error ? <Icon name="image-broken" size={24} color="var(--mm-color-g600)" /> : src ? <Cover src={src} onLoad={() => setLoaded(true)} onError={() => setLoaded(true)} /> : null}
         </span>
         <span className="g-poster__spec" aria-hidden="true" />
         {progress !== undefined ? <span className="g-poster__progress" aria-hidden="true"><i style={{ width: `${Math.min(1, Math.max(0, progress)) * 100}%` }} /></span> : null}

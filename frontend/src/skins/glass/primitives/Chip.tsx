@@ -1,7 +1,7 @@
 "use client";
 
 import { animate } from "motion/react";
-import { useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { GlassSurface } from "../glass/GlassSurface";
 import { spring } from "../tokens.generated";
 import { Icon, type IconName } from "./Icon";
@@ -39,10 +39,10 @@ export interface ChipProps {
  * (2.4.1 rule 1): same capsule, rim and inner light, no backdrop read. 32 tall inside a 44 tall hit box.
  */
 export function Chip({ kind = "filter", label, glyph, selected, onPress, count, onRemove, disabled, loading, error, href, forceState, droplet, "data-testid": tid, ref }: ChipProps) {
-  const host = useRef<HTMLElement | null>(null);
-  const p = usePress<HTMLButtonElement>({ material: "content", sink: 0.96, disabled, loading: false, selected, error: !!error, forceState, haptic: "select", onPress: () => onPress?.() });
+  const own = useRef<HTMLButtonElement | null>(null);
+  const setBoth = useCallback((el: HTMLButtonElement | null) => { own.current = el; if (typeof ref === "function") ref(el as HTMLElement | null); else if (ref) (ref as { current: HTMLElement | null }).current = el; }, [ref]);
+  const p = usePress<HTMLButtonElement>({ material: "content", sink: 0.96, disabled, loading: false, selected, error: !!error, forceState, haptic: "select", onPress: () => onPress?.(), forwardRef: setBoth });
   const [removing, setRemoving] = useState(false);
-  const setRef = (el: HTMLElement | null) => { host.current = el; if (typeof ref === "function") ref(el); else if (ref) (ref as { current: HTMLElement | null }).current = el; };
 
   if (kind === "tag") {
     const Tag = href ? "a" : "span";
@@ -64,7 +64,7 @@ export function Chip({ kind = "filter", label, glyph, selected, onPress, count, 
   );
   const button = (
     <button
-      {...p.props} ref={(el) => { p.ref.current = el; setRef(el); }} type="button" className="g-chip" data-kind={kind} data-droplet={droplet ? "" : undefined} data-removing={removing ? "" : undefined} data-testid={tid}
+      {...p.props} type="button" className="g-chip" data-kind={kind} data-droplet={droplet ? "" : undefined} data-removing={removing ? "" : undefined} data-testid={tid}
       role={kind === "choice" ? "radio" : undefined} aria-checked={kind === "choice" ? !!selected : undefined} aria-pressed={kind === "filter" || kind === "count" ? !!selected : undefined}
     >
       {inner}
@@ -72,7 +72,7 @@ export function Chip({ kind = "filter", label, glyph, selected, onPress, count, 
   );
   if (kind === "input") {
     const remove = () => {
-      const el = host.current?.parentElement;
+      const el = own.current?.parentElement;
       if (!el) return onRemove?.();
       setRemoving(true);
       animate(el, { scale: 0.6, opacity: 0 }, { ...spring.dismiss, onComplete: () => onRemove?.() } as never);

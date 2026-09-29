@@ -3,6 +3,7 @@
 import { Badge } from "../Badge";
 import { Button } from "../Button";
 import { Chip } from "../Chip";
+import { Cover } from "../Cover";
 import { Icon } from "../Icon";
 import { CardBase } from "./CardBase";
 
@@ -33,7 +34,7 @@ export function WorldCard({ title, cover, kind, status, chapters, rating, tags =
   const info = variant === "info";
   const body = (
     <>
-      <img className="g-world__cover" src={cover} alt="" draggable={false} />
+      <Cover className="g-world__cover" src={cover} />
       <div className="g-world__text">
         <h4 className="g-world__title type-headline">{title}</h4>
         <p className="type-caption1 g-world__sub">{kind} · {status}</p>
