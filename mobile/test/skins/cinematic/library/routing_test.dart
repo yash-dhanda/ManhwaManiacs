@@ -2,8 +2,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:manhwamaniacs/core/error/app_error.dart';
-import 'package:manhwamaniacs/features/library/models/series_detail.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_view.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -58,7 +56,7 @@ void main() {
     });
 
     testWidgets('a server failure is a CORRECTION with Try again and Back to library', (t) async {
-      final lib = ShelfLibrary(all: const [], listError: null);
+      final lib = ShelfLibrary(all: const []);
       final rig = await pumpShelf(t, lib: lib, start: '/library/77', extra: [
         updatesProvider.overrideWith(() => FakeUpdates(Recorder(), const [])),
         libraryDetailFails,

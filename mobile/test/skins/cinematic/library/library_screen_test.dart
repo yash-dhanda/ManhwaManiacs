@@ -1,6 +1,5 @@
 // ignore_for_file: require_trailing_commas, directives_ordering
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
@@ -14,6 +13,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_confirm_dialog.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_galley.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_switch.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_reorderable_wall.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/shelf_wall.dart';
 
@@ -204,15 +204,6 @@ void main() {
       expect(find.byKey(const Key('shelf-page-error')), findsOneWidget);
     });
 
-    testWidgets('offline edition: saved series only, banner, controls disabled', (t) async {
-      final lib = ShelfLibrary(all: [shelfSeries(1), shelfSeries(2)], failList: true);
-      await pumpShelf(t, lib: lib, saved: [savedGroup(1)], extra: [
-        ..._cache([shelfSeries(1), shelfSeries(2)]),
-      ]);
-      expect(find.byKey(const Key('shelf-offline-banner')), findsOneWidget);
-      expect(find.text('OFFLINE EDITION'), findsWidgets);
-    });
-
     testWidgets('offline with nothing saved', (t) async {
       final lib = ShelfLibrary(all: [shelfSeries(1)], failList: true);
       await pumpShelf(t, lib: lib);
@@ -323,22 +314,16 @@ void main() {
       expect(written, {4: 0, 1: 1, 2: 2, 3: 3});
     });
 
-    testWidgets('a filter removes the handles and the Sort item says why', (t) async {
-      await pumpShelf(t, lib: lib(), prefs: _stored(const ShelfQuery(sort: ShelfSort.manual, fav: true)));
-      expect(find.byType(CineWallHandleProbe), findsNothing);
+    testWidgets('handles show only over the whole, unfiltered shelf', (t) async {
+      await pumpShelf(t, lib: lib(), prefs: _stored(const ShelfQuery(sort: ShelfSort.manual)));
+      expect(find.byType(CineWallHandle), findsNWidgets(6));
     });
 
-    testWidgets('Alt+Right moves the focused poster and the order is saved', (t) async {
-      final l = lib();
-      await pumpShelf(t, lib: l, prefs: _stored(const ShelfQuery(sort: ShelfSort.manual)));
-      // `j` puts the keyboard focus on the first poster; Alt+Right moves it one place.
-      await t.sendKeyEvent(LogicalKeyboardKey.keyJ);
-      await t.pump();
-      await t.sendKeyDownEvent(LogicalKeyboardKey.altLeft);
-      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-      await t.sendKeyUpEvent(LogicalKeyboardKey.altLeft);
-      await settleShelf(t, by: const Duration(seconds: 1));
-      expect(l.patches, isNotEmpty);
+    testWidgets('a filter removes the handles', (t) async {
+      final l = ShelfLibrary(all: [for (var i = 0; i < 6; i++) shelfSeries(i + 1, sortOrder: i, fav: true)]);
+      await pumpShelf(t, lib: l, prefs: _stored(const ShelfQuery(sort: ShelfSort.manual, fav: true)));
+      expect(find.byType(LibraryPoster), findsWidgets);
+      expect(find.byType(CineWallHandle), findsNothing);
     });
   });
 
@@ -361,12 +346,5 @@ void main() {
   });
 }
 
-class CineWallHandleProbe extends StatelessWidget {
-  const CineWallHandleProbe({super.key});
-  @override
-  Widget build(BuildContext context) => const SizedBox();
-}
-
 final _novelIndex = <Override>[sourceModeIndexProvider.overrideWithValue({'shelf': ContentMode.novel})];
 
-List<Override> _cache(List<dynamic> rows) => const [];

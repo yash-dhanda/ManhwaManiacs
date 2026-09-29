@@ -64,18 +64,22 @@ class CineSegmentedControl extends StatelessWidget {
         }
         return KeyEventResult.ignored;
       },
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: hit),
-        child: Center(
-          child: Container(
-            height: 40,
-            decoration: BoxDecoration(border: Border.all(color: c.colorRule2)),
+      child: SizedBox(
+        height: hit,
+        child: Stack(children: [
+          // The 40 px frame; the segments run the full 44 / 48 hit height across it.
+          Positioned.fill(
+            child: Center(
+              child: Container(height: 40, decoration: BoxDecoration(border: Border.all(color: c.colorRule2))),
+            ),
+          ),
+          Positioned.fill(
             child: LayoutBuilder(builder: (context, box) {
               final w = box.maxWidth / labels.length;
               return Stack(children: [
                 Row(children: [
                   for (var i = 0; i < labels.length; i++) ...[
-                    if (i > 0) Container(width: 1, color: c.colorRule2),
+                    if (i > 0) Center(child: Container(width: 1, height: 40, color: c.colorRule2)),
                     Expanded(child: _segment(context, c, i)),
                   ],
                 ],),
@@ -85,14 +89,14 @@ class CineSegmentedControl extends StatelessWidget {
                   curve: c.easeSettle,
                   left: index * w + 8,
                   width: w - 16,
-                  bottom: 4,
+                  bottom: (hit - 40) / 2 + 4,
                   height: 2,
                   child: IgnorePointer(child: ColoredBox(color: c.colorSpot)),
                 ),
               ],);
             },),
           ),
-        ),
+        ],),
       ),
     );
   }

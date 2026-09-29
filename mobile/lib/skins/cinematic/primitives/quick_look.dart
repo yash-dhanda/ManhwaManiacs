@@ -85,6 +85,8 @@ class _CineQuickLookTargetState extends State<CineQuickLookTarget> {
   @override
   Widget build(BuildContext context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
+        // The wrapped card or row names its own Quick look action for screen readers.
+        excludeFromSemantics: true,
         onLongPress: _open,
         child: AnimatedOpacity(duration: CineDur.snap, opacity: _dim ? 0.7 : 1, child: widget.child),
       );

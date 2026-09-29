@@ -146,7 +146,7 @@ class ShelfToolbar extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _slugs(),
       _tokens(context),
-      SizedBox(height: c.space1),
+      SizedBox(height: c.space2),
       if (searchOpen)
         Row(children: [
           Expanded(child: CineSearchField(
@@ -165,10 +165,11 @@ class ShelfToolbar extends StatelessWidget {
         Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, children: [
           Row(mainAxisSize: MainAxisSize.min, children: [
             _FiltersButton(count: n, onPressed: onFilters),
+            SizedBox(width: c.space2),
             CineIconButton(label: 'Search your shelf', role: CineIconRole.search, onPressed: onToggleSearch),
           ],),
           Row(mainAxisSize: MainAxisSize.min, children: [
-            if (query.filtering) _clear(),
+            if (query.filtering) ...[_clear(), SizedBox(width: c.space2)],
             CineButton(label: 'Select', variant: CineButtonVariant.quiet, icon: CineIconRole.select, onPressed: onSelect),
           ],),
         ],),

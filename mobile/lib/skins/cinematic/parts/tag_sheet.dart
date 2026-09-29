@@ -57,7 +57,7 @@ class _TagSheetBodyState extends ConsumerState<TagSheetBody> {
                   for (var i = 0; i < 3; i++)
                     Padding(
                         padding: EdgeInsets.symmetric(vertical: c.space3),
-                        child: CineGalleyLine(lineHeight: 24, index: i)),
+                        child: CineGalleyLine(lineHeight: 24, index: i),),
                 ],
               ),
               error: (e, _) => Padding(
@@ -67,11 +67,11 @@ class _TagSheetBodyState extends ConsumerState<TagSheetBody> {
                     Expanded(
                         child: CineRoleText(
                             "Couldn't load your tags.", c.typeCaption,
-                            color: c.colorProof)),
+                            color: c.colorProof,),),
                     CineButton(
                         label: 'Retry',
                         variant: CineButtonVariant.quiet,
-                        onPressed: () => ref.invalidate(tagsProvider)),
+                        onPressed: () => ref.invalidate(tagsProvider),),
                   ],
                 ),
               ),
@@ -83,7 +83,7 @@ class _TagSheetBodyState extends ConsumerState<TagSheetBody> {
                       padding: EdgeInsets.symmetric(vertical: c.space4),
                       child: CineRoleText(
                           'No tags yet. Add one from a series page.', c.typeUi,
-                          color: c.colorInk60),
+                          color: c.colorInk60,),
                     ),
                   for (final t in list)
                     TagRow(key: ValueKey('tag-${t.id}'), tag: t),
@@ -91,7 +91,7 @@ class _TagSheetBodyState extends ConsumerState<TagSheetBody> {
                     TagRow(
                         key: k,
                         tag: null,
-                        onDone: () => setState(() => _drafts.remove(k))),
+                        onDone: () => setState(() => _drafts.remove(k)),),
                 ],
               ),
             ),
@@ -132,14 +132,16 @@ class _TagRowState extends ConsumerState<TagRow> {
   String? _error;
   bool _saved = false;
   bool _busy = false;
+  Timer? _savedTimer;
 
   @override
   void initState() {
     super.initState();
     _focus.addListener(_onFocus);
-    if (widget.tag == null)
+    if (widget.tag == null) {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _focus.requestFocus());
+    }
   }
 
   void _onFocus() {
@@ -155,6 +157,7 @@ class _TagRowState extends ConsumerState<TagRow> {
 
   @override
   void dispose() {
+    _savedTimer?.cancel();
     _focus.removeListener(_onFocus);
     _focus.dispose();
     _text.dispose();
@@ -187,11 +190,10 @@ class _TagRowState extends ConsumerState<TagRow> {
       widget.onDone?.call();
       return;
     }
-    unawaited(
-      Future<void>.delayed(CineDur.holdSuccess, () {
-        if (mounted) setState(() => _saved = false);
-      }),
-    );
+    _savedTimer?.cancel();
+    _savedTimer = Timer(CineDur.holdSuccess, () {
+      if (mounted) setState(() => _saved = false);
+    });
   }
 
   Future<void> _delete() async {
@@ -235,7 +237,7 @@ class _TagRowState extends ConsumerState<TagRow> {
             CineIconButton(
                 label: 'Delete tag',
                 role: CineIconRole.delete,
-                onPressed: _delete),
+                onPressed: _delete,),
           ],
         ),
         SizedBox(height: c.space1),

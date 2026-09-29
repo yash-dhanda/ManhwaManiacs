@@ -91,7 +91,7 @@ void main() {
     expect(r.rec.tagCalls, ['add:9']);
     // `New tag…` opens the shared tag sheet; its `New tag` adds a row whose field creates the tag.
     await tester.tap(find.text('New tag…'));
-    await frames(tester, 400);
+    await frames(tester);
     await tester.tap(find.text('New tag'));
     await frames(tester, 300);
     await tester.enterText(find.byType(TextField).last, 'to reread');

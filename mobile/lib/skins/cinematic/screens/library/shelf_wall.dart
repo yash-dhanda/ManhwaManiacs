@@ -404,7 +404,10 @@ class LibraryListRow extends StatelessWidget {
         onSelectedChanged: onSelect,
         focusNode: focusNode,
         semanticLabel: '${s.title}, ${shelfListCaption(s)}',
-        semanticActions: semanticActions,
+        semanticActions: {
+          ...?semanticActions,
+          if (!selectMode) const CustomSemanticsAction(label: 'Quick look'): onQuickLook,
+        },
         handle: selectMode
             ? null
             : Row(mainAxisSize: MainAxisSize.min, children: [
