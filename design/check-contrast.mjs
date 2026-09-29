@@ -98,5 +98,5 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   for (const w of warnings) console.log(w);
   const per = Object.entries(counts).map(([s, c]) => `${s} ${c.pass} pass / ${c.fail} fail`).join(", ");
   console.log(`check-contrast: ${lines.length} cases (${per}), ${warnings.length} expect warnings${failures ? `, ${failures} FAILED` : ""}`);
-  process.exit(failures ? 1 : 0);
+  process.exitCode = failures ? 1 : 0; // not process.exit(): it drops unflushed stdout when piped (proof-sheet spawnSync)
 }
