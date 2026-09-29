@@ -504,29 +504,66 @@ def test_statistics_counts_only_what_the_profile_may_see(
     assert payload["followed_total"] == expected
 
 
-def test_tags_carry_no_series_identity_at_all(client, as_user, household, seeded):
-    """The route in the walk that is gated by carrying nothing to gate.
+def test_tag_counts_only_series_the_profile_may_see(
+    client, as_user, household, seeded
+):
+    """``/library/tags`` names no series, but ``series_count`` counts them.
 
-    ``profile_series_tags`` maps series to tags, and no GET exposes that
-    mapping today -- ``/library/tags`` returns the tag rows alone. Pinning the
-    payload's shape is what turns "there is nothing to hide here" from an
-    assumption into an assertion: the day a ``series`` list or a count is added
-    to it, this fails and somebody has to gate it.
+    Both profiles tag the same two series; a shut gate must count only the safe
+    one, or the number alone tells the kid that an adult series carries the tag.
     """
-    client.post(
-        "/library/tags",
-        json={"name": "Favourites"},
+    counts = {}
+    for name in ("kid", "grown"):
+        headers = as_user(household["uid"], household[name])
+        tag = client.post(
+            "/library/tags", json={"name": "Favourites"}, headers=headers
+        ).json()
+        for series_key in (ADULT, SAFE):
+            client.post(
+                "/library/series-tags",
+                json={"source_id": SRC, "series_key": series_key, "tag_id": tag["id"]},
+                headers=headers,
+            ).raise_for_status()
+        rows = client.get("/library/tags", headers=headers).json()
+        assert all(
+            set(row) == {"id", "name", "category", "color", "series_count"}
+            for row in rows
+        ), rows
+        assert ADULT not in str(rows)
+        counts[name] = rows[0]["series_count"]
+
+    assert counts == {"kid": 1, "grown": 2}
+
+
+def test_series_enrichment_is_not_found_to_a_shut_gate(
+    client, as_user, household, seeded, monkeypatch
+):
+    """``/series/enrichment`` answers about one named series: 404 for the adult
+    one through a shut gate, before AniList is ever asked; served otherwise."""
+    import httpx
+    from services import world_recs
+
+    monkeypatch.setattr(
+        world_recs,
+        "_transport",
+        lambda: httpx.MockTransport(
+            lambda request: httpx.Response(404, json={"errors": [{"message": "x"}]})
+        ),
+    )
+    params = {"source": SRC, "series": ADULT}
+
+    kid = client.get(
+        "/series/enrichment", params=params,
+        headers=as_user(household["uid"], household["kid"]),
+    )
+    assert kid.status_code == 404, kid.text
+    assert ADULT not in kid.text
+
+    grown = client.get(
+        "/series/enrichment", params=params,
         headers=as_user(household["uid"], household["grown"]),
     )
-
-    rows = client.get(
-        "/library/tags", headers=as_user(household["uid"], household["grown"])
-    ).json()
-
-    assert rows, "the fixture must actually create a tag or this passes empty"
-    assert all(
-        set(row) == {"id", "name", "category", "color"} for row in rows
-    ), rows
+    assert grown.status_code == 200, grown.text
 
 
 # ---------------------------------------------------------------------------
@@ -895,6 +932,7 @@ WALKED_HERE = (
         "/library/recommendations",
         "/library/statistics",
         "/library/tags",
+        "/series/enrichment",
         "/updates/notifications/unread-count",
         "/sources/search",
         "/system/source-health",
