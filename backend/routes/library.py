@@ -23,6 +23,7 @@ from services.followed_series_service import (
     get_followed_series_service,
 )
 from services.recap_service import RecapService
+from services.taste_service import Format, Style, TasteService, get_taste_service
 from services.suggestion_service import (
     SuggestionService,
     get_suggestion_service,
@@ -292,6 +293,8 @@ def recommendations(
 class SuggestRequest(BaseModel):
     prompt: str = Field(min_length=3, max_length=600)
     limit: int = Field(default=6, ge=1, le=8)
+    use_taste: bool = False
+    content_kind: Literal["manga", "novel"] | None = None
 
 
 @router.get("/suggest/availability")
@@ -330,6 +333,8 @@ def suggest(
         body.prompt,
         base_url=str(request.base_url),
         limit=body.limit,
+        use_taste=body.use_taste,
+        content_kind=body.content_kind,
     )
     attach_cover_colours(
         db, result["items"], key=lambda item: (item["source"], item["series_id"])
@@ -340,6 +345,7 @@ def suggest(
 class WorldSuggestRequest(BaseModel):
     prompt: str = Field(min_length=3, max_length=600)
     limit: int = Field(default=12, ge=1, le=15)
+    use_taste: bool = False
 
 
 @router.get("/world/recommendations")
@@ -350,6 +356,7 @@ def world_recommendations(
     world: WorldDep,
     seeds: int = Query(5, ge=1, le=8),
     per_seed: int = Query(10, ge=3, le=15),
+    genre: str | None = Query(None, min_length=1, max_length=64),
 ) -> dict[str, object]:
     """Worldwide recommendations for the series this profile reads most.
 
@@ -358,7 +365,7 @@ def world_recommendations(
     none of them carries is still returned, as information. Rate-limited on
     the sources bucket: a cold page makes a few dozen public-API calls.
     """
-    return world.recommendations(seeds=seeds, per_seed=per_seed)
+    return world.recommendations(seeds=seeds, per_seed=per_seed, genre=genre)
 
 
 @router.post("/world/suggest")
@@ -376,7 +383,24 @@ def world_suggest(
     returned; the ones AniList cannot match are counted in ``dropped``.
     Shares ``/suggest``'s daily ledger and rate-limit bucket.
     """
-    return service.world_suggest(body.prompt, world=world, limit=body.limit)
+    return service.world_suggest(
+        body.prompt, world=world, limit=body.limit, use_taste=body.use_taste
+    )
+
+
+class TasteSeedRequest(BaseModel):
+    formats: list[Format] = Field(default_factory=list, max_length=4)
+    genres: dict[Annotated[str, Field(min_length=1, max_length=64)], Literal[-1, 0, 1, 2]] = Field(
+        default_factory=dict, max_length=80
+    )
+    styles: list[Style] = Field(default_factory=list, max_length=11)
+
+
+@router.post("/taste/seed", dependencies=[Depends(require_profile_context)])
+def taste_seed(body: TasteSeedRequest, service: Annotated[TasteService, Depends(get_taste_service)]) -> dict[str, object]:
+    """Sources-only seed wall for when the worldwide catalogue is unreachable:
+    cached series on this profile's sources, no network, no AI."""
+    return service.seed_from_sources(body.formats, body.genres, body.styles)
 
 
 @router.get("/statistics")
