@@ -56,7 +56,7 @@ class _FakeLib implements LibraryRepository {
   Future<Result<WorldRecommendations>> worldRecommendations({int seeds = 5, int perSeed = 10}) async => _r<WorldRecommendations>(null);
 
   @override
-  Future<Result<PagedResult<FollowedSeries>>> listSeries({int page = 1, int perPage = 40, String? sort, String? search, String? readingStatus, bool? isFavorite}) async =>
+  Future<Result<PagedResult<FollowedSeries>>> listSeries({int page = 1, int perPage = 40, String? sort, String? search, String? readingStatus, bool? isFavorite, List<int>? tagIds, bool? newOnly,}) async =>
       _r(followed == null ? null : PagedResult(items: followed!, total: followed!.length, page: 1, perPage: perPage, hasNext: false));
 
   @override

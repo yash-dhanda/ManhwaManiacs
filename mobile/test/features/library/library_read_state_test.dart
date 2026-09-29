@@ -76,8 +76,7 @@ class _FakeLibraryRepository implements LibraryRepository {
     String? sort,
     String? search,
     String? readingStatus,
-    bool? isFavorite,
-  }) async {
+    bool? isFavorite, List<int>? tagIds, bool? newOnly,}) async {
     listCalls++;
     if (failList) return const Err(NetworkError(message: 'offline'));
     // Paged for real: the browse list asks twenty at a time.

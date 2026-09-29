@@ -47,8 +47,9 @@ Future<String?> openQuickLook(
           CineRow(
             key: Key('quick-look-${a.id}'),
             title: a.label,
+            disabled: a.disabled,
             leading: CineIcon(a.icon, size: 20, color: a.destructive ? c.colorProof : c.colorInk60),
-            onTap: () {
+            onTap: a.disabled ? null : () {
               Navigator.of(ctx).pop(a.id);
               a.onSelected?.call();
             },
@@ -84,6 +85,8 @@ class _CineQuickLookTargetState extends State<CineQuickLookTarget> {
   @override
   Widget build(BuildContext context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
+        // The wrapped card or row names its own Quick look action for screen readers.
+        excludeFromSemantics: true,
         onLongPress: _open,
         child: AnimatedOpacity(duration: CineDur.snap, opacity: _dim ? 0.7 : 1, child: widget.child),
       );

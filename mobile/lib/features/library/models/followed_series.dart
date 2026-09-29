@@ -107,7 +107,7 @@ class FollowedSeries {
         ambient: ambient,
       );
 
-  FollowedSeries copyWith({bool? isFavorite, String? readingStatus, bool? notify}) {
+  FollowedSeries copyWith({bool? isFavorite, String? readingStatus, bool? notify, int? sortOrder}) {
     return FollowedSeries(
       id: id,
       sourceId: sourceId,
@@ -118,7 +118,7 @@ class FollowedSeries {
       isFavorite: isFavorite ?? this.isFavorite,
       readingStatus: readingStatus ?? this.readingStatus,
       notify: notify ?? this.notify,
-      sortOrder: sortOrder,
+      sortOrder: sortOrder ?? this.sortOrder,
       contentRating: contentRating,
       rating: rating,
       matureOverride: matureOverride,

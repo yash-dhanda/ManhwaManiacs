@@ -1,3 +1,5 @@
+import 'package:manhwamaniacs/core/time/server_instant.dart';
+
 /// Where this profile stands in one followed series —
 /// `FollowedSeriesService._read_states` in the backend, computed for a whole
 /// library page in one query and sent on each list item (and on the `follow`
@@ -13,6 +15,7 @@ class ReadState {
     required this.total,
     this.latestNumber,
     this.newCount,
+    this.lastReadAt,
   });
 
   /// Whether this profile has opened any chapter of the series.
@@ -37,6 +40,9 @@ class ReadState {
   /// Chapters past the furthest one opened; null when the position is unknown.
   final int? newCount;
 
+  /// When the furthest chapter was last read, where the server sends it (else the LIST column shows `—`).
+  final DateTime? lastReadAt;
+
   factory ReadState.fromJson(Map<String, dynamic> json) => ReadState(
         started: json['started'] as bool? ?? false,
         chapterKey: json['chapter_key'] as String?,
@@ -45,6 +51,7 @@ class ReadState {
         total: (json['total'] as num?)?.toInt() ?? 0,
         latestNumber: (json['latest_number'] as num?)?.toDouble(),
         newCount: (json['new_count'] as num?)?.toInt(),
+        lastReadAt: serverInstant(json['last_read_at']),
       );
 
   Map<String, dynamic> toJson() => {
@@ -55,5 +62,6 @@ class ReadState {
         'total': total,
         'latest_number': latestNumber,
         'new_count': newCount,
+        if (lastReadAt != null) 'last_read_at': lastReadAt!.toIso8601String(),
       };
 }

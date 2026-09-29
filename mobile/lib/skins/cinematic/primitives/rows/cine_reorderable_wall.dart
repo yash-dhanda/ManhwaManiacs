@@ -89,7 +89,7 @@ class _CineReorderableWallState<T> extends State<CineReorderableWall<T>> {
     final children = <Widget>[
       for (var i = 0; i < n; i++)
         KeyedSubtree(
-          key: ValueKey(widget.idOf(widget.items[i])),
+          key: ValueKey<String>('${widget.idOf(widget.items[i])}'),
           child: widget.itemBuilder(
             context,
             widget.items[i],

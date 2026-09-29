@@ -31,6 +31,8 @@ abstract interface class LibraryRepository {
     String? search,
     String? readingStatus,
     bool? isFavorite,
+    List<int>? tagIds,
+    bool? newOnly,
   });
 
   Future<Result<SeriesDetail>> getSeries(int followedId);
@@ -147,6 +149,9 @@ abstract interface class LibraryRepository {
   });
 
   Future<Result<void>> deleteTag(int tagId);
+
+  /// `PATCH /library/tags/{id} {name}`.
+  Future<Result<Tag>> renameTag(int tagId, String name);
 
   Future<Result<void>> addTagToSeries({
     required String sourceId,

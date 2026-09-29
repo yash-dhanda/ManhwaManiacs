@@ -191,8 +191,7 @@ class _FakeLibraryRepository implements LibraryRepository {
     String? sort,
     String? genre,
     bool refresh = false,
-    bool? isFavorite,
-  }) async =>
+    bool? isFavorite, List<int>? tagIds, bool? newOnly,}) async =>
       const Ok(
         PagedResult(
           items: [],

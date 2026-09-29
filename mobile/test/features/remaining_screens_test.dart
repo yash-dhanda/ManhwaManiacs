@@ -70,6 +70,9 @@ FollowedSeries _series({required int id, required String title}) {
 /// actually calls are wired; everything else throws so an unexpected call
 /// fails loudly instead of silently returning empty data.
 class _FakeIntelligenceRepository implements LibraryRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
@@ -128,8 +131,7 @@ class _FakeIntelligenceRepository implements LibraryRepository {
     String? sort,
     String? search,
     String? readingStatus,
-    bool? isFavorite,
-  }) async =>
+    bool? isFavorite, List<int>? tagIds, bool? newOnly,}) async =>
       Ok(PagedResult(items: const [], total: 0, page: 1, perPage: perPage, hasNext: false));
 
   @override
@@ -324,8 +326,7 @@ class _FollowedOnlyLibraryRepository extends _FakeIntelligenceRepository {
     String? sort,
     String? search,
     String? readingStatus,
-    bool? isFavorite,
-  }) async =>
+    bool? isFavorite, List<int>? tagIds, bool? newOnly,}) async =>
       Ok(
         PagedResult(
           items: [_series(id: 1, title: 'Solo Leveling')],

@@ -32,6 +32,7 @@ import 'mobile_05_shots.dart';
 import 'mobile_06_shots.dart';
 import 'mobile_07_shots.dart';
 import 'mobile_08_shots.dart';
+import 'mobile_09_shots.dart';
 import 'mobile_11_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
@@ -74,6 +75,7 @@ void main() {
   group('mobile-06', mobile06Shots);
   group('mobile-07', mobile07Shots);
   group('mobile-08', mobile08Shots);
+  group('mobile-09', mobile09Shots);
   // Both skins at every proof size (mobile/03). Default: Tonight only, so the
   // plain suite stays fast; a proof run sets MM_PROOF_SCREENS and MM_PROOF_DIR.
   group('skins', () {
@@ -144,6 +146,8 @@ void main() {
       'shell-frames': 2600.0,
       // mobile-07: captured by the mobile-07 group; here only its resting page.
       'auth': 2400.0,
+      // mobile-09: the Library's parts (posters, list rows, book rows); the screens are in the mobile-09 group.
+      'library': 2600.0,
     };
     const variants = {'buttons', 'fields', 'rails', 'reveals'};
     for (final size in kSkinShotSizes) {

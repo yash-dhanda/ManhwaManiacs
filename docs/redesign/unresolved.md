@@ -48,3 +48,7 @@ Verifier items (fix attempted, not re-checked):
 ## mobile/08 (cinematic tonight, lane L06)
 
 - (fix attempted, not re-checked) Acceptance: hardware keyboard `R`, `↓`/`↑`, `C`, `P`, `V`, `Enter` and rail keys work in a widget test with `tester.sendKeyEvent`, and the CineFocusRing double ring shows on keyboard focus only
+
+## mobile/09
+
+No unresolved items.

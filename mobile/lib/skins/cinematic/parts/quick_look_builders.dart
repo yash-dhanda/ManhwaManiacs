@@ -128,7 +128,7 @@ Future<void> openCuttingQuickLook(BuildContext context, WidgetRef ref, HomeConti
 }
 
 /// The next five unread chapters of a followed series, queued for download.
-Future<void> downloadNextFive(BuildContext context, WidgetRef ref, FollowedSeries s) async {
+Future<void> downloadNextFive(BuildContext context, WidgetRef ref, FollowedSeries s, {bool haptic = true}) async {
   final key = (sourceId: s.sourceId, seriesId: s.seriesKey);
   final detail = await ref.read(sourceSeriesDetailProvider(key).future);
   final progress = ref.read(sourceSeriesProgressProvider(key));
@@ -136,7 +136,7 @@ Future<void> downloadNextFive(BuildContext context, WidgetRef ref, FollowedSerie
   final unread = chapters.where((c) => !(progress[c.id]?.completed ?? false)).take(5).toList();
   if (unread.isEmpty) return;
   final novel = _novel(ref, s.sourceId);
-  if (context.mounted) cineFeedback(context, HapticEvent.downloadStart);
+  if (haptic && context.mounted) cineFeedback(context, HapticEvent.downloadStart);
   await ref.read(downloadQueueControllerProvider.notifier).enqueueChapters([
     for (final c in unread)
       (

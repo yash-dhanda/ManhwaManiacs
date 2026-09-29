@@ -1,0 +1,3 @@
+Mem:           31686       21548        4405        3228        9718       10138
+08:31 +4140: /home/yash/mm-dev/wt/L06/mobile/test/screenshots/cinematic/mobile_16_discover_shots_test.dart: (tearDownAll)
+08:31 +4140: All tests passed!

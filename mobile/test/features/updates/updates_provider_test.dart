@@ -132,6 +132,9 @@ class _FakeUpdatesRepository implements UpdatesRepository {
 /// `UpdatesNotifier` drives — the "trackers" cache is now just the followed
 /// series list from `GET /library/series`.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
@@ -160,8 +163,7 @@ class _FakeLibraryRepository implements LibraryRepository {
     String? sort,
     String? search,
     String? readingStatus,
-    bool? isFavorite,
-  }) async {
+    bool? isFavorite, List<int>? tagIds, bool? newOnly,}) async {
     // Paged the way the server pages, so a library bigger than one page is
     // only whole to a caller that asks for every page.
     final start = (page - 1) * perPage;

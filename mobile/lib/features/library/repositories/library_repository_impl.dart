@@ -28,6 +28,8 @@ class LibraryRepositoryImpl implements LibraryRepository {
     String? search,
     String? readingStatus,
     bool? isFavorite,
+    List<int>? tagIds,
+    bool? newOnly,
   }) =>
       _request(
         () => _dio.get<Map<String, dynamic>>(
@@ -39,6 +41,8 @@ class LibraryRepositoryImpl implements LibraryRepository {
             if (search != null && search.isNotEmpty) 'search': search,
             if (readingStatus != null) 'reading_status': readingStatus,
             if (isFavorite != null) 'is_favorite': isFavorite,
+            if (tagIds != null && tagIds.isNotEmpty) 'tag_ids': tagIds.join(','),
+            if (newOnly ?? false) 'new_only': true,
           },
         ),
         (data) => PagedResult.fromJson(data, FollowedSeries.fromJson),
@@ -360,6 +364,12 @@ class LibraryRepositoryImpl implements LibraryRepository {
             if (color != null) 'color': color,
           },
         ),
+        Tag.fromJson,
+      );
+
+  @override
+  Future<Result<Tag>> renameTag(int tagId, String name) => _request(
+        () => _dio.patch<Map<String, dynamic>>('/library/tags/$tagId', data: {'name': name}),
         Tag.fromJson,
       );
 

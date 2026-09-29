@@ -30,6 +30,11 @@ const Map<String, List<String>> _providersByService = {
     'continueReadingProvider',
     'collectionsProvider',
     'collectionDetailProvider',
+    // The Cinematic shelf: its page, counts and Continue cuttings, and the tags on its rows.
+    'shelfProvider',
+    'shelfCountsProvider',
+    'shelfContinueProvider',
+    'tagsProvider',
   ],
   // Tonight's feed: the server composes it per gate state and the Home provider is dropped with it.
   'home_service': ['homeFeedProvider'],

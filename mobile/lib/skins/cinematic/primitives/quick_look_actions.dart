@@ -18,10 +18,13 @@ abstract final class QuickLookId {
 }
 
 class QuickLookAction {
-  const QuickLookAction(this.id, this.label, this.icon, {this.destructive = false, this.onSelected});
+  const QuickLookAction(this.id, this.label, this.icon, {this.destructive = false, this.disabled = false, this.onSelected});
   final String id, label;
   final CineIconRole icon;
   final bool destructive;
+
+  /// Shown dimmed and not tappable (`Move up` on the first poster).
+  final bool disabled;
   final VoidCallback? onSelected;
 }
 

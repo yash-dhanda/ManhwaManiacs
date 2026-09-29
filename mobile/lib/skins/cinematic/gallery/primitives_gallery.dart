@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/core/diagnostics/debug_overlays.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/auth_gallery.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/fixtures.dart';
+import 'package:manhwamaniacs/skins/cinematic/gallery/library_gallery.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/overlays_gallery.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/shell_gallery.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
@@ -32,6 +33,7 @@ const List<String> kGallerySections = [
   'reveals',
   'streak-flame',
   'motion-timings',
+  ...kLibraryGallerySections,
   ...kOverlayGallerySections,
   ...kShellGallerySections,
   ...kAuthGallerySections,
@@ -123,6 +125,7 @@ class _GalleryBodyState extends ConsumerState<_GalleryBody> {
       'reveals' => _reveals(context),
       'streak-flame' => _flames(context),
       'motion-timings' => _timings(context),
+      _ when kLibraryGallerySections.contains(id) => LibraryGallerySection(id: id),
       _ when kOverlayGallerySections.contains(id) => OverlayGallerySection(id: id),
       _ when kShellGallerySections.contains(id) => ShellGallerySection(id: id),
       _ when kAuthGallerySections.contains(id) => const AuthGallerySection(),
