@@ -24,7 +24,8 @@ enum HomeFeedState { loading, ready, empty, unavailable }
 /// Where the feed came from: the server, the on-device composer, or the offline edition.
 enum HomeFeedOrigin { server, local, offline }
 
-typedef HomeFeedView = ({HomeFeedState state, HomeFeed? feed, HomeFeedOrigin origin, bool offline});
+/// [retryAfter] is the server's `Retry-After` when `GET /home` answered 429.
+typedef HomeFeedView = ({HomeFeedState state, HomeFeed? feed, HomeFeedOrigin origin, bool offline, Duration? retryAfter});
 
 /// The skin-neutral Tonight / Home feed (both skins read it). Rebuilds on a profile switch, a gate
 /// change or a mode change (the web key `["home", profileId, matureEnabled, contentKind]`), and
@@ -86,12 +87,12 @@ class HomeFeedController extends AutoDisposeAsyncNotifier<HomeFeedView> {
         matureEnabled: ref.read(matureGateOpenProvider),
         now: now,
       );
-      return (state: HomeFeedState.ready, feed: feed, origin: HomeFeedOrigin.offline, offline: true);
+      return (state: HomeFeedState.ready, feed: feed, origin: HomeFeedOrigin.offline, offline: true, retryAfter: null);
     }
-    return _local(now, storeKind);
+    return _local(now, storeKind, retryAfter: error is ApiError && error.statusCode == 429 ? (error.retryAfter ?? const Duration(seconds: 10)) : null);
   }
 
-  Future<HomeFeedView> _local(DateTime now, String kind) async {
+  Future<HomeFeedView> _local(DateTime now, String kind, {Duration? retryAfter}) async {
     final lib = ref.read(libraryRepositoryProvider);
     T? ok<T>(Result<T> r) => r.isOk ? r.value : null;
     final fCont = lib.continueReading(limit: 12);
@@ -113,12 +114,12 @@ class HomeFeedController extends AutoDisposeAsyncNotifier<HomeFeedView> {
       contentKind: kind,
       inMode: scope.novelsEnabled ? (id) => scope.modeOf(id) == scope.mode : null,
     );
-    if (inputs.allFailed) return (state: HomeFeedState.unavailable, feed: null, origin: HomeFeedOrigin.local, offline: false);
+    if (inputs.allFailed) return (state: HomeFeedState.unavailable, feed: null, origin: HomeFeedOrigin.local, offline: false, retryAfter: retryAfter);
     return _view(applyAtRisk(composeLocalFeed(inputs, now), now), HomeFeedOrigin.local);
   }
 
   HomeFeedView _view(HomeFeed feed, HomeFeedOrigin origin) {
     final empty = feed.cover == null && !feed.sections.any((s) => s.hasItems);
-    return (state: empty ? HomeFeedState.empty : HomeFeedState.ready, feed: feed, origin: origin, offline: false);
+    return (state: empty ? HomeFeedState.empty : HomeFeedState.ready, feed: feed, origin: origin, offline: false, retryAfter: null);
   }
 }
