@@ -57,9 +57,9 @@ from services.novel_attribution_service import (
     read_attribution,
     set_narrator_voice,
 )
-from database.models import ListenSession, NovelChapterCache
+from database.models import ListenSession, NovelChapterCache, NovelSeriesCastState
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import select
 from services.novel_render_queue import (
     active_jobs,
@@ -69,6 +69,7 @@ from services.novel_render_queue import (
     series_jobs,
 )
 from services.novel_service import NovelService, get_novel_service
+from services.progress_service import ProgressService, get_progress_service
 from services.voice_pack import is_known_voice, load_voices, sample_path
 
 
@@ -86,6 +87,7 @@ router = APIRouter(
 
 NovelDep = Annotated[NovelService, Depends(get_novel_service)]
 DbDep = Annotated[Session, Depends(get_db)]
+ProgressDep = Annotated[ProgressService, Depends(get_progress_service)]
 
 #: For the writes that change a book for EVERYBODY. Casting, the narrator and
 #: aliases are per-series rows with no user id, and render jobs have no owner,
@@ -281,10 +283,17 @@ def get_novel_series_audio(
     request: Request,
     response: Response,  # slowapi injects X-RateLimit-* headers into this
     db: DbDep,
+    progress: ProgressDep,
     source: str = Query(..., min_length=1, max_length=64),
     series: str = Query(..., min_length=1, max_length=512),
 ) -> dict[str, object]:
     """Which chapters of this book have audio.
+
+    Gated like ``GET /reader/progress/series``: 404 for a source this profile's
+    18+ gate hides; an 18+ series on a general source answers empty. Each
+    chapter carries ``rendered_at`` and the book ``cast_changed_at`` (the
+    owner's last cast/alias/narrator change, or null): a client's RE-VOICE picks
+    the chapters whose ``rendered_at`` is older than ``cast_changed_at``.
 
     One call so a table of contents can mark what is listenable. Asking per
     chapter would be several hundred round trips for a long book, and every
@@ -298,6 +307,12 @@ def get_novel_series_audio(
     again. A durable record of what has been rendered arrives with the job
     table; until then this is honest about being derived.
     """
+    if not progress.series_visible(source, series):
+        return {
+            "source_id": source, "series_key": series, "chapters": [],
+            "narratable": [], "can_render": _render_worker_configured(),
+            "cast_changed_at": None,
+        }
     keys = list(
         db.execute(
             select(NovelChapterCache.chapter_key).where(
@@ -306,13 +321,15 @@ def get_novel_series_audio(
             )
         ).scalars()
     )
-    found = rendered_chapters(source, series, keys)
+    found = rendered_chapters(source, series, keys, with_mtime=True)
+    state = db.get(NovelSeriesCastState, (source, series))
     return {
         "source_id": source,
         "series_key": series,
         "chapters": [
             {"chapter_key": key, "bytes": meta["bytes"],
-             "has_timing": bool(meta["has_timing"])}
+             "has_timing": bool(meta["has_timing"]),
+             "rendered_at": _iso_utc(meta["rendered_at"])}
             for key, meta in sorted(found.items())
         ],
         # Which chapters COULD be narrated. Rendering reads the chapter, and
@@ -326,7 +343,19 @@ def get_novel_series_audio(
         # rather than a heartbeat because nothing records a heartbeat; this
         # is the same test that decides whether the box's routes are mounted.
         "can_render": _render_worker_configured(),
+        "cast_changed_at": (
+            _iso_utc_dt(state.updated_at) if state is not None else None
+        ),
     }
+
+
+def _iso_utc(ts: float) -> str:
+    return datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _iso_utc_dt(value: datetime) -> str:
+    # utcnow() rows are naive UTC
+    return value.replace(tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _render_worker_configured() -> bool:

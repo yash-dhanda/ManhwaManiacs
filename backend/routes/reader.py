@@ -19,9 +19,10 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, model_validator
 from sqlalchemy.orm import Session
 
+from connectors.ids import fully_unquote
 from core.errors import AppError
 from core.profile_context import require_profile_context
 from core.rate_limit import bulk_limit, limiter
@@ -39,6 +40,12 @@ from services.progress_service import (
     ProgressInput,
     ProgressService,
     get_progress_service,
+)
+from services.page_annotations import (
+    resolve_pages,
+    store_panels,
+    store_tints,
+    stored_panels,
 )
 from services.reader_service import ReaderService, get_reader_service
 from utils.api_pagination import set_list_total_header
@@ -236,6 +243,105 @@ def chapter_manifest_batch(
     return service.manifest_batch(
         body.source_id, body.series_key, body.chapter_keys
     )
+
+
+class _ChapterRef(BaseModel):
+    source_id: str = Field(min_length=1, max_length=64)
+    series_key: str = Field(min_length=1, max_length=512)
+    chapter_key: str = Field(min_length=1, max_length=512)
+
+
+class Tint(BaseModel):
+    page: int = Field(ge=1)
+    #: ``null`` = a greyscale page; accepted and ignored (never stored).
+    hex: str | None = Field(default=None, pattern="^#[0-9A-Fa-f]{6}$")
+
+
+class PageTintsRequest(_ChapterRef):
+    tints: list[Tint] = Field(min_length=1, max_length=500)
+
+
+class Panel(BaseModel):
+    """One panel in page fractions (cinematic 9.4.3)."""
+
+    x: float = Field(ge=0, le=1)
+    y: float = Field(ge=0, le=1)
+    w: float = Field(gt=0, le=1)
+    h: float = Field(gt=0, le=1)
+
+    @model_validator(mode="after")
+    def _inside_page(self) -> "Panel":
+        if self.x + self.w > 1.0001 or self.y + self.h > 1.0001:
+            raise ValueError("panel extends past the page")
+        return self
+
+
+class PagePanels(BaseModel):
+    page: int = Field(ge=1)
+    #: ``[]`` = analysed, no panels found (so nobody analyses the page again).
+    panels: list[Panel] = Field(max_length=64)
+
+
+class PanelsRequest(_ChapterRef):
+    pages: list[PagePanels] = Field(min_length=1, max_length=500)
+
+
+@router.post(
+    "/page-tints", status_code=204, dependencies=[Depends(require_profile_context)]
+)
+def post_page_tints(body: PageTintsRequest, service: ReaderDep, db: DbDep) -> Response:
+    """Remember client-sampled page tints (S1). Fire and forget: 204.
+
+    Pages come from the gated manifest path, so a gated or unknown source or
+    chapter is 404 and nothing is stored; an upstream failure is a silent 204.
+    Unknown pages and ``null`` (greyscale) tints are ignored.
+    """
+    series, chapter = fully_unquote(body.series_key), fully_unquote(body.chapter_key)
+    pages = resolve_pages(service, body.source_id, series, chapter)
+    if pages is not None:
+        store_tints(
+            db, body.source_id, series, chapter, pages,
+            [(t.page, t.hex) for t in body.tints],
+        )
+    return Response(status_code=204)
+
+
+@router.post("/panels", status_code=204, dependencies=[Depends(require_profile_context)])
+def post_panels(body: PanelsRequest, service: ReaderDep, db: DbDep) -> Response:
+    """Remember client-detected panel boxes (S11). Same rules as page-tints."""
+    series, chapter = fully_unquote(body.series_key), fully_unquote(body.chapter_key)
+    pages = resolve_pages(service, body.source_id, series, chapter)
+    if pages is not None:
+        store_panels(
+            db, body.source_id, series, chapter, pages,
+            [(p.page, [m.model_dump() for m in p.panels]) for p in body.pages],
+        )
+    return Response(status_code=204)
+
+
+@router.get("/panels")
+def get_panels(
+    service: ProgressDep,
+    db: DbDep,
+    source: str = Query(..., min_length=1),
+    series: str = Query(..., min_length=1),
+    chapter: str = Query(..., min_length=1),
+) -> dict[str, object]:
+    """Stored panel reports for a downloaded chapter: rows only, no upstream call.
+
+    Gated like ``GET /progress/series``: 404 for a hidden source; an 18+ series
+    on a general source answers the empty result.
+    """
+    series, chapter = fully_unquote(series), fully_unquote(chapter)
+    visible = service.series_visible(source, series)
+    ready, pages = stored_panels(db, source, series, chapter) if visible else (False, [])
+    return {
+        "source_id": source,
+        "series_key": series,
+        "chapter_key": chapter,
+        "panels_ready": ready,
+        "pages": pages,
+    }
 
 
 #: The service's code for "SQLite's single writer is still busy" (503).
