@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/dev/calibration_page.dart';
 import 'package:manhwamaniacs/skins/glass/dev/dev_controls.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_dev_index.dart';
+import 'package:manhwamaniacs/skins/glass/dev/glass_gallery.dart';
 import 'package:manhwamaniacs/skins/pending_routes.dart';
 import 'package:manhwamaniacs/skins/pending_screen.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -55,6 +56,9 @@ const Set<ScreenId> PENDING = {
 const String kGlassDevPath = '/dev/glass';
 const String kGlassCalibrationPath = '/dev/glass/calibration';
 
+/// The primitives gallery (`mobile/26`); `?section=buttons|hold|icon-buttons|…` shows one family.
+const String kGlassPrimitivesPath = '/dev/glass/primitives';
+
 /// Every pending screen gets a trailing-bottom plain button that opens the development index.
 List<GoRoute> _withDevButton(List<GoRoute> routes) => [
       for (final r in routes)
@@ -103,6 +107,10 @@ GoRouter buildGlassRouter(Ref ref) => GoRouter(
       routes: [
         _devRoute(kGlassDevPath, () => const GlassDevIndex()),
         _devRoute(kGlassCalibrationPath, () => const GlassCalibrationPage()),
+        GoRoute(
+          path: kGlassPrimitivesPath,
+          builder: (context, state) => _DevScaffold(child: GlassGallery(section: state.uri.queryParameters['section'])),
+        ),
         ..._withDevButton(pendingRoutes(PENDING)),
       ],
       errorBuilder: (context, state) =>
