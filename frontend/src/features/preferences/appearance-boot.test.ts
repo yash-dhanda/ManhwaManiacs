@@ -257,3 +257,47 @@ describe("appearance boot script — both channels at once", () => {
     expect(bootBoth(store)).toEqual({ theme: "nord", preset: null });
   });
 });
+
+describe("appearance boot script — first-paint accessibility", () => {
+  const a11yKey = (userId: number, profileId: number) =>
+    scopedStorageKey("mm.boot.a11y", { userId, profileId }) as string;
+  const ALL = JSON.stringify({ legible: true, motion: true, solid: true, contrast: true, sr: true });
+
+  function stamped(store: Store, pathname = "/library"): Record<string, string> {
+    const keys = Object.keys(store);
+    const attrs: Record<string, string> = {};
+    const ls = {
+      get length() {
+        return keys.length;
+      },
+      key: (i: number) => keys[i] ?? null,
+      getItem: (k: string) => store[k] ?? null,
+    };
+    const doc = { documentElement: { setAttribute: (n: string, v: string) => (attrs[n] = v) } };
+    new Function("localStorage", "document", "location", APPEARANCE_BOOT_SOURCE)(ls, doc, { pathname });
+    return attrs;
+  }
+  const five = {
+    "data-motion": "reduced",
+    "data-legible": "on",
+    "data-solid": "on",
+    "data-contrast": "more",
+    "data-sr": "on",
+  };
+
+  it("stamps all five attributes from the profile's entry", () => {
+    expect(stamped(storeFor(7, { [a11yKey(1, 7)]: ALL }))).toEqual(five);
+  });
+
+  it("stamps nothing from another profile's entry", () => {
+    expect(stamped(storeFor(2, { [a11yKey(1, 9)]: ALL }))).toEqual({});
+  });
+
+  it("stamps nothing and throws nothing on malformed JSON", () => {
+    expect(stamped(storeFor(7, { [a11yKey(1, 7)]: "{nope" }))).toEqual({});
+  });
+
+  it("stamps nothing on the auth paths", () => {
+    expect(stamped(storeFor(7, { [a11yKey(1, 7)]: ALL }), "/login")).toEqual({});
+  });
+});
