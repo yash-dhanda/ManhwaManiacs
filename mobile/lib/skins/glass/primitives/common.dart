@@ -7,14 +7,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
+import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
+import 'package:manhwamaniacs/skins/skin_audio.dart';
 
 const GlassTokens gt = glassTokens;
 
 /// One answer to "is motion reduced" (glass 4.11): the OS flag merged with the in-app switch.
 bool glassReduced(WidgetRef ref) => ref.watch(glassMotionPrefsProvider.select((m) => m.reduced));
+
+/// The reduced-motion answer as a provider selection, for widgets that watch it in `build`.
+final glassReducedProvider = Provider<bool>((ref) => ref.watch(glassMotionPrefsProvider.select((m) => m.reduced)));
 
 bool glassSolid(WidgetRef ref) => ref.watch(glassA11yProvider.select((a) => a.solid));
 
@@ -109,11 +114,18 @@ Size measureText(BuildContext context, String text, TextStyle style, {double max
   return s;
 }
 
-TextStyle roleStyle(BuildContext context, GlassTypeRole role, {bool onGlass = false, int? wght, double? size, double? height, double maxScale = double.infinity}) =>
-    GlassTypeStyle.style(context, role, onGlass: onGlass, wght: wght, size: size, height: height, maxScale: maxScale);
+TextStyle roleStyle(BuildContext context, GlassTypeRole role, {bool onGlass = false, bool legible = false, int? wght, double? size, double? height, double maxScale = double.infinity}) =>
+    GlassTypeStyle.style(context, role, onGlass: onGlass, legible: legible, wght: wght, size: size, height: height, maxScale: maxScale);
 
 /// Parses `#RRGGBB` style constants written in this step's spec.
 Color hexColor(int rgb, [double opacity = 1]) => Color(0xFF000000 | rgb).withValues(alpha: opacity);
 
 /// The two colour-blind safe helpers the spec repeats: a colour at 18 % over black with the colour as text.
 Color wash(Color c, [double a = 0.18]) => c.withValues(alpha: a);
+
+/// Plays a sound (off by default; the skin's audio service decides) without ever throwing into a gesture.
+void glassSound(WidgetRef ref, SoundEvent e) {
+  try {
+    unawaited(ref.read(skinAudioProvider).play(e));
+  } catch (_) {}
+}
