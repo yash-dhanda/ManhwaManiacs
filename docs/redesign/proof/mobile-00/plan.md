@@ -47,6 +47,9 @@ Lane mobile1, worktree `/srv/manhwamaniacs/dev/wt/mobile1`, branch `redesign/mob
 - After B/C (`e8be5bf`): 2,030 = 2,013 + 17 engine tests (boundary 2, state 5,
   commands 6, auto-queue 4). Reader + sources + offline-reader subset: 359 passed.
 - Final (after E): 2,030 passed, 0 failed, 0 skipped; `flutter analyze`: No issues found!
+- Fix pass 2 (after merging `feat/vps-slim-source-native` and adding
+  `reader_shortcuts_test.dart`): 2,037 passed, 0 failed, 0 skipped (05:38 wall,
+  `-j 2`); `test/features/reader`: 274 passed; `flutter analyze`: No issues found!
 - Goldens: `git diff 572ac14..HEAD --stat -- mobile/test/features/reader/goldens`
   is empty; copies in this folder.
 - Section E extras found by the grep (same rule, beyond items 18-27a):
