@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/history_pages_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
@@ -152,6 +153,7 @@ final List<void Function(Ref ref)> matureScopedInvalidators = [
   (ref) => ref.invalidate(sourcesHealthProvider),
   (ref) => ref.invalidate(popularFirstPageProvider),
   (ref) => ref.invalidate(readingHistoryProvider),
+  (ref) => ref.invalidate(historyPagesProvider),
   // Bookmarks (bookmark_service).
   (ref) => ref.invalidate(bookmarksProvider),
   // Update notifications + the unread badge they drive (update_service).
