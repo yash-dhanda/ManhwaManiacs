@@ -88,8 +88,7 @@ function decode(url: string): Promise<CoverPalette> {
         const fac = new FastAverageColor();
         const dom = fac.getColorFromArray4(px, { algorithm: "dominant" });
         fac.destroy();
-        const [r, g, b] = dom.value;
-        resolve({ a: deriveAccents(rgbToHex(r, g, b)), ...luminanceStats(px) });
+        resolve({ a: deriveAccents(rgbToHex(dom[0], dom[1], dom[2])), ...luminanceStats(px) });
       } catch (e) { reject(e); }
     };
     img.onerror = () => reject(new Error(`cover failed to load: ${url}`));

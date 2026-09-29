@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { isGlassReduced } from "../motion";
+import { MOTION_LABELS } from "../motion.generated";
+import { beginRecord, trackFrames } from "../motion-recorder";
 
 /**
  * Wraps the ONE lit (tinted) object (DESIGN 2.4.4). Its ::before, below the glass, is a blurred iris ellipse
@@ -35,7 +37,9 @@ export function FollowRing({ origin, className }: { origin: { x: number; y: numb
       ],
       { duration: 700, easing: "cubic-bezier(0.2, 0, 0, 1)", fill: "both" },
     );
-    return () => anim.cancel();
+    const finish = trackFrames(beginRecord("followRing", MOTION_LABELS.followRing, 700));
+    anim.onfinish = finish;
+    return () => { anim.cancel(); finish(); };
   }, [origin]);
   return (
     <div ref={band} className={`follow-band${className ? ` ${className}` : ""}`} aria-hidden="true">

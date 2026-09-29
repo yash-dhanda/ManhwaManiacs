@@ -7,6 +7,8 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { isGlassReduced, play } from "../motion";
+import { MOTION_LABELS } from "../motion.generated";
+import { beginRecord, trackFrames } from "../motion-recorder";
 import { recomputeStacking, registerGlass, useForcedSolid, type GlassLayer } from "./budget";
 import { useGlassEnv } from "./env";
 import { liquidMap, maskHref, type LiquidMap, type MapShape } from "./liquid-map";
@@ -46,6 +48,7 @@ export function sweepGlass(host: HTMLElement): void {
   if (!w || !h) return;
   lastSweep = now;
   sweeping = true;
+  const finishRecord = trackFrames(beginRecord("specularSweep", MOTION_LABELS.specularSweep, 520));
   const deg = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--mm-light-angle")) || 135;
   const a = (deg * Math.PI) / 180;
   const d = { x: Math.sin(a), y: -Math.cos(a) }; // gradient direction; 135deg runs down and right
@@ -64,7 +67,7 @@ export function sweepGlass(host: HTMLElement): void {
     return `translate(${w / 2 + d.x * k - 20}px, ${h / 2 + d.y * k - h / 2}px) rotate(${Math.atan2(d.y, d.x)}rad)`;
   };
   const anim = band.animate([{ transform: at(0) }, { transform: at(1) }], { duration: 520, easing: "cubic-bezier(0.2, 0, 0, 1)", fill: "both" });
-  const done = () => { sweeping = false; layer.remove(); };
+  const done = () => { sweeping = false; layer.remove(); finishRecord(); };
   anim.onfinish = done;
   anim.oncancel = done;
 }
@@ -182,7 +185,8 @@ export function GlassSurface({
     if (!f || !map) return;
     const base = growthScale.current ?? map.scale;
     const mults = map.dispersion ?? [1];
-    f.querySelectorAll("feDisplacementMap").forEach((n, i) => n.setAttribute("scale", String(base * k.current * mults[i])));
+    // only the lens passes (rain adds its own displacement pass after them)
+    Array.from(f.querySelectorAll("feDisplacementMap")).slice(0, mults.length).forEach((n, i) => n.setAttribute("scale", String(base * k.current * mults[i])));
   }, [map]);
   useLayoutEffect(apply, [apply]);
 
