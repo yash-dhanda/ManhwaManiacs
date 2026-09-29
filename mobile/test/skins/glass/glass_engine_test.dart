@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
-import 'package:manhwamaniacs/skins/glass/glass_engine.dart';
+import 'package:manhwamaniacs/skins/glass/glass/liquid.dart';
 import 'package:manhwamaniacs/skins/glass/glass_skin.dart';
 import 'package:manhwamaniacs/skins/legacy/legacy_skin.dart';
 
@@ -33,11 +33,11 @@ void main() {
     for (final f in Directory('lib').listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.dart'))) {
       final src = f.readAsStringSync();
       final path = f.path.replaceAll('\\', '/');
-      if (src.contains('ensureLiquidGlassReady(') && !path.endsWith('glass_engine.dart')) callers.add(path);
+      if (src.contains('ensureLiquidGlassReady(') && !path.endsWith('glass/liquid.dart')) callers.add(path);
       if (src.contains('package:liquid_glass_widgets')) importers.add(path);
       if (src.contains('LiquidGlassWidgets.wrap(')) fail('$path uses LiquidGlassWidgets.wrap()');
     }
-    expect(callers.toSet(), {'lib/skins/glass/glass_skin.dart', 'lib/skins/glass/gate/glass_gate_screen.dart'});
+    expect(callers.toSet(), {'lib/skins/glass/glass_skin.dart', 'lib/skins/glass/glass/gate_demo.dart'});
     expect(importers.every((p) => p.startsWith('lib/skins/glass/')), isTrue, reason: '$importers');
   });
 }

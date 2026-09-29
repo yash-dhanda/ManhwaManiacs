@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/skins/glass/gate/glass_gate_screen.dart';
+import 'package:manhwamaniacs/skins/glass/glass/gate_demo.dart';
 
 import '../../screenshots/support/shot_harness.dart';
 import '../../screenshots/support/skin_shots.dart';

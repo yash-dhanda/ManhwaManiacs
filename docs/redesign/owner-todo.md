@@ -46,3 +46,8 @@ Items only the owner can do, by step.
 - Device check: touch lift (150/450 ms), throw and magnet on a real phone; the software raster in the harness cannot show frame cost. Record the motion-timings overlay (Press swell, Content sink, Tab droplet, Hold fill, Liquid fill, Count pop, Wave, Letter reveal, Typing reveal) on the 3090 Ti desktop at 1440 x 900.
 - iOS Safari: the bottom search field's visualViewport offset (`--vv-h`, `--vv-top`) needs an iPhone.
 - web/26: read the motion-timings overlay on a GPU browser at 1440x900 (headless run here was software raster; dropped-frame counts in docs/redesign/proof/web-26/report.md are an upper bound).
+
+## mobile/25 (Glass foundation)
+- Run proof/mobile-25/device-check.md on iPhone (SideStore) and the Android flagship.
+- Fill the Decision line of proof/mobile-03/glass-gate.md; `kGateRenderer` (skin_glass.dart) defaults to liquid until then.
+- Integrator: push ab48531 alone, watch `tests` and `Build iOS`, paste run URLs into proof/mobile-25/resolution.md.
