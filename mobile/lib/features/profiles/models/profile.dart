@@ -12,10 +12,14 @@ class Profile {
     required this.sortOrder,
     required this.matureContentEnabled,
     required this.createdAt,
+    this.skin,
   });
 
   final int id;
   final String name;
+
+  /// The profile's edition, `cinematic` or `glass`; null means the default.
+  final String? skin;
 
   /// References an avatar in [kAvatarPresets]; may be null for legacy rows.
   final String? avatarKey;
@@ -36,6 +40,10 @@ class Profile {
         // Epoch rather than a throw (see `AuthUser.fromJson`): a profile the
         // device cannot date is still a profile it can switch to.
         createdAt: serverInstant(json['created_at']) ?? _epoch,
+        skin: switch (json['skin']) {
+          final String s when s == 'cinematic' || s == 'glass' => s,
+          _ => null,
+        },
       );
 
   /// Reduce to the lightweight snapshot persisted as the active selection.

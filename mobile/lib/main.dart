@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/app.dart';
+import 'package:manhwamaniacs/app/app_restart.dart';
+import 'package:manhwamaniacs/app/skin_boot.dart';
 import 'package:manhwamaniacs/core/config/env.dart';
 import 'package:manhwamaniacs/core/config/startup_config.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
@@ -11,7 +13,9 @@ import 'package:manhwamaniacs/core/platform/system_ui.dart';
 import 'package:manhwamaniacs/core/storage/preferences.dart';
 import 'package:manhwamaniacs/core/storage/secure_storage.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_audio_session.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -52,13 +56,25 @@ Future<void> main() async {
   // presses play, and a platform that refuses it must not delay first frame.
   unawaited(configureNovelAudioSession());
 
+  await skinFor(SkinBoot.resolveSkin(prefs)).prepare();
+
+  // The builder re-runs on every restart, so boot state (the mm.skin.* keys)
+  // is read again and the new ProviderScope starts in the new skin.
   runApp(
-    ProviderScope(
-      overrides: [
-        apiBaseUrlProvider.overrideWith((ref) => apiUrl),
-        sharedPrefsProvider.overrideWithValue(prefs),
-      ],
-      child: const ManhwaManiacsApp(),
+    AppRestart(
+      builder: () {
+        final boot = SkinBoot.read(prefs);
+        return ProviderScope(
+          overrides: [
+            apiBaseUrlProvider.overrideWith((ref) => apiUrl),
+            sharedPrefsProvider.overrideWithValue(prefs),
+            skinIdProvider.overrideWithValue(boot.skin),
+            returnRouteProvider.overrideWithValue(boot.returnRoute),
+            skinRestartCarriesSessionProvider.overrideWithValue(boot.carrySession),
+          ],
+          child: const SkinApp(),
+        );
+      },
     ),
   );
 }

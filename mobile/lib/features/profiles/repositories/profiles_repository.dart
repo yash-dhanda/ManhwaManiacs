@@ -24,6 +24,7 @@ abstract interface class ProfilesRepository {
     Mood? mood,
     int? sortOrder,
     bool? matureContentEnabled,
+    String? skin,
   });
 
   Future<Result<void>> remove(int id);

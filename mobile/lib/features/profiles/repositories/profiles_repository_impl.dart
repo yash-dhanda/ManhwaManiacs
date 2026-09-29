@@ -61,6 +61,7 @@ class ProfilesRepositoryImpl implements ProfilesRepository {
     Mood? mood,
     int? sortOrder,
     bool? matureContentEnabled,
+    String? skin,
   }) async {
     try {
       final r = await _dio.patch<Map<String, dynamic>>(
@@ -72,6 +73,7 @@ class ProfilesRepositoryImpl implements ProfilesRepository {
           if (sortOrder != null) 'sort_order': sortOrder,
           if (matureContentEnabled != null)
             'mature_content_enabled': matureContentEnabled,
+          if (skin != null) 'skin': skin,
         },
       );
       return Ok(Profile.fromJson(r.data!));
