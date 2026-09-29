@@ -83,8 +83,8 @@ export function AtAGlance({
               {suggested.map((name) => (
                 <span key={name} className={`${s.chip} ${s.dashed} ${t.micro}`}>
                   {name}
-                  <button type="button" className={s.quiet} style={{ minHeight: 24, padding: 0 }} aria-label={`Add suggested tag ${name}`} onClick={() => void acceptSuggested(name)}>+</button>
-                  <button type="button" className={s.quiet} style={{ minHeight: 24, padding: 0 }} aria-label={`Reject suggested tag ${name}`} onClick={() => void rejectSuggestedTag(page.ref, name)}>×</button>
+                  <button type="button" className={`${s.quiet} ${s.chipBtn}`} aria-label={`Add suggested tag ${name}`} onClick={() => void acceptSuggested(name)}>+</button>
+                  <button type="button" className={`${s.quiet} ${s.chipBtn}`} aria-label={`Reject suggested tag ${name}`} onClick={() => void rejectSuggestedTag(page.ref, name)}>×</button>
                 </span>
               ))}
             </div>

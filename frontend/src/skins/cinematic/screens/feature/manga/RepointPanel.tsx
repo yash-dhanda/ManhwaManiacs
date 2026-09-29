@@ -98,7 +98,12 @@ export function RepointPanel({
             ) : (
               candidates.map(({ group, item }) => (
                 <button key={group.source} type="button" className={s.cand} onClick={() => void pick(item, group.source_name)}>
-                  <span aria-hidden="true" />
+                  {group.icon_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={group.icon_url} alt="" width={24} height={24} />
+                  ) : (
+                    <span aria-hidden="true" />
+                  )}
                   <span>
                     <span className={t.title} style={{ display: "block" }}>{item.title}</span>
                     <span className={`${t.folio} ${s.rowCap}`}>

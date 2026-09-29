@@ -15,11 +15,17 @@ export const USERNAME = process.env.E2E_USERNAME ?? "demo";
 export const PASSWORD = process.env.E2E_PASSWORD ?? "maniacs-demo-2026";
 
 /** Sign in over the API (the Cinematic login screen is not built yet), pick Riya, force the Cinematic skin. */
+let session: { cookies: Awaited<ReturnType<BrowserContext["cookies"]>>; owner: number } | null = null; // one login per worker: the endpoint is rate limited
+
 export async function signIn(ctx: BrowserContext, baseURL: string) {
   await ctx.addCookies([{ name: "mm-skin-debug", value: "cinematic", url: baseURL }]);
-  const r = await ctx.request.post(`${baseURL}/api/auth/login`, { data: { username: USERNAME, password: PASSWORD } });
-  if (!r.ok()) throw new Error(`login failed: ${r.status()}`);
-  const me = await (await ctx.request.get(`${baseURL}/api/auth/me`)).json();
+  if (!session) {
+    const r = await ctx.request.post(`${baseURL}/api/auth/login`, { data: { username: USERNAME, password: PASSWORD } });
+    if (!r.ok()) throw new Error(`login failed: ${r.status()}`);
+    const owner = (await (await ctx.request.get(`${baseURL}/api/auth/me`)).json()).id;
+    session = { cookies: await ctx.cookies(), owner };
+  } else await ctx.addCookies(session.cookies);
+  const me = { id: session.owner };
   await ctx.addInitScript(
     ([id, owner]) => {
       try {
@@ -103,11 +109,14 @@ export async function mockSeries(page: Page, o: MockOpts = {}): Promise<Mock> {
   await page.route("**/api/library/series/6/repoint", (r) => json(r, fx("repoint.json")));
   await page.route(/\/api\/library\/series\/6$/, async (r) => {
     if (r.request().method() !== "GET") return r.continue();
-    const resp = await r.fetch();
-    const body = await resp.json();
-    if (o.mature) body.rating = "mature";
-    body.ambient = series.ambient;
-    return json(r, body);
+    try {
+      const body = await (await r.fetch()).json();
+      if (o.mature) body.rating = "mature";
+      body.ambient = series.ambient;
+      return await json(r, body);
+    } catch {
+      return; // the page went away mid-request
+    }
   });
   return m;
 }

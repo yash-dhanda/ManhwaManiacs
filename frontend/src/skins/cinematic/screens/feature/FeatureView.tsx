@@ -1,6 +1,6 @@
 "use client";
 
-import { ViewTransition, useCallback, useEffect, useState } from "react";
+import { ViewTransition, useCallback, useEffect, useRef, useState } from "react";
 import { useIsNovelSource } from "@/features/novels/hooks";
 import { ApiError } from "@/types/api";
 import { BookFeature } from "./book/BookFeature";
@@ -57,7 +57,10 @@ export function FeatureView({ sourceId, seriesKey, followedId, focusChapterKey =
     if (title) document.title = `${title} · ManhwaManiacs`;
   }, [title]);
 
-  // Back (in-page or browser) plays the 336 ms reverse match cut; arriving and leaving sample their transitions.
+  // Next does not animate a history traversal, so back is a view transition of our own: the browser snapshots
+  // this page (its cover is named), we wait for the route to commit, and the shared cover plays the 336 ms
+  // reverse match cut into whatever wears the same name (`html[data-mm-nav=back]` sets the duration).
+  const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const html = document.documentElement;
     if (html.dataset.mmNav !== "back") sampleTransitions("in");
@@ -65,11 +68,54 @@ export function FeatureView({ sourceId, seriesKey, followedId, focusChapterKey =
     const back = () => {
       html.dataset.mmNav = "back";
       clearTimeout(t);
-      t = setTimeout(() => delete html.dataset.mmNav, 900);
+      t = setTimeout(() => delete html.dataset.mmNav, 1200);
+      const me = root.current;
+      // React names view-transition elements only inside its own transitions, so name the cover by hand
+      // (`data-mm-cover` marks it, here and on any poster elsewhere that wants the reverse cut).
+      const mine = me?.querySelector<HTMLElement>("[data-mm-cover]");
+      const name = mine?.dataset.mmCover;
+      if (mine && name) {
+        mine.style.viewTransitionName = name;
+        mine.style.setProperty("view-transition-class", "mm-match-cut");
+      }
+      let target: HTMLElement | null = null;
+      const vt = document.startViewTransition?.(
+        () =>
+          new Promise<void>((done) => {
+            const t0 = performance.now();
+            // timers, not rAF: the browser pauses rendering while a transition waits for its DOM update
+            const tick = () => {
+              const gone = !me?.isConnected;
+              target = gone && name ? document.querySelector<HTMLElement>(`[data-mm-cover="${name}"]`) : null;
+              if ((gone && (target || !name)) || performance.now() - t0 > 800) {
+                if (target) {
+                  target.style.viewTransitionName = name!;
+                  target.style.setProperty("view-transition-class", "mm-match-cut");
+                }
+                setTimeout(done, 30);
+              } else setTimeout(tick, 16);
+            };
+            tick();
+          }),
+      );
+      void vt?.finished.finally(() => {
+        if (target) {
+          (target as HTMLElement).style.viewTransitionName = "";
+          (target as HTMLElement).style.removeProperty("view-transition-class");
+        }
+      });
     };
-    window.addEventListener("popstate", back);
+    // The app router commits a traversal before `popstate` fires, so where the Navigation API exists the
+    // `navigate` event (before the commit) is the moment to start the transition.
+    const nav = (window as unknown as { navigation?: EventTarget }).navigation;
+    const onNavigate = (e: Event) => {
+      if ((e as Event & { navigationType?: string }).navigationType === "traverse") back();
+    };
+    if (nav) nav.addEventListener("navigate", onNavigate);
+    else window.addEventListener("popstate", back);
     return () => {
-      window.removeEventListener("popstate", back); // the timer stays: it clears the flag after the transition
+      if (nav) nav.removeEventListener("navigate", onNavigate);
+      else window.removeEventListener("popstate", back); // the timer stays: it clears the flag after the transition
       sampleTransitions("out");
     };
   }, []);
@@ -100,7 +146,7 @@ export function FeatureView({ sourceId, seriesKey, followedId, focusChapterKey =
 
   return (
     <ViewTransition enter="mm-page-in" exit="mm-page-out" default="none">
-      <div className={s.page} data-screen="feature" data-kind={isNovel ? "book" : "feature"}>
+      <div ref={root} className={s.page} data-screen="feature" data-kind={isNovel ? "book" : "feature"}>
         {body}
         <ToastStack toasts={page.toasts.toasts} dismiss={page.toasts.dismiss} />
         <MotionTimings />

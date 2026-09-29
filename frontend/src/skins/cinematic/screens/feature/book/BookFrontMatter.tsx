@@ -150,7 +150,7 @@ export function BookFrontMatter({
             {cover ? (
               <ViewTransition name={coverTransitionName(page.sourceId, page.seriesKey)} share="mm-match-cut" default="none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className={s.plate} src={cover} alt={`${series.title} cover`} onDoubleClick={onViewCover} onContextMenu={(e) => e.preventDefault()} />
+                <img className={s.plate} data-mm-cover={coverTransitionName(page.sourceId, page.seriesKey)} src={cover} alt={`${series.title} cover`} onDoubleClick={onViewCover} onContextMenu={(e) => e.preventDefault()} />
               </ViewTransition>
             ) : (
               <div className={s.plate} aria-hidden="true" />

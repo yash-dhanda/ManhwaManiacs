@@ -31,22 +31,27 @@ export function subscribeMotion(l: () => void) {
 export function sampleTransitions(label: "in" | "out") {
   if (typeof document === "undefined") return;
   const back = document.documentElement.dataset.mmNav === "back";
-  window.setTimeout(() => {
-    const logged = new Set<string>();
+  const logged = new Set<string>();
+  const t0 = performance.now();
+  const id = window.setInterval(() => {
     for (const a of document.getAnimations()) {
       const e = a.effect as KeyframeEffect | null;
       const pe = e?.pseudoElement ?? "";
       const m = /^::view-transition-(group|new|old)\((.+)\)$/.exec(pe);
       if (!m || m[2] === "root") continue;
       const cover = m[2].startsWith("mm-cover-");
-      if (cover && m[1] !== "group") continue;
       const dur = Number(e!.getTiming().duration);
       let key: string | null;
       if (cover) key = label === "in" ? "matchCut" : back ? "matchCutBack" : null;
-      else key = label === "in" ? (m[2] === "mm-page-in" ? "pageIn" : null) : m[2] === "mm-page-out" ? "pageOut" : null;
+      else {
+        // an unnamed page transition gets an auto name; the CSS animation's own name says which one it is
+        const an = (a as CSSAnimation).animationName;
+        key = an === "mm-page-in" ? "pageIn" : an === "mm-page-out" ? "pageOut" : null;
+      }
       if (!key || logged.has(key)) continue;
       logged.add(key);
       logMotion(key, key === "matchCutBack" ? 336 : key === "matchCut" ? 480 : key === "pageIn" ? 320 : 224, dur);
     }
-  }, 24);
+    if (logged.size > 0 || performance.now() - t0 > 700) window.clearInterval(id);
+  }, 16);
 }

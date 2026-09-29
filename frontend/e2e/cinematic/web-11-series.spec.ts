@@ -32,7 +32,6 @@ async function shot(page: Page, name: string, fullPage = false) {
   await page.waitForTimeout(1300); // letters set, credits in, the 800 ms wash done
   await page.screenshot({ path: `${OUT}/${name}.png`, fullPage });
 }
-const rowByChapter = (page: Page, n: number) => page.locator("[data-row]").filter({ has: page.getByText(new RegExp(`^${n}$`), { exact: false }) }).first();
 const box = async (page: Page, sel: string) => (await page.locator(sel).first().boundingBox())!;
 
 test.describe("one page, two routes", () => {
@@ -133,13 +132,13 @@ test.describe("tabs and rows", () => {
     expect(await rows.count()).toBeLessThan(80);
     expect(await rows.count()).toBeGreaterThan(5);
     const r = await rows.first().boundingBox();
-    expect(Math.round(r!.height)).toBe(57 - 1 + 0); // 56 px + 1 px rule
+    expect(Math.round(r!.height)).toBe(56);
     const num = await rows.first().locator("a").first().evaluate((el) => ({ cols: getComputedStyle(el).gridTemplateColumns.split(" ")[0], align: getComputedStyle(el.firstElementChild!).textAlign }));
     expect(num.cols).toBe("56px");
     expect(num.align).toBe("right");
     await page.getByLabel("Go to chapter").fill("31");
     await page.keyboard.press("Enter");
-    await expect(page.getByText("READING")).toBeVisible();
+    await expect(page.locator("[class*=badge]", { hasText: "READING" })).toBeVisible();
     await page.getByLabel("Go to chapter").fill("41");
     await page.keyboard.press("Enter");
     await expect(page.locator("[data-row]").filter({ hasText: /^·/ }).first()).toBeVisible();
@@ -316,30 +315,35 @@ test.describe("Lightbox", () => {
     await open(page, FOLLOW_ROUTE);
     await ready(page);
     await settle(page, 500);
-    await page.locator("img[alt$='cover']").first().dblclick();
+    await page.locator("img[alt$='cover']").first().dblclick({ force: true }); // Drift keeps it moving
     await expect(lb(page)).toBeVisible();
     await settle(page, 600);
     await shot(page, "feature-lightbox-1440x900");
     await page.getByRole("button", { name: "Close" }).click();
     await expect(lb(page)).toHaveCount(0);
+    await settle(page, 400); // history.back() for the ?view=cover entry lands
     await page.mouse.move(700, 700);
     await page.keyboard.press("v");
     await expect(lb(page)).toBeVisible();
     expect(page.url()).toContain("view=cover");
     await page.keyboard.press("Escape");
     await expect(lb(page)).toHaveCount(0);
+    await settle(page, 400); // history.back() for the ?view=cover entry lands
     await page.getByRole("button", { name: "More", exact: true }).click();
     await page.getByRole("menuitem", { name: "View cover" }).click();
     await expect(lb(page)).toBeVisible();
     await page.goBack();
     await expect(lb(page)).toHaveCount(0);
+    await settle(page, 400); // history.back() for the ?view=cover entry lands
     await page.keyboard.press("v");
     await expect(lb(page)).toBeVisible();
+    await settle(page, 700); // the 480 ms cut has landed
     await page.mouse.move(700, 300);
     await page.mouse.down();
     await page.mouse.move(700, 470, { steps: 6 });
     await page.mouse.up();
     await expect(lb(page)).toHaveCount(0);
+    await settle(page, 400); // history.back() for the ?view=cover entry lands
   });
 });
 
@@ -354,7 +358,7 @@ test.describe("Move to another source", () => {
     await expect(page.getByText(/WeebCentral|didn't answer/i).first()).toBeVisible();
     await settle(page, 400);
     await shot(page, "feature-repoint-candidates-1440x900");
-    await page.getByRole("button", { name: /MangaDex/ }).first().click();
+    await page.getByRole("button", { name: /MANGADEX/i }).first().click();
     await expect(page.getByText(/Your place moves by chapter number\. You're on chapter 31; MangaDex has chapters 1–150, so chapter 31 there becomes your place\./)).toBeVisible();
     await expect(page.getByLabel(/Keep following it on MangaPill too/)).not.toBeChecked();
     await settle(page, 300);
@@ -436,10 +440,31 @@ test.describe("select mode and downloads", () => {
     await settle(page, 300);
     await shot(page, "feature-select-1440x900");
     await bar.getByRole("button", { name: /^Next 10/ }).click();
-    await expect(bar).toContainText("10 SELECTED");
-    await expect(bar.getByRole("button", { name: /^Download 10/ })).toBeEnabled();
+    await expect(bar).toContainText("14 SELECTED"); // the 4 picked plus the next 10 (the newest ones overlap none)
+    await expect(bar.getByRole("button", { name: /^Download 14/ })).toBeEnabled();
     await bar.getByRole("button", { name: "Done" }).click();
     await expect(bar).toHaveCount(0);
+  });
+});
+
+test.describe("running downloads", () => {
+  test("the run shows DOWNLOADING n OF m with Stop, and the series download card", async ({ page }) => {
+    await open(page, FOLLOW_ROUTE);
+    await ready(page);
+    await page.getByRole("button", { name: "Select", exact: true }).click();
+    const rows = page.locator("[data-row]");
+    await rows.nth(1).locator("a").first().click();
+    await rows.nth(2).locator("a").first().click();
+    await page.getByRole("button", { name: /^Download 2/ }).click();
+    const bar = page.getByRole("region", { name: "Chapter selection" });
+    await expect(bar).toContainText("DOWNLOADING 1 OF 2");
+    await expect(bar.getByRole("button", { name: "Stop" })).toBeVisible();
+    const card = page.getByRole("region", { name: "Downloads on this device" });
+    await expect(card).toContainText("ON THIS DEVICE");
+    await expect(card).toContainText("DOWNLOADING NOW · 1 OF 2");
+    await shot(page, "feature-downloading-1440x900");
+    await card.scrollIntoViewIfNeeded();
+    await shot(page, "feature-download-card-1440x900");
   });
 });
 
@@ -449,6 +474,7 @@ test.describe("motion", () => {
   test("match cut in 480 ms, back 336 ms; Page in 320 ms, Page out 224 ms; overlay rows", async ({ page }) => {
     await open(page, MANGA);
     await ready(page);
+    await settle(page, 1500);
     await page.evaluate(() => (window as unknown as { next: { router: { push: (u: string) => void } } }).next.router.push("/library/6"));
     await expect.poll(async () => (await rows(page)).some((r) => r.name === "matchCut")).toBe(true);
     const cut = (await rows(page)).find((r) => r.name === "matchCut")!;
@@ -481,6 +507,7 @@ test.describe("motion", () => {
   test("the overlay lists the rows without a proof row", async ({ page }) => {
     await open(page, MANGA);
     await ready(page);
+    await settle(page, 1500);
     await page.evaluate(() => (window as unknown as { next: { router: { push: (u: string) => void } } }).next.router.push("/library/6"));
     await settle(page, 900);
     await page.goBack();
@@ -502,8 +529,8 @@ test.describe("motion", () => {
 });
 
 test.describe("reduced motion", () => {
-  test.use({ reducedMotion: "reduce" });
   test("the wipe is one cross-fade, Drift stops at 1.03, the Lightbox fades 150 ms", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await open(page, FOLLOW_ROUTE);
     await ready(page);
     const drift = await page.locator("img[alt$='cover']").first().evaluate((el) => {
@@ -546,9 +573,9 @@ test.describe("phone (390 x 844)", () => {
     await ready(page);
     const pager = page.getByTestId("pager");
     expect(await pager.evaluate((el) => getComputedStyle(el).scrollSnapType)).toContain("x mandatory");
-    await pager.evaluate((el) => el.scrollTo({ left: el.clientWidth * 0.5 }));
-    await expect.poll(() => page.getByTestId("tab-rule").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41)).toBeGreaterThan(50);
-    await pager.evaluate((el) => el.scrollTo({ left: el.clientWidth }));
+    // mandatory snapping settles a half swipe on the nearer page; the rule and the tab follow the scroll
+    await pager.evaluate((el) => el.scrollTo({ left: el.clientWidth * 0.7 }));
+    await expect.poll(() => page.getByTestId("tab-rule").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41)).toBeGreaterThan(150);
     await expect(page.getByRole("tab").nth(1)).toHaveAttribute("aria-selected", "true");
     await settle(page, 400);
     await shot(page, "feature-details-390x844");
@@ -569,7 +596,7 @@ test.describe("phone (390 x 844)", () => {
         },
         [target, type, x, y] as const,
       );
-    const row = "[data-row='0'] > div";
+    const row = "[data-row='0'] > div[class*=row]";
     await page.locator("[data-row='0']").scrollIntoViewIfNeeded();
     await touch(row, "touchstart", 0);
     await touch(row, "touchmove", 300);
@@ -580,10 +607,10 @@ test.describe("phone (390 x 844)", () => {
     await expect.poll(() => mock.progressBatch.length).toBe(1);
     expect((mock.progressBatch[0][0] as { chapter_key: string }).chapter_key).toBe("c80");
     // long-press
-    await touch("[data-row='1'] > div", "touchstart", 0);
+    await touch("[data-row='1'] > div[class*=row]", "touchstart", 0);
     await page.waitForTimeout(600);
     await expect(page.getByRole("menuitem", { name: "Mark read", exact: true })).toBeVisible();
-    await touch("[data-row='1'] > div", "touchend", 0);
+    await touch("[data-row='1'] > div[class*=row]", "touchend", 0);
   });
 
   test("hit targets are at least 44 x 44 on the phone frame", async ({ page }) => {
@@ -621,7 +648,7 @@ test.describe("phone (390 x 844)", () => {
     await page.locator("[data-row]").nth(1).locator("a").first().tap();
     await settle(page, 300);
     await shot(page, "feature-select-390x844");
-    await page.getByRole("button", { name: "Done" }).click();
+    await page.getByRole("region", { name: "Chapter selection" }).getByRole("button", { name: "Done" }).click();
     await page.getByRole("button", { name: "More", exact: true }).first().click();
     await page.getByRole("menuitem", { name: "Move to another source…" }).click();
     await expect(page.getByText("MOVE TO ANOTHER SOURCE")).toBeVisible();
@@ -697,7 +724,7 @@ test.describe("the Book page", () => {
     await open(page, NOVEL, { novel: true });
     await ready(page);
     await page.getByLabel("Go to chapter").fill("12");
-    await expect(page.getByRole("button", { name: /Chapter 12:/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /row 12$/ })).toBeVisible();
     await shot(page, "book-goto-1440x900");
     await page.getByLabel("Go to chapter").fill("999");
     await expect(page.getByText("No chapter 999 in this book.")).toBeVisible();
@@ -748,5 +775,14 @@ test.describe("download marks gallery", () => {
       "The source changed these pages — download it again",
     ]);
     await shot(page, "download-marks-gallery-1440x900");
+    const sums = page.getByTestId("summaries");
+    await expect(sums.locator("[data-variant=saved]")).toContainText("6 chapters downloaded.");
+    await expect(sums.locator("[data-variant=nothing]")).toContainText("Nothing to download");
+    await expect(sums.locator("[data-variant=partial]")).toContainText("4 of 6 downloaded, 1 with missing pages, 1 failed.");
+    await expect(sums.locator("[data-variant=stopped]")).toContainText("Stopped. 2 of 6 downloaded, 4 not started.");
+    await expect(sums.locator("[data-variant=out-of-room]")).toContainText("Out of room. 3 of 6 downloaded, 3 not started. Only 50 MB is free.");
+    await sums.evaluate((el) => el.scrollIntoView());
+    await page.screenshot({ path: `${OUT}/feature-download-summary-saved-1440x900.png`, clip: { ...(await sums.locator("[data-variant=saved]").boundingBox())!, x: 0, width: 800 } });
+    await page.screenshot({ path: `${OUT}/feature-download-summary-out-of-room-1440x900.png`, clip: { ...(await sums.locator("[data-variant=out-of-room]").boundingBox())!, x: 0, width: 800 } });
   });
 });

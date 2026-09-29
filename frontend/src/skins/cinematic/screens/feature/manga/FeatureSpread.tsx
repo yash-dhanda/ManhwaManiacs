@@ -101,6 +101,7 @@ export function FeatureSpread({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className={s.artImg}
+              data-mm-cover={coverTransitionName(page.sourceId, page.seriesKey)}
               src={cover}
               alt={`${series.title} cover`}
               onDoubleClick={onViewCover}

@@ -185,7 +185,7 @@
 
 /* ---- schedule rows ---- */
 .rows { list-style: none; margin: 0; padding: 0; }
-.rowMain { display: grid; grid-template-columns: 56px 1fr auto; align-items: center; column-gap: 16px; min-height: 56px; color: inherit; text-decoration: none; min-width: 0; }
+.rowMain { display: grid; grid-template-columns: 56px 1fr auto; align-items: center; column-gap: 16px; min-height: 55px; color: inherit; text-decoration: none; min-width: 0; }
 .rowMain:focus-visible { outline: var(--mm-focus-width) solid var(--mm-color-ink-100); outline-offset: -2px; }
 .row {
   position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 16px;
@@ -361,3 +361,19 @@
 .pagerPanel:not([data-active]) { max-height: 100dvh; overflow: hidden; }
 /* An open row menu must paint above the rows after it (each virtual item is its own stacking context). */
 .vitem:has([aria-expanded="true"]), .swipeWrap:has([aria-expanded="true"]) { z-index: 5; }
+
+/* ---- hit targets: 32 px on the fine pointer, 44 px on the phone frame ---- */
+.chipBtn { min-width: 32px; min-height: 32px; padding: 0 8px; }
+@media (max-width: 767px), (pointer: coarse) {
+  .seg { height: 44px; }
+  .field { height: 44px; }
+  .seg button, .quiet, .sm, .slug button, .slug a, .chip, .chipBtn { min-height: 44px; min-width: 44px; }
+  .slug { gap: 0 4px; }
+  .slug button, .slug a { padding: 0 8px; }
+}
+
+/* The app-wide reduced-motion reset zeroes every duration; these two are specified fades. */
+@media (prefers-reduced-motion: reduce) {
+  .lightbox { animation-duration: 150ms !important; }
+  .swipeWrap .row[style*="transform var"], .swipeWrap .row[style*="transform 150ms"] { transition-duration: 150ms !important; }
+}
