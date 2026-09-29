@@ -50,7 +50,7 @@ a:hover .set-letter, .set-heading-link:hover .set-letter {
 
 /* Primary-button hover rule: scaleX 0 -> 1 from the left, 240 ms settle in, 160 ms lift out (§7.1). */
 .cine-hover-rule { transform: scaleX(0); transform-origin: left; transition: transform 160ms var(--mm-ease-lift); }
-:hover > .cine-hover-rule, :focus-visible > .cine-hover-rule { transform: scaleX(1); transition: transform 240ms var(--mm-ease-settle); }
+ .cine-hoverable:hover .cine-hover-rule, .cine-hoverable:focus-visible .cine-hover-rule { transform: scaleX(1); transition: transform 240ms var(--mm-ease-settle); }
 
 /* Off-screen pause (§15.6): an IntersectionObserver sets data-offscreen. */
 [data-offscreen="true"] { animation-play-state: paused !important; }

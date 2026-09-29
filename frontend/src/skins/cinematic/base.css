@@ -34,3 +34,7 @@ html[data-contrast="more"][data-skin="cinematic"] { --mm-color-ink-45: var(--mm-
 }
 
 /* Screen-reader-only helper for as="p" reveals is Tailwind's `sr-only`. */
+
+/* Placeholders: ink.45; hidden while the typed visual layer of the index search field shows the same string. */
+[data-skin="cinematic"] input::placeholder, [data-skin="cinematic"] textarea::placeholder { color: var(--mm-color-ink-45); opacity: 1; }
+[data-skin="cinematic"] input[data-typed-placeholder="true"]::placeholder { color: transparent; }
