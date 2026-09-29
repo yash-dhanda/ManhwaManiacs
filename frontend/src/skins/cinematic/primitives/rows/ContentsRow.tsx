@@ -2,14 +2,15 @@
 import type { ReactNode } from "react";
 import { Icon } from "../../Icon";
 import { RowFrame, type RowState } from "./Row";
+import type { MenuItemDef } from "../menu-types";
 import { DotLeader } from "./DotLeader";
 
 /** Novel TOC row: ordinal folio (right-aligned) -> title (Newsreader 16) -> dot leaders -> length -> state mark. 48. */
-export function ContentsRow({ ordinal, title, minutes, progress, read, narrated, downloadMark, onClick, ...p }: RowState & {
-  ordinal: number | string; title: string; minutes?: number; progress?: number; read?: boolean; narrated?: boolean; downloadMark?: ReactNode; onClick?: () => void; "data-gallery"?: string;
+export function ContentsRow({ ordinal, title, minutes, progress, read, narrated, downloadMark, onClick, menu, end, ...p }: RowState & {
+  ordinal: number | string; title: string; minutes?: number; progress?: number; read?: boolean; narrated?: boolean; downloadMark?: ReactNode; onClick?: () => void; menu?: MenuItemDef[]; end?: ReactNode; "data-gallery"?: string;
 }) {
   return (
-    <RowFrame {...p} onClick={onClick} min={48}>
+    <RowFrame {...p} menu={menu} end={end} onClick={onClick} min={48}>
       <span className="type-folio w-10 shrink-0 text-right text-ink-45">{ordinal}</span>
       <span className={`type-body min-w-0 truncate ${read ? "text-ink-45" : ""}`}>{title}</span>
       <DotLeader />

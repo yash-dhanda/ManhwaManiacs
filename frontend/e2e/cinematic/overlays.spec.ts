@@ -248,3 +248,23 @@ test("captures: quick look on a touch long-press", async ({ browser }) => {
   await page.screenshot({ path: path.join(OUT, "quick-look.png") });
   await ctx.close();
 });
+
+test("fix pass 1: sonner timing, disabled reasons, menus on every row type", async ({ page }) => {
+  await desktop(page); await open(page);
+  const t = trigger(page, "toast-info"); await t.scrollIntoViewIfNeeded(); await t.click();
+  const toast = page.locator("[data-sonner-toast]").first(); await expect(toast).toBeVisible();
+  const tr = await toast.evaluate((el) => { const c = getComputedStyle(el); return { d: c.transitionDuration, p: c.transitionProperty }; });
+  expect(tr.d.split(", ")).toContain("0.24s"); expect(tr.d).not.toContain("0.4s");
+  // disabled controls keep focus, carry aria-disabled and show the reason
+  const sw = page.getByRole("switch", { name: "Locked" }); await sw.scrollIntoViewIfNeeded();
+  await expect(sw).toHaveAttribute("aria-disabled", "true"); await sw.hover();
+  await expect(page.getByText("Sign in to change this")).toBeVisible();
+  await sw.click({ force: true }); await expect(sw).toHaveAttribute("aria-checked", "false");
+  // row menus on schedule, contents and settings rows
+  for (const id of ["w5-row-schedule", "w5-row-contents", "w5-row-settings-menu"]) {
+    const row = g(page, id); await row.scrollIntoViewIfNeeded();
+    await expect(row.getByRole("button", { name: "More actions" })).toBeVisible();
+  }
+  await g(page, "w5-row-schedule").getByRole("button", { name: "More actions" }).click();
+  await expect(page.getByRole("menu")).toBeVisible(); await shot(page, "row-menu-schedule");
+});

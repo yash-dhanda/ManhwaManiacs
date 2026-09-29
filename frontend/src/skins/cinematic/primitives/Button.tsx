@@ -1,6 +1,6 @@
 "use client";
 import { useId, type MouseEvent, type ReactNode } from "react";
-import { Tooltip } from "./Tooltip";
+import { MaybeTip } from "./Tooltip";
 import { Icon } from "../Icon";
 import type { IconRole } from "../icons/roles.generated";
 import { haptic } from "../haptics";
@@ -118,8 +118,4 @@ export function Button({ variant = "primary", size = "md", children, icon, folio
 
 function PlayGlyph({ playing }: { playing: boolean }) {
   return <Icon name={playing ? "pause" : "play"} size={28} filled className="" />;
-}
-
-function MaybeTip({ reason, children }: { reason?: string; children: React.ReactElement<Record<string, unknown>> }) {
-  return reason ? <Tooltip label={reason}>{children}</Tooltip> : children;
 }

@@ -21,3 +21,8 @@ export function Tooltip({ label, shortcut, children }: { label: ReactNode; short
     </BaseTooltip.Provider>
   );
 }
+
+/** Wraps `children` in a Tooltip only when there is a reason to show. */
+export function MaybeTip({ reason, children }: { reason?: string; children: ReactElement<Record<string, unknown>> }) {
+  return reason ? <Tooltip label={reason}>{children}</Tooltip> : children;
+}

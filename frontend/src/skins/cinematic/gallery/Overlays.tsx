@@ -169,11 +169,11 @@ export function OverlaySections() {
           <ListRow title="Error row" error="Could not load this series." onRetry={() => undefined} />
           <ListRow title="Current chapter" current caption="You are here" />
           <SettingsRow label="Notifications" description="New chapters of series you follow" control={<Switch label="Notifications" hideLabel checked={sw.c} onCheckedChange={(v) => setSw((s) => ({ ...s, c: v }))} />} data-gallery="w5-row-settings" />
-          <SettingsRow label="Download quality" value="HIGH" chevron onClick={() => undefined} />
-          <ScheduleRow number={143} title="Chapter 143: The tide table" released={new Date(NOW)} pages={27} page={14} data-gallery="w5-row-schedule" />
+          <SettingsRow label="Download quality" value="HIGH" chevron menu={actionItems({ open: () => undefined, favourite: () => undefined })} data-gallery="w5-row-settings-menu" onClick={() => undefined} />
+          <ScheduleRow number={143} title="Chapter 143: The tide table" released={new Date(NOW)} pages={27} page={14} menu={actionItems({ open: () => undefined, favourite: () => undefined })} data-gallery="w5-row-schedule" />
           <ScheduleRow number={142} title="The last ferry" released={new Date(NOW - 86_400_000)} pages={31} complete />
           <ScheduleRow number={null} title="Extra: character sheet" released={new Date(NOW - 3 * 86_400_000)} />
-          <ContentsRow ordinal={12} title="The Salt Road" minutes={12} progress={42} narrated data-gallery="w5-row-contents" />
+          <ContentsRow ordinal={12} title="The Salt Road" minutes={12} progress={42} narrated menu={actionItems({ open: () => undefined, favourite: () => undefined })} data-gallery="w5-row-contents" />
           <ContentsRow ordinal={11} title="A Harbour at Night" minutes={9} read />
           <CreditsRow label="Written by" value="Ilse Marrow" />
         </div>
@@ -197,7 +197,7 @@ export function OverlaySections() {
         <div className="grid max-w-xl gap-8">
           <Slider label="Text size" min={12} max={28} value={size} onValueChange={setSize} format={(v) => `${v} px`} minCaption="12" maxCaption="28" data-gallery="w5-slider" />
           <Scrubber label="Page" min={1} max={40} value={page} onValueChange={setPage} valueText={(v) => `Page ${v} of 40`} format={(v) => `p.${v}`} chapterOf={(p) => Math.floor((p - 1) / 10)} data-gallery="w5-scrubber" />
-          <Slider label="Disabled" min={0} max={10} value={4} onValueChange={() => undefined} disabled data-gallery="w5-slider-disabled" />
+          <Slider label="Disabled" min={0} max={10} value={4} onValueChange={() => undefined} disabled disabledReason="Not while paused" data-gallery="w5-slider-disabled" />
         </div>
       </Section>
 
@@ -206,15 +206,15 @@ export function OverlaySections() {
           <Switch label="Off" checked={sw.a} onCheckedChange={(v) => setSw((s) => ({ ...s, a: v }))} data-gallery="w5-switch" />
           <Switch label="On" checked={sw.b} onCheckedChange={(v) => setSw((s) => ({ ...s, b: v }))} />
           <Switch label="Saving" checked loading onCheckedChange={() => undefined} data-gallery="w5-switch-loading" />
-          <Switch label="Locked" checked={false} disabled onCheckedChange={() => undefined} />
+          <Switch label="Locked" checked={false} disabled disabledReason="Sign in to change this" onCheckedChange={() => undefined} />
           <Switch label="Server fails" checked={sw.d} error={swErr} onCheckedChange={() => setSwErr("Could not save. Try again.")} data-gallery="w5-switch-error" />
         </Row>
         <Row label="checkbox: off · on · indeterminate · disabled">
           <Checkbox label="Remember me" checked={cb === true} onCheckedChange={setCb} data-gallery="w5-checkbox" />
           <Checkbox label="Some" checked="indeterminate" onCheckedChange={() => undefined} />
-          <Checkbox label="Disabled" checked={false} disabled onCheckedChange={() => undefined} />
+          <Checkbox label="Disabled" checked={false} disabled disabledReason="Turn on downloads first" onCheckedChange={() => undefined} />
         </Row>
-        <Row label="radios"><Radios label="Layout" value={radio} onValueChange={setRadio} options={[{ value: "strip", label: "Strip" }, { value: "single", label: "Single page" }, { value: "double", label: "Double page", disabled: true }]} data-gallery="w5-radios" /></Row>
+        <Row label="radios"><Radios label="Layout" value={radio} onValueChange={setRadio} options={[{ value: "strip", label: "Strip" }, { value: "single", label: "Single page" }, { value: "double", label: "Double page", disabled: true, disabledReason: "Needs a wider window" }]} data-gallery="w5-radios" /></Row>
         <Row label="stepper (Folio flip)"><Stepper label="Chapters ahead" value={step} onChange={setStep} min={0} max={12} data-gallery="w5-stepper" /><FolioFlip value={step * 11} /></Row>
       </Section>
 
