@@ -20,6 +20,9 @@ class CinematicSkin implements Skin {
     extensions: const [cinematicTokens],
   );
 
+  /// The skin's theme, for the Diagnostics-only primitives gallery pushed from the legacy skin.
+  static ThemeData get baseTheme => _theme;
+
   @override
   SkinId get id => SkinId.cinematic;
 

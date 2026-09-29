@@ -155,6 +155,7 @@ Future<void> captureSkinWidget(
   bool disableAnimations = false,
   double textScale = 1.0,
   String? proofDirOverride, // only for the harness's own test
+  Future<void> Function(WidgetTester tester)? settle, // default: settleShot; a step captures mid-motion with its own
 }) async {
   _setView(tester, size);
   final data = MediaQueryData.fromView(tester.view).copyWith(
@@ -170,6 +171,6 @@ Future<void> captureSkinWidget(
       ),
     ),
   );
-  await settleShot(tester);
+  await (settle ?? settleShot)(tester);
   await _finish(tester, '$name-${size.name}.png', size, proofDirOverride);
 }

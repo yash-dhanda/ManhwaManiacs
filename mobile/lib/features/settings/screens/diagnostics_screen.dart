@@ -9,12 +9,14 @@ import 'package:manhwamaniacs/app/skin_boot.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
 import 'package:manhwamaniacs/app/theme/app_colors.dart';
 import 'package:manhwamaniacs/app/theme/app_presets.dart';
+import 'package:manhwamaniacs/core/diagnostics/debug_overlays.dart';
 import 'package:manhwamaniacs/core/diagnostics/performance_monitor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/settings/screens/feedback_lab_screen.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/widgets/glass_card.dart';
+import 'package:manhwamaniacs/skins/cinematic/gallery/primitives_gallery.dart';
 import 'package:manhwamaniacs/skins/glass/gate/glass_gate_screen.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
@@ -98,6 +100,10 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
           const _SectionHeading('Edition (debug)'),
           SizedBox(height: context.space.sm),
           const _EditionCard(),
+          SizedBox(height: context.space.xl2),
+          const _SectionHeading('Cinematic (debug)'),
+          SizedBox(height: context.space.sm),
+          const _CinematicDebugCard(),
         ],
       ),
     );
@@ -418,6 +424,42 @@ class _InfoRow extends StatelessWidget {
 
 /// Pre-flip debug row (cinematic §8.0.7): a device override for previewing the
 /// other edition. Never touches the profile; goes away at the flip.
+/// Cinematic debug switches (mobile/04): the layout grid, the motion timings and the primitives
+/// gallery. In every build, so the owner can check on release IPAs and APKs.
+class _CinematicDebugCard extends ConsumerWidget {
+  const _CinematicDebugCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GlassCard(
+      child: Column(
+        children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Show the layout grid'),
+            value: ref.watch(layoutGridOverlayProvider),
+            onChanged: (v) => ref.read(layoutGridOverlayProvider.notifier).state = v,
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Show motion timings'),
+            value: ref.watch(motionTimingsOverlayProvider),
+            onChanged: (v) => ref.read(motionTimingsOverlayProvider.notifier).state = v,
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Primitives gallery'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const CinePrimitivesGalleryPage()),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EditionCard extends ConsumerWidget {
   const _EditionCard();
 
