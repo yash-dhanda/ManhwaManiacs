@@ -5,6 +5,9 @@ import { describe, expect, it } from "vitest";
 import { spring as springTokens } from "./tokens.generated";
 
 const css = readFileSync(path.join(__dirname, "tokens.generated.css"), "utf8");
+const source = JSON.parse(
+  readFileSync(path.join(__dirname, "../../../../design/tokens/glass.json"), "utf8"),
+).spring as Record<string, { ms: number; bounce: number }>;
 const kebab = (s: string) => s.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
 
 describe("glass spring parity (physical springs vs installed motion)", () => {
@@ -15,10 +18,11 @@ describe("glass spring parity (physical springs vs installed motion)", () => {
       const T = Number(css.match(new RegExp(`--mm-spring-${k}-ms: (\\d+)ms;`))?.[1]);
       expect(curve).toBeTruthy();
       const { stiffness, damping } = springTokens[name];
-      // k = (2π/d)², c = 4π(1-bounce)/d, d = settle-independent visual duration; recover d from stiffness.
-      const d = (2 * Math.PI) / Math.sqrt(stiffness);
-      expect(stiffness).toBeCloseTo((2 * Math.PI / d) ** 2, 0);
-      expect(damping).toBeGreaterThan(0);
+      // d = ms/1000 and bounce come from the source token (the CSS -ms token is settle time, not d).
+      const { ms, bounce } = source[name];
+      const d = ms / 1000;
+      expect(stiffness).toBeCloseTo((2 * Math.PI / d) ** 2, 1);
+      expect(damping).toBeCloseTo((4 * Math.PI * (1 - bounce)) / d, 1);
       const samples = curve!.split(",").map(Number);
       expect(samples).toHaveLength(60);
       expect(samples[59]).toBe(1);

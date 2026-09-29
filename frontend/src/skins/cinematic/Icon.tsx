@@ -1,5 +1,5 @@
 import { GLYPHS } from "./icons/glyphs.generated";
-import { ICON_ROLES, type IconRole } from "./icons/roles.generated";
+import { ICON_ROLES, ICON_RULES, type IconRole } from "./icons/roles.generated";
 import { PHOSPHOR } from "./icons/phosphor";
 
 type Props = {
@@ -17,7 +17,9 @@ export function cinematicWeight(size: number, filled: boolean) {
 
 export function Icon({ name, size = 24, filled = false, label, className }: Props) {
   const role = ICON_ROLES[name];
-  const weight = cinematicWeight(size, filled);
+  // Per-role fixed weight hook: shared/02's ICON_RULES has no `roleWeights` today (gap), so this is a no-op until it does.
+  const fixed = (ICON_RULES as { roleWeights?: Partial<Record<string, "light" | "regular" | "fill">> }).roleWeights?.[name];
+  const weight = filled ? "fill" : (fixed ?? cinematicWeight(size, filled));
   const a11y = label
     ? ({ role: "img", "aria-label": label } as const)
     : ({ "aria-hidden": true, focusable: "false" } as const);
