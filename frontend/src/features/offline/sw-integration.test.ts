@@ -91,6 +91,8 @@ beforeEach(() => {
   harness = createHarness();
   harness.clients.push({ id: "client-b", messages: [] });
   route(harness, "/offline-fallback.html", { body: "<h1>offline</h1>" });
+  route(harness, "/offline-fallback-cinematic.html", { body: "<h1>cinematic</h1>" });
+  route(harness, "/offline-fallback-glass.html", { body: "<h1>glass</h1>" });
   route(harness, "/icons/icon-192.png", { body: "icon" });
   route(harness, "/icons/icon-512.png", { body: "icon" });
   route(harness, "/manifest.webmanifest", { body: "{}" });
@@ -262,7 +264,7 @@ describe("reading with no network", () => {
       url: `${ORIGIN}/library/statistics`,
       mode: "navigate",
     });
-    expect(await unvisited.response?.text()).toBe("<h1>offline</h1>");
+    expect(await unvisited.response?.text()).toBe("<h1>cinematic</h1>");
   });
 
   it("opens a saved chapter's document that was never visited as a document", async () => {
@@ -302,7 +304,7 @@ describe("reading with no network", () => {
       mode: "navigate",
       clientId: "client-b",
     });
-    expect(await outcome.response?.text()).toBe("<h1>offline</h1>");
+    expect(await outcome.response?.text()).toBe("<h1>cinematic</h1>");
   });
 
   it("does not let the document cache grow without bound", async () => {
@@ -1006,5 +1008,82 @@ describe("drift after a re-list", () => {
 
     const index = await readIndex(harness, ALICE_CACHE);
     expect(index?.entries[KEY].stale).toBe(false);
+  });
+});
+
+describe("skin messages and per-skin offline fallback", () => {
+  const META = "mm-sw-meta";
+  async function stored(): Promise<string | undefined> {
+    const hit = await harness.cacheFor(META)?.match("/__skin");
+    return hit?.text();
+  }
+  async function offlineNav(): Promise<string> {
+    harness.offline = true;
+    const out = await harness.dispatchFetch({ url: "/never-cached", mode: "navigate" });
+    return (await out.response?.text()) ?? "";
+  }
+
+  it("stores the skin at /__skin in mm-sw-meta", async () => {
+    await boot();
+    await harness.dispatchMessage({ type: "skin", skin: "glass" });
+    expect(await stored()).toBe("glass");
+  });
+
+  it("ignores an unknown skin", async () => {
+    await boot();
+    await harness.dispatchMessage({ type: "skin", skin: "neon" });
+    expect(await stored()).toBeUndefined();
+  });
+
+  it("serves the glass fallback after glass", async () => {
+    await boot();
+    await harness.dispatchMessage({ type: "skin", skin: "glass" });
+    expect(await offlineNav()).toContain("glass");
+  });
+
+  it("serves the cinematic fallback after cinematic and with nothing stored", async () => {
+    await boot();
+    expect(await offlineNav()).toContain("cinematic");
+    await harness.dispatchMessage({ type: "skin", skin: "cinematic" });
+    expect(await offlineNav()).toContain("cinematic");
+  });
+
+  it("serves the legacy fallback after legacy", async () => {
+    await boot();
+    await harness.dispatchMessage({ type: "skin", skin: "legacy" });
+    expect(await offlineNav()).toContain("offline");
+  });
+
+  it("keeps mm-sw-meta through an activate", async () => {
+    await boot();
+    await harness.dispatchMessage({ type: "skin", skin: "glass" });
+    await harness.dispatchActivate();
+    expect(await stored()).toBe("glass");
+  });
+
+  it("skin-changed drops the pages cache and re-fetches saved html documents", async () => {
+    route(harness, DOCUMENT_URL, { body: "<html>old</html>", headers: { "content-type": "text/html" } });
+    await boot();
+    await harness.dispatchMessage({ type: "mm-offline/save-chapter", payload: savePayload(ALICE) });
+    expect(harness.cacheFor(`mm-pages-${RUNTIME_VERSION}`)).toBeTruthy();
+    route(harness, DOCUMENT_URL, { body: "<html>new</html>", headers: { "content-type": "text/html" } });
+    harness.fetched.length = 0;
+    await harness.dispatchMessage({ type: "skin-changed", skin: "glass" });
+    expect(await harness.storage.has(`mm-pages-${RUNTIME_VERSION}`)).toBe(false);
+    expect(harness.fetched).toContain(DOCUMENT_URL);
+    expect(harness.fetched).not.toContain(PAGE_ONE);
+    const hit = await harness.cacheFor(ALICE_CACHE)?.match(DOCUMENT_URL);
+    expect(await hit?.text()).toBe("<html>new</html>");
+    expect(await stored()).toBe("glass");
+  });
+
+  it("skin-changed offline keeps the old saved document", async () => {
+    route(harness, DOCUMENT_URL, { body: "<html>old</html>", headers: { "content-type": "text/html" } });
+    await boot();
+    await harness.dispatchMessage({ type: "mm-offline/save-chapter", payload: savePayload(ALICE) });
+    harness.offline = true;
+    await harness.dispatchMessage({ type: "skin-changed", skin: "glass" });
+    const hit = await harness.cacheFor(ALICE_CACHE)?.match(DOCUMENT_URL);
+    expect(await hit?.text()).toBe("<html>old</html>");
   });
 });

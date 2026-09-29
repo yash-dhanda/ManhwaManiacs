@@ -234,6 +234,8 @@
    * Split one of our cache names back into its parts, or null if the name is
    * not ours. Used on activate so a foreign cache is never deleted.
    */
+  var META_CACHE_NAME = "mm-sw-meta";
+
   function parseCacheName(name) {
     if (!isNonEmptyString(name)) return null;
     var parts = name.split("-");
@@ -255,6 +257,7 @@
    * else's.
    */
   function isObsoleteCacheName(name) {
+    if (name === META_CACHE_NAME) return false;
     var parsed = parseCacheName(name);
     if (parsed === null) return false;
     if (parsed.kind === "offline") return parsed.version !== CONTENT_VERSION;
@@ -603,6 +606,7 @@
     stateCacheName: stateCacheName,
     apiCacheName: apiCacheName,
     offlineCacheName: offlineCacheName,
+    META_CACHE_NAME: META_CACHE_NAME,
     parseCacheName: parseCacheName,
     isObsoleteCacheName: isObsoleteCacheName,
     selectObsoleteCaches: selectObsoleteCaches,

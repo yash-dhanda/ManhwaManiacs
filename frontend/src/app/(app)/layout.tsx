@@ -4,6 +4,7 @@ import { ServiceWorkerBoundary } from "@/features/offline";
 // the settings panels, and the root layout has no business pulling every client
 // component in the feature into its module graph to emit one <script>.
 import { AppearanceBootScript } from "@/features/preferences/appearance-boot";
+import { SkinBoot } from "@/features/skin/SkinBoot";
 import { skins } from "@/skins";
 import { getSkin } from "@/skins/server";
 import { Providers } from "../providers";
@@ -86,6 +87,7 @@ export default async function AppLayout({
             renders only the update prompt and must survive every route change.
           */}
           <ServiceWorkerBoundary />
+          <SkinBoot />
           <skin.Shell>{children}</skin.Shell>
         </Providers>
       </body>
