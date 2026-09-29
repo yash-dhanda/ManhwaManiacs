@@ -58,6 +58,7 @@ abstract final class GlassTypeStyle {
       height: lineRatio,
       letterSpacing: tracking * rendered,
       fontWeight: _weight(w),
+      decoration: TextDecoration.none,
       fontVariations: [
         FontVariation('wght', w),
         if (!role.isMono) ...[

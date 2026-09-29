@@ -318,6 +318,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   // -- registry ----------------------------------------------------------------
 
   Rect? _globalRect() {
+    if (_disposed || !mounted) return null;
     final box = context.findRenderObject();
     if (box is! RenderBox || !box.attached || !box.hasSize) return null;
     return box.localToGlobal(Offset.zero) & box.size;
@@ -693,8 +694,8 @@ class _Look {
 
 /// Installs, once above the Glass tree: the library's accessibility scope with Reduce Transparency pinned
 /// off (Increase Contrast must not turn glass into the library's frosted panel), one `BackdropGroup` for
-/// the frost path, the registry's metrics watcher and the hover light. `LiquidGlassWidgets.wrap()` is not
-/// used and `adaptiveQuality` stays `false`.
+/// the frost path, the registry's metrics watcher and the hover light. The library's app-wrapping
+/// helper is not used and `adaptiveQuality` stays `false`.
 class SkinGlassRoot extends ConsumerWidget {
   const SkinGlassRoot({super.key, required this.child});
   final Widget child;

@@ -72,7 +72,7 @@ void main() {
     var released = 0;
     final m3 = Magnet(onRelease: (_) => released++);
     m3.step(const Offset(90, 100), [t]);
-    m3.step(const Offset(0, 0), [t]);
+    m3.step(Offset.zero, [t]);
     expect(released, 1);
   });
 

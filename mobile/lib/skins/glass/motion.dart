@@ -218,8 +218,9 @@ abstract final class GlassMotion {
         controller.motion = Motion.linear(_fade(spec.reduced));
         run = controller.animateTo(target);
       } else {
-        controller.motion = const Motion.none();
-        run = controller.animateTo(target);
+        // Instant, none and frozen: jump, with nothing left running.
+        controller.value = target;
+        run = TickerFuture.complete();
       }
     } else if (spec.spring != null) {
       controller.motion = SpringMotion(springOf(spec.spring!));

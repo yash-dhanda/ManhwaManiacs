@@ -113,7 +113,7 @@ class MotionRecorder extends ChangeNotifier {
   void _onTimings(List<FrameTiming> timings) {
     for (final t in timings) {
       sampleFrame(
-        buildStartMicros: t.timestampInMicroseconds(FramePhase.buildStart),
+        buildStartMicros: t.timestampInMicroseconds(ui.FramePhase.buildStart),
         totalMs: (t.buildDuration + t.rasterDuration).inMicroseconds / 1000,
       );
     }
