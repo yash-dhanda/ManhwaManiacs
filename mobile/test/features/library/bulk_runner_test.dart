@@ -32,10 +32,10 @@ void main() {
   test('progress counts failures and a thrown task is a failure', () async {
     final seen = <(int, int)>[];
     final o = await runBulk<int>([1, 2, 3], (i) async {
-      if (i == 2) return Err(const UnknownError(message: 'x'));
+      if (i == 2) return const Err(UnknownError(message: 'x'));
       if (i == 3) throw StateError('boom');
       return const Ok(null);
-    }, concurrency: 1, onProgress: (d, f) => seen.add((d, f)));
+    }, concurrency: 1, onProgress: (d, f) => seen.add((d, f)),);
     expect(o, (total: 3, done: 1, failed: 2, stopped: false));
     expect(seen.last, (1, 2));
   });
@@ -45,7 +45,7 @@ void main() {
     final o = await runBulk<int>(List.generate(10, (i) => i), (i) async {
       if (i == 3) cancel.stop();
       return const Ok(null);
-    }, concurrency: 1, cancel: cancel);
+    }, concurrency: 1, cancel: cancel,);
     expect(o.stopped, isTrue);
     expect(o.done, 4);
   });

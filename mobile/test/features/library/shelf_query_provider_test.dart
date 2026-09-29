@@ -1,7 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
-import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/library/models/shelf_query.dart';
 import 'package:manhwamaniacs/features/library/providers/shelf_query_provider.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
@@ -26,7 +24,7 @@ Future<ProviderContainer> _open(Map<String, Object> prefs, {int profile = 1}) as
     sharedPrefsProvider.overrideWithValue(p),
     authenticatedAuthOverride(),
     activeProfileProvider.overrideWith(() => _Profile(profile)),
-  ]);
+  ],);
   addTearDown(c.dispose);
   return c;
 }
@@ -34,7 +32,7 @@ Future<ProviderContainer> _open(Map<String, Object> prefs, {int profile = 1}) as
 void main() {
   test('migration: K16 list view opens LIST, cover scale 0.8 opens COMPACT, 1.2 opens WALL', () async {
     var c = await _open({'manhwamaniacs:library-query': '{"sort":"recentlyAdded","filter":"reading","favoritesOnly":true,"viewMode":"list"}'});
-    var q = c.read(shelfQueryProvider);
+    final q = c.read(shelfQueryProvider);
     expect(q.density, ShelfDensity.list);
     expect(q.sort, ShelfSort.added);
     expect(q.status, ShelfStatus.reading);

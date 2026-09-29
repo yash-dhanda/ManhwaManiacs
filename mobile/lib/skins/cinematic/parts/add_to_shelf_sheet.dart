@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart';
+import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/series_shelves_provider.dart';
+import 'package:manhwamaniacs/features/library/utils/bulk_runner.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
@@ -104,6 +107,90 @@ class _ShelfListState extends ConsumerState<_ShelfList> {
             },),
         ],);
       },
+    );
+  }
+}
+
+/// `ADD TO SHELF` for a whole selection (select mode): choosing a shelf adds every selected series
+/// to it, four requests at a time, and says how many landed.
+Future<void> showAddSeriesToShelfSheet(BuildContext context, {required List<FollowedSeries> series}) {
+  final router = GoRouter.maybeOf(context);
+  return showCineSheet<void>(
+    context,
+    kicker: 'ADD TO SHELF',
+    title: '${series.length} series',
+    builder: (ctx) => _BulkShelfList(series: series, onNewShelf: () {
+      Navigator.of(ctx).pop();
+      router?.go(Routes.collections());
+    },),
+  );
+}
+
+class _BulkShelfList extends ConsumerStatefulWidget {
+  const _BulkShelfList({required this.series, required this.onNewShelf});
+  final List<FollowedSeries> series;
+  final VoidCallback onNewShelf;
+
+  @override
+  ConsumerState<_BulkShelfList> createState() => _BulkShelfListState();
+}
+
+class _BulkShelfListState extends ConsumerState<_BulkShelfList> {
+  final Set<int> _busy = {};
+  final Set<int> _added = {};
+
+  Future<void> _add(Collection shelf) async {
+    final repo = ref.read(libraryRepositoryProvider);
+    setState(() => _busy.add(shelf.id));
+    final o = await runBulk<FollowedSeries>(widget.series, (s) async {
+      final r = await repo.addSeriesToCollection(shelf.id, sourceId: s.sourceId, seriesKey: s.seriesKey);
+      return r.isErr ? Err(r.error) : const Ok(null);
+    });
+    if (!mounted) return;
+    final toasts = ref.read(cineToastsProvider.notifier);
+    if (o.failed > 0) {
+      toasts.error('${o.done} of ${o.total} added to ${shelf.name}, ${o.failed} failed.');
+    } else {
+      cineFeedback(context, HapticEvent.followAdd, sound: SoundEvent.followAdd);
+      toasts.success('Added ${o.done} series to ${shelf.name}.');
+      _added.add(shelf.id);
+    }
+    ref.invalidate(collectionsProvider);
+    setState(() => _busy.remove(shelf.id));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.cine;
+    final shelves = ref.watch(collectionsProvider);
+    return shelves.when(
+      loading: () => Padding(padding: EdgeInsets.all(c.space4), child: CineRoleText('Loading…', c.typeCaption, color: c.colorInk60)),
+      error: (e, _) => Padding(
+        padding: EdgeInsets.all(c.space4),
+        child: Wrap(spacing: c.space3, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          CineRoleText("This row didn't load.", c.typeCaption, color: c.colorProof),
+          CineButton(label: 'Retry', variant: CineButtonVariant.quiet, size: CineButtonSize.sm, onPressed: () => ref.invalidate(collectionsProvider)),
+        ],),
+      ),
+      data: (list) => list.isEmpty
+          ? Padding(
+              padding: EdgeInsets.all(c.space4),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CineRoleText('No shelves yet.', c.typeBodyItalic, color: c.colorInk60),
+                SizedBox(height: c.space3),
+                CineButton(label: 'New shelf', variant: CineButtonVariant.secondary, onPressed: widget.onNewShelf),
+              ],),
+            )
+          : Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              for (final shelf in list)
+                CineRow(
+                  key: Key('bulk-shelf-${shelf.id}'),
+                  title: shelf.name,
+                  caption: '${shelf.seriesCount} series',
+                  trailingFolio: _added.contains(shelf.id) ? 'ADDED' : null,
+                  onTap: _busy.contains(shelf.id) ? null : () => _add(shelf),
+                ),
+            ],),
     );
   }
 }

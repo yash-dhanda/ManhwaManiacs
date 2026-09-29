@@ -32,12 +32,29 @@ Object? cineBackWinner(List<CineBackEntry> active) {
 }
 
 class CineBackOrder extends Notifier<List<CineBackEntry>> {
+  final Map<Object, VoidCallback> _handlers = {};
+
   @override
   List<CineBackEntry> build() => const [];
 
-  void set(Object token, int priority, {required bool active}) {
+  void set(Object token, int priority, {required bool active, VoidCallback? onBack}) {
     final without = [for (final e in state) if (e.token != token) e];
+    if (active && onBack != null) {
+      _handlers[token] = onBack;
+    } else {
+      _handlers.remove(token);
+    }
     state = active ? [...without, (token: token, priority: priority)] : without;
+  }
+
+  /// Runs the winning modal state's handler (the shell calls it when the back press reaches it
+  /// instead of the modal's own `PopScope`); false when no modal state is active.
+  bool handleBack() {
+    final winner = cineBackWinner(state);
+    final handler = winner == null ? null : _handlers[winner];
+    if (handler == null) return false;
+    handler();
+    return true;
   }
 }
 
@@ -80,7 +97,7 @@ class _CineModalBackState extends ConsumerState<CineModalBack> {
   }
 
   void _sync() => Future.microtask(() {
-        if (_alive) _order.set(_token, widget.priority, active: widget.active);
+        if (_alive) _order.set(_token, widget.priority, active: widget.active, onBack: () => widget.onBack());
       });
 
   @override

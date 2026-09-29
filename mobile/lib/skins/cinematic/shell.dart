@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/back_order.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/nav_map.dart';
@@ -115,6 +116,8 @@ class _CineShellState extends ConsumerState<CineShell> {
       canPop: back == CineBranchBack.system,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        // A modal state (select mode, the full player, ...) takes the back press first (8.0.5).
+        if (ref.read(cineBackOrderProvider.notifier).handleBack()) return;
         final router = GoRouter.of(context);
         router.go(back == CineBranchBack.toShelf ? Routes.library() : Routes.tonight());
       },

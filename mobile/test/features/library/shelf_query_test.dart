@@ -24,7 +24,7 @@ void main() {
     expect(p['new_only'], 'true');
     expect(p['tag_ids'], '1,4');
     expect(p['search'], 'solo');
-    expect(const ShelfQuery(status: ShelfStatus.all).toListParams().containsKey('reading_status'), isFalse);
+    expect(const ShelfQuery().toListParams().containsKey('reading_status'), isFalse);
   });
 
   test('fromRoute reads the route contract and falls back on unknown values', () {

@@ -47,8 +47,9 @@ Future<String?> openQuickLook(
           CineRow(
             key: Key('quick-look-${a.id}'),
             title: a.label,
+            disabled: a.disabled,
             leading: CineIcon(a.icon, size: 20, color: a.destructive ? c.colorProof : c.colorInk60),
-            onTap: () {
+            onTap: a.disabled ? null : () {
               Navigator.of(ctx).pop(a.id);
               a.onSelected?.call();
             },

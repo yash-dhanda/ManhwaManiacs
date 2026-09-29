@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/features/library/utils/offline_shelf.dart';
 import 'package:manhwamaniacs/features/library/utils/shelf_counts.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// The shelf page: up to 200 rows the server sorted and filtered, the server's total, and whether
 /// this is the offline edition (saved series only).
@@ -46,7 +47,11 @@ class ShelfNotifier extends AutoDisposeAsyncNotifier<ShelfResult> {
       throw e;
     }
     final page = r.value;
-    unawaited(_cache(page.items, authoritative: !q.filtering, total: page.total));
+    // Everything the cache write needs is read now: after the await, the build may be outdated.
+    final key = _cacheKey;
+    if (key != null) {
+      unawaited(_cache(ref.read(sharedPrefsProvider), key, ref.read(matureStamperProvider), page.items, authoritative: !q.filtering, total: page.total));
+    }
     return (rows: scope.filter(page.items, (s) => s.sourceId), total: page.total, offline: false);
   }
 
@@ -57,10 +62,14 @@ class ShelfNotifier extends AutoDisposeAsyncNotifier<ShelfResult> {
 
   /// An unfiltered page holding the whole library replaces the follow cache; anything narrower
   /// merges, so a filter never shrinks the shelf an offline launch shows.
-  Future<void> _cache(List<FollowedSeries> items, {required bool authoritative, required int total}) async {
-    final key = _cacheKey;
-    if (key == null) return;
-    final prefs = ref.read(sharedPrefsProvider);
+  static Future<void> _cache(
+    SharedPreferences prefs,
+    String key,
+    MatureStamper stamper,
+    List<FollowedSeries> items, {
+    required bool authoritative,
+    required int total,
+  }) async {
     if (authoritative && total <= items.length) {
       await writeCachedFollowedSeries(prefs, key, items);
     } else {
@@ -70,7 +79,7 @@ class ShelfNotifier extends AutoDisposeAsyncNotifier<ShelfResult> {
       };
       await writeCachedFollowedSeries(prefs, key, merged.values.toList());
     }
-    unawaited(ref.read(matureStamperProvider).restampMissing());
+    unawaited(stamper.restampMissing());
   }
 
   Future<ShelfResult> _offline(ContentModeScope scope, bool gateOpen) async {
@@ -87,6 +96,14 @@ class ShelfNotifier extends AutoDisposeAsyncNotifier<ShelfResult> {
     final cur = state.valueOrNull;
     if (cur == null) return;
     state = AsyncData((rows: [for (final s in cur.rows) s.id == row.id ? row : s], total: cur.total, offline: cur.offline));
+  }
+
+  /// Puts [rows] in place of the rows they share an id with.
+  void replaceMany(Iterable<FollowedSeries> rows) {
+    final by = {for (final r in rows) r.id: r};
+    final cur = state.valueOrNull;
+    if (cur == null || by.isEmpty) return;
+    state = AsyncData((rows: [for (final s in cur.rows) by[s.id] ?? s], total: cur.total, offline: cur.offline));
   }
 
   /// Takes a row out of the page (an unfollow).

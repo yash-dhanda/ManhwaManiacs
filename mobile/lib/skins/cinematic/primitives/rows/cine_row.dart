@@ -38,7 +38,12 @@ class CineRowShell extends StatefulWidget {
     this.semanticActions,
     this.focusNode,
     this.dim = false,
+    this.tight = false,
   });
+
+  /// The content runs edge to edge vertically and the divider is painted over the row instead of
+  /// added under it, so a 72 px cover makes a 72 px row (the Library LIST).
+  final bool tight;
 
   final Widget child;
   final VoidCallback? onTap;
@@ -108,7 +113,8 @@ class _CineRowShellState extends State<CineRowShell> {
           Widget body = AnimatedContainer(
             duration: wash && !reduced ? c.durLine : d,
             constraints: BoxConstraints(minHeight: widget.minHeight),
-            decoration: BoxDecoration(color: fill, border: Border(bottom: c.ruleHair)),
+            decoration: BoxDecoration(color: fill, border: widget.tight ? null : Border(bottom: c.ruleHair)),
+            foregroundDecoration: widget.tight ? BoxDecoration(border: Border(bottom: c.ruleHair)) : null,
             child: Stack(children: [
               Padding(
                 padding: EdgeInsets.only(left: c.space4, right: hasMenu || widget.handle != null ? 0 : c.space4),
@@ -117,7 +123,7 @@ class _CineRowShellState extends State<CineRowShell> {
                     CineCheckbox(value: widget.selected, onChanged: widget.disabled ? null : (v) => widget.onSelectedChanged?.call(v), semanticLabel: widget.semanticLabel),
                     SizedBox(width: c.space3),
                   ],
-                  Expanded(child: Padding(padding: EdgeInsets.symmetric(vertical: c.space2), child: widget.child)),
+                  Expanded(child: Padding(padding: EdgeInsets.symmetric(vertical: widget.tight ? 0 : c.space2), child: widget.child)),
                   if (hasMenu && !widget.selectMode)
                     Builder(
                       builder: (btn) => CineIconButton(

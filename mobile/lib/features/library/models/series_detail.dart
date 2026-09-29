@@ -40,7 +40,7 @@ class SeriesDetail extends FollowedSeries {
   final Map<String, ChapterProgressEntry> progress;
 
   @override
-  SeriesDetail copyWith({bool? isFavorite, String? readingStatus, bool? notify}) {
+  SeriesDetail copyWith({bool? isFavorite, String? readingStatus, bool? notify, int? sortOrder}) {
     return SeriesDetail(
       id: id,
       sourceId: sourceId,
@@ -50,7 +50,7 @@ class SeriesDetail extends FollowedSeries {
       isFavorite: isFavorite ?? this.isFavorite,
       readingStatus: readingStatus ?? this.readingStatus,
       notify: notify ?? this.notify,
-      sortOrder: sortOrder,
+      sortOrder: sortOrder ?? this.sortOrder,
       contentRating: contentRating,
       rating: rating,
       matureOverride: matureOverride,
