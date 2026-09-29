@@ -66,8 +66,7 @@ export const sourcesApi = {
   federatedSearch: (
     params: { q: string; page?: number; per_page?: number; tier?: 1 | 2 },
   ) =>
-    http
-      .get<GlobalSearchResponse>("/sources/search", { query: params })
+    get<GlobalSearchResponse>("/sources/search", { query: params })
       // Covers arrive relative; see `resolveSearchCovers`.
       .then((response) =>
         resolveSearchCovers(response, (path) => sourceImageUrl(path)),
