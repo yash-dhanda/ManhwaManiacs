@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { KeyboardProvider } from "@/lib/keyboard";
 import { useDuotone } from "../duotone";
 import { Grain } from "../Grain";
@@ -38,19 +38,9 @@ import { FeatureCard } from "../primitives/cards/FeatureCard";
 import { LetterCard } from "../primitives/cards/LetterCard";
 import { StatBlock } from "../primitives/cards/StatBlock";
 import { WorldCard } from "../primitives/cards/WorldCard";
+import { OverlaySections } from "./Overlays";
+import { Row, Section } from "./parts";
 import { COVER, CREDITS, DUOS, HEADLINE_40, LONG_LIST, SERIES } from "./fixtures";
-
-function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
-  return (
-    <section id={id} className="border-t border-rule-1 py-10">
-      <p className="type-kicker mb-6 text-ink-45">{`#${id} — ${title}`}</p>
-      <div className="flex flex-col gap-8">{children}</div>
-    </section>
-  );
-}
-const Row = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex flex-col gap-3"><p className="type-folio text-ink-45">{label}</p><div className="flex flex-wrap items-start gap-6">{children}</div></div>
-);
 
 const railItems = (n = 10): RailItem[] => SERIES.slice(0, n).map((s) => ({ id: s.id, title: s.title, src: COVER(s.n), kicker: s.kicker, deck: s.deck, why: "why" in s ? s.why : undefined, folio: s.folio, progress: s.progress, duo: DUOS[s.n % DUOS.length], href: "#rails" }));
 
@@ -238,6 +228,8 @@ export function Gallery() {
             <div data-testid="narrow-160" className="overflow-hidden" style={{ width: 160 }} key={`n160-${n}`}><SetHeading as="h2" trigger="mount" id={`gallery-narrower-${n}`} text="Transmigration" className="type-cover text-ink-100" /></div>
             <div data-testid="typed" key={`typed-${n}`}><TypedHeadline as="h2" text={HEADLINE_40} className="type-headline text-ink-100" /></div>
           </Section>
+
+          <OverlaySections />
         </main>
         </EagerImages>
       </MotionRoot>
