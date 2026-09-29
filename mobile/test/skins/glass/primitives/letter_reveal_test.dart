@@ -39,7 +39,7 @@ void main() {
         width: 390,
         child: SingleChildScrollView(controller: c, child: Column(children: [const SizedBox(height: 1200), _reveal('Because you read Solo Leveling'), const SizedBox(height: 1200)])),
       ),
-    ));
+    ),);
     await pumpFor(tester, 500);
     expect(_firstLetterOpacity(tester, find.byType(LetterReveal)), 0);
     expect(glassRevealSlots.running, 0);
@@ -91,7 +91,7 @@ void main() {
     await tester.pumpWidget(primHost(StatefulBuilder(builder: (context, s) {
       set = s;
       return show ? _reveal('Continue reading') : const SizedBox();
-    },)));
+    },),),);
     await pumpFor(tester, 2500);
     set(() => show = false);
     await tester.pump();

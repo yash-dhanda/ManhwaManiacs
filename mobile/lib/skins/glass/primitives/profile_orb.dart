@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart' show GlassIconWeight;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
@@ -203,8 +202,6 @@ class _GlassProfileOrbState extends ConsumerState<GlassProfileOrb> with SingleTi
     if (widget.onPressed != null || states.pressed || states.hovered) {
       final inner = body;
       body = GlassPressable(
-        material: GlassMaterial.glass,
-        growth: GlassGrowth.medium,
         shape: const GlassShape.circle(),
         onTap: disabled ? null : widget.onPressed,
         enabled: !disabled,
@@ -212,7 +209,6 @@ class _GlassProfileOrbState extends ConsumerState<GlassProfileOrb> with SingleTi
         haptic: HapticEvent.profileSelect,
         semanticsLabel: widget.name ?? widget.preset.label,
         hoverGlow: false,
-        focusScale: 1,
         builder: (context, info) => Transform.scale(
           scale: info.states.hovered && !reduced ? (s >= 96 && widget.drift ? 1.08 : 1.04) : 1,
           child: inner,

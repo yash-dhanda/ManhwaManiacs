@@ -182,8 +182,6 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
                       : gt.colorOnGlass;
 
       return GlassPressable(
-        material: GlassMaterial.glass,
-        growth: GlassGrowth.medium,
         onTap: _disabled || loading ? null : widget.onPressed,
         onLongPress: widget.onLongPress,
         focusNode: widget.focusNode,
@@ -444,9 +442,8 @@ class _GlassProgressButtonState extends ConsumerState<GlassProgressButton> {
       semanticsLabel: label,
       semanticsValue: semValue,
       errorTrigger: _shake,
-      errorAnnouncement: null,
       builder: (context, info) {
-        Widget lead = switch (s) {
+        final Widget lead = switch (s) {
           GlassDownloadState.idle => GlyphIcon(GlassGlyph.cloudArrowDown, size: 20, color: gt.colorOnGlass),
           GlassDownloadState.queued || GlassDownloadState.saving => const GlassSpinner(size: 20),
           GlassDownloadState.complete => const GlassCheckPop(size: 20),

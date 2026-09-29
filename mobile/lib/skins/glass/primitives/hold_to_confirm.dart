@@ -277,7 +277,7 @@ class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProvid
         if (widget.mode == HoldMode.inAlert)
           Padding(
             padding: const EdgeInsets.only(top: 12),
-            child: GlassButton(label: widget.fallbackLabel, onPressed: widget.onConfirm, focusNode: _fallback, size: GlassButtonSize.medium),
+            child: GlassButton(label: widget.fallbackLabel, onPressed: widget.onConfirm, focusNode: _fallback),
           ),
       ],
     );

@@ -3,7 +3,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/glow.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart' show GlassButtonIcon;
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
@@ -120,11 +119,10 @@ class _GlassGroupState extends ConsumerState<GlassGroup> with SingleTickerProvid
             _glow.reverse();
           }
         },
-        onHoverChanged: null,
         builder: (context, info) {
           final g = info.glow.value;
           if (g != null && g.on) _at = Offset(i * (hit + 8) + g.local.dx, g.local.dy);
-          final selected = it.toggle == true;
+          final selected = it.toggle ?? false;
           return Center(
             child: Icon(
               info.states.pressed || selected ? it.icon.fill : it.icon.regular,
@@ -152,7 +150,7 @@ class _GroupGlowPainter extends CustomPainter {
     final p = pressed;
     if (p == null || amount <= 0) return;
     void glow(Offset c, double a) {
-      final col = const Color(0x29FFFFFF);
+      const col = Color(0x29FFFFFF);
       canvas.drawCircle(c, GlassGlowPainter.radius, Paint()..shader = RadialGradient(colors: [col.withValues(alpha: col.a * a), const Color(0x00FFFFFF)]).createShader(Rect.fromCircle(center: c, radius: GlassGlowPainter.radius)));
     }
 

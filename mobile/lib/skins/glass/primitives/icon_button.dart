@@ -5,7 +5,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart' show GlassButtonIcon;
@@ -104,7 +103,7 @@ class _GlassIconButtonState extends ConsumerState<GlassIconButton> {
     final disabled = widget.onPressed == null || widget.forceStates.disabled;
     final loading = widget.loading || widget.forceStates.loading;
     final error = _showError || widget.forceStates.error;
-    final on = widget.toggle == true;
+    final on = widget.toggle ?? false;
     final selected = on || widget.forceStates.selected;
     final visual = k == GlassIconButtonKind.row ? 32.0 : (k == GlassIconButtonKind.nav ? 44.0 : GlassFrame.hitMin(context));
     final iconSize = k == GlassIconButtonKind.row ? 18.0 : 22.0;
@@ -135,10 +134,10 @@ class _GlassIconButtonState extends ConsumerState<GlassIconButton> {
       builder: (context, info) {
         final hov = info.states.hovered && !disabled;
         final pressed = info.states.pressed;
-        Color base = disabled ? GlassColors.g500 : (onGlassSurface ? gt.colorOnGlass : GlassColors.g800);
+        final Color base = disabled ? GlassColors.g500 : (onGlassSurface ? gt.colorOnGlass : GlassColors.g800);
         Widget glyph;
         if (loading) {
-          glyph = const GlassSpinner(size: 16);
+          glyph = const GlassSpinner();
         } else if (error) {
           final g = GlyphIcon(GlassGlyph.warningCircle, size: iconSize, color: gt.colorDanger);
           glyph = onGlassSurface ? GlassBacking(size: 28, child: g) : g;

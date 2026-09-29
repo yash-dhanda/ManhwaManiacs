@@ -138,7 +138,6 @@ class GlassWorldCard extends StatelessWidget {
       child: GlassSlab(
         padding: const EdgeInsets.all(6),
         dashed: true,
-        onTap: null,
         semanticsLabel: '$title, not on your sources',
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

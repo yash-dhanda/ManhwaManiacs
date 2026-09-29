@@ -590,13 +590,13 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
         children: [
           ColoredBox(color: gt.colorSurface2),
           if (widget.error)
-            Center(child: GlyphIcon(GlassGlyph.imageBroken, size: 24, color: GlassColors.g600))
+            const Center(child: GlyphIcon(GlassGlyph.imageBroken, size: 24, color: GlassColors.g600))
           else if (widget.loading)
             const GlassSkeletonGroup(child: GlassSkeleton(radius: 0, delayed: false))
           else
             Opacity(opacity: sel ? 0.8 : 1, child: widget.cover),
           // A 1 px inner highlight along the top edge.
-          Positioned(left: 0, right: 0, top: 0, height: 1, child: const ColoredBox(color: Color(0x14FFFFFF))),
+          const Positioned(left: 0, right: 0, top: 0, height: 1, child: ColoredBox(color: Color(0x14FFFFFF))),
           if (hover && _hoverLocal != null && !reduced)
             Positioned.fill(
               child: IgnorePointer(child: CustomPaint(painter: _SpecularPainter(_hoverLocal!))),
@@ -658,7 +658,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
                       height: 24,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(color: sel ? gt.colorIris500 : const Color(0xB8000000), shape: BoxShape.circle, border: Border.all(color: const Color(0x38FFFFFF), width: 0.5)),
-                      child: sel ? GlyphIcon(GlassGlyph.check, size: 14, color: const Color(0xFF000000)) : null,
+                      child: sel ? const GlyphIcon(GlassGlyph.check, size: 14, color: Color(0xFF000000)) : null,
                     ),
                   ),
                 ),

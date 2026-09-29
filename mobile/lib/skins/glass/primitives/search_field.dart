@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -111,7 +110,7 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
   Widget _lead(bool onGlass) {
     switch (widget.status) {
       case GlassSearchStatus.searching:
-        return const GlassSpinner(size: 16);
+        return const GlassSpinner();
       case GlassSearchStatus.offline:
         return GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.wifiSlash, size: 20, color: gt.colorWarning));
       case GlassSearchStatus.idle:
@@ -132,7 +131,6 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
         textInputAction: TextInputAction.search,
         keyboardAppearance: Brightness.dark,
         cursorColor: gt.colorIris400,
-        cursorWidth: 2,
         autocorrect: false,
         style: base.copyWith(color: onGlass ? gt.colorOnGlass : gt.colorLabel1),
         decoration: InputDecoration.collapsed(hintText: widget.placeholder, hintStyle: base.copyWith(color: gt.colorLabel2)),
@@ -182,8 +180,6 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
             final cancel = v == GlassSearchVariant.bottom;
             final w = c.hasBoundedWidth ? c.maxWidth : 320.0;
             Widget glassFor(double width) => GlassPressable(
-                  material: GlassMaterial.glass,
-                  growth: GlassGrowth.medium,
                   hoverGlow: false,
                   onTap: () => _node.requestFocus(),
                   noSemantics: true,

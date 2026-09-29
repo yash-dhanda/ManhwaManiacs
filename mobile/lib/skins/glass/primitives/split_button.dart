@@ -6,7 +6,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass/glow.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
@@ -91,7 +90,6 @@ class _GlassSplitButtonState extends ConsumerState<GlassSplitButton> with GlassL
 
     final tintedFill = suppressed || disabled ? const Color(0x00000000) : gt.glassTinted.fill;
     return SkinGlassGroup(
-      tier: GlassTierId.t3,
       gap: 0.5,
       debugLabel: 'GlassSplitButton',
       shapes: [

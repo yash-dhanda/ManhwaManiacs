@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' show InputDecoration, TextField, TextSelectionTheme, TextSelectionThemeData;
-import 'package:flutter/services.dart';
 import 'package:flutter/semantics.dart' show SemanticsValidationResult;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -109,7 +109,6 @@ class _GlassTextAreaState extends ConsumerState<GlassTextArea> {
         textInputAction: widget.submitOnEnter ? TextInputAction.send : TextInputAction.newline,
         keyboardAppearance: Brightness.dark,
         cursorColor: gt.colorIris400,
-        cursorWidth: 2,
         style: base.copyWith(color: gt.colorLabel1),
         decoration: InputDecoration.collapsed(hintText: widget.hint, hintStyle: base.copyWith(color: inHost ? gt.colorLabel2 : gt.colorLabel3)),
         onChanged: widget.onChanged,
@@ -144,7 +143,7 @@ class _GlassTextAreaState extends ConsumerState<GlassTextArea> {
             alignment: Alignment.topLeft,
             child: Padding(padding: EdgeInsets.only(bottom: showCounter ? 18 : 0), child: field),
           ),
-          if (widget.loading) const Positioned(right: 0, top: 0, child: GlassSpinner(size: 16)),
+          if (widget.loading) const Positioned(right: 0, top: 0, child: GlassSpinner()),
           if (showCounter)
             Positioned(
               right: 0,

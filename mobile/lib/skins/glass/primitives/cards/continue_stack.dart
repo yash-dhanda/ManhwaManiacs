@@ -56,7 +56,7 @@ class GlassContinueStack extends StatelessWidget {
     final wide = GlassFrame.of(context).index >= GlassFrameKind.desktop.index;
     final w = wide ? 320.0 : 280.0;
     final h = wide ? 148.0 : 132.0;
-    final coverW = 88.0;
+    const coverW = 88.0;
     final ratio = unopened ? 0.0 : (page / pageCount).clamp(0.0, 1.0);
     final meta = unopened ? 'Up next · Ch $chapter' : 'Ch $chapter · p. $page of $pageCount';
     return SizedBox(
@@ -114,7 +114,7 @@ class GlassContinueStack extends StatelessWidget {
             Positioned(
               top: 0,
               right: 0,
-              child: GlassIconButton(icon: GlassButtonIcon.glyph(GlassGlyph.dotsThree), label: 'More for $title', onPressed: onMore, kind: GlassIconButtonKind.plain),
+              child: GlassIconButton(icon: GlassButtonIcon.glyph(GlassGlyph.dotsThree), label: 'More for $title', onPressed: onMore),
             ),
           ],
         ),

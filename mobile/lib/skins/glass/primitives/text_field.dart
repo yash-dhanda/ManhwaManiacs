@@ -1,13 +1,12 @@
 
 import 'package:flutter/material.dart' show InputDecoration, TextField, TextSelectionTheme, TextSelectionThemeData;
-import 'package:flutter/services.dart';
 import 'package:flutter/semantics.dart' show SemanticsValidationResult;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/focus_ring.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
@@ -234,7 +233,7 @@ class _GlassTextFieldState extends ConsumerState<GlassTextField> {
     if (kind == GlassFieldKind.url) leading = Padding(padding: const EdgeInsets.only(right: 10), child: GlyphIcon(GlassGlyph.globe, size: 20, color: gt.colorLabel2));
     Widget? trailing;
     if (loading || (kind == GlassFieldKind.url && widget.validating)) {
-      trailing = const Padding(padding: EdgeInsets.only(left: 10), child: GlassSpinner(size: 16));
+      trailing = const Padding(padding: EdgeInsets.only(left: 10), child: GlassSpinner());
     } else if (kind == GlassFieldKind.url && widget.reachable) {
       trailing = Padding(padding: const EdgeInsets.only(left: 10), child: GlyphIcon(GlassGlyph.check, size: 16, color: gt.colorSuccess));
     } else if (kind == GlassFieldKind.password) {
@@ -248,7 +247,7 @@ class _GlassTextFieldState extends ConsumerState<GlassTextField> {
           semanticsLabel: 'Show password',
           toggled: !_obscure,
           tooltip: 'Show password',
-          builder: (context, info) => Center(child: GlyphIcon(_obscure ? GlassGlyph.eye : GlassGlyph.eyeSlash, size: 22, color: GlassColors.g800)),
+          builder: (context, info) => Center(child: GlyphIcon(_obscure ? GlassGlyph.eye : GlassGlyph.eyeSlash, color: GlassColors.g800)),
         ),
       );
     }
@@ -271,15 +270,12 @@ class _GlassTextFieldState extends ConsumerState<GlassTextField> {
         autofillHints: _hints,
         autocorrect: !(widget.username || kind == GlassFieldKind.url || kind == GlassFieldKind.password),
         enableSuggestions: !(widget.username || kind == GlassFieldKind.url || kind == GlassFieldKind.password),
-        textCapitalization: TextCapitalization.none,
         keyboardAppearance: Brightness.dark,
         cursorColor: gt.colorIris400,
-        cursorWidth: 2,
         style: text,
         decoration: InputDecoration.collapsed(hintText: widget.hint, hintStyle: hint),
         onChanged: widget.onChanged,
         onSubmitted: widget.onSubmitted,
-        maxLines: 1,
       ),
     );
 

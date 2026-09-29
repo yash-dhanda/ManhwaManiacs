@@ -2,12 +2,12 @@ import 'dart:ui' show Tristate;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/lit.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
-import 'package:manhwamaniacs/skins/contract.g.dart';
 
 import 'support.dart';
 
@@ -80,7 +80,7 @@ void main() {
     await tester.pumpWidget(primHost(StatefulBuilder(builder: (context, s) {
       set = s;
       return GlassButton(label: 'Save', errorText: "Couldn't save", errorTrigger: n, onPressed: () {});
-    },)));
+    },),),);
     await tester.pump(const Duration(milliseconds: 400));
     set(() => n++);
     await tester.pump();
@@ -94,7 +94,7 @@ void main() {
     await tester.pumpWidget(primHost(Column(children: [
       GlassButton(label: 'One', variant: GlassButtonVariant.primary, onPressed: () {}),
       GlassButton(label: 'Two', variant: GlassButtonVariant.primary, onPressed: () {}),
-    ],)));
+    ],),),);
     await tester.pump(const Duration(milliseconds: 400));
     expect(GlassLit.count, 2);
     final release = suppressLit();

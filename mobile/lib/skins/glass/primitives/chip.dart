@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
@@ -274,7 +273,7 @@ class _GlassRemovableChipState extends ConsumerState<GlassRemovableChip> with Si
           opacity: _c.value.clamp(0.0, 1.0),
           child: Align(alignment: Alignment.centerLeft, widthFactor: _c.value.clamp(0.0, 1.0), child: Transform.scale(scale: _c.value.clamp(0.0, 1.0), child: child)),
         ),
-        child: GlassChip(label: widget.label, kind: GlassChipKind.input, leading: widget.leading, onRemove: _remove, onPressed: null),
+        child: GlassChip(label: widget.label, kind: GlassChipKind.input, leading: widget.leading, onRemove: _remove),
       );
 }
 

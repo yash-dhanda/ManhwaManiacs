@@ -1,4 +1,3 @@
-import 'package:characters/characters.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,9 +19,7 @@ Color? _colorOf(TextSpan root, int i) => (root.children![i] as TextSpan).style?.
 Finder get _caret => find.byWidgetPredicate((w) => w is CustomPaint && w.painter.runtimeType.toString() == '_CaretPainter');
 
 void main() {
-  setUp(() {
-    GlassMotionBind.reset();
-  });
+  setUp(GlassMotionBind.reset);
 
   testWidgets('focus arriving on the headline at 100 ms does not skip the typing', (tester) async {
     await tester.pumpWidget(primHost(_headline()));
@@ -88,7 +85,7 @@ void main() {
     await tester.pumpWidget(primHost(StatefulBuilder(builder: (context, s) {
       set = s;
       return show ? _headline() : const SizedBox();
-    },)));
+    },),),);
     await pumpFor(tester, 7000);
     set(() => show = false);
     await tester.pump();

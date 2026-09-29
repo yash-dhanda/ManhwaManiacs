@@ -1,9 +1,7 @@
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/dev/calibration_covers.dart';
-import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/badge.dart';
@@ -38,12 +36,11 @@ import 'package:manhwamaniacs/skins/glass/primitives/search_field.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/split_button.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/wave.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/text_area.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/text_field.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/tooltip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/typed_headline.dart';
-import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/wave.dart';
 
 enum GalleryGround { black, ambient, white }
 
@@ -75,7 +72,7 @@ class GlassGallerySection extends StatelessWidget {
             padding: const EdgeInsets.only(top: 28, bottom: 10),
             child: Semantics(header: true, child: GlassLabel(name.toUpperCase(), role: gt.typeCaption1, color: gt.colorLabel2)),
           ),
-          _Grounds(builder: (context, ground) => _content(context, ground)),
+          _Grounds(builder: _content),
         ],
       );
 
@@ -188,7 +185,7 @@ class _Cell extends StatelessWidget {
       );
 }
 
-Widget _wrap(List<Widget> cells) => Wrap(crossAxisAlignment: WrapCrossAlignment.start, children: cells);
+Widget _wrap(List<Widget> cells) => Wrap(children: cells);
 
 Widget _title(BuildContext context, String t) => Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 6),
@@ -334,14 +331,14 @@ Widget _iconButtons(BuildContext context, GalleryGround g) {
       _title(context, 'group'),
       _wrap([
         _Cell('default', GlassGroup(items: [
-          GlassGroupItem(icon: GlassButtonIcon(PhosphorRegular.export, fill: PhosphorFill.export), label: 'Share', onPressed: () {}),
-          GlassGroupItem(icon: GlassButtonIcon(PhosphorRegular.bookmarkSimple, fill: PhosphorFill.bookmarkSimple), label: 'Bookmark', onPressed: () {}, toggle: false),
-          GlassGroupItem(icon: GlassButtonIcon(PhosphorRegular.dotsThree, fill: PhosphorFill.dotsThree), label: 'More', onPressed: () {}),
+          GlassGroupItem(icon: const GlassButtonIcon(PhosphorRegular.export, fill: PhosphorFill.export), label: 'Share', onPressed: () {}),
+          GlassGroupItem(icon: const GlassButtonIcon(PhosphorRegular.bookmarkSimple, fill: PhosphorFill.bookmarkSimple), label: 'Bookmark', onPressed: () {}, toggle: false),
+          GlassGroupItem(icon: const GlassButtonIcon(PhosphorRegular.dotsThree, fill: PhosphorFill.dotsThree), label: 'More', onPressed: () {}),
         ],),),
         _Cell('pressed', GlassGroup(forcePressed: 1, items: [
-          GlassGroupItem(icon: GlassButtonIcon(PhosphorRegular.export, fill: PhosphorFill.export), label: 'Share', onPressed: () {}),
-          GlassGroupItem(icon: GlassButtonIcon(PhosphorRegular.bookmarkSimple, fill: PhosphorFill.bookmarkSimple), label: 'Bookmark', onPressed: () {}, toggle: false),
-          GlassGroupItem(icon: GlassButtonIcon(PhosphorRegular.dotsThree, fill: PhosphorFill.dotsThree), label: 'More', onPressed: () {}),
+          GlassGroupItem(icon: const GlassButtonIcon(PhosphorRegular.export, fill: PhosphorFill.export), label: 'Share', onPressed: () {}),
+          GlassGroupItem(icon: const GlassButtonIcon(PhosphorRegular.bookmarkSimple, fill: PhosphorFill.bookmarkSimple), label: 'Bookmark', onPressed: () {}, toggle: false),
+          GlassGroupItem(icon: const GlassButtonIcon(PhosphorRegular.dotsThree, fill: PhosphorFill.dotsThree), label: 'More', onPressed: () {}),
         ],),),
       ]),
     ],
@@ -388,8 +385,8 @@ Widget _inputs(BuildContext context, GalleryGround g) {
       _wrap([field('default', kind: GlassFieldKind.number), field('focused', kind: GlassFieldKind.number, f: _focused), field('disabled', kind: GlassFieldKind.number, enabled: false)]),
       _title(context, 'text area'),
       _wrap([
-        _Cell('default', const SizedBox(width: 250, child: GlassTextArea(label: 'Ask about a series', hint: 'What should I read next?', helper: 'Enter sends, Shift+Enter adds a line', submitOnEnter: true))),
-        _Cell('error', const SizedBox(width: 250, child: GlassTextArea(label: 'Notes', error: 'Notes are too long', maxLength: 200))),
+        const _Cell('default', SizedBox(width: 250, child: GlassTextArea(label: 'Ask about a series', hint: 'What should I read next?', helper: 'Enter sends, Shift+Enter adds a line', submitOnEnter: true))),
+        const _Cell('error', SizedBox(width: 250, child: GlassTextArea(label: 'Notes', error: 'Notes are too long', maxLength: 200))),
       ]),
     ],
   );
@@ -401,14 +398,14 @@ Widget _search(BuildContext context, GalleryGround g) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _title(context, 'bottom'),
-        _Cell('idle', const GlassSearchField(variant: GlassSearchVariant.bottom, ridesKeyboard: false)),
+        const _Cell('idle', GlassSearchField(variant: GlassSearchVariant.bottom, ridesKeyboard: false)),
         _title(context, 'page'),
-        _Cell('idle', const GlassSearchField(variant: GlassSearchVariant.page)),
-        _Cell('searching', const GlassSearchField(variant: GlassSearchVariant.page, status: GlassSearchStatus.searching)),
-        _Cell('offline', const GlassSearchField(variant: GlassSearchVariant.page, status: GlassSearchStatus.offline)),
+        const _Cell('idle', GlassSearchField()),
+        const _Cell('searching', GlassSearchField(status: GlassSearchStatus.searching)),
+        const _Cell('offline', GlassSearchField(status: GlassSearchStatus.offline)),
         _title(context, 'filter'),
-        _Cell('idle', const GlassSearchField(variant: GlassSearchVariant.filter, placeholder: 'Filter this list')),
-        _Cell('error', const GlassSearchField(variant: GlassSearchVariant.filter, placeholder: 'Filter this list', status: GlassSearchStatus.error)),
+        const _Cell('idle', GlassSearchField(variant: GlassSearchVariant.filter, placeholder: 'Filter this list')),
+        const _Cell('error', GlassSearchField(variant: GlassSearchVariant.filter, placeholder: 'Filter this list', status: GlassSearchStatus.error)),
         _title(context, 'sidebar'),
         _Cell('idle', SizedBox(width: 220, child: GlassSearchField(variant: GlassSearchVariant.sidebar, onOpenPalette: () {}))),
       ],
@@ -752,7 +749,7 @@ Widget _avatars(BuildContext context, GalleryGround g) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _title(context, 'presets'),
-        _wrap([for (final p in GlassAvatarPreset.values) _Cell(p.label, GlassProfileOrb(preset: p, size: 44, onPressed: () {}, mood: gt.colorMoodFantasy))]),
+        _wrap([for (final p in GlassAvatarPreset.values) _Cell(p.label, GlassProfileOrb(preset: p, onPressed: () {}, mood: gt.colorMoodFantasy))]),
         _title(context, 'sizes'),
         _wrap([for (final s in [18.0, 24.0, 32.0, 56.0, 72.0, 96.0]) _Cell('${s.toInt()}', GlassProfileOrb(preset: GlassAvatarPreset.cyanRocket, size: s, mood: gt.colorMoodAction))]),
         _title(context, 'states'),
@@ -766,13 +763,13 @@ Widget _avatars(BuildContext context, GalleryGround g) => Column(
           _Cell('selected', GlassProfileOrb(preset: GlassAvatarPreset.lunarMoon, size: 56, selected: true, onPressed: () {})),
           _Cell('error', GlassProfileOrb(preset: GlassAvatarPreset.lunarMoon, size: 56, error: true, onPressed: () {})),
           _Cell('drift', GlassProfileOrb(preset: GlassAvatarPreset.starlight, size: 96, drift: true, onPressed: () {})),
-          _Cell('friend', GlassProfileOrb(preset: GlassAvatarPreset.roseHeart, size: 56, friend: true, name: 'Mira')),
+          const _Cell('friend', GlassProfileOrb(preset: GlassAvatarPreset.roseHeart, size: 56, friend: true, name: 'Mira')),
         ]),
         _title(context, 'goal ring'),
         _wrap([
-          _Cell('8 of 10', GlassGoalRing(orbSize: 44, minutes: 8, goal: 10, child: const GlassProfileOrb(preset: GlassAvatarPreset.emberFlame, size: 44))),
-          _Cell('met', GlassGoalRing(orbSize: 44, minutes: 12, goal: 10, child: const GlassProfileOrb(preset: GlassAvatarPreset.emberFlame, size: 44))),
-          _Cell('on disc', GlassGoalRing(orbSize: 44, minutes: 4, goal: 10, onDisc: true, child: const GlassProfileOrb(preset: GlassAvatarPreset.emberFlame, size: 44))),
+          const _Cell('8 of 10', GlassGoalRing(orbSize: 44, minutes: 8, goal: 10, child: GlassProfileOrb(preset: GlassAvatarPreset.emberFlame))),
+          const _Cell('met', GlassGoalRing(orbSize: 44, minutes: 12, goal: 10, child: GlassProfileOrb(preset: GlassAvatarPreset.emberFlame))),
+          const _Cell('on disc', GlassGoalRing(orbSize: 44, minutes: 4, goal: 10, onDisc: true, child: GlassProfileOrb(preset: GlassAvatarPreset.emberFlame))),
         ]),
       ],
     );

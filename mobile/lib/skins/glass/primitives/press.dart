@@ -18,7 +18,6 @@ import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/tooltip.dart';
-import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 import 'package:motor/motor.dart';
 
 /// Which press behaviour a control has (glass 2.4.2 rules 3 and 4): glass swells and lights up, content sinks.
@@ -606,7 +605,8 @@ class GlassPressableState extends ConsumerState<GlassPressable> with TickerProvi
     );
 
     final actions = <CustomSemanticsAction, VoidCallback>{...widget.customActions};
-    if (!widget.noSemantics) body = Semantics(
+    if (!widget.noSemantics) {
+      body = Semantics(
       container: true,
       button: widget.isButton,
       enabled: widget.enabled,
@@ -624,6 +624,7 @@ class GlassPressableState extends ConsumerState<GlassPressable> with TickerProvi
       excludeSemantics: widget.semanticsLabel != null,
       child: body,
     );
+    }
 
     if (tooltipText != null) {
       body = GlassTooltip(message: tooltipText, child: body);

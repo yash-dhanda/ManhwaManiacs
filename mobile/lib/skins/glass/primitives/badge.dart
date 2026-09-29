@@ -115,7 +115,7 @@ class GlassBadge extends StatelessWidget {
         body = Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(color: const Color(0xFF000000), shape: BoxShape.circle, border: Border.all(color: const Color(0xFF000000), width: 2)),
+          decoration: BoxDecoration(color: const Color(0xFF000000), shape: BoxShape.circle, border: Border.all(width: 2)),
           child: DecoratedBox(decoration: BoxDecoration(color: gt.colorIris400, shape: BoxShape.circle)),
         );
       case _Kind.newCh:

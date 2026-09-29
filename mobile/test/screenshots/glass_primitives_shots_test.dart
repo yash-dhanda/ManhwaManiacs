@@ -72,7 +72,7 @@ void main() {
   }
 
   testWidgets('typing at 200 ms', (tester) async {
-    await captureSkinWidget(tester, name: 'reveals-typing-200ms', size: phone, child: page(GlassGallery(section: 'reveals')), overrides: [noSensor], settle: (t) => settleFor(t, 200));
+    await captureSkinWidget(tester, name: 'reveals-typing-200ms', size: phone, child: page(const GlassGallery(section: 'reveals')), overrides: [noSensor], settle: (t) => settleFor(t, 200));
   });
 
   testWidgets('two letter reveals running, the third waiting', (tester) async {
@@ -109,7 +109,7 @@ void main() {
         final g = await t.startGesture(t.getCenter(find.byType(GlassPoster)));
         await settleFor(t, 450);
         await t.pump();
-        addTearDown(() => g.up());
+        addTearDown(g.up);
       },
     );
   });

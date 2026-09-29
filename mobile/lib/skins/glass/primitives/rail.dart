@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/gestures.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -247,7 +245,6 @@ class _GlassRailState extends ConsumerState<GlassRail> {
     final header = Padding(
       padding: EdgeInsets.symmetric(horizontal: _margin),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Column(
@@ -420,7 +417,7 @@ class _Arrow extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(color: const Color(0x38FFFFFF), width: 0.5),
                     ),
-                    child: Transform.rotate(angle: left ? math.pi : 0, child: GlyphIcon(GlassGlyph.caretRight, size: 22, color: gt.colorOnGlass)),
+                    child: Transform.rotate(angle: left ? math.pi : 0, child: GlyphIcon(GlassGlyph.caretRight, color: gt.colorOnGlass)),
                   ),
                 ),
               ),

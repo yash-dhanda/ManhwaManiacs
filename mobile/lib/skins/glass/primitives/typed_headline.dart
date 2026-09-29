@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
-import 'package:characters/characters.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -297,7 +296,7 @@ class _TypedHeadlineState extends ConsumerState<TypedHeadline> with TickerProvid
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        RichText(text: span, textAlign: widget.textAlign, textScaler: TextScaler.noScaling),
+        RichText(text: span, textAlign: widget.textAlign),
         caret,
       ],
     );

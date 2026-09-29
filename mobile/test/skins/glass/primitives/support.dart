@@ -1,18 +1,16 @@
-import 'package:flutter/services.dart' show CachingAssetBundle, ByteData;
-import 'package:haptic_feedback/haptic_feedback.dart' show HapticsType;
 import 'package:flutter/material.dart' show DefaultMaterialLocalizations, Material, MaterialType, Theme, ThemeData;
+import 'package:flutter/services.dart' show CachingAssetBundle, ByteData;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:haptic_feedback/haptic_feedback.dart' show HapticsType;
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
-import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
-import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/skin.dart';
-import 'package:manhwamaniacs/skins/skin_haptics.dart';
-
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
+import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
+import 'package:manhwamaniacs/skins/skin.dart';
+import 'package:manhwamaniacs/skins/skin_haptics.dart';
 
 /// A Glass host for primitive tests: providers, an overlay (tooltips), the frost backdrop group.
 class _NullDriver implements HapticsDriver {

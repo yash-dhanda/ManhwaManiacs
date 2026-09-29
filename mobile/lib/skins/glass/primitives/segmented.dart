@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/focus_ring.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
@@ -326,7 +325,6 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
     return GlassPressable(
       material: GlassMaterial.content,
       sink: 0.96,
-      shape: const GlassShape.capsule(),
       minHit: false,
       hoverGlow: false,
       onTap: widget.enabled ? () => _select(i) : null,
@@ -343,7 +341,7 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
             decoration: BoxDecoration(color: !sel && info.states.hovered ? gt.colorFill4 : const Color(0x00000000), borderRadius: BorderRadius.circular(18)),
             child: Center(
               child: loading
-                  ? const GlassSpinner(size: 16)
+                  ? const GlassSpinner()
                   : GlassLabel(s.label, role: gt.typeSubhead, wght: 620, color: sel ? gt.colorLabel1 : gt.colorLabel2),
             ),
           ),

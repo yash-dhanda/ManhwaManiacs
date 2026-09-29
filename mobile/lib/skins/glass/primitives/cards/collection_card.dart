@@ -72,7 +72,6 @@ class GlassCollectionCardState extends ConsumerState<GlassCollectionCard> with S
       width: widget.width,
       height: h,
       child: GlassSlab(
-        padding: const EdgeInsets.all(12),
         onTap: widget.onTap,
         semanticsLabel: '${widget.name}, ${widget.count} series',
         child: Row(

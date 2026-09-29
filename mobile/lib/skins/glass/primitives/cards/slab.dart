@@ -1,9 +1,8 @@
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
-import 'package:flutter/services.dart' show KeyEvent;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart' show HapticEvent;
+import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
@@ -134,7 +133,7 @@ class GlassCheckOrb extends StatelessWidget {
             height: 24,
             alignment: Alignment.center,
             decoration: BoxDecoration(color: on ? gt.colorIris500 : const Color(0xB8000000), shape: BoxShape.circle, border: Border.all(color: const Color(0x38FFFFFF), width: 0.5)),
-            child: on ? GlyphIcon(GlassGlyph.check, size: 14, color: const Color(0xFF000000)) : null,
+            child: on ? const GlyphIcon(GlassGlyph.check, size: 14, color: Color(0xFF000000)) : null,
           ),
         ),
       );

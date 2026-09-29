@@ -44,7 +44,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (context, s) {
         set = s;
         return Column(children: [const GlassSpinner(), SizedBox(width: 100, height: 20, child: LiquidProgress(value: v))]);
-      },), reduced: true,));
+      },), reduced: true,),);
       await pumpFor(tester, 100);
       expect(tester.binding.hasScheduledFrame, isTrue);
       set(() => v = 0.8);
