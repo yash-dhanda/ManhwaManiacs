@@ -99,6 +99,7 @@ class _CineScaffoldState extends ConsumerState<CineScaffold> {
   bool _titleVisible = true;
   double _topExtent = 0;
   final GlobalKey _headKey = GlobalKey();
+  final FocusNode _ownMasthead = FocusNode(debugLabel: 'cine-masthead');
   Animation<double>? _route;
 
   // Offline edition (7.13).
@@ -144,7 +145,7 @@ class _CineScaffoldState extends ConsumerState<CineScaffold> {
   /// Route focus (14.4): the new screen's level-1 heading takes focus once the route has landed.
   void _focusMasthead() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) widget.mastheadFocusNode?.requestFocus();
+      if (mounted) (widget.mastheadFocusNode ?? _ownMasthead).requestFocus();
     });
   }
 
@@ -167,6 +168,7 @@ class _CineScaffoldState extends ConsumerState<CineScaffold> {
   void dispose() {
     _route?.removeStatusListener(_routeStatus);
     _editionTimer?.cancel();
+    _ownMasthead.dispose();
     super.dispose();
   }
 
@@ -262,6 +264,7 @@ class _CineScaffoldState extends ConsumerState<CineScaffold> {
             overArt: widget.overArt,
             edition: _edition,
             onEditionGlyph: _openEditionSheet,
+            titleFocusNode: widget.mastheadFocusNode == null ? _ownMasthead : null,
           );
 
     final tablet = mq.size.width >= 600 && !widget.tabletLayout;

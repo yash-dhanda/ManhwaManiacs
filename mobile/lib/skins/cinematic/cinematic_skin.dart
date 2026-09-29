@@ -55,7 +55,6 @@ class CinematicSkin implements Skin {
   @override
   SystemUiOverlayStyle overlayStyle(WidgetRef ref) => cineRestingOverlayStyle;
 
-  @override
   ScrollBehavior get scrollBehavior => const CineScrollBehavior();
 
   @override

@@ -34,10 +34,6 @@ abstract interface class Skin {
   /// Skin-specific wrappers under MaterialApp.builder.
   Widget wrap(BuildContext context, Widget child);
 
-  /// Passed to `MaterialApp.router(scrollBehavior:)`. Legacy keeps Material's default, which
-  /// changes nothing.
-  ScrollBehavior get scrollBehavior;
-
   /// The skin's first frame after the black native frame.
   Widget splash(BuildContext context);
   Map<HapticEvent, List<HapticStep>> get haptics;

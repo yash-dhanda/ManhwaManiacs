@@ -31,9 +31,6 @@ class LegacySkin implements Skin {
   GoRouter buildRouter(Ref ref) => ref.watch(appRouterProvider);
 
   @override
-  ScrollBehavior get scrollBehavior => const MaterialScrollBehavior();
-
-  @override
   Widget wrap(BuildContext context, Widget child) => WhatsNewAutoShow(child: child);
 
   @override

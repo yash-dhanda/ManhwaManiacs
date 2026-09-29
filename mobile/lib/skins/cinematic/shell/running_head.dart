@@ -44,6 +44,7 @@ class CineRunningHead extends StatelessWidget {
     this.overArt = false,
     this.edition = CineEditionPhase.none,
     this.onEditionGlyph,
+    this.titleFocusNode,
   });
 
   final String title;
@@ -56,6 +57,9 @@ class CineRunningHead extends StatelessWidget {
   final bool solid, overArt;
   final CineEditionPhase edition;
   final VoidCallback? onEditionGlyph;
+
+  /// Takes route focus when the screen has no masthead node of its own.
+  final FocusNode? titleFocusNode;
 
   static const Duration fade = Duration(milliseconds: 160);
 
@@ -83,9 +87,14 @@ class CineRunningHead extends StatelessWidget {
             opacity: titleVisible ? 1 : 0,
             duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : fade,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Semantics(
-                header: true,
-                child: CineRoleText(title, c.typeNav, color: c.colorInk60, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+              Focus(
+                focusNode: titleFocusNode,
+                canRequestFocus: titleFocusNode != null,
+                skipTraversal: true,
+                child: Semantics(
+                  header: true,
+                  child: CineRoleText(title, c.typeNav, color: c.colorInk60, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+                ),
               ),
               if (showBadge)
                 Padding(

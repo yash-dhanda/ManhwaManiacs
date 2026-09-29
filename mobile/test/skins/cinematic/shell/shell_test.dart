@@ -240,4 +240,39 @@ void main() {
     final min = defaultTargetPlatform == TargetPlatform.android ? 48.0 : 44.0;
     expect(t.getSize(find.byType(CineRunningHead)).height, greaterThanOrEqualTo(min + 47));
   }, variant: TargetPlatformVariant.all(),);
+
+  testWidgets('a route change moves focus to the new screen masthead heading', (t) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final k2 = GlobalKey();
+    await t.pumpWidget(ProviderScope(
+      overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+      child: MaterialApp(
+        theme: CinematicSkin.baseTheme,
+        home: Builder(
+          builder: (context) => CineScaffold(
+            location: '/downloads',
+            firstRunNote: false,
+            body: Center(child: TextButton(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => CineScaffold(key: k2, location: '/library/history', firstRunNote: false, body: const SizedBox()),
+              ),),
+              child: const Text('go'),
+            ),),
+          ),
+        ),
+      ),
+    ),);
+    await t.pumpAndSettle();
+    await t.tap(find.text('go'));
+    await t.pumpAndSettle();
+    final focus = FocusManager.instance.primaryFocus;
+    expect(focus?.debugLabel, 'cine-masthead');
+    var inside = false;
+    focus!.context!.visitAncestorElements((a) {
+      if (a.widget is CineScaffold) inside = a.widget.key == k2;
+      return a.widget is! CineScaffold;
+    });
+    expect(inside, isTrue);
+  });
 }

@@ -23,7 +23,8 @@ Items 1.1 to 13 are done; screens stay pending. Test floor: 2725 passed, 3 faile
 - Stand-ins retired: match-cut page, overlay Column wipe and reader prefetch of mobile/05 and mobile/11, the series
   page's Material bottom sheets and cover Lightbox (now `CineSheetRoute` and `CineLightbox`), the certificate Dip.
 - `CineDialog` gained `maxWidth`, `CineToastHost` gained `hidden`, `ShortcutEntry` gained `keys` (display only).
-- `Skin` gained `scrollBehavior`.
+- `scrollBehavior` is a Cinematic-only member of `CinematicSkin`; `SkinApp` reads it with `skin is CinematicSkin ? skin.scrollBehavior : null`. `Skin`, Glass and Legacy are untouched.
+- `CineScaffold` owns a default masthead `FocusNode` (attached to the running-head title, `Semantics(header)`) and moves focus to it once the route lands, unless the screen passes its own `mastheadFocusNode`. `shell_test.dart` pushes a route and asserts it.
 
 ## API for later steps
 `cinematicScreens` (register a `GoRouterWidgetBuilder`, delete the id from `PENDING` in `router.dart`; the route name
@@ -38,11 +39,10 @@ becomes the bare id); `extra` keys `transition` (page|match|dip), `entry` (wipe|
 
 ## Proof
 `docs/redesign/proof/mobile-06/`: `shell[-grid]-{phone,tablet,landscape}.png`, `shell-frames[-grid]-*.png`,
-`splash-reduced-*`, `wipe-reduced-*`, `frame-{tonight,library,discover,downloads,index}-phone.png`. Critique: the
-first capture showed underlined running title and tab labels (no `Material` ancestor): fixed by a `Material` in the
-shell and scaffold. Web twin `web-06` captures not compared (not present).
+`splash-reduced-*`, `wipe-reduced-*`, `frame-{tonight,library,discover,downloads,index}-phone.png`. Critiques:
+1. First capture showed underlined running title and tab labels (no `Material` ancestor). Fixed with a `Material` in the shell and scaffold.
+2. `frame-library-phone.png` (second pass): running head and tab bar read correctly, active tab has the gold tick. Two things looked off: the pending-screen action bar renders solid white blocks, and the placeholder block sits low on the page. Rejected both: the blocks are the flutter_test Ahem font under a filled button (glyphs render as boxes in every harness capture, not in the app); the placeholder position is the pending stand-in for a screen a later step replaces. Changed nothing for these two.
+Web twin: `docs/redesign/proof/web-06` does not exist in this tree (web/06 is not in the ledger), so the comparison is not possible; no web-twin difference list.
 
-## Forced interface change in the Glass folder
-`Skin.scrollBehavior` (scope 2.1) is a member every `implements Skin` class must declare (an `implements` does not
-inherit a default body), so `mobile/lib/skins/glass/glass_skin.dart` gained one 3-line override returning
-`MaterialScrollBehavior()`. It changes no Glass behaviour.
+## Verification
+`free -m` (used/available MB) before each heavy command: analyze 12164/19522, full test 12696/18990, harness 10520/21165, shell_test runs about 8500/23100. After the fix: `flutter analyze` No issues found; `flutter test` 2893 passed, 0 failed; harness `mobile-06` group 21 passed, proof PNGs regenerated. `git diff b8af9a7e HEAD --stat -- mobile/lib/skins/glass mobile/lib/skins/legacy mobile/lib/skins/skin.dart` is empty. Nothing pushed (integrator pushes).

@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/app/skin_boot_check.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_lifecycle_gate.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// The app root for every skin: the skin owns theme, router, overlay style and wrapper.
@@ -39,7 +40,7 @@ class _SkinAppState extends ConsumerState<SkinApp> {
       theme: themed,
       darkTheme: themed,
       routerConfig: router,
-      scrollBehavior: skin.scrollBehavior,
+      scrollBehavior: skin is CinematicSkin ? skin.scrollBehavior : null,
       builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
         value: skin.overlayStyle(ref),
         child: DownloadsLifecycleGate(
