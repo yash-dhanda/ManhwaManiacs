@@ -21,7 +21,7 @@ export function Checkbox({ checked, onCheckedChange, label, disabled = false, hi
       <BaseCheckbox.Root
         checked={on} indeterminate={mixed} disabled={disabled} data-gallery={rest["data-gallery"]}
         onCheckedChange={(v) => { haptic("select"); onCheckedChange(v); }}
-        className={`group relative flex size-5 shrink-0 items-center justify-center border transition-colors duration-(--mm-dur-snap) ${disabled ? "border-rule-1" : on || mixed ? "border-ink-100 bg-ink-100" : "border-ink-45 hover:border-ink-100"}`}
+        className={`group relative flex size-5 shrink-0 items-center justify-center border transition-colors duration-(--mm-dur-snap) ${disabled ? "border-rule-1" : on || mixed ? "border-ink-100 bg-ink-100 " : "border-ink-45 hover:border-ink-100 "}`}
       >
         <BaseCheckbox.Indicator keepMounted className="flex size-full items-center justify-center text-paper-0">
           {mixed ? <span aria-hidden className="h-0.5 w-2.5 bg-paper-0" /> : on ? (

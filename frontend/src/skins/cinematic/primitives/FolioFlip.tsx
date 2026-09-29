@@ -13,7 +13,7 @@ export function FolioFlip({ value, label, className = "" }: { value: number | st
     const from = prev.current;
     prev.current = text;
     const rec = startMove("folioFlip", durMs.tick + 40 * text.length);
-    setOld(from); // eslint-disable-line react-hooks/set-state-in-effect -- roll trigger
+    setOld(from);
     const t = setTimeout(() => { setOld(null); rec.end(); }, durMs.tick + 40 * text.length);
     return () => clearTimeout(t);
   }, [text]);
