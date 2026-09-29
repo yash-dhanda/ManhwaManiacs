@@ -26,11 +26,6 @@ Future<void> _pump(WidgetTester t, {bool a11y = false, double banner = 0}) async
 CineToastsNotifier get _n => _box.read(cineToastsProvider.notifier);
 int get _queue => _box.read(cineToastsProvider).length;
 
-Future<void> _for(WidgetTester t, int ms) async {
-  await t.pump(Duration(milliseconds: ms));
-  await t.pump(const Duration(milliseconds: 400));
-}
-
 void main() {
   testWidgets('holds per kind: 3600, 6000, 8000, 10000', (t) async {
     await _pump(t);

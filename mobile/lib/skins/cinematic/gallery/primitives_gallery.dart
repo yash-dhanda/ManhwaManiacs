@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/diagnostics/debug_overlays.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/fixtures.dart';
+import 'package:manhwamaniacs/skins/cinematic/gallery/overlays_gallery.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/primitives.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -28,6 +29,7 @@ const List<String> kGallerySections = [
   'grain-duotone',
   'reveals',
   'motion-timings',
+  ...kOverlayGallerySections,
 ];
 
 /// The Diagnostics-only primitives gallery (mobile/04): one section per primitive with every
@@ -67,7 +69,9 @@ class _GalleryBodyState extends ConsumerState<_GalleryBody> {
   Widget build(BuildContext context) {
     final c = context.cine;
     final ids = widget.section == null ? kGallerySections : [widget.section!];
-    return Scaffold(
+    return CineToastHost(
+      bannerHeight: ref.watch(galleryBannerProvider) ? 40 : 0,
+      child: Scaffold(
       backgroundColor: const Color(0xFF000000),
       body: Stack(children: [
         SafeArea(
@@ -90,7 +94,7 @@ class _GalleryBodyState extends ConsumerState<_GalleryBody> {
         const Positioned.fill(child: CineGridOverlay()),
         if (ref.watch(motionTimingsOverlayProvider)) const Positioned(left: 8, bottom: 8, child: CineMotionTimingsPanel()),
       ],),
-    );
+    ),);
   }
 
   Widget _section(BuildContext context, String id) {
@@ -113,6 +117,7 @@ class _GalleryBodyState extends ConsumerState<_GalleryBody> {
       'grain-duotone' => _grainDuotone(context),
       'reveals' => _reveals(context),
       'motion-timings' => _timings(context),
+      _ when kOverlayGallerySections.contains(id) => OverlayGallerySection(id: id),
       _ => const SizedBox.shrink(),
     };
   }

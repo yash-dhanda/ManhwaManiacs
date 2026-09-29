@@ -65,6 +65,7 @@ class CineWallHandle extends StatelessWidget {
 }
 
 class _CineReorderableWallState<T> extends State<CineReorderableWall<T>> {
+  final _gridKey = GlobalKey();
   late final ScrollController _sc = widget.scrollController ?? ScrollController();
 
   @override
@@ -110,7 +111,7 @@ class _CineReorderableWallState<T> extends State<CineReorderableWall<T>> {
       },
       children: children,
       builder: (kids) => GridView(
-        key: const Key('cine-wall-grid'),
+        key: _gridKey,
         controller: _sc,
         shrinkWrap: widget.shrinkWrap,
         physics: widget.physics,

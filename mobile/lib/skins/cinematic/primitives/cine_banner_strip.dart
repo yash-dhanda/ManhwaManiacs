@@ -15,8 +15,7 @@ class CineBannerAction {
 /// NOTE, `proof` CORRECTION, `ink.100` plain), a kicker, one line and up to two `quiet` actions.
 /// Callers place it under the running head.
 class CineBannerStrip extends StatelessWidget {
-  const CineBannerStrip({super.key, required this.line, this.kicker, this.tone = CineBannerTone.note, this.actions = const []})
-      : assert(actions.length <= 2);
+  const CineBannerStrip({super.key, required this.line, this.kicker, this.tone = CineBannerTone.note, this.actions = const []});
 
   final String line;
   final String? kicker;
@@ -25,6 +24,7 @@ class CineBannerStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    assert(actions.length <= 2, 'a banner strip has at most two actions');
     final c = context.cine;
     final edge = switch (tone) { CineBannerTone.note => c.colorSpot, CineBannerTone.correction => c.colorProof, CineBannerTone.plain => c.colorInk100 };
     final k = kicker ?? switch (tone) { CineBannerTone.note => 'NOTE', CineBannerTone.correction => 'CORRECTION', CineBannerTone.plain => null };

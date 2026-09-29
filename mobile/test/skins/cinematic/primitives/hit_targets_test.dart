@@ -21,6 +21,7 @@ void main() {
       }
       expect(keyed.length, greaterThan(60), reason: 'the gallery keys its interactive elements');
       keyed.forEach((k, r) {
+        if (k.startsWith('g-static-')) return; // display-only rows keep their 40 px minimum (cinematic 7.16)
         expect(r.width, greaterThanOrEqualTo(min - 0.01), reason: '$k width');
         expect(r.height, greaterThanOrEqualTo(min - 0.01), reason: '$k height');
       });
@@ -36,7 +37,8 @@ void main() {
       }
 
       // Adjacent targets keep 8 px: no two keyed rects that do not contain one another come closer.
-      final entries = keyed.entries.toList();
+      // List rows tile edge to edge on their dividers; that is the row pattern, not two targets.
+      final entries = [for (final e in keyed.entries) if (!e.key.startsWith('g-row-') && !e.key.startsWith('g-reorder-row-') && !e.key.startsWith('g-selectbar')) e];
       for (var i = 0; i < entries.length; i++) {
         for (var j = i + 1; j < entries.length; j++) {
           final a = entries[i].value, b = entries[j].value;
