@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/library/models/global_search_result.dart'
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/screens/search_screen.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
@@ -24,6 +25,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// an [error] when configured to fail. [browseItems] backs the single-source
 /// retry path, which goes to the source's own browse endpoint.
 class _FakeSourcesRepository implements SourcesRepository {
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   _FakeSourcesRepository({this.result, this.error, this.browseItems = const []});
 
   final GroupedSearchResult? result;

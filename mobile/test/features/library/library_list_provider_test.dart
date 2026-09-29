@@ -21,6 +21,7 @@ import 'package:manhwamaniacs/features/library/providers/library_list_provider.d
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/utils/library_preferences.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
@@ -34,6 +35,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// (what `LibraryListNotifier` actually calls); everything else throws so an
 /// unexpected call fails loudly instead of silently returning empty data.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   _FakeLibraryRepository(this.pages);
 
   final Map<int, PagedResult<FollowedSeries>> pages;
@@ -66,7 +75,7 @@ class _FakeLibraryRepository implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) async {
     final current = pages.values
@@ -711,6 +720,12 @@ class _GatedSearchSourcesRepository extends _FakeSearchSourcesRepository {
 /// single-source retry path) are wired; everything else throws so an unexpected
 /// call fails loudly instead of silently returning empty data.
 class _FakeSearchSourcesRepository implements SourcesRepository {
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   _FakeSearchSourcesRepository(
     this.pages, {
     this.error,

@@ -26,6 +26,9 @@ Items only the owner can do, by step.
 - Run docs/redesign/proof/mobile-02/device-check.md on the iPhone build and the Android flagship.
 - After the integrator pushes: read CI (`android-apk`, `build-ios`) for the dependency, audio_service and mm/platform commits and record run ids in dependency-gate.md; apply a package's ledger fallback if a native job fails.
 
+## mobile/11 (Cinematic Feature, Book, downloads)
+- Device checks from the prompt (match cut, edge swipe, predictive back, Column wipe, Lightbox, a real download read offline, `mature_override` hiding saved chapters, VoiceOver / TalkBack, text scale 1.3 and 2.0): docs/redesign/proof/mobile-11/device-checklist.md.
+- mobile/11: `mature_override: null` does not clear on the server until web/11 lands the backend fix in `followed_series_service.py`; then re-check the third radio of the override menu on a device.
 - shared/04: owner to check the new launcher icon, `Maniacs` label and black native frame on a real iPhone and Android device after the next build; hairlines of the Bodoni monogram are ~1 unit, judge the icon at 60 px.
 
 ## shared/05
@@ -51,3 +54,6 @@ Items only the owner can do, by step.
 - Run proof/mobile-25/device-check.md on iPhone (SideStore) and the Android flagship.
 - Fill the Decision line of proof/mobile-03/glass-gate.md; `kGateRenderer` (skin_glass.dart) defaults to liquid until then.
 - Integrator: push ab48531 alone, watch `tests` and `Build iOS`, paste run URLs into proof/mobile-25/resolution.md.
+
+## mobile/11 (Cinematic feature and book pages)
+- Some mobile/04-10 stand-ins may remain (check TODO(mobile/NN)); still open: web/11 (mature_override null-clears in followed_series_service.py:953). Swap the TODO(mobile/NN) stand-ins when they land.

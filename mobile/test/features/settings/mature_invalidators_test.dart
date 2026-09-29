@@ -105,8 +105,12 @@ void main() {
               entity.uri.pathSegments.last.replaceAll('.py', ''),
       };
 
+      // Gated on the server but no client cache to drop yet: the Wrapped payload
+      // (annual_service) is fetched fresh per open, and no client provider reads
+      // GET /home (home_service) until the home screens land.
+      const noClientCache = {'annual_service', 'home_service'};
       expect(
-        gated,
+        gated.difference(noClientCache),
         kMatureGatedBackendServices,
         reason: 'a service started (or stopped) filtering on the 18+ gate; '
             'decide which client caches it feeds before shipping it',

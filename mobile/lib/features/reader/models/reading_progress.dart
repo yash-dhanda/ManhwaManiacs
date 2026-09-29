@@ -70,6 +70,7 @@ class ProgressPush {
     this.isCompleted = false,
     this.timeSpentSeconds = 0,
     this.lastReadAt,
+    this.manual = false,
   });
 
   final String sourceId;
@@ -77,6 +78,10 @@ class ProgressPush {
   final String chapterKey;
   final double? chapterNumber;
   final int lastPage;
+
+  /// A hand-marked row (Mark read): the server keeps it out of statistics
+  /// and streaks.
+  final bool manual;
   final int pageCount;
   final int scrollOffsetPx;
   final bool isCompleted;
@@ -107,6 +112,7 @@ class ProgressPush {
         'time_spent_seconds': timeSpentSeconds,
         if (lastReadAt != null)
           'last_read_at': lastReadAt!.toUtc().toIso8601String(),
+        if (manual) 'manual': true,
       };
 
   /// Round-trips [toJson] — the on-device progress outbox (1c-M3) persists
@@ -126,6 +132,7 @@ class ProgressPush {
         lastReadAt: json['last_read_at'] != null
             ? DateTime.tryParse(json['last_read_at'] as String)
             : null,
+        manual: json['manual'] as bool? ?? false,
       );
 
   /// This push as captured at [at] — the timestamp the outbox needs so a
@@ -141,5 +148,6 @@ class ProgressPush {
         isCompleted: isCompleted,
         timeSpentSeconds: timeSpentSeconds,
         lastReadAt: at.toUtc(),
+        manual: manual,
       );
 }

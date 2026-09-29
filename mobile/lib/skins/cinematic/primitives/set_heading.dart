@@ -244,3 +244,11 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
     return w;
   }
 }
+
+/// Type role step-down for long titles (DESIGN §3.1): one role smaller past 24
+/// graphemes, two past 40. [sizes] runs largest to smallest.
+double setHeadingSize(String text, List<double> sizes) {
+  final n = text.characters.length;
+  final step = n > 40 ? 2 : (n > 24 ? 1 : 0);
+  return sizes[step.clamp(0, sizes.length - 1)];
+}
