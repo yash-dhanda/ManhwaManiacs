@@ -14,9 +14,13 @@ end-to-end test underneath proves the route no longer 500s on it.
 
 from __future__ import annotations
 
-import pytest
+import json
 
-from services.ocr_search import match_expr, terms_of
+import pytest
+from sqlalchemy import delete, update
+
+from database.models import ChapterOcr, FollowedSeries
+from services.ocr_search import box_fractions, locate, match_expr, terms_of
 
 SRC = "mangadex"
 SERIES = "the-quoted-series"
@@ -168,3 +172,107 @@ def test_a_quoted_phrase_still_finds_the_line(client, h, seeded):
     got = client.get("/ocr/search", params={"q": 'said "hello"'}, headers=h)
     assert got.status_code == 200, got.text
     assert [hit["chapter_key"] for hit in got.json()["items"]] == ["c1"]
+
+
+# --- page and box (backend/02 F) -------------------------------------------
+
+
+def _pages(*pages):
+    return json.dumps(list(pages))
+
+
+def test_locate_first_matching_page_and_box():
+    raw = _pages(
+        {"page": 3, "text": "the hunter again", "boxes": [
+            {"text": "the hunter again", "x": 0.5, "y": 0.5, "width": 0.1, "height": 0.1}]},
+        {"page": 1, "text": "nothing here", "boxes": []},
+        {"page": 2, "text": "a line. I am a hunter", "boxes": [
+            {"text": "a line.", "x": 0.1, "y": 0.1, "width": 0.2, "height": 0.05},
+            {"text": "I am a HUNTER", "x": 0.123456, "y": 0.4, "width": 0.3, "height": 0.08},
+            {"text": "hunter too", "x": 0.9, "y": 0.9, "width": 0.05, "height": 0.05},
+        ]},
+    )
+    assert locate(raw, ["hunter"]) == (2, {"x": 0.1235, "y": 0.4, "w": 0.3, "h": 0.08})
+
+
+def test_left_top_right_bottom_geometry_converts():
+    box = {"left": 0.1, "top": 0.2, "right": 0.45, "bottom": 0.3}
+    assert box_fractions(box) == {"x": 0.1, "y": 0.2, "w": 0.35, "h": 0.1}
+
+
+@pytest.mark.parametrize("box", [
+    {"x": 120, "y": 40, "width": 300, "height": 80},
+    {"left": 10, "top": 20, "right": 300, "bottom": 90},
+    {"x": 0.1, "y": 0.2, "width": 0.3},
+    {"x": 0.1, "y": 0.2, "width": "0.3", "height": 0.1},
+    {"x": 0.9, "y": -0.1, "width": 0.3, "height": 0.1},
+    {"left": 0.5, "top": 0.2, "right": 0.4, "bottom": 0.3},
+    {"text": "only text"},
+])
+def test_pixel_or_partial_geometry_gives_no_box(box):
+    assert box_fractions(box) is None
+    raw = _pages({"page": 4, "text": "hunter", "boxes": [{"text": "hunter", **box}]})
+    assert locate(raw, ["hunter"]) == (4, None)
+
+
+def test_page_text_match_without_a_matching_box_keeps_the_page():
+    raw = _pages({"page": 1, "text": "the hunter", "boxes": None})
+    assert locate(raw, ["hunter"]) == (1, None)
+
+
+@pytest.mark.parametrize("raw", [None, "", "not json", "{}", _pages({"page": 1, "text": "x"})])
+def test_no_page_texts_or_no_substring_match_gives_nulls(raw):
+    assert locate(raw, ["hunter"]) == (None, None)
+
+
+@pytest.fixture
+def boxed(client, h, acct, seed_follow):
+    uid, pid = acct
+    seed_follow(uid, pid, source_id=SRC, series_key="boxed",
+                known_chapters='[{"key": "b1"}, {"key": "b2"}]')
+    for key, pages in (
+        ("b1", [
+            {"page": 1, "text": "opening narration"},
+            {"page": 2, "text": "I will find the crimson knight", "boxes": [
+                {"text": "I will find", "x": 0.1, "y": 0.1, "width": 0.2, "height": 0.1},
+                {"text": "the crimson knight", "x": 0.25, "y": 0.5, "width": 0.4,
+                 "height": 0.12}]},
+        ]),
+        ("b2", [{"page": 1, "text": "crimson skies over the city", "boxes": [
+            {"text": "crimson skies", "x": 40, "y": 60, "width": 200, "height": 90}]}]),
+    ):
+        up = client.post("/ocr/chapter", json={
+            "source_id": SRC, "series_key": "boxed", "chapter_key": key,
+            "engine": "vision", "pages": pages}, headers=h)
+        assert up.status_code == 200, up.text
+
+
+def test_search_items_carry_page_and_box(client, h, boxed):
+    got = client.get("/ocr/search", params={"q": "crimson"}, headers=h)
+    assert got.status_code == 200, got.text
+    by_key = {i["chapter_key"]: i for i in got.json()["items"]}
+    assert by_key["b1"]["page"] == 2
+    assert by_key["b1"]["box"] == {"x": 0.25, "y": 0.5, "w": 0.4, "h": 0.12}
+    assert by_key["b2"]["page"] == 1 and by_key["b2"]["box"] is None
+
+
+def test_a_row_without_page_texts_gives_nulls(client, h, boxed, db_session):
+    db_session.execute(update(ChapterOcr).where(ChapterOcr.chapter_key == "b1")
+                       .values(page_texts=None))
+    db_session.commit()
+    items = client.get("/ocr/search", params={"q": "knight"}, headers=h).json()["items"]
+    assert [(i["chapter_key"], i["page"], i["box"]) for i in items] == [("b1", None, None)]
+
+
+def test_unfollowed_and_gated_series_stay_absent(client, h, boxed, db_session):
+    db_session.execute(update(FollowedSeries).where(FollowedSeries.series_key == "boxed")
+                       .values(mature_override=True))
+    db_session.commit()
+    assert client.get("/ocr/search", params={"q": "crimson"}, headers=h).json()["items"] == []
+    db_session.execute(update(FollowedSeries).where(FollowedSeries.series_key == "boxed")
+                       .values(mature_override=None))
+    db_session.commit()
+    assert len(client.get("/ocr/search", params={"q": "crimson"}, headers=h).json()["items"]) == 2
+    db_session.execute(delete(FollowedSeries).where(FollowedSeries.series_key == "boxed"))
+    db_session.commit()
+    assert client.get("/ocr/search", params={"q": "crimson"}, headers=h).json()["items"] == []

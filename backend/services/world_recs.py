@@ -142,6 +142,28 @@ def _format(media: dict[str, Any]) -> str:
     )
 
 
+def enrichment_payload(media: dict[str, Any]) -> dict[str, Any]:
+    """What ``GET /series/enrichment`` caches for one confident AniList match.
+
+    ``is_adult`` is stored so the 18+ gate can be applied when serving; it is
+    never serialized."""
+    score = media.get("averageScore")
+    official = [
+        {"site": link.get("site"), "url": link["url"]}
+        for link in media.get("externalLinks") or []
+        if link.get("url")
+        and link.get("type") != "SOCIAL"
+        and (link.get("site") or "").casefold() not in _SOCIAL_SITES
+    ][:6]
+    return {
+        "anilist_id": media["id"],
+        "format": _format(media),
+        "score": round(score / 10, 1) if isinstance(score, (int, float)) else None,
+        "official": official,
+        "is_adult": bool(media.get("isAdult")),
+    }
+
+
 class WorldCatalog:
     """AniList + MangaUpdates lookups behind a table cache.
 
@@ -171,15 +193,18 @@ class WorldCatalog:
         if not answers:
             return
         now = utcnow()
-        for key, value in answers.items():
-            self._db.merge(
-                WorldCatalogCache(key=key, payload=json.dumps(value), fetched_at=now)
-            )
+        # Pruned BEFORE the merges: a key being refreshed may itself be past
+        # PRUNE_AFTER, and deleting it under a pending merge made the flush's
+        # UPDATE match nothing (StaleDataError).
         self._db.execute(
             delete(WorldCatalogCache).where(
                 WorldCatalogCache.fetched_at < now - PRUNE_AFTER
             )
         )
+        for key, value in answers.items():
+            self._db.merge(
+                WorldCatalogCache(key=key, payload=json.dumps(value), fetched_at=now)
+            )
         self._db.commit()
 
     def _lookup(

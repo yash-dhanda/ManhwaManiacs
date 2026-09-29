@@ -1,3 +1,4 @@
+import { glassFonts } from "./fonts";
 import type { ScreenId } from "../contract.generated";
 import Pending from "../pending";
 import { PendingShell } from "../pending-shell";
@@ -83,4 +84,4 @@ export const screens = {
   readerLanding: Pending,
 } satisfies Record<ScreenId, Screen>;
 
-export const glass: Skin = { id: "glass", fontClassName: "", Shell: PendingShell, screens };
+export const glass: Skin = { id: "glass", fontClassName: glassFonts.map((f) => f.variable).join(" "), Shell: PendingShell, screens };

@@ -1,0 +1,81 @@
+shared/03 sound levels (written by node design/sounds/render.mjs --proof)
+sox: not installed (no sudo on the render box, so apt/pacman could not run); fallback: node design/sounds/synth.mjs (Node v22.14.0)
+ffmpeg: ffmpeg version n9.0.2 Copyright (c) 2000-2026 the FFmpeg developers
+
+cinematic cues
+stem            len ms  target  peak dBFS  wav B    ogg B   ogg ms    m4a B   m4a ms   wav sha256
+tick                10     -30    -30.00     1004     619    10.00     1355    10.00 a82f872d4c89030aaa6facb9a9cc34e7a81f6de012086ff9cdc91aa6437a0ed8
+set                 60     -20    -20.00     5804    1497    60.00     1979    60.00 3e81fbd338959ff572f204b5a28087fec4a9080d58f8fbe0ed298d0e9b8384bc
+impress            140     -20    -20.00    13484    2889   140.00     3025   140.00 6b807e11631485c19c7a52270c21a389ccabf59fb189371781990e3fa6ef8796
+turn               160     -20    -20.00    15404    2875   160.00     3296   160.00 79a45c4b7d57488d72c6a7ca944b70a3e9da1a00a66fefe9ba235b5ecfb7ef4b
+wipe               420     -20    -20.00    40364    5495   420.00     6264   420.00 2bcadf119f3e7e8b2547269a4e40b7207afcfaa6e27101d7919e0343dc872f5a
+done               300     -20    -20.00    28844    4778   300.00     4611   300.00 5abceb6ba9c7df5c4d04320defabb04ac511e12db878a5ed2d0b9d6f4c3921da
+bell               450     -20    -20.00    43244    5437   450.00     5676   450.00 6b30a9bfb2cfdf8b782499487900aed7cd856a110d8e222fbbb73d88fb912ff7
+pass               220     -20    -20.00    21164    3510   220.00     3901   220.00 4c40f5b832477cdc16f9fd5b00c464c9c4ba9cdd4f1b81e01a6ee2eda1c9d10e
+error              180     -20    -20.00    17324    2882   180.00     3419   180.00 dd1a9f83277cb82eabf531934ac8413d23c7af380a9de7c66c6c66dc69822be9
+toggle-on           40     -30    -30.00     3884    1155    40.00     1701    40.00 68fec78e493eac79fc24d3e0c2d4294fd344fb11ed8088335fe33ce222842e06
+toggle-off          40     -30    -30.00     3884    1149    40.00     1689    40.00 ac3bee9294b2bae320fea906da36cd3c7f18a797ef50a4635e3b18ee3d5dda37
+sheet              120     -30    -30.00    11564    2131   120.00     2755   120.00 c2963bcb73ed2200601e3dbccc5ffb99ba8946837a83f76d19cf5e5241ece663
+reel              1600     -12    -12.00   153644   19057  1600.00    18122  1600.00 1a201ddce40bc5e210db65dc78d908ba970046695175581aa212dec99c8389fa
+cinematic WAV total: 359612 bytes (351.2 KB) against 384 KB: within
+
+glass cues
+stem            len ms  target  peak dBFS  wav B    ogg B   ogg ms    m4a B   m4a ms   wav sha256
+tap                 24     -26    -26.00     2348     923    24.00     1378    24.00 f4f41d6e7f768540643b5881681e252fd716a59791d8843501d2823a1138b13b
+tick                 8     -30    -30.00      812     600     8.00     1323     8.00 f09aae5a49cd360ff62708f0723ae0100b701bf20044949e1bbcf28bbade3ff5
+toggle-on          110     -24    -24.00    10604    2231   110.00     2322   110.00 6e5fe15a551b8a0e7331c067e67c04f56b0b4088446a18f04209842db0c934af
+toggle-off         110     -24    -24.00    10604    2756   110.00     2273   110.00 af7341b4bb752779a7a5f4e0f8bf0c216bdac223d9e927798bfa01eab4d63446
+sheet-up           120     -28    -28.00    11564    2051   120.00     2482   120.00 f551eb321c3b24277ee1ab9337709ba2cb127503a3e9eb7ccd7609a44014c355
+sheet-down         120     -28    -28.00    11564    2062   120.00     2474   120.00 9a062c43a863d81e667cc66a583d227e8a6e00c3ee97c7aa107904f171c65ba1
+push-1             100     -26    -26.00     9644    1597   100.00     2054   100.00 ddf312c8d6be96f0948c98d5e4de9f4d42a2bfd3f19f623908977aee603715d8
+push-2             100     -26    -26.00     9644    1596   100.00     2011   100.00 13dd0ed50bf3f50ba70bed9106647a7397e6daa4e8bd6ca0a16357f5af91bd00
+push-3             100     -26    -26.00     9644    1609   100.00     2046   100.00 e8a3cc00638d2427eb1757e749e91ae5e8ae64be24da18d84abc824c52018818
+push-4             100     -26    -26.00     9644    1599   100.00     2075   100.00 213d25358ee17b2f49ba2a798506f11999eb1b5e91ac6814f633009154917e3e
+back                90     -29    -29.00     8684    1429    90.00     2017    90.00 7ac40a14efb58848a5de1eb16565375226a6eca50abceaa13a4e979d0ba1216f
+root               140     -26    -26.00    13484    3268   140.00     2814   140.00 4e82b07c2197f01e7041204f0bbd2a57b7c07a52bbd94d292d50f9ba3e085126
+fan                140     -26    -26.00    13484    3153   140.00     2745   140.00 87ee32d816655759d51908574d98bbabfdfbdce45e4262277d20201190a05487
+dive               300     -22    -22.00    28844    4341   300.00     4575   300.00 242e0992a5223a368905cf37bc9452506911bd7ef5abdba399aab93e91756ac9
+droplet             80     -24    -24.00     7724    1554    80.00     1805    80.00 9bf55bb46996db5f6dfff1c1f4dfd0eae62b8722b8c668ca5b479d4d24bac96a
+throw              100     -24    -24.00     9644    1720   100.00     2245   100.00 048b8cfa446fc54498f412f5668b95bbec99f9d5bf060babd173ccea39f061dd
+catch               20     -30    -30.00     1964    1045    20.00     1322    20.00 f0303121cf255a00b550d9bcb9998453402658519921f38ad6596341b80394b0
+add                400     -18    -18.00    38444    4698   400.00     5029   400.00 9f69f50819156079573227d50f214f548b0b2796138756f6b836d3397c477b73
+download-done      360     -18    -18.00    34604    5104   360.00     4927   360.00 ca13705ddd4058459c0c4b681a550d5bfdbe32fd1ddf5df97fb1446c3ee00024
+error              200     -20    -20.00    19244    3625   200.00     3402   200.00 67b46e3ddf795536973a6bf7a09f98c98836512d599735147372f30c4e4569e0
+unlock             180     -20    -20.00    17324    2319   180.00     3080   180.00 bf0785a31a7893d31f3fc7c9f72e9803daaa2a5d97db476e98caaf6550fc3d1b
+shimmer            260     -20    -20.00    25004    6147   260.00     3881   260.00 67bdd652f9c29828413635b074af5809a13881465bdb3e452c548d6d79314077
+pop                 40     -24    -24.00     3884    1413    40.00     1394    40.00 8ec932e8b9eaf272de377ab2f633e7c05eadc42aad22d79328d4c9d29222555d
+chapter            320     -22    -22.00    30764    3468   320.00     4100   320.00 ee68c0375b7b61070a357b78a46089d96832559e13d4b5af4b59e5c44a4872dd
+flip               140     -24    -24.00    13484    3030   140.00     2602   140.00 0a73ebf5b3da1d7314ee71ccd3929ba2d87b2c118fc41b5aa9be34fa8e7766e9
+send               200     -22    -22.00    19244    2284   200.00     3160   200.00 24c75a0706c45a866515c38900243b45ba5728829673b4ec1bad5038d4d757e2
+melt               420     -18    -18.00    40364    6531   420.00     6381   420.00 6078d8c4f88d409b1d5292271263e2318d94e9f3847aa5b0b349c0bf3f88b278
+logo              1400     -12    -12.00   134444   14977  1400.00    16424  1400.00 22c8754b0bf7934e0554e2569292490578c61375b95860e87531ecdf09bb2827
+glass WAV total: 546704 bytes (533.9 KB) against 320 KB: OVER by 219024 bytes (the §6 lengths at 48 kHz 16-bit mono need 546704 bytes)
+
+soundscape loops (measured on the shipped files)
+id                  file                                              seconds   LUFS  TP dBTP  bytes    seam (decoded)  sha256
+projector-room      backend/media/soundscapes/projector-room.ogg       90.000  -26.0    -13.9  1275057  1.35 dB/0.0047 cdb31ceebd7f132da0c24cac60c82b82b73756cd37ee8fa9bd7734952c22de04
+projector-room      backend/media/soundscapes/projector-room.m4a       90.000  -26.0    -13.9  1374450  1.25 dB/0.0172 54da5196455265b766e1a9de3071aa55b22fb5744d588a315ea8dec4f19daa60
+rain-on-glass       backend/media/soundscapes/rain-on-glass.ogg        90.000  -26.4    -17.1  1074310  0.33 dB/0.0144 e7ff0b458c7c6b1adc855939dc6136e4811f22f04ac31fe01dbe199884d2be6a
+rain-on-glass       backend/media/soundscapes/rain-on-glass.m4a        90.000  -25.5    -16.0  1101133  0.73 dB/0.0110 a0de85e6505a52facfe0e0d41aa8bdbc85786ae133c30fc8f7930fd1dafc7ed7
+night-city          backend/media/soundscapes/night-city.ogg           90.000  -26.1    -11.9  1103525  0.72 dB/0.0047 17acd1d242a4fbffdfa918dbae0b13578be37926297e9cf2a05d87bf0932e3f3
+night-city          backend/media/soundscapes/night-city.m4a           90.000  -26.0    -11.8  1100881  0.67 dB/0.0008 c2e8adcd72ee9e7f82fbd41229c7be7672c98659f5f86658aae8b58931d44afb
+cafe                backend/media/soundscapes/cafe.ogg                 90.000  -26.4    -12.0  1024075  0.72 dB/0.0037 2c3d8ee6b097fcb8fd2a247d1de711de73b6014de63fee6bbfefcd1dff4f5f44
+cafe                backend/media/soundscapes/cafe.m4a                 90.000  -26.1    -11.8  1101635  0.83 dB/0.0034 092e74b56baf1d84a8f7790882ea20821cd93f7bdb17a6aedba629cf773c9ac3
+night-wind          backend/media/soundscapes/night-wind.ogg           90.000  -26.1    -13.5  1028398  0.35 dB/0.0046 879f4c40bbcd5f590245a0584ae7d9e809ab7dd36c3157fa909fc5f99c30cfc3
+night-wind          backend/media/soundscapes/night-wind.m4a           90.000  -26.0    -13.4  1100923  0.37 dB/0.0047 c7ae6f0793321781df0f3ce183fdd99799f2e1cb0783d1fa730187bba0ad051d
+low-drone           backend/media/soundscapes/low-drone.ogg            90.000  -26.0    -16.9   663787  0.25 dB/0.0027 ee43e15ad91982335a489182b4b7d6db2b0166bb41940f85596fb643e4ff0908
+low-drone           backend/media/soundscapes/low-drone.m4a            90.000  -26.0    -15.9  1106398  0.25 dB/0.0047 3454efe5a907589661daf084b3b3ba471ab3d1783f6d046db6b7512bcb90de32
+afternoon-park      backend/media/soundscapes/afternoon-park.ogg       90.000  -26.4    -10.7  1059919  0.48 dB/0.0074 c225039246f5b0cfa00ec601a8d7a0727827d162769c9e4a22c5efb9bb012aee
+afternoon-park      backend/media/soundscapes/afternoon-park.m4a       90.000  -26.1    -11.0  1100929  0.50 dB/0.0112 77b2428c193d5b82b16ebd0c6ad29f76e1b51e08a63cb505d59b00382c22a5d0
+temple-bells        backend/media/soundscapes/temple-bells.ogg         90.000  -26.0     -4.3  1008832  0.50 dB/0.0050 77da140cac1b4e167ddad5cb36236ec207496166aa202639145d8e69723b42e6
+temple-bells        backend/media/soundscapes/temple-bells.m4a         90.000  -26.0     -4.1  1100754  0.50 dB/0.0056 447ad366e7f5f17d8d22bef383b9b400fe8084685197ba63e5ee841452db447a
+glass-deep-bed      backend/media/soundscapes/glass/deep-bed.ogg       90.000  -26.0    -17.0   968365  0.33 dB/0.0062 30dd21de4073def13c49ca6973d1a439b2050019d88afe7145a49f3d56b00392
+glass-deep-bed      backend/media/soundscapes/glass/deep-bed.m4a       90.000  -26.0    -13.8  1283436  0.41 dB/0.0069 f5e556ce07851a8ffcc680acdee372afe27f06bf3e65f62fda88f88a8a0fe9fb
+glass-deep-detail   backend/media/soundscapes/glass/deep-detail.ogg    90.000  -30.0    -25.1  1388145  1.02 dB/0.0023 2dd8ce1e3bc10e1726110d740b46e220a35915259b70276fa15016900e3ceea5
+glass-deep-detail   backend/media/soundscapes/glass/deep-detail.m4a    90.000  -30.0    -25.0  1101156  1.07 dB/0.0037 b06aff0c742c7ba2aeb7041a3207cd45c1373b4cabff67641884728eaa04d78e
+glass-deep-tone     backend/media/soundscapes/glass/deep-tone.ogg      90.000  -32.0    -24.3   103670  0.03 dB/0.0013 e2d0a7ad8cae06eabd458a979f7b7e87771df77f1034eb2fbb38c7c66cbc633e
+glass-deep-tone     backend/media/soundscapes/glass/deep-tone.m4a      90.000  -32.0    -23.9   131198  0.11 dB/0.0013 9594ef6c651c12db643ba26e7e3aee28b380ea89a3c2ced3659faeec67042f2a
+
+Glass recorded layers still missing (node design/sounds/trim-loop.mjs --check):
+  missing files (30): rain-bed.ogg, rain-bed.m4a, rain-detail.ogg, rain-detail.m4a, rain-tone.ogg, rain-tone.m4a, wind-bed.ogg, wind-bed.m4a, wind-detail.ogg, wind-detail.m4a, wind-tone.ogg, wind-tone.m4a, ocean-bed.ogg, ocean-bed.m4a, ocean-detail.ogg, ocean-detail.m4a, ocean-tone.ogg, ocean-tone.m4a, hearth-bed.ogg, hearth-bed.m4a, hearth-detail.ogg, hearth-detail.m4a, hearth-tone.ogg, hearth-tone.m4a, stream-bed.ogg, stream-bed.m4a, stream-detail.ogg, stream-detail.m4a, stream-tone.ogg, stream-tone.m4a
+  rows without a Freesound URL or a CC0 1.0 licence (15): glass-rain-bed, glass-rain-detail, glass-rain-tone, glass-wind-bed, glass-wind-detail, glass-wind-tone, glass-ocean-bed, glass-ocean-detail, glass-ocean-tone, glass-hearth-bed, glass-hearth-detail, glass-hearth-tone, glass-stream-bed, glass-stream-detail, glass-stream-tone

@@ -1,0 +1,753 @@
+[
+ {
+  "lane": "L01",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L01",
+  "branch": "redesign/L01",
+  "apiPort": 8031,
+  "webPort": 3031,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/01-foundation-skin-engine-and-restart.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/02-foundation-native-plugins-haptics-sound.md",
+    "waitFor": [
+     "shared/03"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/03-foundation-fonts-icons-harness-glass-gate.md",
+    "waitFor": [
+     "shared/02"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/04-cinematic-primitives-core-and-reveals.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/05-cinematic-primitives-overlays-controls-states.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/06-cinematic-shell-navigation-transitions.md",
+    "waitFor": [
+     "shared/04"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/07-cinematic-auth-profiles-18plus.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/12-cinematic-manga-reader-strip.md",
+    "waitFor": [
+     "signoffs"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/13-cinematic-manga-reader-paged-readall-panels.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/34-reader-engine-glass-commands.md",
+    "waitFor": [
+     "signoffs"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/35-glass-manga-reader.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/36-glass-novel-reader.md",
+    "waitFor": [
+     "mobile/14"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/37-glass-listen-mode.md",
+    "waitFor": [
+     "mobile/15"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/45-glass-qa-polish.md",
+    "waitFor": [
+     "mobile/31",
+     "mobile/32",
+     "mobile/33",
+     "mobile/38",
+     "mobile/39",
+     "mobile/40",
+     "mobile/41",
+     "mobile/42",
+     "mobile/43",
+     "mobile/44"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L02",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L02",
+  "branch": "redesign/L02",
+  "apiPort": 8032,
+  "webPort": 3032,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/03-foundation-reader-seam-limiter-proof.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/04-cinematic-primitives-core-and-reveals.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/05-cinematic-primitives-overlays-controls-states.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/06-cinematic-shell-navigation-transitions.md",
+    "waitFor": [
+     "shared/04"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/07-cinematic-auth-profiles-18plus.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/12-cinematic-manga-reader-strip.md",
+    "waitFor": [
+     "web/11",
+     "signoffs"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/13-cinematic-manga-reader-paged-readall-panels.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/34-reader-engine-glass-commands.md",
+    "waitFor": [
+     "signoffs"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/35-glass-manga-reader.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/36-glass-novel-reader.md",
+    "waitFor": [
+     "web/14"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/37-glass-listen-mode.md",
+    "waitFor": [
+     "web/15"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/45-glass-qa-polish.md",
+    "waitFor": [
+     "web/31",
+     "web/32",
+     "web/33",
+     "web/38",
+     "web/39",
+     "web/40",
+     "web/41",
+     "web/42",
+     "web/43",
+     "web/44"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L03",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L03",
+  "branch": "redesign/L03",
+  "apiPort": 8033,
+  "webPort": 3033,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/25-glass-foundation-material-physics.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/26-glass-primitives-controls-and-reveals.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/27-glass-primitives-overlays.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/28-glass-primitives-lists-states-ai-charts.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/29-glass-shell-navigation-depth.md",
+    "waitFor": [
+     "shared/05"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/30-glass-auth-profiles-onboarding.md",
+    "waitFor": [
+     "backend/05",
+     "web/07",
+     "web/20"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/31-glass-home.md",
+    "waitFor": [
+     "web/08"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/32-glass-library-hub-downloads.md",
+    "waitFor": [
+     "web/09",
+     "web/10",
+     "web/17"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/33-glass-series-and-book.md",
+    "waitFor": [
+     "web/11"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L04",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L04",
+  "branch": "redesign/L04",
+  "apiPort": 8034,
+  "webPort": 3034,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/25-glass-foundation-material-physics.md",
+    "waitFor": [
+     "mobile/03"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/26-glass-primitives-controls-and-reveals.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/27-glass-primitives-overlays.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/28-glass-primitives-lists-states-ai-charts.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/29-glass-shell-navigation-depth.md",
+    "waitFor": [
+     "shared/05"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/30-glass-auth-profiles-onboarding.md",
+    "waitFor": [
+     "backend/05",
+     "mobile/07",
+     "mobile/20"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/31-glass-home.md",
+    "waitFor": [
+     "mobile/08"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L05",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L05",
+  "branch": "redesign/L05",
+  "apiPort": 8035,
+  "webPort": 3035,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/16-cinematic-discover-search-sources-dialogue.md",
+    "waitFor": [
+     "backend/02"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/17-cinematic-downloads-index-status.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/18-cinematic-settings-and-edition-restart.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/39-glass-settings-and-skin-switch.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/40-glass-you-about-admin-status.md",
+    "waitFor": []
+   }
+  ]
+ },
+ {
+  "lane": "L06",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L06",
+  "branch": "redesign/L06",
+  "apiPort": 8036,
+  "webPort": 3036,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/08-cinematic-tonight.md",
+    "waitFor": [
+     "mobile/07"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/09-cinematic-library-shelf-browse.md",
+    "waitFor": [
+     "backend/02"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/10-cinematic-updates-collections-history-bookmarks.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/32-glass-library-hub-downloads.md",
+    "waitFor": [
+     "mobile/17"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/33-glass-series-and-book.md",
+    "waitFor": []
+   }
+  ]
+ },
+ {
+  "lane": "L07",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L07",
+  "branch": "redesign/L07",
+  "apiPort": 8037,
+  "webPort": 3037,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/14-cinematic-novel-reader.md",
+    "waitFor": [
+     "web/13"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/15-cinematic-listen-mode.md",
+    "waitFor": [
+     "backend/03",
+     "backend/06"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/23-cinematic-ambient-reader-extras.md",
+    "waitFor": [
+     "backend/06",
+     "backend/07"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/44-glass-ambient-reader-extras.md",
+    "waitFor": [
+     "web/35",
+     "web/36"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L08",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L08",
+  "branch": "redesign/L08",
+  "apiPort": 8038,
+  "webPort": 3038,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/14-cinematic-novel-reader.md",
+    "waitFor": [
+     "mobile/13"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/15-cinematic-listen-mode.md",
+    "waitFor": [
+     "backend/03",
+     "backend/06"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/23-cinematic-ambient-reader-extras.md",
+    "waitFor": [
+     "backend/06",
+     "backend/07"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/44-glass-ambient-reader-extras.md",
+    "waitFor": [
+     "mobile/35",
+     "mobile/36"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L09",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L09",
+  "branch": "redesign/L09",
+  "apiPort": 8039,
+  "webPort": 3039,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/16-cinematic-discover-search-sources-dialogue.md",
+    "waitFor": [
+     "backend/02"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/17-cinematic-downloads-index-status.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/18-cinematic-settings-and-edition-restart.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/24-cinematic-qa-polish.md",
+    "waitFor": [
+     "mobile/11",
+     "mobile/12",
+     "mobile/13",
+     "mobile/14",
+     "mobile/15",
+     "mobile/19",
+     "mobile/20",
+     "mobile/21",
+     "mobile/22",
+     "mobile/23"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L10",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L10",
+  "branch": "redesign/L10",
+  "apiPort": 8040,
+  "webPort": 3040,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/21-cinematic-numbers-streak-annual.md",
+    "waitFor": [
+     "backend/03"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/42-glass-stats-streak-wrapped.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/web/43-glass-circle.md",
+    "waitFor": [
+     "web/22"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L11",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L11",
+  "branch": "redesign/L11",
+  "apiPort": 8041,
+  "webPort": 3041,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/08-cinematic-tonight.md",
+    "waitFor": [
+     "backend/04",
+     "web/07"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/09-cinematic-library-shelf-browse.md",
+    "waitFor": [
+     "backend/02"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/10-cinematic-updates-collections-history-bookmarks.md",
+    "waitFor": []
+   }
+  ]
+ },
+ {
+  "lane": "L12",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L12",
+  "branch": "redesign/L12",
+  "apiPort": 8042,
+  "webPort": 3042,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/21-cinematic-numbers-streak-annual.md",
+    "waitFor": [
+     "backend/03"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/42-glass-stats-streak-wrapped.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/43-glass-circle.md",
+    "waitFor": [
+     "mobile/22"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L13",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L13",
+  "branch": "redesign/L13",
+  "apiPort": 8043,
+  "webPort": 3043,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/19-cinematic-ai-picks-similar-recap.md",
+    "waitFor": [
+     "backend/05"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/41-glass-ai-for-you-recaps.md",
+    "waitFor": []
+   }
+  ]
+ },
+ {
+  "lane": "L14",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L14",
+  "branch": "redesign/L14",
+  "apiPort": 8044,
+  "webPort": 3044,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/20-cinematic-onboarding.md",
+    "waitFor": [
+     "backend/05"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/web/24-cinematic-qa-polish.md",
+    "waitFor": [
+     "web/11",
+     "web/12",
+     "web/13",
+     "web/14",
+     "web/15",
+     "web/16",
+     "web/17",
+     "web/18",
+     "web/19",
+     "web/21",
+     "web/22"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L15",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L15",
+  "branch": "redesign/L15",
+  "apiPort": 8045,
+  "webPort": 3045,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/19-cinematic-ai-picks-similar-recap.md",
+    "waitFor": [
+     "backend/05"
+    ]
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/41-glass-ai-for-you-recaps.md",
+    "waitFor": []
+   }
+  ]
+ },
+ {
+  "lane": "L16",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L16",
+  "branch": "redesign/L16",
+  "apiPort": 8046,
+  "webPort": 3046,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/39-glass-settings-and-skin-switch.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/mobile/40-glass-you-about-admin-status.md",
+    "waitFor": [
+     "mobile/17"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L17",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L17",
+  "branch": "redesign/L17",
+  "apiPort": 8047,
+  "webPort": 3047,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/38-glass-search-sources-dialogue.md",
+    "waitFor": [
+     "web/16"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L18",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L18",
+  "branch": "redesign/L18",
+  "apiPort": 8048,
+  "webPort": 3048,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/22-cinematic-circle.md",
+    "waitFor": [
+     "backend/08",
+     "backend/09"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L19",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L19",
+  "branch": "redesign/L19",
+  "apiPort": 8049,
+  "webPort": 3049,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/11-cinematic-feature-and-book-pages.md",
+    "waitFor": []
+   }
+  ]
+ },
+ {
+  "lane": "L20",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L20",
+  "branch": "redesign/L20",
+  "apiPort": 8050,
+  "webPort": 3050,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/02-foundation-restart-haptics-sound.md",
+    "waitFor": [
+     "shared/03"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L21",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L21",
+  "branch": "redesign/L21",
+  "apiPort": 8051,
+  "webPort": 3051,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/web/01-foundation-motion-deps-fonts-icons.md",
+    "waitFor": [
+     "shared/02"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L22",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L22",
+  "branch": "redesign/L22",
+  "apiPort": 8052,
+  "webPort": 3052,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/38-glass-search-sources-dialogue.md",
+    "waitFor": [
+     "mobile/16"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L23",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L23",
+  "branch": "redesign/L23",
+  "apiPort": 8053,
+  "webPort": 3053,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/22-cinematic-circle.md",
+    "waitFor": [
+     "backend/08",
+     "backend/09"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L24",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L24",
+  "branch": "redesign/L24",
+  "apiPort": 8054,
+  "webPort": 3054,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/20-cinematic-onboarding.md",
+    "waitFor": [
+     "backend/05",
+     "mobile/19"
+    ]
+   }
+  ]
+ },
+ {
+  "lane": "L25",
+  "worktree": "/srv/manhwamaniacs/dev/wt/L25",
+  "branch": "redesign/L25",
+  "apiPort": 8055,
+  "webPort": 3055,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/mobile/11-cinematic-feature-and-book-pages.md",
+    "waitFor": [
+     "backend/02"
+    ]
+   }
+  ]
+ }
+]

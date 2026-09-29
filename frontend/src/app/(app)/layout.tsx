@@ -4,6 +4,7 @@ import { ServiceWorkerBoundary } from "@/features/offline";
 // the settings panels, and the root layout has no business pulling every client
 // component in the feature into its module graph to emit one <script>.
 import { AppearanceBootScript } from "@/features/preferences/appearance-boot";
+import { SkinBoot } from "@/features/skin/SkinBoot";
 import { skins } from "@/skins";
 import { getSkin } from "@/skins/server";
 import { Providers } from "../providers";
@@ -31,7 +32,14 @@ export const metadata: Metadata = {
 
 export async function generateViewport(): Promise<Viewport> {
   if ((await getSkin()) !== "legacy") {
-    return { themeColor: "#000000", colorScheme: "dark", viewportFit: "cover" };
+    return {
+      width: "device-width",
+      initialScale: 1,
+      viewportFit: "cover",
+      interactiveWidget: "resizes-content",
+      colorScheme: "dark",
+      themeColor: "#000000",
+    };
   }
   return {
     // The two canvases an unset preference can paint, in the same order and from
@@ -86,6 +94,7 @@ export default async function AppLayout({
             renders only the update prompt and must survive every route change.
           */}
           <ServiceWorkerBoundary />
+          <SkinBoot />
           <skin.Shell>{children}</skin.Shell>
         </Providers>
       </body>

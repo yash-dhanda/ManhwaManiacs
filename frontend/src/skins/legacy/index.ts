@@ -46,8 +46,8 @@ const library: Screen = (props: ScreenProps) =>
   createElement(props.variant === "browse" ? LibraryBrowse : Library);
 
 // `/settings/anything` stays a 404 for legacy users, as it was before the
-// `[section]` route existed (web/02 adds the one diagnostics exception, here and
-// in `src/proxy.ts`, which sets the 404 status; keep its LEGACY_LACKS in step).
+// `[section]` route existed. The one exception, `/settings/diagnostics` (the debug
+// row), is answered by the route file and let through by `src/proxy.ts`.
 const settings: Screen = async ({ params }: ScreenProps) => {
   if ((await params).section !== undefined) notFound();
   return createElement(Settings);

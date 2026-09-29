@@ -131,6 +131,10 @@ class ProgressInput:
     is_completed: bool = False
     last_read_at: datetime | None = None
     time_spent_seconds: int = 0
+    #: A mark-read from the feature page, not reading: the position merges and
+    #: the update notification clears, but no ``ReadingSession`` is written, so
+    #: no time, pages or streak day is invented (cinematic §8.17).
+    manual: bool = False
 
 
 @dataclass(frozen=True)
@@ -994,7 +998,7 @@ class ProgressService:
         # because only the pushes that also moved the position were ever
         # recorded.
         elapsed = max(0, merged.time_spent_seconds - previous_time_spent)
-        if merged.advanced or elapsed:
+        if not payload.manual and (merged.advanced or elapsed):
             if merged.advanced:
                 # +1 because the previous position was already read: resuming
                 # at page 5 and reaching 8 is three pages (6, 7, 8), not four.
@@ -1312,6 +1316,47 @@ class ProgressService:
             }
 
         return self._write(apply)
+
+    def delete_chapters(
+        self, source_id: str, series_key: str, chapter_keys: list[str]
+    ) -> None:
+        """Mark unread: delete the named chapters' positions for this profile.
+
+        Each key is resolved through ``_storage`` exactly as a save is, so a
+        follow whose key drifted loses the rows it actually reads. Unknown keys
+        match nothing. ``reading_sessions`` are never touched: history and
+        statistics keep what was read. Ungated, like every write here.
+        """
+        self._require_profile()
+
+        def apply() -> dict[str, Any]:
+            self._spellings = {}
+            self._aliases = {}
+            keys = {
+                (source_id, *self._storage_keys(
+                    source_id, fully_unquote(series_key), fully_unquote(key)
+                ))
+                for key in chapter_keys
+            }
+            target = tuple_(
+                ChapterProgress.source_id,
+                ChapterProgress.series_key,
+                ChapterProgress.chapter_key,
+            )
+            ordered = list(keys)
+            for start in range(0, len(ordered), _IN_CHUNK):
+                ids = select(ChapterProgress.id).where(
+                    target.in_(ordered[start : start + _IN_CHUNK])
+                )
+                self._db.execute(
+                    ChapterProgress.__table__.delete().where(
+                        ChapterProgress.id.in_(self._scope(ids))
+                    )
+                )
+            self._db.commit()
+            return {}
+
+        self._write(apply)
 
     def get_series_progress(
         self, source_id: str, series_key: str

@@ -15,8 +15,8 @@
 //
 //   node design/build.mjs           write the files
 //   node design/build.mjs --check   compare in memory, print each differing path, exit 1 on any
-//                                   difference or validation error, then run lint-utilities.mjs
-//                                   and check-contrast.mjs
+//                                   difference or validation error, then run lint-utilities.mjs,
+//                                   check-contrast.mjs and sounds/check.mjs
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -103,6 +103,8 @@ if (check) {
     if (step.includes("contrast")) process.stdout.write(r.status ? r.stdout : r.stdout.split("\n").filter((l) => /^(WARN|check-contrast)/.test(l)).join("\n") + "\n");
     if (r.status !== 0) process.exit(r.status ?? 1);
   }
+  const snd = spawnSync(process.execPath, [join(root, "design/sounds/check.mjs")], { stdio: "inherit" });
+  if (snd.status !== 0) process.exit(snd.status ?? 1);
 } else {
   for (const [p, content] of out) {
     const abs = join(root, p);

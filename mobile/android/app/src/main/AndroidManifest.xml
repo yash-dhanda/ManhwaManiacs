@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Required for all network access. Debug/profile source sets declare this
          too, but release builds only merge main + plugin manifests, so it MUST
@@ -6,13 +7,21 @@
          request fails with a generic connection error (see 1.2.3+6 login bug). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- audio_service (lock-screen narration) and the haptics channel. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:label="ManhwaManiacs"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true"
         android:usesCleartextTraffic="true">
 
         <activity
+            android:label="Maniacs"
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
@@ -32,6 +41,16 @@
             </intent-filter>
 
         </activity>
+
+        <service android:name="com.ryanheise.audioservice.AudioService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true" tools:ignore="Instantiatable">
+            <intent-filter><action android:name="android.media.browse.MediaBrowserService" /></intent-filter>
+        </service>
+        <receiver android:name="com.ryanheise.audioservice.MediaButtonReceiver"
+            android:exported="true" tools:ignore="Instantiatable">
+            <intent-filter><action android:name="android.intent.action.MEDIA_BUTTON" /></intent-filter>
+        </receiver>
 
         <meta-data
             android:name="flutterEmbedding"

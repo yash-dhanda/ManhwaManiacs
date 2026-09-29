@@ -23,7 +23,7 @@ from database.models import Base
 from database.session import run_alembic_migrations
 
 _BASELINE = "0001_source_native"
-_HEAD = "0019_cover_palette"
+_HEAD = "0020_collection_rules"
 
 # Every revision, oldest first. A new migration is added here deliberately —
 # the point of the guard is that revisions arrive on purpose, not that there is
@@ -48,6 +48,7 @@ _REVISIONS = [
     "0017_world_catalog_cache.py",
     "0018_profile_redesign_cols.py",
     "0019_cover_palette.py",
+    "0020_collection_rules.py",
 ]
 
 # Every ORM-mapped table the baseline must create (spec §3).

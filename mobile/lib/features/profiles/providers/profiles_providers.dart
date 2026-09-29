@@ -110,9 +110,16 @@ final profileSessionReadyProvider =
   name: 'profileSessionReady',
 );
 
+/// True after a skin restart: the app session (and so the open profile gate)
+/// survives it. A cold start still shows the picker.
+final skinRestartCarriesSessionProvider = Provider<bool>((ref) => false);
+
 class ProfileSessionReadyNotifier extends Notifier<bool> {
   @override
   bool build() {
+    if (ref.read(skinRestartCarriesSessionProvider)) {
+      return ref.read(activeProfileProvider) != null;
+    }
     // The gate stands on every normal cold start. Offline it cannot: the
     // profile list is server data, so holding an authenticated user on a picker
     // that will never load one parks him on a dead screen with no way forward.

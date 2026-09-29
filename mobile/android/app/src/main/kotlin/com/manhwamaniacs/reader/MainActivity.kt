@@ -8,7 +8,7 @@ import android.os.StatFs
 import android.view.Display
 import android.view.KeyEvent
 import androidx.core.view.WindowCompat
-import io.flutter.embedding.android.FlutterActivity
+import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
@@ -29,11 +29,15 @@ import io.flutter.plugin.common.MethodChannel
  * is the one piece with a real dependency behind it (ML Kit), and keeping it
  * separate means this class stays the "framework classes only" bridge it has
  * always been.
+ *
+ * Extends [AudioServiceActivity] (audio_service) so the lock-screen narration
+ * handler shares the activity's cached engine.
  */
-class MainActivity : FlutterActivity() {
+class MainActivity : AudioServiceActivity() {
     private val channelName = "com.manhwamaniacs.reader/native"
     private var methodChannel: MethodChannel? = null
     private var ocrChannel: OcrChannel? = null
+    private var mmPlatformChannel: MmPlatformChannel? = null
 
     // Only intercept volume keys while the reader is open and the user has
     // the setting enabled -- toggled from Dart via setVolumeKeyNavEnabled.
@@ -149,6 +153,7 @@ class MainActivity : FlutterActivity() {
         }
         methodChannel = channel
         ocrChannel = OcrChannel(flutterEngine.dartExecutor.binaryMessenger)
+        mmPlatformChannel = MmPlatformChannel(flutterEngine.dartExecutor.binaryMessenger, this)
     }
 
     override fun onDestroy() {
@@ -156,6 +161,8 @@ class MainActivity : FlutterActivity() {
         methodChannel = null
         ocrChannel?.dispose()
         ocrChannel = null
+        mmPlatformChannel?.dispose()
+        mmPlatformChannel = null
         super.onDestroy()
     }
 

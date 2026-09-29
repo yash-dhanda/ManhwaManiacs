@@ -1,3 +1,5 @@
+import { coreFonts } from "./fonts";
+import { readingFonts } from "./reading-fonts";
 import type { ScreenId } from "../contract.generated";
 import Pending from "../pending";
 import { PendingShell } from "../pending-shell";
@@ -83,4 +85,4 @@ export const screens = {
   readerLanding: Pending,
 } satisfies Record<ScreenId, Screen>;
 
-export const cinematic: Skin = { id: "cinematic", fontClassName: "", Shell: PendingShell, screens };
+export const cinematic: Skin = { id: "cinematic", fontClassName: [...coreFonts, ...readingFonts].map((f) => f.variable).join(" "), Shell: PendingShell, screens };
