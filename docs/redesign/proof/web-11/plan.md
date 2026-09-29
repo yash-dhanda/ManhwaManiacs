@@ -13,7 +13,7 @@ The manga hero is `FeatureSpread` (desktop, tablet) or `FeaturePhoneHero` (phone
 
 Fix pass 1 added: Column wipe (`wipe.ts`), match cut / Page in / Page out (`view-transitions.css` + React
 `ViewTransition` around the cover and the page), the motion-timings overlay (`MotionTimings.tsx`, mod+shift+m),
-the P3 prefetch limiter (`features/sources/p3-limiter.ts`: two in flight, hover/focus dwell 150 ms, the first two
+the P3 prefetch through `sourcesLimiter` (`features/sources/request-limiter.ts`; hover/focus dwell 150 ms, the first two
 rows on load, P1 on press), the phone tab pager (scroll-snap), the swipe slab (`swipe-row.ts`), keys through the app
 keyboard registry (group "Series"), the download-marks gallery under `/skin-preview/cinematic/download-marks`, and
 `frontend/e2e/cinematic/web-11-series.spec.ts` with fixtures in `frontend/e2e/fixtures/series/`.

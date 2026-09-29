@@ -27,7 +27,7 @@ import { readAllHref, readerChapterHref } from "@/features/reader/reader-link";
 import { useSeriesEnrichment } from "@/features/sources/enrichment";
 import { resolveChapterListState } from "@/features/sources/chapter-list-state";
 import { prefetchChapterManifest } from "@/features/reader/hooks";
-import { runP3 } from "@/features/sources/p3-limiter";
+import { HOVER_DWELL_MS, sourcesLimiter } from "@/features/sources/request-limiter";
 import {
   useSourceChapters,
   useSourceSeriesDetail,
@@ -130,16 +130,16 @@ export function useSeriesPage(opts: {
   // --- hover prefetch (150 ms dwell) -----------------------------------
   const prefetchP3 = useCallback(
     (id: string) => {
-      if (!isNovel) void runP3(() => prefetchChapterManifest(qc, { sourceId, seriesKey, chapterKey: id }));
+      if (!isNovel) void sourcesLimiter.run("P3", () => prefetchChapterManifest(qc, { sourceId, seriesKey, chapterKey: id })).catch(() => undefined);
     },
     [isNovel, qc, sourceId, seriesKey],
   );
-  const hover = useMemo(() => createHoverIntent<string>(prefetchP3, 150), [prefetchP3]);
+  const hover = useMemo(() => createHoverIntent<string>(prefetchP3, HOVER_DWELL_MS), [prefetchP3]);
   useEffect(() => () => hover.dispose(), [hover]);
-  // A press is P1: straight to the network, ahead of the limiter.
+  // A press is P1: the limiter never makes it wait.
   const prefetchP1 = useCallback(
     (id: string) => {
-      if (!isNovel) void prefetchChapterManifest(qc, { sourceId, seriesKey, chapterKey: id });
+      if (!isNovel) void sourcesLimiter.run("P1", () => prefetchChapterManifest(qc, { sourceId, seriesKey, chapterKey: id })).catch(() => undefined);
     },
     [isNovel, qc, sourceId, seriesKey],
   );
