@@ -67,7 +67,7 @@ Read these completely before planning. Where this file and `glass/DESIGN.md` dis
 
 ## Scope: deliver every item below
 
-Sections cited are `glass/DESIGN.md` unless marked. Every widget test below runs inside `flutter test` (so it joins the suite and CI). Every capture runs only in the harness with `MM_WRITE_SHOTS=1`.
+Sections cited are `glass/DESIGN.md` unless marked. Every widget test below runs inside `flutter test` (so it joins the suite and CI). Every capture runs only in the harness with `MM_PROOF_DIR` set, through `mobile/03`'s `captureSkinScreen` / `captureSkinWidget` (`mobile/test/screenshots/support/skin_shots.dart`); without it they rasterise and discard. Never set `MM_WRITE_SHOTS`: it overwrites the install page's public screenshots in `mobile/docs/screenshots/`, and `git status --short mobile/docs/screenshots` must print nothing at the end. **Sizes:** the harness's `kSkinShotSizes` (phone 390 × 844 @3, tablet 834 × 1194 @2) and `kSkinShotTabletWide` (1024 × 1366 @2, the desktop frame with the collapsed 76 px sidebar), plus two sizes defined in the `mobile-45` group only, because the plan's QA list needs them and no `mobile/03` size reaches them: `SkinShotSize('phone-max', Size(440, 956), 3.0, EdgeInsets.only(top: 62, bottom: 34))` (the large phone of `web/45`'s list and §12.5's Float viewport) and `SkinShotSize('desktop', Size(1180, 820), 2.0, EdgeInsets.zero)` (§8.0.1: the 280 px sidebar starts at 1180). Name both in `qa.md`; do not add them to `kSkinShotSizes`.
 
 ### A. Completeness and boundary, strict (§15.8, stack §2.3)
 
@@ -121,7 +121,7 @@ Sections cited are `glass/DESIGN.md` unless marked. Every widget test below runs
 
 ### D. The calibration comparison with the web (§15.8, §2.4.3)
 
-1. In the harness, capture Settings → Diagnostics → "Glass calibration" (the 16 px checkerboard with the T2 44 px button, the T3 dock and the T4 240 px menu) at 390 × 844, DPR 3. Save it as `docs/redesign/proof/mobile-45/calibration-flutter-harness.png`. It is a top-level file on purpose, because `web/45` finds the newest Flutter capture with `ls -t docs/redesign/proof/mobile-45/*calib*`. Put crops of the T2 button and the T4 menu at 4× nearest-neighbour zoom in `calibration/`, made by the harness compose helper (E6).
+1. In the harness (`mobile-45 calibration`, `MM_PROOF_DIR=../docs/redesign/proof/mobile-45`), capture Settings → Diagnostics → "Glass calibration" (the 16 px checkerboard with the T2 44 px button, the T3 dock and the T4 240 px menu) at 390 × 844, DPR 3, through `captureSkinWidget` with the name `calibration-flutter-harness` and rename the written `calibration-flutter-harness-phone.png` to `docs/redesign/proof/mobile-45/calibration-flutter-harness.png`. It is a top-level file on purpose, because `web/45` finds the newest Flutter capture with `ls -t docs/redesign/proof/mobile-45/*calib*`. Put crops of the T2 button and the T4 menu at 4× nearest-neighbour zoom in `calibration/`, made by the harness compose helper (E6).
 2. Say in `qa.md` whether the liquid shaders rendered in `flutter_tester`. If they did not (the capture shows the frost path or flat glass), the harness capture cannot be counted. Add to the device checklist (N) the owner's screenshots of the same page on the iPhone and the Android flagship, to be dropped as `docs/redesign/proof/mobile-45/calibration-flutter-premium-ios.png` and `…-android.png`.
 3. Count how many 16 px checker squares each rim bends, at the T2 button and at the T4 menu, on every capture that renders refraction. Take the web counts from `docs/redesign/proof/web-45/qa.md` (or count `docs/redesign/proof/web-45/calibration/web-liquid.png` yourself). Compose the web and Flutter captures side by side into `calibration/side-by-side.png`. A difference of more than one square is an open issue for the shared track, naming the §2.4.3 knob to change in `design/tokens/glass.json` (Flutter `refractiveIndex` 1.2 and `thickness`, web `n` 1.5); you do not edit it.
 4. If neither a refracting Flutter capture nor the web counts exist yet, record the item as blocked in `qa.md` with whatever counts exist, and name it in the report. `release/01` must not start until both counts exist.
@@ -130,8 +130,8 @@ Sections cited are `glass/DESIGN.md` unless marked. Every widget test below runs
 
 Add a `mobile-45` group family to `mobile/test/screenshots/marketing_screenshots_test.dart`, with one `--plain-name` per sub-group so each run stays small. Use every route of B1, the demo art only, and invented titles only.
 
-1. **Main sets** (`mobile-45 screens`). Capture at 390 × 844 DPR 3 and at 440 × 956 DPR 3 (the phone frame), at 820 × 1180 DPR 1 (the tablet frame) and at 1180 × 820 DPR 1 (the desktop frame, §8.0.1). Write them to `docs/redesign/proof/mobile-45/screens/<screenId>-<w>x<h>.png`. Sheet routes are also captured as `<screenId>-sheet-<w>x<h>.png`.
-2. **Accessibility variants** (`mobile-45 a11y`), one per screen at 390 × 844 DPR 1, into `screens-a11y/<screenId>-{reduced,solid,contrast,bold,legible}.png`:
+1. **Main sets** (`mobile-45 screens`, `MM_PROOF_DIR=../docs/redesign/proof/mobile-45/screens`). Capture at `phone` 390 × 844 @3 and `phone-max` 440 × 956 @3 (the phone frame), at `tablet` 834 × 1194 @2 (the tablet frame), at `tablet-wide` 1024 × 1366 @2 (the desktop frame, collapsed sidebar) and at `desktop` 1180 × 820 @2 (the desktop frame, full sidebar; §8.0.1). `captureSkinScreen` writes `glass-<screenId>-<w>x<h>.png`; sheet routes are also captured through `captureSkinWidget` as `<screenId>-sheet-<size>.png`.
+2. **Accessibility variants** (`mobile-45 a11y`, `MM_PROOF_DIR=../docs/redesign/proof/mobile-45/screens-a11y`), one per screen at 390 × 844 with a DPR-1 copy of the phone size (`SkinShotSize('phone', Size(390, 844), 1.0, EdgeInsets.only(top: 47, bottom: 34))`, to keep the folder small), as `<screenId>-{reduced,solid,contrast,bold,legible}-phone.png`:
    - Reduce Motion: `MediaQueryData(disableAnimations: true)`.
    - Solid glass: the `mm/platform` `a11y.reduceTransparency` fake returning true.
    - Increase Contrast: `highContrast: true`.
@@ -139,9 +139,9 @@ Add a `mobile-45` group family to `mobile/test/screenshots/marketing_screenshots
    - Legible text: the in-app switch.
 
    Also capture each screen once through the in-app switches alone (Settings → Appearance: Reduce motion in this app, Solid glass, Increase contrast), and assert that each result matches its OS-path capture pixel for pixel: the raw RGBA bytes of both captures (`image.toByteData(format: ui.ImageByteFormat.rawRgba)`) are equal.
-3. **Text scale** (`mobile-45 textscale`): every screen at `TextScaler.linear(1.0)`, `1.3` and `2.0` at 390 × 844 DPR 1, into `textscale/<screenId>-{1.0,1.3,2.0}.png`.
-4. **States** (`mobile-45 states`): each screen's loading, empty, error and offline states that the contract defines (fake repositories delay, fail or report offline), at 390 × 844 and 820 × 1180, both DPR 1, into `states/`.
-5. **Both skins side by side** (`mobile-45 pairs`): every route with `skin: cinematic` and with `skin: glass` at 390 × 844 DPR 1, composed into `pairs/<screenId>.png` (Cinematic left, Glass right), so the owner sees that the two skins are different apps on one data layer.
+3. **Text scale** (`mobile-45 textscale`, `MM_PROOF_DIR=../docs/redesign/proof/mobile-45/textscale`): every screen at `TextScaler.linear(1.0)`, `1.3` and `2.0` (`captureSkinWidget`'s `textScale`) at the DPR-1 phone size, as `<screenId>-{1.0,1.3,2.0}-phone.png`.
+4. **States** (`mobile-45 states`, `MM_PROOF_DIR=../docs/redesign/proof/mobile-45/states`): each screen's loading, empty, error and offline states that the contract defines (fake repositories delay, fail or report offline), at the DPR-1 phone size and at `tablet` 834 × 1194.
+5. **Both skins side by side** (`mobile-45 pairs`, `MM_PROOF_DIR=../docs/redesign/proof/mobile-45/pairs`): every route with `skin: cinematic` and with `skin: glass` at the DPR-1 phone size, composed into `pairs/<screenId>.png` (Cinematic left, Glass right), so the owner sees that the two skins are different apps on one data layer.
 6. **Compose helper.** A small function in the harness's `support/` decodes PNGs with `ui.instantiateImageCodec` inside `tester.runAsync`, paints them onto a `PictureRecorder` canvas (side by side, or cropped and scaled 4× with `FilterQuality.none`) and writes the PNG with `toByteData(format: ui.ImageByteFormat.png)`. No new package.
 7. Review every image with `impeccable` and `taste-skill` against the contract, and fix what is wrong: grey frosted cards where glass should refract, alpha text on glass, a bar label without its `edgeSoft` plateau, a clipped focus ring, glass inside a list or the strip, a field that glares, a lower screen that is not true black, a title that wraps at 2.0 where the cap says it clamps.
 8. Record `du -sh docs/redesign/proof/mobile-45` in `qa.md`. The folder must stay under 200 MB. If it grows past that, re-capture the variant sets (2 to 5) at DPR 0.75 rather than dropping any screen.
@@ -227,14 +227,14 @@ Extend `mobile/26`'s `typed_headline_test.dart` and `letter_reveal_test.dart`:
 
 ### I. Accessibility pass (§14.2 to §14.10, §15.8 "Accessibility pass per cluster")
 
-1. **Audit.** `glass_qa_test.dart` runs `audit()` on every route of B1 at 390 × 844 under `TargetPlatform.iOS` and under `TargetPlatform.android`, and at 820 × 1180 under iOS. It writes `docs/redesign/proof/mobile-45/audit/<screenId>-<frame>-<platform>.json` only when `MM_WRITE_SHOTS=1`; otherwise it just asserts zero violations.
+1. **Audit.** `glass_qa_test.dart` runs `audit()` on every route of B1 at 390 × 844 under `TargetPlatform.iOS` and under `TargetPlatform.android`, and at 834 × 1194 under iOS. It writes `docs/redesign/proof/mobile-45/audit/<screenId>-<frame>-<platform>.json` only when `MM_PROOF_DIR` is set (the audit directory is `$MM_PROOF_DIR/../audit`); otherwise it just asserts zero violations.
 2. **Contrast and colour (§14.2, §14.3):** C3, plus the following.
    - Every overlay on a cover sits on an opaque black backing.
    - Read, inactive, offline and "not for me" states dim by role, never by opacity. Only disabled controls dim to 40 %.
    - Status pills carry their word, download states a glyph and a semantics label, unread items a dot and a bar, and the 18+ badge "18+". Speaker tints use an underline style, and reactions are named.
    - The machine light always comes with the sparkle glyph and "suggested by AI" in the semantics label. The people light always comes with an orb or a name.
    - Charts carry a summary sentence and "Show as table".
-3. **Keyboard and focus on tablets** (§14.4, `glass_focus_test.dart`, the 820 × 1180 and 1180 × 820 frames with a simulated hardware keyboard).
+3. **Keyboard and focus on tablets** (§14.4, `glass_focus_test.dart`, the 834 × 1194 tablet frame and the 1180 × 820 desktop frame with a simulated hardware keyboard).
    - Tab 60 times on each screen, recording the focused rect.
    - Every focused element shows the two-tone ring painted by `FocusRingSpec` as a `foregroundPainter` outside `ClipRSuperellipse`: no ancestor clip of the focused widget cuts the ring rect inflated by 4 px (6 px glow; 3 px ring under Increase Contrast).
    - After Glass's `FocusTraversalPolicy` scrolls, no focused rect intersects the floating chrome bands: top safe + 60; bottom safe + 85, or + 56 more with the accessory; the tablet sidebar.
@@ -317,7 +317,7 @@ Also test and record the following:
 
 ### L. The "Float" parity captures (§12.5)
 
-The five 1320 × 2868 Float frames are web captures by definition (§12.5: a 440 × 956 viewport at DPR 3 through Playwright), and `web/45` produces them. On Flutter, capture the same five UIs in the harness group `mobile-45 float` at 440 × 956 DPR 3, into `docs/redesign/proof/mobile-45/float-compare/`:
+The five 1320 × 2868 Float frames are web captures by definition (§12.5: a 440 × 956 viewport at DPR 3 through Playwright), and `web/45` produces them. On Flutter, capture the same five UIs in the harness group `mobile-45 float` at `phone-max` 440 × 956 DPR 3 (`MM_PROOF_DIR=../docs/redesign/proof/mobile-45/float-compare`), into `docs/redesign/proof/mobile-45/float-compare/`:
 - Home, fed by the demo covers;
 - the manhwa reader mid-chapter with the chrome shown, over the demo pages;
 - novel plus listen: the listen full player over an invented two-paragraph chapter with an invented cast;
@@ -330,23 +330,23 @@ There is no 18+ content, and titles are invented from §12.7. When `docs/redesig
 
 `glass_switch_test.dart`, with the fake repositories and a fake `SharedPreferences`:
 
-1. **Cinematic → Glass.** Start in Cinematic on `/library/collections` (a non-root route) with a download queued, then use Settings → Diagnostics → the debug row (`Edition (debug)` CINEMATIC | GLASS, which glass §8.25.12 calls "Preview Glass skin") and choose GLASS. Pass:
-   - `mm.skin.active` is `glass`, and `mm.skin.return` was written and then cleared after being read;
-   - `PATCH /profiles/{id} {skin: "glass"}` went through the offline outbox (the fake API);
+1. **Cinematic → Glass.** Start in Cinematic on `/library/collections` (a non-root route) with a download queued, go to Settings → Diagnostics and use the debug row (`Edition (debug)` CINEMATIC | GLASS, which glass §8.25.12 calls "Preview Glass skin") to choose GLASS. This is `mobile/01`'s `debugSwitchSkin`: it writes `mm.skin.debug` and `mm.skin.t0`, returns to `/settings/diagnostics`, and never touches the profile's skin. Pass:
+   - `mm.skin.debug` is `glass`; `mm.skin.active` is unchanged and no `PATCH /profiles/{id}` was queued (the fake API's outbox is empty);
+   - `mm.skin.return` was written (`/settings/diagnostics`) and cleared after being read;
    - `AppRestart` swapped its key, and afterwards no Cinematic widget is in the tree (`find.byWidgetPredicate((w) => w.runtimeType.toString().startsWith('Cine'))` finds nothing);
    - Glass's `prepare()` awaited `LiquidGlassWidgets.initialize()` (a spy) before the Glass splash's first frame;
-   - the Droplet reveal plays once (cold 1,200 ms) and lands on `/library/collections`;
+   - the Droplet reveal plays once (cold 1,200 ms) and lands on `/settings/diagnostics`;
    - the queued download was re-queued at startup;
-   - the toast "Switched to Glass" shows its Undo with the 10 s draining rim.
-2. **Glass → Cinematic.** From Glass's debug row choose CINEMATIC. Pass:
-   - **Skin melt** is in the motion log with its planned 615 ms (under reduced motion, a 200 ms fade to black), and the `skin.switch` haptic (`heavy`) fired;
-   - the return route is restored;
+   - no "Switched to Glass" toast shows: the debug path writes no `mm.skin.prev`, so `mobile/39` D6's condition is false (the explicit switch with its toast and Undo is `mobile/39`'s `mobile_39_arrival_test.dart`, and `release/01` proves it with the flag on).
+2. **Glass → Cinematic.** From Glass's debug row ("Preview Glass skin", `mobile/40` I1) choose CINEMATIC. Pass:
+   - **Skin melt** is in the motion log with its planned 615 ms (under reduced motion, a 200 ms fade to black), and the `skin.switch` haptic (`heavy`) fired (the row leaves Glass through the melt, `mobile/40` I1);
+   - the return route `/settings/diagnostics` is restored in Cinematic, and `mm.skin.debug` is `cinematic`;
    - no Glass widget remains;
    - the soundscape voices, cruise and narration were stopped by disposal (the fakes record it);
    - Cinematic's splash plays.
 3. **Budget.** In the fake-clock run, nothing between the confirm and the restart waits longer than the melt plus one frame. The real "under 1,500 ms to the new splash" figure is a device item (N), read from the `mm.skin.t0` timestamp in Diagnostics.
 4. **Profile hand-off.** A profile switch into a profile whose skin differs runs the restart inside the hand-off, with no alert and no Undo. A boot-time mismatch (the remembered profile's skin differs from the mirror) plays the Droplet to the lens and restarts with no confirm (§8.2).
-5. **Nothing leaks across, and the flag holds.** `Flags.glassAvailable` is still `false`. So the Appearance skin cards, onboarding step 2's Glass option and the profile form's skin row still hide Glass (§8.0.8), and "App icon follows the skin" is not offered: a spy on the `flutter_dynamic_icon_plus` wrapper records zero calls. The icon behaviour of §12.2 is verified in `release/01`.
+5. **Nothing leaks across, and the flag holds.** `Flags.glassAvailable` is still `false`. So Cinematic's Edition picker (`mobile/18`), onboarding step 2's Glass option and the profile form's skin row still hide Glass as a choice (§8.0.8); Glass's own Appearance section (reached through the debug row) shows the Glass card as the current one and offers only Cinematic as a target (`mobile/39` C1); and the "App icon follows the skin" row is not rendered (`mobile/39` C4 gates it on the flag): a spy on the `flutter_dynamic_icon_plus` wrapper records zero calls. The icon behaviour of §12.2 is verified in `release/01`.
 
 ### N. The owner's device pass at 120 Hz
 
@@ -434,7 +434,7 @@ Skin files import only `features/*/{models,providers,repositories,services,store
 - [ ] `glass_physics_test.dart` asserts every §15.8 value (`tierFor(401) == T4`). `node design/build.mjs --check` passes with every §15.8 contrast case listed. The three worst cases hold in widgets: dim 0.64 and `GRAD` 40 over white, 0.72 under Increase Contrast, and the 0.72 plateau under the dock.
 - [ ] The Flutter calibration capture exists as `calibration-flutter-harness.png`, with either both square counts within one square of the web's or the item recorded as blocked, and the device captures requested in the checklist.
 - [ ] Harness screenshots exist for every `ScreenId`:
-  - at 390 × 844 @3, 440 × 956 @3, 820 × 1180 and 1180 × 820, with sheet routes in both presentations;
+  - at 390 × 844 @3, 440 × 956 @3, 834 × 1194, 1024 × 1366 and 1180 × 820, with sheet routes in both presentations;
   - Reduce Motion, Solid glass, Increase Contrast, Bold Text and Legible text per screen, with the in-app switch captures identical to the OS-path ones;
   - text scale 1.0, 1.3 and 2.0 per screen;
   - the states;
@@ -462,7 +462,7 @@ Skin files import only `features/*/{models,providers,repositories,services,store
 - [ ] The gate-close checklist passes all ten items (the palette half of item 10 only where a Flutter palette exists) for a gate closing and for a switch to a gate-closed profile. The deep-link lens shows no title or cover. Share sides draw no mature title, source, genre or cover and nothing from the Circle. The gate needs the hold or the explicit button.
 - [ ] The budget holds in every moment of the K table: at most 4/8, 3/3, 4/7, 6/8, 4/6, 6/6 and 2/2 layers and shapes, never more than two stacked layers, the third forced to `solid1`. Every other §15.7 rule has evidence in `qa.md`.
 - [ ] The Float parity captures exist at 440 × 956 @3 from demo art and invented titles only, paired with the web frames when those exist.
-- [ ] Cross-skin switches in both directions through the debug row restore the return route, play the arriving skin's splash once, re-queue the queued download, leave nothing of the other skin in the tree, and stop cruise, the soundscape and narration. `Flags.glassAvailable` is still `false`, and no icon change is attempted.
+- [ ] Cross-skin switches in both directions through the debug row restore the return route (`/settings/diagnostics`), play the arriving skin's splash once, re-queue the queued download, leave nothing of the other skin in the tree, write only `mm.skin.debug` (no profile `PATCH`, no `mm.skin.active` change, no arrival toast), leave Glass through the melt, and stop cruise, the soundscape and narration. `Flags.glassAvailable` is still `false`, and no icon change is attempted.
 - [ ] `device-checklist.md` lists rows 1 to 14 with steps and pass conditions, and `qa.md` marks them "awaiting owner".
 - [ ] Cinematic is unchanged except for listed shared-layer fixes; `mobile/24`'s tests still pass for every screen a fix touched.
 - [ ] `flutter analyze` reports "No issues found". `flutter test` passes at or above the floor plus the new tests. `node design/build.mjs --check` passes. The CI Flutter job (analyze, test, release APK) and the iOS dry run are green for the final SHA, with the run ids in `qa.md`.
@@ -484,17 +484,18 @@ cd .. && node design/build.mjs --check && cd mobile
 Harness runs, one at a time:
 
 ```bash
-free -m && MM_WRITE_SHOTS=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 screens"
-free -m && MM_WRITE_SHOTS=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 a11y"
-free -m && MM_WRITE_SHOTS=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 textscale"
-free -m && MM_WRITE_SHOTS=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 states"
-free -m && MM_WRITE_SHOTS=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 pairs"
-free -m && MM_WRITE_SHOTS=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 calibration"
-free -m && MM_WRITE_SHOTS=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 float"
-free -m && MM_WRITE_SHOTS=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/skins/glass/qa/glass_qa_test.dart
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-45/screens /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 screens"
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-45/screens-a11y /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 a11y"
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-45/textscale /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 textscale"
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-45/states /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 states"
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-45/pairs /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 pairs"
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-45 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 calibration"
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-45/float-compare /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/marketing_screenshots_test.dart --plain-name "mobile-45 float"
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-45/worst-cases /srv/manhwamaniacs/dev/flutter/bin/flutter test test/skins/glass/qa/glass_qa_test.dart
+git status --short docs/screenshots    # must print nothing
 ```
 
-`flutter analyze` must report "No issues found", and the full suite must pass at or above the floor plus the new tests. `00-baseline.md` records 2012 passing tests. Every test that passed in the baseline must still pass, except legacy widget tests that `release/00` deleted by design (name them if the count dropped for that reason). This step changes nothing in `frontend/` or `backend/` (`git diff --stat origin/feat/vps-slim-source-native -- frontend backend` over your commits is empty). So `npm run lint` and `npm run build` (in `frontend/`) and the backend pytest (`backend/.venv/bin/python -m pytest -q --no-header` from `backend/`) are not rerun, except under the push rule in Git.
+`flutter analyze` must report "No issues found", and the full suite must pass at or above the floor plus the new tests. `00-baseline.md` records 2012 passing tests. Every test that passed in the baseline must still pass, except legacy widget tests that `release/00` deleted by design (name them if the count dropped for that reason). This step changes nothing in `frontend/` or `backend/` (check each of your own commits with `git show --stat --format= <hash>`: none lists a path under `frontend/` or `backend/`; a branch or range diff would also show the commits of the web twin and the other sessions working on this branch). So `npm run lint` and `npm run build` (in `frontend/`) and the backend pytest (`backend/.venv/bin/python -m pytest -q --no-header` from `backend/`) are not rerun, except under the push rule in Git.
 
 **Visual proof.** Everything in C3, D, E and L lands under `docs/redesign/proof/mobile-45/` at the exact sizes above. Review every image with `impeccable` and `taste-skill` before you write `qa.md`.
 

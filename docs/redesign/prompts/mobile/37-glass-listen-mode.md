@@ -182,6 +182,7 @@ mobile/lib/features/novels/models/listen_settings.dart                 A5 (glass
 mobile/lib/main.dart                                                   A3 (notificationColor from the boot skin only)
 mobile/lib/skins/glass/glass_skin.dart                                 A1, A2 overrides
 mobile/lib/skins/glass/shell.dart                                      keeps narration alive, A6, the accessory variant
+mobile/lib/skins/glass/router.dart                                     the `player`, `voices`, `cast` and `audiobook` ids registered in mobile/29's ?sheet= registry (the novel reader's desktop panel claims `player`, `voices` and `cast` as its Listen and Voices tabs)
 mobile/lib/skins/glass/listen/
   voice_hue.dart, cast_line.dart, listen_accessory.dart, orbit_math.dart, band_geometry.dart, paged_follow.dart,
   job_rows.dart, skip_toast.dart                                       B (each + test)
@@ -239,7 +240,7 @@ free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test test/features/novels 
 free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test
 ```
 
-`flutter analyze` must report "No issues found!" and the full suite must pass at or above the floor you recorded plus your new tests; every test that passed in the 2012 baseline and is not listed in `docs/redesign/proof/release-00/deleted-tests.md` must still pass. This step changes nothing in `frontend/` or `backend/` (`git diff --stat origin/feat/vps-slim-source-native -- frontend backend` is empty), so `npm run lint`, `npm run build` (in `frontend/`) and the backend pytest (`cd backend && .venv/bin/python -m pytest -q --no-header`) are not rerun, except the push rule under Git.
+`flutter analyze` must report "No issues found!" and the full suite must pass at or above the floor you recorded plus your new tests; every test that passed in the 2012 baseline and is not listed in `docs/redesign/proof/release-00/deleted-tests.md` must still pass. This step changes nothing in `frontend/` or `backend/` (check each of your own commits with `git show --stat --format= <hash>`: none lists a path under `frontend/` or `backend/`; a branch or range diff would also show the commits of the web twin and the other sessions working on this branch), so `npm run lint`, `npm run build` (in `frontend/`) and the backend pytest (`cd backend && .venv/bin/python -m pytest -q --no-header`) are not rerun, except the push rule under Git.
 
 **Fixtures.** Reuse `mobile/test/fixtures/listen/` from `mobile/15` (`audio.json`, `audio-stale.json`, `audio-series.json`, `voices.json` with 31 voices, 13 male and 18 female, `attribution.json`, `jobs.json`) and add `jobs-failed.json` (one `lease_expired`, one `audio_convert_failed`, one `cancelled`). Playback, SoLoud, sensors and `audio_service` are faked through provider overrides; no audio plays on this box.
 

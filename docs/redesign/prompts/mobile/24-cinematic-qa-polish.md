@@ -47,7 +47,7 @@ Read these completely before planning. Where this file and `docs/redesign/cinema
 
 ## Scope: deliver every item below
 
-Sections cited are `cinematic/DESIGN.md` unless another file is named. "Phone" is 390 × 844 logical px; "tablet" is 820 × 1180 (portrait) and 1180 × 820 (landscape, §8.0.9), the sizes the harness uses (add any missing size to the harness size list); every pump runs once with `TargetPlatform.iOS` and once with `TargetPlatform.android` (`debugDefaultTargetPlatformOverride`, reset in `tearDown`).
+Sections cited are `cinematic/DESIGN.md` unless another file is named. "Phone" is 390 × 844 logical px and "tablet" 834 × 1194 (`kSkinShotSizes`); "tablet-wide" is 1024 × 1366 (`kSkinShotTabletWide`, the ≥ 900 px rows of §8.0.9) and "landscape" the landscape phone 844 × 390 (`kSkinShotLandscape`, §8.0.9 **Landscape phones**). These are the `mobile/03` harness constants and the only sizes this step uses; do not add sizes to the harness; every pump runs once with `TargetPlatform.iOS` and once with `TargetPlatform.android` (`debugDefaultTargetPlatformOverride`, reset in `tearDown`).
 
 ### A. Completeness, strict, and the boundary proven
 
@@ -69,8 +69,8 @@ Write these under `mobile/test/skins/cinematic/qa/`. They run in the normal `flu
    6. **`ink.45` on the wrong ground (§2.1.1, §14.2):** every `RenderParagraph` whose text colour equals `CineTokens.colorInk45` must have `paper.0` `#000000` as the first opaque background found walking up its ancestors (`ColoredBox`, `DecoratedBox` with a colour, `Material`, `Container.color`); an ancestor painting an image or a gradient counts as "over art" and fails unless the text has its own solid ground.
    7. **Text floor (§3.3, §14.7):** no visible `RenderParagraph` renders below 11 logical px at text scale 1.0.
    8. **Images:** every cover and page image has a semantics label (the series title, "Page 18 of 40") or is excluded from semantics as decorative.
-3. `cinematic_qa_test.dart`: for every entry of `qa_screens.dart`, at phone and both tablet sizes, on iOS and on Android: pump, settle (bounded: `pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 10))`, with the loading fixtures resolved), run `auditScreen`, and fail on any violation that is not in the accepted list `qa_accepted.dart` (each accepted entry names its contract section). With `MM_WRITE_QA=1` it also writes each screen's violations to `docs/redesign/proof/mobile-24/audit/<screenId>-<width>x<height>-<ios|android>.json`.
-4. `cinematic_focus_test.dart` (tablet 1180 × 820, hardware keyboard through `tester.sendKeyEvent`): on every screen, a route change moves focus to the masthead's `FocusNode` (§14.4); `Tab` 60 times, recording each focused rect: every focused widget paints `CineFocusRing` (the bone stroke over the `#000000` band out to 6 px, §2.8.2), the ring is not clipped (the focused rect inflated by 6 px lies inside the nearest clip), rails take one tab stop, and the order follows the grid's reading order (a jump backwards in y of more than 8 px outside a landmark change is recorded and fixed); opening a sheet (`CineSheetRoute`), a dialog, the command palette where the tablet has it, and the Lightbox traps focus and returns it to the trigger on close.
+3. `cinematic_qa_test.dart`: for every entry of `qa_screens.dart`, at phone, tablet, tablet-wide and landscape, on iOS and on Android: pump, settle (bounded: `pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 10))`, with the loading fixtures resolved), run `auditScreen`, and fail on any violation that is not in the accepted list `qa_accepted.dart` (each accepted entry names its contract section). With `MM_WRITE_QA=1` it also writes each screen's violations to `docs/redesign/proof/mobile-24/audit/<screenId>-<width>x<height>-<ios|android>.json`.
+4. `cinematic_focus_test.dart` (tablet-wide 1024 × 1366, hardware keyboard through `tester.sendKeyEvent`): on every screen, a route change moves focus to the masthead's `FocusNode` (§14.4); `Tab` 60 times, recording each focused rect: every focused widget paints `CineFocusRing` (the bone stroke over the `#000000` band out to 6 px, §2.8.2), the ring is not clipped (the focused rect inflated by 6 px lies inside the nearest clip), rails take one tab stop, and the order follows the grid's reading order (a jump backwards in y of more than 8 px outside a landmark change is recorded and fixed); opening a sheet (`CineSheetRoute`), a dialog, the command palette where the tablet has it, and the Lightbox traps focus and returns it to the trigger on close.
 
 ### C. Accessibility rules of §14 and every §15.7 check, on every screen
 
@@ -96,11 +96,11 @@ Work through each bullet of §15.7 and each subsection of §14, and record a pas
 
 ### E. Screenshots of every `ScreenId`
 
-Extend the harness with a `mobile-24` group (a new file `mobile/test/screenshots/cinematic_qa_shots_test.dart` reusing `support/shot_harness.dart`) that renders every entry of `qa_screens.dart` and writes, with `MM_WRITE_SHOTS=1`, into `docs/redesign/proof/mobile-24/`:
+Extend the harness with a new file `mobile/test/screenshots/cinematic_qa_shots_test.dart` built on `support/skin_shots.dart` (`captureSkinScreen` for each route with the parameters of `qa_screens.dart`, `captureSkinWidget` for fixture states), with three groups that the verification runs one at a time, each with its own `MM_PROOF_DIR` (see **Proof output location** under Verification):
 
-- `screens/<screenId>-390x844.png`, `screens/<screenId>-820x1180.png`, `screens/<screenId>-1180x820.png`, each once with the layout-grid overlay off and once on (`-grid` suffix; the Diagnostics "Show the layout grid" overlay of §2.2.2, turned on through its provider);
-- `states/<screenId>-<state>-390x844.png` and `-820x1180.png` for each loading, empty, error and offline state the contract defines for that screen (fixtures that delay, fail or report offline);
-- `a11y/<screenId>-scale2-390x844.png`, `a11y/<screenId>-bold-390x844.png`, `a11y/<screenId>-contrast-390x844.png` and `a11y/<screenId>-legible-390x844.png`.
+- group `mobile-24 screens` → `docs/redesign/proof/mobile-24/screens/`: every `ScreenId` at `phone`, `tablet`, `tablet-wide` and `landscape`, each once with the layout-grid overlay off (`cinematic-<screenId>-<w>x<h>.png`, the name `captureSkinScreen` writes) and once on (`captureSkinWidget` named `<screenId>-grid`, so `<screenId>-grid-phone.png` and so on; the Diagnostics "Show the layout grid" overlay of §2.2.2, turned on through its provider);
+- group `mobile-24 states` → `docs/redesign/proof/mobile-24/states/`: `<screenId>-<state>-phone.png` and `-tablet.png` for each loading, empty, error and offline state the contract defines for that screen (fixtures that delay, fail or report offline);
+- group `mobile-24 a11y` → `docs/redesign/proof/mobile-24/a11y/`: `<screenId>-scale2-phone.png` (`textScale: 2.0`), `<screenId>-bold-phone.png`, `<screenId>-contrast-phone.png` and `<screenId>-legible-phone.png`.
 
 Review every image with `impeccable` and `taste-skill` against the contract and fix what is wrong (off the 4-column phone grid or 8-column tablet grid, text off the baseline, `ink.45` on a raised stock, a clipped focus ring, a scrim that does not reach the text). The harness renders with the test renderer; motion and 120 Hz are proven in section I, not here.
 
@@ -138,6 +138,7 @@ After the last fix is pushed, `gh run list --branch feat/vps-slim-source-native 
    - the Edition (debug) row switching LEGACY → CINEMATIC and back (`SKIN RESTART` under 1,500 ms);
    - the Column wipe into both readers, the Dip out, the Iris (picker → shell), the trailer scrub on Tonight, Cut to home at the end of onboarding, the Lightbox open, drag-to-dismiss and close, the match cut from a poster and its reverse (iOS edge swipe reverses it with the finger; Android predictive back fades through);
    - the reader at 120 Hz with page tint on: a 120-page, 2,880 px webtoon scrolled end to end with 0 dropped frames; Android `flutter_displaymode` reports the high refresh rate in Diagnostics;
+   - the Rack focus cap at first load (§15.8, §15.6): a Library wall of at least 40 followed series and a Discover results page of 40 items, each opened cold: at most 12 covers rack-focus at once, 0 dropped frames;
    - the Listen highlighter following the narration, the lock-screen controls (`audio_service`), shake to extend the sleep timer;
    - iPhone only: the "Audio session (iOS)" row reads `ambient` after sound init and after a Hear sample;
    - text scale 1.0, 1.3 and 2.0 (iOS Larger Text; Android font size), Bold Text on, Increase Contrast on (iOS) and high-contrast text (Android), Hyperlegible text on: Tonight, Library, a feature page, the reader chrome, Listen, Settings; nothing clips;
@@ -197,7 +198,7 @@ Skin files import only `features/*/{models,providers,repositories,services,store
 
 - [ ] The Cinematic skin has no `PENDING` map, and `completeness_test.dart` fails if any `ScreenId` resolves to the pending screen in the Cinematic router.
 - [ ] The boundary proof is recorded in `qa.md` (the failure line) and the throwaway import is not in any commit.
-- [ ] `cinematic_qa_test.dart` passes for every `ScreenId` at 390 × 844, 820 × 1180 and 1180 × 820 on iOS and Android: no exception, 44 × 44 targets under iOS and 48 × 48 under Android with ≥ 8 px spacing, labelled targets, one level-1 heading, contrast, `ink.45` only on `paper.0`, no text below 11 px, labelled images; every accepted exception is listed with its section.
+- [ ] `cinematic_qa_test.dart` passes for every `ScreenId` at 390 × 844, 834 × 1194, 1024 × 1366 and 844 × 390 on iOS and Android: no exception, 44 × 44 targets under iOS and 48 × 48 under Android with ≥ 8 px spacing, labelled targets, one level-1 heading, contrast, `ink.45` only on `paper.0`, no text below 11 px, labelled images; every accepted exception is listed with its section.
 - [ ] Hardware-keyboard focus: route changes focus the masthead, every focused widget shows the unclipped `CineFocusRing`, rails are one tab stop, the order follows the reading order, sheets, dialogs and the Lightbox trap and return focus.
 - [ ] The `tint` tests pass with the over-art table complete for every text or icon run over art in the screenshots.
 - [ ] Increase Contrast remaps `ink.45` → `ink.80` and `rule.1` → `rule.2`; Bold Text adds 120 `wght`; the text-scale matrix (`MM_QA_MATRIX=1`) passes at 1.0, 1.3 and 2.0 plain, bold and Hyperlegible, with every truncation allowed by a named rule; "Transmigration" falls back at 2.0 in 358 px.
@@ -207,11 +208,11 @@ Skin files import only `features/*/{models,providers,repositories,services,store
 - [ ] The 18+ absence test passes (every local store filtered, counts silent, a queued download paused, everything back when the gate reopens); share cards draw only the `shareable` block.
 - [ ] Every destructive confirm resists two taps 150 ms apart (the 1000 ms arm), each listed; the spoiler guard holds on the three fixtures.
 - [ ] Every §15.6 guard has evidence in `qa.md`, including the limiter never exceeding 50 starts per 60 s.
-- [ ] Screenshots of every `ScreenId` at the three sizes, with and without the grid, plus the state and a11y captures, are in `docs/redesign/proof/mobile-24/`.
+- [ ] Screenshots of every `ScreenId` at the four harness sizes, with and without the grid, plus the state and a11y captures, are in `docs/redesign/proof/mobile-24/{screens,states,a11y}/`, and `git status --short mobile/docs/screenshots` prints nothing.
 - [ ] The `tests` workflow (with the APK job) and the `Build iOS` workflow are green for the final pushed commit; their URLs are in `qa.md`.
 - [ ] `device-pass.md` covers every §15.8 device item listed in section I, and Diagnostics shows the "Audio session (iOS)" row.
 - [ ] Legacy users see no change (the flip is `release/00`): with the debug row on LEGACY, Library and a reader render as before (a harness capture of each, before and after).
-- [ ] `flutter analyze` reports "No issues found"; `flutter test` passes with the passed count at or above the floor plus the new tests and 0 failed; `node design/build.mjs --check` passes.
+- [ ] `flutter analyze` reports "No issues found"; `flutter test` passes with the passed count at or above the floor plus the new tests (never below the 2012 passed of `00-baseline.md`: every test that passed there must still pass) and 0 failed; `node design/build.mjs --check` passes.
 - [ ] `docs/redesign/proof/mobile-24/qa.md` exists with every part of section J.
 
 ## Verification
@@ -225,14 +226,18 @@ free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze
 free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test test/skins
 free -m && MM_QA_MATRIX=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/skins/cinematic/qa/cinematic_text_scale_test.dart
 free -m && MM_WRITE_QA=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/skins/cinematic/qa/cinematic_qa_test.dart
-free -m && MM_WRITE_SHOTS=1 /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/cinematic_qa_shots_test.dart
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-24/screens /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/cinematic_qa_shots_test.dart --plain-name "mobile-24 screens"
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-24/states /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/cinematic_qa_shots_test.dart --plain-name "mobile-24 states"
+free -m && MM_PROOF_DIR=../docs/redesign/proof/mobile-24/a11y /srv/manhwamaniacs/dev/flutter/bin/flutter test test/screenshots/cinematic_qa_shots_test.dart --plain-name "mobile-24 a11y"
 free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test
 cd .. && node design/build.mjs --check
 ```
 
-`flutter analyze` must report "No issues found" and the full `flutter test` run must pass with no failures, at or above the floor. This step changes nothing in `frontend/` or `backend/` (`git diff --stat origin/feat/vps-slim-source-native -- frontend backend` is empty), so `npm run lint` and `npm run build` (in `frontend/`) and the backend pytest (`backend/.venv/bin/python -m pytest -q --no-header` from `backend/`) are not rerun, except the push rule under Git. CI (section H) runs every suite on the pushed commit.
+**Proof output location.** The `mobile/03` harness (`mobile/test/screenshots/support/skin_shots.dart`) writes a capture only when `MM_PROOF_DIR` is set, so every capture command above sets it (to the `screens`, `states` or `a11y` folder of `docs/redesign/proof/mobile-24/`, relative to `mobile/`) and never `MM_WRITE_SHOTS`, which makes the legacy marketing tests overwrite `mobile/docs/screenshots/`, the install page's public screenshots. The sizes are the four harness constants named at the top of the Scope. After the runs, `git status --short mobile/docs/screenshots` must print nothing.
 
-**Visual proof.** Everything in section E lands under `docs/redesign/proof/mobile-24/` from the harness at the exact sizes above. Compare each phone capture with the web twin's `docs/redesign/proof/web-24/screens/<screenId>-390x844.jpg` when present and list the differences that the contract does not explain (stack-decision risk 1).
+`flutter analyze` must report "No issues found" and the full `flutter test` run must pass with no failures, at or above the floor (never below the 2012 passed of `00-baseline.md`: every test that passed there must still pass). This step changes nothing in `frontend/` or `backend/` (`git diff --stat origin/feat/vps-slim-source-native -- frontend backend` is empty), so `npm run lint` and `npm run build` (in `frontend/`) and the backend pytest (`backend/.venv/bin/python -m pytest -q --no-header` from `backend/`) are not rerun, except the push rule under Git. CI (section H) runs every suite on the pushed commit.
+
+**Visual proof.** Everything in section E lands under `docs/redesign/proof/mobile-24/` from the harness at the exact sizes above. Compare each phone capture (`screens/cinematic-<screenId>-390x844.png`) with the web twin's `docs/redesign/proof/web-24/screens/<screenId>-390x844.jpg` when present and list the differences that the contract does not explain (stack-decision risk 1).
 
 ## Git
 
