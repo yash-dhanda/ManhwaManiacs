@@ -6,6 +6,10 @@ const BACKEND_INTERNAL_URL =
   process.env.BACKEND_INTERNAL_URL ?? "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
+  // The proof harness and the dev-stack README open the dev server by IP; Next
+  // dev refuses HMR (and so hydration) for an origin that is not listed.
+  allowedDevOrigins: ["127.0.0.1"],
+
   // Emit a self-contained server bundle (.next/standalone/server.js) for the
   // production Docker image.
   output: "standalone",
