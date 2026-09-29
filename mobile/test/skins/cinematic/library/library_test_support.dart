@@ -1,4 +1,5 @@
 // ignore_for_file: require_trailing_commas, directives_ordering
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,6 +57,7 @@ class ShelfLibrary implements LibraryRepository {
     this.failPatchIds = const {},
     this.listError,
     this.listDelay = Duration.zero,
+    this.listGate,
   });
 
   List<FollowedSeries> all;
@@ -70,6 +72,9 @@ class ShelfLibrary implements LibraryRepository {
   /// A non-network failure of the list (the `CORRECTION` state), or null.
   AppError? listError;
   Duration listDelay;
+
+  /// A list that never answers until this completes (the loading state).
+  Completer<void>? listGate;
 
   final List<Map<String, Object?>> listCalls = [];
   final List<Map<String, Object?>> patches = [];
@@ -96,6 +101,7 @@ class ShelfLibrary implements LibraryRepository {
     bool? newOnly,
   }) async {
     listCalls.add({'page': page, 'per_page': perPage, 'sort': sort, 'search': search, 'reading_status': readingStatus, 'is_favorite': isFavorite, 'tag_ids': tagIds, 'new_only': newOnly});
+    if (listGate != null) await listGate!.future;
     if (listDelay > Duration.zero) await Future<void>.delayed(listDelay);
     if (listError != null) return Err(listError!);
     if (failList) return const Err(NetworkError(message: 'offline in test'));

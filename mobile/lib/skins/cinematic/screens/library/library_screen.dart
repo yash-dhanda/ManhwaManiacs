@@ -278,9 +278,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
       _result = null;
       _undo = null;
     });
-    final r = await f(rows, cancel, (d, fl) {
-      if (mounted) setState(() => _run = (done: d, total: rows.length, failed: fl));
-    });
+    final BulkResult r;
+    try {
+      r = await f(rows, cancel, (d, fl) {
+        if (mounted) setState(() => _run = (done: d, total: rows.length, failed: fl));
+      });
+    } on StateError {
+      return; // the app's providers were torn down under the run
+    }
     if (!mounted) return;
     setState(() {
       _run = null;

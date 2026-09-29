@@ -104,3 +104,6 @@ Items only the owner can do, by step.
 
 ## mobile/08 (Tonight)
 - Device checks: see docs/redesign/proof/mobile-08/device-checklist.md (iPhone via SideStore, Android flagship).
+
+## mobile/09 (Cinematic Library shelf)
+- Device checks: see docs/redesign/proof/mobile-09/device-checklist.md (hub swipe at 120 Hz, back order, haptics, VoiceOver/TalkBack Move actions). Shipped with widget-test coverage as the fallback.

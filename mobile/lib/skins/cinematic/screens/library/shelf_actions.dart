@@ -27,20 +27,26 @@ typedef BulkResult = ({BulkOutcome outcome, String message, Future<void> Functio
 Result<void> _void<T>(Result<T> r) => r.isErr ? Err(r.error) : const Ok(null);
 
 /// The shelf's writes: one series and every bulk action of select mode (cinematic 8.9).
+///
+/// Reads go through the [ProviderContainer], not the screen's `ref`, so a bulk run that outlives
+/// the screen (the reader navigated away) still finishes and never touches a disposed element.
 class ShelfActions {
-  ShelfActions(this.context, this.ref);
+  ShelfActions(this.context, this.ref) : _c = ProviderScope.containerOf(context, listen: false);
   final BuildContext context;
-  final WidgetRef ref;
 
-  CineToastsNotifier get _toasts => ref.read(cineToastsProvider.notifier);
-  ShelfNotifier get _shelf => ref.read(shelfProvider.notifier);
+  /// Only for `downloadNextFive`, which takes a `WidgetRef`.
+  final WidgetRef ref;
+  final ProviderContainer _c;
+
+  CineToastsNotifier get _toasts => _c.read(cineToastsProvider.notifier);
+  ShelfNotifier get _shelf => _c.read(shelfProvider.notifier);
 
   void _touch({bool counts = true}) {
-    if (counts) ref.invalidate(shelfCountsProvider);
+    if (counts) _c.invalidate(shelfCountsProvider);
   }
 
   bool _matchesFilters(FollowedSeries s) {
-    final q = ref.read(shelfQueryProvider);
+    final q = _c.read(shelfQueryProvider);
     if (q.fav && !s.isFavorite) return false;
     if (q.status.wire != null && q.status.wire != s.readingStatus) return false;
     return true;
@@ -50,7 +56,7 @@ class ShelfActions {
 
   Future<void> favourite(FollowedSeries s) async {
     final want = !s.isFavorite;
-    final err = await ref.read(librarySeriesActionsProvider).setFavorite(s, favorite: want);
+    final err = await _c.read(librarySeriesActionsProvider).setFavorite(s, favorite: want);
     if (err != null) {
       _toasts.error("Couldn't update the favourite.");
       return;
@@ -58,12 +64,12 @@ class ShelfActions {
     if (context.mounted) cineFeedback(context, HapticEvent.favorite, sound: SoundEvent.favorite);
     final next = s.copyWith(isFavorite: want);
     _shelf.replace(next);
-    if (!_matchesFilters(next)) ref.invalidate(shelfProvider);
+    if (!_matchesFilters(next)) _c.invalidate(shelfProvider);
     _touch();
   }
 
   Future<void> notify(FollowedSeries s) async {
-    final Result<FollowedSeries> r = await ref.read(libraryRepositoryProvider).patchSeries(s.id, notify: !s.notify);
+    final Result<FollowedSeries> r = await _c.read(libraryRepositoryProvider).patchSeries(s.id, notify: !s.notify);
     if (r.isErr) {
       _toasts.error("Couldn't update notifications.");
       return;
@@ -72,20 +78,20 @@ class ShelfActions {
   }
 
   Future<void> setStatus(FollowedSeries s, String status) async {
-    final Result<FollowedSeries> r = await ref.read(libraryRepositoryProvider).patchSeries(s.id, readingStatus: status);
+    final Result<FollowedSeries> r = await _c.read(libraryRepositoryProvider).patchSeries(s.id, readingStatus: status);
     if (r.isErr) {
       _toasts.error("Couldn't change the status.");
       return;
     }
     if (context.mounted) cineFeedback(context, HapticEvent.select);
     _shelf.replace(r.value);
-    if (!_matchesFilters(r.value)) ref.invalidate(shelfProvider);
+    if (!_matchesFilters(r.value)) _c.invalidate(shelfProvider);
     _touch();
   }
 
   /// Takes [s] off the shelf at once; the toast's Undo re-follows and restores everything.
   Future<void> remove(FollowedSeries s) async {
-    final actions = ref.read(librarySeriesActionsProvider);
+    final actions = _c.read(librarySeriesActionsProvider);
     final removed = await actions.remove(s);
     if (removed.error != null) {
       _toasts.error("Couldn't remove ${s.title}.");
@@ -101,7 +107,7 @@ class ShelfActions {
         return;
       }
       if (context.mounted) cineFeedback(context, HapticEvent.undo, sound: SoundEvent.undo);
-      ref.invalidate(shelfProvider);
+      _c.invalidate(shelfProvider);
       _touch();
     },);
   }
@@ -114,7 +120,7 @@ class ShelfActions {
     _shelf.setRows(after);
     final changes = changedSortOrders(before, moved);
     final outcome = await runBulk<({int id, int sortOrder})>(changes, (c) async {
-      final Result<FollowedSeries> r = await ref.read(libraryRepositoryProvider).patchSeries(c.id, sortOrder: c.sortOrder);
+      final Result<FollowedSeries> r = await _c.read(libraryRepositoryProvider).patchSeries(c.id, sortOrder: c.sortOrder);
       return _void(r);
     });
     if (outcome.failed > 0) {
@@ -139,14 +145,14 @@ class ShelfActions {
       return _void(r);
     }, cancel: cancel, onProgress: onProgress,);
     _shelf.replaceMany(done);
-    ref.invalidate(shelfProvider);
+    _c.invalidate(shelfProvider);
     _touch();
     return (outcome: o, message: summarizeBulkOutcome(o, verb: verb), undo: null);
   }
 
   Future<BulkResult> setFavourite(List<FollowedSeries> rows, bool fav, {BulkCancel? cancel, void Function(int, int)? onProgress}) => _patchAll(
         rows,
-        (s) => ref.read(libraryRepositoryProvider).patchSeries(s.id, isFavorite: fav),
+        (s) => _c.read(libraryRepositoryProvider).patchSeries(s.id, isFavorite: fav),
         verb: fav ? 'Favourited' : 'Unfavourited',
         cancel: cancel,
         onProgress: onProgress,
@@ -154,7 +160,7 @@ class ShelfActions {
 
   Future<BulkResult> setStatusAll(List<FollowedSeries> rows, String status, {BulkCancel? cancel, void Function(int, int)? onProgress}) => _patchAll(
         rows,
-        (s) => ref.read(libraryRepositoryProvider).patchSeries(s.id, readingStatus: status),
+        (s) => _c.read(libraryRepositoryProvider).patchSeries(s.id, readingStatus: status),
         verb: 'Updated',
         cancel: cancel,
         onProgress: onProgress,
@@ -165,11 +171,11 @@ class ShelfActions {
   /// Every chapter of each series not yet completed, posted `manual` in chunks of 200. The Undo
   /// deletes only the keys that were not completed before.
   Future<BulkResult> markRead(List<FollowedSeries> rows, {BulkCancel? cancel, void Function(int, int)? onProgress}) async {
-    final reader = ref.read(readerRepositoryProvider);
+    final reader = _c.read(readerRepositoryProvider);
     final marked = <(FollowedSeries, List<String>)>[];
     var chapters = 0;
     final o = await runBulk<FollowedSeries>(rows, (s) async {
-      final Result<SeriesDetail> d = await ref.read(libraryRepositoryProvider).getSeries(s.id);
+      final Result<SeriesDetail> d = await _c.read(libraryRepositoryProvider).getSeries(s.id);
       if (d.isErr) return Err(d.error);
       final detail = d.value;
       final todo = [for (final k in _chapters(detail)) if (!(detail.progress[k.key]?.isCompleted ?? false)) k];
@@ -186,7 +192,7 @@ class ShelfActions {
       chapters += todo.length;
       return const Ok(null);
     }, cancel: cancel, onProgress: onProgress,);
-    ref.invalidate(shelfProvider);
+    _c.invalidate(shelfProvider);
     _touch();
     final message = o.failed > 0 || o.stopped ? summarizeBulkOutcome(o, verb: 'Marked') : 'Marked $chapters chapters read.';
     Future<void> undo() async {
@@ -195,7 +201,7 @@ class ShelfActions {
           await reader.deleteProgress(sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKeys: chunk);
         }
       }
-      ref.invalidate(shelfProvider);
+      _c.invalidate(shelfProvider);
     }
 
     if (chapters > 0) _toasts.undo(message, onUndo: () => unawaited(undo()));
@@ -205,10 +211,10 @@ class ShelfActions {
   /// Deletes the progress of every known chapter of each series; the Undo re-posts the rows that
   /// were deleted, kept in memory until the toast closes.
   Future<BulkResult> markUnread(List<FollowedSeries> rows, {BulkCancel? cancel, void Function(int, int)? onProgress}) async {
-    final reader = ref.read(readerRepositoryProvider);
+    final reader = _c.read(readerRepositoryProvider);
     final removed = <List<ProgressPush>>[];
     final o = await runBulk<FollowedSeries>(rows, (s) async {
-      final Result<SeriesDetail> d = await ref.read(libraryRepositoryProvider).getSeries(s.id);
+      final Result<SeriesDetail> d = await _c.read(libraryRepositoryProvider).getSeries(s.id);
       if (d.isErr) return Err(d.error);
       final detail = d.value;
       final keys = [for (final k in _chapters(detail)) k.key];
@@ -233,7 +239,7 @@ class ShelfActions {
       removed.add(restore);
       return const Ok(null);
     }, cancel: cancel, onProgress: onProgress,);
-    ref.invalidate(shelfProvider);
+    _c.invalidate(shelfProvider);
     _touch();
     final message = o.failed > 0 || o.stopped ? summarizeBulkOutcome(o, verb: 'Marked') : 'Marked ${o.done} series unread.';
     Future<void> undo() async {
@@ -242,7 +248,7 @@ class ShelfActions {
           await reader.saveProgressBatch(chunk);
         }
       }
-      ref.invalidate(shelfProvider);
+      _c.invalidate(shelfProvider);
     }
 
     if (o.done > 0) _toasts.undo(message, onUndo: () => unawaited(undo()));
@@ -265,7 +271,7 @@ class ShelfActions {
   /// Unfollows every series; the Undo re-follows each with its status, favourite, notify, override
   /// and position.
   Future<BulkResult> unfollow(List<FollowedSeries> rows, {BulkCancel? cancel, void Function(int, int)? onProgress}) async {
-    final actions = ref.read(librarySeriesActionsProvider);
+    final actions = _c.read(librarySeriesActionsProvider);
     final gone = <(FollowedSeries, ShelfSlots)>[];
     final o = await runBulk<FollowedSeries>(rows, (s) async {
       final r = await actions.remove(s);
@@ -274,13 +280,13 @@ class ShelfActions {
       return const Ok(null);
     }, cancel: cancel, onProgress: onProgress,);
     if (context.mounted) cineFeedback(context, HapticEvent.followRemove);
-    ref.invalidate(shelfProvider);
+    _c.invalidate(shelfProvider);
     _touch();
     Future<void> undo() async {
       for (final (s, slots) in gone) {
         await actions.restore(s, slots: slots);
       }
-      ref.invalidate(shelfProvider);
+      _c.invalidate(shelfProvider);
       _touch();
     }
 
