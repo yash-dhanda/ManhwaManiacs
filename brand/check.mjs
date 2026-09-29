@@ -95,6 +95,7 @@ function glyphs() {
       for (const [, c] of t.matchAll(/(?:fill|stroke)="([^"]*)"/g)) if (!COLOURS.has(c) && !c.startsWith('url(')) bad.push(`${f}: colour ${c}`);
     }
     report(G, `${skin} masters are 256 × 256, allowed elements, black/white/none only`, bad);
+    if (skin === 'cinematic') report(G, 'cinematic mm-mark glyphs carry the monogram-mono outline unstroked (0.03 % pixel diff vs monogram-mono.svg)', masters.filter((f) => f.includes('mm-mark') && /stroke-width="5\.84"/.test(read(f))).map((f) => `${f}: hairline stroke widens the mark`));
 
     const ids = [];
     for (const name of icons.glyphs[skin]) {
