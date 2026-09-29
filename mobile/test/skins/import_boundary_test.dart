@@ -30,7 +30,9 @@ List<String> boundaryViolations(String path, String source) {
         // A skin's own screens/ and widgets/ folders are its own code.
         final own = (inCine && i.contains('skins/cinematic/')) ||
             (inGlass && i.contains('skins/glass/'));
-        if (!own && i.contains(banned)) {
+        // Third-party packages have their own widgets/ folders; the ban is about the app's features.
+        final external = i.startsWith('package:') && !i.startsWith('package:manhwamaniacs/');
+        if (!own && !external && i.contains(banned)) {
           out.add('$p imports $i (banned: $banned)');
         }
       }

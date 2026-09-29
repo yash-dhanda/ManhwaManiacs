@@ -54,6 +54,12 @@ abstract final class CineMotion {
     MotionName.flicker: _Move(CineDur.flicker.inMilliseconds, CineCurves.drift),
     MotionName.slate: _Move(CineDur.column.inMilliseconds, CineCurves.settle),
     MotionName.ruleSlide: _Move(CineDur.column.inMilliseconds, CineCurves.settle),
+    MotionName.folioFlip: _Move(CineDur.tick.inMilliseconds, CineCurves.easeSet),
+    MotionName.insert: _Move(CineDur.column.inMilliseconds, CineCurves.settle),
+    MotionName.rise: _Move(CineDur.rise.inMilliseconds, CineCurves.settle),
+    MotionName.lightbox: _Move(CineDur.spread.inMilliseconds, CineCurves.turn),
+    MotionName.arm: _Move(CineDur.arm.inMilliseconds, CineCurves.linear),
+    MotionName.highlightSweep: _Move(CineDur.clip.inMilliseconds, CineCurves.easeSet),
   };
 
   /// Runs [name] on [controller] from its current value (or [from]) to [target]. Nothing queues:

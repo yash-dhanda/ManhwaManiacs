@@ -15,12 +15,16 @@ final class ApiError extends AppError {
     required this.code,
     required this.message,
     this.details,
+    this.retryAfter,
   });
 
   final int statusCode;
   final String code;
   final String message;
   final Object? details;
+
+  /// The `Retry-After` header as a duration, when the server sent one.
+  final Duration? retryAfter;
 
   bool get isNotFound => statusCode == 404;
   bool get isUnauthorized => statusCode == 401;

@@ -28,6 +28,15 @@ abstract final class CineGlyph {
   static const play = 0xe3d0;
   static const pause = 0xe39e;
   static const bellRinging = 0xe5e8;
+  static const plus = 0xe3d4;
+  static const minus = 0xe32a;
+  static const caretDown = 0xe136;
+  static const caretUp = 0xe13c;
+  static const caretRight = 0xe13a;
+  static const headphones = 0xe2a6;
+  static const dotsThree = 0xe1fe;
+  static const arrowLineUp = 0xe066;
+  static const arrowLineDown = 0xe05c;
 
   // Custom-font glyphs are not tree-shaken, so a non-const codepoint is fine.
   static IconData data(int cp, CineIconWeight w) => IconData(
