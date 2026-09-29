@@ -4,6 +4,7 @@ import 'package:manhwamaniacs/app/theme/app_colors.dart';
 import 'package:manhwamaniacs/app/theme/app_presets.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
+import 'package:manhwamaniacs/features/library/utils/relative_read_time.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/widgets/pressable.dart';
 import 'package:manhwamaniacs/shared/widgets/series_cover_image.dart';
@@ -137,22 +138,6 @@ class HistorySeriesCard extends ConsumerWidget {
 
   static String _trimZero(double value) =>
       value == value.roundToDouble() ? value.round().toString() : '$value';
-}
-
-/// "2h ago", not "Sep 20, 2026 3:42 PM".
-///
-/// History answers "where was I", and an absolute timestamp makes the reader
-/// do the subtraction. Past a week the date is genuinely more useful than
-/// "37 days ago", so it switches.
-String relativeReadTime(DateTime when, {DateTime? now}) {
-  final gap = (now ?? DateTime.now()).difference(when);
-  if (gap.isNegative) return 'just now';
-  if (gap.inMinutes < 1) return 'just now';
-  if (gap.inMinutes < 60) return '${gap.inMinutes}m ago';
-  if (gap.inHours < 24) return '${gap.inHours}h ago';
-  if (gap.inDays < 7) return '${gap.inDays}d ago';
-  if (gap.inDays < 365) return '${(gap.inDays / 7).floor()}w ago';
-  return '${(gap.inDays / 365).floor()}y ago';
 }
 
 /// The play badge. Owns its busy state so the card does not have to.

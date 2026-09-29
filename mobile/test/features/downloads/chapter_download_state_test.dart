@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
+import 'package:manhwamaniacs/features/downloads/models/series_chapter_download_action.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
-import 'package:manhwamaniacs/features/downloads/widgets/chapter_download_action.dart';
+import 'package:manhwamaniacs/features/downloads/utils/chapter_download_action.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_label.dart';
 import 'package:manhwamaniacs/shared/widgets/series_detail/series_chapter_tile.dart';
 

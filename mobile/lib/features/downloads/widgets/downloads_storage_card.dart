@@ -9,23 +9,9 @@ import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart'
 import 'package:manhwamaniacs/features/downloads/providers/downloads_storage_providers.dart';
 import 'package:manhwamaniacs/features/downloads/providers/storage_settings_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_constants.dart';
+import 'package:manhwamaniacs/features/downloads/utils/format_bytes.dart';
 import 'package:manhwamaniacs/shared/widgets/glass_card.dart';
 import 'package:manhwamaniacs/shared/widgets/skeleton_box.dart';
-
-/// Formats a byte count as a compact human-readable size ("4.2 MB"). Shared
-/// with the image-cache card above it on the Storage screen.
-String formatDownloadBytes(int bytes) {
-  if (bytes <= 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  var value = bytes.toDouble();
-  var unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex++;
-  }
-  final formatted = unitIndex == 0 ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
-  return '$formatted ${units[unitIndex]}';
-}
 
 /// The on-device chapter store's own storage card (spec §3b): real device
 /// bytes (not server bytes — the old, deleted server-download queue used

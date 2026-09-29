@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
+import 'package:manhwamaniacs/features/downloads/models/series_chapter_download_action.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
-import 'package:manhwamaniacs/shared/widgets/series_detail/series_chapter_tile.dart';
 
 /// Builds the trailing download control for one [SeriesChapterTile] from its
 /// on-device [status] plus, for the one chapter the queue is fetching right
