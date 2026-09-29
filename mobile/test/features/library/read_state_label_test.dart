@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/library/models/followed_series_meta.dart';
 import 'package:manhwamaniacs/features/library/models/read_state.dart';
 import 'package:manhwamaniacs/features/library/utils/local_read_marks.dart';
 import 'package:manhwamaniacs/features/library/utils/read_state_label.dart';
