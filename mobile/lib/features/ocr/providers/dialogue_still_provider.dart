@@ -27,7 +27,7 @@ typedef DialogueStillKey = ({ChapterIdentity chapter, int page});
 /// blob when the chapter is downloaded. Null when the page can't be found.
 final dialogueStillProvider = FutureProvider.autoDispose
     .family<DialogueStill?, DialogueStillKey>((ref, key) async {
-  final limiter = ref.read(requestLimiterProvider);
+  final limiter = ref.read(sourcesLimiterProvider);
   final local =
       await ref.read(downloadsStoreProvider)?.localPagePaths(key.chapter) ??
           const <int, File>{};

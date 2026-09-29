@@ -19,7 +19,7 @@ class _Limiter extends RequestLimiter {
   final seen = <RequestPriority>[];
 
   @override
-  Future<T> run<T>(RequestPriority priority, Future<T> Function() request) {
+  Future<T> run<T>(RequestPriority priority, Future<T> Function() request, {Future<void>? cancel}) {
     seen.add(priority);
     return request();
   }
@@ -68,7 +68,7 @@ void main() {
   test('genre cover lookup runs at P3', () async {
     final limiter = _Limiter();
     final c = ProviderContainer(overrides: [
-      requestLimiterProvider.overrideWithValue(limiter),
+      sourcesLimiterProvider.overrideWithValue(limiter),
       sourcesRepositoryProvider.overrideWithValue(_Repo()),
     ],);
     addTearDown(c.dispose);
@@ -80,7 +80,7 @@ void main() {
     final limiter = _Limiter();
     final dio = Dio()..httpClientAdapter = _Bytes();
     final c = ProviderContainer(overrides: [
-      requestLimiterProvider.overrideWithValue(limiter),
+      sourcesLimiterProvider.overrideWithValue(limiter),
       sourcesRepositoryProvider.overrideWithValue(_Repo()),
       downloadsStoreProvider.overrideWithValue(null),
       dioProvider.overrideWithValue(dio),

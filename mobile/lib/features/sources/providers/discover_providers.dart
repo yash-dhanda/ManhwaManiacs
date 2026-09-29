@@ -19,7 +19,7 @@ final sourceGenresProvider = FutureProvider.autoDispose
   final link = ref.keepAlive();
   final timer = Timer(const Duration(hours: 24), link.close);
   ref.onDispose(timer.cancel);
-  final result = await ref.read(requestLimiterProvider).run(RequestPriority.p3,
+  final result = await ref.read(sourcesLimiterProvider).run(RequestPriority.p3,
       () => ref.read(sourcesRepositoryProvider).listGenres(sourceId),);
   if (result.isErr) return const [];
   return result.value;
@@ -28,7 +28,7 @@ final sourceGenresProvider = FutureProvider.autoDispose
 /// `GET /sources/health` rows (worst first).
 final sourcesHealthProvider =
     FutureProvider.autoDispose<List<SourceSummary>>((ref) async {
-  final result = await ref.read(requestLimiterProvider).run(RequestPriority.p1,
+  final result = await ref.read(sourcesLimiterProvider).run(RequestPriority.p1,
       () => ref.read(sourcesRepositoryProvider).listHealth(),);
   if (result.isErr) throw result.error;
   return result.value;
@@ -36,7 +36,7 @@ final sourcesHealthProvider =
 
 final sourceHealthSummaryProvider =
     FutureProvider.autoDispose<SourceHealthSummary>((ref) async {
-  final result = await ref.read(requestLimiterProvider).run(RequestPriority.p1,
+  final result = await ref.read(sourcesLimiterProvider).run(RequestPriority.p1,
       () => ref.read(sourcesRepositoryProvider).healthSummary(),);
   if (result.isErr) throw result.error;
   return result.value;
@@ -46,7 +46,7 @@ final sourceHealthSummaryProvider =
 final popularFirstPageProvider = FutureProvider.autoDispose
     .family<List<SourceSeriesSummary>, String>((ref, sourceId) async {
   final repo = ref.read(sourcesRepositoryProvider);
-  final limiter = ref.read(requestLimiterProvider);
+  final limiter = ref.read(sourcesLimiterProvider);
   final modes = await limiter.run(
       RequestPriority.p3, () => repo.listBrowseModes(sourceId),);
   if (modes.isErr || !modes.value.any((m) => m.id == 'popular')) {
@@ -99,7 +99,7 @@ final trendingProvider =
 final genreCoverProvider = FutureProvider.autoDispose
     .family<SourceSeriesSummary?, ({String sourceId, String genre})>(
         (ref, key) async {
-  final result = await ref.read(requestLimiterProvider).run(
+  final result = await ref.read(sourcesLimiterProvider).run(
         RequestPriority.p3,
         () => ref
             .read(sourcesRepositoryProvider)
