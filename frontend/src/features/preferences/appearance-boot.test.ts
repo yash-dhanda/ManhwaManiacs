@@ -273,7 +273,7 @@ describe("appearance boot script — first-paint accessibility", () => {
       key: (i: number) => keys[i] ?? null,
       getItem: (k: string) => store[k] ?? null,
     };
-    const doc = { documentElement: { setAttribute: (n: string, v: string) => (attrs[n] = v) } };
+    const doc = { documentElement: { setAttribute: (n: string, v: string) => { if (n !== "data-glass-renderer") attrs[n] = v; } } };
     new Function("localStorage", "document", "location", APPEARANCE_BOOT_SOURCE)(ls, doc, { pathname });
     // The Glass renderer stamp is unconditional and covered by its own test below.
     delete attrs["data-glass-renderer"];

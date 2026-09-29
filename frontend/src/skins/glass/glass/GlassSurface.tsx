@@ -9,7 +9,7 @@ import { createPortal } from "react-dom";
 import { isGlassReduced, play } from "../motion";
 import { MOTION_LABELS } from "../motion.generated";
 import { beginRecord, trackFrames } from "../motion-recorder";
-import { recomputeStacking, registerGlass, useForcedSolid, type GlassLayer } from "./budget";
+import { recomputeStacking, registerGlass, useBudgetScope, useForcedSolid, type GlassLayer } from "./budget";
 import { useGlassEnv } from "./env";
 import { liquidMap, maskHref, type LiquidMap, type MapShape } from "./liquid-map";
 import { dimFor, gradFor, rondFor, tierAt, tierFor, TIERS, type Tier } from "./material";
@@ -128,6 +128,7 @@ export function GlassSurface({
   const [map, setMap] = useState<LiquidMap | null>(null);
   const [isPresent, safeToRemove] = usePresence();
   const forcedSolid = useForcedSolid(id);
+  const scope = useBudgetScope();
 
   const twinEff: GlassTwin | undefined = twin ?? (parentLive ? "onGlass" : undefined);
   const [entering, setEntering] = useState(materialize && !twinEff);
@@ -234,10 +235,10 @@ export function GlassSurface({
   const label = typeof rest["aria-label"] === "string" ? (rest["aria-label"] as string) : `${Tag as string}.${className ?? tierBase}`;
   useEffect(() => {
     if (!live) return;
-    const off = registerGlass({ id, kind: "glass", layer, label, el: hostRef.current });
+    const off = registerGlass({ id, kind: "glass", layer, label, el: hostRef.current, exempt: scope.exempt });
     window.addEventListener("resize", recomputeStacking);
     return () => { off(); window.removeEventListener("resize", recomputeStacking); };
-  }, [live, id, layer, label]);
+  }, [live, id, layer, label, scope.exempt]);
 
   const setHost = useCallback((el: HTMLElement | null) => { hostRef.current = el; setRef(ref, el); }, [ref]);
   const glow = pressedGlow;
