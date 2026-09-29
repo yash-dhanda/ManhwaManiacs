@@ -5,12 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/router/routes.dart';
+import 'package:manhwamaniacs/app/skin_boot.dart';
+import 'package:manhwamaniacs/app/switch_skin.dart';
 import 'package:manhwamaniacs/app/theme/app_colors.dart';
 import 'package:manhwamaniacs/app/theme/app_presets.dart';
 import 'package:manhwamaniacs/core/diagnostics/performance_monitor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/widgets/glass_card.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
 
 /// Developer diagnostics: live rendering performance, display/refresh-rate
 /// verification, device details and image-cache usage. Reached from Settings →
@@ -88,6 +92,10 @@ class _DiagnosticsScreenState extends ConsumerState<DiagnosticsScreen> {
           const _SectionHeading('Image cache'),
           SizedBox(height: context.space.sm),
           const _ImageCacheCard(),
+          SizedBox(height: context.space.xl2),
+          const _SectionHeading('Edition (debug)'),
+          SizedBox(height: context.space.sm),
+          const _EditionCard(),
         ],
       ),
     );
@@ -398,6 +406,58 @@ class _InfoRow extends StatelessWidget {
               value,
               style: context.text.labelLg,
               textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pre-flip debug row (cinematic §8.0.7): a device override for previewing the
+/// other edition. Never touches the profile; goes away at the flip.
+class _EditionCard extends ConsumerWidget {
+  const _EditionCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final running = ref.watch(skinIdProvider);
+    final override = ref.watch(sharedPrefsProvider).getString(kSkinDebugKey);
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "A device override for this phone. It never changes the profile's edition, and it goes away at the flip.",
+            style: context.text.caption,
+          ),
+          SizedBox(height: context.space.md),
+          _InfoRow(label: 'Now showing', value: running.name),
+          _InfoRow(label: 'Override', value: override ?? 'none'),
+          SizedBox(height: context.space.md),
+          Semantics(
+            label: 'Edition override',
+            container: true,
+            child: SegmentedButton<SkinId>(
+              showSelectedIcon: false,
+              style: const ButtonStyle(
+                tapTargetSize: MaterialTapTargetSize.padded,
+                minimumSize: WidgetStatePropertyAll(Size(120, 44)),
+              ),
+              segments: [
+                for (final id in kDebugSkins)
+                  ButtonSegment<SkinId>(value: id, label: Text(id.name.toUpperCase())),
+              ],
+              selected: {running},
+              onSelectionChanged: (s) => debugSwitchSkin(context, ref, s.first),
+            ),
+          ),
+          Semantics(
+            label: 'Clear override',
+            button: true,
+            child: TextButton(
+              onPressed: override == null ? null : () => debugSwitchSkin(context, ref, null),
+              child: const Text('Clear override'),
             ),
           ),
         ],
