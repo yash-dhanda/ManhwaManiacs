@@ -19,9 +19,12 @@ import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:motor/motor.dart';
 
 class GlassSegment<T> {
-  const GlassSegment({required this.value, required this.label});
+  const GlassSegment({required this.value, required this.label, this.icon});
   final T value;
   final String label;
+
+  /// A leading glyph (the content-mode switch: `strip-scroll` Manga, `book-open` Novels).
+  final IconData? icon;
 }
 
 /// The segmented control (glass 7.6). Tapping a segment moves the thumb on `springTab`. Dragging the thumb
@@ -198,7 +201,7 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
     return LayoutBuilder(
       builder: (context, c) {
         final st = roleStyle(context, gt.typeSubhead, legible: legible, wght: 620, maxScale: 1.5);
-        final labelWidths = [for (final s in widget.segments) measureText(context, s.label, st).width];
+        final labelWidths = [for (final s in widget.segments) measureText(context, s.label, st).width + (s.icon != null ? 22 : 0)];
         final natural = labelWidths.map((w) => w + 32).reduce(math.max) * n + 4;
         final total = (c.hasBoundedWidth ? c.maxWidth : natural).clamp(0.0, 4000.0);
         _widths = segmentWidths(labelWidths: labelWidths, total: total - 4);
@@ -342,7 +345,16 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
             child: Center(
               child: loading
                   ? const GlassSpinner()
-                  : GlassLabel(s.label, role: gt.typeSubhead, wght: 620, color: sel ? gt.colorLabel1 : gt.colorLabel2),
+                  : s.icon == null
+                      ? GlassLabel(s.label, role: gt.typeSubhead, wght: 620, color: sel ? gt.colorLabel1 : gt.colorLabel2)
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(s.icon, size: 16, color: sel ? gt.colorLabel1 : gt.colorLabel2),
+                            const SizedBox(width: 6),
+                            GlassLabel(s.label, role: gt.typeSubhead, wght: 620, color: sel ? gt.colorLabel1 : gt.colorLabel2),
+                          ],
+                        ),
             ),
           ),
         ),
