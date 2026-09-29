@@ -12,7 +12,7 @@ export type SetTrigger = "inView" | "mount" | "signal";
 
 const parent: Variants = {
   hidden: {},
-  show: (n: number) => ({ transition: { delayChildren: stagger(Math.min(0.024, 0.56 / Math.max(1, n - 1)), { startDelay: 0.12 }) } }),
+  show: ({ n, startDelay }: { n: number; startDelay: number }) => ({ transition: { delayChildren: stagger(Math.min(0.024, 0.56 / Math.max(1, n - 1)), { startDelay }) } }),
 };
 const letter: Variants = {
   hidden: { opacity: 0, y: "0.42em", filter: "blur(8px)" },
@@ -63,9 +63,11 @@ export type SetHeadingProps = {
   play?: boolean;
   /** Extra props on the element (tabIndex for masthead focus, etc.). */
   tabIndex?: number;
+  /** ms before the first letter (default 120). The Press start splash passes 0: its timeline replaces the start delay. */
+  startDelay?: number;
 };
 
-export function SetHeading({ text, id, as: Tag = "h2", className, trigger = "inView", play = false, tabIndex }: SetHeadingProps) {
+export function SetHeading({ text, id, as: Tag = "h2", className, trigger = "inView", play = false, tabIndex, startDelay = 120 }: SetHeadingProps) {
   const key = id ?? text;
   const reduce = useCineReduced();
   const ref = useRef<HTMLElement>(null);
@@ -118,7 +120,7 @@ export function SetHeading({ text, id, as: Tag = "h2", className, trigger = "inV
       initial="hidden" animate={phase === "run" ? "show" : "hidden"}
       onAnimationStart={(def) => { if (def === "show" && !rec.current) rec.current = startMove("letterSet", 120 + step * Math.max(0, n - 1) + 640); }}
       onAnimationComplete={(def) => def === "show" && setPhase("done")}
-      variants={parent} custom={n}>
+      variants={parent} custom={{ n, startDelay: startDelay / 1000 }}>
       {sr}{spans(true)}
     </M>
   );

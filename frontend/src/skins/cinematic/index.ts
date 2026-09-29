@@ -2,7 +2,7 @@ import { coreFonts } from "./fonts";
 import { readingFonts } from "./reading-fonts";
 import type { ScreenId } from "../contract.generated";
 import Pending from "../pending";
-import { PendingShell } from "../pending-shell";
+import Shell from "./Shell";
 import FeatureByFollowScreen from "./screens/feature/FeatureByFollowScreen";
 import FeatureScreen from "./screens/feature/FeatureScreen";
 import SetupRedirect from "../setup-redirect";
@@ -85,4 +85,4 @@ export const screens = {
   readerLanding: Pending,
 } satisfies Record<ScreenId, Screen>;
 
-export const cinematic: Skin = { id: "cinematic", fontClassName: [...coreFonts, ...readingFonts].map((f) => f.variable).join(" "), Shell: PendingShell, screens };
+export const cinematic: Skin = { id: "cinematic", fontClassName: [...coreFonts, ...readingFonts].map((f) => f.variable).join(" "), Shell, screens };
