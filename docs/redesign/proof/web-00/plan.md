@@ -34,11 +34,29 @@ Baseline (before any change): Vitest 159 files / 2810 tests pass. Legacy curls: 
 first. Dev server `next dev -p 3013` against the lane backend on 8013, browsed via `localhost` (Next 16 blocks
 dev resources to `127.0.0.1` without `allowedDevOrigins`).
 
-## Deviation found while verifying
+## Deviation found while verifying (final approach after fix pass 1)
 
 Legacy's `AppShell` renders no children on the server (auth gate), so a page's `notFound()` never reached the
-HTML shell and `/setup`, `/circle`, `/settings/profile` and unmatched URLs answered 200. Fix: two files outside the
-prompt's layout, `skins/screen-status.ts` (a per-request `cache()`d promise settled by `renderScreen`, by
-`markScreenMissing` in `[...missing]`, and by legacy's self-settling settings wrapper) and
-`skins/not-found-status.tsx` (an SSR-only probe in the `(app)` layout, outside the Shell, that throws `notFound()`
-when the screen is missing). `completeness.test.ts` checks every `(app)` route file settles the status.
+server render and `/setup`, `/welcome`, `/circle`, `/settings/profile` and unmatched URLs answered 200. Before the
+skins these were Next's own not-found route: status 404, the root layout, and `not-found.tsx` rendered as a page.
+
+Throwing `notFound()` anywhere the server render reaches does not recover that in Next 16.2: the not-found boundary
+is a client component, so a thrown 404 during SSR always yields the bare `<html id="__next_error__">` document
+(checked for cinematic too, whose Shell renders children). That document is client-rendered whole, so the appearance
+boot script never runs ("Encountered a script tag"), the dev overlay shows an issue badge, and with the API
+unreachable the shell's picker redirect crashed Next's router ("Rendered more hooks") into the global error screen.
+The first fix (an SSR probe in the `(app)` layout throwing `notFound()`) hit exactly that and was reverted.
+
+Final approach, two files outside the prompt's layout, both deleted with legacy at the flip:
+
+- `src/proxy.ts`: for a legacy request (`resolveSkin` of the two cookies, now shared with `getSkin`) whose path has
+  no legacy screen (route table built from `SCREENS` in the contract; `LEGACY_LACKS`; `/settings/:section`; anything
+  else falls to `[...missing]`), rewrite to `/legacy-not-found` with status 404. Pages only: `_*`, `api`,
+  `skin-preview` and any path with a dot are not matched.
+- `app/(app)/legacy-not-found/page.tsx`: renders the `(app)/not-found.tsx` screen (and its metadata) as a page for
+  legacy, `notFound()` for any other skin.
+
+`[...missing]`, `renderScreen` and legacy's settings wrapper call `notFound()` exactly as the prompt specifies (legacy
+never reaches them now; cinematic and glass keep Next's thrown 404). `src/proxy.test.ts` checks the proxy's route
+table against every `(app)` route file and the legacy 404 set. Known ceiling: an unmatched legacy URL containing a
+dot (`/foo.bar`) is not matched by the proxy and answers 200 (the not-found screen still shows).
