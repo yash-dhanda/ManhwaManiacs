@@ -68,6 +68,9 @@ ChapterManifest _manifestFor(String chapterKey, {required String pagePrefix}) {
 }
 
 class _FakeReaderRepository implements ReaderRepository {
+  @override
+  Future<Result<void>> deleteProgress({required String sourceId, required String seriesKey, required List<String> chapterKeys}) async => const Ok(null);
+
   /// Where this source says its pages live. Mutable so a test can make the
   /// SAME chapter resolve to different bytes — a chapter that finished
   /// downloading mid-read is exactly that.

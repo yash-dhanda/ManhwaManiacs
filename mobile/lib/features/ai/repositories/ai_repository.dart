@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 
 /// The AI desk's suggested-tags line. Any failure (a 404 before backend/05
 /// exists, offline, the desk closed) reads as "nothing suggested": the UI
@@ -42,5 +44,29 @@ class AiRepository {
         'tag': tag,
       },);
     } catch (_) {}
+  }
+
+  /// `POST /ai/feedback` (204): `not_interested`, `undo`, `liked_pick`, `tag_rejected`, `clear`.
+  Future<Result<void>> sendFeedback({
+    required String signal,
+    int? anilistId,
+    String? sourceId,
+    String? seriesKey,
+    String? tag,
+  }) async {
+    try {
+      await _dio.post<void>('/ai/feedback', data: {
+        'signal': signal,
+        if (anilistId != null) 'anilist_id': anilistId,
+        if (sourceId != null) 'source_id': sourceId,
+        if (seriesKey != null) 'series_key': seriesKey,
+        if (tag != null) 'tag': tag,
+      },);
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(e.error is AppError ? e.error! as AppError : UnknownError(message: e.message ?? 'Dio error', cause: e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
   }
 }

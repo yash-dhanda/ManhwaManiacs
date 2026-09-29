@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/core/time/server_instant.dart';
+import 'package:manhwamaniacs/features/library/models/ambient.dart';
 import 'package:manhwamaniacs/features/library/models/known_chapter.dart';
 import 'package:manhwamaniacs/features/library/models/read_state.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
@@ -31,6 +32,7 @@ class FollowedSeries {
     this.updatedAt,
     this.readState,
     this.tags = const [],
+    this.ambient,
   });
 
   final int id;
@@ -76,6 +78,9 @@ class FollowedSeries {
   /// This profile's own tags on the series, where the list payload sent them.
   final List<Tag> tags;
 
+  /// The series' issue colours where the payload carried them (`GET /home` rows); else null.
+  final Ambient? ambient;
+
   /// This row with a new resolved [rating] (and, when [setOverride], a new override).
   FollowedSeries withRating(String rating, {bool? matureOverride, bool setOverride = false}) =>
       FollowedSeries(
@@ -99,6 +104,7 @@ class FollowedSeries {
         updatedAt: updatedAt,
         readState: readState,
         tags: tags,
+        ambient: ambient,
       );
 
   FollowedSeries copyWith({bool? isFavorite, String? readingStatus, bool? notify}) {
@@ -123,6 +129,7 @@ class FollowedSeries {
       updatedAt: updatedAt,
       readState: readState,
       tags: tags,
+      ambient: ambient,
     );
   }
 
@@ -154,6 +161,7 @@ class FollowedSeries {
             .whereType<Map<String, dynamic>>()
             .map(Tag.fromJson)
             .toList(),
+        ambient: Ambient.tryParse(json['ambient']),
       );
 
   /// Round-trips through [FollowedSeries.fromJson]. Written to the offline
@@ -182,6 +190,7 @@ class FollowedSeries {
         'created_at': createdAt?.toIso8601String(),
         'updated_at': updatedAt?.toIso8601String(),
         'read_state': readState?.toJson(),
+        if (ambient != null) 'ambient': ambient!.toJson(),
       };
 }
 

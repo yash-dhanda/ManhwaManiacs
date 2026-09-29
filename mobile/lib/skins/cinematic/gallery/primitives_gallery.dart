@@ -30,6 +30,7 @@ const List<String> kGallerySections = [
   'layout',
   'grain-duotone',
   'reveals',
+  'streak-flame',
   'motion-timings',
   ...kOverlayGallerySections,
   ...kShellGallerySections,
@@ -120,6 +121,7 @@ class _GalleryBodyState extends ConsumerState<_GalleryBody> {
       'layout' => _layout(context),
       'grain-duotone' => _grainDuotone(context),
       'reveals' => _reveals(context),
+      'streak-flame' => _flames(context),
       'motion-timings' => _timings(context),
       _ when kOverlayGallerySections.contains(id) => OverlayGallerySection(id: id),
       _ when kShellGallerySections.contains(id) => ShellGallerySection(id: id),
@@ -569,10 +571,33 @@ class _GalleryBodyState extends ConsumerState<_GalleryBody> {
         linked: true,
         trigger: SetTrigger.mount,
       ),
+      _tag(context, 'Roman range inside an italic head (Because you read ...)'),
+      SetHeading(
+        'Because you read Sword of the Ninth Spring',
+        id: 'gallery-reveal-roman',
+        style: CineText.style(context, c.typeSection).copyWith(color: c.colorInk100),
+        cap: c.typeSection.cap,
+        level: 2,
+        trigger: SetTrigger.mount,
+        roman: (start: 17, end: 42),
+      ),
       _tag(context, 'Type: one grapheme per 50 ms, tap to skip'),
       TypedHeadline('Twelve days and counting. One chapter keeps it alive.', style: CineText.style(context, c.typeHeadline).copyWith(color: c.colorInk100), cap: c.typeHeadline.cap, level: 2),
     ]);
   }
+
+  Widget _flames(BuildContext context) => _sec(context, 'streak-flame', 'Streak flame', [
+        Wrap(spacing: 24, runSpacing: 24, children: [
+          for (final (caption, streak, now) in galleryStreaks)
+            SizedBox(
+              width: 132,
+              child: Column(children: [
+                for (final size in const [96.0, 24.0, 16.0]) Padding(padding: const EdgeInsets.only(bottom: 8), child: StreakFlame(streak: streak, size: size, now: now, ignite: false)),
+                CineRoleText(caption, context.cine.typeMicro, color: context.cine.colorInk45, textAlign: TextAlign.center),
+              ],),
+            ),
+        ],),
+      ]);
 
   Widget _timings(BuildContext context) => _sec(context, 'motion-timings', 'Motion timings', [
         CineRoleText('Turn on “Show motion timings” in Diagnostics to record every move; this panel lists the last 20.', context.cine.typeCaption, color: context.cine.colorInk60),

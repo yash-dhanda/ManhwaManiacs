@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
@@ -21,6 +22,7 @@ class CineFeatureCard extends StatelessWidget {
     this.loading = false,
     this.error = false,
     this.ambientKicker = false,
+    this.heroTag,
   });
 
   final String title;
@@ -30,6 +32,9 @@ class CineFeatureCard extends StatelessWidget {
 
   /// Kicker in the series' `ambient.ink` (needs a [CineAmbient] above) instead of `ink.45`.
   final bool ambientKicker;
+
+  /// The `(sourceId, seriesKey)` Hero tag of the match cut to the series page.
+  final (String, String)? heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +58,7 @@ class CineFeatureCard extends StatelessWidget {
           } else {
             image = CineImage(url: imageUrl, title: title);
           }
+          if (heroTag != null) image = Hero(tag: heroTag!, transitionOnUserGestures: defaultTargetPlatform == TargetPlatform.iOS, child: image);
           image = ClipRect(child: AnimatedScale(scale: lit && !reduced ? 1.04 : 1, duration: reduced ? Duration.zero : c.durClip, curve: c.easeSettle, child: image));
           final tokens = c;
           return AnimatedContainer(

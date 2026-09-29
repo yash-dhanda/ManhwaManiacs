@@ -10,7 +10,6 @@ import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provi
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
-import 'package:manhwamaniacs/features/library/repositories/progress_deleter.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
@@ -94,10 +93,11 @@ class ChapterMarks {
     required Set<String> previouslyCompleted,
   }) async {
     final repo = ref.read(readerRepositoryProvider);
-    final rows = manualReadRows(d.sourceId, d.seriesKey, [
-      for (final c in chapters) (key: c.id, number: c.number, pageCount: c.pageCount),
+    final rows = manualReadRows([
+      for (final c in chapters)
+        (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number, pageCount: c.pageCount, completed: false),
     ]);
-    for (final chunk in chunked(rows)) {
+    for (final chunk in chunksOf200(rows)) {
       await repo.saveProgressBatch(chunk);
     }
     _refresh();
@@ -108,11 +108,9 @@ class ChapterMarks {
   Future<void> undoMarkRead(Set<String> previouslyCompleted, List<String> marked) async {
     final keys = undoMarkReadKeys(previouslyCompleted, marked);
     if (keys.isEmpty) return;
-    await ref.read(progressDeleterProvider).deleteProgress(
-          sourceId: d.sourceId,
-          seriesKey: d.seriesKey,
-          chapterKeys: keys,
-        );
+    for (final chunk in chunksOf200(keys)) {
+      await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
+    }
     _refresh();
   }
 
@@ -128,11 +126,9 @@ class ChapterMarks {
     await ref
         .read(sourceProgressProvider.notifier)
         .forget(sourceId: d.sourceId, seriesId: d.seriesKey, chapterIds: keys);
-    await ref.read(progressDeleterProvider).deleteProgress(
-          sourceId: d.sourceId,
-          seriesKey: d.seriesKey,
-          chapterKeys: keys,
-        );
+    for (final chunk in chunksOf200(keys)) {
+      await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
+    }
     _refresh();
     return prior;
   }
@@ -156,7 +152,7 @@ class ChapterMarks {
           lastReadAt: e.value.updatedAt,
         ),
     ];
-    for (final chunk in chunked(rows)) {
+    for (final chunk in chunksOf200(rows)) {
       await repo.saveProgressBatch(chunk);
     }
     await ref.read(sourceProgressProvider.notifier).restoreRecords(

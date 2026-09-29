@@ -143,6 +143,8 @@ class _CineImageState extends ConsumerState<CineImage> {
         if (mounted && gen == _gen) setState(() => _provider = CineImage.providerBuilder(finalUrl, headers));
         return;
       }
+      // The cache probe is async: a page that was left meanwhile must not touch `ref`.
+      if (!mounted || gen != _gen) return;
       final limiter = ref.read(sourcesLimiterProvider);
       LimiterTicket ticket;
       try {

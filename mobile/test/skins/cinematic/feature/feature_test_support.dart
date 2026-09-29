@@ -25,7 +25,6 @@ import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
-import 'package:manhwamaniacs/features/library/repositories/progress_deleter.dart';
 import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_coverage.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
@@ -163,14 +162,6 @@ class FakeReader implements ReaderRepository {
       const Ok(<ReadingProgress>[]);
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class FakeDeleter extends ProgressDeleter {
-  FakeDeleter(this.rec) : super(Dio());
-  final Recorder rec;
-
-  @override
   Future<Result<void>> deleteProgress({
     required String sourceId,
     required String seriesKey,
@@ -179,6 +170,9 @@ class FakeDeleter extends ProgressDeleter {
     rec.deleted.add((source: sourceId, series: seriesKey, keys: chapterKeys));
     return const Ok(null);
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class RecordingQueue extends DownloadQueueController {
@@ -407,7 +401,6 @@ List<Override> featureOverrides(FeatureRig r, SharedPreferences prefs, {required
       ),
       deviceOnlineProvider.overrideWith((ref) => Stream.value(r.online)),
       readerRepositoryProvider.overrideWithValue(FakeReader(r.rec)),
-      progressDeleterProvider.overrideWithValue(FakeDeleter(r.rec)),
       libraryRepositoryProvider.overrideWithValue(
           FakeLibrary(r.rec, followed: r.followed, tags: r.tags, shelves: r.shelves),),
       downloadQueueControllerProvider.overrideWith(() => r.queue),

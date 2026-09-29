@@ -147,4 +147,28 @@ void main() {
     expect(s, isNot(isSemantics(isHeader: true)));
     h.dispose();
   });
+
+  testWidgets('a roman range sets the seed title upright inside an italic head, per letter and at rest', (t) async {
+    const text = 'Because you read Sword';
+    Widget heading() => SetHeading(text, id: 'h-roman', style: _style.copyWith(fontStyle: FontStyle.italic), cap: 1.3, level: 2, trigger: SetTrigger.mount, roman: (start: 17, end: 22));
+    await t.pumpWidget(_host(c, heading()));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 100));
+    List<FontStyle?> styles() => [
+          for (final w in t.widgetList<Text>(find.descendant(of: find.byType(SetHeading), matching: find.byType(Text)))) w.style?.fontStyle,
+        ];
+    final st = styles();
+    // 'Because' 'you' 'read' 'Sword' = 7 + 3 + 4 + 5 letters, plus the two spaces between words.
+    expect(st.where((f) => f == FontStyle.normal).length, 5);
+    await t.pump(const Duration(milliseconds: 1500));
+    // At rest (already seen): one Text.rich, the last word upright.
+    await t.pumpWidget(_host(c, const SizedBox()));
+    await t.pumpWidget(_host(c, heading()));
+    await t.pump();
+    final rich = t.widget<Text>(find.descendant(of: find.byType(SetHeading), matching: find.byType(Text)).first);
+    final spans = (rich.textSpan! as TextSpan).children!.cast<TextSpan>();
+    expect(spans.map((s) => s.text), ['Because you read ', 'Sword', '']);
+    expect(spans[1].style?.fontStyle, FontStyle.normal);
+    expect(t.getSemantics(find.byType(SetHeading)).label, text);
+  });
 }

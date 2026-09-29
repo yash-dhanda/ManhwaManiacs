@@ -34,6 +34,9 @@ const _id = (sourceId: 'asura', seriesKey: 'solo-leveling', chapterKey: 'c1');
 /// letting a test simulate a flaky or permanently-broken chapter without a
 /// real network.
 class _ScriptedReaderRepository implements ReaderRepository {
+  @override
+  Future<Result<void>> deleteProgress({required String sourceId, required String seriesKey, required List<String> chapterKeys}) async => const Ok(null);
+
   _ScriptedReaderRepository(this._manifest);
 
   final Future<Result<ChapterManifest>> Function() _manifest;
