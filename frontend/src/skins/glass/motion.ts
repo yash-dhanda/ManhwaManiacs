@@ -191,6 +191,8 @@ export interface PlayOptions {
   /** release velocity handed to physical springs (law 4), in the units of the animated value per second */
   velocity?: number;
   onComplete?: () => void;
+  /** value callback for the animate(from, to) form */
+  onUpdate?: (latest: number) => void;
   delay?: number;
 }
 
@@ -225,6 +227,7 @@ export function play(name: MotionName, target: unknown, keyframes: unknown, opts
   const finish = trackFrames(rec);
   const controls = (animate as unknown as AnimateFn)(target, kf, {
     ...transition,
+    onUpdate: opts.onUpdate,
     onComplete: () => { finish(); opts.onComplete?.(); },
   });
   for (const k of ["stop", "cancel", "complete"] as const) {

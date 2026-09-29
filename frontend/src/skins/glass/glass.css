@@ -20,3 +20,192 @@ html[data-skin="glass"] { color-scheme: dark; }
 @property --amb-y3 { syntax: "<percentage>"; inherits: false; initial-value: 36%; }
 @property --sheet-progress { syntax: "<number>"; inherits: true; initial-value: 0; }
 @property --caustic-a { syntax: "<number>"; inherits: false; initial-value: 0.14; }
+
+/* ------------------------------------------------------------------------- *
+ * GlassSurface (DESIGN 2.4, 2.5, 2.6, 3.5, 4.11).
+ * Structure: .glass (host: children, focus ring, drop shadow) holds three aria-hidden spans
+ * beneath the children: .glass__bg (backdrop-filter, mask, dim + fill), .glass__rim (0.5 px
+ * specular rim + inner light), .glass__glow (press glow). The host is a stacking context
+ * (z-index 0) but never a backdrop root (no opacity, filter, mask or isolation on it), or the
+ * backdrop would read nothing.
+ * ------------------------------------------------------------------------- */
+/* zero specificity: a caller's own positioning (fixed bars, absolute orbs) always wins */
+:where(.glass) { position: relative; z-index: 0; }
+.glass {
+  border-radius: var(--glass-radius, 20px);
+  box-shadow: var(--glass-shadow);
+  transition: --glass-dim var(--mm-dur-dim-shift, 400ms) var(--mm-ease-dim-shift, cubic-bezier(0.2, 0, 0, 1)),
+    --glass-grad-t var(--mm-dur-dim-shift, 400ms) var(--mm-ease-dim-shift, cubic-bezier(0.2, 0, 0, 1));
+  --glass-label2: var(--mm-color-label2);
+  --glass-label3: var(--mm-color-label3);
+  --g-spec-rgb: 255 255 255;
+  --g-rim-mid1: 0.06;
+  --g-rim-mid2: 0.02;
+  --g-shadow-rest: none;
+  --g-glow: rgb(255 255 255 / 0.16);
+  --g-fill-pressed: var(--g-fill);
+  --g-bg-extra: none;
+  --g-spec: var(--g-spec-t);
+  --g-rim-a: var(--g-spec);
+  --g-rim-b: calc(var(--g-spec) * 0.55);
+}
+.glass:where([data-capsule]) { --glass-radius: 9999px; }
+@supports (corner-shape: squircle) {
+  .glass:not([data-capsule]), .glass:not([data-capsule]) > .glass__bg, .glass:not([data-capsule]) > .glass__rim,
+  .glass:not([data-capsule]) > .glass__glow { corner-shape: squircle; }
+}
+
+.glass__bg, .glass__rim, .glass__glow, .glass__sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+  /* the host's animated values are unregistered-inherit: pull them down explicitly (--glass-dim is registered inherits:false) */
+  --glass-dim: inherit;
+}
+.glass__bg {
+  background: linear-gradient(var(--g-fill), var(--g-fill)), linear-gradient(rgb(0 0 0 / var(--glass-dim)), rgb(0 0 0 / var(--glass-dim)));
+  /* tier B (frosted) is the base look; A and C are overrides below */
+  -webkit-backdrop-filter: blur(calc(var(--g-blur) + 6px)) saturate(1.8);
+  backdrop-filter: blur(calc(var(--g-blur) + 6px)) saturate(1.8);
+  mask-image: var(--glass-mask, none);
+  -webkit-mask-image: var(--glass-mask, none);
+}
+.glass[data-pressed="on"] .glass__bg { background: linear-gradient(var(--g-fill-pressed), var(--g-fill-pressed)), linear-gradient(rgb(0 0 0 / var(--glass-dim)), rgb(0 0 0 / var(--glass-dim))); }
+
+/* Tier A "liquid": SVG displacement inside the backdrop-filter (Chromium). */
+html[data-glass-renderer="liquid"] .glass:not([data-twin]):not([data-forced-solid]) .glass__bg {
+  -webkit-backdrop-filter: var(--glass-lens,) blur(var(--g-blur)) saturate(var(--g-sat));
+  backdrop-filter: var(--glass-lens,) blur(var(--g-blur)) saturate(var(--g-sat));
+}
+
+/* Rim: 0.5 px specular ring along the light angle, first stop tinted 18% by the ambient rim colour. */
+.glass__rim {
+  padding: 0.5px;
+  background: linear-gradient(
+    var(--mm-light-angle),
+    color-mix(in oklab, var(--amb-rim) 18%, rgb(var(--g-spec-rgb) / var(--g-rim-a))) 0%,
+    rgb(255 255 255 / var(--g-rim-mid1)) 35%,
+    rgb(255 255 255 / var(--g-rim-mid2)) 65%,
+    rgb(var(--g-spec-rgb) / var(--g-rim-b)) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+/* Inner light (T2 and up) rides on its own span, which sits above the fill. */
+.glass__glow {
+  background: radial-gradient(circle 140px at var(--glow-x, 50%) var(--glow-y, 50%), var(--g-glow), transparent 100%);
+  opacity: 0;
+  transition: opacity var(--mm-dur-glow-out, 60ms) linear;
+}
+.glass[data-glow="on"] .glass__glow { opacity: 1; transition-duration: var(--mm-dur-glow-in, 150ms); }
+.glass__sweep { overflow: hidden; }
+.glass__sweep > i { position: absolute; left: 0; top: 50%; width: 40px; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.18) 50%, transparent); will-change: transform; }
+
+/* Inner light: inset highlight and shade, exposed as --glass-inner-light. Painted by the bg span. */
+.glass { --glass-inner-light: inset 1px 1px 0 rgb(255 255 255 / calc(var(--g-spec) * 0.35)), inset -1px -1px 0 rgb(0 0 0 / 0.35); }
+.glass[data-tier="t1"] { --glass-inner-light: inset 0 0 0 0 transparent; }
+/* an inset shadow on the ring span would be masked away with it: paint it on the bg */
+.glass__bg { box-shadow: var(--glass-inner-light); }
+
+/* Tiers (generated --mm-glass-tN-*). */
+.glass[data-tier="t1"] { --g-blur: var(--mm-glass-t1-blur); --g-sat: var(--mm-glass-t1-saturate); --g-fill: var(--mm-glass-t1-fill); --g-spec-t: var(--mm-glass-t1-specular); --glass-shadow: var(--mm-glass-t1-shadow); }
+.glass[data-tier="t2"] { --g-blur: var(--mm-glass-t2-blur); --g-sat: var(--mm-glass-t2-saturate); --g-fill: var(--mm-glass-t2-fill); --g-spec-t: var(--mm-glass-t2-specular); --glass-shadow: var(--mm-glass-t2-shadow); }
+.glass[data-tier="t3"] { --g-blur: var(--mm-glass-t3-blur); --g-sat: var(--mm-glass-t3-saturate); --g-fill: var(--mm-glass-t3-fill); --g-spec-t: var(--mm-glass-t3-specular); --glass-shadow: var(--mm-glass-t3-shadow); }
+.glass[data-tier="t4"] { --g-blur: var(--mm-glass-t4-blur); --g-sat: var(--mm-glass-t4-saturate); --g-fill: var(--mm-glass-t4-fill); --g-spec-t: var(--mm-glass-t4-specular); --glass-shadow: var(--mm-glass-t4-shadow); }
+.glass[data-tier="t5"] { --g-blur: var(--mm-glass-t5-blur); --g-sat: var(--mm-glass-t5-saturate); --g-fill: var(--mm-glass-t5-fill); --g-spec-t: var(--mm-glass-t5-specular); --glass-shadow: var(--mm-glass-t5-shadow); }
+
+/* Finishes (2.4.2). */
+.glass[data-finish="clear"] {
+  --g-fill: var(--mm-glass-clear-fill); --g-blur: var(--mm-glass-clear-blur); --g-sat: var(--mm-glass-clear-saturate);
+  --g-spec-t: var(--mm-glass-clear-specular); --glass-shadow: 0 0 0 0 transparent;
+}
+.glass[data-finish="tinted"] {
+  --g-fill: var(--mm-glass-tinted-fill); --g-fill-pressed: var(--mm-glass-tinted-fill-pressed);
+  --g-blur: var(--mm-glass-tinted-blur); --g-sat: var(--mm-glass-tinted-saturate);
+  --g-spec-t: 0.6; --g-spec-rgb: 228 223 255; --g-rim-mid1: 0.30; --g-rim-mid2: 0.30;
+  --glass-shadow: var(--mm-glass-tinted-shadow); --g-glow: rgb(188 176 255 / 0.22);
+}
+
+/* Content twins (2.4.1 rule 1): no backdrop read, no displacement, no dim. */
+.glass[data-twin] .glass__bg {
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  background: var(--g-twin-fill);
+}
+.glass[data-twin="content"] { --g-twin-fill: rgb(19 19 23 / 0.62); }
+.glass[data-twin="onGlass"] { --g-twin-fill: var(--mm-color-fill2); --g-spec: 0.22; --g-spec-rgb: 255 255 255; --g-rim-mid1: 0.22; --g-rim-mid2: 0.22; }
+.glass[data-twin="dense"] { --g-twin-fill: rgb(19 19 23 / 0.82); }
+.glass[data-twin="cover"] { --g-twin-fill: rgb(0 0 0 / 0.86); --g-spec: 0.22; --g-rim-mid1: 0.22; --g-rim-mid2: 0.22; }
+.glass[data-twin][data-finish="tinted"] { --g-twin-fill: var(--mm-glass-tinted-fill); --g-spec-t: 0.6; --g-spec-rgb: 228 223 255; --g-rim-mid1: 0.30; --g-rim-mid2: 0.30; }
+.glass[data-twin][data-finish="tinted"][data-pressed="on"] { --g-twin-fill: var(--mm-glass-tinted-fill-pressed); }
+
+/* Materialise / dematerialise: opacity over the first 120 ms (the displacement ramp is driven from JS). */
+@keyframes glass-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes glass-out { from { opacity: 1; } to { opacity: 0; } }
+.glass[data-materialize="in"] > :is(.glass__bg, .glass__rim) { animation: glass-in 120ms var(--mm-ease-materialize, cubic-bezier(0.2, 0, 0, 1)) both; }
+.glass[data-materialize="out"] > :is(.glass__bg, .glass__rim) { animation: glass-out 350ms var(--mm-ease-dematerialize, cubic-bezier(0.2, 0, 0, 1)) both; }
+
+/* Tier C "solid": Solid glass and Reduce Transparency. No backdrop, no dim, no caustic, dispersion, sweep or rain. */
+html[data-solid="on"] .glass, .glass[data-forced-solid] {
+  --g-fill: var(--mm-glass-solid1); --g-fill-pressed: var(--mm-glass-solid1); --g-twin-fill: var(--mm-glass-solid1);
+  --g-spec: calc(var(--g-spec-t) * 0.5); --g-spec-rgb: 255 255 255; --g-rim-mid1: 0.10; --g-rim-mid2: 0.10; --g-rim-a: 0.10; --g-rim-b: 0.10;
+}
+html[data-solid="on"] .glass:is([data-tier="t4"], [data-tier="t5"]), .glass[data-forced-solid]:is([data-tier="t4"], [data-tier="t5"]) {
+  --g-fill: var(--mm-glass-solid2); --g-fill-pressed: var(--mm-glass-solid2);
+}
+html[data-solid="on"] .glass[data-finish="tinted"], .glass[data-forced-solid][data-finish="tinted"] {
+  --g-fill: var(--mm-color-iris700); --g-fill-pressed: #4A3CB0; --g-twin-fill: var(--mm-color-iris700);
+}
+html[data-solid="on"] .glass[data-finish="tinted"][data-pressed="on"], .glass[data-forced-solid][data-finish="tinted"][data-pressed="on"] { --g-twin-fill: #4A3CB0; }
+html[data-solid="on"] .glass__bg, .glass[data-forced-solid] .glass__bg { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: var(--g-fill); }
+html[data-solid="on"] .glass__sweep, .glass[data-forced-solid] .glass__sweep { display: none; }
+@media (prefers-reduced-transparency: reduce) {
+  .glass.glass {
+    --g-fill: var(--mm-glass-solid1); --g-fill-pressed: var(--mm-glass-solid1); --g-twin-fill: var(--mm-glass-solid1);
+    --g-spec: calc(var(--g-spec-t) * 0.5); --g-rim-mid1: 0.10; --g-rim-mid2: 0.10; --g-rim-a: 0.10; --g-rim-b: 0.10; --g-spec-rgb: 255 255 255;
+  }
+  .glass.glass:is([data-tier="t4"], [data-tier="t5"]) { --g-fill: var(--mm-glass-solid2); --g-fill-pressed: var(--mm-glass-solid2); }
+  .glass.glass[data-finish="tinted"] { --g-fill: var(--mm-color-iris700); --g-fill-pressed: #4A3CB0; --g-twin-fill: var(--mm-color-iris700); }
+  .glass__bg { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: var(--g-fill); }
+  .glass__sweep { display: none; }
+}
+/* a solid surface still has the 1 px rim */
+html[data-solid="on"] .glass__rim, .glass[data-forced-solid] .glass__rim { padding: 1px; }
+@media (prefers-reduced-transparency: reduce) { .glass__rim { padding: 1px; } }
+
+/* Increase Contrast: a modifier on A and B (hcBorder 1 px on every surface, 3 px focus ring, label remaps). */
+html[data-contrast="more"] .glass { --glass-label2: var(--mm-color-label1); --glass-label3: var(--mm-color-label2); --g-focus-w: 3px; }
+html[data-contrast="more"] .glass__rim { padding: 1px; background: rgb(255 255 255 / 0.55); }
+@media (prefers-contrast: more) {
+  .glass { --glass-label2: var(--mm-color-label1); --glass-label3: var(--mm-color-label2); --g-focus-w: 3px; }
+  .glass__rim { padding: 1px; background: rgb(255 255 255 / 0.55); }
+}
+
+/* Two-tone focus ring on glass (2.6), appended to the surface's own shadow list; never masked. */
+.glass { --g-focus-w: 2px; }
+.glass:focus-visible, .glass:has(:focus-visible) {
+  outline: none;
+  box-shadow: var(--glass-shadow), 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w)) var(--mm-color-iris300), 0 0 6px calc(2px + var(--g-focus-w)) rgb(188 176 255 / 0.28);
+}
+
+/* Forced colours: system colours, every decorative layer removed. */
+@media (forced-colors: active) {
+  .glass { background: Canvas; color: CanvasText; border: 1px solid CanvasText; box-shadow: none; forced-color-adjust: auto; }
+  .glass > :is(.glass__bg, .glass__rim, .glass__glow, .glass__sweep) { display: none; }
+  .glass[data-finish="tinted"] { background: ButtonFace; color: ButtonText; border: 2px solid Highlight; }
+  .glass:focus-visible, .glass:has(:focus-visible) { outline: 2px solid Highlight; box-shadow: none; }
+  .caustic::before { display: none; }
+}
+
+/* Reduced motion: dim and axes change at once; the opacity fade is 150 ms linear. */
+html[data-motion="reduced"] .glass { transition: none; }
+html[data-motion="reduced"] .glass[data-materialize="in"] > :is(.glass__bg, .glass__rim) { animation-duration: 150ms; animation-timing-function: linear; }
+html[data-motion="reduced"] .glass[data-materialize="out"] > :is(.glass__bg, .glass__rim) { animation-duration: 120ms; animation-timing-function: linear; }
+@media (prefers-reduced-motion: reduce) {
+  .glass { transition: none; }
+  .glass[data-materialize="in"] > :is(.glass__bg, .glass__rim) { animation-duration: 150ms; animation-timing-function: linear; }
+  .glass[data-materialize="out"] > :is(.glass__bg, .glass__rim) { animation-duration: 120ms; animation-timing-function: linear; }
+}
