@@ -17,7 +17,8 @@ describe("segmented math", () => {
   it("release projects by velocity", () => {
     const w = [100, 100, 100];
     expect(releaseSegment(60, 0, w)).toBe(0);
-    expect(releaseSegment(60, 800, w)).toBe(1); // 60 + 0.499 x 800 = 459
+    expect(releaseSegment(60, 800, w)).toBe(2); // 60 + 0.499 x 800 = 459, nearest centre 250
+    expect(releaseSegment(60, 200, w)).toBe(1);
   });
   it("counts boundaries crossed", () => expect(boundariesCrossed(40, 260, [100, 100, 100])).toBe(2));
   it("stretch caps at 25 % and conserves area", () => {
