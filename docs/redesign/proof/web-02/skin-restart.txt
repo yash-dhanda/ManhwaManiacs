@@ -32,3 +32,11 @@ glass 1440 online badge: Back online
 glass 390 offline badge: No connection
 glass 390 online badge: Back online
 glass control heights 44,44
+--- boot resolution cases (web-02 fix pass 1; dev stack, headless chromium) ---
+case A mm-skin=cinematic, profile skin=null: final data-skin=legacy mm-skin cookie=legacy document loads=2 (2 = initial + ONE restart, no loop)
+case B debug cookie=cinematic, profile skin=null (profile says legacy): final data-skin=cinematic debug cookie=cinematic document loads=1 (1 = profile ignored, no restart)
+case C offline reload, mirror=cinematic, server profile skin=null: served page title="Offline · ManhwaManiacs" (worker offline fallback, no app boot) mm-skin cookie=cinematic document loads=1 (1 = the reload only, mirror kept)
+offline-nav cinematic 1440: status=200 title="Offline · ManhwaManiacs" data-skin=undefined
+offline-nav cinematic 390: status=200 title="Offline · ManhwaManiacs" data-skin=undefined
+offline-nav glass 1440: status=200 title="Offline · ManhwaManiacs" data-skin=undefined
+offline-nav glass 390: status=200 title="Offline · ManhwaManiacs" data-skin=undefined
