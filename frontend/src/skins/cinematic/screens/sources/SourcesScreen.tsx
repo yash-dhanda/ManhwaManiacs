@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useContentModeFilter } from "@/features/content-mode/use-content-mode";
 import { availablePosition, movePin, reorderAvailable, type PinMove } from "@/features/sources/pin-order";
+import { PullMark, usePullToReprint } from "../kit/use-pull";
 import { useReplaceSourcePins, useSourceHealthSummary, useSourcePins, useSources } from "@/features/sources/hooks";
 import { isSourcePinned, toggleSourcePin } from "@/features/sources/pins";
 import type { SourceSummary } from "@/features/sources/types";
@@ -26,6 +27,7 @@ export default function SourcesScreen() {
   const summary = useSourceHealthSummary();
   const { filterSources, mode } = useContentModeFilter();
   const now = useNow(30_000);
+  const reprint = usePullToReprint(() => Promise.all([sources.refetch(), pinsQ.refetch()]));
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [menu, setMenu] = useState<SourceSummary | null>(null);
@@ -130,6 +132,7 @@ export default function SourcesScreen() {
 
   return (
     <main className={s.page} style={{ position: "relative" }}>
+      <PullMark {...reprint} />
       <div className={s.grade} aria-hidden />
       <div className={`${s.frame} ${s.rel}`}>
         <SourcesKeys

@@ -78,10 +78,27 @@ export function Notice({
 
 export function HealthMark({ health, now, showLabel = true }: { health: SourceHealth | null | undefined; now: number; showLabel?: boolean }) {
   const d = describeHealth(health, now);
+  const err = health?.last_error ?? null;
+  const [tip, setTip] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clear = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; };
+  useEffect(() => clear, []);
+  const show = (delay: number) => { clear(); timer.current = setTimeout(() => setTip(true), delay); };
+  const hide = () => { clear(); setTip(false); };
   return (
-    <span className={cx(s.health, s[`h_${d.state}`])} title={health?.last_error ?? undefined}>
+    <span
+      className={cx(s.health, s[`h_${d.state}`])}
+      tabIndex={err ? 0 : undefined}
+      aria-describedby={err && tip ? "health-tip" : undefined}
+      onMouseEnter={err ? () => show(500) : undefined}
+      onMouseLeave={err ? hide : undefined}
+      onFocus={err ? () => show(0) : undefined}
+      onBlur={err ? hide : undefined}
+      onKeyDown={err ? (e) => e.key === "Escape" && hide() : undefined}
+    >
       <span className={s.hmark} aria-hidden />
-      {showLabel ? <span>{d.label}</span> : <span className={s.sr}>{d.label}</span>}
+      {showLabel ? <span className={s.hlabel}>{d.label}</span> : <span className={s.sr}>{d.label}</span>}
+      {err && tip ? <span id="health-tip" role="tooltip" className={s.tip}>{err}</span> : null}
     </span>
   );
 }

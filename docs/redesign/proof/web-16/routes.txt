@@ -4,7 +4,8 @@
 /search?scope=ask
 /search#genre=Action
 /sources
-/sources/{id}
-/sources/{id}?q=a
+/sources/mangadex
+/sources/mangadex?q=a
+/sources/gutenberg
 /ocr
 /ocr?q=the

@@ -15,7 +15,7 @@
 .healthCol { min-width: 200px; display: flex; justify-content: flex-start; }
 @media (min-width: 768px) { .row { grid-template-columns: 20px 32px minmax(0, 1fr) 72px 72px 220px 16px 44px; } .rowAll { grid-template-columns: 32px minmax(0, 1fr) 72px 72px 220px 16px 44px; } .col { display: block; } }
 @media (min-width: 768px) and (max-width: 1023px) { .row { grid-template-columns: 20px 32px minmax(0, 1fr) 72px 220px 16px 44px; } .rowAll { grid-template-columns: 32px minmax(0, 1fr) 72px 220px 16px 44px; } .lang { display: none; } }
-@media (max-width: 767px) { .healthCol { min-width: 0; } .row, .rowAll { grid-template-columns: 20px 32px minmax(0, 1fr) auto 44px; } .rowAll { grid-template-columns: 32px minmax(0, 1fr) auto 44px; } .kindCol { display: none; } .lang { display: none; } }
+@media (max-width: 767px) { .healthCol { min-width: 0; } .row, .rowAll { grid-template-columns: 20px 32px minmax(0, 1fr) auto 16px 44px; } .rowAll { grid-template-columns: 32px minmax(0, 1fr) auto 16px 44px; } .kindCol { display: none; } .lang { display: none; } }
 .pinBtn { position: relative; }
 .pinned::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 6px; border-bottom: 2px solid var(--mm-color-spot); }
 .handle { cursor: grab; touch-action: none; }

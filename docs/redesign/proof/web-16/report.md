@@ -1,8 +1,13 @@
 # web/16 report (lane L05)
 
-Built: Discover (/search), Sources (/sources), Catalogue (/sources/:id), Dialogue (/ocr) in Cinematic; the four ids are out of PENDING.
+Built: Discover (/search), Sources (/sources), Catalogue (/sources/:id), Dialogue (/ocr), and the Cinematic reader host that performs the dialogue jump (seek, 2 px bubble pulse, toast). All four screen ids are out of PENDING, plus `reader` (stand-in body).
 
-Stand-ins (web/03-06, web/12, web/15 were not integrated): `features/sources/standins/` (limiter, fnv1a32), `skins/cinematic/screens/kit/` (fields, notices, sheet, toast, poster, motion hooks), `skins/cinematic/ai-copy.ts`. Fonts (Bodoni Moda, Newsreader, Archivo, Plex Mono) are referenced with system fallbacks; the loaders belong to web/04.
+Fix pass 1 closed: reader jump (`skins/cinematic/screens/reader/JumpingReader.tsx`), pull to reprint on Sources and Catalogue (`kit/use-pull.tsx`), health tooltip with 500 ms hover delay and 0 ms on focus, novel book list on the catalogue (`kit/BookList.tsx`), genre tile duotone from the cover (`kit/use-duo.ts`), the proof harness (`frontend/scripts/proof.mjs`, `--grid`, `--reduced`), the extended e2e spec, pinned sources seeded on the dev stack, and the state screenshots. Also fixed: the 32 px white band above every kit page (margin collapse), and the phone Sources row grid (link collapsed to 14 px).
 
-Not built / deviations: pull to reprint (phones), hover tooltip delay on health marks (native title), the novel book list on the catalogue (poster wall used), the reader-side `takeDialogueJump` call (no Cinematic reader exists; `BubblePulse` and `announceDialogueJump` are ready), grid-overlay and reduced-motion screenshot sets (scripts/proof.mjs absent), idle sections need pinned sources (demo account has none), genre tile duotone uses the fallback colour.
-Screenshots: 9 routes x desktop/phone plus state-partial and state-rate-limited.
+Stand-ins that remain (their steps are not in this lane's waitFor and not integrated; per lane rule 12 each is marked TODO(step-id)):
+- web/03: `features/sources/standins/` (limiter, fnv1a32), `scripts/proof.mjs`.
+- web/04-06: `skins/cinematic/screens/kit/` (fields, notices, sheet, toast, poster, motion hooks). Fonts load through the existing core/reading loaders.
+- web/09: `kit/BookList.tsx`. web/12: `JumpingReader` hosts the shared source reader inside a skin (eslint-disabled import). web/23: `kit/use-duo.ts` samples the cover colour where `ambient.duo` will come from.
+- web/15: `skins/cinematic/ai-copy.ts`.
+
+Screenshots: 11 routes x desktop/phone x plain/-grid/-reduced, plus state-*.png (idle, failed-group, no-results, error, offline, opening, partial, rate-limited, dialogue-results, dialogue-nothing-found, dialogue-error, reader-jump-found, reader-jump-chapter-start).

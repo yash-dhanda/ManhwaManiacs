@@ -13,7 +13,7 @@ test.skip(!USER || !PASSWORD, "Set MM_PROOF_USER and MM_PROOF_PASSWORD.");
 
 const PROOF = path.resolve(__dirname, "../../../docs/redesign/proof/web-16");
 
-async function signIn(page: Page) {
+export async function signIn(page: Page) {
   await page.goto("/login");
   await page.locator("#login-username").fill(USER!);
   await page.locator("#login-password").fill(PASSWORD!);
@@ -107,4 +107,145 @@ test("search states: partial, failed group, rate limited", async ({ page }) => {
   await page.goto("/search?q=solo2");
   await expect(page.getByText("SLOW DOWN")).toBeVisible();
   await page.screenshot({ path: path.join(PROOF, "state-rate-limited.png") });
+});
+
+// ---- limiter priorities, keys, group jump, states, reader jump ---------------
+
+const shot = (page: Page, name: string, full = false) => page.screenshot({ path: path.join(PROOF, `state-${name}.png`), fullPage: full });
+const searchItem = (id: string, title: string) => ({ kind: "source", source: "mangadex", series_id: id, title, cover_url: null, author: null, chapter_count: 12, extra: null });
+const searchGroup = (source: string | null, name: string, status: "ok" | "error", items: unknown[] = []) => ({
+  source, source_name: name, icon_url: null, status, error: status === "error" ? "boom" : null, total: items.length, has_more: false, items,
+});
+const searchBody = (groups: unknown[], extra: Record<string, unknown> = {}) => ({
+  items: [], groups, sources_queried: groups.length, sources_failed: 0, sources_deferred: 0, tier: 1, next_tier: null, page: 1, has_more: false, ...extra,
+});
+
+test("P3 limiter: the search request goes out before any genre cover lookup", async ({ page }) => {
+  const seen: string[] = [];
+  page.on("request", (r) => {
+    const u = new URL(r.url());
+    if (u.pathname.endsWith("/sources/search")) seen.push("search");
+    else if (u.searchParams.has("genre") && u.pathname.includes("/series")) seen.push("genre-cover");
+  });
+  await page.goto("/search?q=solo");
+  await page.waitForTimeout(4000);
+  expect(seen.length).toBeGreaterThan(0);
+  expect(seen[0]).toBe("search");
+});
+
+test("keys: / focuses the field, 2 switches scope, arrow down enters results", async ({ page }) => {
+  await page.route("**/api/sources/search*", (r) => r.fulfill({ json: searchBody([searchGroup("mangadex", "MangaDex", "ok", [searchItem("a", "Solo A")])]) }));
+  await page.goto("/search?q=solo");
+  await expect(page.getByText("Solo A").first()).toBeVisible();
+  await page.locator("h1").focus();
+  await page.keyboard.press("/");
+  await expect(page.locator("input[type=search]")).toBeFocused();
+  await page.locator("input[type=search]").focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.locator("[data-poster]:focus").first()).toBeVisible();
+  await page.locator("input[type=search]").focus();
+  await page.locator("input[type=search]").blur();
+  await page.keyboard.press("2");
+  await expect(page).toHaveURL(/scope=library/);
+});
+
+test("group jump under reduced motion lands instantly", async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await signIn(page);
+  const many = (p: string) => Array.from({ length: 24 }, (_, i) => searchItem(`${p}${i}`, `${p} title ${i}`));
+  await page.route("**/api/sources/search*", (r) =>
+    r.fulfill({ json: searchBody([searchGroup("mangadex", "MangaDex", "ok", many("m")), searchGroup("webtoons", "Webtoons", "ok", many("w"))]) }),
+  );
+  await page.goto("/search?q=title");
+  await expect(page.getByText("m title 0").first()).toBeVisible();
+  const before = await page.evaluate(() => document.scrollingElement!.scrollTop);
+  await page.getByRole("navigation", { name: "Jump to source" }).getByRole("button", { name: /Webtoons/ }).click();
+  await page.waitForTimeout(60);
+  const after = await page.evaluate(() => document.scrollingElement!.scrollTop);
+  expect(after).toBeGreaterThan(before);
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => document.scrollingElement!.scrollTop)).toBe(after); // already at rest: no smooth scroll
+  await ctx.close();
+});
+
+test("state screenshots: idle, failed group, no results, error, offline, opening", async ({ page, context }) => {
+  await page.goto("/search");
+  await page.waitForTimeout(9000);
+  await shot(page, "idle", true);
+
+  await page.route("**/api/sources/search*", (r) => r.fulfill({ json: searchBody([searchGroup("dead", "Dead Source", "error")], { sources_failed: 1 }) }));
+  await page.goto("/search?q=solo");
+  await expect(page.getByText("This source didn't answer.")).toBeVisible();
+  await shot(page, "failed-group");
+
+  await page.unroute("**/api/sources/search*");
+  await page.route("**/api/sources/search*", (r) => r.fulfill({ json: searchBody([searchGroup(null, "Library", "ok")]) }));
+  await page.goto("/search?q=qzxwv");
+  await expect(page.getByText("NOTHING FOUND", { exact: true })).toBeVisible();
+  await shot(page, "no-results");
+
+  await page.unroute("**/api/sources/search*");
+  await page.route("**/api/sources/search*", (r) => r.fulfill({ status: 500, json: { code: "internal", message: "x" } }));
+  await page.goto("/search?q=solo3&scope=sources");
+  await expect(page.getByText("Search didn't finish.")).toBeVisible({ timeout: 40_000 });
+  await shot(page, "error");
+  await page.unroute("**/api/sources/search*");
+
+  await page.goto("/search?q=solo4");
+  await page.waitForTimeout(500);
+  await context.setOffline(true);
+  await page.goto("/search?q=offline").catch(() => {});
+  await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+  await page.waitForTimeout(600);
+  await shot(page, "offline");
+  await context.setOffline(false);
+
+  await page.route("**/api/sources/mangadex/series*", async (r) => { await new Promise((res) => setTimeout(res, 6000)); await r.continue(); });
+  await page.goto("/sources/mangadex");
+  await page.waitForTimeout(1200);
+  await shot(page, "opening");
+  await page.unroute("**/api/sources/mangadex/series*");
+});
+
+test("dialogue states: results, nothing found, error", async ({ page }) => {
+  const hit = { source_id: "mangadex", series_key: "s1", chapter_key: "c1", word_count: 120, engine: "x", snippet: "I will <mark>solo</mark> this dungeon.", highlighted_terms: ["solo"], page: 3, box: { x: 0.2, y: 0.3, w: 0.3, h: 0.1 } };
+  await page.route("**/api/ocr/search*", (r) => r.fulfill({ json: { items: [hit], total: 1, offset: 0, limit: 20, has_more: false } }));
+  await page.goto("/ocr?q=solo");
+  await page.waitForTimeout(1500);
+  await shot(page, "dialogue-results");
+  await page.unroute("**/api/ocr/search*");
+  await page.route("**/api/ocr/search*", (r) => r.fulfill({ json: { items: [], total: 0, offset: 0, limit: 20, has_more: false } }));
+  await page.goto("/ocr?q=qzxwv");
+  await expect(page.getByText("NOTHING FOUND", { exact: true })).toBeVisible();
+  await shot(page, "dialogue-nothing-found");
+  await page.unroute("**/api/ocr/search*");
+  await page.route("**/api/ocr/search*", (r) => r.fulfill({ status: 500, json: { code: "internal", message: "x" } }));
+  await page.goto("/ocr?q=solo");
+  await expect(page.getByText("Dialogue search didn't finish.")).toBeVisible();
+  await shot(page, "dialogue-error");
+});
+
+test("reader jump: seeks by matched text and toasts, or falls back to the chapter start", async ({ page }) => {
+  const seed = (pageNo: number | null) =>
+    page.addInitScript((p) => {
+      sessionStorage.setItem("mm.dialogue.jump", JSON.stringify({ sourceId: "mangadex", seriesKey: "s1", chapterKey: "c1", q: "solo", page: p, box: null }));
+    }, pageNo);
+  const chapter = (texts: Array<{ page: number; text: string }>) =>
+    page.route("**/api/ocr/chapter*", (r) =>
+      r.fulfill({ json: { source_id: "mangadex", series_key: "s1", chapter_key: "c1", language: "en", engine: "x", word_count: 9, updated_at: null, page_texts: texts.map((t) => ({ ...t, boxes: null })) } }),
+    );
+  await seed(null);
+  await chapter([{ page: 1, text: "hello" }, { page: 4, text: "the Solo levelling" }]);
+  await page.goto("/reader/mangadex/s1/c1");
+  await expect(page.getByText("Found on page 4.")).toBeVisible();
+  await shot(page, "reader-jump-found");
+
+  await page.unroute("**/api/ocr/chapter*");
+  await chapter([{ page: 1, text: "nothing here" }]);
+  await page.goto("/reader/mangadex/s1/c1");
+  await seed(null);
+  await page.reload();
+  await expect(page.getByText("Opened at the chapter start. The line is in this chapter.")).toBeVisible();
+  await shot(page, "reader-jump-chapter-start");
 });

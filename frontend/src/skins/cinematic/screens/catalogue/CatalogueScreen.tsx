@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import { describeBrowseFreshness } from "@/features/sources/browse-freshness";
 import { browsePaging } from "@/features/sources/browse-paging";
+import { PullMark, usePullToReprint } from "../kit/use-pull";
 import { useInfiniteSourceSeries, useRefreshSourceBrowse, useSourceBrowseModes, useSourceGenres, useSources } from "@/features/sources/hooks";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useLoadMoreOnScroll } from "@/lib/use-load-more-on-scroll";
@@ -61,6 +62,7 @@ export default function CatalogueScreen({ params }: ScreenProps) {
   const facets = { mode: notBrowsable || searching ? undefined : mode, genre: notBrowsable ? undefined : genre };
   const query = useInfiniteSourceSeries(runQuery ? sourceId : "", q.trim(), facets.mode, facets.genre);
   const refresh = useRefreshSourceBrowse(sourceId, { query: q.trim(), sort: facets.mode, genre: facets.genre });
+  const reprint = usePullToReprint(() => refresh.mutateAsync().catch(() => undefined));
   const items = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
   const total = query.data?.pages[0]?.total ?? items.length;
   const cache = query.data?.pages[0]?.cache;
@@ -105,6 +107,7 @@ export default function CatalogueScreen({ params }: ScreenProps) {
 
   return (
     <main className={s.page} style={{ position: "relative" }}>
+      <PullMark {...reprint} />
       <SourceWash sourceId={sourceId} on={clock.slow} />
       <div className={`${s.frame} ${s.rel}`}>
         <CatalogueKeys focusSearch={focusSearch} mode={stepMode} refresh={() => refresh.mutate()} />
@@ -163,7 +166,7 @@ export default function CatalogueScreen({ params }: ScreenProps) {
           <p className={s.deck}>{searching ? `No results for “${q.trim()}” on this source.` : "No series found."}</p>
         ) : (
           <>
-            <CatalogueWall items={items} sourceId={sourceId} showMature={summary?.mature === true} />
+            <CatalogueWall items={items} sourceId={sourceId} showMature={summary?.mature === true} novel={summary?.content_kind === "novel"} sourceName={summary?.name ?? ""} />
             {query.isFetchingNextPage ? (
               <p className={`${s.folio} ${s.captionOn0}`} role="status">
                 LOADING MORE <LeaderDial />

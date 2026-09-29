@@ -8,6 +8,7 @@ import type { Screen, Skin } from "../types";
 import SCREEN_discover from "./screens/discover/DiscoverScreen";
 import SCREEN_sources from "./screens/sources/SourcesScreen";
 import SCREEN_source from "./screens/catalogue/CatalogueScreen";
+import SCREEN_reader from "./screens/reader/ReaderScreen";
 import SCREEN_dialogue from "./screens/dialogue/DialogueScreen";
 
 /**
@@ -37,7 +38,6 @@ export const PENDING = new Set<ScreenId>([
   "recap",
   "circle",
   "circleMember",
-  "reader",
   "readAll",
   "novel",
   "downloads",
@@ -74,7 +74,7 @@ export const screens = {
   discover: SCREEN_discover,
   sources: SCREEN_sources,
   source: SCREEN_source,
-  reader: Pending,
+  reader: SCREEN_reader,
   readAll: Pending,
   novel: Pending,
   downloads: Pending,

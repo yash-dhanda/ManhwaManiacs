@@ -64,7 +64,7 @@ export function SourceRow({ source, pinned, now, pinDisabledReason, onTogglePin,
       </Link>
       <span className={cx(d.col, d.lang)}>{source.language ? source.language.toUpperCase() : "—"}</span>
       <span className={cx(d.col, d.kindCol)}>{source.content_kind === "novel" ? "NOVEL" : "MANGA"}</span>
-      <span className={d.healthCol}>
+      <span className={cx(d.healthCol, s.healthCompact)}>
         <HealthMark health={source.health} now={now} />
       </span>
       <span className={d.certCell}>{source.mature ? <Certificate18 size={16} weight="regular" title="18+" /> : null}</span>

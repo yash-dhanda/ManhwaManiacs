@@ -6,6 +6,7 @@ import { sourceImageUrl } from "@/features/sources/api";
 import type { GenreEntry } from "@/features/sources/genre-index";
 import { ROUTES } from "@/skins/contract.generated";
 import { useLimitedSrc, kit as s, cx } from "../kit/Kit";
+import { useDuo } from "../kit/use-duo";
 import { useGenreCover } from "./use-discover-data";
 import d from "./discover.module.css";
 
@@ -13,8 +14,9 @@ function Tile({ entry, onOpen }: { entry: GenreEntry; onOpen: (e: GenreEntry) =>
   const cover = useGenreCover(entry.sourceIds[0], entry.label);
   const url = cover.data?.cover_url ? sourceImageUrl(cover.data.cover_url) : null;
   const src = useLimitedSrc(url, "P3");
+  const duo = useDuo(src);
   return (
-    <button type="button" className={d.tile} onClick={() => onOpen(entry)} data-genre={entry.label}>
+    <button type="button" className={d.tile} onClick={() => onOpen(entry)} data-genre={entry.label} style={duo ? ({ "--duo": duo } as React.CSSProperties) : undefined}>
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img className={d.tileImg} src={src} alt="" />

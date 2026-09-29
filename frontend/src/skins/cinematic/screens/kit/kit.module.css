@@ -1,5 +1,5 @@
 /* Shared Cinematic screen kit (stand-in for web/04 + web/05 primitives; TODO(web/04,web/05)). Tokens only. */
-.page { min-height: 100dvh; background: var(--mm-color-paper-0); color: var(--mm-color-ink-100); font-family: var(--mm-font-text, "Newsreader", Georgia, serif); padding: 0 var(--mm-grid-margin) var(--mm-space-24); }
+.page { display: flow-root; min-height: 100dvh; background: var(--mm-color-paper-0); color: var(--mm-color-ink-100); font-family: var(--mm-font-text, "Newsreader", Georgia, serif); padding: 0 var(--mm-grid-margin) var(--mm-space-24); }
 .frame { max-width: 1760px; margin: 0 auto; }
 .grade { position: absolute; inset: 0 0 auto 0; height: 30vh; pointer-events: none; z-index: 0; background: linear-gradient(to bottom, var(--grade, transparent), #000000); }
 .rel { position: relative; z-index: 1; }
@@ -113,3 +113,17 @@
 :global(html[data-motion="reduced"]) .flicker { animation: none; opacity: 0.8; }
 :global(html[data-motion="reduced"]) .caret::after { display: none; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.health { position: relative; }
+.tip { position: absolute; z-index: 5; left: 0; top: calc(100% + var(--mm-space-2)); min-width: 200px; max-width: 320px; padding: var(--mm-space-2) var(--mm-space-3); background: var(--mm-color-paper-1); border: 1px solid var(--mm-color-rule-1); color: var(--mm-color-ink-100); font-family: var(--mm-font-mono, "IBM Plex Mono", monospace); font-size: 11px; letter-spacing: 0; text-transform: none; white-space: normal; }
+.pullMark { display: flex; align-items: center; justify-content: center; gap: var(--mm-space-2); overflow: hidden; font-family: var(--mm-font-mono, "IBM Plex Mono", monospace); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mm-color-ink-60); }
+@media (min-width: 768px) { .pullMark { display: none; } }
+.bookList { display: grid; grid-template-columns: 1fr; margin-top: var(--mm-space-6); }
+@media (min-width: 768px) { .bookList { grid-template-columns: 1fr 1fr; column-gap: 0; } .bookList > a:nth-child(odd) { border-right: 1px solid var(--mm-color-rule-1); padding-right: var(--mm-space-4); } .bookList > a:nth-child(even) { padding-left: var(--mm-space-4); } }
+.bookRow { display: flex; gap: var(--mm-space-3); min-height: 112px; padding: var(--mm-space-3) 0; color: inherit; text-decoration: none; border-bottom: 1px solid var(--mm-color-rule-1); }
+.bookPlate { flex: none; width: 56px; height: 84px; border: 1px solid var(--mm-color-rule-2); background: var(--mm-color-paper-1); display: flex; align-items: center; justify-content: center; overflow: hidden; font-family: var(--mm-font-display, "Bodoni Moda", Didot, Georgia, serif); font-size: 28px; }
+.bookPlate img { width: 100%; height: 100%; object-fit: cover; }
+.bookText { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bookTitle { font-family: var(--mm-font-display, "Bodoni Moda", Didot, Georgia, serif); font-style: italic; font-size: 20px; line-height: 24px; }
+.bookBy { font-family: var(--mm-font-reading, "Newsreader", Georgia, serif); font-style: italic; color: var(--mm-color-ink-60); }
+.bookBlurb { font-family: var(--mm-font-reading, "Newsreader", Georgia, serif); font-size: 15px; line-height: 20px; color: var(--mm-color-ink-60); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 767px) { .healthCompact .hlabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
