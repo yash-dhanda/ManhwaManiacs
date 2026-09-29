@@ -57,6 +57,7 @@ class NextChapterAutoQueue {
   }) async {
     if (ref.read(activeDownloadsScopeIdProvider) == null) return;
     // The per-profile "Save the next chapter while I read" switch (default on).
+    // TODO(mobile/12): the engine's `saveNextEnabled` input replaces this provider read.
     if (!ref.read(saveNextProvider)) return;
 
     if (ref.read(preferencesProvider).wifiOnlyDownloads) {
