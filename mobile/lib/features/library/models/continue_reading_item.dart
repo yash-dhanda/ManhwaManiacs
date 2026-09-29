@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/core/time/server_instant.dart';
+import 'package:manhwamaniacs/features/library/models/ambient.dart';
 
 /// `GET /library/continue-reading` item — progress-service shape.
 ///
@@ -18,6 +19,7 @@ class ContinueReadingItem {
     this.lastReadAt,
     this.title,
     this.coverUrl,
+    this.ambient,
   });
 
   final String sourceId;
@@ -35,6 +37,9 @@ class ContinueReadingItem {
   /// `/sources/.../cover` proxy path, as a followed row carries it — or null.
   final String? coverUrl;
 
+  /// The series' issue colours where the payload carried them, else null.
+  final Ambient? ambient;
+
   double get progressPct => pageCount > 0 ? lastPage / pageCount : 0;
 
   factory ContinueReadingItem.fromJson(Map<String, dynamic> json) =>
@@ -48,6 +53,7 @@ class ContinueReadingItem {
         lastReadAt: serverInstant(json['last_read_at']),
         title: _text(json['title']),
         coverUrl: _text(json['cover_url']),
+        ambient: Ambient.tryParse(json['ambient']),
       );
 }
 

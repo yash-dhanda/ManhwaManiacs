@@ -1,3 +1,5 @@
+import 'package:manhwamaniacs/features/library/models/ambient.dart';
+
 /// A title from the worldwide catalog (AniList + MangaUpdates), not only from
 /// the series this server has cached — `GET /library/world/recommendations`
 /// and `POST /library/world/suggest` both answer in this shape.
@@ -23,6 +25,7 @@ class WorldItem {
     this.anilistUrl,
     this.available = const [],
     this.why,
+    this.ambient,
   });
 
   final int anilistId;
@@ -57,6 +60,9 @@ class WorldItem {
   /// One line on why it was picked. Set on AI answers only.
   final String? why;
 
+  /// The cover's issue colours where the payload carried them, else null.
+  final Ambient? ambient;
+
   factory WorldItem.fromJson(Map<String, dynamic> json) => WorldItem(
         anilistId: (json['anilist_id'] as num?)?.toInt() ?? 0,
         title: _text(json['title']) ?? 'Untitled',
@@ -79,6 +85,7 @@ class WorldItem {
             if (WorldAvailability.fromJson(raw) case final source?) source,
         ],
         why: _text(json['why']),
+        ambient: Ambient.tryParse(json['ambient']),
       );
 
   // ── Card rules (the contract's, shared by every card on the page) ────────
