@@ -4,6 +4,8 @@ import 'package:manhwamaniacs/core/network/interceptors/app_version_interceptor.
 import 'package:manhwamaniacs/core/network/interceptors/auth_interceptor.dart';
 import 'package:manhwamaniacs/core/network/interceptors/error_interceptor.dart';
 import 'package:manhwamaniacs/core/network/interceptors/logging_interceptor.dart';
+import 'package:manhwamaniacs/core/network/interceptors/sources_limiter_interceptor.dart';
+import 'package:manhwamaniacs/core/network/request_limiter.dart';
 
 /// Factory that constructs a fully-configured Dio instance.
 ///
@@ -18,10 +20,13 @@ import 'package:manhwamaniacs/core/network/interceptors/logging_interceptor.dart
 /// Every request carries the app's build as `X-App-Version`
 /// ([AppVersionInterceptor]); [lookUpAppVersion] replaces the platform lookup
 /// in tests.
+///
+/// [sourcesLimiter] gates `/sources…` requests (cinematic 15.6).
 Dio createDioClient({
   String? baseUrl,
   AuthInterceptor? authInterceptor,
   Future<String?> Function()? lookUpAppVersion,
+  RequestLimiter? sourcesLimiter,
 }) {
   final dio = Dio(
     BaseOptions(
@@ -40,6 +45,7 @@ Dio createDioClient({
     AppVersionInterceptor(lookUpVersion: lookUpAppVersion),
     if (authInterceptor != null) authInterceptor,
     if (Env.isDev) LoggingInterceptor(),
+    if (sourcesLimiter != null) SourcesLimiterInterceptor(sourcesLimiter),
     ErrorInterceptor(),
   ]);
 
