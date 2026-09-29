@@ -135,6 +135,13 @@ function cinematic(name, weight) {
   const w = weight === 'light' ? 12 : 16;
   const thin = weight === 'light' ? 4 : 6; // the double rule and Oxford rule's thin line
   switch (name) {
+    // Open design decision (cinematic §12.2/§2.7, left for the owner): monogram.json's upright and
+    // italic M overlap by 22 % only as bounding boxes; the letterforms themselves intersect in just
+    // ~119 px² at 1024. So the Light/Regular knock-out plus 12/16 band below is effectively empty and
+    // all three weights trace to one identical outline (103007 opaque px at 1024 for each). Options:
+    // accept one outline for all three weights, or apply the overlap rule to the letterforms instead of
+    // the bounding boxes. Also: the mark does not read at 16 px (~9x4 px smudge). The geometry is kept
+    // unchanged on purpose: shared/04 compares against monogram.json.
     case 'mm-mark': {
       const hair = `stroke="${K}" stroke-width="${HAIR}" stroke-linejoin="round"`;
       if (fill) return svg(P(MU, `${fl} ${hair}`) + P(MI, `${fl} ${hair}`));
