@@ -3,6 +3,8 @@
 import { animate } from "motion/react";
 import { useEffect, useRef, useState, type CSSProperties, type ElementType } from "react";
 import { isGlassReduced, useGlassReduced } from "../motion";
+import { MOTION_LABELS } from "../motion.generated";
+import { beginRecord, trackFrames } from "../motion-recorder";
 import { spring } from "../tokens.generated";
 
 const seg = typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(undefined, { granularity: "grapheme" }) : null;
@@ -68,18 +70,19 @@ export function LetterReveal({ text, revealKey, as: Tag = "h3", typeClass = "typ
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing with sessionStorage and the reduced-motion setting, which only exist on the client
     if (reduced || (revealKey && readSeen().includes(revealKey))) { setState("done"); return; }
     setState("wait");
-    let held = false, timer: ReturnType<typeof setTimeout> | undefined, finished = false;
+    let held = false, endRec: (() => void) | null = null, timer: ReturnType<typeof setTimeout> | undefined, finished = false;
     const slot: Slot = {
       visible: false,
       start: () => {
         held = true;
+        endRec = trackFrames(beginRecord("letterReveal", MOTION_LABELS.letterReveal, steps * (perWord ? WORD_STAGGER_MS : STAGGER_MS) + LETTER_MS));
         setState("run");
         if (revealKey) record(revealKey);
         timer = setTimeout(() => { finish(); }, revealDuration(steps, perWord ? WORD_STAGGER_MS : STAGGER_MS));
       },
       complete: () => { finish(); },
     };
-    function finish() { if (finished) return; finished = true; clearTimeout(timer); const was = held; held = false; release(slot, was); setState("done"); }
+    function finish() { if (finished) return; finished = true; clearTimeout(timer); endRec?.(); endRec = null; const was = held; held = false; release(slot, was); setState("done"); }
     const io = new IntersectionObserver((es) => {
       const e = es[es.length - 1];
       slot.visible = e.isIntersecting && e.intersectionRatio >= 0.25;

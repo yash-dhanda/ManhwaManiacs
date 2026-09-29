@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent } from "rea
 import { GlassSurface } from "../glass/GlassSurface";
 import { haptic } from "../haptics";
 import { useGlassReduced } from "../motion";
+import { MOTION_LABELS } from "../motion.generated";
+import { beginRecord, trackFrames } from "../motion-recorder";
 import { holdStep, initialHold, type HoldEvent, type HoldState } from "./hold";
 import { Icon, type IconName } from "./Icon";
 import { LiquidProgress } from "./LiquidProgress";
@@ -39,6 +41,7 @@ export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, 
   const [draining, setDraining] = useState(false);
   const machine = useRef<HoldState>(initialHold);
   const raf = useRef(0);
+  const endRec = useRef<(() => void) | null>(null);
   const origin = useRef({ x: 0, y: 0 });
   const helperT = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const fallback = useRef<HTMLButtonElement>(null);
@@ -68,6 +71,8 @@ export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, 
       } else if (fx.type === "abort") { setDraining(true); showHelper("Keep holding, or click once to confirm"); }
       else if (fx.type === "click") onClick();
     }
+    if (r.state.phase === "filling" && !endRec.current) endRec.current = trackFrames(beginRecord("holdFill", MOTION_LABELS.holdFill, 1200));
+    if (r.state.phase !== "filling" && r.state.phase !== "pending" && endRec.current) { endRec.current(); endRec.current = null; }
     setPhase(r.state.phase);
     setLevel(r.state.phase === "filling" || r.state.phase === "done" ? r.state.level : 0);
     if (r.state.phase === "done" || r.state.phase === "aborted" || r.state.phase === "cancelled" || r.state.phase === "clicked") { cancelAnimationFrame(raf.current); raf.current = 0; }
@@ -80,7 +85,7 @@ export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, 
       if (raf.current) raf.current = requestAnimationFrame(loop.current);
     };
   }, [feed]);
-  useEffect(() => () => { cancelAnimationFrame(raf.current); clearTimeout(helperT.current); }, []);
+  useEffect(() => () => { endRec.current?.(); cancelAnimationFrame(raf.current); clearTimeout(helperT.current); }, []);
 
   const p = usePress<HTMLButtonElement>({ material: "glass", growth: "medium", disabled, forceState, haptic: false, onPress: (e) => { if (e.type !== "pointerup") onClick(); }, stretch: false });
   const down = (e: PointerEvent<HTMLButtonElement>) => {

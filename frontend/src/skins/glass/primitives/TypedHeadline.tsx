@@ -1,5 +1,7 @@
 "use client";
 
+import { MOTION_LABELS } from "../motion.generated";
+import { beginRecord, trackFrames } from "../motion-recorder";
 import { useEffect, useRef, useState, type CSSProperties, type ElementType } from "react";
 
 const seg = typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(undefined, { granularity: "grapheme" }) : null;
@@ -35,16 +37,17 @@ export function TypedHeadline({ text, typedKey, as: Tag = "h1", className, "data
       const s = spans[Math.min(i, spans.length - 1)];
       if (s) caret.style.translate = `${s.offsetLeft + s.offsetWidth}px ${s.offsetTop}px`;
     };
+    const endRec = trackFrames(beginRecord("typingReveal", MOTION_LABELS.typingReveal, STEP_MS * spans.length));
     let i = 0;
     place(0);
     el.dataset.typing = "run"; // letters, tail and caret start in the tick that starts the interval
-    const id = window.setInterval(() => { i += 1; if (i >= spans.length) window.clearInterval(id); else place(i); }, STEP_MS);
+    const id = window.setInterval(() => { i += 1; if (i >= spans.length) { window.clearInterval(id); endRec(); } else place(i); }, STEP_MS);
     const cleanup = () => { window.removeEventListener("keydown", onKey); el.removeEventListener("pointerdown", skip); };
-    const skip = () => { window.clearInterval(id); place(spans.length - 1); setDone(true); cleanup(); };
+    const skip = () => { window.clearInterval(id); endRec(); place(spans.length - 1); setDone(true); cleanup(); };
     const onKey = () => { const a = document.activeElement; if (a === document.body || a === el) skip(); };
     window.addEventListener("keydown", onKey);
     el.addEventListener("pointerdown", skip, { once: true });
-    return () => { window.clearInterval(id); cleanup(); delete el.dataset.typing; };
+    return () => { window.clearInterval(id); endRec(); cleanup(); delete el.dataset.typing; };
   }, [text, typedKey]);
   return (
     <Tag ref={ref} tabIndex={-1} aria-label={text} data-testid={tid} className={`typed${done ? " is-done" : ""}${className ? ` ${className}` : ""}`}>

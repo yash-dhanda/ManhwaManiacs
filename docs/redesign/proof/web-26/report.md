@@ -31,7 +31,8 @@ Item A: `suppressLit()` keeps the caustic mounted (`data-suppressed`) and fades 
 | Liquid fill | 467 | 78 | 1 / 183 / 487 | 15 of 388 |
 | Count pop | 289 | 2 | 11 / 11 / 11 | 0 |
 | Wave | 431 | 14 | 358 / 776 / 889 | 25 of 579 |
-| Hold fill | 1200 | not logged | rAF-driven by the hold clock, not a `play()` move | n/a |
-| Letter reveal, Typing reveal | 345 / 50 per grapheme | not logged | CSS and interval driven, not `play()` moves | n/a |
+| Hold fill | 1200 | 3 (600 ms abort, 2 full holds) | 404 / 511 / 1003 (fill starts after the 200 ms threshold, so a full fill is 1000) | 0 of 114 |
+| Letter reveal | n x 24 + 345 | 3 | 1350 / 1493 / 1685 (slot also holds the 620 ms glint) | 0 of 272 |
+| Typing reveal | 50 per grapheme | 1 | 971 (planned 900) | 11 of 45 (software raster, first paint) |
 
-Letter and typing reveal, sampled by rAF over 200 frames on load: 7 frames over 25 ms, max 33 ms. The dropped counts above come from a software-rasterised headless run (no GPU), so they are an upper bound: every move that shows drops here is a software-raster-only move (Press swell, Content sink, Tab droplet, Liquid fill, Wave, Specular sweep 19 of 141). Hardware figures are an owner item.
+Hold fill, Letter reveal and Typing reveal now write recorder entries (HoldToConfirm, LetterReveal, TypedHeadline call beginRecord/trackFrames), so all nine named moves reach the overlay and its console.table log. The dropped counts above come from a software-rasterised headless run (no GPU), so they are an upper bound: every move that shows drops here is a software-raster-only move (Press swell, Content sink, Tab droplet, Liquid fill, Wave, Specular sweep 19 of 141). Hardware figures are an owner item.
