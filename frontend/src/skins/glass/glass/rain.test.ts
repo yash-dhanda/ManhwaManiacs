@@ -8,9 +8,9 @@ describe("rain", () => {
   it("a droplet crosses the height in 4 s under constant acceleration", () => {
     expect(rainAcceleration(80)).toBeCloseTo(10);
     let d: Drop = { x: 100, y: 0, vy: 0, r: 4, phase: 0, t: 0 };
-    for (let i = 0; i < 400; i++) d = { ...rainStep(d, 0.01, { w: 300, h: 1e12 }, fixed) };
+    for (let i = 0; i < 400; i++) d = { ...rainStep(d, 0.01, { w: 300, h: 1e15 }, fixed) };
     expect(d.t).toBeCloseTo(4, 5);
-    expect(d.y / (0.5 * rainAcceleration(1e12) * 16)).toBeCloseTo(1, 1);
+    expect(d.y / (0.5 * rainAcceleration(1e15) * 16)).toBeCloseTo(1, 1);
   });
   it("wobbles laterally at 15 % of the fall speed", () => {
     const d: Drop = { x: 100, y: 10, vy: 100, r: 4, phase: Math.PI / 2, t: 0 };
