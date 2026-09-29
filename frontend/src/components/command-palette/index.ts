@@ -7,5 +7,5 @@ export {
   type CommandKind,
   type RankedCommand,
   type RouteSource,
-} from "./commands";
-export { fuzzyMatch, fuzzyMatchAny, highlightSegments, type FuzzyMatch } from "./fuzzy";
+} from "@/lib/command-palette/commands";
+export { fuzzyMatch, fuzzyMatchAny, highlightSegments, type FuzzyMatch } from "@/lib/command-palette/fuzzy";
