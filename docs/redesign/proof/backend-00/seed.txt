@@ -1,0 +1,8 @@
+dev backend up on 127.0.0.1:8012 (db /srv/manhwamaniacs/dev/data-backend/dev.db)
+skipped weebcentral: HTTPStatusError: Client error '404 Not Found' for url 'http://127.0.0.1:8012/sources/weebcentral/series?page=1'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+account   demo / maniacs-demo-2026
+sources   mangadex=3, mangapill=3, standardebooks=2
+profile  follows progress bookmarks collections
+Riya           8        6         3           1
+Aarav          3        2         0           0

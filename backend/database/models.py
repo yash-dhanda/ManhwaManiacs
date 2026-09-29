@@ -121,6 +121,16 @@ class ReadingProfile(Base):
         Integer, nullable=False, default=False, server_default="0"
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    # Redesign (0018): the skin follows the profile (NULL = the default skin),
+    # the per-profile notification switch the update sweep honours, the
+    # onboarding cursor (NULL, '1'..'7' or 'done') and Glass's daily goal
+    # (NULL = Off).
+    skin: Mapped[str | None] = mapped_column(String(16))
+    notify_enabled: Mapped[bool] = mapped_column(
+        Integer, nullable=False, default=True, server_default="1"
+    )
+    onboarding_step: Mapped[str | None] = mapped_column(String(8))
+    daily_goal_minutes: Mapped[int | None] = mapped_column(Integer)
 
 
 class BootstrapState(Base):
