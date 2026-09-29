@@ -32,10 +32,12 @@ export interface ReaderSurfaceSlots {
     error: string | null;
     retry: () => void;
   }): ReactNode;
-  /** RD5. Painted inside the page box until the image has decoded. */
+  /** RD5. Painted inside the page box until the image has decoded (may be null). */
   pagePlaceholder(page: { width: number | null; height: number | null }): ReactNode;
   /** RD4. Painted over the reserved box, never instead of it. */
   brokenPage(page: { index: number }, retry: () => void): ReactNode;
+  /** Class on every page box: the backdrop that also fills a letterbox. */
+  pageBoxClass: string;
   /** Class put on the paged view's page wrapper when the page-turn fade is on. */
   pageTurnClass: string;
 }

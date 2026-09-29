@@ -19,7 +19,7 @@ interface PageImageProps {
   imageUrl: string;
   /** 1-based page number, handed to the broken-page slot. */
   pageIndex: number;
-  slots: Pick<ReaderSurfaceSlots, "pagePlaceholder" | "brokenPage">;
+  slots: Pick<ReaderSurfaceSlots, "pagePlaceholder" | "brokenPage" | "pageBoxClass">;
   alt: string;
   width?: number | null;
   height?: number | null;
@@ -98,6 +98,7 @@ export const PageImage = memo(function PageImage({
     <div
       className={cn(
         "relative overflow-hidden",
+        slots.pageBoxClass,
         frame ? "shrink-0" : "w-full",
         seamless ? "block" : "rounded-sm shadow-lg shadow-black/40",
       )}

@@ -68,8 +68,9 @@ export function createLegacySurfaceSlots(seriesHref: string): ReaderSurfaceSlots
       <StripTail hasMore={hasMore} error={error} onRetry={retry} label={edge.label} href={href} />
     ),
 
-    // RD5: the reader backdrop fills the reserved box until the image decodes.
-    pagePlaceholder: () => <div className="absolute inset-0 bg-bg" aria-hidden />,
+    // RD5: the reserved box is filled by `pageBoxClass` (the reader backdrop).
+    pagePlaceholder: () => null,
+    pageBoxClass: "bg-bg",
 
     // RD4: overlaid on the reserved box so a dead page never resizes its row.
     brokenPage: (_page, retry) => (

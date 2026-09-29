@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useScrollContainer } from "@/lib/scroll-container";
 import { useUiStore } from "@/stores/ui-store";
@@ -998,7 +998,7 @@ export function useReaderEngine(
   // screen has loaded them.
   const bookmarksQuery = useQuery({
     queryKey: bookmarksQueryKey({ sourceId, seriesKey }),
-    enabled: false,
+    queryFn: skipToken,
   });
   const cachedBookmarks = (bookmarksQuery.data as readonly Bookmark[] | undefined) ?? NO_BOOKMARKS;
   const chapterKeyNow = chapter?.chapterKey;
