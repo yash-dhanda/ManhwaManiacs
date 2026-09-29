@@ -1,0 +1,16 @@
+{
+    "followers": [],
+    "readers": [
+        {
+            "profile": {
+                "profile_id": 1,
+                "name": "Riya",
+                "avatar_key": "default",
+                "username": "demo"
+            },
+            "chapter_key": "proof-ch-1",
+            "chapter_number": 1.0,
+            "last_read_at": "2026-09-29T21:36:12.859199"
+        }
+    ]
+}

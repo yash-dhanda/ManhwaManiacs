@@ -1,0 +1,204 @@
+{
+ "issue_no": 1,
+ "generated_at": "2026-09-30T15:34:12Z",
+ "content_kind": "manga",
+ "headline": "Your first issue starts here.",
+ "deck": "Follow three series and this page fills itself in.",
+ "kicker_title": null,
+ "streak": {
+  "current_days": 0,
+  "longest_days": 0,
+  "at_risk": false,
+  "last_active_date": null,
+  "milestones_seen": []
+ },
+ "cover": {
+  "reason": "popular",
+  "source_id": "shelf",
+  "series_key": "top-of-shelf-scans",
+  "chapter_key": "c1",
+  "chapter_number": 1,
+  "last_page": 1,
+  "page_count": 0,
+  "title": "Top of Shelf Scans",
+  "cover_url": "/sources/shelf/series/top-of-shelf-scans/cover",
+  "content_kind": "manga",
+  "ambient": {
+   "duo": "#B8A27A",
+   "tint": "#14100A",
+   "ink": "#E9D7A8"
+  },
+  "palette": null,
+  "new_count": 0,
+  "paused_days": 0,
+  "recap": null,
+  "why": null,
+  "world": null
+ },
+ "also": [],
+ "sections": [
+  {
+   "type": "popular",
+   "title": "Popular on your sources",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "kind": "source",
+     "why": null,
+     "item": {
+      "id": "moonlit-bakery",
+      "source_id": "shelf",
+      "title": "Moonlit Bakery",
+      "chapter_count": 50,
+      "genres": [
+       "Drama"
+      ],
+      "cover_url": "/sources/shelf/series/moonlit-bakery/cover",
+      "ambient": {
+       "duo": "#7A9EB8",
+       "tint": "#0A1014",
+       "ink": "#A8D0E9"
+      }
+     }
+    },
+    {
+     "kind": "source",
+     "why": null,
+     "item": {
+      "id": "iron-kite",
+      "source_id": "shelf",
+      "title": "Iron Kite",
+      "chapter_count": 51,
+      "genres": [
+       "Drama"
+      ],
+      "cover_url": "/sources/shelf/series/iron-kite/cover",
+      "ambient": {
+       "duo": "#B87A93",
+       "tint": "#140A0F",
+       "ink": "#E9A8C3"
+      }
+     }
+    },
+    {
+     "kind": "source",
+     "why": null,
+     "item": {
+      "id": "tea-house-on-rain-street",
+      "source_id": "shelf",
+      "title": "Tea House on Rain Street",
+      "chapter_count": 52,
+      "genres": [
+       "Drama"
+      ],
+      "cover_url": "/sources/shelf/series/tea-house-on-rain-street/cover",
+      "ambient": {
+       "duo": "#7AB88C",
+       "tint": "#0A140D",
+       "ink": "#A8E9BA"
+      }
+     }
+    },
+    {
+     "kind": "source",
+     "why": null,
+     "item": {
+      "id": "the-quiet-duelist",
+      "source_id": "shelf",
+      "title": "The Quiet Duelist",
+      "chapter_count": 53,
+      "genres": [
+       "Drama"
+      ],
+      "cover_url": "/sources/shelf/series/the-quiet-duelist/cover",
+      "ambient": {
+       "duo": "#A67AB8",
+       "tint": "#100A14",
+       "ink": "#D2A8E9"
+      }
+     }
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "sources",
+   "title": "Sources",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "source_id": "shelf",
+     "name": "Shelf Scans",
+     "icon_url": null,
+     "mature": false,
+     "available": true,
+     "suggested": true,
+     "latest_covers": [
+      "/sources/shelf/series/the-lantern-courier/cover",
+      "/sources/shelf/series/sword-of-the-ninth-spring/cover",
+      "/sources/shelf/series/skyward-gardeners/cover"
+     ]
+    },
+    {
+     "source_id": "harbor",
+     "name": "Harbor Reads",
+     "icon_url": null,
+     "mature": false,
+     "available": true,
+     "suggested": true,
+     "latest_covers": [
+      "/sources/harbor/series/paper-tiger-academy/cover",
+      "/sources/harbor/series/the-cartographer-s-apprentice/cover",
+      "/sources/harbor/series/moonlit-bakery/cover"
+     ]
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "genres",
+   "title": "Your genres",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "genre": "Fantasy",
+     "weight": 0.9
+    },
+    {
+     "genre": "Slice of life",
+     "weight": 0.7
+    },
+    {
+     "genre": "Action",
+     "weight": 0.6
+    },
+    {
+     "genre": "Romance",
+     "weight": 0.3
+    },
+    {
+     "genre": "Mystery",
+     "weight": 0.2
+    },
+    {
+     "genre": "Comedy",
+     "weight": 0.15
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  }
+ ],
+ "ai": {
+  "available": false,
+  "reason": "not_configured"
+ }
+}

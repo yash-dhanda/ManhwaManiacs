@@ -133,6 +133,89 @@ class ReadingProfile(Base):
     daily_goal_minutes: Mapped[int | None] = mapped_column(Integer)
     # 0023: onboarding answers as JSON {formats, genres, styles, seeds}.
     taste: Mapped[str | None] = mapped_column(Text)
+    # 0025: Circle sharing switches. Nothing is visible to anyone until
+    # ``share_activity`` is on; ``share_activity_since`` bounds what may ever
+    # be shown (set when the master turns on, NULL when it turns off).
+    share_activity: Mapped[bool] = mapped_column(
+        Integer, nullable=False, default=False, server_default="0"
+    )
+    share_reactions: Mapped[bool] = mapped_column(
+        Integer, nullable=False, default=True, server_default="1"
+    )
+    share_shelves: Mapped[bool] = mapped_column(
+        Integer, nullable=False, default=True, server_default="1"
+    )
+    share_recommendations: Mapped[bool] = mapped_column(
+        Integer, nullable=False, default=True, server_default="1"
+    )
+    share_include_mature: Mapped[bool] = mapped_column(
+        Integer, nullable=False, default=False, server_default="0"
+    )
+    share_presence: Mapped[bool] = mapped_column(
+        Integer, nullable=False, default=False, server_default="0"
+    )
+    share_streak: Mapped[bool] = mapped_column(
+        Integer, nullable=False, default=False, server_default="0"
+    )
+    share_activity_since: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class CircleHiddenSeries(Base):
+    """A series a profile keeps out of its Circle activity."""
+
+    __tablename__ = "circle_hidden_series"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_circle_hidden_series_scope",
+        ),
+    )
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("reading_profiles.id", ondelete="CASCADE"), primary_key=True
+    )
+    source_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    series_key: Mapped[str] = mapped_column(String(512), primary_key=True)
+    title: Mapped[str] = mapped_column(String(512), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class CircleEvent(Base):
+    """The Circle activity record. User data (backed up), not a cache.
+
+    ponytail: no retention sweep; add one if this passes 100,000 rows.
+    """
+
+    __tablename__ = "circle_events"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_circle_events_scope",
+        ),
+        Index("ix_circle_events_profile_created", "profile_id", "created_at", "id"),
+        Index("ix_circle_events_created", "created_at", "id"),
+        Index("ix_circle_events_series", "source_id", "series_key"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("reading_profiles.id", ondelete="CASCADE"), nullable=False
+    )
+    kind: Mapped[str] = mapped_column(String(24), nullable=False)
+    source_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    series_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    chapter_key: Mapped[str | None] = mapped_column(String(512))
+    chapter_number: Mapped[float | None] = mapped_column(Float)
+    reaction: Mapped[str | None] = mapped_column(String(16))
+    title: Mapped[str] = mapped_column(String(512), nullable=False)
+    cover_url: Mapped[str | None] = mapped_column(String(1024))
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
 
 class BootstrapState(Base):

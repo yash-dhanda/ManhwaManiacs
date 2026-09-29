@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/downloads/providers/retention_maintenance
 import 'package:manhwamaniacs/features/downloads/services/blob_store.dart';
 import 'package:manhwamaniacs/features/downloads/services/retention_maintenance.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_db.dart';
+import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
@@ -164,3 +165,14 @@ List<Override> contentModeOverrides({
       contentModeControllerProvider
           .overrideWith(() => _FixedContentModeController(mode)),
     ];
+
+class _IdleHomeFeed extends HomeFeedController {
+  @override
+  Future<HomeFeedView> build() async =>
+      (state: HomeFeedState.unavailable, feed: null, origin: HomeFeedOrigin.local, offline: false, retryAfter: null);
+}
+
+/// Tonight's feed pinned to the static "This issue didn't print." notice. A test that mounts the real
+/// router at `/` and calls `pumpAndSettle` needs it: the live Tonight never stops animating (Drift,
+/// the streak flame), and its feed would go to a network that is not there.
+Override tonightIdleOverride() => homeFeedProvider.overrideWith(_IdleHomeFeed.new);

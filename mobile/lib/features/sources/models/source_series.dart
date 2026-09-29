@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/features/library/models/ambient.dart';
 
 class SourceSeriesSummary {
   const SourceSeriesSummary({
@@ -16,6 +17,7 @@ class SourceSeriesSummary {
     required this.coverUrl,
     this.cacheStale = false,
     this.cacheFetchedAt,
+    this.ambient,
   });
 
   final String id;
@@ -37,6 +39,9 @@ class SourceSeriesSummary {
   final List<String> genres;
   final String? latestChapter;
   final String coverUrl;
+
+  /// The cover's issue colours where the payload carried them, else null.
+  final Ambient? ambient;
 
   factory SourceSeriesSummary.fromJson(Map<String, dynamic> json, String apiBaseUrl) {
     final rawCover = json['cover_url'] as String? ?? '';
@@ -62,6 +67,7 @@ class SourceSeriesSummary {
               ((json['cache'] as Map<String, dynamic>)['fetched_at'] as String?) ?? '',
             )
           : null,
+      ambient: Ambient.tryParse(json['ambient']),
     );
   }
 }

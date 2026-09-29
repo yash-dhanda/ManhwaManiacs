@@ -1,11 +1,23 @@
+import 'dart:math' as math;
+
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 
-/// A chapter as the mark-read helpers see it.
-typedef ChapterRef = ({String key, double? number, bool completed});
+/// A chapter as the mark-read call sites see it.
+typedef ChapterRef = ({
+  String sourceId,
+  String seriesKey,
+  String chapterKey,
+  double? chapterNumber,
+  int pageCount,
+  bool completed,
+});
+
+/// A chapter of one series for the "up to here" selection.
+typedef ChapterMark = ({String key, double? number, bool completed});
 
 /// Every not-yet-completed chapter numbered at or below [number]
 /// (chapters without a number are excluded).
-List<ChapterRef> chaptersUpTo(List<ChapterRef> chapters, double number) => [
+List<ChapterMark> chaptersUpTo(List<ChapterMark> chapters, double number) => [
       for (final c in chapters)
         if (c.number != null && c.number! <= number && !c.completed) c,
     ];
@@ -16,29 +28,25 @@ List<String> undoMarkReadKeys(Set<String> previouslyCompleted, List<String> mark
         if (!previouslyCompleted.contains(k)) k,
     ];
 
-/// Splits [items] into chunks of [size] (the API takes 200 rows at a time).
-List<List<T>> chunked<T>(List<T> items, {int size = 200}) => [
-      for (var i = 0; i < items.length; i += size)
-        items.sublist(i, i + size > items.length ? items.length : i + size),
-    ];
+/// The API takes 200 rows (or keys) at a time.
+Iterable<List<T>> chunksOf200<T>(List<T> items) sync* {
+  for (var i = 0; i < items.length; i += 200) {
+    yield items.sublist(i, math.min(i + 200, items.length));
+  }
+}
 
-/// The `manual: true` progress rows for [chapters] (Mark read): completed at
-/// their last page, never counted in statistics or streaks. TODO(mobile/08):
-/// mobile/08 owns this name; replaced when it lands.
-List<ProgressPush> manualReadRows(
-  String sourceId,
-  String seriesKey,
-  Iterable<({String key, double? number, int pageCount})> chapters,
-) =>
-    [
+/// The `manual: true` progress rows for [chapters] (the 8.17 one-chapter call): completed at their
+/// last page, zero time spent, so marking never moves statistics or streaks. Goes straight to the
+/// server, never the progress outbox.
+List<ProgressPush> manualReadRows(List<ChapterRef> chapters) => [
       for (final c in chapters)
         ProgressPush(
-          sourceId: sourceId,
-          seriesKey: seriesKey,
-          chapterKey: c.key,
-          chapterNumber: c.number,
-          lastPage: c.pageCount,
-          pageCount: c.pageCount,
+          sourceId: c.sourceId,
+          seriesKey: c.seriesKey,
+          chapterKey: c.chapterKey,
+          chapterNumber: c.chapterNumber,
+          lastPage: math.max(c.pageCount, 1),
+          pageCount: math.max(c.pageCount, 1),
           isCompleted: true,
           manual: true,
         ),

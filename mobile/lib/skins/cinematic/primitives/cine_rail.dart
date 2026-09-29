@@ -52,6 +52,7 @@ class CineRail extends StatefulWidget {
     this.placeholderTitles = const [],
     this.loadingCount = 6,
     this.captions = true,
+    this.roman,
   });
 
   final String headingId, heading;
@@ -77,6 +78,9 @@ class CineRail extends StatefulWidget {
   final List<String> placeholderTitles;
   final int loadingCount;
   final bool captions;
+
+  /// A grapheme range of [heading] set in Roman (`Because you read *Title*`).
+  final ({int start, int end})? roman;
 
   @override
   State<CineRail> createState() => _CineRailState();
@@ -253,6 +257,7 @@ class _CineRailState extends State<CineRail> {
             cap: c.typeSection.cap,
             level: 2,
             linked: true,
+            roman: w.roman,
           ),
         ),
         const Spacer(),

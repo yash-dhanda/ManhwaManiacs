@@ -20,6 +20,9 @@ const _seriesKey = 'solo-leveling';
 const _chapterKey = '1';
 
 class _FakeReaderRepository implements ReaderRepository {
+  @override
+  Future<Result<void>> deleteProgress({required String sourceId, required String seriesKey, required List<String> chapterKeys}) async => const Ok(null);
+
   int saveProgressCalls = 0;
 
   @override

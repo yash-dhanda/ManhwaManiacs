@@ -19,6 +19,9 @@ const _chapter =
     (sourceId: 'asurascans', seriesKey: 'solo-leveling', chapterKey: '132');
 
 class _ScriptedReaderRepository implements ReaderRepository {
+  @override
+  Future<Result<void>> deleteProgress({required String sourceId, required String seriesKey, required List<String> chapterKeys}) async => const Ok(null);
+
   /// What `GET /reader/bookmarks` answers — assigned per test, so a pull can
   /// be made to carry another device's news.
   List<Bookmark> remote = const [];

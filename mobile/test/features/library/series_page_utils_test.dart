@@ -40,7 +40,7 @@ void main() {
   });
 
   test('chaptersUpTo and undoMarkReadKeys', () {
-    final cs = <ChapterRef>[
+    final cs = <ChapterMark>[
       (key: 'a', number: 1, completed: true),
       (key: 'b', number: 2, completed: false),
       (key: 'c', number: null, completed: false),
@@ -49,6 +49,6 @@ void main() {
     ];
     expect(chaptersUpTo(cs, 3).map((c) => c.key), ['b', 'd']);
     expect(undoMarkReadKeys({'a'}, ['a', 'b']), ['b']);
-    expect(chunked(List.generate(450, (i) => i)).map((c) => c.length), [200, 200, 50]);
+    expect(chunksOf200(List.generate(450, (i) => i)).map((c) => c.length), [200, 200, 50]);
   });
 }

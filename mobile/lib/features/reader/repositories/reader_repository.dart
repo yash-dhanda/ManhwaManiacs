@@ -44,6 +44,13 @@ abstract interface class ReaderRepository {
     List<ProgressPush> pushes,
   );
 
+  /// `DELETE /reader/progress`: removes the progress of up to 200 chapter keys (204).
+  Future<Result<void>> deleteProgress({
+    required String sourceId,
+    required String seriesKey,
+    required List<String> chapterKeys,
+  });
+
   Future<Result<List<ReadingProgress>>> seriesProgress({
     required String sourceId,
     required String seriesKey,

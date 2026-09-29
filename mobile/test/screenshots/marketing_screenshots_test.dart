@@ -31,6 +31,7 @@ import '../support/test_overrides.dart';
 import 'mobile_05_shots.dart';
 import 'mobile_06_shots.dart';
 import 'mobile_07_shots.dart';
+import 'mobile_08_shots.dart';
 import 'mobile_11_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
@@ -72,6 +73,7 @@ void main() {
   group('mobile-05', mobile05Shots);
   group('mobile-06', mobile06Shots);
   group('mobile-07', mobile07Shots);
+  group('mobile-08', mobile08Shots);
   // Both skins at every proof size (mobile/03). Default: Tonight only, so the
   // plain suite stays fast; a proof run sets MM_PROOF_SCREENS and MM_PROOF_DIR.
   group('skins', () {
@@ -120,7 +122,9 @@ void main() {
       'masthead': 1100.0,
       'layout': 1900.0,
       'grain-duotone': 700.0,
-      'reveals': 800.0,
+      'reveals': 1000.0,
+      // mobile-08: the streak flame in every tier and state.
+      'streak-flame': 900.0,
       'motion-timings': 700.0,
       // mobile-05 sections: captured open by the mobile-05 group; here only their resting page.
       'sheets': 800.0,

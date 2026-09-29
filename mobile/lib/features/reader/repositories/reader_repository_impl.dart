@@ -97,6 +97,26 @@ class ReaderRepositoryImpl implements ReaderRepository {
   }
 
   @override
+  Future<Result<void>> deleteProgress({
+    required String sourceId,
+    required String seriesKey,
+    required List<String> chapterKeys,
+  }) async {
+    try {
+      await _dio.delete<void>('/reader/progress', data: {
+        'source_id': sourceId,
+        'series_key': seriesKey,
+        'chapter_keys': chapterKeys,
+      },);
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
   Future<Result<List<ReadingProgress>>> seriesProgress({
     required String sourceId,
     required String seriesKey,

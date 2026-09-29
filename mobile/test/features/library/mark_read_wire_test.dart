@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/providers/tags_controller.dart';
-import 'package:manhwamaniacs/features/library/repositories/progress_deleter.dart';
+import 'package:manhwamaniacs/features/reader/repositories/reader_repository_impl.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -27,10 +27,15 @@ class _Recording implements HttpClientAdapter {
 }
 
 void main() {
+  test('a page-less chapter marks at page 1', () {
+    final row = manualReadRows([(sourceId: 'demo', seriesKey: 'k', chapterKey: 'c1', chapterNumber: null, pageCount: 0, completed: false)]).single;
+    expect((row.lastPage, row.pageCount, row.timeSpentSeconds), (1, 1, 0));
+  });
+
   test('manualReadRows are completed manual rows at the last page', () {
-    final rows = manualReadRows('demo', 'k', [
-      (key: 'c1', number: 1.0, pageCount: 20),
-      (key: 'c2', number: null, pageCount: 4),
+    final rows = manualReadRows([
+      (sourceId: 'demo', seriesKey: 'k', chapterKey: 'c1', chapterNumber: 1.0, pageCount: 20, completed: false),
+      (sourceId: 'demo', seriesKey: 'k', chapterKey: 'c2', chapterNumber: null, pageCount: 4, completed: false),
     ]);
     expect(rows.length, 2);
     expect(rows.every((r) => r.manual && r.isCompleted), isTrue);
@@ -40,7 +45,7 @@ void main() {
   });
 
   test('a manual flag survives the outbox round trip and a stamp; ordinary rows omit it', () {
-    final row = manualReadRows('demo', 'k', [(key: 'c1', number: 1.0, pageCount: 20)]).single;
+    final row = manualReadRows([(sourceId: 'demo', seriesKey: 'k', chapterKey: 'c1', chapterNumber: 1.0, pageCount: 20, completed: false)]).single;
     final back = ProgressPush.fromJson(row.toJson());
     expect(back.manual, isTrue);
     expect(row.stampedAt(DateTime.utc(2026, 9, 29)).manual, isTrue);
@@ -48,15 +53,14 @@ void main() {
     expect(plain.toJson().containsKey('manual'), isFalse);
   });
 
-  test('Mark unread chunks its DELETE keys 200 at a time', () async {
+  test('Mark unread sends DELETE /reader/progress in chunks of 200 keys', () async {
     final rec = _Recording();
     final dio = Dio(BaseOptions(baseUrl: 'http://example.test'))..httpClientAdapter = rec;
-    final r = await ProgressDeleter(dio).deleteProgress(
-      sourceId: 'demo',
-      seriesKey: 'k',
-      chapterKeys: [for (var i = 0; i < 450; i++) 'c$i'],
-    );
-    expect(r.isOk, isTrue);
+    final keys = [for (var i = 0; i < 450; i++) 'c$i'];
+    for (final chunk in chunksOf200(keys)) {
+      final r = await ReaderRepositoryImpl(dio).deleteProgress(sourceId: 'demo', seriesKey: 'k', chapterKeys: chunk);
+      expect(r.isOk, isTrue);
+    }
     expect(rec.calls.map((c) => c.method).toSet(), {'DELETE'});
     expect(rec.calls.map((c) => c.path).toSet(), {'/reader/progress'});
     expect(rec.calls.map((c) => ((c.data! as Map<String, Object?>)['chapter_keys']! as List<Object?>).length).toList(), [200, 200, 50]);

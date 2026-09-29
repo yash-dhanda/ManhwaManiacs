@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/skins/cinematic/duotone.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
@@ -82,6 +83,8 @@ class CinePoster extends StatefulWidget {
     this.withCredentials = true,
     this.flickerIndex = 0,
     this.focusNode,
+    this.folioColor,
+    this.duotone,
   });
 
   final String title;
@@ -109,6 +112,12 @@ class CinePoster extends StatefulWidget {
   final Color? duo;
   final int flickerIndex;
   final FocusNode? focusNode;
+
+  /// The folio caption's colour (`spot` for `2 LEFT`); `ink.45` when null.
+  final Color? folioColor;
+
+  /// Renders the picture in duotone, black to this colour: a title that is not on the reader's sources.
+  final Color? duotone;
 
   @override
   State<CinePoster> createState() => _CinePosterState();
@@ -192,6 +201,7 @@ class _CinePosterState extends State<CinePoster> {
       // Selected: brightness 0.7.
       AnimatedOpacity(opacity: selected ? 0.7 : 1, duration: reduced ? Duration.zero : c.durSnap, child: image),
     ],);
+    if (widget.duotone != null) image = CineDuotone(duo: widget.duotone!, child: image);
     if (widget.heroTag != null) {
       image = Hero(tag: widget.heroTag!, transitionOnUserGestures: defaultTargetPlatform == TargetPlatform.iOS, child: image);
     }
@@ -278,7 +288,7 @@ class _CinePosterState extends State<CinePoster> {
             child: Builder(
               builder: (context) => Row(children: [
                 if (widget.favourited) ...[CineGlyphIcon(CineGlyph.star, size: 12, weight: CineIconWeight.fill, color: c.colorSpot), const SizedBox(width: 4)],
-                Flexible(child: CineRoleText(folio, c.typeFolio, color: context.cine.colorInk45, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                Flexible(child: CineRoleText(folio, c.typeFolio, color: widget.folioColor ?? context.cine.colorInk45, maxLines: 1, overflow: TextOverflow.ellipsis)),
               ],),
             ),
           ),

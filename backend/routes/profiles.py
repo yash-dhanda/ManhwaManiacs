@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from core.errors import AppError
 from core.profile_context import get_active_profile_id
-from services import taste_service
+from services import circle_service, taste_service
 from services.home_service import invalidate_profile
 from services.profile_service import (
     REDESIGN_FIELDS,
@@ -159,3 +159,42 @@ def put_taste(profile_id: int, body: TasteBody, service: ProfileDep) -> dict[str
 @router.get("/{profile_id}/taste")
 def get_taste(profile_id: int, service: ProfileDep) -> dict[str, object]:
     return taste_service.read_taste(service._get_owned(profile_id))
+
+
+class HiddenSeries(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source_id: str = Field(min_length=1, max_length=64)
+    series_key: str = Field(min_length=1, max_length=512)
+    title: str | None = Field(default=None, max_length=512)
+
+
+class SharingPatch(BaseModel):
+    """Partial: every field optional, unknown fields are 422."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    activity: bool | None = None
+    reactions: bool | None = None
+    shelves: bool | None = None
+    recommendations: bool | None = None
+    include_mature: bool | None = None
+    show_presence: bool | None = None
+    share_streak: bool | None = None
+    excluded_series: list[HiddenSeries] | None = Field(default=None, max_length=500)
+
+
+@router.get("/{profile_id}/sharing")
+def get_sharing(profile_id: int, service: ProfileDep) -> dict[str, object]:
+    return circle_service.read_sharing(service._db, service._get_owned(profile_id))
+
+
+@router.patch("/{profile_id}/sharing")
+def patch_sharing(
+    profile_id: int, body: SharingPatch, service: ProfileDep
+) -> dict[str, object]:
+    profile = service._get_owned(profile_id)
+    changes = body.model_dump(exclude_unset=True)
+    out = circle_service.patch_sharing(service._db, profile, changes)
+    invalidate_profile(profile_id)
+    return out

@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/collections/providers/collections_provide
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloaded_series_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
+import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
@@ -96,6 +97,8 @@ const Set<String> kMatureGatedBackendServices = {
   'bookmark_service',
   'browse_service',
   'followed_series_service',
+  // `GET /home`: Tonight's feed, composed per (profile, gate, content kind).
+  'home_service',
   'ocr_ingest_service',
   // Progress rows are written through the gate, and a series' own rows are
   // read back through it by the source and book pages.
@@ -134,6 +137,7 @@ final List<void Function(Ref ref)> matureScopedInvalidators = [
   (ref) => ref.invalidate(libraryListProvider),
   (ref) => ref.invalidate(seriesDetailProvider),
   (ref) => ref.invalidate(continueReadingProvider),
+  (ref) => ref.invalidate(homeFeedProvider),
   // Reading intelligence surfaces (reading_stats_service).
   (ref) => ref.invalidate(statisticsProvider),
   (ref) => ref.invalidate(recommendationsProvider),

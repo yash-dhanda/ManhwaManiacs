@@ -31,6 +31,12 @@ const List<(String, Color, double)> overArtRows = [
   ('badge, ink.45', CineColors.ink45, 1.0),
   ('badge, ink.60', CineColors.ink60, 1.0),
   ('badge, ink.100', CineColors.ink100, 1.0),
+  // mobile/08: the Tonight phone text block sits on the solid end of scrim.foot (alpha 1), and its
+  // overflow button is an on-art fill.
+  ('Tonight text block on scrim.foot, ink.100', CineColors.ink100, 1.0),
+  ('Tonight text block on scrim.foot, ink.60', CineColors.ink60, 1.0),
+  ('Tonight text block on scrim.foot, spot', CineColors.spot, 1.0),
+  ('Tonight on-art overflow button, ink.100', CineColors.ink100, 0.64),
 ];
 
 Color _scrimmed(Color art, double alpha) => compositeOver(Color.fromRGBO(0, 0, 0, alpha), art);

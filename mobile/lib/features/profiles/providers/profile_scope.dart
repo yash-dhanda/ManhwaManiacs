@@ -27,7 +27,9 @@ import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 final List<void Function(Ref ref)> profileScopedInvalidators = [
   // Follows + update notifications.
   (ref) => ref.invalidate(updatesProvider),
-  // Continue-reading / dashboard rails.
+  // Continue-reading / dashboard rails. (`homeFeedProvider` is not listed: it watches the active
+  // profile, so it rebuilds by itself, and invalidating a provider that depends on the notifier that
+  // is switching would be a circular dependency.)
   (ref) => ref.invalidate(continueReadingProvider),
   // Library lists + search results.
   (ref) => ref.invalidate(libraryListProvider),

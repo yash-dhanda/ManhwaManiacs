@@ -1,0 +1,318 @@
+{
+ "issue_no": 184,
+ "generated_at": "2026-09-30T15:34:12Z",
+ "content_kind": "novel",
+ "headline": "Tonight: chapter 213 of Ashes of the Glass Orchard.",
+ "deck": "The ferry runs late.",
+ "kicker_title": null,
+ "streak": {
+  "current_days": 12,
+  "longest_days": 31,
+  "at_risk": false,
+  "last_active_date": "2026-09-29",
+  "milestones_seen": [
+   7
+  ]
+ },
+ "cover": {
+  "reason": "new_chapters",
+  "source_id": "inkwell",
+  "series_key": "ashes-of-the-glass-orchard",
+  "chapter_key": "c213",
+  "chapter_number": 213,
+  "last_page": 42,
+  "page_count": 100,
+  "title": "Ashes of the Glass Orchard",
+  "cover_url": "/sources/inkwell/series/ashes-of-the-glass-orchard/cover",
+  "content_kind": "novel",
+  "ambient": {
+   "duo": "#B8A27A",
+   "tint": "#14100A",
+   "ink": "#E9D7A8"
+  },
+  "palette": null,
+  "new_count": 2,
+  "paused_days": 0,
+  "recap": {
+   "available": true,
+   "reason": "ok",
+   "range": {
+    "from_key": "c131",
+    "to_key": "c142",
+    "from_number": 131,
+    "to_number": 142
+   },
+   "est_seconds": 104,
+   "cached": false
+  },
+  "why": null,
+  "world": null,
+  "author": "Marta Ilves"
+ },
+ "also": [
+  {
+   "kind": "new_chapters",
+   "source_id": "inkwell",
+   "series_key": "paper-tiger-academy",
+   "title": "Paper Tiger Academy",
+   "headline": "Paper Tiger Academy: 3 new chapters.",
+   "deck": "The tournament arc starts.",
+   "ambient": {
+    "duo": "#7AB88C",
+    "tint": "#0A140D",
+    "ink": "#A8E9BA"
+   }
+  },
+  {
+   "kind": "because",
+   "source_id": "inkwell",
+   "series_key": "skyward-gardeners",
+   "title": "Skyward Gardeners",
+   "headline": "Because you read Sword of the Ninth Spring",
+   "deck": "Same slow-burn rivalries, gentler art.",
+   "ambient": {
+    "duo": "#B87A93",
+    "tint": "#140A0F",
+    "ink": "#E9A8C3"
+   }
+  }
+ ],
+ "sections": [
+  {
+   "type": "continue",
+   "title": "Continue reading",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "source_id": "inkwell",
+     "series_key": "ashes-of-the-glass-orchard",
+     "chapter_key": "c212",
+     "chapter_number": 212,
+     "last_page": 42,
+     "page_count": 100,
+     "last_read_at": "2026-09-29T18:00:00Z",
+     "title": "Ashes of the Glass Orchard",
+     "cover_url": "/sources/inkwell/series/ashes-of-the-glass-orchard/cover",
+     "ambient": {
+      "duo": "#B8A27A",
+      "tint": "#14100A",
+      "ink": "#E9D7A8"
+     },
+     "nudge": null,
+     "new_count": 0,
+     "paused_days": 0,
+     "recap": {
+      "available": false,
+      "reason": "no_dialogue",
+      "range": null,
+      "est_seconds": null,
+      "cached": false
+     }
+    },
+    {
+     "source_id": "inkwell",
+     "series_key": "the-salt-road-letters",
+     "chapter_key": "c30",
+     "chapter_number": 30,
+     "last_page": 80,
+     "page_count": 100,
+     "last_read_at": "2026-09-29T18:00:00Z",
+     "title": "The Salt Road Letters",
+     "cover_url": "/sources/inkwell/series/the-salt-road-letters/cover",
+     "ambient": {
+      "duo": "#7A9EB8",
+      "tint": "#0A1014",
+      "ink": "#A8D0E9"
+     },
+     "nudge": null,
+     "new_count": 0,
+     "paused_days": 0,
+     "recap": {
+      "available": false,
+      "reason": "no_dialogue",
+      "range": null,
+      "est_seconds": null,
+      "cached": false
+     }
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "new_this_week",
+   "title": "New this week",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "id": 100,
+     "source_id": "inkwell",
+     "series_key": "ashes-of-the-glass-orchard",
+     "title": "Ashes of the Glass Orchard",
+     "cover_url": "/sources/inkwell/series/ashes-of-the-glass-orchard/cover",
+     "is_favorite": false,
+     "reading_status": "reading",
+     "notify": true,
+     "sort_order": 0,
+     "content_rating": "safe",
+     "rating": "safe",
+     "chapter_count": 30,
+     "read_state": {
+      "started": true,
+      "chapter_key": "c20",
+      "chapter_number": 20,
+      "position": 20,
+      "total": 30,
+      "latest_number": 30,
+      "new_count": 2
+     },
+     "ambient": {
+      "duo": "#B8A27A",
+      "tint": "#14100A",
+      "ink": "#E9D7A8"
+     }
+    },
+    {
+     "id": 102,
+     "source_id": "inkwell",
+     "series_key": "a-lamp-for-the-ferryman",
+     "title": "A Lamp for the Ferryman",
+     "cover_url": "/sources/inkwell/series/a-lamp-for-the-ferryman/cover",
+     "is_favorite": false,
+     "reading_status": "reading",
+     "notify": true,
+     "sort_order": 2,
+     "content_rating": "safe",
+     "rating": "safe",
+     "chapter_count": 30,
+     "read_state": {
+      "started": true,
+      "chapter_key": "c20",
+      "chapter_number": 20,
+      "position": 20,
+      "total": 30,
+      "latest_number": 30,
+      "new_count": 1
+     },
+     "ambient": {
+      "duo": "#B87A93",
+      "tint": "#140A0F",
+      "ink": "#E9A8C3"
+     }
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "picked",
+   "title": "Picked for you",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "kind": "world",
+     "why": "Slow prose, one long winter.",
+     "item": {
+      "anilist_id": 9040,
+      "title": "Winterbourne Almanac",
+      "format": "Manhwa",
+      "status": "Ongoing",
+      "chapters": 120,
+      "rating": 9.5,
+      "genres": [
+       "Fantasy",
+       "Adventure"
+      ],
+      "cover_url": "/sources/shelf/series/winterbourne-almanac/cover",
+      "is_adult": false,
+      "available": [
+       {
+        "source_id": "shelf",
+        "source_name": "Shelf Scans",
+        "series_key": "winterbourne-almanac"
+       }
+      ],
+      "ambient": {
+       "duo": "#A67AB8",
+       "tint": "#100A14",
+       "ink": "#D2A8E9"
+      }
+     }
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "sources",
+   "title": "Sources",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "source_id": "shelf",
+     "name": "Shelf Scans",
+     "icon_url": null,
+     "mature": false,
+     "available": true,
+     "suggested": false,
+     "latest_covers": [
+      "/sources/shelf/series/the-lantern-courier/cover",
+      "/sources/shelf/series/sword-of-the-ninth-spring/cover",
+      "/sources/shelf/series/skyward-gardeners/cover"
+     ]
+    },
+    {
+     "source_id": "harbor",
+     "name": "Harbor Reads",
+     "icon_url": null,
+     "mature": false,
+     "available": true,
+     "suggested": false,
+     "latest_covers": [
+      "/sources/harbor/series/paper-tiger-academy/cover",
+      "/sources/harbor/series/the-cartographer-s-apprentice/cover",
+      "/sources/harbor/series/moonlit-bakery/cover"
+     ]
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "numbers",
+   "title": "This week in numbers",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "streak": {
+      "current_days": 12,
+      "longest_days": 31,
+      "at_risk": false,
+      "last_active_date": "2026-09-29",
+      "milestones_seen": [
+       7
+      ]
+     },
+     "chapters_week": 18,
+     "seconds_week": 12000
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  }
+ ],
+ "ai": {
+  "available": true,
+  "reason": "ok"
+ }
+}
