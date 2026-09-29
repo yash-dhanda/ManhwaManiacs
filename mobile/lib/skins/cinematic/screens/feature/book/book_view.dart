@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
@@ -219,6 +220,7 @@ class _BookViewState extends ConsumerState<BookView> {
         heroTag: d.followed != null
             ? seriesCoverHeroTag(d.followed!.id)
             : 'cover-${d.sourceId}-${d.seriesKey}',
+        headers: apiImageHttpHeaders(ref.read(authTokenStoreProvider).token, profileId: ref.read(activeProfileProvider)?.id),
       );
 
   void _open(SourceChapterSummary c, {bool listen = false}) {

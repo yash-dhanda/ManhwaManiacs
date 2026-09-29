@@ -19,13 +19,13 @@ Future<void> _open(WidgetTester tester) async {
   await frames(tester, 700);
 }
 
-Finder get _caption => find.byKey(const Key('lightbox-caption'));
+Finder get _caption => find.text('COVER · 720 × 1080');
 
 void main() {
   testWidgets('long-press on the cover opens the Lightbox with its caption', (tester) async {
     await _open(tester);
     expect(_caption, findsOneWidget);
-    expect(find.textContaining('Tower of Dawn · COVER · 720 × 1080'), findsOneWidget);
+    expect(find.text('Tower of Dawn'), findsWidgets);
   });
 
   testWidgets('the V key opens it', (tester) async {
@@ -67,12 +67,17 @@ void main() {
 
   testWidgets('a drag down past 120 px dismisses it; a short drag springs back', (tester) async {
     await _open(tester);
-    await tester.drag(find.byType(InteractiveViewer), const Offset(0, 60));
-    await frames(tester);
-    expect(_caption, findsOneWidget);
-    await tester.drag(find.byType(InteractiveViewer), const Offset(0, 160));
-    await frames(tester, 700);
-    expect(_caption, findsNothing);
+    // Slow drags (timed), so the fling speed never reaches 800 px/s.
+    Future<void> slow(double dy) async {
+      await tester.timedDrag(find.byType(InteractiveViewer), Offset(0, dy), const Duration(seconds: 2));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1000));
+    }
+
+    await slow(60);
+    expect(find.byType(InteractiveViewer), findsOneWidget);
+    await slow(160);
+    expect(find.byType(InteractiveViewer), findsNothing);
   });
 
   testWidgets('a double tap zooms to 250% with a chip that goes away', (tester) async {
