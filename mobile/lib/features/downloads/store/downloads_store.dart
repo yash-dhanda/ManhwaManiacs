@@ -626,7 +626,7 @@ class DownloadsStore {
     return rows.map(SavedChapter.fromRow).toList();
   }
 
-  Future<List<SeriesStorageUsage>> seriesBreakdown() async {
+  Future<List<SeriesStorageUsage>> seriesBreakdown({bool hideMature = false}) async {
     final db = await database;
     final rows = await db.rawQuery(
       '''
@@ -639,7 +639,7 @@ class DownloadsStore {
                AS chapter_count,
              SUM(${DownloadsSchema.colPinned}) AS pinned_count
       FROM ${DownloadsSchema.savedChapters}
-      WHERE ${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colState} = ?
+      WHERE ${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colState} = ?${_matureClause(hideMature)}
       GROUP BY ${DownloadsSchema.colSourceId}, ${DownloadsSchema.colSeriesKey}
       ORDER BY total_bytes DESC
       ''',
