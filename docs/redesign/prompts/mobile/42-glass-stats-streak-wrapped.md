@@ -37,7 +37,7 @@ Stop and report which one failed if any of these is false:
 - `git log --oneline -40` shows the `mobile/41` commits; `grep -n "numbers\|annual" mobile/lib/skins/glass/router.dart` shows both still in the Glass `PENDING` map.
 - The backend answers: `GET /library/statistics` carries `streak.at_risk`, `streak.milestones_seen` and `shareable`; `GET /library/annual` carries `pages_read`, `longest_streak.start`/`end`, `busiest_day`, `firsts_lasts`, `available_years`, `recorded_days`, `partial`, `shareable`; `POST /reader/progress` answers `streak {current_days, extended_today}` and `today_seconds`; `POST /library/statistics/milestones/{days}/seen` exists.
 - `mobile/21`'s modules named in Read first item 10 exist; `grep -n "share_plus\|sensors_plus" mobile/pubspec.yaml` shows `share_plus: 12.0.2` and `sensors_plus: 7.1.0` (from `mobile/02`); never add a package here.
-- `node design/build.mjs --check` passes; after the RAM guard, `/srv/manhwamaniacs/dev/flutter/bin/flutter test 2>&1 | tail -3` in `mobile/` passes; record the counts (your floor).
+- `node design/build.mjs --check` passes; after the RAM guard, `/srv/manhwamaniacs/dev/flutter/bin/flutter test 2>&1 | tail -3` in `mobile/` passes; record the counts (your floor). Glass steps run after `release/00`, which deleted the legacy widget tests by design (`docs/redesign/proof/release-00/deleted-tests.md`), so the floor can sit below the 2,012 of `00-baseline.md`; every baseline test not listed there must still pass.
 
 ## Skills to invoke
 
@@ -230,7 +230,7 @@ From `mobile/`, one command at a time, each after the RAM guard:
 ```bash
 free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze                 # baseline: No issues found
 free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test test/features test/core test/skins/glass
-free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test                    # passed >= the floor (baseline 2,012), 0 failed
+free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test                    # passed >= the floor you recorded + new tests, 0 failed
 cd .. && node design/build.mjs --check
 ```
 

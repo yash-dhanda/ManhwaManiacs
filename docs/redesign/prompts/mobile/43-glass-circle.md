@@ -38,7 +38,7 @@ Stop and report which one failed if any of these is false:
 - `git log --oneline -40` shows the `mobile/42` commits; `grep -n "circle" mobile/lib/skins/glass/router.dart` shows `circle` and `circleMember` still in the Glass `PENDING` map.
 - The backend serves `GET /circle/members` (with `now`, `last_active_at`, `streak`, and `can_receive` when `source_id` and `series_key` are given), `GET /circle/members/{profile_id}`, `GET /circle/feed` (with `profile_id`), `GET /circle/series`, `GET`/`POST`/`DELETE /circle/reactions` (kinds incl. `hype` and `wrecked`), `GET /circle/letters` (with `box=sent`), `POST /circle/letters`, `PATCH /circle/letters/{id}`, `GET`/`PATCH /profiles/{id}/sharing` (with `show_presence` and `share_streak`), `DELETE /circle/activity`, the collection share endpoints and `shared_with_me`.
 - `mobile/lib/features/circle/` holds `mobile/22`'s files; `StreakFlame` and `ReactionPicker` exist under `mobile/lib/skins/glass/primitives/`.
-- `node design/build.mjs --check` passes; after the RAM guard, `/srv/manhwamaniacs/dev/flutter/bin/flutter test 2>&1 | tail -3` in `mobile/` passes; record the counts (your floor). Then, read-only: `cd backend && .venv/bin/python -m pytest -q --no-header $(ls tests | grep -i circle | sed 's#^#tests/#')`; if it fails, stop and report.
+- `node design/build.mjs --check` passes; after the RAM guard, `/srv/manhwamaniacs/dev/flutter/bin/flutter test 2>&1 | tail -3` in `mobile/` passes; record the counts (your floor). Glass steps run after `release/00`, which deleted the legacy widget tests by design (`docs/redesign/proof/release-00/deleted-tests.md`), so the floor can sit below the 2,012 of `00-baseline.md`; every baseline test not listed there must still pass. Then, read-only: `cd backend && .venv/bin/python -m pytest -q --no-header $(ls tests | grep -i circle | sed 's#^#tests/#')`; if it fails, stop and report.
 
 ## Skills to invoke
 
@@ -228,7 +228,7 @@ From `mobile/`, one command at a time, each after the RAM guard:
 ```bash
 free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze                 # baseline: No issues found
 free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test test/features/circle test/features/library test/skins/glass
-free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test                    # passed >= the floor (baseline 2,012), 0 failed
+free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test                    # passed >= the floor you recorded + new tests, 0 failed
 cd .. && node design/build.mjs --check
 ```
 
