@@ -1,10 +1,10 @@
 import { CollectionDetailView } from "@/features/library";
 
 interface CollectionPageProps {
-  params: Promise<{ collectionId: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export default async function CollectionPage({ params }: CollectionPageProps) {
-  const { collectionId } = await params;
-  return <CollectionDetailView collectionId={Number(collectionId)} />;
+  const { id } = await params;
+  return <CollectionDetailView collectionId={Number(id)} />;
 }
