@@ -74,7 +74,7 @@ library and statistics are untouched.
 Adds `circle` ("From the Circle", last 14 days, one item per member+series, max 20) and `circle_top`
 ("Most read in the circle", last 7 days, top 10 by distinct members, then events, then recency, with
 `rank`). Items are `{member: ProfileRef, series: CircleSeries[, rank]}`; `state` is `ready` or `empty`.
-Computed per request after the composed cache, never cached.
+Computed per request after the composed cache, never cached. A server with no other active profile gets neither section.
 
 ## `GET /library/annual`
 

@@ -937,6 +937,7 @@ NOT_SERIES_DERIVED = {
     "/backup/status": "backup file sizes and timestamps",
     "/settings": "the gate's own value, per profile",
     "/profiles": "the caller's own profiles",
+    "/profiles/{profile_id}/sharing": "the caller's own sharing switches and hidden list",
     "/profiles/{profile_id}/taste": "the caller's own onboarding answers (genre names)",
     "/updates/settings": "the instance-wide sweep singleton",
     "/updates/runs": "admin-only; counts per sweep, no series identity",
@@ -966,6 +967,11 @@ WALKED_HERE = (
     | {path for path, _ in SOURCE_SCOPED_READS}
     | {path for path, _ in SOURCE_LISTINGS}
     | {
+        # Walked by tests/test_circle_mature_gate.py (the both-sided 18+ rule).
+        "/circle/feed",
+        "/circle/members",
+        "/circle/members/{profile_id}",
+        "/circle/series",
         "/library/collections",
         "/library/collections/{collection_id}",
         "/library/recommendations",

@@ -721,6 +721,15 @@ class CircleService:
             descriptor = descriptor_for_source(ev.source_id)
             return descriptor is not None and descriptor.content_kind == content_kind
 
+        # A household of one has no Circle: no sections at all, not empty ones.
+        others = self._db.execute(
+            select(func.count())
+            .select_from(ReadingProfile)
+            .join(User, User.id == ReadingProfile.user_id)
+            .where(User.is_active == 1, ReadingProfile.id != self.profile_id)
+        ).scalar_one()
+        if not others:
+            return []
         now = utcnow()
         recent: list[CircleEvent] = []
         seen: set[tuple[int, str, str]] = set()
