@@ -8,6 +8,8 @@ import 'package:manhwamaniacs/features/library/providers/device_online_provider.
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/reader_entry.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/reader_prefetch.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
@@ -153,7 +155,7 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
         child: caughtUp
             ? const Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [Icon(Icons.check, size: 18), SizedBox(width: 8), Text('All caught up')],
+                children: [Icon(PhosphorRegular.check, size: 18), SizedBox(width: 8), Text('All caught up')],
               )
             : Text(resume.sub == null ? resume.label : '${resume.label}  │  ${resume.sub}'),
       ),
@@ -165,7 +167,7 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
             child: OutlinedButton.icon(
               key: const Key('read-all'),
               style: OutlinedButton.styleFrom(minimumSize: Size(48, wide ? 56 : 48)),
-              icon: const Icon(Icons.view_day_outlined, size: 20),
+              icon: const Icon(CineGlyphs.stripScrollRegular, size: 20),
               label: const Text('Read all'),
               onPressed: _readAll,
             ),
@@ -230,14 +232,14 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
     final row = Row(
       mainAxisSize: wide ? MainAxisSize.min : MainAxisSize.max,
       children: [
-        cell(f == null ? Icons.add : Icons.check, 'Follow', online ? _toggleFollow : null,
+        cell(f == null ? PhosphorRegular.plus : PhosphorRegular.check, 'Follow', online ? _toggleFollow : null,
             on: f != null, tooltip: f == null ? 'Follow' : 'Following',),
-        cell(f?.isFavorite ?? false ? Icons.star : Icons.star_border, 'Favourite',
+        cell(f?.isFavorite ?? false ? PhosphorFill.star : PhosphorRegular.star, 'Favourite',
             f == null || !online ? null : _favorite, on: f?.isFavorite ?? false,),
-        cell(f?.notify ?? false ? Icons.notifications_active : Icons.notifications_none, 'Notify',
+        cell(f?.notify ?? false ? PhosphorRegular.bellRinging : PhosphorRegular.bellSimple, 'Notify',
             f == null || !online ? null : _notify, on: f?.notify ?? false,),
-        cell(Icons.cloud_download_outlined, 'Download', widget.onSelect),
-        if (wide && widget.onOverflow != null) cell(Icons.more_horiz, 'More', widget.onOverflow),
+        cell(PhosphorRegular.cloudArrowDown, 'Download', widget.onSelect),
+        if (wide && widget.onOverflow != null) cell(PhosphorRegular.dotsThree, 'More', widget.onOverflow),
       ],
     );
 

@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/selection_bar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
@@ -206,7 +207,7 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
           height: 56,
           child: Row(
             children: [
-              onArt(Icons.arrow_back, 'Back', () => featureBack(context)),
+              onArt(PhosphorRegular.arrowLeft, 'Back', () => featureBack(context)),
               Expanded(
                 child: AnimatedOpacity(
                   duration: const Duration(milliseconds: 160),
@@ -221,7 +222,7 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
                   ),
                 ),
               ),
-              onArt(Icons.more_horiz, 'More', _overflow),
+              onArt(PhosphorRegular.dotsThree, 'More', _overflow),
             ],
           ),
         ),

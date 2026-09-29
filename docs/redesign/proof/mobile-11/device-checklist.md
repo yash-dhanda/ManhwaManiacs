@@ -14,4 +14,3 @@ iPhone via SideStore after CI builds the IPA, and the Android flagship.
 - [ ] VoiceOver and TalkBack: schedule rows (number, title, read, reading), the seven download marks, the tab row, the selection bar.
 - [ ] Text scale 1.3 and 2.0: the FOLLOW / FAVOURITE / NOTIFY / DOWNLOAD row, the Book front matter, the contents rows.
 - [ ] Hardware keyboard (iPad or Android with keyboard): every key of D10 and E6, and the focus ring only on keyboard focus.
-- [ ] The Cinematic type faces (Bodoni Moda, Newsreader, Archivo, IBM Plex Mono) are not bundled in `pubspec.yaml`; confirm the real faces once they are.

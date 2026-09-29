@@ -53,6 +53,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart'
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../screenshots/support/skin_shots.dart' show kSkinShotKey;
 import '../../../support/test_overrides.dart';
 
 /// A fixture from `test/fixtures/series/`: invented series, invented chapters.
@@ -106,7 +107,7 @@ FollowedSeries followedRow({
     );
 
 /// The boundary the screenshot harness rasterises.
-final GlobalKey kShotBoundary = GlobalKey(debugLabel: 'series-shot');
+final GlobalKey kShotBoundary = kSkinShotKey;
 
 /// What the page asked the data layer to do.
 class Recorder {

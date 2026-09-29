@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.da
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_date.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_label.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_download_mark.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_focus_ring.dart';
@@ -280,7 +281,7 @@ class _ScheduleRowState extends State<ScheduleRow> {
               tooltip: 'Chapter options',
               constraints: const BoxConstraints(minWidth: 44, minHeight: 48),
               padding: EdgeInsets.zero,
-              icon: const Icon(Icons.more_horiz, size: 20),
+              icon: const Icon(PhosphorRegular.dotsThree, size: 20),
               onPressed: widget.onMenu,
             )
           else

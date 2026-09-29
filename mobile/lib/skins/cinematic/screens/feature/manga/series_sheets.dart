@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/providers/series_shelves_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/tags_controller.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/chapters_panel.dart';
@@ -78,7 +79,7 @@ Future<void> showSeriesTagSheet(BuildContext context, FeatureData d) {
                 ),
                 ListTile(
                   minVerticalPadding: 12,
-                  leading: const Icon(Icons.add),
+                  leading: const Icon(PhosphorRegular.plus),
                   title: const Text('New tag…'),
                   onTap: () async {
                     final name = await _askName(ctx, 'New tag');
@@ -123,7 +124,7 @@ Future<void> showAddToShelfSheet(BuildContext context, FeatureData d) {
                     ListTile(
                       minVerticalPadding: 12,
                       title: Text(c.name),
-                      trailing: shelves.any((s) => s.id == c.id) ? const Icon(Icons.check) : null,
+                      trailing: shelves.any((s) => s.id == c.id) ? const Icon(PhosphorRegular.check) : null,
                       onTap: () async {
                         Navigator.pop(ctx);
                         final r = await repo.addSeriesToCollection(c.id,

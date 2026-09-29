@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/contents_row.dart';
@@ -74,7 +75,7 @@ class BookContentsToolbar extends StatelessWidget {
                 key: const Key('book-go-to'),
                 tooltip: 'Go to chapter',
                 constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                icon: const Icon(Icons.search),
+                icon: const Icon(PhosphorRegular.magnifyingGlass),
                 onPressed: onGoTo,
               ),
           ],

@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/dashed_token.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.dart';
@@ -174,7 +175,7 @@ class AtAGlance extends ConsumerWidget {
               InputChip(
                 key: Key('own-tag-${tag.id}'),
                 label: Text(tag.name.toUpperCase(), style: const TextStyle(fontSize: 10, letterSpacing: 1)),
-                deleteIcon: const Icon(Icons.close, size: 14),
+                deleteIcon: const Icon(PhosphorRegular.x, size: 14),
                 deleteButtonTooltipMessage: 'Remove tag ${tag.name}',
                 onDeleted: () => unawaited(ctl.untagSeries(key, tag, current: own)),
               ),

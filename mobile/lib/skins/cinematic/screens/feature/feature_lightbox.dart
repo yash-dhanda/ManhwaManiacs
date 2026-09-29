@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 
 /// The cover Lightbox (§7.30): contain fit on `colorLightbox`, pinch to zoom
@@ -125,7 +126,7 @@ class _LightboxState extends State<_Lightbox> {
                   tooltip: 'Close',
                   constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                   style: IconButton.styleFrom(backgroundColor: t.colorOnart),
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(PhosphorRegular.x),
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
               ),

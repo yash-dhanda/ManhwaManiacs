@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// A suggestion token: a 1 px dashed `rule.2` outline (3 px dash, 2 px gap),
@@ -22,8 +23,8 @@ class DashedToken extends StatelessWidget {
           children: [
             Text(label.toUpperCase(),
                 style: TextStyle(fontSize: 10, letterSpacing: 1, color: t.colorInk80),),
-            _Btn(icon: Icons.add, tooltip: 'Add tag $label', onTap: onAccept),
-            _Btn(icon: Icons.close, tooltip: 'Reject tag $label', onTap: onReject),
+            _Btn(icon: PhosphorRegular.plus, tooltip: 'Add tag $label', onTap: onAccept),
+            _Btn(icon: PhosphorRegular.x, tooltip: 'Reject tag $label', onTap: onReject),
           ],
         ),
       ),

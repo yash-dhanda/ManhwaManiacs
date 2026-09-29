@@ -25,6 +25,7 @@ import 'package:manhwamaniacs/features/sources/providers/source_progress_provide
 import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/reader_entry.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/reader_prefetch.dart';
@@ -441,14 +442,14 @@ class _BookViewState extends ConsumerState<BookView> {
                 leading: IconButton(
                   tooltip: 'Back',
                   constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                  icon: const Icon(Icons.arrow_back),
+                  icon: const Icon(PhosphorRegular.arrowLeft),
                   onPressed: () => featureBack(context),
                 ),
                 actions: [
                   IconButton(
                     tooltip: 'More',
                     constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                    icon: const Icon(Icons.more_horiz),
+                    icon: const Icon(PhosphorRegular.dotsThree),
                     onPressed: () => showFeatureOverflow(
                       context,
                       ref,
@@ -503,7 +504,7 @@ class _BookViewState extends ConsumerState<BookView> {
                     child: caughtUp
                         ? const Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: [Icon(Icons.check, size: 18), SizedBox(width: 8), Text('All caught up')],
+                            children: [Icon(PhosphorRegular.check, size: 18), SizedBox(width: 8), Text('All caught up')],
                           )
                         : Text(
                             lastKey == null || p == null
@@ -537,7 +538,7 @@ class _BookViewState extends ConsumerState<BookView> {
                           child: TextButton.icon(
                             key: const Key('library-toggle'),
                             style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                            icon: Icon(f == null ? Icons.add : Icons.check),
+                            icon: Icon(f == null ? PhosphorRegular.plus : PhosphorRegular.check),
                             label: const Text('LIBRARY'),
                             onPressed: online ? _toggleLibrary : null,
                           ),
@@ -552,7 +553,7 @@ class _BookViewState extends ConsumerState<BookView> {
                             child: TextButton.icon(
                               key: const Key('download-book'),
                               style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                              icon: const Icon(Icons.cloud_download_outlined),
+                              icon: const Icon(PhosphorRegular.cloudArrowDown),
                               label: Text('DOWNLOAD $unsaved'),
                               onPressed: ref.watch(activeProfileProvider) == null ? null : _downloadBook,
                             ),

@@ -30,6 +30,7 @@ import '../skins/cinematic/feature/feature_test_support.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_network.dart';
 import 'support/series_shots.dart';
+import 'support/skin_shots.dart';
 
 const _coverPath = '/sources/demo/series/k/cover';
 
@@ -43,8 +44,6 @@ SourceChapterProgress _p(int page, int count, {bool done = false}) => SourceChap
 /// The mobile-11 proof shots: the Cinematic series page, Book page and chapter
 /// downloads at `kSkinShotSizes`, with invented fixtures only.
 void mobile11Shots() {
-  setUpAll(loadCinematicStandInFonts);
-
   Future<void> addCovers(WidgetTester tester) async {
     final png = await tester.runAsync(
         () => const ShotCoverArt(title: 'Tower of Dawn', seed: 3).toPng(width: 480, height: 720));
@@ -98,11 +97,14 @@ void mobile11Shots() {
     required Future<void> Function(bool wide) show,
   }) async {
     await addCovers(tester);
-    for (final (label, wide, on) in [('phone', false, phone), ('tablet', true, tablet)]) {
+    for (final (size, wide, on) in [
+      (kSkinShotSizes[0], false, phone),
+      (kSkinShotSizes[1], true, tablet),
+    ]) {
       if (!on) continue;
       await show(wide);
       await pumpUntilCoversLoad(tester, rounds: 4);
-      await captureSkinScreen(tester, find.byKey(kShotBoundary), '$name-$label');
+      await captureSeriesShot(tester, name, size);
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 11));
     }
@@ -184,7 +186,7 @@ void mobile11Shots() {
     unawaited(app.router.push<void>('/sources/demo/series/k'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 240));
-    await captureSkinScreen(tester, find.byKey(kShotBoundary), 'feature-match-cut-mid-phone');
+    await captureSeriesShot(tester, 'feature-match-cut-mid', kSkinShotSizes[0]);
     await settleFeature(tester, by: const Duration(seconds: 1));
     await tester.pumpWidget(const SizedBox());
   });
@@ -284,8 +286,8 @@ void mobile11Shots() {
         await frames(tester, 500);
       }
       await pumpUntilCoversLoad(tester, rounds: 3);
-      await captureSkinScreen(tester, find.byKey(kShotBoundary),
-          'feature-repoint-${mapping ? 'mapping' : 'candidates'}-phone');
+      await captureSeriesShot(
+          tester, 'feature-repoint-${mapping ? 'mapping' : 'candidates'}', kSkinShotSizes[0]);
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 11));
     }
@@ -479,20 +481,20 @@ void mobile11Shots() {
 
   testWidgets('mobile-11 gallery, text scale and reduced motion', (tester) async {
     await pumpFeature(tester, child: const Scaffold(body: SeriesPrimitivesGallery()), size: const Size(390, 640));
-    await captureSkinScreen(tester, find.byKey(kShotBoundary), 'download-marks-gallery');
+    await captureSeriesShotPlain(tester, 'download-marks-gallery');
     await tester.pumpWidget(const SizedBox());
     await addCovers(tester);
     final r = rig();
     await pumpFeature(tester, rig: r, textScale: 2.0, child: page(r));
     await up(tester, by: const Duration(seconds: 4));
     await pumpUntilCoversLoad(tester, rounds: 3);
-    await captureSkinScreen(tester, find.byKey(kShotBoundary), 'feature-text-2.0-phone');
+    await captureSeriesShot(tester, 'feature-text-2.0', kSkinShotSizes[0]);
     await tester.pumpWidget(const SizedBox());
     final r2 = rig();
     await pumpFeature(tester, rig: r2, reducedMotion: true, child: page(r2));
     await tester.pump(const Duration(milliseconds: 300));
     await pumpUntilCoversLoad(tester, rounds: 3);
-    await captureSkinScreen(tester, find.byKey(kShotBoundary), 'feature-reduced-motion-phone');
+    await captureSeriesShot(tester, 'feature-reduced-motion', kSkinShotSizes[0]);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 11));
   });

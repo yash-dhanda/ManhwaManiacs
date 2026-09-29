@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
+import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_date.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
@@ -264,7 +266,19 @@ class FeatureHero extends ConsumerWidget {
         );
     final newest = [for (final c in d.chapters) c.releaseDate].whereType<String>().toList();
     final updated = newest.isEmpty ? null : chapterDateLabel(newest.first);
-    final credits = CreditsBlock(rows: [
+    final matureOpen = d.followed?.rating == 'mature' &&
+        (ref.watch(matureContentProvider).valueOrNull ?? false);
+    final credits = CreditsBlock(
+      trailing: matureOpen
+          ? Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Semantics(
+                label: 'Rated 18 plus',
+                child: Icon(CineGlyphs.certificate18Regular, size: 20, color: t.colorInk100),
+              ),
+            )
+          : null,
+      rows: [
       if (s.author != null && s.author!.isNotEmpty) ('STORY', s.author!),
       if (s.artist != null && s.artist!.isNotEmpty) ('ART', s.artist!),
       ('SOURCE', source?.name ?? d.sourceId),

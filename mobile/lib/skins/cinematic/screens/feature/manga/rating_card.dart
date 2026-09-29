@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -79,13 +80,7 @@ class _RatingCardState extends State<RatingCard> with SingleTickerProviderStateM
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 20,
-                  height: 20,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(border: Border.all(color: t.colorInk100)),
-                  child: const Text('18', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
-                ),
+                Icon(CineGlyphs.certificate18Regular, size: 20, color: t.colorInk100),
                 const SizedBox(width: 8),
                 Text('18+', style: kickerStyle(context, color: t.colorInk100)),
                 if (widget.descriptors.isNotEmpty) ...[
