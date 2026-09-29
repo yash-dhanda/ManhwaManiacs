@@ -54,7 +54,21 @@ const MERGED = { type: 'object', properties: {
   ok: { type: 'boolean' }, sha: { type: 'string' }, checks: { type: 'string' }, notes: { type: 'string' },
 }, required: ['ok', 'sha', 'checks', 'notes'] }
 
-const waitFor = (ids, why, n) => agent(`${LOCK}\n\nTASK: wait until every one of these ids appears at the start of a line in ${LEDGER} (or, for "signoffs", until ${REPO}/docs/redesign/signoffs.md exists and names S1, S11, G6 and G14): ${ids.join(', ')}. Loop: check with grep; if anything is missing, run ONE Bash call "sleep 540" (timeout 600000) and check again. Give up after 50 checks. Do nothing else: no edits, no git. Return ready and the ids still missing.`, { ...M, label: `wait:${A.lane}:${why}:${n}`, phase: 'Wait', schema: WAITED })
+// Waiting is driven by the script, not the agent: each waitOnce call blocks for at most ~9 minutes inside ONE Bash command
+// and reports; the loop below repeats it (an agent asked to loop for hours gives up early).
+const idTest = id => id === 'signoffs'
+  ? `grep -qE '^S1 ' ${REPO}/docs/redesign/signoffs.md 2>/dev/null && grep -qE '^S11 ' ${REPO}/docs/redesign/signoffs.md && grep -qE '^G6 ' ${REPO}/docs/redesign/signoffs.md && grep -qE '^G14 ' ${REPO}/docs/redesign/signoffs.md`
+  : `grep -qE '^${id.replace('/', '\\/')} ' ${LEDGER}`
+const waitOnce = (ids, why, n) => agent(`${LOCK}\n\nTASK: run exactly this ONE Bash command with timeout 600000, then report. Do nothing else: no edits, no git, no other commands.\n\ntimeout 560 bash -c 'until ${ids.map(idTest).join(' && ')}; do sleep 30; done'; for id in ${ids.join(' ')}; do case $id in signoffs) (${idTest('signoffs')}) || echo "MISSING $id";; *) grep -qE "^$id " ${LEDGER} || echo "MISSING $id";; esac; done; echo CHECKED\n\nReturn ready = true when the output has no MISSING line, and missing = the ids after MISSING.`, { ...M, label: `wait:${A.lane}:${why}:${n}`, phase: 'Wait', schema: WAITED })
+const waitFor = async (ids, why, n) => {
+  let w = null
+  for (let i = 0; i < 200; i++) { // up to ~30 h of waiting
+    w = await waitOnce(ids, why, `${n}.${i}`)
+    if (w && w.ready) return w
+    if (w) ids = w.missing.length ? w.missing : ids
+  }
+  return w
+}
 
 const implement = (path, extra, n) => agent(`${LOCK}\n\nYou are an implementation session for the ManhwaManiacs redesign, lane "${A.lane}". TASK: execute the prompt file ${REPO}/${path} completely: its skills, scope (every item), file layout, acceptance criteria and verification, and commit the work.\n\n${OVERRIDES(extra)}\n\nReturn status (done only when every acceptance item holds and the verification commands pass), a summary including the prompt's report-back content, the commit shas, exact test counts, blockers and open issues.`, { ...M, label: `impl:${idOf(path)}:${n}`, phase: 'Implement', schema: IMPL })
 
