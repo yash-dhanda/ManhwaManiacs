@@ -13,6 +13,8 @@ const BASE = "https://raw.githubusercontent.com/google/fonts/23e54b51ddffbc7713c
 const REMOTE = {
   archivo: "ofl/archivo/Archivo[wdth,wght].ttf",
   "archivo-ofl": "ofl/archivo/OFL.txt",
+  gsf: "ofl/googlesansflex/GoogleSansFlex[GRAD,ROND,opsz,slnt,wdth,wght].ttf",
+  "gsf-ofl": "ofl/googlesansflex/OFL.txt",
 };
 const enc = (p) => p.replace(/\[/g, "%5B").replace(/,/g, "%2C").replace(/\]/g, "%5D");
 
