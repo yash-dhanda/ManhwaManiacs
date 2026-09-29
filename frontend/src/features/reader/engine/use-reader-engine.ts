@@ -16,6 +16,12 @@ import {
   type Bookmark,
   type BookmarkCreate,
 } from "@/features/bookmarks";
+import { chapterCacheKey } from "@/features/offline/save-request";
+import { isServiceWorkerSupported, saveChapterOffline } from "@/features/offline/client";
+import { useMangaChapterSaver } from "@/features/offline/chapter-savers";
+import { useOfflineState, useStorageScope } from "@/features/offline/hooks";
+import { readSaveNext } from "@/features/offline/save-next";
+import { useContentPreferences } from "@/features/preferences/hooks";
 import { useSourceChapters } from "@/features/sources/hooks";
 import { autoScrollPxPerSecond } from "../auto-scroll";
 import { readerDebug } from "../debug";
@@ -79,6 +85,7 @@ import { useStripProgress } from "../use-strip-progress";
 import type { ReadingMode } from "../types";
 import { installWheelZoomArming } from "../wheel-zoom-arming";
 import { READING_LINE_PX, type StripHandle } from "./ContinuousStrip";
+import { shouldAutoQueueNext } from "./auto-queue";
 import type {
   ChapterRef,
   NextState,
@@ -137,10 +144,9 @@ function chapterScrollKey(chapter: StripChapter): string {
  */
 export function useReaderEngine(
   input: ReaderEngineInput,
-  // Read by the next-chapter auto-queue.
   options: ReaderEngineOptions = {},
 ): ReaderEngine {
-  void options;
+  const autoQueueNext = options.autoQueueNext ?? false;
   const { kind, sourceId, seriesKey } = input;
   const initialPage = input.initialPage ?? 1;
   const initialAnchorFraction = input.at ?? null;
@@ -983,8 +989,9 @@ export function useReaderEngine(
     loadNextChapter: kind === "chapter" ? preloadNextChapter : NO_PRELOAD,
   });
 
-  // ---- The published shape ----------------------------------------------------
-
+  // ---- Next-chapter auto-queue (cinematic §8.14.11) ---------------------------
+  // Quiet by design: no toast, no haptic. Off for legacy (`autoQueueNext:
+  // false`), which then also never fetches `GET /settings` for it.
   const status: ReaderEngineState["status"] =
     isLoading || !preferencesReady
       ? "loading"
@@ -993,6 +1000,69 @@ export function useReaderEngine(
         : !chapter || pages.length === 0
           ? "empty"
           : "ready";
+
+  const downloadsScope = useStorageScope();
+  const offlineIndex = useOfflineState();
+  const capabilities = useContentPreferences({ enabled: autoQueueNext }).data?.capabilities;
+  const saver = useMangaChapterSaver({ sourceId, seriesKey, seriesTitle: null });
+  const queuedNextRef = useRef<Set<string>>(new Set());
+  const nextKeyToQueue = chapter?.nextChapterKey ?? null;
+  const offlineEntries = offlineIndex.entries;
+  useEffect(() => {
+    if (!autoQueueNext || status !== "ready" || !nextKeyToQueue) return;
+    const queueKey = `${sourceId}/${seriesKey}/${nextKeyToQueue}`;
+    let cancelled = false;
+    void (async () => {
+      let freeBytes: number | null = null;
+      try {
+        const estimate = await navigator.storage?.estimate?.();
+        if (estimate?.quota != null && estimate.usage != null) {
+          freeBytes = estimate.quota - estimate.usage;
+        }
+      } catch {
+        // Unknown storage counts as enough.
+      }
+      if (cancelled) return;
+      const nextKey = chapterCacheKey({ sourceId, seriesKey, chapterKey: nextKeyToQueue });
+      if (
+        !shouldAutoQueueNext({
+          medium: "manga",
+          hasProfileScope: downloadsScope !== null,
+          serviceWorkerSupported: isServiceWorkerSupported(),
+          capabilityOn: capabilities?.client_downloads === true,
+          hasNextChapter: true,
+          nextSaved: offlineEntries.some((entry) => entry.key === nextKey),
+          alreadyQueued: queuedNextRef.current.has(queueKey),
+          switchOn: readSaveNext(),
+          freeBytes,
+        })
+      ) {
+        return;
+      }
+      queuedNextRef.current.add(queueKey);
+      try {
+        const request = await saver.buildRequest(nextKeyToQueue);
+        if (request) await saveChapterOffline(request);
+      } catch {
+        // Speculative: the reader's own Save control still works.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    autoQueueNext,
+    capabilities?.client_downloads,
+    downloadsScope,
+    nextKeyToQueue,
+    offlineEntries,
+    saver,
+    seriesKey,
+    sourceId,
+    status,
+  ]);
+
+  // ---- The published shape ----------------------------------------------------
 
   // Cached bookmarks of this series, never fetched from here: `[]` until some
   // screen has loaded them.
