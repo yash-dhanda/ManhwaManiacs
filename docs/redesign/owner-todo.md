@@ -13,3 +13,7 @@ Items only the owner can do, by step.
   their bounding boxes. The mark also does not read at 16 px (a ~9x4 px smudge).
   Geometry is unchanged until you decide; see the comment above `case 'mm-mark'` in
   `brand/make-glyph-masters.mjs`.
+
+## web/11 (L19)
+- Device check of the Feature and Book pages on a phone (long-press row menu, swipe to Mark read, Lightbox drag down).
+- Confirm `DELETE /reader/progress` exists once backend/02 lands; Mark unread and Undo call it.
