@@ -62,6 +62,7 @@ class SavedChapter {
     required this.retryCount,
     required this.error,
     this.kind = DownloadKind.manga,
+    this.mature,
   });
 
   final int rowId;
@@ -99,6 +100,9 @@ class SavedChapter {
   /// which reader to open in would be a chapter that could not be opened.
   final DownloadKind kind;
 
+  /// 18+ stamp: true mature, false not, null not stamped yet (counts as visible).
+  final bool? mature;
+
   ChapterIdentity get identity =>
       (sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterKey);
 
@@ -124,5 +128,9 @@ class SavedChapter {
         // Absent only when read back from a row written before the v2
         // migration ran, which is a manga chapter by definition.
         kind: DownloadKind.fromWire(row[DownloadsSchema.colKind] as String?),
+        mature: switch (row[DownloadsSchema.colMature]) {
+          final int v => v != 0,
+          _ => null,
+        },
       );
 }

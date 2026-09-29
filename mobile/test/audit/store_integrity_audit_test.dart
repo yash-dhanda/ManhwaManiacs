@@ -243,14 +243,14 @@ void main() {
         blobStore: harness.openBlobStore(),
       );
       await _download(store, chapterKey: 'c1', seriesKey: 's');
-      expect(await current.getVersion(), 3);
+      expect(await current.getVersion(), 4);
       await current.close();
     }
 
     Future<void> expectIntactOnCurrentBuild(String path) async {
       final reopened = await openDownloadsDatabase(overridePath: path);
       addTearDown(reopened.close);
-      expect(await reopened.getVersion(), 3);
+      expect(await reopened.getVersion(), 4);
       await expectSchemaMatchesFresh(reopened);
       final store = DownloadsStore(
         scopeId: 'u1p1',

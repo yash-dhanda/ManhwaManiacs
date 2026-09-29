@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:manhwamaniacs/features/downloads/utils/mature_filter.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,19 +30,29 @@ const followedSeriesCacheKey = 'manhwamaniacs:followed-series';
 String followedSeriesCacheKeyFor(String scopeId) =>
     '$followedSeriesCacheKey:$scopeId';
 
+/// The cached shelf. [gateOpen] false drops the series the device knows to be 18+ (the same rule
+/// as the server's, `mature_filter.dart`); the merge and restamp paths read it unfiltered
+/// (the default) so a hidden row is never lost from the cache.
 List<FollowedSeries> readCachedFollowedSeries(
   SharedPreferences prefs,
-  String key,
-) {
+  String key, {
+  bool gateOpen = true,
+}) {
   final raw = prefs.getString(key);
   if (raw == null || raw.isEmpty) return const [];
   try {
     final parsed = jsonDecode(raw);
     if (parsed is! List) return const [];
-    return parsed
-        .whereType<Map<String, dynamic>>()
-        .map(FollowedSeries.fromJson)
-        .toList();
+    return filterMature(
+      parsed.whereType<Map<String, dynamic>>().map(FollowedSeries.fromJson),
+      gateOpen: gateOpen,
+      isMature: (s) => isMatureLocal(
+        resolvedRating: s.rating,
+        matureOverride: s.matureOverride,
+        contentRating: s.contentRating,
+        sourceMature: false,
+      ),
+    );
   } catch (_) {
     // A cache that cannot be read is a cache that is not there. Never let a
     // half-written or schema-drifted entry be the reason a screen throws.
@@ -61,9 +72,10 @@ Future<void> writeCachedFollowedSeries(
 FollowedSeries? cachedFollowedSeriesById(
   SharedPreferences prefs,
   String key,
-  int followedId,
-) {
-  for (final series in readCachedFollowedSeries(prefs, key)) {
+  int followedId, {
+  bool gateOpen = true,
+}) {
+  for (final series in readCachedFollowedSeries(prefs, key, gateOpen: gateOpen)) {
     if (series.id == followedId) return series;
   }
   return null;

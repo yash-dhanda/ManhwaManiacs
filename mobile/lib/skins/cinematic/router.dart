@@ -21,13 +21,6 @@ import 'package:manhwamaniacs/skins/skins.dart';
 // deletes the set.
 // ignore: constant_identifier_names
 const Set<ScreenId> PENDING = {
-  ScreenId.setup,
-  ScreenId.login,
-  ScreenId.register,
-  ScreenId.profiles,
-  ScreenId.profileNew,
-  ScreenId.profileEdit,
-  ScreenId.profilesManage,
   ScreenId.onboarding,
   ScreenId.tonight,
   ScreenId.library,
@@ -147,7 +140,7 @@ List<RouteBase> _rootRoutes() => [
       ),
       _route(ScreenId.setup, _Move.dip),
       _route(ScreenId.login, _Move.dip),
-      _route(ScreenId.register, _Move.dip),
+      _route(ScreenId.register, _Move.page),
       _route(ScreenId.profiles, _Move.dip),
       _route(ScreenId.profileNew, _Move.page),
       for (final a in Routes.profileNewAliases) _route(ScreenId.profileNew, _Move.page, path: a),
@@ -231,3 +224,6 @@ GoRouter buildCinematicRouter(Ref ref) {
 
 @visibleForTesting
 Set<ScreenId> get cinePendingIds => PENDING;
+
+/// Whether [id] still shows the pending screen (screens that branch on another screen existing).
+bool cineIsPending(ScreenId id) => PENDING.contains(id);

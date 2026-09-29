@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/models/storage_cap.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/retention_maintenance_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/storage_settings_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_constants.dart';
@@ -180,6 +181,14 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   /// the same question as "is this the chapter on the progress bar".
   final Set<int> _inFlightRowIds = {};
 
+  /// Rows the 18+ gate closed on while they were fetching: stopped like a cancel, but kept
+  /// (partial pages included) and put back to `queued` at their old position.
+  final Set<int> _gateAbortedRowIds = {};
+
+  /// The chapters of the batch in flight, by row id, so the gate listener can tell which of them
+  /// are 18+ without a store round trip.
+  final Map<int, bool> _inFlightMature = {};
+
   /// The one ceiling every outbound call in this queue passes through, shared
   /// across the whole batch so the user's chapter setting cannot multiply it.
   final DownloadRequestGate _gate =
@@ -234,6 +243,21 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
       if (next == null || identical(previous, next)) return;
       if (!_foreground || _userPaused) return;
       unawaited(_kick());
+    });
+    // The queue follows the 18+ gate silently: closing it stops a running chapter of a now-hidden
+    // series (pages kept, back to queued), reopening kicks the queue so those resume.
+    ref.listen<bool>(matureGateOpenProvider, (previous, next) {
+      if (previous == next) return;
+      if (next) {
+        if (_foreground && !_userPaused) unawaited(Future.microtask(_kick));
+        return;
+      }
+      for (final rowId in _inFlightRowIds) {
+        if (_inFlightMature[rowId] ?? false) {
+          _gateAbortedRowIds.add(rowId);
+          _cancelledRowIds.add(rowId);
+        }
+      }
     });
     // Raising (or lifting) the cap is the remedy the cap pause tells the user
     // to reach for; the loop re-checks the cap itself, so a kick that is still
@@ -364,7 +388,9 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     if (store == null) return;
     _novelWindow.clear();
     _manifestWindow.clear();
-    for (final chapter in await store.unfinishedChapters()) {
+    for (final chapter in await store.unfinishedChapters(
+      hideMature: !ref.read(matureGateOpenProvider),
+    )) {
       await cancelChapter(chapter.identity);
     }
   }
@@ -430,7 +456,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
         return;
       }
 
-      final pending = await store.pendingChapters();
+      final pending = await store.pendingChapters(hideMature: !ref.read(matureGateOpenProvider));
       if (pending.isEmpty) {
         // Nothing left to hand them to; a window kept past here would be
         // content for chapters the user has since cancelled.
@@ -478,6 +504,9 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
       // lands in that gap must be deferred to this loop like any other, or it
       // deletes a row the batch is about to start writing into.
       _inFlightRowIds.addAll(batch.map((chapter) => chapter.rowId));
+      for (final chapter in batch) {
+        _inFlightMature[chapter.rowId] = chapter.mature ?? false;
+      }
 
       // Windows are primed here, on the loop, with nothing else in flight —
       // never from inside a worker. Two workers on the same series would
@@ -517,6 +546,13 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
           ),
       ]);
       _inFlightRowIds.removeAll(batch.map((chapter) => chapter.rowId));
+      for (final chapter in batch) {
+        _inFlightMature.remove(chapter.rowId);
+        if (_gateAbortedRowIds.remove(chapter.rowId)) {
+          _cancelledRowIds.remove(chapter.rowId);
+          await store.requeueRow(chapter.rowId);
+        }
+      }
 
       for (final chapter in batch) {
         // A cancel that landed while this chapter was in flight is honoured

@@ -76,6 +76,31 @@ class FollowedSeries {
   /// This profile's own tags on the series, where the list payload sent them.
   final List<Tag> tags;
 
+  /// This row with a new resolved [rating] (and, when [setOverride], a new override).
+  FollowedSeries withRating(String rating, {bool? matureOverride, bool setOverride = false}) =>
+      FollowedSeries(
+        id: id,
+        sourceId: sourceId,
+        seriesKey: seriesKey,
+        seriesIdentity: seriesIdentity,
+        title: title,
+        coverUrl: coverUrl,
+        isFavorite: isFavorite,
+        readingStatus: readingStatus,
+        notify: notify,
+        sortOrder: sortOrder,
+        contentRating: contentRating,
+        rating: rating,
+        matureOverride: setOverride ? matureOverride : this.matureOverride,
+        knownChapters: knownChapters,
+        chapterCount: chapterCount,
+        lastCheckedAt: lastCheckedAt,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+        readState: readState,
+        tags: tags,
+      );
+
   FollowedSeries copyWith({bool? isFavorite, String? readingStatus, bool? notify}) {
     return FollowedSeries(
       id: id,

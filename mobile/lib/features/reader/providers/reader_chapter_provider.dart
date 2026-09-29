@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/services/offline_reader.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
@@ -111,7 +112,7 @@ final resolvedReaderChapterProvider = FutureProvider.autoDispose
   final apiBaseUrl = ref.watch(apiBaseUrlProvider);
 
   if (store != null) {
-    final onDisk = await buildOfflineReaderChapter(store, key);
+    final onDisk = await buildOfflineReaderChapter(store, key, hideMature: !ref.read(matureGateOpenProvider));
     if (onDisk != null) {
       final saved = await store.getChapter(key);
       return (
@@ -140,7 +141,7 @@ final resolvedReaderChapterProvider = FutureProvider.autoDispose
     );
   } catch (error) {
     if (store != null) {
-      final offline = await buildOfflineReaderChapter(store, key);
+      final offline = await buildOfflineReaderChapter(store, key, hideMature: !ref.read(matureGateOpenProvider));
       if (offline != null) {
         final saved = await store.getChapter(key);
         return (

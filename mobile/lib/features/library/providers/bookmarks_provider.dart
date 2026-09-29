@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/store/bookmarks_dao.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -95,7 +96,7 @@ class BookmarksNotifier extends AutoDisposeAsyncNotifier<BookmarksState> {
   Future<BookmarksState> _fetch() async {
     final store = ref.read(downloadsStoreProvider);
     if (store != null) {
-      return BookmarksState(bookmarks: await store.listBookmarks());
+      return BookmarksState(bookmarks: await store.listBookmarks(hideMature: !ref.read(matureGateOpenProvider)));
     }
     // No resolvable `(user, profile)` scope — there is no device table to
     // read, so the server is the only thing that can answer at all.

@@ -30,6 +30,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../support/test_overrides.dart';
 import 'mobile_05_shots.dart';
 import 'mobile_06_shots.dart';
+import 'mobile_07_shots.dart';
 import 'mobile_11_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
@@ -70,6 +71,7 @@ void main() {
   group('mobile-11', mobile11Shots);
   group('mobile-05', mobile05Shots);
   group('mobile-06', mobile06Shots);
+  group('mobile-07', mobile07Shots);
   // Both skins at every proof size (mobile/03). Default: Tonight only, so the
   // plain suite stays fast; a proof run sets MM_PROOF_SCREENS and MM_PROOF_DIR.
   group('skins', () {
@@ -136,6 +138,8 @@ void main() {
       // mobile-06: captured by the mobile-06 group; here only their resting page.
       'shell': 6400.0,
       'shell-frames': 2600.0,
+      // mobile-07: captured by the mobile-07 group; here only its resting page.
+      'auth': 2400.0,
     };
     const variants = {'buttons', 'fields', 'rails', 'reveals'};
     for (final size in kSkinShotSizes) {

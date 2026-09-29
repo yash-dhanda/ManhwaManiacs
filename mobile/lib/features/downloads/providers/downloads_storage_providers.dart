@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/series_storage_usage.dart';
 import 'package:manhwamaniacs/features/downloads/providers/currently_open_chapter_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/retention_maintenance_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/storage_settings_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
@@ -23,7 +24,8 @@ final seriesStorageBreakdownProvider =
   final store = ref.watch(downloadsStoreProvider);
   ref.watch(downloadQueueControllerProvider.select((s) => s.queueRevision));
   if (store == null) return const [];
-  return store.seriesBreakdown();
+  // The per-series rows name series, so hidden 18+ ones are absent; the totals above keep every byte.
+  return store.seriesBreakdown(hideMature: !ref.watch(matureGateOpenProvider));
 });
 
 class DownloadsStorageActions {

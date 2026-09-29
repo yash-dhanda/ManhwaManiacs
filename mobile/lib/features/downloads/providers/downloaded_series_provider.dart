@@ -3,6 +3,7 @@ import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart
 import 'package:manhwamaniacs/features/downloads/models/downloaded_series_group.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 
 /// Every downloaded/downloading/queued/failed chapter in the active scope,
@@ -22,7 +23,8 @@ final downloadedSeriesProvider =
   // Narration included: this is the one screen that must account for every
   // byte on the phone, and the only place a saved narration can be removed
   // on its own once its chapter is gone from view.
-  final chapters = await store.listChapters(includeNarration: true);
+  final gateOpen = ref.watch(matureGateOpenProvider);
+  final chapters = await store.listChapters(includeNarration: true, hideMature: !gateOpen);
   final bySeries = <String, List<SavedChapter>>{};
   final order = <String>[];
   for (final chapter in chapters) {

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 
 /// The series as the local store knows it: the saved chapters only, so the
@@ -13,7 +14,7 @@ final offlineEditionProvider = FutureProvider.autoDispose
   final store = ref.watch(downloadsStoreProvider);
   if (store == null) return null;
   final saved = [
-    for (final c in await store.listChapters())
+    for (final c in await store.listChapters(hideMature: !ref.watch(matureGateOpenProvider)))
       if (c.sourceId == k.sourceId &&
           c.seriesKey == k.seriesKey &&
           c.state == DownloadChapterState.complete)

@@ -15,6 +15,7 @@ abstract interface class ProfilesRepository {
     required Mood mood,
     int? sortOrder,
     bool? matureContentEnabled,
+    String? skin,
   });
 
   Future<Result<Profile>> update(

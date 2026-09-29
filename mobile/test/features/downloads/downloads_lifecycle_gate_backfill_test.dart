@@ -40,7 +40,7 @@ class _MemoryOutboxStore extends Fake implements DownloadsStore {
   }
 
   @override
-  Future<List<(int, ProgressPush)>> pendingProgressOutbox() async => [
+  Future<List<(int, ProgressPush)>> pendingProgressOutbox({bool hideMature = false}) async => [
         for (final entry in rows.entries) (entry.key, entry.value),
       ];
 

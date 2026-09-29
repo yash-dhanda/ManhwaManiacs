@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/auth/models/auth_user.dart';
 import 'package:manhwamaniacs/features/auth/models/bootstrap_status.dart';
 import 'package:manhwamaniacs/features/auth/models/user_session.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
+import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
 import 'package:manhwamaniacs/features/auth/repositories/auth_repository.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -161,6 +162,24 @@ Future<(ProviderContainer, SharedPreferences, _FakeStorage)> _signedIn(
 }
 
 void main() {
+  group('sessionEndReasonProvider', () {
+    test('a wrong current password on Change password leaves it unset', () async {
+      final repo = _FakeAuthRepository()..changePasswordResult = const Err<void>(_wrongPassword);
+      final (container, _, _) = await _signedIn(repo);
+      await container
+          .read(authControllerProvider.notifier)
+          .changePassword(currentPassword: 'wrong', newPassword: 'new-secret1');
+      expect(container.read(sessionEndReasonProvider), isNull);
+    });
+
+    test('a genuinely expired session sets signedOut', () async {
+      final repo = _FakeAuthRepository();
+      final (container, _, _) = await _signedIn(repo);
+      container.read(authTokenStoreProvider).onUnauthorized();
+      expect(container.read(sessionEndReasonProvider), SessionEndReason.signedOut);
+    });
+  });
+
   group('AuthController.changePassword', () {
     // The whole point of the guard in AuthController: /auth/change-password is
     // not in the interceptor's ignore list, so its 401 reaches the session

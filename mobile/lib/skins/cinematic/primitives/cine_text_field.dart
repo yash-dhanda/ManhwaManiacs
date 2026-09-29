@@ -94,6 +94,9 @@ class _CineFieldUnderlineState extends State<CineFieldUnderline> with SingleTick
 
 /// The editorial field (cinematic 7.3): no box, a kicker label, a 1 px underline and a helper or
 /// error line. Callers set keyboard type, autofill and capitalisation per field.
+/// The value's type role: `ui` (the default) or `field` (Bodoni Moda Italic, the profile name).
+enum CineFieldSize { ui, field }
+
 class CineTextField extends StatefulWidget {
   const CineTextField({
     super.key,
@@ -125,6 +128,7 @@ class CineTextField extends StatefulWidget {
     this.trailing,
     this.ruled = false,
     this.initialValue,
+    this.size = CineFieldSize.ui,
   });
 
   final String label;
@@ -136,6 +140,7 @@ class CineTextField extends StatefulWidget {
   final Iterable<String>? autofillHints;
   final bool autocorrect, enableSuggestions, obscureText, enabled, loading, success, numeric, ruled;
   final TextCapitalization textCapitalization;
+  final CineFieldSize size;
 
   /// Overrides the 1600 ms `holdSuccess` (mobile/07's Setup passes `CineDur.holdConnected`).
   final Duration? successHold;
@@ -193,11 +198,11 @@ class _CineTextFieldState extends State<CineTextField> {
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
-    final role = widget.numeric ? c.typeFolioLg : c.typeUi;
+    final role = widget.numeric ? c.typeFolioLg : (widget.size == CineFieldSize.field ? c.typeField : c.typeUi);
     final error = widget.errorText != null;
     final disabled = !widget.enabled;
     var text = CineText.style(context, role).copyWith(color: disabled ? c.colorInk30 : c.colorInk100);
-    if (!widget.numeric) text = text.copyWith(fontSize: 16);
+    if (!widget.numeric && widget.size == CineFieldSize.ui) text = text.copyWith(fontSize: 16);
     final reduced = CineMotion.reduced(context);
     final fade = reduced ? Duration.zero : c.durSnap;
 

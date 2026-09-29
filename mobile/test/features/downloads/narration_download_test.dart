@@ -23,6 +23,7 @@ import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/models/storage_cap.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloaded_series_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/retention_maintenance_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/storage_settings_provider.dart';
@@ -141,6 +142,7 @@ void main() {
   });
 
   List<Override> overrides() => [
+        matureGateOpenProvider.overrideWithValue(true),
         downloadsStoreProvider.overrideWithValue(harness.storeFor('u1p1')),
         retentionMaintenanceProvider.overrideWithValue(
           RetentionMaintenance(
@@ -541,6 +543,7 @@ void main() {
             // A profile exists, but its database is never opened: nothing
             // below reaches it, and an FFI open on the fake clock would
             // outlive the test.
+            matureGateOpenProvider.overrideWithValue(true),
             downloadsStoreProvider.overrideWithValue(
               DownloadsStore(
                 scopeId: 'u1p1',
@@ -600,6 +603,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            matureGateOpenProvider.overrideWithValue(true),
             downloadsStoreProvider.overrideWithValue(
               DownloadsStore(
                 scopeId: 'u1p1',

@@ -36,7 +36,7 @@ class CineShutter {
 
   Future<void> dip(Future<void> Function() navigate) => _state._dip(navigate);
   Future<void> irisClose(Offset center, double endRadius) => _state._irisClose(center, endRadius);
-  Future<void> irisOut(Offset center) => _state._irisOut(center);
+  Future<void> irisOut(Offset center, {Duration? duration}) => _state._irisOut(center, duration: duration);
 
   /// Freezes one frame (the harness): black outside a circle of [radius] at [center].
   void irisPreview(Offset center, double radius) => _state._preview(center, radius);
@@ -149,7 +149,7 @@ class CineShutterLayerState extends State<CineShutterLayer> with SingleTickerPro
     if (mounted) setState(() => _radius = endRadius);
   }
 
-  Future<void> _irisOut(Offset center) async {
+  Future<void> _irisOut(Offset center, {Duration? duration}) async {
     final size = MediaQuery.sizeOf(context);
     _diagonal = math.sqrt(size.width * size.width + size.height * size.height);
     final reduced = CineMotion.reduced(context);
@@ -163,7 +163,7 @@ class CineShutterLayerState extends State<CineShutterLayer> with SingleTickerPro
       setState(() => _black = 1);
       await _run(MotionName.iris, const Duration(milliseconds: 100), Curves.linear, (t) => _black = 1 - t);
     } else {
-      await _run(MotionName.iris, CineDur.irisOut, CineCurves.settle, (t) => _radius = _diagonal * t);
+      await _run(MotionName.iris, duration ?? CineDur.irisOut, CineCurves.settle, (t) => _radius = _diagonal * t);
     }
     if (mounted) setState(() => _mode = _Mode.none);
   }

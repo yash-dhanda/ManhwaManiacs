@@ -14,7 +14,26 @@ import 'package:manhwamaniacs/skins/cinematic/type.dart';
 /// letters start 24 ms apart from t = 252. With [frozenMs] the letters and the rule are drawn at
 /// that time instead (the gallery and the harness).
 class CineWordmark extends StatelessWidget {
-  const CineWordmark({super.key, this.frozenMs, this.showText = true, this.ruleProgress = 1});
+  const CineWordmark({super.key, this.frozenMs, this.showText = true, this.ruleProgress = 1})
+      : lineSize = null,
+        withRule = true;
+
+  /// The one-line lockup (cinematic 12.2): `Manhwa` Roman + `Maniacs` Italic side by side at
+  /// [lineSize] px (28 on Setup and Login, 20 on the picker's bar), over the Oxford rule.
+  const CineWordmark.line({super.key, double size = 28, this.ruleProgress = 1, this.withRule = true})
+      : lineSize = size,
+        frozenMs = null,
+        showText = true;
+
+  /// Non-null for the one-line variant.
+  final double? lineSize;
+
+  /// False when the screen draws the rule itself (Setup and Login move and extend it).
+  final bool withRule;
+
+  /// The width of the one-line lockup: its rule is this wide.
+  double lineWidth(BuildContext context) =>
+      _lineWidth(context, _style(context, italic: false), _style(context, italic: true));
 
   final double? frozenMs;
 
@@ -27,7 +46,7 @@ class CineWordmark extends StatelessWidget {
   TextStyle _style(BuildContext context, {required bool italic}) {
     final c = context.cine;
     final base = CineText.style(context, c.typeMasthead);
-    final size = base.fontSize ?? 48;
+    final size = lineSize ?? base.fontSize ?? 48;
     return CineText.literal(context, CineFace.bodoni, size, size, italic: italic, wght: 800).copyWith(
       color: c.colorInk100,
       letterSpacing: -0.035 * size,
@@ -41,6 +60,20 @@ class CineWordmark extends StatelessWidget {
     final c = context.cine;
     final roman = _style(context, italic: false);
     final italic = _style(context, italic: true);
+    if (lineSize != null) {
+      return Semantics(
+        label: 'ManhwaManiacs',
+        excludeSemantics: true,
+        child: SizedBox(
+          width: _lineWidth(context, roman, italic),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+            Text.rich(TextSpan(children: [TextSpan(text: 'Manhwa', style: roman), TextSpan(text: 'Maniacs', style: italic)]), maxLines: 1, softWrap: false),
+            if (withRule) SizedBox(height: c.space2),
+            if (withRule) ClipRect(child: Align(alignment: Alignment.centerLeft, widthFactor: ruleProgress.clamp(0.0, 1.0), child: const CineOxfordRule(spotLead: true))),
+          ],),
+        ),
+      );
+    }
     final Widget text;
     if (frozenMs != null) {
       text = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -77,6 +110,18 @@ class CineWordmark extends StatelessWidget {
 
   /// The widest of the two lines: the rule is as wide as the lockup (an `IntrinsicWidth` cannot
   /// measure the `SetHeading`s' layout builders).
+  static double _lineWidth(BuildContext context, TextStyle roman, TextStyle italic) {
+    final p = TextPainter(
+      text: TextSpan(children: [TextSpan(text: 'Manhwa', style: roman), TextSpan(text: 'Maniacs', style: italic)]),
+      textScaler: MediaQuery.textScalerOf(context),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    final w = p.width + 2;
+    p.dispose();
+    return w;
+  }
+
   static double _width(BuildContext context, TextStyle roman, TextStyle italic) {
     final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: context.cine.typeMasthead.cap);
     double one(String word, TextStyle style) {

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 
 /// The queue as the user thinks of it: everything still owed to them —
@@ -19,7 +20,7 @@ final activeDownloadQueueProvider =
   final store = ref.watch(downloadsStoreProvider);
   ref.watch(downloadQueueControllerProvider.select((s) => s.queueRevision));
   if (store == null) return const [];
-  return store.unfinishedChapters();
+  return store.unfinishedChapters(hideMature: !ref.watch(matureGateOpenProvider));
 });
 
 /// How many chapters are still owed. Drives the count badge on the Downloads

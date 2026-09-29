@@ -50,10 +50,15 @@ class TestDownloadsHarness {
   /// exactly how two profiles on one device share the real singletons.
   /// Synchronous (both fields are themselves `Future`s the store awaits
   /// lazily) so it can also be used directly as a `Provider` override value.
-  DownloadsStore storeFor(String scopeId) => DownloadsStore(
+  DownloadsStore storeFor(
+    String scopeId, {
+    Future<bool?> Function(String sourceId, String seriesKey)? matureResolver,
+  }) =>
+      DownloadsStore(
         scopeId: scopeId,
         database: openDatabase(),
         blobStore: openBlobStore(),
+        matureResolver: matureResolver,
       );
 
   /// Close every database handle, then delete the tree.

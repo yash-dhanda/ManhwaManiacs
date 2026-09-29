@@ -1,3 +1,4 @@
+import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
@@ -18,16 +19,27 @@ import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 /// to know the neighbours, and offering a link the reader cannot follow is
 /// worse than not offering one. The chapter still reads end to end.
 ///
-/// Never throws: any failure reaching the store (a platform-channel hiccup, a
+/// Throws only [ApiError] 404 `series_not_found` for a hidden 18+ series ([hideMature]).
+/// Never throws otherwise: any failure reaching the store (a platform-channel hiccup, a
 /// locked database, a truncated blob) is treated the same as "not available
 /// offline" — a broken local store must never be the reason a page that could
 /// have shown a real network error shows a store exception instead.
 Future<NovelChapter?> buildOfflineNovelChapter(
   DownloadsStore store,
-  ChapterIdentity id,
-) async {
+  ChapterIdentity id, {
+  bool hideMature = false,
+}) async {
   try {
     final saved = await store.getChapter(id);
+    // A hidden 18+ series is absent, exactly as removed content is: callers land on the same
+    // not-available notice. Caught below like any store failure, so rethrown from the guard.
+    if (hideMature && saved != null && (saved.mature ?? false)) {
+      throw const ApiError(
+        statusCode: 404,
+        code: 'series_not_found',
+        message: "This series isn't available here any more.",
+      );
+    }
     if (saved == null || saved.state != DownloadChapterState.complete) {
       return null;
     }
@@ -46,6 +58,8 @@ Future<NovelChapter?> buildOfflineNovelChapter(
     // so rather than opening an empty page with a title on it.
     if (chapter.paragraphs.isEmpty) return null;
     return chapter;
+  } on ApiError {
+    rethrow;
   } catch (error, stackTrace) {
     appLogger.w('Offline novel reconstruction failed', error, stackTrace);
     return null;
