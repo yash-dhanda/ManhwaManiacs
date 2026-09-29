@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/collections/providers/collections_provide
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
+import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
@@ -130,6 +131,9 @@ final List<void Function(Ref ref)> matureScopedInvalidators = [
   (ref) => ref.invalidate(continueReadingProvider),
   // Reading intelligence surfaces (reading_stats_service).
   (ref) => ref.invalidate(statisticsProvider),
+  (ref) => ref.invalidate(numbersStatisticsProvider),
+  (ref) => ref.invalidate(annualProvider),
+  (ref) => ref.invalidate(annualIndexProvider),
   (ref) => ref.invalidate(recommendationsProvider),
   (ref) => ref.invalidate(readingHistoryProvider),
   // Bookmarks (bookmark_service).
