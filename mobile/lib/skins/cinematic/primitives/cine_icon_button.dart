@@ -158,9 +158,8 @@ class _CineIconButtonState extends State<CineIconButton> {
               child: Container(
                 constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 4),
-                alignment: Alignment.center,
                 color: c.colorSpot,
-                child: CineLit(widget.count! > 99 ? '99+' : '${widget.count}', CineFace.plexMono, 10, 12, color: const Color(0xFF000000)),
+                child: Center(widthFactor: 1, heightFactor: 1, child: CineLit(widget.count! > 99 ? '99+' : '${widget.count}', CineFace.plexMono, 10, 12, color: const Color(0xFF000000))),
               ),
             ),
           ],);

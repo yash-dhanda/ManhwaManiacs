@@ -306,10 +306,13 @@ class _CineButtonState extends State<CineButton> with SingleTickerProviderStateM
       padding: EdgeInsets.symmetric(horizontal: v == CineButtonVariant.quiet ? c.space2 : hpad, vertical: stack && v == CineButtonVariant.split ? c.space2 : 0),
       transform: Matrix4.translationValues(0, pressed ? 1 : 0, 0),
       decoration: BoxDecoration(color: bg, border: border == null ? null : Border.all(color: border)),
-      alignment: Alignment.center,
-      child: underline
-          ? Column(mainAxisSize: MainAxisSize.min, children: [body, SizedBox(height: c.space1), Container(height: 1, color: fg)])
-          : body,
+      child: Center(
+        widthFactor: 1,
+        heightFactor: 1,
+        child: underline
+            ? Column(mainAxisSize: MainAxisSize.min, children: [body, SizedBox(height: c.space1), Container(height: 1, color: fg)])
+            : body,
+      ),
     );
 
     // Wash grounds re-provide ink tokens (2.1.1).

@@ -24,9 +24,8 @@ class CineKeycap extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
           padding: const EdgeInsets.symmetric(horizontal: 4),
-          alignment: Alignment.center,
           decoration: BoxDecoration(border: Border.all(color: c.colorInk30)),
-          child: CineLit(text, CineFace.plexMono, 12, 16, color: c.colorInk100),
+          child: Center(widthFactor: 1, heightFactor: 1, child: CineLit(text, CineFace.plexMono, 12, 16, color: c.colorInk100)),
         ),
       ),
     );

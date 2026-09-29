@@ -39,6 +39,7 @@ void main() {
       builder: (c, a) => MediaQuery(data: MediaQuery.of(c).copyWith(textScaler: const TextScaler.linear(1.5)), child: a!),
       home: Scaffold(body: Center(child: CineButton(label: 'Continue', variant: CineButtonVariant.split, folio: 'CH 143 · p.12', onPressed: () {}))),
     ),);
+    await t.pump(const Duration(milliseconds: 300));
     expect(t.getSize(find.byType(CineButton)).height, greaterThanOrEqualTo(64));
     expect(t.getSize(find.byType(CineButton)).height, greaterThan(wide));
     h.dispose();

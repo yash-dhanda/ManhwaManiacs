@@ -139,9 +139,8 @@ class CineBadge extends StatelessWidget {
       child: Container(
         constraints: BoxConstraints(minHeight: 16, minWidth: mono ? 16 : 0),
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        alignment: mono ? Alignment.center : null,
         decoration: BoxDecoration(color: fill, border: fill == null || onArt ? Border.all(color: line) : null),
-        child: text,
+        child: mono ? Center(widthFactor: 1, heightFactor: 1, child: text) : text,
       ),
     );
   }
