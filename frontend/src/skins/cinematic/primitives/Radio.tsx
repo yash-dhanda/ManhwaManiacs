@@ -21,7 +21,7 @@ export function Radio({ value, label, description, disabled = false }: RadioOpti
   return (
     <label className={`inline-flex min-h-(--mm-hit-min) items-center gap-3 ${disabled ? "text-ink-30" : "text-ink-100"}`}>
       <BaseRadio.Root value={value} disabled={disabled}
-        className={`flex size-5 shrink-0 items-center justify-center rounded-round border transition-colors duration-(--mm-dur-snap) ${disabled ? "border-rule-1" : "border-ink-45 hover:border-ink-100"}`}>
+        className={`flex size-5 shrink-0 items-center justify-center rounded-round border transition-colors duration-(--mm-dur-snap) ${disabled ? "border-rule-1" : "border-ink-45 hover:border-ink-100 "}`}>
         <BaseRadio.Indicator keepMounted className="size-2.5 rounded-round bg-ink-100 transition-opacity duration-(--mm-dur-snap) data-[unchecked]:opacity-0" />
       </BaseRadio.Root>
       <span className="flex flex-col"><span className="type-ui">{label}</span>{description ? <span className="type-caption text-ink-45">{description}</span> : null}</span>

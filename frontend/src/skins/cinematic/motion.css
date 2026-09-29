@@ -137,3 +137,15 @@ html[data-motion="reduced"] .cine-flip-out { display: none; }
 .cine-fadein-fast { animation: cine-fade var(--mm-dur-reduced) linear both; }
 @media (prefers-reduced-motion: reduce) { .cine-fadein { animation-duration: var(--mm-dur-reduced); } }
 html[data-motion="reduced"] .cine-fadein { animation-duration: var(--mm-dur-reduced); }
+
+/* Contents tabs (§7.12): the pager shows inactive panels while swiping; reduced motion fades the indicator instead of sliding. */
+.cine-pager > [hidden] { display: block !important; }
+.cine-pager::-webkit-scrollbar { display: none; }
+@media (prefers-reduced-motion: reduce) { .cine-tab-indicator { animation: cine-fade var(--mm-dur-reduced) linear both; } .cine-pager { scroll-behavior: auto; } }
+html[data-motion="reduced"] .cine-tab-indicator { animation: cine-fade var(--mm-dur-reduced) linear both; }
+
+/* §7.24 Stamp: fill proof 160 ms, the 18 knocks out to black, then back to the outline. */
+.cine-certificate { transition: background-color var(--mm-dur-beat) linear, color var(--mm-dur-beat) linear; }
+.cine-certificate[data-stamped] { background-color: var(--mm-color-proof); color: #000; }
+@media (prefers-reduced-motion: reduce) { .cine-certificate { transition: none; } }
+html[data-motion="reduced"] .cine-certificate { transition: none; }

@@ -17,7 +17,7 @@ export function Select({ value, onValueChange, options, label, placeholder = "Ch
   const desktop = useDesktopFrame();
   const [open, setOpen] = useState(false);
   const current = options.find((o) => o.value === value)?.label;
-  const field = `type-ui flex min-h-(--mm-hit-min) w-full items-center justify-between gap-3 border-b text-left ${disabled ? "border-rule-1 text-ink-30" : "border-ink-45 text-ink-100 hover:border-ink-100"}`;
+  const field = `type-ui flex min-h-(--mm-hit-min) w-full items-center justify-between gap-3 border-b text-left ${disabled ? "border-rule-1 text-ink-30 " : "border-ink-45 text-ink-100 hover:border-ink-100 "}`;
   const face = (<><span className={current ? "" : "text-ink-45"}>{current ?? placeholder}</span><Glyph name="caret-down" size={16} /></>);
   return (
     <div className={className}>

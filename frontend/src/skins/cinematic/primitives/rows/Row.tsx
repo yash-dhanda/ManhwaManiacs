@@ -77,7 +77,7 @@ export function RowFrame({ children, min = 56, menu, selected, selectMode, onSel
     <div role="button" tabIndex={0} aria-disabled={disabled || undefined} data-clickable
       onClick={() => { if (selectMode) onSelectedChange?.(!selected); else onClick?.(); }}
       onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); if (selectMode) onSelectedChange?.(!selected); else onClick?.(); } }}
-      className="block w-full outline-offset-[-2px]">{body}</div>
+      className="block w-full -outline-offset-2">{body}</div>
   ) : body;
   return menu && menu.length && desktop ? <ContextMenu items={menu}>{row}</ContextMenu> : row;
 }

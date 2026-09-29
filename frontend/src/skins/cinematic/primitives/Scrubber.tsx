@@ -1,4 +1,5 @@
 "use client";
+import { useRef } from "react";
 import { haptic } from "../haptics";
 import { playSound } from "../sounds";
 import { Slider, type SliderProps } from "./Slider";
@@ -11,12 +12,12 @@ import { Slider, type SliderProps } from "./Slider";
 export function Scrubber({ chapterOf, onTick, onBoundary, ...p }: Omit<SliderProps, "format"> & {
   chapterOf?: (page: number) => number; onBoundary?: (chapter: number) => void; format?: (v: number) => string;
 }) {
-  let lastChapter = chapterOf?.(p.value);
+  const lastChapter = useRef(chapterOf?.(p.value));
   return (
     <Slider {...p} onTick={(v) => {
       haptic("scrub.tick"); playSound("scrub.tick"); onTick?.(v);
       const c = chapterOf?.(v);
-      if (c !== undefined && c !== lastChapter) { lastChapter = c; haptic("scrub.boundary"); playSound("scrub.boundary"); onBoundary?.(c); }
+      if (c !== undefined && c !== lastChapter.current) { lastChapter.current = c; haptic("scrub.boundary"); playSound("scrub.boundary"); onBoundary?.(c); }
     }} />
   );
 }
