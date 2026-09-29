@@ -1,0 +1,805 @@
+{
+  "_doc": "shared/03 sound recipes. Chains are sox-style effect chains interpreted by design/sounds/synth.mjs (the ops are listed at its top). Cue: length (ms) and sample peak (dBFS) of the master; layers start at `at` s with `gain` dB; a skin's `post` chain runs on the mix; then pad 0 1 trim 0 <length>, fade t min(5 ms, length/2), norm <peak>. Loop: beds are 96 s chains per channel (independent noise), made into a 90 s equal-power loop; events are 6 PRNG variants each, placed on the 90 s timeline modulo 90 s. PRNG: mulberry32 seeded with the FNV-1a hash of the loop id.",
+  "cues": {
+    "cinematic": {
+      "name": "Press Room",
+      "post": "lowpass 5000 reverb 30 50 20 0 0 -18.4 channels 1",
+      "cues": {
+        "tick": {
+          "length": 10,
+          "peak": -30,
+          "layers": [
+            {
+              "chain": "synth 0.01 whitenoise bandpass 2200 3q"
+            },
+            {
+              "gain": -6,
+              "chain": "synth 0.02 sine 90"
+            }
+          ]
+        },
+        "set": {
+          "length": 60,
+          "peak": -20,
+          "layers": [
+            {
+              "chain": "synth 0.001 whitenoise highpass 2000"
+            },
+            {
+              "at": 0.012,
+              "chain": "synth 0.001 whitenoise highpass 2000"
+            },
+            {
+              "chain": "synth 0.04 sine 900 exp 0.04"
+            }
+          ]
+        },
+        "impress": {
+          "length": 140,
+          "peak": -20,
+          "layers": [
+            {
+              "chain": "synth 0.09 sine 70 exp 0.09"
+            },
+            {
+              "chain": "synth 0.01 whitenoise bandpass 2200 3q"
+            },
+            {
+              "at": 0.045,
+              "gain": -10,
+              "chain": "synth 0.01 whitenoise bandpass 2200 3q"
+            }
+          ]
+        },
+        "turn": {
+          "length": 160,
+          "peak": -20,
+          "layers": [
+            {
+              "chain": "synth 0.16 pinknoise sinc 800-5000 swell 0.16"
+            }
+          ]
+        },
+        "wipe": {
+          "length": 420,
+          "peak": -20,
+          "layers": [
+            {
+              "chain": "synth 0.3 pinknoise steplp 300 1800 fade h 0.100 0.300 0.020"
+            },
+            {
+              "at": 0.3,
+              "chain": "synth 0.12 sine 60 exp 0.12"
+            }
+          ]
+        },
+        "done": {
+          "length": 300,
+          "peak": -20,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.18 sine 392 sine 1568 remix 1v1,2v0.1 exp 0.18 lowpass 3000"
+            },
+            {
+              "at": 0.06,
+              "chain": "synth 0.18 sine 493.88 sine 1975.52 remix 1v1,2v0.1 exp 0.18 lowpass 3000"
+            },
+            {
+              "at": 0.12,
+              "chain": "synth 0.18 sine 587.33 sine 2349.32 remix 1v1,2v0.1 exp 0.18 lowpass 3000"
+            }
+          ]
+        },
+        "bell": {
+          "length": 450,
+          "peak": -20,
+          "layers": [
+            {
+              "chain": "synth 0.45 sine 1568 sine 3920 sine 7056 sine 9408 sine 12544 remix 1v1,2v0.575,3v0.575,4v0.15,5v0.15 exp 0.45"
+            }
+          ]
+        },
+        "pass": {
+          "length": 220,
+          "peak": -20,
+          "layers": [
+            {
+              "chain": "synth 0.18 pinknoise sinc 1000-4000 swell 0.18"
+            },
+            {
+              "at": 0.16,
+              "gain": -6,
+              "chain": "synth 0.03 sine 784 exp 0.03"
+            }
+          ]
+        },
+        "error": {
+          "length": 180,
+          "peak": -20,
+          "layers": [
+            {
+              "layers": [
+                {
+                  "at": 0,
+                  "layers": [
+                    {
+                      "chain": "synth 0.07 sine 196 exp 0.07"
+                    },
+                    {
+                      "chain": "synth 0.003 whitenoise lowpass 1500"
+                    }
+                  ]
+                },
+                {
+                  "at": 0.09,
+                  "layers": [
+                    {
+                      "chain": "synth 0.07 sine 185 exp 0.07"
+                    },
+                    {
+                      "chain": "synth 0.003 whitenoise lowpass 1500"
+                    }
+                  ]
+                }
+              ],
+              "then": "lowpass 700"
+            }
+          ]
+        },
+        "toggle-on": {
+          "length": 40,
+          "peak": -30,
+          "layers": [
+            {
+              "chain": "synth 0.006 sine 2600 exp 0.006"
+            },
+            {
+              "chain": "synth 0.002 whitenoise bandpass 2600 4q"
+            }
+          ]
+        },
+        "toggle-off": {
+          "length": 40,
+          "peak": -30,
+          "layers": [
+            {
+              "chain": "synth 0.006 sine 1900 exp 0.006"
+            },
+            {
+              "chain": "synth 0.002 whitenoise bandpass 1900 4q"
+            }
+          ]
+        },
+        "sheet": {
+          "length": 120,
+          "peak": -30,
+          "layers": [
+            {
+              "chain": "synth 0.12 pinknoise sinc 300-2000 swell 0.12"
+            }
+          ]
+        },
+        "reel": {
+          "length": 1600,
+          "peak": -12,
+          "layers": [
+            {
+              "chain": "synth 0.9 brownnoise sinc 80-1200 tremolo 12 60 fade h 0.150 0.900 0.300"
+            },
+            {
+              "gain": -6,
+              "chain": "synth 1.18 sine 98 sine 146.83 remix 1v1,2v1 steplp 300 2400 fade h 0.600 1.180 0.100"
+            },
+            {
+              "at": 1.18,
+              "cue": "impress"
+            }
+          ]
+        }
+      }
+    },
+    "glass": {
+      "name": "Meniscus",
+      "cues": {
+        "tap": {
+          "length": 24,
+          "peak": -26,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.018 sine 1760 sine 4857.6 remix 1v1,2v0.2 exp 0.018"
+            }
+          ]
+        },
+        "tick": {
+          "length": 8,
+          "peak": -30,
+          "layers": [
+            {
+              "chain": "synth 0.006 sine 2640 exp 0.006"
+            }
+          ]
+        },
+        "toggle-on": {
+          "length": 110,
+          "peak": -24,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.05 sine 1108.73 sine 3060.09 remix 1v1,2v0.2 exp 0.05"
+            },
+            {
+              "at": 0.05,
+              "chain": "synth 0.05 sine 1318.51 sine 3639.09 remix 1v1,2v0.2 exp 0.05"
+            }
+          ]
+        },
+        "toggle-off": {
+          "length": 110,
+          "peak": -24,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.05 sine 1318.51 sine 3639.09 remix 1v1,2v0.2 exp 0.05"
+            },
+            {
+              "at": 0.05,
+              "chain": "synth 0.05 sine 1108.73 sine 3060.09 remix 1v1,2v0.2 exp 0.05"
+            }
+          ]
+        },
+        "sheet-up": {
+          "length": 120,
+          "peak": -28,
+          "layers": [
+            {
+              "chain": "synth 0.11 sine 520:1040 fade h 0.010 0.110 0.030"
+            }
+          ]
+        },
+        "sheet-down": {
+          "length": 120,
+          "peak": -28,
+          "layers": [
+            {
+              "chain": "synth 0.11 sine 1040:520 fade h 0.010 0.110 0.030"
+            }
+          ]
+        },
+        "push-1": {
+          "length": 100,
+          "peak": -26,
+          "layers": [
+            {
+              "chain": "synth 0.09 sine 880:987.77 sine 2428.8:2726.25 remix 1v1,2v0.2 exp 0.09 0.005"
+            }
+          ]
+        },
+        "push-2": {
+          "length": 100,
+          "peak": -26,
+          "layers": [
+            {
+              "chain": "synth 0.09 sine 987.77:1108.73 sine 2726.25:3060.09 remix 1v1,2v0.2 exp 0.09 0.005"
+            }
+          ]
+        },
+        "push-3": {
+          "length": 100,
+          "peak": -26,
+          "layers": [
+            {
+              "chain": "synth 0.09 sine 1108.73:1318.51 sine 3060.09:3639.09 remix 1v1,2v0.2 exp 0.09 0.005"
+            }
+          ]
+        },
+        "push-4": {
+          "length": 100,
+          "peak": -26,
+          "layers": [
+            {
+              "chain": "synth 0.09 sine 1318.51:1479.98 sine 3639.09:4084.74 remix 1v1,2v0.2 exp 0.09 0.005"
+            }
+          ]
+        },
+        "back": {
+          "length": 90,
+          "peak": -29,
+          "layers": [
+            {
+              "chain": "synth 0.08 sine 987.77:880 sine 2726.25:2428.8 remix 1v1,2v0.2 exp 0.08 0.005"
+            }
+          ]
+        },
+        "root": {
+          "length": 140,
+          "peak": -26,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.06 sine 1318.51 sine 3639.09 remix 1v1,2v0.2 exp 0.06"
+            },
+            {
+              "at": 0.04,
+              "chain": "synth 0.06 sine 1108.73 sine 3060.09 remix 1v1,2v0.2 exp 0.06"
+            },
+            {
+              "at": 0.08,
+              "chain": "synth 0.06 sine 880 sine 2428.8 remix 1v1,2v0.2 exp 0.06"
+            }
+          ]
+        },
+        "fan": {
+          "length": 140,
+          "peak": -26,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.04 sine 880 sine 2428.8 remix 1v1,2v0.2 exp 0.04"
+            },
+            {
+              "at": 0.03,
+              "chain": "synth 0.04 sine 1108.73 sine 3060.09 remix 1v1,2v0.2 exp 0.04"
+            },
+            {
+              "at": 0.06,
+              "chain": "synth 0.04 sine 1318.51 sine 3639.09 remix 1v1,2v0.2 exp 0.04"
+            },
+            {
+              "at": 0.09,
+              "chain": "synth 0.04 sine 1760 sine 4857.6 remix 1v1,2v0.2 exp 0.04"
+            }
+          ]
+        },
+        "dive": {
+          "length": 300,
+          "peak": -22,
+          "layers": [
+            {
+              "chain": "synth 0.28 sine 440 fade h 0.120 0.280 0.020 steplp 3000 600"
+            }
+          ]
+        },
+        "droplet": {
+          "length": 80,
+          "peak": -24,
+          "layers": [
+            {
+              "chain": "synth 0.06 sine 700:1400 exp 0.06"
+            }
+          ]
+        },
+        "throw": {
+          "length": 100,
+          "peak": -24,
+          "layers": [
+            {
+              "chain": "synth 0.09 pinknoise bandpass 1200 1.4q swell 0.09"
+            }
+          ]
+        },
+        "catch": {
+          "length": 20,
+          "peak": -30,
+          "layers": [
+            {
+              "chain": "synth 0.012 sine 440 exp 0.012 lowpass 1500"
+            }
+          ]
+        },
+        "add": {
+          "length": 400,
+          "peak": -18,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.38 sine 880 sine 2428.8 remix 1v1,2v0.2 exp 0.38"
+            },
+            {
+              "at": 0,
+              "chain": "synth 0.38 sine 1318.51 sine 3639.09 remix 1v1,2v0.2 exp 0.38"
+            }
+          ]
+        },
+        "download-done": {
+          "length": 360,
+          "peak": -18,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.27 sine 880 sine 2428.8 remix 1v1,2v0.2 exp 0.27"
+            },
+            {
+              "at": 0.045,
+              "chain": "synth 0.27 sine 1108.73 sine 3060.09 remix 1v1,2v0.2 exp 0.27"
+            },
+            {
+              "at": 0.09,
+              "chain": "synth 0.27 sine 1318.51 sine 3639.09 remix 1v1,2v0.2 exp 0.27"
+            }
+          ]
+        },
+        "error": {
+          "length": 200,
+          "peak": -20,
+          "layers": [
+            {
+              "chain": "synth 0.09 sine 659.25 exp 0.09"
+            },
+            {
+              "at": 0.1,
+              "chain": "synth 0.09 sine 554.37 exp 0.09"
+            }
+          ]
+        },
+        "unlock": {
+          "length": 180,
+          "peak": -20,
+          "layers": [
+            {
+              "chain": "synth 0.18 sine 880:1318.51/0.17 sine 2428.8:3639.1/0.17 remix 1v1,2v0.2 exp 0.18"
+            }
+          ]
+        },
+        "shimmer": {
+          "length": 260,
+          "peak": -20,
+          "layers": [
+            {
+              "at": 0,
+              "gain": -12,
+              "chain": "synth 0.06 sine 1760 sine 4857.6 remix 1v1,2v0.2 exp 0.06"
+            },
+            {
+              "at": 0.04,
+              "gain": -9,
+              "chain": "synth 0.06 sine 1760 sine 4857.6 remix 1v1,2v0.2 exp 0.06"
+            },
+            {
+              "at": 0.08,
+              "gain": -6,
+              "chain": "synth 0.06 sine 1760 sine 4857.6 remix 1v1,2v0.2 exp 0.06"
+            },
+            {
+              "at": 0.12,
+              "gain": -3,
+              "chain": "synth 0.06 sine 1760 sine 4857.6 remix 1v1,2v0.2 exp 0.06"
+            },
+            {
+              "at": 0.16,
+              "chain": "synth 0.06 sine 1760 sine 4857.6 remix 1v1,2v0.2 exp 0.06"
+            }
+          ]
+        },
+        "pop": {
+          "length": 40,
+          "peak": -24,
+          "layers": [
+            {
+              "chain": "synth 0.03 sine 900:1800 exp 0.03"
+            }
+          ]
+        },
+        "chapter": {
+          "length": 320,
+          "peak": -22,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.3 sine 440 sine 1214.4 remix 1v1,2v0.2 exp 0.3"
+            }
+          ]
+        },
+        "flip": {
+          "length": 140,
+          "peak": -24,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.07 sine 1318.51 sine 3639.09 remix 1v1,2v0.2 exp 0.07"
+            },
+            {
+              "at": 0.06,
+              "chain": "synth 0.07 sine 1760 sine 4857.6 remix 1v1,2v0.2 exp 0.07"
+            }
+          ]
+        },
+        "send": {
+          "length": 200,
+          "peak": -22,
+          "layers": [
+            {
+              "chain": "synth 0.2 sine 1479.98:1760/0.14 exp 0.2"
+            }
+          ]
+        },
+        "melt": {
+          "length": 420,
+          "peak": -18,
+          "layers": [
+            {
+              "chain": "synth 0.4 sine 1760:880 sine 4857.6:2428.8 remix 1v1,2v0.2 fade h 0.020 0.400 0.300 reverb 50 50 100 0 0 -8 channels 1"
+            }
+          ]
+        },
+        "logo": {
+          "length": 1400,
+          "peak": -12,
+          "layers": [
+            {
+              "at": 0,
+              "chain": "synth 0.6 sine 880 sine 2428.8 remix 1v1,2v0.2 exp 0.6"
+            },
+            {
+              "at": 0.024,
+              "chain": "synth 0.6 sine 1108.73 sine 3060.09 remix 1v1,2v0.2 exp 0.6"
+            },
+            {
+              "at": 0.048,
+              "chain": "synth 0.6 sine 1318.51 sine 3639.09 remix 1v1,2v0.2 exp 0.6"
+            },
+            {
+              "at": 0.072,
+              "chain": "synth 0.6 sine 1760 sine 4857.6 remix 1v1,2v0.2 exp 0.6"
+            },
+            {
+              "at": 0.1,
+              "gain": -18,
+              "chain": "synth 1.2 pinknoise sinc 2000-8000 fade h 0.400 1.200 0.800"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "loops": {
+    "projector-room": {
+      "skin": "cinematic",
+      "description": "A soft hum with distant reel ticks.",
+      "beds": [
+        {
+          "chain": "synth 96 brownnoise sinc 60-400 tremolo 0.2 20"
+        },
+        {
+          "gain": -18,
+          "chain": "synth 96 sine 50 sine 100 remix 1v1,2v0.251"
+        }
+      ],
+      "events": [
+        {
+          "name": "reel-tick",
+          "gain": -20,
+          "chain": "synth 0.004 whitenoise lowpass 2000",
+          "schedule": {
+            "type": "periodic",
+            "period": 0.041666666666666664,
+            "jitter": 0.03
+          }
+        }
+      ]
+    },
+    "rain-on-glass": {
+      "skin": "cinematic",
+      "description": "Steady rain on a window.",
+      "beds": [
+        {
+          "chain": "synth 96 pinknoise highpass 400 lowpass 6000"
+        },
+        {
+          "gain": -12,
+          "chain": "synth 96 brownnoise lowpass 200"
+        }
+      ],
+      "events": [
+        {
+          "name": "droplet",
+          "gain": -8,
+          "pan": true,
+          "params": {
+            "f": [
+              2000,
+              4000
+            ]
+          },
+          "chain": "synth 0.004 sine {f} exp 0.004",
+          "schedule": {
+            "type": "poisson",
+            "rate": [
+              8,
+              20
+            ],
+            "drift": 5
+          }
+        }
+      ]
+    },
+    "night-city": {
+      "skin": "cinematic",
+      "description": "Distant traffic after dark.",
+      "beds": [
+        {
+          "chain": "synth 96 brownnoise lowpass 500 tremolo 0.05 40"
+        },
+        {
+          "gain": -22,
+          "chain": "synth 96 pinknoise highpass 3000"
+        }
+      ],
+      "events": [
+        {
+          "name": "horn",
+          "gain": -14,
+          "pan": true,
+          "chain": "synth 0.4 sine 392 sine 440 remix 1v0.5,2v0.5 swell 0.4 lowpass 1000 reverb 50 50 100",
+          "schedule": {
+            "type": "count",
+            "n": 3
+          }
+        }
+      ]
+    },
+    "cafe": {
+      "skin": "cinematic",
+      "description": "Low voices and cups.",
+      "beds": [
+        {
+          "chain": "synth 96 pinknoise sinc 300-3000 tremolo 3 30 tremolo 5.3 20"
+        },
+        {
+          "gain": -12,
+          "chain": "synth 96 brownnoise lowpass 200"
+        }
+      ],
+      "events": [
+        {
+          "name": "cup",
+          "gain": -10,
+          "pan": true,
+          "params": {
+            "f": [
+              3000,
+              5000
+            ]
+          },
+          "chain": "synth 0.15 sine {f} sine {f*2.4} remix 1v1,2v0.316 exp 0.15",
+          "schedule": {
+            "type": "poisson",
+            "rate": 0.3
+          }
+        }
+      ]
+    },
+    "night-wind": {
+      "skin": "cinematic",
+      "description": "Wind across an empty street.",
+      "beds": [
+        {
+          "chain": "synth 96 brownnoise windbp 300 150 0.08 0.7q 1 0.05 tremolo 0.05 40"
+        }
+      ]
+    },
+    "low-drone": {
+      "skin": "cinematic",
+      "description": "A deep, even hum.",
+      "beds": [
+        {
+          "chain": "synth 96 sine 55 sine 82.41 sine 110 remix 1v1,2v1,3v0.251 chorus 0.6 0.9 55 0.4 0.25 2 -s"
+        },
+        {
+          "gain": -10,
+          "chain": "synth 96 pinknoise lowpass 300"
+        }
+      ]
+    },
+    "afternoon-park": {
+      "skin": "cinematic",
+      "description": "Birds and far-off voices.",
+      "beds": [
+        {
+          "chain": "synth 96 pinknoise lowpass 2000"
+        },
+        {
+          "gain": -10,
+          "chain": "synth 96 pinknoise sinc 300-2500 tremolo 4 50"
+        }
+      ],
+      "events": [
+        {
+          "name": "chirp",
+          "gain": -6,
+          "pan": true,
+          "params": {
+            "d": [
+              0.06,
+              0.12
+            ]
+          },
+          "chain": "synth {d} sine 2500:4500 swell {d}",
+          "schedule": {
+            "type": "poisson",
+            "rate": 0.25,
+            "group": {
+              "size": [
+                2,
+                4
+              ],
+              "gap": 0.08
+            }
+          }
+        }
+      ]
+    },
+    "temple-bells": {
+      "skin": "cinematic",
+      "description": "Slow bells over a quiet courtyard.",
+      "beds": [
+        {
+          "chain": "synth 96 pinknoise lowpass 1000"
+        }
+      ],
+      "events": [
+        {
+          "name": "bell",
+          "gain": 6,
+          "pan": true,
+          "params": {
+            "f0": {
+              "choose": [
+                196,
+                261.63,
+                293.66
+              ]
+            }
+          },
+          "chain": "synth 6 sine {f0} sine {f0*2.76} sine {f0*5.4} sine {f0*8.93} remix 1v1,2v0.501,3v0.251,4v0.126 exp 6 reverb 60 50 100",
+          "schedule": {
+            "type": "interval",
+            "min": 7,
+            "max": 11
+          }
+        }
+      ]
+    },
+    "glass-deep-bed": {
+      "skin": "glass",
+      "lufs": -26,
+      "description": "Deep: synthesised drone in A",
+      "beds": [
+        {
+          "chain": "synth 96 sine 55 sine 82.41 remix 1v1,2v1 chorus 0.7 0.9 50 0.4 0.03 2 -s"
+        },
+        {
+          "gain": -10,
+          "chain": "synth 96 pinknoise lowpass 300"
+        }
+      ]
+    },
+    "glass-deep-detail": {
+      "skin": "glass",
+      "lufs": -30,
+      "description": "Deep: slow shimmer",
+      "beds": [
+        {
+          "chain": "synth 96 sine 1760 sine 2637.02 remix 1v0.501,2v0.501 tremolo 0.1 80 reverb 70 50 100"
+        }
+      ]
+    },
+    "glass-deep-tone": {
+      "skin": "glass",
+      "lufs": -32,
+      "description": "Deep: soft pulses",
+      "events": [
+        {
+          "name": "pulse",
+          "chain": "synth 0.4 sine 110 swell 0.4",
+          "schedule": {
+            "type": "even",
+            "n": 16,
+            "offset": -0.2
+          }
+        }
+      ]
+    }
+  }
+}
