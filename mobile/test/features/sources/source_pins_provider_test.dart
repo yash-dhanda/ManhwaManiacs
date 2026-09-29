@@ -2,8 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/repositories/sources_repository.dart';
@@ -17,6 +20,18 @@ import '../../support/test_overrides.dart';
 /// Behaves like `PUT /sources/pins` on a scope with no rows yet: a new id the
 /// server cannot resolve refuses the whole set with a 422.
 class _FakePinServer implements SourcesRepository {
+
+  @override
+  Future<Result<List<ReaderPage>>> getChapterPages(String sourceId, String chapterKey) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceSummary>>> listHealth() async => const Ok([]);
+
+  @override
+  Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
   @override
   Future<Result<SeriesEnrichment?>> seriesEnrichment(
     String sourceId,

@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/downloads/providers/downloaded_series_pro
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
+import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
@@ -20,6 +21,7 @@ import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
 import 'package:manhwamaniacs/features/settings/repositories/mature_settings_repository.dart';
 import 'package:manhwamaniacs/features/settings/repositories/mature_settings_repository_impl.dart';
 import 'package:manhwamaniacs/features/settings/services/image_cache_service.dart';
+import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
@@ -135,6 +137,9 @@ final List<void Function(Ref ref)> matureScopedInvalidators = [
   // Reading intelligence surfaces (reading_stats_service).
   (ref) => ref.invalidate(statisticsProvider),
   (ref) => ref.invalidate(recommendationsProvider),
+  (ref) => ref.invalidate(genreWeightsProvider),
+  (ref) => ref.invalidate(sourcesHealthProvider),
+  (ref) => ref.invalidate(popularFirstPageProvider),
   (ref) => ref.invalidate(readingHistoryProvider),
   // Bookmarks (bookmark_service).
   (ref) => ref.invalidate(bookmarksProvider),

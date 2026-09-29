@@ -448,13 +448,53 @@ class SearchListNotifier
     final requestId = ++_requestId;
     _retrying.clear();
     final result =
-        await ref.read(sourcesRepositoryProvider).searchGrouped(query);
+        await ref.read(sourcesRepositoryProvider).searchGrouped(query, tier: 1);
     // Guard against a superseded query resolving late.
     if (requestId != _requestId) {
       return state.valueOrNull ?? const GroupedSearchResult();
     }
     if (result.isErr) throw result.error;
+    // Tier 1 is published now; the slow tier follows and merges in.
+    if (result.value.nextTier == 2) {
+      unawaited(Future<void>.microtask(() => _runTier2(query, requestId)));
+    }
     return result.value;
+  }
+
+  Future<void> _runTier2(String query, int requestId) async {
+    final result =
+        await ref.read(sourcesRepositoryProvider).searchGrouped(query, tier: 2);
+    if (requestId != _requestId) return;
+    final current = state.valueOrNull;
+    if (current == null) return;
+    if (result.isErr) {
+      state = AsyncData(_tierDone(current, const [], 0));
+      return;
+    }
+    state = AsyncData(
+      _tierDone(current, result.value.groups, result.value.sourcesFailed),
+    );
+  }
+
+  GroupedSearchResult _tierDone(
+    GroupedSearchResult tier1,
+    List<SourceSearchGroup> extra,
+    int failed,
+  ) {
+    final known = {for (final g in tier1.groups) g.key};
+    final groups = [
+      ...tier1.groups,
+      for (final g in extra)
+        if (!known.contains(g.key)) g,
+    ];
+    return GroupedSearchResult(
+      groups: groups,
+      sourcesQueried: tier1.sourcesQueried + extra.length,
+      sourcesFailed: tier1.sourcesFailed + failed,
+      page: tier1.page,
+      hasMore: tier1.hasMore,
+      tier: 2,
+    );
   }
 
   bool isRetrying(String sourceId) => _retrying.contains(sourceId);

@@ -10,9 +10,12 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/widgets/read_all_button.dart';
 import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -36,6 +39,18 @@ import '../../support/test_overrides.dart';
 /// at. Read-all is a way of presenting the series, not a way of starting over.
 
 class _FakeSourcesRepository implements SourcesRepository {
+
+  @override
+  Future<Result<List<ReaderPage>>> getChapterPages(String sourceId, String chapterKey) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceSummary>>> listHealth() async => const Ok([]);
+
+  @override
+  Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
   @override
   Future<Result<SeriesEnrichment?>> seriesEnrichment(
     String sourceId,
@@ -80,6 +95,7 @@ class _FakeSourcesRepository implements SourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
+    int? tier,
   }) =>
       throw UnimplementedError();
 
@@ -100,6 +116,8 @@ class _FakeSourcesRepository implements SourcesRepository {
     int page = 1,
     String? query,
     String? sort,
+    String? genre,
+    bool refresh = false,
   }) =>
       throw UnimplementedError();
 
@@ -153,6 +171,9 @@ class _FakeUpdatesRepository implements UpdatesRepository {
 /// Only the followed-series read is exercised (the Follow button's cache);
 /// everything else throws so a stray call is loud rather than silently empty.
 class _FakeLibraryRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   @override
   Future<Result<RepointResult>> repoint(
     int followedId, {
@@ -168,6 +189,8 @@ class _FakeLibraryRepository implements LibraryRepository {
     String? readingStatus,
     String? search,
     String? sort,
+    String? genre,
+    bool refresh = false,
     bool? isFavorite,
   }) async =>
       const Ok(

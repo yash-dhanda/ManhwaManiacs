@@ -3,8 +3,11 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -35,11 +38,17 @@ class SourcesRepositoryImpl implements SourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
+    int? tier,
   }) async {
     try {
       final r = await _dio.get<Map<String, dynamic>>(
         '/sources/search',
-        queryParameters: {'q': query, 'page': page, 'per_page': perPage},
+        queryParameters: {
+          'q': query,
+          'page': page,
+          'per_page': perPage,
+          if (tier != null) 'tier': tier,
+        },
       );
       // cover_url comes back relative, like /sources/{id}/series; the result
       // cards resolve it against the API base (searchResultCoverUrl).
@@ -82,11 +91,73 @@ class SourcesRepositoryImpl implements SourcesRepository {
       (data ?? const []).map((e) => SourcePin.fromJson(e as Map<String, dynamic>)).toList();
 
   @override
-  Future<Result<List<SourceBrowseMode>>> listBrowseModes(String sourceId) async {
+  Future<Result<List<ReaderPage>>> getChapterPages(
+      String sourceId, String chapterKey,) async {
     try {
-      final r = await _dio.get<List<dynamic>>('/sources/$sourceId/browse-modes');
-      final items =
-          (r.data ?? []).map((e) => SourceBrowseMode.fromJson(e as Map<String, dynamic>)).toList();
+      final r = await _dio
+          .get<List<dynamic>>('/sources/$sourceId/chapters/$chapterKey/pages');
+      return Ok([
+        for (final e in r.data ?? const [])
+          ReaderPage.fromJson(e as Map<String, dynamic>, _apiBaseUrl),
+      ]);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async {
+    try {
+      final r = await _dio.get<List<dynamic>>('/sources/$sourceId/genres');
+      return Ok([
+        for (final e in r.data ?? const [])
+          SourceGenre.fromJson(e as Map<String, dynamic>),
+      ]);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<List<SourceSummary>>> listHealth() async {
+    try {
+      final r = await _dio.get<List<dynamic>>('/sources/health');
+      return Ok([
+        for (final e in r.data ?? const [])
+          SourceSummary.fromJson(e as Map<String, dynamic>),
+      ]);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<SourceHealthSummary>> healthSummary() async {
+    try {
+      final r = await _dio.get<Map<String, dynamic>>('/system/source-health');
+      return Ok(SourceHealthSummary.fromJson(r.data ?? const {}));
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<List<SourceBrowseMode>>> listBrowseModes(
+      String sourceId,) async {
+    try {
+      final r =
+          await _dio.get<List<dynamic>>('/sources/$sourceId/browse-modes');
+      final items = (r.data ?? [])
+          .map((e) => SourceBrowseMode.fromJson(e as Map<String, dynamic>))
+          .toList();
       return Ok(items);
     } on DioException catch (e) {
       return Err(_err(e));
@@ -101,6 +172,8 @@ class SourcesRepositoryImpl implements SourcesRepository {
     int page = 1,
     String? query,
     String? sort,
+    String? genre,
+    bool refresh = false,
   }) async {
     try {
       final r = await _dio.get<Map<String, dynamic>>(
@@ -109,6 +182,8 @@ class SourcesRepositoryImpl implements SourcesRepository {
           'page': page,
           if (query != null) 'query': query,
           if (sort != null) 'sort': sort,
+          if (genre != null) 'genre': genre,
+          if (refresh) 'refresh': true,
         },
       );
       final paged = PagedResult<SourceSeriesSummary>(
@@ -124,6 +199,9 @@ class SourcesRepositoryImpl implements SourcesRepository {
         page: r.data!['page'] as int,
         perPage: r.data!['page_size'] as int,
         hasNext: r.data!['has_more'] as bool,
+        cache: r.data!['cache'] is Map<String, dynamic>
+            ? r.data!['cache'] as Map<String, dynamic>
+            : null,
       );
       return Ok(paged);
     } on DioException catch (e) {

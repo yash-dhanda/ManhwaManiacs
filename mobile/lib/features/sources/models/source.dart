@@ -1,3 +1,5 @@
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
+
 /// The two values `content_kind` takes on the wire (`connectors/registry.py`).
 const String kMangaContentKind = 'manga';
 const String kNovelContentKind = 'novel';
@@ -12,6 +14,8 @@ class SourceSummary {
     this.mature = false,
     this.iconUrl,
     this.contentKind = kMangaContentKind,
+    this.language,
+    this.health,
   });
 
   final String id;
@@ -33,6 +37,12 @@ class SourceSummary {
   /// is what makes "not a novel" a safe definition of manga.
   final String contentKind;
 
+  /// Content language (`"en"`) where the connector declares one.
+  final String? language;
+
+  /// Recorded reachability; null from an older server.
+  final SourceHealth? health;
+
   factory SourceSummary.fromJson(Map<String, dynamic> json) => SourceSummary(
         id: json['id'] as String,
         name: json['name'] as String,
@@ -44,6 +54,10 @@ class SourceSummary {
         contentKind: json['content_kind'] is String
             ? json['content_kind']! as String
             : kMangaContentKind,
+        language: json['language'] as String?,
+        health: json['health'] is Map<String, dynamic>
+            ? SourceHealth.fromJson(json['health'] as Map<String, dynamic>)
+            : null,
       );
 }
 

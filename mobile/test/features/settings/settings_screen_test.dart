@@ -37,6 +37,7 @@ import 'package:manhwamaniacs/features/settings/providers/app_update_provider.da
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/settings/repositories/mature_settings_repository.dart';
 import 'package:manhwamaniacs/features/settings/screens/settings_screen.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
@@ -113,6 +114,9 @@ List<Override> _metadataCacheProviderOverrides() => [
     ];
 
 class _EmptyLibraryRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   @override
   Future<Result<RepointResult>> repoint(
     int followedId, {

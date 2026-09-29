@@ -69,6 +69,10 @@ void main() {
           reason: bad,);
     }
     expect(
+        boundaryViolations(cine,
+            "import 'package:manhwamaniacs/skins/cinematic/screens/discover/a.dart';",),
+        isEmpty,);
+    expect(
         boundaryViolations('lib/skins/glass/x.dart',
             "import 'package:manhwamaniacs/skins/cinematic/router.dart';",),
         isNotEmpty,);

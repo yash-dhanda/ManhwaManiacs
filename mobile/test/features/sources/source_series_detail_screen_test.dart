@@ -19,8 +19,11 @@ import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -39,6 +42,18 @@ import '../../support/test_overrides.dart';
 /// remaining methods throw so a stray call surfaces loudly rather than passing
 /// silently with empty data.
 class _FakeSourcesRepository implements SourcesRepository {
+
+  @override
+  Future<Result<List<ReaderPage>>> getChapterPages(String sourceId, String chapterKey) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceSummary>>> listHealth() async => const Ok([]);
+
+  @override
+  Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
   @override
   Future<Result<SeriesEnrichment?>> seriesEnrichment(
     String sourceId,
@@ -72,6 +87,7 @@ class _FakeSourcesRepository implements SourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
+    int? tier,
   }) =>
       throw UnimplementedError();
 
@@ -92,6 +108,8 @@ class _FakeSourcesRepository implements SourcesRepository {
     int page = 1,
     String? query,
     String? sort,
+    String? genre,
+    bool refresh = false,
   }) =>
       throw UnimplementedError();
 
@@ -110,6 +128,9 @@ class _FakeSourcesRepository implements SourcesRepository {
 /// `UpdatesNotifier`'s followed-series cache, which
 /// [SeriesFollowButton] reads via `followedFor` to decide Follow vs Unfollow.
 class _FakeLibraryRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   @override
   Future<Result<RepointResult>> repoint(
     int followedId, {
@@ -136,6 +157,8 @@ class _FakeLibraryRepository implements LibraryRepository {
     int page = 1,
     int perPage = 40,
     String? sort,
+    String? genre,
+    bool refresh = false,
     String? search,
     String? readingStatus,
     bool? isFavorite,

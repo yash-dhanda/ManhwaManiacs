@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
@@ -131,6 +132,9 @@ class _FakeUpdatesRepository implements UpdatesRepository {
 /// `UpdatesNotifier` drives — the "trackers" cache is now just the followed
 /// series list from `GET /library/series`.
 class _FakeLibraryRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   @override
   Future<Result<RepointResult>> repoint(
     int followedId, {
