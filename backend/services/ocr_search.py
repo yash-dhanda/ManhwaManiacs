@@ -8,6 +8,7 @@ follow.
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Annotated, Any
 
@@ -46,6 +47,65 @@ def match_expr(raw: str) -> str:
     the query someone searching for a remembered line of dialogue types.
     """
     return " ".join(f'"{t.replace(chr(34), chr(34) * 2)}"' for t in terms_of(raw))
+
+
+def _number(box: dict[str, Any], key: str) -> float | None:
+    value = box.get(key)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value)
+
+
+def box_fractions(box: dict[str, Any]) -> dict[str, float] | None:
+    """``{x, y, w, h}`` in page fractions, from ``x/y/width/height`` or
+    ``left/top/right/bottom``; None when a value is missing or outside
+    ``[0, 1]`` (older pixel-space uploads)."""
+    x, y, w, h = (_number(box, k) for k in ("x", "y", "width", "height"))
+    if None in (x, y, w, h):
+        left, top, right, bottom = (
+            _number(box, k) for k in ("left", "top", "right", "bottom")
+        )
+        if None in (left, top, right, bottom):
+            return None
+        x, y, w, h = left, top, right - left, bottom - top
+    values = (x, y, w, h)
+    if any(not 0.0 <= v <= 1.0 for v in values):
+        return None
+    return {k: round(v, 4) for k, v in zip(("x", "y", "w", "h"), values)}
+
+
+def locate(
+    page_texts: str | None, terms: list[str]
+) -> tuple[int | None, dict[str, float] | None]:
+    """``(page, box)`` a hit came from: the first page, ascending, whose text
+    or any box text holds a term (case-insensitive), and the first such box on
+    it. ``(None, None)`` when ``page_texts`` is missing, unparsable, or holds
+    no term (FTS matched on tokenisation only)."""
+    try:
+        pages = json.loads(page_texts) if page_texts else None
+    except (ValueError, TypeError):
+        return None, None
+    if not isinstance(pages, list):
+        return None, None
+    lowered = [t.lower() for t in terms if t]
+
+    def holds(value: Any) -> bool:
+        return isinstance(value, str) and any(t in value.lower() for t in lowered)
+
+    numbered = [
+        p
+        for p in pages
+        if isinstance(p, dict)
+        and isinstance(p.get("page"), (int, float))
+        and not isinstance(p.get("page"), bool)
+    ]
+    for page in sorted(numbered, key=lambda p: p["page"]):
+        raw_boxes = page.get("boxes")
+        boxes = [b for b in raw_boxes if isinstance(b, dict)] if isinstance(raw_boxes, list) else []
+        box = next((b for b in boxes if holds(b.get("text"))), None)
+        if box is not None or holds(page.get("text")):
+            return int(page["page"]), box_fractions(box) if box is not None else None
+    return None, None
 
 
 class OcrSearchService:
@@ -108,8 +168,8 @@ class OcrSearchService:
         # other profile's transcripts. Both halves matter: the scope predicate
         # runs in SQLite (an ephemeral index over the followed pairs, probed
         # once per FTS hit) rather than over a fully materialized result set,
-        # and ``full_text`` -- kilobytes of dialogue per chapter -- is read
-        # only for the rows this page actually renders a snippet for.
+        # and ``full_text`` / ``page_texts`` -- kilobytes per chapter -- are
+        # read only for the rows this page actually renders.
         source = f"""
             FROM chapter_ocr_fts f
             JOIN chapter_ocr c ON c.id = f.rowid
@@ -124,7 +184,7 @@ class OcrSearchService:
             text(
                 f"""
                 SELECT c.source_id, c.series_key, c.chapter_key,
-                       c.full_text, c.word_count, c.engine
+                       c.full_text, c.page_texts, c.word_count, c.engine
                 {source}
                 -- ``c.id`` breaks word_count ties. The window is SQLite's now
                 -- rather than a Python slice, and LIMIT/OFFSET over a partial
@@ -137,18 +197,23 @@ class OcrSearchService:
         ).all()
 
         lowered_terms = [t.lower() for t in terms]
-        items = [
-            {
-                "source_id": r.source_id,
-                "series_key": r.series_key,
-                "chapter_key": r.chapter_key,
-                "word_count": r.word_count,
-                "engine": r.engine,
-                "snippet": self._snippet(r.full_text or "", lowered_terms),
-                "highlighted_terms": terms,
-            }
-            for r in rows
-        ]
+        items = []
+        for r in rows:
+            page, box = locate(r.page_texts, lowered_terms)
+            items.append(
+                {
+                    "source_id": r.source_id,
+                    "series_key": r.series_key,
+                    "chapter_key": r.chapter_key,
+                    "word_count": r.word_count,
+                    "engine": r.engine,
+                    "snippet": self._snippet(r.full_text or "", lowered_terms),
+                    "highlighted_terms": terms,
+                    # The speech bubble the hit came from (cinematic §8.24).
+                    "page": page,
+                    "box": box,
+                }
+            )
 
         return enrich_pagination_aliases(
             {
