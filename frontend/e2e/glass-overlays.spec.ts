@@ -60,6 +60,89 @@ test.describe("sheets (phone, touch)", () => {
   });
 });
 
+test.describe("sheet haptics and budget (phone, touch)", () => {
+  test.use({ viewport: PHONE, hasTouch: true, isMobile: true });
+
+  let cdp: import("@playwright/test").CDPSession;
+  test.beforeEach(async ({ page }) => { cdp = await page.context().newCDPSession(page); });
+  const touch = async (page: Page, type: "touchStart" | "touchMove" | "touchEnd", x: number, y: number) => {
+    void page;
+    await cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x, y }] });
+  };
+  const grab = async (page: Page) => {
+    const b = (await page.locator(".g-sheet__grabber").last().boundingBox())!;
+    return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+  };
+  const clearH = (page: Page) => page.evaluate(() => { (window as unknown as { __h: string[] }).__h.length = 0; });
+
+  test("touch drag: sheet.pass across a detent, threshold.cross then back, sheet.detent on settle, sheet.dismiss", async ({ page }) => {
+    await page.goto(`${G}?section=sheets`, { waitUntil: "networkidle" });
+    await haptics(page);
+    await page.getByTestId("open-peek").click();
+    await expect(dialog(page)).toBeVisible();
+    await page.waitForTimeout(1200);
+    // up across the large detent, slowly
+    let { x, y } = await grab(page);
+    await clearH(page);
+    await touch(page, "touchStart", x, y);
+    for (let i = 1; i <= 12; i++) { await touch(page, "touchMove", x, y - i * 30); await page.waitForTimeout(40); }
+    await touch(page, "touchEnd", x, y - 360);
+    await page.waitForTimeout(1200);
+    let h = await haptics(page);
+    expect(h).toContain("sheet.pass");
+    expect(h).toContain("sheet.detent");
+    // down fast past the dismiss line, then back up slowly, then release near a detent
+    ({ x, y } = await grab(page));
+    await clearH(page);
+    await touch(page, "touchStart", x, y);
+    for (let i = 1; i <= 8; i++) { await touch(page, "touchMove", x, y + i * 60); await page.waitForTimeout(8); }
+    h = await haptics(page);
+    expect(h).toContain("threshold.cross");
+    for (let i = 1; i <= 10; i++) { await touch(page, "touchMove", x, y + 480 - i * 50); await page.waitForTimeout(60); }
+    await page.waitForTimeout(150);
+    h = await haptics(page);
+    expect(h.indexOf("threshold.back")).toBeGreaterThan(h.indexOf("threshold.cross"));
+    await touch(page, "touchEnd", x, y - 20);
+    await page.waitForTimeout(1200);
+    await clearH(page);
+    // fast flick dismiss
+    ({ x, y } = await grab(page));
+    await touch(page, "touchStart", x, y);
+    for (let i = 1; i <= 8; i++) { await touch(page, "touchMove", x, y + i * 70); await page.waitForTimeout(8); }
+    await touch(page, "touchEnd", x, y + 560);
+    await expect(dialog(page)).toHaveCount(0, { timeout: 5000 });
+    expect(await haptics(page)).toContain("sheet.dismiss");
+  });
+
+  const live = async (page: Page) => { await page.waitForFunction(() => "__glassBudget" in window); return page.evaluate(() => (window as unknown as { __glassBudget: () => { glass: number; scrims: number; exempt: number; solid: string[] } }).__glassBudget()); };
+
+  test("budget: sheet + toast, and sheet + menu, keep live glass at 5 or fewer", async ({ page }) => {
+    // the gallery wraps everything (portals included) in an exempt scope, so count overlay surfaces as the growth of glass + exempt
+    const total = (c: { glass: number; exempt: number }) => c.glass + c.exempt;
+    await page.goto(`${G}?section=sheets`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(1000);
+    const base = total(await live(page));
+    await page.getByTestId("open-filters").click();
+    await expect(dialog(page)).toBeVisible();
+    await page.evaluate(() => (document.querySelector('[data-testid="toast-info"]') as HTMLElement | null)?.click());
+    await page.waitForTimeout(900);
+    const a = await live(page);
+    console.log("BUDGET sheet+toast overlay glass", total(a) - base, JSON.stringify(a));
+    expect(total(a) - base).toBeLessThanOrEqual(5);
+    await page.keyboard.press("Escape");
+    await expect(dialog(page)).toHaveCount(0);
+    await page.goto(`${G}?section=menus`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(1000);
+    const base2 = total(await live(page));
+    await page.getByTestId("menu-trigger").click();
+    await expect(page.getByRole("menu").first()).toBeVisible();
+    await page.waitForTimeout(600);
+    const b = await live(page);
+    console.log("BUDGET menu overlay glass", total(b) - base2, JSON.stringify(b));
+    expect(total(b) - base2).toBeLessThanOrEqual(5);
+  });
+});
+
 test.describe("alerts and toasts", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
