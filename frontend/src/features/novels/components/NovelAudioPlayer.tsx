@@ -11,6 +11,7 @@ import {
   isPlaybackFailure,
   keepLoadedUrl,
 } from "@/features/novels/latest-load";
+import { setAudioActivity } from "@/features/audio/activity";
 import type { ChapterId } from "@/types/api";
 
 /**
@@ -87,9 +88,13 @@ export function NovelAudioPlayer({
       setPositionMs(ms);
       reportRef.current(ms);
     };
-    const onPlay = () => setPlaying(true);
+    const onPlay = () => {
+      setPlaying(true);
+      setAudioActivity("narration", true);
+    };
     const onStop = () => {
       setPlaying(false);
+      setAudioActivity("narration", false);
       // Stop the highlight when the voice stops. Leaving one sentence lit
       // after playback ends reads as a bug, not as a bookmark.
       reportRef.current(null);
@@ -104,6 +109,7 @@ export function NovelAudioPlayer({
       element.removeEventListener("play", onPlay);
       element.removeEventListener("pause", onStop);
       element.removeEventListener("ended", onStop);
+      setAudioActivity("narration", false);
       reportRef.current(null);
     };
   }, []);

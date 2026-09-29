@@ -24,10 +24,11 @@
  * BEFORE legacy's `@theme` below: Tailwind keeps the last definition of a key,
  * and legacy keeps its own values for the keys both define. The bridge then
  * points those shared keys at each new skin's token under `html[data-skin]`.
- * web/02 adds the Glass tokens import once shared/01 has generated them.
+ * The Glass tokens import follows the Cinematic one.
  */
 @import "../skins/theme.generated.css";
 @import "../skins/cinematic/tokens.generated.css";
+@import "../skins/glass/tokens.generated.css";
 @import "../skins/legacy-bridge.css";
 
 /*

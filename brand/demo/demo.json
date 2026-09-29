@@ -1,0 +1,1676 @@
+{
+ "covers": [
+  {
+   "id": 1,
+   "file": "covers/01-salt-and-iron.webp",
+   "title": "Salt and Iron",
+   "group": "warm",
+   "palette": [
+    "#3B1407",
+    "#C4541C",
+    "#F2B24A"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 2,
+   "file": "covers/02-ember-ledger.webp",
+   "title": "Ember Ledger",
+   "group": "warm",
+   "palette": [
+    "#2A0B0B",
+    "#B3261E",
+    "#FF8A3D"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 3,
+   "file": "covers/03-the-ninth-regression.webp",
+   "title": "The Ninth Regression",
+   "group": "warm",
+   "palette": [
+    "#4A1C0C",
+    "#E0762B",
+    "#FFD39A"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 4,
+   "file": "covers/04-red-lantern-pact.webp",
+   "title": "Red Lantern Pact",
+   "group": "warm",
+   "palette": [
+    "#1F0606",
+    "#8E1B1B",
+    "#F4C542"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 5,
+   "file": "covers/05-dune-courier.webp",
+   "title": "Dune Courier",
+   "group": "warm",
+   "palette": [
+    "#5A3410",
+    "#D99A4E",
+    "#FCE3B0"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 6,
+   "file": "covers/06-copper-saints.webp",
+   "title": "Copper Saints",
+   "group": "warm",
+   "palette": [
+    "#3D1F14",
+    "#B8643A",
+    "#E9B48A"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 7,
+   "file": "covers/07-moonlit-bakery.webp",
+   "title": "Moonlit Bakery",
+   "group": "cool",
+   "palette": [
+    "#0B1630",
+    "#2E4C8F",
+    "#CFE3FF"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 8,
+   "file": "covers/08-glass-tide.webp",
+   "title": "Glass Tide",
+   "group": "cool",
+   "palette": [
+    "#03282E",
+    "#0F7C8A",
+    "#8FE3E8"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 9,
+   "file": "covers/09-frost-archive.webp",
+   "title": "Frost Archive",
+   "group": "cool",
+   "palette": [
+    "#0E1D2B",
+    "#4A7BA6",
+    "#E6F2FF"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 10,
+   "file": "covers/10-blue-hour-duel.webp",
+   "title": "Blue Hour Duel",
+   "group": "cool",
+   "palette": [
+    "#101437",
+    "#3C3F9E",
+    "#9FB4FF"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 11,
+   "file": "covers/11-harbour-of-echoes.webp",
+   "title": "Harbour of Echoes",
+   "group": "cool",
+   "palette": [
+    "#06222A",
+    "#1E5F74",
+    "#7FD1C7"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 12,
+   "file": "covers/12-cold-orbit.webp",
+   "title": "Cold Orbit",
+   "group": "cool",
+   "palette": [
+    "#070B1A",
+    "#22386B",
+    "#6FA8FF"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 13,
+   "file": "covers/13-night-ward.webp",
+   "title": "Night Ward",
+   "group": "dark",
+   "palette": [
+    "#050507",
+    "#14161C",
+    "#3A4050"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 14,
+   "file": "covers/14-velvet-abyss.webp",
+   "title": "Velvet Abyss",
+   "group": "dark",
+   "palette": [
+    "#07030A",
+    "#1C0F24",
+    "#4B2A5C"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 15,
+   "file": "covers/15-the-quiet-blade.webp",
+   "title": "The Quiet Blade",
+   "group": "dark",
+   "palette": [
+    "#040605",
+    "#111A14",
+    "#2F4A38"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 16,
+   "file": "covers/16-obsidian-hours.webp",
+   "title": "Obsidian Hours",
+   "group": "dark",
+   "palette": [
+    "#060606",
+    "#16120E",
+    "#5A4A36"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 17,
+   "file": "covers/17-petal-almanac.webp",
+   "title": "Petal Almanac",
+   "group": "pale",
+   "palette": [
+    "#FFF4F2",
+    "#F6D6DC",
+    "#E79AAE"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 18,
+   "file": "covers/18-linen-sky.webp",
+   "title": "Linen Sky",
+   "group": "pale",
+   "palette": [
+    "#F8F6EF",
+    "#E3E8EC",
+    "#A9BCCB"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 19,
+   "file": "covers/19-soft-rain-diary.webp",
+   "title": "Soft Rain Diary",
+   "group": "pale",
+   "palette": [
+    "#F1F5F4",
+    "#D5E6E2",
+    "#8FB8AE"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 20,
+   "file": "covers/20-morning-porcelain.webp",
+   "title": "Morning Porcelain",
+   "group": "pale",
+   "palette": [
+    "#FBF8F3",
+    "#EDE3D3",
+    "#C9B59A"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 21,
+   "file": "covers/21-ink-and-static.webp",
+   "title": "Ink and Static",
+   "group": "greyscale",
+   "palette": [
+    "#0A0A0A",
+    "#5A5A5A",
+    "#D0D0D0"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 22,
+   "file": "covers/22-silent-graphite.webp",
+   "title": "Silent Graphite",
+   "group": "greyscale",
+   "palette": [
+    "#1E1E1E",
+    "#7A7A7A",
+    "#BDBDBD"
+   ],
+   "whiteDominant": false
+  },
+  {
+   "id": 23,
+   "file": "covers/23-white-room-protocol.webp",
+   "title": "White Room Protocol",
+   "group": "greyscale",
+   "palette": [
+    "#FFFFFF",
+    "#F4F4F4",
+    "#1A1A1A"
+   ],
+   "whiteDominant": true
+  },
+  {
+   "id": 24,
+   "file": "covers/24-snowfield-letters.webp",
+   "title": "Snowfield Letters",
+   "group": "greyscale",
+   "palette": [
+    "#FFFFFF",
+    "#EFEFEF",
+    "#2A2A2A"
+   ],
+   "whiteDominant": true
+  }
+ ],
+ "pages": [
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 1,
+   "file": "pages/ch01-p01.webp",
+   "width": 800,
+   "height": 1777,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 814
+    },
+    {
+     "x": 0,
+     "y": 910,
+     "w": 800,
+     "h": 819
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 317.17,
+     "y": 950,
+     "w": 355.08,
+     "h": 150.6,
+     "text": "The gate opens at dawn."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 2,
+   "file": "pages/ch01-p02.webp",
+   "width": 800,
+   "height": 2354,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 665
+    },
+    {
+     "x": 0,
+     "y": 761,
+     "w": 800,
+     "h": 862
+    },
+    {
+     "x": 0,
+     "y": 1671,
+     "w": 800,
+     "h": 635
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 379.26,
+     "y": 88,
+     "w": 342.33,
+     "h": 99.3,
+     "text": "You're late again."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 3,
+   "file": "pages/ch01-p03.webp",
+   "width": 800,
+   "height": 2931,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 2835
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 82.4,
+     "y": 88,
+     "w": 287.27,
+     "h": 150.6,
+     "text": "The salt ships never wait."
+    },
+    {
+     "x": 262.84,
+     "y": 1363.75,
+     "w": 318.89,
+     "h": 99.3,
+     "text": "Who hired you?"
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 4,
+   "file": "pages/ch01-p04.webp",
+   "width": 800,
+   "height": 1707,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 603
+    },
+    {
+     "x": 0,
+     "y": 699,
+     "w": 800,
+     "h": 960
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 412.53,
+     "y": 88,
+     "w": 311.24,
+     "h": 150.6,
+     "text": "Nobody. I came alone."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 5,
+   "file": "pages/ch01-p05.webp",
+   "width": 800,
+   "height": 2284,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 651
+    },
+    {
+     "x": 0,
+     "y": 747,
+     "w": 800,
+     "h": 614
+    },
+    {
+     "x": 0,
+     "y": 1409,
+     "w": 800,
+     "h": 827
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 258.65,
+     "y": 787,
+     "w": 306.63,
+     "h": 150.6,
+     "text": "Then turn back now."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 6,
+   "file": "pages/ch01-p06.webp",
+   "width": 800,
+   "height": 2861,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 2765
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 361.82,
+     "y": 88,
+     "w": 305.35,
+     "h": 150.6,
+     "text": "Not without my brother."
+    },
+    {
+     "x": 262.61,
+     "y": 1332.25,
+     "w": 303.4,
+     "h": 150.6,
+     "text": "He sailed three days ago."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 7,
+   "file": "pages/ch01-p07.webp",
+   "width": 800,
+   "height": 1637,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 755
+    },
+    {
+     "x": 0,
+     "y": 851,
+     "w": 800,
+     "h": 738
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 173.52,
+     "y": 891,
+     "w": 262.75,
+     "h": 99.3,
+     "text": "Which ship?"
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 8,
+   "file": "pages/ch01-p08.webp",
+   "width": 800,
+   "height": 2214,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 900
+    },
+    {
+     "x": 0,
+     "y": 996,
+     "w": 800,
+     "h": 1170
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 203.26,
+     "y": 88,
+     "w": 341.31,
+     "h": 150.6,
+     "text": "The one with iron sails."
+    }
+   ],
+   "whitePanel": true,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 9,
+   "file": "pages/ch01-p09.webp",
+   "width": 800,
+   "height": 2791,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 2695
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 427.47,
+     "y": 88,
+     "w": 314.65,
+     "h": 150.6,
+     "text": "That ship never returns."
+    },
+    {
+     "x": 329.52,
+     "y": 1300.75,
+     "w": 296.73,
+     "h": 99.3,
+     "text": "It will this time."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 10,
+   "file": "pages/ch01-p10.webp",
+   "width": 800,
+   "height": 1567,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 519
+    },
+    {
+     "x": 0,
+     "y": 615,
+     "w": 800,
+     "h": 904
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 414.92,
+     "y": 88,
+     "w": 355.08,
+     "h": 150.6,
+     "text": "The gate opens at dawn."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 11,
+   "file": "pages/ch01-p11.webp",
+   "width": 800,
+   "height": 2144,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 705
+    },
+    {
+     "x": 0,
+     "y": 801,
+     "w": 800,
+     "h": 655
+    },
+    {
+     "x": 0,
+     "y": 1504,
+     "w": 800,
+     "h": 592
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 376.45,
+     "y": 841,
+     "w": 342.33,
+     "h": 99.3,
+     "text": "You're late again."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 12,
+   "file": "pages/ch01-p12.webp",
+   "width": 800,
+   "height": 2721,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 2625
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 323.44,
+     "y": 88,
+     "w": 287.27,
+     "h": 150.6,
+     "text": "The salt ships never wait."
+    },
+    {
+     "x": 315.45,
+     "y": 1269.25,
+     "w": 318.89,
+     "h": 99.3,
+     "text": "Who hired you?"
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 13,
+   "file": "pages/ch01-p13.webp",
+   "width": 800,
+   "height": 1497,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 501
+    },
+    {
+     "x": 0,
+     "y": 597,
+     "w": 800,
+     "h": 852
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 437.34,
+     "y": 637,
+     "w": 311.24,
+     "h": 150.6,
+     "text": "Nobody. I came alone."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 14,
+   "file": "pages/ch01-p14.webp",
+   "width": 800,
+   "height": 2074,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 605
+    },
+    {
+     "x": 0,
+     "y": 701,
+     "w": 800,
+     "h": 617
+    },
+    {
+     "x": 0,
+     "y": 1366,
+     "w": 800,
+     "h": 660
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 53.62,
+     "y": 88,
+     "w": 306.63,
+     "h": 150.6,
+     "text": "Then turn back now."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 15,
+   "file": "pages/ch01-p15.webp",
+   "width": 800,
+   "height": 2651,
+   "panels": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 800,
+     "h": 2651
+    }
+   ],
+   "bubbles": [],
+   "whitePanel": false,
+   "nearBlack": true
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 16,
+   "file": "pages/ch01-p16.webp",
+   "width": 800,
+   "height": 1427,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 648
+    },
+    {
+     "x": 0,
+     "y": 744,
+     "w": 800,
+     "h": 635
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 77.34,
+     "y": 88,
+     "w": 305.35,
+     "h": 150.6,
+     "text": "Not without my brother."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 17,
+   "file": "pages/ch01-p17.webp",
+   "width": 800,
+   "height": 2004,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 723
+    },
+    {
+     "x": 0,
+     "y": 819,
+     "w": 800,
+     "h": 495
+    },
+    {
+     "x": 0,
+     "y": 1362,
+     "w": 800,
+     "h": 594
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 342.4,
+     "y": 859,
+     "w": 303.4,
+     "h": 150.6,
+     "text": "He sailed three days ago."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 18,
+   "file": "pages/ch01-p18.webp",
+   "width": 800,
+   "height": 2581,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 2485
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 422.61,
+     "y": 88,
+     "w": 262.75,
+     "h": 99.3,
+     "text": "Which ship?"
+    },
+    {
+     "x": 289.68,
+     "y": 1206.25,
+     "w": 341.31,
+     "h": 150.6,
+     "text": "The one with iron sails."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 19,
+   "file": "pages/ch01-p19.webp",
+   "width": 800,
+   "height": 1357,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 532
+    },
+    {
+     "x": 0,
+     "y": 628,
+     "w": 800,
+     "h": 681
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 193.02,
+     "y": 668,
+     "w": 314.65,
+     "h": 150.6,
+     "text": "That ship never returns."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 1,
+   "chapterTitle": "The Harbour Gate",
+   "page": 20,
+   "file": "pages/ch01-p20.webp",
+   "width": 800,
+   "height": 1934,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 622
+    },
+    {
+     "x": 0,
+     "y": 718,
+     "w": 800,
+     "h": 561
+    },
+    {
+     "x": 0,
+     "y": 1327,
+     "w": 800,
+     "h": 559
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 324.95,
+     "y": 88,
+     "w": 296.73,
+     "h": 99.3,
+     "text": "It will this time."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 1,
+   "file": "pages/ch02-p01.webp",
+   "width": 800,
+   "height": 2511,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 2415
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 407.91,
+     "y": 88,
+     "w": 287.39,
+     "h": 99.3,
+     "text": "Hold the rope!"
+    },
+    {
+     "x": 355.99,
+     "y": 1174.75,
+     "w": 224.99,
+     "h": 150.6,
+     "text": "The tide is turning."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 2,
+   "file": "pages/ch02-p02.webp",
+   "width": 800,
+   "height": 1287,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 659
+    },
+    {
+     "x": 0,
+     "y": 755,
+     "w": 800,
+     "h": 484
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 199.24,
+     "y": 88,
+     "w": 316.64,
+     "h": 150.6,
+     "text": "I see iron on the water."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 3,
+   "file": "pages/ch02-p03.webp",
+   "width": 800,
+   "height": 1864,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 532
+    },
+    {
+     "x": 0,
+     "y": 628,
+     "w": 800,
+     "h": 688
+    },
+    {
+     "x": 0,
+     "y": 1364,
+     "w": 800,
+     "h": 452
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 233.81,
+     "y": 668,
+     "w": 296.76,
+     "h": 150.6,
+     "text": "Brother, is that you?"
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 4,
+   "file": "pages/ch02-p04.webp",
+   "width": 800,
+   "height": 2441,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 2345
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 226.65,
+     "y": 88,
+     "w": 314.73,
+     "h": 150.6,
+     "text": "Stay behind the rail."
+    },
+    {
+     "x": 346.58,
+     "y": 1143.25,
+     "w": 339.51,
+     "h": 150.6,
+     "text": "They followed us out."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 5,
+   "file": "pages/ch02-p05.webp",
+   "width": 800,
+   "height": 1217,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 602
+    },
+    {
+     "x": 0,
+     "y": 698,
+     "w": 800,
+     "h": 471
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 423.64,
+     "y": 738,
+     "w": 301.49,
+     "h": 150.6,
+     "text": "Cut the anchor line."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 6,
+   "file": "pages/ch02-p06.webp",
+   "width": 800,
+   "height": 1794,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 428
+    },
+    {
+     "x": 0,
+     "y": 524,
+     "w": 800,
+     "h": 614
+    },
+    {
+     "x": 0,
+     "y": 1186,
+     "w": 800,
+     "h": 560
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 311.59,
+     "y": 88,
+     "w": 364.49,
+     "h": 99.3,
+     "text": "We lose the cargo."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 7,
+   "file": "pages/ch02-p07.webp",
+   "width": 800,
+   "height": 2371,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 1327
+    },
+    {
+     "x": 0,
+     "y": 1423,
+     "w": 800,
+     "h": 900
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 266,
+     "y": 1463,
+     "w": 357.55,
+     "h": 99.3,
+     "text": "We keep our lives."
+    },
+    {
+     "x": 345.49,
+     "y": 88,
+     "w": 352.71,
+     "h": 150.6,
+     "text": "Look, the harbour lights."
+    }
+   ],
+   "whitePanel": true,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 8,
+   "file": "pages/ch02-p08.webp",
+   "width": 800,
+   "height": 2948,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 1077
+    },
+    {
+     "x": 0,
+     "y": 1173,
+     "w": 800,
+     "h": 1727
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 35.25,
+     "y": 88,
+     "w": 352.3,
+     "h": 99.3,
+     "text": "We made it home."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 9,
+   "file": "pages/ch02-p09.webp",
+   "width": 800,
+   "height": 1724,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 593
+    },
+    {
+     "x": 0,
+     "y": 689,
+     "w": 800,
+     "h": 404
+    },
+    {
+     "x": 0,
+     "y": 1141,
+     "w": 800,
+     "h": 535
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 68.91,
+     "y": 729,
+     "w": 275.76,
+     "h": 150.6,
+     "text": "Not yet. Look again."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 10,
+   "file": "pages/ch02-p10.webp",
+   "width": 800,
+   "height": 2301,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 2205
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 143.91,
+     "y": 88,
+     "w": 287.39,
+     "h": 99.3,
+     "text": "Hold the rope!"
+    },
+    {
+     "x": 250.27,
+     "y": 1080.25,
+     "w": 224.99,
+     "h": 150.6,
+     "text": "The tide is turning."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 11,
+   "file": "pages/ch02-p11.webp",
+   "width": 800,
+   "height": 2878,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 1663
+    },
+    {
+     "x": 0,
+     "y": 1759,
+     "w": 800,
+     "h": 1071
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 63.64,
+     "y": 1799,
+     "w": 316.64,
+     "h": 150.6,
+     "text": "I see iron on the water."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 12,
+   "file": "pages/ch02-p12.webp",
+   "width": 800,
+   "height": 1654,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 495
+    },
+    {
+     "x": 0,
+     "y": 591,
+     "w": 800,
+     "h": 442
+    },
+    {
+     "x": 0,
+     "y": 1081,
+     "w": 800,
+     "h": 525
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 150.03,
+     "y": 88,
+     "w": 296.76,
+     "h": 150.6,
+     "text": "Brother, is that you?"
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 13,
+   "file": "pages/ch02-p13.webp",
+   "width": 800,
+   "height": 2231,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 2135
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 155.86,
+     "y": 88,
+     "w": 314.73,
+     "h": 150.6,
+     "text": "Stay behind the rail."
+    },
+    {
+     "x": 295.22,
+     "y": 1048.75,
+     "w": 339.51,
+     "h": 150.6,
+     "text": "They followed us out."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 14,
+   "file": "pages/ch02-p14.webp",
+   "width": 800,
+   "height": 2808,
+   "panels": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 800,
+     "h": 2808
+    }
+   ],
+   "bubbles": [],
+   "whitePanel": false,
+   "nearBlack": true
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 15,
+   "file": "pages/ch02-p15.webp",
+   "width": 800,
+   "height": 1584,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 592
+    },
+    {
+     "x": 0,
+     "y": 688,
+     "w": 800,
+     "h": 333
+    },
+    {
+     "x": 0,
+     "y": 1069,
+     "w": 800,
+     "h": 467
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 311.78,
+     "y": 728,
+     "w": 301.49,
+     "h": 150.6,
+     "text": "Cut the anchor line."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 16,
+   "file": "pages/ch02-p16.webp",
+   "width": 800,
+   "height": 2161,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 2065
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 284.88,
+     "y": 88,
+     "w": 364.49,
+     "h": 99.3,
+     "text": "We lose the cargo."
+    },
+    {
+     "x": 274.55,
+     "y": 1017.25,
+     "w": 357.55,
+     "h": 99.3,
+     "text": "We keep our lives."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 17,
+   "file": "pages/ch02-p17.webp",
+   "width": 800,
+   "height": 2738,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 1364
+    },
+    {
+     "x": 0,
+     "y": 1460,
+     "w": 800,
+     "h": 1230
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 348.85,
+     "y": 1500,
+     "w": 352.71,
+     "h": 150.6,
+     "text": "Look, the harbour lights."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 18,
+   "file": "pages/ch02-p18.webp",
+   "width": 800,
+   "height": 1514,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 394
+    },
+    {
+     "x": 0,
+     "y": 490,
+     "w": 800,
+     "h": 539
+    },
+    {
+     "x": 0,
+     "y": 1077,
+     "w": 800,
+     "h": 389
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 257.9,
+     "y": 88,
+     "w": 352.3,
+     "h": 99.3,
+     "text": "We made it home."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 19,
+   "file": "pages/ch02-p19.webp",
+   "width": 800,
+   "height": 2091,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 1995
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 134.05,
+     "y": 88,
+     "w": 275.76,
+     "h": 150.6,
+     "text": "Not yet. Look again."
+    },
+    {
+     "x": 343.59,
+     "y": 985.75,
+     "w": 287.39,
+     "h": 99.3,
+     "text": "Hold the rope!"
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  },
+  {
+   "chapter": 2,
+   "chapterTitle": "Iron Tide",
+   "page": 20,
+   "file": "pages/ch02-p20.webp",
+   "width": 800,
+   "height": 2668,
+   "panels": [
+    {
+     "x": 0,
+     "y": 48,
+     "w": 800,
+     "h": 1243
+    },
+    {
+     "x": 0,
+     "y": 1339,
+     "w": 800,
+     "h": 1281
+    }
+   ],
+   "bubbles": [
+    {
+     "x": 209.14,
+     "y": 88,
+     "w": 224.99,
+     "h": 150.6,
+     "text": "The tide is turning."
+    }
+   ],
+   "whitePanel": false,
+   "nearBlack": false
+  }
+ ]
+}

@@ -17,8 +17,8 @@ export const profilesApi = {
 
   create: (body: CreateProfilePayload) => http.post<Profile>("/profiles", body),
 
-  update: (id: number, body: UpdateProfilePayload) =>
-    http.patch<Profile>(`/profiles/${id}`, body),
+  update: (id: number, body: UpdateProfilePayload, signal?: AbortSignal) =>
+    http.patch<Profile>(`/profiles/${id}`, body, { signal }),
 
   remove: (id: number) => http.delete<void>(`/profiles/${id}`),
 };
