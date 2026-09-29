@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/auth/login_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/auth/register_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/auth/setup_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_manage_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/pending_screen.dart';
@@ -12,6 +18,13 @@ import 'package:manhwamaniacs/skins/pending_screen.dart';
 ///
 /// `feature` and `featureByFollow` are mobile/11's, already built.
 final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
+  ScreenId.setup: (context, state) => const SetupScreen(),
+  ScreenId.login: (context, state) => const LoginScreen(),
+  ScreenId.register: (context, state) => const RegisterScreen(),
+  ScreenId.profiles: (context, state) => ProfilePickerScreen(switchMode: state.extra is Map && (state.extra! as Map)['mode'] == 'switch'),
+  ScreenId.profileNew: (context, state) => const ProfileFormScreen(),
+  ScreenId.profileEdit: (context, state) => ProfileFormScreen(profileId: int.tryParse(state.pathParameters['id'] ?? '')),
+  ScreenId.profilesManage: (context, state) => const ProfilesManageScreen(),
   ScreenId.featureByFollow: (context, state) => FeatureByFollowScreen(
         followedId: int.tryParse(state.pathParameters['followedId'] ?? '') ?? -1,
       ),

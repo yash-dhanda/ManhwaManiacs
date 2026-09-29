@@ -11,7 +11,7 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// One slug: a word (uppercase Archivo), an optional raised count.
 class CineSlug {
-  const CineSlug(this.id, this.label, {this.count, this.disabled = false, this.removable = false});
+  const CineSlug(this.id, this.label, {this.count, this.disabled = false, this.removable = false, this.leading});
   final String id;
   final String label;
   final int? count;
@@ -19,6 +19,9 @@ class CineSlug {
 
   /// A removable token: the label and an `x` in a 1 px square box.
   final bool removable;
+
+  /// A small mark before the label (the profile form's mood grade square).
+  final Widget? leading;
 }
 
 /// Slug lines (cinematic 7.5): filter chips set as running heads. Single-select slides a 2 px
@@ -111,7 +114,7 @@ class _CineSlugLinesState extends State<CineSlugLines> {
       final count = s.count == null && !widget.loading
           ? null
           : Transform.translate(offset: const Offset(0, -4.2), child: CineLit(widget.loading ? '–' : '${s.count}', CineFace.plexMono, 10, 12, color: c.colorInk45));
-      Widget line = Row(mainAxisSize: MainAxisSize.min, children: [label, if (count != null) ...[const SizedBox(width: 2), count]]);
+      Widget line = Row(mainAxisSize: MainAxisSize.min, children: [if (s.leading != null) ...[s.leading!, const SizedBox(width: 6)], label, if (count != null) ...[const SizedBox(width: 2), count]]);
       if (s.removable) {
         line = Container(
           height: 28,

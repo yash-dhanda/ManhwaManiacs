@@ -249,7 +249,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     ref.listen<bool>(matureGateOpenProvider, (previous, next) {
       if (previous == next) return;
       if (next) {
-        if (_foreground && !_userPaused) unawaited(_kick());
+        if (_foreground && !_userPaused) unawaited(Future.microtask(_kick));
         return;
       }
       for (final rowId in _inFlightRowIds) {

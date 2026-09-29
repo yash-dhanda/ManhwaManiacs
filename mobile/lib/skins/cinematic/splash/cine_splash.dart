@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/app/skin_boot.dart';
 import 'package:manhwamaniacs/core/diagnostics/motion_recorder.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
+import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart' show setupCompletedProvider;
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
@@ -61,6 +62,15 @@ class _CineSplashState extends ConsumerState<CineSplash> with SingleTickerProvid
     super.initState();
     _ms = widget.freezeAtMs ?? 0;
     if (widget.freezeAtMs != null) return;
+    // Setup comes first on a fresh install and is a black native-frame screen: the splash does
+    // not play until an address is saved (cinematic 8.1).
+    if (!ref.read(setupCompletedProvider)) {
+      _gone = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(splashDoneProvider.notifier).state = true;
+      });
+      return;
+    }
     final prefs = ref.read(sharedPrefsProvider);
     _warm = widget.warm ??
         splashIsWarm(

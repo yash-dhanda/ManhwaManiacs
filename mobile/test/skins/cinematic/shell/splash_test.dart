@@ -14,6 +14,8 @@ import 'package:manhwamaniacs/skins/cinematic/splash/cine_splash.dart';
 import 'package:manhwamaniacs/skins/cinematic/splash/cine_wordmark.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../support/test_overrides.dart';
+
 class _Auth extends AuthController {
   _Auth(this.initial);
   final AuthState initial;
@@ -31,7 +33,7 @@ Future<ProviderContainer> _pump(
   bool reduced = false,
   Size size = const Size(390, 844),
 }) async {
-  SharedPreferences.setMockInitialValues(prefs);
+  SharedPreferences.setMockInitialValues(testPrefsDefaults(prefs));
   final p = await SharedPreferences.getInstance();
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
@@ -159,5 +161,21 @@ void main() {
       expect(t.takeException(), isNull, reason: 'at $ms');
     }
   });
-}
 
+  testWidgets('Setup first: with no address saved the splash does not play and hands off at once', (t) async {
+    SharedPreferences.setMockInitialValues({});
+    final p = await SharedPreferences.getInstance();
+    final c = ProviderContainer(overrides: [
+      sharedPrefsProvider.overrideWithValue(p),
+      authControllerProvider.overrideWith(() => _Auth(const AuthUnknown())),
+    ],);
+    addTearDown(c.dispose);
+    await t.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: MaterialApp(theme: CinematicSkin.baseTheme, home: const Stack(children: [Positioned.fill(child: CineSplash())])),
+    ),);
+    await t.pump();
+    expect(find.byType(CineWordmark), findsNothing);
+    expect(c.read(splashDoneProvider), isTrue);
+  });
+}

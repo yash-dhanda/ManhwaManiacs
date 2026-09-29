@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/store/bookmarks_dao.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_db.dart';
-import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:sqflite/sqflite.dart';
@@ -13,17 +11,12 @@ const _id = (sourceId: 'src', seriesKey: 'hot', chapterKey: 'c1');
 const _id2 = (sourceId: 'src', seriesKey: 'hot', chapterKey: 'c2');
 
 Bookmark _bm() => Bookmark(
-      id: null,
       clientId: 'b1',
       sourceId: 'src',
       seriesKey: 'hot',
       chapterKey: 'c1',
       chapterNumber: 1,
-      mediaType: BookmarkMedia.manga,
-      anchorIndex: 1,
-      anchorFraction: 0,
       anchorTotal: 10,
-      snippet: null,
       createdAt: DateTime.utc(2026, 9, 5, 9),
       updatedAt: DateTime.utc(2026, 9, 5, 10),
     );
