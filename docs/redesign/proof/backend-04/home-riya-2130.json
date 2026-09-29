@@ -1,0 +1,643 @@
+{
+    "issue_no": 5,
+    "generated_at": "2026-09-29T15:47:21Z",
+    "content_kind": "manga",
+    "headline": "Tonight: chapter 3 of Risou no Kanojo.",
+    "deck": "His girlfriend is so gorgeous that every guy turns to look at her.",
+    "kicker_title": null,
+    "streak": {
+        "current_days": 5,
+        "longest_days": 5,
+        "last_active_date": "2026-09-29",
+        "at_risk": false,
+        "milestones_seen": []
+    },
+    "cover": {
+        "reason": "new_chapters",
+        "source_id": "mangadex",
+        "series_key": "5ae6ba69-9680-456a-8b84-47c68a6bac00",
+        "chapter_key": "bba80a60-a438-44ed-a463-41a0bdef82ef",
+        "chapter_number": 3.0,
+        "last_page": 1,
+        "page_count": 0,
+        "title": "Risou no Kanojo",
+        "cover_url": "/sources/mangadex/series/5ae6ba69-9680-456a-8b84-47c68a6bac00/cover",
+        "content_kind": "manga",
+        "new_count": 31,
+        "paused_days": 0,
+        "recap": {
+            "available": false,
+            "reason": "no_dialogue",
+            "range": null,
+            "est_seconds": 0,
+            "cached": false
+        },
+        "why": null,
+        "world": null,
+        "ambient": null,
+        "palette": null
+    },
+    "also": [
+        {
+            "kind": "new_chapters",
+            "source_id": "mangapill",
+            "series_key": "10144/fairy-tail-re-fantasia",
+            "title": "FAIRY TAIL Re:Fantasia",
+            "headline": "Eight new chapters of FAIRY TAIL Re:Fantasia",
+            "deck": "The Re:Fantasia arc, also known as FAIRY TAIL RE:FANTASIA, is the story arc that covers the entirety of the Fairy Tail Re:Fantasia series.",
+            "ambient": null
+        },
+        {
+            "kind": "because",
+            "source_id": null,
+            "series_key": null,
+            "title": "Smoking Behind the Supermarket with You",
+            "headline": "Because you read Register!",
+            "deck": null,
+            "ambient": {
+                "duo": "#727BCA",
+                "tint": "#0D0E11",
+                "ink": "#B3B7DB"
+            }
+        },
+        {
+            "kind": "because",
+            "source_id": null,
+            "series_key": null,
+            "title": "Natsumi's Wild Imagination",
+            "headline": "Because you read Risou no Kanojo",
+            "deck": null,
+            "ambient": {
+                "duo": "#EF904D",
+                "tint": "#150E0A",
+                "ink": "#EEC0A0"
+            }
+        }
+    ],
+    "sections": [
+        {
+            "type": "continue",
+            "title": "Continue reading",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "source_id": "mangadex",
+                    "series_key": "5ae6ba69-9680-456a-8b84-47c68a6bac00",
+                    "chapter_key": "96fdcc16-7b8c-472a-ac82-81c6f240f9d9",
+                    "chapter_number": 2.0,
+                    "last_page": 4,
+                    "page_count": 17,
+                    "last_read_at": "2026-09-29T15:52:08.835287",
+                    "title": "Risou no Kanojo",
+                    "cover_url": "/sources/mangadex/series/5ae6ba69-9680-456a-8b84-47c68a6bac00/cover",
+                    "recap": {
+                        "available": false,
+                        "reason": "no_dialogue",
+                        "range": null,
+                        "est_seconds": 0,
+                        "cached": false
+                    },
+                    "nudge": "new",
+                    "new_count": 31,
+                    "paused_days": 0,
+                    "ambient": null,
+                    "palette": null
+                },
+                {
+                    "source_id": "mangapill",
+                    "series_key": "10144/fairy-tail-re-fantasia",
+                    "chapter_key": "10144-10002000/fairy-tail-re-fantasia-chapter-2",
+                    "chapter_number": 2.0,
+                    "last_page": 1,
+                    "page_count": 0,
+                    "last_read_at": "2026-09-27T21:00:00",
+                    "title": "FAIRY TAIL Re:Fantasia",
+                    "cover_url": "/sources/mangapill/series/10144%2Ffairy-tail-re-fantasia/cover",
+                    "recap": {
+                        "available": false,
+                        "reason": "no_dialogue",
+                        "range": null,
+                        "est_seconds": 0,
+                        "cached": false
+                    },
+                    "nudge": "new",
+                    "new_count": 8,
+                    "paused_days": 1,
+                    "ambient": null,
+                    "palette": null
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "because",
+            "title": "Because you read Register!",
+            "seed": {
+                "title": "Register!",
+                "source_id": "mangadex",
+                "series_key": "5dce5603-3cd5-4aa1-bc57-688648a45185"
+            },
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "kind": "world",
+                    "item": {
+                        "anilist_id": 147149,
+                        "title": "Smoking Behind the Supermarket with You",
+                        "alt_titles": [
+                            "Super no Ura de Yani Suu Futari",
+                            "\u30b9\u30fc\u30d1\u30fc\u306e\u88cf\u3067\u30e4\u30cb\u5438\u3046\u3075\u305f\u308a",
+                            "A Story About Smoking at the Back of the Supermarket",
+                            "\u30b9\u30fc\u30d1\u30fc\u306e\u88cf\u3067\u30e4\u30cb\u5438\u3046\u8a71"
+                        ],
+                        "format": "Manga",
+                        "country": "JP",
+                        "status": "Ongoing",
+                        "chapters": null,
+                        "rating": 8.1,
+                        "rating_count_hint": null,
+                        "genres": [
+                            "Comedy",
+                            "Romance",
+                            "Slice of Life"
+                        ],
+                        "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx147149-9DQ4upJAV2kQ.jpg",
+                        "is_adult": false,
+                        "platforms": [
+                            {
+                                "site": "Nico Nico Seiga",
+                                "url": "https://seiga.nicovideo.jp/comic/58968"
+                            },
+                            {
+                                "site": "Official Site",
+                                "url": "https://magazine.jp.square-enix.com/biggangan/introduction/yanisuu/"
+                            },
+                            {
+                                "site": "Manga UP!",
+                                "url": "https://global.manga-up.com/manga/261"
+                            }
+                        ],
+                        "anilist_url": "https://anilist.co/manga/147149",
+                        "available": [],
+                        "why": null,
+                        "ambient": {
+                            "duo": "#727BCA",
+                            "tint": "#0D0E11",
+                            "ink": "#B3B7DB"
+                        },
+                        "palette": {
+                            "a": [
+                                "#333E57",
+                                "#695459",
+                                "#987474"
+                            ],
+                            "l": 0.338,
+                            "lMax": 0.972
+                        }
+                    },
+                    "why": null
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "because",
+            "title": "Because you read Risou no Kanojo",
+            "seed": {
+                "title": "Risou no Kanojo",
+                "source_id": "mangadex",
+                "series_key": "5ae6ba69-9680-456a-8b84-47c68a6bac00"
+            },
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "kind": "world",
+                    "item": {
+                        "anilist_id": 152366,
+                        "title": "Natsumi's Wild Imagination",
+                        "alt_titles": [
+                            "Mousou Kasoku!? Natsumi-san",
+                            "\u5984\u60f3\u52a0\u901f\uff01\uff1f \u306a\u3064\u307f\u3055\u3093"
+                        ],
+                        "format": "Manga",
+                        "country": "JP",
+                        "status": "Completed",
+                        "chapters": 1,
+                        "rating": null,
+                        "rating_count_hint": null,
+                        "genres": [
+                            "Hentai"
+                        ],
+                        "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx152366-ThH5OVkXUrdj.jpg",
+                        "is_adult": true,
+                        "platforms": [
+                            {
+                                "site": "Irodori Comics",
+                                "url": "https://irodoricomics.com/Natsumis-Wild-Imagination"
+                            },
+                            {
+                                "site": "FAKKU",
+                                "url": "https://www.fakku.net/hentai/natsumis-wild-imagination-english"
+                            }
+                        ],
+                        "anilist_url": "https://anilist.co/manga/152366",
+                        "available": [],
+                        "why": null,
+                        "ambient": {
+                            "duo": "#EF904D",
+                            "tint": "#150E0A",
+                            "ink": "#EEC0A0"
+                        },
+                        "palette": {
+                            "a": [
+                                "#8F3060",
+                                "#C06FA6",
+                                "#F1CFC1"
+                            ],
+                            "l": 0.391,
+                            "lMax": 0.84
+                        }
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "world",
+                    "item": {
+                        "anilist_id": 166713,
+                        "title": "Mesugaki, Choro Sugi w",
+                        "alt_titles": [
+                            "\u30e1\u30b9\u30ac\u30ad\u3001\u3061\u3087\u308d\u3059\u304ew",
+                            "Fucking Brats Is Way Too Easy"
+                        ],
+                        "format": "Manga",
+                        "country": "JP",
+                        "status": "Completed",
+                        "chapters": 6,
+                        "rating": 5.5,
+                        "rating_count_hint": null,
+                        "genres": [
+                            "Hentai"
+                        ],
+                        "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx166713-cAI5sDsUDO0e.jpg",
+                        "is_adult": true,
+                        "platforms": [],
+                        "anilist_url": "https://anilist.co/manga/166713",
+                        "available": [],
+                        "why": null,
+                        "ambient": {
+                            "duo": "#F48048",
+                            "tint": "#150D0A",
+                            "ink": "#EEB9A0"
+                        },
+                        "palette": {
+                            "a": [
+                                "#473742",
+                                "#FEE0CC",
+                                "#F0C1BA"
+                            ],
+                            "l": 0.443,
+                            "lMax": 0.869
+                        }
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "world",
+                    "item": {
+                        "anilist_id": 142029,
+                        "title": "Choro MeSwitch",
+                        "alt_titles": [
+                            "\u3061\u3087\u308d\u30e1\u30b9\u30a4\u30c3\u30c1"
+                        ],
+                        "format": "Manga",
+                        "country": "JP",
+                        "status": "Completed",
+                        "chapters": 10,
+                        "rating": null,
+                        "rating_count_hint": null,
+                        "genres": [
+                            "Hentai"
+                        ],
+                        "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/b142029-RdrhDPQjZm6y.png",
+                        "is_adult": true,
+                        "platforms": [],
+                        "anilist_url": "https://anilist.co/manga/142029",
+                        "available": [],
+                        "why": null,
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "world",
+                    "item": {
+                        "anilist_id": 170547,
+                        "title": "Hajirai Honey",
+                        "alt_titles": [
+                            "\u306f\u3058\u3089\u3044\u30cf\u30cb\u30fc",
+                            "Moi",
+                            "Hamideru Kimochi",
+                            "\u306f\u307f\u3067\u308b\u30ad\u30e2\u30c1"
+                        ],
+                        "format": "Manga",
+                        "country": "JP",
+                        "status": "Completed",
+                        "chapters": 10,
+                        "rating": null,
+                        "rating_count_hint": null,
+                        "genres": [
+                            "Hentai"
+                        ],
+                        "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx170547-qouQJfsV2dO6.jpg",
+                        "is_adult": true,
+                        "platforms": [],
+                        "anilist_url": "https://anilist.co/manga/170547",
+                        "available": [],
+                        "why": null,
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "because",
+            "title": "Because you read FAIRY TAIL Re:Fantasia",
+            "seed": {
+                "title": "FAIRY TAIL Re:Fantasia",
+                "source_id": "mangapill",
+                "series_key": "10144/fairy-tail-re-fantasia"
+            },
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "kind": "world",
+                    "item": {
+                        "anilist_id": 165485,
+                        "title": "Naruto: The Whorl Within the Spiral",
+                        "alt_titles": [
+                            "NARUTO Gaiden: Uzu no Naka no Tsumujikaze",
+                            "NARUTO-\u30ca\u30eb\u30c8-\u5916\u4f1d \uff5e\u6e26\u306e\u4e2d\u306e\u3064\u3080\u3058\u98a8\uff5e",
+                            "Naruto Gaiden : la spirale au c\u0153ur du tourbillon"
+                        ],
+                        "format": "One-shot",
+                        "country": "JP",
+                        "status": "Completed",
+                        "chapters": 1,
+                        "rating": 7.8,
+                        "rating_count_hint": null,
+                        "genres": [
+                            "Action",
+                            "Romance"
+                        ],
+                        "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx165485-z0LYxfAY88Ff.jpg",
+                        "is_adult": false,
+                        "platforms": [
+                            {
+                                "site": "MANGA Plus",
+                                "url": "https://mangaplus.shueisha.co.jp/titles/100258"
+                            },
+                            {
+                                "site": "VIZ",
+                                "url": "https://www.viz.com/shonenjump/chapters/naruto-the-whorl-within-the-spiral"
+                            },
+                            {
+                                "site": "MangaToon",
+                                "url": "https://mangaplus.shueisha.co.jp/titles/700013"
+                            }
+                        ],
+                        "anilist_url": "https://anilist.co/manga/165485",
+                        "available": [],
+                        "why": null,
+                        "ambient": {
+                            "duo": "#CA727F",
+                            "tint": "#140A0C",
+                            "ink": "#DBB3B9"
+                        },
+                        "palette": {
+                            "a": [
+                                "#5F323E",
+                                "#9D7A72"
+                            ],
+                            "l": 0.37,
+                            "lMax": 0.945
+                        }
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "world",
+                    "item": {
+                        "anilist_id": 137620,
+                        "title": "Bleach: Special One-Shot",
+                        "alt_titles": [
+                            "BLEACH Gokumeimeihen",
+                            "BLEACH \u7344\u9824\u9cf4\u9cf4\u7bc7",
+                            "BLEACH: NO BREATHS FROM HELL"
+                        ],
+                        "format": "One-shot",
+                        "country": "JP",
+                        "status": "Completed",
+                        "chapters": 1,
+                        "rating": 7.8,
+                        "rating_count_hint": null,
+                        "genres": [
+                            "Action",
+                            "Adventure",
+                            "Supernatural"
+                        ],
+                        "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx137620-iUpSBs33kQOY.jpg",
+                        "is_adult": false,
+                        "platforms": [
+                            {
+                                "site": "VIZ",
+                                "url": "https://www.viz.com/shonenjump/chapters/bleach-special-one-shot"
+                            },
+                            {
+                                "site": "VIZ",
+                                "url": "https://www.shonenjump.com/j/rensai/list/bleach-gokui.html"
+                            },
+                            {
+                                "site": "MANGA Plus",
+                                "url": "https://mangaplus.shueisha.co.jp/titles/100169"
+                            }
+                        ],
+                        "anilist_url": "https://anilist.co/manga/137620",
+                        "available": [],
+                        "why": null,
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "world",
+                    "item": {
+                        "anilist_id": 46572,
+                        "title": "Shaman King: Flowers",
+                        "alt_titles": [
+                            "Shaman King: FLOWERS",
+                            "\u30b7\u30e3\u30fc\u30de\u30f3\u30ad\u30f3\u30b0FLOWERS"
+                        ],
+                        "format": "Manga",
+                        "country": "JP",
+                        "status": "Completed",
+                        "chapters": 29,
+                        "rating": 6.5,
+                        "rating_count_hint": null,
+                        "genres": [
+                            "Action",
+                            "Adventure",
+                            "Comedy",
+                            "Supernatural"
+                        ],
+                        "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx46572-M0nL53mQgfGj.png",
+                        "is_adult": false,
+                        "platforms": [],
+                        "anilist_url": "https://anilist.co/manga/46572",
+                        "available": [],
+                        "why": null,
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "sources",
+            "title": "Sources",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "source_id": "mangadex",
+                    "name": "MangaDex",
+                    "icon_url": "https://mangadex.org/favicon.ico",
+                    "mature": false,
+                    "available": true,
+                    "latest_covers": [
+                        "/sources/mangadex/series/b90aae00-1fc5-4b24-92ae-08dcbac1fc6d/cover",
+                        "/sources/mangadex/series/5ae6ba69-9680-456a-8b84-47c68a6bac00/cover",
+                        "/sources/mangadex/series/5dce5603-3cd5-4aa1-bc57-688648a45185/cover"
+                    ],
+                    "suggested": true
+                },
+                {
+                    "source_id": "mangapill",
+                    "name": "MangaPill",
+                    "icon_url": "https://mangapill.com/favicon.ico",
+                    "mature": false,
+                    "available": true,
+                    "latest_covers": [
+                        "/sources/mangapill/series/9473%2Fakuyaku-no-goreisoku-no-dounika-shitai-nichijou/cover",
+                        "/sources/mangapill/series/8155%2Fkakkoii-onnanoko-to-12-centimeter-no-yakusoku/cover",
+                        "/sources/mangapill/series/10144%2Ffairy-tail-re-fantasia/cover"
+                    ],
+                    "suggested": true
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "genres",
+            "title": "Your genres",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "genre": "comedy",
+                    "weight": 5
+                },
+                {
+                    "genre": "romance",
+                    "weight": 4
+                },
+                {
+                    "genre": "slice of life",
+                    "weight": 4
+                },
+                {
+                    "genre": "school life",
+                    "weight": 2
+                },
+                {
+                    "genre": "fantasy",
+                    "weight": 2
+                },
+                {
+                    "genre": "fiction",
+                    "weight": 2
+                },
+                {
+                    "genre": "psychological",
+                    "weight": 1
+                },
+                {
+                    "genre": "drama",
+                    "weight": 1
+                },
+                {
+                    "genre": "mystery",
+                    "weight": 1
+                },
+                {
+                    "genre": "action",
+                    "weight": 1
+                },
+                {
+                    "genre": "adventure",
+                    "weight": 1
+                },
+                {
+                    "genre": "ecchi",
+                    "weight": 1
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "numbers",
+            "title": "This week in numbers",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "streak": {
+                        "current_days": 5,
+                        "longest_days": 5,
+                        "last_active_date": "2026-09-29",
+                        "at_risk": false,
+                        "milestones_seen": []
+                    },
+                    "chapters_week": 6,
+                    "seconds_week": 3600
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        }
+    ],
+    "ai": {
+        "available": false,
+        "reason": "not_configured"
+    }
+}

@@ -1,0 +1,42 @@
+[
+    {
+        "source_id": "mangadex",
+        "series_key": "5ae6ba69-9680-456a-8b84-47c68a6bac00",
+        "chapter_key": "96fdcc16-7b8c-472a-ac82-81c6f240f9d9",
+        "chapter_number": 2.0,
+        "last_page": 4,
+        "page_count": 17,
+        "last_read_at": "2026-09-29T15:52:08.835287",
+        "title": "Risou no Kanojo",
+        "cover_url": "/sources/mangadex/series/5ae6ba69-9680-456a-8b84-47c68a6bac00/cover",
+        "recap": {
+            "available": false,
+            "reason": "no_dialogue",
+            "range": null,
+            "est_seconds": 0,
+            "cached": false
+        },
+        "ambient": null,
+        "palette": null
+    },
+    {
+        "source_id": "mangapill",
+        "series_key": "10144/fairy-tail-re-fantasia",
+        "chapter_key": "10144-10002000/fairy-tail-re-fantasia-chapter-2",
+        "chapter_number": 2.0,
+        "last_page": 1,
+        "page_count": 0,
+        "last_read_at": "2026-09-27T21:00:00",
+        "title": "FAIRY TAIL Re:Fantasia",
+        "cover_url": "/sources/mangapill/series/10144%2Ffairy-tail-re-fantasia/cover",
+        "recap": {
+            "available": false,
+            "reason": "no_dialogue",
+            "range": null,
+            "est_seconds": 0,
+            "cached": false
+        },
+        "ambient": null,
+        "palette": null
+    }
+]

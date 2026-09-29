@@ -1,7 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { http } from "@/services/http";
 import type { ChapterId } from "@/types/api";
 import { ApiError } from "@/types/api";
 import { ocrApi } from "./api";
+import { sourcesLimiter } from "@/features/sources/standins/request-limiter"; // TODO(web/03)
+
+const p1 = <T,>(task: () => Promise<T>) => sourcesLimiter.run("P1", task);
 
 const OCR_KEY = ["ocr"] as const;
 
@@ -14,7 +18,7 @@ export function useOcrSearch(query: string) {
   const q = query.trim();
   return useQuery({
     queryKey: [...OCR_KEY, "search", q],
-    queryFn: () => ocrApi.search({ q, limit: 20 }),
+    queryFn: () => p1(() => ocrApi.search({ q, limit: 20 })),
     enabled: q.length > 0,
   });
 }
@@ -43,5 +47,31 @@ export function useOcrChapter(ref: ChapterId | null) {
     },
     enabled: ref !== null,
     staleTime: 5 * 60_000,
+  });
+}
+
+/** Whether this server reads dialogue (`GET /settings` capabilities.ocr). Defaults to false until known. */
+export function useOcrCapability(): boolean | undefined {
+  const q = useQuery({
+    queryKey: [...OCR_KEY, "capabilities"],
+    queryFn: () => http.get<{ capabilities?: { ocr?: boolean } }>("/settings"),
+    staleTime: 10 * 60_000,
+  });
+  return q.data ? q.data.capabilities?.ocr === true : undefined;
+}
+
+export function useOcrAvailable(): boolean {
+  return useOcrCapability() === true;
+}
+
+/** Dialogue search paged by offset (`Show more`), 20 per page. */
+export function useInfiniteOcrSearch(query: string) {
+  const q = query.trim();
+  return useInfiniteQuery({
+    queryKey: [...OCR_KEY, "search-infinite", q],
+    queryFn: ({ pageParam }) => p1(() => ocrApi.search({ q, limit: 20, offset: pageParam })),
+    initialPageParam: 0,
+    getNextPageParam: (last) => (last.has_more ? last.offset + last.items.length : undefined),
+    enabled: q.length > 0,
   });
 }

@@ -14,6 +14,10 @@ export interface OcrSearchResultItem {
   /** Server-highlighted excerpt containing literal <mark>…</mark> markers. */
   snippet: string;
   highlighted_terms: string[];
+  /** 1-based page the hit came from, when the server could tell. */
+  page: number | null;
+  /** Page-fraction box of the matched speech, when known. */
+  box: { x: number; y: number; w: number; h: number } | null;
 }
 
 export interface OcrSearchResponse {
