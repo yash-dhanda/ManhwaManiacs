@@ -19,7 +19,7 @@ import {
 import { useSourceChapters } from "@/features/sources/hooks";
 import { autoScrollPxPerSecond } from "../auto-scroll";
 import { readerDebug } from "../debug";
-import { clampZoom, wheelZoomSteps, zoomBy } from "../fit";
+import { clampZoom, effectiveFitMode, wheelZoomSteps, zoomBy } from "../fit";
 import { ensureChapterPages } from "../hooks";
 import {
   defaultTapZoneConfig,
@@ -1127,7 +1127,7 @@ export function useReaderEngine(
         view: currentView ?? FIRST_PAGE_VIEW,
         slotsPerView: readingMode === "double" ? 2 : 1,
         direction,
-        fitMode,
+        fitMode: effectiveFitMode(fitMode, readingMode),
         pageTransition,
       },
       tapZones: effectiveTapZones,
