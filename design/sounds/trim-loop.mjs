@@ -42,7 +42,7 @@ export function toolVersions() {
   const ff = spawnSync(FFMPEG, ["-version"], { encoding: "utf8" }).stdout?.split("\n")[0] ?? "ffmpeg: not found";
   const sox = spawnSync("sox", ["--version"], { encoding: "utf8" });
   return {
-    sox: sox.status === 0 ? sox.stdout.trim() : `sox: not installed (no sudo on the render box); fallback: node design/sounds/synth.mjs (Node ${process.version})`,
+    sox: sox.status === 0 ? sox.stdout.trim() : `not installed (no sudo on the render box, so apt/pacman could not run); fallback: node design/sounds/synth.mjs (Node ${process.version})`,
     ffmpeg: ff,
   };
 }
@@ -84,7 +84,7 @@ export const seamOk = (s) => s.every((c) => (c.endRms < -90 && c.startRms < -90)
 
 /**
  * Loudness-normalise a float stereo loop and write it as a 16-bit master at `wavOut`.
- * `render(gainDb)` must return the channels scaled by gainDb (so the recorded command reproduces it).
+ * `cmdFor(gainDb)` is the command line recorded for the write at that gain.
  * Steps: bring the peak to -6 dBFS, measure, add the delta to `target`, lower until true peak <= -3.
  */
 export function normaliseLoop(chs, target, wavOut, log, cmdFor) {
@@ -101,7 +101,8 @@ export function normaliseLoop(chs, target, wavOut, log, cmdFor) {
     g = +(g - (final.truePeak + 3) - 0.1).toFixed(2);
   }
   if (!(final.truePeak <= -3)) throw new Error(`${wavOut}: true peak ${final.truePeak} dBTP stays above -3`);
-  if (Math.abs(final.lufs - target) > 1 && final.lufs > target) throw new Error(`${wavOut}: ${final.lufs} LUFS, target ${target}`);
+  if (final.lufs > target + 1) // lower is allowed: the true-peak rule wins and the LUFS is recorded
+    throw new Error(`${wavOut}: ${final.lufs} LUFS, target ${target}`);
   const w = readWav(readFileSync(join(root, wavOut)));
   return { gain: g, ...final, seam: seam(w.samples), samples: w.samples };
 }
