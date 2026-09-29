@@ -26,6 +26,7 @@ import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/test_overrides.dart';
+import 'support/mobile21_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
 import 'support/shot_harness.dart';
@@ -63,6 +64,8 @@ void main() {
 
   // Both skins at every proof size (mobile/03). Default: Tonight only, so the
   // plain suite stays fast; a proof run sets MM_PROOF_SCREENS and MM_PROOF_DIR.
+  group('mobile-21', mobile21Group);
+
   group('skins', () {
     for (final skin in [SkinId.cinematic, SkinId.glass]) {
       for (final size in kSkinShotSizes) {

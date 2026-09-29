@@ -88,6 +88,8 @@ class MatureContentController extends AutoDisposeAsyncNotifier<bool> {
 /// starts importing `core.content_rating` without being added here, so the
 /// next one cannot be added without a decision about its client caches.
 const Set<String> kMatureGatedBackendServices = {
+  // The Annual (`GET /library/annual`): gate-filtered on serve, cached per profile.
+  'annual_service',
   'bookmark_service',
   'browse_service',
   'followed_series_service',

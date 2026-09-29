@@ -38,7 +38,10 @@ CustomTransitionPage<T> dipPage<T>({required LocalKey key, required Widget child
 
 /// A non-opaque overlay route (the milestone title card): no path, same Dip.
 class DipOverlayRoute<T> extends PageRoute<T> {
-  DipOverlayRoute({required this.builder, this.label});
+  DipOverlayRoute({required this.builder, this.label, this.reduced = false});
+
+  /// Reduced motion: a 200 ms fade (`durClip`) instead of Dip.
+  final bool reduced;
 
   final WidgetBuilder builder;
   final String? label;
@@ -54,14 +57,14 @@ class DipOverlayRoute<T> extends PageRoute<T> {
   @override
   bool get maintainState => true;
   @override
-  Duration get transitionDuration => const Duration(milliseconds: _dipTotal);
+  Duration get transitionDuration => reduced ? CineDur.clip : const Duration(milliseconds: _dipTotal);
 
   @override
   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) => builder(context);
 
   @override
   Widget buildTransitions(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
-    if (cineReduced(context)) return FadeTransition(opacity: CurvedAnimation(parent: animation, curve: Curves.linear), child: child);
+    if (reduced || cineReduced(context)) return FadeTransition(opacity: animation, child: child);
     return dipTransition(context, animation, child);
   }
 }

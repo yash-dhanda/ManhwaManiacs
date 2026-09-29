@@ -40,3 +40,8 @@ Items only the owner can do, by step.
 - Demo art: `/dev/glass-calibration` uses 24 generated stand-in covers in `frontend/public/dev-covers/` (dark, mid and pale, one dark with a white patch) because `frontend/public/skin-preview/covers/` (shared/05) is not integrated yet. Swap them when it lands.
 - web/01 open: shared/02 ICON_RULES has no per-role fixed weight (design/icons.json defines none), so the Cinematic streak flame renders Light at 24, never Fill; Icon.tsx keeps a no-op roleWeights hook.
 - mobile/03: confirm tests + build-ios CI run ids/conclusions for commit abbace5 (liquid_glass_widgets pin), record in docs/redesign/proof/mobile-03/glass-gate.md
+
+## mobile/21 (The Numbers, the streak flame and The Annual)
+
+- **Run the device checklist** in `docs/redesign/proof/mobile-21/device-checklist.md` on the iPhone (SideStore build) and the Android flagship: numerals and rules at 120 Hz, flame tiers, Ignite and milestone haptics, the Annual's gestures and colophon, Share to Messages and Instagram Stories, `Save image` into Photos and into Pictures > ManhwaManiacs. Fallback meanwhile: the widget tests and the proof screenshots cover layout and behaviour; only feel and the share-sheet targets need a device.
+- **After the integrator pushes, read CI**: the APK build and the iOS dry run must pass (native files changed: `MediaChannel.kt`, `MainActivity.kt`, `Info.plist`; no Gradle or Xcode runs on the VPS).
