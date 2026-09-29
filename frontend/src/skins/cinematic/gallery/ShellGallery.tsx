@@ -53,7 +53,7 @@ export function ShellGallery({ freezeAt }: { freezeAt?: never }) {
   const [qc] = useState(() => new QueryClient());
   const ta = { updates: 12 };
   void freezeAt; void ta;
-  const wipe = (vw: number, cols: number, margin: number, gutter: number, t: number) => { const b = blades(vw, { columns: cols, margin, gutter, max: 1760 }); return <ColumnWipe blades={b} scaleAt={(i) => bladeScaleAt(i, b.length, t)} />; };
+  const wipe = (vw: number, cols: number, margin: number, gutter: number, t: number) => { const b = blades(vw, { columns: cols, margin, gutter, max: 1760 }); return <><div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, #6b2d2d, #1b2a4a, #c9a24a)" }} /><ColumnWipe blades={b} scaleAt={(i) => bladeScaleAt(i, b.length, t)} /></>; };
   return (
     <QueryClientProvider client={qc}>
       <KeyboardProvider>

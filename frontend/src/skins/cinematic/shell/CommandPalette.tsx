@@ -86,11 +86,15 @@ export default function CommandPalette() {
   const open = useShellState((s) => s.paletteOpen);
   const setOpen = useShellState((s) => s.setPaletteOpen);
   const router = useCineRouter();
-  const returnFocus = useRef<HTMLElement | null>(null);
-  useEffect(() => { if (open) returnFocus.current = document.activeElement as HTMLElement | null; }, [open]);
+  const was = useRef(false);
+  // Focus returns to where it was when the palette opened, however it closed.
+  useEffect(() => {
+    if (was.current && !open) requestAnimationFrame(() => useShellState.getState().paletteReturn?.focus());
+    was.current = open;
+  }, [open]);
   if (!open) return null;
   return (
-    <Dialog.Root open onOpenChange={(o) => { if (!o) { setOpen(false); requestAnimationFrame(() => returnFocus.current?.focus()); } }}>
+    <Dialog.Root open onOpenChange={(o) => { if (!o) { setOpen(false); requestAnimationFrame(() => useShellState.getState().paletteReturn?.focus()); } }}>
       <Dialog.Portal>
         <Dialog.Backdrop className="cine-barrier cine-barrier--insert" style={{ zIndex: "var(--mm-z-dialog)" }} />
         <div className="pointer-events-none fixed inset-0 flex justify-center px-4" style={{ zIndex: "var(--mm-z-dialog)", paddingTop: "12vh" }}>
@@ -162,7 +166,7 @@ function PaletteBody({ onDone, push }: { onDone: () => void; push: (href: string
     else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); onDone(); }
   };
   return (
-    <div onKeyDown={onKey}>
+    <div onKeyDown={onKey} onKeyDownCapture={(e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); onDone(); } }}>
       <CommandPaletteView query={query} onQuery={(q) => { setQuery(q); setActive(0); }} groups={groups} folios={folios} active={cur} onActive={setActive} onRun={run} status={status} count={ranked.length} inputRef={boxRef} listboxId={listboxId} />
     </div>
   );

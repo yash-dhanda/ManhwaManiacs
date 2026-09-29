@@ -14,7 +14,8 @@ import { frameFor } from "./shell/frames";
 import { useGate, StaleProfileCheck } from "./shell/Gate";
 import { GlobalKeys } from "./shell/GlobalKeys";
 import { KeyboardSheet } from "./shell/KeyboardSheet";
-import { Overlays, useIrisReveal } from "./shell/Overlays";
+import { dip, Overlays, useIrisReveal } from "./shell/Overlays";
+import { enterReader } from "./shell/reader-entry";
 import { PageTransition } from "./shell/PageTransition";
 import { RatingCardHost } from "./shell/RatingCardHost";
 import { RunningHead } from "./shell/RunningHead";
@@ -68,6 +69,11 @@ export default function Shell({ children }: { children: ReactNode }) {
   useLongPressGuard();
   useIrisReveal(mainRef, pathname);
   useEffect(() => { document.documentElement.style.setProperty("color-scheme", "dark"); }, []);
+  // Development only: a hook for the shell e2e to start a reader entry without a screen.
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    (window as unknown as { __cine?: unknown }).__cine = { enterReader, dip };
+  }, []);
   const app = frame === "app";
   return (
     <MotionRoot>

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { useRouter } from "next/navigation";
 import { startMove } from "@/lib/motion-timings";
 import { haptic } from "../haptics";
+import { logMotion } from "../screens/feature/motion-log";
 import { play, readReduced } from "../motion";
 import { playSound } from "../sounds";
 import { durMs, ease } from "../tokens.generated";
@@ -48,7 +49,7 @@ export function bladeScaleAt(i: number, n: number, tMs: number): number {
 /** The blades themselves: `#000` columns from column edge to column edge. `scaleAt` freezes them for the gallery. */
 export function ColumnWipe({ blades, bladeRef, scaleAt, className = "" }: { blades: Blade[]; bladeRef?: (i: number, el: HTMLDivElement | null) => void; scaleAt?: (i: number) => number; className?: string }) {
   return (
-    <div aria-hidden className={`pointer-events-none absolute inset-0 ${className}`} data-column-wipe={blades.length}>
+    <div aria-hidden className={`pointer-events-none absolute inset-0 ${className}`} data-column-wipe={blades.length} data-mm-wipe={blades.length}>
       {blades.map((b, i) => (
         <div key={i} ref={(el) => bladeRef?.(i, el)} data-blade
           style={{ position: "absolute", top: 0, bottom: 0, left: b.left, width: b.width, background: "#000", transformOrigin: "top", transform: `scaleY(${scaleAt ? scaleAt(i) : 0})`, willChange: "transform" } as CSSProperties} />
@@ -130,11 +131,16 @@ export function Overlays() {
         skipping.current = false;
         setActive(true);
         if (reduced) {
+          // A 200 ms cross-fade through black (100 in, 100 out); no blades.
           const f = fadeRef.current;
-          await play("columnWipe", f, { from: { opacity: 0 }, to: { opacity: 1 }, durationMs: durMs.clip, easeOverride: ease.linear, record: false });
+          const t0 = performance.now();
+          f?.setAttribute("data-mm-wipe", "1");
+          await play("columnWipe", f, { from: { opacity: 0 }, to: { opacity: 1 }, durationMs: durMs.clip / 2, easeOverride: ease.linear, record: false });
           haptic("reader.enter"); playSound("reader.enter");
           await then();
-          await play("columnWipe", f, { from: { opacity: 1 }, to: { opacity: 0 }, durationMs: durMs.clip, easeOverride: ease.linear, record: false });
+          await play("columnWipe", f, { from: { opacity: 1 }, to: { opacity: 0 }, durationMs: durMs.clip / 2, easeOverride: ease.linear, record: false });
+          f?.removeAttribute("data-mm-wipe");
+          logMotion("columnWipe", durMs.clip, performance.now() - t0);
           setActive(false);
           return;
         }
@@ -144,6 +150,7 @@ export function Overlays() {
         const cols = num("--mm-grid-columns", columnsFor(vw));
         const list = computeBlades(vw, { columns: cols, margin: num("--mm-grid-margin", 16), gutter: num("--mm-grid-gutter", 12), max: num("--mm-grid-max", 1760) || 1760 });
         const rec = startMove("column wipe", wipeTotalMs(list.length));
+        const t0 = performance.now();
         setBl(list);
         await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
         const run = async (dir: "close" | "open") => {
@@ -161,6 +168,7 @@ export function Overlays() {
         await Promise.all([Promise.resolve(then()), sleep(skipping.current ? 0 : WIPE.holdMs)]);
         await run("open");
         rec.end();
+        logMotion("columnWipe", wipeTotalMs(list.length), performance.now() - t0);
         setBl(null);
         setActive(false);
       },

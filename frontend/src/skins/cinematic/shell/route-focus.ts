@@ -10,8 +10,8 @@ const h1Text = (h: Element) => (h.getAttribute("aria-label") ?? h.textContent ??
 export function focusMainHeading(): boolean {
   const h1 = document.querySelector<HTMLElement>("main h1");
   if (!h1) return false;
-  if (h1.tabIndex < 0 || h1.hasAttribute("tabindex")) h1.focus({ preventScroll: true });
-  else { h1.setAttribute("tabindex", "-1"); h1.focus({ preventScroll: true }); }
+  if (!h1.hasAttribute("tabindex")) h1.setAttribute("tabindex", "-1"); // masthead h1s carry it; a bare screen's h1 gets it here
+  h1.focus({ preventScroll: true });
   return true;
 }
 

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { isEditableTarget } from "@/lib/keyboard/match";
 import { singleKeyShortcutsEnabled } from "@/lib/keyboard/single-key";
 
@@ -54,29 +54,35 @@ export const gChip = (s: GState): string | null => (s.phase === "armed" ? "G _" 
  */
 export function useGSequence({ enabled, novels, onJump }: { enabled: boolean; novels: boolean; onJump: (href: string) => void }): { chip: string | null } {
   const [state, setState] = useState<GState>(IDLE);
+  // The machine lives in a ref so re-renders (the chip appearing) never reset it; callbacks are read through refs for the same reason.
+  const cur = useRef<GState>(IDLE);
+  const jump = useRef(onJump);
+  const nov = useRef(novels);
+  useEffect(() => { jump.current = onJump; nov.current = novels; });
+  const go = useCallback((n: number | undefined) => { if (n === undefined) return; const h = gTarget(n, nov.current); if (h) jump.current(h); }, []);
   useEffect(() => {
     if (state.phase === "idle") return;
     const ms = state.phase === "armed" ? G_ARM_MS : G_ONE_MS;
     const t = setTimeout(() => {
       const r = gTick(state, state.at + ms);
+      cur.current = r.state;
       setState(r.state);
-      if (r.jump !== undefined) { const h = gTarget(r.jump, novels); if (h) onJump(h); }
+      go(r.jump);
     }, ms);
     return () => clearTimeout(t);
-  }, [state, novels, onJump]);
+  }, [state, go]);
   useEffect(() => {
     if (!enabled) return;
-    let cur: GState = IDLE;
     const on = (e: KeyboardEvent) => {
-      if (isEditableTarget(e.target) || !singleKeyShortcutsEnabled()) { if (cur.phase !== "idle") { cur = IDLE; setState(IDLE); } return; }
-      const r = gKey(cur, e.key, performance.now(), e.ctrlKey || e.metaKey || e.altKey);
-      cur = r.state;
+      if (isEditableTarget(e.target) || !singleKeyShortcutsEnabled()) { if (cur.current.phase !== "idle") { cur.current = IDLE; setState(IDLE); } return; }
+      const r = gKey(cur.current, e.key, performance.now(), e.ctrlKey || e.metaKey || e.altKey);
+      cur.current = r.state;
       setState(r.state);
       if (r.consumed) { e.preventDefault(); e.stopImmediatePropagation(); }
-      if (r.jump !== undefined) { const h = gTarget(r.jump, novels); if (h) onJump(h); }
+      go(r.jump);
     };
     window.addEventListener("keydown", on, true);
     return () => window.removeEventListener("keydown", on, true);
-  }, [enabled, novels, onJump]);
+  }, [enabled, go]);
   return { chip: gChip(state) };
 }

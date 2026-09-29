@@ -13,6 +13,8 @@ type ShellState = {
   setSidebarOverlay: (open: boolean) => void;
   paletteOpen: boolean;
   setPaletteOpen: (open: boolean) => void;
+  /** Where focus was when the palette opened; it returns there on close. */
+  paletteReturn: HTMLElement | null;
   keyboardOpen: boolean;
   setKeyboardOpen: (open: boolean) => void;
   /** True once the splash hand-off began (or there is no splash): screens start their typed headline. */
@@ -36,7 +38,8 @@ export const useShellState = create<ShellState>((set) => ({
   sidebarOverlay: false,
   setSidebarOverlay: (sidebarOverlay) => set({ sidebarOverlay }),
   paletteOpen: false,
-  setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
+  paletteReturn: null,
+  setPaletteOpen: (paletteOpen) => set((s) => ({ paletteOpen, paletteReturn: paletteOpen && !s.paletteOpen ? (document.activeElement as HTMLElement | null) : s.paletteReturn })),
   keyboardOpen: false,
   setKeyboardOpen: (keyboardOpen) => set({ keyboardOpen }),
   handoff: false,
