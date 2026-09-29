@@ -65,9 +65,7 @@
    },
    {
     "path": "docs/redesign/prompts/backend/06-reader-tints-panels-novel-audio.md",
-    "waitFor": [
-     "signoffs"
-    ]
+    "waitFor": []
    },
    {
     "path": "docs/redesign/prompts/backend/07-media-routes-and-install-page.md",
