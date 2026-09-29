@@ -52,6 +52,7 @@ export function Slider({ value, min = 0, max = 100, step = 1, onChange, onCommit
     if (rail.current) ro.observe(rail.current);
     return () => ro.disconnect();
   }, [drag, max, measure, min, tx, value]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- the controlled value re-syncs the thumb when not dragging
   useEffect(() => { if (!drag) { saved.current = value; setLive(value); springOrJump(tx, valueToPx(value, min, max, len.current), "track"); } }, [value, drag, min, max, tx]);
 
   const commit = async (v: number) => {

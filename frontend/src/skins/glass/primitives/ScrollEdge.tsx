@@ -4,6 +4,18 @@ import { useEffect, useId, useRef, type CSSProperties, type RefObject } from "re
 import { registerGlass } from "../glass/budget";
 import { bottomEdgeOpacity, topEdgeOpacity } from "./scroll-edge-math";
 
+/** `.glass-scroll` shows its thumb only while scrolling: `data-scrolling` is held for 800 ms after the last scroll event. */
+export function useScrollingFlag(scroller: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const s = scroller.current;
+    if (!s) return;
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const on = () => { s.setAttribute("data-scrolling", ""); clearTimeout(t); t = setTimeout(() => s.removeAttribute("data-scrolling"), 800); };
+    s.addEventListener("scroll", on, { passive: true });
+    return () => { s.removeEventListener("scroll", on); clearTimeout(t); s.removeAttribute("data-scrolling"); };
+  }, [scroller]);
+}
+
 /**
  * `edgeSoft`: a plateau of rgba(0,0,0,0.72) from the screen edge to the far edge of its bar group, then a 24 px fade, with
  * backdrop blur 6 (a scrim in the glass budget). Its opacity follows how much content is under it. Solid glass makes it the hard edge.
@@ -11,6 +23,7 @@ import { bottomEdgeOpacity, topEdgeOpacity } from "./scroll-edge-math";
 export function ScrollEdge({ edge, plateau, scroller, "data-testid": tid }: { edge: "top" | "bottom"; plateau: number; scroller: RefObject<HTMLElement | null>; "data-testid"?: string }) {
   const el = useRef<HTMLDivElement | null>(null);
   const id = useId();
+  useScrollingFlag(scroller);
   useEffect(() => registerGlass({ id: `edge-${id}`, kind: "scrim", layer: "controls", label: `scrollEdge.${edge}`, el: el.current }), [id, edge]);
   useEffect(() => {
     const s = scroller.current;

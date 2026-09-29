@@ -16,6 +16,7 @@ export function StatusCapsule({ kind, savedAge = "2 h", retryIn = 12, inGroup, "
   const [left, setLeft] = useState(retryIn);
   useEffect(() => {
     if (kind !== "busy") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a new retry window restarts the countdown
     setLeft(retryIn);
     const t = setInterval(() => setLeft((n) => Math.max(0, n - 1)), 1000);
     return () => clearInterval(t);

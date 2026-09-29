@@ -45,6 +45,7 @@ export function SpeedDial({ open, onOpenChange, anchor, value, onChange, onPrevi
   const thumb = useMotionValue(yOfValue(value));
   const st = useRef({ id: -1, y0: 0, v0: value, held: false, moved: false, last: value, magnet: false, timer: undefined as ReturnType<typeof setTimeout> | undefined });
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- the controlled value re-syncs the thumb when not dragging
   useEffect(() => { if (!drag) { setLive(value); thumb.set(yOfValue(value)); } }, [value, drag, thumb]);
   useEffect(() => {
     if (!open) return;

@@ -100,6 +100,7 @@ function AlertBody({ open, onOpenChange, title, body, secondary, box, actions, s
   const row = useRef<HTMLDivElement | null>(null);
   const [stacked, setStacked] = useState(actions.length > 2);
   useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- more than two actions always stack
     if (actions.length > 2) { setStacked(true); return; }
     const el = row.current;
     if (!el) return;

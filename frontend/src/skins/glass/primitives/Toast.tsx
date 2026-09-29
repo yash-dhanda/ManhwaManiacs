@@ -101,6 +101,7 @@ function ToastCapsule({ id, kind = "info", text, secondary, action, undo, durati
 
   useEffect(() => {
     timer.current = new PausableTimer(srOn() ? Infinity : total, finish);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the undo prop starts the rim drain
     if (undo) setRimDrain(true);
     return () => { timer.current?.stop(); if (shown.current) { shown.current = false; flagToast(false); } };
   }, [total, finish, undo]);

@@ -46,6 +46,7 @@ export function ScrubRail({ pages, page, onCommit, onScrub, segments, bookmarks 
   const st = useRef({ id: -1, page });
   const h = Math.max(1, height);
   const posOf = (p: number) => (pages <= 1 ? 0 : ((p - 1) / (pages - 1)) * h);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- the controlled page re-syncs the lens when not dragging
   useEffect(() => { if (!drag) { setCur(page); springOrJump(y, posOf(page), "track"); } }, [page, drag, pages, h]); // eslint-disable-line react-hooks/exhaustive-deps
   if (pages <= 1) return null; // a one-page chapter renders no rail
 

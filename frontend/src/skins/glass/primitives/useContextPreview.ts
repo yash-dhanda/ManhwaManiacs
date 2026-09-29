@@ -23,9 +23,9 @@ export interface ContextPreview {
  */
 export function useContextPreview(ref: RefObject<HTMLElement | null>, kind: PreviewKind): ContextPreview {
   const [open, setOpen] = useState(false);
-  const show = useCallback(() => { haptic("longpress.open"); setOpen(true); }, []);
-  const hide = useCallback(() => setOpen(false), []);
-  const element = open ? ref.current : null;
+  const [element, setElement] = useState<HTMLElement | null>(null);
+  const show = useCallback(() => { haptic("longpress.open"); setElement(ref.current); setOpen(true); }, [ref]);
+  const hide = useCallback(() => { setOpen(false); setElement(null); }, []);
   useEffect(() => {
     const el = ref.current;
     if (!open || !el) return;

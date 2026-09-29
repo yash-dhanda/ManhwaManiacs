@@ -88,7 +88,7 @@ function useBloom(open: boolean, fromTier: number, origin: () => { x: number; y:
     if (open) {
       const o = origin();
       const el = popup.current;
-      if (el && o) { const r = el.getBoundingClientRect(); el.style.transformOrigin = `${o.x - r.left}px ${o.y - r.top}px`; }
+      if (el && o) { const r = el.getBoundingClientRect(); el.style.setProperty("transform-origin", `${o.x - r.left}px ${o.y - r.top}px`); }
       scale.set(isGlassReduced() ? 1 : 0.4); opacity.set(0); content.set(0); tier.set(fromTier);
       const a = [play("bloom", scale, 1), play("materialise", opacity, 1), play("bloom", tier, 4)];
       const b = setTimeout(() => play("materialise", content, 1), isGlassReduced() ? 0 : 170);

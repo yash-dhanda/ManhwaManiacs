@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- plain img: Glass covers and viewer frames are dev assets and CDN URLs sized by their frame */
 
 import { Dialog } from "@base-ui/react/dialog";
 import { useGesture } from "@use-gesture/react";
@@ -34,6 +35,8 @@ export function ImageViewer({ src, thumbSrc, alt, "data-testid": tid }: { src: s
   return <ViewerBody src={src} thumbSrc={thumbSrc ?? src} alt={alt} open={open} close={close} onExited={() => setMounted(false)} tid={tid} />;
 }
 
+const thumbRect = () => sheetTrigger(IMAGE_SHEET)?.getBoundingClientRect() ?? null;
+
 function ViewerBody({ src, thumbSrc, alt, open, close, onExited, tid }: { src: string; thumbSrc: string; alt: string; open: boolean; close: () => void; onExited: () => void; tid?: string }) {
   const host = useGlassHost();
   const desktop = useIsDesktop();
@@ -59,16 +62,16 @@ function ViewerBody({ src, thumbSrc, alt, open, close, onExited, tid }: { src: s
     clearTimeout(idle.current);
     idle.current = setTimeout(() => setChrome(false), 2000);
   }, []);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- chrome shows on mount and fades after 2 s idle
   useEffect(() => { poke(); return () => clearTimeout(idle.current); }, [poke]);
 
-  const thumbRect = () => sheetTrigger(IMAGE_SHEET)?.getBoundingClientRect() ?? null;
-  const toThumb = () => {
+  const toThumb = useCallback(() => {
     const t = thumbRect(), el = img.current;
     if (!t || !el) return null;
     const r = el.getBoundingClientRect();
     const k = t.width / r.width;
     return { scale: k, x: t.left + t.width / 2 - (r.left + r.width / 2), y: t.top + t.height / 2 - (r.top + r.height / 2) };
-  };
+  }, []);
 
   // open: zoom out of the thumbnail on `zoom`; reduced: a 200 ms cross-fade
   useEffect(() => {
@@ -97,7 +100,7 @@ function ViewerBody({ src, thumbSrc, alt, open, close, onExited, tid }: { src: s
       play("zoom", px, to.x + px.get() * 0, { velocity: vx });
       play("zoom", py, to.y, { velocity: vy, onComplete: done });
     } else play("dematerialise", full, 0, { onComplete: done });
-  }, [bg, full, onExited, px, py, sc]);
+  }, [bg, full, onExited, px, py, sc, toThumb]);
   useEffect(() => { if (!open) exit(); }, [open, exit]);
 
   const limitsOf = () => {

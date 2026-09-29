@@ -18,6 +18,7 @@ export function FillSlider({ value, onChange, label, icon = "sun", "data-testid"
   const [live, setLive] = useState(value);
   const [drag, setDrag] = useState(false);
   const id = useRef(-1);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- the controlled value re-syncs the fill when not dragging
   useEffect(() => { if (!drag) { setLive(value); springOrJump(fill, value, "track"); } }, [value, drag, fill]);
   const set = (clientY: number) => {
     const r = box.current!.getBoundingClientRect();

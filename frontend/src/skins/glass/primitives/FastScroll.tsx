@@ -20,7 +20,7 @@ export function FastScroll({ count, scroller, labelAt, controls, "data-testid": 
     if (tickBetween(idx, i)) haptic("select");
     setFrac(f); setIdx(i);
     const s = scroller.current;
-    if (s) s.scrollTop = f * (s.scrollHeight - s.clientHeight);
+    if (s) s.scrollTo({ top: f * (s.scrollHeight - s.clientHeight), behavior: "instant" });
   };
   return (
     <div
@@ -42,8 +42,8 @@ export function FastScroll({ count, scroller, labelAt, controls, "data-testid": 
       onKeyDown={(e) => {
         const s = scroller.current;
         if (!s) return;
-        if (e.key === "ArrowDown") s.scrollTop += 80; else if (e.key === "ArrowUp") s.scrollTop -= 80;
-        else if (e.key === "Home") s.scrollTop = 0; else if (e.key === "End") s.scrollTop = s.scrollHeight;
+        if (e.key === "ArrowDown") s.scrollBy({ top: 80 }); else if (e.key === "ArrowUp") s.scrollBy({ top: -80 });
+        else if (e.key === "Home") s.scrollTo({ top: 0 }); else if (e.key === "End") s.scrollTo({ top: s.scrollHeight });
         else return;
         e.preventDefault();
       }}

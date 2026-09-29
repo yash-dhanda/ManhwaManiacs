@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- plain img: Glass covers and viewer frames are dev assets and CDN URLs sized by their frame */
 
 import { motion, useMotionValue } from "motion/react";
 import { useEffect } from "react";
