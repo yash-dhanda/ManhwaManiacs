@@ -37,3 +37,4 @@ export { Measure } from "./layout/Measure";
 export { Spread } from "./layout/Spread";
 export { Credits } from "./layout/Credits";
 export { GridOverlay } from "./layout/GridOverlay";
+export { FolioFlip } from "./FolioFlip";
