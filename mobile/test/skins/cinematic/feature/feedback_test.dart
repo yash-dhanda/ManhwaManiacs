@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_feedback.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_tabs.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/manga_view.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/schedule_row.dart';

@@ -29,7 +29,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/offline_edition.da
 import '../skins/cinematic/feature/feature_test_support.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_network.dart';
-import 'support/skin_shots.dart';
+import 'support/series_shots.dart';
 
 const _coverPath = '/sources/demo/series/k/cover';
 
