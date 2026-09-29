@@ -114,7 +114,7 @@ class _GlassRadioListState<T> extends ConsumerState<GlassRadioList<T>> {
                     material: GlassMaterial.content,
                     growth: GlassGrowth.light,
                     sink: 0.99,
-                    shape: GlassShape.superellipse(14),
+                    shape: const GlassShape.superellipse(14),
                     enabled: o.enabled,
                     noSemantics: true,
                     haptic: HapticEvent.select,
@@ -142,7 +142,7 @@ class _GlassRadioListState<T> extends ConsumerState<GlassRadioList<T>> {
                     ),
                   ),
                 );
-              }),
+              },),
             ),
         ],
       ),

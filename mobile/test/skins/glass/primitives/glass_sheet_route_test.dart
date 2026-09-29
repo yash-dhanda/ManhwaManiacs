@@ -50,7 +50,7 @@ void main() {
     expect(early, greaterThan(0));
     expect(early, lessThan(_medium));
     await pumpFor(tester, 380);
-    expect(r.sheetController.value!, closeTo(_medium, 1.5));
+    expect(r.sheetController.value, closeTo(_medium, 1.5));
     expect(find.text('Filters'), findsOneWidget);
   });
 
@@ -93,7 +93,7 @@ void main() {
     await g.up();
     await pumpFor(tester, 900);
     expect(find.text('Filters'), findsOneWidget);
-    expect(r.sheetController.value!, closeTo(_medium, 1.5));
+    expect(r.sheetController.value, closeTo(_medium, 1.5));
   });
 
   testWidgets('the close button animates to 0 and then pops', (tester) async {
@@ -104,7 +104,7 @@ void main() {
     await tester.pump();
     await pumpFor(tester, 120);
     expect(find.text('Filters'), findsOneWidget);
-    expect(r.sheetController.value!, lessThan(_medium));
+    expect(r.sheetController.value, lessThan(_medium));
     await pumpFor(tester, 600);
     expect(find.text('Filters'), findsNothing);
   });
@@ -123,7 +123,7 @@ void main() {
     await g.up();
     await pumpFor(tester, 900);
     expect(find.text('Filters'), findsOneWidget);
-    expect(r.sheetController.value!, greaterThan(50));
+    expect(r.sheetController.value, greaterThan(50));
   });
 
   testWidgets('Android back runs to completion: the sheet animates to 0 while the route reverses', (tester) async {
@@ -134,7 +134,7 @@ void main() {
     await tester.pump();
     await pumpFor(tester, 100);
     expect(find.text('Filters'), findsOneWidget);
-    expect(r.sheetController.value!, lessThan(_medium));
+    expect(r.sheetController.value, lessThan(_medium));
     await pumpFor(tester, 500);
     expect(find.text('Filters'), findsNothing);
   });
@@ -221,10 +221,10 @@ void main() {
         ),
       ),
     );
-    expect(r.sheetController.value!, closeTo(_medium, 1.5));
+    expect(r.sheetController.value, closeTo(_medium, 1.5));
     field.requestFocus();
     await pumpFor(tester, 500);
-    expect(r.sheetController.value!, closeTo(_large, 1.5));
+    expect(r.sheetController.value, closeTo(_large, 1.5));
   });
 
   testWidgets('a 1,000-row list hands a downward drag at its top to the sheet, and an upward drag at medium expands the sheet first', (tester) async {
@@ -243,12 +243,12 @@ void main() {
     await g.moveBy(const Offset(0, -20));
     await g.moveBy(const Offset(0, -60));
     await tester.pump(const Duration(milliseconds: 16));
-    expect(r.sheetController.value!, greaterThan(_medium + 30));
+    expect(r.sheetController.value, greaterThan(_medium + 30));
     expect(scrollPx(), 0);
     await g.up();
     await pumpFor(tester, 900);
-    expect(r.sheetController.value!, closeTo(_medium, 2)); // a slow release settles on the nearest detent
-    r.sheetController.animateTo(const SheetOffset(1), duration: const Duration(milliseconds: 300)).ignore();
+    expect(r.sheetController.value, closeTo(_medium, 2)); // a slow release settles on the nearest detent
+    r.sheetController.animateTo(const SheetOffset(1)).ignore();
     await pumpFor(tester, 500);
     // Scroll the list down 100, then a downward drag scrolls it back before the sheet moves.
     await tester.dragFrom(const Offset(195, 500), const Offset(0, -200));
@@ -256,14 +256,14 @@ void main() {
     expect(scrollPx(), greaterThan(100));
     await tester.dragFrom(const Offset(195, 500), const Offset(0, 100));
     await pumpFor(tester, 700);
-    expect(r.sheetController.value!, closeTo(_large, 2));
+    expect(r.sheetController.value, closeTo(_large, 2));
     tester.state<ScrollableState>(find.byType(Scrollable).last).position.jumpTo(0);
     await tester.pump();
     final g2 = await tester.startGesture(const Offset(195, 400));
     await g2.moveBy(const Offset(0, 30));
     await g2.moveBy(const Offset(0, 80));
     await tester.pump(const Duration(milliseconds: 16));
-    expect(r.sheetController.value!, lessThan(_large - 30));
+    expect(r.sheetController.value, lessThan(_large - 30));
     await g2.up();
     await pumpFor(tester, 900);
   });
@@ -289,7 +289,7 @@ void main() {
     final h = OverlayHost(tester);
     await h.pump();
     final r = await _open(tester, h);
-    r.sheetController.animateTo(const SheetOffset(1), duration: const Duration(milliseconds: 300)).ignore();
+    r.sheetController.animateTo(const SheetOffset(1)).ignore();
     await pumpFor(tester, 500);
     final scale = tester.widget<Transform>(find.byKey(const ValueKey('glass-recede-scale')));
     expect(scale.transform.storage[0], closeTo(0.94, 0.002));
@@ -312,9 +312,9 @@ void main() {
     final h = OverlayHost(tester);
     await h.pump();
     final a = await _open(tester, h);
-    a.sheetController.animateTo(const SheetOffset(1), duration: const Duration(milliseconds: 300)).ignore();
+    a.sheetController.animateTo(const SheetOffset(1)).ignore();
     await pumpFor(tester, 500);
-    final b = _route(opening: GlassDetent.medium);
+    final b = _route();
     h.push(b);
     await tester.pump();
     await pumpFor(tester, 520);
@@ -347,7 +347,7 @@ void main() {
     final h = OverlayHost(tester);
     await h.pump();
     final r = await _open(tester, h);
-    r.sheetController.animateTo(const SheetOffset(1), duration: const Duration(milliseconds: 300)).ignore();
+    r.sheetController.animateTo(const SheetOffset(1)).ignore();
     await pumpFor(tester, 500);
     final solid = tester.widget<ColoredBox>(find.byKey(const ValueKey('glass-sheet-solid')));
     expect(solid.color, isSameColorAs(const Color(0xFF1C1C22)));

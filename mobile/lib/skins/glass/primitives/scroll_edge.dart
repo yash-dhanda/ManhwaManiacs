@@ -105,10 +105,12 @@ class _GlassScrollEdgesState extends State<GlassScrollEdges> {
     final m = n.metrics;
     final top = (m.pixels / 24).clamp(0.0, 1.0);
     final bottom = (m.extentAfter / 24).clamp(0.0, 1.0);
-    if (top != _top || bottom != _bottom) setState(() {
+    if (top != _top || bottom != _bottom) {
+      setState(() {
       _top = top;
       _bottom = bottom;
     });
+    }
     return false;
   }
 

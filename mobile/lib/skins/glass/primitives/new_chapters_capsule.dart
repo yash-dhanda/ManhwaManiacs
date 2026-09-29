@@ -1,9 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
-import 'package:flutter/semantics.dart' show CustomSemanticsAction;
-
 import 'package:flutter/physics.dart' show SpringSimulation;
+import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
@@ -65,7 +64,7 @@ class GlassNewChaptersCapsule extends ConsumerWidget {
               child: Stack(children: [
                 for (var i = covers.length - 1; i >= 0; i--)
                   Positioned(left: 16.0 * i, top: 0, width: 28, height: 36, child: ClipRSuperellipse(borderRadius: BorderRadius.circular(6), child: covers[i])),
-              ]),
+              ],),
             ),
           if (covers.isNotEmpty) const SizedBox(width: 10),
           Flexible(child: GlassText(spec.text, role: gt.typeCallout, onGlass: true, maxScale: 1.5)),
@@ -122,7 +121,7 @@ class _CapsuleSurface extends StatelessWidget {
           child: GlassHost(
             child: Stack(
               children: [
-                Positioned.fill(child: SkinGlass(tier: tier, shape: GlassShape.superellipse(24), layer: GlassLayerKind.hud, debugLabel: 'GlassCapsule', child: const SizedBox.shrink())),
+                Positioned.fill(child: SkinGlass(tier: tier, shape: const GlassShape.superellipse(24), layer: GlassLayerKind.hud, debugLabel: 'GlassCapsule', child: const SizedBox.shrink())),
                 Center(widthFactor: 1, heightFactor: 1, child: child),
               ],
             ),
@@ -272,10 +271,10 @@ class _FallInState extends ConsumerState<_FallIn> with TickerProviderStateMixin 
     } else if (!widget.present && _in) {
       _in = false;
       if (reduced) {
-        _o.animateTo(0, duration: const Duration(milliseconds: 150)).whenComplete(() => _hide());
+        _o.animateTo(0, duration: const Duration(milliseconds: 150)).whenComplete(_hide);
       } else {
         _o.animateTo(0, duration: const Duration(milliseconds: 240));
-        _y.animateWith(SpringSimulation(springOf(gt.springDismiss), _y.value, -80, _y.velocity)).whenComplete(() => _hide());
+        _y.animateWith(SpringSimulation(springOf(gt.springDismiss), _y.value, -80, _y.velocity)).whenComplete(_hide);
       }
     }
   }

@@ -65,7 +65,7 @@ abstract final class GlassMenuMetrics {
     for (final e in entries) {
       final label = measureText(context, e.label, roleStyle(context, gt.typeBody, onGlass: true, maxScale: 1.5)).width;
       final key = wide && e.keyHint != null ? 12.0 + 26 * keycapLabel(e.keyHint!).length : 0.0;
-      w = math.max(w, 16 + label + 12 + (e.icon != null ? 20 + 12 : 0) + (e.checked == true ? 28 : 0) + key + 16);
+      w = math.max(w, 16 + label + 12 + (e.icon != null ? 20 + 12 : 0) + (e.checked ?? false ? 28 : 0) + key + 16);
     }
     final gaps = entries.where((e) => e.separatorBefore).length * 6.0;
     return Size(w.clamp(220.0, 320.0), entries.length * hit + gaps + 12);
@@ -183,7 +183,7 @@ class _GlassMenuPanelState extends ConsumerState<GlassMenuPanel> {
       announceAssertive(context, e.errorText ?? "Couldn't do that");
       _errTimers.add(Timer(const Duration(seconds: 2), () {
         if (mounted) setState(() => _state[i] = _RowState.idle);
-      }));
+      }),);
     }
   }
 
@@ -274,8 +274,8 @@ class _GlassMenuPanelState extends ConsumerState<GlassMenuPanel> {
             : Icon(e.icon, size: 20, color: e.enabled ? gt.colorOnGlass : gt.colorLabel4);
     final label = st == _RowState.error ? (e.errorText ?? "Couldn't do that") : e.label;
     final trailing = <Widget>[
-      if (st == _RowState.loading) const Padding(padding: EdgeInsets.only(left: 8), child: GlassSpinner(size: 16)),
-      if (e.checked == true && st != _RowState.loading) Padding(padding: const EdgeInsets.only(left: 8), child: GlassBacking(size: 28, child: Icon(PhosphorBold.check, size: 16, color: gt.colorIris400))),
+      if (st == _RowState.loading) const Padding(padding: EdgeInsets.only(left: 8), child: GlassSpinner()),
+      if ((e.checked ?? false) && st != _RowState.loading) Padding(padding: const EdgeInsets.only(left: 8), child: GlassBacking(size: 28, child: Icon(PhosphorBold.check, size: 16, color: gt.colorIris400))),
       if (wide && e.keyHint != null) ...[const SizedBox(width: 12), for (final k in keycapLabel(e.keyHint!, platform: Theme.of(context).platform)) Padding(padding: const EdgeInsets.only(left: 2), child: GlassKeycap(k))],
       if (ios && icon != null && st == _RowState.idle) Padding(padding: const EdgeInsets.only(left: 12), child: icon),
     ];
@@ -287,11 +287,10 @@ class _GlassMenuPanelState extends ConsumerState<GlassMenuPanel> {
         material: GlassMaterial.content,
         growth: GlassGrowth.light,
         sink: 0.98,
-        shape: GlassShape.superellipse(20),
+        shape: const GlassShape.superellipse(20),
         enabled: e.enabled,
         haptic: HapticEvent.select,
         semanticsLabel: label,
-        toggled: null,
         checked: e.checked,
         loading: st == _RowState.loading,
         disabledReason: e.enabled ? null : '${e.label} is not available',
@@ -688,7 +687,7 @@ class _GlassMenuState extends ConsumerState<GlassMenu> {
         _slide = null;
         _slideEnd = null;
       },
-    ));
+    ),);
   }
 
   bool _disposed = false;

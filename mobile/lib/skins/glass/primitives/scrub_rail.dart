@@ -238,7 +238,7 @@ class _GlassScrubRailState extends ConsumerState<GlassScrubRail> with TickerProv
                             alignment: Alignment.centerRight,
                             child: SkinGlass(
                               tier: GlassTierId.t4,
-                              shape: GlassShape.superellipse(20),
+                              shape: const GlassShape.superellipse(20),
                               layer: GlassLayerKind.hud,
                               debugLabel: 'GlassScrubLens',
                               child: Padding(

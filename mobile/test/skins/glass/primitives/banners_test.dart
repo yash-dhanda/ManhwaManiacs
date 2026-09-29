@@ -28,8 +28,8 @@ void main() {
         width: 360,
         child: Column(children: [
           for (final v in GlassNoticeVariant.values) GlassInlineNotice(message: 'Notice ${v.name}', variant: v, actionLabel: 'Fix', onAction: () => acted++),
-        ]),
-      )));
+        ],),
+      ),),);
       await tester.pump(const Duration(milliseconds: 100));
       for (final v in GlassNoticeVariant.values) {
         expect(find.text('Notice ${v.name}'), findsOneWidget);
@@ -43,7 +43,7 @@ void main() {
 
   group('status capsule', () {
     testWidgets('the four kinds and the live rate-limit countdown; inGroup adds no glass layer', (tester) async {
-      await tester.pumpWidget(primHost(const GlassStatusCapsule(kind: GlassStatusKind.rateLimit, retryInSeconds: 12)));
+      await tester.pumpWidget(primHost(const GlassStatusCapsule(kind: GlassStatusKind.rateLimit)));
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('Sources are busy. Retrying in 12 s'), findsOneWidget);
       await tester.pump(const Duration(seconds: 3));
@@ -67,7 +67,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassStatusCapsule(kind: GlassStatusKind.offline, visible: visible);
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 400));
       set(() => visible = false);
       await tester.pump();

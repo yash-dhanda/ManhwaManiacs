@@ -61,7 +61,7 @@ class GlassToastController extends Notifier<List<GlassToastEntry>> {
 
   void show(GlassToastSpec spec) {
     final e = GlassToastEntry(++_next, spec);
-    var list = [...state, e];
+    final list = [...state, e];
     while (list.length > 2) {
       final gone = list.removeAt(0);
       _left(gone);
@@ -140,7 +140,7 @@ class GlassToastView extends ConsumerStatefulWidget {
 
 class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProviderStateMixin {
   late final AnimationController _y = AnimationController.unbounded(vsync: this, value: -60);
-  late final AnimationController _x = AnimationController.unbounded(vsync: this, value: 0);
+  late final AnimationController _x = AnimationController.unbounded(vsync: this);
   late final AnimationController _o = AnimationController(vsync: this, value: 0);
   late final AnimationController _rim = AnimationController(vsync: this, duration: widget.entry.spec.effectiveDuration);
   bool _hover = false, _focused = false, _touch = false, _dragging = false, _in = false, _closing = false;
@@ -187,7 +187,7 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
           e.spec.message,
           Directionality.of(context),
           assertiveness: e.spec.kind == GlassToastKind.error ? Assertiveness.assertive : Assertiveness.polite,
-        ));
+        ),);
       } catch (_) {}
     });
   }
@@ -359,8 +359,8 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
     final capsule = GlassHost(
       child: Stack(
           children: [
-            Positioned.fill(
-              child: SkinGlass(tier: GlassTierId.t2, shape: GlassShape.superellipse(22), layer: GlassLayerKind.hud, debugLabel: 'GlassToast', child: const SizedBox.shrink()),
+            const Positioned.fill(
+              child: SkinGlass(tier: GlassTierId.t2, shape: GlassShape.superellipse(22), layer: GlassLayerKind.hud, debugLabel: 'GlassToast', child: SizedBox.shrink()),
             ),
             if (spec.undo != null)
               Positioned.fill(

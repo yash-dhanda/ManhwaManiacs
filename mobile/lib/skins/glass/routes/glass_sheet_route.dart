@@ -11,18 +11,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/lb.dart' show GlassLbBar;
-import 'package:manhwamaniacs/skins/glass/glass/registry.dart' show GlassLayerKind;
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/glass_motion_recorder.dart' show GlassMotionEntry;
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
-import 'package:manhwamaniacs/skins/glass/routes/glass_form_route.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/lit.dart' show suppressLit, GlassLitOverlay;
 import 'package:manhwamaniacs/skins/glass/primitives/recede.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/sheet_scaffold.dart';
+import 'package:manhwamaniacs/skins/glass/routes/glass_form_route.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/transitions/predictive_back_detector.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
@@ -95,7 +93,7 @@ class GlassSnapGrid implements SheetSnapGrid {
 
   List<double> _px(ViewportLayout layout) {
     final vh = layout.viewportSize.height;
-    final large = SheetOffset(1).resolve(layout);
+    final large = const SheetOffset(1).resolve(layout);
     return [for (final d in detents) sheetDetentPx(d, viewport: vh, large: large)];
   }
 
@@ -132,7 +130,8 @@ class GlassSheetPhysics extends SheetPhysics with SheetPhysicsMixin {
   SpringDescription get spring => springOf(glassTokens.springSheetSnap);
 
   @override
-  double applyPhysicsToOffset(double delta, SheetMetrics m) {
+  double applyPhysicsToOffset(double delta, SheetMetrics metrics) {
+    final m = metrics;
     final max = m.maxOffset, min = m.minOffset, cur = m.offset;
     final vh = m.viewportSize.height;
     final raw = cur > max ? _rubberInverse(cur - max, vh) : cur - max; // negative below the top detent
@@ -240,10 +239,9 @@ class GlassSheetRoute<T> extends ModalSheetRoute<T> {
                 initialValue: 0,
                 startOffset: const SheetOffset(0),
                 endOffset: sheetOffsetOf(page.opening),
-              ));
+              ),);
         return AnimatedModalBarrier(
           color: color,
-          dismissible: true,
           semanticsLabel: 'Dismiss',
           onDismiss: () {
             if (animation!.isCompleted && !popping) buttonDismiss();
@@ -424,7 +422,7 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
     unawaited(ctl.animateTo(sheetOffsetOf(page.opening), duration: const Duration(milliseconds: 447), curve: SpringCurve(gt.springSheet)).whenComplete(() {
       _programmatic = false;
       _endRecord();
-    }));
+    }),);
   }
 
   /// [popAtEnd]: the button dismiss (the offset listener pops at 0); otherwise the route is already popping.
@@ -448,7 +446,7 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
     unawaited(ctl.animateTo(const SheetOffset(0), duration: const Duration(milliseconds: 378), curve: SpringCurve(gt.springDismiss)).whenComplete(() {
       _programmatic = false;
       _endRecord();
-    }));
+    }),);
   }
 
   void _pop() {
@@ -470,7 +468,7 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
   // -- notifications -------------------------------------------------------------
 
   List<double> _detentPx(SheetMetrics m) {
-    final large = SheetOffset(1).resolve(m);
+    final large = const SheetOffset(1).resolve(m);
     return [for (final d in _grid.detents) sheetDetentPx(d, viewport: m.viewportSize.height, large: large)];
   }
 
@@ -532,8 +530,8 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
     if (m == null) return;
     final e = _entry;
     if (e != null) {
-      final mediumPx = sheetDetentPx(GlassDetent.medium, viewport: m.viewportSize.height, large: SheetOffset(1).resolve(m));
-      final large = SheetOffset(1).resolve(m);
+      final mediumPx = sheetDetentPx(GlassDetent.medium, viewport: m.viewportSize.height, large: const SheetOffset(1).resolve(m));
+      final large = const SheetOffset(1).resolve(m);
       e.largeProgress.value = large > mediumPx ? ((m.offset - mediumPx) / (large - mediumPx)).clamp(0.0, 1.0) : 0;
       e.atLarge = m.offset >= large - 0.5;
     }
@@ -600,7 +598,7 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
     unawaited(ctl.animateTo(sheetOffsetOf(_grid.detents[i]), duration: const Duration(milliseconds: 342), curve: SpringCurve(gt.springSheetSnap)).whenComplete(() {
       _programmatic = false;
       _endRecord();
-    }));
+    }),);
   }
 
   // -- build ---------------------------------------------------------------------------
@@ -614,7 +612,7 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
     final r = SkinGlass.deviceCornerRadius(context);
     final driven = SheetOffsetDrivenAnimation(controller: ctl, initialValue: 0);
 
-    Widget scaffold = ValueListenableBuilder<GlassSheetStatus>(
+    final Widget scaffold = ValueListenableBuilder<GlassSheetStatus>(
       valueListenable: page.status ?? ValueNotifier(GlassSheetStatus.ready),
       builder: (context, status, _) => GlassSheetScaffold(
         title: page.title,
@@ -702,7 +700,7 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
           final e = _entry;
           if (e == null || !recede.hasAbove(e)) return child!;
           final atLarge = e.atLarge;
-          Widget w = Stack(fit: StackFit.passthrough, children: [child!, Positioned.fill(child: IgnorePointer(child: ColoredBox(key: const ValueKey('glass-sheet-under-dim'), color: const Color(0x4D000000))))]);
+          Widget w = Stack(fit: StackFit.passthrough, children: [child!, const Positioned.fill(child: IgnorePointer(child: ColoredBox(key: ValueKey('glass-sheet-under-dim'), color: Color(0x4D000000))))]);
           if (atLarge && !reduced) {
             w = Transform.translate(
               offset: Offset(0, -0.02 * mq.size.height),

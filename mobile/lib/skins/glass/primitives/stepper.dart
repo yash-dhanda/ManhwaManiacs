@@ -4,10 +4,10 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
@@ -30,7 +30,7 @@ class GlassStepper extends ConsumerStatefulWidget {
 }
 
 class _GlassStepperState extends ConsumerState<GlassStepper> with SingleTickerProviderStateMixin {
-  late final AnimationController _stretch = AnimationController.unbounded(vsync: this, value: 0);
+  late final AnimationController _stretch = AnimationController.unbounded(vsync: this);
 
   @override
   void dispose() {

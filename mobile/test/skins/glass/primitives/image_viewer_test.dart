@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -215,7 +214,7 @@ void main() {
       shared = p;
       origin = o;
       return const ShareResult('ok', ShareResultStatus.success);
-    });
+    },);
     await tester.tap(find.byKey(const ValueKey('glass-viewer-share')));
     await pumpFor(tester, 200);
     expect(shared, '/tmp/page.png');

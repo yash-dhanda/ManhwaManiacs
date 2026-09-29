@@ -117,9 +117,7 @@ class _GlassContentModeSwitchState extends ConsumerState<GlassContentModeSwitch>
                     ),
                   )
                 : GlassPressable(
-                    material: GlassMaterial.glass,
                     growth: GlassGrowth.light,
-                    shape: const GlassShape.capsule(),
                     onTap: () => setState(() => _open = true),
                     semanticsLabel: '${mode.label}, content mode',
                     builder: (context, info) => SizedBox(
@@ -129,7 +127,6 @@ class _GlassContentModeSwitchState extends ConsumerState<GlassContentModeSwitch>
                           size: Size(measureText(context, mode.label, roleStyle(context, gt.typeSubhead, onGlass: true, wght: 620)).width + 14 + 4 + 24, 32),
                           tier: GlassTierId.t2,
                           glow: info.glow,
-                          layer: GlassLayerKind.controls,
                           debugLabel: 'GlassContentModeSwitch',
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,

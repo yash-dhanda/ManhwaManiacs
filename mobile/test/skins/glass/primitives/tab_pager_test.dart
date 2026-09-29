@@ -1,4 +1,3 @@
-import 'dart:ui' show Rect;
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -77,7 +76,7 @@ void main() {
     await g.moveBy(const Offset(25, 0));
     await g.moveBy(const Offset(60, 0));
     await tester.pump(const Duration(milliseconds: 16));
-    expect(c.pages.page!, lessThan(2));
+    expect(c.pages.page, lessThan(2));
     await g.up();
     await pumpFor(tester, 900);
   });

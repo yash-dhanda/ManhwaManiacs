@@ -26,7 +26,7 @@ class GlassSelectionCheck extends StatelessWidget {
                 scale: v.clamp(0.0, 1.3),
                 child: DecoratedBox(
                   decoration: BoxDecoration(shape: BoxShape.circle, color: gt.colorIris600),
-                  child: Center(child: Icon(PhosphorBold.check, size: 14, color: const Color(0xFFFFFFFF))),
+                  child: const Center(child: Icon(PhosphorBold.check, size: 14, color: Color(0xFFFFFFFF))),
                 ),
               ),
             ),

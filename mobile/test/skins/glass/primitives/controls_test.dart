@@ -37,7 +37,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassSwitch(value: v, onChanged: (x) => set(() => v = x), label: 'Wi-Fi only');
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       final startX = tester.getTopLeft(find.byKey(const ValueKey('glass-switch-knob'))).dx;
       await tester.tap(find.byType(GlassSwitch));
@@ -64,7 +64,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassSwitch(value: v, onChanged: (x) => set(() => v = x), label: 'x');
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       final g = await tester.startGesture(tester.getCenter(find.byType(GlassSwitch)) - const Offset(10, 0));
       await g.moveBy(const Offset(22, 0)); // past the 18 px drag slop
@@ -84,7 +84,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassSwitch(value: v, onChanged: (x) => set(() => v = x), label: 'x');
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       final g = await tester.startGesture(tester.getCenter(find.byType(GlassSwitch)) - const Offset(10, 0));
       await g.moveBy(const Offset(22, 0));
@@ -102,7 +102,7 @@ void main() {
       await tester.tap(find.byType(GlassSwitch), warnIfMissed: false);
       await tester.pump();
       expect(taps, 0);
-      await pumpSwitch(tester, onChanged: null);
+      await pumpSwitch(tester);
       await tester.tap(find.byType(GlassSwitch), warnIfMissed: false);
       await tester.pump();
       expect(taps, 0);
@@ -114,7 +114,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassSwitch(value: false, onChanged: (_) {}, label: 'x', errorTrigger: err);
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       final start = tester.getTopLeft(find.byKey(const ValueKey('glass-switch-knob'))).dx;
       await tester.tap(find.byType(GlassSwitch));
@@ -133,7 +133,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassSwitch(value: v, onChanged: (x) => set(() => v = x), label: 'Notifications');
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.sendKeyEvent(LogicalKeyboardKey.tab);
       await tester.sendKeyEvent(LogicalKeyboardKey.space);
@@ -150,7 +150,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassSwitch(value: v, onChanged: (x) => set(() => v = x), label: 'x');
-      }), reduced: true));
+      },), reduced: true,),);
       bindReduced(tester);
       await tester.pump(const Duration(milliseconds: 100));
       final start = tester.getTopLeft(find.byKey(const ValueKey('glass-switch-knob'))).dx;
@@ -167,7 +167,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassCheckbox(value: v, onChanged: (x) => set(() => v = x), label: 'Select all');
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(find.byType(GlassCheckbox));
       await tester.pump(const Duration(milliseconds: 16));
@@ -183,7 +183,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassCheckbox(value: v, onChanged: (x) => set(() => v = x), label: 'Some');
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       final d = tester.getSemantics(find.bySemanticsLabel('Some')).getSemanticsData();
       expect(d.flagsCollection.isChecked, CheckedState.mixed);
@@ -217,7 +217,7 @@ void main() {
             onChanged: (x) => set(() => v = x),
           ),
         );
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(find.text('Two'));
       await tester.pump(const Duration(milliseconds: 50));
@@ -238,7 +238,7 @@ void main() {
       await tester.pumpWidget(primHost(SizedBox(
         width: 320,
         child: GlassRadioList<int>(options: const [GlassRadioOption(value: 1, label: 'Once'), GlassRadioOption(value: 2, label: 'Twice')], value: 2, onChanged: (_) {}),
-      )));
+      ),),);
       await tester.pump(const Duration(milliseconds: 100));
       final twice = tester.getSemantics(find.text('Twice')).getSemanticsData();
       expect(twice.flagsCollection.isChecked, CheckedState.isTrue);
@@ -253,7 +253,7 @@ void main() {
     await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
       set = s;
       return GlassSelectionCheck(selected: sel);
-    })));
+    },),),);
     await tester.pump(const Duration(milliseconds: 100));
     set(() => sel = true);
     await tester.pump();
@@ -269,7 +269,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassStepper(value: v, onChanged: (x) => set(() => v = x), label: 'Download count', max: 10);
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(find.bySemanticsLabel('Increase Download count').evaluate().isEmpty ? find.byIcon(GlassGlyph.plus.bold) : find.bySemanticsLabel('Increase Download count'));
       await tester.pump(const Duration(milliseconds: 50));
@@ -282,7 +282,7 @@ void main() {
       expect(_events(), contains(HapticEvent.detentLimit));
       final stretch = tester.widget<Transform>(find.byKey(const ValueKey('glass-stepper-value')));
       expect(stretch.transform.storage[0], greaterThan(1));
-      await _settle(tester, 700);
+      await _settle(tester);
     });
 
     testWidgets('Up and Down step from the keyboard', (tester) async {
@@ -291,7 +291,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return GlassStepper(value: v, onChanged: (x) => set(() => v = x), label: 'n');
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.sendKeyEvent(LogicalKeyboardKey.tab);
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
@@ -327,7 +327,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return SizedBox(width: 360, child: GlassSlider(value: v, onChanged: (x) => set(() => v = x), label: 'Brightness'));
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       final thumb = tester.getCenter(find.byKey(const ValueKey('glass-slider-thumb')));
       final g = await tester.startGesture(thumb);
@@ -350,7 +350,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return SizedBox(width: 360, child: GlassSlider(value: v, max: 4, divisions: 4, onChanged: (x) => set(() => v = x), onChangeEnd: (x) => ended = x, label: 'Size'));
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       final g = await tester.startGesture(tester.getCenter(find.byKey(const ValueKey('glass-slider-thumb'))));
       for (var i = 0; i < 12; i++) {
@@ -370,7 +370,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return SizedBox(width: 360, child: GlassSlider(value: v, onChanged: (x) => set(() => v = x), label: 'x'));
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       final g = await tester.startGesture(tester.getCenter(find.byKey(const ValueKey('glass-slider-thumb'))));
       await g.moveBy(const Offset(200, 0));
@@ -393,7 +393,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return SizedBox(width: 360, child: GlassSlider(value: v, onChanged: (x) => set(() => v = x), label: 'Speed', format: (x) => '${(x * 100).round()}%'));
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.sendKeyEvent(LogicalKeyboardKey.tab);
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
@@ -420,7 +420,7 @@ void main() {
       await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
         set = s;
         return SizedBox(width: 360, child: GlassSlider(value: 0.2, onChanged: (_) {}, label: 'x', errorTrigger: err));
-      })));
+      },),),);
       await tester.pump(const Duration(milliseconds: 100));
       final rest = tester.getCenter(find.byKey(const ValueKey('glass-slider-thumb'))).dx;
       final g = await tester.startGesture(tester.getCenter(find.byKey(const ValueKey('glass-slider-thumb'))));
@@ -436,7 +436,7 @@ void main() {
     });
 
     testWidgets('disabled: not draggable', (tester) async {
-      await tester.pumpWidget(primHost(SizedBox(width: 360, child: GlassSlider(value: 0.2, onChanged: null, label: 'x'))));
+      await tester.pumpWidget(primHost(const SizedBox(width: 360, child: GlassSlider(value: 0.2, onChanged: null, label: 'x'))));
       await tester.pump(const Duration(milliseconds: 100));
       final rest = tester.getCenter(find.byKey(const ValueKey('glass-slider-thumb'))).dx;
       await tester.dragFrom(tester.getCenter(find.byKey(const ValueKey('glass-slider-thumb'))), const Offset(100, 0));
@@ -452,7 +452,7 @@ void main() {
     await tester.pumpWidget(primHost(StatefulBuilder(builder: (c, s) {
       set = s;
       return GlassFillSlider(value: v, onChanged: (x) => set(() => v = x), label: 'Brightness');
-    })));
+    },),),);
     await tester.pump(const Duration(milliseconds: 100));
     final top = tester.getTopLeft(find.byType(GlassFillSlider));
     final g = await tester.startGesture(top + const Offset(36, 150));
@@ -554,7 +554,7 @@ void main() {
       await tester.pumpWidget(primHost(Padding(
         padding: const EdgeInsets.only(left: 300, top: 50),
         child: GlassScrubRail(pageCount: 40, page: 0, height: 300, onCommit: (p) => committed = p, renderPreview: (p) => Text('preview $p')),
-      )));
+      ),),);
       await tester.pump(const Duration(milliseconds: 100));
       final rail = tester.getTopLeft(find.byType(GlassScrubRail));
       final g = await tester.startGesture(rail + const Offset(22, 6));
@@ -577,7 +577,7 @@ void main() {
       await tester.pumpWidget(primHost(Padding(
         padding: const EdgeInsets.only(left: 300, top: 50),
         child: GlassScrubRail(pageCount: 40, page: 0, height: 300, segments: const [10, 10, 20], onCommit: (_) {}, renderPreview: (p) => const SizedBox()),
-      )));
+      ),),);
       await tester.pump(const Duration(milliseconds: 100));
       final rail = tester.getTopLeft(find.byType(GlassScrubRail));
       final g = await tester.startGesture(rail + const Offset(22, 6));

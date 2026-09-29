@@ -142,7 +142,7 @@ class _Droplet extends ConsumerStatefulWidget {
 
 class _DropletState extends ConsumerState<_Droplet> with SingleTickerProviderStateMixin {
   // The droplet's centre line: it follows the pull, then springs to the rest line on springLens.
-  late final AnimationController _y = AnimationController.unbounded(vsync: this, value: 0);
+  late final AnimationController _y = AnimationController.unbounded(vsync: this);
   bool _popped = false;
   GlassMotionEntry? _move;
 
@@ -200,7 +200,6 @@ class _DropletState extends ConsumerState<_Droplet> with SingleTickerProviderSta
             child: ClipRect(
               child: Stack(
                 alignment: Alignment.topCenter,
-                clipBehavior: Clip.hardEdge,
                 children: [
                   if (!armedOrBeyond && p > 0)
                     Positioned.fill(child: CustomPaint(key: const ValueKey('glass-pull-neck'), painter: _NeckPainter(neck: neckWidth(p), cy: cy, r: r))),

@@ -47,7 +47,7 @@ void main() {
     final pulled = _pullHeight(tester);
     expect(drop.width, closeTo(2 * 16 * (pulled / 60).clamp(0.0, 1.0), 1.5));
     expect(find.byKey(const ValueKey('glass-pull-neck')), findsOneWidget);
-    await g.moveBy(const Offset(0, 0));
+    await g.moveBy(Offset.zero);
     await g.up();
     await tester.pump(const Duration(milliseconds: 600));
   });
@@ -57,7 +57,7 @@ void main() {
     await tester.pumpWidget(primHost(_view(() async {
       refreshed++;
       return RefreshResult.unchanged;
-    })));
+    }),),);
     await tester.pump(const Duration(milliseconds: 50));
     final g = await _pullTo(tester, 40);
     await g.up();
@@ -106,7 +106,7 @@ void main() {
     await tester.pumpWidget(primHost(_view(() async {
       refreshed++;
       return RefreshResult.changed;
-    }, controller: c)));
+    }, controller: c,),),);
     await tester.pump(const Duration(milliseconds: 50));
     unawaited(c.refresh());
     await pumpFor(tester, 700);

@@ -69,7 +69,7 @@ class GlassTabPager extends ConsumerStatefulWidget {
 }
 
 class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
-  late GlassTabPagerController _c = widget.controller ?? GlassTabPagerController(initialIndex: widget.initialIndex);
+  late final GlassTabPagerController _c = widget.controller ?? GlassTabPagerController(initialIndex: widget.initialIndex);
   late final bool _owns = widget.controller == null;
   final ScrollController _strip = ScrollController();
   final List<FocusNode> _focus = [];
@@ -209,13 +209,13 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
               child: IgnorePointer(
                 child: KeyedSubtree(
                   key: ValueKey('glass-tab-indicator-${reduced ? _index : 'live'}'),
-                  child: SkinGlass(
-                    key: const ValueKey('glass-tab-capsule'),
+                  child: const SkinGlass(
+                    key: ValueKey('glass-tab-capsule'),
                     twin: GlassTwin.content,
                     finish: GlassFinishKind.clear,
                     tier: GlassTierId.t1,
                     debugLabel: 'GlassTabIndicator',
-                    child: const SizedBox.expand(),
+                    child: SizedBox.expand(),
                   ),
                 ),
               ),
@@ -248,7 +248,7 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
                     selected: i == _index,
                     focusNode: _focus[i],
                     onTap: () => _select(i),
-                    onArrow: (d) => _step(d),
+                    onArrow: _step,
                   ),
                 ),
             ],
@@ -294,12 +294,12 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.warningCircle, size: 22, color: gt.colorDanger)),
+            GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.warningCircle, color: gt.colorDanger)),
             const SizedBox(height: 8),
             GlassText(t.errorText!, role: gt.typeCallout, onGlass: true, textAlign: TextAlign.center),
             const SizedBox(height: 12),
             GlassButton(label: 'Retry', onPressed: t.onRetry, size: GlassButtonSize.small),
-          ]),
+          ],),
         ),
       );
     }
@@ -345,7 +345,7 @@ class _TabButton extends ConsumerWidget {
           material: GlassMaterial.content,
           growth: GlassGrowth.light,
           sink: 0.96,
-          shape: GlassShape.superellipse(16),
+          shape: const GlassShape.superellipse(16),
           enabled: !spec.disabled,
           onTap: onTap,
           semanticsLabel: '${spec.label}, tab ${index + 1} of $count',

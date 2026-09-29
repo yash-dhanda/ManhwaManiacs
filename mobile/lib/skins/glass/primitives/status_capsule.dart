@@ -69,7 +69,7 @@ class _GlassStatusCapsuleState extends State<GlassStatusCapsule> {
       if (f != null) {
         unawaited(f.then((_) {
           if (mounted) setState(() => _shown = false);
-        }));
+        }),);
       } else {
         setState(() => _shown = false);
       }

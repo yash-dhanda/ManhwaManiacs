@@ -51,7 +51,7 @@ void main() {
     unawaited(showGlassAlert<bool>(_ctx(h), title: 'Sure?', actions: const [
       GlassAlertAction('No', role: GlassAlertRole.cancel, value: false),
       GlassAlertAction('Go', role: GlassAlertRole.destructive, value: true),
-    ]));
+    ],),);
     await pumpFor(tester, 500);
     final cancel = tester.getCenter(find.text('No'));
     final del = tester.getCenter(find.text('Go'));
@@ -76,7 +76,7 @@ void main() {
       GlassAlertAction('Cancel', role: GlassAlertRole.cancel, value: 0),
       GlassAlertAction('A', value: 1),
       GlassAlertAction('B', value: 2),
-    ]));
+    ],),);
     await pumpFor(tester, 500);
     expect(tester.getCenter(find.text('A')).dy, lessThan(tester.getCenter(find.text('B')).dy));
     expect(tester.getCenter(find.text('Cancel')).dy, lessThan(tester.getCenter(find.text('A')).dy));
@@ -128,7 +128,7 @@ void main() {
     unawaited(showGlassAlert<int>(_ctx(h), title: 'Removing', actions: [
       const GlassAlertAction('Cancel', role: GlassAlertRole.cancel, value: 0),
       GlassAlertAction('Remove', role: GlassAlertRole.destructive, value: 1, run: () => gate.future),
-    ]).then((v) => result = v));
+    ],).then((v) => result = v),);
     await pumpFor(tester, 500);
     await tester.tap(find.text('Remove'));
     await tester.pump();
@@ -148,7 +148,7 @@ void main() {
     unawaited(showGlassAlert<int>(_ctx(h), title: 'Removing', actions: [
       const GlassAlertAction('Cancel', role: GlassAlertRole.cancel, value: 0),
       GlassAlertAction('Remove', role: GlassAlertRole.destructive, value: 1, run: () async => throw StateError('no'), errorText: "Couldn't remove it"),
-    ]));
+    ],),);
     await pumpFor(tester, 500);
     await tester.tap(find.text('Remove'));
     await pumpFor(tester, 100);

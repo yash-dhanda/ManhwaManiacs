@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
@@ -46,6 +45,11 @@ class GlassRecedeController {
     _stack.remove(e);
     if (was == e) was?.largeProgress.removeListener(_follow);
     _rebind();
+  }
+
+  /// The detail window's presentation progress (ignored once the scope is gone).
+  void setWindowProgress(double v) {
+    if (!_dead) windowProgress.value = v;
   }
 
   bool hasAbove(GlassSheetEntry e) => _stack.isNotEmpty && _stack.last != e && _stack.contains(e);

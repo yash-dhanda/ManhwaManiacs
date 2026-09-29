@@ -10,7 +10,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/scrollbar.dart';
 
 import 'support.dart';
 
-Widget _list({ScrollController? c, int count = 60, double topPlateau = 100, bool solid = false}) => SizedBox(
+Widget _list({ScrollController? c, int count = 60, double topPlateau = 100}) => SizedBox(
       width: 390,
       height: 700,
       child: GlassScrollEdges(
@@ -49,7 +49,7 @@ void main() {
   });
 
   testWidgets('the soft edge is a B8 plateau then a 24 px fade under a blur of 6, registered as a scrim', (tester) async {
-    await tester.pumpWidget(primHost(_list(topPlateau: 100)));
+    await tester.pumpWidget(primHost(_list()));
     await tester.pump(const Duration(milliseconds: 50));
     expect(tester.getSize(find.byType(GlassScrollEdge).last).height, 109); // the bottom edge: plateau 85 + a 24 px fade
     final box = tester.widget<DecoratedBox>(find.byKey(const ValueKey('glass-edge-soft')).last);
@@ -99,7 +99,6 @@ void main() {
           child: GlassFastScroll(
             controller: c,
             itemCount: count,
-            rowExtent: 56,
             labelAt: (i) => 'Chapter ${i + 1}',
             child: ListView.builder(controller: c, itemExtent: 56, itemCount: count, itemBuilder: (context, i) => Text('row $i')),
           ),

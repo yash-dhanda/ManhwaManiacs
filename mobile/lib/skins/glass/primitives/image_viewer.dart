@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/physics.dart' show SpringSimulation;
-import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -98,10 +97,10 @@ class GlassImageViewer extends ConsumerStatefulWidget {
 
 class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with TickerProviderStateMixin {
   // 0 at the thumbnail rect, 1 at the fitted rect (springZoom).
-  late final AnimationController _open = AnimationController.unbounded(vsync: this, value: 0);
+  late final AnimationController _open = AnimationController.unbounded(vsync: this);
   late final AnimationController _scale = AnimationController.unbounded(vsync: this, value: 1);
-  late final AnimationController _tx = AnimationController.unbounded(vsync: this, value: 0);
-  late final AnimationController _ty = AnimationController.unbounded(vsync: this, value: 0);
+  late final AnimationController _tx = AnimationController.unbounded(vsync: this);
+  late final AnimationController _ty = AnimationController.unbounded(vsync: this);
   late final AnimationController _chrome = AnimationController(vsync: this, duration: const Duration(milliseconds: 250), value: 1);
   late final AnimationController _sharpen = AnimationController(vsync: this, duration: gt.curveFadeIn.duration);
   final FocusNode _focus = FocusNode(debugLabel: 'GlassImageViewer');
@@ -168,7 +167,7 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
   void _resolve() {
     _loaded = false;
     _error = false;
-    final stream = route.image.resolve(const ImageConfiguration());
+    final stream = route.image.resolve(ImageConfiguration.empty);
     _stream?.removeListener(_listener ?? ImageStreamListener((_, __) {}));
     _listener = ImageStreamListener((info, _) {
       if (!mounted) return;
@@ -177,7 +176,7 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
       _sharpen.forward(from: 0);
     }, onError: (e, s) {
       if (mounted) setState(() => _error = true);
-    });
+    },);
     _stream = stream..addListener(_listener!);
   }
 
@@ -386,7 +385,7 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
     Widget image() => _loaded && !_error
         ? FadeTransition(
             opacity: _sharpen,
-            child: Image(image: route.image, fit: BoxFit.fill, gaplessPlayback: true, filterQuality: FilterQuality.medium),
+            child: Image(image: route.image, fit: BoxFit.fill, gaplessPlayback: true),
           )
         : const SizedBox.expand();
 
@@ -421,7 +420,7 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
                 opacity: reduced ? t.clamp(0.0, 1.0) : 1,
                 child: Transform(
                   alignment: Alignment.center,
-                  transform: Matrix4.identity()..translate(dx, dy)..scale(sc, sc),
+                  transform: Matrix4.identity()..translateByDouble(dx, dy, 0, 1)..scaleByDouble(sc, sc, 1, 1),
                   child: ClipRSuperellipse(
                     borderRadius: BorderRadius.circular(radius),
                     child: Stack(
@@ -453,7 +452,6 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
           rect: rect,
           child: GlassPressable(
             key: key,
-            material: GlassMaterial.glass,
             growth: GlassGrowth.light,
             sink: 0.92,
             shape: const GlassShape.circle(),
@@ -546,7 +544,7 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.imageBroken, size: 22, color: gt.colorDanger)),
+                                  GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.imageBroken, color: gt.colorDanger)),
                                   const SizedBox(height: 8),
                                   GlassText("Couldn't load this image", role: gt.typeCallout, onGlass: true),
                                   const SizedBox(height: 12),

@@ -54,7 +54,7 @@ class GlassSpeedDial extends ConsumerStatefulWidget {
 
 class _GlassSpeedDialState extends ConsumerState<GlassSpeedDial> with TickerProviderStateMixin {
   late final AnimationController _rise = AnimationController.unbounded(vsync: this, value: ref.read(glassMotionPrefsProvider).reduced ? 1 : 0);
-  late final AnimationController _over = AnimationController.unbounded(vsync: this, value: 0);
+  late final AnimationController _over = AnimationController.unbounded(vsync: this);
   late final Animation<double> _tier = _rise.drive(Tween<double>(begin: widget.anchorTier.toDouble(), end: 4));
   static const double _w = 64, _h = 240;
   double _start = 1;
@@ -199,7 +199,7 @@ class _GlassSpeedDialState extends ConsumerState<GlassSpeedDial> with TickerProv
                 );
               },
               child: GlassFocusRing(
-                shape: GlassShape.superellipse(32),
+                shape: const GlassShape.superellipse(32),
                 child: Listener(
                   onPointerDown: (_) => _down(),
                   onPointerUp: (_) => _up(),
@@ -211,7 +211,7 @@ class _GlassSpeedDialState extends ConsumerState<GlassSpeedDial> with TickerProv
                     child: SkinGlass(
                       key: const ValueKey('glass-dial-capsule'),
                       tierValue: _tier,
-                      shape: GlassShape.superellipse(32),
+                      shape: const GlassShape.superellipse(32),
                       layer: GlassLayerKind.overlays,
                       debugLabel: 'GlassSpeedDial',
                       child: ExcludeSemantics(
@@ -242,7 +242,6 @@ class _GlassSpeedDialState extends ConsumerState<GlassSpeedDial> with TickerProv
                     material: GlassMaterial.content,
                     growth: GlassGrowth.light,
                     sink: 0.96,
-                    shape: const GlassShape.capsule(),
                     onTap: () => _set(p),
                     semanticsLabel: '${_fmt(p)} times',
                     semanticsSelected: (_shown - p).abs() < 0.001,

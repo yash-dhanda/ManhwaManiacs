@@ -77,13 +77,13 @@ class _GlassFormPageState<T> extends ConsumerState<_GlassFormPage<T>> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _title.requestFocus());
   }
 
-  void _recedePage() => _recede?.windowProgress.value = widget.route.animation!.value.clamp(0.0, 1.0);
+  void _recedePage() => _recede?.setWindowProgress(widget.route.animation!.value.clamp(0.0, 1.0));
 
   @override
   void dispose() {
     widget.route.animation?.removeListener(_recedePage);
     final r = _recede;
-    if (r != null) WidgetsBinding.instance.addPostFrameCallback((_) => r.windowProgress.value = 0);
+    if (r != null) WidgetsBinding.instance.addPostFrameCallback((_) => r.setWindowProgress(0));
     _unsuppress?.call();
     _title.dispose();
     super.dispose();
@@ -116,7 +116,7 @@ class _GlassFormPageState<T> extends ConsumerState<_GlassFormPage<T>> {
           builder: (context, lb) => Stack(
             children: [
               Positioned.fill(
-                child: SkinGlass(tier: tier, lb: lb, shape: GlassShape.superellipse(radius), layer: GlassLayerKind.overlays, debugLabel: 'GlassForm', child: const SizedBox.shrink()),
+                child: SkinGlass(key: const ValueKey('glass-form-surface'), tier: tier, lb: lb, shape: GlassShape.superellipse(radius), layer: GlassLayerKind.overlays, debugLabel: 'GlassForm', child: const SizedBox.shrink()),
               ),
               content,
             ],

@@ -96,7 +96,7 @@ class GlassAlert<T> extends ConsumerStatefulWidget {
 }
 
 class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProviderStateMixin {
-  late final AnimationController _bloom = AnimationController.unbounded(vsync: this, value: 0);
+  late final AnimationController _bloom = AnimationController.unbounded(vsync: this);
   late final AnimationController _shrink = AnimationController(vsync: this);
   final GlobalKey<SkinGlassState> _glass = GlobalKey();
   final FocusNode _cancelFocus = FocusNode(debugLabel: 'GlassAlert.cancel');
@@ -247,14 +247,14 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
       final top = [...actions]..sort((a, b) => a.role.index.compareTo(b.role.index));
       buttons = Column(children: [
         for (var i = 0; i < top.length; i++) Padding(padding: EdgeInsets.only(top: i == 0 ? 0 : 8), child: button(top[i], large: true)),
-      ]);
+      ],);
     } else {
       buttons = Row(children: [
         for (var i = 0; i < ordered.length; i++) ...[
           if (i > 0) const SizedBox(width: 8),
           Expanded(child: button(ordered[i], large: false)),
         ],
-      ]);
+      ],);
     }
 
     final content = Padding(
@@ -293,7 +293,7 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
               liveRegion: true,
               child: Row(
                 children: [
-                  GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.warningCircle, size: 22, color: gt.colorDanger)),
+                  GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.warningCircle, color: gt.colorDanger)),
                   const SizedBox(width: 8),
                   Expanded(child: GlassText(_error!, role: gt.typeFootnote, onGlass: true, maxScale: 1.5)),
                 ],

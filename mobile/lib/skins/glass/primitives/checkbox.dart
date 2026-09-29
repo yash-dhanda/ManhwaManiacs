@@ -25,15 +25,15 @@ class GlassCheckbox extends ConsumerStatefulWidget {
 }
 
 class _GlassCheckboxState extends ConsumerState<GlassCheckbox> with SingleTickerProviderStateMixin {
-  late final AnimationController _draw = AnimationController(vsync: this, duration: const Duration(milliseconds: 160), value: widget.value == true ? 1 : 0);
+  late final AnimationController _draw = AnimationController(vsync: this, duration: const Duration(milliseconds: 160), value: widget.value ?? false ? 1 : 0);
 
   @override
   void didUpdateWidget(GlassCheckbox old) {
     super.didUpdateWidget(old);
     if (old.value == widget.value) return;
     if (ref.read(glassMotionPrefsProvider).reduced) {
-      _draw.value = widget.value == true ? 1 : 0;
-    } else if (widget.value == true) {
+      _draw.value = widget.value ?? false ? 1 : 0;
+    } else if (widget.value ?? false) {
       _draw.forward(from: 0);
     } else {
       _draw.value = 0;
@@ -51,18 +51,18 @@ class _GlassCheckboxState extends ConsumerState<GlassCheckbox> with SingleTicker
     final enabled = widget.onChanged != null && !widget.forceStates.disabled;
     final v = widget.value;
     return Semantics(
-      checked: v == true,
+      checked: v ?? false,
       mixed: v == null,
       label: widget.label,
       child: GlassPressable(
         material: GlassMaterial.content,
         growth: GlassGrowth.light,
         sink: 0.92,
-        shape: GlassShape.superellipse(7),
+        shape: const GlassShape.superellipse(7),
         enabled: enabled,
         noSemantics: true,
         forceStates: widget.forceStates,
-        haptic: v == true ? HapticEvent.toggleOff : HapticEvent.toggleOn,
+        haptic: v ?? false ? HapticEvent.toggleOff : HapticEvent.toggleOn,
         onTap: () => widget.onChanged?.call(v != true),
         builder: (context, info) => SizedBox.square(
           dimension: GlassFrame.hitMin(context),
@@ -76,7 +76,7 @@ class _GlassCheckboxState extends ConsumerState<GlassCheckbox> with SingleTicker
                   animation: _draw,
                   builder: (context, _) => CustomPaint(
                     size: const Size.square(24),
-                    painter: _BoxPainter(on: v != false, indeterminate: v == null, draw: _draw.value),
+                    painter: _BoxPainter(on: v ?? true, indeterminate: v == null, draw: _draw.value),
                   ),
                 ),
               ),

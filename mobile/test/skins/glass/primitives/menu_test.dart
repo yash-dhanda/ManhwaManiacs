@@ -9,9 +9,9 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart' show GlassColors;
-import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/context_menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
@@ -184,7 +184,7 @@ void main() {
         GlassMenuEntry(label: 'Hide from my Circle', checked: true, onSelected: () => log.add('hide')),
         GlassMenuEntry(label: 'Off', enabled: false, onSelected: () => log.add('off')),
         GlassMenuEntry(label: 'Last', onSelected: () => log.add('last')),
-      ]));
+      ],),);
       await tester.tap(find.byType(GlassButton));
       await pumpFor(tester, 700);
       expect(find.byIcon(PhosphorBold.check), findsOneWidget);
@@ -234,7 +234,7 @@ void main() {
                   entries: _entries(log),
                   title: 'Solo Leveling',
                   onPreviewDrag: drag,
-                ));
+                ),);
               },
             ),
           ),
@@ -303,7 +303,7 @@ void main() {
     testWidgets('the period key opens a focused region anchored to the item', (tester) async {
       final log = <String>[];
       final h = OverlayHost(tester);
-      await h.pump(page: Center(child: GlassContextRegion(entries: _entries(log), title: 'Row', child: Focus(autofocus: true, child: const SizedBox(width: 300, height: 60, child: Text('row'))))));
+      await h.pump(page: Center(child: GlassContextRegion(entries: _entries(log), title: 'Row', child: const Focus(autofocus: true, child: SizedBox(width: 300, height: 60, child: Text('row'))))));
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.period);
       await pumpFor(tester, 800);

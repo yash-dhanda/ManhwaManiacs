@@ -178,7 +178,7 @@ class GlassSheetScaffold extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.warningCircle, size: 22, color: gt.colorDanger)),
+                GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.warningCircle, color: gt.colorDanger)),
                 const SizedBox(height: 8),
                 GlassText(errorText, role: gt.typeCallout, onGlass: true, textAlign: TextAlign.center),
                 const SizedBox(height: 12),

@@ -1,5 +1,4 @@
 
-import 'package:flutter/animation.dart' show Curve;
 import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';

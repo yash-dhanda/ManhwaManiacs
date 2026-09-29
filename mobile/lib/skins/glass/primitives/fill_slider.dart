@@ -60,7 +60,7 @@ class _GlassFillSliderState extends ConsumerState<GlassFillSlider> {
           return KeyEventResult.handled;
         },
         child: GlassFocusRing(
-          shape: GlassShape.superellipse(36),
+          shape: const GlassShape.superellipse(36),
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onVerticalDragStart: (d) => _set(1 - d.localPosition.dy / _h),

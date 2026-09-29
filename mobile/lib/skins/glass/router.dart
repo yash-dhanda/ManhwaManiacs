@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/skins/glass/dev/calibration_page.dart';
 import 'package:manhwamaniacs/skins/glass/dev/dev_controls.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_dev_index.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_gallery.dart';
+import 'package:manhwamaniacs/skins/glass/dev/overlay_sections.dart';
 import 'package:manhwamaniacs/skins/pending_routes.dart';
 import 'package:manhwamaniacs/skins/pending_screen.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -110,6 +111,10 @@ GoRouter buildGlassRouter(Ref ref) => GoRouter(
         GoRoute(
           path: kGlassPrimitivesPath,
           builder: (context, state) => _DevScaffold(child: GlassGallery(section: state.uri.queryParameters['section'])),
+        ),
+        GoRoute(
+          path: '$kGlassPrimitivesPath/sheet/:id',
+          pageBuilder: (context, state) => glassDemoSheetPage(state.pathParameters['id']!, key: state.pageKey),
         ),
         ..._withDevButton(pendingRoutes(PENDING)),
       ],

@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart' show DragEndDetails, DragStartDetails, DragUpdateDetails;
 import 'package:flutter/physics.dart' show SpringSimulation;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -120,7 +119,6 @@ class _GlassSwitchState extends ConsumerState<GlassSwitch> with SingleTickerProv
       material: GlassMaterial.content,
       growth: GlassGrowth.light,
       sink: 1,
-      shape: const GlassShape.capsule(),
       enabled: _enabled,
       loading: widget.loading,
       onTap: _tap,
@@ -170,15 +168,15 @@ class _GlassSwitchState extends ConsumerState<GlassSwitch> with SingleTickerProv
                             left: left,
                             top: (_h - 27) / 2,
                             child: _dragging
-                                ? SkinGlass(
-                                    key: const ValueKey('glass-switch-knob-glass'),
-                                    size: const Size(34, 27),
+                                ? const SkinGlass(
+                                    key: ValueKey('glass-switch-knob-glass'),
+                                    size: Size(34, 27),
                                     tier: GlassTierId.t1,
                                     finish: GlassFinishKind.clear,
                                     role: GlassRole.transient,
                                     materialize: false,
                                     debugLabel: 'GlassSwitchKnob',
-                                    child: const SizedBox.expand(),
+                                    child: SizedBox.expand(),
                                   )
                                 : Container(
                                     key: const ValueKey('glass-switch-knob'),
