@@ -3,12 +3,13 @@ import { SCREENS, type ScreenId, type ScreenSpec } from "./skins/contract.genera
 import { resolveSkin, SKIN_COOKIE, SKIN_DEBUG_COOKIE } from "./skins/types";
 
 /**
- * Legacy's 404 status. Next 16 answers a `notFound()` thrown during the server
- * render with its bare error document, and legacy's AppShell never renders the
- * page on the server anyway, so the status comes from here: the page renders as
- * usual (the not-found screen appears inside AppShell once the client renders
- * it, as it did before the skins) and only the status changes. Deleted with
- * legacy at the flip (release/00).
+ * Legacy's 404. Next 16 answers a `notFound()` thrown during the server render
+ * with its bare error document, and legacy's AppShell never renders the page on
+ * the server anyway, so a thrown 404 reached legacy users as a 200 and a
+ * client-side error. Instead, every legacy request for a URL legacy has no
+ * screen for is rewritten, with the 404 status, to `/legacy-not-found`, which
+ * renders the not-found screen as a page: what Next's own not-found route did
+ * before the skins. Deleted with legacy at the flip (release/00).
  */
 
 // The ScreenIds legacy has no screen for (see `screens` in ./skins/legacy/index.ts).
@@ -42,7 +43,9 @@ export function legacyServes(pathname: string): boolean {
 
 export function proxy(req: NextRequest) {
   const skin = resolveSkin(req.cookies.get(SKIN_DEBUG_COOKIE)?.value, req.cookies.get(SKIN_COOKIE)?.value);
-  if (skin === "legacy" && !legacyServes(req.nextUrl.pathname)) return NextResponse.next({ status: 404 });
+  if (skin === "legacy" && !legacyServes(req.nextUrl.pathname)) {
+    return NextResponse.rewrite(new URL("/legacy-not-found", req.url), { status: 404 });
+  }
 }
 
 export const config = {
