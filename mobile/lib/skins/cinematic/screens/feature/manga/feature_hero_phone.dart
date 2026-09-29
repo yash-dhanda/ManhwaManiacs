@@ -35,8 +35,10 @@ class FeaturePhoneHero extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               parts.cover,
-              const DecoratedBox(decoration: BoxDecoration(gradient: CineScrim.vignette)),
-              DecoratedBox(decoration: BoxDecoration(gradient: foot)),
+              const IgnorePointer(
+                child: DecoratedBox(decoration: BoxDecoration(gradient: CineScrim.vignette)),
+              ),
+              IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(gradient: foot))),
               Positioned(
                 left: 16,
                 right: 16,

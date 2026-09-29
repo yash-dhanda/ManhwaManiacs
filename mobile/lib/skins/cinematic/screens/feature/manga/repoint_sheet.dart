@@ -41,6 +41,7 @@ class _RepointSheetState extends ConsumerState<_RepointSheet> {
   bool _failed = false;
   ({String sourceName, String? iconUrl, GlobalSearchItem item})? _picked;
   ({double from, double to})? _range;
+  double? _current;
   bool _keepOld = false;
   bool _moving = false;
   String? _error;
@@ -81,6 +82,8 @@ class _RepointSheetState extends ConsumerState<_RepointSheet> {
       _picked = c;
       _range = null;
     });
+    final current = await _currentNumber();
+    if (mounted) setState(() => _current = current);
     final r =
         await ref.read(sourcesRepositoryProvider).getChapters(c.item.source!, c.item.seriesId);
     if (!mounted || r.isErr) return;
@@ -92,8 +95,11 @@ class _RepointSheetState extends ConsumerState<_RepointSheet> {
   }
 
   /// The chapter this follow is on: the most recently read chapter's number.
-  double? _currentNumber() {
+  Future<double?> _currentNumber() async {
     final d = widget.data;
+    try {
+      await ref.read(sourceSeriesServerProgressProvider((sourceId: d.sourceId, seriesId: d.seriesKey)).future);
+    } catch (_) {}
     final progress =
         ref.read(sourceSeriesProgressProvider((sourceId: d.sourceId, seriesId: d.seriesKey)));
     String? key;
@@ -217,7 +223,7 @@ class _RepointSheetState extends ConsumerState<_RepointSheet> {
             ] else ...[
               Text(
                 mappingSentence(
-                  currentNumber: _currentNumber(),
+                  currentNumber: _current,
                   candidateRange: _range,
                   sourceName: picked.sourceName,
                 ),

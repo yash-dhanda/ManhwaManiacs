@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
@@ -32,7 +33,10 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_front_ma
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/contents_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/contents_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_feedback.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_summary_line.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/selection_bar.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/series_download_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_lightbox.dart';
@@ -75,6 +79,9 @@ class _BookViewState extends ConsumerState<BookView> {
   final _goToFocus = FocusNode();
   bool _narratedOnly = false;
   String? _order;
+  Set<String> _run = {};
+  int _runAlreadySaved = 0;
+  final _runFeedback = RunFeedback();
   ({int start, int end})? _window;
   String? _focus;
   List<SourceChapterSummary> _goToMatches = const [];
@@ -227,10 +234,22 @@ class _BookViewState extends ConsumerState<BookView> {
     final keys = _selection.selected;
     final chapters = d.chapters.where((c) => keys.contains(c.id)).toList();
     _selection.end();
+    _startRun(chapters);
     feedback(ref, HapticEvent.downloadStart);
     await ref
         .read(downloadQueueControllerProvider.notifier)
         .enqueueChapters(queueRequests(d, chapters, kind: DownloadKind.novel));
+  }
+
+  void _startRun(List<SourceChapterSummary> chapters) {
+    final statuses =
+        ref.read(seriesChapterDownloadStatusProvider(d.identity)).valueOrNull ?? const {};
+    _runFeedback.reset();
+    setState(() {
+      _run = {for (final c in chapters) c.id};
+      _runAlreadySaved =
+          chapters.where((c) => statuses[c.id]?.state == DownloadChapterState.complete).length;
+    });
   }
 
   void _downloadBook() {
@@ -308,6 +327,7 @@ class _BookViewState extends ConsumerState<BookView> {
           onUndo: () => unawaited(_marks.undoMarkUnread(deleted, {c.id: c.number})),
         );
       case 'download':
+        _startRun([c]);
         feedback(ref, HapticEvent.downloadStart);
         await ref
             .read(downloadQueueControllerProvider.notifier)
@@ -372,6 +392,9 @@ class _BookViewState extends ConsumerState<BookView> {
         ? () => _open(resumeChapter, listen: true)
         : null;
 
+    ref.listen(seriesChapterDownloadStatusProvider(d.identity), (prev, next) {
+      _runFeedback.check(ref, _run, next.valueOrNull ?? const {});
+    });
     final selectable = [
       for (final c in reading)
         (
@@ -536,6 +559,18 @@ class _BookViewState extends ConsumerState<BookView> {
                           ),
                         ),
                     ],
+                  ),
+                  SeriesDownloadCard(
+                    series: d.identity,
+                    listed: d.chapters.length,
+                    onStorage: () => context.go(ScreenId.downloads.path),
+                  ),
+                  DownloadRunLine(
+                    series: d.identity,
+                    runKeys: _run,
+                    alreadySaved: _runAlreadySaved,
+                    onDismiss: () => setState(() => _run = {}),
+                    onManage: () => context.go(ScreenId.downloads.path),
                   ),
                   BookContentsToolbar(
                     order: order,

@@ -186,13 +186,16 @@ class _TypedHeadlineState extends State<TypedHeadline> {
   }
 
   @override
-  Widget build(BuildContext context) => Stack(
-        children: [
-          // The full text lays the line breaks out; only the typed part shows.
-          Opacity(opacity: 0, child: Text(widget.text, style: widget.style)),
-          Text(widget.text.substring(0, _n.clamp(0, widget.text.length)), style: widget.style),
-        ],
-      );
+  Widget build(BuildContext context) {
+    if (_n >= widget.text.length) return Text(widget.text, style: widget.style);
+    return Stack(
+      children: [
+        // The full text lays the line breaks out; only the typed part shows.
+        Opacity(opacity: 0, child: Text(widget.text, style: widget.style)),
+        Text(widget.text.substring(0, _n.clamp(0, widget.text.length)), style: widget.style),
+      ],
+    );
+  }
 }
 
 /// `OFFLINE EDITION` / `SAVED COPY · 3 H`: a small badge beside the kicker.

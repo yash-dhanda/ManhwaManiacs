@@ -65,7 +65,7 @@ void main() {
     String typed() => tester
         .widgetList<Text>(find.byType(Text))
         .map((t) => t.data ?? '')
-        .firstWhere((s) => s.isNotEmpty && "Couldn't load this series.".startsWith(s) && s.length < 27,
+        .firstWhere((s) => s.isNotEmpty && "Couldn't load this series.".startsWith(s) && s.length < 26,
             orElse: () => '');
     final early = typed();
     expect(early.length, lessThan(12));

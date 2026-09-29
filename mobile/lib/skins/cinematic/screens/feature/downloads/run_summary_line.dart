@@ -80,7 +80,7 @@ class DownloadRunLine extends ConsumerWidget {
     final line = describeRun(
       (
         requested: runKeys.length,
-        saved: saved,
+        saved: (saved - alreadySaved).clamp(0, saved),
         alreadySaved: alreadySaved,
         missingPages: 0,
         failed: failed,
@@ -97,11 +97,16 @@ class DownloadRunLine extends ConsumerWidget {
         children: [
           if (problem) Text('NOTE', style: kickerStyle(context, color: t.colorSpot)),
           Text(line, key: const Key('run-summary')),
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               if (onManage != null && paused == DownloadQueuePauseReason.freeSpaceFloor)
-                TextButton(onPressed: onManage, child: const Text('Manage downloads')),
-              const Spacer(),
+                TextButton(
+                  style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                  onPressed: onManage,
+                  child: const Text('Manage downloads'),
+                ),
               TextButton(
                 style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                 onPressed: onDismiss,

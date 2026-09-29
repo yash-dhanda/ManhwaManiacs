@@ -46,6 +46,9 @@ import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/reader_prefetch.dart';
+import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/skin_haptics.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -107,6 +110,7 @@ final GlobalKey kShotBoundary = GlobalKey(debugLabel: 'series-shot');
 
 /// What the page asked the data layer to do.
 class Recorder {
+  final List<String> haptics = [];
   final List<List<ProgressPush>> pushed = [];
   final List<({String source, String series, List<String> keys})> deleted = [];
   final List<String> manifests = [];
@@ -119,6 +123,15 @@ class Recorder {
   final List<String> following = [];
 
   List<ProgressPush> get pushedRows => [for (final b in pushed) ...b];
+}
+
+class RecordingHaptics extends SkinHaptics {
+  RecordingHaptics(this.rec) : super(skin: SkinId.cinematic, map: const {}, enabled: true);
+  final Recorder rec;
+
+  @override
+  Future<void> fire(HapticEvent event, {double velocity = 0, int depth = 1}) async =>
+      rec.haptics.add(event.id);
 }
 
 class FakeReader implements ReaderRepository {
@@ -397,6 +410,7 @@ List<Override> featureOverrides(FeatureRig r, SharedPreferences prefs, {required
       libraryRepositoryProvider.overrideWithValue(
           FakeLibrary(r.rec, followed: r.followed, tags: r.tags, shelves: r.shelves),),
       downloadQueueControllerProvider.overrideWith(() => r.queue),
+      skinHapticsProvider.overrideWithValue(RecordingHaptics(r.rec)),
       if (r.freeBytes != null) deviceStorageInfoProvider.overrideWithValue(_FreeSpace(r.freeBytes!)),
       sourcesListProvider.overrideWith((ref) async => const [
             SourceSummary(

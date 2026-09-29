@@ -54,10 +54,12 @@ class FeatureSpread extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       parts.cover,
-                      const FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: 0.5,
-                        child: DecoratedBox(decoration: BoxDecoration(gradient: CineScrim.gutter)),
+                      const IgnorePointer(
+                        child: FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: 0.5,
+                          child: DecoratedBox(decoration: BoxDecoration(gradient: CineScrim.gutter)),
+                        ),
                       ),
                       Positioned(
                         left: 0,

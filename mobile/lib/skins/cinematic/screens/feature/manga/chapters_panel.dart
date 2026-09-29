@@ -27,6 +27,7 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/reader_entry.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/reader_prefetch.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_summary_line.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/series_download_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
@@ -247,6 +248,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
   int? _cursor;
   Set<String> _run = {};
   int _runAlreadySaved = 0;
+  final _runFeedback = RunFeedback();
 
   FeatureData get d => widget.data;
   String? get _profileId => ref.read(activeProfileProvider)?.id.toString();
@@ -358,6 +360,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
         ref.read(seriesChapterDownloadStatusProvider(d.identity)).valueOrNull ?? const {};
     final already =
         chapters.where((c) => statuses[c.id]?.state == DownloadChapterState.complete).length;
+    _runFeedback.reset();
     setState(() {
       _run = {for (final c in chapters) c.id};
       _runAlreadySaved = already;
@@ -442,6 +445,10 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
     final paused = pauseReason == DownloadQueuePauseReason.freeSpaceFloor ||
         pauseReason == DownloadQueuePauseReason.cap ||
         pauseReason == DownloadQueuePauseReason.userPaused;
+
+    ref.listen(seriesChapterDownloadStatusProvider(d.identity), (prev, next) {
+      _runFeedback.check(ref, _run, next.valueOrNull ?? const {});
+    });
 
     if (d.chapters.isEmpty) {
       return CustomScrollView(
