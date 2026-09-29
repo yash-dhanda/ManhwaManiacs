@@ -80,7 +80,18 @@ export function seam(chs) {
     return { endRms: end, startRms: start, rmsDiff: diff, jump: Math.abs(x[n - 1] - x[0]) };
   });
 }
-export const seamOk = (s) => s.every((c) => (c.endRms < -90 && c.startRms < -90) || c.rmsDiff <= 1.5) && s.every((c) => c.jump < 0.02);
+export const seamOk = (s, maxJump = 0.02) => s.every((c) => (c.endRms < -90 && c.startRms < -90) || c.rmsDiff <= 1.5) && s.every((c) => c.jump < maxJump);
+/**
+ * 99.9th percentile of |x[i+1] - x[i]| over all channels: how rough the audio itself is.
+ * Broadband recordings (rain, surf) step by more than 0.02 between ordinary samples, so for them
+ * the seam may jump as much as the audio already does anywhere else.
+ */
+export function naturalJump(chs) {
+  const d = [];
+  for (const x of chs) for (let i = 1; i < x.length; i += 7) d.push(Math.abs(x[i] - x[i - 1]));
+  d.sort((a, b) => a - b);
+  return d[Math.floor(d.length * 0.999)];
+}
 
 /**
  * Loudness-normalise a float stereo loop and write it as a 16-bit master at `wavOut`.
@@ -224,7 +235,8 @@ function processIncoming() {
     const loop = makeLoop(cut, RATE, 90, 6);
     const res = normaliseLoop(loop, LAYER_LUFS[layer], `${tmp}/loop.wav`, log,
       (g) => `node: 96 s from ${start} s of decoded.wav, 90 s equal-power loop (6 s), gain ${g} dB -> ${tmp}/loop.wav`);
-    if (!seamOk(res.seam)) throw new Error(`${f}: seam check failed ${JSON.stringify(res.seam)}`);
+    const maxJump = Math.max(0.02, naturalJump(res.samples));
+    if (!seamOk(res.seam, maxJump)) throw new Error(`${f}: seam check failed (jump limit ${maxJump.toFixed(4)}) ${JSON.stringify(res.seam)}`);
     const out = { ogg: `${GLASS_DIR}/${stem}.ogg`, m4a: `${GLASS_DIR}/${stem}.m4a` };
     run(FFMPEG, encodeArgs.opus(`${tmp}/loop.wav`, out.ogg), log);
     run(FFMPEG, encodeArgs.aac(`${tmp}/loop.wav`, out.m4a), log);
