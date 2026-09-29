@@ -10,8 +10,7 @@ import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/reader_entry.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/reader_prefetch.dart';
+import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.dart';
@@ -66,21 +65,14 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
   void _continue() {
     final ch = widget.resume.chapter;
     if (ch == null) return;
-    readerPrefetchOf(ref).onPress(d.sourceId, d.seriesKey, ch);
-    unawaited(enterReader(
-      context,
-      Routes.reader(d.sourceId, d.seriesKey, ch),
-      onLand: () => feedback(ref, HapticEvent.readerEnter),
-    ),);
+    final target = ReaderTarget.manifest(d.sourceId, d.seriesKey, ch);
+    readerPrefetchOf(ref).onPress(target);
+    enterReader(context, target, entry: ReaderEntry.wipe);
   }
 
   void _readAll() {
     if (d.chapters.length < 2) return;
-    unawaited(enterReader(
-      context,
-      Routes.readAll(d.sourceId, d.seriesKey),
-      onLand: () => feedback(ref, HapticEvent.readerEnter),
-    ),);
+    enterReader(context, ReaderTarget.readAll(d.sourceId, d.seriesKey), entry: ReaderEntry.wipe);
   }
 
   Future<void> _favorite() async {

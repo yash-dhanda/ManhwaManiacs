@@ -645,6 +645,11 @@ class ProgressService:
         """
         return mature_tracker_case(ChapterProgress.source_id)
 
+    def series_visible(self, source_id: str, series_key: str) -> bool:
+        """Source gate (404 when hidden) then series gate, for read routes."""
+        self._browse().ensure_visible(source_id)
+        return self._series_visible(source_id, fully_unquote(series_key))
+
     def _series_visible(self, source_id: str, series_key: str) -> bool:
         """Whether ONE series' stored positions may be shown to this profile.
 

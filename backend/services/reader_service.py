@@ -29,6 +29,7 @@ from core.profile_context import ProfileContext, resolve_profile_context
 from database.session import get_db
 from services.browse_service import BrowseService, get_browse_service
 from services.bulk_fetch import item_error, map_bounded
+from services.page_annotations import annotations_for, attach
 from services.source_cache_service import SourceCacheService
 
 
@@ -76,6 +77,7 @@ class ReaderService:
         profile_id: int | None = None,
     ) -> None:
         self._browse = browse
+        self._db = db
         # Optional so a caller with no session (tests, scripts) still gets a
         # working reader — it simply goes to the connector every time, which is
         # what this service did unconditionally before.
@@ -105,6 +107,14 @@ class ReaderService:
         if self._cache is None:
             return self._browse.get_chapters(source_id, series_key)
         return self._cache.get_chapter_list(source_id, series_key, force=force)
+
+    def _reports(
+        self, source_id: str, series_key: str, chapter_keys: Sequence[str]
+    ) -> dict[str, list[Any]]:
+        """Stored tint/panel reports for a window: ONE query, none without a session."""
+        if self._db is None:
+            return {}
+        return annotations_for(self._db, source_id, series_key, chapter_keys)
 
     def resolve_source_chapter(
         self,
@@ -250,8 +260,9 @@ class ReaderService:
         chapters = self._resolve_chapter_list(source_id, series_key, (chapter_key,))
         idx = self._require_index(chapters, chapter_key)
         pages = self._browse.get_chapter_pages(source_id, chapter_key)
-        return self._assemble(
-            source_id, series_key, chapter_key, chapters, idx, pages
+        return attach(
+            self._assemble(source_id, series_key, chapter_key, chapters, idx, pages),
+            self._reports(source_id, series_key, [chapter_key]).get(chapter_key, []),
         )
 
     def manifest_batch(
@@ -328,6 +339,7 @@ class ReaderService:
 
         outcomes = dict(zip(fetch_keys, map_bounded(fetch_keys, _pages)))
 
+        reports = self._reports(source_id, series_key, fetch_keys)
         items: list[dict[str, Any]] = []
         for position, key in enumerate(keys):
             idx = located[position]
@@ -360,8 +372,11 @@ class ReaderService:
                 {
                     "chapter_key": key,
                     "status": "ok",
-                    "manifest": self._assemble(
-                        source_id, series_key, key, chapters, idx, outcome
+                    "manifest": attach(
+                        self._assemble(
+                            source_id, series_key, key, chapters, idx, outcome
+                        ),
+                        reports.get(key, []),
                     ),
                     "error": None,
                 }

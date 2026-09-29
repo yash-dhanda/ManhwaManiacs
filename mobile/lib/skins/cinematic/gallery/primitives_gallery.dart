@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/core/diagnostics/debug_overlays.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/fixtures.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/overlays_gallery.dart';
+import 'package:manhwamaniacs/skins/cinematic/gallery/shell_gallery.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/primitives.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -30,6 +31,7 @@ const List<String> kGallerySections = [
   'reveals',
   'motion-timings',
   ...kOverlayGallerySections,
+  ...kShellGallerySections,
 ];
 
 /// The Diagnostics-only primitives gallery (mobile/04): one section per primitive with every
@@ -118,6 +120,7 @@ class _GalleryBodyState extends ConsumerState<_GalleryBody> {
       'reveals' => _reveals(context),
       'motion-timings' => _timings(context),
       _ when kOverlayGallerySections.contains(id) => OverlayGallerySection(id: id),
+      _ when kShellGallerySections.contains(id) => ShellGallerySection(id: id),
       _ => const SizedBox.shrink(),
     };
   }

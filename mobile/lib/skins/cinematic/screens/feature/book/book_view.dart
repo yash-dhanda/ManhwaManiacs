@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
@@ -26,9 +27,8 @@ import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/reader_entry.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/reader_prefetch.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_contents.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_front_matter.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_states.dart';
@@ -105,7 +105,7 @@ class _BookViewState extends ConsumerState<BookView> {
       if (!mounted) return;
       final pf = readerPrefetchOf(ref);
       for (final c in d.readingOrder.take(3)) {
-        pf.onDwell(d.sourceId, d.seriesKey, c.id);
+        pf.onDwell(ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id));
       }
       if (_focus != null) _centerFocus();
     });
@@ -220,15 +220,13 @@ class _BookViewState extends ConsumerState<BookView> {
         heroTag: d.followed != null
             ? seriesCoverHeroTag(d.followed!.id)
             : 'cover-${d.sourceId}-${d.seriesKey}',
+        headers: apiImageHttpHeaders(ref.read(authTokenStoreProvider).token, profileId: ref.read(activeProfileProvider)?.id),
       );
 
   void _open(SourceChapterSummary c, {bool listen = false}) {
-    readerPrefetchOf(ref).onPress(d.sourceId, d.seriesKey, c.id);
-    unawaited(enterReader(
-      context,
-      Routes.novel(d.sourceId, d.seriesKey, c.id, listen ? {'listen': '1'} : const {}),
-      onLand: () => feedback(ref, HapticEvent.readerEnter),
-    ),);
+    final target = ReaderTarget.novel(d.sourceId, d.seriesKey, c.id, listen: listen);
+    readerPrefetchOf(ref).onPress(target);
+    enterReader(context, target, entry: ReaderEntry.wipe);
   }
 
   Future<void> _downloadSelected() async {

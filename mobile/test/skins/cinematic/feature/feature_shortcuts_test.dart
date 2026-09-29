@@ -122,7 +122,7 @@ void main() {
     await pumpFeature(tester, novel: true, size: const Size(390, 2600), child: BookView(data: fixtureData('novel-short')));
     await tester.sendKeyEvent(LogicalKeyboardKey.keyV);
     await frames(tester, 700);
-    expect(find.byKey(const Key('lightbox-caption')), findsOneWidget);
+    expect(find.text('COVER · 720 × 1080'), findsOneWidget);
   });
 
   testWidgets('CineFocusRing paints for keyboard focus only', (tester) async {

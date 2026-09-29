@@ -85,3 +85,6 @@ Items only the owner can do, by step.
 - Open: web/11's feature-page motion log overlay (screens/feature/MotionTimings.tsx) still coexists with the shell's mod+shift+m overlay; unify later.
 ## mobile/26 (Glass primitives 1)
 - Device check on iPhone and Android flagship: `docs/redesign/proof/mobile-26/device-check.md` (haptic ramp, 120 Hz press feel, throw, snap, screen readers).
+
+## mobile/06
+- Device checks: `docs/redesign/proof/mobile-06/device-checklist.md` (Press start haptics, iOS edge back, Android predictive back, offline edition, tablet keyboard, screen-reader announcements).
