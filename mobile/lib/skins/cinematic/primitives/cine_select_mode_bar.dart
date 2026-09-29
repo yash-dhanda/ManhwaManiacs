@@ -53,22 +53,22 @@ class CineSelectModeBar extends StatelessWidget {
     if (run != null) {
       final r = run!;
       body = Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          Expanded(child: CineRoleText('${r.done} OF ${r.total}${r.failed > 0 ? ' · ${r.failed} FAILED' : ''}', c.typeFolio)),
+        Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          CineRoleText('${r.done} OF ${r.total}${r.failed > 0 ? ' · ${r.failed} FAILED' : ''}', c.typeFolio),
           CineButton(label: 'Stop', variant: CineButtonVariant.quiet, onPressed: onStop),
         ],),
         CineRuleProgress(value: r.total == 0 ? 0 : r.done / r.total, semanticLabel: 'Progress'),
       ],);
     } else if (result != null) {
-      body = Row(children: [
-        Expanded(child: Semantics(liveRegion: true, child: CineRoleText(result!, c.typeUi))),
+      body = Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, children: [
+        Semantics(liveRegion: true, child: CineRoleText(result!, c.typeUi)),
         if (onUndo != null) CineButton(label: 'Undo', variant: CineButtonVariant.quiet, onPressed: onUndo),
         CineButton(label: 'Dismiss', variant: CineButtonVariant.quiet, onPressed: onDismissResult),
       ],);
     } else {
       body = Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          Expanded(child: CineRoleText('$selected SELECTED', c.typeFolio)),
+        Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          CineRoleText('$selected SELECTED', c.typeFolio),
           if (onSelectAll != null && selected < total) CineButton(label: 'Select all $total', variant: CineButtonVariant.quiet, onPressed: onSelectAll),
           CineButton(label: 'Done', variant: CineButtonVariant.quiet, onPressed: onDone),
         ],),

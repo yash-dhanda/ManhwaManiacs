@@ -17,11 +17,11 @@ class CineCreditsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.cine;
     final row = Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-      CineRoleText(label, c.typeUi, color: c.colorInk60),
+      Flexible(child: CineRoleText(label, c.typeUi, color: c.colorInk60)),
       SizedBox(width: c.space2),
       const Expanded(child: Padding(padding: EdgeInsets.only(bottom: 2), child: CineDotLeader())),
       SizedBox(width: c.space2),
-      CineRoleText(value, c.typeUi),
+      Flexible(child: CineRoleText(value, c.typeUi, textAlign: TextAlign.right)),
     ],);
     Widget box(CinePressState? st) => ConstrainedBox(
           constraints: BoxConstraints(minHeight: onTap != null ? cineHitMin(context) : 40),

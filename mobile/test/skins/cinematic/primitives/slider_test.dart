@@ -63,7 +63,7 @@ void main() {
     expect(node.value, '5 pixels');
     expect(node.increasedValue, '6 pixels');
     expect(node.decreasedValue, '4 pixels');
-    t.binding.rootPipelineOwner.semanticsOwner!.performAction(node.id, SemanticsAction.increase);
+    t.semantics.performAction(find.semantics.byLabel('Size'), SemanticsAction.increase);
     await t.pump();
     expect(v.value, 6);
     h.dispose();

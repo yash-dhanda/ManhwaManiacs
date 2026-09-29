@@ -46,7 +46,9 @@ class CineMenuEntry<T> {
 Future<T?> showCineMenu<T>(BuildContext context, {required Rect anchor, required List<CineMenuEntry<T>> entries}) {
   final trigger = FocusManager.instance.primaryFocus;
   cineFeedback(context, HapticEvent.longpressOpen);
-  return Navigator.of(context, rootNavigator: true).push(_CineMenuRoute<T>(
+  final navigator = Navigator.of(context, rootNavigator: true);
+  return navigator.push(_CineMenuRoute<T>(
+    themes: InheritedTheme.capture(from: context, to: navigator.context),
     anchor: anchor,
     entries: entries,
     reduced: CineMotion.reduced(context),
@@ -61,7 +63,9 @@ Rect cineAnchorRect(BuildContext context) {
 }
 
 class _CineMenuRoute<T> extends PopupRoute<T> {
-  _CineMenuRoute({required this.anchor, required this.entries, required this.reduced, this.restoreFocus});
+  _CineMenuRoute({required this.anchor, required this.entries, required this.reduced, this.restoreFocus, this.themes});
+
+  final CapturedThemes? themes;
 
   final Rect anchor;
   final List<CineMenuEntry<T>> entries;
@@ -93,7 +97,7 @@ class _CineMenuRoute<T> extends PopupRoute<T> {
 
   @override
   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-    return MediaQuery.removePadding(
+    final page = MediaQuery.removePadding(
       context: context,
       removeTop: true,
       removeBottom: true,
@@ -105,6 +109,7 @@ class _CineMenuRoute<T> extends PopupRoute<T> {
         }, onClose: () => Navigator.of(context).maybePop(),),
       ),
     );
+    return themes?.wrap(page) ?? page;
   }
 
   @override

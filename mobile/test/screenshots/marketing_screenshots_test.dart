@@ -22,11 +22,13 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/gallery/overlays_gallery.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/primitives_gallery.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/test_overrides.dart';
+import 'mobile_05_shots.dart';
 import 'mobile_11_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
@@ -65,6 +67,7 @@ void main() {
 
   // mobile-11: the Cinematic series page, Book page and chapter downloads.
   group('mobile-11', mobile11Shots);
+  group('mobile-05', mobile05Shots);
   // Both skins at every proof size (mobile/03). Default: Tonight only, so the
   // plain suite stays fast; a proof run sets MM_PROOF_SCREENS and MM_PROOF_DIR.
   group('skins', () {
@@ -115,10 +118,23 @@ void main() {
       'grain-duotone': 700.0,
       'reveals': 800.0,
       'motion-timings': 700.0,
+      // mobile-05 sections: captured open by the mobile-05 group; here only their resting page.
+      'sheets': 800.0,
+      'dialogs': 1000.0,
+      'toasts': 700.0,
+      'tabs': 900.0,
+      'rows': 4200.0,
+      'sliders': 900.0,
+      'toggles': 1100.0,
+      'menus': 700.0,
+      'notices': 1900.0,
+      'certificate': 700.0,
+      'other': 2600.0,
+      'lightbox': 500.0,
     };
     const variants = {'buttons', 'fields', 'rails', 'reveals'};
     for (final size in kSkinShotSizes) {
-      for (final section in kGallerySections) {
+      for (final section in kGallerySections.where((s) => !kOverlayGallerySections.contains(s))) {
         final tall = SkinShotSize(size.name, Size(size.logical.width, heights[section]!), size.pixelRatio, size.padding);
         Future<void> shot(WidgetTester t, String name, {bool grid = false, bool reduced = false, double scale = 1.0, Future<void> Function(WidgetTester)? settle}) =>
             captureSkinWidget(

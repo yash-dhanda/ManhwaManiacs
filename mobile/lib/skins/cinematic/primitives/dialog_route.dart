@@ -66,11 +66,13 @@ class _InsertClip extends CustomClipper<Rect> {
 /// Pushes [builder] as a [CineDialogRoute] on the root navigator.
 Future<T?> showCineDialog<T>(BuildContext context, {required WidgetBuilder builder, bool rootNavigator = true}) {
   late final CineDialogRoute<T> route;
+  final navigator = Navigator.of(context, rootNavigator: rootNavigator);
+  final themes = InheritedTheme.capture(from: context, to: navigator.context);
   route = CineDialogRoute<T>(
     reduced: CineMotion.reduced(context),
-    pageBuilder: (ctx, _, __) => _RouteScope(route: route, child: Builder(builder: builder)),
+    pageBuilder: (ctx, _, __) => themes.wrap(_RouteScope(route: route, child: Builder(builder: builder))),
   );
-  return Navigator.of(context, rootNavigator: rootNavigator).push(route);
+  return navigator.push(route);
 }
 
 class _RouteScope extends InheritedWidget {

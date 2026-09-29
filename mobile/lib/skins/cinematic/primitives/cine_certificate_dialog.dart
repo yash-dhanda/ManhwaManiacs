@@ -121,11 +121,13 @@ class _CineCertificateDialogState extends State<CineCertificateDialog> {
 /// its shared Dip builder.
 Future<bool?> openCineCertificateDialog(BuildContext context, {String profileName = '', required Future<bool> Function() onConfirm, VoidCallback? onCancel}) {
   final reduced = CineMotion.reduced(context);
-  return Navigator.of(context, rootNavigator: true).push<bool>(
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final themes = InheritedTheme.capture(from: context, to: navigator.context);
+  return navigator.push<bool>(
     PageRouteBuilder<bool>(
       transitionDuration: reduced ? CineDur.reduced : const Duration(milliseconds: 440),
       reverseTransitionDuration: reduced ? CineDur.reduced : const Duration(milliseconds: 440),
-      pageBuilder: (_, __, ___) => CineCertificateDialog(profileName: profileName, onConfirm: onConfirm, onCancel: onCancel),
+      pageBuilder: (_, __, ___) => themes.wrap(CineCertificateDialog(profileName: profileName, onConfirm: onConfirm, onCancel: onCancel)),
       transitionsBuilder: (context, a, _, child) {
         if (reduced) return FadeTransition(opacity: a, child: child);
         return AnimatedBuilder(

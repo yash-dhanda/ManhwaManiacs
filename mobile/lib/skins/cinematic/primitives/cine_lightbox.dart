@@ -29,11 +29,13 @@ Future<void> openCineLightbox(
   final trigger = FocusManager.instance.primaryFocus;
   cineFeedback(context, HapticEvent.longpressOpen);
   final reduced = CineMotion.reduced(context);
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final themes = InheritedTheme.capture(from: context, to: navigator.context);
   final route = _LightboxRoute(
     reduced: reduced,
-    builder: (ctx, route) => _Lightbox(route: route, heroTag: heroTag, image: image, fullImage: fullImage, title: title, folio: folio, reduced: reduced),
+    builder: (ctx, route) => themes.wrap(_Lightbox(route: route, heroTag: heroTag, image: image, fullImage: fullImage, title: title, folio: folio, reduced: reduced)),
   );
-  return Navigator.of(context, rootNavigator: true).push<void>(route).whenComplete(() {
+  return navigator.push<void>(route).whenComplete(() {
     if (trigger != null && trigger.context != null && trigger.canRequestFocus) trigger.requestFocus();
   });
 }

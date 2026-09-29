@@ -34,15 +34,17 @@ class CineBannerStrip extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(color: c.colorPaper0, border: Border(left: BorderSide(color: edge, width: 2), bottom: c.ruleHair)),
         padding: EdgeInsets.symmetric(horizontal: c.space4, vertical: c.space3),
-        child: Row(children: [
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              if (k != null) CineRoleText(k, c.typeKicker, color: tone == CineBannerTone.correction ? c.colorProof : (tone == CineBannerTone.note ? c.colorSpot : c.colorInk60)),
-              CineRoleText(line, c.typeUi),
-            ],),
-          ),
-          for (final a in actions) Padding(padding: EdgeInsets.only(left: c.space2), child: CineButton(label: a.label, variant: CineButtonVariant.quiet, onPressed: a.onPressed)),
-        ],),
+        child: () {
+          final text = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            if (k != null) CineRoleText(k, c.typeKicker, color: tone == CineBannerTone.correction ? c.colorProof : (tone == CineBannerTone.note ? c.colorSpot : c.colorInk60)),
+            CineRoleText(line, c.typeUi),
+          ],);
+          final buttons = Wrap(spacing: c.space2, children: [for (final a in actions) CineButton(label: a.label, variant: CineButtonVariant.quiet, onPressed: a.onPressed)]);
+          if (CineReflow.of(context).stackSplit) {
+            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [text, if (actions.isNotEmpty) Padding(padding: EdgeInsets.only(top: c.space2), child: buttons)]);
+          }
+          return Row(children: [Expanded(child: text), buttons]);
+        }(),
       ),
     );
   }

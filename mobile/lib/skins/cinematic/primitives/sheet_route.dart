@@ -25,6 +25,7 @@ class CineSheetRoute<T> extends PageRoute<T> {
     this.onRetry,
     this.reduced = false,
     this.restoreFocus,
+    this.themes,
     super.settings,
   });
 
@@ -38,6 +39,9 @@ class CineSheetRoute<T> extends PageRoute<T> {
 
   /// The trigger's focus node, refocused once the sheet is gone.
   final FocusNode? restoreFocus;
+
+  /// The trigger's themes, so tokens resolve under a navigator whose own theme has none.
+  final CapturedThemes? themes;
 
   @override
   bool get opaque => false;
@@ -81,7 +85,7 @@ class CineSheetRoute<T> extends PageRoute<T> {
   }
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) => CineSheet(
+  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) => _wrap(CineSheet(
         kicker: kicker,
         title: title,
         livePreview: livePreview,
@@ -92,7 +96,9 @@ class CineSheetRoute<T> extends PageRoute<T> {
         reduced: reduced,
         onClose: () => Navigator.of(context).maybePop(),
         child: Builder(builder: builder),
-      );
+      ),);
+
+  Widget _wrap(Widget w) => themes?.wrap(w) ?? w;
 
   @override
   Widget buildTransitions(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
@@ -119,7 +125,9 @@ Future<T?> showCineSheet<T>(
   VoidCallback? onRetry,
 }) {
   final trigger = FocusManager.instance.primaryFocus;
-  return Navigator.of(context).push(CineSheetRoute<T>(
+  final navigator = Navigator.of(context);
+  return navigator.push(CineSheetRoute<T>(
+    themes: InheritedTheme.capture(from: context, to: navigator.context),
     builder: builder,
     kicker: kicker,
     title: title,
