@@ -1,0 +1,41 @@
+{
+    "profile": {
+        "profile_id": 1,
+        "name": "Riya",
+        "avatar_key": "default",
+        "username": "demo"
+    },
+    "shares": {
+        "activity": true,
+        "reactions": true,
+        "shelves": true,
+        "recommendations": true
+    },
+    "now": {
+        "source_id": "mangadex",
+        "series_key": "25e1d17b-6a4d-4698-a4f6-bf53460c10af",
+        "chapter_key": "proof-ch-1",
+        "chapter_number": 1.0,
+        "title": "Futari Bus",
+        "ambient": null,
+        "palette": null,
+        "since": "2026-09-29T21:36:12.859199"
+    },
+    "last_active_at": "2026-09-29T21:36:12.859199",
+    "streak": null,
+    "reading": [
+        {
+            "source_id": "mangadex",
+            "series_key": "25e1d17b-6a4d-4698-a4f6-bf53460c10af",
+            "title": "Futari Bus",
+            "cover_url": "/sources/mangadex/series/25e1d17b-6a4d-4698-a4f6-bf53460c10af/cover",
+            "ambient": null,
+            "palette": null,
+            "content_kind": "manga",
+            "last_activity_at": "2026-09-29T21:36:12.859199"
+        }
+    ],
+    "finished": [],
+    "reactions": [],
+    "shelves": []
+}

@@ -1,0 +1,10 @@
+{
+    "activity": false,
+    "reactions": true,
+    "shelves": true,
+    "recommendations": true,
+    "include_mature": false,
+    "show_presence": false,
+    "share_streak": false,
+    "excluded_series": []
+}
