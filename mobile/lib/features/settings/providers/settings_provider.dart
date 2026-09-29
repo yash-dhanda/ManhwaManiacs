@@ -9,8 +9,8 @@ import 'package:manhwamaniacs/features/collections/providers/collections_provide
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
-import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';

@@ -10,7 +10,6 @@ import 'package:manhwamaniacs/features/library/store/numbers_snapshot.dart';
 import 'package:manhwamaniacs/features/library/utils/numbers_rules.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
-import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 final numbersRepositoryProvider = Provider<NumbersRepository>(
   (ref) => NumbersRepositoryImpl(ref.watch(dioProvider)),

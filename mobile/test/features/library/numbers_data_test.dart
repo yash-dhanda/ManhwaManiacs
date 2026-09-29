@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
-import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/library/repositories/numbers_repository.dart';
@@ -35,7 +34,7 @@ class _Adapter implements HttpClientAdapter {
 
 ResponseBody _json(Object body, [int status = 200]) => ResponseBody.fromString(jsonEncode(body), status, headers: {
       Headers.contentTypeHeader: ['application/json'],
-    });
+    },);
 
 void main() {
   group('models', () {
@@ -137,7 +136,7 @@ void main() {
 
     test('bestChapterDay: most chapters, ties to the latest date', () {
       final d = [
-        DailyActivity(date: DateTime(2026, 9, 1), chaptersRead: 5),
+        DailyActivity(date: DateTime(2026, 9), chaptersRead: 5),
         DailyActivity(date: DateTime(2026, 9, 2), chaptersRead: 9),
         DailyActivity(date: DateTime(2026, 9, 3), chaptersRead: 9),
         DailyActivity(date: DateTime(2026, 9, 4)),
@@ -150,9 +149,9 @@ void main() {
       final thin = annualFixture(recordedDays: 29);
       final thick = annualFixture(recordedDays: 30);
       expect(annualAvailable(DateTime(2026, 11, 30), thin), isFalse);
-      expect(annualAvailable(DateTime(2026, 12, 1), thin), isTrue);
-      expect(annualAvailable(DateTime(2026, 9, 1), thick), isTrue);
-      expect(annualAvailable(DateTime(2026, 9, 1), null), isFalse);
+      expect(annualAvailable(DateTime(2026, 12), thin), isTrue);
+      expect(annualAvailable(DateTime(2026, 9), thick), isTrue);
+      expect(annualAvailable(DateTime(2026, 9), null), isFalse);
     });
 
     test('issueNumber counts earlier available years', () {
@@ -236,7 +235,7 @@ void main() {
             sharedPrefsProvider.overrideWithValue(prefs),
             authenticatedAuthOverride(),
             activeProfileOverride(),
-          ]);
+          ],);
       final c = make(1);
       addTearDown(c.dispose);
       expect(c.read(statsRangeProvider), 30);
