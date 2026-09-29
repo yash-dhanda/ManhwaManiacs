@@ -180,7 +180,8 @@ function proof() {
   const W = left * 2 + colW * 2 + gap, H = 70 + rows * (rowH + labelH);
   const svg = [`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="ui-monospace, Menlo, monospace">`,
     `<rect width="100%" height="100%" fill="#0b0b0c"/>`,
-    `<text x="${left}" y="26" fill="#f2efe8" font-size="16">shared/03 UI cues: Cinematic "Press Room" (warm, low-passed 5 kHz, small room) | Glass "Meniscus" (struck glass, A-major pentatonic)</text>`,
+    `<text x="${left}" y="26" fill="#e7b465" font-size="15">Cinematic "Press Room": warm, low-passed at 5 kHz, small room</text>`,
+    `<text x="${left + colW + gap}" y="26" fill="#8fd3ff" font-size="15">Glass "Meniscus": struck glass, A-major pentatonic</text>`,
     `<text x="${left}" y="46" fill="#9a968c" font-size="11">Envelope = sample peak per 0.5 ms bin, each row scaled to its own peak; common time scale ${pxPerMs * 100} px per 100 ms (1600 ms = ${colW} px)</text>`];
   cols.forEach((col, ci) => {
     const x0 = left + ci * (colW + gap), color = ci ? "#8fd3ff" : "#e7b465";
@@ -193,7 +194,10 @@ function proof() {
         const x = (x0 + b * 0.5 * pxPerMs).toFixed(1), h = ((m / pk) * (rowH / 2 - 2)).toFixed(1);
         top.push(`${x},${(mid - h).toFixed(1)}`); bot.unshift(`${x},${(mid + +h).toFixed(1)}`);
       }
-      svg.push(`<text x="${x0}" y="${y0 + 13}" fill="#f2efe8" font-size="11">${esc(stem)} · ${cue.length} ms · ${peakDbfs(s).toFixed(1)} dBFS <tspan fill="#9a968c">${esc(events.join(", ") || "(no event)")}</tspan></text>`);
+      const head = `${stem} · ${cue.length} ms · ${peakDbfs(s).toFixed(1)} dBFS `, room = Math.floor(colW / 6.7) - head.length;
+      let evs = events.join(", ") || "(no event)";
+      if (evs.length > room) evs = evs.slice(0, room - 1).replace(/,? [^ ]*$/, "") + " …";
+      svg.push(`<text x="${x0}" y="${y0 + 13}" fill="#f2efe8" font-size="11">${esc(head)}<tspan fill="#9a968c">${esc(evs)}</tspan></text>`);
       svg.push(`<line x1="${x0}" x2="${x0 + colW}" y1="${mid}" y2="${mid}" stroke="#2a2a2e"/>`);
       svg.push(`<line x1="${(x0 + cue.length * pxPerMs).toFixed(1)}" x2="${(x0 + cue.length * pxPerMs).toFixed(1)}" y1="${y0 + labelH}" y2="${y0 + labelH + rowH}" stroke="#3a3a40" stroke-dasharray="2 2"/>`);
       svg.push(`<polygon points="${top.concat(bot).join(" ")}" fill="${color}" fill-opacity="0.85"/>`);
