@@ -23,3 +23,9 @@
 .gal-readout { font: 12px/16px var(--mm-font-mono, ui-monospace, monospace); color: var(--mm-color-label2); }
 .gal-cur { min-width: 88px; min-height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid rgb(255 255 255 / 0.3); background: rgb(255 255 255 / 0.08); color: inherit; font: inherit; display: inline-grid; place-items: center; }
 .gal-ground[data-ground="white"] .gal-cur { border-color: rgb(0 0 0 / 0.3); background: rgb(0 0 0 / 0.06); }
+
+/* web/27 sheets section */
+.gal-page { min-height: 360px; padding: 16px; border-radius: 0; background: rgb(255 255 255 / 0.04); }
+.gal-page__filler { height: 480px; background: repeating-linear-gradient(135deg, rgb(139 92 246 / 0.18) 0 24px, transparent 24px 48px); margin: 16px 0; border-radius: 16px; }
+.gal-sheet-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.gal-sheet-rows li { min-height: 44px; display: flex; align-items: center; padding: 0 16px; border-radius: 20px; background: var(--mm-color-well-on-glass); }
