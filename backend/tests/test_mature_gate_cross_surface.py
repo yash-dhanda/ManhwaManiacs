@@ -972,6 +972,10 @@ WALKED_HERE = (
         "/circle/members",
         "/circle/members/{profile_id}",
         "/circle/series",
+        # walked by tests/test_circle_reactions.py, test_circle_letters.py and
+        # test_circle_shelves.py (both-sided rule, letters and shelf rows)
+        "/circle/reactions",
+        "/circle/letters",
         "/library/collections",
         "/library/collections/{collection_id}",
         "/library/recommendations",
