@@ -33,3 +33,12 @@ Baseline (before any change): Vitest 159 files / 2810 tests pass. Legacy curls: 
 `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build` under the web lock, one at a time, RAM guard
 first. Dev server `next dev -p 3013` against the lane backend on 8013, browsed via `localhost` (Next 16 blocks
 dev resources to `127.0.0.1` without `allowedDevOrigins`).
+
+## Deviation found while verifying
+
+Legacy's `AppShell` renders no children on the server (auth gate), so a page's `notFound()` never reached the
+HTML shell and `/setup`, `/circle`, `/settings/profile` and unmatched URLs answered 200. Fix: two files outside the
+prompt's layout, `skins/screen-status.ts` (a per-request `cache()`d promise settled by `renderScreen`, by
+`markScreenMissing` in `[...missing]`, and by legacy's self-settling settings wrapper) and
+`skins/not-found-status.tsx` (an SSR-only probe in the `(app)` layout, outside the Shell, that throws `notFound()`
+when the screen is missing). `completeness.test.ts` checks every `(app)` route file settles the status.
