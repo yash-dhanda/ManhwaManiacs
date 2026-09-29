@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' show LiquidGlassSettings;
+import 'package:liquid_glass_widgets/theme/glass_theme_helpers.dart' show GlassThemeHelpers;
 import 'package:manhwamaniacs/skins/glass/glass/axes.dart';
 import 'package:manhwamaniacs/skins/glass/glass/glow.dart';
 import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
@@ -196,6 +197,16 @@ class SkinGlass extends ConsumerStatefulWidget {
   final List<SkinGlassShape>? groupShapes;
   final Axis groupAxis;
   final double groupGap;
+
+  /// The device-corner radius on iOS phones (glass 2.3), `radiusSheet` 36 elsewhere.
+  static double deviceCornerRadius(BuildContext context) {
+    final phone = MediaQuery.sizeOf(context).shortestSide < 600;
+    if (defaultTargetPlatform == TargetPlatform.iOS && phone) {
+      final r = GlassThemeHelpers.resolveAdaptiveRadius(context);
+      if (r > 0) return r;
+    }
+    return glassTokens.radiusSheet;
+  }
 
   @override
   ConsumerState<SkinGlass> createState() => SkinGlassState();

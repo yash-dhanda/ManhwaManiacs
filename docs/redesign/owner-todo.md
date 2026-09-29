@@ -92,3 +92,5 @@ Items only the owner can do, by step.
 ## mobile/07
 - Device checks: `docs/redesign/proof/mobile-07/device-checklist.md` (Setup keyboard and rule move, keychain and autofill, the Iris haptic and frame timing, Switch profile back gestures, the certificate stamp haptic, screen readers).
 - 18+ on-device run: `docs/redesign/proof/mobile-07/18plus-checklist.md` (throwaway profile, own server; undo afterwards).
+- mobile/27: device checks listed in docs/redesign/proof/mobile-27/device-check.md (predictive back, keyboard rule, viewer gestures, real blur, haptics).
+- mobile/27: run docs/redesign/proof/mobile-27/device-check.md on the iPhone (SideStore) and the Android flagship.
