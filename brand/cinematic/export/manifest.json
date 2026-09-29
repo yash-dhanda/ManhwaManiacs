@@ -1,0 +1,118 @@
+{
+ "outputs": [
+  {
+   "path": "brand/cinematic/export/android-foreground-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "brand/cinematic/export/android-monochrome-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "brand/cinematic/export/icon-ios-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "brand/cinematic/export/icon-ios-dark-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "brand/cinematic/export/icon-ios-tinted-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "brand/splash/transparent-288.png",
+   "width": 288,
+   "height": 288
+  },
+  {
+   "path": "frontend/public/icons/apple-touch-icon.png",
+   "width": 180,
+   "height": 180
+  },
+  {
+   "path": "frontend/public/icons/icon-192.png",
+   "width": 192,
+   "height": 192
+  },
+  {
+   "path": "frontend/public/icons/icon-512.png",
+   "width": 512,
+   "height": 512
+  },
+  {
+   "path": "frontend/public/icons/maskable-512.png",
+   "width": 512,
+   "height": 512
+  },
+  {
+   "path": "frontend/public/og.png",
+   "width": 1200,
+   "height": 630
+  },
+  {
+   "path": "frontend/public/splash/apple-splash-1170x2532.png",
+   "width": 1170,
+   "height": 2532
+  },
+  {
+   "path": "frontend/public/splash/apple-splash-1179x2556.png",
+   "width": 1179,
+   "height": 2556
+  },
+  {
+   "path": "frontend/public/splash/apple-splash-1290x2796.png",
+   "width": 1290,
+   "height": 2796
+  },
+  {
+   "path": "frontend/public/splash/apple-splash-2048x2732.png",
+   "width": 2048,
+   "height": 2732
+  },
+  {
+   "path": "frontend/src/app/favicon.ico",
+   "width": 32,
+   "height": 32,
+   "entries": [
+    16,
+    32
+   ]
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-hdpi/ic_stat_mm.png",
+   "width": 36,
+   "height": 36
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-mdpi/ic_stat_mm.png",
+   "width": 24,
+   "height": 24
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xhdpi/ic_stat_mm.png",
+   "width": 48,
+   "height": 48
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xxhdpi/ic_stat_mm.png",
+   "width": 72,
+   "height": 72
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xxxhdpi/ic_stat_mm.png",
+   "width": 96,
+   "height": 96
+  },
+  {
+   "path": "mobile/docs/screenshots/app-icon.png",
+   "width": 1024,
+   "height": 1024
+  }
+ ]
+}
