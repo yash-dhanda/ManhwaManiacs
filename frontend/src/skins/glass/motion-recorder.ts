@@ -28,6 +28,14 @@ export function beginRecord(name: string, label: string, plannedMs: number): Mov
 }
 
 let frameInterval = 1000 / 60;
+const recent: number[] = [];
+
+/** The display's frame interval: the median of the last 30 rAF deltas (robust to a stray short or long one), 6.9 to 33.4 ms. */
+function noteDelta(d: number) {
+  recent.push(d);
+  if (recent.length > 30) recent.shift();
+  if (recent.length >= 8) frameInterval = Math.min(33.4, Math.max(6.9, [...recent].sort((a, b) => a - b)[recent.length >> 1]));
+}
 
 /** Counts rendered frames and dropped frames (rAF deltas over 1.5 x the display's frame interval) until `finish()`. */
 export function trackFrames(r: MoveRecord) {
@@ -39,8 +47,8 @@ export function trackFrames(r: MoveRecord) {
     const d = now - last;
     last = now;
     r.frames++;
-    if (d > 0 && d < frameInterval - 0.5 && d > 4) frameInterval = d;
     if (d > frameInterval * 1.5) r.dropped++;
+    if (d > 0) noteDelta(d);
     raf = requestAnimationFrame(tick);
   };
   raf = requestAnimationFrame(tick);
