@@ -1,0 +1,11 @@
+{
+ "anilist_id": 1234,
+ "format": "MANGA",
+ "score": 8.4,
+ "official": [
+  {
+   "site": "Webtoon",
+   "url": "https://example.org/webtoon"
+  }
+ ]
+}

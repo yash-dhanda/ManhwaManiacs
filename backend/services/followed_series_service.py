@@ -950,8 +950,10 @@ class FollowedSeriesService:
             row.reading_status = status
         if "notify" in changes and changes["notify"] is not None:
             row.notify = bool(changes["notify"])
-        if "mature_override" in changes and changes["mature_override"] is not None:
-            row.mature_override = bool(changes["mature_override"])
+        if "mature_override" in changes:
+            # An explicit null clears the override ("use the source's rating").
+            value = changes["mature_override"]
+            row.mature_override = None if value is None else bool(value)
         if changes.get("sort_order") is not None:
             row.sort_order = int(changes["sort_order"])
         row.updated_at = utcnow()

@@ -1,0 +1,23 @@
+{
+ "id": "dustland-novel",
+ "source_id": "standardebooks",
+ "series_identity": "dustland-novel",
+ "title": "The Salt Road",
+ "chapter_count": 450,
+ "description": "A long book about a longer road. It begins with a well and ends, four hundred and fifty chapters later, at a different one.",
+ "author": "E. M. Harrow",
+ "artist": null,
+ "status": "ongoing",
+ "genres": [
+  "Historical",
+  "Adventure"
+ ],
+ "latest_chapter": "450",
+ "cover_url": "/sources/standardebooks/series/dustland-novel/cover",
+ "url": null,
+ "ambient": {
+  "duo": "#5B6B4A",
+  "tint": "#0E140A",
+  "ink": "#D6E2B8"
+ }
+}

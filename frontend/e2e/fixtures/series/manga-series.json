@@ -1,0 +1,24 @@
+{
+ "id": "9748/dustland",
+ "source_id": "mangapill",
+ "series_identity": "9748/dustland",
+ "title": "Dustland",
+ "chapter_count": 80,
+ "description": "A courier crosses a dried-up sea with a map nobody can read. Every stop asks a little more of her than the last. The road remembers what the towns forget.",
+ "author": "Ren Ito",
+ "artist": "Mai Kobayashi",
+ "status": "ongoing",
+ "genres": [
+  "Action",
+  "Drama",
+  "Adventure"
+ ],
+ "latest_chapter": "80",
+ "cover_url": "/sources/mangapill/series/9748%2Fdustland/cover",
+ "url": "https://example.org/manga/9748",
+ "ambient": {
+  "duo": "#8A6A3B",
+  "tint": "#1A1208",
+  "ink": "#F2C879"
+ }
+}

@@ -57,6 +57,7 @@ export const MATURE_GATED_QUERY_ROOTS = [
   "bookmarks",
   "novels",
   "ocr",
+  "ai",
   "updates",
   "reader",
 ] as const;
