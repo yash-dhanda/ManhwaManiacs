@@ -232,7 +232,7 @@ Web and mobile suites are not run: `git show --name-only --format= <hash> -- fro
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`; one commit per working step, pushed after each: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`; one commit per working step, pushed after each: `git push origin feat/vps-slim-source-native:master`.
 - Suggested subjects: `feat(backend): streak milestones and listen sessions tables`, `feat(backend): one streak object with at_risk and milestones`, `feat(backend): streak and today's time on progress saves`, `feat(backend): the Annual with shareable blocks and a per-day cache`, `feat(backend): listen sessions for the colophon's voices`, `docs(redesign): backend-03 proof`.
 - Stage explicit paths only. No Claude or AI attribution (no `Co-Authored-By`, no "generated with" line). Never commit secrets, `.claude/`, `backend/.venv/` or dev data.
 

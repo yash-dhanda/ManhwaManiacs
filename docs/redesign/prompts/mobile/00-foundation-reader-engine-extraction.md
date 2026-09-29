@@ -279,7 +279,7 @@ Web and backend: this step changes neither, so no local `npm run lint`, `npm run
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`. Commits, in order: plan; golden baseline (A); the extraction (B, one commit, with C's tests or C right after); one commit per item of E; device checklist and proof copies. Push after each working step: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`. Commits, in order: plan; golden baseline (A); the extraction (B, one commit, with C's tests or C right after); one commit per item of E; device checklist and proof copies. Push after each working step: `git push origin feat/vps-slim-source-native:master`.
 - Stage explicit paths only (`git add mobile/lib/features/reader mobile/test/features/reader …`). Never `git add -A`, `git add .` or `git commit -a`.
 - No Claude or AI attribution anywhere: no `Co-Authored-By`, no "Generated with" line, no AI author. Never commit secrets, `.env*` files or `.claude/`.
 

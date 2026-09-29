@@ -293,7 +293,7 @@ free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the sign-off record (if needed), each engine change with its test, the preferences record, the OCR fetch, then each chrome part, then the proof. Stage your paths explicitly (`git add mobile/lib/features/reader/engine/zoom_math.dart …`, `git add docs/redesign/proof/mobile-12`), never `git add -A` or `git add .`, because web, backend and shared sessions commit in the same checkout.
 - Conventional messages (`feat(mobile-cinematic): reader ruler with bookmarks`). No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`.
-- Before every push: run `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`. If it lists files (another session's commits), run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes; then `git push origin feat/vps-slim-source-native` after each working step.
+- Before every push: run `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`. If it lists files (another session's commits), run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes; then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: until `release/00` the Cinematic skin is reachable only through the debug row.
 
 ## Report back

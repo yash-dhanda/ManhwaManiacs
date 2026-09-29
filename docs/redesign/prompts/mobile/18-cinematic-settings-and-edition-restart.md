@@ -215,7 +215,7 @@ docs/redesign/proof/mobile-18/                                       (plan.md, s
 9. `feat(mobile/18): security, members, backup and licences pages`.
 10. `test(mobile/18): smoke tests and harness proof screenshots`.
 
-`git add` exact paths; **no** `Co-Authored-By`, no "Generated with" line, no AI attribution; `git push origin feat/vps-slim-source-native` after each. Never commit secrets, `key.properties`, `.env*` or `.claude/`.
+`git add` exact paths; **no** `Co-Authored-By`, no "Generated with" line, no AI attribution; `git push origin feat/vps-slim-source-native:master` after each. Never commit secrets, `key.properties`, `.env*` or `.claude/`.
 
 Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`. The checkout is shared, so a push also carries other sessions' commits: if that diff lists files, run `free -m && npm run build` in `frontend/` first (never while a Flutter command runs, stop if `available` < 1024 MB) and push only if it passes, because a failed `next build` silently freezes the production deploy. Never deploy from this step.
 

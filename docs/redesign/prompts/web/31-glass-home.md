@@ -222,7 +222,7 @@ free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=<demo user> E2E_PASSW
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the `features/home` refresh addition with its test; the rail and spotlight mappings with their tests; the greeting; the spotlight; the rails; Not interested; the friend orbs; states; the specs; the proof (`feat(web-glass): Home spotlight with Light follows the story`). Stage your paths explicitly, never `git add -A` or `git add .`, because the mobile, backend and shared sessions commit in the same checkout.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets (the demo credentials included), screenshots of a real account's library, or `.claude/`.
-- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass stays behind the debug row until `release/01`.
 
 ## Report back

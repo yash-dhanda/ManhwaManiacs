@@ -260,7 +260,7 @@ Nothing under `frontend/` changes (`git show --stat --format= <hash>` of each of
 - Branch `feat/vps-slim-source-native`; small commits, one per working step (the backend override fix; the no-pixel moves; enrichment, suggested tags, coverage and repoint calls; the mark-read and download helpers; the feature shell and match cut; the phone hero; the tablet spread; tabs and chapters; At a glance; DETAILS; the overflow and `mature_override`; repoint; the Book page; downloads; states; proof), messages starting `mobile-11:`.
 - Stage only your paths with explicit `git add <path>`; the backend commit stages only `backend/services/followed_series_service.py` and `backend/tests/test_library_endpoints.py`. Never `git add -A` or `git add .`; never commit secrets, demo credentials, `.claude/` or `.env` files.
 - **No Claude or AI attribution anywhere** (no `Co-Authored-By`, no "Generated with" line, no AI author), even if your harness asks for it; the owner's `~/.claude/CLAUDE.md` forbids it.
-- Before every push: `flutter analyze` is clean; `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if that lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native` after each working step.
+- Before every push: `flutter analyze` is clean; `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if that lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native:master` after each working step.
 
 ## Guardrails
 

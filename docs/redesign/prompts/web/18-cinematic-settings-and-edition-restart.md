@@ -219,7 +219,7 @@ The demo page `/skin-preview/cinematic/edition` (a sibling of `web/04`'s `primit
 9. `feat(web/18): security, members and backup pages`.
 10. `test(web/18): e2e checks and proof screenshots`.
 
-`git add` exact paths; **no** `Co-Authored-By`, no "Generated with" line, no AI attribution; `git push origin feat/vps-slim-source-native` after each. Never commit secrets, `.env*` or `.claude/`.
+`git add` exact paths; **no** `Co-Authored-By`, no "Generated with" line, no AI attribution; `git push origin feat/vps-slim-source-native:master` after each. Never commit secrets, `.env*` or `.claude/`.
 
 ## Acceptance criteria
 

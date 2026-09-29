@@ -191,7 +191,7 @@ Screenshots: start the dev stack of `backend/scripts/README-dev-stack.md` (uvico
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`. Suggested commits: plan; the `motion` swap and pins (`package.json`, lock, 4 import changes); `optimizePackageImports`; the parity tests; Cinematic fonts; Glass fonts; the font stub; the two `PHOSPHOR` import maps; the two `Icon` components; the specimen page; proof. Push after each working step: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`. Suggested commits: plan; the `motion` swap and pins (`package.json`, lock, 4 import changes); `optimizePackageImports`; the parity tests; Cinematic fonts; Glass fonts; the font stub; the two `PHOSPHOR` import maps; the two `Icon` components; the specimen page; proof. Push after each working step: `git push origin feat/vps-slim-source-native:master`.
 - Stage explicit paths only (`git add frontend/package.json frontend/package-lock.json frontend/src/skins … docs/redesign/proof/web-01`), never `git add -A`: other sessions commit in this checkout.
 - No Claude or AI attribution in any commit (no `Co-Authored-By`, no "Generated with" line). Never commit secrets, `.env*` or `.claude/`.
 - `npm run build` must pass before every push.

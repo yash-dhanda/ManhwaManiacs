@@ -238,7 +238,7 @@ If you use `playwright-cli` for ad-hoc inspection, always pass a named session (
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the strict completeness change, the harness, then one commit per fix (`fix(web-cinematic): ink.45 on paper.2 in the filters sheet`), then the Front pages and `og.png`, then the proof and `qa.md`. Stage your paths explicitly (`git add frontend/e2e/cinematic-qa.spec.ts …`, `git add docs/redesign/proof/web-24`), never `git add -A` or `git add .`, because the mobile, backend and shared sessions commit in the same checkout.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets (the demo password stays in `README-dev-stack.md`, never in a spec; read it from the environment) or `.claude/`.
-- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: the flip is `release/00`.
 
 ## Report back

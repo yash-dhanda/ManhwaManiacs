@@ -271,7 +271,7 @@ Stop under 1,024 MB available; never alongside a `next build` (`pgrep -fa "next 
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`. Commits, one per working step: plan; font files and sources; subset script and `GoogleSansFlexMM.ttf`; pubspec fonts, licences and the harness font map; icon widgets; harness loop; limiter; limiter wiring; `liquid_glass_widgets` pin (alone, then wait for CI); prewarm and the gate page; checklist and proof. Push after each: `git push origin feat/vps-slim-source-native` (a green push also publishes the iPhone build the owner uses for the gate).
+- Branch `feat/vps-slim-source-native`. Commits, one per working step: plan; font files and sources; subset script and `GoogleSansFlexMM.ttf`; pubspec fonts, licences and the harness font map; icon widgets; harness loop; limiter; limiter wiring; `liquid_glass_widgets` pin (alone, then wait for CI); prewarm and the gate page; checklist and proof. Push after each: `git push origin feat/vps-slim-source-native:master` (a green push also publishes the iPhone build the owner uses for the gate).
 - Stage explicit paths only; never `git add -A`, `git add .` or `git commit -a`. Never commit the fonttools venv or the google/fonts downloads (they live outside the repository).
 - No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with" line). Never commit secrets, `.env*` or `.claude/`.
 

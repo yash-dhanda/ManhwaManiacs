@@ -202,7 +202,7 @@ The before captures come from the same two commands with `MM_PROOF_DIR=../docs/r
 - Branch `feat/vps-slim-source-native`. One commit per section (A to I), each with its tests and `flutter test test/features/reader` green, then the probe and fixture, the 120-page test, and the proof. Conventional messages, for example `feat(reader-engine): overscroll extent with arm and commit for one-at-a-time chapters`.
 - Stage explicit paths only, never `git add -A` or `git add .`: the web, backend and shared sessions commit in the same checkout.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`.
-- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`. If it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes; then `git push origin feat/vps-slim-source-native` after each working step.
+- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`. If it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes; then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy.
 
 ## Report back

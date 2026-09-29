@@ -347,7 +347,7 @@ du -ch assets/skin_previews/glass/*.png | tail -1
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: each A module with its test; the icon switcher; the index and the root; the search overlay; Appearance; the switch flow and the melt; the arrival toast; Reader defaults; Content, Sound and haptics, Shortcuts; Account and About; Circle and privacy; AI and recaps; the preview frames (their own commit); the harness proof. Stage paths explicitly, never `git add -A` or `git add .`.
 - Conventional messages (`feat(mobile-glass): skin switch melt and restart`). No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`, and never commit a local `Flags.glassAvailable = true`.
-- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while a Flutter command runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native` after each working step; CI's APK build and iOS dry run must stay green.
+- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while a Flutter command runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native:master` after each working step; CI's APK build and iOS dry run must stay green.
 - Never edit `backend/connectors/` or any backend file; never touch production containers or `/srv/manhwamaniacs/{app,data}`; do not deploy.
 
 ## Report back

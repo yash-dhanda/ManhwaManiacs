@@ -225,7 +225,7 @@ Production and five Minecraft bots share this box (7,746 MB). `free -m` before e
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`; commit small and often and push after each: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`; commit small and often and push after each: `git push origin feat/vps-slim-source-native:master`.
 - Suggested commits: (0) `docs(redesign): record S1 S11 G6 G14 sign-off` (when a line was missing), (1) `test(reader): page tint, panel report and novel audio field cases` (failing), (2) `feat(backend): reader_page_annotations cache table`, (3) `feat(reader): page-tint and panel reports`, (4) `feat(reader): manifests carry tints, panels and panels_ready`, (5) `feat(reader): GET /reader/panels`, (6) `feat(novels): rendered_at, cast_changed_at and the 18+ gate on audio series`, (7) `docs(backend): reader reports API note`, (8) `docs(redesign): backend-06 proof`.
 - Stage by explicit path only. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "generated with" line, no AI author). Never commit secrets, `.env`, `.claude/`, `backend/.venv/` or dev data.
 - No frontend change, so no `next build` before pushing; if `git status` shows a frontend change you made, stop.

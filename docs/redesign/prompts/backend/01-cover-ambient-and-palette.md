@@ -202,7 +202,7 @@ Check `free -m` before each pytest run and before `dev_stack.sh restart`; stop a
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`; commit small and often and push after each working step (`git push origin feat/vps-slim-source-native`).
+- Branch `feat/vps-slim-source-native`; commit small and often and push after each working step (`git push origin feat/vps-slim-source-native:master`).
 - Suggested commits: (1) `test(backend): ambient and palette extraction cases`, (2) `feat(backend): cover_palette cache and the Pillow colour pass in the cover proxy`, (3) `feat(backend): ambient and palette on series payloads`, (4) `feat(backend): WorldItem colours from a rate-limited AniList cover fetch`, (5) `docs(redesign): backend-01 proof`.
 - Stage explicit paths only. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "generated with" line). Never commit secrets, `.claude/`, `backend/.venv/` or dev data.
 

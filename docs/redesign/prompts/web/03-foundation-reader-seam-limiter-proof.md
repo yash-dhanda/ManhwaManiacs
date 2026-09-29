@@ -296,7 +296,7 @@ Mobile and backend: this step changes neither. Judge that by your own commits, n
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`. Commits: plan; A1 to A7 as separate commits (A1 a pure move); engine lint block; limiter; the limiter wiring and `retryAfterMs`; hover dwell; `coverTransitionName`; `proof.mjs`; proof images. Push after each working step: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`. Commits: plan; A1 to A7 as separate commits (A1 a pure move); engine lint block; limiter; the limiter wiring and `retryAfterMs`; hover dwell; `coverTransitionName`; `proof.mjs`; proof images. Push after each working step: `git push origin feat/vps-slim-source-native:master`.
 - Stage explicit paths only, never `git add -A`: mobile, backend and shared sessions commit in this checkout.
 - No Claude or AI attribution (no `Co-Authored-By`, no "Generated with" line). Never commit real credentials or secrets (the dev-stack demo password is committed only in `backend/scripts/README-dev-stack.md` by `backend/00`; never copy it into a spec, script or proof file), `.env*` or `.claude/`.
 - `npm run build` must pass before every push.

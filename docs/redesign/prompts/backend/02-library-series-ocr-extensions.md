@@ -166,7 +166,7 @@ Web and mobile suites are not run: `git show --name-only --format= <hash> -- fro
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`; one commit per item (A to F, then proof), pushed after each: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`; one commit per item (A to F, then proof), pushed after each: `git push origin feat/vps-slim-source-native:master`.
 - Suggested subjects: `feat(backend): manual progress and mark unread`, `feat(backend): repoint a follow to another source`, `feat(backend): collection rules, previews and member order`, `feat(backend): library tags, tag filter and server-side sorts`, `feat(backend): series enrichment from AniList`, `feat(backend): OCR search page and box`, `docs(redesign): backend-02 proof`.
 - Stage explicit paths only. No Claude or AI attribution (no `Co-Authored-By`, no "generated with" line). Never commit secrets, `.claude/`, `backend/.venv/` or dev data.
 

@@ -208,7 +208,7 @@ The route files under `frontend/src/app/(app)/downloads/`, `more/` and `admin/st
 7. `feat(web/17): cinematic system status`.
 8. `test(web/17): e2e checks and proof screenshots`.
 
-`git add` exact paths; commit messages carry **no** `Co-Authored-By`, no "Generated with" line and no AI attribution; `git push origin feat/vps-slim-source-native` after each. Never commit secrets, `.env*` or `.claude/`.
+`git add` exact paths; commit messages carry **no** `Co-Authored-By`, no "Generated with" line and no AI attribution; `git push origin feat/vps-slim-source-native:master` after each. Never commit secrets, `.env*` or `.claude/`.
 
 ## Acceptance criteria
 

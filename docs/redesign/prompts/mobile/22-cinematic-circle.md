@@ -255,7 +255,7 @@ free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the data layer with tests, the Circle screen and letters, the stamps and the guard across the reader and series pages, Pass it on, shared shelves, the member page and Settings, the Tonight sections, Index and Quick look, then the proof. Conventional messages (`feat(mobile-cinematic): circle reaction stamps`). Stage paths explicitly, never `git add -A` or `git add .`.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author, even if your harness asks. Never commit secrets or `.claude/`.
-- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native` after each working step.
+- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy. If the API differs from `backend/docs/circle-api.md`, stop and report it rather than working around it in the client.
 
 ## Report back

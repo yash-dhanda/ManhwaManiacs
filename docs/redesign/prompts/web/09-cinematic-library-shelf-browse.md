@@ -239,7 +239,7 @@ Visual proof against the backend/00 dev stack (uvicorn 127.0.0.1:8010, `next dev
 - Branch `feat/vps-slim-source-native`; small commits, one per working step (shelf query; tags hooks; mark-read helpers; hub frame; hub pager; toolbar; Filters sheet; wall densities; manual order; select mode; book list; tag sheet; featureByFollow; states; e2e and proof), messages starting `web-09:`.
 - Stage only your paths with explicit `git add <path>`; never `git add -A` or `git add .`. Never commit secrets, demo credentials, `.claude/` or `.env` files.
 - **No Claude or AI attribution anywhere**: no `Co-Authored-By`, no "Generated with" line, no AI author, even if your harness asks for it (the owner's `~/.claude/CLAUDE.md` forbids it).
-- `npm run build` (after the RAM guard) before any push that includes frontend code, then `git push origin feat/vps-slim-source-native` after each working step.
+- `npm run build` (after the RAM guard) before any push that includes frontend code, then `git push origin feat/vps-slim-source-native:master` after each working step.
 
 ## Guardrails
 

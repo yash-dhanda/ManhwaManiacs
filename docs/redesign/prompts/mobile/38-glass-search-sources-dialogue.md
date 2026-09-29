@@ -210,7 +210,7 @@ free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: each shared module with its test; the FTS4 schema and migration alone; the index and its hooks; Search; Sources; the catalogue; Dialogue search and the reader hand-off; states and keys; the harness proof. Stage paths explicitly, never `git add -A` or `git add .`.
 - Conventional messages (`feat(mobile-glass): search groups surface from depth`). No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`.
-- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while a Flutter command runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native` after each working step; CI's APK build and iOS dry run must stay green.
+- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while a Flutter command runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native:master` after each working step; CI's APK build and iOS dry run must stay green.
 - Never edit `backend/connectors/` or any backend file; never touch production containers or `/srv/manhwamaniacs/{app,data}`; do not deploy.
 
 ## Report back

@@ -37,7 +37,7 @@ Read these before planning. The DESIGN files win where this file disagrees, exce
   avail=$(free -m | awk '/^Mem:/{print $7}'); echo "available ${avail} MB"; [ "$avail" -ge 1024 ] || { echo "STOP: under 1 GB available"; exit 1; }
   ```
   Never start a command under 1024 MB available; never run two at once; never run `flutter build` or Gradle.
-- **Git.** Branch `feat/vps-slim-source-native`. One commit per working step, `git push origin feat/vps-slim-source-native` after each; before pushing any commit that touches `frontend/`, `npm run lint` and `npm run build` must pass. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with" line, no AI author). Never commit secrets or `.claude/`.
+- **Git.** Branch `feat/vps-slim-source-native`. One commit per working step, `git push origin feat/vps-slim-source-native:master` after each; before pushing any commit that touches `frontend/`, `npm run lint` and `npm run build` must pass. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with" line, no AI author). Never commit secrets or `.claude/`.
 - Never write outputs to a folder named `out/` (the root `.gitignore` ignores it); intermediates go to `brand/glass/export/`.
 - If a message arrives mid-task that changes the task, finish this file's scope first and report the message.
 

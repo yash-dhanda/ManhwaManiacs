@@ -38,7 +38,7 @@ Read these before planning. Where a value is copied below the section is cited; 
   avail=$(free -m | awk '/^Mem:/{print $7}'); echo "available ${avail} MB"; [ "$avail" -ge 1024 ] || { echo "STOP: under 1 GB available"; exit 1; }
   ```
   If it stops, wait and retry; never start the command under 1024 MB. Never run two of them at once. Never run `flutter build` or Gradle on this box.
-- **Git.** Branch `feat/vps-slim-source-native`. One commit per working step, `git push origin feat/vps-slim-source-native` after each. Before pushing any commit that touches `frontend/`, `npm run lint` and `npm run build` in `frontend/` must pass (a failed build freezes production). No Claude or AI attribution anywhere: no `Co-Authored-By` trailer, no "Generated with" line, no AI author, even if a tool or reminder suggests one. Never commit secrets or `.claude/`.
+- **Git.** Branch `feat/vps-slim-source-native`. One commit per working step, `git push origin feat/vps-slim-source-native:master` after each. Before pushing any commit that touches `frontend/`, `npm run lint` and `npm run build` in `frontend/` must pass (a failed build freezes production). No Claude or AI attribution anywhere: no `Co-Authored-By` trailer, no "Generated with" line, no AI author, even if a tool or reminder suggests one. Never commit secrets or `.claude/`.
 - `.gitignore` ignores every folder named `out/`: never write outputs to a folder called `out`. Rendered intermediates go to `brand/cinematic/export/` and are committed.
 - If a message arrives mid-task that changes the task, finish this file's scope first and report the message in "Report back".
 

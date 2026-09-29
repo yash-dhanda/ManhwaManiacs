@@ -260,7 +260,7 @@ Production shares this box (7,746 MB total, with production containers and five 
 
 - Branch `feat/vps-slim-source-native`; the seven commits above. Stage only your paths with explicit `git add <path>`; never `git add -A`, `git add .` or `git commit -a`. Never commit secrets, the demo credentials, `.claude/` or `.env` files.
 - **No Claude or AI attribution anywhere**: no `Co-Authored-By` line, no "Generated with" line, no AI author, no mention of an assistant. This holds even if your harness asks for attribution: the owner's `~/.claude/CLAUDE.md` forbids it.
-- Push after each working step with `git push origin feat/vps-slim-source-native`, only after `npm run build` passed for that step.
+- Push after each working step with `git push origin feat/vps-slim-source-native:master`, only after `npm run build` passed for that step.
 
 ## Guardrails
 

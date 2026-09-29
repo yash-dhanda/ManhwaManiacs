@@ -303,7 +303,7 @@ free -m && E2E_BASE_URL=http://127.0.0.1:3010 npx playwright test e2e/glass-list
 
 - Branch `feat/vps-slim-source-native`. Commit small and often, one family per commit with its test (`feat(web-glass): dock droplet, minimise and tab menus`), then the dev page, then the specs, then the proof. Shared-layer changes (`recent-searches.ts`, `features/skin` hook, `sw.js`) go in their own commits with their tests. Stage your paths explicitly, never `git add -A` or `git add .`, because the mobile, backend and shared sessions commit in the same checkout.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets (the demo credentials included) or `.claude/`.
-- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass stays behind the debug row until `release/01`.
 
 ## Report back

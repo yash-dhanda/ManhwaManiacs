@@ -302,7 +302,7 @@ Capture with `node scripts/proof.mjs --step web-39 --skin glass --routes ../docs
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the `design:` settings-index commit alone (only `design/glass-settings-index.json`, `design/build.mjs` and the two generated files), pushed at once for `mobile/39`; the switch path and outbox; the migration; the stores; the structure; each section; the switch alert and melt; the arrival toast; the preview route and capture script with the four media files; the spec and proof. Stage your paths explicitly, never `git add -A` or `git add .`; the mobile, backend and shared sessions commit in the same checkout.
 - Conventional messages (`feat(web-glass): skin melt and restart`). No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`.
-- `npm run build` (after `free -m`, with `next dev` stopped) before every push; `git push origin feat/vps-slim-source-native` after each working step.
+- `npm run build` (after `free -m`, with `next dev` stopped) before every push; `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/` or any backend file. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass stays behind the debug row until `release/01`.
 
 ## Report back

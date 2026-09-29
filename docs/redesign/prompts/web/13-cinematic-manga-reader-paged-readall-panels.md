@@ -231,7 +231,7 @@ Stop `next dev` and the dev stack afterwards.
 
 - Branch `feat/vps-slim-source-native`; small commits (each engine change with its test, then paged, read-all, setup, panels, page actions, proof). Stage paths explicitly, never `git add -A` or `git add .`.
 - No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with"); never commit secrets or `.claude/`.
-- `npm run build` (after `free -m`) before every push; `git push origin feat/vps-slim-source-native` after each working step.
+- `npm run build` (after `free -m`) before every push; `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`; never touch production containers or `/srv/manhwamaniacs/{app,data}`; do not deploy.
 
 ## Report back

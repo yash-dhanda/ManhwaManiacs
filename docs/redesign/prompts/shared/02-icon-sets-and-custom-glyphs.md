@@ -29,7 +29,7 @@ Give both skins their complete iconography as build outputs both clients can use
 - Tools: `npx --yes oslllo-svg-fixer@6.0.1` and `npx --yes fantasticon@4.1.0` (pinned, run on demand, never added to a package.json); `fontkit` 2.0.4 as the one dependency of `brand/package.json` (`npm install --prefix brand --save-exact fontkit@2.0.4`, commit `brand/package.json` and `brand/package-lock.json`; `node_modules/` is already git-ignored).
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`.
 - **RAM guard.** `free -m` before every heavy command (`npm run typecheck`, `npm run test`, `npm run build`, `flutter analyze`, `flutter test`, and the tracing run, which renders about 120 SVGs); stop if `available` is under 1024 MB. Never two at once. Never `flutter build`.
-- **Git.** Branch `feat/vps-slim-source-native`; one commit per working step; `git push origin feat/vps-slim-source-native` after each. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with" line), whatever a tool suggests. Never commit secrets or `.claude/`.
+- **Git.** Branch `feat/vps-slim-source-native`; one commit per working step; `git push origin feat/vps-slim-source-native:master` after each. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with" line), whatever a tool suggests. Never commit secrets or `.claude/`.
 
 ## Before you start (dependency: shared/00)
 

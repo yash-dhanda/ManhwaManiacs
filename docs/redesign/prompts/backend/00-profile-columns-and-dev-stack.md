@@ -245,7 +245,7 @@ Production and five Minecraft bots share this box (7,746 MB total). Check `free 
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`. Commit small and often, one commit per working step, and push after each: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`. Commit small and often, one commit per working step, and push after each: `git push origin feat/vps-slim-source-native:master`.
 - Suggested commits: (1) `test(backend): profile redesign columns and notify switch` with the failing tests, (2) `feat(backend): reading_profiles skin, notify_enabled, onboarding_step, daily goal` (migration, model, route, service, sweep), (3) `chore(backend): dev stack on 127.0.0.1:8010 with demo seed`, (4) `docs(redesign): backend-00 proof`.
 - Stage by explicit path only, for example `git add backend/alembic/versions/0018_profile_redesign_cols.py backend/database/models.py ...`.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "generated with" line, no AI author. Never commit secrets, `.claude/`, `backend/.venv/` or anything under `/srv/manhwamaniacs/dev/data/`.

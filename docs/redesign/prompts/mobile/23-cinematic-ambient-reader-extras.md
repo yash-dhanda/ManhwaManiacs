@@ -196,7 +196,7 @@ free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the parity files (only if you created them, alone, pushed at once), the picker and detector with their parity tests, the analysis isolate and engine duties with the store migration, the camera commands, the auto-scroll model and novel pace, the chip and auto-scroll UI, house sound, guided view, page-tinted chrome, then the proof. Conventional messages (`feat(mobile-reader): page tint sampler and parity tests`). Stage paths explicitly (the `design/` paths only in the parity commit), never `git add -A` or `git add .`.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author, even if your harness asks. Never commit secrets or `.claude/`.
-- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native` after each working step.
+- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy. The VPS image proxy never analyses pages: all tint and panel work runs on the device; the backend only stores what clients report.
 
 ## Report back

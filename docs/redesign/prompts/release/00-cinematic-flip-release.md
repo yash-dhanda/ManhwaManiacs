@@ -194,7 +194,7 @@ Pass: backend passed count ≥ its floor plus your two new tests, 0 failed; web 
 
 1. **Push the branch once** (Decision 10). `git status --porcelain` shows none of your paths; `git fetch origin`; `git merge-base --is-ancestor origin/feat/vps-slim-source-native HEAD` succeeds (otherwise stop: someone pushed from elsewhere). Record the iOS build the source serves now: `PREV_IOS=$(curl -fsS https://app.manhwamaniacs.xyz/app/source.json | python3 -c 'import json,sys; v=json.load(sys.stdin)["apps"][0]["versions"]; print(v[0]["buildVersion"] if v else 0)')`. Then:
    ```bash
-   git push origin feat/vps-slim-source-native
+   git push origin feat/vps-slim-source-native:master
    git fetch origin && git merge-base --is-ancestor origin/master HEAD && git push origin HEAD:master
    ```
    If `origin/master` is not an ancestor, stop and report; never force-push. Record `SHA=$(git rev-parse HEAD)`.

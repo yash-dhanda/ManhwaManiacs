@@ -286,7 +286,7 @@ If you use `playwright-cli` for ad-hoc inspection, always pass a named session (
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the strict completeness change; the harness extensions; the motion-names test; then one commit per fix (`fix(web-glass): label3 over the Home field in the rail meta`); the Float route and script; then the proof and `qa.md`. Stage your paths explicitly (`git add frontend/e2e/glass-qa.spec.ts …`, `git add docs/redesign/proof/web-45`), never `git add -A` or `git add .`, because the mobile, backend and shared sessions commit in the same checkout.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets (the demo password stays in `README-dev-stack.md`, never in a spec; read it from the environment) or `.claude/`.
-- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass ships in `release/01`.
 
 ## Report back

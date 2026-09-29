@@ -226,7 +226,7 @@ free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test
 
 - Branch `feat/vps-slim-source-native`; small commits (each engine change with its test, then paged, the K01 toast, read-all, the setup sheet, the panels, page actions, the proof). Stage paths explicitly, never `git add -A` or `git add .`.
 - No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with", no AI author); never commit secrets or `.claude/`.
-- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native` after each working step.
+- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`; never touch production containers or `/srv/manhwamaniacs/{app,data}`; do not deploy.
 
 ## Report back

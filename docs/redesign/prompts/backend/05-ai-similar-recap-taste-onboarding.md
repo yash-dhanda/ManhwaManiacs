@@ -276,7 +276,7 @@ Production and five Minecraft bots share this box (7,746 MB). `free -m` before e
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`; commit small and often and push after each: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`; commit small and often and push after each: `git push origin feat/vps-slim-source-native:master`.
 - Suggested commits: (1) `test(ai): recap stream, similar, tags, feedback and taste cases` (failing), (2) `feat(backend): reading_profiles.taste and ai_feedback`, (3) `feat(ai): series gate helper and GET /ai/similar with the genre fallback`, (4) `feat(ai): feedback signals and exclusions`, (5) `feat(ai): suggested tags`, (6) `feat(recap): availability endpoint and SSE stream`, (7) `feat(onboarding): taste, catalogue and seed fallback`, (8) `feat(library): world recs genre filter, use_taste and content_kind`, (9) `docs(backend): AI endpoints in the home API note`, (10) `docs(redesign): backend-05 proof`.
 - Stage by explicit path only. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "generated with" line, no AI author). Never commit secrets, `.env`, `.claude/`, `backend/.venv/` or dev data.
 - No frontend change, so no `next build` before pushing; if `git status` shows a frontend change you made, stop.

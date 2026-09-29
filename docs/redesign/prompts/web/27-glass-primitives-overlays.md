@@ -259,7 +259,7 @@ free -m && E2E_BASE_URL=http://127.0.0.1:3010 npx playwright test e2e/glass-prim
 
 - Branch `feat/vps-slim-source-native`. Commit small and often, one family per commit with its test (`feat(web-glass): physics sheet with projected detents and recession`), then the gallery, then the browser spec, then the proof. Stage your paths explicitly (`git add frontend/src/skins/glass/primitives/Sheet.tsx …`), never `git add -A` or `git add .`, because the mobile, backend and shared sessions commit in the same checkout.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`.
-- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass stays behind the debug row until `release/01`.
 
 ## Report back

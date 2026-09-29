@@ -336,7 +336,7 @@ Production and five Minecraft bots share this box (7,746 MB total). Check `free 
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`. Commit small and often, one commit per working step, and push after each: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`. Commit small and often, one commit per working step, and push after each: `git push origin feat/vps-slim-source-native:master`.
 - Suggested commits: (1) `test(home): headline, recap availability and home feed cases` (failing), (2) `feat(backend): ai_result_cache and followed_series.last_new_chapter_at`, (3) `feat(ai): desk ledger, rate-limit error and background runner`, (4) `feat(recap): availability service and continue-reading recap`, (5) `feat(home): GET /home composition and composed cache`, (6) `feat(home): background editorial`, (7) `docs(backend): home API note`, (8) `docs(redesign): backend-04 proof`.
 - Stage by explicit path only, for example `git add backend/services/home_service.py backend/routes/home.py backend/tests/test_home_feed.py`.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "generated with" line, no AI author. Never commit secrets, `.env` files, `.claude/`, `backend/.venv/` or anything under `/srv/manhwamaniacs/dev/data/`.

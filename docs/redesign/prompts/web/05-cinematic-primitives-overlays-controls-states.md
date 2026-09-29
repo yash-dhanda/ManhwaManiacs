@@ -51,7 +51,7 @@ If the web/04 files are missing, web/04 is not done: stop. If any Base UI part o
 - **Boundaries.** Work in `frontend/` only. The skin folder imports only data modules, `@/lib/**`, `@/services/**`, `@/types/**`, `@/stores/**`, `@/config/**`, the contract and its own files. Never edit `backend/connectors/`; never touch production containers or `/srv/manhwamaniacs/{app,data}`.
 - **Utilities.** Only §2.8 / §3.5 names and the `motion.css` `@theme` names; `node design/lint-utilities.mjs` must pass. Opacity modifiers on token colours are allowed (`bg-paper-2/92`).
 - **No blur behind overlays, ever** (§2.5, §2.1.4 `scrim.modal`: flat `rgba(0,0,0,0.78)`, "No blur, ever").
-- **Git.** Branch `feat/vps-slim-source-native`; stage explicit paths; conventional commits; **no AI or Claude attribution of any kind** (no `Co-Authored-By` trailer, no "Generated with" line, even if a tool reminder suggests one); never commit secrets or `.claude/`; push `git push origin feat/vps-slim-source-native` after each working step once `npm run build` passes.
+- **Git.** Branch `feat/vps-slim-source-native`; stage explicit paths; conventional commits; **no AI or Claude attribution of any kind** (no `Co-Authored-By` trailer, no "Generated with" line, even if a tool reminder suggests one); never commit secrets or `.claude/`; push `git push origin feat/vps-slim-source-native:master` after each working step once `npm run build` passes.
 
 ## Scope: everything this step delivers
 

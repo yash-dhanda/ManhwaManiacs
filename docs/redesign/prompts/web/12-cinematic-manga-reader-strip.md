@@ -319,7 +319,7 @@ Stop `next dev` and the dev stack when the captures are done.
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the sign-off record, then each engine change with its test, then the preferences record, then each chrome part, then the proof. Stage your paths explicitly (`git add frontend/src/features/reader/zoom.ts …`, `git add docs/redesign/proof/web-12`), never `git add -A` or `git add .`, because mobile, backend and shared sessions commit in the same checkout.
 - Commit messages in the conventional style (`feat(web-cinematic): reader ruler with bookmarks`). No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`.
-- Run `npm run build` (after `free -m`) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: until `release/00` the Cinematic skin is reachable only through the debug row.
 
 ## Report back

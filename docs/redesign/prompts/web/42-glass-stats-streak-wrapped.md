@@ -247,7 +247,7 @@ The A1 hook-in touches the shared `features/reader` and `features/novels` module
 - Branch `feat/vps-slim-source-native`. Commit small and often after typecheck, lint, test and build pass, messages starting `web-42:`: (1) `web-42: shared progress streak events, goal, stats helpers and Wrapped card rules`; (2) `web-42: Glass StreakFlame with flare, sparks, milestones and goal ring`; (3) `web-42: Glass Your reading statistics`; (4) `web-42: Glass Wrapped story and cards`; (5) `web-42: Glass share cards and the share-display font`; (6) `web-42: e2e and proof`.
 - Stage explicit paths only (never `git add -A`, `git add .` or `git commit -a`). The throwaway venv lives in `/tmp` and is never committed.
 - **No Claude or AI attribution anywhere** (no `Co-Authored-By`, no "Generated with" line, no AI author), even if your harness asks; never commit secrets, credentials, `.env` files or `.claude/`.
-- `npm run build` (after `free -m`, `next dev` stopped) before every push; `git push origin feat/vps-slim-source-native` after each working step.
+- `npm run build` (after `free -m`, `next dev` stopped) before every push; `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`; never touch production containers or `/srv/manhwamaniacs/{app,data}`; do not deploy (Glass stays behind the debug row until `release/01`).
 
 ## Report back

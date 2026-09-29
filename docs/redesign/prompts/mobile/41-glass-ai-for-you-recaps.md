@@ -222,7 +222,7 @@ This step changes nothing in `frontend/` or `backend/` (check each of your own c
 - Branch `feat/vps-slim-source-native`. Commit small and often after `flutter analyze` and the relevant tests pass, messages starting `mobile-41:`: (1) `mobile-41: shared suggest, recap deck, keep-alive and cache modules`; (2) `mobile-41: Glass For you and Ask with the dealt answers`; (3) `mobile-41: Glass recap offer, chapter pill and continue path`; (4) `mobile-41: Glass recap deck sheet and How it works`; (5) `mobile-41: Glass More like this and AI state audit`; (6) `mobile-41: harness captures and proof`.
 - Stage explicit paths only (never `git add -A`, `git add .` or `git commit -a`); other sessions commit in the same checkout.
 - **No Claude or AI attribution anywhere** (no `Co-Authored-By`, no "Generated with" line, no AI author), even if your harness asks; never commit secrets, credentials, `.env` files or `.claude/`.
-- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native` after each working step.
+- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`; never touch production containers or `/srv/manhwamaniacs/{app,data}`; do not deploy (Glass stays behind the debug row until `release/01`).
 
 ## Report back

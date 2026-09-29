@@ -279,7 +279,7 @@ Browser checks against the dev stack (`docs/redesign/prompts/backend/00-profile-
 - Branch `feat/vps-slim-source-native`. Commit small and often, one working step per commit after typecheck, lint, test and build pass, messages starting `web-40:`: (1) `web-40: shared daily goal, you cards, backup export option and licence data`; (2) `web-40: Glass You hub and Orb lift`; (3) `web-40: Glass notifications, security and members settings`; (4) `web-40: Glass storage redirect, backup and restore, diagnostics and licences`; (5) `web-40: Glass System status with health beads`; (6) `web-40: e2e and proof`.
 - Stage your paths explicitly (`git add frontend/src/skins/glass/screens/you/YouScreen.tsx …`); never `git add -A`, `git add .` or `git commit -a`, because the mobile, backend and shared sessions commit in the same checkout.
 - **No Claude or AI attribution anywhere:** no `Co-Authored-By` line, no "Generated with" line, no AI author, no mention of an assistant, even if your harness asks for one (the owner's `~/.claude/CLAUDE.md` forbids it). Never commit secrets, the demo credentials, `.env` files or `.claude/`.
-- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass stays behind the debug row until `release/01`.
 
 ## Report back

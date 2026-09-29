@@ -220,7 +220,7 @@ This step changes nothing in `mobile/` or `backend/`: check each of your commits
 - Branch `feat/vps-slim-source-native`. Commit small and often after typecheck, lint, test and build pass, messages starting `web-41:`: (1) `web-41: shared suggest, recap deck, keep-alive and cache modules`; (2) `web-41: Glass For you and Ask with the dealt answers`; (3) `web-41: Glass recap offer, chapter pill and continue path`; (4) `web-41: Glass recap deck sheet and How it works`; (5) `web-41: Glass More like this and AI state audit`; (6) `web-41: e2e and proof`.
 - Stage explicit paths only (never `git add -A`, `git add .` or `git commit -a`); other sessions commit in the same checkout.
 - **No Claude or AI attribution anywhere** (no `Co-Authored-By`, no "Generated with" line, no AI author), even if your harness asks; never commit secrets, credentials, `.env` files or `.claude/`.
-- `npm run build` (after `free -m`, `next dev` stopped) before every push; `git push origin feat/vps-slim-source-native` after each working step.
+- `npm run build` (after `free -m`, `next dev` stopped) before every push; `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`; never touch production containers or `/srv/manhwamaniacs/{app,data}`; do not deploy (Glass stays behind the debug row until `release/01`).
 
 ## Report back

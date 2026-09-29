@@ -510,7 +510,7 @@ git status --short docs/screenshots    # must print nothing
   6. the proof and `qa.md`.
 - Stage your paths explicitly (`git add mobile/test/skins/glass/qa …`, `git add docs/redesign/proof/mobile-45`), never `git add -A` or `git add .`, because the web, backend and shared sessions commit in the same checkout.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets (fixtures carry no real tokens or passwords) or `.claude/`.
-- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`. If it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then run `git push origin feat/vps-slim-source-native` after each working step, and check CI as in O after the last one.
+- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`. If it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then run `git push origin feat/vps-slim-source-native:master` after each working step, and check CI as in O after the last one.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass ships in `release/01`.
 
 ## Report back

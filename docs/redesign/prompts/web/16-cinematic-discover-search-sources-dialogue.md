@@ -240,7 +240,7 @@ The route files under `frontend/src/app/(app)/search/`, `sources/`, `sources/[so
 6. `feat(web/16): cinematic dialogue search and the reader jump`.
 7. `test(web/16): discover e2e checks and proof screenshots`.
 
-Each commit: `git add` the exact paths, `git commit -m "<message>"` with **no** `Co-Authored-By`, no "Generated with" line and no other AI attribution, then `git push origin feat/vps-slim-source-native`. Never commit secrets, `.env*` files or `.claude/`.
+Each commit: `git add` the exact paths, `git commit -m "<message>"` with **no** `Co-Authored-By`, no "Generated with" line and no other AI attribution, then `git push origin feat/vps-slim-source-native:master`. Never commit secrets, `.env*` files or `.claude/`.
 
 ## Acceptance criteria
 

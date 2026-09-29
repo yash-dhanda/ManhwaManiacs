@@ -284,7 +284,7 @@ free -m && node scripts/proof.mjs --step web-35/cinematic --skin cinematic --ses
 - Branch `feat/vps-slim-source-native`. Commit small and often: the plan; §A with its tests; the frame and light layers; the chrome; the tint and dim; strip, seams and boundaries; paged; gestures; the settings sheet; the chapter list and side panels; the dialogue overlay and hit lens; states and landing; keys; the e2e spec; the proof. Example: `feat(web-glass): manga reader chrome with page tint and the legibility dim`.
 - Stage explicit paths only, never `git add -A` or `git add .`: the mobile, backend and shared sessions commit in the same checkout.
 - No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit real credentials or secrets (the dev-stack demo password is committed only in `backend/scripts/README-dev-stack.md` by `backend/00`; never copy it into a spec, script or proof file), `.env*` or `.claude/`.
-- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass stays behind the debug row until `release/01`.
 
 ## Report back

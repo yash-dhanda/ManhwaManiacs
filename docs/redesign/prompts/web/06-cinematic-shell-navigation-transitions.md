@@ -54,7 +54,7 @@ If web/05's primitives, shared/04's brand masters, web/02's fallback page or web
 - **Boundaries.** Work in `frontend/` only. The skin imports only data modules, `@/lib/**`, `@/services/**`, `@/types/**`, `@/stores/**`, `@/config/**`, the contract and its own folder; route files under `app/` may import both skins. Never edit `backend/connectors/`; never touch production containers or `/srv/manhwamaniacs/{app,data}`.
 - **Legacy stays identical.** With the `mm-skin` and `mm-skin-debug` cookies unset, every legacy screen, the legacy shell and the legacy palette must look and behave as before this step.
 - **Utilities**: §2.8 / §3.5 names only; `node design/lint-utilities.mjs` passes.
-- **Git.** Branch `feat/vps-slim-source-native`; explicit `git add` paths; conventional commits; **no AI or Claude attribution** of any kind (no `Co-Authored-By` trailer, no "Generated with" line, even if a tool reminder suggests one); no secrets or `.claude/`; push `git push origin feat/vps-slim-source-native` after each working step once `npm run build` passes.
+- **Git.** Branch `feat/vps-slim-source-native`; explicit `git add` paths; conventional commits; **no AI or Claude attribution** of any kind (no `Co-Authored-By` trailer, no "Generated with" line, even if a tool reminder suggests one); no secrets or `.claude/`; push `git push origin feat/vps-slim-source-native:master` after each working step once `npm run build` passes.
 
 ## Scope: everything this step delivers
 

@@ -271,7 +271,7 @@ free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=demo E2E_PASSWORD='<f
 
 - Branch `feat/vps-slim-source-native`. Commit small and often, one working step per commit: the preference fields; the engine ramp (if needed); the service-worker keep list (if needed); cruise maths with its test; the pill, HUD and wiring; the soundscape recipes with their test; the engine and audio-session wiring; the sheet and orbs; entry points and settings wiring; rain; guided-view geometry with its test; the guided view; page-tint rules with their test; the tint wiring in each reader; the browser spec; the proof. Stage your paths explicitly (`git add frontend/src/skins/glass/ambient …`), never `git add -A` or `git add .`, because the mobile, backend and shared sessions commit in the same checkout.
 - Conventional messages (`feat(web-glass): flywheel cruise pill with flick-to-cruise`). No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets (the demo password stays in `README-dev-stack.md`; read it from the environment) or `.claude/`.
-- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy anything: Glass stays behind the debug row until `release/01`.
 
 ## Report back

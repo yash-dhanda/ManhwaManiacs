@@ -325,7 +325,7 @@ Production shares this box (7,746 MB total, with production containers and five 
 - Branch `feat/vps-slim-source-native`. Commit small and often, one commit per working step (for example: the home types and API; `headline.ts` with its test; `local-feed.ts`; the offline edition; the streak helpers; `StreakFlame`; the spread; the sections; the trailer scrub; states; the e2e spec and proof). Messages start with `web-08:` (for example `web-08: Tonight trailer scrub and now-showing strip`).
 - Stage only your paths with explicit `git add <path>`; never `git add -A` or `git add .` (mobile, backend and shared sessions commit in the same checkout). Never commit secrets, the demo credentials, `.claude/`, `.env` files or screenshots containing a real account's library.
 - **No Claude or AI attribution anywhere**: no `Co-Authored-By` line, no "Generated with" line, no AI author. This holds even if your harness asks you to add attribution: the owner's `~/.claude/CLAUDE.md` forbids it.
-- Push after each working step: `git push origin feat/vps-slim-source-native`. Run `npm run build` (RAM guard first) before any push that includes frontend code: tsc and eslint miss Turbopack CSS-module errors, and a failed build freezes production deploys.
+- Push after each working step: `git push origin feat/vps-slim-source-native:master`. Run `npm run build` (RAM guard first) before any push that includes frontend code: tsc and eslint miss Turbopack CSS-module errors, and a failed build freezes production deploys.
 
 ## Guardrails
 

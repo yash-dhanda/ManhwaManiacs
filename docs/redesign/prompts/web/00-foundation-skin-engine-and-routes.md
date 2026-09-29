@@ -308,7 +308,7 @@ Check the persisted shape against `frontend/src/features/profiles/store.ts` (`pa
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`. Commit small and often, one working step per commit, for example: skin types and registry; pending screen; route move with `git mv` (a pure move commit, so history follows the files); thin routes; next.config; CSS wiring and bridge; lint boundary; completeness test; proof. Push after each working step: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`. Commit small and often, one working step per commit, for example: skin types and registry; pending screen; route move with `git mv` (a pure move commit, so history follows the files); thin routes; next.config; CSS wiring and bridge; lint boundary; completeness test; proof. Push after each working step: `git push origin feat/vps-slim-source-native:master`.
 - Stage only your own paths explicitly (`git add frontend/src/skins frontend/src/app frontend/next.config.ts frontend/eslint.config.mjs docs/redesign/proof/web-00/plan.md docs/redesign/proof/web-00`). Never `git add -A` or `git add .`: mobile, backend and shared sessions commit in the same checkout.
 - No Claude or AI attribution anywhere: no `Co-Authored-By`, no "Generated with" line, no AI author. Never commit secrets, `.env*` files or `.claude/`.
 - `npm run build` must pass before every push.

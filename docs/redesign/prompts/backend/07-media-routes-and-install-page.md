@@ -281,7 +281,7 @@ Production and five Minecraft bots share this box (7,746 MB). `free -m` before e
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`; commit small and often and push after each: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`; commit small and often and push after each: `git push origin feat/vps-slim-source-native:master`.
 - Suggested commits: (1) `test(app): media route allowlists, ranges and traversal; install page` (failing), (2) `feat(app): soundscape, font and brand routes`, (3) `chore(ops): compose mounts frontend/public for brand files`, (4) `feat(app): install page in the Cinematic brand`, (5) `docs(backend): app media API note`, (6) `docs(redesign): backend-07 proof`.
 - Stage by explicit path only (`git add backend/routes/app_media.py ops/vps/docker-compose.yml …`). No Claude or AI attribution anywhere (no `Co-Authored-By`, no "generated with" line, no AI author). Never commit secrets, `.env`, `.claude/`, `backend/.venv/` or dev data.
 - No frontend change, so no `next build` before pushing; if `git status` shows a frontend change you made, stop.

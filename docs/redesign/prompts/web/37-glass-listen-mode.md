@@ -234,7 +234,7 @@ Lint and build stay at 0 errors and 0 warnings (`00-baseline.md`). This step cha
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the A2 move alone (only when A2 applies); the pure helpers with their tests; the host; the row and accessories; the player; the speed dial; the orbit and cast; save audio; the audiobook sheet and book-page button; the sleep menu; the highlight; states and keys; the spec and proof. Stage your paths explicitly, never `git add -A` or `git add .`.
 - Conventional messages (`feat(web-glass): voice orbit with self-introducing voices`). No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`.
-- `npm run build` (after `free -m`, with `next dev` stopped) before every push; `git push origin feat/vps-slim-source-native` after each working step.
+- `npm run build` (after `free -m`, with `next dev` stopped) before every push; `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/` or any backend file. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy.
 
 ## Report back

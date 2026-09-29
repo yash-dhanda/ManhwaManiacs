@@ -275,7 +275,7 @@ free -m && npm run build
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the A3 move alone (only when A3 applies); preferences with tests; pace; papers; frame and body; end matter and pull; chrome; paged mode and turns; pinch and line guide; the Aa sheet; contents; the text menu; states and keys; the spec and proof. Stage your paths explicitly (`git add frontend/src/skins/glass/screens/novel …`), never `git add -A` or `git add .`; the mobile, backend and shared sessions commit in the same checkout.
 - Conventional messages (`feat(web-glass): novel reader lift turn`). No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`.
-- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass stays behind the debug row until `release/01`.
 
 ## Report back

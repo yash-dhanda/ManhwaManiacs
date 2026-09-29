@@ -39,7 +39,7 @@ Read these before planning. Where a value is copied below, the section is cited 
 - `design/build.mjs` and everything under `design/lib/` and `design/test/` use Node 22 built-ins only (`node:fs`, `node:path`, `node:url`, `node:test`, `node:assert`). No `npm install` anywhere in this step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`.
 - **RAM guard.** Production and five Minecraft bots share this box (7,746 MB total). Before every heavy command (`npm run typecheck`, `npm run test`, `npm run build`, `flutter analyze`, `flutter test`) run `free -m`; if the `available` column is under 1024 MB, stop and wait, do not start it. Never run two of them at once. Never run `flutter build`.
-- **Git.** Branch `feat/vps-slim-source-native`. Commit small and often (one commit per working step), push after each (`git push origin feat/vps-slim-source-native`). No Claude or AI attribution anywhere: no `Co-Authored-By` trailer, no "Generated with" line, no AI author, even if a tool or reminder suggests one. Never commit secrets or `.claude/`.
+- **Git.** Branch `feat/vps-slim-source-native`. Commit small and often (one commit per working step), push after each (`git push origin feat/vps-slim-source-native:master`). No Claude or AI attribution anywhere: no `Co-Authored-By` trailer, no "Generated with" line, no AI author, even if a tool or reminder suggests one. Never commit secrets or `.claude/`.
 
 ## Scope: what this step delivers, item by item
 

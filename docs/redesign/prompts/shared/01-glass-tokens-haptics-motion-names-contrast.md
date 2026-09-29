@@ -40,7 +40,7 @@ Add the Glass ("Meniscus") skin to the single design source that `shared/00` cre
 - Everything under `design/` stays Node 22 stdlib only. No `npm install`.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`.
 - **RAM guard.** Run `free -m` before every heavy command (`npm run typecheck`, `npm run test`, `npm run build`, `flutter analyze`, `flutter test`); if `available` is under 1024 MB, stop and wait. Never run two at once. Never `flutter build`.
-- **Git.** Branch `feat/vps-slim-source-native`; one commit per working step; `git push origin feat/vps-slim-source-native` after each. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with" line), whatever a tool suggests. Never commit secrets or `.claude/`.
+- **Git.** Branch `feat/vps-slim-source-native`; one commit per working step; `git push origin feat/vps-slim-source-native:master` after each. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with" line), whatever a tool suggests. Never commit secrets or `.claude/`.
 
 ## Before you start (dependency: shared/00)
 

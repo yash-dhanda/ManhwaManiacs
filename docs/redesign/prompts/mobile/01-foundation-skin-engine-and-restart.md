@@ -258,7 +258,7 @@ Stop if `free -m` shows less than 1,024 MB available, and never run these while 
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`. Commits, one per working step: plan; skin types and skeleton skins; boot, restart and `SkinApp`; switch and timing; profile field and outbox; debug row; boundary and completeness tests; manifest; proof. Push after each: `git push origin feat/vps-slim-source-native` (a green push also publishes the iPhone build through `ios-build.yml`).
+- Branch `feat/vps-slim-source-native`. Commits, one per working step: plan; skin types and skeleton skins; boot, restart and `SkinApp`; switch and timing; profile field and outbox; debug row; boundary and completeness tests; manifest; proof. Push after each: `git push origin feat/vps-slim-source-native:master` (a green push also publishes the iPhone build through `ios-build.yml`).
 - Stage explicit paths only; never `git add -A`, `git add .` or `git commit -a`.
 - No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with" line, no AI author). Never commit secrets, `.env*` or `.claude/`.
 

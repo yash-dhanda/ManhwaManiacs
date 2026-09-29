@@ -240,7 +240,7 @@ This step changes nothing in `frontend/` or `backend/` (`git show --stat --forma
 - Branch `feat/vps-slim-source-native`; small commits, one per working step (collection model and calls; the smart-shelf evaluator; collection order; the history resolver move (no pixels); history pages; notification grouping; bookmark notes; Updates; Collections; collection detail; History; Bookmarks; wiring; the estimate; proof), messages starting `mobile-10:`.
 - Stage only your paths with explicit `git add <path>`; never `git add -A` or `git add .`. Never commit secrets, demo credentials, `.claude/` or `.env` files.
 - **No Claude or AI attribution anywhere**: no `Co-Authored-By`, no "Generated with" line, no AI author, even if your harness asks for it (the owner's `~/.claude/CLAUDE.md` forbids it).
-- Before every push: `flutter analyze` is clean; `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if that lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native` after each working step.
+- Before every push: `flutter analyze` is clean; `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if that lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native:master` after each working step.
 
 ## Guardrails
 

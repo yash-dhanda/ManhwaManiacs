@@ -218,7 +218,7 @@ These are the folders `web/08`, `web/11`, `web/12` and `web/14` specify; if one 
 8. `feat(web/19): recap entry points and continue routing`.
 9. `test(web/19): ai e2e checks and proof screenshots`.
 
-`git add` exact paths; **no** `Co-Authored-By`, no "Generated with" line, no AI attribution; `git push origin feat/vps-slim-source-native` after each. Never commit secrets, `.env*` or `.claude/`.
+`git add` exact paths; **no** `Co-Authored-By`, no "Generated with" line, no AI attribution; `git push origin feat/vps-slim-source-native:master` after each. Never commit secrets, `.env*` or `.claude/`.
 
 ## Acceptance criteria
 

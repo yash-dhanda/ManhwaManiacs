@@ -269,7 +269,7 @@ docs/redesign/proof/mobile-16/                                     (plan.md, scr
 7. `feat(mobile/16): cinematic dialogue search, the reader jump and the scan widgets`.
 8. `test(mobile/16): smoke tests and harness proof screenshots`.
 
-Each commit: `git add` the exact paths, `git commit -m "<message>"` with **no** `Co-Authored-By`, no "Generated with" line and no other AI attribution, then `git push origin feat/vps-slim-source-native`. Never commit secrets, `.env*` files or `.claude/`.
+Each commit: `git add` the exact paths, `git commit -m "<message>"` with **no** `Co-Authored-By`, no "Generated with" line and no other AI attribution, then `git push origin feat/vps-slim-source-native:master`. Never commit secrets, `.env*` files or `.claude/`.
 
 Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`. The checkout is shared, so a push also carries other sessions' commits: if that diff lists files, run `free -m && npm run build` in `frontend/` first (never while a Flutter command runs, stop if `available` < 1024 MB) and push only if it passes, because a failed `next build` silently freezes the production deploy. Never deploy from this step.
 

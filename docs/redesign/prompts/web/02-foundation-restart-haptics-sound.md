@@ -303,7 +303,7 @@ Mobile and backend: this step changes neither. Judge that by your own commits, n
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`. Commit per slice: plan; storage primitives and profile type; `switchSkin` and its test; boot resolution and `SkinBoot`; debug row; service worker and policy; offline pages; a11y boot; feedback prefs and haptics; audio activity and sounds; recorder; proof. Push after each working step: `git push origin feat/vps-slim-source-native`.
+- Branch `feat/vps-slim-source-native`. Commit per slice: plan; storage primitives and profile type; `switchSkin` and its test; boot resolution and `SkinBoot`; debug row; service worker and policy; offline pages; a11y boot; feedback prefs and haptics; audio activity and sounds; recorder; proof. Push after each working step: `git push origin feat/vps-slim-source-native:master`.
 - Stage explicit paths only, never `git add -A`: other sessions commit in this checkout.
 - No Claude or AI attribution (no `Co-Authored-By`, no "Generated with" line). Never commit secrets, `.env*` or `.claude/`.
 - `npm run build` must pass before every push.

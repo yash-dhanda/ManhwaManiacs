@@ -247,7 +247,7 @@ The A1 hook-in touches the shared reader, novel and outbox modules: every existi
 - Branch `feat/vps-slim-source-native`. Commit small and often after `flutter analyze` and the relevant tests pass, messages starting `mobile-42:`: (1) `mobile-42: shared progress streak events, goal, stats helpers and Wrapped card rules`; (2) `mobile-42: Glass StreakFlame with flare, sparks, milestones and goal ring`; (3) `mobile-42: Glass Your reading statistics`; (4) `mobile-42: Glass Wrapped story, cards and large-text columns`; (5) `mobile-42: Glass share cards`; (6) `mobile-42: harness captures and proof`.
 - Stage explicit paths only (never `git add -A`, `git add .` or `git commit -a`).
 - **No Claude or AI attribution anywhere** (no `Co-Authored-By`, no "Generated with" line, no AI author), even if your harness asks; never commit secrets, credentials, `.env` files or `.claude/`.
-- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native` after each working step.
+- Before every push: `git fetch origin` and `git diff --stat origin/feat/vps-slim-source-native...HEAD -- frontend`; if it lists files, run `free -m && npm run build` in `frontend/` first (never while `flutter test` runs) and push only if it passes. Then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`; never touch production containers or `/srv/manhwamaniacs/{app,data}`; do not deploy (Glass stays behind the debug row until `release/01`).
 
 ## Report back

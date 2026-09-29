@@ -273,7 +273,7 @@ Capture with `frontend/scripts/proof.mjs` (run `node scripts/proof.mjs --help` f
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: document defaults and the renderer stamp; the material maths with its test; the physics with its test; `GlassSurface` and `glass.css`; the map builder; the budget; light angle and caustic; palette and `useLb`; the ambient field; rain; `motion.ts` and the overlay; the calibration page; the browser spec; the proof. Stage your paths explicitly (`git add frontend/src/skins/glass/physics …`), never `git add -A` or `git add .`, because the mobile, backend and shared sessions commit in the same checkout.
 - Conventional messages (`feat(web-glass): liquid displacement maps per bar group`). No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`.
-- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native:master` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy anything: Glass stays behind the debug row until `release/01`.
 
 ## Report back
