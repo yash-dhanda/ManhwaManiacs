@@ -25,7 +25,11 @@ class FeatureNotice extends StatelessWidget {
     this.onPrimary,
     this.quietLabel,
     this.onQuiet,
+    this.correction = false,
   });
+
+  /// A failure (`CORRECTION`): the kicker is set in `proof`.
+  final bool correction;
 
   final String kicker;
   final String headline;
@@ -47,7 +51,7 @@ class FeatureNotice extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(kicker, style: kickerStyle(context)),
+              Text(kicker, style: kickerStyle(context, color: correction ? t.colorProof : null)),
               const SizedBox(height: 12),
               Semantics(
                 header: true,

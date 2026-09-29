@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/browse_freshness.dart';
 import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/book_list_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/opening_state.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/top_button.dart';
@@ -194,15 +195,18 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
             child: novel
-                // TODO(mobile/09): swap for the Cinematic book list.
                 ? Column(
                     children: [
                       for (final s in state!.items)
-                        _BookRow(
+                        BookListRow(
                           title: s.title,
                           author: s.author,
-                          chapters: s.chapterCount,
+                          credits: [
+                            if (s.chapterCount > 0) '${s.chapterCount} CHAPTERS',
+                            name.toUpperCase(),
+                          ].join(' · '),
                           coverUrl: s.coverUrl,
+                          heroTag: (id, s.id),
                           onTap: () => context.push(Routes.feature(id, s.id)),
                         ),
                     ],
@@ -637,65 +641,3 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
 }
 
 /// A novel source's row: small cover, title, author and chapter count.
-class _BookRow extends StatelessWidget {
-  const _BookRow({
-    required this.title,
-    required this.author,
-    required this.chapters,
-    required this.coverUrl,
-    required this.onTap,
-  });
-
-  final String title;
-  final String? author;
-  final int chapters;
-  final String? coverUrl;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.cine;
-    return Semantics(
-      button: true,
-      label: '$title${author == null ? '' : ', $author'}, $chapters chapters',
-      excludeSemantics: true,
-      child: ChildFocusRing(child: InkWell(
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 96),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: CineSpace.s2),
-              child: Row(
-                children: [
-                  SizedBox(
-                      width: 48,
-                      height: 72,
-                      child: CineCover(url: coverUrl, displayWidth: 48),),
-                  const SizedBox(width: CineSpace.s3),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: cineText(context, t.typeTitle),),
-                        if (author != null)
-                          Text(author!,
-                              style: cineText(context, t.typeCaption,
-                                  color: t.colorInk60,),),
-                        Text('$chapters CHAPTERS',
-                            style: cineText(context, t.typeFolio,
-                                color: t.colorInk60,),),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

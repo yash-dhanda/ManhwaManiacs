@@ -20,6 +20,7 @@ import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/series_detail.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
+import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
@@ -321,3 +322,6 @@ DownloadedSeriesGroup savedGroup(int id, {String source = 'shelf'}) => Downloade
         ),
       ],
     );
+
+/// `GET /library/series/{id}` answers 500 (a `CORRECTION`, not a missing series).
+final libraryDetailFails = seriesDetailProvider.overrideWith((ref, id) async => throw const ApiError(statusCode: 500, code: 'boom', message: 'boom'));

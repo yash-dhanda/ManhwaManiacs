@@ -89,10 +89,13 @@ void main() {
     await tester.tap(find.text('favourite arc'));
     await frames(tester, 200);
     expect(r.rec.tagCalls, ['add:9']);
+    // `New tag…` opens the shared tag sheet; its `New tag` adds a row whose field creates the tag.
     await tester.tap(find.text('New tag…'));
+    await frames(tester, 400);
+    await tester.tap(find.text('New tag'));
     await frames(tester, 300);
     await tester.enterText(find.byType(TextField).last, 'to reread');
-    await tester.tap(find.text('Create'));
+    await tester.testTextInput.receiveAction(TextInputAction.done);
     await frames(tester);
     expect(r.rec.tagCalls, containsAllInOrder(['add:9', 'create:to reread']));
   });

@@ -41,41 +41,73 @@ class _TagSheetBodyState extends ConsumerState<TagSheetBody> {
   Widget build(BuildContext context) {
     final c = context.cine;
     final tags = ref.watch(tagsProvider);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(c.space4, c.space2, c.space4, c.space4),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        tags.when(
-          loading: () => Column(children: [
-            for (var i = 0; i < 3; i++) Padding(padding: EdgeInsets.symmetric(vertical: c.space3), child: CineGalleyLine(lineHeight: 24, index: i)),
-          ],),
-          error: (e, _) => Padding(
-            padding: EdgeInsets.symmetric(vertical: c.space3),
-            child: Row(children: [
-              Expanded(child: CineRoleText("Couldn't load your tags.", c.typeCaption, color: c.colorProof)),
-              CineButton(label: 'Retry', variant: CineButtonVariant.quiet, onPressed: () => ref.invalidate(tagsProvider)),
-            ],),
-          ),
-          data: (list) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            if (list.isEmpty && _drafts.isEmpty)
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: c.space4),
-                child: CineRoleText('No tags yet. Add one from a series page.', c.typeUi, color: c.colorInk60),
+    // The name fields are `TextField`s: a transparent `Material` keeps them working under a
+    // navigator that has none above it.
+    return Material(
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(c.space4, c.space2, c.space4, c.space4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            tags.when(
+              loading: () => Column(
+                children: [
+                  for (var i = 0; i < 3; i++)
+                    Padding(
+                        padding: EdgeInsets.symmetric(vertical: c.space3),
+                        child: CineGalleyLine(lineHeight: 24, index: i)),
+                ],
               ),
-            for (final t in list) TagRow(key: ValueKey('tag-${t.id}'), tag: t),
-            for (final k in _drafts) TagRow(key: k, tag: null, onDone: () => setState(() => _drafts.remove(k))),
-          ],),
+              error: (e, _) => Padding(
+                padding: EdgeInsets.symmetric(vertical: c.space3),
+                child: Row(
+                  children: [
+                    Expanded(
+                        child: CineRoleText(
+                            "Couldn't load your tags.", c.typeCaption,
+                            color: c.colorProof)),
+                    CineButton(
+                        label: 'Retry',
+                        variant: CineButtonVariant.quiet,
+                        onPressed: () => ref.invalidate(tagsProvider)),
+                  ],
+                ),
+              ),
+              data: (list) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (list.isEmpty && _drafts.isEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: c.space4),
+                      child: CineRoleText(
+                          'No tags yet. Add one from a series page.', c.typeUi,
+                          color: c.colorInk60),
+                    ),
+                  for (final t in list)
+                    TagRow(key: ValueKey('tag-${t.id}'), tag: t),
+                  for (final k in _drafts)
+                    TagRow(
+                        key: k,
+                        tag: null,
+                        onDone: () => setState(() => _drafts.remove(k))),
+                ],
+              ),
+            ),
+            SizedBox(height: c.space2),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: CineButton(
+                label: 'New tag',
+                variant: CineButtonVariant.quiet,
+                leadingGlyph: CineGlyph.plus,
+                onPressed: () => setState(() => _drafts.add(UniqueKey())),
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: c.space2),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: CineButton(
-            label: 'New tag',
-            variant: CineButtonVariant.quiet,
-            leadingGlyph: CineGlyph.plus,
-            onPressed: () => setState(() => _drafts.add(UniqueKey())),
-          ),
-        ),
-      ],),
+      ),
     );
   }
 }
@@ -94,7 +126,8 @@ class TagRow extends ConsumerStatefulWidget {
 }
 
 class _TagRowState extends ConsumerState<TagRow> {
-  late final TextEditingController _text = TextEditingController(text: widget.tag?.name ?? '');
+  late final TextEditingController _text =
+      TextEditingController(text: widget.tag?.name ?? '');
   late final FocusNode _focus = FocusNode();
   String? _error;
   bool _saved = false;
@@ -104,7 +137,9 @@ class _TagRowState extends ConsumerState<TagRow> {
   void initState() {
     super.initState();
     _focus.addListener(_onFocus);
-    if (widget.tag == null) WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
+    if (widget.tag == null)
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _focus.requestFocus());
   }
 
   void _onFocus() {
@@ -134,7 +169,9 @@ class _TagRowState extends ConsumerState<TagRow> {
     }
     _busy = true;
     final ctl = ref.read(tagsControllerProvider);
-    final AppError? err = widget.tag == null ? await ctl.create(name) : await ctl.rename(widget.tag!.id, name);
+    final AppError? err = widget.tag == null
+        ? await ctl.create(name)
+        : await ctl.rename(widget.tag!.id, name);
     _busy = false;
     if (!mounted) return;
     if (err != null) {
@@ -150,9 +187,11 @@ class _TagRowState extends ConsumerState<TagRow> {
       widget.onDone?.call();
       return;
     }
-    unawaited(Future<void>.delayed(CineDur.holdSuccess, () {
-      if (mounted) setState(() => _saved = false);
-    }),);
+    unawaited(
+      Future<void>.delayed(CineDur.holdSuccess, () {
+        if (mounted) setState(() => _saved = false);
+      }),
+    );
   }
 
   Future<void> _delete() async {
@@ -176,22 +215,31 @@ class _TagRowState extends ConsumerState<TagRow> {
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Expanded(
-          child: CineTextField(
-            label: 'Tag name',
-            controller: _text,
-            focusNode: _focus,
-            textInputAction: TextInputAction.done,
-            success: _saved,
-            errorText: _error,
-            onSubmitted: _submit,
-          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: CineTextField(
+                label: 'Tag name',
+                controller: _text,
+                focusNode: _focus,
+                textInputAction: TextInputAction.done,
+                success: _saved,
+                errorText: _error,
+                onSubmitted: _submit,
+              ),
+            ),
+            CineIconButton(
+                label: 'Delete tag',
+                role: CineIconRole.delete,
+                onPressed: _delete),
+          ],
         ),
-        CineIconButton(label: 'Delete tag', role: CineIconRole.delete, onPressed: _delete),
-      ],),
-      SizedBox(height: c.space1),
-    ],);
+        SizedBox(height: c.space1),
+      ],
+    );
   }
 }
