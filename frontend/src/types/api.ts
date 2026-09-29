@@ -17,6 +17,8 @@ export class ApiError extends Error {
   readonly code: string;
   readonly status: number;
   readonly details?: unknown;
+  /** Parsed `Retry-After` in ms, or null when the response had none. */
+  retryAfterMs: number | null = null;
 
   constructor(status: number, body: Partial<ApiErrorBody>) {
     super(body.message ?? `Request failed with status ${status}`);

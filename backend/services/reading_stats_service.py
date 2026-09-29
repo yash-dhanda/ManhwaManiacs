@@ -65,6 +65,7 @@ Measured over 14,600 sessions across 730 days: the streak went 5.3 ms to
 
 from __future__ import annotations
 
+import json
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
@@ -82,8 +83,8 @@ from sqlalchemy import (
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
-from core.connector_directory import descriptors_by_source
-from core.content_rating import mature_tracker_case
+from core.connector_directory import descriptors_by_source, is_mature_source
+from core.content_rating import MATURE_CONTENT_RATINGS, mature_tracker_case
 from core.time_utils import utcnow
 from database.models import (
     ChapterProgress,
@@ -91,7 +92,9 @@ from database.models import (
     ReadingDayStats,
     ReadingSession,
     SourceSeriesCache,
+    StreakMilestone,
 )
+from services.cover_colour import attach_cover_colours
 
 #: Longest span a single reading session may contribute to "time spent".
 #: ``ended_at`` is written by the client when it stops reporting, so a chapter
@@ -110,6 +113,18 @@ _SEP = "\x1f"
 _TOP_SOURCES = 8
 _TOP_SERIES = 10
 _RECENT_SESSIONS = 10
+
+#: Genre words that never reach a shareable card (glass §9.2.4): the mature
+#: content ratings plus "ecchi", lower-cased.
+MATURE_GENRE_WORDS = frozenset({r.lower() for r in MATURE_CONTENT_RATINGS} | {"ecchi"})
+
+#: Streak milestone cards, in days.
+STREAK_MILESTONES = (7, 30, 100, 365)
+
+#: Local hour from which a streak that has not read today counts as at risk.
+AT_RISK_HOUR = 20
+
+_IN_CHUNK = 400
 
 #: The offset from UTC that ``reading_day_stats.day`` is bucketed at, and the
 #: only offset a request may read those rows at.
@@ -487,7 +502,9 @@ class ReadingStatsService:
         """
         return mature_tracker_case(ReadingSession.source_id)
 
-    def _sessions(self, stmt, *, needs_follow: bool = False):
+    def _sessions(
+        self, stmt, *, needs_follow: bool = False, nonmature: bool = False
+    ):
         """Scope + gate a statement whose FROM is ``reading_sessions``.
 
         The follow row is joined when the statement actually needs it, which is
@@ -504,7 +521,7 @@ class ReadingStatsService:
         profile. ``uq_followed_series`` still guarantees at most one match
         wherever the join *is* applied, so it can never fan a session row out.
         """
-        if needs_follow or not self._gate_open:
+        if needs_follow or nonmature or not self._gate_open:
             stmt = stmt.outerjoin(
                 FollowedSeries,
                 and_(
@@ -515,7 +532,7 @@ class ReadingStatsService:
                 ),
             )
         stmt = self._session_scope(stmt)
-        if not self._gate_open:
+        if nonmature or not self._gate_open:
             stmt = stmt.where(self._mature_case() == 0)
         return stmt
 
@@ -709,6 +726,197 @@ class ReadingStatsService:
             "current_days": current,
             "longest_days": longest,
             "last_active_date": active[-1],
+        }
+
+    # --- streak, today, shareable ----------------------------------------
+
+    def _local_now(self) -> datetime:
+        return self._now + timedelta(minutes=self._tz)
+
+    def _milestones_seen(self) -> list[int]:
+        rows = self._db.execute(
+            select(StreakMilestone.days)
+            .where(StreakMilestone.user_id == self._user_id)
+            .where(StreakMilestone.profile_id == self._profile_id)
+            .order_by(StreakMilestone.days)
+        ).scalars()
+        return [int(d) for d in rows]
+
+    def streak(self) -> dict[str, Any]:
+        """The one streak object every surface shares (``GET /home`` reuses it).
+
+        ``at_risk``: a live streak whose last active day is yesterday (local)
+        and the local time is 20:00 or later.
+        """
+        out = self._streak(self._active_days())
+        local = self._local_now()
+        yesterday = (local.date() - timedelta(days=1)).isoformat()
+        out["at_risk"] = bool(
+            out["current_days"] >= 1
+            and out["last_active_date"] == yesterday
+            and local.hour >= AT_RISK_HOUR
+        )
+        out["milestones_seen"] = self._milestones_seen()
+        return out
+
+    def today_seconds(self) -> int:
+        """Capped reading seconds of the local day so far, gate-filtered."""
+        since = self._bounds(1)[0]
+        return self._window(since)["seconds_read"]
+
+    def _series_rows(
+        self,
+        since: datetime,
+        until: datetime | None = None,
+        *,
+        nonmature: bool = False,
+    ) -> list[dict[str, Any]]:
+        """Every series read in the window, most seconds first (uncapped list)."""
+        stmt = (
+            self._sessions(
+                select(
+                    ReadingSession.source_id,
+                    ReadingSession.series_key,
+                    func.max(FollowedSeries.title).label("title"),
+                    func.max(FollowedSeries.cover_url).label("cover_url"),
+                    func.coalesce(func.sum(_SECONDS), 0).label("seconds_read"),
+                    func.count(distinct(_CHAPTER_ID)).label("chapters_read"),
+                ).select_from(ReadingSession),
+                needs_follow=True,
+                nonmature=nonmature,
+            )
+            .where(ReadingSession.started_at >= since)
+            .group_by(ReadingSession.source_id, ReadingSession.series_key)
+            .order_by(func.sum(_SECONDS).desc(), ReadingSession.series_key)
+        )
+        if until is not None:
+            stmt = stmt.where(ReadingSession.started_at < until)
+        return [
+            {
+                "source_id": r.source_id,
+                "series_key": r.series_key,
+                "title": r.title,
+                "cover_url": r.cover_url,
+                "seconds_read": int(r.seconds_read or 0),
+                "chapters_read": int(r.chapters_read or 0),
+            }
+            for r in self._db.execute(stmt).all()
+        ]
+
+    def _genres_of(self, rows: list[dict[str, Any]]) -> dict[tuple[str, str], list[str]]:
+        pairs = [(r["source_id"], r["series_key"]) for r in rows]
+        out: dict[tuple[str, str], list[str]] = {}
+        for i in range(0, len(pairs), _IN_CHUNK):
+            chunk = pairs[i : i + _IN_CHUNK]
+            for source_id, series_key, blob in self._db.execute(
+                select(
+                    SourceSeriesCache.source_id,
+                    SourceSeriesCache.series_key,
+                    SourceSeriesCache.genres,
+                ).where(
+                    tuple_(
+                        SourceSeriesCache.source_id, SourceSeriesCache.series_key
+                    ).in_(chunk)
+                )
+            ).all():
+                try:
+                    names = json.loads(blob) if blob else []
+                except ValueError:
+                    names = []
+                out[(source_id, series_key)] = [
+                    g.strip() for g in names if isinstance(g, str) and g.strip()
+                ]
+        return out
+
+    def _genre_weights(
+        self, rows: list[dict[str, Any]], *, drop_mature_words: bool
+    ) -> list[dict[str, Any]]:
+        """Share of reading seconds per genre, top 8, weights over what is kept."""
+        genres = self._genres_of(rows)
+        seconds: dict[str, int] = {}
+        spelling: dict[str, str] = {}
+        for r in rows:
+            seen: set[str] = set()
+            for g in genres.get((r["source_id"], r["series_key"]), []):
+                key = g.lower()
+                if key in seen or (drop_mature_words and key in MATURE_GENRE_WORDS):
+                    continue
+                seen.add(key)
+                spelling.setdefault(key, g)
+                seconds[key] = seconds.get(key, 0) + r["seconds_read"]
+        total = sum(seconds.values())
+        if not total:
+            return []
+        top = sorted(seconds.items(), key=lambda kv: (-kv[1], kv[0]))[:8]
+        return [{"genre": spelling[k], "weight": round(v / total, 3)} for k, v in top]
+
+    def _source_shares(
+        self,
+        since: datetime,
+        until: datetime | None,
+        *,
+        nonmature: bool,
+    ) -> list[dict[str, Any]]:
+        stmt = (
+            self._sessions(
+                select(
+                    ReadingSession.source_id,
+                    func.coalesce(func.sum(_SECONDS), 0).label("seconds_read"),
+                ).select_from(ReadingSession),
+                nonmature=nonmature,
+            )
+            .where(ReadingSession.started_at >= since)
+            .group_by(ReadingSession.source_id)
+        )
+        if until is not None:
+            stmt = stmt.where(ReadingSession.started_at < until)
+        rows = [
+            (r.source_id, int(r.seconds_read or 0))
+            for r in self._db.execute(stmt).all()
+            if not (nonmature and is_mature_source(r.source_id))
+        ]
+        total = sum(sec for _, sec in rows)
+        if not total:
+            return []
+        names = {sid: d.name for sid, d in descriptors_by_source().items()}
+        rows.sort(key=lambda kv: (-kv[1], kv[0]))
+        return [
+            {
+                "source_id": sid,
+                "name": names.get(sid, sid),
+                "share": round(sec / total, 3),
+            }
+            for sid, sec in rows[:3]
+        ]
+
+    def _with_titles_and_colours(
+        self, items: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        self._fill_cached_titles(items, with_cover=True)
+        attach_cover_colours(self._db, items)
+        return items
+
+    def shareable(
+        self, since: datetime, until: datetime | None = None
+    ) -> dict[str, Any]:
+        """What a share card may draw: non-mature series only, whatever the gate."""
+        rows = [
+            r
+            for r in self._series_rows(since, until, nonmature=True)
+            if not is_mature_source(r["source_id"])
+        ]
+        top = self._with_titles_and_colours([dict(r) for r in rows[:5]])
+        art = self._with_titles_and_colours([dict(r) for r in rows[:30]])
+        art_series = [
+            {k: a[k] for k in ("source_id", "series_key", "cover_url", "ambient", "palette")}
+            for a in art
+            if a.get("cover_url")
+        ][:9]
+        return {
+            "genre_weights": self._genre_weights(rows, drop_mature_words=True),
+            "top_series": top,
+            "art_series": art_series,
+            "top_sources": self._source_shares(since, until, nonmature=True),
         }
 
     def _by_hour(self, since: datetime) -> list[dict[str, int]]:
@@ -995,12 +1203,13 @@ class ReadingStatsService:
             },
             "totals": self._totals(),
             "window": self._window(since),
-            "streak": self._streak(self._active_days()),
+            "streak": self.streak(),
             "daily": self._daily(since, labels),
             "by_hour": self._by_hour(since),
             "by_source": self._by_source(since),
             "by_series": self._by_series(since),
             "recent_sessions": self._recent(),
+            "shareable": self.shareable(since),
         }
 
 

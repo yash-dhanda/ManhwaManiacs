@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Sequence
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import (
     APIRouter,
@@ -26,6 +26,7 @@ from fastapi import (
     Response,
 )
 from fastapi.responses import FileResponse
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -33,6 +34,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from connectors.ids import fully_unquote
 from core.config import get_settings
 from core.errors import AppError
+from core.profile_context import ProfileContext, require_profile_context, resolve_profile_context
+from core.time_utils import clamp_client_clock, utcnow
 from core.rate_limit import bulk_limit, limiter, sources_limit
 from database.session import get_db
 from services.auth_service import require_admin_user
@@ -54,7 +57,9 @@ from services.novel_attribution_service import (
     read_attribution,
     set_narrator_voice,
 )
-from database.models import NovelChapterCache
+from database.models import ListenSession, NovelChapterCache
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from datetime import datetime
 from sqlalchemy import select
 from services.novel_render_queue import (
     active_jobs,
@@ -724,3 +729,83 @@ def get_novel_chapters_bulk(
     return service.get_chapters_bulk(
         body.source_id, body.series_key, body.chapter_keys
     )
+
+
+LISTEN_BATCH_MAX_ITEMS = 200
+
+
+class ListenSessionRequest(BaseModel):
+    source_id: str = Field(min_length=1, max_length=64)
+    series_key: str = Field(min_length=1, max_length=512)
+    chapter_key: str = Field(min_length=1, max_length=512)
+    seconds: int = Field(ge=10, le=14_400)
+    voice_ids: list[str] = Field(default_factory=list, max_length=3)
+    started_at: datetime
+
+
+@router.post("/listen-sessions", dependencies=[Depends(require_profile_context)])
+def save_listen_sessions(
+    body: list[Any],
+    db: DbDep,
+    ctx: Annotated[ProfileContext, Depends(resolve_profile_context)],
+) -> dict[str, object]:
+    """Outbox flush of narration sessions (credited to up to 3 voices each).
+
+    Validated item by item so one bad row never blocks an outbox; a replay of
+    the same session inserts nothing. Ungated, like progress.
+    """
+    if len(body) > LISTEN_BATCH_MAX_ITEMS:
+        raise AppError(
+            "Too many listen sessions in one batch.",
+            code="batch_too_large",
+            status_code=413,
+            details={"max_items": LISTEN_BATCH_MAX_ITEMS, "received": len(body)},
+        )
+    if ctx.user_id is None or ctx.profile_id is None:
+        raise AppError(
+            "An active profile is required for this action.",
+            code="profile_required",
+            status_code=400,
+        )
+    saved = duplicates = 0
+    rejected: list[dict[str, object]] = []
+    now = utcnow()
+    for index, item in enumerate(body):
+        try:
+            req = ListenSessionRequest.model_validate(item)
+        except ValidationError as exc:
+            rejected.append(
+                {
+                    "index": index,
+                    "errors": [
+                        {
+                            "field": ".".join(str(p) for p in e["loc"]),
+                            "message": e["msg"],
+                        }
+                        for e in exc.errors()
+                    ],
+                }
+            )
+            continue
+        voices = [v for v in dict.fromkeys(req.voice_ids) if is_known_voice(v)]
+        result = db.execute(
+            sqlite_insert(ListenSession)
+            .values(
+                user_id=ctx.user_id,
+                profile_id=ctx.profile_id,
+                source_id=req.source_id,
+                series_key=fully_unquote(req.series_key),
+                chapter_key=fully_unquote(req.chapter_key),
+                seconds=req.seconds,
+                voice_ids=json.dumps(voices),
+                started_at=clamp_client_clock(req.started_at, now=now),
+                created_at=now,
+            )
+            .on_conflict_do_nothing()
+        )
+        if result.rowcount:
+            saved += 1
+        else:
+            duplicates += 1
+    db.commit()
+    return {"saved": saved, "duplicates": duplicates, "rejected": rejected}

@@ -15,7 +15,7 @@ describe("reader chrome auto-hide wiring", () => {
   });
 
   it("marks a keyboard chapter jump as reading, like a page turn", () => {
-    const source = read("ChapterReader.tsx");
+    const source = readFileSync(join(__dirname, "../engine/use-reader-engine.ts"), "utf8");
     expect(source).toMatch(/onPreviousChapter: \(\) => \{\s*intendScroll\(\);\s*goPreviousChapter\(\);/);
     expect(source).toMatch(/onNextChapter: \(\) => \{\s*intendScroll\(\);\s*goNextChapter\(\);/);
   });

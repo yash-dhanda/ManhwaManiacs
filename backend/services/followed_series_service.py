@@ -43,6 +43,7 @@ from database.models import (
     FollowedSeries,
     ProfileSeriesTag,
     SourceSeriesCache,
+    StreakMilestone,
     Tag,
 )
 from database.session import get_db
@@ -54,7 +55,8 @@ from services.browse_service import (
     series_identity,
 )
 from services.progress_service import furthest_of, respell_chapter_key
-from services.reading_stats_service import ReadingStatsService
+from services.annual_service import AnnualService
+from services.reading_stats_service import STREAK_MILESTONES, ReadingStatsService
 from services.source_cache_service import SourceCacheService
 
 #: Row-value ``IN`` list size. SQLite's default ``SQLITE_MAX_VARIABLE_NUMBER``
@@ -1670,6 +1672,43 @@ class FollowedSeriesService:
         }
         payload.update(stats.build(days))
         return payload
+
+    def annual(self, year: int | None, tz_offset_minutes: int) -> dict[str, Any]:
+        self._require_owner()
+        return AnnualService(
+            self._db,
+            user_id=self._user_id,
+            profile_id=self._profile_id,
+            gate_open=self._gate_open(),
+            tz_offset_minutes=tz_offset_minutes,
+        ).build(year)
+
+    def mark_milestone_seen(self, days: int) -> None:
+        """Idempotent: record that this profile has seen the ``days`` card."""
+        self._require_owner()
+        if days not in STREAK_MILESTONES:
+            raise AppError(
+                "Milestones are 7, 30, 100 and 365 days.",
+                code="invalid_milestone",
+                status_code=422,
+            )
+        if self._profile_id is None:
+            raise AppError(
+                "An active profile is required for this action.",
+                code="profile_required",
+                status_code=400,
+            )
+        self._db.execute(
+            sqlite_insert(StreakMilestone)
+            .values(
+                user_id=self._user_id,
+                profile_id=self._profile_id,
+                days=days,
+                seen_at=utcnow(),
+            )
+            .on_conflict_do_nothing()
+        )
+        self._db.commit()
 
     def recommendations(self, limit: int = 10) -> list[dict[str, Any]]:
         """Simple genre-similarity over the followed set (spec §5.2)."""

@@ -261,14 +261,23 @@ def _busy(exc: AppError) -> JSONResponse:
 
 
 @router.post("/progress", dependencies=[Depends(require_profile_context)])
-def save_progress(body: ProgressRequest, service: ProgressDep) -> dict[str, object]:
-    """Save reading progress. Applies the furthest-wins merge (never rewinds)."""
+def save_progress(
+    body: ProgressRequest,
+    service: ProgressDep,
+    tz_offset_minutes: int = Query(0, ge=-720, le=840),
+) -> dict[str, object]:
+    """Save reading progress. Applies the furthest-wins merge (never rewinds).
+
+    Also answers ``streak {current_days, extended_today}`` and
+    ``today_seconds`` for the caller's ``tz_offset_minutes`` day.
+    """
     try:
-        return service.save_one(body.to_input())
+        result = service.save_one(body.to_input())
     except AppError as exc:
         if exc.code != DB_BUSY_CODE:
             raise
         return _busy(exc)
+    return {**result, **service.streak_snapshot(tz_offset_minutes)}
 
 
 @router.delete(
@@ -330,7 +339,11 @@ def _item_errors(exc: ValidationError) -> list[dict[str, str]]:
         }
     },
 )
-def save_progress_batch(body: list[Any], service: ProgressDep) -> dict[str, object]:
+def save_progress_batch(
+    body: list[Any],
+    service: ProgressDep,
+    tz_offset_minutes: int = Query(0, ge=-720, le=840),
+) -> dict[str, object]:
     """Offline-sync catch-up: an array of progress pushes, merged in one
     transaction. Capped at ``PROGRESS_BATCH_MAX_ITEMS`` items.
 
@@ -376,7 +389,7 @@ def save_progress_batch(body: list[Any], service: ProgressDep) -> dict[str, obje
         if exc.code != DB_BUSY_CODE:
             raise
         return _busy(exc)
-    return {**result, "rejected": rejected}
+    return {**result, "rejected": rejected, **service.streak_snapshot(tz_offset_minutes)}
 
 
 @router.get("/progress/series")

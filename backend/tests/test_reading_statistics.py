@@ -62,6 +62,8 @@ def test_empty_profile_returns_a_dense_zeroed_payload(db_session, acct):
         "current_days": 0,
         "longest_days": 0,
         "last_active_date": None,
+        "at_risk": False,
+        "milestones_seen": [],
     }
     # Dense even with nothing to show: a chart must be able to draw 14 columns.
     assert len(out["daily"]) == 14
@@ -567,6 +569,7 @@ def test_endpoint_returns_the_full_payload(client, as_user, acct, seed_session):
         "by_source",
         "by_series",
         "recent_sessions",
+        "shareable",
     }
     assert body["range"] == {
         "days": 7,

@@ -47,3 +47,5 @@ Items only the owner can do, by step.
 ## web/11 fix pass (L19)
 - The `?` shortcuts sheet is hosted by the legacy AppShell only; the Series keys are registered in the app keyboard registry (group "Series"), so they show as soon as the Cinematic shell (web/06) mounts `ShortcutsDialog`. Check the sheet once then.
 - Posters elsewhere in the app must wear `coverTransitionName(sourceId, seriesKey)` (`screens/feature/cover-name.ts`) inside a `<ViewTransition share="mm-match-cut">` for the match cut into the Feature page; web/09-web/10 posters do not exist in this tree, so the cut was verified between the two routes of one series.
+
+- mobile/03: confirm tests + build-ios CI run ids/conclusions for commit abbace5 (liquid_glass_widgets pin), record in docs/redesign/proof/mobile-03/glass-gate.md

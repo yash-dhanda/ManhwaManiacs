@@ -1,0 +1,9 @@
+// POST /novels/listen-sessions saved 2 sessions (no novel follow seeded; keys are free text; no voice pack on the dev box, so "atlas" is accepted unchecked).
+// The Annual is cached per day, so top_voices was read after a restart:
+[
+  {
+    "voice_id": "atlas",
+    "name": "atlas",
+    "seconds": 900
+  }
+]
