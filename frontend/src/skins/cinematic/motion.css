@@ -126,3 +126,14 @@ html[data-motion="reduced"] .cine-toast { animation: cine-fade var(--mm-dur-redu
 html[data-motion="reduced"] .cine-arm-rule[data-arming="true"] { transform: scaleX(0); transition: none; }
 html[data-motion="reduced"] .cine-flip-in, html[data-motion="reduced"] .cine-flip-out { animation: none; }
 html[data-motion="reduced"] .cine-flip-out { display: none; }
+
+/* §7.20 slider thumb: 2 x 20 bar; hover 2 x 24 (80 ms); dragging 3 x 28; release returns on spring.scrub. */
+.cine-thumb-bar { width: 2px; height: 20px; transition: width var(--mm-dur-tick) linear, height var(--mm-dur-tick) linear; }
+.cine-thumb:hover .cine-thumb-bar { height: 24px; }
+.cine-thumb[data-dragging] .cine-thumb-bar { width: 3px; height: 28px; }
+.cine-thumb:not([data-dragging]) .cine-thumb-bar { transition: width var(--mm-spring-scrub-ms) var(--mm-spring-scrub), height var(--mm-spring-scrub-ms) var(--mm-spring-scrub); }
+
+.cine-fadein { animation: cine-fade var(--mm-dur-line) linear both; }
+.cine-fadein-fast { animation: cine-fade var(--mm-dur-reduced) linear both; }
+@media (prefers-reduced-motion: reduce) { .cine-fadein { animation-duration: var(--mm-dur-reduced); } }
+html[data-motion="reduced"] .cine-fadein { animation-duration: var(--mm-dur-reduced); }
