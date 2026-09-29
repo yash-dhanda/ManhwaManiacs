@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+date: Tue, 29 Sep 2026 17:16:23 GMT
+server: uvicorn
+content-length: 42
+content-type: application/json
+
+{"available":false,"reason":"no_dialogue"}

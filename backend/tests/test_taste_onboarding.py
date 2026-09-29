@@ -145,7 +145,10 @@ def test_an_open_gate_leaves_the_adult_filter_out_of_the_query(client, as_user, 
     """AniList reads ``isAdult: null`` as "not adult", so the variable is omitted."""
     anilist.trending["manhwa"] = [media(41, "Actiony")]
     catalog(client, as_user, acct, 2, formats="manhwa", genres="Action")
-    assert anilist.trending_vars and all("adult" not in v for v in anilist.trending_vars)
+    # the covers stay adult-free; the seeds ask for everything (no variable at all)
+    assert [v for v in anilist.trending_vars if "adult" not in v] == [
+        {"country": "KR", "formats": ["MANGA", "ONE_SHOT"], "genres": ["Action"]}
+    ]
     anilist.trending_vars.clear()
     catalog(client, as_user, acct, 1, formats="manga")
     assert anilist.trending_vars and all(v["adult"] is False for v in anilist.trending_vars)

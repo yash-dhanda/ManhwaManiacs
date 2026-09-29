@@ -19,6 +19,7 @@ from core.config import get_settings
 from core.errors import AppError
 from core.time_utils import utcnow
 from database.models import (
+    AiFeedback,
     AiResultCache,
     Base,
     Bookmark,
@@ -209,6 +210,7 @@ SEEDED_TABLES = frozenset(
         "streak_milestones",
         "listen_sessions",
         "ai_result_cache",
+        "ai_feedback",
     }
 )
 
@@ -260,6 +262,9 @@ def _seed_one_row_everywhere(db, user_id: int, profile_id: int) -> None:
         ListenSession(
             user_id=user_id, profile_id=profile_id, source_id=SRC, series_key=SERIES,
             chapter_key="c1", seconds=60, started_at=utcnow(), created_at=utcnow(),
+        ),
+        AiFeedback(
+            user_id=user_id, profile_id=profile_id, signal="not_interested", anilist_id=1
         ),
         AiResultCache(
             key="k" * 64, kind="home_editorial", profile_id=profile_id, payload="{}",
