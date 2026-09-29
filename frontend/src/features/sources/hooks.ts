@@ -1,3 +1,4 @@
+import { sourceHealthService } from "@/services/system";
 import {
   useInfiniteQuery,
   useMutation,
@@ -597,5 +598,14 @@ export function useSourceReaderChapter(
     },
     enabled: Boolean(sourceId) && Boolean(seriesId) && Boolean(chapterId),
     staleTime: SOURCE_READER_STALE_MS,
+  });
+}
+
+/** Aggregate source health for the Sources masthead deck. */
+export function useSourceHealthSummary() {
+  return useQuery({
+    queryKey: [...SOURCES_KEY, "health-summary"],
+    queryFn: () => sourceHealthService.summary(),
+    staleTime: 60_000,
   });
 }

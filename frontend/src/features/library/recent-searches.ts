@@ -141,3 +141,12 @@ export function subscribeRecentSearches(onStoreChange: () => void): () => void {
 export function discardLegacyRecentSearches(): void {
   discardLegacyValue(LEGACY_RECENT_SEARCHES_KEY);
 }
+
+/** Forget every recent search of the active profile. */
+export function clearRecentSearches(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  writeScopedString(RECENT_SEARCHES_BASE, JSON.stringify([]));
+  window.dispatchEvent(new Event(RECENT_SEARCHES_EVENT));
+}

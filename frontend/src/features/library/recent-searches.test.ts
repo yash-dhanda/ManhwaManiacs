@@ -5,6 +5,7 @@ import {
   uninstallMemoryStorage,
 } from "@/lib/scoped-storage.testing";
 import {
+  clearRecentSearches,
   discardLegacyRecentSearches,
   getRecentSearchesSnapshot,
   nextRecentSearches,
@@ -137,5 +138,18 @@ describe("discardLegacyRecentSearches", () => {
 
     expect(storage.getItem(LEGACY_KEY)).toBeNull();
     expect(readRecentSearches()).toEqual([]);
+  });
+});
+
+describe("clearRecentSearches", () => {
+  it("empties the active profile's list only", () => {
+    setStorageScope(ALICE);
+    writeRecentSearch("solo leveling");
+    setStorageScope(BOB);
+    writeRecentSearch("tower of god");
+    clearRecentSearches();
+    expect(readRecentSearches()).toEqual([]);
+    setStorageScope(ALICE);
+    expect(readRecentSearches()).toEqual(["solo leveling"]);
   });
 });

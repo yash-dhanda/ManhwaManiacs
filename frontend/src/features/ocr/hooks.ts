@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { http } from "@/services/http";
 import type { ChapterId } from "@/types/api";
 import { ApiError } from "@/types/api";
 import { ocrApi } from "./api";
@@ -44,4 +45,14 @@ export function useOcrChapter(ref: ChapterId | null) {
     enabled: ref !== null,
     staleTime: 5 * 60_000,
   });
+}
+
+/** Whether this server reads dialogue (`GET /settings` capabilities.ocr). Defaults to false until known. */
+export function useOcrAvailable(): boolean {
+  const q = useQuery({
+    queryKey: ["settings", "capabilities"],
+    queryFn: () => http.get<{ capabilities?: { ocr?: boolean } }>("/settings"),
+    staleTime: 10 * 60_000,
+  });
+  return q.data?.capabilities?.ocr === true;
 }
