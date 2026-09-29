@@ -41,8 +41,9 @@ Lane mobile1, worktree `/srv/manhwamaniacs/dev/wt/mobile1`, branch `redesign/mob
 ## Numbers
 
 - Before A: 2,012 passed, 0 failed, 0 skipped.
-- After A (`572ac14`): 2,013 (2,012 + the one golden `testWidgets`; derived, the
-  merge of `feat/vps-slim-source-native` in between touched docs only).
+- After A (`572ac14`): 2,013 passed, 0 failed, 0 skipped (measured: full
+  `flutter test -j 2` in a detached worktree at `572ac14`, 05:05 wall, last line
+  `+2013: All tests passed!`).
 - After B/C (`e8be5bf`): 2,030 = 2,013 + 17 engine tests (boundary 2, state 5,
   commands 6, auto-queue 4). Reader + sources + offline-reader subset: 359 passed.
 - Final (after E): 2,030 passed, 0 failed, 0 skipped; `flutter analyze`: No issues found!
