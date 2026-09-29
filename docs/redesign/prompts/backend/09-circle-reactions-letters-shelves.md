@@ -243,7 +243,7 @@ World: account 1 with profiles A and B, account 2 with profile C; sharing on for
 - [ ] Every visibility decision about another profile's data calls `CircleService`; `grep -n 'mature' backend/services/circle_service.py backend/services/followed_series_service.py` shows no second copy of the Circle 18+ rule.
 - [ ] Per-skin differences are served by one API: Cinematic reads five kinds plus `HYPE` and `WRECKED`, writes `kept`, uses `DELETE …/share/me`; Glass reads six kinds plus "Laughed", writes only `read` and `dismissed`, uses `box=sent` and `DELETE …/share/{profile_id}` with its own id; both read `can_receive` and `sealed`. No endpoint takes a skin parameter.
 - [ ] Reduced motion, web keyboard access and 44 pt hit targets: not applicable to this backend step (no UI); the unseal timing (160 ms, 40 ms apart) and every hit target belong to `web/22`, `mobile/22`, `web/43`, `mobile/43`.
-- [ ] `git diff --stat $BASE..HEAD -- frontend mobile backend/connectors ops` prints nothing.
+- [ ] `git show --name-only --format= <hash> -- frontend mobile backend/connectors ops` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) prints nothing.
 - [ ] Every test that passed before your first change still passes; the new tests pass; 0 failed.
 - [ ] `backend/docs/circle-api.md` covers every endpoint of this step; proof JSON exists under `docs/redesign/proof/backend-09/`.
 
@@ -260,7 +260,7 @@ free -m
 timeout 1800 .venv/bin/python -m pytest -q --no-header 2>&1 | tail -25 > ../docs/redesign/proof/backend-09/pytest-after.txt   # before count + new tests, 0 new failures
 ```
 
-No web or mobile file changes in this step, so the baseline's `npm run lint`, `npm run build` (in `frontend/`), `flutter analyze` and `flutter test` (in `mobile/`, Flutter at `/srv/manhwamaniacs/dev/flutter/bin`) are not re-run; `git diff --stat $BASE..HEAD -- frontend mobile` must print nothing.
+No web or mobile file changes in this step, so the baseline's `npm run lint`, `npm run build` (in `frontend/`), `flutter analyze` and `flutter test` (in `mobile/`, Flutter at `/srv/manhwamaniacs/dev/flutter/bin`) are not re-run; `git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) must print nothing.
 
 **Proof** (captured JSON from the `backend/00` dev stack; this step has no screens and so no Playwright screenshots). The dev stack runs on `127.0.0.1:8010` against a dev SQLite file under `/srv/manhwamaniacs/dev/data/`, never production data; the seeded `demo` account has **Riya** (18+ open) and **Aarav** (18+ closed), Aarav follows three of Riya's series, and Riya owns the shelf "Weekend binge". `dev_stack.sh api METHOD PATH [JSON]` signs in and sends `X-Profile-Id` for `MM_DEV_PROFILE` (default `Riya`).
 

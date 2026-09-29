@@ -292,7 +292,7 @@ Mobile and backend: this step changes neither. Judge that by your own commits, n
 **Dev checks and proof.** `frontend/scripts/proof.mjs` arrives in web/03, so drive headless Chromium with one-off scripts under `/tmp` (load Playwright with `createRequire("/srv/manhwamaniacs/dev/ManhwaManiacs/frontend/package.json")("playwright")`; sign in with `POST /api/auth/login` and seed `mm.active-profile` exactly as web/00's `/tmp/mm-shoot.mjs` does). Do not commit these scripts.
 
 1. Start the dev stack of `backend/scripts/README-dev-stack.md` (uvicorn 127.0.0.1:8010, dev SQLite under `/srv/manhwamaniacs/dev/data/`, never production data).
-2. `free -m && BACKEND_INTERNAL_URL=http://127.0.0.1:8010 NEXT_PUBLIC_ENABLE_SW=1 npm run dev -- --port 3010`. The worker registers in development only with that flag.
+2. `free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 NEXT_PUBLIC_ENABLE_SW=1 npm run dev -- --port 3010`. The worker registers in development only with that flag.
 3. Screenshots at 1440 × 900 and 390 × 844 into `docs/redesign/proof/web-02/`:
    - `debug-row-legacy-*.png` and `debug-row-cinematic-*.png`;
    - `debug-fade-*.png` (captured 100 ms after choosing a segment);

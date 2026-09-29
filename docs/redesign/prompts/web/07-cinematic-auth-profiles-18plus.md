@@ -262,7 +262,7 @@ node scripts/proof.mjs --step web-07 --skin cinematic --routes /profiles --reduc
 node scripts/proof.mjs --step web-07 --skin cinematic --no-auth --routes /skin-preview/cinematic/auth
 ```
 
-The frontend runs as the harness's usage header says (`BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010`). Everything lands in `docs/redesign/proof/web-07/` at 1440 × 900 and 390 × 844 (plus 800 × 1024 for the tablet Login and picker). Use `playwright-cli -s=web-07` for ad-hoc sessions.
+The frontend runs as the harness's usage header says (`NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010`). Everything lands in `docs/redesign/proof/web-07/` at 1440 × 900 and 390 × 844 (plus 800 × 1024 for the tablet Login and picker). Use `playwright-cli -s=web-07` for ad-hoc sessions.
 
 Mobile and backend: this step changes neither (the dev-stack backend is only used). Judge that by your own commits, never by the branch diff: every web step runs in parallel with its `mobile/NN` twin on the same branch, so `git diff origin/...HEAD -- mobile backend` is routinely non-empty with other sessions' work. `git show --stat --format= <hash>` for each commit of this step must list no `mobile/` or `backend/` path. Only if one does, revert that part and prove the baseline still holds with its own commands, one at a time after the RAM guard and never while a `next build` runs: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (baseline: No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (baseline: all 2012 tests passed) and `cd backend && .venv/bin/python -m pytest -q --no-header`.
 

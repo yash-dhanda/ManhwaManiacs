@@ -182,7 +182,7 @@ free -m && npm run build
 
 Lint and build stay at 0 errors and 0 warnings (`00-baseline.md`). This step changes nothing in `mobile/` or `backend/`: check each of your commits with `git show --stat --format= <hash>` (the parallel `mobile/38` session and the backend and shared sessions commit `mobile/` and `backend/` on the same branch, so never judge by the branch diff). If one of your commits touched them, revert that part and prove the baseline with `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (all 2012 tests pass, or the current higher count) and `cd backend && .venv/bin/python -m pytest -q --no-header`, one at a time after the RAM guard.
 
-**Visual proof.** Start the dev stack from `backend/scripts/README-dev-stack.md` (127.0.0.1:8010, dev SQLite only; `MM_NOVELS_ENABLED=1` so the Novel text scope and novel sources show), then `free -m && npm run dev -- -p 3010`. For the novel-text captures, save two novel chapters first through the Glass book page's download action. Write `docs/redesign/proof/web-38/routes.txt`:
+**Visual proof.** Start the dev stack from `backend/scripts/README-dev-stack.md` (127.0.0.1:8010, dev SQLite only; `MM_NOVELS_ENABLED=1` so the Novel text scope and novel sources show), then `free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- -p 3010`. For the novel-text captures, save two novel chapters first through the Glass book page's download action. Write `docs/redesign/proof/web-38/routes.txt`:
 
 ```
 /search

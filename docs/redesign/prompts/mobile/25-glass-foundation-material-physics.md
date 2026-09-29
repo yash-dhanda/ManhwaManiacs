@@ -244,7 +244,7 @@ Glass files import only `features/*/{models,providers,repositories,services,stor
 - [ ] The Glass development index and the calibration page are reachable from any pending Glass screen, every control on them is at least 44 × 44 pt on iOS and 48 × 48 dp on Android (`meetsGuideline` in `skin_glass_test.dart` or a dedicated test) and operable with a hardware keyboard; the layers row shows the live counts.
 - [ ] Per-skin difference: nothing under `mobile/lib/skins/cinematic/` changed except the no-op `prepare()` (and an OKLCH or recorder move if H2 or J1 required it, with Cinematic's tests green); the Cinematic harness captures of Tonight and Library are identical before and after (byte-compare the PNGs).
 - [ ] Glass `PENDING` is unchanged; the completeness and boundary tests pass.
-- [ ] `flutter analyze` reports "No issues found"; `flutter test` passes at or above the floor plus the new tests (never below the 2012 passed of `00-baseline.md`: every test that passed there must still pass); `node design/build.mjs --check` passes.
+- [ ] `flutter analyze` reports "No issues found"; `flutter test` passes at or above the floor plus the new tests (the floor is the passed count you record at the start of this step; `release/00` deleted the legacy widget tests by design and lists them in `docs/redesign/proof/release-00/deleted-tests.md`, so the floor can sit below the 2012 of `00-baseline.md`, and every baseline test not listed there must still pass); `node design/build.mjs --check` passes.
 
 ## Verification
 
@@ -265,7 +265,7 @@ cd .. && node design/build.mjs --check
 
 CI for the dependency commit and for the final commit: `gh run list --branch feat/vps-slim-source-native --limit 5` and `gh run watch <run-id> --exit-status` for `tests` and `Build iOS`.
 
-`flutter analyze` must report "No issues found" and the full `flutter test` run must pass with no failures, at or above the floor. This step changes nothing in `frontend/` or `backend/` (`git diff --stat origin/feat/vps-slim-source-native -- frontend backend` is empty; `.github/workflows/tests.yml` is the one file outside `mobile/` it may touch), so `npm run lint`, `npm run build` (in `frontend/`) and the backend pytest (`backend/.venv/bin/python -m pytest -q --no-header` from `backend/`) are not rerun, except the push rule under Git.
+`flutter analyze` must report "No issues found" and the full `flutter test` run must pass with no failures, at or above the floor. This step changes nothing in `frontend/` or `backend/` (`git show --name-only --format= <hash> -- frontend backend` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) is empty; `.github/workflows/tests.yml` is the one file outside `mobile/` it may touch), so `npm run lint`, `npm run build` (in `frontend/`) and the backend pytest (`backend/.venv/bin/python -m pytest -q --no-header` from `backend/`) are not rerun, except the push rule under Git.
 
 **Visual proof.** The captures of item N land in `docs/redesign/proof/mobile-25/`. Write `docs/redesign/proof/mobile-25/report.md` mapping each capture to the acceptance item it proves, and put the device checklist in `device-check.md`.
 

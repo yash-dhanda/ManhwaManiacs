@@ -67,7 +67,7 @@ Read these completely before planning. Where this file and `glass/DESIGN.md` dis
 
 ## Scope: deliver every item below
 
-Sections cited are `glass/DESIGN.md` unless marked. Every widget test below runs inside `flutter test` (so it joins the suite and CI). Every capture runs only in the harness with `MM_PROOF_DIR` set, through `mobile/03`'s `captureSkinScreen` / `captureSkinWidget` (`mobile/test/screenshots/support/skin_shots.dart`); without it they rasterise and discard. Never set `MM_WRITE_SHOTS`: it overwrites the install page's public screenshots in `mobile/docs/screenshots/`, and `git status --short mobile/docs/screenshots` must print nothing at the end. **Sizes:** the harness's `kSkinShotSizes` (phone 390 × 844 @3, tablet 834 × 1194 @2) and `kSkinShotTabletWide` (1024 × 1366 @2, the desktop frame with the collapsed 76 px sidebar), plus two sizes defined in the `mobile-45` group only, because the plan's QA list needs them and no `mobile/03` size reaches them: `SkinShotSize('phone-max', Size(440, 956), 3.0, EdgeInsets.only(top: 62, bottom: 34))` (the large phone of `web/45`'s list and §12.5's Float viewport) and `SkinShotSize('desktop', Size(1180, 820), 2.0, EdgeInsets.zero)` (§8.0.1: the 280 px sidebar starts at 1180). Name both in `qa.md`; do not add them to `kSkinShotSizes`.
+Sections cited are `glass/DESIGN.md` unless marked. Every widget test below runs inside `flutter test` (so it joins the suite and CI). Every capture runs only in the harness with `MM_PROOF_DIR` set, through `mobile/03`'s `captureSkinScreen` / `captureSkinWidget` (`mobile/test/screenshots/support/skin_shots.dart`); without it they rasterise and discard. Never set `MM_WRITE_SHOTS`: it overwrites the install page's public screenshots in `mobile/docs/screenshots/`, and `git status --short mobile/docs/screenshots` must print nothing at the end. **Sizes:** the harness's `kSkinShotSizes` (phone 390 × 844 @3, tablet 834 × 1194 @2) and `kSkinShotTabletWide` (1024 × 1366 @2, the desktop frame with the collapsed 76 px sidebar), `mobile/29`'s `kSkinShotDesktop` (`SkinShotSize('desktop', Size(1366, 1024), 2.0, EdgeInsets.only(top: 24, bottom: 20))`: the desktop frame with the full 280 px sidebar, which §8.0.1 starts at 1180 px; reuse it, never define a second size named `desktop`), plus one size defined in the `mobile-45` group only, because the plan's QA list needs it and no harness size reaches it: `SkinShotSize('phone-max', Size(440, 956), 3.0, EdgeInsets.only(top: 62, bottom: 34))` (the large phone of `web/45`'s list and §12.5's Float viewport). Name it in `qa.md`; do not add it to `kSkinShotSizes`. Widget tests that need a 1180 × 820 window (the focus test, the desktop budget moment) set it as a test window, not as a proof size.
 
 ### A. Completeness and boundary, strict (§15.8, stack §2.3)
 
@@ -110,7 +110,7 @@ Sections cited are `glass/DESIGN.md` unless marked. Every widget test below runs
    - `dimFor(1.0) == 0.64`, `dimFor(0) == 0.22`, and 0.64 for a dark cover with one white patch (mean `l` 0.2, `lMax` 1.0);
    - the depth intensity at depth 3 is 0.54.
 
-   (`web/45`'s prompt writes `tierFor(401) == T5`; the contract says T4. Name this in the report as a web parity issue if `web/45` asserted T5.)
+   (`web/45` asserts the same `tierFor(401) == T4`, so both clients check one value.)
 2. `node design/build.mjs --check` passes, and its `check-contrast.mjs` output lists every added case of §15.8: clear glass, other tiers over white, backing discs, wells on sheets, T4/T5 bodies, cover overlays, the ambient field, avatar glyphs, and both negative cases. Copy the output table into `qa.md`. A missing case is an open issue for the shared track; you do not edit `design/`.
 3. **The three worst cases in widgets** (`glass_qa_test.dart`, fake engine and fake repositories):
    - The manga reader's top group over a page sample with `pTop = 1.0` settles at dim 0.64 and `GlassTextAxes.grad` 40, and at 0.72 under Increase Contrast (`MediaQueryData(highContrast: true)` on iOS, and separately the in-app switch).
@@ -130,7 +130,7 @@ Sections cited are `glass/DESIGN.md` unless marked. Every widget test below runs
 
 Add a `mobile-45` group family to `mobile/test/screenshots/marketing_screenshots_test.dart`, with one `--plain-name` per sub-group so each run stays small. Use every route of B1, the demo art only, and invented titles only.
 
-1. **Main sets** (`mobile-45 screens`, `MM_PROOF_DIR=../docs/redesign/proof/mobile-45/screens`). Capture at `phone` 390 × 844 @3 and `phone-max` 440 × 956 @3 (the phone frame), at `tablet` 834 × 1194 @2 (the tablet frame), at `tablet-wide` 1024 × 1366 @2 (the desktop frame, collapsed sidebar) and at `desktop` 1180 × 820 @2 (the desktop frame, full sidebar; §8.0.1). `captureSkinScreen` writes `glass-<screenId>-<w>x<h>.png`; sheet routes are also captured through `captureSkinWidget` as `<screenId>-sheet-<size>.png`.
+1. **Main sets** (`mobile-45 screens`, `MM_PROOF_DIR=../docs/redesign/proof/mobile-45/screens`). Capture at `phone` 390 × 844 @3 and `phone-max` 440 × 956 @3 (the phone frame), at `tablet` 834 × 1194 @2 (the tablet frame), at `tablet-wide` 1024 × 1366 @2 (the desktop frame, collapsed sidebar) and at `desktop` (`kSkinShotDesktop`, 1366 × 1024 @2: the desktop frame, full sidebar; §8.0.1). `captureSkinScreen` writes `glass-<screenId>-<w>x<h>.png`; sheet routes are also captured through `captureSkinWidget` as `<screenId>-sheet-<size>.png`.
 2. **Accessibility variants** (`mobile-45 a11y`, `MM_PROOF_DIR=../docs/redesign/proof/mobile-45/screens-a11y`), one per screen at 390 × 844 with a DPR-1 copy of the phone size (`SkinShotSize('phone', Size(390, 844), 1.0, EdgeInsets.only(top: 47, bottom: 34))`, to keep the folder small), as `<screenId>-{reduced,solid,contrast,bold,legible}-phone.png`:
    - Reduce Motion: `MediaQueryData(disableAnimations: true)`.
    - Solid glass: the `mm/platform` `a11y.reduceTransparency` fake returning true.
@@ -434,7 +434,7 @@ Skin files import only `features/*/{models,providers,repositories,services,store
 - [ ] `glass_physics_test.dart` asserts every §15.8 value (`tierFor(401) == T4`). `node design/build.mjs --check` passes with every §15.8 contrast case listed. The three worst cases hold in widgets: dim 0.64 and `GRAD` 40 over white, 0.72 under Increase Contrast, and the 0.72 plateau under the dock.
 - [ ] The Flutter calibration capture exists as `calibration-flutter-harness.png`, with either both square counts within one square of the web's or the item recorded as blocked, and the device captures requested in the checklist.
 - [ ] Harness screenshots exist for every `ScreenId`:
-  - at 390 × 844 @3, 440 × 956 @3, 834 × 1194, 1024 × 1366 and 1180 × 820, with sheet routes in both presentations;
+  - at 390 × 844 @3, 440 × 956 @3, 834 × 1194, 1024 × 1366 and 1366 × 1024 (`kSkinShotDesktop`), with sheet routes in both presentations;
   - Reduce Motion, Solid glass, Increase Contrast, Bold Text and Legible text per screen, with the in-app switch captures identical to the OS-path ones;
   - text scale 1.0, 1.3 and 2.0 per screen;
   - the states;

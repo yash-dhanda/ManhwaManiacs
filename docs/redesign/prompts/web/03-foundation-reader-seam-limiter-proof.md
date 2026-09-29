@@ -186,7 +186,7 @@ Commit A1–A7 separately, in this order, with `npm run test` green after each.
 
     ```
     # backend: see backend/scripts/README-dev-stack.md (uvicorn 127.0.0.1:8010, dev SQLite, never production data)
-    # frontend: free -m && BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010
+    # frontend: free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010
     # then:     MM_PROOF_USER=… MM_PROOF_PASSWORD=… node scripts/proof.mjs --step web-08 --skin cinematic --routes /,/library
     ```
 
@@ -287,7 +287,7 @@ Mobile and backend: this step changes neither. Judge that by your own commits, n
 **Dev stack and proof.**
 
 1. Start the backend dev stack exactly as `backend/scripts/README-dev-stack.md` says (uvicorn 127.0.0.1:8010, the dev SQLite under `/srv/manhwamaniacs/dev/data/`, never production data). Export `MM_PROOF_USER` and `MM_PROOF_PASSWORD` from that README's demo account.
-2. `free -m && BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010` in the background.
+2. `free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010` in the background.
 3. **Before** section A starts: find one seeded chapter URL and one read-all URL (for example from `GET /api/library/continue-reading`). Take the reader screenshots listed in the acceptance criteria into `docs/redesign/proof/web-03/before/`, with a one-off Playwright script. `proof.mjs` does not exist yet at that point; write it first, and it becomes that script.
 4. **After**: `node scripts/proof.mjs --step web-03/after --skin legacy --routes <reader URL>,<read-all URL>`, plus the chrome, sheet, paged and broken-page states (drive those with small additions to the same run, or a scratch script under `/tmp` that imports `signIn` from `scripts/proof.mjs`).
 5. Harness self-check: `node scripts/proof.mjs --step web-03/harness --skin cinematic --routes /,/library --dpr3 --reduced --grid`.
@@ -298,7 +298,7 @@ Mobile and backend: this step changes neither. Judge that by your own commits, n
 
 - Branch `feat/vps-slim-source-native`. Commits: plan; A1 to A7 as separate commits (A1 a pure move); engine lint block; limiter; the limiter wiring and `retryAfterMs`; hover dwell; `coverTransitionName`; `proof.mjs`; proof images. Push after each working step: `git push origin feat/vps-slim-source-native`.
 - Stage explicit paths only, never `git add -A`: mobile, backend and shared sessions commit in this checkout.
-- No Claude or AI attribution (no `Co-Authored-By`, no "Generated with" line). Never commit secrets (including the demo password), `.env*` or `.claude/`.
+- No Claude or AI attribution (no `Co-Authored-By`, no "Generated with" line). Never commit real credentials or secrets (the dev-stack demo password is committed only in `backend/scripts/README-dev-stack.md` by `backend/00`; never copy it into a spec, script or proof file), `.env*` or `.claude/`.
 - `npm run build` must pass before every push.
 
 ## Guardrails

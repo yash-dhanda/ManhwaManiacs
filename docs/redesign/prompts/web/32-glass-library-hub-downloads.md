@@ -226,7 +226,7 @@ cd .. && node design/build.mjs --check && cd frontend
 Dev stack and browser checks: start the backend exactly as `backend/scripts/README-dev-stack.md` says (uvicorn 127.0.0.1:8010, the dev SQLite under `/srv/manhwamaniacs/dev/data/`, never production data), export `MM_PROOF_USER` and `MM_PROOF_PASSWORD` from its demo account, then:
 
 ```bash
-free -m && BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010
+free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010
 # second shell
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=$MM_PROOF_USER E2E_PASSWORD=$MM_PROOF_PASSWORD npx playwright test e2e/glass/web-32-library-hub.spec.ts --workers=1
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=$MM_PROOF_USER E2E_PASSWORD=$MM_PROOF_PASSWORD npx playwright test e2e/glass --workers=1
@@ -248,7 +248,7 @@ free -m && node scripts/proof.mjs --step web-32/cinematic --skin cinematic --ses
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the plan; each section A module with its test; then one commit per screen (shelf and browse, collections, collection detail, history, bookmarks, updates, downloads and accessory); the e2e spec; the proof. Example: `feat(web-glass): library shelf with pinch density and bulk selection`.
 - Stage explicit paths only (`git add frontend/src/skins/glass/screens/library/LibraryScreen.tsx …`), never `git add -A` or `git add .`: the mobile, backend and shared sessions commit in the same checkout.
-- No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets (including the demo password), `.env*` or `.claude/`.
+- No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit real credentials or secrets (the dev-stack demo password is committed only in `backend/scripts/README-dev-stack.md` by `backend/00`; never copy it into a spec, script or proof file), `.env*` or `.claude/`.
 - Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass stays behind the debug row until `release/01`.
 

@@ -316,7 +316,7 @@ World fixture: account 1 with profiles A and B, account 2 with profile C, accoun
 - [ ] A profile that shares nothing still sees sharers (`CIRCLE_REQUIRES_VIEWER_SHARING = False`).
 - [ ] Per-skin differences are all served by one API: Cinematic reads `now.title`, `now.ambient`, `now.chapter_number` and ignores `streak`; Glass reads `now.since`, `last_active_at`, `streak` and `palette`; `show_presence` gates `now` for **both** skins (glass §15.6); no endpoint takes a skin parameter.
 - [ ] Reduced motion, web keyboard access and 44 pt hit targets: not applicable to this backend step (no UI); the payloads carry no animation, layout or hit-target values. The client steps `web/22`, `mobile/22`, `web/43`, `mobile/43` own them.
-- [ ] `git diff --stat $BASE..HEAD -- frontend mobile backend/connectors ops` prints nothing.
+- [ ] `git show --name-only --format= <hash> -- frontend mobile backend/connectors ops` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) prints nothing.
 - [ ] Every test that passed before your first change still passes; the new tests pass; 0 failed.
 - [ ] `backend/docs/circle-api.md` documents every endpoint of this step.
 - [ ] Proof JSON files exist under `docs/redesign/proof/backend-08/`.
@@ -334,7 +334,7 @@ free -m
 timeout 1800 .venv/bin/python -m pytest -q --no-header 2>&1 | tail -25 > ../docs/redesign/proof/backend-08/pytest-after.txt   # before count + new tests, 0 new failures
 ```
 
-This step changes no web or mobile file, so the baseline's `npm run lint`, `npm run build` (in `frontend/`), `flutter analyze` and `flutter test` (in `mobile/`, Flutter at `/srv/manhwamaniacs/dev/flutter/bin`) are not re-run; prove it with `git diff --stat $BASE..HEAD -- frontend mobile` printing nothing.
+This step changes no web or mobile file, so the baseline's `npm run lint`, `npm run build` (in `frontend/`), `flutter analyze` and `flutter test` (in `mobile/`, Flutter at `/srv/manhwamaniacs/dev/flutter/bin`) are not re-run; prove it with `git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) printing nothing.
 
 **Proof** (the backend has no screens, so the proof is captured JSON from the dev stack of `backend/00`; there are no Playwright screenshots in this step). The dev stack runs on `127.0.0.1:8010` against a dev SQLite file under `/srv/manhwamaniacs/dev/data/`, never production data; its seeded account `demo` has profiles **Riya** (18+ open) and **Aarav** (18+ closed), and Aarav follows three of Riya's series. `dev_stack.sh api METHOD PATH [JSON]` signs in and sends `X-Profile-Id` for the profile named by `MM_DEV_PROFILE` (default `Riya`).
 

@@ -221,7 +221,7 @@ cd .. && node design/build.mjs --check && cd frontend
 For the Playwright work, start the dev stack of `backend/scripts/README-dev-stack.md`, then in `frontend/`:
 
 ```bash
-free -m && npm run dev -- -p 3010
+free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- -p 3010
 # in a second shell, one spec at a time:
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=demo E2E_PASSWORD='<from README-dev-stack.md>' npx playwright test e2e/cinematic-qa.spec.ts --workers=1
 # then cinematic-focus, cinematic-motion, cinematic-signature the same way

@@ -311,7 +311,7 @@ The dev stack has no `DEEPSEEK_API_KEY`, so these show the `not_configured` path
 - [ ] Per-skin: both skins read this one payload. Cinematic uses `headline`, `deck`, `kicker_title`, `cover`, `also` and every section; Glass uses `cover` and the sections for its spotlight and rails, computes its own greeting, and sends `refresh=1` on pull to refresh. Nothing in the response is skin-specific.
 - [ ] UI rules (reduced motion, keyboard access, 44 pt hit targets) belong to the client steps `web/08`, `mobile/08`, `web/31` and `mobile/31`. This step serves them by sending whole strings (the typed headline is typed by the client from `headline`, never streamed) and by never making the page wait on the AI, so a reduced-motion client can render the final state at once.
 - [ ] `backend/docs/home-api.md` exists and matches the implementation.
-- [ ] `git diff --stat -- frontend mobile ops backend/connectors` prints nothing.
+- [ ] `git show --name-only --format= <hash> -- frontend mobile ops backend/connectors` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) prints nothing.
 
 ## Verification
 
@@ -326,7 +326,7 @@ timeout 1800 .venv/bin/python -m pytest -q --no-header 2>&1 | tail -25 > ../docs
 cat ../docs/redesign/proof/backend-04/pytest-after.txt
 ```
 
-Web and mobile suites are not run in this step because no file under `frontend/` or `mobile/` changes (`git diff --stat -- frontend mobile` must print nothing). Their baseline commands (from `00-baseline.md`) are `npm run lint` and `npm run build` in `frontend/`, and `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`; if you ever touch those folders, run them, one at a time, with `free -m` before each.
+Web and mobile suites are not run in this step because no file under `frontend/` or `mobile/` changes (`git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) must print nothing). Their baseline commands (from `00-baseline.md`) are `npm run lint` and `npm run build` in `frontend/`, and `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`; if you ever touch those folders, run them, one at a time, with `free -m` before each.
 
 Then the proof of section G.
 

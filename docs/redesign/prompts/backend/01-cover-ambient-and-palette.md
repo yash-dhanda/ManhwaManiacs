@@ -181,7 +181,7 @@ Changed: `backend/database/models.py` (`CoverPalette`), `backend/core/cache_tabl
 - [ ] The 18+ gate holds on serve: a gated profile never receives a mature row, so never its colours; `cover_palette` holds no user, profile or gate column.
 - [ ] `cover_palette` is in `CACHE_TABLES` and in `CACHE_RETENTION_RULES`; revision `0019_cover_palette` is the head and matches the models.
 - [ ] Per-skin difference: Cinematic reads `ambient` (duotones, page spill, issue ink); Glass reads `palette` (the ambient field blobs, rim tints, `l` for the field term and `lMax` for surfaces over the cover, glass §2.1.7). Both ride on the same payloads; neither skin computes a cover colour on the device when the field is present.
-- [ ] No UI changes: `git diff --stat -- frontend mobile` is empty, so reduced-motion, keyboard access and 44 pt hit targets are unaffected by construction.
+- [ ] No UI changes: `git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) is empty, so reduced-motion, keyboard access and 44 pt hit targets are unaffected by construction.
 - [ ] The full backend suite passes with the backend-00 pass count plus the new tests; no test that passed before fails.
 
 ## Verification
@@ -194,7 +194,7 @@ free -m
 timeout 1800 .venv/bin/python -m pytest -q --no-header
 ```
 
-Web and mobile suites are not run: `git diff --stat -- frontend mobile` must print nothing. Their baseline commands, for the record: `npm run lint` and `npm run build` in `frontend/`; `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
+Web and mobile suites are not run: `git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) must print nothing. Their baseline commands, for the record: `npm run lint` and `npm run build` in `frontend/`; `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
 
 ## RAM guard
 

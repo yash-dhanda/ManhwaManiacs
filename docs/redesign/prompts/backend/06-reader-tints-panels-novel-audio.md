@@ -202,7 +202,7 @@ Stop the dev stack afterwards. No web screen changes here, so there are no Playw
 - [ ] Per-skin: both skins' reader engines post the same two reports and read the same manifest fields (cinematic §9.4.3 is the contract for both; glass §9.4.3 says so); Cinematic's chrome derives `page.tint`/`page.light` and Glass's derives its OKLCH-clamped tint from the same stored hex. The Audiobook `RE-VOICE` pick is Cinematic's (§8.16.8); Glass reads the same two fields. Nothing here branches on the skin.
 - [ ] UI rules (reduced motion, keyboard access, 44 pt targets) belong to the reader steps (`web/12`, `web/23`, `web/44` and their mobile twins). This step serves them by making the tint and panels available from the manifest before any sampling, so a reduced-motion client can apply the stored tint at once without a transition, and guided view can open framed on the first panel.
 - [ ] `backend/docs/reader-reports-api.md` matches the implementation.
-- [ ] `git diff --stat -- frontend mobile ops backend/connectors backend/routes/sources.py` prints nothing.
+- [ ] `git show --name-only --format= <hash> -- frontend mobile ops backend/connectors backend/routes/sources.py` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) prints nothing.
 
 ## Verification
 
@@ -217,7 +217,7 @@ timeout 1800 .venv/bin/python -m pytest -q --no-header 2>&1 | tail -25 > ../docs
 cat ../docs/redesign/proof/backend-06/pytest-after.txt
 ```
 
-Web and mobile are not run because nothing under `frontend/` or `mobile/` changes (`git diff --stat -- frontend mobile` prints nothing). Their baseline commands, if you ever touch them: `npm run lint` and `npm run build` in `frontend/`; `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
+Web and mobile are not run because nothing under `frontend/` or `mobile/` changes (`git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) prints nothing). Their baseline commands, if you ever touch them: `npm run lint` and `npm run build` in `frontend/`; `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
 
 ## RAM guard
 

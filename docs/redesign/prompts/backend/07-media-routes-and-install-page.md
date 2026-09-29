@@ -94,7 +94,7 @@ BRAND_FILES = {
 | Route | Serves | Headers |
 |---|---|---|
 | `GET /app/soundscapes/{name}` | `name` in `CINEMATIC_SOUNDSCAPES` → `SOUNDSCAPES_DIR / name`; `name` of the form `glass-{scene}-{layer}.{ext}` whose remainder after `glass-` is in `GLASS_LAYERS` → `SOUNDSCAPES_DIR / "glass" / remainder` (the id spelling of glass §9.4.2 and §15.5) | `Content-Type` from `AUDIO_TYPES`; `Cache-Control: IMMUTABLE` |
-| `GET /app/soundscapes/glass/{name}` | `name` in `GLASS_LAYERS` → `SOUNDSCAPES_DIR / "glass" / name` (the path the plan, `web/44` and `mobile/44` use) | as above |
+| `GET /app/soundscapes/glass/{name}` | `name` in `GLASS_LAYERS` → `SOUNDSCAPES_DIR / "glass" / name` (the plan's older alias; `web/44` and `mobile/44` request the id spelling of the row above) | as above |
 | `GET /app/fonts/{name}` | `name` in `FONT_FILES` → `FONTS_DIR / name` | `Content-Type: font/woff2`; `Cache-Control: IMMUTABLE` |
 | `GET /app/brand/{name}` | `name` a key of `BRAND_FILES` → `BRAND_DIR / BRAND_FILES[name]` | `Content-Type: image/png`; `Cache-Control: public, max-age=86400` (not immutable: `web/24` replaces `og.png`'s capture later) |
 
@@ -255,7 +255,7 @@ Run it with `node docs/redesign/proof/backend-07/shoot.mjs > docs/redesign/proof
 - [ ] Reduced motion: with `prefers-reduced-motion: reduce` the hover rule and the press impression do not animate (they switch instantly).
 - [ ] Per-skin: the page is skin-neutral and owned by Cinematic (glass §12.6, §15.6); both skins' clients fetch the soundscape files from these routes (Cinematic's eight loops; Glass's layers through either spelling), and the fonts and brand routes serve only the install page. Nothing branches on the skin.
 - [ ] The four screenshots and `fonts-loaded.json` are in `docs/redesign/proof/backend-07/`, and you looked at each.
-- [ ] `git diff --stat -- frontend mobile backend/connectors` prints nothing.
+- [ ] `git show --name-only --format= <hash> -- frontend mobile backend/connectors` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) prints nothing.
 
 ## Verification
 
@@ -273,7 +273,7 @@ cd .. && python3 -c "import yaml; yaml.safe_load(open('ops/vps/docker-compose.ym
 
 Then the proof of section F (`free -m` before starting the dev stack and before launching Chromium).
 
-Web and mobile suites are not run because nothing under `frontend/` or `mobile/` changes (`git diff --stat -- frontend mobile` prints nothing; installing Playwright's browser writes only to `~/.cache`). Their baseline commands, if you ever touch them: `npm run lint` and `npm run build` in `frontend/`; `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
+Web and mobile suites are not run because nothing under `frontend/` or `mobile/` changes (`git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) prints nothing; installing Playwright's browser writes only to `~/.cache`). Their baseline commands, if you ever touch them: `npm run lint` and `npm run build` in `frontend/`; `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
 
 ## RAM guard
 

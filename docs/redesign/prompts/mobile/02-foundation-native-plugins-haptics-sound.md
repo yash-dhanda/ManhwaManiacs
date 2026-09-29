@@ -39,7 +39,7 @@ grep -n "phosphor_flutter\|dependency_overrides" mobile/pubspec.yaml # must prin
 
 ## Skills to invoke
 
-- `superpowers:writing-plans` first. Save the plan at `docs/redesign/plans/mobile-02.md`. The plan must show the CI gate between the dependency commit and every commit that uses a plugin.
+- `superpowers:writing-plans` first. Save the plan at `docs/redesign/proof/mobile-02/plan.md`. The plan must show the CI gate between the dependency commit and every commit that uses a plugin.
 - `superpowers:executing-plans` for A and B (they wait on CI between commits); `superpowers:subagent-driven-development` is allowed for C and D once B is green. Verify every slice against `git status` and `git diff`, never against a report.
 - `superpowers:test-driven-development` for the pattern parser, the platform routing table, the sequence timing, the audio-state machine and the sound preferences.
 - `impeccable` and `taste-skill:taste-skill` for the Feedback lab only (a plain, legible debug list in the legacy Diagnostics style).
@@ -47,7 +47,7 @@ grep -n "phosphor_flutter\|dependency_overrides" mobile/pubspec.yaml # must prin
 
 ## Track rules (every mobile step)
 
-- Work in `mobile/` plus `.github/workflows/tests.yml` (this step's CI job), `docs/redesign/plans/` and `docs/redesign/proof/mobile-02/`. Never touch `frontend/`, `backend/` (never `backend/connectors/`), `design/` sources or generated files.
+- Work in `mobile/` plus `.github/workflows/tests.yml` (this step's CI job) and `docs/redesign/proof/mobile-02/`. Never touch `frontend/`, `backend/` (never `backend/connectors/`), `design/` sources or generated files.
 - Stage explicit paths only; never `git add -A`, `git add .` or `git commit -a`.
 - Flutter is `/srv/manhwamaniacs/dev/flutter/bin/flutter`. `flutter pub get`, `flutter analyze` and `flutter test` only after `free -m`, one at a time, never while a `next build` runs. **Never `flutter build` on this box**: the APK and the iOS app are built by CI runners.
 - Device checks are a checklist for the owner (iPhone through SideStore, the Android flagship).
@@ -214,7 +214,7 @@ mobile/test/skins/{skin_haptics,skin_audio}_test.dart                      new
 mobile/test/android/audio_service_manifest_test.dart                       new
 mobile/test/audit/pubspec_pins_test.dart                                   new
 mobile/test/features/settings/feedback_lab_test.dart                       new
-docs/redesign/plans/mobile-02.md                                           new
+docs/redesign/proof/mobile-02/plan.md                                           new
 docs/redesign/proof/mobile-02/{pub-deps.txt,dependency-gate.md,device-check.md,*.png}   new
 ```
 

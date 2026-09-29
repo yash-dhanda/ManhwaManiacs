@@ -32,7 +32,7 @@ Read these completely before planning. Where this file and `cinematic/DESIGN.md`
 
 - `git log --oneline -15` shows the `web/11` work; `npm run test` in `frontend/` is green before you touch anything (record the file and case counts; they are your floor).
 - `frontend/src/skins/cinematic/index.ts` still lists `reader` and `readerLanding` in `PENDING`.
-- **Record the S1 and S11 sign-off first.** `cinematic/DESIGN.md` §15.10 marks S1 (per-page tint on the client) and S11 (panel detection on the client) "sign-off before the reader cluster", and its "Owner calls" paragraph decides both. Run `grep -rln "S11" docs/redesign --include=*.md | grep -v DESIGN.md`. If no file records the sign-off yet, create `docs/redesign/signoffs.md` with one line each: `S1 — per-page tint computed on the client, backend caches client reports (cinematic §15.10 owner call) — recorded 2026-MM-DD by web/12` and the same for S11 (panel detection), and commit it as its own commit before any code. If a record exists (for example from `backend/06`), cite it in the report and change nothing.
+- **Record the S1 and S11 sign-off first.** `cinematic/DESIGN.md` §15.10 marks S1 (per-page tint on the client) and S11 (panel detection on the client) "sign-off before the reader cluster", and its "Owner calls" paragraph decides both. Run `grep -n "^S1 \|^S11 " docs/redesign/signoffs.md` (the one record, owned by `backend/06`, which runs first and writes the `S1 …`, `S11 …`, `G6 …` and `G14 …` lines; a grep over all of `docs/redesign` would also match the prompt files). If no file records the sign-off yet, create `docs/redesign/signoffs.md` with one line each: `S1 — per-page tint computed on the client, backend caches client reports (cinematic §15.10 owner call) — recorded 2026-MM-DD by web/12` and the same for S11 (panel detection), and commit it as its own commit before any code. If a record exists (for example from `backend/06`), cite it in the report and change nothing.
 
 ## Skills to invoke
 
@@ -81,7 +81,7 @@ C7. No grain, blur, drift or backdrop effects over pages (§15.6); the chrome is
 
 ### D. Entry and exit (§8.14.2, §8.0.4)
 
-D1. **Column wipe** when the reader is entered from Tonight (the cover story's `Continue`, a cutting, a rail's Quick look `Continue`), from a feature or book page (`Read`, `Continue`, `Read all`, a chapter row, `Listen`), or from a recap opened from those two places. Use the `ColumnWipe` overlay from `motion.ts` (`web/06`); if the entry controls built in `web/08` and `web/11` do not yet route through it, wire them now through one helper `openReader(href, { entry: "wipe" | "dip" })` in `frontend/src/skins/cinematic/screens/reader/entry.ts`.
+D1. **Column wipe** when the reader is entered from Tonight (the cover story's `Continue`, a cutting, a rail's Quick look `Continue`), from a feature or book page (`Read`, `Continue`, `Read all`, a chapter row, `Listen`), or from a recap opened from those two places. Use the `ColumnWipe` overlay from `motion.ts` (`web/06`); if the entry controls built in `web/08` and `web/11` do not yet route through it, wire them now through `web/06`'s one helper `enterReader(href, { entry: "wipe" | "dip", prefetch })` (`frontend/src/skins/cinematic/shell/reader-entry.ts`, re-exported by `motion.ts`). Never add a second entry helper (no `openReader`).
    - Close: the viewport is divided into the current grid's columns including gutters and margins, 4 blades on phones, 8 on tablets, 12 on desktop, blade edges on column edges; each blade is a `#000` strip scaling `scaleY 0 → 1` from the top edge, 200 ms (`dur.wipe.close`) `ease.settle`, staggered 16 ms left → right (desktop 376 ms, tablet 312 ms, phone 248 ms).
    - Hold on black 40 ms (`dur.hold.dip`); the route swaps underneath; sound `wipe` if UI sounds are on; the web maps `reader.enter` to no vibration.
    - Open: blades retract `scaleY 1 → 0` toward the bottom edge, 280 ms (`dur.wipe.open`) `ease.settle`, staggered 16 ms (desktop 456, tablet 392, phone 328 ms). Totals 872 / 744 / 616 ms.
@@ -253,7 +253,7 @@ frontend/src/skins/cinematic/screens/reader/
   ImageLayers.tsx        dimmer, warmth
   EdgeHud.tsx            brightness and auto-scroll speed HUD
   ZoomChip.tsx           I4 chip
-  entry.ts               openReader(), entry kind, back target
+  entry.ts               back target only (entry goes through web/06's enterReader)
   gestures.ts            tap/double-tap/double-click classifiers, chapter-swipe eligibility, edge zones (+ gestures.test.ts)
   keys.ts                reader bindings and the escape reducer (+ keys.test.ts)
 frontend/src/features/reader/zoom.ts (+ zoom.test.ts)                    A1

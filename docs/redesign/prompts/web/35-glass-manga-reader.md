@@ -34,7 +34,7 @@ git branch --show-current                                         # feat/vps-sli
 test -f docs/redesign/proof/web-34/report.md && echo web-34 done
 grep -rn "currentPageSample\|pageLayerTransform\|commitNeighbour" frontend/src/features/reader/engine/types.ts | head -5
 grep -n "feature" frontend/src/skins/glass/index.ts | head -3     # feature is no longer PENDING (web/33)
-grep -n "G6\|G14\|S1\|S11" docs/redesign/signoffs.md
+grep -n "^S1 \|^S11 \|^G6 \|^G14 " docs/redesign/signoffs.md
 node design/build.mjs --check
 cd frontend && free -m && npm run test 2>&1 | tail -5             # record the vitest file and case counts: your floor
 ```
@@ -259,7 +259,7 @@ cd .. && node design/build.mjs --check && cd frontend
 Dev stack as `backend/scripts/README-dev-stack.md` says (uvicorn 127.0.0.1:8010, the dev SQLite, never production data); export `MM_PROOF_USER` and `MM_PROOF_PASSWORD` from its demo account; then:
 
 ```bash
-free -m && BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010
+free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010
 # second shell
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=$MM_PROOF_USER E2E_PASSWORD=$MM_PROOF_PASSWORD npx playwright test e2e/glass/web-35-reader.spec.ts --workers=1
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=$MM_PROOF_USER E2E_PASSWORD=$MM_PROOF_PASSWORD npx playwright test e2e/glass e2e/engine --workers=1
@@ -283,7 +283,7 @@ free -m && node scripts/proof.mjs --step web-35/cinematic --skin cinematic --ses
 
 - Branch `feat/vps-slim-source-native`. Commit small and often: the plan; §A with its tests; the frame and light layers; the chrome; the tint and dim; strip, seams and boundaries; paged; gestures; the settings sheet; the chapter list and side panels; the dialogue overlay and hit lens; states and landing; keys; the e2e spec; the proof. Example: `feat(web-glass): manga reader chrome with page tint and the legibility dim`.
 - Stage explicit paths only, never `git add -A` or `git add .`: the mobile, backend and shared sessions commit in the same checkout.
-- No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets (including the demo password), `.env*` or `.claude/`.
+- No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit real credentials or secrets (the dev-stack demo password is committed only in `backend/scripts/README-dev-stack.md` by `backend/00`; never copy it into a spec, script or proof file), `.env*` or `.claude/`.
 - Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass stays behind the debug row until `release/01`.
 

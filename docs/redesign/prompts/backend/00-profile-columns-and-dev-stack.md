@@ -171,7 +171,7 @@ Subcommands:
 
 ```bash
 cd /srv/manhwamaniacs/dev/ManhwaManiacs/frontend
-BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npx next dev -p 3010
+NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npx next dev -p 3010
 # open http://localhost:3010 and sign in as demo
 ```
 
@@ -220,7 +220,7 @@ Nothing under `frontend/`, `mobile/`, `ops/`, `backend/connectors/` or `/srv/man
 - [ ] `backend/scripts/dev_stack.sh reset` brings up 127.0.0.1:8010 on `/srv/manhwamaniacs/dev/data/dev.db`, seeds `demo` with Riya (18+ open) and Aarav (18+ closed), at least 4 non-18+ manga follows and 2 novel follows, progress on 6 consecutive days, 3 bookmarks and the "Weekend binge" collection.
 - [ ] `dev_stack.sh` refuses to start against any path under `/srv/manhwamaniacs/data` or `/srv/manhwamaniacs/app`, and `seed_demo.py` refuses any base URL other than `127.0.0.1:8010` or `localhost:8010`.
 - [ ] Per-skin difference: none on the server side. Cinematic and Glass read the same `skin` column; Glass alone reads `daily_goal_minutes` (the goal ring, glass §9.2.2); both read `onboarding_step` (Cinematic steps 1–5, Glass 1–7) and `notify_enabled`.
-- [ ] No UI changes: no file under `frontend/` or `mobile/` changed (`git diff --stat -- frontend mobile` is empty), so reduced-motion, keyboard access and 44 pt hit targets are unaffected by construction.
+- [ ] No UI changes: no file under `frontend/` or `mobile/` changed (`git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) is empty), so reduced-motion, keyboard access and 44 pt hit targets are unaffected by construction.
 - [ ] The full backend suite passes with at least the baseline's pass count plus the new tests; no test that passed in the baseline fails.
 
 ## Verification
@@ -235,7 +235,7 @@ free -m
 timeout 1800 .venv/bin/python -m pytest -q --no-header
 ```
 
-Web and mobile suites are not run in this step because no file under `frontend/` or `mobile/` changes (check with `git diff --stat -- frontend mobile`, which must print nothing). For the record, their baseline commands (from `00-baseline.md`) are `npm run lint` and `npm run build` in `frontend/`, and `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
+Web and mobile suites are not run in this step because no file under `frontend/` or `mobile/` changes (check with `git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch), which must print nothing). For the record, their baseline commands (from `00-baseline.md`) are `npm run lint` and `npm run build` in `frontend/`, and `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
 
 Then the dev stack proof of section G.
 

@@ -302,7 +302,7 @@ await browser.close();
 Check the persisted shape against `frontend/src/features/profiles/store.ts` (`partialize` keeps `activeProfile` and `ownerUserId`; use its `version`, 0 when none is set). If Chromium is missing (`ls ~/.cache/ms-playwright`), run `npx playwright install chromium` in `frontend/`.
 
 1. Start the dev stack as `backend/scripts/README-dev-stack.md` says (uvicorn on 127.0.0.1:8010 against the dev SQLite under `/srv/manhwamaniacs/dev/data/`, never production data). Set `MM_USER` and `MM_PASS` to the demo credentials that README documents.
-2. **Before** your first change: `free -m`, then `cd frontend && BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010` in the background. Then run `node /tmp/mm-shoot.mjs docs/redesign/proof/web-00/before none /library /library/browse /library/history /settings /profiles /search /sources /downloads /more /reader /no-such-page`. Stop `next dev` before any `npm run build`.
+2. **Before** your first change: `free -m`, then `cd frontend && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010` in the background. Then run `node /tmp/mm-shoot.mjs docs/redesign/proof/web-00/before none /library /library/browse /library/history /settings /profiles /search /sources /downloads /more /reader /no-such-page`. Stop `next dev` before any `npm run build`.
 3. **After**: the same command into `docs/redesign/proof/web-00/after`, then `node /tmp/mm-shoot.mjs docs/redesign/proof/web-00/after cinematic / /library /setup /no-such-page` and the same for `glass`.
 4. Compare every before/after legacy pair.
 

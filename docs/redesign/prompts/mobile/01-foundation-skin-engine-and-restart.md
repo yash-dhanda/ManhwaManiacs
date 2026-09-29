@@ -41,7 +41,7 @@ If `contract.g.dart` is missing, shared/00 has not run; if `profiles.py` has no 
 
 ## Skills to invoke
 
-- `superpowers:writing-plans` first. Save the plan at `docs/redesign/plans/mobile-01.md`.
+- `superpowers:writing-plans` first. Save the plan at `docs/redesign/proof/mobile-01/plan.md`.
 - `superpowers:subagent-driven-development` to run it (or `superpowers:executing-plans` inline). Slices: (A) skin types and skeleton skins; (B) boot, restart and switch; (C) outbox and profile field; (D) debug row; (E) tests and manifest. B depends on A; give each subagent this file's path and its section. Verify every slice against `git status` and `git diff`, never against a report.
 - `superpowers:test-driven-development` for `SkinBoot.read`, `resolveBootRestart`, the outbox, `switchSkin` ordering and the restart timing (write each test first).
 - `impeccable` and `taste-skill:taste-skill` only for the one new visible element, the pending screen: keep it plain, skin-neutral and silent.
@@ -49,7 +49,7 @@ If `contract.g.dart` is missing, shared/00 has not run; if `profiles.py` has no 
 
 ## Track rules (every mobile step)
 
-- Work in `mobile/` only, plus `docs/redesign/plans/` and `docs/redesign/proof/mobile-01/`. Never touch `frontend/`, `backend/` (never `backend/connectors/`), `design/` sources, or generated `*.g.dart` files (regenerate with `node design/build.mjs` only if the contract is wrong, and then report it instead of committing it).
+- Work in `mobile/` only, plus `docs/redesign/proof/mobile-01/`. Never touch `frontend/`, `backend/` (never `backend/connectors/`), `design/` sources, or generated `*.g.dart` files (regenerate with `node design/build.mjs` only if the contract is wrong, and then report it instead of committing it).
 - Stage only your own paths with explicit `git add <path>`; never `git add -A`, `git add .` or `git commit -a`.
 - Flutter is `/srv/manhwamaniacs/dev/flutter/bin/flutter`; `flutter analyze` and `flutter test` only after `free -m`, one at a time, never while a `next build` runs.
 - No Gradle and no Xcode here: never run `flutter build`.
@@ -65,7 +65,7 @@ If `contract.g.dart` is missing, shared/00 has not run; if `profiles.py` has no 
    enum SkinId { cinematic, glass, legacy }
    SkinId? skinIdFromName(String? name);         // exact enum name, else null
    const SkinId kDefaultSkin = SkinId.legacy;    // release/00 changes this to SkinId.cinematic and deletes legacy.
-   const List<SkinId> kDebugSkins = [SkinId.legacy, SkinId.cinematic];   // mobile/25 adds SkinId.glass.
+   const List<SkinId> kDebugSkins = [SkinId.legacy, SkinId.cinematic];   // release/00 replaces legacy with SkinId.glass at the flip; mobile/25 only checks it.
 
    abstract interface class Skin {
      SkinId get id;
@@ -217,7 +217,7 @@ mobile/test/features/profiles/skin_outbox_test.dart               new
 mobile/test/features/settings/diagnostics_edition_row_test.dart   new
 mobile/test/android/predictive_back_manifest_test.dart            new
 mobile/test/** fakes of ProfilesRepository                        change (skin parameter)
-docs/redesign/plans/mobile-01.md                                  new
+docs/redesign/proof/mobile-01/plan.md                                  new
 docs/redesign/proof/mobile-01/*.png                               new
 ```
 

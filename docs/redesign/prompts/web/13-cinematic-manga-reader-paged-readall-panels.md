@@ -67,7 +67,7 @@ B10. Keys in paged modes: `→`/`d` and `←`/`a` turn by reading direction, `j`
 
 ### C. Read-all (`/read-all/:sourceId/:seriesKey?from&page&at`, ScreenId `readAll`)
 
-C1. Screen file `frontend/src/skins/cinematic/screens/read-all.tsx` rendering `<MangaReader kind="readAll">`; enters by the Column wipe from the feature page's `Read all` (the `openReader(…, { entry: "wipe" })` helper from `web/12`), by Dip from elsewhere; exits by Dip.
+C1. Screen file `frontend/src/skins/cinematic/screens/read-all.tsx` rendering `<MangaReader kind="readAll">`; enters by the Column wipe from the feature page's `Read all` (`web/06`'s `enterReader(href, { entry: "wipe" })` from `motion.ts`), by Dip from elsewhere; exits by Dip.
 C2. Continuous strip only: the Layout control and `w`/`v`/`r` are hidden and inert.
 C3. **Read-all divider** between chapters: a 48 px band with `142 → 143` in `type-folio` between hairlines (`rule.1`), no card and no pause ("without feeling it"); `scrub.boundary` when crossed (sound `tick`).
 C4. Running head: the chapter folio adds `· 12 OF 201` (from A4; spoken "chapter 12 of 201").

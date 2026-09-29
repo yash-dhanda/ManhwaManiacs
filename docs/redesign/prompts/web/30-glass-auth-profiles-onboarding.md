@@ -181,7 +181,7 @@ cd .. && node design/build.mjs --check && cd frontend
 Browser checks: start the dev stack as `backend/scripts/README-dev-stack.md` says (if `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8010/health` is not 200), then from `frontend/`:
 
 ```bash
-free -m && npm run dev -- -p 3010
+free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- -p 3010
 # second shell, one spec at a time; credentials from backend/scripts/README-dev-stack.md, never committed
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=<demo user> E2E_PASSWORD=<demo password> npx playwright test e2e/glass-auth-profiles.spec.ts --workers=1
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=<demo user> E2E_PASSWORD=<demo password> npx playwright test e2e/glass-onboarding.spec.ts --workers=1

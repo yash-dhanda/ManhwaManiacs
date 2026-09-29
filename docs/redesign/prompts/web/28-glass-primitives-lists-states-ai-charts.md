@@ -263,7 +263,7 @@ cd .. && node design/build.mjs --check && cd frontend
 Browser checks (from `frontend/`):
 
 ```bash
-free -m && npm run dev -- -p 3010
+free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- -p 3010
 # second shell, one spec at a time
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 npx playwright test e2e/glass-lists-states.spec.ts --workers=1
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 npx playwright test e2e/glass-overlays.spec.ts --workers=1

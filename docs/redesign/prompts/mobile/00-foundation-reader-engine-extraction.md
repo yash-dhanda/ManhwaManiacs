@@ -32,7 +32,7 @@ This step has no upstream dependency. Other sessions (web, backend, shared) may 
 
 ## Skills to invoke
 
-- `superpowers:writing-plans` before touching code. Save the plan at `docs/redesign/plans/mobile-00.md`; list the golden baseline commit, the extraction commit (with the tests that gate it) and each no-pixel move commit, one line each.
+- `superpowers:writing-plans` before touching code. Save the plan at `docs/redesign/proof/mobile-00/plan.md`; list the golden baseline commit, the extraction commit (with the tests that gate it) and each no-pixel move commit, one line each.
 - `superpowers:executing-plans` for section B (the extraction): it runs in **this** session, never split across parallel subagents, because the parts only compile together. `superpowers:subagent-driven-development` is allowed for section E (the widget-logic moves), one subagent per move; verify each against `git status` and `git diff`, never against the subagent's report.
 - `superpowers:test-driven-development` for the new engine tests of section C (write each test first, watch it fail on a stub, then pass).
 - `superpowers:verification-before-completion` before you claim anything is done.
@@ -40,7 +40,7 @@ This step has no upstream dependency. Other sessions (web, backend, shared) may 
 
 ## Track rules (every mobile step)
 
-- Work in `mobile/` only, plus `docs/redesign/plans/` and `docs/redesign/proof/mobile-00/`. Never touch `frontend/`, `backend/` (never `backend/connectors/`), `design/` sources, or generated `*.g.dart` files.
+- Work in `mobile/` only, plus `docs/redesign/proof/mobile-00/`. Never touch `frontend/`, `backend/` (never `backend/connectors/`), `design/` sources, or generated `*.g.dart` files.
 - Stage only your own paths with explicit `git add <path>`; never `git add -A`, `git add .` or `git commit -a` (web, backend and shared sessions commit in the same checkout).
 - Flutter is `/srv/manhwamaniacs/dev/flutter/bin/flutter`. Run `flutter analyze` and `flutter test` only after `free -m`, one at a time, never while a `next build` runs anywhere on the box (`pgrep -fa "next build"` must print nothing).
 - No Gradle and no Xcode on this box: never run `flutter build`. CI builds the iOS app (`.github/workflows/ios-build.yml`); the owner builds signed APKs on his own machine.
@@ -234,7 +234,7 @@ mobile/test/features/reader/reader_parity_golden_test.dart         new (section 
 mobile/test/features/reader/goldens/*.png                          new (14 files)
 mobile/test/features/reader/engine/*_test.dart                     new (4 files)
 mobile/test/**                                                     import / constructor-argument fixes only
-docs/redesign/plans/mobile-00.md                                   new
+docs/redesign/proof/mobile-00/plan.md                                   new
 docs/redesign/proof/mobile-00/device-check.md                      new
 docs/redesign/proof/mobile-00/*.png                                copies of the 14 goldens for the review
 ```

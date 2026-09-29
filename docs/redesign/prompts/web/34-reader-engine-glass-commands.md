@@ -31,12 +31,12 @@ git log --oneline -40 | grep -i "web-33\|series detail"         # web/33 landed
 grep -rn "pinchZoom\|zoomAt" frontend/src/features/reader | head -3          # web/12
 grep -rn "setLayout\|dragTurn" frontend/src/features/reader | head -3        # web/13
 grep -rn "pageToViewport\|setCamera" frontend/src/features/reader | head -3  # web/23
-grep -n "G6\|G14\|S1\|S11" docs/redesign/signoffs.md            # the page-sample and panel sign-offs are recorded
+grep -n "^S1 \|^S11 \|^G6 \|^G14 " docs/redesign/signoffs.md            # the page-sample and panel sign-offs are recorded
 cd frontend && free -m && npm run test 2>&1 | tail -5           # record the vitest file and case counts: your floor
 mkdir -p ../docs/redesign/proof/web-34 && npx vitest run src/features/reader --reporter=verbose > ../docs/redesign/proof/web-34/reader-tests-before.txt; tail -3 ../docs/redesign/proof/web-34/reader-tests-before.txt
 ```
 
-If a grep above is empty, the Cinematic step that owns it has not landed: stop and report which one. The `signoffs.md` grep passes on any one id, so read its output: it must show S1 and S11 (written by `web/12` or `mobile/12`) and G6 and G14 (written by `backend/06`, on the same approval line). If any of the four is missing, stop and report: the owner must sign off client-side page samples and panel detection first.
+If a grep above is empty, the Cinematic step that owns it has not landed: stop and report which one. The `signoffs.md` grep passes on any one id, so read its output: it must show all four lines `S1 …`, `S11 …`, `G6 …` and `G14 …` (written by `backend/06`; `web/12` or `mobile/12` add S1 and S11 only if they were missing). If any of the four is missing, stop and report: the owner must sign off client-side page samples and panel detection first.
 
 ## Skills to invoke
 
@@ -189,7 +189,7 @@ cd .. && node design/build.mjs --check && cd frontend
 Dev stack as `backend/scripts/README-dev-stack.md` says (uvicorn 127.0.0.1:8010, the dev SQLite, never production data); export `MM_PROOF_USER` and `MM_PROOF_PASSWORD` from its demo account; then:
 
 ```bash
-free -m && BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010
+free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010
 # second shell
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=$MM_PROOF_USER E2E_PASSWORD=$MM_PROOF_PASSWORD npx playwright test e2e/engine/web-34-engine.spec.ts --workers=1
 free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=$MM_PROOF_USER E2E_PASSWORD=$MM_PROOF_PASSWORD npx playwright test e2e/cinematic --grep -i reader --workers=1
@@ -203,7 +203,7 @@ free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=$MM_PROOF_USER E2E_PA
 
 - Branch `feat/vps-slim-source-native`. One commit per section (A to I), each with its test and the full `npm run test` green, then the probe page, the fixture and spec, and the proof. Example: `feat(reader-engine): overscroll extent with arm and commit for one-at-a-time chapters`.
 - Stage explicit paths only, never `git add -A` or `git add .`: the mobile, backend and shared sessions commit in the same checkout.
-- No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets (including the demo password), `.env*` or `.claude/`.
+- No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit real credentials or secrets (the dev-stack demo password is committed only in `backend/scripts/README-dev-stack.md` by `backend/00`; never copy it into a spec, script or proof file), `.env*` or `.claude/`.
 - Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy.
 

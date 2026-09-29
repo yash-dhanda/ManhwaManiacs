@@ -253,7 +253,7 @@ Stop the dev stack afterwards. No web screen changes here, so there are no Playw
 - [ ] Per-skin: Cinematic uses `shape=prose` (the default), `/ai/similar` without `fallback` (reading `basis` to caption `SAME GENRES`), `liked_pick`, `not_interested`, `tag_rejected`, onboarding steps 1 to 5; Glass uses `shape=deck` with `scope=series|chapter`, `fallback=genres`, `undo` and `clear`, `use_taste`, `?genre=`, onboarding steps 1 to 7 and the `/library/taste/seed` fallback. One backend serves both; no endpoint branches on the skin.
 - [ ] UI rules (reduced motion, keyboard, 44 pt targets) belong to `web/19`, `mobile/19`, `web/41`, `mobile/41` and the onboarding steps. This step serves them by streaming whole words (a reduced-motion client can append text without animation), by sending the deck's section titles before any text (a screen reader gets the headings first), and by answering the no-stream JSON at once instead of opening a stream that only errors.
 - [ ] `backend/docs/home-api.md` documents every endpoint of this step.
-- [ ] `git diff --stat -- frontend mobile ops backend/connectors` prints nothing.
+- [ ] `git show --name-only --format= <hash> -- frontend mobile ops backend/connectors` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) prints nothing.
 
 ## Verification
 
@@ -268,7 +268,7 @@ timeout 1800 .venv/bin/python -m pytest -q --no-header 2>&1 | tail -25 > ../docs
 cat ../docs/redesign/proof/backend-05/pytest-after.txt
 ```
 
-Web and mobile are not run because nothing under `frontend/` or `mobile/` changes (`git diff --stat -- frontend mobile` prints nothing). Their baseline commands, if you ever touch them: `npm run lint` and `npm run build` in `frontend/`; `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
+Web and mobile are not run because nothing under `frontend/` or `mobile/` changes (`git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) prints nothing). Their baseline commands, if you ever touch them: `npm run lint` and `npm run build` in `frontend/`; `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
 
 ## RAM guard
 

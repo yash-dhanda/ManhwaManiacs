@@ -276,7 +276,7 @@ free -m && npm run build
 
 Lint and build stay at 0 errors and 0 warnings (`00-baseline.md`). This step's only file outside `frontend/` and `design/` is the generated `mobile/lib/skins/glass/copy/settings_index.dart`; it is a data file, so run `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze lib/skins/glass/copy/settings_index.dart` from `mobile/` (after `free -m`) to prove it compiles. Check each of your commits with `git show --stat --format= <hash>` (the parallel `mobile/39` session and the backend and shared sessions commit on the same branch, so never judge by the branch diff): none may touch `backend/`, and none may touch `mobile/` except that generated file. If one did, revert that part and prove the baseline with `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (all 2012 tests pass, or the current higher count) and `cd backend && .venv/bin/python -m pytest -q --no-header`, one at a time after the RAM guard; otherwise the full `flutter test` suite and the backend pytest are not rerun here (`mobile/39` runs the Flutter suite).
 
-**Skin preview capture.** Start the dev stack from `backend/scripts/README-dev-stack.md` (127.0.0.1:8010, dev SQLite only) and `free -m && npm run dev -- -p 3010`, then `free -m && npm run capture:skin-previews` and record the printed sizes.
+**Skin preview capture.** Start the dev stack from `backend/scripts/README-dev-stack.md` (127.0.0.1:8010, dev SQLite only) and `free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- -p 3010`, then `free -m && npm run capture:skin-previews` and record the printed sizes.
 
 **Visual proof.** Write `docs/redesign/proof/web-39/routes.txt`:
 

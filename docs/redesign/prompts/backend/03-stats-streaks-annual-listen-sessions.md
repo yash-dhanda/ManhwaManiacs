@@ -211,7 +211,7 @@ Changed: `backend/database/models.py` (`StreakMilestone`, `ListenSession`), `bac
 - [ ] `POST /novels/listen-sessions` stores up to 200 sessions per call, deduplicates replays, and feeds `top_voices`.
 - [ ] Revision `0021_streaks_listen_sessions` is the head and matches the models; both new tables cascade on profile delete.
 - [ ] Per-skin difference: Cinematic reads the streak object (flame tiers and states, milestone title cards), The Annual's eleven pages and `shareable` for the press run; Glass reads the same object (applying its own `current_days >= 2` on `at_risk`), `extended_today` and `today_seconds` for the flare and the daily goal ring, Wrapped's twelve cards (including `pages_read`, `busiest_day`, `firsts_lasts`, `longest_streak.start/end`) and `shareable` (including `top_sources`) for the share side.
-- [ ] No UI changes: `git diff --stat -- frontend mobile` is empty, so reduced-motion, keyboard access and 44 pt hit targets are unaffected by construction.
+- [ ] No UI changes: `git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) is empty, so reduced-motion, keyboard access and 44 pt hit targets are unaffected by construction.
 - [ ] The full backend suite passes with the previous step's pass count plus the new tests; nothing that passed before fails.
 
 ## Verification
@@ -224,7 +224,7 @@ free -m
 timeout 1800 .venv/bin/python -m pytest -q --no-header
 ```
 
-Web and mobile suites are not run: `git diff --stat -- frontend mobile` must print nothing. Their baseline commands, for the record: `npm run lint` and `npm run build` in `frontend/`; `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
+Web and mobile suites are not run: `git show --name-only --format= <hash> -- frontend mobile` for each of your own commits (never a branch or range diff: parallel sessions commit on the same branch) must print nothing. Their baseline commands, for the record: `npm run lint` and `npm run build` in `frontend/`; `/srv/manhwamaniacs/dev/flutter/bin/flutter analyze` and `/srv/manhwamaniacs/dev/flutter/bin/flutter test` in `mobile/`.
 
 ## RAM guard
 
