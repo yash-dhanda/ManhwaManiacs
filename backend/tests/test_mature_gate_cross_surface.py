@@ -504,6 +504,32 @@ def test_statistics_counts_only_what_the_profile_may_see(
     assert payload["followed_total"] == expected
 
 
+@pytest.mark.parametrize("profile", ["kid", "grown"])
+def test_annual_gates_on_serve_and_shareable_never_shows_adult(
+    client, as_user, household, seeded, seed_session, profile
+):
+    """``/library/annual`` names series: the gate filters the year, and
+    ``shareable`` drops the adult series whatever the gate says."""
+    from datetime import datetime
+
+    year = utcnow().year - 1
+    for series_key in (ADULT, SAFE):
+        seed_session(
+            household["uid"], household[profile], source_id=SRC,
+            series_key=series_key, chapter_key="c1",
+            started_at=datetime(year, 6, 1, 12, 0),
+        )
+    body = client.get(
+        f"/library/annual?year={year}&tz_offset_minutes=0",
+        headers=as_user(household["uid"], household[profile]),
+    ).json()
+
+    keys = {s["series_key"] for s in body["top_series"]}
+    assert keys == ({SAFE} if profile == "kid" else {SAFE, ADULT})
+    assert ADULT not in str(body["shareable"])
+    assert ADULT not in str(body["busiest_day"]) + str(body["firsts_lasts"])
+
+
 def test_tag_counts_only_series_the_profile_may_see(
     client, as_user, household, seeded
 ):
@@ -930,6 +956,7 @@ WALKED_HERE = (
         "/library/collections",
         "/library/collections/{collection_id}",
         "/library/recommendations",
+        "/library/annual",
         "/library/statistics",
         "/library/tags",
         "/series/enrichment",
