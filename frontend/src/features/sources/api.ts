@@ -2,6 +2,7 @@ import { env } from "@/config/env";
 import { withCoverWidth } from "@/lib/cover-url";
 import { http } from "@/services/http";
 import { resolveSearchCovers } from "./global-search";
+import { sourcesLimiter } from "./request-limiter";
 import type {
   GlobalSearchResponse,
   PaginatedSourceSeries,
@@ -51,8 +52,15 @@ export interface SourceReaderChapterResponse {
   series_title?: string | null;
 }
 
+// Every /sources call is a user-initiated P1 request: it never waits, but it is
+// counted, and a 429 pauses the P2/P3 lanes (request-limiter.ts).
+const get = <T>(path: string, options?: Parameters<typeof http.get>[1]) =>
+  sourcesLimiter.run("P1", () => http.get<T>(path, options));
+const put = <T>(path: string, body?: unknown) =>
+  sourcesLimiter.run("P1", () => http.put<T>(path, body));
+
 export const sourcesApi = {
-  listSources: () => http.get<SourceSummary[]>("/sources"),
+  listSources: () => get<SourceSummary[]>("/sources"),
 
   // Federated search across the local library AND every enabled remote source.
   federatedSearch: (
@@ -65,18 +73,18 @@ export const sourcesApi = {
         resolveSearchCovers(response, (path) => sourceImageUrl(path)),
       ),
 
-  listPins: () => http.get<SourcePin[]>("/sources/pins"),
+  listPins: () => get<SourcePin[]>("/sources/pins"),
 
   // Whole-set replace, not add/remove: the client owns the ordering, sends the
   // list it wants, and gets that exact list back.
   replacePins: (sourceIds: string[]) =>
-    http.put<SourcePin[]>("/sources/pins", { source_ids: sourceIds }),
+    put<SourcePin[]>("/sources/pins", { source_ids: sourceIds }),
 
   browseModes: (sourceId: string) =>
-    http.get<SourceBrowseMode[]>(`/sources/${encodeURIComponent(sourceId)}/browse-modes`),
+    get<SourceBrowseMode[]>(`/sources/${encodeURIComponent(sourceId)}/browse-modes`),
 
   genres: (sourceId: string) =>
-    http.get<SourceGenre[]>(`/sources/${encodeURIComponent(sourceId)}/genres`),
+    get<SourceGenre[]>(`/sources/${encodeURIComponent(sourceId)}/genres`),
 
   listSeries: (
     sourceId: string,
@@ -89,23 +97,23 @@ export const sourcesApi = {
       refresh?: boolean;
     },
   ) =>
-    http.get<PaginatedSourceSeries>(
+    get<PaginatedSourceSeries>(
       `/sources/${encodeURIComponent(sourceId)}/series`,
       { query: params },
     ),
 
   getSeries: (sourceId: string, seriesId: string) =>
-    http.get<SourceSeriesDetail>(
+    get<SourceSeriesDetail>(
       `/sources/${encodeURIComponent(sourceId)}/series/${encodeURIComponent(seriesId)}`,
     ),
 
   getChapters: (sourceId: string, seriesId: string) =>
-    http.get<SourceChapterSummary[]>(
+    get<SourceChapterSummary[]>(
       `/sources/${encodeURIComponent(sourceId)}/series/${encodeURIComponent(seriesId)}/chapters`,
     ),
 
   getReaderChapter: (sourceId: string, seriesId: string, chapterId: string) =>
-    http.get<SourceReaderChapterResponse>(
+    get<SourceReaderChapterResponse>(
       // Chapter ids may contain `/` (Madara/Toonily). Encode each segment so
       // the backend `:path` converter still sees the slash-separated form.
       `/sources/${encodeURIComponent(sourceId)}/series/${encodeURIComponent(seriesId)}/chapters/${chapterId
