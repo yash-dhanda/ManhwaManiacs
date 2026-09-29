@@ -3,6 +3,7 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
+import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
@@ -28,6 +29,8 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   (ref) => ref.invalidate(updatesProvider),
   // Continue-reading / dashboard rails.
   (ref) => ref.invalidate(continueReadingProvider),
+  // Tonight / Home feed.
+  (ref) => ref.invalidate(homeFeedProvider),
   // Library lists + search results.
   (ref) => ref.invalidate(libraryListProvider),
   (ref) => ref.invalidate(searchListProvider),

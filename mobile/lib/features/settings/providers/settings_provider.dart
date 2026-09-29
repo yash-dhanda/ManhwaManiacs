@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/collections/providers/collections_provide
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloaded_series_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
+import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
@@ -132,6 +133,7 @@ final List<void Function(Ref ref)> matureScopedInvalidators = [
   (ref) => ref.invalidate(libraryListProvider),
   (ref) => ref.invalidate(seriesDetailProvider),
   (ref) => ref.invalidate(continueReadingProvider),
+  (ref) => ref.invalidate(homeFeedProvider),
   // Reading intelligence surfaces (reading_stats_service).
   (ref) => ref.invalidate(statisticsProvider),
   (ref) => ref.invalidate(recommendationsProvider),
@@ -423,6 +425,7 @@ final matureOverrideChangedProvider = Provider<void Function()>((ref) => () {
 /// them.
 final List<void Function(Ref ref)> metadataCacheInvalidators = [
   (ref) => ref.invalidate(continueReadingProvider),
+  (ref) => ref.invalidate(homeFeedProvider),
   (ref) => ref.invalidate(libraryListProvider),
   (ref) => ref.invalidate(searchListProvider),
   (ref) => ref.invalidate(statisticsProvider),
