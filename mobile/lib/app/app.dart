@@ -6,7 +6,7 @@ import 'package:manhwamaniacs/app/router/app_router.dart';
 import 'package:manhwamaniacs/app/theme/app_theme.dart';
 import 'package:manhwamaniacs/app/theme/app_theme_provider.dart';
 import 'package:manhwamaniacs/app/theme/theme_controller.dart';
-import 'package:manhwamaniacs/features/downloads/widgets/downloads_lifecycle_gate.dart';
+import 'package:manhwamaniacs/features/downloads/providers/downloads_lifecycle_gate.dart';
 import 'package:manhwamaniacs/features/settings/widgets/whats_new_auto_show.dart';
 
 class ManhwaManiacsApp extends ConsumerWidget {
