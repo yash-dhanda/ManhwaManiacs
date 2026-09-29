@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { isGlassReduced } from "../motion";
+import { useGlassReduced } from "../motion";
 import { light } from "../tokens.generated";
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -34,9 +34,10 @@ export async function requestDeviceTilt(): Promise<boolean> {
  * once per frame. Pinned at 135 deg under reduced motion and with `{ follow: false }`.
  */
 export function useLightAngle({ follow = true }: { follow?: boolean } = {}) {
+  const reduced = useGlassReduced();
   useEffect(() => {
     write(light.angle);
-    if (!follow || isGlassReduced()) return;
+    if (!follow || reduced) return;
     const cleanups: (() => void)[] = [];
     const attach = () => {
       cleanups.splice(0).forEach((c) => c());
@@ -74,5 +75,5 @@ export function useLightAngle({ follow = true }: { follow?: boolean } = {}) {
       cleanups.forEach((c) => c());
       write(light.angle);
     };
-  }, [follow]);
+  }, [follow, reduced]);
 }

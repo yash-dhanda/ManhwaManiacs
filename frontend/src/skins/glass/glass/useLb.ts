@@ -57,6 +57,7 @@ export function lItemsFor(rect: DOMRect): number {
 const SLOW = 3000; // px/s: above this the value is held
 let scrollBound = false;
 let lastTop = 0, lastT = 0, speed = 0, lastFire = 0;
+let trail: ReturnType<typeof setTimeout> | undefined;
 const scrollSubs = new Set<() => void>();
 
 function onScroll(e: Event) {
@@ -64,7 +65,11 @@ function onScroll(e: Event) {
   const top = (e.target instanceof Element ? e.target.scrollTop : window.scrollY) || 0;
   if (lastT) speed = (Math.abs(top - lastTop) / Math.max(1, now - lastT)) * 1000;
   lastTop = top; lastT = now;
-  if (speed > SLOW || now - lastFire < 100) return; // at most every 100 ms; held while flinging
+  clearTimeout(trail);
+  if (speed > SLOW || now - lastFire < 100) { // at most every 100 ms; held while flinging
+    trail = setTimeout(() => { lastFire = performance.now(); speed = 0; scrollSubs.forEach((s) => s()); }, 120); // trailing update once scrolling settles
+    return;
+  }
   lastFire = now;
   scrollSubs.forEach((s) => s());
 }
@@ -73,7 +78,7 @@ function bindScroll() {
   if (scrollBound) return () => {};
   scrollBound = true;
   document.addEventListener("scroll", onScroll, { capture: true, passive: true });
-  return () => { scrollBound = false; document.removeEventListener("scroll", onScroll, { capture: true }); };
+  return () => { scrollBound = false; clearTimeout(trail); document.removeEventListener("scroll", onScroll, { capture: true }); };
 }
 
 /** Lb for a surface (DESIGN 2.1.7 source table). The bar source is max(field term, lItems), recomputed on scroll. */
