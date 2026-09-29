@@ -55,6 +55,19 @@ void main() {
     expect(rig.container.read(activeProfileProvider)?.name, 'Guest');
   });
 
+  testWidgets('a second tap during the ring skips to the open: home well before the full iris', (t) async {
+    final rig = await pumpAuth(t, start: '/profiles', auth: _signedIn(), active: _yash);
+    await settle(t, 300);
+    await t.tap(find.bySemanticsLabel('Read as Yash'));
+    await t.pump(const Duration(milliseconds: 100));
+    await t.tap(find.bySemanticsLabel('Read as Yash'), warnIfMissed: false);
+    // The ring is cut short; only the close remains before the route changes.
+    await t.pump(const Duration(milliseconds: 20));
+    await t.pump(const Duration(milliseconds: 600));
+    expect(rig.at, '/');
+    await settle(t, 1500);
+  });
+
   testWidgets('a tap on an avatar picks it; reduced motion cross-fades in about 200 ms', (t) async {
     final rig = await pumpAuth(t, start: '/profiles', auth: _signedIn(), active: _yash, reduced: true);
     await settle(t, 300);

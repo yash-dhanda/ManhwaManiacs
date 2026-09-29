@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/app/switch_skin.dart' show restartInto;
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
@@ -71,6 +72,7 @@ class _ProfilePickerScreenState extends ConsumerState<ProfilePickerScreen> with 
   bool _manage = false;
   bool _focusedOnce = false;
   int? _choosing;
+  bool _skipped = false;
 
   @override
   void initState() {
@@ -98,7 +100,13 @@ class _ProfilePickerScreenState extends ConsumerState<ProfilePickerScreen> with 
   GlobalKey _key(int id) => _avatarKeys.putIfAbsent(id, GlobalKey.new);
 
   Future<void> _choose(Profile p, {double size = 112}) async {
-    if (_choosing != null) return;
+    if (_choosing != null) {
+      // A tap during the iris skips to step 3: the ring ends now, the close (if running) is
+      // finished by the shutter's own tap, and the open takes 120 ms.
+      _skipped = true;
+      if (_ring.isAnimating) _ring.stop(canceled: false);
+      return;
+    }
     if (_manage) {
       unawaited(context.push(Routes.profileEdit(p.id)));
       return;
@@ -107,6 +115,7 @@ class _ProfilePickerScreenState extends ConsumerState<ProfilePickerScreen> with 
     final center = box != null && box.hasSize ? box.localToGlobal(box.size.center(Offset.zero)) : MediaQuery.sizeOf(context).center(Offset.zero);
     final shutter = CineShutter.maybeOf(context);
     final reduced = CineMotion.reduced(context);
+    _skipped = false;
     setState(() => _choosing = p.id);
     if (!reduced) await _ring.forward(from: 0);
     if (!mounted) return;
@@ -120,12 +129,15 @@ class _ProfilePickerScreenState extends ConsumerState<ProfilePickerScreen> with 
       onboardingBuilt: ref.read(onboardingBuiltProvider),
     );
     await ref.read(activeProfileProvider.notifier).select(p);
-    ref.read(profileSessionReadyProvider.notifier).enter();
     if (!mounted) return;
-    // ponytail: the Glass restart branch has no path until `Flags.glassAvailable` flips (release/00);
-    // it lands on Tonight like `home` until mobile/01's restart is wired to the flag.
+    if (outcome.kind == PickerOutcomeKind.restartSkin) {
+      // Inside the black: mirror + return route '/' through mobile/01's restart path, no confirm.
+      await restartInto(context, ref, skin: SkinId.values.byName(p.skin!), returnRoute: '/');
+      return;
+    }
+    ref.read(profileSessionReadyProvider.notifier).enter();
     context.go(outcome.kind == PickerOutcomeKind.onboarding ? outcome.route : Routes.tonight());
-    unawaited(shutter?.irisOut(center));
+    unawaited(shutter?.irisOut(center, duration: _skipped ? const Duration(milliseconds: 120) : null));
   }
 
   Future<void> _continueOffline() async {
