@@ -60,7 +60,7 @@ const MERGED = { type: 'object', properties: {
 const idTest = id => id === 'signoffs'
   ? `grep -qE '^S1 ' ${REPO}/docs/redesign/signoffs.md 2>/dev/null && grep -qE '^S11 ' ${REPO}/docs/redesign/signoffs.md && grep -qE '^G6 ' ${REPO}/docs/redesign/signoffs.md && grep -qE '^G14 ' ${REPO}/docs/redesign/signoffs.md`
   : `grep -qE '^${id.replace('/', '\\/')} ' ${LEDGER}`
-const waitOnce = (ids, why, n) => agent(`${LOCK}\n\nTASK: run exactly this ONE Bash command with timeout 600000, then report. Do nothing else: no edits, no git, no other commands.\n\ntimeout 560 bash -c 'until ${ids.map(idTest).join(' && ')}; do sleep 30; done'; for id in ${ids.join(' ')}; do case $id in signoffs) (${idTest('signoffs')}) || echo "MISSING $id";; *) grep -qE "^$id " ${LEDGER} || echo "MISSING $id";; esac; done; echo CHECKED\n\nReturn ready = true when the output has no MISSING line, and missing = the ids after MISSING.`, { ...M, label: `wait:${A.lane}:${why}:${n}`, phase: 'Wait', schema: WAITED })
+const waitOnce = (ids, why, n) => agent(`${LOCK}\n\nTASK: run exactly this ONE Bash command, with the Bash tool's timeout set to 600000, and wait for it to finish (it blocks for up to 560 seconds by design; that is expected). Do nothing else: no edits, no git, no other commands, no re-runs.\n\nbash ${REPO}/docs/redesign/wait-ledger.sh ${ids.join(' ')}\n\nReturn ready = true when the output is READY, and missing = the ids printed after MISSING.`, { ...M, label: `wait:${A.lane}:${why}:${n}`, phase: 'Wait', schema: WAITED })
 const waitFor = async (ids, why, n) => {
   let w = null
   for (let i = 0; i < 200; i++) { // up to ~30 h of waiting
