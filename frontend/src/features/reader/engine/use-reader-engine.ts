@@ -1138,6 +1138,7 @@ export function useReaderEngine(
       progressStore: percentStore,
       activeChapter: chapter ?? null,
       seriesHref,
+      prefsSeriesKey,
       previousChapterHref,
       nextChapterHref,
       nextChapterLabel,

@@ -126,6 +126,8 @@ export interface ReaderEngineExtras {
   /** The active chapter with its pages: what the download control saves. */
   activeChapter: StripChapter | null;
   seriesHref: string;
+  /** The key reading mode, fit and zoom are stored under. */
+  prefsSeriesKey: string;
   previousChapterHref: string | null;
   nextChapterHref: string | null;
   nextChapterLabel: string | null;
