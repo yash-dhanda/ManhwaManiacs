@@ -209,3 +209,28 @@ html[data-motion="reduced"] .glass[data-materialize="out"] > :is(.glass__bg, .gl
   .glass[data-materialize="in"] > :is(.glass__bg, .glass__rim) { animation-duration: 150ms; animation-timing-function: linear; }
   .glass[data-materialize="out"] > :is(.glass__bg, .glass__rim) { animation-duration: 120ms; animation-timing-function: linear; }
 }
+
+/* ------------------------------------------------------------------------- *
+ * Caustic (2.4.4) and the follow ring.
+ * ------------------------------------------------------------------------- */
+.caustic { position: relative; --caustic-a: var(--mm-caustic-alpha, 0.14); transition: --caustic-a var(--mm-dur-glow-out, 60ms) linear; }
+.caustic[data-pressed="on"] { --caustic-a: var(--mm-caustic-alpha-pressed, 0.22); transition-duration: var(--mm-dur-glow-in, 150ms); }
+.caustic::before {
+  content: "";
+  position: absolute;
+  z-index: 0; /* before the glass in tree order, so below it, yet above ancestor backgrounds */
+  left: -10%; top: 15%; width: 120%; height: 70%; /* the 120% x 70% ellipse of the object (closest-side) */
+  translate: calc(sin(var(--mm-light-angle)) * var(--mm-caustic-offset, 8px)) calc(cos(var(--mm-light-angle)) * var(--mm-caustic-offset, 8px) * -1);
+  background: radial-gradient(closest-side, rgb(143 126 255 / var(--caustic-a)), transparent);
+  filter: blur(var(--mm-caustic-blur, 18px));
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.caustic[data-over-content="false"]::before { display: none; }
+html[data-solid="on"] .caustic::before { display: none; }
+@media (prefers-reduced-transparency: reduce) { .caustic::before { display: none; } }
+.follow-band { position: relative; overflow: hidden; pointer-events: none; }
+.follow-ring {
+  position: absolute; width: 0; height: 0; transform: translate(-50%, -50%); border-radius: 50%;
+  border: 2px solid rgb(188 176 255 / 0.30); box-sizing: border-box; filter: blur(6px); mix-blend-mode: screen;
+}
