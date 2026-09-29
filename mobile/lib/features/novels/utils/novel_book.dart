@@ -11,9 +11,9 @@
 /// the same, the formatting is Dart's.
 library;
 
+import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_label.dart';
-import 'package:manhwamaniacs/shared/widgets/series_detail/series_chapter_sort.dart';
 
 // --- Front matter -----------------------------------------------------------
 

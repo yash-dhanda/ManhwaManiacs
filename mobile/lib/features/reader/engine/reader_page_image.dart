@@ -3,10 +3,8 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/app/theme/app_presets.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
-import 'package:manhwamaniacs/features/reader/theme/reader_colors.dart';
 import 'package:manhwamaniacs/features/reader/utils/page_layout.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_decode_diagnostics.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_image_cache.dart';
@@ -89,7 +87,9 @@ class ReaderPageImage extends ConsumerStatefulWidget {
     required this.alt,
     required this.aspectRatio,
     required this.fitMode,
-    this.backgroundColor = ReaderColors.bg,
+    required this.backgroundColor,
+    required this.brokenBuilder,
+    required this.cornerRadius,
     this.layoutAxis = Axis.vertical,
     this.viewportWidth,
     this.viewportHeight,
@@ -119,6 +119,14 @@ class ReaderPageImage extends ConsumerStatefulWidget {
   /// Reader backdrop colour. Fills any letterbox bars and the placeholder so a
   /// page never shows a black seam that clashes with the chosen backdrop.
   final Color backgroundColor;
+
+  /// What a page that failed to load shows inside its reserved,
+  /// backdrop-coloured box; [retry] reloads it.
+  final Widget Function(BuildContext context, VoidCallback retry)
+      brokenBuilder;
+
+  /// Corner radius of the page card in paged (horizontal) reading.
+  final double cornerRadius;
   final Axis layoutAxis;
   final double? viewportWidth;
   final double? viewportHeight;
@@ -280,25 +288,7 @@ class _ReaderPageImageState extends ConsumerState<ReaderPageImage> {
   Widget _brokenPageBox() => _placeholderBox(
         child: ColoredBox(
           color: widget.backgroundColor,
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(context.space.lg),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.broken_image_outlined, color: ReaderColors.muted),
-                  SizedBox(height: context.space.sm),
-                  Text(
-                    'Failed to load page',
-                    style: context.text.bodySm.copyWith(color: ReaderColors.muted),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: context.space.md),
-                  OutlinedButton(onPressed: _retry, child: const Text('Retry')),
-                ],
-              ),
-            ),
-          ),
+          child: widget.brokenBuilder(context, _retry),
         ),
       );
 
@@ -417,7 +407,7 @@ class _ReaderPageImageState extends ConsumerState<ReaderPageImage> {
     // as a dark seam. Only the paged horizontal reader keeps the card look.
     final seamless = widget.layoutAxis == Axis.vertical;
     final borderRadius =
-        seamless ? BorderRadius.zero : BorderRadius.circular(context.radii.sm);
+        seamless ? BorderRadius.zero : BorderRadius.circular(widget.cornerRadius);
 
     // On-device store first, network second (spec §3) — and the reader does
     // not know or care which it got beyond this one branch.

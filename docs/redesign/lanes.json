@@ -17,18 +17,6 @@
    {
     "path": "docs/redesign/prompts/shared/02-icon-sets-and-custom-glyphs.md",
     "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/shared/03-ui-sounds-and-soundscape-audio.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/shared/04-brand-cinematic-and-platform-icons.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/shared/05-brand-glass-and-art-intake.md",
-    "waitFor": []
    }
   ]
  },
@@ -803,6 +791,36 @@
      "web/45",
      "mobile/45"
     ]
+   }
+  ]
+ },
+ "shared2": {
+  "lane": "shared2",
+  "worktree": "/srv/manhwamaniacs/dev/wt/shared2",
+  "branch": "redesign/shared2",
+  "apiPort": 8025,
+  "webPort": 3025,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/shared/03-ui-sounds-and-soundscape-audio.md",
+    "waitFor": []
+   }
+  ]
+ },
+ "shared3": {
+  "lane": "shared3",
+  "worktree": "/srv/manhwamaniacs/dev/wt/shared3",
+  "branch": "redesign/shared3",
+  "apiPort": 8026,
+  "webPort": 3026,
+  "steps": [
+   {
+    "path": "docs/redesign/prompts/shared/04-brand-cinematic-and-platform-icons.md",
+    "waitFor": []
+   },
+   {
+    "path": "docs/redesign/prompts/shared/05-brand-glass-and-art-intake.md",
+    "waitFor": []
    }
   ]
  }

@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/responsive.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/novels/utils/novel_shelf_logic.dart';
 import 'package:manhwamaniacs/features/novels/widgets/novel_shelf.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';

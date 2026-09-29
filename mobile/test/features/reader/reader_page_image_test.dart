@@ -5,10 +5,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/features/reader/widgets/reader_page_image.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_page_image.dart';
+import 'package:manhwamaniacs/features/reader/theme/reader_colors.dart';
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
 
 import '../../support/test_overrides.dart';
+
+Widget _brokenPage(BuildContext context, VoidCallback retry) =>
+    const SizedBox.shrink();
 
 /// Builds an uncompressed PNG of [width] x [height] black pixels.
 ///
@@ -193,6 +197,9 @@ void main() {
             alt: 'page',
             aspectRatio: 2 / 3,
             fitMode: ReaderFitMode.width,
+            backgroundColor: ReaderColors.bg,
+            brokenBuilder: _brokenPage,
+            cornerRadius: 4,
           ),
         ),
       );
@@ -214,6 +221,9 @@ void main() {
             alt: 'page',
             aspectRatio: 2 / 3,
             fitMode: ReaderFitMode.width,
+            backgroundColor: ReaderColors.bg,
+            brokenBuilder: _brokenPage,
+            cornerRadius: 4,
           ),
         ),
       );
@@ -235,6 +245,9 @@ void main() {
             alt: 'page',
             aspectRatio: 2 / 3,
             fitMode: ReaderFitMode.width,
+            backgroundColor: ReaderColors.bg,
+            brokenBuilder: _brokenPage,
+            cornerRadius: 4,
           ),
         ),
       );
@@ -271,6 +284,9 @@ void main() {
               alt: 'page',
               aspectRatio: 2 / 3,
               fitMode: ReaderFitMode.width,
+              backgroundColor: ReaderColors.bg,
+              brokenBuilder: _brokenPage,
+              cornerRadius: 4,
               viewportWidth: 90,
               localFile: file,
             ),

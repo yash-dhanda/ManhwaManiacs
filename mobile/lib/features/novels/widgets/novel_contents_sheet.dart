@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/theme/app_colors.dart';
 import 'package:manhwamaniacs/app/theme/app_presets.dart';
+import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/novels/widgets/novel_chapter_view.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
-import 'package:manhwamaniacs/shared/widgets/series_detail/series_chapter_sort.dart';
 
 /// Every row is this tall, which is what lets the list open at the current
 /// chapter by arithmetic ([contentsScrollOffset]) instead of building 3,188

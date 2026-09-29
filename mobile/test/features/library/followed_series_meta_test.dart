@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/features/library/widgets/home/followed_series_card.dart';
+import 'package:manhwamaniacs/features/library/models/followed_series_meta.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 
 UpdateNotification _notification({

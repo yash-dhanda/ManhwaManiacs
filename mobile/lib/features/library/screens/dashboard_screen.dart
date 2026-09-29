@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/core/utils/responsive.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/content_mode/widgets/content_mode_switch.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/library/models/followed_series_meta.dart';
 import 'package:manhwamaniacs/features/library/providers/local_read_marks_provider.dart';
 import 'package:manhwamaniacs/features/library/utils/library_shelf.dart';
 import 'package:manhwamaniacs/features/library/utils/local_read_marks.dart';
