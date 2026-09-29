@@ -23,7 +23,7 @@ from database.models import Base
 from database.session import run_alembic_migrations
 
 _BASELINE = "0001_source_native"
-_HEAD = "0017_world_catalog_cache"
+_HEAD = "0018_profile_redesign_cols"
 
 # Every revision, oldest first. A new migration is added here deliberately —
 # the point of the guard is that revisions arrive on purpose, not that there is
@@ -46,6 +46,7 @@ _REVISIONS = [
     "0015_novel_audio_jobs.py",
     "0016_backfill_last_login.py",
     "0017_world_catalog_cache.py",
+    "0018_profile_redesign_cols.py",
 ]
 
 # Every ORM-mapped table the baseline must create (spec §3).
@@ -752,3 +753,50 @@ def test_last_login_backfill_reads_the_newest_session_and_nothing_else(tmp_path)
         2: "2026-09-20 08:00:00",
         3: None,
     }
+
+
+# --- 0018_profile_redesign_cols -------------------------------------------
+
+
+def test_profile_redesign_cols_mark_existing_profiles_onboarded(tmp_path):
+    """Profiles that existed before the redesign never see onboarding and keep
+    notifications on; a profile created afterwards starts with no step."""
+    from sqlalchemy.orm import Session
+
+    from database.models import ReadingProfile
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'redesign.db'}")
+    _upgrade_to(engine, "0017_world_catalog_cache")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO users (id, username, password_hash, is_admin,"
+                " is_active, created_at, updated_at) VALUES"
+                " (1, 'owner', 'x', 1, 1, '2026-01-01', '2026-01-01')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO reading_profiles (id, user_id, name, avatar_key,"
+                " mood, mature_content_enabled, sort_order, created_at)"
+                " VALUES (10, 1, 'Old', 'a', 'default', 0, 0, '2026-01-01')"
+            )
+        )
+    _upgrade_to(engine, "head")
+
+    with engine.connect() as conn:
+        step, notify, skin, goal = conn.execute(
+            text(
+                "SELECT onboarding_step, notify_enabled, skin, daily_goal_minutes"
+                " FROM reading_profiles WHERE id = 10"
+            )
+        ).one()
+    assert (step, notify, skin, goal) == ("done", 1, None, None)
+
+    with Session(engine) as s:
+        fresh = ReadingProfile(user_id=1, name="New")
+        s.add(fresh)
+        s.commit()
+        s.refresh(fresh)
+        assert fresh.onboarding_step is None
+        assert fresh.notify_enabled == 1
