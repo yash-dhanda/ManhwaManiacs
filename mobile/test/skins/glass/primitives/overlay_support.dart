@@ -21,8 +21,12 @@ class OverlayHost {
     List<Override> overrides = const [],
     Widget? page,
   }) async {
+    await tester.pumpWidget(const SizedBox.shrink()); // drop the last test's tree (and its observers) first
     await tester.binding.setSurfaceSize(size);
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.binding.setSurfaceSize(null);
+    });
     await tester.pumpWidget(
       primHost(
         GlassRecedeScope(
