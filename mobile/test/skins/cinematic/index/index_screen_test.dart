@@ -76,6 +76,40 @@ class IndexRig {
   final List<String> haptics = [];
 }
 
+/// Every provider the Index reads, fixed to [r] (the shots reuse it).
+List<Override> indexOverrides(IndexRig r) => [
+
+  apiBaseUrlOverride('http://example.test'),
+  if (r.admin) authenticatedAuthOverride() else authControllerProvider.overrideWith(_Member.new),
+  activeProfileOverride(),
+  ...contentModeOverrides(),
+  statisticsProvider.overrideWith(
+    (ref) async => LibraryStatistics(
+      followedTotal: 0,
+      favorites: 0,
+      byReadingStatus: const {},
+      chaptersCompleted: 0,
+      streak: ReadingStreak(currentDays: r.streak),
+    ),
+  ),
+  suggestAvailabilityProvider.overrideWith((ref) async => const SuggestionAvailability(available: true, reason: 'ok', remainingToday: 8)),
+  collectionsProvider.overrideWith(_Collections.new),
+  bookmarksProvider.overrideWith(_Bookmarks.new),
+  unreadNotificationCountProvider.overrideWith(_Unread.new),
+  totalDeviceDownloadBytesProvider.overrideWith((ref) async => (4.1 * 1024 * 1024 * 1024).round()),
+  sourceHealthSummaryProvider.overrideWith((ref) async => const SourceHealthSummary(total: 89, ok: 84)),
+  appChangelogProvider.overrideWith(
+    (ref) async => const [ChangelogRelease(version: '3.5.0', build: 57, date: '2026-09-28', highlights: ['One thing changed.'])],
+  ),
+  appUpdateProvider.overrideWith((ref) async => r.update ?? _upToDate),
+  packageInfoProvider.overrideWith(
+    (ref) async => PackageInfo(appName: 'MM', packageName: 'x', version: '3.5.0', buildNumber: '57'),
+  ),
+  ocrFeatureVisibleProvider.overrideWithValue(r.ocr),
+  deviceOnlineProvider.overrideWith((ref) => Stream.value(r.online)),
+  skinHapticsProvider.overrideWithValue(HapticLog(r.haptics)),
+];
+
 Future<ProviderContainer> pumpIndex(
   WidgetTester tester, {
   IndexRig? rig,
@@ -91,42 +125,7 @@ Future<ProviderContainer> pumpIndex(
   addTearDown(tester.view.reset);
   SharedPreferences.setMockInitialValues(testPrefsDefaults());
   final prefs = await SharedPreferences.getInstance();
-  final container = reuse ??
-      ProviderContainer(
-        overrides: [
-          sharedPrefsProvider.overrideWithValue(prefs),
-          apiBaseUrlOverride('http://example.test'),
-          if (r.admin) authenticatedAuthOverride() else authControllerProvider.overrideWith(_Member.new),
-          activeProfileOverride(),
-          ...contentModeOverrides(),
-          statisticsProvider.overrideWith(
-            (ref) async => LibraryStatistics(
-              followedTotal: 0,
-              favorites: 0,
-              byReadingStatus: const {},
-              chaptersCompleted: 0,
-              streak: ReadingStreak(currentDays: r.streak),
-            ),
-          ),
-          suggestAvailabilityProvider.overrideWith((ref) async => const SuggestionAvailability(available: true, reason: 'ok', remainingToday: 8)),
-          collectionsProvider.overrideWith(_Collections.new),
-          bookmarksProvider.overrideWith(_Bookmarks.new),
-          unreadNotificationCountProvider.overrideWith(_Unread.new),
-          totalDeviceDownloadBytesProvider.overrideWith((ref) async => (4.1 * 1024 * 1024 * 1024).round()),
-          sourceHealthSummaryProvider.overrideWith((ref) async => const SourceHealthSummary(total: 89, ok: 84)),
-          appChangelogProvider.overrideWith(
-            (ref) async => const [ChangelogRelease(version: '3.5.0', build: 57, date: '2026-09-28', highlights: ['One thing changed.'])],
-          ),
-          appUpdateProvider.overrideWith((ref) async => r.update ?? _upToDate),
-          packageInfoProvider.overrideWith(
-            (ref) async => PackageInfo(appName: 'MM', packageName: 'x', version: '3.5.0', buildNumber: '57'),
-          ),
-          ocrFeatureVisibleProvider.overrideWithValue(r.ocr),
-          deviceOnlineProvider.overrideWith((ref) => Stream.value(r.online)),
-          skinHapticsProvider.overrideWithValue(HapticLog(r.haptics)),
-          ...extra,
-        ],
-      );
+  final container = reuse ?? ProviderContainer(overrides: [sharedPrefsProvider.overrideWithValue(prefs), ...indexOverrides(r), ...extra]);
   if (reuse == null) addTearDown(container.dispose);
   final router = GoRouter(
     initialLocation: '/more',

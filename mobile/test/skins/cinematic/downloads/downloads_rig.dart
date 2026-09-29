@@ -141,6 +141,27 @@ class Rig {
 
 ThemeData rigTheme(TargetPlatform p) => ThemeData(brightness: Brightness.dark, platform: p, extensions: const [cinematicTokens]);
 
+/// Every provider the Downloads screen reads, fixed to [r] (the shots reuse it).
+List<Override> rigOverrides(Rig r) => [
+
+  apiBaseUrlOverride('http://example.test'),
+  if (r.profile) ...[authenticatedAuthOverride(), activeProfileOverride()],
+  ...contentModeOverrides(),
+  downloadedSeriesProvider.overrideWith((ref) async => r.groups),
+  activeDownloadQueueProvider.overrideWith((ref) async => r.queue),
+  totalDeviceDownloadBytesProvider.overrideWith((ref) async => r.bytes),
+  deviceSpaceProvider.overrideWith((ref) async => (free: r.free, total: r.total)),
+  seriesStorageBreakdownProvider.overrideWith((ref) async => r.breakdown),
+  downloadQueueControllerProvider.overrideWith(() => FixedQueue(r.queueState, log: r.queueLog)),
+  matureGateOpenProvider.overrideWithValue(r.gateOpen),
+  deviceOnlineProvider.overrideWith((ref) => Stream.value(r.online)),
+  updatesProvider.overrideWith(_NoUpdates.new),
+  continueReadingProvider.overrideWith((ref) async => const []),
+  skinHapticsProvider.overrideWithValue(HapticLog(r.haptics)),
+  if (r.store != null) downloadsStoreProvider.overrideWithValue(r.store),
+  ...r.extra,
+];
+
 Future<Rig> pumpDownloads(
   WidgetTester tester, {
   Rig? rig,
@@ -157,27 +178,7 @@ Future<Rig> pumpDownloads(
   addTearDown(tester.view.reset);
   SharedPreferences.setMockInitialValues(testPrefsDefaults());
   final prefs = await SharedPreferences.getInstance();
-  r.container = ProviderContainer(
-    overrides: [
-      sharedPrefsProvider.overrideWithValue(prefs),
-      apiBaseUrlOverride('http://example.test'),
-      if (r.profile) ...[authenticatedAuthOverride(), activeProfileOverride()],
-      ...contentModeOverrides(),
-      downloadedSeriesProvider.overrideWith((ref) async => r.groups),
-      activeDownloadQueueProvider.overrideWith((ref) async => r.queue),
-      totalDeviceDownloadBytesProvider.overrideWith((ref) async => r.bytes),
-      deviceSpaceProvider.overrideWith((ref) async => (free: r.free, total: r.total)),
-      seriesStorageBreakdownProvider.overrideWith((ref) async => r.breakdown),
-      downloadQueueControllerProvider.overrideWith(() => FixedQueue(r.queueState, log: r.queueLog)),
-      matureGateOpenProvider.overrideWithValue(r.gateOpen),
-      deviceOnlineProvider.overrideWith((ref) => Stream.value(r.online)),
-      updatesProvider.overrideWith(_NoUpdates.new),
-      continueReadingProvider.overrideWith((ref) async => const []),
-      skinHapticsProvider.overrideWithValue(HapticLog(r.haptics)),
-      if (r.store != null) downloadsStoreProvider.overrideWithValue(r.store),
-      ...r.extra,
-    ],
-  );
+  r.container = ProviderContainer(overrides: [sharedPrefsProvider.overrideWithValue(prefs), ...rigOverrides(r)]);
   addTearDown(r.container.dispose);
   final router = GoRouter(
     initialLocation: Routes.downloads({if (tab != null) 'tab': tab, if (view != null) 'view': view}),

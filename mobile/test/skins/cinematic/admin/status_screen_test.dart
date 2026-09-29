@@ -97,6 +97,30 @@ class StatusRig {
 
 BackendHealth healthyBackend() => deriveBackendHealth(probe: const BackendProbe(status: 'online', name: 'ManhwaManiacs', version: '3.5.0'));
 
+/// Every provider the status screen reads, fixed to [r] (the shots reuse it).
+List<Override> statusOverrides(StatusRig r) => [
+
+  apiBaseUrlOverride('http://example.test'),
+  if (r.resolving)
+    authControllerProvider.overrideWith(_Resolving.new)
+  else if (r.admin)
+    authenticatedAuthOverride()
+  else
+    authControllerProvider.overrideWith(_Member.new),
+  activeProfileOverride(),
+  ...contentModeOverrides(),
+  backendHealthProvider.overrideWith((ref) => Stream.value(BackendPoll(health: r.backend ?? healthyBackend(), nextPollAt: DateTime.now().add(const Duration(seconds: 15))))),
+  updateSettingsProvider.overrideWith((ref) async {
+    if (r.settingsError) throw const ApiError(statusCode: 500, code: 'boom', message: 'Server exploded');
+    return r.settings ??
+        UpdateSettings(enabled: true, checkIntervalMinutes: 30, notifyEnabled: true, checkOnStartup: true, lastRunAt: DateTime.now().subtract(const Duration(minutes: 12)));
+  }),
+  updateRunsProvider.overrideWith((ref) async => r.runs),
+  sourcesHealthProvider.overrideWith((ref) async => r.sources),
+  updatesRepositoryProvider.overrideWithValue(r.repo),
+  skinHapticsProvider.overrideWithValue(HapticLog(r.haptics)),
+];
+
 Future<StatusRig> pumpStatus(
   WidgetTester tester, {
   StatusRig? rig,
@@ -109,30 +133,7 @@ Future<StatusRig> pumpStatus(
   addTearDown(tester.view.reset);
   SharedPreferences.setMockInitialValues(testPrefsDefaults());
   final prefs = await SharedPreferences.getInstance();
-  r.container = ProviderContainer(
-    overrides: [
-      sharedPrefsProvider.overrideWithValue(prefs),
-      apiBaseUrlOverride('http://example.test'),
-      if (r.resolving)
-        authControllerProvider.overrideWith(_Resolving.new)
-      else if (r.admin)
-        authenticatedAuthOverride()
-      else
-        authControllerProvider.overrideWith(_Member.new),
-      activeProfileOverride(),
-      ...contentModeOverrides(),
-      backendHealthProvider.overrideWith((ref) => Stream.value(BackendPoll(health: r.backend ?? healthyBackend(), nextPollAt: DateTime.now().add(const Duration(seconds: 15))))),
-      updateSettingsProvider.overrideWith((ref) async {
-        if (r.settingsError) throw const ApiError(statusCode: 500, code: 'boom', message: 'Server exploded');
-        return r.settings ??
-            UpdateSettings(enabled: true, checkIntervalMinutes: 30, notifyEnabled: true, checkOnStartup: true, lastRunAt: DateTime.now().subtract(const Duration(minutes: 12)));
-      }),
-      updateRunsProvider.overrideWith((ref) async => r.runs),
-      sourcesHealthProvider.overrideWith((ref) async => r.sources),
-      updatesRepositoryProvider.overrideWithValue(r.repo),
-      skinHapticsProvider.overrideWithValue(HapticLog(r.haptics)),
-    ],
-  );
+  r.container = ProviderContainer(overrides: [sharedPrefsProvider.overrideWithValue(prefs), ...statusOverrides(r)]);
   addTearDown(r.container.dispose);
   final router = GoRouter(
     initialLocation: '/admin/status',
