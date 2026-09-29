@@ -1,0 +1,20 @@
+== cinematic /login
+1
+html preload-font links: 0
+== cinematic /
+1
+html preload-font links: 0
+== glass /login
+1
+html preload-font links: 0
+== glass /
+1
+html preload-font links: 0
+== cinematic /login Link header font preloads:
+12
+== glass /login Link header font preloads:
+12
+
+Result: the 12 font Link preloads on every page (Cinematic and Glass included) are Archivo, Newsreader and IBM Plex Mono,
+the pre-existing root-layout faces (present before this step). Zero preloads for Bodoni Moda, Google Sans Flex, Syne, DM Sans.
+Fallback taken: preload:false on Bodoni Moda, Google Sans Flex, Syne, DM Sans (also edited skins/legacy/fonts.ts, not listed in the spec).
