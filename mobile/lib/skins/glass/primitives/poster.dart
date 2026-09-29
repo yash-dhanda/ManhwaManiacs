@@ -22,6 +22,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster_throw.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/rail_focus.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/spring_value.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:motor/motor.dart';
@@ -588,7 +589,12 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
         fit: StackFit.expand,
         children: [
           ColoredBox(color: gt.colorSurface2),
-          Opacity(opacity: sel ? 0.8 : 1, child: widget.cover),
+          if (widget.error)
+            Center(child: GlyphIcon(GlassGlyph.imageBroken, size: 24, color: GlassColors.g600))
+          else if (widget.loading)
+            const GlassSkeletonGroup(child: GlassSkeleton(radius: 0, delayed: false))
+          else
+            Opacity(opacity: sel ? 0.8 : 1, child: widget.cover),
           // A 1 px inner highlight along the top edge.
           Positioned(left: 0, right: 0, top: 0, height: 1, child: const ColoredBox(color: Color(0x14FFFFFF))),
           if (hover && _hoverLocal != null && !reduced)
