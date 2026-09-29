@@ -1,1 +1,48 @@
-/* button */
+/* Buttons (web/26 B) */
+[data-skin="glass"] .g-btn { position: relative; display: inline-grid; align-items: center; min-height: 44px; min-width: 44px; border-radius: 9999px; outline: none; color: var(--mm-color-on-glass); max-width: 100%; }
+[data-skin="glass"] .g-btn[data-size="L"] { min-height: 50px; }
+[data-skin="glass"] .g-btn__glass { position: relative; display: grid; align-items: center; justify-items: center; min-height: var(--btn-h, 44px); padding: 0 var(--btn-pad, 20px); border-radius: 9999px; }
+[data-skin="glass"] .g-btn__row { position: relative; z-index: 1; display: inline-grid; place-items: center; }
+[data-skin="glass"] .g-btn__inner { display: inline-flex; align-items: center; gap: 8px; transition: opacity var(--mm-dur-fade-in, 180ms) var(--mm-ease-fade-in, ease); white-space: nowrap; }
+[data-skin="glass"] .g-btn__row[data-busy] .g-btn__inner { opacity: 0; transition-duration: var(--mm-dur-fade-out, 120ms); }
+[data-skin="glass"] .g-btn__dots { position: absolute; }
+[data-skin="glass"] .g-btn[data-variant="primary"][data-tinted] { color: var(--mm-color-on-tint); }
+[data-skin="glass"] .g-btn[data-variant="plain"] { color: var(--mm-color-iris400); }
+[data-skin="glass"] .g-btn[data-variant="plain"] .g-btn__glass { padding: 0 8px; }
+[data-skin="glass"] .glass .g-btn[data-variant="plain"] { color: var(--mm-color-on-glass); }
+[data-skin="glass"] .g-btn[data-variant="destructiveConfirm"] .g-btn__glass { background: var(--mm-color-danger); color: #000; }
+[data-skin="glass"] .g-btn[data-variant="destructiveConfirm"] { color: #000; }
+[data-skin="glass"] .g-btn[data-variant="destructiveConfirm"][data-size="L"] .g-btn__glass { padding: 0 24px; }
+[data-skin="glass"] .g-btn[data-variant="progress"] .g-btn__glass { overflow: hidden; }
+[data-skin="glass"] .g-btn .g-count { color: var(--mm-color-label2); }
+[data-skin="glass"] .g-btn .g-label { position: relative; z-index: 1; }
+@media (hover: hover) {
+  [data-skin="glass"] .g-btn[data-variant="secondary"][data-hover]:not([data-pressed]) { translate: 0 -1px; }
+  [data-skin="glass"] .g-btn[data-variant="secondary"][data-hover]:not([data-pressed]) .g-btn__glass { box-shadow: 0 10px 28px rgb(0 0 0 / 0.5); }
+}
+[data-skin="glass"] .g-btn { transition: translate var(--mm-spring-snappy-ms, 431ms) var(--mm-spring-snappy, ease); }
+[data-skin="glass"] .g-btn[data-disabled] .g-label { color: var(--mm-color-label4); }
+[data-skin="glass"] .g-btn[data-disabled][data-variant="primary"] .glass { --g-twin-fill: var(--mm-color-fill2); }
+/* focus ring (two-tone, 2.6) */
+[data-skin="glass"] .g-btn[data-focus-visible] .g-btn__glass { box-shadow: 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300), 0 0 6px calc(2px + var(--g-focus-w, 2px)) rgb(188 176 255 / 0.28); }
+[data-skin="glass"] .g-btn[data-focus-visible] .g-btn__glass { transition: box-shadow 120ms linear; }
+/* selected: a 22 % iris600 wash spreading from the touch point in 200 ms, a tinted rim */
+[data-skin="glass"] .g-wipe { position: absolute; inset: 0; border-radius: inherit; background: rgb(117 99 242 / 0.22); pointer-events: none; animation: g-wipe 200ms var(--mm-ease-fade-in, ease) both; }
+@keyframes g-wipe { from { clip-path: circle(0 at var(--glow-x, 50%) var(--glow-y, 50%)); } to { clip-path: circle(150% at var(--glow-x, 50%) var(--glow-y, 50%)); } }
+[data-skin="glass"] .g-btn[data-selected] .glass__rim { background: linear-gradient(rgb(188 176 255 / 0.4), rgb(188 176 255 / 0.4)); }
+html[data-motion="reduced"] .g-wipe { animation: none; }
+@media (prefers-reduced-motion: reduce) { [data-skin="glass"] .g-wipe { animation: none; } }
+[data-skin="glass"] .g-btn[data-error] .g-label { color: inherit; }
+
+/* Split button */
+[data-skin="glass"] .g-split { display: inline-flex; align-items: stretch; min-height: 50px; border-radius: 9999px; overflow: hidden; }
+[data-skin="glass"] .g-split > button { position: relative; z-index: 1; display: inline-grid; place-items: center; min-height: 50px; outline: none; color: var(--mm-color-on-glass); }
+[data-skin="glass"] .g-split__a { padding: 0 20px; background: var(--mm-glass-tinted-fill); color: var(--mm-color-on-tint) !important; border-radius: 9999px 0 0 9999px; }
+[data-skin="glass"] .g-split[data-lit-suppressed] .g-split__a { background: transparent; color: var(--mm-color-on-glass) !important; }
+[data-skin="glass"] .g-split__b { width: 50px; min-width: 50px; }
+[data-skin="glass"] .g-split__sep { position: relative; z-index: 1; width: 0.5px; background: rgb(84 84 96 / 0.55); flex: none; }
+[data-skin="glass"] .g-split > button::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #fff, transparent 75%); opacity: 0; transition: opacity var(--mm-dur-glow-out, 60ms) linear; pointer-events: none; }
+[data-skin="glass"] .g-split[data-active] > button::before { opacity: 0.08; transition-duration: var(--mm-dur-glow-in, 150ms); }
+[data-skin="glass"] .g-split[data-active="a"] > .g-split__a::before, [data-skin="glass"] .g-split[data-active="b"] > .g-split__b::before { opacity: 0.16; }
+[data-skin="glass"] .g-split > button[data-focus-visible] { box-shadow: 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300); z-index: 2; }
+[data-skin="glass"] .g-split > button[data-disabled] { opacity: 0.4; }

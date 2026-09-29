@@ -4,14 +4,15 @@
 [data-skin="glass"] [data-press]:where(button) { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; }
 
 /* label eases to full white on hover (colorShift) and gains wght + 40 while pressed (glass) */
-[data-skin="glass"] [data-press="glass"] .g-label { transition: color var(--mm-dur-color-shift, 240ms) var(--mm-ease-color-shift, cubic-bezier(0.2, 0, 0, 1)); font-variation-settings: "wght" calc(var(--g-wght, 600) + 40 * var(--mm-swell, 0)); }
+[data-skin="glass"] [data-press="glass"] .g-label { transition: color var(--mm-dur-color-shift, 240ms) var(--mm-ease-color-shift, cubic-bezier(0.2, 0, 0, 1)); }
+[data-skin="glass"] [data-press="glass"] { --press-wght: calc(40 * var(--mm-swell, 0)); }
 [data-skin="glass"] [data-press="glass"][data-hover] .g-label { color: #fff; }
 /* the label sinks a little while the glass swells */
 [data-skin="glass"] [data-press="glass"] .g-label, [data-skin="glass"] [data-press="glass"] .g-icon { scale: calc(1 - 0.04 * var(--mm-swell, 0)); display: inline-flex; }
 
 /* hover glow at 8 % (half of the pressed 16 %), centred on the pointer; only where hover exists */
 @media (hover: hover) {
-  [data-skin="glass"] .glass[data-hover]:not([data-glow="on"]) > .glass__glow { opacity: 0.5; }
+  [data-skin="glass"] [data-hover]:not([data-pressed]) .glass > .glass__glow, [data-skin="glass"] .glass[data-hover]:not([data-glow="on"]) > .glass__glow { opacity: 0.5; }
 }
 
 /* reduced motion: glass shows the glow only; content shows a fill2 wash instead of sinking */
@@ -19,7 +20,7 @@
 
 /* disabled: 40 %, no specular, no glow, no growth */
 [data-skin="glass"] [data-press][data-disabled], [data-skin="glass"] [data-press][aria-disabled="true"] { opacity: 0.4; }
-[data-skin="glass"] .glass[data-disabled] > .glass__glow, [data-skin="glass"] .glass[data-disabled] > .glass__rim { opacity: 0; }
+[data-skin="glass"] [data-disabled] .glass > :is(.glass__glow, .glass__rim), [data-skin="glass"] .glass[data-disabled] > :is(.glass__glow, .glass__rim) { opacity: 0 !important; }
 
 /* focus: the two-tone ring of 2.6 on content (glass has its own in glass.css) */
 [data-skin="glass"] [data-press="content"]:focus-visible, [data-skin="glass"] [data-focus-ring]:focus-visible {
