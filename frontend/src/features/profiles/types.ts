@@ -15,6 +15,8 @@ export interface Profile {
   sort_order: number;
   /** Per-profile 18+ gate. Settable at create/edit since 1a. */
   mature_content_enabled: boolean;
+  /** The profile's edition (skin); null until chosen. */
+  skin: "cinematic" | "glass" | null;
   created_at: string;
 }
 
@@ -33,6 +35,7 @@ export type UpdateProfilePayload = Partial<{
   mood: Mood;
   sort_order: number;
   mature_content_enabled: boolean;
+  skin?: "cinematic" | "glass" | null;
 }>;
 
 /**
