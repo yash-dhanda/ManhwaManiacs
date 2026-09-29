@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/dialogue
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/sources_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/library/library_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_manage_screen.dart';
@@ -24,6 +25,7 @@ import 'package:manhwamaniacs/skins/pending_screen.dart';
 /// `feature` and `featureByFollow` are mobile/11's, already built.
 final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.tonight: (context, state) => const TonightScreen(),
+  ScreenId.library: (context, state) => LibraryScreen(params: state.uri.queryParameters, browse: state.uri.path == '/library/browse'),
   ScreenId.setup: (context, state) => const SetupScreen(),
   ScreenId.login: (context, state) => const LoginScreen(),
   ScreenId.register: (context, state) => const RegisterScreen(),
