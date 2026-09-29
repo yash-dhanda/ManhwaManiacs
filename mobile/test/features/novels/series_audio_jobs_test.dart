@@ -22,7 +22,7 @@ import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
 import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
 import 'package:manhwamaniacs/features/novels/repositories/novels_repository.dart';
 import 'package:manhwamaniacs/features/novels/repositories/novels_repository_impl.dart';
-import 'package:manhwamaniacs/features/novels/widgets/audiobook_picker_sheet.dart';
+import 'package:manhwamaniacs/features/novels/utils/audiobook_labels.dart';
 import 'package:manhwamaniacs/features/novels/widgets/novel_series_detail_view.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
