@@ -41,14 +41,17 @@ from database.models import (
     ChapterProgress,
     Collection,
     CollectionSeries,
+    CollectionShare,
     FollowedSeries,
     ProfileSeriesTag,
+    ReadingProfile,
     SourceSeriesCache,
     StreakMilestone,
     Tag,
+    User,
 )
 from database.session import get_db
-from services.circle_service import CircleService, record_event
+from services.circle_service import CircleService, record_event, snapshot_series
 from services.cover_colour import attach_cover_colours
 from services.browse_service import (
     BrowseService,
@@ -367,6 +370,7 @@ class FollowedSeriesService:
         # asked for it again per call — `statistics` alone resolved it three
         # times, each a `Session.get(ReadingProfile, ...)`.
         self._gate_cache: bool | None = None
+        self._circle_svc: CircleService | None = None
 
     # --- helpers -------------------------------------------------------
 
@@ -822,12 +826,19 @@ class FollowedSeriesService:
         with ``move``, the old ones are then removed. A row the target already
         has is kept as it is."""
         collections = self._collection_scope(select(Collection.id))
-        member_cols = ("collection_id", "sort_order", "added_at")
+        member_cols = (
+            "collection_id", "sort_order", "added_at", "title", "cover_url",
+            "added_by_user_id", "added_by_profile_id",
+        )
         members = select(
             CollectionSeries.collection_id,
             *(sa_literal(v) for v in new),
             CollectionSeries.sort_order,
             CollectionSeries.added_at,
+            CollectionSeries.title,
+            CollectionSeries.cover_url,
+            CollectionSeries.added_by_user_id,
+            CollectionSeries.added_by_profile_id,
         ).where(
             CollectionSeries.collection_id.in_(collections),
             CollectionSeries.source_id == old[0],
@@ -2110,12 +2121,137 @@ class FollowedSeriesService:
             )
         return out
 
-    def list_collections(self) -> list[dict[str, Any]]:
+    # --- shared shelves (backend/09) -------------------------------------
+
+    def _circle(self) -> CircleService:
+        if self._circle_svc is None:
+            self._circle_svc = CircleService(self._db, self._user_id, self._profile_id)
+        return self._circle_svc
+
+    @staticmethod
+    def _forbidden() -> AppError:
+        return AppError(
+            "You can't do that on this shelf.", code="forbidden", status_code=403
+        )
+
+    def _owner_effective(self, row: Collection) -> bool:
+        """The owner profile shares and its account is active."""
+        owner = self._db.get(ReadingProfile, row.profile_id)
+        user = self._db.get(User, row.user_id)
+        return bool(owner and owner.share_activity and user and user.is_active)
+
+    def _effective_member_ids(self, row: Collection) -> list[int]:
+        """Members the shelf is shared with AND that can use it now: the owner
+        shares, the member's account is active and it shares activity and
+        shelves (cinematic §8.11, §9.3.1)."""
+        if not row.share_mode or not self._owner_effective(row):
+            return []
+        return list(
+            self._db.execute(
+                select(CollectionShare.profile_id)
+                .join(ReadingProfile, ReadingProfile.id == CollectionShare.profile_id)
+                .join(User, User.id == ReadingProfile.user_id)
+                .where(
+                    CollectionShare.collection_id == row.id,
+                    ReadingProfile.share_activity == 1,
+                    ReadingProfile.share_shelves == 1,
+                    User.is_active == 1,
+                )
+                .order_by(CollectionShare.created_at, CollectionShare.profile_id)
+            ).scalars()
+        )
+
+    def _shelf_access(self, collection_id: int) -> tuple[Collection, str]:
+        """``(collection, role)``, role ``owner`` | ``can_add`` | ``view_only``;
+        anything else is 404 (never disclose that a shelf exists)."""
         self._require_owner()
-        rows = self._db.execute(
-            self._collection_scope(select(Collection)).order_by(Collection.sort_order)
-        ).scalars().all()
-        ids = [c.id for c in rows]
+        row = self._db.get(Collection, collection_id)
+        if row is not None:
+            if row.user_id == self._user_id and row.profile_id == self._profile_id:
+                return row, "owner"
+            if (
+                self._profile_id is not None
+                and row.share_mode
+                and self._profile_id in self._effective_member_ids(row)
+            ):
+                return row, row.share_mode
+        raise AppError("Collection not found.", code="not_found", status_code=404)
+
+    def _shared_block(self, row: Collection) -> dict[str, Any] | None:
+        if not row.share_mode:
+            return None
+        ids = self._effective_member_ids(row)
+        refs = self._circle().refs(ids)
+        return {
+            "owner_profile_id": row.profile_id,
+            "mode": row.share_mode,
+            "member_profile_ids": ids,
+            "members": [refs[i] for i in ids if i in refs],
+        }
+
+    def _shared_visible(
+        self, rows: list[Collection]
+    ) -> dict[int, list[CollectionSeries]]:
+        """Rows of shared shelves the viewer may see: not mature by
+        ``series_mature(adder or owner, viewer)`` or the viewer's gate is open.
+        The owner's include-18+ switch plays no part here.
+
+        ponytail: Python-side filter, fine for a 2-3 user server.
+        """
+        out: dict[int, list[CollectionSeries]] = {c.id: [] for c in rows}
+        if not rows:
+            return out
+        circle = self._circle()
+        gate = circle.viewer_gate()
+        owners = {c.id: c.profile_id for c in rows}
+        members = self._db.execute(
+            select(CollectionSeries)
+            .where(CollectionSeries.collection_id.in_(list(owners)))
+            .order_by(
+                CollectionSeries.collection_id,
+                CollectionSeries.sort_order,
+                CollectionSeries.added_at,
+            )
+            .execution_options(populate_existing=True)
+        ).scalars()
+        for m in members:
+            adder = m.added_by_profile_id or owners[m.collection_id]
+            if gate or not circle.series_mature(adder, m.source_id, m.series_key):
+                out[m.collection_id].append(m)
+        return out
+
+    @staticmethod
+    def _member_cover(m: CollectionSeries) -> str:
+        return (
+            m.cover_url
+            or f"/sources/{m.source_id}/series/{quote(m.series_key, safe='')}/cover"
+        )
+
+    def _shared_stats(
+        self, rows: list[Collection]
+    ) -> dict[int, tuple[int, list[str], dict[str, Any] | None]]:
+        visible = self._shared_visible(rows)
+        firsts = [
+            {"source_id": ms[0].source_id, "series_key": ms[0].series_key}
+            for ms in visible.values()
+            if ms
+        ]
+        attach_cover_colours(self._db, firsts)
+        duos = iter(f["ambient"] and f["ambient"].get("duo") for f in firsts)
+        return {
+            cid: (
+                len(ms),
+                [self._member_cover(m) for m in ms[:4]],
+                next(duos) if ms else None,
+            )
+            for cid, ms in visible.items()
+        }
+
+    def _own_rows(self, rows: list[Collection]) -> list[dict[str, Any]]:
+        """The owner's list rows: unshared shelves through the gate SQL, shared
+        ones through the shared-shelf rule."""
+        plain = [c for c in rows if not c.share_mode]
+        ids = [c.id for c in plain]
         counts = self._member_counts(ids)
         previews = self._previews(ids)
         firsts = [
@@ -2127,14 +2263,152 @@ class FollowedSeriesService:
             cid: (first["ambient"] or {}).get("duo")
             for cid, first in zip(previews, firsts)
         }
-        return [
+        shared = self._shared_stats([c for c in rows if c.share_mode])
+        out = []
+        for c in rows:
+            if c.share_mode:
+                count, covers, its_duo = shared[c.id]
+            else:
+                count = counts.get(c.id, 0)
+                covers = [m[2] for m in previews.get(c.id, [])]
+                its_duo = duo.get(c.id)
+            out.append(
+                {
+                    **self._serialize_collection(c, series_count=count),
+                    "preview_covers": covers,
+                    "preview_ambient_duo": its_duo,
+                    "role": "owner",
+                    "shared": self._shared_block(c),
+                }
+            )
+        return out
+
+    def list_collections(self) -> list[dict[str, Any]]:
+        self._require_owner()
+        rows = self._db.execute(
+            self._collection_scope(select(Collection)).order_by(Collection.sort_order)
+        ).scalars().all()
+        return self._own_rows(rows)
+
+    def shared_with_me(self, owner_id: int | None = None) -> list[dict[str, Any]]:
+        """``SharedShelf`` rows: shelves shared with the viewer that are in
+        effect, ordered by owner name then shelf name."""
+        self._require_owner()
+        if self._profile_id is None:
+            return []
+        stmt = (
+            select(Collection)
+            .join(CollectionShare, CollectionShare.collection_id == Collection.id)
+            .where(
+                CollectionShare.profile_id == self._profile_id,
+                Collection.share_mode.is_not(None),
+                Collection.rules.is_(None),
+            )
+        )
+        if owner_id is not None:
+            stmt = stmt.where(Collection.profile_id == owner_id)
+        rows = [
+            c
+            for c in self._db.execute(stmt).scalars().all()
+            if self._profile_id in self._effective_member_ids(c)
+        ]
+        stats = self._shared_stats(rows)
+        owners = self._circle().refs({c.profile_id for c in rows})
+        out = [
             {
-                **self._serialize_collection(c, series_count=counts.get(c.id, 0)),
-                "preview_covers": [m[2] for m in previews.get(c.id, [])],
-                "preview_ambient_duo": duo.get(c.id),
+                **self._serialize_collection(c, series_count=stats[c.id][0]),
+                "preview_covers": stats[c.id][1],
+                "preview_ambient_duo": stats[c.id][2],
+                "owner": owners[c.profile_id],
+                "role": c.share_mode,
+                "shared": self._shared_block(c),
             }
             for c in rows
         ]
+        out.sort(key=lambda s: (s["owner"]["name"], s["name"]))
+        return out
+
+    def share_collection(
+        self, collection_id: int, profile_ids: list[int], mode: str
+    ) -> dict[str, Any]:
+        row, role = self._shelf_access(collection_id)
+        if role != "owner":
+            raise self._forbidden()
+        if not profile_ids:  # unshare
+            row.share_mode = None
+            self._db.execute(
+                delete(CollectionShare).where(CollectionShare.collection_id == row.id)
+            )
+            self._db.commit()
+            return self._own_rows([row])[0]
+        if row.rules is not None:
+            raise AppError(
+                "Smart shelves follow your own library, so they can't be shared.",
+                code="smart_shelf_not_shareable",
+                status_code=409,
+            )
+        if not self._db.get(ReadingProfile, row.profile_id).share_activity:
+            raise AppError(
+                "Turn on sharing first.", code="sharing_off", status_code=409
+            )
+        ok = set(
+            self._db.execute(
+                select(ReadingProfile.id)
+                .join(User, User.id == ReadingProfile.user_id)
+                .where(
+                    ReadingProfile.id.in_(profile_ids),
+                    ReadingProfile.id != row.profile_id,
+                    ReadingProfile.share_activity == 1,
+                    ReadingProfile.share_shelves == 1,
+                    User.is_active == 1,
+                )
+            ).scalars()
+        )
+        bad = [pid for pid in profile_ids if pid not in ok]
+        if bad:
+            raise AppError(
+                "Some members can't be added.",
+                code="member_unavailable",
+                status_code=409,
+                details={"profile_ids": bad},
+            )
+        users = dict(
+            self._db.execute(
+                select(ReadingProfile.id, ReadingProfile.user_id).where(
+                    ReadingProfile.id.in_(profile_ids)
+                )
+            ).all()
+        )
+        self._db.execute(
+            delete(CollectionShare).where(CollectionShare.collection_id == row.id)
+        )
+        now = utcnow()
+        for pid in profile_ids:
+            self._db.add(
+                CollectionShare(
+                    collection_id=row.id, user_id=users[pid], profile_id=pid, created_at=now
+                )
+            )
+        row.share_mode = mode
+        self._db.commit()
+        return self._own_rows([row])[0]
+
+    def unshare_collection(self, collection_id: int, profile_ref: str) -> None:
+        """Owner removes a member; a member leaves (``me`` or their own id)."""
+        row, role = self._shelf_access(collection_id)
+        target = self._profile_id if profile_ref == "me" else int(profile_ref)
+        if role == "owner":
+            if target == self._profile_id:
+                raise self._forbidden()
+        elif target != self._profile_id:
+            raise self._forbidden()
+        self._db.execute(
+            delete(CollectionShare).where(
+                CollectionShare.collection_id == row.id,
+                CollectionShare.profile_id == target,
+            )
+        )
+        self._db.commit()
 
     def reorder_collection(
         self, collection_id: int, items: list[tuple[str, str]]
@@ -2145,19 +2419,24 @@ class FollowedSeriesService:
         duplicates, else 422 ``order_mismatch``. Members the gate hides keep
         their relative order after the visible ones.
         """
-        self._require_owner()
-        self._owned_collection(collection_id)
+        row = self._owned_collection(collection_id)
         pairs = [(source_id, fully_unquote(key)) for source_id, key in items]
-        visible = {
-            (m.source_id, m.series_key)
-            for m in self._db.execute(
-                self._visible_members(
-                    select(CollectionSeries.source_id, CollectionSeries.series_key).where(
-                        CollectionSeries.collection_id == collection_id
+        if row.share_mode:
+            visible = {
+                (m.source_id, m.series_key)
+                for m in self._shared_visible([row])[row.id]
+            }
+        else:
+            visible = {
+                (m.source_id, m.series_key)
+                for m in self._db.execute(
+                    self._visible_members(
+                        select(CollectionSeries.source_id, CollectionSeries.series_key).where(
+                            CollectionSeries.collection_id == collection_id
+                        )
                     )
-                )
-            ).all()
-        }
+                ).all()
+            }
         if len(set(pairs)) != len(pairs) or set(pairs) != visible:
             raise AppError(
                 "The order must list every member exactly once.",
@@ -2193,11 +2472,10 @@ class FollowedSeriesService:
         self._db.add(row)
         self._db.commit()
         self._db.refresh(row)
-        return self._serialize_collection(row)
+        return {**self._serialize_collection(row), "role": "owner", "shared": None}
 
     def get_collection(self, collection_id: int) -> dict[str, Any]:
-        self._require_owner()
-        row = self._owned_collection(collection_id)
+        row, role = self._shelf_access(collection_id)
         # Selected rather than read off ``row.series``: the relationship holds
         # every member, and the 18+ gate is a predicate the database applies
         # (``_visible_members``) against the profile's follow rows, which a
@@ -2207,28 +2485,46 @@ class FollowedSeriesService:
         # by ``add_series_to_collection`` for the new ``sort_order`` survived
         # its own commit and this method served the collection one write
         # behind.
-        members = self._db.execute(
-            self._visible_members(
-                select(
-                    CollectionSeries.source_id,
-                    CollectionSeries.series_key,
-                    CollectionSeries.sort_order,
-                ).where(CollectionSeries.collection_id == collection_id)
-            ).order_by(CollectionSeries.sort_order, CollectionSeries.added_at)
-        ).all()
-        payload = self._serialize_collection(row, series_count=len(members))
-        payload["series"] = [
+        if row.share_mode:
+            members = self._shared_visible([row])[row.id]
+        else:
+            members = self._db.execute(
+                self._visible_members(
+                    select(CollectionSeries).where(
+                        CollectionSeries.collection_id == collection_id
+                    )
+                )
+                .order_by(CollectionSeries.sort_order, CollectionSeries.added_at)
+                .execution_options(populate_existing=True)
+            ).scalars().all()
+        refs = self._circle().refs(
+            {m.added_by_profile_id for m in members if m.added_by_profile_id}
+            | {row.profile_id}
+        )
+        series = [
             {
                 "source_id": m.source_id,
                 "series_key": m.series_key,
                 "sort_order": m.sort_order,
+                "title": m.title or m.series_key,
+                "cover_url": self._member_cover(m),
+                "ambient": None,
+                "palette": None,
+                "added_by_profile_id": m.added_by_profile_id,
+                "added_by": refs.get(m.added_by_profile_id),
             }
             for m in members
         ]
-        return payload
+        attach_cover_colours(self._db, series)
+        return {
+            **self._serialize_collection(row, series_count=len(series)),
+            "series": series,
+            "role": role,
+            "shared": self._shared_block(row),
+            "owner": refs.get(row.profile_id),
+        }
 
     def update_collection(self, collection_id: int, **changes: Any) -> dict[str, Any]:
-        self._require_owner()
         row = self._owned_collection(collection_id)
         if changes.get("name") is not None:
             row.name = str(changes["name"]).strip()
@@ -2239,22 +2535,25 @@ class FollowedSeriesService:
         if "rules" in changes:
             rules = changes["rules"]
             row.rules = json.dumps(rules) if rules is not None else None
+            if rules is not None and row.share_mode:  # smart shelves are never shared
+                row.share_mode = None
+                self._db.execute(
+                    delete(CollectionShare).where(CollectionShare.collection_id == row.id)
+                )
         self._db.commit()
         self._db.refresh(row)
-        return self._serialize_collection(
-            row, series_count=self._member_counts([row.id]).get(row.id, 0)
-        )
+        return self._own_rows([row])[0]
 
     def delete_collection(self, collection_id: int) -> None:
-        self._require_owner()
         self._db.delete(self._owned_collection(collection_id))
         self._db.commit()
 
     def add_series_to_collection(
         self, collection_id: int, source_id: str, series_key: str
     ) -> dict[str, Any]:
-        self._require_owner()
-        self._owned_collection(collection_id)
+        _row, role = self._shelf_access(collection_id)
+        if role == "view_only":
+            raise self._forbidden()
         series_key = fully_unquote(series_key)
         exists = self._db.get(
             CollectionSeries, (collection_id, source_id, series_key)
@@ -2275,12 +2574,19 @@ class FollowedSeriesService:
                     ).where(CollectionSeries.collection_id == collection_id)
                 ).scalar_one()
             ) + 1
+            title, cover = snapshot_series(
+                self._db, self._profile_id, source_id, series_key
+            )
             self._db.add(
                 CollectionSeries(
                     collection_id=collection_id,
                     source_id=source_id,
                     series_key=series_key,
                     sort_order=next_position,
+                    title=title,
+                    cover_url=cover,
+                    added_by_user_id=self._user_id,
+                    added_by_profile_id=self._profile_id,
                 )
             )
             self._db.commit()
@@ -2289,44 +2595,48 @@ class FollowedSeriesService:
     def remove_series_from_collection(
         self, collection_id: int, source_id: str, series_key: str
     ) -> None:
-        self._require_owner()
-        self._owned_collection(collection_id)
+        row, role = self._shelf_access(collection_id)
+        if role == "view_only":
+            raise self._forbidden()
+        key = fully_unquote(series_key)
         # Read through the same predicate ``get_collection`` prints members
         # through, so a member the gate hides is exactly an absent one: the
         # silent no-op below, row intact. A 404 here — where a member that
         # was never added answers 204 — would be the very existence oracle
         # the gate exists to close.
-        row = self._db.execute(
-            self._visible_members(
-                select(CollectionSeries).where(
-                    CollectionSeries.collection_id == collection_id,
-                    CollectionSeries.source_id == source_id,
-                    CollectionSeries.series_key == fully_unquote(series_key),
-                )
+        if row.share_mode:
+            member = next(
+                (
+                    m
+                    for m in self._shared_visible([row])[row.id]
+                    if (m.source_id, m.series_key) == (source_id, key)
+                ),
+                None,
             )
-        ).scalars().first()
-        if row is not None:
-            self._db.delete(row)
-            self._db.commit()
+        else:
+            member = self._db.execute(
+                self._visible_members(
+                    select(CollectionSeries).where(
+                        CollectionSeries.collection_id == collection_id,
+                        CollectionSeries.source_id == source_id,
+                        CollectionSeries.series_key == key,
+                    )
+                )
+            ).scalars().first()
+        if member is None:
+            return
+        if role == "can_add" and member.added_by_profile_id != self._profile_id:
+            raise self._forbidden()
+        self._db.delete(member)
+        self._db.commit()
 
     def _owned_collection(self, collection_id: int) -> Collection:
-        """Fetch a collection by id, or 404.
-
-        Collections are *created* with a ``profile_id`` and *listed* through
-        ``_collection_scope``, so a sibling profile cannot see one — but with
-        only the ``user_id`` check here it could still rename, empty or
-        ``DELETE`` one by guessing a small integer. The predicate must match
-        ``_collection_scope`` exactly, ``None`` bucket included.
-        """
-        row = self._db.get(Collection, collection_id)
-        if (
-            row is None
-            or row.user_id != self._user_id
-            or row.profile_id != self._profile_id
-        ):
-            raise AppError(
-                "Collection not found.", code="not_found", status_code=404
-            )
+        """The collection for an owner-only call: 404 for a stranger (the
+        predicate matches ``_collection_scope`` exactly, ``None`` bucket
+        included), 403 for a member of a shared shelf."""
+        row, role = self._shelf_access(collection_id)
+        if role != "owner":
+            raise self._forbidden()
         return row
 
     @staticmethod

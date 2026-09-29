@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi import APIRouter, Depends, Path, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy.orm import Session
 
@@ -98,6 +98,18 @@ class CollectionUpdateRequest(BaseModel):
     description: str | None = None
     sort_order: int | None = None
     rules: CollectionRules | None = None
+
+
+class CollectionShareRequest(BaseModel):
+    profile_ids: Annotated[list[int], Field(max_length=10)]
+    mode: Literal["can_add", "view_only"]
+
+    @field_validator("profile_ids")
+    @classmethod
+    def _unique(cls, ids: list[int]) -> list[int]:
+        if len(set(ids)) != len(ids):
+            raise ValueError("profile_ids must be unique")
+        return ids
 
 
 class CollectionOrderRequest(BaseModel):
@@ -460,10 +472,14 @@ def search(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/collections")
-def list_collections(service: ServiceDep, response: Response) -> list[dict[str, object]]:
+@router.get("/collections", response_model=None)
+def list_collections(
+    service: ServiceDep, response: Response, include_shared: bool = False
+) -> list[dict[str, object]] | dict[str, object]:
     items = service.list_collections()
     set_list_total_header(response, len(items))
+    if include_shared:  # opt-in: the default stays a bare array
+        return {"collections": items, "shared_with_me": service.shared_with_me()}
     return items
 
 
@@ -514,6 +530,29 @@ def add_series_to_collection(
     return service.add_series_to_collection(
         collection_id, body.source_id, body.series_key
     )
+
+
+@router.post(
+    "/collections/{collection_id}/share",
+    dependencies=[Depends(require_profile_context)],
+)
+def share_collection(
+    collection_id: int, body: CollectionShareRequest, service: ServiceDep
+) -> dict[str, object]:
+    return service.share_collection(collection_id, body.profile_ids, body.mode)
+
+
+@router.delete(
+    "/collections/{collection_id}/share/{profile_ref}",
+    status_code=204,
+    dependencies=[Depends(require_profile_context)],
+)
+def unshare_collection(
+    collection_id: int,
+    profile_ref: Annotated[str, Path(pattern=r"^(me|\d{1,18})$")],
+    service: ServiceDep,
+) -> None:
+    service.unshare_collection(collection_id, profile_ref)
 
 
 @router.put(
