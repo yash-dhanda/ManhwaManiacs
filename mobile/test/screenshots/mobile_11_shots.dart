@@ -18,7 +18,7 @@ import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/series_primitives_gallery.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_match_cut_page.dart';
+import 'package:manhwamaniacs/skins/cinematic/transitions.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_view.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_view.dart';

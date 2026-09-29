@@ -24,9 +24,8 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/reader_entry.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/reader_prefetch.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_summary_line.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/series_download_card.dart';
@@ -279,7 +278,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
       if (!mounted) return;
       final pf = readerPrefetchOf(ref);
       for (final c in _shown.take(2)) {
-        pf.onDwell(d.sourceId, d.seriesKey, c.id);
+        pf.onDwell(ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id));
       }
     });
   }
@@ -323,7 +322,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
     setState(() => _cursor = ((_cursor ?? (delta > 0 ? -1 : n)) + delta).clamp(0, n - 1));
     _scrollToRow(_cursor!);
     final c = _shown[_cursor!];
-    readerPrefetchOf(ref).onDwell(d.sourceId, d.seriesKey, c.id);
+    readerPrefetchOf(ref).onDwell(ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id));
   }
 
   void _goTo(String text) {
@@ -346,12 +345,9 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
   }
 
   void _open(SourceChapterSummary c) {
-    readerPrefetchOf(ref).onPress(d.sourceId, d.seriesKey, c.id);
-    unawaited(enterReader(
-      context,
-      Routes.reader(d.sourceId, d.seriesKey, c.id),
-      onLand: () => feedback(ref, HapticEvent.readerEnter),
-    ),);
+    final target = ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id);
+    readerPrefetchOf(ref).onPress(target);
+    enterReader(context, target, entry: ReaderEntry.wipe);
   }
 
   Future<void> _download(List<SourceChapterSummary> chapters) async {
@@ -565,8 +561,8 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
                     markPage: active != null && active.chapterKey == c.id && active.progress.pageTotal > 0
                         ? active.progress.pagesDone
                         : null,
-                    onPress: () => pf.onPress(d.sourceId, d.seriesKey, c.id),
-                    onDwell: () => pf.onDwell(d.sourceId, d.seriesKey, c.id),
+                    onPress: () => pf.onPress(ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id)),
+                    onDwell: () => pf.onDwell(ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id)),
                     onSwipeRead: canMark
                         ? () => unawaited(_markRead([c], 'Marked chapter${_num(c)} read.'))
                         : null,

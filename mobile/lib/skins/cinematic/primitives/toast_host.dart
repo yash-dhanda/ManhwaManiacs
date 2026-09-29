@@ -34,9 +34,13 @@ class CineToastHost extends ConsumerStatefulWidget {
     this.frame = CineToastFrame.page,
     this.readerBottomInset = 0,
     this.stockColours,
+    this.hidden = false,
   });
 
   final Widget child;
+
+  /// Hides the stack (a Lightbox route is on top).
+  final bool hidden;
   final double anchorBottom, bannerHeight, readerBottomInset;
   final CineToastFrame frame;
   final CineToastStock? stockColours;
@@ -134,6 +138,7 @@ class CineToastHostState extends ConsumerState<CineToastHost> {
             bottom = widget.anchorBottom;
           }
           if (widget.bannerHeight > 0) bottom += widget.bannerHeight + 8;
+          if (widget.hidden) return const SizedBox.shrink();
           final visible = [for (final s in _shown) s];
           return Positioned.fill(
             child: Padding(

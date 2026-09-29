@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_match_cut_page.dart';
+import 'package:manhwamaniacs/skins/cinematic/transitions.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_view.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
