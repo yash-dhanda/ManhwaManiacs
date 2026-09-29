@@ -85,7 +85,7 @@ class RegisterScreen extends ConsumerWidget {
       footer: AuthStatusGate(
         builder: (context, s) => s.isBootstrapOpen || !s.isRegistrationOpen
             ? const SizedBox.shrink()
-            : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            : Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [
                 CineRoleText('Already have an account?', c.typeCaption, color: c.colorInk60),
                 CineButton(label: 'Sign in', variant: CineButtonVariant.link, onPressed: () => context.go(Routes.login())),
               ],),

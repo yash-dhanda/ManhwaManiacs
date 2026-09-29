@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// Manage profiles (cinematic 8.6): the account's profiles as reorderable rows with `Use`, edit,
@@ -116,20 +117,33 @@ class _ProfilesManageScreenState extends ConsumerState<ProfilesManageScreen> {
         onMove: (from, to) => unawaited(_move(rows, from, to)),
         itemBuilder: (context, p, index, handle, moveEntries, semantics) {
           final current = active?.id == p.id;
-          return CineRow(
-            title: p.name,
-            caption: manageCaption(mood: p.mood.wire, adult: p.matureContentEnabled),
-            leading: CineAvatar(avatarKey: p.avatarKey),
+          final wide = MediaQuery.sizeOf(context).width >= 600;
+          final actions = Wrap(spacing: c.space2, runSpacing: c.space1, crossAxisAlignment: WrapCrossAlignment.center, children: [
+            if (!current) CineButton(label: 'Use', variant: CineButtonVariant.quiet, size: CineButtonSize.sm, onPressed: () => _use(p)),
+            CineIconButton(label: 'Edit ${p.name}', role: CineIconRole.edit, onPressed: () => context.push(Routes.profileEdit(p.id))),
+            CineIconButton(label: 'Delete ${p.name}', role: CineIconRole.delete, onPressed: () => _delete(p)),
+          ],);
+          final who = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Row(children: [
+              Flexible(child: CineRoleText(p.name, c.typeTitle)),
+              if (current) Padding(padding: EdgeInsets.only(left: c.space2), child: const CineBadge('CURRENT', variant: CineBadgeVariant.you)),
+            ],),
+            CineRoleText(manageCaption(mood: p.mood.wire, adult: p.matureContentEnabled), c.typeCaption, color: c.colorInk45),
+          ],);
+          return CineRowShell(
+            minHeight: 72,
             current: current,
             handle: handle,
             menu: moveEntries,
             semanticActions: semantics,
-            trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-              if (current) const CineBadge('CURRENT', variant: CineBadgeVariant.you),
-              if (!current) CineButton(label: 'Use', variant: CineButtonVariant.quiet, size: CineButtonSize.sm, onPressed: () => _use(p)),
-              CineIconButton(label: 'Edit ${p.name}', role: CineIconRole.edit, onPressed: () => context.push(Routes.profileEdit(p.id))),
-              CineIconButton(label: 'Delete ${p.name}', role: CineIconRole.delete, onPressed: () => _delete(p)),
-            ],),
+            semanticLabel: '${p.name}, ${manageCaption(mood: p.mood.wire, adult: p.matureContentEnabled)}',
+            child: wide
+                ? Row(children: [CineAvatar(avatarKey: p.avatarKey), SizedBox(width: c.space4), Expanded(child: who), actions])
+                : Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    Row(children: [CineAvatar(avatarKey: p.avatarKey), SizedBox(width: c.space4), Expanded(child: who)]),
+                    SizedBox(height: c.space2),
+                    actions,
+                  ],),
           );
         },
       );

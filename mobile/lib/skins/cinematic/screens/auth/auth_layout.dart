@@ -29,35 +29,39 @@ class AuthFrame extends StatelessWidget {
     final grid = CineGrid.of(context);
     final tablet = grid.width >= 600;
     final maxW = tablet ? grid.span(6) : double.infinity;
+    Widget column(List<Widget> kids) => Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxW),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: tablet ? 0 : grid.left),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: kids),
+            ),
+          ),
+        );
     return Scaffold(
       backgroundColor: const Color(0xFF000000),
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: CustomScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: maxW),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: tablet ? 0 : grid.left),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (top != null) top!,
-                        ...children,
-                        const Spacer(),
-                        if (footer != null) Padding(padding: EdgeInsets.only(top: context.cine.space6, bottom: context.cine.space4), child: footer),
-                      ],
-                    ),
-                  ),
+        child: FocusTraversalGroup(
+          policy: OrderedTraversalPolicy(),
+          child: Column(children: [
+            Expanded(
+              child: FocusTraversalOrder(
+                order: const NumericFocusOrder(1),
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: column([if (top != null) top!, ...children]),
                 ),
               ),
             ),
-          ],
+            // The footer sits above the keyboard, outside the scroll.
+            if (footer != null)
+              FocusTraversalOrder(
+                order: const NumericFocusOrder(2),
+                child: column([Padding(padding: EdgeInsets.only(top: context.cine.space3, bottom: context.cine.space4), child: footer)]),
+              ),
+          ],),
         ),
       ),
     );

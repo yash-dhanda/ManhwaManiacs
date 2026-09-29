@@ -14,8 +14,12 @@ import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/profiles/repositories/profiles_repository.dart';
+import 'package:manhwamaniacs/core/storage/secure_storage.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
+import 'package:manhwamaniacs/skins/cinematic/navigation.dart' show cineLocationOf;
+import 'package:manhwamaniacs/skins/cinematic/router_gate.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/register_screen.dart';
@@ -32,6 +36,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../support/test_overrides.dart';
 import '../primitives/cine_harness.dart' show TestHaptics;
+
+/// Secure storage that keeps the address and token in memory.
+class FakeSecureStorage extends SecureStorageService {
+  String? url;
+  String? token;
+  @override
+  Future<String?> getApiUrl() async => url;
+  @override
+  Future<void> setApiUrl(String v) async => url = v;
+  @override
+  Future<String?> getAuthToken() async => token;
+  @override
+  Future<void> setAuthToken(String v) async => token = v;
+  @override
+  Future<void> clearAuthToken() async => token = null;
+}
 
 final testUser = AuthUser(id: 1, username: 'tester', isAdmin: false, createdAt: DateTime.utc(2024));
 
@@ -154,7 +174,7 @@ class Rig {
   final FakeAuth auth;
   final FakeProfiles profiles;
   final List<HapticEvent> haptics;
-  String get at => router.routerDelegate.currentConfiguration.uri.toString();
+  String get at => cineLocationOf(router);
 }
 
 Future<Rig> pumpAuth(
@@ -171,6 +191,8 @@ Future<Rig> pumpAuth(
   Size size = const Size(390, 844),
   double scale = 1,
   bool splashDone = true,
+  bool gated = false,
+  bool listFails = false,
   DateTime Function()? clock,
   List<Override> extra = const [],
   Map<String, Object> prefs = const {},
@@ -179,9 +201,11 @@ Future<Rig> pumpAuth(
   final sp = await SharedPreferences.getInstance();
   final fakeAuth = auth ?? FakeAuth();
   final fakeProfiles = FakeProfiles(profiles ?? [profile(1, 'Yash'), profile(2, 'Guest', step: null)]);
+  if (listFails) fakeProfiles.failList = true;
   final haptics = <HapticEvent>[];
   final c = ProviderContainer(overrides: [
     sharedPrefsProvider.overrideWithValue(sp),
+    secureStorageProvider.overrideWithValue(FakeSecureStorage()),
     skinIdProvider.overrideWithValue(SkinId.cinematic),
     authControllerProvider.overrideWith(() => fakeAuth),
     bootstrapStatusProvider.overrideWith((ref) async {
@@ -200,8 +224,31 @@ Future<Rig> pumpAuth(
   t.view.devicePixelRatio = 1;
   addTearDown(t.view.reset);
 
+  final bridge = ValueNotifier<int>(0);
+  addTearDown(bridge.dispose);
+  if (gated) {
+    c
+      ..listen(setupCompletedProvider, (_, __) => bridge.value++)
+      ..listen(authControllerProvider, (_, __) => bridge.value++)
+      ..listen(activeProfileProvider, (_, __) => bridge.value++);
+  }
   final router = GoRouter(
     initialLocation: start,
+    refreshListenable: bridge,
+    redirect: !gated
+        ? null
+        : (context, state) => cineRedirect(
+              CineGateState(
+                setupCompleted: c.read(setupCompletedProvider),
+                auth: switch (c.read(authControllerProvider)) {
+                  AuthUnknown() => CineAuth.unknown,
+                  AuthUnauthenticated() => CineAuth.unauthenticated,
+                  AuthAuthenticated() => CineAuth.authenticated,
+                },
+                hasActiveProfile: c.read(activeProfileProvider) != null,
+              ),
+              state.uri,
+            ),
     routes: [
       GoRoute(path: '/', builder: (_, __) => const Scaffold(body: Center(child: Text('TONIGHT')))),
       GoRoute(path: '/welcome', builder: (_, __) => const Scaffold(body: Center(child: Text('ONBOARDING')))),

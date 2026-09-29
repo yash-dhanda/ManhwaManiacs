@@ -90,7 +90,9 @@ class MatureGateSwitch extends ConsumerWidget {
     return CineSettingsRow(
       label: label,
       description: description,
-      control: CineSwitch(
+      control: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 180),
+        child: CineSwitch(
         label: label,
         value: on,
         errorLine: "Couldn't change this setting.",
@@ -110,6 +112,7 @@ class MatureGateSwitch extends ConsumerWidget {
                   onConfirm: () async => (await notifier.setEnabled(true)) == null,
                 );
               },
+        ),
       ),
     );
   }

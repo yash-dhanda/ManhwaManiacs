@@ -69,6 +69,7 @@ class _ProfilePickerScreenState extends ConsumerState<ProfilePickerScreen> with 
   final GlobalKey _menuKey = GlobalKey();
   late final AnimationController _ring;
   bool _manage = false;
+  bool _focusedOnce = false;
   int? _choosing;
 
   @override
@@ -195,6 +196,14 @@ class _ProfilePickerScreenState extends ConsumerState<ProfilePickerScreen> with 
       ShortcutEntry(group: 'Profiles', activator: const SingleActivator(LogicalKeyboardKey.keyM), description: 'Manage profiles', singleKey: true, onInvoke: () => setState(() => _manage = !_manage)),
     ];
 
+    if (list != null && list.isNotEmpty && !_focusedOnce) {
+      // Hardware keyboards: the arrow keys work at once, from the current profile's avatar.
+      _focusedOnce = true;
+      final first = list.firstWhere((p) => p.id == active?.id, orElse: () => list.first);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _node(first.id).requestFocus();
+      });
+    }
     final width = MediaQuery.sizeOf(context).width;
     final Widget body;
     if (profiles.isLoading && list == null) {

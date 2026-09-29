@@ -2,6 +2,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
+import 'package:manhwamaniacs/features/downloads/models/downloaded_series_group.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloaded_series_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
@@ -144,7 +145,7 @@ void main() {
     await _complete(b, _plain);
     hidden.gate(false);
     never.gate(false);
-    List<String> keys(List<dynamic> g) => [for (final x in g) '${x.seriesKey}:${x.chapters.length}'];
+    List<String> keys(List<DownloadedSeriesGroup> g) => [for (final x in g) '${x.seriesKey}:${x.chapters.length}'];
     hidden.container.invalidate(downloadedSeriesProvider);
     never.container.invalidate(downloadedSeriesProvider);
     expect(keys(await hidden.container.read(downloadedSeriesProvider.future)), keys(await never.container.read(downloadedSeriesProvider.future)));

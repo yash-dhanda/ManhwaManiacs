@@ -34,6 +34,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderStateMixin {
   final _user = TextEditingController();
   final _pass = TextEditingController();
+  final _userNode = FocusNode(debugLabel: 'login-username');
   final _passNode = FocusNode(debugLabel: 'login-password');
   final _rate = RateCountdown();
   late final AnimationController _out;
@@ -52,6 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
     _rate.addListener(_rebuild);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _userNode.requestFocus();
       if (ref.read(sessionEndReasonProvider) == SessionEndReason.signedOut) {
         ref.read(sessionEndReasonProvider.notifier).state = null;
         ref.read(cineToastsProvider.notifier).info(kSignedOutToast);
@@ -67,6 +69,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
   void dispose() {
     _user.dispose();
     _pass.dispose();
+    _userNode.dispose();
     _passNode.dispose();
     _rate.dispose();
     _out.dispose();
@@ -147,7 +150,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
 
     return AuthFrame(
       footer: showCreate
-          ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          ? Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [
               CineRoleText('Need an account?', c.typeCaption, color: c.colorInk60),
               CineButton(label: 'Create one', variant: CineButtonVariant.link, onPressed: () => context.push(Routes.register())),
             ],)
@@ -202,6 +205,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
             child: CineTextField(
               label: 'Username',
               controller: _user,
+              focusNode: _userNode,
               enabled: !off,
               keyboardType: TextInputType.text,
               autocorrect: false,
