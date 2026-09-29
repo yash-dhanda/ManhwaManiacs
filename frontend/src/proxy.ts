@@ -37,7 +37,8 @@ export function matchRoute(pathname: string) {
 
 export function legacyServes(pathname: string): boolean {
   const route = matchRoute(pathname);
-  // `/settings/:section` stays a 404 for legacy (web/02 adds the diagnostics exception here too).
+  // `/settings/:section` stays a 404 for legacy, except the pre-flip debug row (web/02).
+  if (/^\/settings\/diagnostics\/?$/.test(pathname)) return true;
   return !!route && !LEGACY_LACKS.has(route.id) && route.path !== "/settings/:section";
 }
 
