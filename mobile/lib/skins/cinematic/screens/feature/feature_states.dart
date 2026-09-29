@@ -7,13 +7,8 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 
 CineTokens cineOf(BuildContext c) => Theme.of(c).extension<CineTokens>()!;
 
-TextStyle kickerStyle(BuildContext c, {Color? color}) => TextStyle(
-      fontSize: 12,
-      height: 16 / 12,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 1.6,
-      color: color ?? cineOf(c).colorInk60,
-    );
+TextStyle kickerStyle(BuildContext c, {Color? color}) => CineType.style(c, cineOf(c).typeKicker)
+    .copyWith(color: color ?? cineOf(c).colorInk60);
 
 /// The typed notice every failure state uses: kicker, headline, deck, actions.
 class FeatureNotice extends StatelessWidget {

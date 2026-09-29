@@ -16,9 +16,11 @@ import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
+import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
+import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -428,6 +430,16 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
     final current = _currentKey(progress);
     final pf = readerPrefetchOf(ref);
 
+    if (d.chapters.isEmpty) {
+      return CustomScrollView(
+        key: const PageStorageKey('chapters'),
+        slivers: [
+          SliverOverlapInjector(handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context)),
+          SliverToBoxAdapter(child: _ChaptersNotice(data: d, online: online)),
+        ],
+      );
+    }
+
     return ListenableBuilder(
       listenable: widget.selection,
       builder: (context, _) {
@@ -578,5 +590,54 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
       }
     }
     return best;
+  }
+}
+
+/// The three empty CHAPTERS states: offline, unavailable, none.
+class _ChaptersNotice extends ConsumerWidget {
+  const _ChaptersNotice({required this.data, required this.online});
+  final FeatureData data;
+  final bool online;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = cineOf(context);
+    final source = ref.watch(sourcesListProvider).valueOrNull?.cast<SourceSummary?>().firstWhere(
+          (x) => x!.id == data.sourceId,
+          orElse: () => null,
+        );
+    final name = source?.name ?? data.sourceId;
+    final n = data.series.chapterCount;
+    String text;
+    Widget? action;
+    if (!online) {
+      text = 'The chapter list needs a connection.';
+    } else if (n > 0) {
+      text = '$name lists $n chapters but returned none just now — usually the source, not you.';
+      action = TextButton(
+        style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+        onPressed: () => ref.invalidate(
+            sourceSeriesDetailProvider((sourceId: data.sourceId, seriesId: data.seriesKey)),),
+        child: const Text('Try again'),
+      );
+    } else {
+      text = "No chapters yet. The source hasn't published any.";
+      action = TextButton(
+        style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+        onPressed: () =>
+            context.canPop() ? context.pop() : context.go('/sources/${data.sourceId}'),
+        child: const Text('Back to the source'),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(text, key: const Key('chapters-notice'), style: TextStyle(color: t.colorInk80)),
+          if (action != null) action,
+        ],
+      ),
+    );
   }
 }

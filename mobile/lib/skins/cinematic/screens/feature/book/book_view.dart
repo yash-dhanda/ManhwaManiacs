@@ -1,36 +1,66 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
+import 'package:manhwamaniacs/features/downloads/providers/series_download_summary_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
+import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
+import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
+import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_series_providers.dart';
 import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/drop_cap_paragraph.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/reader_entry.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/reader_prefetch.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_contents.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_front_matter.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_states.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/contents_row.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/contents_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/selection_bar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_lightbox.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/chapters_panel.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_actions.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_overflow.dart';
+import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// The novel Book page: typographic front matter, actions, windowed contents.
 class BookView extends ConsumerStatefulWidget {
-  const BookView({super.key, required this.data, this.focusChapter});
+  const BookView({
+    super.key,
+    required this.data,
+    this.focusChapter,
+    this.sourceIsDown = false,
+    this.contentsNotice,
+  });
   final FeatureData data;
 
   /// `?chapter=`: the row to centre with the current band.
   final String? focusChapter;
+  final bool sourceIsDown;
+
+  /// Overrides the derived contents state (loading, offline, error ...).
+  final ContentsNoticeKind? contentsNotice;
 
   @override
   ConsumerState<BookView> createState() => _BookViewState();
@@ -38,24 +68,47 @@ class BookView extends ConsumerStatefulWidget {
 
 class _BookViewState extends ConsumerState<BookView> {
   final _selection = ChapterSelectionController();
-  bool _more = false;
+  final _commands = FeatureCommands();
+  final _scroll = ScrollController();
+  final _startKey = GlobalKey();
+  final _goToCtl = TextEditingController();
+  final _goToFocus = FocusNode();
   bool _narratedOnly = false;
   String? _order;
   ({int start, int end})? _window;
   String? _focus;
+  List<SourceChapterSummary> _goToMatches = const [];
+  String? _goToCaption;
 
   FeatureData get d => widget.data;
-  static const double rowExtent = 48;
+  ChapterMarks get _marks => ChapterMarks(ref, d);
 
   @override
   void initState() {
     super.initState();
     _focus = widget.focusChapter;
+    _commands.viewCover = _cover;
+    _commands.goTo = _goTo;
+    _commands.toggleOrder = () => _setOrder(order == 'oldest' ? 'newest' : 'oldest');
+    _commands.toggleFollow = _toggleLibrary;
+    _commands.download = _downloadBook;
+    // The first three chapters warm their manifests silently (P3).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final pf = readerPrefetchOf(ref);
+      for (final c in d.readingOrder.take(3)) {
+        pf.onDwell(d.sourceId, d.seriesKey, c.id);
+      }
+      if (_focus != null) _centerFocus();
+    });
   }
 
   @override
   void dispose() {
     _selection.dispose();
+    _scroll.dispose();
+    _goToCtl.dispose();
+    _goToFocus.dispose();
     super.dispose();
   }
 
@@ -83,31 +136,184 @@ class _BookViewState extends ConsumerState<BookView> {
     );
   }
 
-  void _open(SourceChapterSummary c, {bool listen = false}) => context
-      .push(Routes.novel(d.sourceId, d.seriesKey, c.id, listen ? {'listen': '1'} : const {}));
+  List<SourceChapterSummary> _shown(Set<String> narrated) {
+    final reading = d.readingOrder;
+    var shown = order == 'oldest' ? reading : reading.reversed.toList();
+    if (_narratedOnly) shown = [for (final c in shown) if (narrated.contains(c.id)) c];
+    return shown;
+  }
+
+  void _centerFocus() {
+    final ctx = _startKey.currentContext;
+    if (ctx == null || !_scroll.hasClients || _focus == null) return;
+    final box = ctx.findRenderObject();
+    if (box is! RenderBox) return;
+    final narrated = ref.read(seriesAudioProvider((sourceId: d.sourceId, seriesKey: d.seriesKey))).valueOrNull?.rendered ?? const <String>{};
+    final shown = _shown(narrated);
+    final i = shown.indexWhere((c) => c.id == _focus);
+    if (i < 0) return;
+    final win = _window ?? tocWindowAround(shown.length, i);
+    final viewport = RenderAbstractViewport.of(box);
+    final top = viewport.getOffsetToReveal(box, 0).offset;
+    final view = _scroll.position.viewportDimension;
+    final target = top + (i - win.start) * kContentsRowExtent - view / 2 + kContentsRowExtent / 2;
+    unawaited(_scroll.animateTo(
+      target.clamp(0.0, _scroll.position.maxScrollExtent),
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? const Duration(milliseconds: 150)
+          : CineDur.column,
+      curve: CineCurves.settle,
+    ),);
+  }
+
+  void _focusOn(SourceChapterSummary c, List<SourceChapterSummary> shown) {
+    final i = shown.indexWhere((x) => x.id == c.id);
+    setState(() {
+      _focus = c.id;
+      _window = tocWindowAround(shown.length, i < 0 ? 0 : i);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _centerFocus());
+  }
+
+  Future<void> _goTo() async {
+    final wide = MediaQuery.sizeOf(context).width >= 600;
+    if (wide) {
+      _goToFocus.requestFocus();
+      return;
+    }
+    final narrated = ref.read(seriesAudioProvider((sourceId: d.sourceId, seriesKey: d.seriesKey))).valueOrNull?.rendered ?? const <String>{};
+    final shown = _shown(narrated);
+    final picked = await showContentsSheet(
+      context,
+      chapters: shown,
+      currentKey: _focus,
+      online: isOnline(ref),
+    );
+    if (picked != null && mounted) _focusOn(picked, shown);
+  }
+
+  void _inlineGoTo(String q, List<SourceChapterSummary> shown) {
+    final m = goToChapterMatches(d.chapters, q);
+    final n = goToChapterQuery(q);
+    setState(() {
+      _goToMatches = m;
+      _goToCaption = n == null
+          ? 'Type a chapter number.'
+          : m.isEmpty
+              ? 'No chapter ${formatChapterNumber(n)} in this book.'
+              : null;
+    });
+  }
+
+  void _cover() => showCoverLightbox(
+        context,
+        imageUrl: sourceSeriesCoverUrl(ref.read(apiBaseUrlProvider), d.sourceId, d.seriesKey),
+        title: d.title,
+      );
+
+  void _open(SourceChapterSummary c, {bool listen = false}) {
+    readerPrefetchOf(ref).onPress(d.sourceId, d.seriesKey, c.id);
+    unawaited(enterReader(
+      context,
+      Routes.novel(d.sourceId, d.seriesKey, c.id, listen ? {'listen': '1'} : const {}),
+      onLand: () => feedback(ref, HapticEvent.readerEnter),
+    ),);
+  }
 
   Future<void> _downloadSelected() async {
     final keys = _selection.selected;
     final chapters = d.chapters.where((c) => keys.contains(c.id)).toList();
     _selection.end();
+    feedback(ref, HapticEvent.downloadStart);
     await ref
         .read(downloadQueueControllerProvider.notifier)
         .enqueueChapters(queueRequests(d, chapters, kind: DownloadKind.novel));
   }
 
-  Future<void> _goToSheet(List<SourceChapterSummary> shown) async {
-    final picked = await showModalBottomSheet<SourceChapterSummary>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: cineOf(context).colorPaper2,
-      builder: (ctx) => _ContentsSearch(chapters: d.chapters),
-    );
-    if (picked != null && mounted) {
-      final i = shown.indexWhere((c) => c.id == picked.id);
-      setState(() {
-        _focus = picked.id;
-        _window = tocWindowAround(shown.length, i < 0 ? 0 : i);
-      });
+  void _downloadBook() {
+    if (ref.read(activeProfileProvider) == null) return;
+    final statuses = ref.read(seriesChapterDownloadStatusProvider(d.identity)).valueOrNull ?? const {};
+    _selection
+      ..begin()
+      ..replaceWith([
+        for (final c in d.chapters)
+          if (statuses[c.id]?.state != DownloadChapterState.complete) c.id,
+      ]);
+  }
+
+  Future<void> _toggleLibrary() async {
+    if (!isOnline(ref)) return;
+    final f = d.followed;
+    if (f == null) {
+      final err = await ref
+          .read(updatesProvider.notifier)
+          .followSeries(sourceId: d.sourceId, seriesKey: d.seriesKey);
+      if (!mounted) return;
+      if (err == null) feedback(ref, HapticEvent.followAdd, SoundEvent.followAdd);
+      featureToast(context, err?.userMessage ?? 'Added ${d.title}. New chapters will notify you.');
+    } else {
+      final actions = ref.read(librarySeriesActionsProvider);
+      final r = await actions.remove(f);
+      if (!mounted) return;
+      featureToast(
+        context,
+        r.error?.userMessage ?? 'Removed ${d.title}.',
+        onUndo: r.error != null ? null : () => unawaited(actions.restore(f, slots: r.slots)),
+      );
+    }
+  }
+
+  Set<String> _completed() {
+    final p = ref.read(sourceSeriesProgressProvider((sourceId: d.sourceId, seriesId: d.seriesKey)));
+    return {for (final e in p.entries) if (e.value.completed) e.key};
+  }
+
+  String _num(SourceChapterSummary c) =>
+      c.number == null ? '' : ' ${formatChapterNumber(c.number!)}';
+
+  Future<void> _markRead(List<SourceChapterSummary> chapters, String message) async {
+    final before = _completed();
+    final marked = await _marks.markRead(chapters, previouslyCompleted: before);
+    if (!mounted) return;
+    feedback(ref, HapticEvent.select);
+    featureToast(context, message, onUndo: () => unawaited(_marks.undoMarkRead(before, marked)));
+  }
+
+  Future<void> _rowMenu(SourceChapterSummary c) async {
+    feedback(ref, HapticEvent.longpressOpen);
+    final choice = await showChapterMenu(context, online: isOnline(ref));
+    if (choice == null || !mounted) return;
+    switch (choice) {
+      case 'read':
+        await _markRead([c], 'Marked chapter${_num(c)} read.');
+      case 'upto':
+        final progress = ref.read(sourceSeriesProgressProvider((sourceId: d.sourceId, seriesId: d.seriesKey)));
+        final refs = [
+          for (final x in d.chapters)
+            (key: x.id, number: x.number, completed: progress[x.id]?.completed ?? false),
+        ];
+        final keys = chaptersUpTo(refs, c.number ?? double.infinity).map((r) => r.key).toSet();
+        final chapters = d.chapters.where((x) => keys.contains(x.id)).toList();
+        await _markRead(chapters, 'Marked ${chapters.length} chapters read.');
+      case 'unread':
+        final deleted = await _marks.markUnread([c.id]);
+        if (!mounted) return;
+        feedback(ref, HapticEvent.select);
+        featureToast(
+          context,
+          'Marked chapter${_num(c)} unread.',
+          onUndo: () => unawaited(_marks.undoMarkUnread(deleted, {c.id: c.number})),
+        );
+      case 'download':
+        feedback(ref, HapticEvent.downloadStart);
+        await ref
+            .read(downloadQueueControllerProvider.notifier)
+            .enqueueChapters(queueRequests(d, [c], kind: DownloadKind.novel));
+      case 'bookmark':
+        final ok = await _marks.bookmarkStart(c, media: BookmarkMedia.novel);
+        if (!mounted) return;
+        if (ok) feedback(ref, HapticEvent.bookmarkAdd, SoundEvent.bookmarkAdd);
+        featureToast(context, ok ? 'Bookmarked chapter${_num(c)}.' : "Couldn't bookmark it.");
     }
   }
 
@@ -116,6 +322,7 @@ class _BookViewState extends ConsumerState<BookView> {
     final t = cineOf(context);
     final s = d.series;
     final wide = MediaQuery.sizeOf(context).width >= 600;
+    final online = isOnline(ref);
     final key = (sourceId: d.sourceId, seriesKey: d.seriesKey);
     final counts =
         ref.watch(novelSeriesWordCountsProvider(d.identity)).valueOrNull ?? const <String, int>{};
@@ -126,24 +333,15 @@ class _BookViewState extends ConsumerState<BookView> {
         ref.watch(sourceSeriesProgressProvider((sourceId: d.sourceId, seriesId: d.seriesKey)));
     final statuses =
         ref.watch(seriesChapterDownloadStatusProvider(d.identity)).valueOrNull ?? const {};
+    final summary = ref.watch(seriesDownloadSummaryProvider((series: d.identity, listed: d.chapters.length)));
+    final running = summary != null && (summary.downloadingPage != null || summary.waiting > 0);
 
     final reading = d.readingOrder;
-    var shown = order == 'oldest' ? reading : reading.reversed.toList();
-    if (_narratedOnly) {
-      shown = [
-        for (final c in shown)
-          if (narrated.contains(c.id)) c,
-      ];
-    }
-    final focusIndex =
-        _focus == null ? 0 : shown.indexWhere((c) => c.id == _focus).clamp(0, shown.length);
+    final shown = _shown(narrated);
+    final focusIndex = _focus == null ? 0 : shown.indexWhere((c) => c.id == _focus).clamp(0, shown.length);
     final win = _window ?? tocWindowAround(shown.length, focusIndex);
-    final visible =
-        shown.isEmpty ? const <SourceChapterSummary>[] : shown.sublist(win.start, win.end);
 
     final blurb = shelfBlurb(s.description);
-    final collapsed =
-        blurb != null && !_more && blurb.length > 220 ? '${blurb.substring(0, 220)}…' : blurb;
     final facts = [
       formatChapterCount(d.chapters.length)?.toUpperCase(),
       if (formatEstimatedWords(estimate) != null) formatEstimatedWords(estimate)!.toUpperCase(),
@@ -151,7 +349,6 @@ class _BookViewState extends ConsumerState<BookView> {
       formatStatus(s.status)?.toUpperCase(),
     ].whereType<String>().join(' · ');
 
-    // Resume: the most recently touched chapter, else the first.
     String? lastKey;
     DateTime? at;
     for (final e in progress.entries) {
@@ -166,17 +363,11 @@ class _BookViewState extends ConsumerState<BookView> {
     final p = resumeChapter == null ? null : progress[resumeChapter.id];
     final caughtUp =
         resumeChapter != null && reading.last.id == resumeChapter.id && (p?.completed ?? false);
-
-    final plate = Container(
-      width: wide ? 168 : 96,
-      height: wide ? 248 : 144,
-      decoration: BoxDecoration(color: t.colorPaper1, border: Border.all(color: t.colorRule2)),
-      alignment: Alignment.center,
-      child: Text(
-        s.title.isEmpty ? '' : s.title[0],
-        style: TextStyle(fontSize: 48, color: t.colorInk100),
-      ),
-    );
+    _commands.continueReading =
+        resumeChapter == null || caughtUp ? null : () => _open(resumeChapter);
+    _commands.listen = audio != null && narrated.isNotEmpty && resumeChapter != null
+        ? () => _open(resumeChapter, listen: true)
+        : null;
 
     final selectable = [
       for (final c in reading)
@@ -190,430 +381,219 @@ class _BookViewState extends ConsumerState<BookView> {
     ];
     final unsaved = selectable.where((c) => !c.isDownloaded).length;
     final f = d.followed;
+    final base = ref.watch(apiBaseUrlProvider);
+    final cover = f != null
+        ? followedSeriesCoverUrl(base, f)
+        : sourceSeriesCoverUrl(base, d.sourceId, d.seriesKey);
+    final heroTag = f != null ? seriesCoverHeroTag(f.id) : 'cover-${d.sourceId}-${d.seriesKey}';
 
-    return PopScope(
-      canPop: !_selection.isActive,
-      child: Scaffold(
-        backgroundColor: t.colorPaper0,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          leading: IconButton(
-            tooltip: 'Back',
-            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.canPop() ? context.pop() : context.go('/'),
-          ),
-          actions: [
-            IconButton(
-              tooltip: 'More',
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              icon: const Icon(Icons.more_horiz),
-              onPressed: () => showFeatureOverflow(
-                context,
-                ref,
-                d,
-                onCover: () => showCoverLightbox(context, imageUrl: '', title: d.title),
+    final contentsNotice = widget.contentsNotice ??
+        (d.chapters.isEmpty
+            ? (!online
+                ? ContentsNoticeKind.offline
+                : (s.chapterCount > 0 ? ContentsNoticeKind.unavailable : ContentsNoticeKind.empty))
+            : (shown.isEmpty && _narratedOnly ? ContentsNoticeKind.empty : null));
+
+    return CineAmbient(
+      target: CineAmbientColors.forSeries('${d.sourceId}/${d.seriesKey}'),
+      builder: (context, amb) => ListenableBuilder(
+        listenable: _selection,
+        builder: (context, _) => PopScope(
+          canPop: !_selection.isActive,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop && _selection.isActive && defaultTargetPlatform != TargetPlatform.iOS) {
+              _selection.end();
+            }
+          },
+          child: FeatureShortcuts(
+            book: true,
+            commands: _commands,
+            child: Scaffold(
+              backgroundColor: t.colorPaper0,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                leading: IconButton(
+                  tooltip: 'Back',
+                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => featureBack(context),
+                ),
+                actions: [
+                  IconButton(
+                    tooltip: 'More',
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                    icon: const Icon(Icons.more_horiz),
+                    onPressed: () => showFeatureOverflow(
+                      context,
+                      ref,
+                      d,
+                      onCover: _cover,
+                      sourceIsDown: widget.sourceIsDown,
+                      book: true,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: ListenableBuilder(
-          listenable: _selection,
-          builder: (context, _) => _selection.isActive
-              ? SelectionBar(
-                  controller: _selection,
-                  chapters: selectable,
-                  onDownload: _downloadSelected,
-                  showWholeBook: true,
-                )
-              : const SizedBox.shrink(),
-        ),
-        body: ListenableBuilder(
-          listenable: _selection,
-          builder: (context, _) => ListView(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-            children: [
-              Text(
-                'NOVEL · ${(formatStatus(s.status) ?? '').toUpperCase()} · ${d.sourceId.toUpperCase()}',
-                style: kickerStyle(context, color: t.colorAmbientFallbackInk),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              bottomNavigationBar: _selection.isActive
+                  ? SelectionBar(
+                      controller: _selection,
+                      chapters: selectable,
+                      onDownload: _downloadSelected,
+                      showWholeBook: true,
+                    )
+                  : null,
+              body: ListView(
+                controller: _scroll,
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            s.title,
-                            style: TextStyle(
-                              fontFamily: 'serif',
-                              fontSize: wide ? 56 : 40,
-                              height: 1,
-                              color: t.colorInk100,
+                  BookFrontMatter(
+                    kicker:
+                        'NOVEL · ${(formatStatus(s.status) ?? '').toUpperCase()} · ${d.sourceId.toUpperCase()}',
+                    title: s.title,
+                    byline: byline(s.author),
+                    facts: facts,
+                    estimateNote: estimate.sampleSize > 0
+                        ? 'Length estimated from ${estimate.sampleSize} chapters read so far.'
+                        : null,
+                    blurb: blurb,
+                    genres: shelfGenres(s.genres),
+                    sourceId: d.sourceId,
+                    coverUrl: cover,
+                    heroTag: heroTag,
+                    onCover: _cover,
+                  ),
+                  const SizedBox(height: 8),
+                  FilledButton(
+                    key: const Key('primary-action'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                      disabledBackgroundColor: t.colorPaper3,
+                      disabledForegroundColor: t.colorInk30,
+                    ),
+                    onPressed: resumeChapter == null || caughtUp ? null : () => _open(resumeChapter),
+                    child: caughtUp
+                        ? const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [Icon(Icons.check, size: 18), SizedBox(width: 8), Text('All caught up')],
+                          )
+                        : Text(
+                            lastKey == null || p == null
+                                ? 'Start reading  │  CH ${reading.isEmpty ? '' : formatChapterNumber(reading.first.number ?? 1)}'
+                                : 'Continue  │  CH ${formatChapterNumber(resumeChapter?.number ?? 0)}'
+                                    '${p.pageCount > 0 ? ' · ${(p.page * 100 / p.pageCount).round()}%' : ''}',
+                          ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (audio != null && narrated.isNotEmpty && resumeChapter != null)
+                    OutlinedButton(
+                      key: const Key('listen'),
+                      style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
+                      onPressed: () => _open(resumeChapter, listen: true),
+                      child: const Text('Listen'),
+                    )
+                  else if (audio != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                        "Narration isn't available for this book.",
+                        key: const Key('narration-unavailable'),
+                        style: TextStyle(fontSize: 13, color: t.colorInk60),
+                      ),
+                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Tooltip(
+                          message: online ? (f == null ? 'Add to library' : 'In your library') : kNeedsConnection,
+                          child: TextButton.icon(
+                            key: const Key('library-toggle'),
+                            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                            icon: Icon(f == null ? Icons.add : Icons.check),
+                            label: const Text('LIBRARY'),
+                            onPressed: online ? _toggleLibrary : null,
+                          ),
+                        ),
+                      ),
+                      if (unsaved > 0 && !running)
+                        Expanded(
+                          child: Tooltip(
+                            message: ref.watch(activeProfileProvider) == null
+                                ? 'Downloads belong to a reading profile.'
+                                : 'Download book',
+                            child: TextButton.icon(
+                              key: const Key('download-book'),
+                              style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                              icon: const Icon(Icons.cloud_download_outlined),
+                              label: Text('DOWNLOAD $unsaved'),
+                              onPressed: ref.watch(activeProfileProvider) == null ? null : _downloadBook,
                             ),
                           ),
                         ),
-                        if (byline(s.author) != null)
-                          Text(
-                            byline(s.author)!,
-                            style: TextStyle(
-                              fontFamily: 'serif',
-                              fontStyle: FontStyle.italic,
-                              fontSize: 22,
-                              color: t.colorInk80,
-                            ),
-                          ),
-                      ],
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onLongPress: () => showCoverLightbox(context, imageUrl: '', title: d.title),
-                    child: plate,
+                  BookContentsToolbar(
+                    order: order,
+                    onOrder: _setOrder,
+                    selecting: _selection.isActive,
+                    onPick: _selection.isActive ? _selection.end : _selection.begin,
+                    narratedOnly: _narratedOnly,
+                    onNarrated: (v) => setState(() => _narratedOnly = v),
+                    onGoTo: _goTo,
+                    wide: wide,
+                    goToController: _goToCtl,
+                    goToFocus: _goToFocus,
+                    onGoToSubmitted: (q) => _inlineGoTo(q, shown),
+                    goToMatches: _goToMatches,
+                    goToCaption: _goToCaption,
+                    onPickMatch: (c) => _focusOn(c, shown),
+                    showNarrated: audio != null,
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(width: 56, height: 1, color: t.colorInk100),
-              const SizedBox(height: 12),
-              Text(facts, style: kickerStyle(context)),
-              if (estimate.sampleSize > 0)
-                Text(
-                  'Length estimated from ${estimate.sampleSize} chapters read so far.',
-                  style: TextStyle(fontSize: 12, color: t.colorInk60),
-                ),
-              if (collapsed != null) ...[
-                const SizedBox(height: 12),
-                DropCapParagraph(
-                  text: collapsed,
-                  style: TextStyle(fontSize: 16, height: 24 / 16, color: t.colorInk80),
-                  capStyle: TextStyle(
-                    fontFamily: 'serif',
-                    fontSize: 72,
-                    height: 1,
-                    fontWeight: FontWeight.w800,
-                    color: t.colorInk100,
-                  ),
-                ),
-                if (blurb!.length > 220)
-                  TextButton(
-                    style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                    onPressed: () => setState(() => _more = !_more),
-                    child: Text(_more ? 'Less' : 'More'),
-                  ),
-              ],
-              Wrap(
-                spacing: 8,
-                children: [
-                  for (final g in shelfGenres(s.genres))
-                    TextButton(
-                      style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                      onPressed: () => context
-                          .push('/sources/${d.sourceId}?genre=${Uri.encodeQueryComponent(g)}'),
-                      child: Text(
-                        g.toUpperCase(),
-                        style: const TextStyle(fontSize: 12, letterSpacing: 1),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              FilledButton(
-                key: const Key('primary-action'),
-                style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
-                onPressed: resumeChapter == null || caughtUp ? null : () => _open(resumeChapter),
-                child: Text(
-                  caughtUp
-                      ? 'All caught up'
-                      : lastKey == null || p == null
-                          ? 'Start reading  │  CH ${reading.isEmpty ? '' : formatChapterNumber(reading.first.number ?? 1)}'
-                          : 'Continue  │  CH ${formatChapterNumber(resumeChapter?.number ?? 0)}'
-                              '${p.pageCount > 0 ? ' · ${(p.page * 100 / p.pageCount).round()}%' : ''}',
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (audio != null && narrated.isNotEmpty && resumeChapter != null)
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
-                  onPressed: () => _open(resumeChapter, listen: true),
-                  child: const Text('Listen'),
-                )
-              else if (audio != null)
-                Text(
-                  "Narration isn't available for this book.",
-                  style: TextStyle(fontSize: 12, color: t.colorInk60),
-                ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton.icon(
-                      style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                      icon: Icon(f == null ? Icons.add : Icons.check),
-                      label: Text(f == null ? 'LIBRARY' : 'IN YOUR LIBRARY'),
-                      onPressed: () async {
-                        final n = ref.read(updatesProvider.notifier);
-                        if (f == null) {
-                          await n.followSeries(sourceId: d.sourceId, seriesKey: d.seriesKey);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Added ${d.title}. New chapters will notify you.'),
-                              ),
-                            );
+                  BookContentsList(
+                    shown: shown,
+                    window: win,
+                    onWindow: (w) => setState(() => _window = w),
+                    progress: progress,
+                    statuses: statuses,
+                    narrated: narrated,
+                    focusKey: _focus,
+                    selection: _selection,
+                    notice: contentsNotice,
+                    startKey: _startKey,
+                    rowBuilder: (c, {required current}) {
+                      final pr = progress[c.id];
+                      final done = pr?.completed ?? false;
+                      final st = statuses[c.id];
+                      return ContentsRow(
+                        key: ValueKey('row-${c.id}'),
+                        chapter: c,
+                        read: done,
+                        percent: (pr?.pageCount ?? 0) > 0 && !done
+                            ? (pr!.page * 100 / pr.pageCount).round()
+                            : null,
+                        narrated: narrated.contains(c.id),
+                        downloadState: st?.state,
+                        current: current,
+                        selecting: _selection.isActive,
+                        selected: _selection.isSelected(c.id),
+                        onSwipeRead: online && !_selection.isActive
+                            ? () => unawaited(_markRead([c], 'Marked chapter${_num(c)} read.'))
+                            : null,
+                        onMenu: () => unawaited(_rowMenu(c)),
+                        onLongPress: () => unawaited(_rowMenu(c)),
+                        onTap: () {
+                          if (_selection.isActive) {
+                            if (st?.state != DownloadChapterState.complete) _selection.toggle(c.id);
+                          } else {
+                            _open(c);
                           }
-                        } else {
-                          await n.unfollow(f.id);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(content: Text('Removed ${d.title}.')));
-                          }
-                        }
-                      },
-                    ),
-                  ),
-                  if (unsaved > 0)
-                    Expanded(
-                      child: TextButton.icon(
-                        style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                        icon: const Icon(Icons.cloud_download_outlined),
-                        label: Text('DOWNLOAD $unsaved'),
-                        onPressed: _selection.begin,
-                      ),
-                    ),
-                ],
-              ),
-              Divider(color: t.colorRule1),
-              Row(
-                children: [
-                  Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: SegmentedButton<String>(
-                        showSelectedIcon: false,
-                        segments: const [
-                          ButtonSegment(value: 'oldest', label: Text('FIRST → LAST')),
-                          ButtonSegment(value: 'newest', label: Text('LAST → FIRST')),
-                        ],
-                        selected: {order},
-                        onSelectionChanged: (v) => _setOrder(v.first),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Go to chapter',
-                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                    icon: const Icon(Icons.search),
-                    onPressed: () => _goToSheet(shown),
+                        },
+                      );
+                    },
                   ),
                 ],
               ),
-              Wrap(
-                spacing: 8,
-                children: [
-                  TextButton(
-                    style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                    onPressed: _selection.isActive ? _selection.end : _selection.begin,
-                    child: Text(_selection.isActive ? 'Done' : 'Pick chapters'),
-                  ),
-                  Semantics(
-                    button: true,
-                    toggled: _narratedOnly,
-                    child: FilterChip(
-                      label: const Text('Narrated only'),
-                      selected: _narratedOnly,
-                      onSelected: (v) => setState(() => _narratedOnly = v),
-                    ),
-                  ),
-                ],
-              ),
-              if (shown.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    d.chapters.isEmpty ? 'No chapters yet.' : "Contents didn't come through.",
-                  ),
-                ),
-              if (win.start > 0)
-                TextButton(
-                  style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                  onPressed: () =>
-                      setState(() => _window = extendTocWindow(win, shown.length, earlier: true)),
-                  child: Text('Show earlier chapters (${win.start})'),
-                ),
-              for (final c in visible)
-                _ContentsRow(
-                  chapter: c,
-                  read: progress[c.id]?.completed ?? false,
-                  percent:
-                      (progress[c.id]?.pageCount ?? 0) > 0 && !(progress[c.id]?.completed ?? false)
-                          ? (progress[c.id]!.page * 100 / progress[c.id]!.pageCount).round()
-                          : null,
-                  narrated: narrated.contains(c.id),
-                  saved: statuses[c.id]?.state == DownloadChapterState.complete,
-                  current: c.id == _focus,
-                  selecting: _selection.isActive,
-                  selected: _selection.isSelected(c.id),
-                  onTap: () {
-                    if (_selection.isActive) {
-                      if (statuses[c.id]?.state != DownloadChapterState.complete) {
-                        _selection.toggle(c.id);
-                      }
-                    } else {
-                      _open(c);
-                    }
-                  },
-                ),
-              if (win.end < shown.length)
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(minimumSize: const Size(48, 48)),
-                  onPressed: () =>
-                      setState(() => _window = extendTocWindow(win, shown.length, earlier: false)),
-                  child: Text('Show more chapters (${shown.length - win.end})'),
-                ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContentsRow extends StatelessWidget {
-  const _ContentsRow({
-    required this.chapter,
-    required this.read,
-    required this.percent,
-    required this.narrated,
-    required this.saved,
-    required this.current,
-    required this.selecting,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final SourceChapterSummary chapter;
-  final bool read;
-  final int? percent;
-  final bool narrated;
-  final bool saved;
-  final bool current;
-  final bool selecting;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = cineOf(context);
-    final e = tocEntry(number: chapter.number, title: chapter.title);
-    final ink = read ? t.colorInk45 : t.colorInk100;
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: _BookViewState.rowExtent),
-        decoration: BoxDecoration(
-          color: selected ? t.colorPaper3 : (current ? t.colorSpotWash : null),
-          border:
-              (selected || current) ? Border(left: BorderSide(color: t.colorSpot, width: 2)) : null,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          children: [
-            if (selecting)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Icon(
-                  selected || saved ? Icons.check_box : Icons.check_box_outline_blank,
-                  size: 20,
-                ),
-              ),
-            SizedBox(
-              width: 40,
-              child: Text(
-                e.ordinal ?? '·',
-                textAlign: TextAlign.right,
-                style: TextStyle(fontSize: 12, color: t.colorSpot),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                e.title ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontFamily: 'serif', fontSize: 16, color: ink),
-              ),
-            ),
-            if (percent != null)
-              Text('$percent%', style: TextStyle(fontSize: 12, color: t.colorSpot)),
-            if (read) Text('READ', style: TextStyle(fontSize: 10, color: t.colorInk45)),
-            if (narrated)
-              const Padding(
-                padding: EdgeInsets.only(left: 4),
-                child: Icon(Icons.headphones, size: 16),
-              ),
-            if (saved)
-              const Padding(
-                padding: EdgeInsets.only(left: 4),
-                child: Icon(Icons.check_box, size: 16),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// N2: the contents sheet in search mode: the go-to field and its matches.
-class _ContentsSearch extends StatefulWidget {
-  const _ContentsSearch({required this.chapters});
-  final List<SourceChapterSummary> chapters;
-
-  @override
-  State<_ContentsSearch> createState() => _ContentsSearchState();
-}
-
-class _ContentsSearchState extends State<_ContentsSearch> {
-  String _q = '';
-
-  @override
-  Widget build(BuildContext context) {
-    final matches = goToChapterMatches(widget.chapters, _q);
-    final n = goToChapterQuery(_q);
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('CONTENTS', style: kickerStyle(context)),
-            TextField(
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Chapter number'),
-              onChanged: (v) => setState(() => _q = v),
-            ),
-            const SizedBox(height: 8),
-            if (n == null)
-              const Text('Type a chapter number.')
-            else if (matches.isEmpty)
-              Text('No chapter ${formatChapterNumber(n)} in this book.')
-            else ...[
-              for (final c in matches.take(12))
-                ListTile(
-                  minVerticalPadding: 12,
-                  title: Text(c.title),
-                  subtitle: Text('row ${widget.chapters.indexWhere((x) => x.id == c.id) + 1}'),
-                  onTap: () => Navigator.pop(context, c),
-                ),
-              if (matches.length > 12) Text('and ${matches.length - 12} more'),
-            ],
-          ],
         ),
       ),
     );
