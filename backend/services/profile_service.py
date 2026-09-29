@@ -35,6 +35,14 @@ ALLOWED_MOODS: frozenset[str] = frozenset(
 NAME_MAX = 255
 AVATAR_KEY_MAX = 64
 
+# Redesign profile fields PATCH accepts (validated by the route's model).
+REDESIGN_FIELDS = ("skin", "notify_enabled", "onboarding_step", "daily_goal_minutes")
+
+
+def _onboarding_out(step: str | None) -> int | str | None:
+    """Stored as text ('3', 'done'); served as 3, 'done' or None."""
+    return int(step) if step is not None and step.isdigit() else step
+
 
 class ProfileService:
     # A household account is capped at this many profiles.
@@ -94,6 +102,12 @@ class ProfileService:
             "sort_order": profile.sort_order,
             "mature_content_enabled": bool(profile.mature_content_enabled),
             "created_at": profile.created_at.isoformat() if profile.created_at else None,
+            "skin": profile.skin,
+            # None only on an unflushed row; the column defaults to on.
+            "notify_enabled": profile.notify_enabled is None
+            or bool(profile.notify_enabled),
+            "onboarding_step": _onboarding_out(profile.onboarding_step),
+            "daily_goal_minutes": profile.daily_goal_minutes,
         }
 
     # --- CRUD ----------------------------------------------------------------
@@ -175,8 +189,22 @@ class ProfileService:
         mood: str | None = None,
         sort_order: int | None = None,
         mature_content_enabled: bool | None = None,
+        redesign: dict[str, object] | None = None,
     ) -> ReadingProfile:
+        """``redesign`` holds only the redesign fields the client SENT, so an
+        explicit None resets a nullable one and an absent key changes nothing.
+        """
         profile = self._get_owned(profile_id)
+        redesign = redesign or {}
+        if "skin" in redesign:
+            profile.skin = redesign["skin"]
+        if redesign.get("notify_enabled") is not None:
+            profile.notify_enabled = bool(redesign["notify_enabled"])
+        if "onboarding_step" in redesign:
+            step = redesign["onboarding_step"]
+            profile.onboarding_step = None if step is None else str(step)
+        if "daily_goal_minutes" in redesign:
+            profile.daily_goal_minutes = redesign["daily_goal_minutes"]
         if mature_content_enabled is not None:
             profile.mature_content_enabled = bool(mature_content_enabled)
         if name is not None:

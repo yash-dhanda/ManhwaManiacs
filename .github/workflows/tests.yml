@@ -76,6 +76,8 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - name: Design contract
+        run: node design/build.mjs --check && node --test 'design/test/*.test.mjs'
       - name: Install dependencies
         working-directory: frontend
         run: npm ci

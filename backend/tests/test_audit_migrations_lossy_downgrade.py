@@ -38,7 +38,7 @@ from alembic.config import Config
 
 import database.session as dbs
 
-_HEAD = "0017_world_catalog_cache"
+_HEAD = "0018_profile_redesign_cols"
 _BEFORE_0010 = "0009_reading_session_duration"
 _BEFORE_0002 = "0001_source_native"
 
