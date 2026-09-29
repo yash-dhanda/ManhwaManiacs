@@ -1,5 +1,4 @@
 // ignore_for_file: require_trailing_commas, directives_ordering
-import 'dart:ui' show SemanticsAction;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -13,7 +12,7 @@ List<(String, Rect)> _targets(WidgetTester tester) {
   final out = <(String, Rect)>[];
   void walk(SemanticsNode n, Matrix4 m) {
     if (n.isInvisible || n.flagsCollection.isHidden) return;
-    final t = n.transform == null ? m : m * n.transform!;
+    final Matrix4 t = n.transform == null ? m : (m * n.transform) as Matrix4;
     // Controls only: full-width list rows and the two-tab strip (one segmented
     // control, a single 48 px band) sit flush by design.
     if (n.getSemanticsData().hasAction(SemanticsAction.tap) && n.rect.width < 200 && !RegExp(r'Tab \d of \d').hasMatch(n.label)) {
@@ -25,7 +24,7 @@ List<(String, Rect)> _targets(WidgetTester tester) {
     });
   }
 
-  walk(tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!, Matrix4.identity());
+  walk(tester.binding.rootPipelineOwner.semanticsOwner!.rootSemanticsNode!, Matrix4.identity());
   return out;
 }
 

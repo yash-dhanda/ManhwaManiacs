@@ -394,7 +394,7 @@ final matureOverrideChangedProvider = Provider<void Function()>((ref) => () {
       for (final invalidate in matureScopedInvalidators) {
         invalidate(ref);
       }
-    });
+    },);
 
 /// Providers invalidated by [SettingsActions.clearMetadataCache], exposed
 /// separately so tests can verify the exact set without invoking the whole
