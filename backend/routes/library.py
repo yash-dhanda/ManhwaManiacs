@@ -10,9 +10,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
 from core.profile_context import require_profile_context
 from core.rate_limit import limiter, sources_limit, suggest_limit
+from database.session import get_db
+from services.cover_colour import attach_cover_colours
 from services.followed_series_service import (
     FollowedSeriesService,
     get_followed_series_service,
@@ -29,6 +32,7 @@ router = APIRouter(prefix="/library", tags=["library"])
 ServiceDep = Annotated[FollowedSeriesService, Depends(get_followed_series_service)]
 SuggestDep = Annotated[SuggestionService, Depends(get_suggestion_service)]
 WorldDep = Annotated[WorldRecs, Depends(get_world_recs)]
+DbDep = Annotated[Session, Depends(get_db)]
 
 
 class FollowRequest(BaseModel):
@@ -80,6 +84,7 @@ class SeriesTagRequest(BaseModel):
 @router.get("/series")
 def list_series(
     service: ServiceDep,
+    db: DbDep,
     page: int = Query(1, ge=1),
     per_page: int = Query(40, ge=1, le=200),
     sort: str = Query("title"),
@@ -93,7 +98,7 @@ def list_series(
     opened and how many lie past it — so a card can say where the reader is
     without a request per series.
     """
-    return service.list_series(
+    listing = service.list_series(
         page=page,
         per_page=per_page,
         sort=sort,
@@ -101,28 +106,33 @@ def list_series(
         reading_status=reading_status,
         is_favorite=is_favorite,
     )
+    attach_cover_colours(db, listing["items"])
+    return listing
 
 
 @router.get("/series/{followed_id}")
-def get_series(followed_id: int, service: ServiceDep) -> dict[str, object]:
+def get_series(followed_id: int, service: ServiceDep, db: DbDep) -> dict[str, object]:
     """Followed-series detail: snapshot + cached meta + live chapter list."""
-    return service.get_detail(followed_id)
+    return attach_cover_colours(db, [service.get_detail(followed_id)])[0]
 
 
 @router.patch(
     "/series/{followed_id}", dependencies=[Depends(require_profile_context)]
 )
 def patch_series(
-    followed_id: int, body: SeriesPatchRequest, service: ServiceDep
+    followed_id: int, body: SeriesPatchRequest, service: ServiceDep, db: DbDep
 ) -> dict[str, object]:
     """Update favorite / reading_status / notify / mature_override / sort_order."""
-    return service.patch(followed_id, **body.model_dump(exclude_unset=True))
+    row = service.patch(followed_id, **body.model_dump(exclude_unset=True))
+    return attach_cover_colours(db, [row])[0]
 
 
 @router.post("/follow", dependencies=[Depends(require_profile_context)])
-def follow_series(body: FollowRequest, service: ServiceDep) -> dict[str, object]:
+def follow_series(
+    body: FollowRequest, service: ServiceDep, db: DbDep
+) -> dict[str, object]:
     """Follow a series (add it to the profile's library)."""
-    return service.follow(body.source_id, body.series_key)
+    return attach_cover_colours(db, [service.follow(body.source_id, body.series_key)])[0]
 
 
 @router.delete(
@@ -143,12 +153,13 @@ def unfollow_series(followed_id: int, service: ServiceDep) -> None:
 @router.get("/continue-reading")
 def continue_reading(
     service: ServiceDep,
+    db: DbDep,
     response: Response,
     limit: int = Query(10, ge=1, le=50),
 ) -> list[dict[str, object]]:
     items = service.continue_reading(limit=limit)
     set_list_total_header(response, len(items))
-    return items
+    return attach_cover_colours(db, items)
 
 
 @router.get("/recently-updated")
@@ -198,6 +209,7 @@ def suggest(
     request: Request,
     response: Response,  # slowapi injects X-RateLimit-* headers into this
     service: SuggestDep,
+    db: DbDep,
 ) -> dict[str, object]:
     """Describe what you feel like reading; get series this server can open.
 
@@ -209,11 +221,15 @@ def suggest(
     Rate-limited on its own bucket and capped on its own daily ledger,
     because one accepted request here is one paid API call.
     """
-    return service.suggest(
+    result = service.suggest(
         body.prompt,
         base_url=str(request.base_url),
         limit=body.limit,
     )
+    attach_cover_colours(
+        db, result["items"], key=lambda item: (item["source"], item["series_id"])
+    )
+    return result
 
 
 class WorldSuggestRequest(BaseModel):
@@ -278,12 +294,15 @@ def statistics(
 @router.get("/search")
 def search(
     service: ServiceDep,
+    db: DbDep,
     q: str = Query(..., min_length=1),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=200),
 ) -> dict[str, object]:
     """Search over the profile's followed series (title LIKE)."""
-    return service.search(q, page=page, per_page=per_page)
+    result = service.search(q, page=page, per_page=per_page)
+    attach_cover_colours(db, result["items"])
+    return result
 
 
 # ---------------------------------------------------------------------------
