@@ -1,4 +1,6 @@
+import 'package:manhwamaniacs/core/time/server_instant.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart';
+import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
 
 /// One series membership row inside a [CollectionDetail] — opaque
 /// `(sourceId, seriesKey)` identity, not a followed-series id.
@@ -30,6 +32,8 @@ class CollectionDetail {
     required this.seriesCount,
     required this.sortOrder,
     required this.series,
+    this.rules,
+    this.createdAt,
   });
 
   final int id;
@@ -39,6 +43,8 @@ class CollectionDetail {
   final int seriesCount;
   final int sortOrder;
   final List<CollectionSeriesRef> series;
+  final ShelfRules? rules;
+  final DateTime? createdAt;
 
   Collection toCollection() => Collection(
         id: id,
@@ -47,6 +53,8 @@ class CollectionDetail {
         coverUrl: coverUrl,
         seriesCount: seriesCount,
         sortOrder: sortOrder,
+        rules: rules,
+        createdAt: createdAt,
       );
 
   factory CollectionDetail.fromJson(Map<String, dynamic> json) => CollectionDetail(
@@ -56,6 +64,8 @@ class CollectionDetail {
         coverUrl: json['cover_url'] as String?,
         seriesCount: (json['series_count'] as num?)?.toInt() ?? 0,
         sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+        rules: ShelfRules.tryParse(json['rules']),
+        createdAt: serverInstant(json['created_at']),
         series: (json['series'] as List<dynamic>? ?? const [])
             .map((e) => CollectionSeriesRef.fromJson(e as Map<String, dynamic>))
             .toList(),
