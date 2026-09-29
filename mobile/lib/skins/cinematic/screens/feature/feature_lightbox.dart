@@ -5,8 +5,12 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dar
 /// The cover Lightbox (§7.30): contain fit on `colorLightbox`, pinch to zoom
 /// (1x to 4x), double tap 1x/2.5x, drag down past 120 px (or fling) to dismiss,
 /// `x`, back and Esc close. TODO(mobile/06): the Hero match and Arm timings.
-Future<void> showCoverLightbox(BuildContext context,
-    {required String imageUrl, required String title,}) {
+Future<void> showCoverLightbox(
+  BuildContext context, {
+  required String imageUrl,
+  required String title,
+  Object? heroTag,
+}) {
   return Navigator.of(context).push(
     PageRouteBuilder<void>(
       opaque: false,
@@ -17,15 +21,19 @@ Future<void> showCoverLightbox(BuildContext context,
           : const Duration(milliseconds: 480),
       reverseTransitionDuration: const Duration(milliseconds: 320),
       pageBuilder: (context, a, b) =>
-          FadeTransition(opacity: a, child: _Lightbox(url: imageUrl, title: title)),
+          FadeTransition(
+            opacity: a,
+            child: _Lightbox(url: imageUrl, title: title, heroTag: heroTag),
+          ),
     ),
   );
 }
 
 class _Lightbox extends StatefulWidget {
-  const _Lightbox({required this.url, required this.title});
+  const _Lightbox({required this.url, required this.title, this.heroTag});
   final String url;
   final String title;
+  final Object? heroTag;
 
   @override
   State<_Lightbox> createState() => _LightboxState();
@@ -45,12 +53,21 @@ class _LightboxState extends State<_Lightbox> {
         ..translateByDouble(-_tap.dx * 1.5, -_tap.dy * 1.5, 0, 1)
         ..scaleByDouble(2.5, 2.5, 1, 1);
       setState(() => _chip = true);
-      Future<void>.delayed(const Duration(milliseconds: 1200), () {
+      Future<void>.delayed(cineOf(context).durHoldChip, () {
         if (mounted) setState(() => _chip = false);
       });
     } else {
       _ctl.value = Matrix4.identity();
     }
+  }
+
+  Widget _image() {
+    final img = Image.network(
+      widget.url,
+      fit: BoxFit.contain,
+      errorBuilder: (c, e, s) => const SizedBox(),
+    );
+    return widget.heroTag == null ? img : Hero(tag: widget.heroTag!, child: img);
   }
 
   @override
@@ -93,9 +110,7 @@ class _LightboxState extends State<_Lightbox> {
                   transformationController: _ctl,
                   minScale: 1,
                   maxScale: 4,
-                  child: Center(
-                      child: Image.network(widget.url,
-                          fit: BoxFit.contain, errorBuilder: (c, e, s) => const SizedBox(),),),
+                  child: Center(child: _image()),
                 ),
               ),
             ),
@@ -106,7 +121,10 @@ class _LightboxState extends State<_Lightbox> {
                 button: true,
                 label: 'Close',
                 child: IconButton(
+                  key: const Key('lightbox-close'),
+                  tooltip: 'Close',
                   constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                  style: IconButton.styleFrom(backgroundColor: t.colorOnart),
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
@@ -118,7 +136,7 @@ class _LightboxState extends State<_Lightbox> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 color: t.colorPaper1,
-                child: Text('${widget.title} · COVER', style: kickerStyle(context)),
+                child: Text('${widget.title} · COVER · 720 × 1080', key: const Key('lightbox-caption'), style: kickerStyle(context)),
               ),
             ),
             if (_chip)
@@ -128,7 +146,7 @@ class _LightboxState extends State<_Lightbox> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   color: t.colorPaper1,
-                  child: Text('250%', style: kickerStyle(context)),
+                  child: Text('250%', key: const Key('lightbox-chip'), style: kickerStyle(context)),
                 ),
               ),
           ],

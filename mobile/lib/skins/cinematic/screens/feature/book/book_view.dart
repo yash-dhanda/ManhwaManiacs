@@ -209,6 +209,9 @@ class _BookViewState extends ConsumerState<BookView> {
         context,
         imageUrl: sourceSeriesCoverUrl(ref.read(apiBaseUrlProvider), d.sourceId, d.seriesKey),
         title: d.title,
+        heroTag: d.followed != null
+            ? seriesCoverHeroTag(d.followed!.id)
+            : 'cover-${d.sourceId}-${d.seriesKey}',
       );
 
   void _open(SourceChapterSummary c, {bool listen = false}) {

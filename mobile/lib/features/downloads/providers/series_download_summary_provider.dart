@@ -27,7 +27,8 @@ SeriesDownloadSummary summarizeSeriesDownloads({
   final failed = all.where((s) => s == DownloadChapterState.failed).length;
   final waiting = all.length - saved - failed;
   final blocked = pauseReason == DownloadQueuePauseReason.freeSpaceFloor ||
-      pauseReason == DownloadQueuePauseReason.cap;
+      pauseReason == DownloadQueuePauseReason.cap ||
+      pauseReason == DownloadQueuePauseReason.userPaused;
   return (
     saved: saved,
     total: listed > all.length ? listed : all.length,

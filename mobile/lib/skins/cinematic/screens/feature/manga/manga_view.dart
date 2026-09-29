@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.d
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
+import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -129,6 +130,9 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
         imageUrl:
             '${ref.read(apiBaseUrlProvider)}/sources/${d.sourceId}/series/${Uri.encodeComponent(d.seriesKey)}/cover',
         title: d.title,
+        heroTag: d.followed != null
+            ? seriesCoverHeroTag(d.followed!.id)
+            : 'cover-${d.sourceId}-${d.seriesKey}',
       );
 
   Future<void> _downloadSelected() async {

@@ -3,9 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
+import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/features/library/utils/repoint_mapping.dart';
+import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
@@ -32,9 +36,10 @@ class _RepointSheet extends ConsumerStatefulWidget {
 }
 
 class _RepointSheetState extends ConsumerState<_RepointSheet> {
-  List<({String sourceName, GlobalSearchItem item})>? _candidates;
+  List<({String sourceName, String? iconUrl, GlobalSearchItem item})>? _candidates;
+  List<({String source, String sourceName})> _failedSources = const [];
   bool _failed = false;
-  ({String sourceName, GlobalSearchItem item})? _picked;
+  ({String sourceName, String? iconUrl, GlobalSearchItem item})? _picked;
   ({double from, double to})? _range;
   bool _keepOld = false;
   bool _moving = false;
@@ -58,15 +63,20 @@ class _RepointSheetState extends ConsumerState<_RepointSheet> {
       return;
     }
     setState(() {
+      _failedSources = [
+        for (final g in r.value.groups)
+          if (!g.isLocal && g.source != widget.data.sourceId && g.hasError)
+            (source: g.source!, sourceName: g.sourceName),
+      ];
       _candidates = [
         for (final g in r.value.groups)
           if (!g.isLocal && g.source != widget.data.sourceId)
-            for (final i in g.items) (sourceName: g.sourceName, item: i),
+            for (final i in g.items) (sourceName: g.sourceName, iconUrl: g.iconUrl, item: i),
       ];
     });
   }
 
-  Future<void> _pick(({String sourceName, GlobalSearchItem item}) c) async {
+  Future<void> _pick(({String sourceName, String? iconUrl, GlobalSearchItem item}) c) async {
     setState(() {
       _picked = c;
       _range = null;
@@ -79,6 +89,25 @@ class _RepointSheetState extends ConsumerState<_RepointSheet> {
         if (ch.number != null) ch.number!,
     ]..sort();
     setState(() => _range = nums.isEmpty ? null : (from: nums.first, to: nums.last));
+  }
+
+  /// The chapter this follow is on: the most recently read chapter's number.
+  double? _currentNumber() {
+    final d = widget.data;
+    final progress =
+        ref.read(sourceSeriesProgressProvider((sourceId: d.sourceId, seriesId: d.seriesKey)));
+    String? key;
+    DateTime? at;
+    for (final e in progress.entries) {
+      if (at == null || e.value.updatedAt.isAfter(at)) {
+        key = e.key;
+        at = e.value.updatedAt;
+      }
+    }
+    for (final c in d.chapters) {
+      if (c.id == key) return c.number;
+    }
+    return null;
   }
 
   Future<void> _move() async {
@@ -137,30 +166,58 @@ class _RepointSheetState extends ConsumerState<_RepointSheet> {
             if (picked == null) ...[
               if (_failed) ...[
                 Text('CORRECTION', style: kickerStyle(context)),
-                TextButton(onPressed: _search, child: const Text('Retry')),
-              ] else if (_candidates == null)
-                const LinearProgressIndicator(minHeight: 2)
-              else if (_candidates!.isEmpty)
-                const Text('No other source has this series.')
-              else
-                Flexible(
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: [
-                      for (final c in _candidates!)
-                        ListTile(
-                          minVerticalPadding: 12,
-                          title: Text(c.item.title),
-                          subtitle: Text(c.sourceName),
-                          onTap: () => _pick(c),
-                        ),
-                    ],
-                  ),
+                const Text('The sources did not answer.'),
+                TextButton(
+                  style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                  onPressed: _search,
+                  child: const Text('Retry'),
                 ),
+              ] else if (_candidates == null)
+                Column(
+                  key: const Key('repoint-searching'),
+                  children: [
+                    for (var i = 0; i < 3; i++)
+                      Container(
+                        height: 72,
+                        margin: const EdgeInsets.only(bottom: 8),
+                        color: t.colorGalley,
+                      ),
+                  ],
+                )
+              else ...[
+                for (final f in _failedSources)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Text('CORRECTION', style: kickerStyle(context)),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text("${f.sourceName} didn't answer.")),
+                        TextButton(
+                          style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                          onPressed: _search,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (_candidates!.isEmpty)
+                  const Text('No other source has this series.')
+                else
+                  Flexible(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final c in _candidates!)
+                          _CandidateRow(candidate: c, onTap: () => _pick(c)),
+                      ],
+                    ),
+                  ),
+              ],
             ] else ...[
               Text(
                 mappingSentence(
-                  currentNumber: null, // TODO: the follow's current chapter number
+                  currentNumber: _currentNumber(),
                   candidateRange: _range,
                   sourceName: picked.sourceName,
                 ),
@@ -189,6 +246,68 @@ class _RepointSheetState extends ConsumerState<_RepointSheet> {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CandidateRow extends ConsumerWidget {
+  const _CandidateRow({required this.candidate, required this.onTap});
+  final ({String sourceName, String? iconUrl, GlobalSearchItem item}) candidate;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = cineOf(context);
+    final base = ref.watch(apiBaseUrlProvider);
+    final cover = searchResultCoverUrl(base, candidate.item.coverUrl);
+    final extra = candidate.item.extra;
+    final chapters = (extra?['chapter_count'] as num?)?.toInt();
+    final facts = [
+      if (chapters != null) 'CHAPTERS $chapters',
+      if (extra?['latest_chapter'] is String) 'LATEST ${extra!['latest_chapter']}',
+    ].join(' · ');
+    return InkWell(
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 72),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: candidate.iconUrl == null
+                    ? null
+                    : Image.network(
+                        resolveApiResourceUrl(base, candidate.iconUrl!),
+                        errorBuilder: (c, e, s) => const SizedBox(),
+                      ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(candidate.item.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(candidate.sourceName, style: TextStyle(fontSize: 12, color: t.colorInk60)),
+                    if (facts.isNotEmpty) Text(facts, style: kickerStyle(context)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                width: 40,
+                height: 60,
+                color: t.colorPaper1,
+                child: cover == null
+                    ? null
+                    : Image.network(cover, fit: BoxFit.cover, errorBuilder: (c, e, s) => const SizedBox()),
+              ),
+            ],
+          ),
         ),
       ),
     );

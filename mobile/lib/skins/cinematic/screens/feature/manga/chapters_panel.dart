@@ -502,7 +502,11 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
                         ),
                       ],
                     ),
-                    SeriesDownloadCard(series: d.identity, listed: d.chapters.length),
+                    SeriesDownloadCard(
+                      series: d.identity,
+                      listed: d.chapters.length,
+                      onStorage: () => context.go(ScreenId.downloads.path),
+                    ),
                     DownloadRunLine(
                       series: d.identity,
                       runKeys: _run,

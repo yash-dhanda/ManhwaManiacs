@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_summary_provider.dart';
+import 'package:manhwamaniacs/features/downloads/providers/storage_settings_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 
@@ -56,9 +57,13 @@ class SeriesDownloadCard extends ConsumerWidget {
             const SizedBox(height: 8),
             Text('NOTE', style: kickerStyle(context, color: t.colorSpot)),
             Text(
-              s.pauseReason == DownloadQueuePauseReason.cap
-                  ? 'Paused: your 10 GB limit is full.'
-                  : 'Paused: this phone is almost full.',
+              switch (s.pauseReason!) {
+                DownloadQueuePauseReason.cap =>
+                  'Paused: your ${ref.watch(storageCapProvider).label} limit is full.',
+                DownloadQueuePauseReason.userPaused => 'Paused: you paused downloads.',
+                _ => 'Paused: this phone is almost full.',
+              },
+              key: const Key('series-download-pause'),
             ),
             if (onStorage != null)
               TextButton(
