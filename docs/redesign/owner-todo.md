@@ -49,3 +49,7 @@ Items only the owner can do, by step.
 - Posters elsewhere in the app must wear `coverTransitionName(sourceId, seriesKey)` (`screens/feature/cover-name.ts`) inside a `<ViewTransition share="mm-match-cut">` for the match cut into the Feature page; web/09-web/10 posters do not exist in this tree, so the cut was verified between the two routes of one series.
 
 - mobile/03: confirm tests + build-ios CI run ids/conclusions for commit abbace5 (liquid_glass_widgets pin), record in docs/redesign/proof/mobile-03/glass-gate.md
+
+## web/11 open issues
+- mature_override re-stamp not wired: web/07's local-row mature filter is not integrated; use-series-page.ts setMature only invalidates MATURE_GATED_QUERY_ROOTS (TODO(web/07)).
+- Stand-ins remain until web/06, web/07, web/09 integrate: reader-entry.ts (enterReader wipe), toasts.tsx (toast host), standins.tsx (AddToShelfSheet, TagSheet), tags-standin.ts (tag hooks), SetHeading.tsx and use-feature-keys.tsx (single-key setting).

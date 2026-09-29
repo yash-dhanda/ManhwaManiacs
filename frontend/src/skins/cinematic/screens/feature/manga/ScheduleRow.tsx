@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { downloadMarkState } from "@/features/offline/download-mark";
+import { haptic } from "../../../haptics";
 import { Glyph } from "../Glyph";
 import { Menu, type MenuEntry } from "../Menu";
 import { DownloadMark } from "../downloads/DownloadMark";
@@ -31,7 +32,11 @@ export function ScheduleRow({
   const enter = useReaderEntry();
   const href = page.chapterHref(row.id);
   const [menu, setMenu] = useState(false);
-  const swipe = useSwipeRow({ enabled: page.online && !picker.selecting, onCommit: () => page.markOne(row.id), onLongPress: () => setMenu(true) });
+  const openMenu = () => {
+    haptic("longpress.open");
+    setMenu(true);
+  };
+  const swipe = useSwipeRow({ enabled: page.online && !picker.selecting, onCommit: () => page.markOne(row.id), onLongPress: () => openMenu() });
   const selected = picker.selecting && picker.isSelected(row.id);
   const dlState = picker.stateOf(row.id);
   const saved = dlState === "saved";
@@ -42,13 +47,17 @@ export function ScheduleRow({
     { label: "Mark read", disabled: !page.online, title: need, onSelect: () => page.markOne(row.id) },
     { label: "Mark read up to here", disabled: !page.online, title: need, onSelect: () => page.markUpTo(row.id) },
     { label: "Mark unread", disabled: !page.online, title: need, onSelect: () => void page.markUnread(row.id) },
+    { label: "Bookmark start", disabled: !page.online, title: need, onSelect: () => void page.bookmarkStart(row.id) },
     { label: "Download", onSelect: () => void picker.downloads.download([row.id]) },
   ];
 
   const open = (e: React.MouseEvent) => {
     if (picker.selecting) {
       e.preventDefault();
-      if (!saved) picker.pick(row.id, e.shiftKey);
+      if (!saved) {
+        haptic("select");
+        picker.pick(row.id, e.shiftKey);
+      }
       return;
     }
     e.preventDefault();
@@ -64,7 +73,7 @@ export function ScheduleRow({
   ].join(" ");
 
   return (
-    <div role="listitem" className={s.swipeWrap} data-row={index} data-focused={focused || undefined} data-swiping={swipe.swiping || undefined} onContextMenu={(e) => { e.preventDefault(); setMenu(true); }}>
+    <div role="listitem" className={s.swipeWrap} data-row={index} data-focused={focused || undefined} data-swiping={swipe.swiping || undefined} onContextMenu={(e) => { e.preventDefault(); openMenu(); }}>
       {swipe.swiping ? (
         <div aria-hidden="true" className={s.slab} style={{ width: swipe.slab }}>
           <Glyph name="check" />

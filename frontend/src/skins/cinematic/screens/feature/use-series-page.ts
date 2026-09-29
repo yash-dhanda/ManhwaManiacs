@@ -40,6 +40,10 @@ import { createHoverIntent } from "@/lib/hover-intent";
 import { ApiError } from "@/types/api";
 import { buildRows, sortChapters, type ChapterSort } from "./chapter-rows";
 import { useToasts } from "./toasts";
+import { bookmarksApi } from "@/features/bookmarks/api";
+import { MATURE_GATED_QUERY_ROOTS } from "@/features/preferences/mature-gate";
+import { haptic } from "../../haptics";
+import { playSound } from "../../sounds";
 
 const subscribeOnline = (cb: () => void) => {
   window.addEventListener("online", cb);
@@ -182,6 +186,8 @@ export function useSeriesPage(opts: {
         });
       } else {
         await followM.mutateAsync(ref);
+        haptic("follow.add");
+        playSound("follow.add");
         toasts.push(
           isNovel
             ? `Added ${title}. New chapters will notify you.`
@@ -200,11 +206,16 @@ export function useSeriesPage(opts: {
   const patch = useCallback(
     (body: Parameters<typeof patchM.mutate>[0]["body"]) => {
       if (followedId !== null) patchM.mutate({ followedId, body });
+      if (body.is_favorite === true) {
+        haptic("favorite");
+        playSound("favorite");
+      }
     },
     [followedId, patchM],
   );
 
   const setMature = (value: boolean | null) => {
+    // TODO(web/07): also re-stamp this series' locally stored rows through web/07's mature filter (not integrated; see owner-todo.md).
     patch({ mature_override: value });
     toasts.push(
       value === true
@@ -213,8 +224,41 @@ export function useSeriesPage(opts: {
           ? `Treating ${title} as not 18+.`
           : "Using the source's rating.",
     );
-    void qc.invalidateQueries({ queryKey: ["library"] });
-    void qc.invalidateQueries({ queryKey: ["sources"] });
+    MATURE_GATED_QUERY_ROOTS.forEach((root) => void qc.invalidateQueries({ queryKey: [root] }));
+  };
+
+  // --- download haptics: start on run begin, done/fail on its summary ----
+  const { running, summary } = picker.downloads;
+  useEffect(() => {
+    if (running) haptic("download.start");
+  }, [running]);
+  useEffect(() => {
+    if (!summary) return;
+    haptic(summary.tone === "warn" ? "download.fail" : "download.done");
+    playSound(summary.tone === "warn" ? "download.fail" : "download.done");
+  }, [summary]);
+
+  /** A bookmark at page 1 of a chapter, through the existing bookmarks API. */
+  const bookmarkStart = async (key: string) => {
+    const c = chapters.find((x) => x.id === key);
+    try {
+      await bookmarksApi.create({
+        source_id: sourceId,
+        series_key: seriesKey,
+        chapter_key: key,
+        chapter_number: c?.number ?? null,
+        media_type: isNovel ? "novel" : "manga",
+        anchor_index: 0,
+        anchor_fraction: 0,
+        anchor_total: c?.page_count ?? 0,
+      });
+      void qc.invalidateQueries({ queryKey: ["bookmarks"] });
+      haptic("bookmark.add");
+      playSound("bookmark.add");
+      toasts.push(`Bookmarked the start of chapter ${c?.number ?? ""}.`.replace("  ", " "));
+    } catch {
+      toasts.push("Couldn't save the bookmark.");
+    }
   };
 
   // --- mark read / unread ---------------------------------------------
@@ -277,7 +321,7 @@ export function useSeriesPage(opts: {
     enrichment, suggested, coverage, allTags, tagIds, tagSeries, untagSeries,
     progress, progressRows, readCount, continueTo, primaryHref, readAll, chapterHref,
     sort, setSort, hover, prefetchP1, picker, title,
-    toggleFollow, patch, setMature, markOne, markUpTo, markUnread,
+    toggleFollow, patch, setMature, markOne, markUpTo, markUnread, bookmarkStart,
     timeSpent: timeHere(progressRows),
     toasts,
   };

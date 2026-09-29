@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { downloadMarkState } from "@/features/offline/download-mark";
 import { tocEntry } from "@/features/novels/book";
 import { formatChapterLength } from "@/features/novels/reading-time";
+import { haptic } from "../../../haptics";
 import { Glyph } from "../Glyph";
 import { Menu, type MenuEntry } from "../Menu";
 import { DownloadMark } from "../downloads/DownloadMark";
@@ -34,6 +35,10 @@ export function ContentsRow({
   const enter = useReaderEntry();
   const href = page.chapterHref(row.id);
   const [menu, setMenu] = useState(false);
+  const openMenu = () => {
+    haptic("longpress.open");
+    setMenu(true);
+  };
   const long = useRef<ReturnType<typeof setTimeout> | null>(null);
   const entry = tocEntry({ number: row.number, title: row.title });
   const selected = picker.selecting && picker.isSelected(row.id);
@@ -47,6 +52,7 @@ export function ContentsRow({
     { label: "Mark read", disabled: !page.online, title: need, onSelect: () => page.markOne(row.id) },
     { label: "Mark read up to here", disabled: !page.online, title: need, onSelect: () => page.markUpTo(row.id) },
     { label: "Mark unread", disabled: !page.online, title: need, onSelect: () => void page.markUnread(row.id) },
+    { label: "Bookmark start", disabled: !page.online, title: need, onSelect: () => void page.bookmarkStart(row.id) },
     { label: "Download", onSelect: () => void picker.downloads.download([row.id]) },
   ];
 
@@ -59,9 +65,9 @@ export function ContentsRow({
       aria-current={focused ? "location" : undefined}
       onContextMenu={(e) => {
         e.preventDefault();
-        setMenu(true);
+        openMenu();
       }}
-      onTouchStart={() => (long.current = setTimeout(() => setMenu(true), 450))}
+      onTouchStart={() => (long.current = setTimeout(() => openMenu(), 450))}
       onTouchEnd={() => long.current && clearTimeout(long.current)}
       onTouchMove={() => long.current && clearTimeout(long.current)}
     >
@@ -72,7 +78,10 @@ export function ContentsRow({
           onClick={(e) => {
             e.preventDefault();
             if (picker.selecting) {
-              if (!saved) picker.pick(row.id, e.shiftKey);
+              if (!saved) {
+        haptic("select");
+        picker.pick(row.id, e.shiftKey);
+      }
             } else enter(href);
           }}
           onMouseEnter={() => page.hover.enter(row.id)}

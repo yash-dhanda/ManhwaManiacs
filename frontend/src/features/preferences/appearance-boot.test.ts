@@ -275,6 +275,7 @@ describe("appearance boot script — first-paint accessibility", () => {
     };
     const doc = { documentElement: { setAttribute: (n: string, v: string) => (attrs[n] = v) } };
     new Function("localStorage", "document", "location", APPEARANCE_BOOT_SOURCE)(ls, doc, { pathname });
+    delete attrs["data-glass-renderer"]; // stamped unconditionally, before the profile lookup
     return attrs;
   }
   const five = {
