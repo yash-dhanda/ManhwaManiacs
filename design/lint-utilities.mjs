@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 // Fails on Tailwind utilities outside a skin's token names (cinematic/DESIGN.md §2.8 "Lint scope",
-// §15.10 S2). Scans frontend/src/skins/<skin>/**/*.{ts,tsx,css} except *.generated.*, collecting
+// §15.10 S2; glass/DESIGN.md §2.8, §15.1, G2). Each skin is checked against its own names only, so a
+// Cinematic-only name fails in a Glass file and the reverse. Glass also allows backdrop-blur-<its blur>
+// (it is built on backdrop filters); Cinematic allows no backdrop-* utility at all. Scans frontend/src/skins/<skin>/**/*.{ts,tsx,css} except *.generated.*, collecting
 // class-like tokens from string literals and @apply lines. Prints file:line token per failure.
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { themeEntries } from "./lib/emit-css.mjs";
+import { isGlassTokens } from "./lib/emit-glass-css.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CHECKED = /^(bg|text|border|outline|fill|stroke|font|tracking|leading|rounded|blur|backdrop|ease|duration|z|animate)-/;
@@ -39,6 +42,8 @@ for (const skin of readdirSync(join(root, "design/tokens")).filter((f) => f.ends
     ...roles.map((r) => `text-${r}`), ...pick("font").map((f) => `font-${f}`), ...pick("radius").map((r) => `rounded-${r}`),
     ...pick("blur").map((b) => `blur-${b}`), ...pick("ease").map((e) => `ease-${e}`), "ease-linear",
   ]);
+  const glass = isGlassTokens(t);
+  if (glass) for (const b of pick("blur")) allowed.add(`backdrop-blur-${b}`);
   const motion = join(dir, "motion.css");
   if (existsSync(motion)) for (const m of readFileSync(motion, "utf8").matchAll(/--animate-([\w-]+)\s*:/g)) allowed.add(`animate-${m[1]}`);
   for (const file of walk(dir).filter((f) => /\.(ts|tsx|css)$/.test(f) && !/\.generated\./.test(f))) {
@@ -49,8 +54,8 @@ for (const skin of readdirSync(join(root, "design/tokens")).filter((f) => f.ends
       if (apply) chunks.push(apply[1]);
       for (const tok of chunks.flatMap((c) => c.split(/\s+/)).filter(Boolean)) {
         const b = bare(tok);
-        if (!CHECKED.test(b) || b.startsWith("backdrop-")) { if (!b.startsWith("backdrop-")) continue; }
-        else if (allowed.has(b) || STRUCT.some((r) => r.test(b))) continue;
+        if (!CHECKED.test(b)) continue;
+        if (allowed.has(b) || ((glass || !b.startsWith("backdrop-")) && STRUCT.some((r) => r.test(b)))) continue;
         console.error(`${relative(root, file)}:${i + 1} ${tok}`);
         failures++;
       }
