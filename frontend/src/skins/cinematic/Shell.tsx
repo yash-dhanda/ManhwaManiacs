@@ -78,7 +78,7 @@ export default function Shell({ children }: { children: ReactNode }) {
   return (
     <MotionRoot>
       <DuotoneDefs />
-      <div data-cine-shell data-frame={frame} data-sidebar={sidebar.stored} className="min-h-dvh bg-paper-0 text-ink-100">
+      <div data-cine-shell data-frame={frame} data-sidebar={sidebar.stored} data-pre={sidebar.mounted ? undefined : ""} className="min-h-dvh bg-paper-0 text-ink-100">
         <a href="#main-content" className="cine-skip type-ui" onClick={(e) => { e.preventDefault(); if (!focusMainHeading()) document.getElementById("main-content")?.focus(); }}>Skip to content</a>
         {app ? <Sidebar sidebar={sidebar} /> : null}
         {app ? <RunningHead /> : null}
@@ -89,7 +89,7 @@ export default function Shell({ children }: { children: ReactNode }) {
           </main>
         </div>
         {app ? <ThumbIndex /> : null}
-        {app || frame === "takeover" || frame === "bare" ? <StopPressBanner /> : null}
+        {app ? <StopPressBanner /> : null}
         <RatingCardHost />
         <ToastHost anchorBottom={24} anchorBottomPhone={app ? 72 : 16} bannerHeight={banner} frame={frame === "reader" ? "reader" : "page"} />
         <GridOverlay />
@@ -98,7 +98,7 @@ export default function Shell({ children }: { children: ReactNode }) {
         <PaletteHost />
         <KeyboardSheet />
         <SignOutDialog />
-        <StaleProfileCheck />
+        {gate !== "public" ? <StaleProfileCheck /> : null}
         <Overlays />
         <Splash probeSettled={probeSettled} />
       </div>

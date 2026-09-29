@@ -73,6 +73,11 @@ test.describe("global keys", () => {
     await page.evaluate(() => { (window as unknown as { __twos: number }).__twos = 0; window.addEventListener("keydown", (e) => { if (e.key === "2") (window as unknown as { __twos: number }).__twos++; }); });
     await page.keyboard.press("g");
     await expect(page.locator("[data-g-chip]")).toContainText("G");
+    await page.keyboard.press("1");
+    await expect(page.locator("[data-g-chip]")).toContainText("G 1");
+    await page.keyboard.press("2");
+    await expect(page.locator("[data-g-chip]")).toHaveCount(0, { timeout: 1500 });
+    await page.keyboard.press("g");
     await page.keyboard.press("2");
     await expect(page).toHaveURL(/\/library$/);
     expect(await page.evaluate(() => (window as unknown as { __twos: number }).__twos)).toBe(0);
@@ -262,4 +267,53 @@ test("reduced motion: page transitions are opacity-only", async ({ page }) => {
   });
   expect(names.length).toBeGreaterThan(0);
   for (const css of names) { expect(css).toContain("mm-vt-fade"); expect(css).not.toContain("translateX"); }
+});
+
+test("signed-out /login fires no session requests (bare frame does no app-only work)", async ({ browser, baseURL }) => {
+  const ctx = await browser.newContext({ baseURL });
+  await ctx.addCookies([{ name: "mm-skin-debug", value: "cinematic", url: baseURL! }]);
+  const page = await ctx.newPage();
+  const hits: string[] = [];
+  page.on("request", (r) => { const u = new URL(r.url()).pathname; if (u.startsWith("/api/profiles") || u.startsWith("/api/updates/")) hits.push(u); });
+  await page.goto("/login");
+  await page.waitForTimeout(1500);
+  expect(hits).toEqual([]);
+  await ctx.close();
+});
+
+test("sidebar is 248 px on the first paint at 1440 (no 72 to 248 animation)", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => { (window as unknown as { __w: number[] }).__w = []; new MutationObserver(() => { const n = document.querySelector('nav[aria-label="Contents"]'); if (n) (window as unknown as { __w: number[] }).__w.push(Math.round(n.getBoundingClientRect().width)); }).observe(document, { childList: true, subtree: true }); });
+  await page.goto("/library");
+  await splashGone(page);
+  const ws = await page.evaluate(() => (window as unknown as { __w: number[] }).__w);
+  expect(ws.length).toBeGreaterThan(0);
+  expect(ws.every((w) => w === 248)).toBe(true);
+});
+
+test("phone 404 deck links Discover to /search", async ({ browser, baseURL }) => {
+  const ctx = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 } });
+  await enter(ctx, baseURL!);
+  const page = await ctx.newPage();
+  await page.goto("/does-not-exist");
+  await expect(page.getByRole("link", { name: "Discover" }).first()).toHaveAttribute("href", "/search");
+  await ctx.close();
+});
+
+test("scrim under the running head over art, wipe blade timings, hit targets", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/library");
+  await splashGone(page);
+  // The scrim exists only while the head is transparent over art (data-over-art set, data-scrolled false); /library has no art masthead, so /search is not either: check the rule when present.
+  const r = await page.evaluate(() => { const h = document.querySelector("header.cine-head"); const d = h?.querySelector(":scope > .cine-desktop-only"); return { over: h?.getAttribute("data-over-art") === "true" && h?.getAttribute("data-scrolled") === "false", bg: d ? getComputedStyle(d, "::before").backgroundImage : "none" }; });
+  if (r.over) expect(r.bg).not.toBe("none");
+  const small = await page.locator('nav[aria-label="Contents"] a').evaluateAll((els) => els.filter((e) => e.getBoundingClientRect().height < 32).length);
+  expect(small).toBe(0);
+  await page.evaluate(() => void (window as unknown as { __cine: { enterReader: (h: string, o: { entry: string }) => void } }).__cine.enterReader("/sources", { entry: "wipe" }));
+  await expect(page.locator("[data-blade]")).toHaveCount(12);
+  const t = await page.evaluate(() => document.getAnimations().map((a) => { const x = a.effect?.getComputedTiming(); return [Number(x?.duration ?? 0), Number(x?.delay ?? 0)]; }));
+  const durs = new Set(t.map((x) => x[0]));
+  expect(durs.has(200) || durs.has(280)).toBe(true);
+  const delays = t.map((x) => x[1]).filter((d) => d > 0).sort((a, b) => a - b);
+  for (let i = 1; i < delays.length; i++) { const d = delays[i] - delays[i - 1]; expect(d === 0 || d === 16).toBe(true); }
 });

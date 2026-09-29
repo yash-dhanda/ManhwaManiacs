@@ -26,8 +26,10 @@ export function useSidebar() {
   const overlay = useShellState((s) => s.sidebarOverlay);
   const setOverlay = useShellState((s) => s.setSidebarOverlay);
   const [stored, setStored] = useState<"expanded" | "spine">("expanded");
-  useEffect(() => { setStored(readStored()); }, []); // eslint-disable-line react-hooks/set-state-in-effect -- per-device value read after hydration
-  const spine = wide ? stored === "spine" : true;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setStored(readStored()); setMounted(true); }, []); // eslint-disable-line react-hooks/set-state-in-effect -- per-device value read after hydration
+  // Before mount the server tree is expanded and CSS (data-pre) narrows it below 1280, so the first paint never animates.
+  const spine = !mounted ? false : wide ? stored === "spine" : true;
   const toggle = useCallback(() => {
     if (wide) {
       const next = stored === "spine" ? "expanded" : "spine";
@@ -35,7 +37,7 @@ export function useSidebar() {
       try { localStorage.setItem(KEY, next); } catch { /* private mode */ }
     } else setOverlay(!useShellState.getState().sidebarOverlay);
   }, [wide, stored, setOverlay]);
-  return { wide, spine, stored, overlay, setOverlay, toggle };
+  return { wide, spine, mounted, stored, overlay, setOverlay, toggle };
 }
 
 /** The Contents sidebar with its data (§7.15). */

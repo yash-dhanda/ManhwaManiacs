@@ -24,6 +24,11 @@
 .cine-sidebar[data-overlay="true"] { display: flex; z-index: var(--mm-z-panel); width: 248px; }
 .cine-side-label { white-space: nowrap; opacity: 1; visibility: visible; transition: opacity 120ms var(--mm-ease-set) var(--mm-dur-line), visibility 0s linear 0s; }
 .cine-sidebar[data-spine="true"] .cine-side-label { opacity: 0; visibility: hidden; transition: opacity 120ms var(--mm-ease-set), visibility 0s linear 120ms; }
+[data-cine-shell][data-pre] .cine-sidebar, [data-cine-shell][data-pre] .cine-content, [data-cine-shell][data-pre] .cine-side-label { transition: none; }
+@media (max-width: 1279px) {
+  [data-cine-shell][data-pre] .cine-sidebar { width: 72px; }
+  [data-cine-shell][data-pre] .cine-side-label { opacity: 0; visibility: hidden; }
+}
 .cine-side-list { overflow-y: auto; overscroll-behavior: contain; flex: 1 1 auto; min-height: 0; }
 .cine-side-dots { display: none; }
 @media (max-height: 500px) {

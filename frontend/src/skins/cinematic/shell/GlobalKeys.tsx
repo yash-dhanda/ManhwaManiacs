@@ -1,6 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useContentMode } from "@/features/content-mode/use-content-mode";
 import { HELP_SHORTCUT_KEYS, useShortcut } from "@/lib/keyboard";
 import { frameFor } from "./frames";
@@ -25,9 +25,18 @@ export function GlobalKeys({ onToggleSidebar }: { onToggleSidebar: () => void })
   useShortcut({ id: "shell.g", keys: "g 1", description: "Jump to a section: g then 1 to 12, 0 for Settings", group: "Navigation", preventDefault: false, handler: () => undefined });
   const inChrome = frame === "app" || frame === "takeover" || frame === "bare";
   const { chip } = useGSequence({ enabled: inChrome, novels: novelsEnabled && mode === "novel", onJump: (href) => router.push(href, "section") });
-  return chip ? (
-    <div role="status" aria-label={`Go to section, ${chip}`} data-g-chip className="pointer-events-none fixed left-6 flex items-center" style={{ bottom: "calc(var(--mm-thumb-index-h, 0px) + 24px)", zIndex: "var(--mm-z-toast)" }}>
-      <kbd className="type-folio border border-ink-30 bg-paper-0 px-2 py-1 text-ink-100">{chip}</kbd>
+  // Hold the last text and fade it out over 160 ms after the sequence ends, then unmount.
+  const [held, setHeld] = useState<string | null>(null);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    if (chip) { setHeld(chip); setShown(true); return; } // eslint-disable-line react-hooks/set-state-in-effect -- mirrors the chip for the exit fade
+    setShown(false);
+    const t = setTimeout(() => setHeld(null), 160);
+    return () => clearTimeout(t);
+  }, [chip]);
+  return held ? (
+    <div role="status" aria-label={`Go to section, ${held}`} data-g-chip data-shown={shown} className="pointer-events-none fixed left-6 flex items-center" style={{ bottom: "calc(var(--mm-thumb-index-h, 0px) + 24px)", zIndex: "var(--mm-z-toast)", opacity: shown ? 1 : 0, transition: "opacity 160ms var(--mm-ease-set)" }}>
+      <kbd className="type-folio border border-ink-30 bg-paper-0 px-2 py-1 text-ink-100">{held}</kbd>
     </div>
   ) : null;
 }
