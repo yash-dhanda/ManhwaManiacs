@@ -90,6 +90,7 @@ function renderLoops() {
     if (!seamOk(res.seam)) throw new Error(`${id}: seam check failed: ${fmtSeam(res.seam)}`);
     if (res.samples[0].length !== 90 * RATE) throw new Error(`${id}: ${res.samples[0].length} frames`);
     const glass = r.skin === "glass";
+    mkdirSync(join(root, files.ogg, ".."), { recursive: true });
     run(FFMPEG, glass ? encodeArgs.opus(wav, files.ogg) : encodeArgs.vorbis(wav, files.ogg), log);
     run(FFMPEG, encodeArgs.aac(wav, files.m4a), log);
     for (const ext of ["ogg", "m4a"]) {
