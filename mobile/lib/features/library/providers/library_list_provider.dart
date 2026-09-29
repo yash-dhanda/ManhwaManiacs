@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/theme/app_metrics.dart';
 import 'package:manhwamaniacs/app/theme/preset_controller.dart';
@@ -91,8 +93,8 @@ final libraryListProvider =
 /// The name is deliberately unchanged: `profileScopedInvalidators` and the
 /// settings metadata-cache invalidators both drop this provider by name when
 /// the active profile or the server changes.
-final searchListProvider = AsyncNotifierProvider.autoDispose<SearchListNotifier,
-    GroupedSearchResult>(
+final searchListProvider =
+    AsyncNotifierProvider.autoDispose<SearchListNotifier, GroupedSearchResult>(
   SearchListNotifier.new,
   name: 'searchList',
 );
@@ -101,7 +103,8 @@ final searchListProvider = AsyncNotifierProvider.autoDispose<SearchListNotifier,
 ///
 /// Filtering lives here rather than in the screen so the chip counts and the
 /// list can never disagree.
-final visibleSearchGroupsProvider = Provider.autoDispose<List<SourceSearchGroup>>(
+final visibleSearchGroupsProvider =
+    Provider.autoDispose<List<SourceSearchGroup>>(
   (ref) {
     final result = ref.watch(searchListProvider).valueOrNull;
     if (result == null) return const [];
@@ -298,18 +301,21 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
   /// "Favorite selected" on an already-mixed selection doesn't needlessly
   /// re-toggle series that are already favorited), and only flips items in
   /// local state whose API call actually succeeded.
-  Future<void> batchSetFavorite(Set<int> followedIds, {required bool favorite}) async {
+  Future<void> batchSetFavorite(Set<int> followedIds,
+      {required bool favorite,}) async {
     final current = state.valueOrNull;
     if (current == null) return;
 
     final targets = current.items
-        .where((series) => followedIds.contains(series.id) && series.isFavorite != favorite)
+        .where((series) =>
+            followedIds.contains(series.id) && series.isFavorite != favorite,)
         .toList();
     if (targets.isEmpty) return;
 
     final repo = ref.read(libraryRepositoryProvider);
     final results = await Future.wait(
-      targets.map((series) => repo.patchSeries(series.id, isFavorite: favorite)),
+      targets
+          .map((series) => repo.patchSeries(series.id, isFavorite: favorite)),
     );
 
     final updatedById = <int, FollowedSeries>{
@@ -318,9 +324,8 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
     };
     if (updatedById.isEmpty) return;
 
-    final updatedItems = current.items
-        .map((s) => updatedById[s.id] ?? s)
-        .toList();
+    final updatedItems =
+        current.items.map((s) => updatedById[s.id] ?? s).toList();
 
     state = AsyncData(current.copyWith(items: updatedItems, clearError: true));
   }
@@ -397,7 +402,8 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
     final status = query.readingStatusParam;
 
     return [
-      for (final series in readCachedFollowedSeries(ref.read(sharedPrefsProvider), key))
+      for (final series
+          in readCachedFollowedSeries(ref.read(sharedPrefsProvider), key))
         if ((search.isEmpty || series.title.toLowerCase().contains(search)) &&
             (!query.favoritesOnly || series.isFavorite) &&
             (status == null || series.readingStatus == status))
@@ -438,13 +444,53 @@ class SearchListNotifier
     final requestId = ++_requestId;
     _retrying.clear();
     final result =
-        await ref.read(sourcesRepositoryProvider).searchGrouped(query);
+        await ref.read(sourcesRepositoryProvider).searchGrouped(query, tier: 1);
     // Guard against a superseded query resolving late.
     if (requestId != _requestId) {
       return state.valueOrNull ?? const GroupedSearchResult();
     }
     if (result.isErr) throw result.error;
+    // Tier 1 is published now; the slow tier follows and merges in.
+    if (result.value.nextTier == 2) {
+      unawaited(Future<void>.microtask(() => _runTier2(query, requestId)));
+    }
     return result.value;
+  }
+
+  Future<void> _runTier2(String query, int requestId) async {
+    final result =
+        await ref.read(sourcesRepositoryProvider).searchGrouped(query, tier: 2);
+    if (requestId != _requestId) return;
+    final current = state.valueOrNull;
+    if (current == null) return;
+    if (result.isErr) {
+      state = AsyncData(_tierDone(current, const [], 0));
+      return;
+    }
+    state = AsyncData(
+      _tierDone(current, result.value.groups, result.value.sourcesFailed),
+    );
+  }
+
+  GroupedSearchResult _tierDone(
+    GroupedSearchResult tier1,
+    List<SourceSearchGroup> extra,
+    int failed,
+  ) {
+    final known = {for (final g in tier1.groups) g.key};
+    final groups = [
+      ...tier1.groups,
+      for (final g in extra)
+        if (!known.contains(g.key)) g,
+    ];
+    return GroupedSearchResult(
+      groups: groups,
+      sourcesQueried: tier1.sourcesQueried + extra.length,
+      sourcesFailed: tier1.sourcesFailed + failed,
+      page: tier1.page,
+      hasMore: tier1.hasMore,
+      tier: 2,
+    );
   }
 
   bool isRetrying(String sourceId) => _retrying.contains(sourceId);
@@ -556,7 +602,8 @@ class SearchListNotifier
   }
 }
 
-Future<({List<FollowedSeries> items, int total, bool hasNext})> fetchLibraryListPage(
+Future<({List<FollowedSeries> items, int total, bool hasNext})>
+    fetchLibraryListPage(
   Ref ref,
   LibraryQuery query,
   int page,

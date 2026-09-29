@@ -69,6 +69,9 @@ class _ScriptedOcrEngine implements OcrEngine {
 }
 
 class _RecordingOcrRepository implements OcrRepository {
+
+  @override
+  Future<Result<List<PageText>?>> fetchChapterText(ChapterIdentity id) async => const Ok(null);
   _RecordingOcrRepository({this.result = const Ok(42)});
 
   final Result<int> result;

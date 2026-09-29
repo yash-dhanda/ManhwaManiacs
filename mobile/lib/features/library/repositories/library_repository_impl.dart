@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 
 class LibraryRepositoryImpl implements LibraryRepository {
   const LibraryRepositoryImpl(this._dio);
@@ -115,6 +116,16 @@ class LibraryRepositoryImpl implements LibraryRepository {
           queryParameters: {'limit': limit},
         ),
         FollowedSeries.fromJson,
+      );
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) =>
+      _requestList(
+        () => _dio.get<List<dynamic>>(
+          '/library/recommendations',
+          queryParameters: {'limit': limit},
+        ),
+        GenreWeight.fromJson,
       );
 
   @override
@@ -221,7 +232,8 @@ class LibraryRepositoryImpl implements LibraryRepository {
 
   @override
   Future<Result<CollectionDetail>> getCollection(int collectionId) => _request(
-        () => _dio.get<Map<String, dynamic>>('/library/collections/$collectionId'),
+        () => _dio
+            .get<Map<String, dynamic>>('/library/collections/$collectionId'),
         CollectionDetail.fromJson,
       );
 
@@ -235,7 +247,8 @@ class LibraryRepositoryImpl implements LibraryRepository {
           '/library/collections',
           data: {
             'name': name,
-            if (description != null && description.isNotEmpty) 'description': description,
+            if (description != null && description.isNotEmpty)
+              'description': description,
           },
         ),
         Collection.fromJson,

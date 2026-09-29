@@ -35,4 +35,7 @@ abstract interface class OcrRepository {
     int limit = 20,
     int offset = 0,
   });
+
+  /// `GET /ocr/chapter` — the stored per-page text, or null on a 404.
+  Future<Result<List<PageText>?>> fetchChapterText(ChapterIdentity id);
 }

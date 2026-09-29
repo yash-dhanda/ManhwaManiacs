@@ -9,7 +9,6 @@
 /// * **An unconfigured server hides the box** rather than offering a button
 ///   that fails when somebody finally types a sentence into it.
 library;
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -20,6 +19,7 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/screens/recommendations_screen.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/shared/widgets/premium/primary_pill_button.dart';
@@ -28,6 +28,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../support/test_overrides.dart';
 
 class _SuggestRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   _SuggestRepository({
     this.available = true,
     this.dropped = 0,

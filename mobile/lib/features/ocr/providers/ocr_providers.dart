@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_coverage.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
+import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/repositories/ocr_repository.dart';
 import 'package:manhwamaniacs/features/ocr/repositories/ocr_repository_impl.dart';
 import 'package:manhwamaniacs/features/ocr/services/ocr_engine.dart';
@@ -54,8 +55,8 @@ final ocrFeatureVisibleProvider = Provider<bool>(
 /// An empty/blank query resolves to [OcrSearchPage.empty] without a request:
 /// the backend would answer the same way, and not asking keeps the screen's
 /// resting state free of network traffic.
-final ocrSearchProvider =
-    FutureProvider.autoDispose.family<OcrSearchPage, String>((ref, query) async {
+final ocrSearchProvider = FutureProvider.autoDispose
+    .family<OcrSearchPage, String>((ref, query) async {
   if (query.trim().isEmpty) return OcrSearchPage.empty;
   final result = await ref.watch(ocrRepositoryProvider).search(query.trim());
   if (result.isErr) throw result.error;
@@ -74,4 +75,11 @@ final ocrCoverageProvider = FutureProvider.autoDispose
         seriesKey: series.seriesKey,
       );
   return result.fold(ok: (coverage) => coverage, err: (_) => OcrCoverage.empty);
+});
+
+/// `GET /ocr/chapter` for one chapter (404 or error -> null).
+final ocrChapterTextProvider = FutureProvider.autoDispose
+    .family<List<PageText>?, ChapterIdentity>((ref, id) async {
+  final result = await ref.watch(ocrRepositoryProvider).fetchChapterText(id);
+  return result.fold(ok: (pages) => pages, err: (_) => null);
 });

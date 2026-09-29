@@ -6,7 +6,6 @@
 /// loading, failure and "nothing yet" alike — offline, the screen was a
 /// heading pointing at rows that never came, with no error and no retry.
 library;
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -18,6 +17,7 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/screens/recommendations_screen.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +27,9 @@ import '../../support/test_overrides.dart';
 /// Answers `worldRecommendations` from a queue, one entry per call, so a test
 /// can script "fails, then works". The last entry repeats.
 class _WorldRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   _WorldRepository(this.answers);
 
   final List<Result<WorldRecommendations>> answers;

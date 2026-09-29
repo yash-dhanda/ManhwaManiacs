@@ -11,7 +11,10 @@ import 'package:manhwamaniacs/features/library/models/global_search_result.dart'
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/screens/search_screen.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -24,6 +27,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// an [error] when configured to fail. [browseItems] backs the single-source
 /// retry path, which goes to the source's own browse endpoint.
 class _FakeSourcesRepository implements SourcesRepository {
+
+  @override
+  Future<Result<List<ReaderPage>>> getChapterPages(String sourceId, String chapterKey) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceSummary>>> listHealth() async => const Ok([]);
+
+  @override
+  Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
   _FakeSourcesRepository({this.result, this.error, this.browseItems = const []});
 
   final GroupedSearchResult? result;
@@ -41,6 +56,7 @@ class _FakeSourcesRepository implements SourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
+    int? tier,
   }) async {
     queries.add(query);
     if (error != null) return Err(error!);
@@ -53,6 +69,8 @@ class _FakeSourcesRepository implements SourcesRepository {
     int page = 1,
     String? query,
     String? sort,
+    String? genre,
+    bool refresh = false,
   }) async {
     browseCalls++;
     return Ok(
@@ -116,6 +134,7 @@ class _GatedSourcesRepository extends _FakeSourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
+    int? tier,
   }) {
     queries.add(query);
     return gate(query).future;

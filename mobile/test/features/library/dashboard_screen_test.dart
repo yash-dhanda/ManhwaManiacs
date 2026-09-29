@@ -26,6 +26,7 @@ import 'package:manhwamaniacs/features/library/widgets/home/followed_series_card
 import 'package:manhwamaniacs/features/novels/widgets/novel_shelf.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
@@ -115,6 +116,9 @@ UpdateNotification _notification({
 /// everything else throws so an unexpected call fails loudly instead of
 /// silently returning empty data.
 class _FakeLibraryRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   /// Followed ids passed to [unfollow], in call order.
   final List<int> unfollowed = [];
 

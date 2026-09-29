@@ -1,11 +1,12 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
-final sourcesListProvider = FutureProvider.autoDispose<List<SourceSummary>>((ref) async {
+final sourcesListProvider =
+    FutureProvider.autoDispose<List<SourceSummary>>((ref) async {
   final repo = ref.watch(sourcesRepositoryProvider);
   final result = await repo.listSources();
   if (result.isErr) throw result.error;
@@ -32,30 +33,36 @@ class SourceBrowseQuery {
     required this.sourceId,
     this.search = '',
     this.sort = 'default',
+    this.genre,
   });
 
   final String sourceId;
   final String search;
   final String sort;
+  final String? genre;
 
+  /// [genre] `''` clears the genre filter.
   SourceBrowseQuery copyWith({
     String? search,
     String? sort,
+    String? genre,
   }) =>
       SourceBrowseQuery(
         sourceId: sourceId,
         search: search ?? this.search,
         sort: sort ?? this.sort,
+        genre: genre == null ? this.genre : (genre.isEmpty ? null : genre),
       );
 }
 
-final sourceBrowseQueryProvider = StateProvider.family<SourceBrowseQuery, String>(
+final sourceBrowseQueryProvider =
+    StateProvider.family<SourceBrowseQuery, String>(
   (ref, sourceId) => SourceBrowseQuery(sourceId: sourceId),
   name: 'sourceBrowseQuery',
 );
 
-final sourceBrowseModesProvider =
-    FutureProvider.autoDispose.family<List<SourceBrowseMode>, String>((ref, sourceId) async {
+final sourceBrowseModesProvider = FutureProvider.autoDispose
+    .family<List<SourceBrowseMode>, String>((ref, sourceId) async {
   final repo = ref.watch(sourcesRepositoryProvider);
   final result = await repo.listBrowseModes(sourceId);
   if (result.isErr) throw result.error;
@@ -72,8 +79,13 @@ class SourceBrowseState {
     this.page = 1,
     this.hasNext = false,
     this.isLoadingMore = false,
+    this.loadMoreFailed = false,
+    this.cache,
   });
 
+  /// The `cache` block of the newest page fetched from page 1 / refresh.
+  final Map<String, dynamic>? cache;
+  final bool loadMoreFailed;
   final List<SourceSeriesSummary> items;
   final int total;
   final int page;
@@ -88,6 +100,7 @@ class SourceBrowseState {
     int? page,
     bool? hasNext,
     bool? isLoadingMore,
+    bool? loadMoreFailed,
   }) =>
       SourceBrowseState(
         items: items ?? this.items,
@@ -95,6 +108,8 @@ class SourceBrowseState {
         page: page ?? this.page,
         hasNext: hasNext ?? this.hasNext,
         isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+        loadMoreFailed: loadMoreFailed ?? this.loadMoreFailed,
+        cache: cache,
       );
 }
 
@@ -118,6 +133,7 @@ class SourceBrowseNotifier
       total: page.total,
       page: page.page,
       hasNext: page.hasNext,
+      cache: page.cache,
     );
   }
 
@@ -125,7 +141,8 @@ class SourceBrowseNotifier
     final current = state.valueOrNull;
     if (current == null || !current.hasNext || current.isLoadingMore) return;
 
-    state = AsyncData(current.copyWith(isLoadingMore: true));
+    state =
+        AsyncData(current.copyWith(isLoadingMore: true, loadMoreFailed: false));
 
     final query = ref.read(sourceBrowseQueryProvider(arg));
     final nextPage = current.page + 1;
@@ -134,7 +151,8 @@ class SourceBrowseNotifier
     if (result.isErr) {
       // Leave existing items in place; just stop showing the loading spinner
       // so the user can retry by scrolling again.
-      state = AsyncData(current.copyWith(isLoadingMore: false));
+      state = AsyncData(
+          current.copyWith(isLoadingMore: false, loadMoreFailed: true),);
       return;
     }
 
@@ -155,8 +173,12 @@ class SourceBrowseNotifier
     // screen (behind the RefreshIndicator spinner) instead of flashing the
     // full-screen "Opening…" loader.
     state = const AsyncLoading<SourceBrowseState>().copyWithPrevious(state);
+    // `refresh=true` asks the source itself, past the server's saved copy.
+    _forceRefresh = true;
     state = await AsyncValue.guard(() => build(arg));
   }
+
+  bool _forceRefresh = false;
 
   Future<PagedResult<SourceSeriesSummary>> _fetchPage(
     String sourceId,
@@ -174,11 +196,15 @@ class SourceBrowseNotifier
     int page,
   ) {
     final repo = ref.read(sourcesRepositoryProvider);
+    final refresh = _forceRefresh && page == 1;
+    if (refresh) _forceRefresh = false;
     return repo.listSeries(
       sourceId,
       page: page,
       query: query.search.isEmpty ? null : query.search,
       sort: query.sort == 'default' ? null : query.sort,
+      genre: query.genre,
+      refresh: refresh,
     );
   }
 }
@@ -198,7 +224,8 @@ final sourceSeriesDetailProvider = FutureProvider.autoDispose
   (ref, params) async {
     final repo = ref.watch(sourcesRepositoryProvider);
     final seriesResult = await repo.getSeries(params.sourceId, params.seriesId);
-    final chaptersResult = await repo.getChapters(params.sourceId, params.seriesId);
+    final chaptersResult =
+        await repo.getChapters(params.sourceId, params.seriesId);
     if (seriesResult.isErr) throw seriesResult.error;
     if (chaptersResult.isErr) throw chaptersResult.error;
     return SourceSeriesDetailData(

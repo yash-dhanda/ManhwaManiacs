@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 import '../../support/test_overrides.dart';
@@ -48,6 +49,9 @@ FollowedSeries _pickerSeriesItem({
     );
 
 class _MutableCollectionsRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   _MutableCollectionsRepository({
     required this.collections,
     required Map<int, CollectionDetail> details,

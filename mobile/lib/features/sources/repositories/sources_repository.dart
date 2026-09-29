@@ -1,7 +1,10 @@
-﻿import 'package:manhwamaniacs/core/utils/pagination.dart';
+import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -17,6 +20,7 @@ abstract interface class SourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
+    int? tier,
   });
 
   /// The caller's pinned sources, in display order.
@@ -26,6 +30,19 @@ abstract interface class SourcesRepository {
   /// array order *is* the display order. Returns the stored set.
   Future<Result<List<SourcePin>>> replacePins(List<String> sourceIds);
 
+  /// `GET /sources/{id}/genres`.
+  /// `GET /sources/{id}/chapters/{key}/pages`.
+  Future<Result<List<ReaderPage>>> getChapterPages(
+      String sourceId, String chapterKey,);
+
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId);
+
+  /// `GET /sources/health`, worst first.
+  Future<Result<List<SourceSummary>>> listHealth();
+
+  /// `GET /system/source-health`.
+  Future<Result<SourceHealthSummary>> healthSummary();
+
   Future<Result<List<SourceBrowseMode>>> listBrowseModes(String sourceId);
 
   Future<Result<PagedResult<SourceSeriesSummary>>> listSeries(
@@ -33,9 +50,12 @@ abstract interface class SourcesRepository {
     int page = 1,
     String? query,
     String? sort,
+    String? genre,
+    bool refresh = false,
   });
 
-  Future<Result<SourceSeriesSummary>> getSeries(String sourceId, String seriesId);
+  Future<Result<SourceSeriesSummary>> getSeries(
+      String sourceId, String seriesId,);
 
   Future<Result<List<SourceChapterSummary>>> getChapters(
     String sourceId,

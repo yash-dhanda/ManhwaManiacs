@@ -21,7 +21,10 @@ import 'package:manhwamaniacs/features/library/providers/library_list_provider.d
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/utils/library_preferences.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -34,6 +37,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// (what `LibraryListNotifier` actually calls); everything else throws so an
 /// unexpected call fails loudly instead of silently returning empty data.
 class _FakeLibraryRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   _FakeLibraryRepository(this.pages);
 
   final Map<int, PagedResult<FollowedSeries>> pages;
@@ -48,6 +54,8 @@ class _FakeLibraryRepository implements LibraryRepository {
     int page = 1,
     int perPage = 40,
     String? sort,
+    String? genre,
+    bool refresh = false,
     String? search,
     String? readingStatus,
     bool? isFavorite,
@@ -701,6 +709,7 @@ class _GatedSearchSourcesRepository extends _FakeSearchSourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
+    int? tier,
   }) {
     requests.add((query, page));
     return gate(query, page).future;
@@ -711,6 +720,18 @@ class _GatedSearchSourcesRepository extends _FakeSearchSourcesRepository {
 /// single-source retry path) are wired; everything else throws so an unexpected
 /// call fails loudly instead of silently returning empty data.
 class _FakeSearchSourcesRepository implements SourcesRepository {
+
+  @override
+  Future<Result<List<ReaderPage>>> getChapterPages(String sourceId, String chapterKey) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceSummary>>> listHealth() async => const Ok([]);
+
+  @override
+  Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
   _FakeSearchSourcesRepository(
     this.pages, {
     this.error,
@@ -729,6 +750,7 @@ class _FakeSearchSourcesRepository implements SourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
+    int? tier,
   }) async {
     calls++;
     lastQuery = query;
@@ -742,6 +764,8 @@ class _FakeSearchSourcesRepository implements SourcesRepository {
     int page = 1,
     String? query,
     String? sort,
+    String? genre,
+    bool refresh = false,
   }) async {
     browseCalls++;
     return Ok(

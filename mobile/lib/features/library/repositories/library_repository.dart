@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/features/library/models/series_detail.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 
 /// The per-profile library — source-native (spec §4.2). A series is in the
 /// library iff a `followed_series` row exists for it; identity is
@@ -46,6 +47,9 @@ abstract interface class LibraryRepository {
   Future<Result<List<ContinueReadingItem>>> continueReading({int limit = 10});
 
   Future<Result<List<FollowedSeries>>> recentlyUpdated({int limit = 10});
+
+  /// `GET /library/recommendations?limit=` — the profile's gated genre affinity.
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40});
 
   /// "For you" plus one "Because you read …" row per seed, drawn from the
   /// worldwide catalog; each title says which of the reader's sources carry

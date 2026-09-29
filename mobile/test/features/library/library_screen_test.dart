@@ -26,6 +26,7 @@ import 'package:manhwamaniacs/features/library/widgets/library/series_grid.dart'
 import 'package:manhwamaniacs/features/novels/widgets/novel_shelf.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -41,6 +42,9 @@ import '../../support/test_overrides.dart';
 /// are wired; everything else throws so an unexpected call fails loudly
 /// instead of silently returning empty data.
 class _FakeLibraryRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   _FakeLibraryRepository(this._items);
 
   final List<FollowedSeries> _items;
