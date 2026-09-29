@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_match_cut_page.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/pending_routes.dart';
@@ -53,17 +54,23 @@ GoRouter buildCinematicRouter(Ref ref) => GoRouter(
         GoRoute(
           path: ScreenId.featureByFollow.path,
           name: ScreenId.featureByFollow.id,
-          builder: (context, state) => FeatureByFollowScreen(
-            followedId: int.tryParse(state.pathParameters['followedId'] ?? '') ?? -1,
+          pageBuilder: (context, state) => cineMatchCutPage(
+            state,
+            FeatureByFollowScreen(
+              followedId: int.tryParse(state.pathParameters['followedId'] ?? '') ?? -1,
+            ),
           ),
         ),
         GoRoute(
           path: ScreenId.feature.path,
           name: ScreenId.feature.id,
-          builder: (context, state) => FeatureScreen(
-            sourceId: state.pathParameters['sourceId']!,
-            seriesKey: state.pathParameters['seriesKey']!,
-            chapter: state.uri.queryParameters['chapter'],
+          pageBuilder: (context, state) => cineMatchCutPage(
+            state,
+            FeatureScreen(
+              sourceId: state.pathParameters['sourceId']!,
+              seriesKey: state.pathParameters['seriesKey']!,
+              chapter: state.uri.queryParameters['chapter'],
+            ),
           ),
         ),
       ],

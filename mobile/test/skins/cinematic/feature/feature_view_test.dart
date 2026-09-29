@@ -52,6 +52,7 @@ Future<void> _pump(
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = wide ? const Size(834, 1194) : const Size(390, 844);
   addTearDown(tester.view.reset);
+  addTearDown(() async => tester.pumpWidget(const SizedBox()));
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -80,7 +81,7 @@ void main() {
         detail: () async => SourceSeriesDetailData(series: _series(), chapters: _chapters(3)));
     expect(find.text('Tower of Dawn'), findsWidgets);
     expect(find.widgetWithText(FilledButton, 'Read  │  CH 1'), findsOneWidget);
-    expect(find.text('01 CHAPTERS 3'), findsOneWidget);
+    expect(find.text('01 CHAPTERS³'), findsOneWidget);
     expect(find.text('02 DETAILS'), findsOneWidget);
     expect(find.text('FOLLOW'), findsOneWidget);
     expect(find.text('DOWNLOAD'), findsOneWidget);

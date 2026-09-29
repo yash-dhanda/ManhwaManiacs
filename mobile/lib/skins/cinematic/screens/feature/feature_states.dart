@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -50,7 +52,9 @@ class FeatureNotice extends StatelessWidget {
               const SizedBox(height: 12),
               Semantics(
                 header: true,
-                child: Text(
+                label: headline,
+                excludeSemantics: true,
+                child: TypedHeadline(
                   headline,
                   style: TextStyle(fontSize: 32, height: 36 / 32, color: t.colorInk100),
                 ),
@@ -136,6 +140,70 @@ class FeatureGalley extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// A notice headline that types at 50 ms per character (`type`); reduced
+/// motion shows it whole.
+class TypedHeadline extends StatefulWidget {
+  const TypedHeadline(this.text, {super.key, required this.style});
+  final String text;
+  final TextStyle style;
+
+  @override
+  State<TypedHeadline> createState() => _TypedHeadlineState();
+}
+
+class _TypedHeadlineState extends State<TypedHeadline> {
+  int _n = 0;
+  Timer? _timer;
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _n = widget.text.length;
+      return;
+    }
+    _timer = Timer.periodic(const Duration(milliseconds: 50), (t) {
+      if (!mounted) return;
+      setState(() => _n++);
+      if (_n >= widget.text.length) t.cancel();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Stack(
+        children: [
+          // The full text lays the line breaks out; only the typed part shows.
+          Opacity(opacity: 0, child: Text(widget.text, style: widget.style)),
+          Text(widget.text.substring(0, _n.clamp(0, widget.text.length)), style: widget.style),
+        ],
+      );
+}
+
+/// `OFFLINE EDITION` / `SAVED COPY · 3 H`: a small badge beside the kicker.
+class FeatureBadge extends StatelessWidget {
+  const FeatureBadge(this.label, {super.key});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = cineOf(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(border: Border.all(color: t.colorRule2)),
+      child: Text(label, style: kickerStyle(context, color: t.colorInk80)),
     );
   }
 }
