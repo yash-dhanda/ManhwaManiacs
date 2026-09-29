@@ -1,0 +1,7 @@
+/* Content-mode switch (web/27 M) */
+[data-skin="glass"] .g-mode { display: block; }
+[data-skin="glass"] .g-mode[data-variant="sidebar"] { min-width: 180px; }
+[data-skin="glass"] .g-mode__pill { display: inline-flex; align-items: center; gap: 6px; height: 32px; min-height: 44px; padding: 0 12px; border-radius: 9999px; background: var(--mm-color-fill2); border: 0; color: var(--mm-color-on-glass); font: 600 13px/18px var(--mm-font-sans, system-ui); box-sizing: border-box; }
+[data-skin="glass"] .g-mode__pill:focus-visible { outline: none; box-shadow: 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300); }
+[data-skin="glass"] .g-mode__expanded { display: grid; gap: 6px; min-width: 200px; }
+[data-skin="glass"] .g-mode__note { margin: 0; font: 400 13px/18px var(--mm-font-sans, system-ui); color: var(--mm-color-on-glass); }

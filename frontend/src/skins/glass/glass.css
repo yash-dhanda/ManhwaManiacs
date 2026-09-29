@@ -14,6 +14,18 @@
 @import "./primitives/styles/rails.css";
 @import "./primitives/styles/reveals.css";
 @import "./primitives/styles/gallery.css";
+@import "./primitives/styles/sheet.css";
+@import "./primitives/styles/alert.css";
+@import "./primitives/styles/toast.css";
+@import "./primitives/styles/menu.css";
+@import "./primitives/styles/banner.css";
+@import "./primitives/styles/slider.css";
+@import "./primitives/styles/toggle.css";
+@import "./primitives/styles/tabs.css";
+@import "./primitives/styles/viewer.css";
+@import "./primitives/styles/edges.css";
+@import "./primitives/styles/pull.css";
+@import "./primitives/styles/modeswitch.css";
 
 html[data-skin="glass"] { color-scheme: dark; }
 
@@ -294,3 +306,25 @@ html[data-solid="on"] .ambient-field { opacity: 0.5; }
 @media (prefers-reduced-transparency: reduce) { .ambient-field { opacity: 0.5; } }
 html[data-motion="reduced"] .ambient-field { transition: --amb-op 200ms linear; }
 @media (prefers-reduced-motion: reduce) { .ambient-field { transition: --amb-op 200ms linear; } }
+
+/* Sheet recession (web/27 B6, 12): --sheet-progress is written on the recedeTarget every frame by the sheet, never by time. */
+.glass-recede {
+  --p: var(--sheet-progress, 0);
+  transform: scale(calc(1 - 0.06 * var(--p)));
+  border-radius: calc(12px * var(--p));
+  filter: blur(calc(8px * var(--p))) brightness(calc(1 - 0.4 * var(--p)));
+  transform-origin: 50% 50%;
+  overflow: hidden;
+}
+.glass-recede-window {
+  --p: var(--sheet-progress, 0);
+  transform: scale(calc(1 - 0.03 * var(--p)));
+  filter: blur(calc(8px * var(--p))) brightness(calc(1 - 0.5 * var(--p)));
+  transform-origin: 50% 50%;
+}
+html[data-motion="reduced"] .glass-recede { transform: none; border-radius: 0; filter: none; }
+html[data-motion="reduced"] .glass-recede-window { transform: none; filter: brightness(calc(1 - 0.5 * var(--sheet-progress, 0))); }
+@media (prefers-reduced-motion: reduce) {
+  .glass-recede { transform: none; border-radius: 0; filter: none; }
+  .glass-recede-window { transform: none; filter: brightness(calc(1 - 0.5 * var(--sheet-progress, 0))); }
+}

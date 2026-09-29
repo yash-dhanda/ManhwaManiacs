@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/network/retry_after.dart';
 
 /// Converts DioException into domain AppError and re-throws.
 ///
@@ -73,12 +74,14 @@ class ErrorInterceptor extends Interceptor {
         code: body['code'] as String? ?? 'unknown',
         message: body['message'] as String? ?? 'Unknown error',
         details: body['details'],
+        retryAfter: parseRetryAfter(response.headers.value('retry-after')),
       );
     } catch (_) {
       return ApiError(
         statusCode: response.statusCode ?? 0,
         code: 'unknown',
         message: 'HTTP ${response.statusCode}',
+        retryAfter: parseRetryAfter(response.headers.value('retry-after')),
       );
     }
   }

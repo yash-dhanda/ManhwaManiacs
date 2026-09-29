@@ -4,13 +4,14 @@ import {
   EyeIcon, EyeSlashIcon, FlameIcon, GhostIcon, GlobeIcon, HeartIcon, ImageBrokenIcon, MagicWandIcon,
   MagnifyingGlassIcon, MoonIcon, PlayIcon, PlusIcon, PushPinIcon, RocketLaunchIcon, SparkleIcon, StarIcon,
   SwordIcon, TrashSimpleIcon, WarningCircleIcon, WarningIcon, WifiSlashIcon, XIcon, BookOpenTextIcon, ArrowLeftIcon, ArrowRightIcon, ExportIcon,
+  SunIcon, SpeakerHighIcon, MinusIcon, DownloadSimpleIcon, InfoIcon, CaretUpIcon,
 } from "@phosphor-icons/react/ssr";
 import type { ComponentType } from "react";
 import { AgeGate, Droplet, StripScroll } from "../icons/glyphs.generated";
 
 /**
- * TODO(web/01): stand-in for the shared Glass `Icon` (web/01 is not integrated yet). Same shape: a name, a
- * size and a weight. When web/01 lands, replace this file's body with a re-export.
+ * The primitives' Phosphor wrapper by glyph name (web/01's shared `Icon` is keyed by ROLE, e.g. `close`, `overflow`, and has no
+ * `check`, `warning-circle` or `droplet`), so the primitives keep this name-keyed set; screens use the role-keyed one.
  */
 export type IconWeight = "regular" | "duotone" | "fill" | "light";
 type PhProps = { size?: number | string; weight?: IconWeight; color?: string; className?: string; "aria-hidden"?: boolean };
@@ -24,6 +25,7 @@ const PH = {
   moon: MoonIcon, play: PlayIcon, plus: PlusIcon, "push-pin": PushPinIcon, "rocket-launch": RocketLaunchIcon, sparkle: SparkleIcon,
   star: StarIcon, sword: SwordIcon, trash: TrashSimpleIcon, "warning-circle": WarningCircleIcon, warning: WarningIcon,
   "wifi-slash": WifiSlashIcon, x: XIcon, share: ExportIcon, "arrow-left": ArrowLeftIcon, "arrow-right": ArrowRightIcon,
+  sun: SunIcon, "speaker-high": SpeakerHighIcon, minus: MinusIcon, "download-simple": DownloadSimpleIcon, info: InfoIcon, "caret-up": CaretUpIcon,
 } as const satisfies Record<string, ComponentType<PhProps>>;
 
 const GL = { droplet: Droplet, "age-gate": AgeGate, "strip-scroll": StripScroll } as const;

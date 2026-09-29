@@ -1,0 +1,31 @@
+/* Toasts (web/27 D): sonner is unstyled and never animates; the capsule owns its motion. */
+[data-skin="glass"] .g-toaster { --gap: 8px; }
+/* sonner's own narrow-viewport rules stretch the list to the screen; the capsules size themselves */
+[data-skin="glass"] [data-sonner-toaster].g-toaster { width: 0 !important; right: auto !important; }
+[data-skin="glass"] [data-sonner-toaster].g-toaster[data-x-position="center"] { left: 50% !important; transform: none !important; }
+[data-skin="glass"] [data-sonner-toaster].g-toaster[data-x-position="left"] { left: var(--offset-left) !important; }
+[data-skin="glass"] [data-sonner-toast] { opacity: 1 !important; --y: translateY(0); transition: transform var(--mm-spring-snappy-ms, 431ms) var(--mm-spring-snappy, ease), height 200ms linear; width: max-content !important; max-width: min(420px, calc(100vw - 32px)); pointer-events: none; touch-action: none; }
+[data-skin="glass"] [data-sonner-toast][data-x-position="center"] { left: 50%; translate: -50% 0; }
+[data-skin="glass"] [data-sonner-toast][data-x-position="left"] { left: 0; }
+[data-skin="glass"] [data-sonner-toast][data-expanded="false"][data-front="false"] { --y: translateY(calc(var(--lift-amount) * var(--toasts-before))) scale(0.94); }
+[data-skin="glass"] [data-sonner-toast][data-visible="false"] { opacity: 0 !important; }
+[data-skin="glass"] [data-sonner-toast][data-removed="true"] { opacity: 0 !important; transition: opacity 120ms linear; }
+[data-skin="glass"] [data-sonner-toast] > * { pointer-events: auto; }
+
+[data-skin="glass"] .g-toast { position: relative; outline: none; color: var(--mm-color-on-glass); --drain: 360deg; touch-action: none; }
+[data-skin="glass"] .g-toast[data-hidden] { visibility: hidden; pointer-events: none; }
+[data-skin="glass"] .g-toast__glass { position: relative; min-height: 44px; }
+[data-skin="glass"] .g-toast[data-two-line] .g-toast__glass { min-height: 60px; }
+[data-skin="glass"] .g-toast__inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; padding: 0 4px 0 16px; min-height: inherit; }
+[data-skin="glass"] .g-toast__glyph { width: 28px; height: 28px; margin-left: -6px; }
+[data-skin="glass"] .g-toast__text { display: grid; padding: 10px 0; min-width: 0; }
+[data-skin="glass"] .g-toast__line { font: 420 16px/22px var(--mm-font-sans, system-ui); color: var(--mm-color-on-glass); overflow-wrap: anywhere; }
+[data-skin="glass"] .g-toast__secondary { font: 400 13px/18px var(--mm-font-sans, system-ui); color: var(--mm-color-on-glass); }
+[data-skin="glass"] .g-toast[data-two-line] .g-toast__text { padding: 8px 0; }
+[data-skin="glass"] .g-toast__action { min-height: 44px; min-width: 44px; padding: 0 8px; background: none; border: 0; color: var(--mm-color-iris300); font: 600 16px/22px var(--mm-font-sans, system-ui); border-radius: 9999px; }
+[data-skin="glass"] .g-toast__action:hover { color: var(--mm-color-iris200); }
+[data-skin="glass"] .g-toast__close { width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; color: var(--mm-color-on-glass); border-radius: 9999px; flex: none; }
+[data-skin="glass"] .g-toast :is(.g-toast__action, .g-toast__close):focus-visible { outline: none; box-shadow: 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300); }
+[data-skin="glass"] .g-toast:focus-visible .g-toast__glass { box-shadow: var(--glass-shadow), 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300); }
+/* the Undo rim: a conic mask from 12 o'clock; the remaining arc ends at 12 and its start moves clockwise as time drains */
+[data-skin="glass"] .g-toast__rim { position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; z-index: 2; background: conic-gradient(from calc(360deg - var(--drain, 360deg)), var(--mm-color-iris300) var(--drain, 360deg), transparent 0); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); mask-composite: exclude; }

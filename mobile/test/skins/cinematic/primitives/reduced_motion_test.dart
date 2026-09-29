@@ -81,4 +81,24 @@ void main() {
     await t.pump(const Duration(milliseconds: 300));
     expect(MotionRecorder.instance.entries.map((e) => e.label), ['DEVELOP']);
   });
+
+  testWidgets('the contents-tab underline fades under reduced motion instead of sliding', (t) async {
+    await pumpGallery(t, section: 'tabs', reduced: true);
+    expect(find.byKey(const Key('cine-tab-indicator')), findsNothing);
+    await t.pumpWidget(const SizedBox());
+    await pumpGallery(t, section: 'tabs');
+    expect(find.byKey(const Key('cine-tab-indicator')), findsWidgets);
+  });
+
+  testWidgets('the switch knob jumps and the folio flip is instant under reduced motion', (t) async {
+    await pumpGallery(t, section: 'toggles', reduced: true);
+    final knob = find.descendant(of: find.byKey(const Key('g-switch-off')), matching: find.byKey(const Key('cine-switch-knob')));
+    final x0 = t.getTopLeft(knob).dx;
+    await t.tap(find.byKey(const Key('g-switch-off')));
+    await t.pump();
+    expect(t.getTopLeft(knob).dx, greaterThan(x0 + 15));
+    await t.tap(find.descendant(of: find.byKey(const Key('g-stepper')), matching: find.bySemanticsLabel('Increase')).first);
+    await t.pump();
+    expect(find.text('4'), findsWidgets);
+  });
 }

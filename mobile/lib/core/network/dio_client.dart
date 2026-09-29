@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:manhwamaniacs/core/config/env.dart';
 import 'package:manhwamaniacs/core/network/interceptors/app_version_interceptor.dart';
 import 'package:manhwamaniacs/core/network/interceptors/auth_interceptor.dart';
+import 'package:manhwamaniacs/core/network/interceptors/busy_retry_interceptor.dart';
 import 'package:manhwamaniacs/core/network/interceptors/error_interceptor.dart';
 import 'package:manhwamaniacs/core/network/interceptors/logging_interceptor.dart';
 import 'package:manhwamaniacs/core/network/interceptors/sources_limiter_interceptor.dart';
@@ -21,12 +22,15 @@ import 'package:manhwamaniacs/core/network/request_limiter.dart';
 /// ([AppVersionInterceptor]); [lookUpAppVersion] replaces the platform lookup
 /// in tests.
 ///
+/// [onDbBusyExhausted] fires when a GET's quiet `503 db_busy` retries run out.
+///
 /// [sourcesLimiter] gates `/sources…` requests (cinematic 15.6).
 Dio createDioClient({
   String? baseUrl,
   AuthInterceptor? authInterceptor,
   Future<String?> Function()? lookUpAppVersion,
   RequestLimiter? sourcesLimiter,
+  void Function()? onDbBusyExhausted,
 }) {
   final dio = Dio(
     BaseOptions(
@@ -46,6 +50,7 @@ Dio createDioClient({
     if (authInterceptor != null) authInterceptor,
     if (Env.isDev) LoggingInterceptor(),
     if (sourcesLimiter != null) SourcesLimiterInterceptor(sourcesLimiter),
+    BusyRetryInterceptor(dio, onExhausted: onDbBusyExhausted),
     ErrorInterceptor(),
   ]);
 

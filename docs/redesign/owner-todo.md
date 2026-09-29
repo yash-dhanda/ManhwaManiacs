@@ -74,3 +74,8 @@ Items only the owner can do, by step.
 ## web/05 owner checks (device only)
 - Real-device touch pass on a phone: sheet drag (rubber band, detent settle, 30 % / 800 px/s dismissal), swipe rows, reorder handle, pull to reprint, Lightbox pinch and drag-to-dismiss. The Playwright suite drives the same code with emulated touch, not a real finger.
 - Haptics on a real Android device for `sheet.detent`, `refresh.arm`, `zoom.snap`, `delete.confirm` (Cinematic web haptics only cover five events; the others are silent by design).
+
+## web/27 (owner-only)
+- Hardware check of the motion-timings overlay (Bloom, Sheet present, Sheet snap, Recede, Toast fall, Meniscus refresh, Scrub lens, Zoom) from `/dev/glass-primitives` at 1440x900 and 390x844 on a real GPU and a real phone; headless Chromium is software raster.
+- Real-finger check of pinch, double-tap and the pull-to-refresh snap at 100 px on a phone.
+- mobile/05: run docs/redesign/proof/mobile-05/device-checklist.md on iPhone (SideStore) and the Android flagship.

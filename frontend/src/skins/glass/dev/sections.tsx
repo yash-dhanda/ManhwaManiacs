@@ -42,6 +42,18 @@ import { Tooltip } from "../primitives/Tooltip";
 import { TypedHeadline } from "../primitives/TypedHeadline";
 import { useWave } from "../primitives/wave";
 import { Grounds, Row } from "./Grounds";
+import { SheetsSection } from "./sections/sheets";
+import { AlertsSection } from "./sections/alerts";
+import { ToastsSection } from "./sections/toasts";
+import { TabsSection } from "./sections/tabs";
+import { SlidersSection } from "./sections/sliders";
+import { TogglesSection } from "./sections/toggles";
+import { MenusSection } from "./sections/menus";
+import { BannersSection } from "./sections/banners";
+import { ImageViewerSection } from "./sections/image-viewer";
+import { ScrollEdgesSection } from "./sections/scroll-edges";
+import { PullSection } from "./sections/pull-to-refresh";
+import { ContentModeSection } from "./sections/content-mode";
 
 const COVERS = Array.from({ length: 24 }, (_, i) => `/dev-covers/cover-${String(i + 1).padStart(2, "0")}.svg`);
 const cover = (i: number) => COVERS[i % COVERS.length];
@@ -395,4 +407,16 @@ export const SECTIONS: { id: string; title: string; el: () => ReactNode }[] = [
   { id: "tooltips", title: "Tooltips", el: () => <TooltipsSection /> },
   { id: "reveals", title: "Reveals", el: () => <RevealsSection /> },
   { id: "cursors", title: "Cursors", el: () => <CursorsSection /> },
+  { id: "sheets", title: "Sheets", el: () => <SheetsSection /> },
+  { id: "alerts", title: "Alerts", el: () => <AlertsSection /> },
+  { id: "toasts", title: "Toasts", el: () => <ToastsSection /> },
+  { id: "tabs", title: "Tabs and pager", el: () => <TabsSection /> },
+  { id: "sliders", title: "Sliders", el: () => <SlidersSection /> },
+  { id: "toggles", title: "Toggles and selection", el: () => <TogglesSection /> },
+  { id: "menus", title: "Menus", el: () => <MenusSection /> },
+  { id: "banners", title: "Banners and capsules", el: () => <BannersSection /> },
+  { id: "image-viewer", title: "Image viewer", el: () => <ImageViewerSection /> },
+  { id: "scroll-edges", title: "Scroll edges", el: () => <ScrollEdgesSection /> },
+  { id: "pull-to-refresh", title: "Pull to refresh", el: () => <PullSection /> },
+  { id: "content-mode", title: "Content mode", el: () => <ContentModeSection /> },
 ];
