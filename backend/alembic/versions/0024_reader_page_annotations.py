@@ -46,3 +46,10 @@ def upgrade() -> None:
         "reader_page_annotations",
         ["source_id", "series_key", "chapter_key"],
     )
+
+
+def downgrade() -> None:
+    op.drop_index(
+        "ix_reader_page_annotations_chapter", table_name="reader_page_annotations"
+    )
+    op.drop_table("reader_page_annotations")
