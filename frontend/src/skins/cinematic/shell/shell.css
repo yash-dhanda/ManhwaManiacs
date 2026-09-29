@@ -64,3 +64,13 @@ html[data-text-scale="130"] .cine-thumb-label, html[data-text-scale="150"] .cine
 /* Skip link (§14.4). */
 .cine-skip { position: absolute; left: 0; top: 0; z-index: var(--mm-z-debug); transform: translateY(-120%); background: var(--mm-color-paper-2); color: var(--mm-color-ink-100); padding: 12px 16px; }
 .cine-skip:focus { transform: none; }
+
+/* Gallery: views are position:fixed in the app, so each sits in a transformed frame that becomes their containing block; the phone or desktop
+   variant is forced by the frame, not by the viewport. */
+[data-shell-frame] { position: relative; transform: translateZ(0); overflow: hidden; background: #000; border: 1px solid var(--mm-color-rule-1); }
+[data-shell-frame] .cine-sidebar { display: flex !important; }
+[data-shell-frame] .cine-head, [data-shell-frame] .cine-thumb { left: 0; }
+[data-shell-frame="phone"] .cine-desktop-only { display: none !important; }
+[data-shell-frame="phone"] .cine-phone-only { display: block !important; }
+[data-shell-frame="desktop"] .cine-phone-only { display: none !important; }
+[data-shell-frame="desktop"] .cine-desktop-only { display: flex !important; }
