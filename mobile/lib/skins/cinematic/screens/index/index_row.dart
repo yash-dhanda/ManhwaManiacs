@@ -22,7 +22,9 @@ class LeaderDraw extends StatefulWidget {
 }
 
 class _LeaderDrawState extends State<LeaderDraw> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 320));
+  // One controller spans the row's stagger delay and its 320 ms draw, so no timer is needed.
+  late final int _delay = 24 * widget.index;
+  late final AnimationController _c = AnimationController(vsync: this, duration: Duration(milliseconds: _delay + 320));
   bool _started = false;
 
   @override
@@ -32,11 +34,9 @@ class _LeaderDrawState extends State<LeaderDraw> with SingleTickerProviderStateM
     _started = true;
     if (!widget.play || CineMotion.reduced(context)) {
       _c.value = 1;
-      return;
+    } else {
+      _c.forward();
     }
-    Future<void>.delayed(Duration(milliseconds: 24 * widget.index), () {
-      if (mounted) _c.forward();
-    });
   }
 
   @override
@@ -49,13 +49,17 @@ class _LeaderDrawState extends State<LeaderDraw> with SingleTickerProviderStateM
   Widget build(BuildContext context) => AnimatedBuilder(
         animation: _c,
         child: widget.child,
-        builder: (context, child) => ClipRect(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            widthFactor: context.cine.easeSettle.transform(_c.value).clamp(0.0, 1.0),
-            child: child,
-          ),
-        ),
+        builder: (context, child) {
+          final total = _delay + 320;
+          final t = ((_c.value * total - _delay) / 320).clamp(0.0, 1.0);
+          return ClipRect(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              widthFactor: context.cine.easeSettle.transform(t),
+              child: child,
+            ),
+          );
+        },
       );
 }
 

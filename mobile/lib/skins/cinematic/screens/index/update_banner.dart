@@ -10,9 +10,15 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// How the update URL opens: outside the app. An override point for tests.
+final updateLauncherProvider = Provider<Future<bool> Function(Uri)>(
+  (ref) => (u) => launchUrl(u, mode: LaunchMode.externalApplication),
+  name: 'updateLauncher',
+);
+
 /// Opens the APK download outside the app; a failure is a toast naming the URL. Then the steps.
 Future<void> downloadUpdate(BuildContext context, WidgetRef ref, AppVersionInfo info, {Future<bool> Function(Uri)? launch}) async {
-  final open = launch ?? ((u) => launchUrl(u, mode: LaunchMode.externalApplication));
+  final Future<bool> Function(Uri) open = launch ?? ref.read(updateLauncherProvider);
   var ok = false;
   try {
     ok = await open(Uri.parse(info.downloadUrl));

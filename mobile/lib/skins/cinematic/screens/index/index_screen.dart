@@ -235,15 +235,19 @@ class _IndexScreenState extends ConsumerState<IndexScreen> {
                     ),
                   ),
                 if (two)
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(child: Column(children: [you, reading])),
-                        Container(key: const Key('index-column-rule'), width: 1, margin: EdgeInsets.symmetric(horizontal: c.space6), color: c.colorRule1),
-                        Expanded(child: Column(children: [house, about])),
-                      ],
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          key: const Key('index-column-rule'),
+                          padding: EdgeInsets.only(right: c.space6),
+                          decoration: BoxDecoration(border: Border(right: BorderSide(color: c.colorRule1))),
+                          child: Column(children: [you, reading]),
+                        ),
+                      ),
+                      Expanded(child: Padding(padding: EdgeInsets.only(left: c.space6), child: Column(children: [house, about]))),
+                    ],
                   )
                 else
                   Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [you, reading, house, about]),

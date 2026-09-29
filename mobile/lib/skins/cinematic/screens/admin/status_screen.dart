@@ -116,11 +116,14 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
           ),
         );
 
-    Widget frame(Widget Function(double top) body) => CineScaffold(
-          tabletLayout: true,
-          firstRunNote: false,
-          body: Builder(builder: (context) => body(CineScaffoldScope.topExtentOf(context))),
-        );
+    Widget frame(Widget Function(double top) body, {Widget Function(Widget scaffold)? keys}) {
+      final scaffold = CineScaffold(
+        tabletLayout: true,
+        firstRunNote: false,
+        body: Builder(builder: (context) => body(CineScaffoldScope.topExtentOf(context))),
+      );
+      return keys == null ? scaffold : keys(scaffold);
+    }
 
     if (resolving) return frame((top) => SingleChildScrollView(child: masthead(top)));
 
@@ -166,7 +169,9 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
     _order = [for (final r in summary.sources) r.id];
     final refetching = poll.isLoading || settings.isLoading || runs.isLoading || sources.isLoading;
     final nextPoll = poll.valueOrNull?.nextPollAt;
-    final left = nextPoll == null ? kBackendPollEvery.inSeconds : nextPoll.difference(now).inSeconds.clamp(0, kBackendPollEvery.inSeconds);
+    final left = nextPoll == null
+        ? kBackendPollEvery.inSeconds
+        : ((nextPoll.difference(now).inMilliseconds + 999) ~/ 1000).clamp(0, kBackendPollEvery.inSeconds);
 
     final actions = Padding(
       padding: EdgeInsets.only(top: c.space2),
@@ -190,13 +195,16 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
       ),
     );
 
+    // The keys wrap the whole scaffold: route focus lands on the running head's title.
     return frame(
-      (top) => StatusKeys(
+      keys: (scaffold) => StatusKeys(
         onRefresh: () => unawaited(_refreshAll()),
         onCheck: () => unawaited(_checkNowRun()),
         onNext: () => _walk(1),
         onPrevious: () => _walk(-1),
-        child: CinePullToReprint(
+        child: scaffold,
+      ),
+      (top) => CinePullToReprint(
           onRefresh: _refreshAll,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -249,7 +257,6 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 }

@@ -9,7 +9,6 @@ import 'package:manhwamaniacs/features/settings/utils/whats_new_policy.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/a11y/folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
@@ -72,20 +71,20 @@ class WhatsNewBody extends ConsumerWidget {
         child: const CineNotice(tone: CineNoticeTone.caution, kicker: 'NOTE', headline: "Release notes aren't available right now."),
       );
 
-  Widget _entries(BuildContext context, CineTokens c, List<ChangelogRelease> entries) => ListView(
+  // The sheet's own body scrolls (and its header carries `Done`), so this is a plain column.
+  Widget _entries(BuildContext context, CineTokens c, List<ChangelogRelease> entries) => Padding(
         key: const Key('whats-new-list'),
         padding: EdgeInsets.fromLTRB(c.space4, c.space4, c.space4, c.space8),
-        children: [
-          for (var i = 0; i < entries.length; i++) ...[
-            _Entry(entry: entries[i], latest: i == 0),
-            if (i < entries.length - 1) Container(margin: EdgeInsets.symmetric(vertical: c.space6), height: 1, color: c.colorRule1),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < entries.length; i++) ...[
+              _Entry(entry: entries[i], latest: i == 0),
+              if (i < entries.length - 1) Container(margin: EdgeInsets.symmetric(vertical: c.space6), height: 1, color: c.colorRule1),
+            ],
           ],
-          SizedBox(height: c.space6),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: CineButton(label: 'Done', variant: CineButtonVariant.quiet, onPressed: () => Navigator.of(context).maybePop()),
-          ),
-        ],
+        ),
       );
 }
 

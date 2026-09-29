@@ -158,11 +158,13 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen> with SingleTi
           ),
         );
 
-    Widget scaffold(Widget body) => CineScaffold(
-          contentModeChip: true,
-          tabletLayout: true,
-          firstRunNote: false,
-          body: DownloadsKeys(onNext: () => _walk(1), onPrevious: () => _walk(-1), onTogglePause: _togglePause, child: body),
+    // The keys wrap the whole scaffold: route focus lands on the running head's title, which sits
+    // beside the body, so the bindings must be above both.
+    Widget scaffold(Widget body) => DownloadsKeys(
+          onNext: () => _walk(1),
+          onPrevious: () => _walk(-1),
+          onTogglePause: _togglePause,
+          child: CineScaffold(contentModeChip: true, tabletLayout: true, firstRunNote: false, body: body),
         );
 
     if (profile == null) {
