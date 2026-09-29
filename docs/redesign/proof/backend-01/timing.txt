@@ -1,0 +1,13 @@
+extract() median over 20 runs, backend/.venv (Python 3.14, Pillow), OVH VPS 4 vCPU,
+measured 2026-09-29 11:26 with no pytest suite running (load average ~3.4 from other lanes/prod).
+Decode is the spec-literal path: JPEG draft, flatten, resize to 96 wide with Image.Resampling.BILINEAR.
+
+dev stack w=720 cover (mangadex Alphabet[a]):       WEBP 720x1018,  65,442 B   -> median  33.2 ms (min  31.2, max   45.4)  target < 40 ms: MET
+full-resolution original, typical JPEG (mangapill): JPEG 850x1200, 355,335 B   -> median  19.5 ms (min  18.7, max   27.3)  target < 150 ms: MET
+full-resolution original, same MangaDex cover:      PNG 4961x7016 RGBA, 6.1 MB -> median 1022.9 ms (min 964.5, max 1334.4) target < 150 ms: MISSED
+
+Why the PNG misses: 35 Mpx RGBA. Image.open().load() alone is a 398 ms median (PNG has no
+draft/scaled decode), and _decode() as a whole is 976 ms (alpha flatten + resize at full size).
+No resize tweak gets under the decode floor, so the spec-literal BILINEAR resize is kept.
+Cost is paid once per cover per 30 days (cover_palette TTL), only on the first cover serve,
+never on list/search/browse requests. JPEG and WebP covers (the common case) are well inside target.

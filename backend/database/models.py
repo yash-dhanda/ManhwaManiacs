@@ -1318,6 +1318,36 @@ class SourceCoverCache(Base):
     resize_failed_at: Mapped[datetime | None] = mapped_column(DateTime)
 
 
+class CoverPalette(Base):
+    """A series cover's colours: Cinematic ``ambient`` and Glass ``palette``.
+
+    Computed once per cover by ``services.cover_colour`` inside the cover
+    proxy, the first time the cover is served at any width, and read by every
+    series payload in one batched query. Fresh for 30 days
+    (``cover_colour.COLOUR_TTL``); the retention sweep deletes older rows.
+
+    GLOBAL, like ``source_cover_cache``: no user, profile or 18+ gate in the
+    key. Colours are a property of the art, not of the reader; the gate is
+    applied when a payload is SERVED (a caller who cannot see a row never
+    receives it, so never its colours). ``series_key`` is stored
+    ``fully_unquote``d, the normalisation the cover cache keys use.
+
+    Purely a cache: listed in ``core.cache_tables.CACHE_TABLES`` and rebuilt
+    on the next cover serve.
+    """
+
+    __tablename__ = "cover_palette"
+    __table_args__ = (Index("ix_cover_palette_computed_at", "computed_at"),)
+
+    source_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    series_key: Mapped[str] = mapped_column(String(512), primary_key=True)
+    #: JSON ``{"duo", "tint", "ink"}`` (cinematic §2.1.5).
+    ambient: Mapped[str] = mapped_column(Text, nullable=False)
+    #: JSON ``{"a": [hex, ...], "l", "lMax"}`` (glass §2.1.8).
+    palette: Mapped[str] = mapped_column(Text, nullable=False)
+    computed_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+
+
 # ---------------------------------------------------------------------------
 # chapter_ocr FTS5 (spec §3.12)
 # ---------------------------------------------------------------------------
