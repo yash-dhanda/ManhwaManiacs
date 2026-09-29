@@ -257,6 +257,9 @@ class _FakeIntelligenceRepository implements LibraryRepository {
 
 class _EmptyReaderRepository implements ReaderRepository {
   @override
+  Future<Result<void>> deleteProgress({required String sourceId, required String seriesKey, required List<String> chapterKeys}) async => const Ok(null);
+
+  @override
   Future<Result<List<Bookmark>>> listBookmarks({
     String? sourceId,
     String? seriesKey,

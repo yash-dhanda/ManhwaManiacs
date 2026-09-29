@@ -64,6 +64,9 @@ ChapterManifest _manifest(int n, {int pageCount = 2}) => ChapterManifest(
 /// A reader API that answers windows, and counts both doors so a test can say
 /// which one the queue used.
 class _WindowingReaderRepository implements ReaderRepository {
+  @override
+  Future<Result<void>> deleteProgress({required String sourceId, required String seriesKey, required List<String> chapterKeys}) async => const Ok(null);
+
   _WindowingReaderRepository({
     this.maxChapters = kManifestWindowChapters,
     this.brokenKeys = const {},

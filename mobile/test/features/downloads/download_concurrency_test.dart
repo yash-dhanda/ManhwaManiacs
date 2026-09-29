@@ -67,6 +67,9 @@ List<ChapterQueueRequest> _queueRequests(int count) => [
 /// that signal readable — the windows themselves are covered in
 /// `manifest_window_test.dart`.
 class _ChapterCountingReaderRepository implements ReaderRepository {
+  @override
+  Future<Result<void>> deleteProgress({required String sourceId, required String seriesKey, required List<String> chapterKeys}) async => const Ok(null);
+
   _ChapterCountingReaderRepository({
     this.pageCount = 4,
     this.brokenKeys = const <String>{},

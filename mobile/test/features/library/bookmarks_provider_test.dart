@@ -21,6 +21,9 @@ import '../../support/downloads_test_support.dart';
 /// mid-flush via a [Completer], so a test can observe `actionPending` while a
 /// delete is still in the air.
 class _FakeReaderRepository implements ReaderRepository {
+  @override
+  Future<Result<void>> deleteProgress({required String sourceId, required String seriesKey, required List<String> chapterKeys}) async => const Ok(null);
+
   _FakeReaderRepository({this.remote = const []});
 
   List<Bookmark> remote;
