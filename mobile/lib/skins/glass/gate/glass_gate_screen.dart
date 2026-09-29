@@ -466,9 +466,16 @@ class _SheetRows extends StatelessWidget {
 // FROST twin: BackdropGroup + BackdropFilter.grouped with a painted rim.
 // ---------------------------------------------------------------------------
 
-/// Frosted panel of glass 2.4.2 `frosted` (+6 blur over the variant). Flutter has
-/// no backdrop saturate filter (`ImageFilter` offers blur, matrix, dilate, erode,
-/// compose and shader only), so saturation 1.8 is not applied here.
+/// Frosted panel of glass 2.4.2 `frosted` (+6 blur over the variant): blur, then
+/// saturate 1.8 via ImageFilter.compose with a luma-weighted ColorFilter.matrix.
+// Saturation 1.8 (CSS saturate(): luma 0.2126/0.7152/0.0722).
+const ColorFilter _saturate18 = ColorFilter.matrix(<double>[
+  0.2126 + 0.7874 * 1.8, 0.7152 - 0.7152 * 1.8, 0.0722 - 0.0722 * 1.8, 0, 0,
+  0.2126 - 0.2126 * 1.8, 0.7152 + 0.2848 * 1.8, 0.0722 - 0.0722 * 1.8, 0, 0,
+  0.2126 - 0.2126 * 1.8, 0.7152 - 0.7152 * 1.8, 0.0722 + 0.9278 * 1.8, 0, 0,
+  0, 0, 0, 1, 0,
+]);
+
 class _FrostPanel extends StatelessWidget {
   const _FrostPanel({required this.radius, required this.sigma, required this.fill, required this.specular, required this.child});
   final BorderRadius radius;
@@ -483,7 +490,7 @@ class _FrostPanel extends StatelessWidget {
     return ClipRRect(
       borderRadius: radius,
       child: BackdropFilter.grouped(
-        filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+        filter: ui.ImageFilter.compose(outer: _saturate18, inner: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma)),
         child: CustomPaint(
           foregroundPainter: _RimPainter(radius: radius, specular: specular, stroke: px),
           child: ColoredBox(color: fill, child: child),

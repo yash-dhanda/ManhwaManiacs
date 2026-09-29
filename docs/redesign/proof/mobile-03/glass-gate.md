@@ -32,6 +32,4 @@ Each run is one Auto-fling (10 s). Afterwards write down FPS, JANK and WORST fro
 
 On the iPhone, LIQUID passes when both LIQUID runs show FPS >= 115, JANK < 5 % and WORST < 16.7 ms with no visual fault. Otherwise the decision is FROST (flagship-only: no third option). Android results are recorded for glass 15.7 but do not decide.
 
-Known difference: the FROST twin has no saturate 1.8 (Flutter has no backdrop colour filter), so compare colour by eye only.
-
 Decision: awaiting the owner's device pass (mobile/25 must not start before this line reads LIQUID or FROST)
