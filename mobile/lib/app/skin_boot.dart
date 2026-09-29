@@ -6,6 +6,10 @@ const kSkinActiveKey = 'mm.skin.active';
 const kSkinDebugKey = 'mm.skin.debug';
 const kSkinReturnKey = 'mm.skin.return';
 const kSkinT0Key = 'mm.skin.t0';
+
+/// The edition the user came from, written only by an undoable switch; read once by
+/// [takeSkinArrival] to show the arrival toast.
+const kSkinFromKey = 'mm.skin.from';
 const kSkinSessionKey = 'mm.skin.session';
 const kSkinBootRestartKey = 'mm.skin.boot-restart';
 const kSkinRestartLastKey = 'mm.skin.restart.last';
