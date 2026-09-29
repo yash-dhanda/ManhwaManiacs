@@ -31,6 +31,10 @@ Give both skins their complete iconography as build outputs both clients can use
 - **RAM guard.** `free -m` before every heavy command (`npm run typecheck`, `npm run test`, `npm run build`, `flutter analyze`, `flutter test`, and the tracing run, which renders about 120 SVGs); stop if `available` is under 1024 MB. Never two at once. Never `flutter build`.
 - **Git.** Branch `feat/vps-slim-source-native`; one commit per working step; `git push origin feat/vps-slim-source-native` after each. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with" line), whatever a tool suggests. Never commit secrets or `.claude/`.
 
+## Before you start (dependency: shared/00)
+
+This step depends on `docs/redesign/prompts/shared/00-design-contract-and-token-generator.md` (the track rule, the `design/` folder and its `--check`). From the repo root run `ls design/contract.json design/build.mjs` and `node design/build.mjs --check`; if either fails, shared/00 is incomplete: stop and report, do not repair it here. `design/icons.json` must not exist yet (`ls design/icons.json` fails); if it exists, read it and extend it instead of overwriting it.
+
 ## Scope: what this step delivers, item by item
 
 ### 1. Phosphor sources (no network at build time)
@@ -47,7 +51,7 @@ Give both skins their complete iconography as build outputs both clients can use
 
 ### 2. Source fonts for glyph outlines
 
-Commit to `brand/fonts/` (each with its `OFL.txt`): `BodoniModa[opsz,wght].ttf` and `BodoniModa-Italic[opsz,wght].ttf` from `https://github.com/google/fonts/raw/main/ofl/bodonimoda/`, and `IBMPlexMono-SemiBold.ttf` from `https://github.com/google/fonts/raw/main/ofl/ibmplexmono/`. Record each file's URL and SHA-256 in `brand/fonts/SOURCES.md`. `shared/04` reuses these for the wordmark.
+Commit to `brand/fonts/`: `BodoniModa[opsz,wght].ttf`, `BodoniModa-Italic[opsz,wght].ttf` and `OFL-BodoniModa.txt` (the folder's `OFL.txt`) from `ofl/bodonimoda/`, and `IBMPlexMono-SemiBold.ttf` and `OFL-IBMPlexMono.txt` from `ofl/ibmplexmono/`, all downloaded from the pinned google/fonts commit that shared/04 also uses, so the two steps outline the same font bytes: base URL `https://raw.githubusercontent.com/google/fonts/23e54b51ddffbc7713c583748e3bd86f62b1fa4a/` (a raw URL at a commit never changes; `[`, `,` and `]` URL-encoded as `%5B`, `%2C`, `%5D`; the files answered HTTP 200 on this box on 2026-09-29). Record each file's URL and SHA-256 in `brand/fonts/SOURCES.md`. `shared/04` reads the two Bodoni Moda files from here (its `brand/lib/fonts.mjs` returns these paths) and reuses `brand/cinematic/monogram.json` for the mark.
 
 ### 3. `design/icons.json`: the role map
 
@@ -155,7 +159,7 @@ One file both skins read through generated code. Shape:
 | `brand-mark` | `glyph:mm-mark` | `glyph:mm-mark` |
 | `ai-unavailable` | `null` | `glyph:sparkle-slash` |
 
-Every non-glyph value must exist in `brand/phosphor/codepoints.json` (checked). A screen that needs an icon not listed adds a role here and re-runs `node brand/build-glyphs.mjs`; screens never hard-code a Phosphor name.
+Every non-glyph value must exist in `brand/phosphor/codepoints.json` (checked; every Phosphor name in the table exists in the 2.1.0 archive, verified on this box). Screens never hard-code a Phosphor name. A later web or mobile step that needs a role not listed makes the one sanctioned edit to this shared-track file: it adds one row to `design/icons.json`, re-runs `node brand/build-glyphs.mjs` and `node brand/check.mjs`, and commits only `design/icons.json` and the regenerated role and constant files with explicit `git add` paths, naming the added role in its report.
 
 ### 4. SVG masters
 
@@ -180,7 +184,7 @@ Written by `brand/make-glyph-masters.mjs` (deterministic, stdlib plus `fontkit` 
 
 | Glyph | Regular (stroke 16 unless stated) | Duotone secondary (filled, drawn at 0.2) | Fill |
 |---|---|---|---|
-| `mm-mark` | Top M polyline `M71 109 L71 59 L128 98 L185 59 L185 109`, bottom M `M71 197 L71 147 L128 186 L185 147 L185 197`, both stroked **22**; gutter bar rect x 60–196, y 120–136 filled | The column capsule x 60–196, y 48–208, rx 54 (40 % of its width) | The capsule filled with both M strokes (22) and the gutter bar knocked out |
+| `mm-mark` | Top M polyline `M71 109 L71 59 L128 96.5 L185 59 L185 109`, bottom M `M71 197 L71 147 L128 184.5 L185 147 L185 197` (exactly shared/05's 1024 centrelines `(284, 436) (284, 236) (512, 386) (740, 236) (740, 436)` and the same 352 lower, divided by 4), both stroked **22**; gutter bar rect x 60–196, y 120–136 filled | The column capsule x 60–196, y 48–208, rx 54 (40 % of its width) | The capsule filled with both M strokes (22) and the gutter bar knocked out |
 | `strip-scroll` | Rounded rect x 80–176, y 24–200, rx 16; panel lines at y 80 and y 136 across it; chevron (104,212) (128,232) (152,212) | The rect's interior | Rect filled with the panel lines knocked out as 8-unit gaps; chevron stroked |
 | `panel-focus` | Rect x 72–184, y 88–168; the four 32-unit brackets at x 40 / 216 and y 56 / 200 (as Cinematic) | The rect's interior | Rect filled; brackets stroked |
 | `bubble-search` | Ellipse rx 80 ry 60 at (112,104) joined to the tail triangle (80,150) (72,176) (104,158), with a clearance circle r 40 at (176,168); magnifier circle r 28 at (176,168); handle (196,188)–(224,216) | The bubble's interior | Bubble filled (with clearance); ring and handle stroked |
@@ -202,7 +206,7 @@ Node 22; imports only stdlib and shells out to the two pinned `npx` tools. One r
 5. **Dart Phosphor constants** (glass §2.7 for both skins): `mobile/lib/skins/cinematic/icons/phosphor.g.dart` and `mobile/lib/skins/glass/icons/phosphor.g.dart`, one `abstract final class` per weight the skin lists (`PhosphorLight`, `PhosphorRegular`, `PhosphorFill` for Cinematic; `PhosphorRegular`, `PhosphorDuotone`, `PhosphorFill`, `PhosphorLight`, `PhosphorBold`, `PhosphorThin` for Glass), each holding a constant for **every Phosphor name that skin uses in `roles`**: `static const IconData arrowLeft = IconData(0x…, fontFamily: 'PhosphorLight');`. Duotone names get two constants (`houseSimple`, `houseSimpleSecondary`). Plain constants only, never a subclass of `IconData`.
 6. **Dart role tables.** `mobile/lib/skins/{cinematic,glass}/icons/icon_roles.g.dart`: `enum CineIconRole { back, close, … }` (camelCase of the role; only roles non-null for the skin), `enum CineIconWeight { light, regular, fill }`, and `const Map<CineIconRole, Map<CineIconWeight, IconData>> cineIcons` (a glyph role maps each weight to its `CineGlyphs` constant); Glass the same with `GlassIconRole`, `GlassIconWeight { regular, duotone, fill, light, bold, thin }` (glyph roles map `light`, `bold` and `thin` through `glyphFallback`), `glassIcons`, and `const Map<GlassIconRole, IconData> glassDuotoneSecondary`; `back-depth` maps to `strata-1` and the runtime swaps variants by depth (`GlassGlyphs.strata1Regular` … `strata4Regular`).
 7. **React glyph components.** `frontend/src/skins/cinematic/icons/glyphs.generated.tsx` and `frontend/src/skins/glass/icons/glyphs.generated.tsx`: one exported component per glyph, named in PascalCase of the kebab name with digits kept (`Flame1`, `Flame3`, `StripScroll`, `Certificate18`, `Voice31`, `MmMark`; Glass `Strata` takes a `level: 1 | 2 | 3 | 4` prop instead of being four components), built from the **traced** paths so web and app draw identical outlines. Props: `weight?: "light" | "regular" | "fill"` (Cinematic, default `"light"`) or `"regular" | "duotone" | "fill"` (Glass, default `"regular"`), `size?: number | string` (default 24 Cinematic, 22 Glass), `color?: string` (default `"currentColor"`), `title?: string`, plus the remaining `SVGProps<SVGSVGElement>`. Render `<svg viewBox="0 0 256 256" width={size} height={size} fill={color}>`; with a `title`, `role="img"` and `<title>`; without, `aria-hidden="true"` and `focusable="false"`. Duotone renders the secondary path with `opacity={0.2}` under the primary. No hooks, no ids, no masks (the traced paths are already flat), so the components are valid Server Components. Export `GLYPHS` (name to component) and `type GlyphName`.
-8. **Web role tables.** `frontend/src/skins/{cinematic,glass}/icons/roles.generated.ts`: `export const ICON_ROLES = { back: { kind: "phosphor", name: "arrow-left", component: "ArrowLeft" }, "dialogue-search": { kind: "glyph", name: "bubble-search" }, … } as const` (only the skin's non-null roles; `component` is the `@phosphor-icons/react` export name, PascalCase of the kebab name), `type IconRole`, and `ICON_RULES` (the skin's `rules`, `sizes`, `hit`, weights from `design/icons.json`). The web cannot import `design/icons.json` directly: the Docker build context is `./frontend` (cinematic §15.2), which is why this file is generated.
+8. **Web role tables.** `frontend/src/skins/{cinematic,glass}/icons/roles.generated.ts`: `export const ICON_ROLES = { back: { kind: "phosphor", name: "arrow-left", component: "ArrowLeftIcon" }, "dialogue-search": { kind: "glyph", name: "bubble-search" }, … } as const` (only the skin's non-null roles; `component` is the `@phosphor-icons/react` 2.1.10 export name: PascalCase of the kebab name plus the `Icon` suffix, `arrow-left` → `ArrowLeftIcon`, because 2.1.10 marks the unsuffixed `ArrowLeft` `@deprecated Use ArrowLeftIcon` (checked on this box in `dist/ssr/ArrowLeft.d.ts`); web/01 imports these names from `@phosphor-icons/react/ssr`; this file holds strings only, so it compiles before web/01 installs the package), `type IconRole`, and `ICON_RULES` (the skin's `rules`, `sizes`, `hit`, weights from `design/icons.json`). The web cannot import `design/icons.json` directly: the Docker build context is `./frontend` (cinematic §15.2), which is why this file is generated.
 9. **Generated Dart test.** `mobile/test/skins/generated_icons_test.dart`: every `CineIconRole` has an entry for all three weights; every `GlassIconRole` for all six; `CineGlyphs.mmMarkFill.fontFamily == 'CineGlyphs'`; `PhosphorRegular.caretLeft.fontFamily == 'PhosphorRegular'` in the Glass file; `glassDuotoneSecondary` has an entry for every role whose duotone exists. It imports the generated files, which is how their compilation is proven (the analyzer skips `*.g.dart`).
 
 Every generated file starts with `GENERATED by brand/build-glyphs.mjs from design/icons.json and brand/<skin>/glyphs — do not edit.` Deterministic output: sorted keys, no timestamps.
@@ -228,7 +232,7 @@ Create:
 ```
 design/icons.json
 brand/package.json, brand/package-lock.json        fontkit 2.0.4 only
-brand/fonts/{BodoniModa[opsz,wght].ttf, BodoniModa-Italic[opsz,wght].ttf, IBMPlexMono-SemiBold.ttf, OFL-*.txt, SOURCES.md}
+brand/fonts/{BodoniModa[opsz,wght].ttf, BodoniModa-Italic[opsz,wght].ttf, IBMPlexMono-SemiBold.ttf, OFL-BodoniModa.txt, OFL-IBMPlexMono.txt, SOURCES.md}
 brand/phosphor/{codepoints.json, SOURCE.md}
 brand/make-glyph-masters.mjs
 brand/cinematic/monogram.mjs, brand/cinematic/monogram.json
@@ -243,7 +247,7 @@ mobile/assets/fonts/phosphor/{Phosphor,Phosphor-Thin,Phosphor-Light,Phosphor-Bol
 mobile/lib/skins/cinematic/icons/{cine_glyphs.g.dart, phosphor.g.dart, icon_roles.g.dart}
 mobile/lib/skins/glass/icons/{glass_glyphs.g.dart, phosphor.g.dart, icon_roles.g.dart}
 mobile/test/skins/generated_icons_test.dart
-docs/redesign/proof/shared-02/{glyphs-cinematic.svg, glyphs-glass.svg, roles.md}
+docs/redesign/proof/shared-02/{glyphs-cinematic.svg, glyphs-glass.svg, roles.md, glyphs-cinematic-1440.png, glyphs-cinematic-390.png, glyphs-glass-1440.png, glyphs-glass-390.png}
 ```
 Change nothing else. `mobile/pubspec.yaml` (the `fonts:` families `CineGlyphs`, `GlassGlyphs` and the six `Phosphor*`) is mobile/03's; `@phosphor-icons/react` 2.1.10 is installed by web/01.
 
@@ -262,7 +266,8 @@ Change nothing else. `mobile/pubspec.yaml` (the `fonts:` families `CineGlyphs`, 
 - [ ] Per-skin difference: Cinematic glyphs have square corners and exist in Light/Regular/Fill; Glass glyphs have round terminals and exist in Regular/Duotone/Fill; no Cinematic role uses a Duotone or Bold weight (cinematic §2.7 "never Bold or Duotone").
 - [ ] `frontend`: `npm run lint` 0 errors 0 warnings, `npm run typecheck` passes (the generated TSX compiles), `npm run test` count not lower than before, `npm run build` passes.
 - [ ] `mobile`: `flutter analyze` no issues; `flutter test` passes (2012 plus the generated tests of `shared/00`, `shared/01` and this step), 0 failed.
-- [ ] Proof files exist in `docs/redesign/proof/shared-02/`.
+- [ ] Proof files exist in `docs/redesign/proof/shared-02/`: both SVG sheets, `roles.md` and the four PNG captures (1440 × 900 and 390 × 844 per sheet), and you looked at them.
+- [ ] `roles.generated.ts` names every Phosphor component with the `Icon` suffix (`ArrowLeftIcon`, `HouseSimpleIcon`), and the Glass `mm-mark` masters use the 96.5 / 184.5 vertex heights (shared/05's geometry ÷ 4).
 - [ ] Every commit touches only this step's paths, carries no AI attribution, and was pushed.
 
 ## Verification commands
@@ -293,9 +298,9 @@ cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test && cd ..
 node design/build.mjs --check   # the design contract from shared/00 and shared/01 is still green
 ```
 
-Backend: no backend change; the CI `backend` job must stay green on your pushed commits.
+Backend: no backend change. If `backend/.venv` exists (backend/00 creates it), also run `cd backend && free -m && timeout 1800 .venv/bin/python -m pytest -q --no-header 2>&1 | tail -3` and quote the summary line; the CI `backend` job (`cd backend && pytest -q --no-header`) must stay green on your pushed commits either way.
 
-**Visual proof.** No web screen changes, so no Playwright screenshots at 1440 × 900 or 390 × 844; the proof is `docs/redesign/proof/shared-02/glyphs-cinematic.svg`, `glyphs-glass.svg` and `roles.md`. Open both sheets in a browser (or read them as images) and look at the 16 px row: every glyph must still read.
+**Visual proof.** No web screen changes. The proof is `docs/redesign/proof/shared-02/glyphs-cinematic.svg`, `glyphs-glass.svg` and `roles.md`; capture each SVG in headless Chromium at 1440 × 900 and 390 × 844 (full page) into `docs/redesign/proof/shared-02/glyphs-{cinematic,glass}-{1440,390}.png` with the command block of shared/00 "Visual proof" (same script, one page per SVG; install Chromium first exactly as that block says if `~/.cache/ms-playwright` has no `chromium-*` folder). Look at the 16 px row of both: every glyph must still read.
 
 ## Commit plan
 
@@ -314,8 +319,8 @@ Push after each; `git add <explicit paths>` every time.
 - The checklist with every box ticked or explained.
 - Counts: roles per skin (non-null), masters per skin, traced ids per skin, TTF glyph counts, Phosphor constants per skin and weight.
 - Output of `node brand/check.mjs`, `npm run lint`, `npm run typecheck`, `npm run test` (count), `npm run build`, `flutter analyze`, `flutter test` (count), `node design/build.mjs --check`, and the lowest `free -m` available figure.
-- Proof paths: `docs/redesign/proof/shared-02/glyphs-cinematic.svg`, `glyphs-glass.svg`, `roles.md`.
+- Proof paths: `docs/redesign/proof/shared-02/glyphs-cinematic.svg`, `glyphs-glass.svg`, `roles.md` and the four PNG captures.
 - Pushed commit hashes.
-- Open issues and hand-offs: mobile/02 and mobile/03 must **not** add or import `phosphor_flutter` (their plan entries name it; it cannot compile against `final class IconData`); mobile/03 declares the eight font families (`CineGlyphs`, `GlassGlyphs`, `PhosphorRegular`, `PhosphorThin`, `PhosphorLight`, `PhosphorBold`, `PhosphorFill`, `PhosphorDuotone`) in `pubspec.yaml` and builds its Icon-role widget on `icon_roles.g.dart`; web/01 builds its Icon component on `roles.generated.ts` and `glyphs.generated.tsx`; `shared/04` reuses `brand/cinematic/monogram.json` and `brand/fonts/`; any glyph whose geometry you had to adjust to stay inside the safe inset, with before and after.
+- Open issues and hand-offs: mobile/02 and mobile/03 must **not** add or import `phosphor_flutter` (their plan entries name it; it cannot compile against `final class IconData`); mobile/03 declares the eight font families (`CineGlyphs`, `GlassGlyphs`, `PhosphorRegular`, `PhosphorThin`, `PhosphorLight`, `PhosphorBold`, `PhosphorFill`, `PhosphorDuotone`) in `pubspec.yaml` and builds its Icon-role widget on `icon_roles.g.dart`; web/01 builds its Icon component on `roles.generated.ts` and `glyphs.generated.tsx` (its item 12 plans a second generator, `frontend/scripts/icon-roles.mjs`, writing `icon-roles.generated.ts` from `design/icons.json`: that file may add only the static `@phosphor-icons/react/ssr` imports keyed by this step's `component` names and must import `IconRole` from `icons/roles.generated.ts` instead of declaring a second union; the glyph components are in `icons/glyphs.generated.tsx`, there is no `icons/index.ts`); `shared/04` reuses `brand/cinematic/monogram.json` and `brand/fonts/`; any glyph whose geometry you had to adjust to stay inside the safe inset, with before and after.
 
 **Next prompt file:** in the series order the next file is `docs/redesign/prompts/web/01-foundation-motion-deps-fonts-icons.md`; the next file on the shared track is `docs/redesign/prompts/shared/03-ui-sounds-and-soundscape-audio.md`.

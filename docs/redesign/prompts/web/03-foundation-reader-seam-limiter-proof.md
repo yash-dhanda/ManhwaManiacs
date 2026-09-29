@@ -36,7 +36,7 @@ wc -l frontend/src/features/reader/components/*.tsx
 
 ## Skills to invoke
 
-- `superpowers:writing-plans` first. Save the plan at `docs/redesign/plans/web-03.md`. The engine extraction is the most regression-prone change in the web track (stack risk 6), so the plan must list the commits of section A one by one, each with the tests that gate it.
+- `superpowers:writing-plans` first. Save the plan at `docs/redesign/proof/web-03/plan.md`. The engine extraction is the most regression-prone change in the web track (stack risk 6), so the plan must list the commits of section A one by one, each with the tests that gate it.
 - `superpowers:subagent-driven-development` to run the plan (or `superpowers:executing-plans` inline). The engine extraction (A) runs in one session, not split across parallel subagents. B, C and D may run as parallel subagents. Check each against `git diff`, never against its report.
 - `superpowers:test-driven-development` for the limiter, the auto-queue predicate and `coverTransitionName`.
 - `superpowers:verification-before-completion` before claiming done.
@@ -234,7 +234,7 @@ frontend/src/services/http.ts, frontend/src/types/api.ts                        
 frontend/src/lib/hover-intent.ts                                                   change (150 ms)
 frontend/eslint.config.mjs                                                         change (engine boundary)
 frontend/scripts/proof.mjs                                                         new
-docs/redesign/plans/web-03.md, docs/redesign/proof/web-03/*                        new
+docs/redesign/proof/web-03/plan.md, docs/redesign/proof/web-03/*                        new
 ```
 
 No file under `frontend/src/skins/` changes in this step, and no ScreenId leaves `PENDING`.
@@ -242,7 +242,7 @@ No file under `frontend/src/skins/` changes in this step, and no ScreenId leaves
 ## Acceptance criteria
 
 - [ ] `npm run typecheck`, `lint`, `test` and `build` pass. Every Vitest file and case that passed before your first change still passes, including every test under `src/features/reader/` (list them in the report), and the counts are at least the recorded ones.
-- [ ] `npm run verify:reader` exits 0 (today it points at the e2e suite). `npm run test:e2e` against the dev stack passes (`E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=<demo> E2E_PASSWORD=<demo>`).
+- [ ] `npm run verify:reader` exits 0 (today `scripts/verify-reader.mjs` is a stub that prints that it is superseded by `npm run test:e2e` and exits 0; leave it as it is). `npm run test:e2e` against the dev stack passes, and it is the real reader check (`E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=<demo> E2E_PASSWORD=<demo>`).
 - [ ] Legacy reader pixel parity: before and after screenshots of the chapter reader and read-all reader are identical apart from live data. Take them at 1440 × 900 and 390 × 844 with the chrome shown, the chrome hidden, the settings sheet open, paged Single mode, and the broken-page state (block one image URL with `page.route`).
 - [ ] Legacy reader behaviour, checked in the dev stack with Playwright, both entry points (`/reader/…` and `/read-all/…`):
   - scrolling a chapter to the end appends the next chapter;
@@ -282,6 +282,8 @@ free -m && npm run build                  # never alongside next dev or another 
 npm run verify:reader
 ```
 
+Mobile and backend: this step changes neither. Judge that by your own commits, never by the branch diff (mobile, backend and shared sessions commit on the same branch): `git show --stat --format= <hash>` for each of your commits must list no `mobile/` or `backend/` path. Only if one does, revert that part and prove the baseline still holds with its own commands, one at a time after the RAM guard: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (baseline: No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (baseline: all 2012 tests passed) and `cd backend && .venv/bin/python -m pytest -q --no-header`.
+
 **Dev stack and proof.**
 
 1. Start the backend dev stack exactly as `backend/scripts/README-dev-stack.md` says (uvicorn 127.0.0.1:8010, the dev SQLite under `/srv/manhwamaniacs/dev/data/`, never production data). Export `MM_PROOF_USER` and `MM_PROOF_PASSWORD` from that README's demo account.
@@ -301,7 +303,7 @@ npm run verify:reader
 
 ## Guardrails
 
-- Work in `frontend/` (plus `docs/redesign/plans/` and `docs/redesign/proof/`). Never edit `backend/` (and never `backend/connectors/`), `mobile/`, `design/` or generated files.
+- Work in `frontend/` (plus `docs/redesign/proof/`). Never edit `backend/` (and never `backend/connectors/`), `mobile/`, `design/` or generated files.
 - Never touch production containers or `/srv/manhwamaniacs/{app,data}`. The dev stack uses only the dev SQLite.
 - RAM guard: `free -m` before every build, test run, e2e run and dev server start. Stop under 1024 MB available. One heavy command at a time.
 

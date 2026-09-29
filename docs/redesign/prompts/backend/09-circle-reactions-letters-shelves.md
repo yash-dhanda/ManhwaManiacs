@@ -44,7 +44,7 @@
 
 - On branch `feat/vps-slim-source-native`, no uncommitted changes under `backend/`. Record `BASE=$(git -C /srv/manhwamaniacs/dev/ManhwaManiacs rev-parse HEAD)` in your plan.
 - `backend/08` has landed: `backend/services/circle_service.py` and `backend/routes/circle.py` exist, `grep -n 'circle_events' backend/database/models.py` matches, and `backend/.venv/bin/python -m pytest -q --no-header backend/tests/test_circle_core.py` passes.
-- `backend/02` has landed: `grep -n 'preview_covers' backend/services/followed_series_service.py` matches and collections carry `rules`.
+- `backend/02` has landed: `grep -n 'preview_covers' backend/services/followed_series_service.py` matches, collections carry `rules` and `created_at`, and `grep -n 'series/order' backend/routes/library.py` finds `PUT /library/collections/{id}/series/order` (backend/02 item C.4 owns that call and its exact-set `order_mismatch` rule; this step only adds the member 403).
 - `cd backend && .venv/bin/alembic heads` prints exactly one head (`backend/08`'s `NNNN_circle_core`).
 
 ## Skills to invoke
@@ -138,7 +138,7 @@ The guard is applied by the client from the viewer's own progress (cinematic §9
 
 ### 5. Letters on `GET /home`
 
-Computed fresh on every request after the composed-cache read, never stored in the composed cache (so a dismissed letter or a gate change is reflected at once), following the request's `content_kind`:
+Computed fresh on every request after the composed-cache read, never stored in the composed cache (so a dismissed letter or a gate change is reflected at once), following the request's `content_kind`. `sent_to_you` is one more builder appended to `home_service.LIVE_SECTION_BUILDERS` (the hook `backend/04` left and `backend/08` already uses); `also[]` is re-selected after the builders run, as below:
 
 - **`sent_to_you`** (cinematic §8.8 row, §9.1.7): inbox letters in state `new` or `kept`, newest first, at most 10; `items` are `Letter` objects; the section's `note` is the newest item's `note` (null when it has none); `title` `"Sent to you"`; `state` `"ready"` or `"empty"`; `generated_at` serve time. It sits at its fixed place in the §9.1.7 order (`… where_were_we, sent_to_you, picked …`). Glass's "From your Circle" rail reads `sent_to_you` plus `circle` (glass §9.1.1).
 - **`also[]` candidate 3 `letter`** (cinematic §8.8 **Also in this issue**): the newest `new` inbox letter becomes `{"kind": "letter", "source_id", "series_key", "headline": "{from.name} recommends {title}", "deck": note or "", "ambient"}`. Re-run the `also[]` selection at serve time with this fresh candidate (priority order `new_chapters`, `because`, `letter`, `almost_there`; never repeating a series; never the cover story's series; three slots). If `backend/04` wrote the selection inline, first extract it into one pure function `select_also(candidates, cover_key) -> list` in the same module with no behaviour change (its existing tests prove that), then call it after the cache read.
@@ -162,8 +162,8 @@ Computed fresh on every request after the composed-cache read, never stored in t
 
 - **`POST /library/collections/{id}/share`** body `{profile_ids: [int] (0–10, unique), mode: "can_add" | "view_only"}` → 200 with the owner's list row (§7). Refusals, checked in this order, each writing nothing: a smart shelf (`rules` not null) → `409 smart_shelf_not_shareable` (cinematic §8.11: "Smart shelves follow your own library, so they can't be shared."); the owner's `share_activity` off → `409 sharing_off`; any id that is the owner, unknown, on an inactive account, or whose `share_activity` or `share_shelves` is off → `409 member_unavailable` with `details: {"profile_ids": [...]}`. An empty `profile_ids` unshares (`share_mode = NULL`, all share rows deleted). Otherwise `share_mode = mode` and the member set is replaced by `profile_ids`. Series added by a removed member stay on the shelf.
 - **`DELETE /library/collections/{id}/share/{profile_ref}`** → 204, `profile_ref` is `me` or an integer id (anything else `422`). The owner removes that member (idempotent 204 for a non-member id; `me` is 403 for the owner). A member may pass only `me` or their own id (another id → 403) and leaves the shelf (cinematic `Leave shelf`, glass "Leave shelf"): their share row is deleted, the series they added stay.
-- **Series order.** If `PUT /library/collections/{id}/series/order` already exists (`grep -n 'series/order' backend/routes/library.py`), members get 403 through `_shelf_access` and nothing else changes. If it does not exist, add it (glass §15.5, §15.6 row **Collection order and creation date**): body `{items: [{source_id, series_key}]}`, owner only, 204; the listed rows take `sort_order` 0, 1, 2 … in body order, unlisted rows keep their relative order after them; an item that is not on the shelf → `422 order_mismatch`.
-- If `GET /library/collections` rows do not yet carry `created_at` (the column exists on `collections`), add it (ISO 8601).
+- **Series order.** `PUT /library/collections/{id}/series/order` is backend/02's (item C.4: owner only, the body must equal the visible membership exactly, else `422 order_mismatch`). Route it through `_shelf_access`: `can_add` and `view_only` members get `403 forbidden`, strangers keep the 404, and nothing else about it changes. On a shared shelf "visible membership" is the owner's view under §7's shared-shelf 18+ rule.
+- `created_at` is already on every serialized collection (backend/02 item C.3); `SharedShelf` rows (§7) carry it too.
 
 ### 7. Shared shelves: payloads
 
@@ -190,7 +190,7 @@ Append to `backend/docs/circle-api.md`: every endpoint of this step with body, r
 | `backend/services/circle_service.py` | reactions, `sealed`, `can_receive`, letters, `sent_to_you` and the `letter` `also[]` candidate, member-page `shelves` |
 | `backend/routes/circle.py` | `POST`, `DELETE`, `GET /circle/reactions`; `POST`, `GET /circle/letters`; `PATCH /circle/letters/{id}`; `can_receive` query on `GET /circle/members` |
 | `backend/services/followed_series_service.py` | `_shelf_access`, share and leave, role checks, row snapshots, shared payloads, `shared_with_me` |
-| `backend/routes/library.py` | `include_shared` on the list, `POST …/share`, `DELETE …/share/{profile_ref}`, series order (only if absent) |
+| `backend/routes/library.py` | `include_shared` on the list, `POST …/share`, `DELETE …/share/{profile_ref}`, the member 403 on backend/02's series order call |
 | the `/home` composer from `backend/04` | `sent_to_you` and the `letter` `also[]` candidate after the cache read (§5) |
 | `backend/tests/test_circle_reactions.py` | new |
 | `backend/tests/test_circle_letters.py` | new |
@@ -295,7 +295,7 @@ Do not commit the dev stack's cookie file or database; only the files under `doc
 
 Reply with:
 1. Done items, numbered as Scope 1–8, each with its commit hash.
-2. The migration file name and revision id, and whether `PUT /library/collections/{id}/series/order` and `created_at` already existed or were added here.
+2. The migration file name and revision id.
 3. Test counts: full-suite passed before your first change, passed after, failed after (must be 0), and the number of new tests.
 4. The proof path `docs/redesign/proof/backend-09/` and its file list.
 5. Open issues, and the deviations the client steps must know: `GET /library/collections?include_shared=true` for `shared_with_me`; `sealed` beside the full reaction; `counts` has seven keys; `SentLetter.id` is the `sent_group` string while `Letter.id` is an integer.

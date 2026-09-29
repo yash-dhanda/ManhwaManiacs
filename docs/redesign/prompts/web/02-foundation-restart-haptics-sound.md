@@ -51,7 +51,7 @@ grep -n "skin" backend/routes/profiles.py | head -5               # backend/00 d
 
 ## Skills to invoke
 
-- `superpowers:writing-plans` first. Save the plan at `docs/redesign/plans/web-02.md`.
+- `superpowers:writing-plans` first. Save the plan at `docs/redesign/proof/web-02/plan.md`.
 - `superpowers:subagent-driven-development` to run it (or `superpowers:executing-plans` inline). Slices: (A–D) switching and boot; (E) service worker and fallbacks; (F) a11y boot; (G–H) haptics and sounds; (I) recorder. Check every slice against `git diff`, never against its report.
 - `superpowers:test-driven-development` for `switchSkin`, `resolveBootSkin`, the recorder and the service-worker cases: write the Vitest case first.
 - `frontend-design`, `impeccable` and `taste-skill:taste-skill` for the two offline fallback pages and the debug row.
@@ -130,7 +130,7 @@ grep -n "skin" backend/routes/profiles.py | head -5               # backend/00 d
      - `h1` "Edition (debug)", 24 / 32 weight 600;
      - caption, 14 / 20 `rgba(255,255,255,0.64)`: "A device override for this browser. It never changes the profile's edition, and it goes away at the flip.";
      - a line "Now showing: {data-skin}" and "Override: {cookie value or none}";
-     - a segmented control built from native `<input type="radio" name="mm-debug-skin">` inside `<label>`s, so arrow keys and Space work natively. Segments come from `DEBUG_SKINS = ["legacy", "cinematic"] as const` in the same file (web/25 adds `"glass"` when Glass work starts, glass §8.0.8). Labels are `LEGACY` and `CINEMATIC` (13 px, weight 600, uppercase, letter-spacing 0.12em). Each segment is at least 44 px tall and 120 px wide, with a 1 px `rgba(255,255,255,0.40)` border; the checked segment is filled `#FFFFFF` with `#000000` text;
+     - a segmented control built from native `<input type="radio" name="mm-debug-skin">` inside `<label>`s, so arrow keys and Space work natively. Segments come from `DEBUG_SKINS = ["legacy", "cinematic"] as const` in the same file. release/00 changes it to `["cinematic", "glass"]` when it deletes the `legacy` skin (its Decision 1 keeps the row for Glass development, glass §8.0.8); web/25 expects that state and does not edit this list. Labels are `LEGACY` and `CINEMATIC` (13 px, weight 600, uppercase, letter-spacing 0.12em). Each segment is at least 44 px tall and 120 px wide, with a 1 px `rgba(255,255,255,0.40)` border; the checked segment is filled `#FFFFFF` with `#000000` text;
      - a button "Clear override", at least 44 px tall, with the same border.
    - **Focus.** `:focus-visible` gives a 2 px solid `#FFFFFF` outline at 2 px offset. On the radio segments, draw it on the label with `:has(:focus-visible)`.
    - **Choosing a segment:**
@@ -243,7 +243,7 @@ frontend/src/features/novels/components/NovelAudioPlayer.tsx            change (
 frontend/src/skins/cinematic/{haptics.ts,haptics.test.ts,sounds.ts,sounds.test.ts}     new
 frontend/src/skins/glass/{haptics.ts,haptics.test.ts,sounds.ts,sounds.test.ts}         new
 frontend/src/lib/motion-timings.ts, motion-timings.test.ts             new
-docs/redesign/plans/web-02.md, docs/redesign/proof/web-02/*            new
+docs/redesign/proof/web-02/plan.md, docs/redesign/proof/web-02/*            new
 ```
 
 ## Acceptance criteria
@@ -287,6 +287,8 @@ free -m && npm run test
 free -m && npm run build                  # never alongside next dev or another build
 ```
 
+Mobile and backend: this step changes neither. Judge that by your own commits, never by the branch diff (mobile, backend and shared sessions commit on the same branch): `git show --stat --format= <hash>` for each of your commits must list no `mobile/` or `backend/` path. Only if one does, revert that part and prove the baseline still holds with its own commands, one at a time after the RAM guard: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (baseline: No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (baseline: all 2012 tests passed) and `cd backend && .venv/bin/python -m pytest -q --no-header`.
+
 **Dev checks and proof.** `frontend/scripts/proof.mjs` arrives in web/03, so drive headless Chromium with one-off scripts under `/tmp` (load Playwright with `createRequire("/srv/manhwamaniacs/dev/ManhwaManiacs/frontend/package.json")("playwright")`; sign in with `POST /api/auth/login` and seed `mm.active-profile` exactly as web/00's `/tmp/mm-shoot.mjs` does). Do not commit these scripts.
 
 1. Start the dev stack of `backend/scripts/README-dev-stack.md` (uvicorn 127.0.0.1:8010, dev SQLite under `/srv/manhwamaniacs/dev/data/`, never production data).
@@ -308,7 +310,7 @@ free -m && npm run build                  # never alongside next dev or another 
 
 ## Guardrails
 
-- Work in `frontend/` (plus `docs/redesign/plans/`, `docs/redesign/proof/`). Do not edit `design/`, `brand/`, generated files, `mobile/` or `backend/` (never `backend/connectors/`).
+- Work in `frontend/` (plus `docs/redesign/proof/`). Do not edit `design/`, `brand/`, generated files, `mobile/` or `backend/` (never `backend/connectors/`).
 - Never touch production containers or `/srv/manhwamaniacs/{app,data}`. The service worker change ships to production only with a deploy that the owner's release step makes, not from here.
 - RAM guard: `free -m` before every build, test run and dev server start. Stop under 1024 MB available. One heavy command at a time.
 

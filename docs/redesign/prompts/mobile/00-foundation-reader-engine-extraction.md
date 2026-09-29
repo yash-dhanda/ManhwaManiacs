@@ -177,7 +177,7 @@ Tests may change only import paths and constructor arguments that the move force
 ### D. The owner's device check (written, not run)
 
 17. `docs/redesign/proof/mobile-00/device-check.md`, a checklist the owner runs on the iPhone (the build `ios-build.yml` publishes after your push, updated through SideStore) and on the Android flagship (the next signed APK he builds). Each line is a checkbox with a pass condition:
-    - Open a 120-page webtoon chapter whose pages decode at the 2,880 px cap (a long-strip source; note the series you used). Settings → Diagnostics: with "Use the highest refresh rate everywhere" on (Android), scroll the whole chapter top to bottom by fling. Pass: Diagnostics shows FPS ≥ 115 at 120 Hz, JANK < 5 %, WORST < 16 ms.
+    - Open a 120-page webtoon chapter whose pages decode at the 2,880 px cap (a long-strip source; note the series you used). Settings → Diagnostics: with "Use the highest refresh rate everywhere" on (Android), scroll the whole chapter top to bottom by fling. Pass: Diagnostics shows FPS ≥ 115 at 120 Hz, JANK < 5 %, WORST < 16.7 ms (the same pass rule as the mobile/03 Glass gate).
     - Resume: leave mid-chapter, reopen from History. Pass: it opens on the same page within one page height.
     - Bookmark at 62 % of a page, reopen the bookmark. Pass: same spot.
     - Read-all across three chapters. Pass: seams appear, no jump backwards at a seam, progress lands in each chapter.
@@ -194,13 +194,13 @@ At the flip every `features/*/widgets/` folder is deleted (stack-decision §3). 
 
 ```bash
 cd /srv/manhwamaniacs/dev/ManhwaManiacs/mobile
-grep -rnE "^(String|int|double|bool|Future<[^(]*>|[A-Z][A-Za-z0-9_<>?, ]*\??) [a-z][A-Za-z0-9_]*\(|^class [A-Z]\w* (\{|extends (Notifier|AsyncNotifier|ChangeNotifier|StateNotifier))" lib/features/*/widgets lib/features/*/screens
-grep -rln "features/[a-z_]*/widgets/" lib/features/*/{providers,utils,services,models,queue,store,repositories,controllers} lib/core lib/shared 2>/dev/null
+grep -rnE "^(String|int|double|bool|Future<[^(]*>|[A-Z][A-Za-z0-9_<>?, ]*\??) [a-z][A-Za-z0-9_]*\(|^class [A-Z]\w* (\{|extends (Notifier|AsyncNotifier|ChangeNotifier|StateNotifier))" lib/features/*/widgets lib/features/*/screens lib/shared/widgets
+grep -rlnE "features/[a-z_]*/widgets/|shared/widgets/" lib/features/*/{providers,utils,services,models,queue,store,repositories,controllers} lib/core lib/shared/providers 2>/dev/null
 ```
 
 18. `git mv lib/features/downloads/widgets/downloads_lifecycle_gate.dart lib/features/downloads/providers/downloads_lifecycle_gate.dart` (a widget with no UI; mobile/01 mounts it for every skin).
 19. `git mv lib/features/downloads/widgets/open_chapter_scope.dart lib/features/downloads/providers/open_chapter_scope.dart` (no UI; every reader entry point wraps with it).
-20. `chapterDownloadAction()` and `SeriesChapterDownloadAction` from `downloads/widgets/chapter_download_action.dart` → `downloads/utils/chapter_download_action.dart` (the widget parts stay).
+20. `chapterDownloadAction()` from `downloads/widgets/chapter_download_action.dart` → `downloads/utils/chapter_download_action.dart`, and the plain data types it returns, `SeriesChapterDownloadAction` and `SeriesChapterDownloadPhase` (today in `lib/shared/widgets/series_detail/series_chapter_tile.dart`, line 53 and above), → `downloads/models/series_chapter_download_action.dart`, in one commit; `series_chapter_tile.dart` (the widget) imports them from there.
 21. `formatDownloadBytes()` from `downloads/widgets/downloads_storage_card.dart` → `downloads/utils/format_bytes.dart`.
 22. `exportLocationDescription()` from `downloads/widgets/export_downloads_action.dart` → `downloads/utils/export_location.dart`.
 23. `continueRowTitle()`, `continueRowCoverUrl()` and `ContinueFollowLookup` from `library/widgets/library/continue_reading_strip.dart` → `library/utils/continue_rows.dart`.
@@ -208,6 +208,7 @@ grep -rln "features/[a-z_]*/widgets/" lib/features/*/{providers,utils,services,m
 25. `relativeReadTime()` from `library/widgets/history/history_series_card.dart` → `library/utils/relative_read_time.dart`.
 26. `audiobookButtonLabel()` (novels/widgets/novel_series_detail_view.dart) and `skippedNarrationLine()` (novels/widgets/audiobook_picker_sheet.dart) → `novels/utils/audiobook_labels.dart` (one commit).
 27. Whatever `lib/features/library/utils/library_shelf.dart` imports from `novels/widgets/novel_shelf.dart` → `novels/utils/novel_shelf_logic.dart`, so no data-layer file imports a widget file.
+27a. `SeriesChapterSortOrder` and `sortSeriesChapters()` from `lib/shared/widgets/series_detail/series_chapter_sort.dart` → `lib/features/library/utils/series_chapter_sort.dart` (three data-layer files import them today: `library/utils/resume_location.dart`, `novels/utils/novel_book.dart`, `reader/providers/series_reading_order_provider.dart`); the `SeriesChapterSortToggle` widget stays and imports the moved code. `lib/shared/widgets/` is legacy UI too (the skins never import it) and goes at the flip with the rest.
 28. `lib/features/downloads/models/download_chapter_state.dart`, named by stack-decision §2.3 as an example, already lives in `models/`: nothing to move; say so in the report.
 
 Functions that take a `BuildContext` and show UI (`showWhatsNewSheet`, `showSeriesActionsSheet`, `showContentModeSheet`, `showDownloadExportSheet`) are legacy UI and stay. Tests that import a moved symbol change only their import line. Each move commit runs `flutter analyze` and the tests of that feature folder before committing (`flutter test test/features/<feature>`), and the full suite once at the end.
@@ -226,6 +227,8 @@ mobile/lib/features/reader/widgets/reader_content.dart             rewritten as 
 mobile/lib/features/sources/screens/source_reader_screen.dart      change (auto-queue call only)
 mobile/lib/features/downloads/providers/{downloads_lifecycle_gate,open_chapter_scope}.dart   git mv from widgets/
 mobile/lib/features/{downloads,library,novels}/utils/*.dart        new files of section E
+mobile/lib/features/downloads/models/series_chapter_download_action.dart   new (item 20)
+mobile/lib/shared/widgets/series_detail/{series_chapter_tile,series_chapter_sort}.dart   moved code removed, imports only (items 20, 27a)
 mobile/lib/app/app.dart and every importer of a moved file         import lines only
 mobile/test/features/reader/reader_parity_golden_test.dart         new (section A)
 mobile/test/features/reader/goldens/*.png                          new (14 files)
@@ -249,7 +252,7 @@ docs/redesign/proof/mobile-00/*.png                                copies of the
 - [ ] Hit targets: unchanged (the tap thirds are ≥ 25 % of the width, the bars' icon buttons keep their sizes); the goldens prove it.
 - [ ] Hardware keyboard: H, L, B, =/+, −, 0 still act (the existing `reader_shortcuts` coverage passes).
 - [ ] Per-skin differences: none in this step. The engine is skin-neutral; `grep -rn "skins/" mobile/lib/features/reader` is empty.
-- [ ] Section E: each move is its own commit; `grep -rln "features/[a-z_]*/widgets/" mobile/lib/features/*/{providers,utils,services,models,queue,store,repositories,controllers} mobile/lib/core mobile/lib/shared` prints nothing.
+- [ ] Section E: each move is its own commit; `grep -rlnE "features/[a-z_]*/widgets/|shared/widgets/" mobile/lib/features/*/{providers,utils,services,models,queue,store,repositories,controllers} mobile/lib/core mobile/lib/shared/providers` prints nothing.
 - [ ] `docs/redesign/proof/mobile-00/device-check.md` exists with every checkbox of item 17 and the commit hash under test.
 
 ## Verification

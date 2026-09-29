@@ -230,7 +230,7 @@ free -m && node scripts/front-pages.mjs --base http://127.0.0.1:3010
 
 If you use `playwright-cli` for ad-hoc inspection, always pass a named session (`-s=web-24`): the default session is shared with other Claude sessions on this box.
 
-`00-baseline.md` records lint and build at 0 errors and 0 warnings; they must stay there. This step changes nothing in `mobile/` or `backend/`: confirm `git diff --stat origin/feat/vps-slim-source-native -- mobile backend` is empty, so `flutter analyze`, `flutter test` (Flutter at `/srv/manhwamaniacs/dev/flutter/bin`) and the backend pytest (`backend/.venv/bin/python -m pytest -q --no-header`) are not rerun.
+`00-baseline.md` records lint and build at 0 errors and 0 warnings; they must stay there. This step changes nothing in `mobile/` or `backend/`: check each of your commits with `git show --stat --format= <hash>` (the parallel `mobile/NN` session and the backend and shared sessions commit `mobile/` and `backend/` on the same branch, so never judge by the branch diff). If one of your commits touched them, revert that part and prove the baseline with `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (all 2012 tests pass, or the current higher count) and `cd backend && .venv/bin/python -m pytest -q --no-header`, one at a time after the RAM guard.
 
 **Visual proof.** Everything in sections E and F lands under `docs/redesign/proof/web-24/`, captured headless at the exact sizes above. Stop `next dev` and the dev stack when the captures are done.
 

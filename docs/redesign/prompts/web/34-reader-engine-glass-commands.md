@@ -36,7 +36,7 @@ cd frontend && free -m && npm run test 2>&1 | tail -5           # record the vit
 mkdir -p ../docs/redesign/proof/web-34 && npx vitest run src/features/reader --reporter=verbose > ../docs/redesign/proof/web-34/reader-tests-before.txt; tail -3 ../docs/redesign/proof/web-34/reader-tests-before.txt
 ```
 
-If a grep above is empty, the Cinematic step that owns it has not landed: stop and report which one. If `signoffs.md` has no G6/G14 (or S1/S11) record, stop and report: the owner must sign off client-side page samples and panel detection first.
+If a grep above is empty, the Cinematic step that owns it has not landed: stop and report which one. The `signoffs.md` grep passes on any one id, so read its output: it must show S1 and S11 (written by `web/12` or `mobile/12`) and G6 and G14 (written by `backend/06`, on the same approval line). If any of the four is missing, stop and report: the owner must sign off client-side page samples and panel detection first.
 
 ## Skills to invoke
 
@@ -197,7 +197,7 @@ free -m && E2E_BASE_URL=http://127.0.0.1:3010 E2E_USERNAME=$MM_PROOF_USER E2E_PA
 
 **Visual proof (no-pixel parity)** with `frontend/scripts/proof.mjs`, named session `web-34`, at 1440 × 900 and 390 × 844. Before section A starts: `free -m && node scripts/proof.mjs --step web-34/before --skin cinematic --session web-34 --routes <reader URL>,<read-all URL>`; after section I: the same with `--step web-34/after`. Compare the pairs (a pixel diff with Playwright's `toHaveScreenshot` in a scratch script under your scratchpad, or `compare` if ImageMagick is installed) and record the result. Capture the probe page too: `node scripts/proof.mjs --step web-34/probe --session web-34 --routes "/dev/reader-engine?source=<s>&series=<k>&chapter=<c>&mode=single"`. If you use `playwright-cli`, pass `-s=web-34`. Write `docs/redesign/proof/web-34/report.md`. Stop `next dev` when done.
 
-`00-baseline.md` records lint and build at 0 errors and 0 warnings; keep them there. This step changes nothing in `mobile/` or `backend/`: confirm `git diff --stat origin/feat/vps-slim-source-native -- mobile backend` is empty. If it is not, run `cd mobile && free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze && free -m && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (baseline: no issues, 2012 tests passed) and `cd backend && free -m && .venv/bin/python -m pytest -q --no-header`, one at a time.
+`00-baseline.md` records lint and build at 0 errors and 0 warnings; keep them there. This step changes nothing in `mobile/` or `backend/`: check each of your commits with `git show --stat --format= <hash>` (the parallel `mobile/NN` session and the backend and shared sessions commit `mobile/` and `backend/` on the same branch, so never judge by the branch diff). If one of your commits touched them, revert that part and prove the baseline with `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (all 2012 tests pass, or the current higher count) and `cd backend && .venv/bin/python -m pytest -q --no-header`, one at a time after the RAM guard.
 
 ## Git
 

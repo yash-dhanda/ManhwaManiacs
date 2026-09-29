@@ -29,19 +29,20 @@ Read these before planning. Section numbers are binding; the values this step ne
 
 ```bash
 cd /srv/manhwamaniacs/dev/ManhwaManiacs
-git status --short                      # must be clean before you start
+git status --short                      # clean inside frontend/; files other sessions edit elsewhere are theirs (never stage them)
 git branch --show-current               # must print feat/vps-slim-source-native
 grep -E '"(motion|@base-ui/react|sonner|embla-carousel-react|lenis|@use-gesture/react|@phosphor-icons/react)"' frontend/package.json
 ls frontend/src/skins/cinematic/tokens.generated.css frontend/src/skins/theme.generated.css frontend/scripts/proof.mjs design/build.mjs design/lint-utilities.mjs
 ls frontend/src/lib/motion-timings.ts frontend/src/features/sources/request-limiter.ts
 grep -rn "coverTransitionName" frontend/src/features | head -3
+ls brand/demo/covers/*.webp | head -3   # shared/04: the procedural demo covers the gallery uses
 ```
 
-If `motion` 13.4.4 or `@base-ui/react` 1.8.0 is missing, web/01 is not done. If the recorder or `data-motion` stamping is missing, web/02 is not done. If `proof.mjs`, the request limiter or `coverTransitionName` is missing, web/03 is not done. Report the missing step and stop.
+If `motion` 13.4.4 or `@base-ui/react` 1.8.0 is missing, web/01 is not done. If the recorder or `data-motion` stamping is missing, web/02 is not done. If `proof.mjs`, the request limiter or `coverTransitionName` is missing, web/03 is not done. If `brand/demo/covers/` is empty, shared/04 (plan order 15, before this step) is not done. Report the missing step and stop.
 
 ## Skills to invoke
 
-- `superpowers:writing-plans` first. Save the plan at `docs/redesign/plans/web-04.md` and commit it with the first code commit.
+- `superpowers:writing-plans` first. Save the plan at `docs/redesign/proof/web-04/plan.md` and commit it with the first code commit.
 - `superpowers:subagent-driven-development` to run the plan (use `superpowers:executing-plans` if you work inline). Subagents must be given this file's path and the exact section numbers for their slice.
 - `superpowers:test-driven-development` for every pure function in this step (tint, folio, stagger maths, typed clock, rail maths, keycap labels).
 - `frontend-design:frontend-design` for the web UI work, `impeccable:impeccable` and `taste-skill:taste-skill` to critique the gallery screenshots. Both critiques are checked against `cinematic/DESIGN.md`, never against generic taste: any suggestion that contradicts the contract (radius, shadow, glass, extra accent colours, bouncy motion) is rejected.
@@ -56,7 +57,7 @@ If `motion` 13.4.4 or `@base-ui/react` 1.8.0 is missing, web/01 is not done. If 
   If it fails, stop and report. Never run two builds at once, and stop `next dev` and the dev stack before `npm run build`.
 - **Boundaries.** Work in `frontend/` plus the one new generator `design/make-grain.mjs`. Never edit `backend/connectors/`, never touch production containers, Docker, or `/srv/manhwamaniacs/{app,data}`. Files under `frontend/src/skins/cinematic/**` may import only `@/features/**` data modules (never `@/features/*/components/**`), `@/lib/**`, `@/stores/**`, `@/types/**`, `@/config/**`, `@/skins/contract.generated`, and their own skin folder. The ESLint rule from web/00 enforces this; do not relax it.
 - **Utilities.** Use only the Tailwind names of `cinematic/DESIGN.md` §2.8 and §3.5 (`bg-paper-2`, `text-ink-100`, `type-section`, `ease-settle`, `duration-(--mm-dur-line)`, …) and the `@theme` names this step registers in `motion.css`. No arbitrary colour values (`[#…]`, `[rgb…]`). `node design/lint-utilities.mjs` must pass.
-- **Git.** Branch `feat/vps-slim-source-native`. Stage explicit paths only (`git add frontend/src/skins/cinematic/... frontend/e2e/cinematic/... design/make-grain.mjs docs/redesign/plans/web-04.md docs/redesign/proof/web-04/...`), never `git add -A` or `git add .`: other sessions commit in the same checkout. Conventional commit messages. **No AI or Claude attribution anywhere**: no `Co-Authored-By`, no "Generated with", no mention of an assistant. Never commit secrets or `.claude/`. Push with `git push origin feat/vps-slim-source-native` after each working step below, and only after `npm run build` has passed for that step.
+- **Git.** Branch `feat/vps-slim-source-native`. Stage explicit paths only (`git add frontend/src/skins/cinematic/... frontend/e2e/cinematic/... design/make-grain.mjs docs/redesign/proof/web-04/plan.md docs/redesign/proof/web-04/...`), never `git add -A` or `git add .`: other sessions commit in the same checkout. Conventional commit messages. **No AI or Claude attribution anywhere**: no `Co-Authored-By`, no "Generated with", no mention of an assistant. Never commit secrets or `.claude/`. Push with `git push origin feat/vps-slim-source-native` after each working step below, and only after `npm run build` has passed for that step.
 
 ## Scope: everything this step delivers
 
@@ -194,7 +195,7 @@ frontend/src/skins/cinematic/primitives/
   index.ts                                                          barrel for screens
 frontend/e2e/cinematic/{set-heading,typed-headline,primitives-states,rail-keyboard}.spec.ts
 frontend/public/gallery/covers/*.webp                              copied demo covers (no 18+ art)
-docs/redesign/plans/web-04.md
+docs/redesign/proof/web-04/plan.md
 docs/redesign/proof/web-04/…                                       screenshots
 ```
 
@@ -261,7 +262,7 @@ node scripts/proof.mjs --step web-04 --skin cinematic --no-auth --routes /skin-p
 
 (`--grid` saves each shot twice, without and with the `mod+shift+g` overlay; `--reduced` adds the reduced-motion shots. The gallery needs no sign-in, hence `--no-auth`; start `next dev` as the harness's usage header says: `BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010`.) Output must land in `docs/redesign/proof/web-04/` at 1440 × 900 and 390 × 844 (full-page), grid overlay off and on, plus the per-state element shots from `primitives-states.spec.ts` in `docs/redesign/proof/web-04/states/`. For ad-hoc browser checks with `playwright-cli`, always pass a named session (`-s=web-04`); the default session is shared with other Claude sessions.
 
-Mobile and backend are not touched by this step, so `flutter analyze`, `flutter test` and the backend `pytest` are not run; confirm it with `git diff --stat origin/feat/vps-slim-source-native...HEAD -- mobile backend` printing nothing.
+Mobile and backend: this step changes neither. Judge that by your own commits, never by the branch diff: every web step runs in parallel with its `mobile/NN` twin on the same branch, so `git diff origin/...HEAD -- mobile backend` is routinely non-empty with other sessions' work. `git show --stat --format= <hash>` for each commit of this step must list no `mobile/` or `backend/` path. Only if one does, revert that part and prove the baseline still holds with its own commands, one at a time after the RAM guard and never while a `next build` runs: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (baseline: No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (baseline: all 2012 tests passed) and `cd backend && .venv/bin/python -m pytest -q --no-header`.
 
 ## Report back
 

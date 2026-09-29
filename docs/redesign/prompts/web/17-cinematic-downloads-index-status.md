@@ -65,7 +65,7 @@ Remove `downloads`, `index` and `status` from the Cinematic `PENDING` set when t
 
 ### B. Downloads, "The offline edition" (`/downloads`, ScreenId `downloads`), §8.23, web DL1–DL9
 
-Data: `useOfflineState`, `useStorageScope`, `useOnlineStatus`, `useNow` (`features/offline/hooks.ts`), `groupBySeries`, `describeEntry`, `formatDueIn`, `summariseStorage` (`format.ts`), the run store (A5), pending removals (A2). **Every list, count and badge first passes through `features/offline/mature-filter.ts`** (the active profile's gate) and then through the content-mode filter (`savedChapterMedium` against `useContentMode`). The storage meter keeps the app's total bytes, because it names no series. Nothing ever says files are hidden.
+Data: `useOfflineState`, `useStorageScope`, `useOnlineStatus`, `useNow` (`features/offline/hooks.ts`), `groupBySeries`, `describeEntry`, `formatDueIn`, `summariseStorage` (`format.ts`), the run store (A5), pending removals (A2). **Every list, count and badge first passes through `features/offline/mature-filter.ts`** (the active profile's gate) and then through the content-mode filter (`savedChapterMedium` against `useContentMode`). The storage meter keeps the app's total bytes, because it names no series. Nothing ever says files are hidden. Saved narration audio (`medium: "novel-audio"`, the separate entries `web/15` A6 creates) is never a row, a chapter count or a control on the web (§8.23: saved narration audio is absent on the web); its bytes still count in the meter and in its series block's size, and `Remove all downloads` on a series removes its audio entries too.
 
 **Masthead** (both frames): kicker `No. 05 — ON THIS DEVICE` (letter reveal on mount), title "Downloads" (`type.masthead`), deck "Saved for {profile} · reads with no connection" (`type.deck` `ink.60`), `rule.oxford` desktop / `rule.heavy` phone drawn after the letters. Phones: `web/05`'s `ContentModeChip` (`MANGA ▾`, §7.29) in the running head through `useRunningHead` (`web/06`) when novels are enabled.
 
@@ -176,7 +176,7 @@ frontend/src/features/offline/pending-removals.ts        (+ .test.ts)
 frontend/src/features/offline/save-next.ts              (useSaveNext, only if missing)
 frontend/src/features/offline/auto-download.ts          (+ .test.ts)
 frontend/src/features/offline/storage-meter.ts          (+ .test.ts)
-frontend/src/features/offline/download-queue.ts         (run store, if needed; tests extended)
+frontend/src/features/offline/download-queue.ts         (run store, only when A5 finds the run state inside the series-page hook; tests extended)
 frontend/src/features/app/changelog.ts                  (+ .test.ts)
 frontend/src/config/web-version.ts
 frontend/src/skins/cinematic/screens/downloads/
@@ -244,9 +244,9 @@ free -m
 npm run build           # baseline: exit 0; nothing else running
 ```
 
-`mobile/` and `backend/` are untouched here; confirm with `git diff --stat origin/feat/vps-slim-source-native -- mobile backend` (empty), so `flutter analyze`, `flutter test` and the backend pytest are not run in this step.
+This step changes nothing under `mobile/` or `backend/`. Prove it on your own commits, not on a range (the mobile, backend and shared sessions push to the same branch in parallel, so a range diff shows their work too): `for c in <each commit SHA you made in this step>; do git show --name-only --format= "$c"; done | grep -E '^(mobile|backend)/'` must print nothing. The other suites are therefore not re-run here; their sessions run them and keep the baseline: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (all 2012 passed) and `cd backend && .venv/bin/python -m pytest -q --no-header`.
 
-**Visual proof.** Start the `backend/00` dev stack in the background exactly as `backend/scripts/README-dev-stack.md` says (uvicorn on `127.0.0.1:8010`, dev SQLite only, seeded by `seed_demo.py`), then `cd frontend && free -m && BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010` (the usage comment at the top of `frontend/scripts/proof.mjs`, from `web/03`, and the README win if they differ) (the README wins if it differs). Sign in as the seeded admin demo account, save two chapters of a demo series from its series page so Downloads has content, then write `docs/redesign/proof/web-17/routes.txt`:
+**Visual proof.** Start the dev stack with `free -m && backend/scripts/dev_stack.sh start` (the dev stack of `backend/scripts/README-dev-stack.md`: uvicorn on 127.0.0.1:8010 against the dev SQLite under `/srv/manhwamaniacs/dev/data/`, never production data; the script already sets `MM_NOVELS_ENABLED=true`, turns rate limits off and leaves the AI key unset; run `backend/scripts/dev_stack.sh seed` once if the `demo` account does not exist yet), then the web client with `cd frontend && free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npx next dev -p 3010` (both variables are required: without `NEXT_PUBLIC_API_URL=/api` the browser calls `http://127.0.0.1:8000` directly (`src/config/env.ts`), and without `BACKEND_INTERNAL_URL` the `/api` rewrite in `next.config.ts` targets port 8000). Sign in as the seeded admin demo account, save two chapters of a demo series from its series page so Downloads has content, then write `docs/redesign/proof/web-17/routes.txt`:
 
 ```
 /downloads
@@ -274,7 +274,7 @@ free -m
 E2E_BASE_URL=http://127.0.0.1:3010 MM_PROOF_USER=<demo user> MM_PROOF_PASSWORD=<demo password> npx playwright test e2e/cinematic/web-17-downloads-index-status.spec.ts
 ```
 
-The spec signs in with `signIn` imported from `scripts/proof.mjs`, sets the `mm-skin-debug=cinematic` cookie and saves extra screenshots to `docs/redesign/proof/web-17/state-*.png`: Downloads empty, checking, offline (`context.setOffline(true)`), a pending removal with its Undo toast, the What's new sheet and dialog (including the automatic opening, forced by `page.addInitScript(() => localStorage.setItem("mm.whatsnew.seen", "0.0.0"))`), the edition-update toast (render `WorkerUpdateToast` with a forced waiting state as a new `[data-gallery="worker-update-toast"]` entry of the `web/04` primitives gallery at `/skin-preview/cinematic/primitives`, and screenshot that element), System status as a non-admin (the second seeded account) and with `/api/health` mocked to fail. It also asserts the hit-target, focus, title and reduced-motion checks above. Stop `next dev` and the dev stack afterwards.
+The spec signs in with `signIn` imported from `scripts/proof.mjs`, sets the `mm-skin-debug=cinematic` cookie and saves extra screenshots to `docs/redesign/proof/web-17/state-*.png`: Downloads empty, checking, offline (`context.setOffline(true)`), a pending removal with its Undo toast, the What's new sheet and dialog (including the automatic opening, forced by `page.addInitScript(() => localStorage.setItem("mm.whatsnew.seen", "0.0.0"))`), the edition-update toast (render `WorkerUpdateToast` with a forced waiting state as a new `[data-gallery="worker-update-toast"]` entry of the `web/04` primitives gallery at `/skin-preview/cinematic/primitives`, and screenshot that element), System status as a non-admin account that the spec creates in its setup (`POST /auth/register` with the username `proof-reader` and a password generated at run time; the dev stack runs with registration open) and deletes as the admin in its teardown through the endpoint `useDeleteMember` calls and with `/api/health` mocked to fail. It also asserts the hit-target, focus, title and reduced-motion checks above. Stop `next dev` and the dev stack afterwards.
 
 ## Report back
 

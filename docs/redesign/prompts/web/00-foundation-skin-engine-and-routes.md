@@ -38,7 +38,7 @@ If `contract.generated.ts` or `theme.generated.css` is missing, shared/00 has no
 
 ## Skills to invoke
 
-- `superpowers:writing-plans` before touching code. Save the plan at `docs/redesign/plans/web-00.md` and commit it with the first code commit.
+- `superpowers:writing-plans` before touching code. Save the plan at `docs/redesign/proof/web-00/plan.md` and commit it with the first code commit.
 - `superpowers:subagent-driven-development` to run the plan (or `superpowers:executing-plans` if you work inline). Give each subagent this file's path and the exact section of it that its slice covers. Verify every subagent's work against `git status` and `git diff`, never against its report.
 - `impeccable` and `taste-skill:taste-skill` only for the one visible element this step adds (the pending screen); keep it plain and skin-neutral.
 - `frontend-design` is not needed beyond the pending screen.
@@ -219,7 +219,7 @@ frontend/src/skins/cinematic/index.ts                          new
 frontend/src/skins/glass/index.ts                              new
 frontend/src/skins/legacy/index.ts, fonts.ts                   new
 frontend/src/skins/legacy/pages/*.tsx                          git mv from app/**/page.tsx
-docs/redesign/plans/web-00.md                                  new (the plan)
+docs/redesign/proof/web-00/plan.md                                  new (the plan)
 docs/redesign/proof/web-00/*.png                               new (screenshots)
 ```
 
@@ -257,6 +257,8 @@ free -m && npm run lint             # baseline: exit 0, 0 errors, 0 warnings
 free -m && npm run test
 free -m && npm run build            # baseline: exit 0; never while another next build or next dev runs
 ```
+
+Mobile and backend: this step changes neither. Judge that by your own commits, never by the branch diff (mobile, backend and shared sessions commit on the same branch): `git show --stat --format= <hash>` for each of your commits must list no `mobile/` or `backend/` path. Only if one does, revert that part and prove the baseline still holds with its own commands, one at a time after the RAM guard: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (baseline: No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (baseline: all 2012 tests passed) and `cd backend && .venv/bin/python -m pytest -q --no-header`.
 
 **Visual proof.** `frontend/scripts/proof.mjs` does not exist until web/03, so use this one-off script. Save it as `/tmp/mm-shoot.mjs` and do not commit it.
 
@@ -307,13 +309,13 @@ Check the persisted shape against `frontend/src/features/profiles/store.ts` (`pa
 ## Git
 
 - Branch `feat/vps-slim-source-native`. Commit small and often, one working step per commit, for example: skin types and registry; pending screen; route move with `git mv` (a pure move commit, so history follows the files); thin routes; next.config; CSS wiring and bridge; lint boundary; completeness test; proof. Push after each working step: `git push origin feat/vps-slim-source-native`.
-- Stage only your own paths explicitly (`git add frontend/src/skins frontend/src/app frontend/next.config.ts frontend/eslint.config.mjs docs/redesign/plans/web-00.md docs/redesign/proof/web-00`). Never `git add -A` or `git add .`: mobile, backend and shared sessions commit in the same checkout.
+- Stage only your own paths explicitly (`git add frontend/src/skins frontend/src/app frontend/next.config.ts frontend/eslint.config.mjs docs/redesign/proof/web-00/plan.md docs/redesign/proof/web-00`). Never `git add -A` or `git add .`: mobile, backend and shared sessions commit in the same checkout.
 - No Claude or AI attribution anywhere: no `Co-Authored-By`, no "Generated with" line, no AI author. Never commit secrets, `.env*` files or `.claude/`.
 - `npm run build` must pass before every push.
 
 ## Guardrails
 
-- Work in `frontend/` only (and `docs/redesign/plans/`, `docs/redesign/proof/`). Never edit `backend/connectors/`, `mobile/`, `design/` sources, or generated files by hand (regenerate with `node design/build.mjs` if you need to).
+- Work in `frontend/` only (and `docs/redesign/proof/`). Never edit `backend/connectors/`, `mobile/`, `design/` sources, or generated files by hand (regenerate with `node design/build.mjs` if you need to).
 - Never touch production: no Docker commands, nothing under `/srv/manhwamaniacs/{app,data}`.
 - RAM guard: `free -m` before every build, test run and dev server start. Stop if available memory is under 1024 MB. Never run two builds, or a build and `next dev`, at the same time.
 

@@ -24,7 +24,7 @@ Build the first Cinematic screens on the web: the splash as the session-resolvin
 
 ```bash
 cd /srv/manhwamaniacs/dev/ManhwaManiacs
-git status --short && git branch --show-current
+git status --short && git branch --show-current     # clean inside frontend/ (other sessions' files elsewhere are theirs; never stage them); feat/vps-slim-source-native
 ls frontend/src/skins/cinematic/Shell.tsx frontend/src/skins/cinematic/shell/{Overlays.tsx,rating-card.ts}
 ls frontend/src/skins/cinematic/primitives/{CertificateDialog,Certificate,Switch,ConfirmDialog}.tsx frontend/src/skins/cinematic/primitives/rows/ReorderList.tsx
 ls frontend/src/features/skin
@@ -36,7 +36,7 @@ If the web/06 shell, the web/05 primitives, web/02's `features/skin`, or backend
 
 ## Skills to invoke
 
-- `superpowers:writing-plans` first; save the plan at `docs/redesign/plans/web-07.md`.
+- `superpowers:writing-plans` first; save the plan at `docs/redesign/proof/web-07/plan.md`.
 - `superpowers:subagent-driven-development` (or `superpowers:executing-plans`). Suggested slices: (a) auth screens, (b) picker and Iris, (c) profile form and Manage profiles, (d) the 18+ gate UI and rating card, (e) the local mature filter and service worker.
 - `superpowers:test-driven-development` for `mature-filter.ts`, the service-worker gate, the copy maps, the date line, the time-aware question, the picker's next-route and restart decisions.
 - `frontend-design:frontend-design`; `impeccable:impeccable` and `taste-skill:taste-skill` to critique the screenshots against `cinematic/DESIGN.md` (reject cards, rounded avatar tiles, gradients and pill buttons).
@@ -200,7 +200,7 @@ frontend/src/skins/cinematic/
   screens/profiles/{Picker.tsx,ProfileForm.tsx,ProfileNew.tsx,ProfileEdit.tsx,ProfilesManage.tsx,copy.ts,picker-logic.ts,picker-logic.test.ts}
   screens/shared/MatureGateSwitch.tsx
 frontend/e2e/cinematic/auth-profiles.spec.ts
-docs/redesign/plans/web-07.md
+docs/redesign/proof/web-07/plan.md
 docs/redesign/proof/web-07/… (screenshots, 18plus-checklist.md)
 ```
 
@@ -264,7 +264,7 @@ node scripts/proof.mjs --step web-07 --skin cinematic --no-auth --routes /skin-p
 
 The frontend runs as the harness's usage header says (`BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010`). Everything lands in `docs/redesign/proof/web-07/` at 1440 × 900 and 390 × 844 (plus 800 × 1024 for the tablet Login and picker). Use `playwright-cli -s=web-07` for ad-hoc sessions.
 
-The backend is only used, never changed, and mobile is untouched: `git diff --stat origin/feat/vps-slim-source-native...HEAD -- mobile backend` prints nothing, so `flutter analyze`, `flutter test` and the backend pytest (`backend/.venv/bin/python -m pytest -q --no-header`) are not run by this step.
+Mobile and backend: this step changes neither (the dev-stack backend is only used). Judge that by your own commits, never by the branch diff: every web step runs in parallel with its `mobile/NN` twin on the same branch, so `git diff origin/...HEAD -- mobile backend` is routinely non-empty with other sessions' work. `git show --stat --format= <hash>` for each commit of this step must list no `mobile/` or `backend/` path. Only if one does, revert that part and prove the baseline still holds with its own commands, one at a time after the RAM guard and never while a `next build` runs: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (baseline: No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (baseline: all 2012 tests passed) and `cd backend && .venv/bin/python -m pytest -q --no-header`.
 
 ## Report back
 

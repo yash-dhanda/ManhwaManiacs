@@ -27,9 +27,9 @@ Build the Cinematic frame that every web screen will live in: the `Shell` with i
 
 ```bash
 cd /srv/manhwamaniacs/dev/ManhwaManiacs
-git status --short && git branch --show-current
+git status --short && git branch --show-current     # clean inside frontend/ (other sessions' files elsewhere are theirs; never stage them); feat/vps-slim-source-native
 ls frontend/src/skins/cinematic/primitives/{Sheet,Dialog,ToastHost,Menu,Notice,FolioFlip,ContentModeToggle,ContentModeChip,BannerStrip}.tsx
-ls brand/cinematic frontend/public/favicon.svg frontend/public/offline-fallback-cinematic.html
+ls brand/cinematic frontend/public/favicon.svg frontend/public/offline-fallback-cinematic.html frontend/src/skins/brand.generated.ts frontend/src/skins/cinematic/mark.generated.ts
 grep -n "viewTransition" frontend/next.config.ts
 grep -rn "export function coverTransitionName" frontend/src
 ```
@@ -38,7 +38,7 @@ If web/05's primitives, shared/04's brand masters, web/02's fallback page or web
 
 ## Skills to invoke
 
-- `superpowers:writing-plans` first; save the plan at `docs/redesign/plans/web-06.md`.
+- `superpowers:writing-plans` first; save the plan at `docs/redesign/proof/web-06/plan.md`.
 - `superpowers:subagent-driven-development` (or `superpowers:executing-plans`). Suggested slices: (a) no-pixel moves and guards, (b) sidebar, running head, thumb index, (c) transitions and overlays, (d) keys, palette, keyboard sheet, (e) status screens and notices, (f) splash, timings overlay, Lenis.
 - `superpowers:test-driven-development` for `frames.ts`, `nav-map.ts`, `g-sequence.ts`, `wipe-geometry.ts`, `splash-timeline.ts`.
 - `frontend-design:frontend-design`; `impeccable:impeccable` and `taste-skill:taste-skill` to critique the shell screenshots against `cinematic/DESIGN.md` (reject rounded, glassy or floating-pill suggestions: the thumb index is a flat black bar with a rule, not a floating pill).
@@ -165,7 +165,7 @@ Registered with `useShortcut` from `@/lib/keyboard` in the groups `General` and 
 - `screens/system/NotFound.tsx`: a folio numeral `p. 404` in Bodoni Moda Roman at `type-numeral` × 1.5 in `ink.30`, `aria-hidden`; kicker `NOT IN THIS ISSUE`; `TypedHeadline as="h1"` "This page doesn't exist."; deck on the desktop frame "It may have been renamed, or the series it pointed to left your library. Press ⌘K to search everything." (the keycap reads `Ctrl K` off Mac), on the phone frame "It may have been renamed, or the series it pointed to left your library. Search everything from Discover." with `Discover` as a `link` to `/search`; actions `Back to Tonight` (primary → `/`) and `Open library` (quiet → `/library`). `app/(app)/not-found.tsx` renders it when `await getSkin()` is `"cinematic"` and the legacy body otherwise; unmatched URLs already reach it through web/00's `app/(app)/[...missing]/page.tsx`.
 - `screens/system/RouteError.tsx` (client): the web/05 `Notice` with kicker `CORRECTION`, headline "Something broke on this page.", deck "Nothing was lost; trying again usually fixes it.", actions `Try again` (`reset()`) and `Back to Tonight`, and a `REF {digest}` keycap; when the error is network-unreachable (`isNetworkUnreachableError`): kicker `OFFLINE EDITION`, "The server didn't answer.", deck "It may still be starting, or the connection dropped. Your library is untouched." `app/(app)/error.tsx` imports only this component and the legacy error body, and picks by `document.documentElement.dataset.skin === "cinematic"` (never import `@/skins` there, which would pull every screen into the error bundle).
 - Root error `frontend/src/app/global-error.tsx`: when `document.cookie` holds `mm-skin=cinematic` or `mm-skin-debug=cinematic`, render the Cinematic root error in pure HTML with inline styles on `#000000`: the wordmark as inline SVG (paths from the `brand/cinematic` wordmark master), "ManhwaManiacs failed to start." in a system serif (`Georgia, "Times New Roman", serif`) in `#F3F0E8`, the explainer "The app shell didn't render. Reloading usually fixes it; if it doesn't, check that the server is running." in `#9A978F`, and two square buttons styled inline (bone `#F3F0E8` fill, `#000` text, min 44 px tall, radius 0): `Try again` (`reset()`) and `Reload the app` (`location.assign("/")`). Otherwise the legacy root error, unchanged.
-- Offline fallback: rewrite the **body** of `frontend/public/offline-fallback-cinematic.html` (web/02 created it and the worker's serving logic; do not touch `public/sw.js`): standalone HTML with inline styles on `#000`, the `mm-mark` SVG at 72 px, a live status badge `NO CONNECTION` / `BACK ONLINE` (a 1 px `#7A7770` box, 10 px condensed caps, updated on `online` / `offline` events), headline "This page needs the server." (system serif), deck "Chapters you saved still open on this device.", note "Served from your device by the app.", `Try again` (reload) and `Downloads` (link to `/downloads`), square bone buttons as above.
+- Offline fallback: web/02 owns `frontend/public/offline-fallback-cinematic.html` (its item 11 sets every value: the 72 px `mm-mark`, the `NO CONNECTION` badge in `proof` `#FF5B4A` / `BACK ONLINE` in `set` `#57D68D`, the Bodoni-first italic headline stack, the deck, the note, the bone `Try again` and the quiet `Downloads`) and the worker's serving logic. Do not rewrite it or touch `public/sw.js`. Check it against the §8.32 row "Offline fallback page" (open it directly and offline through the worker) and change it only if a line of that row is missing, keeping web/02's values; list any change in the report.
 - `primitives/NotAvailableNotice.tsx` (§8.0.10): kicker `NOT IN THIS ISSUE`, typed headline "This series isn't available here any more." (source variant "This source isn't available here any more."), deck "It may have been removed from its source.", primary `Back to Tonight`, quiet `Search for it` (→ `/search?q={title}` when the title is known, else `/search`). The `not-browsable` variant: headline "This source can only be searched, not browsed." with `Search it` (→ `/sources/{sourceId}?mode=search`). Screens choose the variant with `notAvailableKind(error)`; the wording is the same for removed and gated content.
 - The reader landing (`/reader`, `readerLanding`) is web/12.
 
@@ -177,7 +177,7 @@ Registered with `useShortcut` from `@/lib/keyboard` in the groups `General` and 
 
 ### 13. The Press start splash (§8.2, §12.4) — `Splash.tsx`, `shell/splash-timeline.ts`, `brand/Monogram.tsx`, `brand/Wordmark.tsx`
 
-- First frame: the `(app)` layout server-renders, for the Cinematic skin, a fixed full-viewport `#000` layer at `z.shutter` with the monogram as inline SVG in its centre (the two Didone M's in `#F3F0E8`, the intersection filled `#000000` at first), 160 px wide on the desktop frame and 112 px on the phone frame. `Monogram.tsx` copies the paths of the `brand/cinematic` monogram master (find the file with `ls brand/cinematic`; 1024 canvas, bounding box x 232–792, y 272–752). `Wordmark.tsx` renders the **stacked lockup** as live text (`Manhwa` in Bodoni Moda Roman over `Maniacs` in Bodoni Moda Italic, `wght` 800, `opsz` 96, tracking −0.035em, leading 0.86, flush left, in `type-masthead`) with the Oxford rule under both whose first 12 % is `spot` (add a `spotLead` prop to web/04's `OxfordRule`).
+- First frame: the `(app)` layout server-renders, for the Cinematic skin, a fixed full-viewport `#000` layer at `z.shutter` with the monogram as inline SVG in its centre (the two Didone M's in `#F3F0E8`, the intersection filled `#000000` at first), 160 px wide on the desktop frame and 112 px on the phone frame. `Monogram.tsx` draws `MM_MARK` from `frontend/src/skins/cinematic/mark.generated.ts` (shared/04: `viewBox` `0 0 1024 1024`, the `upright` and `italic` paths, `bone` and `spot`; the intersection is a `<mask>` of one path over the other, so the fill can animate `#000` → `spot`). Never copy paths by hand; the file is regenerated from the brand masters. `Wordmark.tsx` renders the **stacked lockup** as live text (`Manhwa` in Bodoni Moda Roman over `Maniacs` in Bodoni Moda Italic, `wght` 800, `opsz` 96, tracking −0.035em, leading 0.86, flush left, in `type-masthead`) with the Oxford rule under both whose first 12 % is `spot` (add a `spotLead` prop to web/04's `OxfordRule`).
 - Timeline (`splash-timeline.ts`, a table of `{ element, startMs, endMs, easing }`, tested; played with `play()` from one `performance.now()` origin taken at hydration):
 
   | t (ms) | Element | Motion |
@@ -199,7 +199,7 @@ Registered with `useShortcut` from `@/lib/keyboard` in the groups `General` and 
 - Reduced motion: the lockup fades in over 300 ms (`dur.tapscroll`), holds until ready, fades out over 200 ms.
 - Accessibility: the layer is `aria-hidden` apart from a visually hidden `role="status"` "Loading ManhwaManiacs"; it never traps focus.
 - Outcomes after the hand-off come from the Gate (item 2): remembered profile → the requested route (Tonight at `/`); no profile → the picker (Dip); signed out → Login (Dip); offline with a cached user → the route in the offline edition; unreachable with no cache → Login's unreachable state (web/07).
-- Favicon (§12.3): `app/(app)/layout.tsx`'s `generateMetadata` returns, for the Cinematic skin, `icons: { icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon.ico", sizes: "16x16 32x32" }], apple: "/apple-touch-icon.png" }` (the shared/04 files); legacy keeps its current icons.
+- Favicon and install metadata (§12.3): `app/(app)/layout.tsx`'s `generateMetadata` returns, for the Cinematic skin, values imported from shared/04's `frontend/src/skins/brand.generated.ts`: `icons: { icon: [{ url: SKIN_FAVICONS.cinematic, type: "image/svg+xml" }, { url: "/favicon.ico", sizes: "16x16 32x32" }], apple: APPLE_TOUCH_ICON }` (`/favicon.svg`, and `/icons/apple-touch-icon.png`; `favicon.ico` stays at `app/favicon.ico`) and `appleWebApp: { capable: true, title: "Maniacs", statusBarStyle: "black-translucent", startupImage: APPLE_STARTUP_IMAGES }` (the home-screen label of §12.3 and §15.10 "Owner calls"; `black-translucent` is today's value, kept so the `#000` page runs under the status bar). Never hard-code these paths. Legacy keeps its current icons.
 
 ### 14. Motion-timings overlay (§15.9) — `motion-timings.tsx`
 
@@ -241,7 +241,7 @@ frontend/src/app/(app)/layout.tsx                                        generat
 frontend/src/app/(app)/not-found.tsx, error.tsx                          pick the Cinematic body by skin
 frontend/src/app/global-error.tsx                                        Cinematic root-error branch
 frontend/src/app/(preview)/skin-preview/[skin]/shell/page.tsx            shell gallery
-frontend/public/offline-fallback-cinematic.html                          body per §8.32
+frontend/public/offline-fallback-cinematic.html                          only if a §8.32 line is missing (web/02 owns it)
 frontend/src/skins/cinematic/
   index.ts                                   Shell wired in
   Shell.tsx Splash.tsx motion-timings.tsx smooth-wheel.ts view-transitions.css
@@ -259,7 +259,7 @@ frontend/src/skins/cinematic/
   screens/system/{NotFound,RouteError}.tsx
   primitives/{NotAvailableNotice.tsx, OxfordRule.tsx (spotLead), SetHeading.tsx (startDelay)}
 frontend/e2e/cinematic/shell.spec.ts
-docs/redesign/plans/web-06.md
+docs/redesign/proof/web-06/plan.md
 docs/redesign/proof/web-06/…
 ```
 
@@ -289,7 +289,7 @@ Do not touch `frontend/src/skins/glass/**`, `frontend/public/sw.js`, `mobile/`, 
 - [ ] Column wipe: 4 / 8 / 12 blades on column edges covering the viewport, close 200 ms with 16 ms stagger from the top, 40 ms hold with the navigation underneath, open 280 ms toward the bottom, totals 616 / 744 / 872 ms, tap to skip in 120 ms, `reader.enter` haptic and `wipe` cue at the landing, a 200 ms fade under reduced motion. Dip and Iris behave as specified and both finish their close before `router.push`.
 - [ ] Global keys and the `g` sequence behave exactly as §8.0.6, including the 1500 ms and 600 ms rules, the `G 1_` chip, consumed keys not reaching page bindings, and being off inside readers, while typing and with single-key shortcuts off.
 - [ ] Command palette and keyboard sheet match §8.33.1–§8.33.2 (groups, rank order, 40-result cap, keys, live region, empty state, no `EDITION` group while `glass_available` is false).
-- [ ] Status screens: the 404 renders inside the frame with the typed h1; the route error has both variants and the digest keycap; the Cinematic root error and offline fallback are standalone and on-brand; the legacy versions are unchanged.
+- [ ] Status screens: the 404 renders inside the frame with the typed h1; the route error has both variants and the digest keycap; the Cinematic root error is standalone and on-brand, and web/02's offline fallback passes the §8.32 check; the legacy versions are unchanged.
 - [ ] Stop-press banner, first-run note, offline badge and the rating-card slot behave per §8.33; toasts sit above the banner with one visible while it shows.
 - [ ] Splash: the §12.4 timeline to the millisecond (checked in `splash-timeline.test.ts` and the gallery frames), hand-off at `max(probe, 1180)`, `CONNECTING` at 2400 ms, skip by tap and keys, warm start by the per-skin flag, reduced-motion fades, `SKIN RESTART` logged, per-skin favicon links.
 - [ ] Motion-timings overlay: development only (absent from `.next` production chunks: `grep -rl "COLUMN WIPE" frontend/.next/static` finds nothing after `npm run build`), `mod+shift+m`, 20 rows, colours, `Clear`, `Copy log`.
@@ -328,7 +328,7 @@ node scripts/proof.mjs --step web-06 --skin cinematic --no-auth --routes /skin-p
 
 The frontend runs as the harness's usage header says (`BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010`). Screenshots land in `docs/redesign/proof/web-06/` at 1440 × 900 and 390 × 844 (and, from the e2e spec, 1024 × 768 for the spine and the palette, keyboard sheet, sidebar overlay and offline badge states into `docs/redesign/proof/web-06/states/`). Use `playwright-cli -s=web-06` for ad-hoc sessions.
 
-Mobile and backend are untouched: `git diff --stat origin/feat/vps-slim-source-native...HEAD -- mobile backend` prints nothing, so `flutter analyze`, `flutter test` and the backend pytest are not run.
+Mobile and backend: this step changes neither. Judge that by your own commits, never by the branch diff: every web step runs in parallel with its `mobile/NN` twin on the same branch, so `git diff origin/...HEAD -- mobile backend` is routinely non-empty with other sessions' work. `git show --stat --format= <hash>` for each commit of this step must list no `mobile/` or `backend/` path. Only if one does, revert that part and prove the baseline still holds with its own commands, one at a time after the RAM guard and never while a `next build` runs: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (baseline: No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (baseline: all 2012 tests passed) and `cd backend && .venv/bin/python -m pytest -q --no-header`.
 
 ## Report back
 

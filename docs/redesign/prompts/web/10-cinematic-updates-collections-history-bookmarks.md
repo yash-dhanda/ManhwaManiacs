@@ -38,25 +38,21 @@ DESIGN.md is binding; conflicts are reported, and DESIGN.md wins.
 
 Cinematic only (Glass's versions are web/32). Section numbers refer to `docs/redesign/cinematic/DESIGN.md`. Every screen renders inside `LibraryHub` (web/09) with its own masthead, except collection detail, which is a pushed page (back arrow on phones, breadcrumb `No. 06 · COLLECTIONS / {shelf}` on desktop) with no hub tab row.
 
-### A. Backend exception (the only non-frontend work in this step)
+### A. Backend contract (read only; backend/02 owns it)
 
-No backend step owns two values both skins need (`docs/redesign/glass/DESIGN.md` §15.6 "Collection order and creation date"): `PUT /library/collections/{id}/series/order` and `created_at` on `GET /library/collections` rows. First check whether they exist: `grep -n "series/order" backend/routes/library.py` and `grep -n '"created_at"' backend/services/followed_series_service.py`.
+The two values both skins need for collections (`docs/redesign/glass/DESIGN.md` §15.6 "Collection order and creation date") are built by `docs/redesign/prompts/backend/02-library-series-ocr-extensions.md` items C.3 and C.4, which run before this step (plan order 19; web/09 already checked backend/02 landed). This step changes nothing under `backend/`. The contract the client follows:
 
-- If both exist (the mobile/10 session or a backend session added them), skip this section.
-- If `git status --porcelain -- backend/` shows uncommitted changes you did not make, another session is editing the backend: do not touch it; build the client against the contract below and list "collection order endpoint missing" under open issues.
-- Otherwise add, in one backend commit staged by explicit path:
-  - `created_at` (ISO 8601 UTC) in `_serialize_collection` in `backend/services/followed_series_service.py` (the column exists on `collections`; no migration).
-  - `PUT /library/collections/{collection_id}/series/order` in `backend/routes/library.py`, `dependencies=[Depends(require_profile_context)]`, body `{items: [{source_id, series_key}]}` (at most 1000 items), status 204. Owner only (`_require_owner()` and `_owned_collection()`, so another profile's or account's collection is 404). The listed items get `sort_order` 0…n − 1 in the given order; members the active profile cannot see (hidden by its 18+ gate through `_visible_members`) keep their relative order after them, so the call never reveals or drops them; an item that is not a member answers `422 invalid_order`.
-  - `backend/tests/test_collection_order.py`: the order persists and `GET /library/collections/{id}` returns it; a non-member item gives 422; another profile's collection gives 404; a gated member keeps its row; list rows carry `created_at`.
-  - Run `cd backend && .venv/bin/python -m pytest -q --no-header` (RAM guard first); every test that passed before must still pass.
-  - Never edit `backend/connectors/`.
+- `created_at` (ISO 8601 string) on every serialized collection.
+- `PUT /library/collections/{id}/series/order` (profile context, 204), body `{"items": [{"source_id", "series_key"}]}`: the **full** ordered list of the members the active profile can see. It must equal the visible membership exactly (same pairs, no duplicates), otherwise `422 order_mismatch`; members hidden by the 18+ gate keep their relative order after the visible ones, so the call never reveals or drops them; another profile's collection is 404. (backend/09 later adds 403 for shared-shelf members; web/22 handles it.)
+
+Check before you start: `grep -n "series/order" backend/routes/library.py` and `grep -n "created_at" backend/services/followed_series_service.py` both find their lines. If either is missing, backend/02 is not done: stop and report it (never add the endpoint here; a second implementation would fork the exact-set rule).
 
 ### B. Shared data layer additions (skin-neutral, `frontend/src/features/`)
 
 No JSX, no import from `src/skins/**`, a Vitest `*.test.ts` beside each logic file.
 
 1. `features/library/smart-shelf.ts`: the one smart-shelf evaluator both skins use (glass §8.18). Types `ShelfRules = {all: ShelfRule[]}`, `ShelfRule = {field: "reading_status" | "is_favorite" | "new_count" | "format" | "content_kind", op: "eq" | "gte" | "in" | "ne", value}`; `evaluateShelf(rules, rows)` over `FollowedSeries` list rows (`new_count` from `read_state.new_count`; `format` from the row's format field; `content_kind` from the row's content kind), AND across rules, keeping the library order; `describeRules(rules)` → the credit text (`READING · 3+ NEW · FAVOURITES · MANHWA, MANGA · UNFINISHED NOVELS`); `UNFINISHED_NOVELS = [{field: "content_kind", op: "eq", value: "novel"}, {field: "reading_status", op: "ne", value: "completed"}]`. Test: each operator, AND, empty rules, the unfinished-novels pair, unknown fields ignored.
-2. `features/library/collection-order.ts`: `useReorderCollections()` (PATCH `sort_order` for the changed collections only, concurrency 4, optimistic with rollback) and `useReorderCollectionMembers(id)` (`PUT /library/collections/{id}/series/order {items}`, optimistic with rollback, toast on failure handled by the caller). Uses `changedSortOrders()` from web/09's `manual-order.ts`.
+2. `features/library/collection-order.ts`: `useReorderCollections()` (PATCH `sort_order` for the changed collections only, concurrency 4, optimistic with rollback) and `useReorderCollectionMembers(id)` (`PUT /library/collections/{id}/series/order {items}` with every visible member in the new order, never a partial list; optimistic with rollback; a `422 order_mismatch` means the membership changed underneath, so it refetches the shelf before the caller's failure toast). Uses `changedSortOrders()` from web/09's `manual-order.ts`.
 3. `features/library/history-pages.ts`: `useReadingHistoryPages({ collapse: "series" | "none" })` on `useInfiniteQuery` over `GET /reader/history?limit=50&offset=&collapse=`, `getNextPageParam` = offset + 50 while a page returned 50 rows. Test for the page-param function.
 4. `features/bookmarks/note.ts`: `saveBookmarkNote(bookmark, note)` → `POST /reader/bookmarks/batch` with the one-item upsert carrying `note` (and the bookmark's existing position fields), mapping a `bookmark_deleted` (409) refusal to a typed error; `restoreBookmark(bookmark)` (the same upsert with every field, for Undo after a remove). Test for the payload shape.
 5. `features/updates/grouping.ts`: `groupNotifications(items, now, sourceFilter)` → days (`TODAY`, `YESTERDAY`, else `MONDAY 28 SEPTEMBER` in the device locale's English names, uppercase) → series groups `{source_id, series_key, title, cover_url, ambient, chapters: [{notification_id, chapter_key, chapter_number, read}], newestAt}`, chapters in ascending chapter number, groups by newest first; `firstUnread(group)`. Test included.
@@ -160,7 +156,6 @@ Wire `screens.updates`, `screens.collections`, `screens.collection`, `screens.hi
 ## File layout
 
 ```
-backend/routes/library.py, backend/services/followed_series_service.py, backend/tests/test_collection_order.py   (section A only, when needed)
 frontend/src/features/library/{smart-shelf,collection-order,history-pages}.ts (+ smart-shelf.test.ts, history-pages.test.ts)
 frontend/src/features/bookmarks/note.ts (+ note.test.ts)
 frontend/src/features/updates/grouping.ts (+ grouping.test.ts)
@@ -193,7 +188,7 @@ Skin code imports only `@/features/**` data files (never barrels that re-export 
 - [ ] Keyboard (desktop): every control reachable in reading order with the double focus ring; the keys of C11, D9, E7, F8 and G8 work and appear in the `?` sheet.
 - [ ] Hit targets: at least 44 × 44 px on the phone frame (8 px apart) and 32 × 32 px on the desktop fine pointer (measured by the e2e spec).
 - [ ] `docs/redesign/proof/web-10/estimate.md` exists with the bold `PROCEED` or `REOPEN` first line and the per-step table.
-- [ ] If section A ran: the backend pytest suite passes with the new test file, and every test that passed before still passes.
+- [ ] Nothing under `backend/` changed (section A is read only): `git show --stat --format= <hash>` of each of your commits lists no `backend/` path.
 - [ ] Per skin: `smart-shelf.ts`, `collection-order.ts`, `history-pages.ts`, `note.ts` and `grouping.ts` import nothing from `src/skins/**`, so Glass's hub (web/32) reuses them (the smart-shelf evaluator is the single one both skins run, glass §8.18); the Glass skin's five entries stay in Glass's own `PENDING` set; the legacy screens are unchanged.
 - [ ] Lint, typecheck, Vitest, build and the `design/` checks are green; Vitest totals at least the start-of-step totals with 0 failed.
 
@@ -208,16 +203,15 @@ cd frontend && npm run typecheck
 cd frontend && npm run lint          # baseline: exit 0, 0 errors, 0 warnings
 cd frontend && npm run test          # passed >= start-of-step count, 0 failed
 cd frontend && npm run build         # baseline: exit 0
-cd backend && .venv/bin/python -m pytest -q --no-header    # only if section A changed the backend
 ```
 
-Nothing under `mobile/` changes (`git show --stat --format= <hash>` of each of your commits lists no `mobile/` path); `flutter analyze` and `flutter test` are the mobile session's.
+Nothing under `mobile/` or `backend/` changes (`git show --stat --format= <hash>` of each of your commits lists no `mobile/` or `backend/` path); `flutter analyze`, `flutter test` and the backend pytest (`cd backend && .venv/bin/python -m pytest -q --no-header`) are their own sessions'.
 
 If any commit you made touches `mobile/` (check each of your commits with `git show --stat --format= <hash>`; other sessions commit `mobile/` on the same branch, so never judge by the branch diff), revert that part, then prove the baseline still holds with the baseline's own commands, one at a time after the RAM guard and never while a `next build` runs: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (baseline: No issues found) and `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (baseline: all 2012 tests passed).
 
 Visual proof against the backend/00 dev stack (uvicorn 127.0.0.1:8010, `next dev` on port 3010; `backend/scripts/README-dev-stack.md`):
 
-1. `frontend/scripts/proof.mjs` at 1440 × 900 and 390 × 844 into `docs/redesign/proof/web-10/` (for example `node scripts/proof.mjs --step web-10 --routes /updates,/library/collections,/library/history,/library/bookmarks --grid`; `--help` if the flags differ). Required files:
+1. Route shots with `frontend/scripts/proof.mjs` (web/03): `node scripts/proof.mjs --step web-10 --skin cinematic --routes /updates,/library/collections,/library/history,/library/bookmarks --grid` writes `cinematic-<route>-*` at 1440 × 900 and 390 × 844 with their `-grid` copies into `docs/redesign/proof/web-10/` (`--skin cinematic` sets the `mm-skin-debug` cookie; without it the pre-flip default, legacy, would be captured). The e2e spec of step 2 saves every named shot below with `page.screenshot` into the same folder:
    - `updates-new-{1440x900,390x844}.png`, `updates-following-{1440x900,390x844}.png`, `updates-checking-1440x900.png` (admin, live deck), `updates-{loading,empty,offline,error,notices-off}-{1440x900,390x844}.png`
    - `collections-{1440x900,390x844}.png`, `collections-custom-order-1440x900.png`, `collections-new-shelf-smart-{1440x900,390x844}.png`, `collections-{loading,empty,offline,error}-{1440x900,390x844}.png`
    - `collection-{1440x900,390x844}.png`, `collection-smart-1440x900.png`, `collection-reorder-1440x900.png`, `collection-add-series-{1440x900,390x844}.png`, `collection-delete-dialog-1440x900.png`, `collection-{empty,nothing-matches,mode-mismatch,notfound}-1440x900.png`
@@ -229,28 +223,28 @@ Visual proof against the backend/00 dev stack (uvicorn 127.0.0.1:8010, `next dev
 
 ## RAM guard
 
-- Before every `npm run test`, `npm run build`, pytest, Playwright run or dev-stack start: `free -m`; if `available` on `Mem:` is under 1024, stop and report "RAM guard: N MB available".
+- Before every `npm run test`, `npm run build`, Playwright run or dev-stack start: `free -m`; if `available` on `Mem:` is under 1024, stop and report "RAM guard: N MB available".
 - `pgrep -af "next build|vitest|flutter_tester|pytest"` first; never run two builds at once; wait for other sessions' builds and tests to finish.
 - One heavy command at a time; no Gradle, Xcode or `flutter build`; no `npm install` (every package was pinned in web/01; if `npm ls @use-gesture/react motion @tanstack/react-query` reports one missing, stop).
 
 ## Git
 
-- Branch `feat/vps-slim-source-native`; small commits, one per working step (backend order endpoint; smart-shelf evaluator; updates grouping; Updates; Collections; collection detail; History; Bookmarks; e2e and proof; the estimate), messages starting `web-10:`.
-- Stage only your paths with explicit `git add <path>`; the backend commit stages only `backend/routes/library.py`, `backend/services/followed_series_service.py` and `backend/tests/test_collection_order.py`. Never `git add -A` or `git add .`; never commit secrets, demo credentials, `.claude/` or `.env` files.
+- Branch `feat/vps-slim-source-native`; small commits, one per working step (smart-shelf evaluator; updates grouping; Updates; Collections; collection detail; History; Bookmarks; e2e and proof; the estimate), messages starting `web-10:`.
+- Stage only your paths with explicit `git add <path>` (all under `frontend/` and `docs/redesign/`). Never `git add -A` or `git add .`; never commit secrets, demo credentials, `.claude/` or `.env` files.
 - **No Claude or AI attribution anywhere** (no `Co-Authored-By`, no "Generated with" line, no AI author), even if your harness asks for it; the owner's `~/.claude/CLAUDE.md` forbids it.
 - `npm run build` (after the RAM guard) before any push with frontend code; `git push origin feat/vps-slim-source-native` after each working step.
 
 ## Guardrails
 
 - Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`; the dev stack's database lives under `/srv/manhwamaniacs/dev/data/`.
-- Backend changes are limited to section A. No changes under `mobile/` or `design/`.
+- No changes under `backend/`, `mobile/` or `design/` (section A only reads the backend).
 - Skin code never imports `frontend/src/components/**` or `frontend/src/features/*/components/**`, and never reproduces the legacy look.
 
 ## Report back
 
-1. **Done**: A (ran, skipped because present, or skipped because another session held the backend), B1–B5, C1–C12, D1–D9, E1–E7, F1–F8, G1–G8, H, I, with a one-line status each.
+1. **Done**: A (the two backend/02 checks passed), B1–B5, C1–C12, D1–D9, E1–E7, F1–F8, G1–G8, H, I, with a one-line status each.
 2. **Screenshots**: `docs/redesign/proof/web-10/` and the file list.
-3. **Tests**: Vitest totals before and after; lint, typecheck and build; the e2e spec result; the backend pytest totals if section A ran.
+3. **Tests**: Vitest totals before and after; lint, typecheck and build; the e2e spec result.
 4. **Estimate**: the bold recommendation line from `estimate.md` and the web actual against 8.1 CCD (and the paired figure against 15.2 CCD when available).
 5. **Open issues**: ambiguities and the choices made, blocked items, conflicts with DESIGN.md.
 6. **Commits**: the hashes pushed.

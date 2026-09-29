@@ -32,6 +32,10 @@ Produce every audio file the two skins ship, reproducibly, from recipes in the r
 - **RAM guard.** `free -m` before every heavy command (the loop renders, `npm run typecheck`, `npm run test`, `npm run build`, `flutter analyze`, `flutter test`); stop if `available` is under 1024 MB. Never two at once. Never `flutter build`.
 - **Git.** Branch `feat/vps-slim-source-native`; one commit per working step; `git push origin feat/vps-slim-source-native` after each. No Claude or AI attribution anywhere (no `Co-Authored-By`, no "Generated with" line), whatever a tool suggests. Never commit secrets or `.claude/`. Never commit third-party audio that is not CC0 1.0.
 
+## Before you start (dependency: shared/01)
+
+This step depends on `docs/redesign/prompts/shared/01-glass-tokens-haptics-motion-names-contrast.md` (and through it shared/00): the cue stems and event maps it renders come from `design/tokens/{cinematic,glass}.json`. From the repo root run `ls design/tokens/cinematic.json design/tokens/glass.json design/build-haptics.mjs design/check-contrast.mjs` and `node design/build.mjs --check`, and confirm with `node -e "for (const s of ['cinematic','glass']) { const t = JSON.parse(require('fs').readFileSync('design/tokens/' + s + '.json', 'utf8')); console.log(s, Object.keys(t.sounds).length, 'cues'); }"` that it prints `cinematic 13 cues` and `glass 28 cues`. If anything is missing or different, stop and report which step is incomplete; do not edit the token files here.
+
 ## Scope: what this step delivers, item by item
 
 ### 1. Shared rendering rules (`design/sounds/render.mjs`, `design/sounds/wav.mjs`)
@@ -136,7 +140,7 @@ Common rules:
 - The other fifteen come from the owner: CC0 1.0 field recordings from freesound.org only (no CC-BY, no sampling-plus, nothing imitating a named work). The owner drops each original, named `{scene}-{layer}.<any audio extension>`, into `design/sounds/incoming/glass/` (git-ignored through `design/sounds/incoming/.gitignore` containing `*` and `!.gitignore`, so raw downloads never enter the repo or the backend image) and fills its row in `SOURCES.md`.
 - `design/sounds/trim-loop.mjs` (Node 22 + sox + ffmpeg):
   - `node design/sounds/trim-loop.mjs` processes every incoming file whose `SOURCES.md` row has a URL and `CC0 1.0` as licence (a file without them is skipped with a message naming it): decode to 48 kHz stereo WAV; take 96 s starting at the row's `Start (s)` column, or, when that is empty, the 96 s window with the lowest variance of 1 s RMS (searched in 1 s steps); make the 90 s equal-power loop of item 5; normalise to −26 LUFS for `bed`, −30 for `detail`, −32 for `tone` (true peak ≤ −3 dBTP); encode `ffmpeg … -c:a libopus -b:a 96k <id>.ogg` and `ffmpeg … -c:a aac -b:a 96k -movflags +faststart <id>.m4a` into `backend/media/soundscapes/glass/`; write the row's `Processing`, `LUFS`, `Size` and `SHA-256` columns.
-  - `node design/sounds/trim-loop.mjs --check` lists every expected file that is missing by name (today: the 30 files of the fifteen recorded layers, for example `rain-bed.ogg`, `rain-bed.m4a`) and every row missing a URL or a CC0 licence, then exits 0 with a one-line warning; `--strict` exits 1 when anything is missing (web/44 and mobile/44 run it before they ship).
+  - `node design/sounds/trim-loop.mjs --check` lists every expected file that is missing by name (today: the 30 files of the fifteen recorded layers, for example `rain-bed.ogg`, `rain-bed.m4a`) and every row missing a URL or a CC0 licence, then exits 0 with a one-line warning; `--strict` exits 1 when anything is missing. Nothing in CI or in a later step calls `--strict`: web/44 and mobile/44 ship with the procedural layers playing whenever a recording is absent (glass §9.4.2 "Starting"), so the missing list is the owner's to-do, and the report of this step and `levels.txt` carry it.
 - `backend/media/soundscapes/glass/SOURCES.md`: a table with one row per layer: `Id`, `Scene`, `Layer`, `What to look for` (from §9.4.2: rain `bed` steady rain on a roof, `detail` drips on a window pane, `tone` low room tone; wind: wind through trees, leaves and a creaking branch, far drone; ocean: waves on sand, shingle drawback, distant gulls; hearth: fire bed, crackles and embers, night wind; stream: running water, pebbles and a small fall, birds far off), `Freesound URL`, `Author`, `Licence` (must read `CC0 1.0`), `Original file`, `Start (s)`, `Processing`, `LUFS`, `Size`, `SHA-256`; the three Deep rows pre-filled as synthesised with their commands. A short intro says what the owner does: pick, download, drop into `design/sounds/incoming/glass/`, fill the row, run `node design/sounds/trim-loop.mjs`, commit the two outputs and the row.
 
 ### 7. `design/sounds/check.mjs` (stdlib, added to `design/build.mjs --check`)
@@ -175,7 +179,7 @@ backend/media/soundscapes/{projector-room,rain-on-glass,night-city,cafe,night-wi
 backend/media/soundscapes/SOURCES.md
 backend/media/soundscapes/glass/deep-{bed,detail,tone}.{ogg,m4a}
 backend/media/soundscapes/glass/SOURCES.md
-docs/redesign/proof/shared-03/{cues.svg, soundscapes.svg, levels.txt}
+docs/redesign/proof/shared-03/{cues.svg, soundscapes.svg, levels.txt, cues-1440.png, cues-390.png, soundscapes-1440.png, soundscapes-390.png}
 ```
 Change: `design/build.mjs` (one call to `design/sounds/check.mjs` in `--check`). If the apt fallback was needed: also `design/sounds/synth.mjs` and `design/sounds/.gitignore` (`.tools/`).
 
@@ -194,6 +198,7 @@ Change: `design/build.mjs` (one call to `design/sounds/check.mjs` in `--check`).
 - [ ] Per-skin difference: Cinematic cues are warm (every file low-passed at 5 kHz, small-room reverb) and Glass cues are bright struck glass on the A-major pentatonic scale; the proof sheet shows both sets side by side.
 - [ ] `frontend`: `npm run lint` 0 errors 0 warnings, `npm run typecheck` passes, `npm run test` count not lower than before, `npm run build` passes (the new files under `public/` must not break it).
 - [ ] `mobile`: `flutter analyze` no issues; `flutter test` passes, 0 failed.
+- [ ] `docs/redesign/proof/shared-03/` holds `cues.svg`, `soundscapes.svg`, `levels.txt` and the four PNG captures (1440 × 900 and 390 × 844 per sheet), and you looked at them.
 - [ ] No raw download is committed (`git status --short design/sounds/incoming` shows nothing).
 - [ ] Every commit touches only this step's paths, carries no AI attribution, and was pushed.
 
@@ -231,9 +236,9 @@ cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test && cd ..
 git status --short
 ```
 
-Backend: no backend code changes (only files under `backend/media/`); the CI `backend` job (`cd backend && pytest -q --no-header`) must stay green on your pushed commits.
+Backend: no backend code changes (only files under `backend/media/`). If `backend/.venv` exists (backend/00 creates it), run `cd backend && free -m && timeout 1800 .venv/bin/python -m pytest -q --no-header 2>&1 | tail -3` after the loop files are committed and quote the summary line; the CI `backend` job (`cd backend && pytest -q --no-header`) must stay green on your pushed commits either way.
 
-**Visual proof.** No web screen changes, so no Playwright screenshots at 1440 × 900 or 390 × 844; the proof is `docs/redesign/proof/shared-03/cues.svg`, `soundscapes.svg` and `levels.txt`.
+**Visual proof.** No web screen changes. The proof is `docs/redesign/proof/shared-03/cues.svg`, `soundscapes.svg` and `levels.txt`; capture both SVGs in headless Chromium at 1440 × 900 and 390 × 844 (full page) into `docs/redesign/proof/shared-03/{cues,soundscapes}-{1440,390}.png` with the command block of shared/00 "Visual proof" (same script, one page per SVG; install Chromium first exactly as that block says if `~/.cache/ms-playwright` has no `chromium-*` folder), and look at them.
 
 ## Commit plan
 
@@ -253,7 +258,7 @@ Push after each; `git add <explicit paths>` every time.
 - The `levels.txt` table (or its summary): per cue length and peak; per loop LUFS, true peak, seam figures and sizes; the Cinematic and Glass WAV totals.
 - Tool versions (`sox`, `ffmpeg`) and whether the fallback path was used.
 - Outputs of `node design/sounds/check.mjs`, `trim-loop.mjs --check` (the missing list), `node design/build.mjs --check`, `node --test design/sounds/test/`, `npm run lint`, `npm run typecheck`, `npm run test` (count), `npm run build`, `flutter analyze`, `flutter test` (count), and the lowest `free -m` available figure.
-- Proof paths: `docs/redesign/proof/shared-03/cues.svg`, `soundscapes.svg`, `levels.txt`.
+- Proof paths: `docs/redesign/proof/shared-03/cues.svg`, `soundscapes.svg`, `levels.txt` and the four PNG captures.
 - A short listening note per cue set (listen on headphones through `ffplay -nodisp -autoexit <file>` if a sound device exists; otherwise say so): anything harsh, clipped, clicky at the seam, or off-scale.
 - Pushed commit hashes.
 - Open issues and hand-offs: the Glass 320 KB budget versus its 5,682 ms of cues (545 KB at the specified format); the owner's fifteen CC0 picks (the `trim-loop.mjs --check` list); mobile/02 declares `assets/sounds/cinematic/` and `assets/sounds/glass/` in `pubspec.yaml`; web/02 probes `audio/ogg; codecs="opus"` for cues and `audio/ogg; codecs="vorbis"` for Cinematic loops, and pitches `back`, `tick` and `throw` with `playbackRate` as glass §6 describes; backend/07 serves both soundscape folders; the five Cinematic loops the design had planned as recordings are synthesised and replaceable.

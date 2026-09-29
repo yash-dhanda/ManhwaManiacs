@@ -60,7 +60,7 @@ A9. **Media Session** (`media-session.ts`): `navigator.mediaSession.metadata` wi
 B1. The opener's `Listen │ 14 MIN` button (added to `web/14`'s `ChapterOpener`): a `split` secondary in the stock ink with `headphones`, and a small "audio saved" check when the audio is saved. It starts at the reading line's paragraph.
 B2. `p` in the novel reader (play / pause), and the mini player's play.
 B3. The book page's `Listen` secondary (render it in `web/11`'s book screen if it is not there, only when `GET /novels/audio/series` lists narrated chapters) and its `l` key: opens the reader at the resume point with `?listen=1` by the Column wipe; the reader calls `play()` on arrival; if the browser refuses (`NotAllowedError` on a cold load), the mini player shows paused with its play button focused.
-B4. The Downloads row for saved audio is placed by `web/17`; export what it needs (`useSavedAudio(ref)` and the play entry).
+B4. The Downloads row for saved audio (§8.16.1) is app-only: the web Downloads screen shows no saved-narration rows or controls (§8.23 "What the web cannot do is absent, not disabled: … saved narration audio"), so on the web saved audio is reached from the opener and the mini player's overflow (G). Export `useSavedAudio(ref)` anyway, because `web/17` must recognise the `novel-audio` entries A6 creates in order to keep them out of its lists and inside its byte totals.
 B5. When the chapter has no audio, the Listen button is absent; the owner sees `NOT NARRATED` in the opener with a `quiet` `Narrate this chapter` sending `POST /novels/audio/render {chapter_keys: [key], priority: 9}`.
 
 ### C. The novel reader additions (in `web/14`'s screens)
@@ -79,7 +79,7 @@ C5. **Following along on the page** while narration plays with the mini player: 
 C6. Keys added to the novel keys reducer: `p` play / pause; `[` / `]` previous / next sentence; `Shift+[` / `Shift+]` back / forward 15 s; `<` / `>` Listen speed ±0.05× (`web/23` later gives them to auto-scroll while it runs); `Esc` order: close sheet → collapse the full player → back to the book. Tests for the reducer.
 C7. `?listen=1` handling (B3).
 C8. The "Auto-scroll and Listen never run together" rule is completed by `web/23`; expose `isPlaying` and `pause()` from the hook for it.
-C9. The book page's owner-only `Audiobook` icon button (the `headphones` glyph, `aria-label` "Audiobook", tooltip "Narrate or save this book's audio"), rendered only for admins, opening the Audiobook sheet (J) with the Rise.
+C9. The book page's owner-only `Audiobook` icon button (the `headphones` glyph, `aria-label` "Audiobook", tooltip "Narrate or save this book's audio"), rendered only for admins, opening the Audiobook sheet (J) with the Rise. The book page also opens the sheet on mount when the URL hash is `#audiobook` and the viewer is an admin (the Narration rows `web/17` puts in Downloads and Index link there); for a non-admin the hash is ignored.
 C10. `NarratingIndicator`: `NARRATING 3 CHAPTERS` in `type-kicker` with a mini determinate rule (the average job progress), rendered when active jobs exist; `web/17` mounts it in Index and Downloads (export it; do not edit those screens here).
 
 ### D. Full player "The reading room" (§8.16.3)
@@ -116,7 +116,7 @@ F2. **Voice picker, "the cast list of 31"** (from a cast row, filtered to the ch
    - footer caption "Chapters already rendered keep the voice they were made with until they're rendered again."; license and attribution per voice under `Details` in the row's overflow;
    - casting posts `POST /novels/cast` (character) or `POST /novels/narrator` (narrator), sound `set` if on; error toast "That voice couldn't be saved." with the server's reason (6000 ms, `proof` edge);
    - empty: "No voices are installed on the server, so characters can't be cast from here yet.";
-   - put `voiceMonogramField` in `skins/cinematic/tint.ts` and extend `tint.test.ts`: `ink.100` on the field at 80 Hz, 300 Hz and the 60° worst case is ≥ 4.5:1 (5.13:1 at 60°); put the pulse smoothing in `voice-pulse.ts` with a test.
+   - put `voiceMonogramField` in `skins/cinematic/tint.ts` and fill the `VOICE_FIELD_ROWS` array `web/04` left empty in `tint.test.ts` (one row per pitch 80, 100, 120 … 300 Hz plus the 60° worst case): `ink.100` on each field is ≥ 4.5:1 (5.13:1 at 60°); put the pulse smoothing in `voice-pulse.ts` with a test.
 
 ### G. Saved audio on the device (§8.16.9)
 
@@ -149,7 +149,7 @@ Swipe down on the full player collapses it (finger-tracked, `spring.sheet`); swi
 
 ## Out of scope here (owned by later steps)
 
-- `web/17`: mounting `NarratingIndicator` in Index and Downloads, the Downloads rows for saved audio.
+- `web/17`: mounting `NarratingIndicator` in Index and Downloads, and keeping the `novel-audio` entries out of the Downloads lists (the web has no saved-audio rows, B4).
 - `web/18`: Settings → Listen (voices entry, default speed, follow-along options) using the exported picker.
 - `web/21`: the Annual's `NARRATED BY` colophon (fed by the sessions you report).
 - `web/23`: auto-scroll in the novel reader and its mutual exclusion (`PAUSED FOR LISTEN`), the soundscape and its ducking to 30 % under narration through A2's gain graph.
@@ -225,11 +225,11 @@ free -m && npm run test
 free -m && npm run build
 ```
 
-Lint and build stay at 0 errors and 0 warnings (`00-baseline.md`). This step changes nothing in `mobile/` or `backend/` (`git diff --stat -- mobile backend` is empty), so `flutter analyze`, `flutter test` (Flutter at `/srv/manhwamaniacs/dev/flutter/bin`) and the backend pytest (`backend/.venv/bin/python -m pytest -q --no-header`) are not rerun.
+Lint and build stay at 0 errors and 0 warnings (`00-baseline.md`). This step changes nothing under `mobile/` or `backend/`. Prove it on your own commits, not on a range (the mobile, backend and shared sessions push to the same branch in parallel, so a range diff shows their work too): `for c in <each commit SHA you made in this step>; do git show --name-only --format= "$c"; done | grep -E '^(mobile|backend)/'` must print nothing. The other suites are therefore not re-run here; their sessions run them and keep the baseline: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (all 2012 passed) and `cd backend && .venv/bin/python -m pytest -q --no-header`.
 
 **Fixtures.** The dev stack has no narration PC and may have no voice pack. Write `frontend/e2e/fixtures/listen/make-fixtures.mjs` (Node 22 stdlib only; run it with `node`) that generates: `chapter.wav` (a 60 s 8 kHz 16-bit mono WAV of a tone with a slow amplitude envelope, so the pulse and progress are visible), `sample-<voice_id>.wav` (3 s tones at each voice's pitch), `audio.json` (segments `{i, start_ms, end_ms, p, s, e, voice, speaker, speech}` aligned to `web/14`'s fixture chapter, `highlight_safe: true`), `audio-stale.json` (`highlight_safe: false`), `audio-series.json` (chapters with `rendered_at`, and `cast_changed_at` later than two of them), `voices.json` (31 voices named `Voice 01` … `Voice 31`, 13 `male` and 18 `female`, pitches spread over 80–300 Hz and served deepest first within each gender, each with a one-line `transcript`), `attribution.json` (a narrator and four speakers) and `jobs.json`. Use the live endpoints whenever the dev stack answers them (`GET /novels/voices` returning voices, a narrated chapter), and the fixtures only for what it cannot serve; say which in the report. Install them with the `--fixtures` option of `frontend/scripts/proof.mjs` that `web/14` added.
 
-**Visual proof.** Start the dev stack from `backend/scripts/README-dev-stack.md` with `MM_NOVELS_ENABLED=1` (127.0.0.1:8010, dev SQLite only), sign in as the seeded admin for owner views and as a second non-admin account for the read-only cast view, and `free -m && npm run dev -- -p 3010`. Capture in the named session `web-15`, skin `cinematic` via `mm-skin-debug`, at 1440 × 900 and 390 × 844 (touch emulation on the phone), into `docs/redesign/proof/web-15/`:
+**Visual proof.** Start the dev stack with `free -m && backend/scripts/dev_stack.sh start` (the dev stack of `backend/scripts/README-dev-stack.md`: uvicorn on 127.0.0.1:8010 against the dev SQLite under `/srv/manhwamaniacs/dev/data/`, never production data; the script already sets `MM_NOVELS_ENABLED=true`, turns rate limits off and leaves the AI key unset; run `backend/scripts/dev_stack.sh seed` once if the `demo` account does not exist yet), then the web client with `cd frontend && free -m && NEXT_PUBLIC_API_URL=/api BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npx next dev -p 3010` (both variables are required: without `NEXT_PUBLIC_API_URL=/api` the browser calls `http://127.0.0.1:8000` directly (`src/config/env.ts`), and without `BACKEND_INTERNAL_URL` the `/api` rewrite in `next.config.ts` targets port 8000). Sign in as the seeded admin `demo` for the owner views, and for the read-only cast view as a non-admin account that the spec creates in its setup (`POST /auth/register` with the username `proof-reader` and a password generated at run time; the dev stack runs with registration open) and deletes as the admin in its teardown through the endpoint `useDeleteMember` calls (the seed has only the one account). Capture in the named session `web-15`, skin `cinematic` via `mm-skin-debug`, at 1440 × 900 and 390 × 844 (touch emulation on the phone), into `docs/redesign/proof/web-15/`:
 
 - `mini-player-{desktop,phone}.png`, `mini-player-preparing-desktop.png`, `mini-player-failed-desktop.png`, `follow-along-{desktop,phone}.png` (captured mid-sweep and at rest), `back-to-the-voice-phone.png`.
 - `reading-room-{desktop,phone}.png`, `reading-room-dialogue-kickers-desktop.png`, `reading-room-highlight-paused-desktop.png`, `reading-room-post-play-{desktop,phone}.png`.

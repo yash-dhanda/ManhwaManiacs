@@ -25,7 +25,7 @@ Finish the Cinematic ("Programme") primitive catalogue for the web client: sheet
 
 ```bash
 cd /srv/manhwamaniacs/dev/ManhwaManiacs
-git status --short && git branch --show-current     # clean; feat/vps-slim-source-native
+git status --short && git branch --show-current     # clean inside frontend/ (other sessions' files elsewhere are theirs; never stage them); feat/vps-slim-source-native
 ls frontend/src/skins/cinematic/primitives/{SetHeading,TypedHeadline,Button,IconButton,Poster}.tsx frontend/src/skins/cinematic/motion.ts
 grep -E '"(sonner|@use-gesture/react)"' frontend/package.json
 cd frontend && node --input-type=module -e "for (const m of ['dialog','drawer','menu','context-menu','tabs','switch','slider','checkbox','radio','radio-group','select','tooltip']) { try { import.meta.resolve('@base-ui/react/' + m); console.log('ok', m) } catch { console.log('MISSING', m) } }"
@@ -35,7 +35,7 @@ If the web/04 files are missing, web/04 is not done: stop. If any Base UI part o
 
 ## Skills to invoke
 
-- `superpowers:writing-plans` first; save the plan at `docs/redesign/plans/web-05.md`.
+- `superpowers:writing-plans` first; save the plan at `docs/redesign/proof/web-05/plan.md`.
 - `superpowers:subagent-driven-development` (or `superpowers:executing-plans` inline). Give each subagent this file and its section numbers.
 - `superpowers:test-driven-development` for the pure logic (arm state machine, sheet physics, Lightbox maths, reorder announcements, pull-to-refresh thresholds, busy-retry policy).
 - `frontend-design:frontend-design` for the UI, `impeccable:impeccable` and `taste-skill:taste-skill` to critique the gallery screenshots against `cinematic/DESIGN.md` (reject anything that adds radius, shadows, blur behind overlays or bounce).
@@ -205,7 +205,7 @@ frontend/src/lib/busy-retry.ts, busy-retry.test.ts                       new (sk
 frontend/src/app/providers.tsx                                           QueryClient retry → busyRetry
 frontend/src/app/(preview)/skin-preview/[skin]/primitives/page.tsx       new gallery sections
 frontend/e2e/cinematic/overlays.spec.ts, primitives-states.spec.ts
-docs/redesign/plans/web-05.md
+docs/redesign/proof/web-05/plan.md
 docs/redesign/proof/web-05/…
 ```
 
@@ -271,7 +271,7 @@ node scripts/proof.mjs --step web-05 --skin cinematic --no-auth --routes /skin-p
 
 Start `next dev` as the harness's usage header says (`BACKEND_INTERNAL_URL=http://127.0.0.1:8010 npm run dev -- --port 3010`). Screenshots go to `docs/redesign/proof/web-05/` at 1440 × 900 and 390 × 844, grid off and on, plus open-state captures of one sheet, one column panel, the arming and armed dialog, two stacked toasts, an open menu, Quick look, a notice of each tone, the certificate dialog on both frames and the Lightbox (the overlays spec saves these with `page.screenshot` into `docs/redesign/proof/web-05/overlays/`). Use `playwright-cli -s=web-05` for any ad-hoc browser session.
 
-Mobile and backend are untouched: `git diff --stat origin/feat/vps-slim-source-native...HEAD -- mobile backend` prints nothing, so `flutter analyze`, `flutter test` and the backend pytest are not run.
+Mobile and backend: this step changes neither. Judge that by your own commits, never by the branch diff: every web step runs in parallel with its `mobile/NN` twin on the same branch, so `git diff origin/...HEAD -- mobile backend` is routinely non-empty with other sessions' work. `git show --stat --format= <hash>` for each commit of this step must list no `mobile/` or `backend/` path. Only if one does, revert that part and prove the baseline still holds with its own commands, one at a time after the RAM guard and never while a `next build` runs: `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter analyze` (baseline: No issues found), `cd mobile && /srv/manhwamaniacs/dev/flutter/bin/flutter test` (baseline: all 2012 tests passed) and `cd backend && .venv/bin/python -m pytest -q --no-header`.
 
 ## Report back
 
