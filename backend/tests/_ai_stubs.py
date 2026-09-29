@@ -101,6 +101,7 @@ class FakeAniList:
         self.trending: dict[str, list[dict]] = {}
         self.down = False
         self.calls = 0
+        self.trending_vars: list[dict] = []
 
     def handler(self, request: httpx.Request) -> httpx.Response:
         self.calls += 1
@@ -115,6 +116,7 @@ class FakeAniList:
                     return httpx.Response(404, json={"errors": [{"message": "Not Found."}]})
                 return httpx.Response(200, json={"data": {"Media": found}})
             if "formats" in variables:
+                self.trending_vars.append(variables)
                 country = variables.get("country")
                 fmt = "novel" if variables["formats"] == ["NOVEL"] else {
                     "KR": "manhwa", "JP": "manga", "CN": "manhua"}[country]

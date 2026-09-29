@@ -141,6 +141,16 @@ def test_catalog_seeds_are_gated_and_available_first(client, as_user, acct, anil
     assert [i["title"] for i in open_["seeds"]] == ["Here On Alpha", "Adult Title", "Nowhere"]
 
 
+def test_an_open_gate_leaves_the_adult_filter_out_of_the_query(client, as_user, acct, anilist, genres):
+    """AniList reads ``isAdult: null`` as "not adult", so the variable is omitted."""
+    anilist.trending["manhwa"] = [media(41, "Actiony")]
+    catalog(client, as_user, acct, 2, formats="manhwa", genres="Action")
+    assert anilist.trending_vars and all("adult" not in v for v in anilist.trending_vars)
+    anilist.trending_vars.clear()
+    catalog(client, as_user, acct, 1, formats="manga")
+    assert anilist.trending_vars and all(v["adult"] is False for v in anilist.trending_vars)
+
+
 def test_catalog_genre_filter_and_all_formats(client, as_user, acct, anilist, genres):
     anilist.trending["manhwa"] = [media(41, "Actiony", genres=("Action",)), media(42, "Romcom", genres=("Romance",))]
     anilist.trending["novel"] = [media(43, "Nov", fmt="NOVEL", country="JP")]

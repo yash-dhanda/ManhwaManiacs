@@ -88,13 +88,20 @@ _RECS_QUERY = (
     "{nodes{rating mediaRecommendation{" + _MEDIA_FIELDS + "}}}}}"
 )
 
-_TRENDING_QUERY = (
-    "query($country:CountryCode,$formats:[MediaFormat],$genres:[String],$adult:Boolean)"
-    "{Page(perPage:24){media(type:MANGA,sort:TRENDING_DESC,isAdult:$adult,"
-    "countryOfOrigin:$country,format_in:$formats,genre_in:$genres){"
-    + _MEDIA_FIELDS
-    + "}}}"
-)
+def _trending_query(adult_filter: bool) -> str:
+    # AniList treats ``isAdult: null`` as "not adult" too, so the filter is
+    # left out of the query entirely when adult entries are wanted.
+    return (
+        "query($country:CountryCode,$formats:[MediaFormat],$genres:[String]"
+        + (",$adult:Boolean)" if adult_filter else ")")
+        + "{Page(perPage:24){media(type:MANGA,sort:TRENDING_DESC,"
+        + ("isAdult:$adult," if adult_filter else "")
+        + "countryOfOrigin:$country,format_in:$formats,genre_in:$genres){"
+        + _MEDIA_FIELDS
+        + "}}}"
+    )
+
+
 #: Onboarding format -> (AniList country, AniList formats).
 TRENDING_FORMATS: dict[str, tuple[str | None, list[str]]] = {
     "manhwa": ("KR", ["MANGA", "ONE_SHOT"]),
@@ -318,7 +325,8 @@ class WorldCatalog:
     @staticmethod
     def _anilist_page(client: httpx.Client, args: dict[str, Any]) -> Any:
         response = client.post(
-            ANILIST_URL, json={"query": _TRENDING_QUERY, "variables": args}
+            ANILIST_URL,
+            json={"query": _trending_query("adult" in args), "variables": args},
         )
         response.raise_for_status()
         return response.json()["data"]["Page"]["media"] or []
@@ -337,8 +345,9 @@ class WorldCatalog:
             "country": country,
             "formats": formats,
             "genres": names or None,
-            "adult": None if adult else False,
         }
+        if not adult:
+            args["adult"] = False
         return self._lookup({key: args}, self._anilist_page, TRENDING_TTL).get(key) or []
 
     # --- MangaUpdates -----------------------------------------------------
