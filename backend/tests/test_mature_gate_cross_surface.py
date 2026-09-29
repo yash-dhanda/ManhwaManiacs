@@ -956,6 +956,8 @@ WALKED_HERE = (
         "/library/collections",
         "/library/collections/{collection_id}",
         "/library/recommendations",
+        # walked by tests/test_home_feed.py::test_gate_change_recomposes_...
+        "/home",
         "/library/annual",
         "/library/statistics",
         "/library/tags",
