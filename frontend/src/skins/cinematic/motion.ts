@@ -103,6 +103,13 @@ const DEFS: Partial<Record<CineMotionName, Def>> = {
   paddlePage: { ms: durMs.irisOut, ease: ease.turn, from: {}, to: {} },
   ruleSlide: { ms: durMs.column, ease: settle, from: {}, to: {} },
   slate: { ms: durMs.column, ease: settle, from: {}, to: {} },
+  // web/05 overlay moves (CSS classes in motion.css carry the visuals; play() is for JS-driven callers and the recorder)
+  insert: { ms: durMs.column, ease: settle, from: { clipPath: "inset(0 0 100% 0)" }, to: { clipPath: "inset(0 0 0% 0)" } },
+  rise: { ms: durMs.rise, ease: settle, from: { opacity: 0, y: 24 }, to: { opacity: 1, y: 0 } },
+  panel: { ms: durMs.column, ease: settle, from: { x: "100%" }, to: { x: "0%" } },
+  arm: { ms: durMs.arm, ease: ease.linear, from: { scaleX: 0 }, to: { scaleX: 1 } },
+  lightbox: { ms: durMs.spread, ease: ease.turn, from: {}, to: {} },
+  folioFlip: { ms: durMs.tick, ease: ease.set, from: { y: "100%", opacity: 0 }, to: { y: "0%", opacity: 1 } },
 };
 
 /**

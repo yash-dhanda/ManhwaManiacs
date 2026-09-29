@@ -73,3 +73,84 @@ html[data-motion="reduced"] .cine-zoom, html[data-motion="reduced"] .cine-zoom:h
 @keyframes slug-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 @keyframes cine-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---- web/05 overlay moves (§4.5). Base UI sets data-starting-style / data-ending-style on popups and backdrops. ---- */
+.cine-barrier { position: fixed; inset: 0; background: var(--mm-scrim-modal); opacity: 1; transition: opacity var(--mm-dur-line) linear; }
+.cine-barrier[data-starting-style], .cine-barrier[data-ending-style] { opacity: 0; }
+.cine-barrier--insert { transition-duration: var(--mm-dur-clip); }
+/* Insert (dialogs): clip-path inset from the top, 320 ms settle in; 160 ms fade out. */
+.cine-insert { clip-path: inset(0 0 0 0); opacity: 1; transition: clip-path var(--mm-dur-column) var(--mm-ease-settle), opacity var(--mm-dur-beat) var(--mm-ease-lift); }
+.cine-insert[data-starting-style] { clip-path: inset(0 0 100% 0); }
+.cine-insert[data-ending-style] { opacity: 0; clip-path: inset(0 0 0 0); }
+/* Rise (sheets): 360 ms settle in, translate 24 px + fade; 240 ms lift out. */
+.cine-rise { opacity: 1; transform: translateY(var(--cine-drag-y, 0px)); transition: opacity var(--mm-dur-rise) var(--mm-ease-settle), transform var(--mm-dur-rise) var(--mm-ease-settle); }
+.cine-rise[data-starting-style] { opacity: 0; transform: translateY(24px); }
+.cine-rise[data-ending-style] { opacity: 0; transform: translateY(24px); transition-duration: var(--mm-dur-line); transition-timing-function: var(--mm-ease-lift); }
+.cine-rise[data-dragging] { transition: none; }
+/* Panel (desktop column panels): slide from the right 320 ms settle; out 224 ms lift. */
+.cine-panel { transform: translateX(0); transition: transform var(--mm-dur-column) var(--mm-ease-settle); }
+.cine-panel[data-starting-style] { transform: translateX(100%); }
+.cine-panel[data-ending-style] { transform: translateX(100%); transition-duration: var(--mm-dur-page-out); transition-timing-function: var(--mm-ease-lift); }
+/* Menu clip reveal from the anchored edge (--cine-menu-origin), 200 ms settle; 120 ms fade out. */
+.cine-menu { clip-path: inset(0 0 0 0); opacity: 1; transition: clip-path var(--mm-dur-clip) var(--mm-ease-settle), opacity var(--mm-dur-snap) linear; }
+.cine-menu[data-starting-style] { clip-path: inset(0 0 100% 0); }
+.cine-menu[data-side="top"][data-starting-style] { clip-path: inset(100% 0 0 0); }
+.cine-menu[data-ending-style] { opacity: 0; }
+/* Toast: fade + 8 px rise 240 ms settle; out fade 160 ms lift. */
+/* Sonner stack: push 240 ms ease.set, exit fade 160 ms ease.lift (sonner defaults to 400 ms ease). */
+[data-sonner-toaster] [data-sonner-toast] { transition: transform var(--mm-dur-line) var(--mm-ease-set), opacity var(--mm-dur-beat) var(--mm-ease-lift), height var(--mm-dur-line) var(--mm-ease-set), box-shadow var(--mm-dur-beat) var(--mm-ease-set); }
+[data-sonner-toaster] [data-sonner-toast][data-removed="true"] { transition: transform var(--mm-dur-line) var(--mm-ease-set), opacity var(--mm-dur-beat) var(--mm-ease-lift), height var(--mm-dur-line) var(--mm-ease-set); }
+.cine-toast { animation: cine-toast-in var(--mm-dur-line) var(--mm-ease-settle) both; }
+@keyframes cine-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+/* Arm rule (§7.10): 2 px proof rule fills left to right over 1000 ms linear. */
+.cine-arm-rule { transform-origin: left; transform: scaleX(0); }
+.cine-arm-rule[data-arming="true"] { transform: scaleX(1); transition: transform var(--mm-dur-arm) linear; }
+.cine-arm-rule[data-armed="true"] { transform: scaleX(1); }
+/* Folio flip digits (§4.5): 80 ms set, 40 ms apart via --i. */
+.cine-flip-in { animation: cine-flip-in var(--mm-dur-tick) var(--mm-ease-set) both; animation-delay: calc(var(--i, 0) * 40ms); }
+.cine-flip-out { animation: cine-flip-out var(--mm-dur-tick) var(--mm-ease-set) both; animation-delay: calc(var(--i, 0) * 40ms); }
+@keyframes cine-flip-in { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes cine-flip-out { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-100%); opacity: 0; } }
+
+/* Reduced motion (§4.8): every overlay is an opacity change of 150 ms; the arm rule appears full at 1000 ms. */
+@media (prefers-reduced-motion: reduce) {
+  .cine-barrier, .cine-barrier--insert { transition-duration: var(--mm-dur-reduced); }
+  .cine-insert, .cine-rise, .cine-panel, .cine-menu { clip-path: none !important; transform: none !important; transition: opacity var(--mm-dur-reduced) linear !important; }
+  .cine-panel[data-starting-style], .cine-panel[data-ending-style], .cine-insert[data-starting-style], .cine-rise[data-starting-style], .cine-rise[data-ending-style], .cine-menu[data-starting-style] { opacity: 0; }
+  .cine-toast { animation: cine-fade var(--mm-dur-reduced) linear both; }
+  [data-sonner-toaster] [data-sonner-toast], [data-sonner-toaster] [data-sonner-toast][data-removed="true"] { transition: opacity var(--mm-dur-reduced) linear, transform 0s, height 0s; }
+  .cine-arm-rule[data-arming="true"] { transform: scaleX(0); transition: none; }
+  .cine-flip-in, .cine-flip-out { animation: none; }
+  .cine-flip-out { display: none; }
+}
+html[data-motion="reduced"] .cine-barrier, html[data-motion="reduced"] .cine-barrier--insert { transition-duration: var(--mm-dur-reduced); }
+html[data-motion="reduced"] .cine-insert, html[data-motion="reduced"] .cine-rise, html[data-motion="reduced"] .cine-panel, html[data-motion="reduced"] .cine-menu { clip-path: none !important; transform: none !important; transition: opacity var(--mm-dur-reduced) linear !important; }
+html[data-motion="reduced"] .cine-panel[data-starting-style], html[data-motion="reduced"] .cine-panel[data-ending-style], html[data-motion="reduced"] .cine-insert[data-starting-style], html[data-motion="reduced"] .cine-rise[data-starting-style], html[data-motion="reduced"] .cine-rise[data-ending-style], html[data-motion="reduced"] .cine-menu[data-starting-style] { opacity: 0; }
+html[data-motion="reduced"] .cine-toast { animation: cine-fade var(--mm-dur-reduced) linear both; }
+html[data-motion="reduced"] [data-sonner-toaster] [data-sonner-toast], html[data-motion="reduced"] [data-sonner-toaster] [data-sonner-toast][data-removed="true"] { transition: opacity var(--mm-dur-reduced) linear, transform 0s, height 0s; }
+html[data-motion="reduced"] .cine-arm-rule[data-arming="true"] { transform: scaleX(0); transition: none; }
+html[data-motion="reduced"] .cine-flip-in, html[data-motion="reduced"] .cine-flip-out { animation: none; }
+html[data-motion="reduced"] .cine-flip-out { display: none; }
+
+/* §7.20 slider thumb: 2 x 20 bar; hover 2 x 24 (80 ms); dragging 3 x 28; release returns on spring.scrub. */
+.cine-thumb-bar { width: 2px; height: 20px; transition: width var(--mm-dur-tick) linear, height var(--mm-dur-tick) linear; }
+.cine-thumb:hover .cine-thumb-bar { height: 24px; }
+.cine-thumb[data-dragging] .cine-thumb-bar { width: 3px; height: 28px; }
+.cine-thumb:not([data-dragging]) .cine-thumb-bar { transition: width var(--mm-spring-scrub-ms) var(--mm-spring-scrub), height var(--mm-spring-scrub-ms) var(--mm-spring-scrub); }
+
+.cine-fadein { animation: cine-fade var(--mm-dur-line) linear both; }
+.cine-fadein-fast { animation: cine-fade var(--mm-dur-reduced) linear both; }
+@media (prefers-reduced-motion: reduce) { .cine-fadein { animation-duration: var(--mm-dur-reduced); } }
+html[data-motion="reduced"] .cine-fadein { animation-duration: var(--mm-dur-reduced); }
+
+/* Contents tabs (§7.12): the pager shows inactive panels while swiping; reduced motion fades the indicator instead of sliding. */
+.cine-pager > [hidden] { display: block !important; }
+.cine-pager::-webkit-scrollbar { display: none; }
+@media (prefers-reduced-motion: reduce) { .cine-tab-indicator { animation: cine-fade var(--mm-dur-reduced) linear both; } .cine-pager { scroll-behavior: auto; } }
+html[data-motion="reduced"] .cine-tab-indicator { animation: cine-fade var(--mm-dur-reduced) linear both; }
+
+/* §7.24 Stamp: fill proof 160 ms, the 18 knocks out to black, then back to the outline. */
+.cine-certificate { transition: background-color var(--mm-dur-beat) linear, color var(--mm-dur-beat) linear; }
+.cine-certificate[data-stamped] { background-color: var(--mm-color-proof); color: #000; }
+@media (prefers-reduced-motion: reduce) { .cine-certificate { transition: none; } }
+html[data-motion="reduced"] .cine-certificate { transition: none; }

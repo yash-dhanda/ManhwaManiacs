@@ -4,7 +4,10 @@ import path from "node:path";
 import { open } from "./gallery";
 
 const OUT = path.resolve(__dirname, "../../../docs/redesign/proof/web-04/states");
+// web/05 controls (data-gallery="w5-...") write to their own proof folder; overlay triggers skip the pressed step so nothing opens.
+const OUT5 = path.resolve(__dirname, "../../../docs/redesign/proof/web-05/states");
 mkdirSync(OUT, { recursive: true });
+mkdirSync(OUT5, { recursive: true });
 
 test("states at 1440x900: default, hover, focus-visible, pressed", async ({ page }) => {
   test.setTimeout(240_000);
@@ -15,7 +18,7 @@ test("states at 1440x900: default, hover, focus-visible, pressed", async ({ page
     const el = page.locator(`[data-gallery="${id}"]`).first();
     await el.scrollIntoViewIfNeeded();
     await page.waitForTimeout(80);
-    const shot = (s: string) => el.screenshot({ path: path.join(OUT, `${id}-${s}.png`) }).catch(() => undefined);
+    const shot = (s: string) => el.screenshot({ path: path.join(id.startsWith("w5-") ? OUT5 : OUT, `${id}-${s}.png`) }).catch(() => undefined);
     await shot("default");
     await el.hover(); await shot("hover");
     await page.mouse.move(0, 0);
@@ -38,7 +41,8 @@ test("states at 1440x900: default, hover, focus-visible, pressed", async ({ page
     await shot("focus");
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     const box = await el.boundingBox();
-    if (box) { await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await shot("pressed"); await page.mouse.up(); }
+    if (box && !/^w5-(trigger-|lightbox|quicklook|context|menu|select$|certificate)/.test(id)) { await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await shot("pressed"); await page.mouse.up(); }
+    await page.keyboard.press("Escape");
   }
 });
 
