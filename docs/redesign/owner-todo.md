@@ -42,3 +42,4 @@ Items only the owner can do, by step.
 ## web/26 (Glass primitives 1)
 - Device check: touch lift (150/450 ms), throw and magnet on a real phone; the software raster in the harness cannot show frame cost. Record the motion-timings overlay (Press swell, Content sink, Tab droplet, Hold fill, Liquid fill, Count pop, Wave, Letter reveal, Typing reveal) on the 3090 Ti desktop at 1440 x 900.
 - iOS Safari: the bottom search field's visualViewport offset (`--vv-h`, `--vv-top`) needs an iPhone.
+- web/26: read the motion-timings overlay on a GPU browser at 1440x900 (headless run here was software raster; dropped-frame counts in docs/redesign/proof/web-26/report.md are an upper bound).

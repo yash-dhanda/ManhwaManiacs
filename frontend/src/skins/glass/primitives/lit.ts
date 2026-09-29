@@ -30,18 +30,23 @@ function check() {
   } else warned = false;
 }
 
+/** Registers a lit object; returns the unregister function. The check runs after layout and past StrictMode's mount/unmount/mount. */
+export function registerLit(el: () => HTMLElement | null, overlay = false): () => void {
+  const e: Entry = { el, overlay };
+  entries.add(e);
+  emit();
+  const t = setTimeout(check, 0);
+  return () => { clearTimeout(t); entries.delete(e); emit(); };
+}
+
 export function useLit(el: () => HTMLElement | null, overlay = false, active = true): { suppressed: boolean } {
-  useEffect(() => {
-    if (!active) return;
-    const e: Entry = { el, overlay };
-    entries.add(e);
-    emit();
-    const t = setTimeout(check, 0); // after layout, and past StrictMode's mount/unmount/mount
-    return () => { clearTimeout(t); entries.delete(e); emit(); };
-  }, [el, overlay, active]);
+  useEffect(() => (active ? registerLit(el, overlay) : undefined), [el, overlay, active]);
   const suppressed = useSyncExternalStore((cb) => (subs.add(cb), () => void subs.delete(cb)), () => suppressors > 0, () => false);
   return { suppressed: suppressed && !overlay };
 }
+
+/** test hook */
+export const isSuppressed = () => suppressors > 0;
 
 /** Called by sheets and alerts; returns the release function. */
 export function suppressLit(): () => void {

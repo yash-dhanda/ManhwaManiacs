@@ -14,3 +14,24 @@ Screenshots (`<section>` in buttons, hold, icon-buttons, inputs, search, chips, 
 
 Playwright: `glass-reveals.spec.ts` 6 tests and `glass-primitives.spec.ts` 5 tests pass against `next dev` on :3033.
 Deviations: `glass/DESIGN.md` wins where the prompt differs; the grid columns (6 at 1440, 8 at 1920) hold with the expanded sidebar.
+
+## Verification figures (fix pass 1)
+
+Vitest: full suite 3021 tests in 188 files, all green (before this pass 3013 of 3017 in 187 files: four appearance-boot cases failed because the fake document recorded web/25's `data-glass-renderer`; the test now ignores that attribute). New: `lit.test.ts` (two visible lit objects give one console.warn, overlay and hidden objects stay quiet, suppressLit release counting, the 180 ms caustic fade rule). `tsc --noEmit` clean, `eslint` clean, `npm run build` passes. There is no design-check script in this tree. Playwright: `glass-primitives.spec.ts` 7 tests (adds the dragged segmented thumb cursor, `grab` then `grabbing`, and the error spring-back) and `glass-reveals.spec.ts` 6 tests pass (the key-press test now waits for `data-typing="run"`). `free -m` at build time: 31686 total, 16989 used, 13178 free, 14697 available.
+
+Item A: `suppressLit()` keeps the caustic mounted (`data-suppressed`) and fades `--caustic-a` to 0 over 180 ms while the button drops to the regular finish. Item G: Segmented `error` springs the thumb back to the previous segment on the `countPop` (tick spring) move; gallery case `seg-error`.
+
+## Motion-timings log at 1440x900 (headless Chromium, software raster, overlay's console.table capture)
+
+| Move | planned ms | runs | actual ms (min/median/max) | dropped frames |
+|---|---|---|---|---|
+| Press swell | 253 | 11 | 3 / 5 / 360 | 4 of 50 |
+| Content sink | 253 | 11 | 158 / 218 / 683 | 5 of 125 |
+| Tab droplet | 518 | 22 | 1 / 714 / 1200 | 9 of 600 |
+| Liquid fill | 467 | 78 | 1 / 183 / 487 | 15 of 388 |
+| Count pop | 289 | 2 | 11 / 11 / 11 | 0 |
+| Wave | 431 | 14 | 358 / 776 / 889 | 25 of 579 |
+| Hold fill | 1200 | not logged | rAF-driven by the hold clock, not a `play()` move | n/a |
+| Letter reveal, Typing reveal | 345 / 50 per grapheme | not logged | CSS and interval driven, not `play()` moves | n/a |
+
+Letter and typing reveal, sampled by rAF over 200 frames on load: 7 frames over 25 ms, max 33 ms. The dropped counts above come from a software-rasterised headless run (no GPU), so they are an upper bound: every move that shows drops here is a software-raster-only move (Press swell, Content sink, Tab droplet, Liquid fill, Wave, Specular sweep 19 of 141). Hardware figures are an owner item.

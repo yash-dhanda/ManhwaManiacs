@@ -89,6 +89,16 @@ export function Segmented({ options, value, onChange, as = "radio", orientation 
     return () => { a.stop(); b.stop(); };
   }, [idx, edges, widths, pos, size, write]);
 
+  // error: the thumb springs back to the segment it left, on `tick`
+  const prev = useRef({ cur: idx, before: idx });
+  useLayoutEffect(() => { if (prev.current.cur !== idx) prev.current = { cur: idx, before: prev.current.cur }; }, [idx]);
+  useEffect(() => {
+    if (!error || prev.current.before === prev.current.cur) return;
+    const a = play("countPop", pos, edges[prev.current.before] ?? 0);
+    const b = play("countPop", size, widths[prev.current.before] ?? 0);
+    return () => { a.stop(); b.stop(); };
+  }, [error, edges, widths, pos, size]);
+
   const select = (i: number) => { if (i !== idx && !options[i].disabled) { haptic("select"); onChange(options[i].value); } };
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
     if (disabled || loading) return;

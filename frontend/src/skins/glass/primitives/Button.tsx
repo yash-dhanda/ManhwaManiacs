@@ -116,7 +116,7 @@ export function Button({ variant = "secondary", size = "M", label, icon, selecte
       )}
     </button>
   );
-  const wrapped = tinted && overContent ? <CausticWrap pressed={p.pressed} className="g-btn-wrap">{button}</CausticWrap> : button;
+  const wrapped = variant === "primary" && overContent ? <CausticWrap pressed={p.pressed} suppressed={lit.suppressed} className="g-btn-wrap">{button}</CausticWrap> : button;
   void onTint;
   return <Tooltip label={reason} disabled={!reason}>{wrapped}</Tooltip>;
 }

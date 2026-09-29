@@ -35,7 +35,7 @@ test("pointerdown completes the typing", async ({ page }) => {
 
 test("a key press with focus on body completes the typing", async ({ page }) => {
   await page.goto(URL, { waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(150);
+  await expect(page.getByTestId("typed-greeting")).toHaveAttribute("data-typing", "run"); // hydrated: the keydown listener is registered
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await page.keyboard.press("x");
   await expect(page.getByTestId("typed-greeting")).toHaveClass(/is-done/);

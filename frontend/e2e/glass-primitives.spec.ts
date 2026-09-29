@@ -40,6 +40,31 @@ test.describe("desktop behaviour", () => {
     expect(await c("cur-all-scroll")).toBe("all-scroll");
   });
 
+  test("segmented thumb cursor: grab at rest, grabbing while dragged", async ({ page }) => {
+    await page.goto(`${G}?section=segmented`, { waitUntil: "networkidle" });
+    const thumb = page.getByTestId("seg-4").first().locator(".g-seg__thumb");
+    const cur = () => thumb.evaluate((e) => getComputedStyle(e).cursor);
+    expect(await cur()).toBe("grab");
+    const b = (await thumb.boundingBox())!;
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(b.x + b.width / 2 + 40, b.y + b.height / 2, { steps: 5 });
+    await expect(thumb).toHaveAttribute("data-dragging", "");
+    expect(await cur()).toBe("grabbing");
+    await page.mouse.up();
+  });
+
+  test("segmented error springs the thumb back", async ({ page }) => {
+    await page.goto(`${G}?section=segmented`, { waitUntil: "networkidle" });
+    const seg = page.getByTestId("seg-error").first();
+    const thumb = seg.locator(".g-seg__thumb");
+    const x0 = (await thumb.boundingBox())!.x;
+    await seg.getByRole("radio").nth(1).click();
+    await expect(seg).toHaveAttribute("data-error", "");
+    await page.waitForTimeout(900);
+    expect(Math.abs((await thumb.boundingBox())!.x - x0)).toBeLessThan(2);
+  });
+
   test("hold to confirm", async ({ page }) => {
     await page.goto(`${G}?section=hold`, { waitUntil: "networkidle" });
     const btn = page.getByTestId("hold-standalone").first();

@@ -228,6 +228,7 @@ html[data-motion="reduced"] .glass[data-materialize="out"] > :is(.glass__bg, .gl
  * ------------------------------------------------------------------------- */
 .caustic { position: relative; --caustic-a: var(--mm-caustic-alpha, 0.14); transition: --caustic-a var(--mm-dur-glow-out, 60ms) linear; }
 .caustic[data-pressed="on"] { --caustic-a: var(--mm-caustic-alpha-pressed, 0.22); transition-duration: var(--mm-dur-glow-in, 150ms); }
+.caustic[data-suppressed] { --caustic-a: 0 !important; transition: --caustic-a 180ms linear; }
 .caustic::before {
   content: "";
   position: absolute;

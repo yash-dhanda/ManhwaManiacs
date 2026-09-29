@@ -183,6 +183,15 @@ export function ChipsSection() {
   );
 }
 
+function SegmentedError() {
+  const [v, setV] = useState("a");
+  const [err, setErr] = useState(false);
+  return (
+    <Segmented label="Failing save" error={err} options={[{ value: "a", label: "Public" }, { value: "b", label: "Private" }]} value={v} data-testid="seg-error"
+      onChange={(n) => { setV(n); setErr(true); setTimeout(() => { setV("a"); setErr(false); }, 1200); }} />
+  );
+}
+
 export function SegmentedSection() {
   const [v, setV] = useState("a");
   const [s, setS] = useState("all");
@@ -192,6 +201,7 @@ export function SegmentedSection() {
       <Row label="4 segments (radiogroup)"><Segmented label="Density" options={[{ value: "a", label: "Cozy" }, { value: "b", label: "Compact" }, { value: "c", label: "List" }, { value: "d", label: "Tiny" }]} value={v} onChange={setV} data-testid="seg-4" /></Row>
       <Row label="tabs, compact"><Segmented label="Panels" as="tabs" compact options={[{ value: "a", label: "Chapters" }, { value: "b", label: "About" }, { value: "c", label: "Notes" }]} value={v} onChange={setV} /></Row>
       <Row label="states"><Segmented label="Loading" loading options={[{ value: "a", label: "One" }, { value: "b", label: "Two" }]} value="a" onChange={() => {}} /><Segmented label="Disabled" disabled options={[{ value: "a", label: "One" }, { value: "b", label: "Two" }]} value="a" onChange={() => {}} /></Row>
+      <Row label="error (thumb springs back on tick)"><SegmentedError /></Row>
       <Row label="dragging (glass shown)"><Segmented label="Dragging" forceDragging options={[{ value: "a", label: "One" }, { value: "b", label: "Two" }, { value: "c", label: "Three" }]} value="b" onChange={() => {}} /></Row>
       <Row label="vertical scopes (220 px column)"><Segmented label="Scope" orientation="vertical" options={[{ value: "all", label: "Everything" }, { value: "series", label: "Series" }, { value: "sources", label: "Sources" }, { value: "dialogue", label: "Dialogue" }]} value={s} onChange={setS} data-testid="seg-vertical" /></Row>
     </Grounds>
