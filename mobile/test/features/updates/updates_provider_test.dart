@@ -131,6 +131,14 @@ class _FakeUpdatesRepository implements UpdatesRepository {
 /// `UpdatesNotifier` drives — the "trackers" cache is now just the followed
 /// series list from `GET /library/series`.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   _FakeLibraryRepository({this.followed = const []});
 
   List<FollowedSeries> followed;
@@ -197,7 +205,7 @@ class _FakeLibraryRepository implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) =>
       throw UnimplementedError();

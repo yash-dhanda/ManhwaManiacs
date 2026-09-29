@@ -115,6 +115,14 @@ UpdateNotification _notification({
 /// everything else throws so an unexpected call fails loudly instead of
 /// silently returning empty data.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   /// Followed ids passed to [unfollow], in call order.
   final List<int> unfollowed = [];
 
@@ -159,7 +167,7 @@ class _FakeLibraryRepository implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) async {
     lastPatch =

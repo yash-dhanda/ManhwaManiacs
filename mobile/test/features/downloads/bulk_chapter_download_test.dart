@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
@@ -53,6 +54,12 @@ class _RecordingQueue extends DownloadQueueController {
 }
 
 class _FakeSourcesRepository implements SourcesRepository {
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   _FakeSourcesRepository(this.chapters);
 
   final List<SourceChapterSummary> chapters;

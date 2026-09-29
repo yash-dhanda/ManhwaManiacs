@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
@@ -38,6 +39,12 @@ import '../../support/test_overrides.dart';
 /// remaining methods throw so a stray call surfaces loudly rather than passing
 /// silently with empty data.
 class _FakeSourcesRepository implements SourcesRepository {
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   _FakeSourcesRepository(this.series, this.chapters);
 
   final SourceSeriesSummary series;
@@ -103,6 +110,14 @@ class _FakeSourcesRepository implements SourcesRepository {
 /// `UpdatesNotifier`'s followed-series cache, which
 /// [SeriesFollowButton] reads via `followedFor` to decide Follow vs Unfollow.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   _FakeLibraryRepository({List<FollowedSeries> followed = const []})
       : _followed = followed;
 
@@ -177,7 +192,7 @@ class _FakeLibraryRepository implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) =>
       throw UnimplementedError();

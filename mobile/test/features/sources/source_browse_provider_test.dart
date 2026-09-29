@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
@@ -21,6 +22,12 @@ SourceSeriesSummary _series(String id, {String title = 'Series'}) {
 }
 
 class _FakeSourcesRepository implements SourcesRepository {
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   _FakeSourcesRepository(this.pagesByQuery);
 
   /// Keyed by "query|sort|page" so tests can assert exactly which page was

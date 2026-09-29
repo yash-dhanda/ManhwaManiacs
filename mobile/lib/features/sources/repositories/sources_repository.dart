@@ -1,6 +1,7 @@
-﻿import 'package:manhwamaniacs/core/utils/pagination.dart';
+import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
@@ -48,5 +49,12 @@ abstract interface class SourcesRepository {
     String sourceId,
     String seriesId,
     String chapterId,
+  );
+
+  /// `GET /series/enrichment?source=&series=`: the AniList credits block, or
+  /// `null` (as `Ok(null)`) when there is no confident match.
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
   );
 }
