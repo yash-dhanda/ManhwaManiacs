@@ -45,10 +45,10 @@ export const resetEntranceSeen = () => seenLists.clear();
 export function useEntrance(listKey: string, { hadSkeleton = false, refetched = false }: { hadSkeleton?: boolean; refetched?: boolean } = {}): Entrance {
   const pathname = usePathname() ?? "";
   const key = `${pathname}:${listKey}`;
-  const [decision] = useState<Entrance>(() => {
-    const d = decideEntrance(seenLists.has(key), hadSkeleton || refetched);
-    return d;
-  });
+  // Frozen at first render; a later refetch, append or pull (flag flips on) upgrades the same mounted list to "dissolve".
+  const flag = hadSkeleton || refetched;
+  const [first] = useState(() => ({ flag, d: decideEntrance(seenLists.has(key), flag) }));
+  const decision: Entrance = flag && !first.flag ? "dissolve" : first.d;
   useEffect(() => { seenLists.add(key); }, [key]);
   return decision;
 }
@@ -95,14 +95,14 @@ export type PlayOpts = { delayMs?: number; from?: DOMKeyframesDefinition; to?: D
 type Def = { ms: number; ease: readonly number[] | string; from: DOMKeyframesDefinition; to: DOMKeyframesDefinition; repeat?: boolean };
 const settle = ease.settle;
 const DEFS: Partial<Record<CineMotionName, Def>> = {
-  set: { ms: 320, ease: settle, from: { opacity: 0, y: 8 }, to: { opacity: 1, y: 0 } },
-  ruleDraw: { ms: 480, ease: settle, from: { scaleX: 0 }, to: { scaleX: 1 } },
-  rackFocus: { ms: 520, ease: settle, from: { opacity: 0, filter: "blur(14px) brightness(0.6)", scale: 1.03 }, to: { opacity: 1, filter: "blur(0px) brightness(1)", scale: 1 } },
-  develop: { ms: 520, ease: settle, from: { opacity: 0, filter: "brightness(0.6)", scale: 1.03 }, to: { opacity: 1, filter: "brightness(1)", scale: 1 } },
-  dissolve: { ms: 160, ease: settle, from: { opacity: 0 }, to: { opacity: 1 } },
-  paddlePage: { ms: 560, ease: ease.turn, from: {}, to: {} },
-  ruleSlide: { ms: 320, ease: settle, from: {}, to: {} },
-  slate: { ms: 320, ease: settle, from: {}, to: {} },
+  set: { ms: durMs.column, ease: settle, from: { opacity: 0, y: 8 }, to: { opacity: 1, y: 0 } },
+  ruleDraw: { ms: durMs.spread, ease: settle, from: { scaleX: 0 }, to: { scaleX: 1 } },
+  rackFocus: { ms: durMs.rack, ease: settle, from: { opacity: 0, filter: "blur(14px) brightness(0.6)", scale: 1.03 }, to: { opacity: 1, filter: "blur(0px) brightness(1)", scale: 1 } },
+  develop: { ms: durMs.rack, ease: settle, from: { opacity: 0, filter: "brightness(0.6)", scale: 1.03 }, to: { opacity: 1, filter: "brightness(1)", scale: 1 } },
+  dissolve: { ms: durMs.beat, ease: settle, from: { opacity: 0 }, to: { opacity: 1 } },
+  paddlePage: { ms: durMs.irisOut, ease: ease.turn, from: {}, to: {} },
+  ruleSlide: { ms: durMs.column, ease: settle, from: {}, to: {} },
+  slate: { ms: durMs.column, ease: settle, from: {}, to: {} },
 };
 
 /**

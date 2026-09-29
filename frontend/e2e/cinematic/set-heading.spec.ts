@@ -6,18 +6,27 @@ const opacity = (l: import("@playwright/test").Locator) => l.evaluate((e) => Num
 
 test("letters stagger in, then rest at 1", async ({ page }) => {
   await open(page);
-  await page.locator("#reveals").scrollIntoViewIfNeeded();
-  // sample inside the page so click and 200 ms probe share one clock
+  await replay(page); // warm the page so the timed run is not a cold start
+  await page.waitForTimeout(1500);
+  // sample from the moment the new heading mounts, inside the page, so click latency cannot leak in
   const at200 = await page.evaluate(() => new Promise<{ first: number; last: number }>((res) => {
+    const sel = '[data-testid="reveal-library"] .set-letter';
+    const before = document.querySelector(sel);
+    const mo = new MutationObserver(() => {
+      const first = document.querySelector(sel);
+      if (!first || first === before) return;
+      mo.disconnect();
+      setTimeout(() => {
+        const l = document.querySelectorAll(sel);
+        res({ first: Number(getComputedStyle(l[0]).opacity), last: Number(getComputedStyle(l[l.length - 1]).opacity) });
+      }, 200);
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
     (document.querySelector('[data-gallery="reveals-replay"]') as HTMLElement).click();
-    setTimeout(() => {
-      const l = document.querySelectorAll('[data-testid="reveal-library"] .set-letter');
-      res({ first: Number(getComputedStyle(l[0]).opacity), last: Number(getComputedStyle(l[l.length - 1]).opacity) });
-    }, 200);
   }));
   expect(at200.first).toBeGreaterThan(0);
   expect(at200.first).toBeLessThan(1);
-  expect(at200.last).toBeLessThan(0.5);
+  expect(at200.last).toBe(0);
   await page.waitForTimeout(1200);
   const l = letters(page);
   for (let i = 0; i < (await l.count()); i++) expect(await opacity(l.nth(i))).toBe(1);

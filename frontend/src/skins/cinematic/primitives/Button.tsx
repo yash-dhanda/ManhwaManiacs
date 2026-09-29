@@ -81,7 +81,7 @@ export function Button({ variant = "primary", size = "md", children, icon, folio
         aria-label={accessible}
         aria-describedby={off && disabledReason ? reasonId : undefined}
         disabled={off && !disabledReason ? true : undefined}
-        data-gallery={rest["data-gallery"]}
+        data-gallery={rest["data-gallery"]} data-clickable={off ? undefined : ""}
         onClick={(e) => {
           if (off || loading) { e.preventDefault(); return; }
           if (variant === "primary" || variant === "split") { haptic("tap.primary"); playSound("tap.primary"); }
@@ -117,7 +117,7 @@ export function Button({ variant = "primary", size = "md", children, icon, folio
 }
 
 function PlayGlyph({ playing }: { playing: boolean }) {
-  return <Icon name={playing ? "pause" : "play"} size={24} filled className="" />;
+  return <Icon name={playing ? "pause" : "play"} size={28} filled className="" />;
 }
 
 function MaybeTip({ reason, children }: { reason?: string; children: React.ReactElement<Record<string, unknown>> }) {

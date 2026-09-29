@@ -151,7 +151,7 @@ export function Gallery() {
               <Poster title="Ember Ledger" src={COVER(2)} folio="NOT STARTED" href="#posters" data-gallery="poster-below" hoverIcons={{ favourite: false, notify: false, onFavourite: () => undefined, onNotify: () => undefined }} />
               <Poster title="Red Lantern Pact" src={COVER(4)} caption="ranked" rank={3} href="#posters" data-gallery="poster-ranked" />
               <Poster title="Dune Courier" src={COVER(5)} caption="wall" href="#posters" data-gallery="poster-wall" />
-              <Poster title="Copper Saints" src={COVER(6)} folio="UNAVAILABLE" disabled data-gallery="poster-disabled" />
+              <Poster title="Copper Saints" src={COVER(6)} disabled data-gallery="poster-disabled" />
               <Poster title="Moonlit Bakery" src={COVER(7)} folio="CH 12 OF 40" selectMode selected={sel} onSelect={() => setSel((s) => !s)} data-gallery="poster-select" />
               <Poster title="Loading title" loading src={null} folio="" data-gallery="poster-loading" />
               <Poster title="Broken cover" src="/gallery/covers/missing.webp" folio="CH 1" data-gallery="poster-error" />

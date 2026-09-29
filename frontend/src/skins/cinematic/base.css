@@ -26,10 +26,11 @@ html[data-contrast="more"][data-skin="cinematic"] { --mm-color-ink-45: var(--mm-
 @media (forced-colors: active) {
   [data-skin="cinematic"] :focus-visible { outline-color: CanvasText; box-shadow: none; }
   [data-skin="cinematic"] .cine-rule { background: CanvasText; border-color: CanvasText; }
-  [data-skin="cinematic"] .cine-outline { border-color: CanvasText; }
-  [data-skin="cinematic"] .cine-spot-fill { background: Highlight; color: HighlightText; forced-color-adjust: none; }
-  [data-skin="cinematic"] .cine-grain, [data-skin="cinematic"] .cine-scrim { display: none; }
-  [data-skin="cinematic"] .cine-duotone { filter: none; }
+  /* Selectors match what the components emit: Tailwind border-*, .bg-spot fills, scrim-* gradients, inline duotone filters. */
+  [data-skin="cinematic"] [class*="border-ink-"], [data-skin="cinematic"] [class*="border-rule-"] { border-color: CanvasText; }
+  [data-skin="cinematic"] .bg-spot, [data-skin="cinematic"] .bg-ink-100 { background: Highlight; color: HighlightText; forced-color-adjust: none; }
+  [data-skin="cinematic"] .cine-grain, [data-skin="cinematic"] [class*="scrim-"] { display: none; }
+  [data-skin="cinematic"] [style*="url(#duo-"] { filter: none !important; }
   [data-skin="cinematic"] img { forced-color-adjust: none; }
 }
 
@@ -45,6 +46,7 @@ html[data-contrast="more"][data-skin="cinematic"] { --mm-color-ink-45: var(--mm-
 [data-skin="cinematic"] .cine-poster:hover .cine-poster-face::after,
 [data-skin="cinematic"] .cine-poster:focus-within .cine-poster-face::after { box-shadow: inset 0 0 0 2px var(--mm-color-ink-100); }
 [data-skin="cinematic"] .cine-poster:hover .cine-poster-face { box-shadow: 0 0 48px -16px color-mix(in srgb, var(--amb-duo) 60%, transparent); }
+[data-skin="cinematic"] .cine-poster:hover .cine-poster-face:focus-visible { box-shadow: 0 0 0 6px #000, 0 0 48px -16px color-mix(in srgb, var(--amb-duo) 60%, transparent); }
 [data-skin="cinematic"] .cine-poster:hover .cine-zoom,
 [data-skin="cinematic"] .cine-poster:focus-within .cine-zoom { transform: scale(1.04); }
 [data-skin="cinematic"] .cine-poster-face:active { transform: scale(0.98); transition: transform 80ms var(--mm-ease-set); }

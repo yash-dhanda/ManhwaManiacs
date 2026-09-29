@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Ticket } from "@/features/sources/request-limiter";
-import { acquireCover, isLocalImage, refundIfCached, snapCoverWidth } from "./cover-gate";
+import { acquireCover, isLocalImage, needsGrant, refundIfCached, snapCoverWidth, timingKey } from "./cover-gate";
 
 const ticket: Ticket = { id: 1, priority: "P2" };
 
@@ -36,5 +36,16 @@ describe("cover gate", () => {
     expect(snapCoverWidth(300, 3)).toBe(720);
     expect(snapCoverWidth(1000, 3)).toBe(720);
     expect(snapCoverWidth(40, 1)).toBe(96);
+  });
+  it("looks resource timing up by the absolute URL", () => {
+    const keys: string[] = [];
+    refundIfCached({ refund: vi.fn() }, ticket, "/api/x/cover?w=160", (n) => { keys.push(n); return []; }, "http://h.test/lib");
+    expect(keys).toEqual(["http://h.test/api/x/cover?w=160"]);
+    expect(timingKey("http://a.test/b.webp", "http://h.test/")).toBe("http://a.test/b.webp");
+  });
+  it("takes one P2 grant per src: a landed grant never re-arms the effect", () => {
+    expect(needsGrant(null, "a")).toBe(true);
+    expect(needsGrant({ src: "a" }, "a")).toBe(false);
+    expect(needsGrant({ src: "a" }, "b")).toBe(true);
   });
 });

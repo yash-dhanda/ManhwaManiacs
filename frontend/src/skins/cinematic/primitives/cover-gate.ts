@@ -18,8 +18,14 @@ export async function acquireCover(limiter: Pick<RequestLimiter, "acquire">, sig
   return limiter.acquire("P2", signal);
 }
 
-export function refundIfCached(limiter: Pick<RequestLimiter, "refund">, ticket: Ticket, url: string, entries: (name: string) => PerformanceEntryList = (n) => performance.getEntriesByName(n)): boolean {
-  const last = entries(url).at(-1) as PerformanceResourceTiming | undefined;
+/** A grant is taken once per src; after it lands (`grant.src === src`) the effect must not run `start()` again. */
+export const needsGrant = (grant: { src: string } | null, src: string) => grant?.src !== src;
+
+/** Resource timing keys are absolute URLs, so a relative proxy URL is resolved first. */
+export const timingKey = (url: string, base = typeof location === "undefined" ? "http://localhost/" : location.href) => new URL(url, base).href;
+
+export function refundIfCached(limiter: Pick<RequestLimiter, "refund">, ticket: Ticket, url: string, entries: (name: string) => PerformanceEntryList = (n) => performance.getEntriesByName(n), base?: string): boolean {
+  const last = entries(timingKey(url, base)).at(-1) as PerformanceResourceTiming | undefined;
   if (last && last.transferSize === 0) { limiter.refund(ticket); return true; }
   return false;
 }

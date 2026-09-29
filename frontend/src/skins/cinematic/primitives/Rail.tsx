@@ -33,6 +33,8 @@ export type RailProps = {
   onSeeAll?: () => void;
   onRetry?: () => void;
   onOpen?: (item: RailItem) => void;
+  onLibrary?: (item: RailItem) => void;
+  onDetails?: (item: RailItem) => void;
   "data-gallery"?: string;
 };
 
@@ -55,7 +57,7 @@ export function Rail(p: RailProps) {
   const [content, setContent] = useState(1200);
   const [vw, setVw] = useState(1440);
   const [focusIx, setFocusIx] = useState(0);
-  const [slate, setSlate] = useState<{ item: RailItem; rect: DOMRect; keyboard: boolean; ix: number } | null>(null);
+  const [slate, setSlate] = useState<{ item: RailItem; rect: DOMRect; keyboard: boolean; ix: number; bounds: { left: number; right: number } } | null>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const els = useRef<(HTMLElement | null)[]>([]);
@@ -110,7 +112,9 @@ export function Rail(p: RailProps) {
   const openSlate = (i: number, keyboard: boolean, rect?: DOMRect) => {
     const el = els.current[i]; const item = items[i];
     if (!el || !item) return;
-    setSlate({ item, rect: rect ?? el.getBoundingClientRect(), keyboard, ix: i });
+    // Clamp to the content columns (the scroller's box), not the window.
+    const sr = scroller.current?.getBoundingClientRect();
+    setSlate({ item, rect: rect ?? el.getBoundingClientRect(), keyboard, ix: i, bounds: sr ? { left: sr.left, right: sr.right } : { left: 0, right: window.innerWidth } });
   };
 
   const onKey = (e: KeyboardEvent, i: number) => {
@@ -128,12 +132,11 @@ export function Rail(p: RailProps) {
   useEffect(() => { if (focusIx >= items.length) setFocusIx(0); }, [items.length, focusIx]);
 
   if (state === "empty" && !p.core) return null;
-  const bounds = { left: 0, right: typeof window === "undefined" ? 1440 : window.innerWidth };
   const slateId = `${uid}-slate`;
   const header = (
     <div className="set-heading-link flex items-baseline gap-3 py-3">
-      {p.index ? <span className="type-folio text-ink-45">{p.index}</span> : null}
-      <SetHeading as="h2" trigger="inView" id={`rail-${p.title}`} text={p.title} className="type-section min-w-0 text-ink-100 group-focus-within/rail:text-ink-100" />
+      {p.index ? <span className="type-folio text-ink-45 transition-colors duration-(--mm-dur-beat) group-focus-within/rail:text-spot">{p.index}</span> : null}
+      <SetHeading as="h2" trigger="inView" id={`rail-${p.title}`} text={p.title} className={`type-section min-w-0 transition-colors duration-(--mm-dur-beat) group-focus-within/rail:text-ink-100 ${state === "empty" ? "text-ink-45" : "text-ink-100"}`} />
       {p.staleLabel ? <Badge variant="stale">{p.staleLabel}</Badge> : null}
       {p.pickedLabel ? <Badge variant="pickedAgo">{p.pickedLabel}</Badge> : null}
       {p.onSeeAll ? <span className="ml-auto"><Button variant="quiet" size="sm" onClick={p.onSeeAll}>See all <Glyph name="arrow-right" size={16} /></Button></span> : null}
@@ -164,9 +167,9 @@ export function Rail(p: RailProps) {
         </div>
       ) : null}
       {slate ? (
-        <RailSlate item={slate.item} anchor={slate.rect} bounds={bounds} keyboard={slate.keyboard} id={slateId}
+        <RailSlate item={slate.item} anchor={slate.rect} bounds={slate.bounds} keyboard={slate.keyboard} id={slateId}
           onClose={(restore) => { const ix = slate.ix; setSlate(null); if (restore) requestAnimationFrame(() => els.current[ix]?.focus()); }}
-          onRead={() => p.onOpen?.(slate.item)} />
+          onRead={() => p.onOpen?.(slate.item)} onLibrary={() => p.onLibrary?.(slate.item)} onDetails={() => p.onDetails?.(slate.item)} />
       ) : null}
     </section>
   );

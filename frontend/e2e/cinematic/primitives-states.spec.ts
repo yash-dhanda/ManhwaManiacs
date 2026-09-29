@@ -29,6 +29,7 @@ test("states at 1440x900: default, hover, focus-visible, pressed", async ({ page
     if (focusable) {
       const active = page.locator(":focus");
       const st = await active.evaluate((e) => { const c = getComputedStyle(e); return { w: c.outlineWidth, sh: c.boxShadow }; });
+      // Fields (INPUT/TEXTAREA) use the 2 px spot underline as their focus indicator, not the square double ring, so they skip the outline and halo assertions.
       if (st.w !== "0px" && !(await active.evaluate((e) => e.tagName === "INPUT" || e.tagName === "TEXTAREA"))) {
         expect(st.w, `${id} outline`).toBe("2px");
         expect(st.sh, `${id} halo`).toContain("0px 0px 0px 6px");

@@ -1,5 +1,5 @@
 "use client";
-import { useRef, type MouseEvent, type ReactNode } from "react";
+import { useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { folioLabel } from "../a11y/folio";
 import { BadgeStack } from "./Badge";
@@ -8,6 +8,7 @@ import { Glyph } from "./glyphs";
 import { useLongPress, useRootScale } from "./hooks";
 import { IconButton } from "./IconButton";
 import { PosterProgress } from "./Progress";
+import { GalleyPlate } from "./Skeleton";
 
 export type PosterProps = {
   title: string;
@@ -32,6 +33,8 @@ export type PosterProps = {
   manualOrder?: boolean;
   matchCut?: MatchCut;
   onQuickLook?: () => void;
+  /** Long-press on a broken cover offers "Retry cover". */
+  onRetryCover?: () => void;
   /** Called with the poster rect after a 600 ms pointer dwell (opens the rail slate). */
   onDwell?: (rect: DOMRect) => void;
   onLeave?: () => void;
@@ -50,7 +53,11 @@ export function Poster(p: PosterProps) {
   const scale = useRootScale();
   const dwell = useRef<ReturnType<typeof setTimeout>>(undefined);
   const face = useRef<HTMLElement>(null);
-  const press = useLongPress(p.onQuickLook);
+  const [broken, setBroken] = useState(false);
+  const [retryOpen, setRetryOpen] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const press = useLongPress(broken ? () => setRetryOpen(true) : p.onQuickLook);
+  const folioText = disabled ? "UNAVAILABLE" : folio;
   const name = [caption === "ranked" && p.rank ? `Number ${p.rank}, ${title}` : title, favourite ? "Favourite" : null, selected ? "Selected" : null, disabled ? "Unavailable" : null].filter(Boolean).join(", ");
   const Face = (p.href && !disabled ? "a" : "button") as "a";
   const ambient = p.ambientDuo ? ({ ["--amb-duo" as string]: p.ambientDuo } as React.CSSProperties) : undefined;
@@ -65,11 +72,14 @@ export function Poster(p: PosterProps) {
         aria-disabled={disabled || undefined} aria-busy={loading || undefined} tabIndex={p.tabIndex} aria-expanded={p["aria-expanded"]} aria-controls={p["aria-controls"]}
         onClick={(e: MouseEvent) => { if (disabled) { e.preventDefault(); return; } p.onOpen?.(e); }} {...press}
         className={cn("cine-poster-face cine-press relative cine-z1 block aspect-[2/3] w-full", disabled && "opacity-40")} style={{ cursor: disabled ? "default" : "pointer", ...(selected ? { filter: "brightness(0.7)" } : {}) }}>
-        <CineImage src={p.src} alt="" title={title} matchCut={p.matchCut} />
+        {loading ? <GalleyPlate title={title} /> : <CineImage key={attempt} src={p.src} alt="" title={title} matchCut={p.matchCut} onFail={() => setBroken(true)} />}
         {p.badges ? <BadgeStack className="absolute top-1 left-1">{p.badges}</BadgeStack> : null}
         {p.progress != null ? <PosterProgress value={p.progress} /> : null}
         {selected ? <span aria-hidden className="pointer-events-none absolute inset-0" style={{ boxShadow: "inset 0 0 0 2px var(--mm-color-spot)" }} /> : null}
       </Face>
+      {retryOpen && broken ? (
+        <button type="button" className="type-label absolute inset-x-1 bottom-1 cine-z2 min-h-(--mm-hit-min) bg-ink-100 text-paper-0" onClick={() => { setRetryOpen(false); setBroken(false); setAttempt((a) => a + 1); p.onRetryCover?.(); }}>Retry cover</button>
+      ) : null}
       {selectMode || p.hoverIcons ? (
         <button type="button" aria-label={selected ? `Deselect ${title}` : `Select ${title}`} aria-pressed={!!selected} onClick={p.onSelect}
           className={cn("absolute top-0 right-0 cine-z2 inline-flex min-h-(--mm-hit-min) min-w-(--mm-hit-min) items-center justify-center", !selectMode && "opacity-0 group-hover/poster:opacity-100 group-focus-within/poster:opacity-100")}>
@@ -88,7 +98,7 @@ export function Poster(p: PosterProps) {
       {caption === "below" ? (
         <div className="relative cine-z1 mt-2 flex flex-col gap-1">
           <p className={cn("type-title text-ink-100", scale >= 1.3 ? "line-clamp-2" : "truncate")}>{title}</p>
-          {folio ? <p className="type-folio flex items-center gap-1 text-ink-45" aria-label={folioLabel(folio)}>{favourite ? <span className="text-spot"><Glyph name="star" size={12 as never} filled /></span> : null}<span aria-hidden>{folio}</span></p> : null}
+          {folioText ? <p className="type-folio flex items-center gap-1 text-ink-45" aria-label={folioLabel(folioText)}>{favourite ? <span className="text-spot"><Glyph name="star" size={12 as never} filled /></span> : null}<span aria-hidden>{folioText}</span></p> : null}
         </div>
       ) : null}
     </div>
