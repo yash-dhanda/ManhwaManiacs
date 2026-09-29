@@ -225,27 +225,3 @@ test("dialogue states: results, nothing found, error", async ({ page }) => {
   await expect(page.getByText("Dialogue search didn't finish.")).toBeVisible();
   await shot(page, "dialogue-error");
 });
-
-test("reader jump: seeks by matched text and toasts, or falls back to the chapter start", async ({ page }) => {
-  const seed = (pageNo: number | null) =>
-    page.addInitScript((p) => {
-      sessionStorage.setItem("mm.dialogue.jump", JSON.stringify({ sourceId: "mangadex", seriesKey: "s1", chapterKey: "c1", q: "solo", page: p, box: null }));
-    }, pageNo);
-  const chapter = (texts: Array<{ page: number; text: string }>) =>
-    page.route("**/api/ocr/chapter*", (r) =>
-      r.fulfill({ json: { source_id: "mangadex", series_key: "s1", chapter_key: "c1", language: "en", engine: "x", word_count: 9, updated_at: null, page_texts: texts.map((t) => ({ ...t, boxes: null })) } }),
-    );
-  await seed(null);
-  await chapter([{ page: 1, text: "hello" }, { page: 4, text: "the Solo levelling" }]);
-  await page.goto("/reader/mangadex/s1/c1");
-  await expect(page.getByText("Found on page 4.")).toBeVisible();
-  await shot(page, "reader-jump-found");
-
-  await page.unroute("**/api/ocr/chapter*");
-  await chapter([{ page: 1, text: "nothing here" }]);
-  await page.goto("/reader/mangadex/s1/c1");
-  await seed(null);
-  await page.reload();
-  await expect(page.getByText("Opened at the chapter start. The line is in this chapter.")).toBeVisible();
-  await shot(page, "reader-jump-chapter-start");
-});

@@ -3,6 +3,9 @@ import { http } from "@/services/http";
 import type { ChapterId } from "@/types/api";
 import { ApiError } from "@/types/api";
 import { ocrApi } from "./api";
+import { sourcesLimiter } from "@/features/sources/standins/request-limiter"; // TODO(web/03)
+
+const p1 = <T,>(task: () => Promise<T>) => sourcesLimiter.run("P1", task);
 
 const OCR_KEY = ["ocr"] as const;
 
@@ -15,7 +18,7 @@ export function useOcrSearch(query: string) {
   const q = query.trim();
   return useQuery({
     queryKey: [...OCR_KEY, "search", q],
-    queryFn: () => ocrApi.search({ q, limit: 20 }),
+    queryFn: () => p1(() => ocrApi.search({ q, limit: 20 })),
     enabled: q.length > 0,
   });
 }
@@ -66,7 +69,7 @@ export function useInfiniteOcrSearch(query: string) {
   const q = query.trim();
   return useInfiniteQuery({
     queryKey: [...OCR_KEY, "search-infinite", q],
-    queryFn: ({ pageParam }) => ocrApi.search({ q, limit: 20, offset: pageParam }),
+    queryFn: ({ pageParam }) => p1(() => ocrApi.search({ q, limit: 20, offset: pageParam })),
     initialPageParam: 0,
     getNextPageParam: (last) => (last.has_more ? last.offset + last.items.length : undefined),
     enabled: q.length > 0,

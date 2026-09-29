@@ -8,7 +8,6 @@ import type { Screen, Skin } from "../types";
 import SCREEN_discover from "./screens/discover/DiscoverScreen";
 import SCREEN_sources from "./screens/sources/SourcesScreen";
 import SCREEN_source from "./screens/catalogue/CatalogueScreen";
-import SCREEN_reader from "./screens/reader/ReaderScreen";
 import SCREEN_dialogue from "./screens/dialogue/DialogueScreen";
 
 /**
@@ -44,6 +43,7 @@ export const PENDING = new Set<ScreenId>([
   "index",
   "settings",
   "status",
+  "reader",
   "readerLanding",
 ]);
 
@@ -74,7 +74,7 @@ export const screens = {
   discover: SCREEN_discover,
   sources: SCREEN_sources,
   source: SCREEN_source,
-  reader: SCREEN_reader,
+  reader: Pending,
   readAll: Pending,
   novel: Pending,
   downloads: Pending,
