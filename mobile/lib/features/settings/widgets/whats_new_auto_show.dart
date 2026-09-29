@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/settings/providers/app_update_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
+import 'package:manhwamaniacs/features/settings/utils/whats_new_policy.dart';
 import 'package:manhwamaniacs/features/settings/widgets/whats_new_sheet.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 
@@ -59,8 +60,8 @@ class _WhatsNewAutoShowState extends ConsumerState<WhatsNewAutoShow>
     if (currentBuild <= 0) return;
 
     final lastSeen = prefs.lastSeenChangelogBuild;
-    final isUpdate =
-        lastSeen > 0 && currentBuild > lastSeen && prefs.setupCompleted;
+    final isUpdate = prefs.setupCompleted &&
+        shouldAutoOpenWhatsNew(currentBuild: currentBuild, lastSeenBuild: lastSeen > 0 ? lastSeen : null);
     await prefs.setLastSeenChangelogBuild(currentBuild);
 
     if (isUpdate && mounted) {
