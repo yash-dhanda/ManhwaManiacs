@@ -153,7 +153,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       if (ok) {
         await notifier.edit(existing!.id, skin: 'glass');
         if (!mounted) return;
-        await switchSkin(context, ref, to: SkinId.glass, outgoing: () async {});
+        await switchSkinFrom(context, ref, to: SkinId.glass, outgoing: () async {});
         return;
       }
     }

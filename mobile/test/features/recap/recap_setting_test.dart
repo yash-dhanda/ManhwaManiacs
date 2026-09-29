@@ -33,7 +33,8 @@ void main() {
   test('default is ask, 7 days, chapters 3 days, no skips; autoContinue defaults to true', () async {
     final (c, _) = await _c();
     final s = c.read(recapSettingProvider);
-    expect((s.mode, s.seriesDays, s.chapterDays, s.skipSeries), (RecapMode.ask, 7, 3, <String>[]));
+    expect((s.mode, s.seriesDays, s.chapterDays), (RecapMode.ask, 7, 3));
+    expect(s.skipSeries, isEmpty);
     expect(s.cinematicMode, CinematicRecapMode.afterDays);
     expect(c.read(recapAutoContinueProvider), isTrue);
   });

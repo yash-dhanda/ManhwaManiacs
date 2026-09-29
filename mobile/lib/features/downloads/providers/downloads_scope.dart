@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
+import 'package:manhwamaniacs/core/utils/fnv1a.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/downloads/providers/mature_stamper.dart';
@@ -9,15 +10,38 @@ import 'package:manhwamaniacs/features/downloads/services/blob_store.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_db.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// `"u{userId}p{profileId}"` — the leading column of every content primary
 /// key in the on-device store. `null` when either half of the session is
 /// missing, which is exactly when [downloadsStoreProvider] must hand back no
 /// store at all.
-String? downloadsScopeId({required int? userId, required int? profileId}) {
+///
+/// [serverPrefix] is empty for the home server and `h{8 hex}` for any other, so a different server
+/// can never read this server's rows (see [downloadsServerPrefix]).
+String? downloadsScopeId({required int? userId, required int? profileId, String serverPrefix = ''}) {
   if (userId == null || profileId == null) return null;
-  return 'u${userId}p$profileId';
+  return '${serverPrefix}u${userId}p$profileId';
+}
+
+/// SharedPreferences key holding the "home" server: the base URL the app first stored downloads under.
+const kDownloadsHomeServerKey = 'mm.downloads.home_server';
+
+String normaliseServerUrl(String url) => url.trim().toLowerCase().replaceFirst(RegExp(r'/+$'), '');
+
+/// `""` for the home server, else `h{8 hex digits of FNV-1a 32 of the normalised base URL}`. The
+/// home server is recorded on the first read, so rows saved before servers could change keep
+/// their ids, and switching back to the old server shows them again.
+String downloadsServerPrefix(SharedPreferences prefs, String baseUrl) {
+  final n = normaliseServerUrl(baseUrl);
+  var home = prefs.getString(kDownloadsHomeServerKey);
+  if (home == null) {
+    home = n;
+    unawaited(prefs.setString(kDownloadsHomeServerKey, n));
+  }
+  return home == n ? '' : 'h${fnv1a32(n).toRadixString(16).padLeft(8, '0')}';
 }
 
 /// The current `(user, profile)` scope id, or `null` outside an active
@@ -31,7 +55,8 @@ final activeDownloadsScopeIdProvider = Provider<String?>(
       ),
     );
     final profileId = ref.watch(activeProfileProvider.select((p) => p?.id));
-    return downloadsScopeId(userId: userId, profileId: profileId);
+    final prefix = downloadsServerPrefix(ref.watch(sharedPrefsProvider), ref.watch(apiBaseUrlProvider));
+    return downloadsScopeId(userId: userId, profileId: profileId, serverPrefix: prefix);
   },
   name: 'activeDownloadsScopeId',
 );

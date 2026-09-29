@@ -5,7 +5,19 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/token_types.g.dart';
 
-enum SkinId { cinematic, glass, legacy }
+enum SkinId {
+  cinematic,
+  glass,
+  legacy;
+
+  /// The display face's family name as `pubspec.yaml` `fonts:` declares it (Cinematic: Bodoni
+  /// Moda; Glass: Google Sans Flex; the legacy skin has no display face of its own).
+  String get displayFamily => switch (this) {
+        SkinId.cinematic => 'BodoniModa',
+        SkinId.glass => 'GoogleSansFlexMM',
+        SkinId.legacy => 'Syne',
+      };
+}
 
 /// Exact enum name, else null.
 SkinId? skinIdFromName(String? name) {
