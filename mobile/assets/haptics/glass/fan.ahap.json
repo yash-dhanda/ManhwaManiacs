@@ -1,0 +1,18 @@
+{
+  "Version": 1.0,
+  "Metadata": { "Project": "ManhwaManiacs", "Description": "glass fan" },
+  "Pattern": [
+    { "Event": { "Time": 0.0, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.3 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.9 } ] } },
+    { "Event": { "Time": 0.05, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.38 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.9 } ] } },
+    { "Event": { "Time": 0.1, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.46 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.9 } ] } },
+    { "Event": { "Time": 0.15, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.54 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.85 } ] } }
+  ]
+}

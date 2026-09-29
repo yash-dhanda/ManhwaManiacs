@@ -52,6 +52,7 @@ from core.content_rating import (
 from core.errors import AppError
 from core.time_utils import utcnow
 from database.models import (
+    CoverPalette,
     NovelChapterCache,
     SourceBrowseCache,
     SourceCoverCache,
@@ -1196,7 +1197,7 @@ class CacheRetentionRule:
     max_bytes_setting: str | None = None
 
 
-#: THE retention policy for the four connector caches. The caps are the
+#: THE retention policy for the four connector caches and the cover colours. The caps are the
 #: existing settings (already env-overridable); the ages are declared here
 #: because nothing else in the system has an opinion about them. Each age is a
 #: multiple of that table's TTL — long enough that a row still being read is
@@ -1216,6 +1217,9 @@ CACHE_RETENTION_RULES: tuple[CacheRetentionRule, ...] = (
     # TTL 7 days, LRU by use. Kept longest of the four: published novel text is
     # immutable, the rows are ~15 KB, and a re-read costs a full scrape.
     CacheRetentionRule(NovelChapterCache, "last_used_at", 90, "novel_cache_max_rows"),
+    # TTL 30 days, and a payload treats an older row as absent anyway: past
+    # that it is only disk. The next cover serve recomputes it.
+    CacheRetentionRule(CoverPalette, "computed_at", 30),
 )
 
 #: Composite primary keys are deleted with a row-value ``IN``; chunked so the
@@ -1254,7 +1258,7 @@ def _delete_oldest_rows(db: Session, model, age_column: str, limit: int) -> int:
 
 
 def sweep_cache_retention(db: Session) -> dict[str, dict[str, int]]:
-    """Apply :data:`CACHE_RETENTION_RULES` to all four cache tables.
+    """Apply :data:`CACHE_RETENTION_RULES` to every table it lists.
 
     Returns ``{table: {reason: rows removed}}`` for whatever it removed, and
     logs one line per table that lost anything. Each table is committed on its

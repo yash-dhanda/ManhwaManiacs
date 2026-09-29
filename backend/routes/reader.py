@@ -20,11 +20,14 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ValidationError
+from sqlalchemy.orm import Session
 
 from core.errors import AppError
 from core.profile_context import require_profile_context
 from core.rate_limit import bulk_limit, limiter
 from core.time_utils import clamp_client_clock
+from database.session import get_db
+from services.cover_colour import attach_cover_colours
 from services.bookmark_service import (
     OP_UPSERT,
     BookmarkOp,
@@ -45,6 +48,7 @@ router = APIRouter(prefix="/reader", tags=["reader"])
 ReaderDep = Annotated[ReaderService, Depends(get_reader_service)]
 ProgressDep = Annotated[ProgressService, Depends(get_progress_service)]
 BookmarkDep = Annotated[BookmarkService, Depends(get_bookmark_service)]
+DbDep = Annotated[Session, Depends(get_db)]
 
 
 class ProgressRequest(BaseModel):
@@ -362,6 +366,7 @@ def get_series_progress(
 @router.get("/history")
 def reading_history(
     service: ProgressDep,
+    db: DbDep,
     response: Response,
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
@@ -380,7 +385,7 @@ def reading_history(
     """
     items = service.reading_history(limit=limit, offset=offset, collapse=collapse)
     set_list_total_header(response, len(items))
-    return items
+    return attach_cover_colours(db, items)
 
 
 # Same cap and the same 413 shape as ``/reader/progress/batch``: an unbounded
@@ -449,6 +454,7 @@ def sync_bookmarks_batch(
 @router.get("/bookmarks")
 def list_bookmarks(
     service: BookmarkDep,
+    db: DbDep,
     response: Response,
     source: str | None = None,
     series: str | None = None,
@@ -481,7 +487,7 @@ def list_bookmarks(
         offset=offset,
     )
     set_list_total_header(response, len(items))
-    return items
+    return attach_cover_colours(db, items)
 
 
 @router.delete(

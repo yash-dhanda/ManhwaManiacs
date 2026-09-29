@@ -1,0 +1,12 @@
+{
+  "Version": 1.0,
+  "Metadata": { "Project": "ManhwaManiacs", "Description": "glass droplet" },
+  "Pattern": [
+    { "Event": { "Time": 0.0, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.55 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.85 } ] } },
+    { "Event": { "Time": 0.07, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.25 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.95 } ] } }
+  ]
+}

@@ -15,18 +15,22 @@ const nextConfig: NextConfig = {
   // frontend is exposed) and sidesteps CORS entirely. The backend serves its
   // routes at the root, so /api/sources -> {backend}/sources and, critically,
   // /api/health -> {backend}/health (the health contract deploy.sh + Caddy probe).
-  // "/" is not a page. The app opens on the library, matching the mobile
-  // client, where `Routes.home` is a bare redirect to `Routes.library`.
-  //
-  // Done here rather than with `redirect()` in a server component because that
-  // renders the whole authenticated shell — auth probe included — and only then
-  // swaps route on the client, which is a visible flash on the most common
-  // entry point there is. This answers 307 before any React runs.
-  //
-  // Temporary, not permanent: browsers cache a 308 aggressively and a reader
-  // who has one pinned would be stuck with it long after any future change.
+  // `/` → `/library` for the legacy skin only. Cinematic and Glass render their
+  // own Tonight at `/`, so Next skips this redirect when either skin cookie
+  // (`mm-skin`, the device mirror, or `mm-skin-debug`, the preview) names one of
+  // them. A 307, answered before any React runs. release/00 deletes redirects().
   async redirects() {
-    return [{ source: "/", destination: "/library", permanent: false }];
+    return [
+      {
+        source: "/",
+        destination: "/library",
+        permanent: false,
+        missing: [
+          { type: "cookie", key: "mm-skin", value: "(cinematic|glass)" },
+          { type: "cookie", key: "mm-skin-debug", value: "(cinematic|glass)" },
+        ],
+      },
+    ];
   },
 
   // How long the /api rewrite waits on the backend before answering 500 for
@@ -38,6 +42,9 @@ const nextConfig: NextConfig = {
   // TIMEOUT_SECONDS plus deepseek_client's 2 s pause before its retry).
   experimental: {
     proxyTimeout: 120_000,
+    // Same-document view transitions for route changes (cinematic §15.2); off
+    // by default in Next 16.2.
+    viewTransition: true,
   },
 
   async rewrites() {

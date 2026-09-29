@@ -41,6 +41,7 @@ from core.connector_directory import descriptor_for_source
 from core.time_utils import utcnow
 from database.models import FollowedSeries, SourceSeriesCache, WorldCatalogCache
 from database.session import get_db
+from services.cover_colour import attach_world_colours
 from services.followed_series_service import (
     FollowedSeriesService,
     get_followed_series_service,
@@ -424,7 +425,9 @@ class WorldRecs:
                     "why": why,
                 }
             )
-        return items
+        # Colours from the AniList cover (``al:colour:{id}``), null until the
+        # background fetch has run; only these visible items are enqueued.
+        return attach_world_colours(self._db, items)
 
     def _context(self) -> tuple[dict[str, Any], set[str], set[str]]:
         taste = self._library.taste_profile()

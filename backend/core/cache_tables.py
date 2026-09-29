@@ -28,4 +28,5 @@ CACHE_TABLES = (
     "source_cover_cache",
     "source_browse_cache",
     "world_catalog_cache",
+    "cover_palette",
 )

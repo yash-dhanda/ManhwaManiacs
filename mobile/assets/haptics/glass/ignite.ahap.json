@@ -1,0 +1,12 @@
+{
+  "Version": 1.0,
+  "Metadata": { "Project": "ManhwaManiacs", "Description": "glass ignite" },
+  "Pattern": [
+    { "Event": { "Time": 0.0, "EventType": "HapticContinuous", "EventDuration": 0.28,
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.35 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.5 } ] } },
+    { "Event": { "Time": 0.28, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.9 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.7 } ] } }
+  ]
+}

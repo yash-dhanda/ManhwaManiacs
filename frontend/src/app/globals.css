@@ -19,6 +19,16 @@
  * `:root` defaults below on specificity rather than on order.
  */
 @import "./presets.css";
+/*
+ * The redesign skins. The generated shared theme (`@theme inline`) must come
+ * BEFORE legacy's `@theme` below: Tailwind keeps the last definition of a key,
+ * and legacy keeps its own values for the keys both define. The bridge then
+ * points those shared keys at each new skin's token under `html[data-skin]`.
+ * web/02 adds the Glass tokens import once shared/01 has generated them.
+ */
+@import "../skins/theme.generated.css";
+@import "../skins/cinematic/tokens.generated.css";
+@import "../skins/legacy-bridge.css";
 
 /*
  * The default palette's tokens. Tailwind v4 turns each `--color-*` into utilities.

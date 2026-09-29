@@ -22,6 +22,7 @@ from core.profile_context import ProfileContext, resolve_profile_context
 from database.models import User
 from database.session import get_db
 from services.auth_service import get_current_user, require_admin_user
+from services.cover_colour import attach_cover_colours
 from services.update_scheduler import get_update_manager
 from services.update_service import UpdateService, get_update_service
 from utils.api_pagination import set_list_total_header
@@ -79,6 +80,7 @@ def list_sources(service: UpdateDep) -> list[dict[str, str]]:
 def list_notifications(
     service: UpdateDep,
     response: Response,
+    db: Session = Depends(get_db),
     unread_only: bool = Query(default=False),
     limit: int = Query(default=100, ge=1, le=500),
 ) -> list[dict[str, object]]:
@@ -86,7 +88,7 @@ def list_notifications(
     set_list_total_header(
         response, service.count_notifications(unread_only=unread_only)
     )
-    return items
+    return attach_cover_colours(db, items)
 
 
 @router.get("/notifications/unread-count")

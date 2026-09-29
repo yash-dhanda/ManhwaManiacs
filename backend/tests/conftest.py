@@ -154,6 +154,18 @@ def reset_connector_directory():
 
 
 @pytest.fixture(autouse=True)
+def no_anilist_colour_worker(monkeypatch):
+    """No test starts the AniList cover-colour thread or reaches the network;
+    the queue, pending set and rate limiter start and end empty."""
+    from services import cover_colour
+
+    monkeypatch.setattr(cover_colour, "ANILIST_WORKER_ENABLED", False)
+    cover_colour.reset_anilist_colour_worker()
+    yield
+    cover_colour.reset_anilist_colour_worker()
+
+
+@pytest.fixture(autouse=True)
 def reset_update_manager():
     """Reset the process-wide update scheduler around every test."""
     reset_update_manager_for_tests()
