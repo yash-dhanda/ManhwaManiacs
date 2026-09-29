@@ -197,9 +197,7 @@ class _ScheduleRowState extends State<ScheduleRow> {
             child: Text(
               n == null ? '·' : (n % 1 == 0 ? n.toInt().toString() : n.toString()),
               textAlign: TextAlign.right,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              style: CineType.style(context, t.typeFolioLg).copyWith(
                 color: ink,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
@@ -215,7 +213,7 @@ class _ScheduleRowState extends State<ScheduleRow> {
                   label.secondary ?? label.primary,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 16, color: text),
+                  style: CineType.style(context, t.typeTitle).copyWith(color: text),
                 ),
                 if (caption.isNotEmpty || widget.current || failed)
                   Row(
@@ -255,8 +253,7 @@ class _ScheduleRowState extends State<ScheduleRow> {
             Padding(
               padding: const EdgeInsets.only(right: 4),
               child: Text('${p.page}/${p.pageCount}',
-                  style: TextStyle(
-                      fontSize: 12, fontFamily: 'IBM Plex Mono', color: t.colorSpot,),),
+                  style: CineType.style(context, t.typeFolio).copyWith(color: t.colorSpot),),
             )
           else if (read)
             Padding(

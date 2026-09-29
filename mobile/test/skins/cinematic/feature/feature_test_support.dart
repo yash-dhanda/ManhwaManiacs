@@ -475,7 +475,8 @@ Future<FeatureRig> pumpFeature(
       child: RepaintBoundary(
         key: kShotBoundary,
         child: MaterialApp(
-          theme: featureTheme(platform),
+          debugShowCheckedModeBanner: false,
+        theme: featureTheme(platform),
           builder: (context, c) =>
               featureMediaWrap(context, c, textScale: textScale, reduced: reducedMotion),
           home: wrap == null ? home : wrap(home),
@@ -559,7 +560,8 @@ Future<({FeatureRig rig, GoRouter router})> pumpFeatureRouter(
       overrides: [...featureOverrides(r, prefs, novel: novel), ...extra],
       child: RepaintBoundary(
         key: kShotBoundary,
-        child: MaterialApp.router(routerConfig: router, theme: featureTheme(platform)),
+        child: MaterialApp.router(
+            debugShowCheckedModeBanner: false, routerConfig: router, theme: featureTheme(platform),),
       ),
     ),
   );

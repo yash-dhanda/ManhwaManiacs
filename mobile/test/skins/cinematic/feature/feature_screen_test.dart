@@ -71,7 +71,7 @@ void main() {
     await settleFeature(tester, by: const Duration(seconds: 3));
     expect(find.byType(FeatureView), findsOneWidget);
     final titleA = find.text('Tower of Dawn').evaluate().length;
-    final chaptersA = find.text('01 CHAPTERS⁴').evaluate().length;
+    final chaptersA = find.text('01 CHAPTERS 4').evaluate().length;
     expect(router.routerDelegate.currentConfiguration.last.matchedLocation, '/sources/demo/series/k');
 
     router.go('/library/7');
@@ -79,7 +79,7 @@ void main() {
     expect(find.byType(FeatureView), findsOneWidget);
     expect(router.routerDelegate.currentConfiguration.last.matchedLocation, '/library/7');
     expect(find.text('Tower of Dawn').evaluate().length, titleA);
-    expect(find.text('01 CHAPTERS⁴').evaluate().length, chaptersA);
+    expect(find.text('01 CHAPTERS 4').evaluate().length, chaptersA);
     expect(titleA, greaterThan(0));
     expect(chaptersA, 1);
   });
