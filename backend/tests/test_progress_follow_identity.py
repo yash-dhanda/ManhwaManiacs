@@ -715,7 +715,7 @@ def test_continue_reading_items_carry_the_follows_title_and_cover(
     # Every other field is still there, unchanged.
     assert set(body[0]) == {
         "source_id", "series_key", "chapter_key", "chapter_number", "last_page",
-        "page_count", "last_read_at", "title", "cover_url",
+        "page_count", "last_read_at", "title", "cover_url", "ambient", "palette",
     }
 
 

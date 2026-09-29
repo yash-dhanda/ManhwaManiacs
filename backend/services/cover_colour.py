@@ -39,6 +39,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from sqlalchemy import select, tuple_
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from connectors.ids import fully_unquote
@@ -300,21 +301,27 @@ def attach_cover_colours(
     wanted = list({p for p in pairs if p is not None})
     found: dict[tuple[str, str], tuple[Any, Any]] = {}
     cutoff = utcnow() - COLOUR_TTL
-    for start in range(0, len(wanted), _ATTACH_CHUNK):
-        chunk = wanted[start : start + _ATTACH_CHUNK]
-        rows = db.execute(
-            select(
-                CoverPalette.source_id,
-                CoverPalette.series_key,
-                CoverPalette.ambient,
-                CoverPalette.palette,
-            ).where(
-                tuple_(CoverPalette.source_id, CoverPalette.series_key).in_(chunk),
-                CoverPalette.computed_at >= cutoff,
-            )
-        ).all()
-        for source_id, series_key, ambient, palette in rows:
-            found[(source_id, series_key)] = (json.loads(ambient), json.loads(palette))
+    try:
+        for start in range(0, len(wanted), _ATTACH_CHUNK):
+            chunk = wanted[start : start + _ATTACH_CHUNK]
+            rows = db.execute(
+                select(
+                    CoverPalette.source_id,
+                    CoverPalette.series_key,
+                    CoverPalette.ambient,
+                    CoverPalette.palette,
+                ).where(
+                    tuple_(CoverPalette.source_id, CoverPalette.series_key).in_(chunk),
+                    CoverPalette.computed_at >= cutoff,
+                )
+            ).all()
+            for source_id, series_key, ambient, palette in rows:
+                found[(source_id, series_key)] = (json.loads(ambient), json.loads(palette))
+    except SQLAlchemyError:
+        # A failed colour read serves null colours; it never breaks a listing.
+        logger.warning("cover colours read failed", exc_info=True)
+        db.rollback()
+        found = {}
     for item, pair in zip(items, pairs):
         hit = found.get(pair) if pair is not None else None
         item["ambient"] = hit[0] if hit else None
@@ -379,20 +386,26 @@ def attach_world_colours(db: Session, items: list[dict[str, Any]]) -> list[dict[
     """
     ids = {i["anilist_id"] for i in items if i.get("anilist_id") is not None}
     found: dict[str, Any] = {}
+    read_ok = True
     if ids:
-        rows = db.execute(
-            select(WorldCatalogCache.key, WorldCatalogCache.payload).where(
-                WorldCatalogCache.key.in_([_COLOUR_KEY.format(i) for i in ids]),
-                WorldCatalogCache.fetched_at >= utcnow() - COLOUR_TTL,
-            )
-        ).all()
-        found = {key: json.loads(payload) for key, payload in rows}
+        try:
+            rows = db.execute(
+                select(WorldCatalogCache.key, WorldCatalogCache.payload).where(
+                    WorldCatalogCache.key.in_([_COLOUR_KEY.format(i) for i in ids]),
+                    WorldCatalogCache.fetched_at >= utcnow() - COLOUR_TTL,
+                )
+            ).all()
+            found = {key: json.loads(payload) for key, payload in rows}
+        except SQLAlchemyError:
+            logger.warning("world colours read failed", exc_info=True)
+            db.rollback()
+            read_ok = False
     for item in items:
         anilist_id = item.get("anilist_id")
         hit = found.get(_COLOUR_KEY.format(anilist_id)) if anilist_id is not None else None
         item["ambient"] = hit.get("ambient") if hit else None
         item["palette"] = hit.get("palette") if hit else None
-        if hit is None and anilist_id is not None:
+        if read_ok and hit is None and anilist_id is not None:
             enqueue_anilist_colour(anilist_id, item.get("cover_url"))
     return items
 
