@@ -64,6 +64,13 @@ void main() {
     expect(s.headline, QueueHeadline.waiting);
   });
 
+  test('a row left downloading by a kill counts as waiting until the loop runs', () {
+    final s = summariseQueue(const DownloadQueueState(), [cur], [cur])!;
+    expect(s.headline, QueueHeadline.waiting);
+    expect(s.waitingCount, 1);
+    expect(s.current!.chapterLabel, 'CH 12');
+  });
+
   test('nothing to show returns null', () {
     expect(summariseQueue(const DownloadQueueState(), const [], const []), isNull);
     expect(summariseQueue(const DownloadQueueState(), [f], [f]), isNull);

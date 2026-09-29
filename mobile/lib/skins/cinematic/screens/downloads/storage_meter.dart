@@ -110,6 +110,7 @@ class StorageMeterView extends StatelessWidget {
         ],
       ],
     );
+    final core = body;
     body = Semantics(
       container: true,
       label: folioLabel(model.folio),
@@ -117,10 +118,9 @@ class StorageMeterView extends StatelessWidget {
       button: onTap != null,
       excludeSemantics: true,
       onTap: onTap,
-      child: body,
+      child: onTap == null ? core : CinePressable(onTap: onTap, hit: false, builder: (_, __) => core),
     );
-    if (onTap == null) return body;
-    return CinePressable(onTap: onTap, hit: false, builder: (_, __) => body);
+    return body;
   }
 }
 

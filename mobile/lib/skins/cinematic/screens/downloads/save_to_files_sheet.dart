@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.d
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/services/chapter_export.dart';
+import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_dialog.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
@@ -85,20 +86,29 @@ class _FormatRows extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
-    Widget row(Key key, String title, String caption, ChapterExportFormat f) => InkWell(
+    Widget row(Key key, String title, String caption, ChapterExportFormat f) => Semantics(
           key: key,
+          button: true,
+          label: '$title. $caption',
+          excludeSemantics: true,
           onTap: () => Navigator.of(context).pop(f),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 72),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: c.space4, vertical: c.space2),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CineRoleText(title, c.typeTitle),
-                  CineRoleText(caption, c.typeCaption, color: c.colorInk60),
-                ],
+          child: CinePressable(
+            hit: false,
+            onTap: () => Navigator.of(context).pop(f),
+            builder: (context, st) => ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 72),
+              child: Container(
+                alignment: Alignment.centerLeft,
+                padding: EdgeInsets.symmetric(horizontal: c.space4, vertical: c.space2),
+                decoration: BoxDecoration(border: Border(bottom: c.ruleHair), color: st.pressed ? c.colorPaper3 : null),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CineRoleText(title, c.typeTitle),
+                    CineRoleText(caption, c.typeCaption, color: c.colorInk60),
+                  ],
+                ),
               ),
             ),
           ),

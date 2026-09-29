@@ -63,9 +63,12 @@ QueueSummary? summariseQueue(
   List<SavedChapter> unfinished,
   List<SavedChapter> all,
 ) {
-  final waiting = unfinished.where((c) => c.state == DownloadChapterState.queued).length;
-  final failed = unfinished.where((c) => c.state == DownloadChapterState.failed).length;
   final running = state.isDownloading || state.currentChapter != null;
+  // A row left `downloading` by a kill is owed work too until the loop picks it up again.
+  final waiting = unfinished
+      .where((c) => c.state == DownloadChapterState.queued || (!running && c.state == DownloadChapterState.downloading))
+      .length;
+  final failed = unfinished.where((c) => c.state == DownloadChapterState.failed).length;
   final paused = state.isPaused && state.pauseReason != DownloadQueuePauseReason.noScope;
   if (!running && !paused && waiting == 0) return null;
   if (paused && unfinished.isEmpty && !running) return null;

@@ -193,10 +193,13 @@ class DownloadSeriesBlockState extends ConsumerState<DownloadSeriesBlock> {
             }
             return KeyEventResult.ignored;
           },
-          child: CinePressable(
-            hit: false,
-            onLongPress: () => unawaited(_menu(hctx)),
-            builder: (context, st) => Container(
+          child: Semantics(
+            label: '$_title, ${folioLabel(seriesFolio(g))}',
+            hint: 'Expands to the chapters. Long press for more.',
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onLongPress: () => unawaited(_menu(hctx)),
+              child: Container(
               constraints: const BoxConstraints(minHeight: 72),
               decoration: BoxDecoration(border: Border(bottom: c.ruleHair)),
               padding: EdgeInsets.symmetric(vertical: c.space2),
@@ -280,6 +283,7 @@ class DownloadSeriesBlockState extends ConsumerState<DownloadSeriesBlock> {
                   ),
                 ],
               ),
+            ),
             ),
           ),
         ),

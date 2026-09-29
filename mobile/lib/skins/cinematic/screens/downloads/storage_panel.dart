@@ -87,6 +87,7 @@ class StoragePanel extends ConsumerWidget {
         SizedBox(height: c.space4),
         CineSettingsRow(
           label: 'Download on Wi-Fi only',
+          onTap: () => ref.read(wifiOnlyDownloadsProvider.notifier).setEnabled(!ref.read(wifiOnlyDownloadsProvider)),
           description: 'Automatic downloads wait for Wi-Fi. Chapters you pick yourself always download.',
           control: CineSwitch(
             value: ref.watch(wifiOnlyDownloadsProvider),
@@ -96,6 +97,7 @@ class StoragePanel extends ConsumerWidget {
         ),
         CineSettingsRow(
           label: 'Save the next chapter while I read',
+          onTap: () => ref.read(saveNextProvider.notifier).set(!ref.read(saveNextProvider)),
           description: "The chapter after the one you're reading is saved in the background.",
           control: CineSwitch(
             value: ref.watch(saveNextProvider),
@@ -105,6 +107,7 @@ class StoragePanel extends ConsumerWidget {
         ),
         CineSettingsRow(
           label: 'Download new chapters of followed series automatically',
+          onTap: () => ref.read(autoNewProvider.notifier).set(!ref.read(autoNewProvider)),
           description: 'When you open the app, new chapters from series with notifications on are saved, up to 20 at a time.',
           control: CineSwitch(
             value: ref.watch(autoNewProvider),
