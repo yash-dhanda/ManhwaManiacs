@@ -1,1 +1,21 @@
-/* rails */
+/* Rails (web/26 J) */
+[data-skin="glass"] .g-railgroup { display: flex; flex-direction: column; gap: 24px; }
+[data-skin="glass"] .g-rail { position: relative; display: block; }
+[data-skin="glass"] .g-rail__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 0 var(--rail-inset, 16px); margin-bottom: 4px; }
+[data-skin="glass"] .g-rail__titles { min-width: 0; }
+[data-skin="glass"] .g-rail__titles h3 { margin: 0; }
+[data-skin="glass"] .g-rail__sub { margin: 2px 0 0; color: var(--mm-color-label2); }
+[data-skin="glass"] .g-rail__wrap { position: relative; margin-top: 8px; }
+[data-skin="glass"] .g-rail__scroll { display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden; padding: 8px 0; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; outline: none; }
+[data-skin="glass"] .g-rail__scroll::-webkit-scrollbar { display: none; }
+@media (min-width: 1024px) { [data-skin="glass"] .g-rail__scroll { gap: 16px; } }
+[data-skin="glass"] .g-rail__pad { flex: none; width: calc(var(--rail-inset, 16px) - 12px); }
+@media (min-width: 1024px) { [data-skin="glass"] .g-rail__pad { width: calc(var(--rail-inset, 16px) - 16px); } }
+[data-skin="glass"] .g-rail__item { flex: none; }
+[data-skin="glass"] .g-rail__arrow { position: absolute; top: calc(50% - 22px); z-index: 4; width: 44px; height: 44px; display: none; place-items: center; padding: 0; border: 0; color: var(--mm-color-on-glass); opacity: 0; pointer-events: none; transition: opacity var(--mm-dur-fade-in, 180ms) var(--mm-ease-fade-in, ease); }
+@media (hover: hover) { [data-skin="glass"] .g-rail__arrow { display: grid; } }
+[data-skin="glass"] .g-rail__arrow[data-dir="prev"] { left: 8px; }
+[data-skin="glass"] .g-rail__arrow[data-dir="next"] { right: 8px; }
+[data-skin="glass"] .g-rail__arrow[data-show] { opacity: 1; pointer-events: auto; }
+[data-skin="glass"] .g-rail__arrow:hover { --g-twin-fill: rgb(40 40 48 / 0.72); }
+[data-skin="glass"] .g-rail__error { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 120px; margin: 8px var(--rail-inset, 16px) 0; padding: 0 20px; border-radius: 26px; background: var(--mm-color-surface1); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06); }
