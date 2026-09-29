@@ -82,7 +82,7 @@ export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, 
   }, [feed]);
   useEffect(() => () => { cancelAnimationFrame(raf.current); clearTimeout(helperT.current); }, []);
 
-  const p = usePress<HTMLButtonElement>({ material: "glass", growth: "medium", disabled, forceState, haptic: false, onPress: () => onClick(), stretch: false });
+  const p = usePress<HTMLButtonElement>({ material: "glass", growth: "medium", disabled, forceState, haptic: false, onPress: (e) => { if (e.type !== "pointerup") onClick(); }, stretch: false });
   const down = (e: PointerEvent<HTMLButtonElement>) => {
     if (disabled || (e.pointerType === "mouse" && e.button !== 0)) return;
     p.props.onPointerDown(e);

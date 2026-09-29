@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, type CSSProperties, type Ref } from "react";
+import { useBudgetScope } from "../glass/budget";
 import { CausticWrap } from "../glass/Caustic";
 import { GlassSurface, type GlassTwin } from "../glass/GlassSurface";
 import { Icon, type IconName } from "./Icon";
@@ -49,6 +50,7 @@ const HEIGHT = { L: 50, M: 44, S: 34 } as const;
 const PAD = { L: 24, M: 20, S: 14 } as const;
 
 export function Button({ variant = "secondary", size = "M", label, icon, selected, onPress, disabled, disabledReason, loading, error, overMedia, twin, overContent = true, download, onRetry, forceState, ref, className, "data-testid": tid }: ButtonProps) {
+  const scope = useBudgetScope();
   const own = useRef<HTMLButtonElement | null>(null);
   const setBoth = useCallback((el: HTMLButtonElement | null) => { own.current = el; if (typeof ref === "function") ref(el); else if (ref) (ref as { current: HTMLButtonElement | null }).current = el; }, [ref]);
   const dl = download ?? { status: "idle" as const };
@@ -63,7 +65,7 @@ export function Button({ variant = "secondary", size = "M", label, icon, selecte
     forwardRef: setBoth,
   });
   const getEl = useCallback(() => own.current, []);
-  const lit = useLit(getEl, false, variant === "primary");
+  const lit = useLit(getEl, scope.exempt, variant === "primary");
   const { flashing, text } = useErrorFlash(error, getEl, 8);
 
   const glassy = variant !== "plain" && variant !== "destructiveConfirm";

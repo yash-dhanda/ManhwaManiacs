@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useBudgetScope } from "../glass/budget";
 import { GlassSurface } from "../glass/GlassSurface";
 import { Icon, type IconName } from "./Icon";
 import { useLit } from "./lit";
@@ -24,11 +25,12 @@ export interface SplitButtonProps {
 /** One glass container: a tinted primary segment (padding 0 20) and a trailing `glassThin` 50 x 50 segment with `caret-down`, a 0.5 px separator between. Pressing either lights both, the pressed one more (16 % / 8 %). */
 export function SplitButton({ label, icon, onPress, moreLabel, onMore, menuOpen, disabled, forceState, "data-testid": tid }: SplitButtonProps) {
   const box = useRef<HTMLElement | null>(null);
+  const scope = useBudgetScope();
   const bEl = useRef<HTMLButtonElement | null>(null);
   const [active, setActive] = useState<"a" | "b" | null>(null);
   const a = usePress<HTMLButtonElement>({ material: "glass", growth: "medium", disabled, forceState, onPress, onPressStart: () => setActive("a"), onCancel: () => setActive(null), stretch: false });
   const b = usePress<HTMLButtonElement>({ material: "glass", growth: "medium", disabled, forceState, onPress: () => { if (bEl.current) onMore(bEl.current); }, forwardRef: bEl, onPressStart: () => setActive("b"), onCancel: () => setActive(null), stretch: false });
-  const lit = useLit(() => box.current, false, true);
+  const lit = useLit(() => box.current, scope.exempt, true);
   const done = (h: (e: React.PointerEvent<HTMLButtonElement>) => void) => (e: React.PointerEvent<HTMLButtonElement>) => { h(e); setActive(null); };
   return (
     <GlassSurface ref={box} tier="t2" capsule finish="regular" overContent className="g-split" data-lit-suppressed={lit.suppressed ? "" : undefined} data-active={active ?? undefined}>

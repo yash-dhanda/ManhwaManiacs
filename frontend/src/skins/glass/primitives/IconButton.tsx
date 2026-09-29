@@ -41,11 +41,12 @@ export interface IconButtonProps {
   forceState?: PressState;
   tooltipLevel?: "default" | "bar";
   className?: string;
+  "data-testid"?: string;
 }
 
 const disc = (on: boolean, node: ReactNode) => (on ? <span className="g-disc">{node}</span> : node);
 
-export function IconButton({ variant = "nav", icon, label, onPress, onLongPress, pressed, tone = "iris", badge, disabled, disabledReason, loading, error, onGlass, twin, forceState, tooltipLevel, className }: IconButtonProps) {
+export function IconButton({ variant = "nav", icon, label, onPress, onLongPress, pressed, tone = "iris", badge, disabled, disabledReason, loading, error, onGlass, twin, forceState, tooltipLevel, className, "data-testid": tid }: IconButtonProps) {
   const group = useGroup();
   const own = useRef<HTMLButtonElement | null>(null);
   const setOwn = useCallback((el: HTMLButtonElement | null) => { own.current = el; }, []);
@@ -81,6 +82,7 @@ export function IconButton({ variant = "nav", icon, label, onPress, onLongPress,
     "aria-label": label,
     "aria-pressed": pressed === undefined ? undefined : pressed,
     "data-variant": variant,
+    "data-testid": tid,
     className: `g-ib${className ? ` ${className}` : ""}`,
   };
   const on = !!pressed;

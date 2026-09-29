@@ -6,7 +6,7 @@
 [data-skin="glass"] .g-chiprow__drop { position: absolute; left: 0; top: 50%; height: 32px; margin-top: -16px; pointer-events: none; transform-origin: center; }
 [data-skin="glass"] .g-chiprow__drop > .glass { position: absolute; inset: 0; }
 
-[data-skin="glass"] .g-chip { position: relative; display: inline-flex; align-items: center; flex: none; min-height: 44px; padding: 0; outline: none; color: var(--mm-color-label1); border-radius: 9999px; }
+[data-skin="glass"] .g-chip { position: relative; display: inline-flex; align-items: center; flex: none; min-height: 44px; min-width: 44px; padding: 0; outline: none; color: var(--mm-color-label1); border-radius: 9999px; }
 [data-skin="glass"] .g-chip__label { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 9999px; background: var(--mm-color-fill2); font: 460 15px/20px var(--mm-font-sans, system-ui); transition: background var(--mm-dur-color-shift, 240ms) var(--mm-ease-color-shift, ease); }
 @media (hover: hover) { [data-skin="glass"] .g-chip[data-hover]:not([data-selected]) .g-chip__label { background: var(--mm-color-fill3); } }
 [data-skin="glass"] .g-chip[data-force="hover"] .g-chip__label { background: var(--mm-color-fill3); }

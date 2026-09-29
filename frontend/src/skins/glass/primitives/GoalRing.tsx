@@ -35,7 +35,7 @@ export function GoalRing({ orbSize, minutes, goal, onDisc = false }: { orbSize: 
   const frac = goal > 0 ? Math.min(1, minutes / goal) : 0;
   const colour = phase === "closed" ? "var(--mm-color-streak-core)" : phase === "flash" ? "var(--mm-color-success)" : "rgb(255 138 61 / 0.8)";
   return (
-    <span className="g-goal" data-onDisc={onDisc ? "" : undefined} data-phase={phase} role="img" aria-label={`Today: ${minutes} of ${goal} minutes`} style={{ width: box, height: box }}>
+    <span className="g-goal" data-on-disc={onDisc ? "" : undefined} data-phase={phase} role="img" aria-label={`Today: ${minutes} of ${goal} minutes`} style={{ width: box, height: box }}>
       {onDisc ? <span className="g-goal__disc" /> : null}
       <svg viewBox={`0 0 ${box} ${box}`} width={box} height={box} aria-hidden="true">
         <motion.circle cx={box / 2} cy={box / 2} r={r} fill="none" strokeWidth={phase === "flash" ? 3 : 2} strokeLinecap="round" stroke={colour} strokeDasharray={c} initial={false} animate={{ strokeDashoffset: c * (1 - (phase === "open" ? frac : 1)) }} transition={reduced ? { duration: 0 } : spring.snappy} transform={`rotate(-90 ${box / 2} ${box / 2})`} className={phase === "flash" ? "g-goal__shimmer" : undefined} />
