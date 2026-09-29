@@ -15,7 +15,6 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart' as cin;
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart' as gls;
-import 'package:manhwamaniacs/skins/skin.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -250,6 +249,27 @@ class SkinAudio {
     }
   }
 
+  final Map<SkinId, Map<String, dynamic>> _previewCache = {};
+
+  /// Feedback lab: play [event] from [skin]'s cue set at its default gain,
+  /// regardless of the saved preference, suppression or the running skin.
+  Future<void> preview(SkinId skin, SoundEvent event, {int depth = 1}) async {
+    final names = _events(skin)[event];
+    if (names == null || names.isEmpty) return;
+    if (!_engineReady) {
+      await _engine.init();
+      _engineReady = true;
+      await _apply(_state);
+    }
+    final cache = _previewCache.putIfAbsent(skin, () => {});
+    final name = names[event == SoundEvent.navPush ? (depth - 1).clamp(0, names.length - 1) : 0];
+    final path = _cues(skin)[name];
+    if (path == null) return;
+    final src = cache[name] ??= await _engine.loadAsset(path);
+    final d = skin == SkinId.glass ? SoundPrefs.glassDefault : SoundPrefs.cinematicDefault;
+    await _engine.play(src, volume: gainFor(skin, d));
+  }
+
   Future<void> play(SoundEvent event, {int depth = 1, double rate = 1.0}) async {
     final prefs = readSoundPrefs(_skin);
     if (!prefs.on || cuesSuppressed || _cuesFor != _skin) return;
@@ -269,4 +289,4 @@ final skinAudioProvider = Provider<SkinAudio>((ref) => SkinAudio.instance
     userId: ref.watch(authControllerProvider.select((a) => a is AuthAuthenticated ? a.user.id : null)),
     profileId: ref.watch(activeProfileProvider.select((p) => p?.id)),
     prefs: ref.watch(sharedPrefsProvider),
-  ));
+  ),);

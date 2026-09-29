@@ -23,7 +23,7 @@ void main() {
   test('redesign packages are pinned exactly', () {
     for (final e in pins.entries) {
       expect(RegExp('^  ${e.key}: ${RegExp.escape(e.value)}\$', multiLine: true).hasMatch(spec), isTrue,
-          reason: e.key);
+          reason: e.key,);
     }
   });
 

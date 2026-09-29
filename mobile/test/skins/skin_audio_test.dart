@@ -41,7 +41,7 @@ class FakeEngine implements CueEngine {
 }
 
 Future<(SkinAudio, FakeConfigurator, FakeEngine)> make(SkinId skin,
-    {int profile = 1, Map<String, Object> seed = const {}}) async {
+    {int profile = 1, Map<String, Object> seed = const {},}) async {
   SharedPreferences.setMockInitialValues(seed);
   final prefs = await SharedPreferences.getInstance();
   final c = FakeConfigurator();
@@ -114,7 +114,7 @@ void main() {
   });
 
   test('preferences: cinematic per profile, glass per device', () async {
-    final (a, _, _) = await make(SkinId.cinematic, profile: 1);
+    final (a, _, _) = await make(SkinId.cinematic);
     await a.writeSoundPrefs(SkinId.cinematic, const SoundPrefs(on: true, level: 30));
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getKeys(), contains('mm.sounds.u7p1'));

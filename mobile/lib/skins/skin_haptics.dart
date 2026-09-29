@@ -8,7 +8,6 @@ import 'package:gaimon/gaimon.dart';
 import 'package:haptic_feedback/haptic_feedback.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/skin.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:manhwamaniacs/skins/token_types.g.dart';
 
@@ -17,7 +16,7 @@ const _primitives = {
   'warning', 'error', 'toggleOn', 'toggleOff', 'dragStart', 'rigidBack',
 };
 
-enum _Kind { primitive, ahap, none }
+enum HapticKind { primitive, ahap, none }
 
 /// One parsed pattern string (shared/00 §2 "haptics" grammar).
 class HapticPattern {
@@ -30,7 +29,7 @@ class HapticPattern {
     this.depth = false,
   });
 
-  final _Kind kind;
+  final HapticKind kind;
   final String name;
 
   /// Literal `:0.4` intensity.
@@ -43,12 +42,12 @@ class HapticPattern {
   /// `ahap:name{depth}`.
   final bool depth;
 
-  bool get isNone => kind == _Kind.none;
-  bool get isAhap => kind == _Kind.ahap;
+  bool get isNone => kind == HapticKind.none;
+  bool get isAhap => kind == HapticKind.ahap;
   bool get qualified => intensity != null || velocity;
 
   static HapticPattern parse(String s) {
-    if (s == 'none') return const HapticPattern._(_Kind.none, 'none');
+    if (s == 'none') return const HapticPattern._(HapticKind.none, 'none');
     if (s.startsWith('ahap:')) {
       var n = s.substring(5);
       var depth = false;
@@ -59,22 +58,22 @@ class HapticPattern {
       if (!RegExp(r'^[a-zA-Z][a-zA-Z0-9]*$').hasMatch(n)) {
         throw FormatException('Bad haptic pattern', s);
       }
-      return HapticPattern._(_Kind.ahap, n, depth: depth);
+      return HapticPattern._(HapticKind.ahap, n, depth: depth);
     }
     final i = s.indexOf(':');
     final name = i < 0 ? s : s.substring(0, i);
     if (!_primitives.contains(name)) throw FormatException('Bad haptic pattern', s);
-    if (i < 0) return HapticPattern._(_Kind.primitive, name);
+    if (i < 0) return HapticPattern._(HapticKind.primitive, name);
     final q = s.substring(i + 1);
-    if (q == 'velocity') return HapticPattern._(_Kind.primitive, name, velocity: true);
+    if (q == 'velocity') return HapticPattern._(HapticKind.primitive, name, velocity: true);
     if (q.startsWith('velocity<=')) {
       final c = double.tryParse(q.substring(10));
       if (c == null || c < 0 || c > 1) throw FormatException('Bad haptic pattern', s);
-      return HapticPattern._(_Kind.primitive, name, velocity: true, velocityCap: c);
+      return HapticPattern._(HapticKind.primitive, name, velocity: true, velocityCap: c);
     }
     final v = double.tryParse(q);
     if (v == null || v < 0 || v > 1) throw FormatException('Bad haptic pattern', s);
-    return HapticPattern._(_Kind.primitive, name, intensity: v);
+    return HapticPattern._(HapticKind.primitive, name, intensity: v);
   }
 }
 
@@ -258,4 +257,4 @@ final skinHapticsProvider = Provider<SkinHaptics>((ref) => SkinHaptics(
       skin: ref.watch(skinIdProvider),
       map: ref.watch(skinProvider).haptics,
       enabled: ref.watch(hapticFeedbackProvider),
-    ));
+    ),);

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -68,8 +68,8 @@ Future<void> main() async {
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.manhwamaniacs.reader.listen',
       androidNotificationChannelName: 'Listen',
-      // mobile/15 switches to drawable/ic_stat_mm (shared/04).
-      androidNotificationIcon: 'mipmap/ic_launcher',
+      // Default icon is mipmap/ic_launcher; mobile/15 switches to
+      // drawable/ic_stat_mm (shared/04).
       notificationColor: Color(0xFFF4D03F),
     ),
   );

@@ -52,7 +52,7 @@ class FakeBundle extends CachingAssetBundle {
 }
 
 SkinHaptics make(SkinId skin, RecordingDriver d,
-    {bool enabled = true, FakeBundle? bundle, Map<HapticEvent, List<HapticStep>>? map}) {
+    {bool enabled = true, FakeBundle? bundle, Map<HapticEvent, List<HapticStep>>? map,}) {
   return SkinHaptics(
     skin: skin,
     map: map ?? (skin == SkinId.glass ? glassHaptics : cinematicHaptics),
@@ -113,7 +113,7 @@ void main() {
       final d = RecordingDriver();
       await make(s, d, map: {
         HapticEvent.tapPrimary: [HapticStep(pattern: pattern)],
-      }).fire(HapticEvent.tapPrimary, velocity: v);
+      },).fire(HapticEvent.tapPrimary, velocity: v);
       return d.calls;
     }
 
@@ -140,7 +140,7 @@ void main() {
       final d = RecordingDriver(oneShotOk: false);
       await make(SkinId.glass, d, map: {
         HapticEvent.tapPrimary: [const HapticStep(pattern: 'soft:velocity')],
-      }).fire(HapticEvent.tapPrimary);
+      },).fire(HapticEvent.tapPrimary);
       expect(d.calls, ['oneShot:12:77', 'perform:soft']);
     });
 
@@ -187,7 +187,7 @@ void main() {
       await c.fire(HapticEvent.toggleOn); // named
       final g = make(SkinId.glass, d, map: {
         HapticEvent.tapPrimary: [const HapticStep(pattern: 'soft:velocity')],
-      });
+      },);
       await g.fire(HapticEvent.tapPrimary);
       expect(d.calls.where((c) => c.startsWith('ahap') || c.startsWith('oneShot') || c.startsWith('named')), isEmpty);
     });
