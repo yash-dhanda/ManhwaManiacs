@@ -85,7 +85,7 @@ class _GlassContentModeSwitchState extends ConsumerState<GlassContentModeSwitch>
       case GlassContentModeVariant.sidebar:
         return KeyedSubtree(
           key: _key,
-          child: SizedBox(width: 220, child: GlassSegmented<ContentMode>(segments: _segments, selected: mode, onSelected: _switch)),
+          child: SizedBox(width: 248, child: GlassSegmented<ContentMode>(segments: _segments, selected: mode, onSelected: _switch)),
         );
       case GlassContentModeVariant.menu:
         return KeyedSubtree(
@@ -110,7 +110,7 @@ class _GlassContentModeSwitchState extends ConsumerState<GlassContentModeSwitch>
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(width: 220, child: GlassSegmented<ContentMode>(segments: _segments, selected: mode, onSelected: _switch)),
+                        SizedBox(width: 248, child: GlassSegmented<ContentMode>(segments: _segments, selected: mode, onSelected: _switch)),
                         const SizedBox(height: 6),
                         GlassText('One setting for the whole app', role: gt.typeFootnote, onGlass: true, color: gt.colorLabel2),
                       ],
@@ -126,7 +126,7 @@ class _GlassContentModeSwitchState extends ConsumerState<GlassContentModeSwitch>
                       height: GlassFrame.hitMin(context),
                       child: Center(
                         child: SkinGlass(
-                          size: const Size(96, 32),
+                          size: Size(measureText(context, mode.label, roleStyle(context, gt.typeSubhead, onGlass: true, wght: 620)).width + 14 + 4 + 24, 32),
                           tier: GlassTierId.t2,
                           glow: info.glow,
                           layer: GlassLayerKind.controls,

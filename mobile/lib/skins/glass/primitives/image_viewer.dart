@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/physics.dart' show SpringSimulation;
-import 'package:flutter/scheduler.dart' show SchedulerBinding;
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -29,6 +29,11 @@ import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 import 'package:manhwamaniacs/skins/token_types.g.dart' show SpringToken;
 import 'package:share_plus/share_plus.dart';
+
+/// The clock of the double-tap window: a monotonic real clock (an idle viewer draws no frames, so a frame timestamp
+/// would go stale). Tests replace it with the test binding's clock.
+@visibleForTesting
+Duration Function() glassViewerClock = () => Duration(microseconds: DateTime.now().microsecondsSinceEpoch);
 
 /// Shares [path] from [origin] (the share button's rect); the default is `share_plus` 12.0.2.
 typedef GlassShareFile = Future<ShareResult> Function(String path, Rect origin);
@@ -443,7 +448,8 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
     );
 
     final chromeLb = route.lMax;
-    Widget glassButton({required String label, required IconData icon, required VoidCallback onTap, required Rect rect, GlobalKey? key}) => Positioned.fromRect(
+    Widget glassButton({required String label, required IconData icon, required VoidCallback onTap, required Rect rect, Key? key, Key? widgetKey}) => Positioned.fromRect(
+          key: widgetKey,
           rect: rect,
           child: GlassPressable(
             key: key,
@@ -524,7 +530,7 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
                         onScaleStart: (d) => _scaleStart(d, view),
                         onScaleUpdate: (d) => _scaleUpdate(d, view),
                         onScaleEnd: (d) => _scaleEnd(d, view),
-                        onTapUp: (d) => _tap(d, view, SchedulerBinding.instance.currentSystemFrameTimeStamp),
+                        onTapUp: (d) => _tap(d, view, glassViewerClock()),
                         child: content,
                       ),
                     ),
@@ -575,7 +581,7 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
                                 height: safe.top + hit + 24,
                                 child: const IgnorePointer(child: ColoredBox(key: ValueKey('glass-dim-clear'), color: Color(0x59000000))),
                               ),
-                            glassButton(label: 'Close', icon: PhosphorBold.x, onTap: () => unawaited(_closeUp()), rect: Rect.fromLTWH(12, safe.top + 8, hit, hit)),
+                            glassButton(label: 'Close', icon: PhosphorBold.x, onTap: () => unawaited(_closeUp()), rect: Rect.fromLTWH(12, safe.top + 8, hit, hit), key: const ValueKey('glass-viewer-close')),
                             if (route.sharePath != null)
                               glassButton(
                                 label: 'Share',
@@ -587,6 +593,7 @@ class _GlassImageViewerState extends ConsumerState<GlassImageViewer> with Ticker
                                 },
                                 rect: Rect.fromLTWH(view.width - hit - 12, safe.top + 8, hit, hit),
                                 key: shareKey,
+                                widgetKey: const ValueKey('glass-viewer-share'),
                               ),
                           ],
                         ),
