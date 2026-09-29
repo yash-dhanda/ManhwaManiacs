@@ -173,6 +173,10 @@ describe("cache generations", () => {
     expect(policy.isObsoleteCacheName(policy.pagesCacheName())).toBe(false);
   });
 
+  it("never drops the skin meta cache", () => {
+    expect(policy.isObsoleteCacheName("mm-sw-meta")).toBe(false);
+  });
+
   it("does not take saved chapters with it when the runtime version moves", () => {
     // The reason the two versions are separate: shipping a fix to a caching
     // rule must not delete somebody's downloaded reading.

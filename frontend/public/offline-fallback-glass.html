@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#000000" />
+<title>Offline · ManhwaManiacs</title>
+<!-- Standalone by design: served by the service worker when the network is gone (Glass). No external files. -->
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: #000000; color: #F2F2F7; }
+body {
+  min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  font-family: "Google Sans Flex", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+}
+main { width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.lens { width: 120px; height: 120px; border-radius: 50%; display: grid; place-items: center; color: #F2F2F7;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.04) 60%, rgba(255,255,255,0) 100%);
+  border: 1px solid rgba(255,255,255,0.22); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); }
+.badge { font-size: 13px; line-height: 20px; font-weight: 600; padding: 2px 12px; border-radius: 9999px; }
+.badge.off { color: #FFB547; background: rgba(255,181,71,0.18); }
+.badge.on { color: #3DDC84; background: rgba(61,220,132,0.18); }
+h1 { margin: 0; font-size: 28px; line-height: 34px; font-weight: 700; color: #F2F2F7; }
+.deck { margin: 0; font-size: 17px; line-height: 24px; color: #96969D; }
+.note { margin: 0; font-size: 13px; line-height: 18px; color: #96969D; }
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 8px; }
+button, a.ghost { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 24px; border-radius: 9999px; font: 600 16px/20px inherit; font-family: inherit; cursor: pointer; text-decoration: none; }
+button { border: 0; background: #7563F2; color: #FFFFFF; }
+a.ghost { border: 1px solid rgba(255,255,255,0.22); color: #F2F2F7; }
+button:focus-visible, a.ghost:focus-visible { outline: none; box-shadow: 0 0 0 2px #000000, 0 0 0 4px #BCB0FF, 0 0 0 10px rgba(188,176,255,0.28); }
+</style>
+</head>
+<body>
+<main>
+<div class="lens"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="56" height="56" aria-hidden="true">
+<polyline points="71,109 71,59 128,96.5 185,59 185,109" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><polyline points="71,197 71,147 128,184.5 185,147 185,197" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><rect x="60" y="120" width="136" height="16" fill="currentColor"/>
+</svg></div>
+<div id="badge" class="badge off" role="status">No connection</div>
+<h1>This page needs the server</h1>
+<p class="deck">Chapters you downloaded are still on this device and open as normal.</p>
+<p class="note">This page is served from your device.</p>
+<div class="actions"><button id="retry" type="button">Try again</button><a class="ghost" href="/downloads">Downloads</a></div>
+</main>
+<script>
+  (function () {
+    var badge = document.getElementById("badge");
+    function sync() {
+      var on = navigator.onLine;
+      badge.textContent = on ? "Back online" : "No connection";
+      badge.className = "badge " + (on ? "on" : "off");
+    }
+    addEventListener("online", sync);
+    addEventListener("offline", sync);
+    sync();
+    document.getElementById("retry").addEventListener("click", function () { location.reload(); });
+  })();
+  </script>
+</body>
+</html>

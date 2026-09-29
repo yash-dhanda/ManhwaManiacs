@@ -67,7 +67,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path(sw.js|sw-policy.js|offline-fallback.html)",
+        source: "/:path(sw.js|sw-policy.js|offline-fallback.html|offline-fallback-cinematic.html|offline-fallback-glass.html)",
         headers: [
           { key: "Cache-Control", value: "no-cache, must-revalidate" },
           { key: "Service-Worker-Allowed", value: "/" },
