@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { AppearanceBootScript } from "@/features/preferences/appearance-boot";
 import { skins } from "@/skins";
+import { DuotoneDefs } from "@/skins/cinematic/duotone";
 import "../../../globals.css";
 
 export const viewport: Viewport = {
@@ -29,7 +30,10 @@ export default async function SkinPreviewLayout({
       <head>
         <AppearanceBootScript />
       </head>
-      <body>{children}</body>
+      <body>
+        {skin === "cinematic" ? <DuotoneDefs /> : null}
+        {children}
+      </body>
     </html>
   );
 }
