@@ -147,6 +147,7 @@ flutter:
     - assets/haptics/glass/
     - assets/sounds/cinematic/
     - assets/sounds/glass/
+    - assets/licenses/
   fonts:
     # Syne (display / headings) and DM Sans (body / UI) are bundled as variable
     # fonts so the app NEVER depends on runtime fetching from fonts.gstatic.com.
@@ -176,3 +177,75 @@ flutter:
       fonts:
         - asset: assets/fonts/SpaceMono-Regular.ttf
           weight: 400
+    # Redesign faces (mobile/03): variable TTFs, weight via FontVariation('wght').
+    - family: BodoniModa
+      fonts:
+        - asset: assets/fonts/BodoniModa.ttf
+        - asset: assets/fonts/BodoniModa-Italic.ttf
+          style: italic
+    - family: Archivo
+      fonts:
+        - asset: assets/fonts/Archivo.ttf
+    - family: Newsreader
+      fonts:
+        - asset: assets/fonts/Newsreader.ttf
+        - asset: assets/fonts/Newsreader-Italic.ttf
+          style: italic
+    - family: IBMPlexMono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexMono-SemiBold.ttf
+          weight: 600
+    - family: Literata
+      fonts:
+        - asset: assets/fonts/Literata.ttf
+        - asset: assets/fonts/Literata-Italic.ttf
+          style: italic
+    - family: LiterataMM
+      fonts:
+        - asset: assets/fonts/Literata.ttf
+        - asset: assets/fonts/Literata-Italic.ttf
+          style: italic
+    - family: SourceSerif4
+      fonts:
+        - asset: assets/fonts/SourceSerif4.ttf
+        - asset: assets/fonts/SourceSerif4-Italic.ttf
+          style: italic
+    - family: AtkinsonHyperlegibleNext
+      fonts:
+        - asset: assets/fonts/AtkinsonHyperlegibleNext.ttf
+        - asset: assets/fonts/AtkinsonHyperlegibleNext-Italic.ttf
+          style: italic
+    - family: GoogleSansFlexMM
+      fonts:
+        - asset: assets/fonts/GoogleSansFlexMM.ttf
+    - family: GoogleSansCodeMM
+      fonts:
+        - asset: assets/fonts/GoogleSansCode.ttf
+    - family: CineGlyphs
+      fonts:
+        - asset: assets/fonts/CineGlyphs.ttf
+    - family: GlassGlyphs
+      fonts:
+        - asset: assets/fonts/GlassGlyphs.ttf
+    - family: PhosphorRegular
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor.ttf
+    - family: PhosphorThin
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Thin.ttf
+    - family: PhosphorLight
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Light.ttf
+    - family: PhosphorBold
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Bold.ttf
+    - family: PhosphorFill
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Fill.ttf
+    - family: PhosphorDuotone
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Duotone.ttf
