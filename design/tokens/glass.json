@@ -965,6 +965,7 @@
     {"id": "glass.cover.playOrb.label1", "fg": "color.label1", "over": ["#FFFFFF", "color.coverBacking"], "kind": "text", "expect": 13.96, "ref": "§7.7"},
     {"id": "glass.field.home.label2", "fg": "color.label2", "over": ["#000000", {"color": "#B7B7B7", "alpha": 0.26}], "kind": "text", "ref": "§2.1.8"},
     {"id": "glass.field.heroEnlargement.label2", "fg": "color.label2", "over": ["#000000", {"color": "#B7B7B7", "alpha": 0.36}], "kind": "text", "expect": 4.57, "ref": "§2.1.8"},
+    {"id": "glass.field.imageViewer.label1", "fg": "color.label1", "over": ["#000000", {"color": "#B7B7B7", "alpha": 0.4}], "kind": "text", "ref": "§2.1.8", "note": "Text over the brighter fields (§2.1.8): at the image viewer's 40 % field label2 measures 4.20:1 and label3 3.34:1, both under 4.5, so the viewer's field text and chrome use label1/onGlass. DESIGN conflict escalated (shared-01 open issues): keep label1 here, or lower the viewer field to <= 0.33 and declare label2."},
     {"id": "glass.field.seriesDetail.label2", "fg": "color.label2", "over": ["#000000", {"color": "#B7B7B7", "alpha": 0.28}], "kind": "text", "ref": "§2.1.8"},
     {"id": "glass.field.lists.label2", "fg": "color.label2", "over": ["#000000", {"color": "#B7B7B7", "alpha": 0.18}], "kind": "text", "ref": "§2.1.8"},
     {"id": "glass.field.lists.label3", "fg": "color.label3", "over": ["#000000", {"color": "#B7B7B7", "alpha": 0.18}], "kind": "text", "ref": "§2.1.8"},

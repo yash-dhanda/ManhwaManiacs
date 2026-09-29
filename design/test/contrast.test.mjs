@@ -69,3 +69,12 @@ test("every declared case of both skins passes", () => {
   assert.equal(r.failures, 0, r.lines.filter((l) => l.endsWith("FAIL")).join("\n"));
   assert.ok(r.counts.glass.pass > 0 && r.counts.cinematic.pass > 0);
 });
+
+test("escalated: image viewer field (40 %, §2.1.8) fails label2/label3, so the declared role is label1", () => {
+  const f = ["#000000", { color: "#B7B7B7", alpha: 0.4 }];
+  near(g("color.label2", f), 4.20);
+  near(g("color.label3", f), 3.34);
+  const k = glass.contrast.find((c) => c.id.startsWith("glass.field.imageViewer."));
+  assert.equal(k?.fg, "color.label1");
+  assert.ok(measure(glass, k) >= 4.5);
+});
