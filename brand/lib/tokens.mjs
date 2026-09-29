@@ -9,7 +9,7 @@ export function token(skin, key) {
     if (n == null || typeof n !== "object" || !(part in n)) throw new Error(`token ${skin}:${key} missing`);
     n = n[part];
   }
-  if (n && typeof n === "object") {
+  if (n && typeof n === "object" && !Array.isArray(n)) {
     if (!("_" in n)) throw new Error(`token ${skin}:${key} has no _ value`);
     n = n._;
   }
