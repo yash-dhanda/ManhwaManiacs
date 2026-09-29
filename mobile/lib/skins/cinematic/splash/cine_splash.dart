@@ -46,14 +46,14 @@ class CineSplash extends ConsumerStatefulWidget {
 }
 
 class _CineSplashState extends ConsumerState<CineSplash> with SingleTickerProviderStateMixin {
-  late final Ticker _ticker = createTicker(_tick);
+  Ticker? _ticker;
   double _ms = 0;
   double _offset = 0;
   int? _probeDoneMs;
   int? _handoffAt;
   bool _impressed = false;
   bool _gone = false;
-  late final bool _warm;
+  bool _warm = false;
   bool _revealSoundPlayed = false;
 
   @override
@@ -74,12 +74,12 @@ class _CineSplashState extends ConsumerState<CineSplash> with SingleTickerProvid
     ref.listenManual<AuthState>(authControllerProvider, (prev, next) {
       if (_probeDoneMs == null && next is! AuthUnknown) _probeDoneMs = _ms.round();
     });
-    _ticker.start();
+    _ticker = createTicker(_tick)..start();
   }
 
   @override
   void dispose() {
-    _ticker.dispose();
+    _ticker?.dispose();
     super.dispose();
   }
 
@@ -103,7 +103,7 @@ class _CineSplashState extends ConsumerState<CineSplash> with SingleTickerProvid
       if (at != null && ms >= at) _startHandoff(ms);
     }
     if (_handoffAt != null && ms >= _handoffAt! + kSplashHandoffMs) {
-      _ticker.stop();
+      _ticker?.stop();
       setState(() => _gone = true);
       return;
     }

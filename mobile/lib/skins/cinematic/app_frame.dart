@@ -74,7 +74,59 @@ class CineTopRouteObserver extends NavigatorObserver {
 /// The observer the Cinematic router installs; the frame listens to it.
 final CineTopRouteObserver cineTopRouteObserver = CineTopRouteObserver();
 
+bool _isBuildError(FlutterErrorDetails d) =>
+    d.library == 'widgets library' && (d.context?.toDescription().startsWith('building') ?? false);
+
 bool _benign(Object e) => e is AppError || e is DioException || e is SocketException || e is TimeoutException;
+
+/// The error hooks of the Cinematic root, reference counted: a restart builds the new frame before
+/// the old one is disposed, so a per-instance "previous handler" would restore the wrong one. The
+/// first frame saves the originals, the last one puts them back.
+abstract final class _ErrorHooks {
+  static int _users = 0;
+  static bool _release = false;
+  static ErrorWidgetBuilder? _builder;
+  static FlutterExceptionHandler? _onError;
+  static ui.ErrorCallback? _onDispatcherError;
+
+  static void install({required bool release}) {
+    _release = release;
+    if (_users++ > 0) return;
+    _builder = ErrorWidget.builder;
+    _onError = FlutterError.onError;
+    _onDispatcherError = PlatformDispatcher.instance.onError;
+    if (release) {
+      ErrorWidget.builder = (details) {
+        appLogger.e('A widget failed to build', details.exception, details.stack);
+        return const CineBrokenPart();
+      };
+    }
+    final prevError = _onError;
+    FlutterError.onError = (details) {
+      appLogger.e('Flutter error', details.exception, details.stack);
+      // A widget that fails to build is already replaced by `CineBrokenPart`; the notice is for
+      // everything else that escaped.
+      if (_release && !_benign(details.exception) && !_isBuildError(details)) {
+        appFatalError.value = FatalErrorReport(details.exception, details.stack);
+      }
+      prevError?.call(details);
+    };
+    final prevDispatcher = _onDispatcherError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      appLogger.e('Uncaught error', error, stack);
+      if (!_benign(error)) appFatalError.value = FatalErrorReport(error, stack);
+      return prevDispatcher?.call(error, stack) ?? true;
+    };
+  }
+
+  static void uninstall() {
+    if (--_users > 0) return;
+    _users = 0;
+    ErrorWidget.builder = _builder ?? ErrorWidget.builder;
+    FlutterError.onError = _onError;
+    PlatformDispatcher.instance.onError = _onDispatcherError;
+  }
+}
 
 /// The root stack above the router, in the order of cinematic 2.4 (Flutter draws these above every
 /// route): the router (page, sticky, chrome, panel, sheet, dialog and lightbox layers are routes);
@@ -99,9 +151,6 @@ class CineAppFrame extends ConsumerStatefulWidget {
 
 class _CineAppFrameState extends ConsumerState<CineAppFrame> {
   final GlobalKey<CineToastHostState> _toastKey = GlobalKey<CineToastHostState>();
-  ErrorWidgetBuilder? _prevErrorBuilder;
-  FlutterExceptionHandler? _prevFlutterError;
-  ui.ErrorCallback? _prevDispatcherError;
   double _bannerHeight = 0;
   late final GoRouter _router = ref.read(skinRouterProvider);
 
@@ -110,27 +159,7 @@ class _CineAppFrameState extends ConsumerState<CineAppFrame> {
     super.initState();
     _router.routerDelegate.addListener(_routeChanged);
     applyCineRestingSystemUi();
-    _prevErrorBuilder = ErrorWidget.builder;
-    if (widget.releaseErrorWidget) {
-      ErrorWidget.builder = (details) {
-        appLogger.e('A widget failed to build', details.exception, details.stack);
-        return const CineBrokenPart();
-      };
-    }
-    _prevFlutterError = FlutterError.onError;
-    FlutterError.onError = (details) {
-      appLogger.e('Flutter error', details.exception, details.stack);
-      if (widget.releaseErrorWidget && !_benign(details.exception)) {
-        appFatalError.value = FatalErrorReport(details.exception, details.stack);
-      }
-      _prevFlutterError?.call(details);
-    };
-    _prevDispatcherError = PlatformDispatcher.instance.onError;
-    PlatformDispatcher.instance.onError = (error, stack) {
-      appLogger.e('Uncaught error', error, stack);
-      if (!_benign(error)) appFatalError.value = FatalErrorReport(error, stack);
-      return _prevDispatcherError?.call(error, stack) ?? true;
-    };
+    _ErrorHooks.install(release: widget.releaseErrorWidget);
     appFatalError.addListener(_fatalChanged);
     cineTopRouteObserver.lightboxOnTop.addListener(_lightboxChanged);
   }
@@ -160,9 +189,7 @@ class _CineAppFrameState extends ConsumerState<CineAppFrame> {
     _router.routerDelegate.removeListener(_routeChanged);
     appFatalError.removeListener(_fatalChanged);
     cineTopRouteObserver.lightboxOnTop.removeListener(_lightboxChanged);
-    ErrorWidget.builder = _prevErrorBuilder ?? ErrorWidget.builder;
-    FlutterError.onError = _prevFlutterError;
-    PlatformDispatcher.instance.onError = _prevDispatcherError;
+    _ErrorHooks.uninstall();
     appFatalError.value = null;
     super.dispose();
   }

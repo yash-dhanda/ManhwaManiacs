@@ -58,7 +58,8 @@ class CineWordmark extends StatelessWidget {
     return Semantics(
       label: 'ManhwaManiacs',
       excludeSemantics: true,
-      child: IntrinsicWidth(
+      child: SizedBox(
+        width: _width(context, roman, italic),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
           Opacity(opacity: showText || frozenMs != null ? 1 : 0, child: text),
           SizedBox(height: c.space3),
@@ -72,6 +73,20 @@ class CineWordmark extends StatelessWidget {
         ],),
       ),
     );
+  }
+
+  /// The widest of the two lines: the rule is as wide as the lockup (an `IntrinsicWidth` cannot
+  /// measure the `SetHeading`s' layout builders).
+  static double _width(BuildContext context, TextStyle roman, TextStyle italic) {
+    final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: context.cine.typeMasthead.cap);
+    double one(String word, TextStyle style) {
+      final p = TextPainter(text: TextSpan(text: word, style: style), textScaler: scaler, textDirection: TextDirection.ltr, maxLines: 1)..layout();
+      final w = p.width;
+      p.dispose();
+      return w;
+    }
+
+    return (one('Manhwa', roman) > one('Maniacs', italic) ? one('Manhwa', roman) : one('Maniacs', italic)) + 2;
   }
 
   Widget _frozen(BuildContext context, String word, TextStyle style, int first, double ms) {
