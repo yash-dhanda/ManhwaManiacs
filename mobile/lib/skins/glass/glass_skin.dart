@@ -47,6 +47,9 @@ class GlassSkin implements Skin {
   GoRouter buildRouter(Ref ref) => buildGlassRouter(ref);
 
   @override
+  ScrollBehavior get scrollBehavior => const MaterialScrollBehavior();
+
+  @override
   Widget wrap(BuildContext context, Widget child) => GlassRoot(child: child);
 
   // The splash is built later.

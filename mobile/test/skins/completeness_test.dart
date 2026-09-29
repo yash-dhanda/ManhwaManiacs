@@ -14,7 +14,7 @@ Set<ScreenId> _pendingOf(SkinId id) =>
     id == SkinId.cinematic ? cine.PENDING : glass.PENDING;
 
 Set<String> _namedPending(GoRouter r) => {
-      for (final route in r.configuration.routes)
+      for (final route in RouteBase.routesRecursively(r.configuration.routes))
         if (route is GoRoute &&
             (route.name ?? '').startsWith(kPendingRoutePrefix))
           route.name!.substring(kPendingRoutePrefix.length),

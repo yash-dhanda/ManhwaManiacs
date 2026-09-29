@@ -39,6 +39,7 @@ class _SkinAppState extends ConsumerState<SkinApp> {
       theme: themed,
       darkTheme: themed,
       routerConfig: router,
+      scrollBehavior: skin.scrollBehavior,
       builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
         value: skin.overlayStyle(ref),
         child: DownloadsLifecycleGate(

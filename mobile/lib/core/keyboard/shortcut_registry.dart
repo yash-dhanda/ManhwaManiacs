@@ -14,6 +14,7 @@ class ShortcutEntry {
     required this.description,
     required this.onInvoke,
     this.singleKey = false,
+    this.keys,
   });
 
   final String group;
@@ -23,6 +24,9 @@ class ShortcutEntry {
 
   /// A binding without a modifier; it obeys the "Single-key shortcuts" preference.
   final bool singleKey;
+
+  /// Keycap labels for the `?` sheet when the activator does not print them (`?`, `g` then `1`).
+  final List<String>? keys;
 }
 
 class ShortcutGroup {
