@@ -20,7 +20,7 @@ const pages = readdirSync(join(root, "brand/demo/pages")).sort();
 const demo = JSON.parse(readFileSync(join(root, "brand/demo/demo.json"), "utf8"));
 const stat = ["mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"].map((d) => `mobile/android/app/src/main/res/drawable-${d}/ic_stat_mm.png`);
 const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>shared-04 brand proof</title>
-<style>body{background:#000;color:#F3F0E8;font:14px system-ui;margin:0;padding:24px}h2{font-size:15px;margin:32px 0 8px;color:#9A978F}.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}figure{margin:0}figcaption{font-size:11px;color:#7A7770}img{display:block;max-width:100%}.g{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.g img{width:100%}.mask{border-radius:22.37%;overflow:hidden}</style>
+<style>body{background:#000;color:#F3F0E8;font:14px system-ui;margin:0;padding:24px}h2{font-size:15px;margin:32px 0 8px;color:#9A978F}.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}figure{margin:0}figcaption{font-size:11px;color:#7A7770}img{display:block;max-width:100%}.g{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.g img{width:100%}img.mask{border-radius:22.37%}</style>
 <h1>Cinematic brand proof (${name})</h1>
 ${sec("Monogram on black", [1024, 256, 60, 44, 24, 16].map((w) => im(`${C}monogram.svg`, w > 400 ? 400 : w)).join(""))}
 ${sec("Monogram-small on bone and black at small sizes", [60, 44, 24, 16].map((w) => onBone(im(`${C}monogram-small.svg`, w))).join("") + [60, 44, 24, 16].map((w) => im(`${C}monogram-small.svg`, w)).join(""))}
@@ -35,7 +35,25 @@ ${sec("og.png", im("frontend/public/og.png", 1200))}
 ${sec("24 covers", `<div class="g" style="width:100%">${covers.map((f, i) => `<figure><img src="${R("brand/demo/covers/" + f)}"><figcaption>${demo.covers[i].title} (${demo.covers[i].group})</figcaption></figure>`).join("")}</div>`)}
 ${sec("40 pages", pages.map((f) => im("brand/demo/pages/" + f, 160)).join(""))}
 <p style="color:#7A7770">${man.length} exported files in manifest.</p>`;
-writeFileSync(join(outDir, "sheet.html"), html);
+const GL = "brand/glass/";
+const rnd = (x, w) => `<div style="width:${w}px">${x.replace("<img", `<img class=\"mask\"`)}</div>`;
+const strip = (src, w) => [["#fff", 0], ["#202124", 0]].map(([b]) => `<div style="background:${b};padding:8px">${im(src, w)}</div>`).join("");
+const glassHtml = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>shared-05 brand proof</title>
+<style>body{background:#000;color:#F5F7FA;font:14px system-ui;margin:0;padding:24px}h2{font-size:15px;margin:32px 0 8px;color:#8B93A7}.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}figure{margin:0}figcaption{font-size:11px;color:#6E7688}img{display:block;max-width:100%}img.mask{border-radius:22.37%}</style>
+<h1>Glass brand proof (${name})</h1>
+${sec("Field alone", im(GL + "field.svg", 320))}
+${sec("Slab layers (bottom M, gutter bar, top M) on grey", ["bottom-m", "gutter-bar", "top-m"].map((n) => im(GL + n + ".svg", 200, "background:#555")).join(""))}
+${sec("iOS icon under a 22.37 % mask at 1024 (shown 320), 180 and 60; dark and tinted", [320, 180, 60].map((w) => rnd(im(GL + "export/icon-ios-1024.png", w), w)).join("") + [180, 60].map((w) => rnd(im(GL + "export/icon-ios-dark-1024.png", w, "background:#333"), w)).join("") + [180, 60].map((w) => rnd(im(GL + "export/icon-ios-tinted-1024.png", w), w)).join(""))}
+${sec("Android foreground over the field with the 66 dp circle; monochrome themed", `<div style="position:relative;width:216px;height:216px">${im(GL + "export/field-1024.png", 216, "position:absolute")}${im(GL + "export/android-foreground-1024.png", 216, "position:absolute")}<div style="position:absolute;left:37.5px;top:37.5px;width:141px;height:141px;border:1px solid #f0f;border-radius:50%"></div></div><div style="background:#1F1F1F;padding:8px;width:216px;height:216px">${im(GL + "export/android-monochrome-1024.png", 216, "filter:sepia(1) hue-rotate(180deg) saturate(2)")}</div></div>`)}
+${sec("Neutral mark at 96 px and 44 px", im(GL + "neutral-mark.svg", 96 * 544 / 640) + im(GL + "neutral-mark.svg", 44 * 544 / 640))}
+${sec("Column at 32, 24 and 16 px tall", [32, 24, 16].map((h) => im(GL + "column-small.svg", h * 544 / 640)).join(""))}
+${sec("Stacked wordmark at 1x and at its 28 px minimum height", im(GL + "wordmark-stacked.svg", 480) + im(GL + "wordmark-stacked.svg", 28 * 1067 / 462) + im(GL + "wordmark-stacked-flat.svg", 320))}
+${sec("Single-line wordmark at 12 px cap height", im(GL + "wordmark-line.svg", 12 * 6.2 * 100 / 72))}
+${sec("Favicons at 16 and 32 on white and #202124: Glass then Cinematic", [16, 32].map((w) => strip("frontend/public/favicon-glass.svg", w)).join("") + [16, 32].map((w) => strip("frontend/public/favicon.svg", w)).join(""))}
+${sec("Droplet texture at 60 % over white and black 160 px tiles", ["#fff", "#000"].map((b) => `<div style="width:160px;height:160px;background:${b} url(${R("frontend/public/glass/droplets.webp")}) 0 0/160px 160px;background-blend-mode:normal"></div>`).join("") + im("frontend/public/glass/droplets.webp", 240, "background:#777"))}
+${sec("Cinematic and Glass iOS icons at 60 px", rnd(im(C + "export/icon-ios-1024.png", 60), 60) + rnd(im(GL + "export/icon-ios-1024.png", 60), 60))}
+<p style="color:#6E7688">${man.length} exported files in manifest.</p>`;
+writeFileSync(join(outDir, "sheet.html"), name.includes("05") ? glassHtml : html);
 
 const { chromium } = createRequire(new URL("../frontend/package.json", import.meta.url))("playwright");
 const browser = await chromium.launch();
