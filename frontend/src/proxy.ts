@@ -50,5 +50,5 @@ export function proxy(req: NextRequest) {
 
 export const config = {
   // Pages only: no API proxy, Next internals, preview layout or files (anything with a dot).
-  matcher: ["/((?!_|api(?:/|$)|skin-preview(?:/|$)|.*\\.).*)"],
+  matcher: ["/((?!_|api(?:/|$)|skin-preview(?:/|$)|dev(?:/|$)|.*\\.).*)"],
 };

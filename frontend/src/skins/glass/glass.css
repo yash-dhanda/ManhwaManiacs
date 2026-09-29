@@ -1,0 +1,22 @@
+/*
+ * Glass skin material sheet (web/25). A GLOBAL stylesheet on purpose: Turbopack
+ * rejects impure selectors in CSS modules and tsc/eslint do not catch it.
+ */
+html[data-skin="glass"] { color-scheme: dark; }
+
+/* Autofill on wells (glass/DESIGN.md 8.0.7). */
+[data-skin="glass"] input:-webkit-autofill {
+  -webkit-text-fill-color: var(--mm-color-label1);
+  box-shadow: 0 0 0 50px var(--mm-color-fill3) inset;
+  caret-color: var(--mm-color-iris400);
+}
+
+/* Registrations the generator did not emit (--glass-dim, --glass-*-t, --mm-light-angle and --amb-a*/rim are in theme.generated.css). --glass-rond and --glass-grad stay unregistered (3.5). */
+@property --amb-x1 { syntax: "<percentage>"; inherits: false; initial-value: 18%; }
+@property --amb-y1 { syntax: "<percentage>"; inherits: false; initial-value: 8%; }
+@property --amb-x2 { syntax: "<percentage>"; inherits: false; initial-value: 78%; }
+@property --amb-y2 { syntax: "<percentage>"; inherits: false; initial-value: 14%; }
+@property --amb-x3 { syntax: "<percentage>"; inherits: false; initial-value: 46%; }
+@property --amb-y3 { syntax: "<percentage>"; inherits: false; initial-value: 36%; }
+@property --sheet-progress { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --caustic-a { syntax: "<number>"; inherits: false; initial-value: 0.14; }

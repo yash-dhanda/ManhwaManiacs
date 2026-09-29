@@ -31,7 +31,14 @@ export const metadata: Metadata = {
 
 export async function generateViewport(): Promise<Viewport> {
   if ((await getSkin()) !== "legacy") {
-    return { themeColor: "#000000", colorScheme: "dark", viewportFit: "cover" };
+    return {
+      width: "device-width",
+      initialScale: 1,
+      viewportFit: "cover",
+      interactiveWidget: "resizes-content",
+      colorScheme: "dark",
+      themeColor: "#000000",
+    };
   }
   return {
     // The two canvases an unset preference can paint, in the same order and from

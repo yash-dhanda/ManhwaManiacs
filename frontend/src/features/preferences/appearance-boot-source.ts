@@ -85,6 +85,10 @@ const CHANNELS: readonly [string, string, readonly string[]][] = [
  * component wraps it for the page.
  */
 export const APPEARANCE_BOOT_SOURCE = `try{
+var b=navigator.userAgentData,ch=!!(b&&b.brands&&b.brands.some(function(x){return x.brand==="Chromium"}));
+document.documentElement.setAttribute("data-glass-renderer",ch?"liquid":"frosted");
+}catch(e){}
+try{
 var C=${JSON.stringify(CHANNELS)},P=${JSON.stringify(ACTIVE_PROFILE_STORAGE_KEY)};
 if(${JSON.stringify(PUBLIC_AUTH_PATHS)}.indexOf(location.pathname.replace(/\\/+$/,"")||"/")>=0)return;
 var raw=localStorage.getItem(P);if(!raw)return;
