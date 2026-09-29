@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/diagnostics/motion_recorder.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
-import 'package:manhwamaniacs/skins/glass/glass_engine.dart';
+import 'package:manhwamaniacs/skins/glass/glass/liquid.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/orientation.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';

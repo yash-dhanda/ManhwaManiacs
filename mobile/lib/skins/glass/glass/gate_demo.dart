@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:manhwamaniacs/core/diagnostics/performance_monitor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
-import 'package:manhwamaniacs/skins/glass/glass_engine.dart';
+import 'package:manhwamaniacs/skins/glass/glass/liquid.dart';
 import 'package:manhwamaniacs/skins/glass/icons/glass_icon.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 

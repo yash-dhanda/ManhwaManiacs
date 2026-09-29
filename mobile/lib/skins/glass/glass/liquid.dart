@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 
-import 'package:flutter/widgets.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/glass/tier_math.dart';
@@ -66,3 +65,21 @@ bool get liquidShadersSupported => ui.ImageFilter.isShaderFilterSupported;
 /// glass into the library's frosted panel; Glass paints its own solid path instead.
 Widget glassAccessibilityScope({required bool reduceMotion, required Widget child}) =>
     GlassAccessibilityScope(reduceMotion: reduceMotion, reduceTransparency: false, child: child);
+
+// --- shader init (moved from glass_engine.dart) ---
+
+Future<void> _initShaders() => LiquidGlassWidgets.initialize();
+
+/// Test seam: what [ensureLiquidGlassReady] runs. Production always uses [LiquidGlassWidgets.initialize].
+@visibleForTesting
+Future<void> Function() liquidGlassInitializer = _initShaders;
+
+Future<void>? _ready;
+
+/// Initialises the liquid-glass shaders once per process (glass 15.3). Reached
+/// only from `GlassSkin.prepare()` and the device-gate page, so Cinematic and
+/// legacy boots never load them. The package's app-wrapping helper is not used.
+Future<void> ensureLiquidGlassReady() => _ready ??= liquidGlassInitializer();
+
+@visibleForTesting
+void resetLiquidGlassReadyForTest() => _ready = null;

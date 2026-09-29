@@ -10,7 +10,13 @@ Deviations and notes:
 - `PageSample` is a local stand-in (TODO mobile/35); no per-profile a11y store existed, so keys `mm.a11y.p<profile>.*` were created.
 - No OKLCH or recorder existed outside Cinematic, so both were written new in `core/`.
 - glass/DESIGN.md wins over the prompt where they differ; none found beyond the above.
-- Cinematic: zero diff under `lib/skins/cinematic`; shared boot untouched, so its captures cannot change (no byte compare run).
+- Cinematic: zero diff under `lib/skins/cinematic`; shared boot untouched, so its captures cannot change (byte compare below).
 - CI gate not run (no push in this lane).
 
 Verification: `flutter analyze` No issues; `flutter test` 2252 passed, 0 failed (floor 2160); `node design/build.mjs --check` passes; frontend/backend untouched.
+
+## Cinematic byte compare
+Tonight and Library, 390x844 and 834x1194, captured with MM_PROOF_DIR on base 59c65cef and on HEAD: all four PNGs are byte-identical (`cmp`).
+
+## Importer rule
+`glass_engine.dart` shader init now lives in `glass/liquid.dart`; the device-gate page moved to `glass/gate_demo.dart` (still routed from diagnostics until release/00 deletes it). Only `skin_glass.dart` and `glass/` import liquid_glass_widgets.

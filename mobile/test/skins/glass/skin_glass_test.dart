@@ -324,8 +324,8 @@ void main() {
     }
     const allowed = {
       'lib/skins/glass/skin_glass.dart',
-      'lib/skins/glass/glass_engine.dart', // mobile/03's prepare(); deleted with the gate at release/00
-      'lib/skins/glass/gate/glass_gate_screen.dart', // mobile/03's gate page; deleted at release/00
+      'lib/skins/glass/glass/liquid.dart', // mobile/03's prepare(); deleted with the gate at release/00
+      'lib/skins/glass/glass/gate_demo.dart', // mobile/03's gate page; deleted at release/00
     };
     for (final p in importers) {
       expect(allowed.contains(p) || p.startsWith('lib/skins/glass/glass/'), isTrue, reason: p);
