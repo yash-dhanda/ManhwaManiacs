@@ -10,7 +10,10 @@ import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
+import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
+import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/providers/dialogue_still_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
@@ -20,9 +23,12 @@ import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/dialogue_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/scan/dialogue_scan_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/sources_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/bubble_pulse.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../skins/cinematic/discover/harness.dart';
@@ -179,12 +185,50 @@ class _Novel extends ContentModeController {
 
 late Uint8List _stillPng;
 
+enum _Still { ok, loading, failed }
+
 class _Shot {
-  const _Shot(this.name, this.screen, this.build);
+  const _Shot(this.name, this.screen, this.build, {this.after, this.settle, this.still = _Still.ok});
 
   final String name;
   final Widget screen;
   final List<Override> Function(SharedPreferences prefs) build;
+
+  /// Runs after the shot has settled (open a sheet, start a drag...).
+  final Future<void> Function(WidgetTester tester)? after;
+
+  /// Replaces the 4 s settle, for a state at an exact time.
+  final Future<void> Function(WidgetTester tester)? settle;
+  final _Still still;
+}
+
+Future<void> _tapText(WidgetTester tester, String text) async {
+  final f = find.textContaining(text).first;
+  await tester.ensureVisible(f);
+  await tester.pump();
+  await tester.tap(f);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+}
+
+Future<void> _tapTip(WidgetTester tester, String tip) async {
+  await tester.tap(find.byTooltip(tip).first);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+}
+
+class _Thinks extends SuggestionsNotifier {
+  @override
+  Future<WorldSuggestResponse?> build() => Completer<WorldSuggestResponse?>().future;
+}
+
+class _AskFails extends SuggestionsNotifier {
+  _AskFails(this.error);
+
+  final ApiError error;
+
+  @override
+  Future<WorldSuggestResponse?> build() async => throw error;
 }
 
 const _netErr = NetworkError(message: 'offline');
@@ -261,7 +305,147 @@ List<_Shot> _shots() {
     _Shot('sources-pinned-empty', const SourcesScreen(), (p) => base(p, pins: const [])),
     _Shot('sources-pins-failed', const SourcesScreen(), (p) => base(p, synced: false)),
     _Shot('catalogue-loaded', const CatalogueScreen(sourceId: 'lantern'), (p) => base(p, sources: s(series: wall))),
-    _Shot('catalogue-opening', const CatalogueScreen(sourceId: 'lantern'), (p) => base(p, sources: _Never())),
+    _Shot(
+      'catalogue-opening-0-5s',
+      const CatalogueScreen(sourceId: 'lantern'),
+      (p) => base(p, sources: _Never()),
+      settle: (t) async {
+        await t.pump();
+        await t.pump(const Duration(milliseconds: 500));
+      },
+    ),
+    _Shot(
+      'catalogue-opening-3-5s',
+      const CatalogueScreen(sourceId: 'lantern'),
+      (p) => base(p, sources: _Never()),
+      settle: (t) async {
+        await t.pump();
+        for (var i = 0; i < 7; i++) {
+          await t.pump(const Duration(milliseconds: 500));
+        }
+      },
+    ),
+    _Shot(
+      'catalogue-stale',
+      const CatalogueScreen(sourceId: 'lantern'),
+      (p) => base(p, sources: _stale(wall)),
+    ),
+    _Shot(
+      'catalogue-end',
+      const CatalogueScreen(sourceId: 'lantern'),
+      (p) => base(p, sources: s(series: wall)),
+      after: (t) async {
+        final pos = t.state<ScrollableState>(find.byType(Scrollable).first).position;
+        pos.jumpTo(pos.maxScrollExtent);
+        await t.pump(const Duration(milliseconds: 400));
+      },
+    ),
+    _Shot(
+      'discover-genre-sheet',
+      const DiscoverScreen(),
+      (p) => base(p, sources: s(series: wall)),
+      after: (t) => _tapText(t, 'Romance'),
+    ),
+    _Shot(
+      'discover-group-jump-sheet',
+      const DiscoverScreen(q: 'lantern'),
+      (p) => base(p, sources: s(groups: [_group('lantern', 6), _group('harbour', 4), _group('ember', 2)])),
+      after: (t) => _tapText(t, 'Jump to source'),
+    ),
+    _Shot(
+      'discover-ask-thinking',
+      const DiscoverScreen(q: 'a quiet kingdom', scope: 'ask'),
+      (p) => base(p, extra: [suggestionsProvider.overrideWith(_Thinks.new)]),
+    ),
+    _Shot(
+      'discover-ask-unavailable',
+      const DiscoverScreen(q: 'a quiet kingdom', scope: 'ask'),
+      (p) => base(
+        p,
+        extra: [
+          suggestionsProvider.overrideWith(
+            () => _AskFails(const ApiError(statusCode: 503, code: 'not_configured', message: 'no')),
+          ),
+        ],
+      ),
+    ),
+    _Shot(
+      'discover-ask-rate-limited',
+      const DiscoverScreen(q: 'a quiet kingdom', scope: 'ask'),
+      (p) => base(
+        p,
+        extra: [
+          suggestionsProvider.overrideWith(
+            () => _AskFails(const ApiError(statusCode: 429, code: 'rate_limited', message: 'slow', details: {'retry_after': 41})),
+          ),
+        ],
+      ),
+    ),
+    _Shot(
+      'sources-offline',
+      const SourcesScreen(),
+      (p) => base(p, sources: FakeSources(sources: _sources, listSourcesError: _netErr)),
+    ),
+    _Shot('sources-row-menu', const SourcesScreen(), base, after: (t) => _tapTip(t, 'More for LANTERN')),
+    _Shot(
+      'sources-health-details',
+      const SourcesScreen(),
+      base,
+      after: (t) async {
+        await _tapTip(t, 'More for HARBOUR');
+        await _tapText(t, 'Health details');
+      },
+    ),
+    _Shot(
+      'sources-row-mid-drag',
+      const SourcesScreen(),
+      base,
+      after: (t) async {
+        final g = await t.startGesture(t.getCenter(find.byIcon(kDotsSixVertical).first));
+        for (var i = 0; i < 6; i++) {
+          await g.moveBy(const Offset(0, 12));
+          await t.pump(const Duration(milliseconds: 60));
+        }
+      },
+    ),
+    _Shot('dialogue-crop-loading', const DialogueScreen(q: 'never'), (p) => base(p, ocr: FakeOcr(page: _ocrPage(2))), still: _Still.loading),
+    _Shot('dialogue-crop-failed', const DialogueScreen(q: 'never'), (p) => base(p, ocr: FakeOcr(page: _ocrPage(2))), still: _Still.failed),
+    _Shot(
+      'reader-bubble-pulse',
+      Scaffold(
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            const ColoredBox(color: Color(0xFF1B1A17)),
+            Center(
+              child: AspectRatio(
+                aspectRatio: 2 / 3,
+                child: Stack(
+                  children: [
+                    const Positioned.fill(child: ColoredBox(color: Color(0xFFB8B2A4))),
+                    BubblePulse(box: _hit.box!),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      base,
+      settle: (t) async {
+        await t.pump();
+        await t.pump(const Duration(milliseconds: 240));
+      },
+    ),
+    for (final (name, state) in <(String, OcrRunState)>[
+      ('recognizing', const OcrRunState(phase: OcrRunPhase.recognizing, completedPages: 11, totalPages: 40)),
+      ('paused', const OcrRunState(phase: OcrRunPhase.paused, completedPages: 11, totalPages: 40)),
+      ('uploading', const OcrRunState(phase: OcrRunPhase.uploading)),
+      ('done', const OcrRunState(phase: OcrRunPhase.done, wordCount: 214)),
+      ('cancelled', const OcrRunState(phase: OcrRunPhase.cancelled)),
+      ('failed', const OcrRunState(phase: OcrRunPhase.failed, message: 'The reader engine stopped.')),
+    ])
+      _Shot('scan-block-$name', Scaffold(body: SafeArea(child: DialogueScanBlock(preview: state))), base),
     _Shot(
       'catalogue-not-browsable',
       const CatalogueScreen(sourceId: 'lantern'),
@@ -294,6 +478,17 @@ List<_Shot> _shots() {
     _Shot('dialogue-offline', const DialogueScreen(q: 'never'), (p) => base(p, ocr: _OfflineOcr())),
   ];
 }
+
+FakeSources _stale(List<SourceSeriesSummary> wall) => FakeSources(
+      sources: _sources,
+      series: wall,
+      cache: {
+        'status': 'stale',
+        'stale': true,
+        'fetched_at': DateTime.now().subtract(const Duration(hours: 3)).toUtc().toIso8601String(),
+      },
+      modes: const [SourceBrowseMode(id: 'popular', label: 'Popular')],
+    );
 
 class _Never2 extends FakeSources {
   _Never2() : super(sources: _sources);
@@ -329,10 +524,18 @@ void main() {
       name: '${shot.name}${reduced ? '-reduced' : ''}',
       size: size,
       disableAnimations: reduced,
-      afterSettle: (t) => pumpUntilCoversLoad(t, rounds: 30),
+      settle: shot.settle,
+      afterSettle: (t) async {
+        await pumpUntilCoversLoad(t, rounds: 30);
+        await shot.after?.call(t);
+      },
       overrides: [
         ...shot.build(prefs),
-        dialogueStillProvider.overrideWith((ref, key) async => DialogueStill(bytes: _stillPng, aspect: 2 / 3)),
+        dialogueStillProvider.overrideWith((ref, key) async => switch (shot.still) {
+              _Still.ok => DialogueStill(bytes: _stillPng, aspect: 2 / 3),
+              _Still.failed => null,
+              _Still.loading => await Completer<DialogueStill?>().future,
+            },),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,

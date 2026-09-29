@@ -44,3 +44,7 @@ Items only the owner can do, by step.
 - Demo art: `/dev/glass-calibration` uses 24 generated stand-in covers in `frontend/public/dev-covers/` (dark, mid and pale, one dark with a white patch) because `frontend/public/skin-preview/covers/` (shared/05) is not integrated yet. Swap them when it lands.
 - web/01 open: shared/02 ICON_RULES has no per-role fixed weight (design/icons.json defines none), so the Cinematic streak flame renders Light at 24, never Fill; Icon.tsx keeps a no-op roleWeights hook.
 - mobile/03: confirm tests + build-ios CI run ids/conclusions for commit abbace5 (liquid_glass_widgets pin), record in docs/redesign/proof/mobile-03/glass-gate.md
+
+## mobile/16 (lane L09, fix pass 2)
+- After mobile/12 lands: mount `DialogueLandingHost` in the Cinematic reader and check on a device that a Dialogue hit lands on the matched page and the bubble pulses twice.
+- After mobile/06 lands: bind `discoverFocusSignalProvider` to the shell's third-tap signal and check it on a device.

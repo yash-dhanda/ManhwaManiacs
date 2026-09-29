@@ -33,6 +33,9 @@ class _FakeCollectionsRepository implements LibraryRepository {
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   _FakeCollectionsRepository({List<Collection>? collections})
       : collections = collections ?? [];
 

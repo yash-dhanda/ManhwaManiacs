@@ -49,7 +49,7 @@ void main() {
   testWidgets('results: credit line, transcript, page-missing still, open sets the jump', (tester) async {
     final ocr = FakeOcr(page: page(2, total: 134));
     final h = tester.ensureSemantics();
-    await pumpScreen(tester, const DialogueScreen(q: 'hello'), ocr: ocr);
+    await pumpScreen(tester, const DialogueScreen(q: 'hello'), ocr: ocr, size: const Size(390, 4000));
     await settle(tester, 800);
     expect(ocr.queries, ['hello']);
     expect(find.textContaining('TOWER-OF-GOD · CH 88 · PAGE 12 · 214 WORDS · VISION'), findsWidgets);

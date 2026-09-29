@@ -1,3 +1,6 @@
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,15 +25,12 @@ import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest_window.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
-import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
 import 'package:manhwamaniacs/features/settings/models/app_version.dart';
 import 'package:manhwamaniacs/features/settings/providers/app_update_provider.dart';
 import 'package:manhwamaniacs/features/settings/screens/settings_screen.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
-import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
-import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -117,8 +117,6 @@ class _FakeIntelligenceRepository implements LibraryRepository {
     int page = 1,
     int perPage = 40,
     String? sort,
-    String? genre,
-    bool refresh = false,
     String? search,
     String? readingStatus,
     bool? isFavorite,
@@ -312,8 +310,6 @@ class _FollowedOnlyLibraryRepository extends _FakeIntelligenceRepository {
     int page = 1,
     int perPage = 40,
     String? sort,
-    String? genre,
-    bool refresh = false,
     String? search,
     String? readingStatus,
     bool? isFavorite,
@@ -418,7 +414,6 @@ class _FakeSourcesRepository implements SourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
-    int? tier,
   }) =>
       throw UnimplementedError();
 
@@ -432,8 +427,6 @@ class _FakeSourcesRepository implements SourcesRepository {
     int page = 1,
     String? query,
     String? sort,
-    String? genre,
-    bool refresh = false,
   }) =>
       throw UnimplementedError();
 

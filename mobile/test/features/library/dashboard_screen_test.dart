@@ -119,6 +119,9 @@ class _FakeLibraryRepository implements LibraryRepository {
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   /// Followed ids passed to [unfollow], in call order.
   final List<int> unfollowed = [];
 

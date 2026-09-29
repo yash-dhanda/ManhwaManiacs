@@ -52,8 +52,11 @@ class Kicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text.toUpperCase(),
-        style: cineText(context, context.cine.typeKicker,
-            color: color ?? context.cine.colorInk60,),
+        style: cineText(
+          context,
+          context.cine.typeKicker,
+          color: color ?? context.cine.colorInk60,
+        ),
         textScaler: CineType.scaler(context, context.cine.typeKicker),
       );
 }
@@ -84,7 +87,9 @@ class CineNotice extends StatelessWidget {
     final t = context.cine;
     return Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: CineSpace.s4, vertical: CineSpace.s6,),
+        horizontal: CineSpace.s4,
+        vertical: CineSpace.s6,
+      ),
       child: Semantics(
         container: true,
         liveRegion: true,
@@ -94,18 +99,24 @@ class CineNotice extends StatelessWidget {
             Kicker(kicker, color: kickerColor),
             const SizedBox(height: CineSpace.s3),
             TypedText(headline, style: cineText(context, t.typePull)),
-            if (folio != null) ...[const SizedBox(height: CineSpace.s2), folio!],
+            if (folio != null) ...[
+              const SizedBox(height: CineSpace.s2),
+              folio!,
+            ],
             if (deck != null) ...[
               const SizedBox(height: CineSpace.s2),
-              Text(deck!,
-                  style: cineText(context, t.typeDeck, color: t.colorInk60),),
+              Text(
+                deck!,
+                style: cineText(context, t.typeDeck, color: t.colorInk60),
+              ),
             ],
             if (actions.isNotEmpty) ...[
               const SizedBox(height: CineSpace.s4),
               Wrap(
-                  spacing: CineSpace.s4,
-                  runSpacing: CineSpace.s2,
-                  children: actions,),
+                spacing: CineSpace.s4,
+                runSpacing: CineSpace.s2,
+                children: actions,
+              ),
             ],
           ],
         ),
@@ -116,8 +127,13 @@ class CineNotice extends StatelessWidget {
 
 /// A `quiet` text button with a 44 dp hit area.
 class QuietButton extends StatelessWidget {
-  const QuietButton(this.label,
-      {super.key, this.onPressed, this.icon, this.semanticsLabel,});
+  const QuietButton(
+    this.label, {
+    super.key,
+    this.onPressed,
+    this.icon,
+    this.semanticsLabel,
+  });
 
   final String label;
   final VoidCallback? onPressed;
@@ -219,8 +235,11 @@ class SlugTabs extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: CineSpace.s3),
                 child: Text(
                   label.toUpperCase(),
-                  style: cineText(context, t.typeNav,
-                      color: on ? t.colorInk100 : t.colorInk60,),
+                  style: cineText(
+                    context,
+                    t.typeNav,
+                    color: on ? t.colorInk100 : t.colorInk60,
+                  ),
                 ),
               ),
               Positioned(
@@ -376,7 +395,8 @@ class _IndeterminateRuleState extends State<IndeterminateRule>
               builder: (context, _) => Stack(
                 children: [
                   Positioned.fill(
-                      child: ColoredBox(color: context.cine.colorRule1),),
+                    child: ColoredBox(color: context.cine.colorRule1),
+                  ),
                   Positioned(
                     left:
                         (box.maxWidth * 1.25) * _c.value - box.maxWidth * 0.25,
@@ -425,7 +445,11 @@ class SectionHead extends StatelessWidget {
     final t = context.cine;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-          CineSpace.s4, CineSpace.s3, CineSpace.s4, CineSpace.s3,),
+        CineSpace.s4,
+        CineSpace.s3,
+        CineSpace.s4,
+        CineSpace.s3,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -452,6 +476,42 @@ class SectionHead extends StatelessWidget {
   }
 }
 
+/// Route focus lands on the screen's level-1 heading: owns a [FocusNode] (or
+/// uses [focusNode]) and requests it once, after the first frame.
+class HeadingFocus extends StatefulWidget {
+  const HeadingFocus({super.key, required this.child, this.focusNode});
+
+  final Widget child;
+  final FocusNode? focusNode;
+
+  @override
+  State<HeadingFocus> createState() => _HeadingFocusState();
+}
+
+class _HeadingFocusState extends State<HeadingFocus> {
+  FocusNode? _own;
+  FocusNode get _node =>
+      widget.focusNode ?? (_own ??= FocusNode(debugLabel: 'heading'));
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _node.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _own?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      Focus(focusNode: _node, skipTraversal: true, child: widget.child);
+}
+
 /// Screen-reader header of level 1 for screens with no visible title.
 class ZeroSizeHeading extends StatelessWidget {
   const ZeroSizeHeading(this.label, {super.key, this.focusNode});
@@ -460,7 +520,7 @@ class ZeroSizeHeading extends StatelessWidget {
   final FocusNode? focusNode;
 
   @override
-  Widget build(BuildContext context) => Focus(
+  Widget build(BuildContext context) => HeadingFocus(
         focusNode: focusNode,
         child: Semantics(
           header: true,
@@ -471,6 +531,43 @@ class ZeroSizeHeading extends StatelessWidget {
       );
 }
 
+/// Shows [child] only after [delay] (the ASK dial appears after 1 s).
+class DelayedShow extends StatefulWidget {
+  const DelayedShow(
+      {super.key,
+      required this.child,
+      this.delay = const Duration(seconds: 1),});
+
+  final Widget child;
+  final Duration delay;
+
+  @override
+  State<DelayedShow> createState() => _DelayedShowState();
+}
+
+class _DelayedShowState extends State<DelayedShow> {
+  bool _on = false;
+  late final Timer _t = Timer(widget.delay, () {
+    if (mounted) setState(() => _on = true);
+  });
+
+  @override
+  void initState() {
+    super.initState();
+    _t; // starts the timer
+  }
+
+  @override
+  void dispose() {
+    _t.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      _on ? widget.child : const SizedBox(width: 24, height: 24);
+}
+
 void announce(BuildContext context, String message) => unawaited(
       SemanticsService.sendAnnouncement(
         View.of(context),
@@ -478,5 +575,130 @@ void announce(BuildContext context, String message) => unawaited(
         Directionality.of(context),
       ),
     );
+
+/// A 56 px header sheet with a grabber (the `CineSheetRoute` shape of §7.9).
+/// TODO(mobile/05): swap for the real route; [body] fills the sheet below the
+/// header.
+Future<T?> showCineSheet<T>(
+  BuildContext context, {
+  required String title,
+  required WidgetBuilder body,
+}) =>
+    showModalBottomSheet<T>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.cine.colorPaper2,
+      barrierColor: CineScrim.modal,
+      shape: const RoundedRectangleBorder(),
+      constraints:
+          BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
+      builder: (context) {
+        final t = context.cine;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: CineSpace.s2),
+                  width: 32,
+                  height: 3,
+                  color: t.colorInk30,
+                ),
+              ),
+              SizedBox(
+                height: 56,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Semantics(
+                      header: true,
+                      child: Text(title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: cineText(context, t.typeSubhead),),
+                    ),
+                  ),
+                ),
+              ),
+              Divider(height: 1, thickness: 1, color: t.colorRule1),
+              Flexible(child: body(context)),
+            ],
+          ),
+        );
+      },
+    );
+
+/// The heavy rule under a masthead: drawn left to right over [CineDur.beat]
+/// once the letters have landed ([CineDur.letter]); whole under reduced motion.
+class DrawnRule extends StatefulWidget {
+  const DrawnRule({super.key, this.thickness = 3});
+
+  final double thickness;
+
+  @override
+  State<DrawnRule> createState() => _DrawnRuleState();
+}
+
+class _DrawnRuleState extends State<DrawnRule>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: CineDur.beat);
+  Timer? _delay;
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (cineReduced(context)) {
+      _c.value = 1;
+    } else {
+      _delay = Timer(CineDur.letter, () {
+        if (mounted) unawaited(_c.forward());
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _delay?.cancel();
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+        child: SizedBox(
+          height: widget.thickness,
+          child: AnimatedBuilder(
+            animation: _c,
+            builder: (context, _) => Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: CineCurves.easeSet.transform(_c.value),
+                child: ColoredBox(
+                    color: context.cine.colorInk100,
+                    child: SizedBox(height: widget.thickness),),
+              ),
+            ),
+          ),
+        ),
+      );
+}
+
+/// Unicode superscript digits for a slug-line count (`PINNED⁶`, §7.5).
+String raisedCount(int n) {
+  const d = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+  return [for (final c in n.toString().split('')) d[int.parse(c)]].join();
+}
+
+/// Phosphor `dots-six-vertical` (Regular; the codepoint is in
+/// brand/phosphor/codepoints.json, the generated set does not carry it).
+const IconData kDotsSixVertical =
+    IconData(0xEAE2, fontFamily: 'PhosphorRegular');
 
 const IconData kCloseIcon = PhosphorRegular.x;

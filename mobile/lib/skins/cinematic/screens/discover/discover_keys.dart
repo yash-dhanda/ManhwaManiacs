@@ -113,3 +113,14 @@ class _CineKeysState extends State<CineKeys> {
 
 SingleActivator key(LogicalKeyboardKey k, {bool alt = false}) =>
     SingleActivator(k, alt: alt);
+
+/// j / k / arrows: move keyboard focus from wherever it is (the level-1
+/// heading right after a route lands, a control later), not from the route.
+void focusStep(BuildContext context, {required bool forward}) {
+  final node = FocusManager.instance.primaryFocus ?? FocusScope.of(context);
+  if (forward) {
+    node.nextFocus();
+  } else {
+    node.previousFocus();
+  }
+}

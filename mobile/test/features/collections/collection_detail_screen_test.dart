@@ -52,6 +52,9 @@ class _MutableCollectionsRepository implements LibraryRepository {
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   _MutableCollectionsRepository({
     required this.collections,
     required Map<int, CollectionDetail> details,

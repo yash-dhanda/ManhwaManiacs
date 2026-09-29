@@ -7,27 +7,24 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 /// Health details: state text, last OK time, last error in Plex Mono on
 /// `paper.1` (`ink.60`: inside a sheet, never `ink.45`).
 Future<void> showHealthDetails(BuildContext context, SourceSummary source) =>
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: context.cine.colorPaper2,
-      barrierColor: CineScrim.modal,
-      shape: const RoundedRectangleBorder(),
-      builder: (context) {
+    showCineSheet<void>(
+      context,
+      title: 'Health details',
+      body: (context) {
         final t = context.cine;
         final d = describeHealth(source.health, DateTime.now());
         final h = source.health;
-        return SafeArea(
+        return SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(CineSpace.s4),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Kicker('Health'),
-                const SizedBox(height: CineSpace.s2),
                 Semantics(
                   header: true,
-                  child: Text(source.name, style: cineText(context, t.typeSubhead)),
+                  child: Text(source.name,
+                      style: cineText(context, t.typeSubhead),),
                 ),
                 const SizedBox(height: CineSpace.s3),
                 Row(
@@ -41,7 +38,8 @@ Future<void> showHealthDetails(BuildContext context, SourceSummary source) =>
                   const SizedBox(height: CineSpace.s2),
                   Text(
                     'Last OK ${h!.lastOkAt}',
-                    style: cineText(context, t.typeCaption, color: t.colorInk60),
+                    style:
+                        cineText(context, t.typeCaption, color: t.colorInk60),
                   ),
                 ],
                 if (h?.lastError != null) ...[
@@ -52,7 +50,8 @@ Future<void> showHealthDetails(BuildContext context, SourceSummary source) =>
                       padding: const EdgeInsets.all(CineSpace.s3),
                       child: Text(
                         h!.lastError!,
-                        style: cineText(context, t.typeFolio, color: t.colorInk60),
+                        style:
+                            cineText(context, t.typeFolio, color: t.colorInk60),
                       ),
                     ),
                   ),

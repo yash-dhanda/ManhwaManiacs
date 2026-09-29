@@ -23,7 +23,8 @@ import 'package:manhwamaniacs/skins/skin_haptics.dart';
 
 /// `/sources/:sourceId`: browse modes, genres, search, the poster wall.
 class CatalogueScreen extends ConsumerStatefulWidget {
-  const CatalogueScreen({super.key, required this.sourceId, this.mode, this.genre, this.q});
+  const CatalogueScreen(
+      {super.key, required this.sourceId, this.mode, this.genre, this.q,});
 
   final String sourceId;
   final String? mode;
@@ -52,15 +53,17 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     _tick = Timer.periodic(const Duration(seconds: 30), (_) {
       if (mounted) setState(() {});
     });
-    unawaited(Future<void>.microtask(() {
-      ref.read(sourceBrowseQueryProvider(widget.sourceId).notifier).update(
-            (s) => s.copyWith(
-              search: widget.q ?? '',
-              sort: widget.mode ?? s.sort,
-              genre: widget.genre ?? '',
-            ),
-          );
-    }),);
+    unawaited(
+      Future<void>.microtask(() {
+        ref.read(sourceBrowseQueryProvider(widget.sourceId).notifier).update(
+              (s) => s.copyWith(
+                search: widget.q ?? '',
+                sort: widget.mode ?? s.sort,
+                genre: widget.genre ?? '',
+              ),
+            );
+      }),
+    );
   }
 
   @override
@@ -77,7 +80,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     final show = _scroll.hasClients && _scroll.offset > 400;
     if (show != _showTop) setState(() => _showTop = show);
     if (_scroll.hasClients && _scroll.position.extentAfter < 600) {
-      unawaited(ref.read(sourceBrowseProvider(widget.sourceId).notifier).loadMore());
+      unawaited(
+          ref.read(sourceBrowseProvider(widget.sourceId).notifier).loadMore(),);
     }
   }
 
@@ -98,14 +102,17 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
   void _setQuery(SourceBrowseQuery Function(SourceBrowseQuery) f) =>
       ref.read(sourceBrowseQueryProvider(widget.sourceId).notifier).update(f);
 
-  void _refresh() => unawaited(ref.read(sourceBrowseProvider(widget.sourceId).notifier).refresh());
+  void _refresh() => unawaited(
+      ref.read(sourceBrowseProvider(widget.sourceId).notifier).refresh(),);
 
   @override
   Widget build(BuildContext context) {
     final t = context.cine;
     final id = widget.sourceId;
     ref.listen(sourceBrowseProvider(id), (prev, next) {
-      if (!_landed && next.valueOrNull != null && next.valueOrNull!.items.isNotEmpty) {
+      if (!_landed &&
+          next.valueOrNull != null &&
+          next.valueOrNull!.items.isNotEmpty) {
         _landed = true;
         unawaited(ref.read(skinHapticsProvider).fire(HapticEvent.select));
       }
@@ -114,35 +121,43 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     final source = sources?.where((s) => s.id == id).firstOrNull;
     final browse = ref.watch(sourceBrowseProvider(id));
     final query = ref.watch(sourceBrowseQueryProvider(id));
-    final modes = ref.watch(sourceBrowseModesProvider(id)).valueOrNull ?? const <SourceBrowseMode>[];
+    final modes = ref.watch(sourceBrowseModesProvider(id)).valueOrNull ??
+        const <SourceBrowseMode>[];
     final genres = ref.watch(sourceGenresProvider(id)).valueOrNull ?? const [];
     final state = browse.valueOrNull;
     final err = browse.hasError ? browse.error : null;
     final code = err is ApiError ? err.code : null;
-    final browsable = (source?.browsable ?? true) && code != 'source_not_browsable';
+    final browsable =
+        (source?.browsable ?? true) && code != 'source_not_browsable';
     final name = source?.name ?? id;
     final tablet = isTablet(context);
     final searching = query.search.isNotEmpty;
     final fresh = browseFreshness(state?.cache, DateTime.now());
     final total = state?.total ?? 0;
-    final deck = 'Catalogue · ${_n(total)} series${searching ? ' · "${query.search}"' : ''}';
+    final deck =
+        'Catalogue · ${_n(total)} series${searching ? ' · "${query.search}"' : ''}';
 
     Widget content;
-    if (code == 'source_not_found' || (sources != null && source == null && err != null)) {
+    if (code == 'source_not_found' ||
+        (sources != null && source == null && err != null)) {
       content = CineNotice(
         kicker: 'NOT IN THIS ISSUE',
         headline: "This source isn't available here any more.",
         deck: 'It may have been removed from its source.',
         actions: [
-          QuietButton('Back to Tonight', onPressed: () => context.go(Routes.tonight())),
-          QuietButton('Search for it', onPressed: () => context.go(Routes.discover())),
+          QuietButton('Back to Tonight',
+              onPressed: () => context.go(Routes.tonight()),),
+          QuietButton('Search for it',
+              onPressed: () => context.go(Routes.discover()),),
         ],
       );
     } else if (!browsable && !searching) {
       content = CineNotice(
         kicker: 'NOTE',
         headline: 'This source can only be searched, not browsed.',
-        actions: [QuietButton('Search it', onPressed: _searchFocus.requestFocus)],
+        actions: [
+          QuietButton('Search it', onPressed: _searchFocus.requestFocus),
+        ],
       );
     } else if (browse.isLoading && state == null) {
       content = OpeningState(sourceId: id, deck: deck);
@@ -151,18 +166,35 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     } else if (state != null && state.items.isEmpty) {
       content = CineNotice(
         kicker: 'NOTE',
-        headline: searching ? 'No results for "${query.search}" on this source.' : 'No series found.',
+        headline: searching
+            ? 'No results for "${query.search}" on this source.'
+            : 'No series found.',
       );
     } else {
       final cols = tablet ? 5 : 3;
       final w = MediaQuery.sizeOf(context).width;
       final gap = tablet ? 12.0 : 8.0;
       final posterW = (w - CineSpace.s4 * 2 - gap * (cols - 1)) / cols;
+      final novel = source?.contentKind == kNovelContentKind;
       content = Column(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
-            child: GridView.builder(
+            child: novel
+                // TODO(mobile/09): swap for the Cinematic book list.
+                ? Column(
+                    children: [
+                      for (final s in state!.items)
+                        _BookRow(
+                          title: s.title,
+                          author: s.author,
+                          chapters: s.chapterCount,
+                          coverUrl: s.coverUrl,
+                          onTap: () => context.push(Routes.feature(id, s.id)),
+                        ),
+                    ],
+                  )
+                : GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: state!.items.length,
@@ -170,7 +202,10 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                 crossAxisCount: cols,
                 mainAxisSpacing: CineSpace.s3,
                 crossAxisSpacing: gap,
-                childAspectRatio: posterW / (posterW * 1.5 + CineSpace.s2 + 2 * 22 * MediaQuery.textScalerOf(context).scale(1)),
+                childAspectRatio: posterW /
+                    (posterW * 1.5 +
+                        CineSpace.s2 +
+                        2 * 22 * MediaQuery.textScalerOf(context).scale(1)),
               ),
               itemBuilder: (context, i) {
                 final s = state.items[i];
@@ -186,7 +221,9 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                     title: s.title,
                     coverUrl: s.coverUrl,
                     kicker: name,
-                    caption: s.chapterCount > 0 ? 'CHAPTERS ${s.chapterCount}' : null,
+                    caption: s.chapterCount > 0
+                        ? 'CHAPTERS ${s.chapterCount}'
+                        : null,
                     onOpen: () => context.push(Routes.feature(id, s.id)),
                   ),
                 );
@@ -198,17 +235,24 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
               padding: EdgeInsets.all(CineSpace.s4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [Kicker('Loading more'), SizedBox(width: 8), LeaderDial()],
+                children: [
+                  Kicker('Loading more'),
+                  SizedBox(width: 8),
+                  LeaderDial(),
+                ],
               ),
             )
           else if (state.loadMoreFailed)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Couldn't load more.", style: cineText(context, t.typeCaption, color: t.colorInk60)),
+                Text("Couldn't load more.",
+                    style:
+                        cineText(context, t.typeCaption, color: t.colorInk60),),
                 QuietButton(
                   'Retry',
-                  onPressed: () => unawaited(ref.read(sourceBrowseProvider(id).notifier).loadMore()),
+                  onPressed: () => unawaited(
+                      ref.read(sourceBrowseProvider(id).notifier).loadMore(),),
                 ),
               ],
             )
@@ -226,7 +270,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     final modeIndex = modes.indexWhere((m) => m.id == query.sort);
     void stepMode(int d) {
       if (modes.isEmpty || !browsable) return;
-      final i = ((modeIndex < 0 ? 0 : modeIndex) + d).clamp(0, modes.length - 1);
+      final i =
+          ((modeIndex < 0 ? 0 : modeIndex) + d).clamp(0, modes.length - 1);
       _setQuery((q) => q.copyWith(sort: modes[i].id));
       _url(mode: modes[i].id);
     }
@@ -234,11 +279,16 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     return CineKeys(
       group: 'Catalogue',
       keys: [
-        CineKey(key(LogicalKeyboardKey.slash), _searchFocus.requestFocus, whenTextFieldFree: true),
-        CineKey(key(LogicalKeyboardKey.bracketRight), () => stepMode(1), whenTextFieldFree: true),
-        CineKey(key(LogicalKeyboardKey.bracketLeft), () => stepMode(-1), whenTextFieldFree: true),
-        CineKey(key(LogicalKeyboardKey.keyR), _refresh, whenTextFieldFree: true),
-        CineKey(key(LogicalKeyboardKey.home), () => _scroll.jumpTo(0), whenTextFieldFree: true),
+        CineKey(key(LogicalKeyboardKey.slash), _searchFocus.requestFocus,
+            whenTextFieldFree: true,),
+        CineKey(key(LogicalKeyboardKey.bracketRight), () => stepMode(1),
+            whenTextFieldFree: true,),
+        CineKey(key(LogicalKeyboardKey.bracketLeft), () => stepMode(-1),
+            whenTextFieldFree: true,),
+        CineKey(key(LogicalKeyboardKey.keyR), _refresh,
+            whenTextFieldFree: true,),
+        CineKey(key(LogicalKeyboardKey.home), () => _scroll.jumpTo(0),
+            whenTextFieldFree: true,),
         CineKey(
           key(LogicalKeyboardKey.end),
           () => _scroll.jumpTo(_scroll.position.maxScrollExtent),
@@ -254,7 +304,9 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
         ])
           CineKey(
             key(k),
-            () => dir > 0 ? FocusScope.of(context).nextFocus() : FocusScope.of(context).previousFocus(),
+            () => dir > 0
+                ? focusStep(context, forward: true)
+                : focusStep(context, forward: false),
             whenTextFieldFree: true,
           ),
       ],
@@ -263,6 +315,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
         body: SafeArea(
           child: Stack(
             children: [
+              if (browse.isLoading && state == null && browsable)
+                CatalogueWash(sourceId: id),
               PullToReprint(
                 onRefresh: () async {
                   await ref.read(sourceBrowseProvider(id).notifier).refresh();
@@ -272,7 +326,11 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     Padding(
-                      padding: EdgeInsets.fromLTRB(tablet ? CineSpace.s8 : CineSpace.s4, CineSpace.s4, CineSpace.s4, CineSpace.s2),
+                      padding: EdgeInsets.fromLTRB(
+                          tablet ? CineSpace.s8 : CineSpace.s4,
+                          CineSpace.s4,
+                          CineSpace.s4,
+                          CineSpace.s2,),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -280,66 +338,92 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                             children: [
                               IconButton(
                                 tooltip: 'Back',
-                                onPressed: () => context.canPop() ? context.pop() : context.go(Routes.sources()),
-                                icon: Icon(PhosphorRegular.arrowLeft, color: t.colorInk100),
+                                onPressed: () => context.canPop()
+                                    ? context.pop()
+                                    : context.go(Routes.sources()),
+                                icon: Icon(PhosphorRegular.arrowLeft,
+                                    color: t.colorInk100,),
                               ),
                               if (source?.iconUrl != null)
                                 SizedBox(
                                   width: 24,
                                   height: 24,
-                                  child: CineCover(url: source!.iconUrl, displayWidth: 24),
+                                  child: CineCover(
+                                      url: source!.iconUrl, displayWidth: 24,),
                                 ),
                             ],
                           ),
                           const Kicker('No. 04 — Discover / Catalogue'),
-                          Semantics(
-                            header: true,
-                            headingLevel: 1,
-                            child: SetHeading(
-                              name,
-                              style: cineText(context, t.typeMasthead),
-                              scaler: CineType.scaler(context, t.typeMasthead),
-                              play: sources != null || err != null,
+                          HeadingFocus(
+                            child: Semantics(
+                              header: true,
+                              headingLevel: 1,
+                              child: SetHeading(
+                                name,
+                                style: cineText(context, t.typeMasthead),
+                                scaler:
+                                    CineType.scaler(context, t.typeMasthead),
+                                play: sources != null || err != null,
+                              ),
                             ),
                           ),
                           if (!(browse.isLoading && state == null))
                             _retrySeconds(err) != null
                                 ? RetryCountdown(
-                                    key: ValueKey('retry-${_retrySeconds(err)}'),
+                                    key:
+                                        ValueKey('retry-${_retrySeconds(err)}'),
                                     seconds: _retrySeconds(err)!,
                                     prefix: 'Rate limited · retrying in',
-                                    style: cineText(context, t.typeDeck, color: t.colorInk60),
+                                    style: cineText(context, t.typeDeck,
+                                        color: t.colorInk60,),
                                     onZero: _refresh,
                                   )
-                                : Text(deck, style: cineText(context, t.typeDeck, color: t.colorInk60)),
+                                : Text(deck,
+                                    style: cineText(context, t.typeDeck,
+                                        color: t.colorInk60,),),
                           Row(
                             children: [
                               if (fresh != null)
                                 fresh.stale
                                     ? Semantics(
-                                        label: 'NOTE. The source is down; this is the last copy we saved.',
+                                        label:
+                                            'NOTE. The source is down; this is the last copy we saved.',
                                         excludeSemantics: true,
                                         child: Tooltip(
-                                          message: 'The source is down; this is the last copy we saved.',
+                                          message:
+                                              'The source is down; this is the last copy we saved.',
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(border: Border.all(color: t.colorSpot)),
-                                            child: Text(fresh.text, style: cineText(context, t.typeMicro, color: t.colorSpot)),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 2,),
+                                            decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    color: t.colorSpot,),),
+                                            child: Text(fresh.text,
+                                                style: cineText(
+                                                    context, t.typeMicro,
+                                                    color: t.colorSpot,),),
                                           ),
                                         ),
                                       )
-                                    : Text(fresh.text, style: cineText(context, t.typeFolio, color: t.colorInk60)),
+                                    : Text(fresh.text,
+                                        style: cineText(context, t.typeFolio,
+                                            color: t.colorInk60,),),
                               const Spacer(),
                               browse.isLoading && state != null
-                                  ? const Padding(padding: EdgeInsets.all(16), child: LeaderDial())
-                                  : QuietButton('Refresh', icon: PhosphorRegular.arrowClockwise, onPressed: _refresh),
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: LeaderDial(),)
+                                  : QuietButton('Refresh',
+                                      icon: PhosphorRegular.arrowClockwise,
+                                      onPressed: _refresh,),
                             ],
                           ),
                         ],
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: CineSpace.s4),
                       child: IndexField(
                         controller: _search,
                         focusNode: _searchFocus,
@@ -347,7 +431,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                         compact: true,
                         onChanged: (v) {
                           _debounce?.cancel();
-                          _debounce = Timer(const Duration(milliseconds: 300), () {
+                          _debounce =
+                              Timer(const Duration(milliseconds: 300), () {
                             if (!mounted) return;
                             _setQuery((q) => q.copyWith(search: v.trim()));
                             _url(q: v.trim());
@@ -365,7 +450,9 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                         labels: [for (final m in modes) m.label],
                         selected: modeIndex < 0 ? 0 : modeIndex,
                         onSelected: (i) {
-                          unawaited(ref.read(skinHapticsProvider).fire(HapticEvent.select));
+                          unawaited(ref
+                              .read(skinHapticsProvider)
+                              .fire(HapticEvent.select),);
                           _setQuery((q) => q.copyWith(sort: modes[i].id));
                           _url(mode: modes[i].id);
                         },
@@ -374,38 +461,43 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: CineSpace.s4,),
                           child: QuietButton(
-                            query.genre == null ? 'Genre' : 'Genre: ${query.genre}',
+                            query.genre == null
+                                ? 'Genre'
+                                : 'Genre: ${query.genre}',
                             onPressed: () async {
-                              final g = await showModalBottomSheet<String>(
-                                context: context,
-                                backgroundColor: t.colorPaper2,
-                                barrierColor: CineScrim.modal,
-                                shape: const RoundedRectangleBorder(),
-                                builder: (context) => SafeArea(
-                                  child: ListView(
-                                    shrinkWrap: true,
-                                    children: [
-                                      for (final entry in [
-                                        (id: '', label: 'All genres'),
-                                        for (final g in genres) (id: g.label, label: g.label),
-                                      ])
-                                        InkWell(
-                                          onTap: () => Navigator.of(context).pop(entry.id),
-                                          child: ConstrainedBox(
-                                            constraints: const BoxConstraints(minHeight: 48),
-                                            child: Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
-                                              child: Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(entry.label, style: cineText(context, t.typeTitle)),
-                                              ),
+                              final g = await showCineSheet<String>(
+                                context,
+                                title: 'Genre',
+                                body: (context) => ListView(
+                                  shrinkWrap: true,
+                                  children: [
+                                    for (final entry in [
+                                      (id: '', label: 'All genres'),
+                                      for (final g in genres)
+                                        (id: g.label, label: g.label),
+                                    ])
+                                      InkWell(
+                                        onTap: () =>
+                                            Navigator.of(context).pop(entry.id),
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                              minHeight: 48,),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: CineSpace.s4,),
+                                            child: Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(entry.label,
+                                                  style: cineText(
+                                                      context, t.typeTitle,),),
                                             ),
                                           ),
                                         ),
-                                    ],
-                                  ),
+                                      ),
+                                  ],
                                 ),
                               );
                               if (g == null) return;
@@ -434,7 +526,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
 
   int? _retrySeconds(Object? err) {
     if (err is ApiError && err.code == 'rate_limited') {
-      final after = err.details is Map ? (err.details! as Map)['retry_after'] : null;
+      final after =
+          err.details is Map ? (err.details! as Map)['retry_after'] : null;
       return after is num ? after.toInt() : 12;
     }
     return null;
@@ -466,5 +559,60 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
       b.write(s[i]);
     }
     return b.toString();
+  }
+}
+
+/// A novel source's row: small cover, title, author and chapter count.
+class _BookRow extends StatelessWidget {
+  const _BookRow({
+    required this.title,
+    required this.author,
+    required this.chapters,
+    required this.coverUrl,
+    required this.onTap,
+  });
+
+  final String title;
+  final String? author;
+  final int chapters;
+  final String? coverUrl;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.cine;
+    return Semantics(
+      button: true,
+      label: '$title${author == null ? '' : ', $author'}, $chapters chapters',
+      excludeSemantics: true,
+      child: CineFocusRing(
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 96),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: CineSpace.s2),
+              child: Row(
+                children: [
+                  SizedBox(width: 48, height: 72, child: CineCover(url: coverUrl, displayWidth: 48)),
+                  const SizedBox(width: CineSpace.s3),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: cineText(context, t.typeTitle)),
+                        if (author != null)
+                          Text(author!, style: cineText(context, t.typeCaption, color: t.colorInk60)),
+                        Text('$chapters CHAPTERS', style: cineText(context, t.typeFolio, color: t.colorInk60)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

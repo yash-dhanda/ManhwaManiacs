@@ -30,6 +30,15 @@ AiCopy aiCopyForCode(String? code, {int? retryAfter}) => switch (code) {
         ),
     };
 
-/// Branches on the error `code`, never on the HTTP status.
-AiCopy aiCopyForError(Object error) =>
-    aiCopyForCode(error is ApiError ? error.code : null);
+/// Branches on the error `code` (a bare 429 counts as `rate_limited`), never
+/// on other statuses. Carries the Retry-After the error interceptor folded
+/// into `details`.
+AiCopy aiCopyForError(Object error) {
+  if (error is! ApiError) return aiCopyForCode(null);
+  final d = error.details;
+  final after = d is Map ? d['retry_after'] : null;
+  return aiCopyForCode(
+    error.statusCode == 429 ? 'rate_limited' : error.code,
+    retryAfter: after is num ? after.toInt() : null,
+  );
+}

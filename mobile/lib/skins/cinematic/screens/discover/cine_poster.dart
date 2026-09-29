@@ -12,11 +12,12 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// A cover image with the session's credentials, radius 0.
 class CineCover extends ConsumerWidget {
-  const CineCover(
-      {super.key,
-      required this.url,
-      this.fit = BoxFit.cover,
-      this.displayWidth,});
+  const CineCover({
+    super.key,
+    required this.url,
+    this.fit = BoxFit.cover,
+    this.displayWidth,
+  });
 
   final String? url;
   final BoxFit fit;
@@ -95,9 +96,14 @@ class CinePoster extends StatelessWidget {
                     style: cineText(context, t.typeTitle),
                   ),
                   if (caption != null)
-                    Text(caption!,
-                        style: cineText(context, t.typeFolio,
-                            color: t.colorInk60,),),
+                    Text(
+                      caption!,
+                      style: cineText(
+                        context,
+                        t.typeFolio,
+                        color: t.colorInk60,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -106,4 +112,62 @@ class CinePoster extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Duotone over [child]: luminance mapped from black to [duo]. TODO(mobile/04):
+/// swap for `duotone.dart` and the series' own `ambient.duo`.
+class Duotone extends StatelessWidget {
+  const Duotone({super.key, required this.duo, required this.child});
+
+  final Color duo;
+  final Widget child;
+
+  static const _gray = ColorFilter.matrix(<double>[
+    0.2126, 0.7152, 0.0722, 0, 0, //
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0, 0, 0, 1, 0,
+  ]);
+
+  @override
+  Widget build(BuildContext context) => ColorFiltered(
+        colorFilter: ColorFilter.mode(duo, BlendMode.modulate),
+        child: ColorFiltered(colorFilter: _gray, child: child),
+      );
+}
+
+/// A 1 px impression while pressed: 80 ms `easeSet` down, 160 ms `easeSettle`
+/// up; none under reduced motion.
+class PressImpression extends StatefulWidget {
+  const PressImpression({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<PressImpression> createState() => _PressImpressionState();
+}
+
+class _PressImpressionState extends State<PressImpression> {
+  bool _down = false;
+
+  void _set(bool v) {
+    if (mounted && _down != v) setState(() => _down = v);
+  }
+
+  @override
+  Widget build(BuildContext context) => Listener(
+        onPointerDown: (_) => _set(true),
+        onPointerUp: (_) => _set(false),
+        onPointerCancel: (_) => _set(false),
+        child: AnimatedContainer(
+          duration: cineReduced(context)
+              ? Duration.zero
+              : (_down
+                  ? const Duration(milliseconds: 80)
+                  : const Duration(milliseconds: 160)),
+          curve: _down ? CineCurves.easeSet : CineCurves.settle,
+          transform: Matrix4.translationValues(0, _down ? 1 : 0, 0),
+          child: widget.child,
+        ),
+      );
 }

@@ -68,6 +68,18 @@ class _FakeSourcesRepository implements SourcesRepository {
 
   @override
   Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
+
+  @override
+  Future<Result<List<ReaderPage>>> getChapterPages(String sourceId, String chapterKey) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceSummary>>> listHealth() async => const Ok([]);
+
+  @override
+  Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
   _FakeSourcesRepository(this.chapters);
 
   final List<SourceChapterSummary> chapters;

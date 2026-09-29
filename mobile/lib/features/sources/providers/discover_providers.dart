@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/genre_index.dart';
 import 'package:manhwamaniacs/features/sources/utils/trending.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 /// A source's genre list, fetched at most once per source per 24 h (P3).
@@ -19,8 +20,10 @@ final sourceGenresProvider = FutureProvider.autoDispose
   final link = ref.keepAlive();
   final timer = Timer(const Duration(hours: 24), link.close);
   ref.onDispose(timer.cancel);
-  final result = await ref.read(sourcesLimiterProvider).run(RequestPriority.p3,
-      () => ref.read(sourcesRepositoryProvider).listGenres(sourceId),);
+  final result = await ref.read(sourcesLimiterProvider).run(
+        RequestPriority.p3,
+        () => ref.read(sourcesRepositoryProvider).listGenres(sourceId),
+      );
   if (result.isErr) return const [];
   return result.value;
 });
@@ -28,16 +31,20 @@ final sourceGenresProvider = FutureProvider.autoDispose
 /// `GET /sources/health` rows (worst first).
 final sourcesHealthProvider =
     FutureProvider.autoDispose<List<SourceSummary>>((ref) async {
-  final result = await ref.read(sourcesLimiterProvider).run(RequestPriority.p1,
-      () => ref.read(sourcesRepositoryProvider).listHealth(),);
+  final result = await ref.read(sourcesLimiterProvider).run(
+        RequestPriority.p1,
+        () => ref.read(sourcesRepositoryProvider).listHealth(),
+      );
   if (result.isErr) throw result.error;
   return result.value;
 });
 
 final sourceHealthSummaryProvider =
     FutureProvider.autoDispose<SourceHealthSummary>((ref) async {
-  final result = await ref.read(sourcesLimiterProvider).run(RequestPriority.p1,
-      () => ref.read(sourcesRepositoryProvider).healthSummary(),);
+  final result = await ref.read(sourcesLimiterProvider).run(
+        RequestPriority.p1,
+        () => ref.read(sourcesRepositoryProvider).healthSummary(),
+      );
   if (result.isErr) throw result.error;
   return result.value;
 });
@@ -48,7 +55,9 @@ final popularFirstPageProvider = FutureProvider.autoDispose
   final repo = ref.read(sourcesRepositoryProvider);
   final limiter = ref.read(sourcesLimiterProvider);
   final modes = await limiter.run(
-      RequestPriority.p3, () => repo.listBrowseModes(sourceId),);
+    RequestPriority.p3,
+    () => repo.listBrowseModes(sourceId),
+  );
   if (modes.isErr || !modes.value.any((m) => m.id == 'popular')) {
     return const [];
   }
@@ -111,3 +120,16 @@ final genreCoverProvider = FutureProvider.autoDispose
 
 /// Dialogue still page image bytes at 480 px wide (P3).
 typedef StillImageFetch = Future<Uint8List?> Function(String url);
+
+/// `GET /settings` `capabilities.ocr`: false hides dialogue search with the
+/// "on this server" notice. Unknown (offline, error) means on.
+final serverOcrCapabilityProvider = FutureProvider<bool>((ref) async {
+  try {
+    final r =
+        await ref.watch(dioProvider).get<Map<String, dynamic>>('/settings');
+    final caps = r.data?['capabilities'];
+    return caps is Map ? caps['ocr'] != false : true;
+  } catch (_) {
+    return true;
+  }
+});

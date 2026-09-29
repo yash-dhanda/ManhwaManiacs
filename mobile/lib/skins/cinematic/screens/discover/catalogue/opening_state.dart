@@ -61,28 +61,6 @@ class _OpeningStateState extends State<OpeningState> {
     final t = context.cine;
     return Stack(
       children: [
-        Positioned.fill(
-          child: IgnorePointer(
-            child: AnimatedOpacity(
-              opacity: _slow ? 1 : 0,
-              duration: cineReduced(context) ? Duration.zero : CineDur.dissolve,
-              curve: CineCurves.turn,
-              child: FractionallySizedBox(
-                alignment: Alignment.topCenter,
-                heightFactor: 0.3,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [sourceWash(widget.sourceId), const Color(0xFF000000)],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
         Padding(
           padding: const EdgeInsets.all(CineSpace.s4),
           child: Column(
@@ -126,4 +104,61 @@ class _OpeningStateState extends State<OpeningState> {
       ],
     );
   }
+}
+
+/// The source-hue wash: a screen-level layer behind the masthead band, the top
+/// 30% of the viewport, fading in over 800 ms once the opening state has gone
+/// slow (3 s); a plain appearance under reduced motion. Text over it stays in
+/// the raised-stock scope (`ink.60` and up, never `ink.45`).
+/// TODO(mobile/04): `CineStock.raised` scope and the mood grade.
+class CatalogueWash extends StatefulWidget {
+  const CatalogueWash({super.key, required this.sourceId});
+
+  final String sourceId;
+
+  @override
+  State<CatalogueWash> createState() => _CatalogueWashState();
+}
+
+class _CatalogueWashState extends State<CatalogueWash> {
+  bool _on = false;
+  late final Timer _timer = Timer(const Duration(seconds: 3), () {
+    if (mounted) setState(() => _on = true);
+  });
+
+  @override
+  void initState() {
+    super.initState();
+    _timer; // starts the timer
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Positioned(
+        left: 0,
+        right: 0,
+        top: 0,
+        height: MediaQuery.sizeOf(context).height * 0.3,
+        child: IgnorePointer(
+          child: AnimatedOpacity(
+            opacity: _on ? 1 : 0,
+            duration: cineReduced(context) ? Duration.zero : CineDur.dissolve,
+            curve: CineCurves.turn,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [sourceWash(widget.sourceId), const Color(0x00000000)],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
 }

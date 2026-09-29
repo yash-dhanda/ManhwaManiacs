@@ -22,6 +22,7 @@ import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
+import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/repositories/sources_repository.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -68,6 +69,8 @@ class FakeSources implements SourcesRepository {
     this.genres = const [],
     this.pages = const [],
     this.next = false,
+    this.cache,
+    this.listSourcesError,
   });
 
   final List<SourceSummary> sources;
@@ -78,12 +81,15 @@ class FakeSources implements SourcesRepository {
   final List<SourceGenre> genres;
   final List<ReaderPage> pages;
   final bool next;
+  final Map<String, dynamic>? cache;
+  final AppError? listSourcesError;
   final replaced = <List<String>>[];
   final searched = <String>[];
   int seriesCalls = 0;
 
   @override
-  Future<Result<List<SourceSummary>>> listSources() async => Ok(sources);
+  Future<Result<List<SourceSummary>>> listSources() async =>
+      listSourcesError != null ? Err(listSourcesError!) : Ok(sources);
 
   @override
   Future<Result<GroupedSearchResult>> searchGrouped(
@@ -120,7 +126,7 @@ class FakeSources implements SourcesRepository {
     if (listSeriesError != null) {
       return Err(listSeriesError!);
     }
-    return Ok(PagedResult(items: series, total: series.length, page: page, perPage: 20, hasNext: next));
+    return Ok(PagedResult(items: series, total: series.length, page: page, perPage: 20, hasNext: next, cache: cache));
   }
 
   @override
@@ -207,10 +213,12 @@ List<Override> discoverOverrides(
   FakeLibrary? library,
   FakeOcr? ocr,
   bool ocrOn = true,
+  bool serverOcr = true,
   List<SourcePin> pins = const [],
   bool pinsSynced = true,
 }) =>
     [
+      serverOcrCapabilityProvider.overrideWith((ref) async => serverOcr),
       sharedPrefsProvider.overrideWithValue(prefs),
       novelsEnabledProvider.overrideWithValue(false),
       skinIdProvider.overrideWithValue(SkinId.cinematic),
@@ -247,6 +255,7 @@ Future<void> pumpScreen(
   FakeLibrary? library,
   FakeOcr? ocr,
   bool ocrOn = true,
+  bool serverOcr = true,
   List<SourcePin> pins = const [],
   bool pinsSynced = true,
   Size size = const Size(390, 844),
@@ -268,6 +277,7 @@ Future<void> pumpScreen(
           library: library,
           ocr: ocr,
           ocrOn: ocrOn,
+          serverOcr: serverOcr,
           pins: pins,
           pinsSynced: pinsSynced,
         ),

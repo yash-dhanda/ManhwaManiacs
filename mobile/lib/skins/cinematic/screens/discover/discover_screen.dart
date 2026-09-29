@@ -44,7 +44,8 @@ class DiscoverScreen extends ConsumerStatefulWidget {
 }
 
 class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
-  late final TextEditingController _text = TextEditingController(text: widget.q);
+  late final TextEditingController _text =
+      TextEditingController(text: widget.q);
   final _field = FocusNode();
   final _scroll = ScrollController();
   final _results = GlobalKey<DiscoverResultsState>();
@@ -55,7 +56,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   void initState() {
     super.initState();
     if (widget.q.trim().isNotEmpty) {
-      unawaited(Future<void>.microtask(() => _search(widget.q, replaceUrl: false)));
+      unawaited(
+          Future<void>.microtask(() => _search(widget.q, replaceUrl: false)),);
     }
   }
 
@@ -64,7 +66,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     super.didUpdateWidget(old);
     if (widget.q != old.q && widget.q != _text.text) {
       _text.text = widget.q;
-      unawaited(Future<void>.microtask(() => _search(widget.q, replaceUrl: false)));
+      unawaited(
+          Future<void>.microtask(() => _search(widget.q, replaceUrl: false)),);
     }
   }
 
@@ -77,10 +80,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     super.dispose();
   }
 
-  bool get _aiOn => ref.read(suggestAvailabilityProvider).valueOrNull?.available ?? false;
+  bool get _aiOn =>
+      ref.read(suggestAvailabilityProvider).valueOrNull?.available ?? false;
 
   bool get _dialogueOn =>
       ref.read(ocrFeatureVisibleProvider) &&
+      (ref.read(serverOcrCapabilityProvider).valueOrNull ?? true) &&
       ref.read(contentModeControllerProvider) == ContentMode.manga;
 
   DiscoverScope get _scopeNow => parseDiscoverScope(
@@ -112,9 +117,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     if (q.length >= 2) {
       final prefs = ref.read(sharedPrefsProvider);
       final pid = ref.read(activeProfileProvider)?.id;
-      unawaited(writeRecentSearch(prefs, q, profileId: pid).then((_) {
-        if (mounted) setState(() {});
-      }),);
+      unawaited(
+        writeRecentSearch(prefs, q, profileId: pid).then((_) {
+          if (mounted) setState(() {});
+        }),
+      );
     }
   }
 
@@ -148,10 +155,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   Widget build(BuildContext context) {
     final t = context.cine;
     ref.listen(discoverFocusSignalProvider, (_, __) => _field.requestFocus());
-    final ai = ref.watch(suggestAvailabilityProvider).valueOrNull?.available ?? false;
+    final ai =
+        ref.watch(suggestAvailabilityProvider).valueOrNull?.available ?? false;
     final dialogue = ref.watch(ocrFeatureVisibleProvider) &&
+        (ref.watch(serverOcrCapabilityProvider).valueOrNull ?? true) &&
         ref.watch(contentModeControllerProvider) == ContentMode.manga;
-    final scope = parseDiscoverScope(widget.scope, aiAvailable: ai, dialogueAvailable: dialogue);
+    final scope = parseDiscoverScope(widget.scope,
+        aiAvailable: ai, dialogueAvailable: dialogue,);
     final scopes = [
       DiscoverScope.all,
       DiscoverScope.library,
@@ -174,20 +184,20 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     // /search?genre=Romance opens that genre's sheet once.
     if (widget.genre != null && !_genreOpened) {
       final idx = ref.watch(genreIndexProvider).valueOrNull;
-      final entry = idx
-          ?.where((g) => g.genre == widget.genre!.toLowerCase())
-          .firstOrNull;
+      final entry =
+          idx?.where((g) => g.genre == widget.genre!.toLowerCase()).firstOrNull;
       if (entry != null) {
         _genreOpened = true;
         final pins = ref.read(sourcePinsProvider).valueOrNull?.pins ?? const [];
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) unawaited(openGenre(context, entry, pins));
+          if (mounted) unawaited(openGenre(context, ref, entry, pins));
         });
       }
     }
 
     final prefs = ref.watch(sharedPrefsProvider);
-    final recent = readRecentSearches(prefs, profileId: ref.watch(activeProfileProvider)?.id);
+    final recent = readRecentSearches(prefs,
+        profileId: ref.watch(activeProfileProvider)?.id,);
 
     Widget body;
     if (scope == DiscoverScope.ask) {
@@ -205,7 +215,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           _search(r);
         },
         onClearRecent: () async {
-          await clearRecentSearches(prefs, profileId: ref.read(activeProfileProvider)?.id);
+          await clearRecentSearches(prefs,
+              profileId: ref.read(activeProfileProvider)?.id,);
           if (mounted) setState(() {});
         },
       );
@@ -221,26 +232,35 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     }
 
     final keys = <CineKey>[
-      CineKey(key(LogicalKeyboardKey.slash), _field.requestFocus, whenTextFieldFree: true),
+      CineKey(key(LogicalKeyboardKey.slash), _field.requestFocus,
+          whenTextFieldFree: true,),
       CineKey(key(LogicalKeyboardKey.escape), _escape),
-      CineKey(key(LogicalKeyboardKey.enter), () => _submit(_text.text), whenTextFieldFree: true),
-      CineKey(key(LogicalKeyboardKey.arrowDown), () => FocusScope.of(context).nextFocus()),
+      CineKey(key(LogicalKeyboardKey.enter), () => _submit(_text.text),
+          whenTextFieldFree: true,),
+      CineKey(key(LogicalKeyboardKey.arrowDown),
+          () => focusStep(context, forward: true),),
       for (var i = 0; i < 5; i++)
         CineKey(
-          key([
-            LogicalKeyboardKey.digit1,
-            LogicalKeyboardKey.digit2,
-            LogicalKeyboardKey.digit3,
-            LogicalKeyboardKey.digit4,
-            LogicalKeyboardKey.digit5,
-          ][i],),
+          key(
+            [
+              LogicalKeyboardKey.digit1,
+              LogicalKeyboardKey.digit2,
+              LogicalKeyboardKey.digit3,
+              LogicalKeyboardKey.digit4,
+              LogicalKeyboardKey.digit5,
+            ][i],
+          ),
           () {
             if (i < scopes.length) _setScope(scopes[i]);
           },
           whenTextFieldFree: true,
         ),
-      CineKey(key(LogicalKeyboardKey.bracketRight), () => _results.currentState?.step(1), whenTextFieldFree: true),
-      CineKey(key(LogicalKeyboardKey.bracketLeft), () => _results.currentState?.step(-1), whenTextFieldFree: true),
+      CineKey(key(LogicalKeyboardKey.bracketRight),
+          () => _results.currentState?.step(1),
+          whenTextFieldFree: true,),
+      CineKey(key(LogicalKeyboardKey.bracketLeft),
+          () => _results.currentState?.step(-1),
+          whenTextFieldFree: true,),
     ];
 
     final tablet = isTablet(context);
@@ -252,7 +272,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         body: SafeArea(
           child: PullToReprint(
             onRefresh: () async {
-              if (query.length >= 2) await ref.read(searchListProvider.notifier).refresh();
+              if (query.length >= 2) {
+                await ref.read(searchListProvider.notifier).refresh();
+              }
             },
             child: ListView(
               controller: _scroll,

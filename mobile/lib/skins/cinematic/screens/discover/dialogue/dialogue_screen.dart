@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/library/providers/library_list_provider.d
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/providers/dialogue_jump_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
+import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/transcript_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
@@ -94,32 +95,48 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
     final tablet = isTablet(context);
     final pad = tablet ? CineSpace.s8 : CineSpace.s4;
 
-    Widget body;
+    Widget? body;
+    List<OcrSearchResult>? hits;
+    Widget? footer;
+    FollowedSeries? Function(OcrSearchResult) seriesOf = (_) => null;
     if (mode == ContentMode.novel) {
       body = CineNotice(
         kicker: 'NOTE',
-        headline: "Dialogue search is for manga. Switch to Manga, or search the novels' text.",
-        actions: [QuietButton('Search novels', onPressed: () => context.go(Routes.discover()))],
+        headline:
+            "Dialogue search is for manga. Switch to Manga, or search the novels' text.",
+        actions: [
+          QuietButton('Search novels',
+              onPressed: () => context.go(Routes.discover()),),
+        ],
       );
     } else if (!visible) {
-      body = const CineNotice(kicker: 'NOTE', headline: "Dialogue search isn't available on this device.");
+      body = const CineNotice(
+          kicker: 'NOTE',
+          headline: "Dialogue search isn't available on this device.",);
+    } else if (!(ref.watch(serverOcrCapabilityProvider).valueOrNull ?? true)) {
+      body = const CineNotice(
+          kicker: 'NOTE',
+          headline: "Dialogue search isn't available on this server.",);
     } else if (_q.isEmpty) {
       body = Padding(
         padding: EdgeInsets.all(pad),
-        child: Text('Type a line you remember.', style: cineText(context, t.typeDeck, color: t.colorInk60)),
+        child: Text('Type a line you remember.',
+            style: cineText(context, t.typeDeck, color: t.colorInk60),),
       );
     } else {
       final res = ref.watch(ocrSearchProvider(_q));
-      final followed = ref.watch(libraryListProvider).valueOrNull?.items ?? const <FollowedSeries>[];
-      FollowedSeries? seriesOf(OcrSearchResult h) => followed
+      final followed = ref.watch(libraryListProvider).valueOrNull?.items ??
+          const <FollowedSeries>[];
+      seriesOf = (h) => followed
           .where((s) => s.sourceId == h.sourceId && s.seriesKey == h.seriesKey)
           .firstOrNull;
-      body = res.when(
+      final other = res.when(
         loading: () => Column(
           children: [
             for (var i = 0; i < 3; i++)
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: pad, vertical: CineSpace.s3),
+                padding: EdgeInsets.symmetric(
+                    horizontal: pad, vertical: CineSpace.s3,),
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -137,34 +154,35 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
             ? CineNotice(
                 kicker: 'OFFLINE EDITION',
                 headline: 'Dialogue search needs a connection.',
-                actions: [QuietButton('Go to Downloads', onPressed: () => context.go(Routes.downloads()))],
+                actions: [
+                  QuietButton('Go to Downloads',
+                      onPressed: () => context.go(Routes.downloads()),),
+                ],
               )
             : CineNotice(
                 kicker: 'CORRECTION',
                 kickerColor: t.colorProof,
                 headline: "Dialogue search didn't finish.",
                 deck: e is AppError ? e.userMessage : null,
-                actions: [QuietButton('Try again', onPressed: () => ref.invalidate(ocrSearchProvider(_q)))],
+                actions: [
+                  QuietButton('Try again',
+                      onPressed: () => ref.invalidate(ocrSearchProvider(_q)),),
+                ],
               ),
         data: (page) {
           final items = [...page.items, ..._more];
           if (items.isEmpty) {
             return CineNotice(
               kicker: 'NOTE',
-              headline: 'Nothing found for "$_q". Only chapters whose dialogue was scanned, in series you follow, can be searched.',
+              headline:
+                  'Nothing found for "$_q". Only chapters whose dialogue was scanned, in series you follow, can be searched.',
             );
           }
           final canMore = items.length < page.total;
-          return Column(
+          hits = items;
+          footer = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (var i = 0; i < items.length; i++)
-                TranscriptBlock(
-                  key: ValueKey('hit-$i-${items[i].chapterKey}-${items[i].page}'),
-                  hit: items[i],
-                  series: seriesOf(items[i]),
-                  index: i,
-                  onTap: () => _open(items[i]),
-                ),
               if (canMore)
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: pad),
@@ -173,77 +191,104 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
                     children: [
                       Text(
                         'Showing the first ${items.length} of ${page.total} matches. Narrow the search.',
-                        style: cineText(context, t.typeCaption, color: t.colorInk60),
+                        style: cineText(context, t.typeCaption,
+                            color: t.colorInk60,),
                       ),
                       _loadingMore
-                          ? const Padding(padding: EdgeInsets.all(16), child: LeaderDial())
-                          : QuietButton('Show more', onPressed: () => _showMore(items.length)),
+                          ? const Padding(
+                              padding: EdgeInsets.all(16), child: LeaderDial(),)
+                          : QuietButton('Show more',
+                              onPressed: () => _showMore(items.length),),
                     ],
                   ),
                 ),
               const SizedBox(height: CineSpace.s16),
             ],
           );
+          return const SizedBox.shrink();
         },
       );
+      if (hits == null) body = other;
     }
+
+    final masthead = Column(children: [
+      Padding(
+        padding: EdgeInsets.fromLTRB(pad, CineSpace.s6, pad, CineSpace.s2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Kicker('No. 09 — Dialogue'),
+            const ZeroSizeHeading('Dialogue search'),
+            const SizedBox(height: CineSpace.s3),
+            IndexField(
+              controller: _text,
+              focusNode: _field,
+              hint: 'Search what a character said',
+              onChanged: (v) {
+                _debounce?.cancel();
+                _debounce = Timer(const Duration(milliseconds: 300), () {
+                  if (mounted) _apply(v);
+                });
+              },
+              onSubmitted: _apply,
+              onClear: () {
+                _text.clear();
+                _apply('');
+              },
+            ),
+            const SizedBox(height: CineSpace.s3),
+            Text(
+              'Across chapters whose dialogue has been read, in series you follow.',
+              style: cineText(context, t.typeDeck, color: t.colorInk60),
+            ),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  'Scan more chapters from ',
+                  style: cineText(context, t.typeCaption, color: t.colorInk60),
+                ),
+                QuietButton('Downloads',
+                    onPressed: () => context.go(Routes.downloads()),),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ],);
 
     return CineKeys(
       group: 'Dialogue',
       keys: [
-        CineKey(key(LogicalKeyboardKey.slash), _field.requestFocus, whenTextFieldFree: true),
-        CineKey(key(LogicalKeyboardKey.keyJ), () => FocusScope.of(context).nextFocus(), whenTextFieldFree: true),
-        CineKey(key(LogicalKeyboardKey.keyK), () => FocusScope.of(context).previousFocus(), whenTextFieldFree: true),
+        CineKey(key(LogicalKeyboardKey.slash), _field.requestFocus,
+            whenTextFieldFree: true,),
+        CineKey(key(LogicalKeyboardKey.keyJ),
+            () => focusStep(context, forward: true),
+            whenTextFieldFree: true,),
+        CineKey(key(LogicalKeyboardKey.keyK),
+            () => focusStep(context, forward: false),
+            whenTextFieldFree: true,),
       ],
       child: Scaffold(
         backgroundColor: t.colorPaper0,
         body: SafeArea(
-          child: ListView(
-            children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(pad, CineSpace.s6, pad, CineSpace.s2),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Kicker('No. 09 — Dialogue'),
-                    const ZeroSizeHeading('Dialogue search'),
-                    const SizedBox(height: CineSpace.s3),
-                    IndexField(
-                      controller: _text,
-                      focusNode: _field,
-                      hint: 'Search what a character said',
-                      onChanged: (v) {
-                        _debounce?.cancel();
-                        _debounce = Timer(const Duration(milliseconds: 300), () {
-                          if (mounted) _apply(v);
-                        });
-                      },
-                      onSubmitted: _apply,
-                      onClear: () {
-                        _text.clear();
-                        _apply('');
-                      },
-                    ),
-                    const SizedBox(height: CineSpace.s3),
-                    Text(
-                      'Across chapters whose dialogue has been read, in series you follow.',
-                      style: cineText(context, t.typeDeck, color: t.colorInk60),
-                    ),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          'Scan more chapters from ',
-                          style: cineText(context, t.typeCaption, color: t.colorInk60),
-                        ),
-                        QuietButton('Downloads', onPressed: () => context.go(Routes.downloads())),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              body,
-            ],
+          child: ListView.builder(
+            itemCount: 1 + (hits?.length ?? 1) + (footer == null ? 0 : 1),
+            itemBuilder: (context, i) {
+              if (i == 0) return masthead;
+              if (hits == null) return body ?? const SizedBox.shrink();
+              if (i <= hits!.length) {
+                final h = hits![i - 1];
+                return TranscriptBlock(
+                  key: ValueKey('hit-${i - 1}-${h.chapterKey}-${h.page}'),
+                  hit: h,
+                  series: seriesOf(h),
+                  index: i - 1,
+                  onTap: () => _open(h),
+                );
+              }
+              return footer!;
+            },
           ),
         ),
       ),

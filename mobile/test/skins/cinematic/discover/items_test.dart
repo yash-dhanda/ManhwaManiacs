@@ -416,7 +416,7 @@ void main() {
     });
 
     testWidgets('rack focus on the first 12 stills; the 13th develops with a plain fade', (tester) async {
-      await pumpScreen(tester, const DialogueScreen(q: 'hello'), ocr: FakeOcr(page: _page(13)));
+      await pumpScreen(tester, const DialogueScreen(q: 'hello'), ocr: FakeOcr(page: _page(13)), size: const Size(390, 12000));
       await settle(tester, 800);
       final stills = tester.widgetList<SubtitledStill>(find.byType(SubtitledStill, skipOffstage: false)).toList();
       expect(stills.length, 13);

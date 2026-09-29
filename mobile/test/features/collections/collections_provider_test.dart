@@ -21,6 +21,9 @@ class _CollectionsRepo implements LibraryRepository {
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   _CollectionsRepo(this.items);
 
   final List<Collection> items;

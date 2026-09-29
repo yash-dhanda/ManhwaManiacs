@@ -156,6 +156,7 @@ Future<void> captureSkinWidget(
   double textScale = 1.0,
   String? proofDirOverride, // only for the harness's own test
   Future<void> Function(WidgetTester tester)? afterSettle, // e.g. pumpUntilCoversLoad
+  Future<void> Function(WidgetTester tester)? settle, // replaces settleShot (a state at an exact time)
 }) async {
   _setView(tester, size);
   final data = MediaQueryData.fromView(tester.view).copyWith(
@@ -171,7 +172,7 @@ Future<void> captureSkinWidget(
       ),
     ),
   );
-  await settleShot(tester);
+  await (settle ?? settleShot)(tester);
   if (afterSettle != null) await afterSettle(tester);
   await _finish(tester, '$name-${size.name}.png', size, proofDirOverride);
 }
