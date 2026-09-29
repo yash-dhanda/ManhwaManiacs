@@ -26,6 +26,7 @@ abstract interface class ProfilesRepository {
     int? sortOrder,
     bool? matureContentEnabled,
     String? skin,
+    bool? notifyEnabled,
   });
 
   Future<Result<void>> remove(int id);

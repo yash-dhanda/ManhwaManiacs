@@ -132,7 +132,7 @@ class FakeProfiles implements ProfilesRepository {
   }
 
   @override
-  Future<Result<Profile>> update(int id, {String? name, String? avatarKey, Mood? mood, int? sortOrder, bool? matureContentEnabled, String? skin}) async {
+  Future<Result<Profile>> update(int id, {String? name, String? avatarKey, Mood? mood, int? sortOrder, bool? matureContentEnabled, String? skin, bool? notifyEnabled}) async {
     calls.add('update:$id:${name ?? ''}:${sortOrder ?? ''}:${matureContentEnabled ?? ''}');
     if (failWrite != null) return Err(failWrite!);
     final i = items.indexWhere((p) => p.id == id);

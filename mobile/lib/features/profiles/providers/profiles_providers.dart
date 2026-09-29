@@ -74,6 +74,7 @@ class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
     bool? matureContentEnabled,
     String? skin,
     int? sortOrder,
+    bool? notifyEnabled,
   }) async {
     final result = await ref.read(profilesRepositoryProvider).update(
           profileId,
@@ -83,6 +84,7 @@ class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
           matureContentEnabled: matureContentEnabled,
           skin: skin,
           sortOrder: sortOrder,
+          notifyEnabled: notifyEnabled,
         );
     if (result.isErr) return result.error;
     // Mirror the edit into the active-selection snapshot so the shell tint and

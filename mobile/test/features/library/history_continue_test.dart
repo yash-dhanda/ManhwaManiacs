@@ -34,7 +34,7 @@ Future<(HistoryContinue, int)> _run(ReadingHistoryItem item, List<SourceChapterS
   final c = ProviderContainer(overrides: [
     sourcesRepositoryProvider.overrideWithValue(repo),
     sharedPrefsProvider.overrideWithValue(await SharedPreferences.getInstance()),
-  ]);
+  ],);
   addTearDown(c.dispose);
   final r = await c.read(historyContinueProvider)(item);
   return (r, repo.calls);
