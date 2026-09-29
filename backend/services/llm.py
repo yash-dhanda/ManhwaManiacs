@@ -26,6 +26,10 @@ class LLMBudgetExhausted(LLMError):
     """A spending ceiling was reached. Never raised by a local model."""
 
 
+class LLMRateLimited(LLMError):
+    """The provider answered 429 on the final attempt."""
+
+
 @dataclass(frozen=True)
 class Completion:
     """One answered request."""

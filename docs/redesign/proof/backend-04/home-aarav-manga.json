@@ -1,0 +1,194 @@
+{
+    "issue_no": 3,
+    "generated_at": "2026-09-29T15:47:21Z",
+    "content_kind": "manga",
+    "headline": "Your first issue starts here.",
+    "deck": "Follow three series and this page fills itself in.",
+    "kicker_title": null,
+    "streak": {
+        "current_days": 0,
+        "longest_days": 1,
+        "last_active_date": "2026-09-27",
+        "at_risk": false,
+        "milestones_seen": []
+    },
+    "cover": null,
+    "also": [],
+    "sections": [
+        {
+            "type": "because",
+            "title": "Because you read Register!",
+            "seed": {
+                "title": "Register!",
+                "source_id": "mangadex",
+                "series_key": "5dce5603-3cd5-4aa1-bc57-688648a45185"
+            },
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "kind": "world",
+                    "item": {
+                        "anilist_id": 147149,
+                        "title": "Smoking Behind the Supermarket with You",
+                        "alt_titles": [
+                            "Super no Ura de Yani Suu Futari",
+                            "\u30b9\u30fc\u30d1\u30fc\u306e\u88cf\u3067\u30e4\u30cb\u5438\u3046\u3075\u305f\u308a",
+                            "A Story About Smoking at the Back of the Supermarket",
+                            "\u30b9\u30fc\u30d1\u30fc\u306e\u88cf\u3067\u30e4\u30cb\u5438\u3046\u8a71"
+                        ],
+                        "format": "Manga",
+                        "country": "JP",
+                        "status": "Ongoing",
+                        "chapters": null,
+                        "rating": 8.1,
+                        "rating_count_hint": null,
+                        "genres": [
+                            "Comedy",
+                            "Romance",
+                            "Slice of Life"
+                        ],
+                        "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx147149-9DQ4upJAV2kQ.jpg",
+                        "is_adult": false,
+                        "platforms": [
+                            {
+                                "site": "Nico Nico Seiga",
+                                "url": "https://seiga.nicovideo.jp/comic/58968"
+                            },
+                            {
+                                "site": "Official Site",
+                                "url": "https://magazine.jp.square-enix.com/biggangan/introduction/yanisuu/"
+                            },
+                            {
+                                "site": "Manga UP!",
+                                "url": "https://global.manga-up.com/manga/261"
+                            }
+                        ],
+                        "anilist_url": "https://anilist.co/manga/147149",
+                        "available": [],
+                        "why": null,
+                        "ambient": {
+                            "duo": "#727BCA",
+                            "tint": "#0D0E11",
+                            "ink": "#B3B7DB"
+                        },
+                        "palette": {
+                            "a": [
+                                "#333E57",
+                                "#695459",
+                                "#987474"
+                            ],
+                            "l": 0.338,
+                            "lMax": 0.972
+                        }
+                    },
+                    "why": null
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "sources",
+            "title": "Sources",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "source_id": "mangadex",
+                    "name": "MangaDex",
+                    "icon_url": "https://mangadex.org/favicon.ico",
+                    "mature": false,
+                    "available": true,
+                    "latest_covers": [
+                        "/sources/mangadex/series/b90aae00-1fc5-4b24-92ae-08dcbac1fc6d/cover",
+                        "/sources/mangadex/series/5ae6ba69-9680-456a-8b84-47c68a6bac00/cover",
+                        "/sources/mangadex/series/5dce5603-3cd5-4aa1-bc57-688648a45185/cover"
+                    ],
+                    "suggested": true
+                },
+                {
+                    "source_id": "mangapill",
+                    "name": "MangaPill",
+                    "icon_url": "https://mangapill.com/favicon.ico",
+                    "mature": false,
+                    "available": true,
+                    "latest_covers": [
+                        "/sources/mangapill/series/9473%2Fakuyaku-no-goreisoku-no-dounika-shitai-nichijou/cover",
+                        "/sources/mangapill/series/8155%2Fkakkoii-onnanoko-to-12-centimeter-no-yakusoku/cover",
+                        "/sources/mangapill/series/10144%2Ffairy-tail-re-fantasia/cover"
+                    ],
+                    "suggested": true
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "genres",
+            "title": "Your genres",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "genre": "romance",
+                    "weight": 3
+                },
+                {
+                    "genre": "comedy",
+                    "weight": 2
+                },
+                {
+                    "genre": "school life",
+                    "weight": 2
+                },
+                {
+                    "genre": "slice of life",
+                    "weight": 2
+                },
+                {
+                    "genre": "psychological",
+                    "weight": 1
+                },
+                {
+                    "genre": "drama",
+                    "weight": 1
+                },
+                {
+                    "genre": "mystery",
+                    "weight": 1
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "numbers",
+            "title": "This week in numbers",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "streak": {
+                        "current_days": 0,
+                        "longest_days": 1,
+                        "last_active_date": "2026-09-27",
+                        "at_risk": false,
+                        "milestones_seen": []
+                    },
+                    "chapters_week": 2,
+                    "seconds_week": 840
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        }
+    ],
+    "ai": {
+        "available": false,
+        "reason": "not_configured"
+    }
+}

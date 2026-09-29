@@ -828,6 +828,8 @@ class UpdateService:
             # exactly like the per-follow ``notify`` flag: the snapshot below
             # still advances, so switching it back on never backfills a storm.
             profile = self._db.get(ReadingProfile, row.profile_id)
+            if new_chapters and known:
+                row.last_new_chapter_at = utcnow()
             if (
                 new_chapters
                 and known

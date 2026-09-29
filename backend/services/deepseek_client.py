@@ -45,6 +45,7 @@ from services.llm import (
     LLMBudgetExhausted,
     LLMError,
     LLMNotConfigured,
+    LLMRateLimited,
 )
 
 logger = logging.getLogger(__name__)
@@ -392,6 +393,9 @@ def complete_json(
                 f"DeepSeek redirected (HTTP {response.status_code}); refusing to "
                 "follow it with a bearer token"
             )
+
+        if response.status_code == 429:
+            raise LLMRateLimited("DeepSeek returned HTTP 429")
 
         if response.status_code >= 400:
             # Never echo the body: an auth error from this API quotes the key
