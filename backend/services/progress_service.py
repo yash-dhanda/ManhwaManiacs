@@ -46,6 +46,7 @@ from database.models import (
     UpdateNotification,
 )
 from database.session import get_db
+from services.circle_service import record_event
 from services.browse_service import (
     BrowseService,
     chapter_identity,
@@ -978,10 +979,12 @@ class ProgressService:
         if created:
             previous_last_page = seed.last_page if seed else 0
             previous_time_spent = seed.time_spent_seconds if seed else 0
+            was_completed = bool(seed.is_completed) if seed else False
         else:
             merged = merge_progress(_row_to_merged(row), payload)
             previous_last_page = row.last_page
             previous_time_spent = row.time_spent_seconds
+            was_completed = bool(row.is_completed)
 
         row.chapter_number = merged.chapter_number
         row.last_page = merged.last_page
@@ -993,6 +996,12 @@ class ProgressService:
         row.time_spent_seconds = merged.time_spent_seconds
 
         self._db.flush()
+
+        if not payload.manual:
+            self._record_circle(
+                created, was_completed, merged, user_id, profile_id,
+                source_id, series_key, chapter_key,
+            )
 
         # A reading session per *advance*, or per push that carried reading
         # time. Clients ping progress repeatedly for the same page (autosave,
@@ -1058,6 +1067,28 @@ class ProgressService:
         )
 
         return row, merged
+
+    def _record_circle(
+        self, created, was_completed, merged, user_id, profile_id,
+        source_id, series_key, chapter_key,
+    ) -> None:
+        """Circle activity for one push (no-op unless the profile shares)."""
+        at = merged.read_at or merged.last_read_at
+        common = dict(
+            user_id=user_id, profile_id=profile_id, source_id=source_id,
+            series_key=series_key, at=at, chapter_key=chapter_key,
+            chapter_number=merged.chapter_number,
+        )
+        if created and self._db.execute(
+            select(func.count()).select_from(ChapterProgress).where(
+                ChapterProgress.profile_id == profile_id,
+                ChapterProgress.source_id == source_id,
+                ChapterProgress.series_key == series_key,
+            )
+        ).scalar_one() == 1:
+            record_event(self._db, kind="started", **common)
+        if merged.is_completed and not was_completed:
+            record_event(self._db, kind="finished_chapter", **common)
 
     def _clear_update_notification(
         self,

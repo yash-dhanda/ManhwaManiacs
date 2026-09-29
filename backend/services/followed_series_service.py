@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable
 from functools import partial
+from datetime import datetime, timedelta
 from typing import Annotated, Any, NamedTuple
 from urllib.parse import quote
 
@@ -47,6 +48,7 @@ from database.models import (
     Tag,
 )
 from database.session import get_db
+from services.circle_service import CircleService, record_event
 from services.cover_colour import attach_cover_colours
 from services.browse_service import (
     BrowseService,
@@ -947,6 +949,16 @@ class FollowedSeriesService:
                     code="invalid_reading_status",
                     status_code=422,
                 )
+            if status == "completed" and row.reading_status != "completed":
+                record_event(
+                    self._db,
+                    user_id=row.user_id,
+                    profile_id=row.profile_id,
+                    kind="finished_series",
+                    source_id=row.source_id,
+                    series_key=row.series_key,
+                    at=utcnow(),
+                )
             row.reading_status = status
         if "notify" in changes and changes["notify"] is not None:
             row.notify = bool(changes["notify"])
@@ -1675,13 +1687,28 @@ class FollowedSeriesService:
 
     def annual(self, year: int | None, tz_offset_minutes: int) -> dict[str, Any]:
         self._require_owner()
-        return AnnualService(
+        payload = AnnualService(
             self._db,
             user_id=self._user_id,
             profile_id=self._profile_id,
             gate_open=self._gate_open(),
             tz_offset_minutes=tz_offset_minutes,
         ).build(year)
+        # The cached body is shared and never holds Circle data: copy, then
+        # compute the Circle block fresh (null unless this profile shares).
+        payload = dict(payload)
+        payload["circle"] = None
+        if self._user_id is not None and self._profile_id is not None:
+            # The cached ``until`` is frozen at first build of the day; the
+            # Circle block reads the whole year window instead.
+            offset = timedelta(minutes=tz_offset_minutes)
+            payload["circle"] = CircleService(
+                self._db, self._user_id, self._profile_id
+            ).annual_block(
+                datetime(payload["year"], 1, 1) - offset,
+                datetime(payload["year"] + 1, 1, 1) - offset,
+            )
+        return payload
 
     def mark_milestone_seen(self, days: int) -> None:
         """Idempotent: record that this profile has seen the ``days`` card."""

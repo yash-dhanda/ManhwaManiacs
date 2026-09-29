@@ -1,0 +1,27 @@
+{
+    "items": [
+        {
+            "id": 1,
+            "kind": "finished_chapter",
+            "actor": {
+                "profile_id": 1,
+                "name": "Riya",
+                "avatar_key": "default",
+                "username": "demo"
+            },
+            "source_id": "mangadex",
+            "series_key": "25e1d17b-6a4d-4698-a4f6-bf53460c10af",
+            "title": "Futari Bus",
+            "cover_url": "/sources/mangadex/series/25e1d17b-6a4d-4698-a4f6-bf53460c10af/cover",
+            "ambient": null,
+            "palette": null,
+            "content_kind": "manga",
+            "chapter_key": "proof-ch-1",
+            "chapter_number": 1.0,
+            "reaction": null,
+            "followed_by_viewer": true,
+            "created_at": "2026-09-29T21:36:12.859199"
+        }
+    ],
+    "next_cursor": null
+}

@@ -1,0 +1,59 @@
+[
+  {
+    "type": "circle",
+    "title": "From the Circle",
+    "seed": null,
+    "note": null,
+    "fallback": null,
+    "items": [
+      {
+        "member": {
+          "profile_id": 1,
+          "name": "Riya",
+          "avatar_key": "default",
+          "username": "demo"
+        },
+        "series": {
+          "source_id": "mangadex",
+          "series_key": "25e1d17b-6a4d-4698-a4f6-bf53460c10af",
+          "title": "Futari Bus",
+          "cover_url": "/sources/mangadex/series/25e1d17b-6a4d-4698-a4f6-bf53460c10af/cover",
+          "ambient": null,
+          "palette": null,
+          "content_kind": "manga"
+        }
+      }
+    ],
+    "state": "ready",
+    "generated_at": "2026-09-29T21:36:17Z"
+  },
+  {
+    "type": "circle_top",
+    "title": "Most read in the circle",
+    "seed": null,
+    "note": null,
+    "fallback": null,
+    "items": [
+      {
+        "member": {
+          "profile_id": 1,
+          "name": "Riya",
+          "avatar_key": "default",
+          "username": "demo"
+        },
+        "series": {
+          "source_id": "mangadex",
+          "series_key": "25e1d17b-6a4d-4698-a4f6-bf53460c10af",
+          "title": "Futari Bus",
+          "cover_url": "/sources/mangadex/series/25e1d17b-6a4d-4698-a4f6-bf53460c10af/cover",
+          "ambient": null,
+          "palette": null,
+          "content_kind": "manga"
+        },
+        "rank": 1
+      }
+    ],
+    "state": "ready",
+    "generated_at": "2026-09-29T21:36:17Z"
+  }
+]

@@ -21,6 +21,8 @@ from core.time_utils import utcnow
 from database.models import (
     AiFeedback,
     AiResultCache,
+    CircleEvent,
+    CircleHiddenSeries,
     Base,
     Bookmark,
     ChapterProgress,
@@ -211,6 +213,8 @@ SEEDED_TABLES = frozenset(
         "listen_sessions",
         "ai_result_cache",
         "ai_feedback",
+        "circle_events",
+        "circle_hidden_series",
     }
 )
 
@@ -269,6 +273,14 @@ def _seed_one_row_everywhere(db, user_id: int, profile_id: int) -> None:
         AiResultCache(
             key="k" * 64, kind="home_editorial", profile_id=profile_id, payload="{}",
             generated_at=utcnow(), expires_at=utcnow() + timedelta(days=1),
+        ),
+        CircleEvent(
+            user_id=user_id, profile_id=profile_id, kind="started", source_id=SRC,
+            series_key=SERIES, title="Series One", created_at=utcnow(),
+        ),
+        CircleHiddenSeries(
+            user_id=user_id, profile_id=profile_id, source_id=SRC,
+            series_key=SERIES, title="Series One",
         ),
         UserSession(
             user_id=user_id, token_hash="tok", expires_at=utcnow() + timedelta(days=1)

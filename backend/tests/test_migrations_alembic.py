@@ -23,7 +23,7 @@ from database.models import Base
 from database.session import run_alembic_migrations
 
 _BASELINE = "0001_source_native"
-_HEAD = "0024_reader_page_annotations"
+_HEAD = "0025_circle_core"
 
 # Every revision, oldest first. A new migration is added here deliberately —
 # the point of the guard is that revisions arrive on purpose, not that there is
@@ -53,6 +53,7 @@ _REVISIONS = [
     "0022_home_feed.py",
     "0023_ai_taste_feedback.py",
     "0024_reader_page_annotations.py",
+    "0025_circle_core.py",
 ]
 
 # Every ORM-mapped table the baseline must create (spec §3).
@@ -61,6 +62,8 @@ _EXPECTED_TABLES = {
     "sessions",
     "bootstrap_state",
     "reading_profiles",
+    "circle_hidden_series",
+    "circle_events",
     "source_pins",
     "source_health",
     "update_settings",

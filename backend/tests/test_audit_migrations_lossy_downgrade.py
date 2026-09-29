@@ -38,7 +38,7 @@ from alembic.config import Config
 
 import database.session as dbs
 
-_HEAD = "0024_reader_page_annotations"
+_HEAD = "0025_circle_core"
 _BEFORE_0010 = "0009_reading_session_duration"
 _BEFORE_0002 = "0001_source_native"
 
