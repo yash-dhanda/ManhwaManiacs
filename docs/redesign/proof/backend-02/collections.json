@@ -1,0 +1,43 @@
+[
+    {
+        "id": 2,
+        "name": "Catching up",
+        "description": null,
+        "sort_order": 0,
+        "series_count": 0,
+        "rules": {
+            "all": [
+                {
+                    "field": "reading_status",
+                    "op": "eq",
+                    "value": "reading"
+                },
+                {
+                    "field": "new_count",
+                    "op": "gte",
+                    "value": 1
+                }
+            ]
+        },
+        "smart": true,
+        "created_at": "2026-09-29T13:05:07.888754",
+        "preview_covers": [],
+        "preview_ambient_duo": null
+    },
+    {
+        "id": 1,
+        "name": "Weekend binge",
+        "description": "Seeded for screenshots",
+        "sort_order": 0,
+        "series_count": 3,
+        "rules": null,
+        "smart": false,
+        "created_at": "2026-09-29T10:14:54.358286",
+        "preview_covers": [
+            "/sources/mangadex/series/3683f667-c23d-4688-b872-0ade276aaafa/cover",
+            "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover",
+            "/sources/mangadex/series/98cad238-faca-42ee-b951-7a6b8c478d0a/cover"
+        ],
+        "preview_ambient_duo": "#CA727F"
+    }
+]
