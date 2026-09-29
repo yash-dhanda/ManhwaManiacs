@@ -182,6 +182,8 @@ def test_today_is_still_counted_while_it_is_not_materialised(
         "current_days": 2,
         "longest_days": 2,
         "last_active_date": _day(_at(0)),
+        "at_risk": False,
+        "milestones_seen": [],
     }
 
 
@@ -259,6 +261,8 @@ def test_the_payload_is_identical_with_and_without_the_rollup(
         "current_days": 3,
         "longest_days": 4,
         "last_active_date": _day(_at(0)),
+        "at_risk": False,
+        "milestones_seen": [],
     }
 
 

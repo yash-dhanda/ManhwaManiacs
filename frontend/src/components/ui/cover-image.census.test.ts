@@ -21,7 +21,7 @@ const ALLOWED = new Set([
   // The reading surface. The strip measures each page's decoded height to keep
   // the reader's place, and an opacity transition there animates nothing that
   // matters while adding a compositing layer per page.
-  "features/reader/components/PageImage.tsx",
+  "features/reader/engine/PageImage.tsx",
 ]);
 
 function walk(dir: string, out: string[] = []): string[] {

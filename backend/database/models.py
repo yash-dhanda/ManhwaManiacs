@@ -672,6 +672,71 @@ class ReadingDayStats(Base):
     )
 
 
+class StreakMilestone(Base):
+    """A streak milestone card (7, 30, 100, 365 days) this profile has seen."""
+
+    __tablename__ = "streak_milestones"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_streak_milestones_scope",
+        ),
+        Index("ix_streak_milestones_profile_id", "profile_id"),
+    )
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("reading_profiles.id", ondelete="CASCADE"), primary_key=True
+    )
+    days: Mapped[int] = mapped_column(Integer, primary_key=True)
+    seen_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+
+
+class ListenSession(Base):
+    """One stretch of narration listened to, credited to up to 3 voices."""
+
+    __tablename__ = "listen_sessions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_listen_sessions_scope",
+        ),
+        UniqueConstraint(
+            "user_id",
+            "profile_id",
+            "source_id",
+            "series_key",
+            "chapter_key",
+            "started_at",
+            name="uq_listen_sessions_push",
+        ),
+        Index("ix_listen_sessions_started_at", "user_id", "profile_id", "started_at"),
+        Index("ix_listen_sessions_profile_id", "profile_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("reading_profiles.id", ondelete="CASCADE"), nullable=False
+    )
+    source_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    series_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    chapter_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    seconds: Mapped[int] = mapped_column(Integer, nullable=False)
+    #: JSON array of at most 3 voice ids.
+    voice_ids: Mapped[str] = mapped_column(
+        Text, nullable=False, default="[]", server_default="[]"
+    )
+    started_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=utcnow
+    )
+
+
 # ---------------------------------------------------------------------------
 # Collections / tags  (spec §3.6–§3.7)
 # ---------------------------------------------------------------------------

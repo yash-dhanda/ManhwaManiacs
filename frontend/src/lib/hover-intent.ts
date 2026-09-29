@@ -15,7 +15,7 @@
 
 /** Long enough that a sweep across a list settles nothing, short enough to be
  * invisible to someone reaching for a row. */
-export const HOVER_PREFETCH_DELAY_MS = 120;
+export const HOVER_PREFETCH_DELAY_MS = 150;
 
 export interface HoverIntent<T> {
   /** The pointer (or focus) arrived on `value`. */

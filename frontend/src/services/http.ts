@@ -120,7 +120,9 @@ async function send(
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status, await safeParseError(response));
+    const error = new ApiError(response.status, await safeParseError(response));
+    error.retryAfterMs = parseRetryAfter(response.headers.get("Retry-After"));
+    throw error;
   }
 
   return response;
@@ -171,6 +173,15 @@ export async function requestBlob(
     blob: await response.blob(),
     contentDisposition: response.headers.get("Content-Disposition"),
   };
+}
+
+/** `Retry-After` is delta seconds or an HTTP date; returns ms or null. */
+export function parseRetryAfter(value: string | null): number | null {
+  if (!value) return null;
+  const secs = Number(value);
+  if (Number.isFinite(secs)) return Math.max(0, secs * 1000);
+  const at = Date.parse(value);
+  return Number.isNaN(at) ? null : Math.max(0, at - Date.now());
 }
 
 async function safeParseError(response: Response): Promise<Partial<ApiErrorBody>> {

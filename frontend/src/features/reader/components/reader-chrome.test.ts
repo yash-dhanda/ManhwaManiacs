@@ -100,7 +100,7 @@ describe("ChapterReader chrome", () => {
 
   it("draws the page counter as flat glass with a fill dense enough for bright pages", () => {
     const pill = code.match(
-      /className="([^"]*)"\s*>\s*\{visiblePage\} <span className="text-muted">\/ \{pages\.length\}/,
+      /className="([^"]*)"\s*>\s*\{state\.page\} <span className="text-muted">\/ \{state\.pageCount\}/,
     );
     expect(pill, "the page counter pill is missing").not.toBeNull();
     const classes = pill![1].split(/\s+/);
@@ -111,7 +111,10 @@ describe("ChapterReader chrome", () => {
 
   it("keeps the scroll percent out of React state", () => {
     expect(code).not.toMatch(/\bscrollProgress\b/);
-    expect(code).toMatch(/useState\(createReadingPercent\)/);
-    expect(code).toMatch(/percentStore\.set\(/);
+    // The percent store moved into the engine with the rest of the reader's state.
+    const engine = readFileSync(new URL("../engine/use-reader-engine.ts", import.meta.url), "utf8");
+    expect(engine).not.toMatch(/\bscrollProgress\b/);
+    expect(engine).toMatch(/useState\(createReadingPercent\)/);
+    expect(engine).toMatch(/percentStore\.set\(/);
   });
 });

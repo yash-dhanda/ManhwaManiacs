@@ -44,6 +44,8 @@ export const CAPTURE_ACKNOWLEDGEMENT_MS = 2200;
 export interface BookmarkCapture {
   /** Capture the position described by `body`. One action, no dialog. */
   capture: (body: BookmarkCreate) => void;
+  /** Same capture, resolving with the saved bookmark and rejecting on failure. */
+  captureAsync: (body: BookmarkCreate) => Promise<Bookmark>;
   /** A request is in flight. */
   pending: boolean;
   /** A capture just landed — drives the transient confirmation. */
@@ -97,8 +99,18 @@ export function useBookmarkCapture(): BookmarkCapture {
     [mutate],
   );
 
+  const { mutateAsync } = mutation;
+  const captureAsync = useCallback(
+    (body: BookmarkCreate) => {
+      setJustSaved(false);
+      return mutateAsync(body);
+    },
+    [mutateAsync],
+  );
+
   return {
     capture,
+    captureAsync,
     pending: mutation.isPending,
     justSaved,
     failed: mutation.isError && !mutation.isPending,

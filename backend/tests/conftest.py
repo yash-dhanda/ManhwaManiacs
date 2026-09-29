@@ -166,6 +166,16 @@ def no_anilist_colour_worker(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def reset_annual_cache_fixture():
+    """Test databases reuse profile ids; the Annual's per-process cache must not."""
+    from services.annual_service import reset_annual_cache
+
+    reset_annual_cache()
+    yield
+    reset_annual_cache()
+
+
+@pytest.fixture(autouse=True)
 def reset_update_manager():
     """Reset the process-wide update scheduler around every test."""
     reset_update_manager_for_tests()
