@@ -33,3 +33,15 @@ Each run is one Auto-fling (10 s). Afterwards write down FPS, JANK and WORST fro
 On the iPhone, LIQUID passes when both LIQUID runs show FPS >= 115, JANK < 5 % and WORST < 16.7 ms with no visual fault. Otherwise the decision is FROST (flagship-only: no third option). Android results are recorded for glass 15.7 but do not decide.
 
 Decision: awaiting the owner's device pass (mobile/25 must not start before this line reads LIQUID or FROST)
+
+## CI for the liquid_glass_widgets commit (abbace5)
+
+Pending, integrator to confirm: CI runs cannot be read from the lane worktree (nothing is pushed from
+here). Record the `tests` and `build-ios` run ids and conclusions for abbace5 here once the integrator
+has pushed and both are green. Owner-todo entry added.
+
+## Keyboard (LIQUID tabs)
+
+liquid_glass_widgets 1.7.2 `GlassTabBar` has no focus handling, so the gate overlays four
+pointer-transparent `FocusableActionDetector` targets (keys `tab-0..3`, 44 iOS / 48 Android minimum,
+2 px ring on focus, Enter/Space selects). Tests Tab through all four in both engines.

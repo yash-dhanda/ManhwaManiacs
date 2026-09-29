@@ -219,7 +219,7 @@ class _GlassGateScreenState extends ConsumerState<GlassGateScreen> {
         builder: (_, __) => _FrostBar(selected: _tab, minimized: _minimize.minimized, onSelect: (i) => setState(() => _tab = i)),
       );
     }
-    return GlassTabBar.minimizable(
+    final bar = GlassTabBar.minimizable(
       tabs: [
         for (var i = 0; i < 4; i++)
           GlassTab(
@@ -239,7 +239,58 @@ class _GlassGateScreenState extends ConsumerState<GlassGateScreen> {
       settings: _t3,
       quality: GlassQuality.premium,
     );
+    // GlassTabBar has no focus handling: overlay keyboard targets (pointer-transparent).
+    return Stack(
+      children: [
+        bar,
+        Positioned.fill(
+          child: AnimatedBuilder(
+            animation: _minimize,
+            builder: (_, __) => _minimize.minimized
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < 4; i++)
+                          Expanded(child: _TabFocus(key: ValueKey('tab-$i'), label: _labels[i], onActivate: () => setState(() => _tab = i))),
+                      ],
+                    ),
+                  ),
+          ),
+        ),
+      ],
+    );
   }
+}
+
+/// Keyboard target for a LIQUID tab: focusable, Enter/Space activates, visible ring.
+class _TabFocus extends StatefulWidget {
+  const _TabFocus({super.key, required this.label, required this.onActivate});
+  final String label;
+  final VoidCallback onActivate;
+  @override
+  State<_TabFocus> createState() => _TabFocusState();
+}
+
+class _TabFocusState extends State<_TabFocus> {
+  bool _focused = false;
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+        child: FocusableActionDetector(
+          onShowFocusHighlight: (v) => setState(() => _focused = v),
+          actions: {ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) => widget.onActivate())},
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: _minHit(), minWidth: _minHit()),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(color: _focused ? const Color(0xCCFFFFFF) : Colors.transparent, width: 2),
+              ),
+            ),
+          ),
+        ),
+      );
 }
 
 class _YouDot extends StatelessWidget {
@@ -571,6 +622,7 @@ class _FrostBar extends StatelessWidget {
                     label: _GlassGateScreenState._labels[i],
                     excludeSemantics: true,
                     child: InkWell(
+                      key: ValueKey('tab-$i'),
                       focusColor: const Color(0x66FFFFFF),
                       customBorder: const StadiumBorder(),
                       onTap: () => onSelect(i),

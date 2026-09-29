@@ -8,10 +8,10 @@ import 'package:manhwamaniacs/skins/glass/gate/glass_gate_screen.dart';
 import '../../screenshots/support/shot_harness.dart';
 import '../../screenshots/support/skin_shots.dart';
 
-Widget gate() => ProviderScope(
+Widget gate([GateEngine engine = GateEngine.frost]) => ProviderScope(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: GlassGateScreen(ready: Future.value(), initialEngine: GateEngine.frost),
+        home: GlassGateScreen(ready: Future.value(), initialEngine: engine),
       ),
     );
 
@@ -49,9 +49,11 @@ void main() {
         expect(size.height, greaterThanOrEqualTo(min), reason: label);
         expect(size.width, greaterThanOrEqualTo(min), reason: label);
       }
-      // The four frost tabs (64 tall bar).
-      final tabs = find.byWidgetPredicate((w) => w is InkWell && w.onTap != null).evaluate().length;
-      expect(tabs, greaterThanOrEqualTo(8));
+      for (var i = 0; i < 4; i++) {
+        final size = t.getSize(find.byKey(ValueKey('tab-$i')));
+        expect(size.height, greaterThanOrEqualTo(min), reason: 'tab $i');
+        expect(size.width, greaterThanOrEqualTo(min), reason: 'tab $i');
+      }
       debugDefaultTargetPlatformOverride = null;
     });
   }
@@ -78,6 +80,34 @@ void main() {
     }
     expect(focused, containsAll(['LIQUID', 'FROST', 'Sheet', 'Auto-fling']));
   });
+
+  for (final engine in GateEngine.values) {
+    testWidgets('Tab reaches all four tabs in ${engine.name}', (t) async {
+      t.view.physicalSize = const Size(390, 844);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(gate(engine));
+      await t.pump(const Duration(milliseconds: 300));
+      final reached = <int>{};
+      for (var i = 0; i < 20; i++) {
+        await t.sendKeyEvent(LogicalKeyboardKey.tab);
+        await t.pump();
+        final ctx = FocusManager.instance.primaryFocus?.context;
+        if (ctx == null) continue;
+        for (var k = 0; k < 4; k++) {
+          final tabEl = find.byKey(ValueKey('tab-$k')).evaluate().firstOrNull;
+          if (tabEl == null) continue;
+          var inside = ctx == tabEl;
+          ctx.visitAncestorElements((a) {
+            if (a == tabEl) inside = true;
+            return !inside;
+          });
+          if (inside) reached.add(k);
+        }
+      }
+      expect(reached, {0, 1, 2, 3});
+    });
+  }
 
   testWidgets('captures the FROST gate at 390x844', (t) async {
     await pumpGate(t, size: const Size(390, 844));
