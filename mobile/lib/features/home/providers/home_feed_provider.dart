@@ -39,7 +39,6 @@ class HomeFeedController extends AutoDisposeAsyncNotifier<HomeFeedView> {
     final timer = Timer(const Duration(minutes: 10), link.close);
     ref.onDispose(timer.cancel);
     ref.watch(activeProfileProvider.select((p) => p?.id));
-    ref.watch(matureGateOpenProvider);
     ref.watch(contentModeControllerProvider);
     ref.watch(novelsEnabledProvider);
     return _load(refresh: false);

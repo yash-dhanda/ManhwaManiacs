@@ -95,6 +95,8 @@ const Set<String> kMatureGatedBackendServices = {
   'bookmark_service',
   'browse_service',
   'followed_series_service',
+  // `GET /home`: Tonight's feed, composed per (profile, gate, content kind).
+  'home_service',
   'ocr_ingest_service',
   // Progress rows are written through the gate, and a series' own rows are
   // read back through it by the source and book pages.
@@ -425,7 +427,6 @@ final matureOverrideChangedProvider = Provider<void Function()>((ref) => () {
 /// them.
 final List<void Function(Ref ref)> metadataCacheInvalidators = [
   (ref) => ref.invalidate(continueReadingProvider),
-  (ref) => ref.invalidate(homeFeedProvider),
   (ref) => ref.invalidate(libraryListProvider),
   (ref) => ref.invalidate(searchListProvider),
   (ref) => ref.invalidate(statisticsProvider),
