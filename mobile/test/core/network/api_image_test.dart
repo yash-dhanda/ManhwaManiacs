@@ -120,4 +120,19 @@ void main() {
       expect(coverUrlAtWidth('', 360), '');
     });
   });
+
+  group('snappedCoverWidth', () {
+    test('snaps up to the nearest ladder step', () {
+      expect(snappedCoverWidth(100, 3), 360); // 300 px
+      expect(snappedCoverWidth(32, 3), 96);
+      expect(snappedCoverWidth(80, 2), 160);
+      expect(snappedCoverWidth(120, 2), 240);
+      expect(snappedCoverWidth(160, 3), 480);
+    });
+    test('caps at 720 and tolerates bad input', () {
+      expect(snappedCoverWidth(600, 3), 720);
+      expect(snappedCoverWidth(0, 3), 720);
+      expect(snappedCoverWidth(double.nan, 3), 720);
+    });
+  });
 }
