@@ -56,3 +56,7 @@ Lane mobile1, worktree `/srv/manhwamaniacs/dev/wt/mobile1`, branch `redesign/mob
   `FollowedSeriesMeta` (needed first, `followedSeriesCardSubtitle` takes it),
   `series_detail_meta.dart` (whole file), `bookmarkPositionLabel`,
   `formatStorageBytes`.
+- Fix pass 3 (after merging `feat/vps-slim-source-native` at `ead69bf`, which
+  adds shared/01's Glass tokens and `generated_glass_test.dart`): 2,042 passed,
+  0 failed, 0 skipped (02:23 wall, `-j 2`); `flutter analyze`: No issues found!
+  Goldens still untouched since `572ac14`.
