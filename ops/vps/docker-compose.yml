@@ -63,6 +63,12 @@ services:
       # mount. Both media paths must be explicit or the SideStore listing shows
       # a blank icon and broken screenshots.
       - MM_SCREENSHOTS_DIR=/app/mobile/screenshots
+      # Soundscape loops served under /app/soundscapes (baked into the image).
+      - MM_SOUNDSCAPES_DIR=/app/media/soundscapes
+      # Install-page font subsets served under /app/fonts (baked into the image).
+      - MM_FONTS_DIR=/app/media/fonts
+      # og.png and the two icons served under /app/brand (bind mount below).
+      - MM_BRAND_DIR=/app/frontend-public
       # Novels (spec 1d). The owner is the only user of this instance and asked
       # for the novel reader on the live site to review it; registration is
       # closed, so "live" means visible to him after login. Flipping this to
@@ -91,6 +97,9 @@ services:
       # App icon + marketing screenshots for /app/media (SideStore listing and
       # the install landing page).
       - ../../mobile/docs/screenshots:/app/mobile/screenshots:ro
+      # Brand files for the install page (/app/brand serves three allowlisted
+      # names from here; frontend/public is outside the backend build context).
+      - ../../frontend/public:/app/frontend-public:ro
     networks: [edge]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4).status==200 else 1)"]

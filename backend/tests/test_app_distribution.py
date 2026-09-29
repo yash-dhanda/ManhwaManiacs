@@ -103,8 +103,8 @@ def test_install_page_shows_both_platforms_and_the_web_app(
     _installable_apk(tmp_path, monkeypatch)
     html = client.get("/").text
 
-    assert "<h2>Android</h2>" in html
-    assert "<h2>iPhone</h2>" in html
+    assert "Android: download the APK" in html
+    assert "iPhone: add the SideStore source" in html
     # The zero-install option gets its own link -- for many visitors it is the
     # right answer, and it is the only one that works while a build is missing.
     assert app_distribution.WEB_APP_URL in html
@@ -254,7 +254,7 @@ def test_install_page_says_so_when_the_android_build_is_missing(
     assert 'href="/app/download"' not in response.text
     # ...and the page still stands up: name, the other platform, the website.
     assert "ManhwaManiacs" in response.text
-    assert "<h2>iPhone</h2>" in response.text
+    assert "iPhone: add the SideStore source" in response.text
 
 
 def test_install_page_says_so_when_the_ios_build_is_missing(
@@ -301,7 +301,7 @@ def test_install_page_shows_the_newest_release_notes(
     newest = client.get("/app/changelog").json()["entries"][0]
 
     html = client.get("/").text
-    assert f"What's new in {newest['version']}" in html
+    assert f"{newest['version']} · BUILD {newest['build']}" in html
     for highlight in newest["highlights"]:
         # Escape the expectation rather than requiring release notes to avoid
         # apostrophes: the page escapes what it renders, and a prefix rule that
@@ -322,7 +322,7 @@ def test_install_page_omits_screenshots_it_cannot_serve(
 
     html = client.get("/").text
     assert "/app/media/" not in html
-    assert "<h2>Android</h2>" in html
+    assert "Android: download the APK" in html
 
 
 def test_install_page_makes_no_external_requests(
@@ -599,3 +599,118 @@ def test_a_corrupt_apk_does_not_take_the_version_route_down(
 
     assert response.status_code == 200
     assert response.json()["build"] == 405
+
+
+# ── The install page, rebuilt in the Cinematic brand ─────────────────────────
+
+
+def _page(client: TestClient, tmp_path: Path, monkeypatch) -> str:
+    _installable_apk(tmp_path, monkeypatch)
+    return client.get("/").text
+
+
+def test_install_page_masthead_and_cover_lines(
+    client: TestClient, tmp_path: Path, monkeypatch
+):
+    html = _page(client, tmp_path, monkeypatch)
+    assert html.lower().count("<h1") == 1
+    h1 = re.search(r"<h1[^>]*>(.*?)</h1>", html, re.S).group(1)
+    assert "Manhwa" in h1 and "Maniacs" in h1
+    for line in (
+        "Every source. One shelf.",
+        "Novels, read aloud.",
+        "Your year in chapters.",
+        "Read together.",
+    ):
+        assert line in html
+    assert "<svg" in html.split("</header>")[0]
+    assert 'aria-label="ManhwaManiacs"' in html
+    assert "#F5A00B" not in html
+    assert html.index('class="skip"') < html.index("<main")
+
+
+def test_install_page_steps_in_order_with_folios(
+    client: TestClient, tmp_path: Path, monkeypatch
+):
+    html = _page(client, tmp_path, monkeypatch)
+    titles = [
+        "Android: download the APK",
+        "iPhone: add the SideStore source",
+        "Or read in your browser",
+    ]
+    positions = [html.index(t) for t in titles]
+    assert positions == sorted(positions)
+    assert [m for m in re.findall(r'class="folio"[^>]*>(\d\d)<', html)] == [
+        "01",
+        "02",
+        "03",
+    ]
+
+
+def test_install_page_is_dark_only(client: TestClient, tmp_path: Path, monkeypatch):
+    html = _page(client, tmp_path, monkeypatch)
+    assert 'color-scheme" content="dark"' in html
+    assert 'theme-color" content="#000000"' in html
+    assert "prefers-color-scheme" not in html
+
+
+def test_install_page_fonts_and_icons(client: TestClient, tmp_path: Path, monkeypatch):
+    from routes.app_media import FONT_FILES
+
+    html = _page(client, tmp_path, monkeypatch)
+    faces = re.findall(r"@font-face\{[^}]*\}", html)
+    for name in FONT_FILES:
+        face = next(f for f in faces if f"/app/fonts/{name}" in f)
+        assert "unicode-range" in face
+        if name.startswith("archivo"):
+            assert "font-stretch:62% 100%" in face
+            assert "font-weight:400 800" in face
+    assert 'rel="preload" href="/app/fonts/bodoni-moda-latin.woff2"' in html
+    assert 'rel="icon" type="image/png" sizes="192x192" href="/app/brand/icon-192.png"' in html
+
+
+def test_install_page_og_image_needs_a_public_base(
+    client: TestClient, tmp_path: Path, monkeypatch
+):
+    monkeypatch.delenv("MM_PUBLIC_BASE_URL", raising=False)
+    _installable_apk(tmp_path, monkeypatch)
+    # No configured base and no request: nothing absolute to point crawlers at.
+    assert "og:image" not in app_distribution.render_landing_html(None)
+    monkeypatch.setenv("MM_PUBLIC_BASE_URL", "https://app.example.test")
+    html = client.get("/").text
+    assert 'property="og:image" content="https://app.example.test/app/brand/og.png"' in html
+
+
+def test_install_page_front_pages_follow_showcase_order(
+    client: TestClient, tmp_path: Path, monkeypatch
+):
+    _installable_apk(tmp_path, monkeypatch)
+    shots = tmp_path / "shots"
+    shots.mkdir()
+    (shots / "front-04-year-in-chapters.png").write_bytes(b"x")
+    (shots / "front-02-long-scroll.png").write_bytes(b"x")
+    monkeypatch.setattr("routes.app_distribution.SCREENSHOTS_DIR", shots)
+
+    html = client.get("/").text
+    alts = re.findall(r'<img [^>]*alt="([^"]+)"', html)
+    assert alts == ["Built for the long scroll.", "Your year in chapters."]
+    monkeypatch.setenv("MM_PUBLIC_BASE_URL", "https://app.example.test")
+    request = type("R", (), {"headers": {}, "base_url": "https://app.example.test/"})()
+    listed = app_distribution.build_ios_source(request)["apps"][0]["screenshots"]
+    assert [u.rsplit("/", 1)[-1] for u in listed] == [
+        "front-02-long-scroll.png",
+        "front-04-year-in-chapters.png",
+    ]
+
+
+def test_install_page_css_rules(client: TestClient, tmp_path: Path, monkeypatch):
+    html = _page(client, tmp_path, monkeypatch)
+    for needle in (":focus-visible", "prefers-reduced-motion:reduce", "min-height:48px"):
+        assert needle in html
+    for value in re.findall(r"border-radius:\s*([^;}]+)", html):
+        assert value.strip() == "0"
+
+
+def test_media_route_only_serves_screenshots(client: TestClient):
+    for path in ("/app/media/soundscapes/cafe.ogg", "/app/media/og.png"):
+        assert client.get(path).status_code == 404

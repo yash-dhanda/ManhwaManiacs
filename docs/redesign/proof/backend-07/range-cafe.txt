@@ -1,0 +1,11 @@
+HTTP/1.1 206 Partial Content
+date: Tue, 29 Sep 2026 19:38:09 GMT
+server: uvicorn
+cache-control: public, max-age=31536000, immutable
+content-type: audio/ogg
+accept-ranges: bytes
+content-length: 1024
+last-modified: Tue, 29 Sep 2026 14:42:51 GMT
+etag: "7a7315ed8126e3a4e18fac21dbb33a18"
+content-range: bytes 0-1023/1024075
+
