@@ -70,3 +70,7 @@ Items only the owner can do, by step.
 ## web/11 open issues
 - mature_override re-stamp not wired: web/07's local-row mature filter is not integrated; use-series-page.ts setMature only invalidates MATURE_GATED_QUERY_ROOTS (TODO(web/07)).
 - Stand-ins remain until web/06, web/07, web/09 integrate: reader-entry.ts (enterReader wipe), toasts.tsx (toast host), standins.tsx (AddToShelfSheet, TagSheet), tags-standin.ts (tag hooks), SetHeading.tsx and use-feature-keys.tsx (single-key setting).
+
+## web/27 (owner-only)
+- Hardware check of the motion-timings overlay (Bloom, Sheet present, Sheet snap, Recede, Toast fall, Meniscus refresh, Scrub lens, Zoom) from `/dev/glass-primitives` at 1440x900 and 390x844 on a real GPU and a real phone; headless Chromium is software raster.
+- Real-finger check of pinch, double-tap and the pull-to-refresh snap at 100 px on a phone.

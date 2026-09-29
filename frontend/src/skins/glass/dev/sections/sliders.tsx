@@ -37,8 +37,8 @@ export function SlidersSection() {
       <Grounds title="Fill slider (on a glass host)" columns={1}>
         {() => (
           <Row>
-            <FillSlider value={bright} onChange={setBright} label="Brightness" icon="sun" data-testid="fill-brightness" />
-            <FillSlider value={vol} onChange={setVol} label="Volume" icon="speaker-high" data-testid="fill-volume" />
+            <FillSlider value={bright} onChange={setBright} label="Brightness" icon="sun" data-testid="dial-brightness" />
+            <FillSlider value={vol} onChange={setVol} label="Volume" icon="speaker-high" data-testid="dial-volume" />
           </Row>
         )}
       </Grounds>
