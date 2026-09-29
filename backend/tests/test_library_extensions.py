@@ -643,3 +643,20 @@ def test_sort_new_count_and_new_only(api, ha, world, seed_follow, seed_progress)
     assert keys(new_only="true", sort="-new_count", per_page=2, page=2) == (["b"], 3)
     items = api.get("/library/series", params={"new_only": "true"}, headers=ha).json()["items"]
     assert all(r["read_state"]["new_count"] >= 1 for r in items)
+
+
+def test_row_tags_and_tag_ids_are_isolated(api, ha, hb, hc, world, seed_follow):
+    for uid, pid in ((world["u1"], world["a"]), (world["u1"], world["b"]),
+                     (world["u2"], world["c"])):
+        seed_follow(uid, pid, series_key="shared", title="Shared")
+    mine = _tag(api, ha, "Mine")
+    _tag_series(api, ha, "shared", mine)
+    for h in (hb, hc):
+        _tag_series(api, h, "shared", _tag(api, h, "Theirs"))
+        rows = api.get("/library/series", headers=h).json()["items"]
+        assert [t["name"] for t in rows[0]["tags"]] == ["Theirs"]
+        assert api.get("/library/series", params={"tag_ids": str(mine)},
+                       headers=h).json()["total"] == 0
+    rows = api.get("/library/series", headers=ha).json()["items"]
+    assert [t["name"] for t in rows[0]["tags"]] == ["Mine"]
+    assert api.get("/library/tags", headers=ha).json()[0]["series_count"] == 1
