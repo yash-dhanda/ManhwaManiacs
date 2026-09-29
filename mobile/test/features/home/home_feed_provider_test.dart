@@ -149,6 +149,7 @@ void main() {
     final c = await container(home, _FakeLib(fail: true), pinsFail: true);
     final v = await c.read(homeFeedProvider.future);
     expect((v.state, v.feed), (HomeFeedState.unavailable, null));
+    expect(v.retryAfter, isNull);
   });
 
   test('a new profile with nothing is empty', () async {

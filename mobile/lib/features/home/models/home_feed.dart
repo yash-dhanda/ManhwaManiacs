@@ -309,11 +309,14 @@ class HomeContinueItem {
 
 /// A `new_this_week`, `almost_there` or `where_were_we` row: the library row plus the extras.
 class HomeSeriesItem {
-  const HomeSeriesItem({required this.series, this.chaptersLeft, this.recap, this.mature = false});
+  const HomeSeriesItem({required this.series, this.chaptersLeft, this.recap, this.mature = false, this.lastReadAt});
   final FollowedSeries series;
   final int? chaptersLeft;
   final RecapAvailability? recap;
   final bool mature;
+
+  /// When this profile last read the series, where the payload says (Where were we?).
+  final DateTime? lastReadAt;
 
   Ambient? get ambient => series.ambient;
 }
@@ -441,6 +444,7 @@ class HomeSection {
             series: FollowedSeries.fromJson(j),
             chaptersLeft: _int(j['chapters_left']),
             recap: RecapAvailability.tryParse(j['recap']),
+            lastReadAt: serverInstant(j['last_read_at']),
           ),
         HomeSectionType.picked || HomeSectionType.because || HomeSectionType.firstPicks || HomeSectionType.popular => _pick(j),
         HomeSectionType.sources => HomeSourceItem(

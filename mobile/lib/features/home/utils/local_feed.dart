@@ -299,7 +299,7 @@ HomeFeed composeLocalFeed(LocalFeedInputs inputs, DateTime now) {
       if (at == null || f == null || f.readingStatus == 'completed' || finished(r)) continue;
       final d = _daysBetween(now, at);
       if (d < 21 || d > 120) continue;
-      lost.add(HomeSeriesItem(series: f, recap: inputs.recaps[_id(r.sourceId, r.seriesKey)]));
+      lost.add(HomeSeriesItem(series: f, recap: inputs.recaps[_id(r.sourceId, r.seriesKey)], lastReadAt: at));
       if (lost.length == 12) break;
     }
     sections.add(section(HomeSectionType.whereWereWe, 'Where were we?', lost));

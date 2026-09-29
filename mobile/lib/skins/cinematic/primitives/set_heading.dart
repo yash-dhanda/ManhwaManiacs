@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/diagnostics/motion_recorder.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/on_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// Heading ids that have already revealed this session (cinematic 10.1.1).
@@ -27,6 +28,7 @@ class SetHeading extends ConsumerStatefulWidget {
     this.linked = false,
     this.startDelayMs = 120,
     this.focusNode,
+    this.roman,
   });
 
   final String text;
@@ -46,6 +48,10 @@ class SetHeading extends ConsumerStatefulWidget {
 
   /// Lets a route change move focus to the masthead.
   final FocusNode? focusNode;
+
+  /// A grapheme range `[start, end)` of [text] set in Roman inside an italic heading (the seed
+  /// title of "Because you read *{title}*", cinematic 9.1.4).
+  final ({int start, int end})? roman;
 
   @override
   ConsumerState<SetHeading> createState() => _SetHeadingState();
@@ -142,8 +148,8 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
     if (!mounted || _c.isCompleted) return;
     final box = context.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize || !box.attached) return;
-    final top = box.localToGlobal(Offset.zero).dy, h = box.size.height;
-    final visible = (math.min(top + h, _screenH) - math.max(top, 0.0)).clamp(0.0, h);
+    final h = box.size.height;
+    final visible = visiblePixels(box, _screenH);
     if (widget.trigger == SetTrigger.inView && !_c.isAnimating && visible >= h * 0.5) _start();
     if (_c.isAnimating && visible == 0) _c.value = 1; // left the viewport mid-reveal: jump to the end (4.7)
   }
@@ -172,7 +178,18 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
       return widget.focusNode == null ? inner : Focus(focusNode: widget.focusNode, skipTraversal: true, child: inner);
     }
 
-    final plain = Text(widget.text, style: s, textScaler: scaler, softWrap: true);
+    final r = widget.roman;
+    final plain = r == null
+        ? Text(widget.text, style: s, textScaler: scaler, softWrap: true)
+        : Text.rich(
+            TextSpan(style: s, children: [
+              TextSpan(text: widget.text.characters.take(r.start).toString()),
+              TextSpan(text: widget.text.characters.skip(r.start).take(r.end - r.start).toString(), style: const TextStyle(fontStyle: FontStyle.normal)),
+              TextSpan(text: widget.text.characters.skip(r.end).toString()),
+            ],),
+            textScaler: scaler,
+            softWrap: true,
+          );
     final whole = head(plain);
     if (!widget.linked && _seenAtMount) return whole;
     if (_reduced) return FadeTransition(opacity: _c, child: whole);
@@ -181,8 +198,9 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
     final ink = s.color ?? DefaultTextStyle.of(context).style.color!;
     final delay = widget.startDelayMs.toDouble();
     var i = 0;
-    Widget letter(String ch) {
+    Widget letter(String ch, int gi) {
       final k = i++, start = delay + _step * k;
+      final isRoman = r != null && gi >= r.start && gi < r.end;
       final main = Interval(start / total, math.min(1, (start + 640) / total), curve: CineCurves.settle);
       final sharp = Interval(start / total, math.min(1, (start + 440) / total), curve: CineCurves.settle);
       final wipe = Interval(10 * k / wipeTotal, math.min(1, (10 * k + 200) / wipeTotal), curve: CineCurves.easeSet);
@@ -193,7 +211,10 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
           final child = Text(
             ch,
             textScaler: scaler,
-            style: s.copyWith(color: Color.lerp(ink, cine.colorSpot, wipe.transform(_hover.value) * (1 - _out.value))),
+            style: s.copyWith(
+              color: Color.lerp(ink, cine.colorSpot, wipe.transform(_hover.value) * (1 - _out.value)),
+              fontStyle: isRoman ? FontStyle.normal : null,
+            ),
           );
           return Opacity(
             opacity: t,
@@ -207,6 +228,12 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
     }
 
     final words = widget.text.split(' ');
+    final starts = <int>[];
+    var at = 0;
+    for (final w in words) {
+      starts.add(at);
+      at += w.characters.length + 1;
+    }
     final dir = Directionality.of(context);
     final body = head(LayoutBuilder(builder: (context, box) {
       // A word wider than the line cannot break inside its nowrap Row: the plain string wraps
@@ -221,7 +248,7 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
       return Wrap(children: [
         for (var w = 0; w < words.length; w++)
           Row(mainAxisSize: MainAxisSize.min, children: [
-            for (final ch in words[w].characters) letter(ch),
+            for (final (j, ch) in words[w].characters.indexed) letter(ch, starts[w] + j),
             if (w < words.length - 1) Text(' ', style: s, textScaler: scaler),
           ],),
       ],);

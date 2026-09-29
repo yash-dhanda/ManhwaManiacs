@@ -43,3 +43,9 @@ bool justExtended(Ref ref, HomeStreak s, DateTime now) {
   if (seen != lastStr) prefs.setString(key, lastStr);
   return seen != lastStr && _day(last) == _day(now);
 }
+
+/// [justExtended] for widgets: read once per streak instance, so the flame ignites once.
+final streakIgnitionProvider = Provider.autoDispose.family<bool, ({HomeStreak streak, DateTime now})>(
+  (ref, k) => justExtended(ref, k.streak, k.now),
+  name: 'streakIgnition',
+);
