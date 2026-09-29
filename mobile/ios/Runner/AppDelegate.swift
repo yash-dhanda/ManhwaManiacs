@@ -1,3 +1,4 @@
+import AVFoundation
 import Flutter
 import UIKit
 import Vision
@@ -20,10 +21,15 @@ import Vision
 // Vision itself is a system framework, so `Podfile.lock` (generated in CI)
 // is untouched either way, which is the constraint spec §4 actually cares
 // about.
+//
+// mobile/02 adds a third channel, `mm/platform` (haptics and the audio session
+// probe), in this file for the same reason. Android's twin is
+// MmPlatformChannel.kt; mobile/25 extends both.
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private let nativeChannelName = "com.manhwamaniacs.reader/native"
   private let ocrChannelName = "mm/ocr"
+  private let platformChannelName = "mm/platform"
 
   /// Mirrors `OCR_MAX_BOXES_PER_PAGE` in `backend/routes/ocr.py`. The Dart
   /// side caps too (`capOcrPagesForUpload`), but capping here as well keeps a
@@ -62,6 +68,42 @@ import Vision
     )
     ocrChannel.setMethodCallHandler { [weak self] call, result in
       self?.handleOcrCall(call, result: result)
+    }
+
+    let platformChannel = FlutterMethodChannel(
+      name: platformChannelName,
+      binaryMessenger: messenger
+    )
+    platformChannel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "haptics.impact":
+        guard
+          let args = call.arguments as? [String: Any],
+          let styleName = args["style"] as? String,
+          let intensity = args["intensity"] as? Double
+        else {
+          result(FlutterError(code: "bad_arguments", message: "haptics.impact expects { style, intensity }", details: nil))
+          return
+        }
+        let style: UIImpactFeedbackGenerator.FeedbackStyle
+        switch styleName {
+        case "soft": style = .soft
+        case "light": style = .light
+        case "heavy": style = .heavy
+        case "rigid": style = .rigid
+        default: style = .medium
+        }
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.prepare()
+        generator.impactOccurred(intensity: CGFloat(min(max(intensity, 0), 1)))
+        result(nil)
+      case "haptics.systemEnabled":
+        result(true)
+      case "audio.category":
+        result(AVAudioSession.sharedInstance().category.rawValue)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
     }
   }
 

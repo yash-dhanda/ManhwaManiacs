@@ -37,6 +37,7 @@ class MainActivity : AudioServiceActivity() {
     private val channelName = "com.manhwamaniacs.reader/native"
     private var methodChannel: MethodChannel? = null
     private var ocrChannel: OcrChannel? = null
+    private var mmPlatformChannel: MmPlatformChannel? = null
 
     // Only intercept volume keys while the reader is open and the user has
     // the setting enabled -- toggled from Dart via setVolumeKeyNavEnabled.
@@ -152,6 +153,7 @@ class MainActivity : AudioServiceActivity() {
         }
         methodChannel = channel
         ocrChannel = OcrChannel(flutterEngine.dartExecutor.binaryMessenger)
+        mmPlatformChannel = MmPlatformChannel(flutterEngine.dartExecutor.binaryMessenger, this)
     }
 
     override fun onDestroy() {
@@ -159,6 +161,8 @@ class MainActivity : AudioServiceActivity() {
         methodChannel = null
         ocrChannel?.dispose()
         ocrChannel = null
+        mmPlatformChannel?.dispose()
+        mmPlatformChannel = null
         super.onDestroy()
     }
 
