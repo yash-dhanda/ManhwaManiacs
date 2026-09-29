@@ -1,0 +1,11 @@
+/search
+/search?q=solo
+/search?q=qzxwv
+/search?scope=ask
+/search#genre=Action
+/sources
+/sources/mangadex
+/sources/mangadex?q=a
+/sources/gutenberg
+/ocr
+/ocr?q=the

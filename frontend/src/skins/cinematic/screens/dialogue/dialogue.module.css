@@ -1,0 +1,29 @@
+.list { list-style: none; margin: var(--mm-space-8) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--mm-space-8); }
+.block { display: grid; grid-template-columns: 1fr; gap: var(--mm-space-4); color: inherit; text-decoration: none; position: relative; border-left: 2px solid transparent; padding-left: 0; cursor: pointer; background: none; border-top: 0; border-right: 0; border-bottom: 0; text-align: left; width: 100%; }
+@media (min-width: 768px) { .block { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: calc(8 / 12 * 100%); gap: var(--mm-space-6); } }
+.block:hover { border-left-color: var(--mm-color-ink-100); }
+.block:active { background: var(--mm-color-paper-3); }
+.block:focus-visible { outline: var(--mm-focus-width) solid var(--mm-color-ink-100); outline-offset: var(--mm-focus-offset); box-shadow: var(--mm-focus-halo); }
+.still { position: relative; aspect-ratio: 16 / 9; background: var(--mm-color-paper-1); overflow: hidden; }
+.stillImg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.8); transition: transform var(--mm-dur-clip) var(--mm-ease-settle); }
+.block:hover .stillImg { transform: scale(1.04) !important; }
+.rack { animation: rack var(--mm-dur-rack) var(--mm-ease-settle) both; }
+@keyframes rack { from { filter: blur(var(--mm-blur-rack)) brightness(0.6); opacity: 0.6; } to { filter: brightness(0.8); opacity: 1; } }
+.develop { animation: develop var(--mm-dur-beat) linear both; }
+@keyframes develop { from { opacity: 0; } to { opacity: 1; } }
+.subtitle { position: absolute; left: 0; right: 0; bottom: 12%; margin: 0 auto; width: max-content; max-width: 92%; background: var(--mm-color-onart); color: var(--mm-color-ink-100); font-family: var(--mm-font-text, "Newsreader", Georgia, serif); font-size: 18px; line-height: 24px; text-align: center; padding: 8px 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.broken { position: absolute; right: 8px; bottom: 8px; color: var(--mm-color-ink-60); }
+.text { font-family: var(--mm-font-text, "Newsreader", Georgia, serif); font-size: 18px; line-height: 28px; margin: 0; }
+.credit { display: flex; gap: var(--mm-space-3); align-items: center; margin-top: var(--mm-space-3); }
+.creditText { font-family: var(--mm-font-mono, "IBM Plex Mono", monospace); font-size: 10px; letter-spacing: 0.1em; color: var(--mm-color-ink-45); text-transform: uppercase; }
+.cover { width: 40px; height: 60px; object-fit: cover; background: var(--mm-color-paper-1); flex: none; }
+@media (max-width: 767px) { .cover { width: 32px; height: 48px; } }
+.hl { background-image: linear-gradient(var(--mm-color-spot-wash), var(--mm-color-spot-wash)); background-repeat: no-repeat; background-size: 0% 100%; color: var(--mm-color-ink-100); animation: sweep var(--mm-dur-clip) var(--mm-ease-set) forwards; animation-delay: calc(560ms + var(--k) * 60ms); }
+@keyframes sweep { to { background-size: 100% 100%; } }
+@media (prefers-reduced-motion: reduce) { .hl { animation: none; background-size: 100% 100%; } .rack, .develop { animation: fade var(--mm-dur-beat) linear both; } }
+:global(html[data-motion="reduced"]) .hl { animation: none; background-size: 100% 100%; }
+:global(html[data-motion="reduced"]) .rack { animation: fade var(--mm-dur-beat) linear both; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.more { margin: var(--mm-space-8) 0; }
+.ghostLines { display: flex; flex-direction: column; gap: 8px; }
+.ghostLine { height: 14px; background: var(--mm-color-paper-1); }
