@@ -6,6 +6,10 @@ const BACKEND_INTERNAL_URL =
   process.env.BACKEND_INTERNAL_URL ?? "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
+  // Dev only: lets the Playwright specs and the proof script drive `next dev` through 127.0.0.1 without
+  // Next blocking the HMR/dev resources (and with them hydration) as cross-origin.
+  allowedDevOrigins: ["127.0.0.1"],
+
   // Emit a self-contained server bundle (.next/standalone/server.js) for the
   // production Docker image.
   output: "standalone",
