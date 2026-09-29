@@ -1,1 +1,39 @@
-/* reveals */
+/* Letter reveal (10.1) and typing reveal (10.2). Global on purpose. */
+[data-skin="glass"] .letter-reveal { position: relative; transition: color var(--mm-dur-color-shift) var(--mm-ease-color-shift); outline: none; }
+[data-skin="glass"] .letter-reveal .word { display: inline-block; white-space: nowrap; }
+[data-skin="glass"] .letter-reveal .g, [data-skin="glass"] .letter-reveal .word[style] { display: inline-block; }
+[data-skin="glass"] .letter-reveal[data-reveal="wait"] :is(.g, .word[style]) { opacity: 0; animation: lr-failsafe 0s 1500ms forwards; }
+[data-skin="glass"] .letter-reveal[data-reveal="run"]:not(.letter-reveal--live) :is(.g, .word[style]) {
+  animation: lr-rise var(--mm-spring-letter-ms) var(--mm-spring-letter) both, lr-fade 180ms cubic-bezier(0.2, 0, 0, 1) both;
+  animation-delay: calc(var(--i) * var(--stagger));
+}
+@keyframes lr-rise { from { translate: 0 0.4em; scale: 0.96; filter: blur(12px); } }
+@keyframes lr-fade { from { opacity: 0; } }
+@keyframes lr-failsafe { to { opacity: 1; } }
+[data-skin="glass"] .letter-reveal .glint { position: absolute; inset: 0; color: transparent; pointer-events: none; opacity: 0; background: linear-gradient(120deg, transparent 30%, rgb(255 255 255 / 0.18) 50%, transparent 70%) no-repeat; background-size: 40% 100%; background-position: -40% 0; -webkit-background-clip: text; background-clip: text; }
+[data-skin="glass"] .letter-reveal[data-reveal="run"]:not(.letter-reveal--live) .glint { animation: lr-glint 500ms linear calc(var(--n) * var(--stagger) + var(--mm-spring-letter-ms) + 120ms) forwards; }
+@keyframes lr-glint { 0% { opacity: 1; background-position: -40% 0; } 100% { opacity: 1; background-position: 140% 0; } }
+[data-skin="glass"] .letter-reveal[data-reveal="done"] .glint, [data-skin="glass"] .letter-reveal--live .glint { display: none; }
+@media (prefers-reduced-motion: reduce) { [data-skin="glass"] .letter-reveal :is(.g, .word[style]) { animation: none !important; opacity: 1 !important; } [data-skin="glass"] .letter-reveal .glint { display: none; } }
+[data-motion="reduced"] .letter-reveal :is(.g, .word[style]) { animation: none !important; opacity: 1 !important; }
+[data-motion="reduced"] .letter-reveal .glint { display: none; }
+[data-skin="glass"] .letter-reveal[data-reveal="done"] :is(.g, .word[style]) { opacity: 1; animation: none; }
+
+[data-skin="glass"] .typed { position: relative; outline: none; }
+[data-skin="glass"] .typed > [data-g] { display: inline-block; opacity: 0; white-space: pre; }
+[data-skin="glass"] .typed > .tail { opacity: 0; }
+[data-skin="glass"] .typed[data-typing="run"] > [data-g] { animation: ty-land var(--mm-spring-tick-ms) var(--mm-spring-tick) both; animation-delay: calc(var(--i) * 50ms); }
+@keyframes ty-land { from { opacity: 0; scale: 0.8; } 12% { opacity: 1; } to { opacity: 1; scale: 1; } }
+[data-skin="glass"] .typed .caret { position: absolute; left: 0; top: 0.14em; width: 2px; height: 0.72em; border-radius: 9999px; background: var(--mm-color-iris400); box-shadow: inset 0 0 0 0.5px #fff, 0 0 6px rgb(169 155 255 / 0.45); transition: translate var(--mm-spring-track-ms) var(--mm-spring-track); opacity: 0; }
+[data-skin="glass"] .typed[data-typing="run"] .caret { opacity: 1; animation: caret-blink 1060ms steps(1) calc(var(--n) * 50ms) 3 both, caret-out 350ms var(--mm-ease-dematerialize) calc(var(--n) * 50ms + 3180ms) forwards; }
+@keyframes caret-blink { 50% { opacity: 0; } }
+@keyframes caret-out { to { opacity: 0; filter: blur(6px); } }
+[data-skin="glass"] .typed[data-typing="run"] > .tail { animation: ty-tail 200ms cubic-bezier(0.2, 0, 0, 1) calc(var(--n) * 50ms) forwards; }
+@keyframes ty-tail { to { opacity: 1; } }
+[data-skin="glass"] .typed:not([data-typing]):not(.is-done) > :is([data-g], .tail) { opacity: 0; animation: ty-failsafe 0s 1500ms forwards; }
+@keyframes ty-failsafe { to { opacity: 1; } }
+[data-skin="glass"] .typed.is-done > :is([data-g], .tail) { animation: none; opacity: 1; }
+[data-skin="glass"] .typed.is-done .caret:not(:is([data-typing] *)) { display: none; }
+@media (prefers-reduced-motion: reduce) { [data-skin="glass"] .typed > :is([data-g], .tail) { animation: none; opacity: 1; } [data-skin="glass"] .typed .caret { display: none; } }
+[data-motion="reduced"] .typed > :is([data-g], .tail) { animation: none; opacity: 1; }
+[data-motion="reduced"] .typed .caret { display: none; }

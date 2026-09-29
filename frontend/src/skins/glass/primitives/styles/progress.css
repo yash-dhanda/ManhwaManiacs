@@ -81,3 +81,12 @@ html[data-motion="reduced"] .g-progress .g-band { animation: none; left: 35%; }
 [data-skin="glass"] .g-goal__disc { position: absolute; inset: 0; border-radius: 9999px; background: rgb(0 0 0 / 0.6); }
 [data-skin="glass"] .g-goal__shimmer { animation: g-shim 600ms linear; }
 @keyframes g-shim { 50% { opacity: 0.6; } }
+
+/* Skeletons (web/26 K) */
+[data-skin="glass"] .g-skel { position: relative; display: block; overflow: hidden; background: var(--mm-color-surface2); opacity: 0; animation: g-skel-in 1ms linear 180ms forwards; flex: none; }
+@keyframes g-skel-in { to { opacity: 1; } }
+[data-skin="glass"] .g-skel::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.05), transparent); translate: -100% 0; animation: g-sheen var(--mm-dur-shimmer, 1400ms) linear calc(var(--sk-row, 0) * 60ms) infinite; }
+[data-skin="glass"] .g-skel[data-ai]::after { animation-duration: 2800ms; }
+@keyframes g-sheen { from { translate: -100% 0; } to { translate: 350% 0; } }
+html[data-motion="reduced"] .g-skel::after { animation: none; display: none; }
+@media (prefers-reduced-motion: reduce) { [data-skin="glass"] .g-skel::after { animation: none; display: none; } }
