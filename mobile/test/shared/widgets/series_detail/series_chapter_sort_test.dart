@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/shared/widgets/series_detail/series_chapter_sort.dart';
+import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
 
 /// Minimal stand-in for the two very different chapter models the library and
 /// source pages feed through the shared comparator.

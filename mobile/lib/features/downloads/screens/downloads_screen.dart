@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/features/downloads/providers/active_download_queue
 import 'package:manhwamaniacs/features/downloads/providers/downloaded_series_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
+import 'package:manhwamaniacs/features/downloads/utils/format_bytes.dart';
 import 'package:manhwamaniacs/features/downloads/widgets/active_downloads_panel.dart';
 import 'package:manhwamaniacs/features/downloads/widgets/downloads_storage_card.dart';
 import 'package:manhwamaniacs/features/downloads/widgets/export_downloads_action.dart';

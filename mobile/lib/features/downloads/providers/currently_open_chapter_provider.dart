@@ -3,7 +3,7 @@ import 'package:manhwamaniacs/features/downloads/services/retention_maintenance.
 
 /// Every chapter currently on screen in a reader, plus which scope opened it
 /// — republished whenever the reader's feed changes and emptied when the
-/// reader leaves (see `widgets/open_chapter_scope.dart`). Consulted by the
+/// reader leaves (see `providers/open_chapter_scope.dart`). Consulted by the
 /// read-then-expire sweep and cap eviction so neither can ever delete a
 /// chapter someone is looking at right now, even if its timer already
 /// elapsed or storage pressure is high.

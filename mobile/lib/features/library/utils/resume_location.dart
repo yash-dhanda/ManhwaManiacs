@@ -22,9 +22,9 @@
 library;
 
 import 'package:manhwamaniacs/app/router/routes.dart';
+import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
-import 'package:manhwamaniacs/shared/widgets/series_detail/series_chapter_sort.dart';
 
 /// Where Continue lands: a chapter and the position to open it at.
 typedef ResumePoint = ({String chapterKey, int page});
