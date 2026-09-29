@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio.dart';
+import 'package:manhwamaniacs/skins/skin_audio.dart';
 
 /// Playback for a rendered chapter, and the clock the highlight follows.
 ///
@@ -67,6 +68,8 @@ class _NovelAudioPlayerBarState extends State<NovelAudioPlayerBar> {
     // after the reader is gone — which on iOS also keeps the audio session
     // active and silences everything else on the phone.
     _player?.dispose();
+    // State B holds while narration plays or is paused inside the reader.
+    unawaited(SkinAudio.instance.request(AudioSessionState.idle));
     widget.onPosition(null);
     super.dispose();
   }
@@ -77,6 +80,7 @@ class _NovelAudioPlayerBarState extends State<NovelAudioPlayerBar> {
       if (existing.playing) {
         await existing.pause();
       } else {
+        await SkinAudio.instance.request(AudioSessionState.narration);
         unawaited(existing.play());
       }
       return;
@@ -141,6 +145,7 @@ class _NovelAudioPlayerBarState extends State<NovelAudioPlayerBar> {
       _player = player;
       _loading = false;
     });
+    await SkinAudio.instance.request(AudioSessionState.narration);
     unawaited(player.play());
   }
 

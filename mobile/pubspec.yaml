@@ -79,6 +79,27 @@ dependencies:
   # Backup & restore — pick a backup file from device storage to upload
   file_picker: ^8.1.2
 
+  # ── Redesign (Cinematic + Glass): native plugins and motion packages ───────
+  # Exact pins, no caret. Ledger: docs/redesign/cinematic/DESIGN.md §15.11.
+  # flutter_soloud 4.1.7 for BOTH skins: glass §15.11's 5.1.4 needs
+  # native_toolchain_c ^0.19.4, which needs meta ^1.19.0, and Flutter 3.44.6
+  # pins meta 1.18.0 (revisit with the Flutter upgrade, stack risk 10).
+  # share_plus 12.0.2 for both skins: 13.x needs win32 ^6 while
+  # package_info_plus 8.x, file_picker 8.x and flutter_secure_storage 9.x pin
+  # win32 ^5. phosphor_flutter is NOT added (IconData is a final class in this
+  # SDK); liquid_glass_widgets arrives in mobile/03.
+  haptic_feedback: 0.6.5
+  gaimon: 1.5.0
+  flutter_soloud: 4.1.7
+  share_plus: 12.0.2
+  audio_service: 0.18.19
+  sensors_plus: 7.1.0
+  flutter_dynamic_icon_plus: 1.4.1
+  flutter_animate: 4.5.2
+  swipeable_page_route: 0.4.8
+  custom_refresh_indicator: 4.0.2
+  flutter_reorderable_grid_view: 5.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -122,6 +143,10 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/haptics/cinematic/
+    - assets/haptics/glass/
+    - assets/sounds/cinematic/
+    - assets/sounds/glass/
   fonts:
     # Syne (display / headings) and DM Sans (body / UI) are bundled as variable
     # fonts so the app NEVER depends on runtime fetching from fonts.gstatic.com.

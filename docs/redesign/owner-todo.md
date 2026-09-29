@@ -21,3 +21,7 @@ Items only the owner can do, by step.
   Geometry is unchanged until you decide; see the comment above `case 'mm-mark'` in
   `brand/make-glyph-masters.mjs`.
 - mobile/01: run docs/redesign/proof/mobile-01/device-check.md on the iPhone build and the Android flagship.
+
+## mobile/02 (L01)
+- Run docs/redesign/proof/mobile-02/device-check.md on the iPhone build and the Android flagship.
+- After the integrator pushes: read CI (`android-apk`, `build-ios`) for the dependency, audio_service and mm/platform commits and record run ids in dependency-gate.md; apply a package's ledger fallback if a native job fails.

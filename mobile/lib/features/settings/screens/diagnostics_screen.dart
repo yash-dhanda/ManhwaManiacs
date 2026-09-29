@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/app/theme/app_presets.dart';
 import 'package:manhwamaniacs/core/diagnostics/performance_monitor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
+import 'package:manhwamaniacs/features/settings/screens/feedback_lab_screen.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/widgets/glass_card.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -465,6 +466,16 @@ class _EditionCard extends ConsumerWidget {
             child: TextButton(
               onPressed: override == null ? null : () => debugSwitchSkin(context, ref, null),
               child: const Text('Clear override'),
+            ),
+          ),
+          Semantics(
+            label: 'Feedback lab (debug)',
+            button: true,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const FeedbackLabScreen()),
+              ),
+              child: const Text('Feedback lab (debug)'),
             ),
           ),
         ],
