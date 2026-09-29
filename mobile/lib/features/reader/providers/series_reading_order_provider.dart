@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
-import 'package:manhwamaniacs/shared/widgets/series_detail/series_chapter_sort.dart';
 
 /// Every chapter of a series, oldest first — the list "Read all" (spec R2) is
 /// read against.

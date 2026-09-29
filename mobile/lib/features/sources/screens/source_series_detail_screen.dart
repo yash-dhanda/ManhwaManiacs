@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/features/downloads/widgets/chapter_selection_actio
 import 'package:manhwamaniacs/features/downloads/widgets/download_series_button.dart';
 import 'package:manhwamaniacs/features/downloads/widgets/series_download_progress.dart';
 import 'package:manhwamaniacs/features/library/utils/resume_location.dart';
+import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
 import 'package:manhwamaniacs/features/novels/widgets/novel_series_detail_view.dart';
 import 'package:manhwamaniacs/features/reader/widgets/read_all_button.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
@@ -31,7 +32,6 @@ import 'package:manhwamaniacs/features/updates/widgets/series_follow_button.dart
 import 'package:manhwamaniacs/shared/widgets/empty_state.dart';
 import 'package:manhwamaniacs/shared/widgets/premium/primary_pill_button.dart';
 import 'package:manhwamaniacs/shared/widgets/series_cover_image.dart';
-import 'package:manhwamaniacs/shared/widgets/series_detail/series_chapter_sort.dart';
 import 'package:manhwamaniacs/shared/widgets/series_detail/series_chapter_tile.dart';
 import 'package:manhwamaniacs/shared/widgets/series_detail/series_detail_body.dart';
 import 'package:manhwamaniacs/shared/widgets/series_detail/series_detail_chips.dart';
