@@ -11,7 +11,6 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_oxford_rule.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_text_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/auth_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/auth_layout.dart';
@@ -195,7 +194,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> with TickerProviderSt
             final top = _from!.top + (_to!.top - _from!.top) * t;
             final left = _from!.left + (_to!.left - _from!.left) * t;
             final width = _from!.width + (_to!.width - _from!.width) * t;
-            return Positioned(left: left, top: top - 3, width: width, child: const IgnorePointer(child: CineOxfordRule()));
+            return Positioned(left: left, top: top - 3, width: width, child: IgnorePointer(child: AuthRule(width: width)));
           },
         ),
     ],);

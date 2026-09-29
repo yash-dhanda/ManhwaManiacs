@@ -88,3 +88,7 @@ Items only the owner can do, by step.
 
 ## mobile/06
 - Device checks: `docs/redesign/proof/mobile-06/device-checklist.md` (Press start haptics, iOS edge back, Android predictive back, offline edition, tablet keyboard, screen-reader announcements).
+
+## mobile/07
+- Device checks: `docs/redesign/proof/mobile-07/device-checklist.md` (Setup keyboard and rule move, keychain and autofill, the Iris haptic and frame timing, Switch profile back gestures, the certificate stamp haptic, screen readers).
+- 18+ on-device run: `docs/redesign/proof/mobile-07/18plus-checklist.md` (throwaway profile, own server; undo afterwards).

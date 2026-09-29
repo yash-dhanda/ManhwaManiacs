@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_password_field.dar
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_text_field.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_settings_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/auth_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/auth_layout.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -87,6 +88,7 @@ class RegisterScreen extends ConsumerWidget {
             ? const SizedBox.shrink()
             : Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [
                 CineRoleText('Already have an account?', c.typeCaption, color: c.colorInk60),
+                SizedBox(width: c.space2),
                 CineButton(label: 'Sign in', variant: CineButtonVariant.link, onPressed: () => context.go(Routes.login())),
               ],),
       ),
@@ -326,7 +328,10 @@ class _CineRegisterFormState extends ConsumerState<CineRegisterForm> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       form,
       SizedBox(height: c.space5),
-      CineSwitch(label: 'Keep me signed in', value: _remember, onChanged: off ? null : (v) => setState(() => _remember = v)),
+      CineSettingsRow(
+              label: 'Keep me signed in',
+              control: CineSwitch(label: 'Keep me signed in', value: _remember, onChanged: off ? null : (v) => setState(() => _remember = v)),
+            ),
       SizedBox(height: c.space6),
       CineButton(
         label: widget.bootstrap ? 'Create the administrator account' : 'Create account',

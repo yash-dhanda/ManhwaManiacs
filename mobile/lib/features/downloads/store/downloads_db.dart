@@ -248,13 +248,17 @@ Future<void> _migrate(Database db, int oldVersion) async {
     DownloadsSchema.bookmarkOutbox,
     DownloadsSchema.progressOutbox,
   ]) {
-    if (!await _hasColumn(db, table, DownloadsSchema.colMature)) {
+    // A table an older file never had is created with the column by onCreate/_createBookmarkTables.
+    if (await _hasTable(db, table) && !await _hasColumn(db, table, DownloadsSchema.colMature)) {
       await db.execute(
         'ALTER TABLE $table ADD COLUMN ${DownloadsSchema.colMature} INTEGER',
       );
     }
   }
 }
+
+Future<bool> _hasTable(Database db, String table) async =>
+    (await db.rawQuery("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", [table])).isNotEmpty;
 
 Future<bool> _hasColumn(Database db, String table, String column) async {
   final columns = await db.rawQuery('PRAGMA table_info($table)');

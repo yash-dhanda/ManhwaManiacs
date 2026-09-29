@@ -238,8 +238,8 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
         body: gate ??
             CineMoodGrade(
               mood: _mood == 'default' ? null : _mood,
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(c.space4, c.space6, c.space4, c.space12),
+              child: _WithTop(builder: (top) => SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(c.space4, top + c.space6, c.space4, c.space12),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   CineMasthead(kicker: 'CASTING', title: title, id: 'profile-form'),
                   Center(child: CineAvatar(avatarKey: _avatar, size: 96)),
@@ -276,7 +276,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                     ),
                   ],
                 ],),
-              ),
+              ),),
             ),
       ),
     );
@@ -460,4 +460,13 @@ class _FormGalley extends StatelessWidget {
       ],),
     );
   }
+}
+
+/// Hands its builder the height the running head takes, which the scaffold reports to what sits inside it.
+class _WithTop extends StatelessWidget {
+  const _WithTop({required this.builder});
+  final Widget Function(double top) builder;
+
+  @override
+  Widget build(BuildContext context) => builder(CineScaffoldScope.topExtentOf(context));
 }

@@ -253,13 +253,15 @@ class _ProfilePickerScreenState extends ConsumerState<ProfilePickerScreen> with 
                 padding: EdgeInsets.symmetric(horizontal: c.space2),
                 child: Row(children: [
                   if (widget.switchMode) CineIconButton(label: 'Back', role: CineIconRole.back, onPressed: () => context.pop()),
-                  Flexible(
+                  Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(left: widget.switchMode ? 0 : c.space2),
-                      child: const FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: CineWordmark.line(size: 20, withRule: false)),
+                      child: const Align(
+                        alignment: Alignment.centerLeft,
+                        child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: CineWordmark.line(size: 20, withRule: false)),
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   Tooltip(
                     message: atLimit ? kLimitLine : '',
                     child: CineButton(

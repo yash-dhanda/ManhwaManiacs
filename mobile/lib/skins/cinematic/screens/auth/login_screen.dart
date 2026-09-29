@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_password_field.dar
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_text_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_settings_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/auth_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/auth_layout.dart';
@@ -152,6 +153,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       footer: showCreate
           ? Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [
               CineRoleText('Need an account?', c.typeCaption, color: c.colorInk60),
+              SizedBox(width: c.space2),
               CineButton(label: 'Create one', variant: CineButtonVariant.link, onPressed: () => context.push(Routes.register())),
             ],)
           : null,
@@ -230,7 +232,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
           SizedBox(height: c.space5),
           FocusTraversalOrder(
             order: const NumericFocusOrder(3),
-            child: CineSwitch(label: 'Keep me signed in', value: _remember, onChanged: off ? null : (v) => setState(() => _remember = v)),
+            child: CineSettingsRow(
+              label: 'Keep me signed in',
+              control: CineSwitch(label: 'Keep me signed in', value: _remember, onChanged: off ? null : (v) => setState(() => _remember = v)),
+            ),
           ),
           SizedBox(height: c.space6),
           FocusTraversalOrder(

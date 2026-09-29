@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/diagnostics/debug_overlays.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
+import 'package:manhwamaniacs/skins/cinematic/gallery/auth_gallery.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/fixtures.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/overlays_gallery.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/shell_gallery.dart';
@@ -32,6 +33,7 @@ const List<String> kGallerySections = [
   'motion-timings',
   ...kOverlayGallerySections,
   ...kShellGallerySections,
+  ...kAuthGallerySections,
 ];
 
 /// The Diagnostics-only primitives gallery (mobile/04): one section per primitive with every
@@ -121,6 +123,7 @@ class _GalleryBodyState extends ConsumerState<_GalleryBody> {
       'motion-timings' => _timings(context),
       _ when kOverlayGallerySections.contains(id) => OverlayGallerySection(id: id),
       _ when kShellGallerySections.contains(id) => ShellGallerySection(id: id),
+      _ when kAuthGallerySections.contains(id) => const AuthGallerySection(),
       _ => const SizedBox.shrink(),
     };
   }

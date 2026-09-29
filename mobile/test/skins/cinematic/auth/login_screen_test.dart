@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/auth/models/bootstrap_status.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart' show CinePressable;
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/auth_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/auth_layout.dart';
@@ -159,7 +161,7 @@ void main() {
     final auth = FakeAuth();
     await pumpAuth(t, auth: auth);
     await settle(t, 200);
-    await t.tap(find.bySemanticsLabel('Keep me signed in'));
+    await t.tap(find.descendant(of: find.byType(CineSwitch), matching: find.byType(CinePressable)));
     await t.pump();
     await _fill(t);
     await t.tap(find.text('Sign in'));

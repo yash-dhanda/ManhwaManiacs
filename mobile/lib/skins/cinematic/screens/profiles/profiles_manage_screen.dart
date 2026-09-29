@@ -153,8 +153,8 @@ class _ProfilesManageScreenState extends ConsumerState<ProfilesManageScreen> {
       runningTitle: 'PROFILES',
       back: const CineBack(),
       firstRunNote: false,
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(c.space4, c.space6, c.space4, c.space12),
+      body: _WithTop(builder: (top) => SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(c.space4, top + c.space6, c.space4, c.space12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           const CineMasthead(kicker: 'YOUR ACCOUNT', title: 'Profiles', deck: 'Up to five reading profiles on this account.', id: 'profiles-manage'),
           body,
@@ -167,7 +167,16 @@ class _ProfilesManageScreenState extends ConsumerState<ProfilesManageScreen> {
             ),
           ],
         ],),
-      ),
+      ),),
     );
   }
+}
+
+/// Hands its builder the height the running head takes, which the scaffold reports to what sits inside it.
+class _WithTop extends StatelessWidget {
+  const _WithTop({required this.builder});
+  final Widget Function(double top) builder;
+
+  @override
+  Widget build(BuildContext context) => builder(CineScaffoldScope.topExtentOf(context));
 }

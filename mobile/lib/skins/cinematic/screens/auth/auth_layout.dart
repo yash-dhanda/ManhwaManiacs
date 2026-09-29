@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_oxford_rule.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
@@ -104,10 +103,7 @@ class AuthMasthead extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               mark,
               SizedBox(height: c.space2),
-              Opacity(
-                opacity: hideRule ? 0 : 1,
-                child: SizedBox(key: ruleKey, width: w, child: const CineOxfordRule(spotLead: true)),
-              ),
+              SizedBox(key: ruleKey, width: w, child: hideRule ? null : AuthRule(width: w, spotLead: true)),
               if (dateLine) ...[
                 SizedBox(height: c.space3),
                 CineRoleText(mastheadDateLine(DateTime.now()), c.typeFolio, color: c.colorInk60),
@@ -214,5 +210,29 @@ class RateCountdown extends ChangeNotifier {
   void dispose() {
     _t?.cancel();
     super.dispose();
+  }
+}
+
+/// The Oxford rule (3 px + 2 px gap + 1 px) at an explicit [width], `spot` for the first 12 %.
+class AuthRule extends StatelessWidget {
+  const AuthRule({super.key, required this.width, this.spotLead = false});
+  final double width;
+  final bool spotLead;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.cine;
+    final r = c.ruleOxford;
+    Widget line(double h) => SizedBox(
+          height: h,
+          width: width,
+          child: Row(children: [
+            if (spotLead) SizedBox(width: width * 0.12, height: h, child: ColoredBox(color: c.colorSpot)),
+            Expanded(child: SizedBox(height: h, child: ColoredBox(color: r.color))),
+          ],),
+        );
+    return ExcludeSemantics(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [line(r.thick), SizedBox(height: r.gap), line(r.thin)]),
+    );
   }
 }
