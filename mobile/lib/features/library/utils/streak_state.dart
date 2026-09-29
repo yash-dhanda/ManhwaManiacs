@@ -23,6 +23,9 @@ class HomeStreak {
   final DateTime? lastActiveDate;
   final List<int> milestonesSeen;
 
+  /// The same numbers as a [ReadingStreak], for the milestone rules.
+  ReadingStreak toReadingStreak() => ReadingStreak(currentDays: currentDays, longestDays: longestDays, lastActiveDate: lastActiveDate, atRisk: atRisk, milestonesSeen: milestonesSeen);
+
   factory HomeStreak.fromReadingStreak(ReadingStreak s) => HomeStreak(
         currentDays: s.currentDays,
         longestDays: s.longestDays,

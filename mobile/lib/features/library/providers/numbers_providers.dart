@@ -105,3 +105,10 @@ class StatsRangeNotifier extends Notifier<int> {
 }
 
 final statsRangeProvider = NotifierProvider<StatsRangeNotifier, int>(StatsRangeNotifier.new, name: 'statsRange');
+
+/// The wall clock, overridable so a fake clock can drive the streak states.
+final numbersNowProvider = Provider<DateTime Function()>((_) => DateTime.now, name: 'numbersNow');
+
+/// The per-profile key holding the day whose streak extension already played
+/// Ignite (`mm.streak.seen.u{user}p{profile}`).
+final streakSeenKeyProvider = Provider<String>((ref) => 'mm.streak.seen.${numbersScopeOf(ref)}');

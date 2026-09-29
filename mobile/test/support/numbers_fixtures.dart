@@ -189,3 +189,5 @@ LibraryStatistics statisticsFixture({int days = 30, int currentDays = 12, bool a
 
 Annual annualFixture({int year = 2026, bool partial = true, int recordedDays = 120, bool circle = false, bool voices = true, bool withShareable = true, int streakDays = 31}) =>
     Annual.fromJson(annualJson(year: year, partial: partial, recordedDays: recordedDays, circle: circle, voices: voices, withShareable: withShareable, streakDays: streakDays));
+
+Annual annualFromJson(Map<String, dynamic> j) => Annual.fromJson(j);
