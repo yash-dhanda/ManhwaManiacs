@@ -4,8 +4,16 @@ import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
+import 'package:manhwamaniacs/features/downloads/services/device_storage_info.dart';
 import 'package:manhwamaniacs/features/downloads/utils/run_summary.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
+
+/// Free megabytes on the device, for the `Out of room` line; null when it cannot
+/// be read.
+final _freeMbProvider = FutureProvider.autoDispose<int?>((ref) async {
+  final bytes = await ref.watch(deviceStorageInfoProvider).freeSpaceBytes();
+  return bytes == null ? null : bytes ~/ (1024 * 1024);
+});
 
 /// The running state (`DOWNLOADING 4 OF 12` + rule + `Stop`) and, once every
 /// chapter of the run settled, the [describeRun] summary with `Dismiss`.
@@ -35,7 +43,10 @@ class DownloadRunLine extends ConsumerWidget {
     final failed = mine.where((s) => s == DownloadChapterState.failed).length;
     final running = runKeys.length - saved - failed;
     final paused = ref.watch(downloadQueueControllerProvider.select((q) => q.pauseReason));
-    if (running > 0 && paused != DownloadQueuePauseReason.userPaused) {
+    final blocked = paused == DownloadQueuePauseReason.userPaused ||
+        paused == DownloadQueuePauseReason.freeSpaceFloor ||
+        paused == DownloadQueuePauseReason.cap;
+    if (running > 0 && !blocked) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -63,6 +74,9 @@ class DownloadRunLine extends ConsumerWidget {
       );
     }
     final stopped = running > 0;
+    final freeMb = paused == DownloadQueuePauseReason.freeSpaceFloor
+        ? ref.watch(_freeMbProvider).valueOrNull
+        : null;
     final line = describeRun(
       (
         requested: runKeys.length,
@@ -71,10 +85,10 @@ class DownloadRunLine extends ConsumerWidget {
         missingPages: 0,
         failed: failed,
         stopped: stopped,
-        freeMb: null, // TODO(mobile/17): free-space figure from the queue
+        freeMb: freeMb,
       ),
     );
-    final problem = failed > 0 || stopped;
+    final problem = failed > 0 || stopped || freeMb != null;
     return Container(
       padding: const EdgeInsets.all(12),
       color: t.colorPaper1,

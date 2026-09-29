@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/contents_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
@@ -55,18 +56,16 @@ class BookContentsToolbar extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
+              child: Align(
                 alignment: Alignment.centerLeft,
-                child: SegmentedButton<String>(
-                  key: const Key('book-order'),
-                  showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(value: 'oldest', label: Text('FIRST → LAST')),
-                    ButtonSegment(value: 'newest', label: Text('LAST → FIRST')),
-                  ],
-                  selected: {order},
-                  onSelectionChanged: (v) => onOrder(v.first),
+                child: SizedBox(
+                  width: 300,
+                  child: CineSegmented<String>(
+                    key: const Key('book-order'),
+                    options: const [('oldest', 'FIRST → LAST'), ('newest', 'LAST → FIRST')],
+                    value: order,
+                    onChanged: onOrder,
+                  ),
                 ),
               ),
             ),

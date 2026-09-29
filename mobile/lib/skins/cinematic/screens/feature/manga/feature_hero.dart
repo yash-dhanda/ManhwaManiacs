@@ -100,6 +100,7 @@ class _FeatureCoverState extends State<FeatureCover> with SingleTickerProviderSt
     return Semantics(
       label: 'Cover. Long press to view.',
       onLongPress: widget.onCover,
+      excludeSemantics: true,
       child: GestureDetector(
         onLongPress: widget.onCover,
         child: Hero(

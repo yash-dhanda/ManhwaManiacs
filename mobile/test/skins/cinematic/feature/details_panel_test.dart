@@ -1,7 +1,6 @@
 // ignore_for_file: require_trailing_commas, directives_ordering
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/features/ai/repositories/ai_repository.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
@@ -85,7 +84,7 @@ void main() {
       ),
     );
     await tester.tap(find.byKey(const Key('add-tag')));
-    await frames(tester, 400);
+    await frames(tester);
     expect(find.text('favourite arc'), findsOneWidget);
     await tester.tap(find.text('favourite arc'));
     await frames(tester, 200);
@@ -94,7 +93,7 @@ void main() {
     await frames(tester, 300);
     await tester.enterText(find.byType(TextField).last, 'to reread');
     await tester.tap(find.text('Create'));
-    await frames(tester, 400);
+    await frames(tester);
     expect(r.rec.tagCalls, containsAllInOrder(['add:9', 'create:to reread']));
   });
 
@@ -118,7 +117,7 @@ void main() {
   });
 
   testWidgets('the SUGGESTED line is absent when the desk is closed', (tester) async {
-    await _details(tester, rig: FeatureRig(followed: followedRow(), suggested: kNoSuggestedTags));
+    await _details(tester, rig: FeatureRig(followed: followedRow()));
     expect(find.text('SUGGESTED'), findsNothing);
     expect(find.byType(DashedToken), findsNothing);
   });
@@ -139,7 +138,7 @@ void main() {
     await tester.tap(find.byKey(const Key('add-to-shelf')));
     await frames(tester, 500);
     await tester.tap(find.text('Someday'));
-    await frames(tester, 400);
+    await frames(tester);
     expect(r.rec.shelfCalls, ['add:2']);
   });
 

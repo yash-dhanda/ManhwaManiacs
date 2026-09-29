@@ -207,7 +207,7 @@ void main() {
     await _book(tester, fixture: 'novel-short');
     await tester.ensureVisible(find.byTooltip('Chapter options').first);
     await tester.tap(find.byTooltip('Chapter options').first);
-    await frames(tester, 400);
+    await frames(tester);
     for (final label in ['Mark read', 'Mark read up to here', 'Mark unread', 'Download', 'Bookmark start']) {
       expect(find.text(label), findsOneWidget, reason: label);
     }

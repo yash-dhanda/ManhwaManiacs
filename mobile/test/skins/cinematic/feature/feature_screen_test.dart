@@ -1,7 +1,7 @@
 // ignore_for_file: require_trailing_commas, directives_ordering
+import 'dart:async';
 import 'dart:ui' show AccessibilityFeatures;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,7 +67,7 @@ Future<GoRouter> _app(WidgetTester tester,
 void main() {
   testWidgets('/sources/:s/series/:k and /library/:id render the same page, with no redirect', (tester) async {
     final router = await _app(tester, size: const Size(390, 2000));
-    router.push('/sources/demo/series/k');
+    unawaited(router.push<void>('/sources/demo/series/k'));
     await settleFeature(tester, by: const Duration(seconds: 3));
     expect(find.byType(FeatureView), findsOneWidget);
     final titleA = find.text('Tower of Dawn').evaluate().length;
@@ -86,7 +86,7 @@ void main() {
 
   testWidgets('Android: the series page is a CineMatchCutPage, 480 ms in and 336 ms out', (tester) async {
     final router = await _app(tester);
-    router.push('/sources/demo/series/k');
+    unawaited(router.push<void>('/sources/demo/series/k'));
     await settleFeature(tester, by: const Duration(seconds: 1));
     final nav = tester.widget<Navigator>(find.byType(Navigator).first);
     final page = nav.pages.last;
@@ -99,7 +99,7 @@ void main() {
 
   testWidgets('iOS: SwipeablePage with an edge-only 20 pt swipe, and the cover Hero follows the finger', (tester) async {
     final router = await _app(tester, platform: TargetPlatform.iOS);
-    router.push('/sources/demo/series/k');
+    unawaited(router.push<void>('/sources/demo/series/k'));
     await settleFeature(tester, by: const Duration(seconds: 1));
     final nav = tester.widget<Navigator>(find.byType(Navigator).first);
     final page = nav.pages.last;
@@ -129,7 +129,7 @@ void main() {
 
   testWidgets('iOS: a drag that starts away from the edge does not move the page', (tester) async {
     final router = await _app(tester, platform: TargetPlatform.iOS);
-    router.push('/sources/demo/series/k');
+    unawaited(router.push<void>('/sources/demo/series/k'));
     await settleFeature(tester, by: const Duration(seconds: 1));
     final before = tester.getTopLeft(find.byType(FeatureView)).dx;
     final g = await tester.startGesture(const Offset(120, 300));
@@ -157,7 +157,7 @@ void main() {
         const FakeAccessibilityFeatures(disableAnimations: true);
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
     final router = await _app(tester);
-    router.push('/sources/demo/series/k');
+    unawaited(router.push<void>('/sources/demo/series/k'));
     await settleFeature(tester, by: const Duration(seconds: 1));
     final page = tester.widget<Navigator>(find.byType(Navigator).first).pages.last as CineMatchCutPage<void>;
     expect(page.transitionDuration, const Duration(milliseconds: 200));
@@ -167,7 +167,7 @@ void main() {
 
   testWidgets('the title sets after the route lands: letters fade in, then the whole title shows', (tester) async {
     final router = await _app(tester);
-    router.push('/sources/demo/series/k');
+    unawaited(router.push<void>('/sources/demo/series/k'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     // Before the route animation completes the letters have not started.
@@ -194,7 +194,7 @@ void main() {
     }
 
     final router = await _app(tester);
-    router.push('/sources/demo/series/k');
+    unawaited(router.push<void>('/sources/demo/series/k'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     final start = kickerColor();

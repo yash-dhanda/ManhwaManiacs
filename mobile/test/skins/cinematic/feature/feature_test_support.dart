@@ -4,10 +4,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart';
@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
+import 'package:manhwamaniacs/features/downloads/services/device_storage_info.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart';
 import 'package:manhwamaniacs/features/library/models/collection_detail.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
@@ -35,6 +36,8 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
+import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
+import 'package:manhwamaniacs/features/sources/repositories/sources_repository.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/series_enrichment_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
@@ -80,13 +83,14 @@ FollowedSeries followedRow({
   String status = 'reading',
   bool? matureOverride,
   List<Tag> tags = const [],
+  String coverUrl = '',
 }) =>
     FollowedSeries(
       id: 7,
       sourceId: 'demo',
       seriesKey: 'k',
       title: 'Tower of Dawn',
-      coverUrl: '',
+      coverUrl: coverUrl,
       isFavorite: favorite,
       readingStatus: status,
       notify: notify,
@@ -179,6 +183,21 @@ class RecordingQueue extends DownloadQueueController {
   }) async {
     rec.enqueued.add([(id: id, chapterNumber: chapterNumber, title: title, seriesTitle: seriesTitle, kind: kind)]);
   }
+}
+
+class _FreeSpace implements DeviceStorageInfo {
+  const _FreeSpace(this.bytes);
+  final int bytes;
+  @override
+  Future<int?> freeSpaceBytes() async => bytes;
+}
+
+class PausedQueue extends RecordingQueue {
+  PausedQueue(super.rec, this.reason);
+  final DownloadQueuePauseReason reason;
+
+  @override
+  DownloadQueueState build() => DownloadQueueState(pauseReason: reason);
 }
 
 class FakeLibrary implements LibraryRepository {
@@ -320,6 +339,8 @@ class FeatureRig {
     this.ocrWords = const {},
     this.enrichment,
     this.extra = const [],
+    this.pauseReason,
+    this.freeBytes,
   });
 
   Recorder? recorder;
@@ -333,11 +354,14 @@ class FeatureRig {
   final Set<String> narrated;
   final Map<String, int> ocrWords;
   final SeriesEnrichment? enrichment;
+  final DownloadQueuePauseReason? pauseReason;
+  final int? freeBytes;
   final List<Override> extra;
 
   late final Recorder rec = recorder ?? Recorder();
   late final AiFake ai = AiFake(suggested, rec);
-  late final RecordingQueue queue = RecordingQueue(rec);
+  late final RecordingQueue queue =
+      pauseReason == null ? RecordingQueue(rec) : PausedQueue(rec, pauseReason!);
 }
 
 List<Override> featureOverrides(FeatureRig r, SharedPreferences prefs, {required bool novel}) => [
@@ -370,6 +394,7 @@ List<Override> featureOverrides(FeatureRig r, SharedPreferences prefs, {required
       libraryRepositoryProvider.overrideWithValue(
           FakeLibrary(r.rec, followed: r.followed, tags: r.tags, shelves: r.shelves),),
       downloadQueueControllerProvider.overrideWith(() => r.queue),
+      if (r.freeBytes != null) deviceStorageInfoProvider.overrideWithValue(_FreeSpace(r.freeBytes!)),
       sourcesListProvider.overrideWith((ref) async => const [
             SourceSummary(
               id: 'demo',
@@ -466,4 +491,54 @@ Future<void> frames(WidgetTester tester, [int ms = 400]) async {
 Future<void> scrollToPanels(WidgetTester tester) async {
   await tester.drag(find.byType(NestedScrollView), const Offset(0, -600));
   await frames(tester);
+}
+
+class FakeSources implements SourcesRepository {
+  FakeSources({this.groups = const [], this.chapters = const []});
+  final List<SourceSearchGroup> groups;
+  final List<SourceChapterSummary> chapters;
+  final List<String> searched = [];
+
+  @override
+  Future<Result<GroupedSearchResult>> searchGrouped(String query, {int page = 1, int perPage = 40}) async {
+    searched.add(query);
+    return Ok(GroupedSearchResult(groups: groups));
+  }
+
+  @override
+  Future<Result<List<SourceChapterSummary>>> getChapters(String sourceId, String seriesId) async =>
+      Ok(chapters);
+
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(String sourceId, String seriesKey) async =>
+      const Ok(null);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A router-hosted app for flows that navigate (repoint, back, links).
+Future<({FeatureRig rig, GoRouter router})> pumpFeatureRouter(
+  WidgetTester tester, {
+  required List<RouteBase> routes,
+  FeatureRig? rig,
+  List<Override> extra = const [],
+  bool novel = false,
+  TargetPlatform platform = TargetPlatform.android,
+  Size? size,
+}) async {
+  ReaderPrefetch.reset();
+  final r = rig ?? FeatureRig();
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
+  sizeView(tester, size: size);
+  final router = GoRouter(routes: routes);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [...featureOverrides(r, prefs, novel: novel), ...extra],
+      child: MaterialApp.router(routerConfig: router, theme: featureTheme(platform)),
+    ),
+  );
+  await tester.pump();
+  return (rig: r, router: router);
 }

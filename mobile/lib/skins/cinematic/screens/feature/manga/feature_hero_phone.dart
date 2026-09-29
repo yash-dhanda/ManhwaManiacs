@@ -28,6 +28,7 @@ class FeaturePhoneHero extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
+          key: const Key('feature-cover-frame'),
           height: heroH,
           width: double.infinity,
           child: Stack(

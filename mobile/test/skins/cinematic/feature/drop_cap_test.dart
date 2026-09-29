@@ -32,12 +32,12 @@ void main() {
     final capBox = tester.renderObject<RenderParagraph>(capFinder);
     final headBox = tester.renderObject<RenderParagraph>(headFinder);
     final capBaseline =
-        tester.getTopLeft(capFinder).dy + capBox.computeDistanceToActualBaseline(TextBaseline.alphabetic)!;
+        tester.getTopLeft(capFinder).dy + capBox.computeDistanceToActualBaseline(TextBaseline.alphabetic);
     final lines = headBox.getBoxesForSelection(TextSelection(baseOffset: 0, extentOffset: headBox.text.toPlainText().length));
     expect(lines, isNotEmpty);
     // The third line's baseline: three 24 px lines, baseline inside the third.
     final headTop = tester.getTopLeft(headFinder).dy;
-    final third = headBox.computeDistanceToActualBaseline(TextBaseline.alphabetic)!;
+    final third = headBox.computeDistanceToActualBaseline(TextBaseline.alphabetic);
     final headMetrics = headBox.text.toPlainText();
     expect(headMetrics, isNotEmpty);
     // headBox baseline is the FIRST line's; the third is two line-heights lower.

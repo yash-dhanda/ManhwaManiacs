@@ -1,5 +1,4 @@
 // ignore_for_file: require_trailing_commas, directives_ordering
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
@@ -189,7 +188,7 @@ void main() {
     final rows = find.byType(ScheduleRow);
     await tester.tap(rows.at(1));
     await tester.pump();
-    await tester.longPress(rows.at(2), kind: PointerDeviceKind.touch);
+    await tester.longPress(rows.at(2));
     await tester.pump();
     expect(find.text('2 SELECTED · 0 ALREADY SAVED'), findsOneWidget);
   });
