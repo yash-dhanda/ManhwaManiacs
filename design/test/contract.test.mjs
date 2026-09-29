@@ -48,3 +48,24 @@ for (const f of skins) {
     assert.deepEqual(Object.keys(t.soundEvents).sort(), [...contract.soundEvents].sort());
   });
 }
+
+import { hapticErrors, parsePattern } from "../lib/haptics.mjs";
+
+test("the haptic grammar accepts the documented forms and rejects others", () => {
+  for (const ok of ["none", "light", "medium:0.4", "rigid:velocity", "soft:velocity<=0.6", "ahap:impress", "ahap:ripple{depth}"])
+    assert.ok(parsePattern(ok), ok);
+  for (const bad of ["", "thud", "light:1.5", "light:velocity<=2", "ahap:", "ahap:x{2}", "medium:"])
+    assert.equal(parsePattern(bad), null, bad);
+  assert.deepEqual(hapticErrors(["medium", { after: 120, then: "light" }], new Set()), []);
+  assert.deepEqual(hapticErrors({ repeat: "selection", every: 80, max: 12 }, new Set()), []);
+  assert.equal(hapticErrors(["medium", { after: -1, then: "light" }], new Set()).length, 1);
+  assert.equal(hapticErrors("ahap:missing", new Set(["impress"])).length, 1);
+});
+
+for (const f of skins) {
+  test(`${f}: every haptic value matches the grammar`, () => {
+    const t = read(`../tokens/${f}`);
+    const ahap = new Set(Object.keys(t.ahap));
+    for (const [e, v] of Object.entries(t.haptics)) assert.deepEqual(hapticErrors(v, ahap), [], e);
+  });
+}
