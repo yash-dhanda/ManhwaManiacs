@@ -1,0 +1,21 @@
+{
+  "Version": 1.0,
+  "Metadata": { "Project": "ManhwaManiacs", "Description": "glass shimmer" },
+  "Pattern": [
+    { "Event": { "Time": 0.0, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.25 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.9 } ] } },
+    { "Event": { "Time": 0.04, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.3 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.9 } ] } },
+    { "Event": { "Time": 0.08, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.35 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.9 } ] } },
+    { "Event": { "Time": 0.12, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.4 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.9 } ] } },
+    { "Event": { "Time": 0.16, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.45 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.9 } ] } }
+  ]
+}

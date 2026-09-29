@@ -30,6 +30,66 @@
   initial-value: #F3F0E8;
 }
 
+@property --mm-light-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 135deg;
+}
+
+@property --glass-dim {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0.64;
+}
+
+@property --glass-grad-t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --glass-rond-t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --amb-a1 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4336A3;
+}
+
+@property --amb-a2 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4336A3;
+}
+
+@property --amb-a3 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4336A3;
+}
+
+@property --amb-rim {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4336A3;
+}
+
+@property --page-top {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #000000;
+}
+
+@property --page-bottom {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #000000;
+}
+
 @theme {
   --breakpoint-tablet: 37.5rem;
   --breakpoint-frame: 48rem;
@@ -236,17 +296,282 @@
   --text-micro--line-height: var(--mm-type-micro-lh);
   --text-micro--letter-spacing: var(--mm-type-micro-tracking);
   --text-micro--font-weight: var(--mm-type-micro-wght);
-  --font-sans: var(--mm-font-sans, var(--font-dm-sans), system-ui, sans-serif);
-  --font-mono: var(--mm-font-mono, var(--font-dm-sans), ui-monospace, monospace);
-  --font-serif: var(--mm-font-serif, ui-serif, Georgia, Cambria, "Times New Roman", Times, serif);
-  --color-danger: var(--mm-color-danger, var(--mm-danger, #F85149));
+  --color-g0: var(--mm-color-g0);
+  --color-g25: var(--mm-color-g25);
+  --color-g50: var(--mm-color-g50);
+  --color-g100: var(--mm-color-g100);
+  --color-g150: var(--mm-color-g150);
+  --color-g200: var(--mm-color-g200);
+  --color-g300: var(--mm-color-g300);
+  --color-g400: var(--mm-color-g400);
+  --color-g500: var(--mm-color-g500);
+  --color-g600: var(--mm-color-g600);
+  --color-g700: var(--mm-color-g700);
+  --color-g800: var(--mm-color-g800);
+  --color-g900: var(--mm-color-g900);
+  --color-g950: var(--mm-color-g950);
+  --color-g1000: var(--mm-color-g1000);
+  --color-surface1: var(--mm-color-surface1);
+  --color-surface2: var(--mm-color-surface2);
+  --color-surface3: var(--mm-color-surface3);
+  --color-label1: var(--mm-color-label1);
+  --color-label2: var(--mm-color-label2);
+  --color-label3: var(--mm-color-label3);
+  --color-label4: var(--mm-color-label4);
+  --color-on-glass: var(--mm-color-on-glass);
+  --color-on-tint: var(--mm-color-on-tint);
+  --color-fill1: var(--mm-color-fill1);
+  --color-fill2: var(--mm-color-fill2);
+  --color-twin-dense: var(--mm-color-twin-dense);
+  --color-fill3: var(--mm-color-fill3);
+  --color-fill4: var(--mm-color-fill4);
+  --color-well-on-glass: var(--mm-color-well-on-glass);
+  --color-backing-disc: var(--mm-color-backing-disc);
+  --color-cover-backing: var(--mm-color-cover-backing);
+  --color-cover-disc: var(--mm-color-cover-disc);
+  --color-separator: var(--mm-color-separator);
+  --color-separator-opaque: var(--mm-color-separator-opaque);
+  --color-iris100: var(--mm-color-iris100);
+  --color-iris200: var(--mm-color-iris200);
+  --color-iris300: var(--mm-color-iris300);
+  --color-iris400: var(--mm-color-iris400);
+  --color-iris500: var(--mm-color-iris500);
+  --color-iris600: var(--mm-color-iris600);
+  --color-iris700: var(--mm-color-iris700);
+  --color-iris800: var(--mm-color-iris800);
+  --color-iris900: var(--mm-color-iris900);
   --color-success: var(--mm-color-success, var(--mm-success, #3FB950));
   --color-warning: var(--mm-color-warning, var(--mm-warning, #D29922));
+  --color-danger: var(--mm-color-danger, var(--mm-danger, #F85149));
+  --color-mature: var(--mm-color-mature);
+  --color-streak: var(--mm-color-streak);
+  --color-streak-core: var(--mm-color-streak-core);
+  --color-bloom: var(--mm-color-bloom);
+  --color-bloom-wash: var(--mm-color-bloom-wash);
+  --color-bloom-rim: var(--mm-color-bloom-rim);
+  --color-machine: var(--mm-color-machine);
+  --color-machine-wash: var(--mm-color-machine-wash);
+  --color-machine-rim: var(--mm-color-machine-rim);
+  --color-reader-warmth: var(--mm-color-reader-warmth);
+  --color-brand-frost: var(--mm-color-brand-frost);
+  --color-spk1: var(--mm-color-spk1);
+  --color-spk2: var(--mm-color-spk2);
+  --color-spk3: var(--mm-color-spk3);
+  --color-spk4: var(--mm-color-spk4);
+  --color-spk5: var(--mm-color-spk5);
+  --color-spk6: var(--mm-color-spk6);
+  --color-spk7: var(--mm-color-spk7);
+  --color-spk8: var(--mm-color-spk8);
+  --color-spk9: var(--mm-color-spk9);
+  --color-spk10: var(--mm-color-spk10);
+  --color-mood-default: var(--mm-color-mood-default);
+  --color-aurora1: var(--mm-color-aurora1);
+  --color-aurora2: var(--mm-color-aurora2);
+  --color-aurora3: var(--mm-color-aurora3);
+  --color-heat0: var(--mm-color-heat0);
+  --color-heat1: var(--mm-color-heat1);
+  --color-heat2: var(--mm-color-heat2);
+  --color-heat3: var(--mm-color-heat3);
+  --color-heat4: var(--mm-color-heat4);
+  --color-dim-sheet: var(--mm-color-dim-sheet);
+  --color-dim-modal: var(--mm-color-dim-modal);
+  --color-dim-context: var(--mm-color-dim-context);
+  --color-dim-clear: var(--mm-color-dim-clear);
+  --color-edge-hard: var(--mm-color-edge-hard);
+  --color-paper-void-page: var(--mm-color-paper-void-page);
+  --color-paper-void-ink: var(--mm-color-paper-void-ink);
+  --color-paper-void-muted: var(--mm-color-paper-void-muted);
+  --color-paper-ink-page: var(--mm-color-paper-ink-page);
+  --color-paper-ink-ink: var(--mm-color-paper-ink-ink);
+  --color-paper-ink-muted: var(--mm-color-paper-ink-muted);
+  --color-paper-night-paper-page: var(--mm-color-paper-night-paper-page);
+  --color-paper-night-paper-ink: var(--mm-color-paper-night-paper-ink);
+  --color-paper-night-paper-muted: var(--mm-color-paper-night-paper-muted);
+  --color-paper-dusk-page: var(--mm-color-paper-dusk-page);
+  --color-paper-dusk-ink: var(--mm-color-paper-dusk-ink);
+  --color-paper-dusk-muted: var(--mm-color-paper-dusk-muted);
+  --color-paper-moss-page: var(--mm-color-paper-moss-page);
+  --color-paper-moss-ink: var(--mm-color-paper-moss-ink);
+  --color-paper-moss-muted: var(--mm-color-paper-moss-muted);
+  --color-paper-rosewood-page: var(--mm-color-paper-rosewood-page);
+  --color-paper-rosewood-ink: var(--mm-color-paper-rosewood-ink);
+  --color-paper-rosewood-muted: var(--mm-color-paper-rosewood-muted);
+  --color-paper-glass-page: var(--mm-color-paper-glass-page);
+  --color-paper-glass-ink: var(--mm-color-paper-glass-ink);
+  --color-paper-glass-muted: var(--mm-color-paper-glass-muted);
+  --color-avatar-violet-spark-from: var(--mm-color-avatar-violet-spark-from);
+  --color-avatar-violet-spark-to: var(--mm-color-avatar-violet-spark-to);
+  --color-avatar-violet-spark-glyph: var(--mm-color-avatar-violet-spark-glyph);
+  --color-avatar-cyan-rocket-from: var(--mm-color-avatar-cyan-rocket-from);
+  --color-avatar-cyan-rocket-to: var(--mm-color-avatar-cyan-rocket-to);
+  --color-avatar-cyan-rocket-glyph: var(--mm-color-avatar-cyan-rocket-glyph);
+  --color-avatar-rose-heart-from: var(--mm-color-avatar-rose-heart-from);
+  --color-avatar-rose-heart-to: var(--mm-color-avatar-rose-heart-to);
+  --color-avatar-rose-heart-glyph: var(--mm-color-avatar-rose-heart-glyph);
+  --color-avatar-amber-coffee-from: var(--mm-color-avatar-amber-coffee-from);
+  --color-avatar-amber-coffee-to: var(--mm-color-avatar-amber-coffee-to);
+  --color-avatar-amber-coffee-glyph: var(--mm-color-avatar-amber-coffee-glyph);
+  --color-avatar-emerald-cat-from: var(--mm-color-avatar-emerald-cat-from);
+  --color-avatar-emerald-cat-to: var(--mm-color-avatar-emerald-cat-to);
+  --color-avatar-emerald-cat-glyph: var(--mm-color-avatar-emerald-cat-glyph);
+  --color-avatar-ember-flame-from: var(--mm-color-avatar-ember-flame-from);
+  --color-avatar-ember-flame-to: var(--mm-color-avatar-ember-flame-to);
+  --color-avatar-ember-flame-glyph: var(--mm-color-avatar-ember-flame-glyph);
+  --color-avatar-steel-blade-from: var(--mm-color-avatar-steel-blade-from);
+  --color-avatar-steel-blade-to: var(--mm-color-avatar-steel-blade-to);
+  --color-avatar-steel-blade-glyph: var(--mm-color-avatar-steel-blade-glyph);
+  --color-avatar-phantom-from: var(--mm-color-avatar-phantom-from);
+  --color-avatar-phantom-to: var(--mm-color-avatar-phantom-to);
+  --color-avatar-phantom-glyph: var(--mm-color-avatar-phantom-glyph);
+  --color-avatar-arcane-wand-from: var(--mm-color-avatar-arcane-wand-from);
+  --color-avatar-arcane-wand-to: var(--mm-color-avatar-arcane-wand-to);
+  --color-avatar-arcane-wand-glyph: var(--mm-color-avatar-arcane-wand-glyph);
+  --color-avatar-lunar-moon-from: var(--mm-color-avatar-lunar-moon-from);
+  --color-avatar-lunar-moon-to: var(--mm-color-avatar-lunar-moon-to);
+  --color-avatar-lunar-moon-glyph: var(--mm-color-avatar-lunar-moon-glyph);
+  --color-avatar-starlight-from: var(--mm-color-avatar-starlight-from);
+  --color-avatar-starlight-to: var(--mm-color-avatar-starlight-to);
+  --color-avatar-starlight-glyph: var(--mm-color-avatar-starlight-glyph);
+  --color-avatar-bookworm-from: var(--mm-color-avatar-bookworm-from);
+  --color-avatar-bookworm-to: var(--mm-color-avatar-bookworm-to);
+  --color-avatar-bookworm-glyph: var(--mm-color-avatar-bookworm-glyph);
+  --color-amb-a1: var(--amb-a1);
+  --color-amb-a2: var(--amb-a2);
+  --color-amb-a3: var(--amb-a3);
+  --color-amb-rim: var(--amb-rim);
+  --color-page-top: var(--page-top);
+  --color-page-bottom: var(--page-bottom);
+  --radius-capsule: var(--mm-radius-capsule);
   --radius-xs: var(--mm-radius-xs, 0.125rem);
   --radius-sm: var(--mm-radius-sm, 0.375rem);
   --radius-md: var(--mm-radius-md, 0.5rem);
   --radius-lg: var(--mm-radius-lg, 0.625rem);
   --radius-xl: var(--mm-radius-xl, 1.5rem);
+  --radius-xxl: var(--mm-radius-xxl);
+  --radius-sheet: var(--mm-radius-sheet);
+  --radius-icon-tile: var(--mm-radius-icon-tile);
+  --blur-film: var(--mm-blur-film);
+  --blur-edge: var(--mm-blur-edge);
+  --blur-thin: var(--mm-blur-thin);
+  --blur-regular: var(--mm-blur-regular);
+  --blur-context: var(--mm-blur-context);
+  --blur-thick: var(--mm-blur-thick);
+  --blur-monolith: var(--mm-blur-monolith);
+  --blur-recede: var(--mm-blur-recede);
+  --blur-switch: var(--mm-blur-switch);
+  --blur-field-phone: var(--mm-blur-field-phone);
+  --blur-field-desktop: var(--mm-blur-field-desktop);
+  --blur-reveal: var(--mm-blur-reveal);
+  --spacing-touch-min: var(--mm-layout-touch-min);
+  --spacing-dock-inset: var(--mm-layout-dock-inset);
+  --spacing-dock-height: var(--mm-layout-dock-height);
+  --spacing-dock-minimized: var(--mm-layout-dock-minimized);
+  --spacing-search-orb: var(--mm-layout-search-orb);
+  --spacing-accessory-height: var(--mm-layout-accessory-height);
+  --spacing-accessory-gap: var(--mm-layout-accessory-gap);
+  --spacing-nav-button: var(--mm-layout-nav-button);
+  --spacing-sheet-inset: var(--mm-layout-sheet-inset);
+  --spacing-sidebar-width: var(--mm-layout-sidebar-width);
+  --spacing-sidebar-collapsed: var(--mm-layout-sidebar-collapsed);
+  --spacing-sidebar-inset: var(--mm-layout-sidebar-inset);
+  --spacing-toolbar-height: var(--mm-layout-toolbar-height);
+  --spacing-toolbar-top: var(--mm-layout-toolbar-top);
+  --spacing-reader-strip-max: var(--mm-layout-reader-strip-max);
+  --spacing-reader-panel-left: var(--mm-layout-reader-panel-left);
+  --spacing-reader-panel-right: var(--mm-layout-reader-panel-right);
+  --spacing-measure-max: var(--mm-layout-measure-max);
+  --spacing-content-max: var(--mm-layout-content-max);
+  --spacing-detail-window: var(--mm-layout-detail-window);
+  --spacing-side-panel: var(--mm-layout-side-panel);
+  --spacing-window: var(--mm-layout-window);
+  --spacing-palette: var(--mm-layout-palette);
+  --ease-spring-track: var(--mm-spring-track);
+  --ease-spring-press: var(--mm-spring-press);
+  --ease-spring-tick: var(--mm-spring-tick);
+  --ease-spring-snappy: var(--mm-spring-snappy);
+  --ease-spring-morph: var(--mm-spring-morph);
+  --ease-spring-tab: var(--mm-spring-tab);
+  --ease-spring-lens: var(--mm-spring-lens);
+  --ease-spring-sheet-snap: var(--mm-spring-sheet-snap);
+  --ease-spring-page: var(--mm-spring-page);
+  --ease-spring-zoom: var(--mm-spring-zoom);
+  --ease-spring-settle: var(--mm-spring-settle);
+  --ease-spring-minimize: var(--mm-spring-minimize);
+  --ease-spring-dismiss: var(--mm-spring-dismiss);
+  --ease-spring-camera: var(--mm-spring-camera);
+  --ease-spring-celebrate: var(--mm-spring-celebrate);
+  --ease-spring-drift: var(--mm-spring-drift);
+  --ease-spring-letter: var(--mm-spring-letter);
+  --ease-spring-smooth: var(--mm-spring-smooth);
+  --ease-spring-splash-lens: var(--mm-spring-splash-lens);
+  --ease-fade-in: var(--mm-ease-fade-in);
+  --ease-fade-out: var(--mm-ease-fade-out);
+  --ease-color-shift: var(--mm-ease-color-shift);
+  --ease-tint-shift: var(--mm-ease-tint-shift);
+  --ease-dim-shift: var(--mm-ease-dim-shift);
+  --ease-materialize: var(--mm-ease-materialize);
+  --ease-dematerialize: var(--mm-ease-dematerialize);
+  --ease-sweep: var(--mm-ease-sweep);
+  --ease-follow-ring: var(--mm-ease-follow-ring);
+  --font-sans: var(--mm-font-sans, var(--font-dm-sans), system-ui, sans-serif);
+  --font-mono: var(--mm-font-mono, var(--font-dm-sans), ui-monospace, monospace);
+  --font-serif: var(--mm-font-serif, ui-serif, Georgia, Cambria, "Times New Roman", Times, serif);
+  --text-display: var(--mm-type-display-size);
+  --text-display--line-height: var(--mm-type-display-lh);
+  --text-display--letter-spacing: var(--mm-type-display-tracking);
+  --text-display--font-weight: var(--mm-type-display-wght);
+  --text-large-title: var(--mm-type-large-title-size);
+  --text-large-title--line-height: var(--mm-type-large-title-lh);
+  --text-large-title--letter-spacing: var(--mm-type-large-title-tracking);
+  --text-large-title--font-weight: var(--mm-type-large-title-wght);
+  --text-title1: var(--mm-type-title1-size);
+  --text-title1--line-height: var(--mm-type-title1-lh);
+  --text-title1--letter-spacing: var(--mm-type-title1-tracking);
+  --text-title1--font-weight: var(--mm-type-title1-wght);
+  --text-title2: var(--mm-type-title2-size);
+  --text-title2--line-height: var(--mm-type-title2-lh);
+  --text-title2--letter-spacing: var(--mm-type-title2-tracking);
+  --text-title2--font-weight: var(--mm-type-title2-wght);
+  --text-title3: var(--mm-type-title3-size);
+  --text-title3--line-height: var(--mm-type-title3-lh);
+  --text-title3--letter-spacing: var(--mm-type-title3-tracking);
+  --text-title3--font-weight: var(--mm-type-title3-wght);
+  --text-callout: var(--mm-type-callout-size);
+  --text-callout--line-height: var(--mm-type-callout-lh);
+  --text-callout--letter-spacing: var(--mm-type-callout-tracking);
+  --text-callout--font-weight: var(--mm-type-callout-wght);
+  --text-footnote: var(--mm-type-footnote-size);
+  --text-footnote--line-height: var(--mm-type-footnote-lh);
+  --text-footnote--letter-spacing: var(--mm-type-footnote-tracking);
+  --text-footnote--font-weight: var(--mm-type-footnote-wght);
+  --text-caption1: var(--mm-type-caption1-size);
+  --text-caption1--line-height: var(--mm-type-caption1-lh);
+  --text-caption1--letter-spacing: var(--mm-type-caption1-tracking);
+  --text-caption1--font-weight: var(--mm-type-caption1-wght);
+  --text-caption2: var(--mm-type-caption2-size);
+  --text-caption2--line-height: var(--mm-type-caption2-lh);
+  --text-caption2--letter-spacing: var(--mm-type-caption2-tracking);
+  --text-caption2--font-weight: var(--mm-type-caption2-wght);
+  --text-tab-label: var(--mm-type-tab-label-size);
+  --text-tab-label--line-height: var(--mm-type-tab-label-lh);
+  --text-tab-label--letter-spacing: var(--mm-type-tab-label-tracking);
+  --text-tab-label--font-weight: var(--mm-type-tab-label-wght);
+  --text-sidebar-item: var(--mm-type-sidebar-item-size);
+  --text-sidebar-item--line-height: var(--mm-type-sidebar-item-lh);
+  --text-sidebar-item--letter-spacing: var(--mm-type-sidebar-item-tracking);
+  --text-sidebar-item--font-weight: var(--mm-type-sidebar-item-wght);
+  --text-mono: var(--mm-type-mono-size);
+  --text-mono--line-height: var(--mm-type-mono-lh);
+  --text-mono--letter-spacing: var(--mm-type-mono-tracking);
+  --text-mono--font-weight: var(--mm-type-mono-wght);
+  --text-mono-large: var(--mm-type-mono-large-size);
+  --text-mono-large--line-height: var(--mm-type-mono-large-lh);
+  --text-mono-large--letter-spacing: var(--mm-type-mono-large-tracking);
+  --text-mono-large--font-weight: var(--mm-type-mono-large-wght);
+  --text-wrapped-numeral: var(--mm-type-wrapped-numeral-size);
+  --text-wrapped-numeral--line-height: var(--mm-type-wrapped-numeral-lh);
+  --text-wrapped-numeral--letter-spacing: var(--mm-type-wrapped-numeral-tracking);
+  --text-wrapped-numeral--font-weight: var(--mm-type-wrapped-numeral-wght);
 }
 
 @utility type-cover {
@@ -537,4 +862,158 @@
 
 @utility scrim-vignette {
   background-image: var(--mm-scrim-vignette);
+}
+
+@utility type-display {
+  font-family: var(--mm-type-display-family);
+  font-style: var(--mm-type-display-style, normal);
+  font-size: var(--mm-type-display-size);
+  line-height: var(--mm-type-display-lh);
+  font-weight: var(--mm-type-display-wght);
+  letter-spacing: calc(var(--mm-type-display-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-display-transform, none);
+  font-variation-settings: var(--mm-type-display-fvs, "wght" calc(var(--mm-type-display-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-display-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-large-title {
+  font-family: var(--mm-type-large-title-family);
+  font-style: var(--mm-type-large-title-style, normal);
+  font-size: var(--mm-type-large-title-size);
+  line-height: var(--mm-type-large-title-lh);
+  font-weight: var(--mm-type-large-title-wght);
+  letter-spacing: calc(var(--mm-type-large-title-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-large-title-transform, none);
+  font-variation-settings: var(--mm-type-large-title-fvs, "wght" calc(var(--mm-type-large-title-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-large-title-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-title1 {
+  font-family: var(--mm-type-title1-family);
+  font-style: var(--mm-type-title1-style, normal);
+  font-size: var(--mm-type-title1-size);
+  line-height: var(--mm-type-title1-lh);
+  font-weight: var(--mm-type-title1-wght);
+  letter-spacing: calc(var(--mm-type-title1-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-title1-transform, none);
+  font-variation-settings: var(--mm-type-title1-fvs, "wght" calc(var(--mm-type-title1-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-title1-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-title2 {
+  font-family: var(--mm-type-title2-family);
+  font-style: var(--mm-type-title2-style, normal);
+  font-size: var(--mm-type-title2-size);
+  line-height: var(--mm-type-title2-lh);
+  font-weight: var(--mm-type-title2-wght);
+  letter-spacing: calc(var(--mm-type-title2-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-title2-transform, none);
+  font-variation-settings: var(--mm-type-title2-fvs, "wght" calc(var(--mm-type-title2-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-title2-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-title3 {
+  font-family: var(--mm-type-title3-family);
+  font-style: var(--mm-type-title3-style, normal);
+  font-size: var(--mm-type-title3-size);
+  line-height: var(--mm-type-title3-lh);
+  font-weight: var(--mm-type-title3-wght);
+  letter-spacing: calc(var(--mm-type-title3-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-title3-transform, none);
+  font-variation-settings: var(--mm-type-title3-fvs, "wght" calc(var(--mm-type-title3-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-title3-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-callout {
+  font-family: var(--mm-type-callout-family);
+  font-style: var(--mm-type-callout-style, normal);
+  font-size: var(--mm-type-callout-size);
+  line-height: var(--mm-type-callout-lh);
+  font-weight: var(--mm-type-callout-wght);
+  letter-spacing: calc(var(--mm-type-callout-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-callout-transform, none);
+  font-variation-settings: var(--mm-type-callout-fvs, "wght" calc(var(--mm-type-callout-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-callout-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-footnote {
+  font-family: var(--mm-type-footnote-family);
+  font-style: var(--mm-type-footnote-style, normal);
+  font-size: var(--mm-type-footnote-size);
+  line-height: var(--mm-type-footnote-lh);
+  font-weight: var(--mm-type-footnote-wght);
+  letter-spacing: calc(var(--mm-type-footnote-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-footnote-transform, none);
+  font-variation-settings: var(--mm-type-footnote-fvs, "wght" calc(var(--mm-type-footnote-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-footnote-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-caption1 {
+  font-family: var(--mm-type-caption1-family);
+  font-style: var(--mm-type-caption1-style, normal);
+  font-size: var(--mm-type-caption1-size);
+  line-height: var(--mm-type-caption1-lh);
+  font-weight: var(--mm-type-caption1-wght);
+  letter-spacing: calc(var(--mm-type-caption1-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-caption1-transform, none);
+  font-variation-settings: var(--mm-type-caption1-fvs, "wght" calc(var(--mm-type-caption1-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-caption1-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-caption2 {
+  font-family: var(--mm-type-caption2-family);
+  font-style: var(--mm-type-caption2-style, normal);
+  font-size: var(--mm-type-caption2-size);
+  line-height: var(--mm-type-caption2-lh);
+  font-weight: var(--mm-type-caption2-wght);
+  letter-spacing: calc(var(--mm-type-caption2-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-caption2-transform, none);
+  font-variation-settings: var(--mm-type-caption2-fvs, "wght" calc(var(--mm-type-caption2-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-caption2-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-tab-label {
+  font-family: var(--mm-type-tab-label-family);
+  font-style: var(--mm-type-tab-label-style, normal);
+  font-size: var(--mm-type-tab-label-size);
+  line-height: var(--mm-type-tab-label-lh);
+  font-weight: var(--mm-type-tab-label-wght);
+  letter-spacing: calc(var(--mm-type-tab-label-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-tab-label-transform, none);
+  font-variation-settings: var(--mm-type-tab-label-fvs, "wght" calc(var(--mm-type-tab-label-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-tab-label-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-sidebar-item {
+  font-family: var(--mm-type-sidebar-item-family);
+  font-style: var(--mm-type-sidebar-item-style, normal);
+  font-size: var(--mm-type-sidebar-item-size);
+  line-height: var(--mm-type-sidebar-item-lh);
+  font-weight: var(--mm-type-sidebar-item-wght);
+  letter-spacing: calc(var(--mm-type-sidebar-item-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-sidebar-item-transform, none);
+  font-variation-settings: var(--mm-type-sidebar-item-fvs, "wght" calc(var(--mm-type-sidebar-item-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-sidebar-item-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-mono {
+  font-family: var(--mm-type-mono-family);
+  font-style: var(--mm-type-mono-style, normal);
+  font-size: var(--mm-type-mono-size);
+  line-height: var(--mm-type-mono-lh);
+  font-weight: var(--mm-type-mono-wght);
+  letter-spacing: calc(var(--mm-type-mono-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-mono-transform, none);
+  font-variation-settings: var(--mm-type-mono-fvs, "wght" calc(var(--mm-type-mono-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-mono-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-mono-large {
+  font-family: var(--mm-type-mono-large-family);
+  font-style: var(--mm-type-mono-large-style, normal);
+  font-size: var(--mm-type-mono-large-size);
+  line-height: var(--mm-type-mono-large-lh);
+  font-weight: var(--mm-type-mono-large-wght);
+  letter-spacing: calc(var(--mm-type-mono-large-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-mono-large-transform, none);
+  font-variation-settings: var(--mm-type-mono-large-fvs, "wght" calc(var(--mm-type-mono-large-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-mono-large-rond, 0)), "GRAD" var(--glass-grad, 0));
+}
+
+@utility type-wrapped-numeral {
+  font-family: var(--mm-type-wrapped-numeral-family);
+  font-style: var(--mm-type-wrapped-numeral-style, normal);
+  font-size: var(--mm-type-wrapped-numeral-size);
+  line-height: var(--mm-type-wrapped-numeral-lh);
+  font-weight: var(--mm-type-wrapped-numeral-wght);
+  letter-spacing: calc(var(--mm-type-wrapped-numeral-tracking) + var(--mm-tracking-legible, 0em));
+  text-transform: var(--mm-type-wrapped-numeral-transform, none);
+  font-variation-settings: var(--mm-type-wrapped-numeral-fvs, "wght" calc(var(--mm-type-wrapped-numeral-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-wrapped-numeral-rond, 0)), "GRAD" var(--glass-grad, 0));
 }
