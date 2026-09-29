@@ -1,0 +1,159 @@
+{
+ "outputs": [
+  {
+   "path": "brand/glass/export/android-foreground-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "brand/glass/export/android-monochrome-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "brand/glass/export/field-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "brand/glass/export/icon-ios-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "brand/glass/export/icon-ios-dark-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "brand/glass/export/icon-ios-tinted-1024.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "frontend/public/glass/droplets.webp",
+   "width": 480,
+   "height": 480
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-hdpi/ic_launcher_glass_background.png",
+   "width": 162,
+   "height": 162
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-hdpi/ic_launcher_glass_foreground.png",
+   "width": 162,
+   "height": 162
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-hdpi/ic_launcher_glass_monochrome.png",
+   "width": 162,
+   "height": 162
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-mdpi/ic_launcher_glass_background.png",
+   "width": 108,
+   "height": 108
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-mdpi/ic_launcher_glass_foreground.png",
+   "width": 108,
+   "height": 108
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-mdpi/ic_launcher_glass_monochrome.png",
+   "width": 108,
+   "height": 108
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xhdpi/ic_launcher_glass_background.png",
+   "width": 216,
+   "height": 216
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xhdpi/ic_launcher_glass_foreground.png",
+   "width": 216,
+   "height": 216
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xhdpi/ic_launcher_glass_monochrome.png",
+   "width": 216,
+   "height": 216
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xxhdpi/ic_launcher_glass_background.png",
+   "width": 324,
+   "height": 324
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xxhdpi/ic_launcher_glass_foreground.png",
+   "width": 324,
+   "height": 324
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xxhdpi/ic_launcher_glass_monochrome.png",
+   "width": 324,
+   "height": 324
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xxxhdpi/ic_launcher_glass_background.png",
+   "width": 432,
+   "height": 432
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xxxhdpi/ic_launcher_glass_foreground.png",
+   "width": 432,
+   "height": 432
+  },
+  {
+   "path": "mobile/android/app/src/main/res/drawable-xxxhdpi/ic_launcher_glass_monochrome.png",
+   "width": 432,
+   "height": 432
+  },
+  {
+   "path": "mobile/android/app/src/main/res/mipmap-hdpi/ic_launcher_glass.png",
+   "width": 72,
+   "height": 72
+  },
+  {
+   "path": "mobile/android/app/src/main/res/mipmap-mdpi/ic_launcher_glass.png",
+   "width": 48,
+   "height": 48
+  },
+  {
+   "path": "mobile/android/app/src/main/res/mipmap-xhdpi/ic_launcher_glass.png",
+   "width": 96,
+   "height": 96
+  },
+  {
+   "path": "mobile/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_glass.png",
+   "width": 144,
+   "height": 144
+  },
+  {
+   "path": "mobile/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_glass.png",
+   "width": 192,
+   "height": 192
+  },
+  {
+   "path": "mobile/ios/Runner/AppIcon-Glass.icon/Assets/field.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "mobile/ios/Runner/Assets.xcassets/AppIcon-Glass.appiconset/AppIcon-Glass-1024-dark.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "mobile/ios/Runner/Assets.xcassets/AppIcon-Glass.appiconset/AppIcon-Glass-1024-tinted.png",
+   "width": 1024,
+   "height": 1024
+  },
+  {
+   "path": "mobile/ios/Runner/Assets.xcassets/AppIcon-Glass.appiconset/AppIcon-Glass-1024.png",
+   "width": 1024,
+   "height": 1024
+  }
+ ]
+}

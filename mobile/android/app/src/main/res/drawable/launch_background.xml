@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Unreachable on every device this app supports — minSdk is 24, so
-     drawable-v21/ always wins — but kept in step with it so the two files
-     never disagree about what the launch window looks like. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="?android:colorBackground" />
+    <item>
+        <bitmap android:gravity="fill" android:src="@drawable/background"/>
+    </item>
 </layer-list>

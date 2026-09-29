@@ -6,7 +6,7 @@ import {
   useScroll,
   useTransform,
   type MotionValue,
-} from "framer-motion";
+} from "motion/react";
 
 import { cn } from "@/lib/cn";
 import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";

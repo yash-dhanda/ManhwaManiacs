@@ -15,6 +15,7 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/settings/screens/feedback_lab_screen.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/widgets/glass_card.dart';
+import 'package:manhwamaniacs/skins/glass/gate/glass_gate_screen.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// Developer diagnostics: live rendering performance, display/refresh-rate
@@ -476,6 +477,16 @@ class _EditionCard extends ConsumerWidget {
                 MaterialPageRoute<void>(builder: (_) => const FeedbackLabScreen()),
               ),
               child: const Text('Feedback lab (debug)'),
+            ),
+          ),
+          Semantics(
+            label: 'Glass device gate',
+            button: true,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const GlassGateScreen()),
+              ),
+              child: const Text('Glass device gate'),
             ),
           ),
         ],

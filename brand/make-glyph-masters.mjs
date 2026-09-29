@@ -143,7 +143,7 @@ function cinematic(name, weight) {
     // the bounding boxes. Also: the mark does not read at 16 px (~9x4 px smudge). The geometry is kept
     // unchanged on purpose: shared/04 compares against monogram.json.
     case 'mm-mark': {
-      const hair = `stroke="${K}" stroke-width="${HAIR}" stroke-linejoin="round"`;
+      const hair = `stroke="none"`; // shared/04: no hairline widening, so the glyph matches monogram-mono.svg (owner exception: hairlines stay thin)
       if (fill) return svg(P(MU, `${fl} ${hair}`) + P(MI, `${fl} ${hair}`));
       const band = w;
       const defs =

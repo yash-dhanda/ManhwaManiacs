@@ -1,0 +1,42 @@
+login 200
+[1440] skin legacy
+[1440] console: SKIN RESTART  confirm → first splash frame  642 MS  (cinematic)
+[1440] after cinematic: skin cinematic t0=null cookie=mm-skin-debug=cinematic
+[1440] console: SKIN RESTART  confirm → first splash frame  421 MS  (legacy)
+[1440] back to legacy ok
+[1440] console: SKIN RESTART  confirm → first splash frame  437 MS  (cinematic)
+[1440] console: SKIN RESTART  confirm → first splash frame  396 MS  (legacy)
+[1440] cleared: cookie=
+[1440] PATCH /profiles requests: 0
+[1440] no flag -> http://localhost:3050/settings
+login 200
+[390] skin legacy
+[390] console: SKIN RESTART  confirm → first splash frame  500 MS  (cinematic)
+[390] after cinematic: skin cinematic t0=null cookie=mm-skin-debug=cinematic
+[390] console: SKIN RESTART  confirm → first splash frame  429 MS  (legacy)
+[390] back to legacy ok
+[390] console: SKIN RESTART  confirm → first splash frame  349 MS  (cinematic)
+[390] console: SKIN RESTART  confirm → first splash frame  329 MS  (legacy)
+[390] cleared: cookie=
+[390] PATCH /profiles requests: 0
+[390] no flag -> http://localhost:3050/settings
+login 200
+a11y at DOMContentLoaded: lang=en data-skin=legacy class=syne_971739b8-module__fGBXpW__variable dm_sans_f38b9ff1-module__BybeWa__variable antialiased data-motion=reduced data-legible=on data-solid=on data-contrast=more data-sr=on
+cinematic 1440 offline badge: NO CONNECTION
+cinematic 1440 online badge: BACK ONLINE
+cinematic 390 offline badge: NO CONNECTION
+cinematic 390 online badge: BACK ONLINE
+cinematic control heights 44,44
+glass 1440 offline badge: No connection
+glass 1440 online badge: Back online
+glass 390 offline badge: No connection
+glass 390 online badge: Back online
+glass control heights 44,44
+--- boot resolution cases (web-02 fix pass 1; dev stack, headless chromium) ---
+case A mm-skin=cinematic, profile skin=null: final data-skin=legacy mm-skin cookie=legacy document loads=2 (2 = initial + ONE restart, no loop)
+case B debug cookie=cinematic, profile skin=null (profile says legacy): final data-skin=cinematic debug cookie=cinematic document loads=1 (1 = profile ignored, no restart)
+case C offline reload, mirror=cinematic, server profile skin=null: served page title="Offline · ManhwaManiacs" (worker offline fallback, no app boot) mm-skin cookie=cinematic document loads=1 (1 = the reload only, mirror kept)
+offline-nav cinematic 1440: status=200 title="Offline · ManhwaManiacs" data-skin=undefined
+offline-nav cinematic 390: status=200 title="Offline · ManhwaManiacs" data-skin=undefined
+offline-nav glass 1440: status=200 title="Offline · ManhwaManiacs" data-skin=undefined
+offline-nav glass 390: status=200 title="Offline · ManhwaManiacs" data-skin=undefined

@@ -26,6 +26,9 @@ export const OFFLINE_MESSAGE = {
   skipWaiting: "mm-offline/skip-waiting",
 } as const;
 
+/** Skin messages: `boot` reports the rendered skin, `changed` follows a restart into another one. */
+export const SKIN_MESSAGE = { boot: "skin", changed: "skin-changed" } as const;
+
 /** Pushed by the worker whenever its index changes. */
 export const OFFLINE_STATE_EVENT = "mm-offline/state";
 

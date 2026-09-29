@@ -62,6 +62,7 @@
 
 import { PUBLIC_AUTH_PATHS } from "@/features/auth/access";
 import { ACTIVE_PROFILE_STORAGE_KEY } from "@/features/profiles/storage-key";
+import { BOOT_A11Y_BASE } from "./boot-a11y";
 import { DESIGN_PRESETS, DESIGN_PRESET_STORAGE_BASE } from "./presets";
 import { READING_THEMES, READING_THEME_STORAGE_BASE } from "./theme";
 
@@ -85,6 +86,10 @@ const CHANNELS: readonly [string, string, readonly string[]][] = [
  * component wraps it for the page.
  */
 export const APPEARANCE_BOOT_SOURCE = `try{
+var b=navigator.userAgentData,ch=!!(b&&b.brands&&b.brands.some(function(x){return x.brand==="Chromium"}));
+document.documentElement.setAttribute("data-glass-renderer",ch?"liquid":"frosted");
+}catch(e){}
+try{
 var C=${JSON.stringify(CHANNELS)},P=${JSON.stringify(ACTIVE_PROFILE_STORAGE_KEY)};
 if(${JSON.stringify(PUBLIC_AUTH_PATHS)}.indexOf(location.pathname.replace(/\\/+$/,"")||"/")>=0)return;
 var raw=localStorage.getItem(P);if(!raw)return;
@@ -95,7 +100,16 @@ for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);
 if(k&&k.indexOf(prefix)===0&&k.slice(-suffix.length)===suffix){
 var v=(localStorage.getItem(k)||"").trim();
 if(C[c][2].indexOf(v)>=0)document.documentElement.setAttribute(C[c][1],v);
-break;}}}}catch(e){}`;
+break;}}}
+var A=${JSON.stringify(BOOT_A11Y_BASE + "::u")},E=document.documentElement,a={};
+try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);
+if(k&&k.indexOf(A)===0&&k.slice(-suffix.length)===suffix){a=JSON.parse(localStorage.getItem(k)||"null")||{};break;}}}catch(e){a={};}
+if(a.motion||(typeof matchMedia=="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches))E.setAttribute("data-motion","reduced");
+if(a.legible)E.setAttribute("data-legible","on");
+if(a.solid)E.setAttribute("data-solid","on");
+if(a.contrast)E.setAttribute("data-contrast","more");
+if(a.sr)E.setAttribute("data-sr","on");
+}catch(e){}`;
 
 /** The same source as a self-invoking statement, ready to inline. */
 export const APPEARANCE_BOOT_SCRIPT = `(function(){${APPEARANCE_BOOT_SOURCE}})();`;
