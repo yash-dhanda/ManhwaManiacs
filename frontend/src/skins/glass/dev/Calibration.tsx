@@ -37,6 +37,7 @@ const css = `
 .cal .stage { position: relative; }
 .cal .col { height: 520px; overflow: auto; width: min(360px, 100%); background: #000; }
 .cal .col img { display: block; width: 100%; }
+@media (forced-colors: none) { .cal button.glass { border: 0; } }
 .cal .menu-row { padding: 10px 14px; }
 `;
 
@@ -83,7 +84,7 @@ function Checkerboard() {
       </div>
       <div className="row" style={{ alignItems: "flex-start", gap: 24 }}>
         <Cell caption={captionFor("t2")}>
-          <GlassSurface as="button" tier="t2" capsule data-testid="t2-button" aria-label="T2 pane, 44 px" style={{ width: 44, height: 44, border: 0, padding: 0, color: "var(--mm-color-label1)" }}>
+          <GlassSurface as="button" tier="t2" capsule data-testid="t2-button" aria-label="T2 pane, 44 px" style={{ width: 44, height: 44, padding: 0, color: "var(--mm-color-label1)" }}>
             <span aria-hidden>●</span>
           </GlassSurface>
         </Cell>
