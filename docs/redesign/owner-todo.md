@@ -13,3 +13,4 @@ Items only the owner can do, by step.
   their bounding boxes. The mark also does not read at 16 px (a ~9x4 px smudge).
   Geometry is unchanged until you decide; see the comment above `case 'mm-mark'` in
   `brand/make-glyph-masters.mjs`.
+- mobile/01: run docs/redesign/proof/mobile-01/device-check.md on the iPhone build and the Android flagship.

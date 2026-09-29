@@ -422,7 +422,14 @@ class _EditionCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final running = ref.watch(skinIdProvider);
-    final override = ref.watch(sharedPrefsProvider).getString(kSkinDebugKey);
+    // A screen mounted without the app's ProviderScope overrides (a bare
+    // widget test) has no preferences to read; show "none" rather than throw.
+    String? override;
+    try {
+      override = ref.watch(sharedPrefsProvider).getString(kSkinDebugKey);
+    } on UnimplementedError {
+      override = null;
+    }
     return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
