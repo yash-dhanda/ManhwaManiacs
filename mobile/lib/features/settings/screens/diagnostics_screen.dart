@@ -17,7 +17,7 @@ import 'package:manhwamaniacs/features/settings/screens/feedback_lab_screen.dart
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/widgets/glass_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/gallery/primitives_gallery.dart';
-import 'package:manhwamaniacs/skins/glass/gate/glass_gate_screen.dart';
+import 'package:manhwamaniacs/skins/glass/glass/gate_demo.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// Developer diagnostics: live rendering performance, display/refresh-rate

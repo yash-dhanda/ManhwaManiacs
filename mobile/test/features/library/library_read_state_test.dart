@@ -50,6 +50,14 @@ const _onChapterOne = ReadState(
 
 /// Only what the shelves call; anything else fails loudly.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   _FakeLibraryRepository(this.followed);
 
   List<FollowedSeries> followed;

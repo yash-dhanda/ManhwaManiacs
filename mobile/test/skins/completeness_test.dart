@@ -58,7 +58,9 @@ void main() {
           '$kPendingRoutePrefix${ScreenId.history.id}',);
       final byFollow = router.configuration.findMatch(Uri.parse('/library/42'));
       expect((byFollow.routes.last as GoRoute).name,
-          '$kPendingRoutePrefix${ScreenId.featureByFollow.id}',);
+          pending.contains(ScreenId.featureByFollow)
+              ? '$kPendingRoutePrefix${ScreenId.featureByFollow.id}'
+              : ScreenId.featureByFollow.id,);
 
       expect(ScreenId.values.toSet().containsAll(pending), isTrue);
       expect(_namedPending(router), pending.map((e) => e.id).toSet());

@@ -1,0 +1,4052 @@
+[
+ {
+  "id": "n1",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 1: The Ferry",
+  "number": 1,
+  "page_count": 0,
+  "release_date": "2025-07-07"
+ },
+ {
+  "id": "n2",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 2: Salt",
+  "number": 2,
+  "page_count": 0,
+  "release_date": "2025-07-08"
+ },
+ {
+  "id": "n3",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 3: Ash",
+  "number": 3,
+  "page_count": 0,
+  "release_date": "2025-07-09"
+ },
+ {
+  "id": "n4",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 4: Rain",
+  "number": 4,
+  "page_count": 0,
+  "release_date": "2025-07-10"
+ },
+ {
+  "id": "n5",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 5: The Well",
+  "number": 5,
+  "page_count": 0,
+  "release_date": "2025-07-11"
+ },
+ {
+  "id": "n6",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 6: The Ferry",
+  "number": 6,
+  "page_count": 0,
+  "release_date": "2025-07-12"
+ },
+ {
+  "id": "n7",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 7: Salt",
+  "number": 7,
+  "page_count": 0,
+  "release_date": "2025-07-13"
+ },
+ {
+  "id": "n8",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 8: Ash",
+  "number": 8,
+  "page_count": 0,
+  "release_date": "2025-07-14"
+ },
+ {
+  "id": "n9",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 9: Rain",
+  "number": 9,
+  "page_count": 0,
+  "release_date": "2025-07-15"
+ },
+ {
+  "id": "n10",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 10: The Well",
+  "number": 10,
+  "page_count": 0,
+  "release_date": "2025-07-16"
+ },
+ {
+  "id": "n11",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 11: The Ferry",
+  "number": 11,
+  "page_count": 0,
+  "release_date": "2025-07-17"
+ },
+ {
+  "id": "n12",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 12: Salt",
+  "number": 12,
+  "page_count": 0,
+  "release_date": "2025-07-18"
+ },
+ {
+  "id": "n13",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 13: Ash",
+  "number": 13,
+  "page_count": 0,
+  "release_date": "2025-07-19"
+ },
+ {
+  "id": "n14",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 14: Rain",
+  "number": 14,
+  "page_count": 0,
+  "release_date": "2025-07-20"
+ },
+ {
+  "id": "n15",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 15: The Well",
+  "number": 15,
+  "page_count": 0,
+  "release_date": "2025-07-21"
+ },
+ {
+  "id": "n16",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 16: The Ferry",
+  "number": 16,
+  "page_count": 0,
+  "release_date": "2025-07-22"
+ },
+ {
+  "id": "n17",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 17: Salt",
+  "number": 17,
+  "page_count": 0,
+  "release_date": "2025-07-23"
+ },
+ {
+  "id": "n18",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 18: Ash",
+  "number": 18,
+  "page_count": 0,
+  "release_date": "2025-07-24"
+ },
+ {
+  "id": "n19",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 19: Rain",
+  "number": 19,
+  "page_count": 0,
+  "release_date": "2025-07-25"
+ },
+ {
+  "id": "n20",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 20: The Well",
+  "number": 20,
+  "page_count": 0,
+  "release_date": "2025-07-26"
+ },
+ {
+  "id": "n21",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 21: The Ferry",
+  "number": 21,
+  "page_count": 0,
+  "release_date": "2025-07-27"
+ },
+ {
+  "id": "n22",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 22: Salt",
+  "number": 22,
+  "page_count": 0,
+  "release_date": "2025-07-28"
+ },
+ {
+  "id": "n23",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 23: Ash",
+  "number": 23,
+  "page_count": 0,
+  "release_date": "2025-07-29"
+ },
+ {
+  "id": "n24",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 24: Rain",
+  "number": 24,
+  "page_count": 0,
+  "release_date": "2025-07-30"
+ },
+ {
+  "id": "n25",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 25: The Well",
+  "number": 25,
+  "page_count": 0,
+  "release_date": "2025-07-31"
+ },
+ {
+  "id": "n26",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 26: The Ferry",
+  "number": 26,
+  "page_count": 0,
+  "release_date": "2025-08-01"
+ },
+ {
+  "id": "n27",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 27: Salt",
+  "number": 27,
+  "page_count": 0,
+  "release_date": "2025-08-02"
+ },
+ {
+  "id": "n28",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 28: Ash",
+  "number": 28,
+  "page_count": 0,
+  "release_date": "2025-08-03"
+ },
+ {
+  "id": "n29",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 29: Rain",
+  "number": 29,
+  "page_count": 0,
+  "release_date": "2025-08-04"
+ },
+ {
+  "id": "n30",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 30: The Well",
+  "number": 30,
+  "page_count": 0,
+  "release_date": "2025-08-05"
+ },
+ {
+  "id": "n31",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 31: The Ferry",
+  "number": 31,
+  "page_count": 0,
+  "release_date": "2025-08-06"
+ },
+ {
+  "id": "n32",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 32: Salt",
+  "number": 32,
+  "page_count": 0,
+  "release_date": "2025-08-07"
+ },
+ {
+  "id": "n33",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 33: Ash",
+  "number": 33,
+  "page_count": 0,
+  "release_date": "2025-08-08"
+ },
+ {
+  "id": "n34",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 34: Rain",
+  "number": 34,
+  "page_count": 0,
+  "release_date": "2025-08-09"
+ },
+ {
+  "id": "n35",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 35: The Well",
+  "number": 35,
+  "page_count": 0,
+  "release_date": "2025-08-10"
+ },
+ {
+  "id": "n36",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 36: The Ferry",
+  "number": 36,
+  "page_count": 0,
+  "release_date": "2025-08-11"
+ },
+ {
+  "id": "n37",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 37: Salt",
+  "number": 37,
+  "page_count": 0,
+  "release_date": "2025-08-12"
+ },
+ {
+  "id": "n38",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 38: Ash",
+  "number": 38,
+  "page_count": 0,
+  "release_date": "2025-08-13"
+ },
+ {
+  "id": "n39",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 39: Rain",
+  "number": 39,
+  "page_count": 0,
+  "release_date": "2025-08-14"
+ },
+ {
+  "id": "n40",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 40: The Well",
+  "number": 40,
+  "page_count": 0,
+  "release_date": "2025-08-15"
+ },
+ {
+  "id": "n41",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 41: The Ferry",
+  "number": 41,
+  "page_count": 0,
+  "release_date": "2025-08-16"
+ },
+ {
+  "id": "n42",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 42: Salt",
+  "number": 42,
+  "page_count": 0,
+  "release_date": "2025-08-17"
+ },
+ {
+  "id": "n43",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 43: Ash",
+  "number": 43,
+  "page_count": 0,
+  "release_date": "2025-08-18"
+ },
+ {
+  "id": "n44",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 44: Rain",
+  "number": 44,
+  "page_count": 0,
+  "release_date": "2025-08-19"
+ },
+ {
+  "id": "n45",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 45: The Well",
+  "number": 45,
+  "page_count": 0,
+  "release_date": "2025-08-20"
+ },
+ {
+  "id": "n46",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 46: The Ferry",
+  "number": 46,
+  "page_count": 0,
+  "release_date": "2025-08-21"
+ },
+ {
+  "id": "n47",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 47: Salt",
+  "number": 47,
+  "page_count": 0,
+  "release_date": "2025-08-22"
+ },
+ {
+  "id": "n48",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 48: Ash",
+  "number": 48,
+  "page_count": 0,
+  "release_date": "2025-08-23"
+ },
+ {
+  "id": "n49",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 49: Rain",
+  "number": 49,
+  "page_count": 0,
+  "release_date": "2025-08-24"
+ },
+ {
+  "id": "n50",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 50: The Well",
+  "number": 50,
+  "page_count": 0,
+  "release_date": "2025-08-25"
+ },
+ {
+  "id": "n51",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 51: The Ferry",
+  "number": 51,
+  "page_count": 0,
+  "release_date": "2025-08-26"
+ },
+ {
+  "id": "n52",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 52: Salt",
+  "number": 52,
+  "page_count": 0,
+  "release_date": "2025-08-27"
+ },
+ {
+  "id": "n53",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 53: Ash",
+  "number": 53,
+  "page_count": 0,
+  "release_date": "2025-08-28"
+ },
+ {
+  "id": "n54",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 54: Rain",
+  "number": 54,
+  "page_count": 0,
+  "release_date": "2025-08-29"
+ },
+ {
+  "id": "n55",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 55: The Well",
+  "number": 55,
+  "page_count": 0,
+  "release_date": "2025-08-30"
+ },
+ {
+  "id": "n56",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 56: The Ferry",
+  "number": 56,
+  "page_count": 0,
+  "release_date": "2025-08-31"
+ },
+ {
+  "id": "n57",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 57: Salt",
+  "number": 57,
+  "page_count": 0,
+  "release_date": "2025-09-01"
+ },
+ {
+  "id": "n58",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 58: Ash",
+  "number": 58,
+  "page_count": 0,
+  "release_date": "2025-09-02"
+ },
+ {
+  "id": "n59",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 59: Rain",
+  "number": 59,
+  "page_count": 0,
+  "release_date": "2025-09-03"
+ },
+ {
+  "id": "n60",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 60: The Well",
+  "number": 60,
+  "page_count": 0,
+  "release_date": "2025-09-04"
+ },
+ {
+  "id": "n61",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 61: The Ferry",
+  "number": 61,
+  "page_count": 0,
+  "release_date": "2025-09-05"
+ },
+ {
+  "id": "n62",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 62: Salt",
+  "number": 62,
+  "page_count": 0,
+  "release_date": "2025-09-06"
+ },
+ {
+  "id": "n63",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 63: Ash",
+  "number": 63,
+  "page_count": 0,
+  "release_date": "2025-09-07"
+ },
+ {
+  "id": "n64",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 64: Rain",
+  "number": 64,
+  "page_count": 0,
+  "release_date": "2025-09-08"
+ },
+ {
+  "id": "n65",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 65: The Well",
+  "number": 65,
+  "page_count": 0,
+  "release_date": "2025-09-09"
+ },
+ {
+  "id": "n66",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 66: The Ferry",
+  "number": 66,
+  "page_count": 0,
+  "release_date": "2025-09-10"
+ },
+ {
+  "id": "n67",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 67: Salt",
+  "number": 67,
+  "page_count": 0,
+  "release_date": "2025-09-11"
+ },
+ {
+  "id": "n68",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 68: Ash",
+  "number": 68,
+  "page_count": 0,
+  "release_date": "2025-09-12"
+ },
+ {
+  "id": "n69",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 69: Rain",
+  "number": 69,
+  "page_count": 0,
+  "release_date": "2025-09-13"
+ },
+ {
+  "id": "n70",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 70: The Well",
+  "number": 70,
+  "page_count": 0,
+  "release_date": "2025-09-14"
+ },
+ {
+  "id": "n71",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 71: The Ferry",
+  "number": 71,
+  "page_count": 0,
+  "release_date": "2025-09-15"
+ },
+ {
+  "id": "n72",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 72: Salt",
+  "number": 72,
+  "page_count": 0,
+  "release_date": "2025-09-16"
+ },
+ {
+  "id": "n73",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 73: Ash",
+  "number": 73,
+  "page_count": 0,
+  "release_date": "2025-09-17"
+ },
+ {
+  "id": "n74",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 74: Rain",
+  "number": 74,
+  "page_count": 0,
+  "release_date": "2025-09-18"
+ },
+ {
+  "id": "n75",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 75: The Well",
+  "number": 75,
+  "page_count": 0,
+  "release_date": "2025-09-19"
+ },
+ {
+  "id": "n76",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 76: The Ferry",
+  "number": 76,
+  "page_count": 0,
+  "release_date": "2025-09-20"
+ },
+ {
+  "id": "n77",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 77: Salt",
+  "number": 77,
+  "page_count": 0,
+  "release_date": "2025-09-21"
+ },
+ {
+  "id": "n78",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 78: Ash",
+  "number": 78,
+  "page_count": 0,
+  "release_date": "2025-09-22"
+ },
+ {
+  "id": "n79",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 79: Rain",
+  "number": 79,
+  "page_count": 0,
+  "release_date": "2025-09-23"
+ },
+ {
+  "id": "n80",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 80: The Well",
+  "number": 80,
+  "page_count": 0,
+  "release_date": "2025-09-24"
+ },
+ {
+  "id": "n81",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 81: The Ferry",
+  "number": 81,
+  "page_count": 0,
+  "release_date": "2025-09-25"
+ },
+ {
+  "id": "n82",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 82: Salt",
+  "number": 82,
+  "page_count": 0,
+  "release_date": "2025-09-26"
+ },
+ {
+  "id": "n83",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 83: Ash",
+  "number": 83,
+  "page_count": 0,
+  "release_date": "2025-09-27"
+ },
+ {
+  "id": "n84",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 84: Rain",
+  "number": 84,
+  "page_count": 0,
+  "release_date": "2025-09-28"
+ },
+ {
+  "id": "n85",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 85: The Well",
+  "number": 85,
+  "page_count": 0,
+  "release_date": "2025-09-29"
+ },
+ {
+  "id": "n86",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 86: The Ferry",
+  "number": 86,
+  "page_count": 0,
+  "release_date": "2025-09-30"
+ },
+ {
+  "id": "n87",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 87: Salt",
+  "number": 87,
+  "page_count": 0,
+  "release_date": "2025-10-01"
+ },
+ {
+  "id": "n88",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 88: Ash",
+  "number": 88,
+  "page_count": 0,
+  "release_date": "2025-10-02"
+ },
+ {
+  "id": "n89",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 89: Rain",
+  "number": 89,
+  "page_count": 0,
+  "release_date": "2025-10-03"
+ },
+ {
+  "id": "n90",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 90: The Well",
+  "number": 90,
+  "page_count": 0,
+  "release_date": "2025-10-04"
+ },
+ {
+  "id": "n91",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 91: The Ferry",
+  "number": 91,
+  "page_count": 0,
+  "release_date": "2025-10-05"
+ },
+ {
+  "id": "n92",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 92: Salt",
+  "number": 92,
+  "page_count": 0,
+  "release_date": "2025-10-06"
+ },
+ {
+  "id": "n93",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 93: Ash",
+  "number": 93,
+  "page_count": 0,
+  "release_date": "2025-10-07"
+ },
+ {
+  "id": "n94",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 94: Rain",
+  "number": 94,
+  "page_count": 0,
+  "release_date": "2025-10-08"
+ },
+ {
+  "id": "n95",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 95: The Well",
+  "number": 95,
+  "page_count": 0,
+  "release_date": "2025-10-09"
+ },
+ {
+  "id": "n96",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 96: The Ferry",
+  "number": 96,
+  "page_count": 0,
+  "release_date": "2025-10-10"
+ },
+ {
+  "id": "n97",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 97: Salt",
+  "number": 97,
+  "page_count": 0,
+  "release_date": "2025-10-11"
+ },
+ {
+  "id": "n98",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 98: Ash",
+  "number": 98,
+  "page_count": 0,
+  "release_date": "2025-10-12"
+ },
+ {
+  "id": "n99",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 99: Rain",
+  "number": 99,
+  "page_count": 0,
+  "release_date": "2025-10-13"
+ },
+ {
+  "id": "n100",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 100: The Well",
+  "number": 100,
+  "page_count": 0,
+  "release_date": "2025-10-14"
+ },
+ {
+  "id": "n101",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 101: The Ferry",
+  "number": 101,
+  "page_count": 0,
+  "release_date": "2025-10-15"
+ },
+ {
+  "id": "n102",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 102: Salt",
+  "number": 102,
+  "page_count": 0,
+  "release_date": "2025-10-16"
+ },
+ {
+  "id": "n103",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 103: Ash",
+  "number": 103,
+  "page_count": 0,
+  "release_date": "2025-10-17"
+ },
+ {
+  "id": "n104",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 104: Rain",
+  "number": 104,
+  "page_count": 0,
+  "release_date": "2025-10-18"
+ },
+ {
+  "id": "n105",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 105: The Well",
+  "number": 105,
+  "page_count": 0,
+  "release_date": "2025-10-19"
+ },
+ {
+  "id": "n106",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 106: The Ferry",
+  "number": 106,
+  "page_count": 0,
+  "release_date": "2025-10-20"
+ },
+ {
+  "id": "n107",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 107: Salt",
+  "number": 107,
+  "page_count": 0,
+  "release_date": "2025-10-21"
+ },
+ {
+  "id": "n108",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 108: Ash",
+  "number": 108,
+  "page_count": 0,
+  "release_date": "2025-10-22"
+ },
+ {
+  "id": "n109",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 109: Rain",
+  "number": 109,
+  "page_count": 0,
+  "release_date": "2025-10-23"
+ },
+ {
+  "id": "n110",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 110: The Well",
+  "number": 110,
+  "page_count": 0,
+  "release_date": "2025-10-24"
+ },
+ {
+  "id": "n111",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 111: The Ferry",
+  "number": 111,
+  "page_count": 0,
+  "release_date": "2025-10-25"
+ },
+ {
+  "id": "n112",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 112: Salt",
+  "number": 112,
+  "page_count": 0,
+  "release_date": "2025-10-26"
+ },
+ {
+  "id": "n113",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 113: Ash",
+  "number": 113,
+  "page_count": 0,
+  "release_date": "2025-10-27"
+ },
+ {
+  "id": "n114",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 114: Rain",
+  "number": 114,
+  "page_count": 0,
+  "release_date": "2025-10-28"
+ },
+ {
+  "id": "n115",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 115: The Well",
+  "number": 115,
+  "page_count": 0,
+  "release_date": "2025-10-29"
+ },
+ {
+  "id": "n116",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 116: The Ferry",
+  "number": 116,
+  "page_count": 0,
+  "release_date": "2025-10-30"
+ },
+ {
+  "id": "n117",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 117: Salt",
+  "number": 117,
+  "page_count": 0,
+  "release_date": "2025-10-31"
+ },
+ {
+  "id": "n118",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 118: Ash",
+  "number": 118,
+  "page_count": 0,
+  "release_date": "2025-11-01"
+ },
+ {
+  "id": "n119",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 119: Rain",
+  "number": 119,
+  "page_count": 0,
+  "release_date": "2025-11-02"
+ },
+ {
+  "id": "n120",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 120: The Well",
+  "number": 120,
+  "page_count": 0,
+  "release_date": "2025-11-03"
+ },
+ {
+  "id": "n121",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 121: The Ferry",
+  "number": 121,
+  "page_count": 0,
+  "release_date": "2025-11-04"
+ },
+ {
+  "id": "n122",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 122: Salt",
+  "number": 122,
+  "page_count": 0,
+  "release_date": "2025-11-05"
+ },
+ {
+  "id": "n123",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 123: Ash",
+  "number": 123,
+  "page_count": 0,
+  "release_date": "2025-11-06"
+ },
+ {
+  "id": "n124",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 124: Rain",
+  "number": 124,
+  "page_count": 0,
+  "release_date": "2025-11-07"
+ },
+ {
+  "id": "n125",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 125: The Well",
+  "number": 125,
+  "page_count": 0,
+  "release_date": "2025-11-08"
+ },
+ {
+  "id": "n126",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 126: The Ferry",
+  "number": 126,
+  "page_count": 0,
+  "release_date": "2025-11-09"
+ },
+ {
+  "id": "n127",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 127: Salt",
+  "number": 127,
+  "page_count": 0,
+  "release_date": "2025-11-10"
+ },
+ {
+  "id": "n128",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 128: Ash",
+  "number": 128,
+  "page_count": 0,
+  "release_date": "2025-11-11"
+ },
+ {
+  "id": "n129",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 129: Rain",
+  "number": 129,
+  "page_count": 0,
+  "release_date": "2025-11-12"
+ },
+ {
+  "id": "n130",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 130: The Well",
+  "number": 130,
+  "page_count": 0,
+  "release_date": "2025-11-13"
+ },
+ {
+  "id": "n131",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 131: The Ferry",
+  "number": 131,
+  "page_count": 0,
+  "release_date": "2025-11-14"
+ },
+ {
+  "id": "n132",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 132: Salt",
+  "number": 132,
+  "page_count": 0,
+  "release_date": "2025-11-15"
+ },
+ {
+  "id": "n133",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 133: Ash",
+  "number": 133,
+  "page_count": 0,
+  "release_date": "2025-11-16"
+ },
+ {
+  "id": "n134",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 134: Rain",
+  "number": 134,
+  "page_count": 0,
+  "release_date": "2025-11-17"
+ },
+ {
+  "id": "n135",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 135: The Well",
+  "number": 135,
+  "page_count": 0,
+  "release_date": "2025-11-18"
+ },
+ {
+  "id": "n136",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 136: The Ferry",
+  "number": 136,
+  "page_count": 0,
+  "release_date": "2025-11-19"
+ },
+ {
+  "id": "n137",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 137: Salt",
+  "number": 137,
+  "page_count": 0,
+  "release_date": "2025-11-20"
+ },
+ {
+  "id": "n138",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 138: Ash",
+  "number": 138,
+  "page_count": 0,
+  "release_date": "2025-11-21"
+ },
+ {
+  "id": "n139",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 139: Rain",
+  "number": 139,
+  "page_count": 0,
+  "release_date": "2025-11-22"
+ },
+ {
+  "id": "n140",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 140: The Well",
+  "number": 140,
+  "page_count": 0,
+  "release_date": "2025-11-23"
+ },
+ {
+  "id": "n141",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 141: The Ferry",
+  "number": 141,
+  "page_count": 0,
+  "release_date": "2025-11-24"
+ },
+ {
+  "id": "n142",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 142: Salt",
+  "number": 142,
+  "page_count": 0,
+  "release_date": "2025-11-25"
+ },
+ {
+  "id": "n143",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 143: Ash",
+  "number": 143,
+  "page_count": 0,
+  "release_date": "2025-11-26"
+ },
+ {
+  "id": "n144",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 144: Rain",
+  "number": 144,
+  "page_count": 0,
+  "release_date": "2025-11-27"
+ },
+ {
+  "id": "n145",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 145: The Well",
+  "number": 145,
+  "page_count": 0,
+  "release_date": "2025-11-28"
+ },
+ {
+  "id": "n146",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 146: The Ferry",
+  "number": 146,
+  "page_count": 0,
+  "release_date": "2025-11-29"
+ },
+ {
+  "id": "n147",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 147: Salt",
+  "number": 147,
+  "page_count": 0,
+  "release_date": "2025-11-30"
+ },
+ {
+  "id": "n148",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 148: Ash",
+  "number": 148,
+  "page_count": 0,
+  "release_date": "2025-12-01"
+ },
+ {
+  "id": "n149",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 149: Rain",
+  "number": 149,
+  "page_count": 0,
+  "release_date": "2025-12-02"
+ },
+ {
+  "id": "n150",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 150: The Well",
+  "number": 150,
+  "page_count": 0,
+  "release_date": "2025-12-03"
+ },
+ {
+  "id": "n151",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 151: The Ferry",
+  "number": 151,
+  "page_count": 0,
+  "release_date": "2025-12-04"
+ },
+ {
+  "id": "n152",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 152: Salt",
+  "number": 152,
+  "page_count": 0,
+  "release_date": "2025-12-05"
+ },
+ {
+  "id": "n153",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 153: Ash",
+  "number": 153,
+  "page_count": 0,
+  "release_date": "2025-12-06"
+ },
+ {
+  "id": "n154",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 154: Rain",
+  "number": 154,
+  "page_count": 0,
+  "release_date": "2025-12-07"
+ },
+ {
+  "id": "n155",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 155: The Well",
+  "number": 155,
+  "page_count": 0,
+  "release_date": "2025-12-08"
+ },
+ {
+  "id": "n156",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 156: The Ferry",
+  "number": 156,
+  "page_count": 0,
+  "release_date": "2025-12-09"
+ },
+ {
+  "id": "n157",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 157: Salt",
+  "number": 157,
+  "page_count": 0,
+  "release_date": "2025-12-10"
+ },
+ {
+  "id": "n158",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 158: Ash",
+  "number": 158,
+  "page_count": 0,
+  "release_date": "2025-12-11"
+ },
+ {
+  "id": "n159",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 159: Rain",
+  "number": 159,
+  "page_count": 0,
+  "release_date": "2025-12-12"
+ },
+ {
+  "id": "n160",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 160: The Well",
+  "number": 160,
+  "page_count": 0,
+  "release_date": "2025-12-13"
+ },
+ {
+  "id": "n161",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 161: The Ferry",
+  "number": 161,
+  "page_count": 0,
+  "release_date": "2025-12-14"
+ },
+ {
+  "id": "n162",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 162: Salt",
+  "number": 162,
+  "page_count": 0,
+  "release_date": "2025-12-15"
+ },
+ {
+  "id": "n163",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 163: Ash",
+  "number": 163,
+  "page_count": 0,
+  "release_date": "2025-12-16"
+ },
+ {
+  "id": "n164",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 164: Rain",
+  "number": 164,
+  "page_count": 0,
+  "release_date": "2025-12-17"
+ },
+ {
+  "id": "n165",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 165: The Well",
+  "number": 165,
+  "page_count": 0,
+  "release_date": "2025-12-18"
+ },
+ {
+  "id": "n166",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 166: The Ferry",
+  "number": 166,
+  "page_count": 0,
+  "release_date": "2025-12-19"
+ },
+ {
+  "id": "n167",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 167: Salt",
+  "number": 167,
+  "page_count": 0,
+  "release_date": "2025-12-20"
+ },
+ {
+  "id": "n168",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 168: Ash",
+  "number": 168,
+  "page_count": 0,
+  "release_date": "2025-12-21"
+ },
+ {
+  "id": "n169",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 169: Rain",
+  "number": 169,
+  "page_count": 0,
+  "release_date": "2025-12-22"
+ },
+ {
+  "id": "n170",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 170: The Well",
+  "number": 170,
+  "page_count": 0,
+  "release_date": "2025-12-23"
+ },
+ {
+  "id": "n171",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 171: The Ferry",
+  "number": 171,
+  "page_count": 0,
+  "release_date": "2025-12-24"
+ },
+ {
+  "id": "n172",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 172: Salt",
+  "number": 172,
+  "page_count": 0,
+  "release_date": "2025-12-25"
+ },
+ {
+  "id": "n173",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 173: Ash",
+  "number": 173,
+  "page_count": 0,
+  "release_date": "2025-12-26"
+ },
+ {
+  "id": "n174",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 174: Rain",
+  "number": 174,
+  "page_count": 0,
+  "release_date": "2025-12-27"
+ },
+ {
+  "id": "n175",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 175: The Well",
+  "number": 175,
+  "page_count": 0,
+  "release_date": "2025-12-28"
+ },
+ {
+  "id": "n176",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 176: The Ferry",
+  "number": 176,
+  "page_count": 0,
+  "release_date": "2025-12-29"
+ },
+ {
+  "id": "n177",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 177: Salt",
+  "number": 177,
+  "page_count": 0,
+  "release_date": "2025-12-30"
+ },
+ {
+  "id": "n178",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 178: Ash",
+  "number": 178,
+  "page_count": 0,
+  "release_date": "2025-12-31"
+ },
+ {
+  "id": "n179",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 179: Rain",
+  "number": 179,
+  "page_count": 0,
+  "release_date": "2026-01-01"
+ },
+ {
+  "id": "n180",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 180: The Well",
+  "number": 180,
+  "page_count": 0,
+  "release_date": "2026-01-02"
+ },
+ {
+  "id": "n181",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 181: The Ferry",
+  "number": 181,
+  "page_count": 0,
+  "release_date": "2026-01-03"
+ },
+ {
+  "id": "n182",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 182: Salt",
+  "number": 182,
+  "page_count": 0,
+  "release_date": "2026-01-04"
+ },
+ {
+  "id": "n183",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 183: Ash",
+  "number": 183,
+  "page_count": 0,
+  "release_date": "2026-01-05"
+ },
+ {
+  "id": "n184",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 184: Rain",
+  "number": 184,
+  "page_count": 0,
+  "release_date": "2026-01-06"
+ },
+ {
+  "id": "n185",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 185: The Well",
+  "number": 185,
+  "page_count": 0,
+  "release_date": "2026-01-07"
+ },
+ {
+  "id": "n186",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 186: The Ferry",
+  "number": 186,
+  "page_count": 0,
+  "release_date": "2026-01-08"
+ },
+ {
+  "id": "n187",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 187: Salt",
+  "number": 187,
+  "page_count": 0,
+  "release_date": "2026-01-09"
+ },
+ {
+  "id": "n188",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 188: Ash",
+  "number": 188,
+  "page_count": 0,
+  "release_date": "2026-01-10"
+ },
+ {
+  "id": "n189",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 189: Rain",
+  "number": 189,
+  "page_count": 0,
+  "release_date": "2026-01-11"
+ },
+ {
+  "id": "n190",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 190: The Well",
+  "number": 190,
+  "page_count": 0,
+  "release_date": "2026-01-12"
+ },
+ {
+  "id": "n191",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 191: The Ferry",
+  "number": 191,
+  "page_count": 0,
+  "release_date": "2026-01-13"
+ },
+ {
+  "id": "n192",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 192: Salt",
+  "number": 192,
+  "page_count": 0,
+  "release_date": "2026-01-14"
+ },
+ {
+  "id": "n193",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 193: Ash",
+  "number": 193,
+  "page_count": 0,
+  "release_date": "2026-01-15"
+ },
+ {
+  "id": "n194",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 194: Rain",
+  "number": 194,
+  "page_count": 0,
+  "release_date": "2026-01-16"
+ },
+ {
+  "id": "n195",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 195: The Well",
+  "number": 195,
+  "page_count": 0,
+  "release_date": "2026-01-17"
+ },
+ {
+  "id": "n196",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 196: The Ferry",
+  "number": 196,
+  "page_count": 0,
+  "release_date": "2026-01-18"
+ },
+ {
+  "id": "n197",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 197: Salt",
+  "number": 197,
+  "page_count": 0,
+  "release_date": "2026-01-19"
+ },
+ {
+  "id": "n198",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 198: Ash",
+  "number": 198,
+  "page_count": 0,
+  "release_date": "2026-01-20"
+ },
+ {
+  "id": "n199",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 199: Rain",
+  "number": 199,
+  "page_count": 0,
+  "release_date": "2026-01-21"
+ },
+ {
+  "id": "n200",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 200: The Well",
+  "number": 200,
+  "page_count": 0,
+  "release_date": "2026-01-22"
+ },
+ {
+  "id": "n201",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 201: The Ferry",
+  "number": 201,
+  "page_count": 0,
+  "release_date": "2026-01-23"
+ },
+ {
+  "id": "n202",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 202: Salt",
+  "number": 202,
+  "page_count": 0,
+  "release_date": "2026-01-24"
+ },
+ {
+  "id": "n203",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 203: Ash",
+  "number": 203,
+  "page_count": 0,
+  "release_date": "2026-01-25"
+ },
+ {
+  "id": "n204",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 204: Rain",
+  "number": 204,
+  "page_count": 0,
+  "release_date": "2026-01-26"
+ },
+ {
+  "id": "n205",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 205: The Well",
+  "number": 205,
+  "page_count": 0,
+  "release_date": "2026-01-27"
+ },
+ {
+  "id": "n206",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 206: The Ferry",
+  "number": 206,
+  "page_count": 0,
+  "release_date": "2026-01-28"
+ },
+ {
+  "id": "n207",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 207: Salt",
+  "number": 207,
+  "page_count": 0,
+  "release_date": "2026-01-29"
+ },
+ {
+  "id": "n208",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 208: Ash",
+  "number": 208,
+  "page_count": 0,
+  "release_date": "2026-01-30"
+ },
+ {
+  "id": "n209",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 209: Rain",
+  "number": 209,
+  "page_count": 0,
+  "release_date": "2026-01-31"
+ },
+ {
+  "id": "n210",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 210: The Well",
+  "number": 210,
+  "page_count": 0,
+  "release_date": "2026-02-01"
+ },
+ {
+  "id": "n211",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 211: The Ferry",
+  "number": 211,
+  "page_count": 0,
+  "release_date": "2026-02-02"
+ },
+ {
+  "id": "n212",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 212: Salt",
+  "number": 212,
+  "page_count": 0,
+  "release_date": "2026-02-03"
+ },
+ {
+  "id": "n213",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 213: Ash",
+  "number": 213,
+  "page_count": 0,
+  "release_date": "2026-02-04"
+ },
+ {
+  "id": "n214",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 214: Rain",
+  "number": 214,
+  "page_count": 0,
+  "release_date": "2026-02-05"
+ },
+ {
+  "id": "n215",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 215: The Well",
+  "number": 215,
+  "page_count": 0,
+  "release_date": "2026-02-06"
+ },
+ {
+  "id": "n216",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 216: The Ferry",
+  "number": 216,
+  "page_count": 0,
+  "release_date": "2026-02-07"
+ },
+ {
+  "id": "n217",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 217: Salt",
+  "number": 217,
+  "page_count": 0,
+  "release_date": "2026-02-08"
+ },
+ {
+  "id": "n218",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 218: Ash",
+  "number": 218,
+  "page_count": 0,
+  "release_date": "2026-02-09"
+ },
+ {
+  "id": "n219",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 219: Rain",
+  "number": 219,
+  "page_count": 0,
+  "release_date": "2026-02-10"
+ },
+ {
+  "id": "n220",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 220: The Well",
+  "number": 220,
+  "page_count": 0,
+  "release_date": "2026-02-11"
+ },
+ {
+  "id": "n221",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 221: The Ferry",
+  "number": 221,
+  "page_count": 0,
+  "release_date": "2026-02-12"
+ },
+ {
+  "id": "n222",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 222: Salt",
+  "number": 222,
+  "page_count": 0,
+  "release_date": "2026-02-13"
+ },
+ {
+  "id": "n223",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 223: Ash",
+  "number": 223,
+  "page_count": 0,
+  "release_date": "2026-02-14"
+ },
+ {
+  "id": "n224",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 224: Rain",
+  "number": 224,
+  "page_count": 0,
+  "release_date": "2026-02-15"
+ },
+ {
+  "id": "n225",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 225: The Well",
+  "number": 225,
+  "page_count": 0,
+  "release_date": "2026-02-16"
+ },
+ {
+  "id": "n226",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 226: The Ferry",
+  "number": 226,
+  "page_count": 0,
+  "release_date": "2026-02-17"
+ },
+ {
+  "id": "n227",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 227: Salt",
+  "number": 227,
+  "page_count": 0,
+  "release_date": "2026-02-18"
+ },
+ {
+  "id": "n228",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 228: Ash",
+  "number": 228,
+  "page_count": 0,
+  "release_date": "2026-02-19"
+ },
+ {
+  "id": "n229",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 229: Rain",
+  "number": 229,
+  "page_count": 0,
+  "release_date": "2026-02-20"
+ },
+ {
+  "id": "n230",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 230: The Well",
+  "number": 230,
+  "page_count": 0,
+  "release_date": "2026-02-21"
+ },
+ {
+  "id": "n231",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 231: The Ferry",
+  "number": 231,
+  "page_count": 0,
+  "release_date": "2026-02-22"
+ },
+ {
+  "id": "n232",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 232: Salt",
+  "number": 232,
+  "page_count": 0,
+  "release_date": "2026-02-23"
+ },
+ {
+  "id": "n233",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 233: Ash",
+  "number": 233,
+  "page_count": 0,
+  "release_date": "2026-02-24"
+ },
+ {
+  "id": "n234",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 234: Rain",
+  "number": 234,
+  "page_count": 0,
+  "release_date": "2026-02-25"
+ },
+ {
+  "id": "n235",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 235: The Well",
+  "number": 235,
+  "page_count": 0,
+  "release_date": "2026-02-26"
+ },
+ {
+  "id": "n236",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 236: The Ferry",
+  "number": 236,
+  "page_count": 0,
+  "release_date": "2026-02-27"
+ },
+ {
+  "id": "n237",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 237: Salt",
+  "number": 237,
+  "page_count": 0,
+  "release_date": "2026-02-28"
+ },
+ {
+  "id": "n238",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 238: Ash",
+  "number": 238,
+  "page_count": 0,
+  "release_date": "2026-03-01"
+ },
+ {
+  "id": "n239",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 239: Rain",
+  "number": 239,
+  "page_count": 0,
+  "release_date": "2026-03-02"
+ },
+ {
+  "id": "n240",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 240: The Well",
+  "number": 240,
+  "page_count": 0,
+  "release_date": "2026-03-03"
+ },
+ {
+  "id": "n241",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 241: The Ferry",
+  "number": 241,
+  "page_count": 0,
+  "release_date": "2026-03-04"
+ },
+ {
+  "id": "n242",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 242: Salt",
+  "number": 242,
+  "page_count": 0,
+  "release_date": "2026-03-05"
+ },
+ {
+  "id": "n243",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 243: Ash",
+  "number": 243,
+  "page_count": 0,
+  "release_date": "2026-03-06"
+ },
+ {
+  "id": "n244",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 244: Rain",
+  "number": 244,
+  "page_count": 0,
+  "release_date": "2026-03-07"
+ },
+ {
+  "id": "n245",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 245: The Well",
+  "number": 245,
+  "page_count": 0,
+  "release_date": "2026-03-08"
+ },
+ {
+  "id": "n246",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 246: The Ferry",
+  "number": 246,
+  "page_count": 0,
+  "release_date": "2026-03-09"
+ },
+ {
+  "id": "n247",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 247: Salt",
+  "number": 247,
+  "page_count": 0,
+  "release_date": "2026-03-10"
+ },
+ {
+  "id": "n248",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 248: Ash",
+  "number": 248,
+  "page_count": 0,
+  "release_date": "2026-03-11"
+ },
+ {
+  "id": "n249",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 249: Rain",
+  "number": 249,
+  "page_count": 0,
+  "release_date": "2026-03-12"
+ },
+ {
+  "id": "n250",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 250: The Well",
+  "number": 250,
+  "page_count": 0,
+  "release_date": "2026-03-13"
+ },
+ {
+  "id": "n251",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 251: The Ferry",
+  "number": 251,
+  "page_count": 0,
+  "release_date": "2026-03-14"
+ },
+ {
+  "id": "n252",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 252: Salt",
+  "number": 252,
+  "page_count": 0,
+  "release_date": "2026-03-15"
+ },
+ {
+  "id": "n253",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 253: Ash",
+  "number": 253,
+  "page_count": 0,
+  "release_date": "2026-03-16"
+ },
+ {
+  "id": "n254",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 254: Rain",
+  "number": 254,
+  "page_count": 0,
+  "release_date": "2026-03-17"
+ },
+ {
+  "id": "n255",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 255: The Well",
+  "number": 255,
+  "page_count": 0,
+  "release_date": "2026-03-18"
+ },
+ {
+  "id": "n256",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 256: The Ferry",
+  "number": 256,
+  "page_count": 0,
+  "release_date": "2026-03-19"
+ },
+ {
+  "id": "n257",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 257: Salt",
+  "number": 257,
+  "page_count": 0,
+  "release_date": "2026-03-20"
+ },
+ {
+  "id": "n258",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 258: Ash",
+  "number": 258,
+  "page_count": 0,
+  "release_date": "2026-03-21"
+ },
+ {
+  "id": "n259",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 259: Rain",
+  "number": 259,
+  "page_count": 0,
+  "release_date": "2026-03-22"
+ },
+ {
+  "id": "n260",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 260: The Well",
+  "number": 260,
+  "page_count": 0,
+  "release_date": "2026-03-23"
+ },
+ {
+  "id": "n261",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 261: The Ferry",
+  "number": 261,
+  "page_count": 0,
+  "release_date": "2026-03-24"
+ },
+ {
+  "id": "n262",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 262: Salt",
+  "number": 262,
+  "page_count": 0,
+  "release_date": "2026-03-25"
+ },
+ {
+  "id": "n263",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 263: Ash",
+  "number": 263,
+  "page_count": 0,
+  "release_date": "2026-03-26"
+ },
+ {
+  "id": "n264",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 264: Rain",
+  "number": 264,
+  "page_count": 0,
+  "release_date": "2026-03-27"
+ },
+ {
+  "id": "n265",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 265: The Well",
+  "number": 265,
+  "page_count": 0,
+  "release_date": "2026-03-28"
+ },
+ {
+  "id": "n266",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 266: The Ferry",
+  "number": 266,
+  "page_count": 0,
+  "release_date": "2026-03-29"
+ },
+ {
+  "id": "n267",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 267: Salt",
+  "number": 267,
+  "page_count": 0,
+  "release_date": "2026-03-30"
+ },
+ {
+  "id": "n268",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 268: Ash",
+  "number": 268,
+  "page_count": 0,
+  "release_date": "2026-03-31"
+ },
+ {
+  "id": "n269",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 269: Rain",
+  "number": 269,
+  "page_count": 0,
+  "release_date": "2026-04-01"
+ },
+ {
+  "id": "n270",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 270: The Well",
+  "number": 270,
+  "page_count": 0,
+  "release_date": "2026-04-02"
+ },
+ {
+  "id": "n271",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 271: The Ferry",
+  "number": 271,
+  "page_count": 0,
+  "release_date": "2026-04-03"
+ },
+ {
+  "id": "n272",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 272: Salt",
+  "number": 272,
+  "page_count": 0,
+  "release_date": "2026-04-04"
+ },
+ {
+  "id": "n273",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 273: Ash",
+  "number": 273,
+  "page_count": 0,
+  "release_date": "2026-04-05"
+ },
+ {
+  "id": "n274",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 274: Rain",
+  "number": 274,
+  "page_count": 0,
+  "release_date": "2026-04-06"
+ },
+ {
+  "id": "n275",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 275: The Well",
+  "number": 275,
+  "page_count": 0,
+  "release_date": "2026-04-07"
+ },
+ {
+  "id": "n276",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 276: The Ferry",
+  "number": 276,
+  "page_count": 0,
+  "release_date": "2026-04-08"
+ },
+ {
+  "id": "n277",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 277: Salt",
+  "number": 277,
+  "page_count": 0,
+  "release_date": "2026-04-09"
+ },
+ {
+  "id": "n278",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 278: Ash",
+  "number": 278,
+  "page_count": 0,
+  "release_date": "2026-04-10"
+ },
+ {
+  "id": "n279",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 279: Rain",
+  "number": 279,
+  "page_count": 0,
+  "release_date": "2026-04-11"
+ },
+ {
+  "id": "n280",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 280: The Well",
+  "number": 280,
+  "page_count": 0,
+  "release_date": "2026-04-12"
+ },
+ {
+  "id": "n281",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 281: The Ferry",
+  "number": 281,
+  "page_count": 0,
+  "release_date": "2026-04-13"
+ },
+ {
+  "id": "n282",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 282: Salt",
+  "number": 282,
+  "page_count": 0,
+  "release_date": "2026-04-14"
+ },
+ {
+  "id": "n283",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 283: Ash",
+  "number": 283,
+  "page_count": 0,
+  "release_date": "2026-04-15"
+ },
+ {
+  "id": "n284",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 284: Rain",
+  "number": 284,
+  "page_count": 0,
+  "release_date": "2026-04-16"
+ },
+ {
+  "id": "n285",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 285: The Well",
+  "number": 285,
+  "page_count": 0,
+  "release_date": "2026-04-17"
+ },
+ {
+  "id": "n286",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 286: The Ferry",
+  "number": 286,
+  "page_count": 0,
+  "release_date": "2026-04-18"
+ },
+ {
+  "id": "n287",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 287: Salt",
+  "number": 287,
+  "page_count": 0,
+  "release_date": "2026-04-19"
+ },
+ {
+  "id": "n288",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 288: Ash",
+  "number": 288,
+  "page_count": 0,
+  "release_date": "2026-04-20"
+ },
+ {
+  "id": "n289",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 289: Rain",
+  "number": 289,
+  "page_count": 0,
+  "release_date": "2026-04-21"
+ },
+ {
+  "id": "n290",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 290: The Well",
+  "number": 290,
+  "page_count": 0,
+  "release_date": "2026-04-22"
+ },
+ {
+  "id": "n291",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 291: The Ferry",
+  "number": 291,
+  "page_count": 0,
+  "release_date": "2026-04-23"
+ },
+ {
+  "id": "n292",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 292: Salt",
+  "number": 292,
+  "page_count": 0,
+  "release_date": "2026-04-24"
+ },
+ {
+  "id": "n293",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 293: Ash",
+  "number": 293,
+  "page_count": 0,
+  "release_date": "2026-04-25"
+ },
+ {
+  "id": "n294",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 294: Rain",
+  "number": 294,
+  "page_count": 0,
+  "release_date": "2026-04-26"
+ },
+ {
+  "id": "n295",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 295: The Well",
+  "number": 295,
+  "page_count": 0,
+  "release_date": "2026-04-27"
+ },
+ {
+  "id": "n296",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 296: The Ferry",
+  "number": 296,
+  "page_count": 0,
+  "release_date": "2026-04-28"
+ },
+ {
+  "id": "n297",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 297: Salt",
+  "number": 297,
+  "page_count": 0,
+  "release_date": "2026-04-29"
+ },
+ {
+  "id": "n298",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 298: Ash",
+  "number": 298,
+  "page_count": 0,
+  "release_date": "2026-04-30"
+ },
+ {
+  "id": "n299",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 299: Rain",
+  "number": 299,
+  "page_count": 0,
+  "release_date": "2026-05-01"
+ },
+ {
+  "id": "n300",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 300: The Well",
+  "number": 300,
+  "page_count": 0,
+  "release_date": "2026-05-02"
+ },
+ {
+  "id": "n301",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 301: The Ferry",
+  "number": 301,
+  "page_count": 0,
+  "release_date": "2026-05-03"
+ },
+ {
+  "id": "n302",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 302: Salt",
+  "number": 302,
+  "page_count": 0,
+  "release_date": "2026-05-04"
+ },
+ {
+  "id": "n303",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 303: Ash",
+  "number": 303,
+  "page_count": 0,
+  "release_date": "2026-05-05"
+ },
+ {
+  "id": "n304",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 304: Rain",
+  "number": 304,
+  "page_count": 0,
+  "release_date": "2026-05-06"
+ },
+ {
+  "id": "n305",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 305: The Well",
+  "number": 305,
+  "page_count": 0,
+  "release_date": "2026-05-07"
+ },
+ {
+  "id": "n306",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 306: The Ferry",
+  "number": 306,
+  "page_count": 0,
+  "release_date": "2026-05-08"
+ },
+ {
+  "id": "n307",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 307: Salt",
+  "number": 307,
+  "page_count": 0,
+  "release_date": "2026-05-09"
+ },
+ {
+  "id": "n308",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 308: Ash",
+  "number": 308,
+  "page_count": 0,
+  "release_date": "2026-05-10"
+ },
+ {
+  "id": "n309",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 309: Rain",
+  "number": 309,
+  "page_count": 0,
+  "release_date": "2026-05-11"
+ },
+ {
+  "id": "n310",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 310: The Well",
+  "number": 310,
+  "page_count": 0,
+  "release_date": "2026-05-12"
+ },
+ {
+  "id": "n311",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 311: The Ferry",
+  "number": 311,
+  "page_count": 0,
+  "release_date": "2026-05-13"
+ },
+ {
+  "id": "n312",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 312: Salt",
+  "number": 312,
+  "page_count": 0,
+  "release_date": "2026-05-14"
+ },
+ {
+  "id": "n313",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 313: Ash",
+  "number": 313,
+  "page_count": 0,
+  "release_date": "2026-05-15"
+ },
+ {
+  "id": "n314",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 314: Rain",
+  "number": 314,
+  "page_count": 0,
+  "release_date": "2026-05-16"
+ },
+ {
+  "id": "n315",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 315: The Well",
+  "number": 315,
+  "page_count": 0,
+  "release_date": "2026-05-17"
+ },
+ {
+  "id": "n316",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 316: The Ferry",
+  "number": 316,
+  "page_count": 0,
+  "release_date": "2026-05-18"
+ },
+ {
+  "id": "n317",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 317: Salt",
+  "number": 317,
+  "page_count": 0,
+  "release_date": "2026-05-19"
+ },
+ {
+  "id": "n318",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 318: Ash",
+  "number": 318,
+  "page_count": 0,
+  "release_date": "2026-05-20"
+ },
+ {
+  "id": "n319",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 319: Rain",
+  "number": 319,
+  "page_count": 0,
+  "release_date": "2026-05-21"
+ },
+ {
+  "id": "n320",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 320: The Well",
+  "number": 320,
+  "page_count": 0,
+  "release_date": "2026-05-22"
+ },
+ {
+  "id": "n321",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 321: The Ferry",
+  "number": 321,
+  "page_count": 0,
+  "release_date": "2026-05-23"
+ },
+ {
+  "id": "n322",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 322: Salt",
+  "number": 322,
+  "page_count": 0,
+  "release_date": "2026-05-24"
+ },
+ {
+  "id": "n323",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 323: Ash",
+  "number": 323,
+  "page_count": 0,
+  "release_date": "2026-05-25"
+ },
+ {
+  "id": "n324",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 324: Rain",
+  "number": 324,
+  "page_count": 0,
+  "release_date": "2026-05-26"
+ },
+ {
+  "id": "n325",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 325: The Well",
+  "number": 325,
+  "page_count": 0,
+  "release_date": "2026-05-27"
+ },
+ {
+  "id": "n326",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 326: The Ferry",
+  "number": 326,
+  "page_count": 0,
+  "release_date": "2026-05-28"
+ },
+ {
+  "id": "n327",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 327: Salt",
+  "number": 327,
+  "page_count": 0,
+  "release_date": "2026-05-29"
+ },
+ {
+  "id": "n328",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 328: Ash",
+  "number": 328,
+  "page_count": 0,
+  "release_date": "2026-05-30"
+ },
+ {
+  "id": "n329",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 329: Rain",
+  "number": 329,
+  "page_count": 0,
+  "release_date": "2026-05-31"
+ },
+ {
+  "id": "n330",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 330: The Well",
+  "number": 330,
+  "page_count": 0,
+  "release_date": "2026-06-01"
+ },
+ {
+  "id": "n331",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 331: The Ferry",
+  "number": 331,
+  "page_count": 0,
+  "release_date": "2026-06-02"
+ },
+ {
+  "id": "n332",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 332: Salt",
+  "number": 332,
+  "page_count": 0,
+  "release_date": "2026-06-03"
+ },
+ {
+  "id": "n333",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 333: Ash",
+  "number": 333,
+  "page_count": 0,
+  "release_date": "2026-06-04"
+ },
+ {
+  "id": "n334",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 334: Rain",
+  "number": 334,
+  "page_count": 0,
+  "release_date": "2026-06-05"
+ },
+ {
+  "id": "n335",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 335: The Well",
+  "number": 335,
+  "page_count": 0,
+  "release_date": "2026-06-06"
+ },
+ {
+  "id": "n336",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 336: The Ferry",
+  "number": 336,
+  "page_count": 0,
+  "release_date": "2026-06-07"
+ },
+ {
+  "id": "n337",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 337: Salt",
+  "number": 337,
+  "page_count": 0,
+  "release_date": "2026-06-08"
+ },
+ {
+  "id": "n338",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 338: Ash",
+  "number": 338,
+  "page_count": 0,
+  "release_date": "2026-06-09"
+ },
+ {
+  "id": "n339",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 339: Rain",
+  "number": 339,
+  "page_count": 0,
+  "release_date": "2026-06-10"
+ },
+ {
+  "id": "n340",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 340: The Well",
+  "number": 340,
+  "page_count": 0,
+  "release_date": "2026-06-11"
+ },
+ {
+  "id": "n341",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 341: The Ferry",
+  "number": 341,
+  "page_count": 0,
+  "release_date": "2026-06-12"
+ },
+ {
+  "id": "n342",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 342: Salt",
+  "number": 342,
+  "page_count": 0,
+  "release_date": "2026-06-13"
+ },
+ {
+  "id": "n343",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 343: Ash",
+  "number": 343,
+  "page_count": 0,
+  "release_date": "2026-06-14"
+ },
+ {
+  "id": "n344",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 344: Rain",
+  "number": 344,
+  "page_count": 0,
+  "release_date": "2026-06-15"
+ },
+ {
+  "id": "n345",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 345: The Well",
+  "number": 345,
+  "page_count": 0,
+  "release_date": "2026-06-16"
+ },
+ {
+  "id": "n346",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 346: The Ferry",
+  "number": 346,
+  "page_count": 0,
+  "release_date": "2026-06-17"
+ },
+ {
+  "id": "n347",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 347: Salt",
+  "number": 347,
+  "page_count": 0,
+  "release_date": "2026-06-18"
+ },
+ {
+  "id": "n348",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 348: Ash",
+  "number": 348,
+  "page_count": 0,
+  "release_date": "2026-06-19"
+ },
+ {
+  "id": "n349",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 349: Rain",
+  "number": 349,
+  "page_count": 0,
+  "release_date": "2026-06-20"
+ },
+ {
+  "id": "n350",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 350: The Well",
+  "number": 350,
+  "page_count": 0,
+  "release_date": "2026-06-21"
+ },
+ {
+  "id": "n351",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 351: The Ferry",
+  "number": 351,
+  "page_count": 0,
+  "release_date": "2026-06-22"
+ },
+ {
+  "id": "n352",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 352: Salt",
+  "number": 352,
+  "page_count": 0,
+  "release_date": "2026-06-23"
+ },
+ {
+  "id": "n353",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 353: Ash",
+  "number": 353,
+  "page_count": 0,
+  "release_date": "2026-06-24"
+ },
+ {
+  "id": "n354",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 354: Rain",
+  "number": 354,
+  "page_count": 0,
+  "release_date": "2026-06-25"
+ },
+ {
+  "id": "n355",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 355: The Well",
+  "number": 355,
+  "page_count": 0,
+  "release_date": "2026-06-26"
+ },
+ {
+  "id": "n356",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 356: The Ferry",
+  "number": 356,
+  "page_count": 0,
+  "release_date": "2026-06-27"
+ },
+ {
+  "id": "n357",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 357: Salt",
+  "number": 357,
+  "page_count": 0,
+  "release_date": "2026-06-28"
+ },
+ {
+  "id": "n358",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 358: Ash",
+  "number": 358,
+  "page_count": 0,
+  "release_date": "2026-06-29"
+ },
+ {
+  "id": "n359",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 359: Rain",
+  "number": 359,
+  "page_count": 0,
+  "release_date": "2026-06-30"
+ },
+ {
+  "id": "n360",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 360: The Well",
+  "number": 360,
+  "page_count": 0,
+  "release_date": "2026-07-01"
+ },
+ {
+  "id": "n361",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 361: The Ferry",
+  "number": 361,
+  "page_count": 0,
+  "release_date": "2026-07-02"
+ },
+ {
+  "id": "n362",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 362: Salt",
+  "number": 362,
+  "page_count": 0,
+  "release_date": "2026-07-03"
+ },
+ {
+  "id": "n363",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 363: Ash",
+  "number": 363,
+  "page_count": 0,
+  "release_date": "2026-07-04"
+ },
+ {
+  "id": "n364",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 364: Rain",
+  "number": 364,
+  "page_count": 0,
+  "release_date": "2026-07-05"
+ },
+ {
+  "id": "n365",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 365: The Well",
+  "number": 365,
+  "page_count": 0,
+  "release_date": "2026-07-06"
+ },
+ {
+  "id": "n366",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 366: The Ferry",
+  "number": 366,
+  "page_count": 0,
+  "release_date": "2026-07-07"
+ },
+ {
+  "id": "n367",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 367: Salt",
+  "number": 367,
+  "page_count": 0,
+  "release_date": "2026-07-08"
+ },
+ {
+  "id": "n368",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 368: Ash",
+  "number": 368,
+  "page_count": 0,
+  "release_date": "2026-07-09"
+ },
+ {
+  "id": "n369",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 369: Rain",
+  "number": 369,
+  "page_count": 0,
+  "release_date": "2026-07-10"
+ },
+ {
+  "id": "n370",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 370: The Well",
+  "number": 370,
+  "page_count": 0,
+  "release_date": "2026-07-11"
+ },
+ {
+  "id": "n371",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 371: The Ferry",
+  "number": 371,
+  "page_count": 0,
+  "release_date": "2026-07-12"
+ },
+ {
+  "id": "n372",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 372: Salt",
+  "number": 372,
+  "page_count": 0,
+  "release_date": "2026-07-13"
+ },
+ {
+  "id": "n373",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 373: Ash",
+  "number": 373,
+  "page_count": 0,
+  "release_date": "2026-07-14"
+ },
+ {
+  "id": "n374",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 374: Rain",
+  "number": 374,
+  "page_count": 0,
+  "release_date": "2026-07-15"
+ },
+ {
+  "id": "n375",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 375: The Well",
+  "number": 375,
+  "page_count": 0,
+  "release_date": "2026-07-16"
+ },
+ {
+  "id": "n376",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 376: The Ferry",
+  "number": 376,
+  "page_count": 0,
+  "release_date": "2026-07-17"
+ },
+ {
+  "id": "n377",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 377: Salt",
+  "number": 377,
+  "page_count": 0,
+  "release_date": "2026-07-18"
+ },
+ {
+  "id": "n378",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 378: Ash",
+  "number": 378,
+  "page_count": 0,
+  "release_date": "2026-07-19"
+ },
+ {
+  "id": "n379",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 379: Rain",
+  "number": 379,
+  "page_count": 0,
+  "release_date": "2026-07-20"
+ },
+ {
+  "id": "n380",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 380: The Well",
+  "number": 380,
+  "page_count": 0,
+  "release_date": "2026-07-21"
+ },
+ {
+  "id": "n381",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 381: The Ferry",
+  "number": 381,
+  "page_count": 0,
+  "release_date": "2026-07-22"
+ },
+ {
+  "id": "n382",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 382: Salt",
+  "number": 382,
+  "page_count": 0,
+  "release_date": "2026-07-23"
+ },
+ {
+  "id": "n383",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 383: Ash",
+  "number": 383,
+  "page_count": 0,
+  "release_date": "2026-07-24"
+ },
+ {
+  "id": "n384",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 384: Rain",
+  "number": 384,
+  "page_count": 0,
+  "release_date": "2026-07-25"
+ },
+ {
+  "id": "n385",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 385: The Well",
+  "number": 385,
+  "page_count": 0,
+  "release_date": "2026-07-26"
+ },
+ {
+  "id": "n386",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 386: The Ferry",
+  "number": 386,
+  "page_count": 0,
+  "release_date": "2026-07-27"
+ },
+ {
+  "id": "n387",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 387: Salt",
+  "number": 387,
+  "page_count": 0,
+  "release_date": "2026-07-28"
+ },
+ {
+  "id": "n388",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 388: Ash",
+  "number": 388,
+  "page_count": 0,
+  "release_date": "2026-07-29"
+ },
+ {
+  "id": "n389",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 389: Rain",
+  "number": 389,
+  "page_count": 0,
+  "release_date": "2026-07-30"
+ },
+ {
+  "id": "n390",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 390: The Well",
+  "number": 390,
+  "page_count": 0,
+  "release_date": "2026-07-31"
+ },
+ {
+  "id": "n391",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 391: The Ferry",
+  "number": 391,
+  "page_count": 0,
+  "release_date": "2026-08-01"
+ },
+ {
+  "id": "n392",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 392: Salt",
+  "number": 392,
+  "page_count": 0,
+  "release_date": "2026-08-02"
+ },
+ {
+  "id": "n393",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 393: Ash",
+  "number": 393,
+  "page_count": 0,
+  "release_date": "2026-08-03"
+ },
+ {
+  "id": "n394",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 394: Rain",
+  "number": 394,
+  "page_count": 0,
+  "release_date": "2026-08-04"
+ },
+ {
+  "id": "n395",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 395: The Well",
+  "number": 395,
+  "page_count": 0,
+  "release_date": "2026-08-05"
+ },
+ {
+  "id": "n396",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 396: The Ferry",
+  "number": 396,
+  "page_count": 0,
+  "release_date": "2026-08-06"
+ },
+ {
+  "id": "n397",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 397: Salt",
+  "number": 397,
+  "page_count": 0,
+  "release_date": "2026-08-07"
+ },
+ {
+  "id": "n398",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 398: Ash",
+  "number": 398,
+  "page_count": 0,
+  "release_date": "2026-08-08"
+ },
+ {
+  "id": "n399",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 399: Rain",
+  "number": 399,
+  "page_count": 0,
+  "release_date": "2026-08-09"
+ },
+ {
+  "id": "n400",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 400: The Well",
+  "number": 400,
+  "page_count": 0,
+  "release_date": "2026-08-10"
+ },
+ {
+  "id": "n401",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 401: The Ferry",
+  "number": 401,
+  "page_count": 0,
+  "release_date": "2026-08-11"
+ },
+ {
+  "id": "n402",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 402: Salt",
+  "number": 402,
+  "page_count": 0,
+  "release_date": "2026-08-12"
+ },
+ {
+  "id": "n403",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 403: Ash",
+  "number": 403,
+  "page_count": 0,
+  "release_date": "2026-08-13"
+ },
+ {
+  "id": "n404",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 404: Rain",
+  "number": 404,
+  "page_count": 0,
+  "release_date": "2026-08-14"
+ },
+ {
+  "id": "n405",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 405: The Well",
+  "number": 405,
+  "page_count": 0,
+  "release_date": "2026-08-15"
+ },
+ {
+  "id": "n406",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 406: The Ferry",
+  "number": 406,
+  "page_count": 0,
+  "release_date": "2026-08-16"
+ },
+ {
+  "id": "n407",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 407: Salt",
+  "number": 407,
+  "page_count": 0,
+  "release_date": "2026-08-17"
+ },
+ {
+  "id": "n408",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 408: Ash",
+  "number": 408,
+  "page_count": 0,
+  "release_date": "2026-08-18"
+ },
+ {
+  "id": "n409",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 409: Rain",
+  "number": 409,
+  "page_count": 0,
+  "release_date": "2026-08-19"
+ },
+ {
+  "id": "n410",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 410: The Well",
+  "number": 410,
+  "page_count": 0,
+  "release_date": "2026-08-20"
+ },
+ {
+  "id": "n411",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 411: The Ferry",
+  "number": 411,
+  "page_count": 0,
+  "release_date": "2026-08-21"
+ },
+ {
+  "id": "n412",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 412: Salt",
+  "number": 412,
+  "page_count": 0,
+  "release_date": "2026-08-22"
+ },
+ {
+  "id": "n413",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 413: Ash",
+  "number": 413,
+  "page_count": 0,
+  "release_date": "2026-08-23"
+ },
+ {
+  "id": "n414",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 414: Rain",
+  "number": 414,
+  "page_count": 0,
+  "release_date": "2026-08-24"
+ },
+ {
+  "id": "n415",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 415: The Well",
+  "number": 415,
+  "page_count": 0,
+  "release_date": "2026-08-25"
+ },
+ {
+  "id": "n416",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 416: The Ferry",
+  "number": 416,
+  "page_count": 0,
+  "release_date": "2026-08-26"
+ },
+ {
+  "id": "n417",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 417: Salt",
+  "number": 417,
+  "page_count": 0,
+  "release_date": "2026-08-27"
+ },
+ {
+  "id": "n418",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 418: Ash",
+  "number": 418,
+  "page_count": 0,
+  "release_date": "2026-08-28"
+ },
+ {
+  "id": "n419",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 419: Rain",
+  "number": 419,
+  "page_count": 0,
+  "release_date": "2026-08-29"
+ },
+ {
+  "id": "n420",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 420: The Well",
+  "number": 420,
+  "page_count": 0,
+  "release_date": "2026-08-30"
+ },
+ {
+  "id": "n421",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 421: The Ferry",
+  "number": 421,
+  "page_count": 0,
+  "release_date": "2026-08-31"
+ },
+ {
+  "id": "n422",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 422: Salt",
+  "number": 422,
+  "page_count": 0,
+  "release_date": "2026-09-01"
+ },
+ {
+  "id": "n423",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 423: Ash",
+  "number": 423,
+  "page_count": 0,
+  "release_date": "2026-09-02"
+ },
+ {
+  "id": "n424",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 424: Rain",
+  "number": 424,
+  "page_count": 0,
+  "release_date": "2026-09-03"
+ },
+ {
+  "id": "n425",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 425: The Well",
+  "number": 425,
+  "page_count": 0,
+  "release_date": "2026-09-04"
+ },
+ {
+  "id": "n426",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 426: The Ferry",
+  "number": 426,
+  "page_count": 0,
+  "release_date": "2026-09-05"
+ },
+ {
+  "id": "n427",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 427: Salt",
+  "number": 427,
+  "page_count": 0,
+  "release_date": "2026-09-06"
+ },
+ {
+  "id": "n428",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 428: Ash",
+  "number": 428,
+  "page_count": 0,
+  "release_date": "2026-09-07"
+ },
+ {
+  "id": "n429",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 429: Rain",
+  "number": 429,
+  "page_count": 0,
+  "release_date": "2026-09-08"
+ },
+ {
+  "id": "n430",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 430: The Well",
+  "number": 430,
+  "page_count": 0,
+  "release_date": "2026-09-09"
+ },
+ {
+  "id": "n431",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 431: The Ferry",
+  "number": 431,
+  "page_count": 0,
+  "release_date": "2026-09-10"
+ },
+ {
+  "id": "n432",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 432: Salt",
+  "number": 432,
+  "page_count": 0,
+  "release_date": "2026-09-11"
+ },
+ {
+  "id": "n433",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 433: Ash",
+  "number": 433,
+  "page_count": 0,
+  "release_date": "2026-09-12"
+ },
+ {
+  "id": "n434",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 434: Rain",
+  "number": 434,
+  "page_count": 0,
+  "release_date": "2026-09-13"
+ },
+ {
+  "id": "n435",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 435: The Well",
+  "number": 435,
+  "page_count": 0,
+  "release_date": "2026-09-14"
+ },
+ {
+  "id": "n436",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 436: The Ferry",
+  "number": 436,
+  "page_count": 0,
+  "release_date": "2026-09-15"
+ },
+ {
+  "id": "n437",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 437: Salt",
+  "number": 437,
+  "page_count": 0,
+  "release_date": "2026-09-16"
+ },
+ {
+  "id": "n438",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 438: Ash",
+  "number": 438,
+  "page_count": 0,
+  "release_date": "2026-09-17"
+ },
+ {
+  "id": "n439",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 439: Rain",
+  "number": 439,
+  "page_count": 0,
+  "release_date": "2026-09-18"
+ },
+ {
+  "id": "n440",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 440: The Well",
+  "number": 440,
+  "page_count": 0,
+  "release_date": "2026-09-19"
+ },
+ {
+  "id": "n441",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 441: The Ferry",
+  "number": 441,
+  "page_count": 0,
+  "release_date": "2026-09-20"
+ },
+ {
+  "id": "n442",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 442: Salt",
+  "number": 442,
+  "page_count": 0,
+  "release_date": "2026-09-21"
+ },
+ {
+  "id": "n443",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 443: Ash",
+  "number": 443,
+  "page_count": 0,
+  "release_date": "2026-09-22"
+ },
+ {
+  "id": "n444",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 444: Rain",
+  "number": 444,
+  "page_count": 0,
+  "release_date": "2026-09-23"
+ },
+ {
+  "id": "n445",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 445: The Well",
+  "number": 445,
+  "page_count": 0,
+  "release_date": "2026-09-24"
+ },
+ {
+  "id": "n446",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 446: The Ferry",
+  "number": 446,
+  "page_count": 0,
+  "release_date": "2026-09-25"
+ },
+ {
+  "id": "n447",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 447: Salt",
+  "number": 447,
+  "page_count": 0,
+  "release_date": "2026-09-26"
+ },
+ {
+  "id": "n448",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 448: Ash",
+  "number": 448,
+  "page_count": 0,
+  "release_date": "2026-09-27"
+ },
+ {
+  "id": "n449",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 449: Rain",
+  "number": 449,
+  "page_count": 0,
+  "release_date": "2026-09-28"
+ },
+ {
+  "id": "n450",
+  "source_id": "standardebooks",
+  "series_id": "dustland-novel",
+  "title": "Chapter 450: The Well",
+  "number": 450,
+  "page_count": 0,
+  "release_date": "2026-09-29"
+ }
+]

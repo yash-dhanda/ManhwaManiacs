@@ -172,7 +172,7 @@ export interface SeriesPatch {
   is_favorite?: boolean;
   reading_status?: string;
   notify?: boolean;
-  mature_override?: boolean;
+  mature_override?: boolean | null;
   sort_order?: number;
 }
 

@@ -1,0 +1,23 @@
+{
+ "source_id": "mangapill",
+ "series_key": "9748/dustland",
+ "chapter_key": "c1",
+ "chapter_number": 1,
+ "page_count": 2,
+ "pages": [
+  {
+   "number": 1,
+   "url": "/api/cover.svg",
+   "width": 720,
+   "height": 1080
+  },
+  {
+   "number": 2,
+   "url": "/api/cover.svg",
+   "width": 720,
+   "height": 1080
+  }
+ ],
+ "prev": null,
+ "next": "c2"
+}

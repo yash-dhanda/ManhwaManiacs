@@ -1,3 +1,5 @@
+import 'package:manhwamaniacs/features/downloads/utils/download_mark.dart';
+
 /// Fixture data for the primitives gallery: invented titles, procedural demo covers, no 18+ art and
 /// no real profile names.
 const List<String> kGalleryCovers = [
@@ -23,3 +25,19 @@ String galleryCover(int i) => kGalleryCovers[i % kGalleryCovers.length];
 String galleryTitle(int i) => kGalleryTitles[i % kGalleryTitles.length];
 
 const List<String> kGalleryGenres = ['Romance', 'Action', 'Fantasy', 'Slice of life', 'Horror'];
+
+/// Invented gallery data for the series-page primitives.
+const List<(String, DownloadMarkState)> galleryMarks = [
+  ('NONE', MarkNone()),
+  ('QUEUED', MarkQueued()),
+  ('30%', MarkDownloading(0.3)),
+  ('SAVED', MarkSaved()),
+  ('FAILED', MarkFailed()),
+  ('PAUSED', MarkPaused()),
+  ('STALE', MarkStale()),
+];
+
+const String galleryBlurb =
+    'A salt trader walks the old road between two drowned cities, and every well she passes '
+    'has a different story about what the sea took. She keeps a ledger of them. The ledger, '
+    'she slowly realises, is keeping her.';

@@ -1,0 +1,75 @@
+/* Cinematic motion (cinematic §4, §10, §14.1, §15.6). Registered names feed design/lint-utilities.mjs. */
+@theme {
+  --animate-caret-out: caret-out 3340ms steps(1) forwards;
+  @keyframes caret-out {
+    0% { opacity: 0; }
+    15.87% { opacity: 1; }
+    31.74% { opacity: 0; }
+    47.60% { opacity: 1; }
+    63.47% { opacity: 0; }
+    79.34% { opacity: 1; }
+    95.21% { opacity: 1; animation-timing-function: linear; }
+    100% { opacity: 0; }
+  }
+  --animate-flicker: flicker 1400ms var(--mm-ease-drift) alternate infinite;
+  @keyframes flicker {
+    from { opacity: 0.55; }
+    to { opacity: 1; }
+  }
+  --animate-drift: drift 26s var(--mm-ease-drift) alternate infinite;
+  @keyframes drift {
+    from { transform: scale(1) translate(0, 0); }
+    to { transform: scale(1.06) translate(-1%, -1.5%); }
+  }
+  --animate-loop-rule: loop-rule 1200ms linear infinite;
+  @keyframes loop-rule {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(400%); }
+  }
+  --animate-leader: leader 1000ms linear infinite;
+  @keyframes leader {
+    from { transform: rotate(0turn); }
+    to { transform: rotate(1turn); }
+  }
+  --animate-grain: grain 333ms steps(4) infinite;
+  @keyframes grain {
+    0% { background-position: 0 0; }
+    25% { background-position: -64px 32px; }
+    50% { background-position: 48px -96px; }
+    75% { background-position: -128px -16px; }
+    100% { background-position: 0 0; }
+  }
+}
+
+/* Heading hover wipe (§10.1.5). */
+a:hover .set-letter, .set-heading-link:hover .set-letter {
+  color: var(--mm-color-spot);
+  transition: color 200ms var(--mm-ease-set) calc(var(--i) * 10ms);
+}
+.set-letter { transition: color 160ms var(--mm-ease-set); }
+
+/* Primary-button hover rule: scaleX 0 -> 1 from the left, 240 ms settle in, 160 ms lift out (§7.1). */
+.cine-hover-rule { transform: scaleX(0); transform-origin: left; transition: transform 160ms var(--mm-ease-lift); }
+ .cine-hoverable:hover .cine-hover-rule, .cine-hoverable:focus-visible .cine-hover-rule { transform: scaleX(1); transition: transform 240ms var(--mm-ease-settle); }
+
+/* Off-screen pause (§15.6): an IntersectionObserver sets data-offscreen. */
+[data-offscreen="true"] { animation-play-state: paused !important; }
+
+/* Reduced motion (§4.8): the OS setting and the profile stamp. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-flicker { animation: none; opacity: 0.8; }
+  .animate-drift { animation: none; transform: scale(1.03); }
+  .animate-grain { animation: none; }
+  .cine-hover-rule { transform: scaleX(1); transition: none; }
+  .cine-zoom, .cine-zoom:hover { transform: none !important; }
+}
+html[data-motion="reduced"] .animate-flicker { animation: none; opacity: 0.8; }
+html[data-motion="reduced"] .animate-drift { animation: none; transform: scale(1.03); }
+html[data-motion="reduced"] .animate-grain { animation: none; }
+html[data-motion="reduced"] .cine-hover-rule { transform: scaleX(1); transition: none; }
+html[data-motion="reduced"] .cine-zoom, html[data-motion="reduced"] .cine-zoom:hover { transform: none !important; }
+/* animate-loop-rule, animate-leader and the button loading segment keep running (§14.1 essential progress). */
+
+@keyframes slug-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@keyframes cine-fade { from { opacity: 0; } to { opacity: 1; } }
