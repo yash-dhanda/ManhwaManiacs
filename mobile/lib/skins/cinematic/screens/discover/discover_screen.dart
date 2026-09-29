@@ -15,6 +15,7 @@ import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/discover_scope.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/ask_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -26,10 +27,6 @@ import 'package:manhwamaniacs/skins/cinematic/screens/discover/index_field_heade
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/skin_haptics.dart';
-
-/// The third tap on the Discover thumb-index tab bumps this; the screen
-/// focuses its field. TODO(mobile/06): the shell owns the real signal.
-final discoverFocusSignalProvider = StateProvider<int>((ref) => 0);
 
 /// `/search`: index field, scopes, idle page, tiered results, ASK.
 class DiscoverScreen extends ConsumerStatefulWidget {
@@ -154,7 +151,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   @override
   Widget build(BuildContext context) {
     final t = context.cine;
-    ref.listen(discoverFocusSignalProvider, (_, __) => _field.requestFocus());
+    ref.listen(focusSearchSignalProvider, (_, __) => _field.requestFocus());
     final ai =
         ref.watch(suggestAvailabilityProvider).valueOrNull?.available ?? false;
     final dialogue = ref.watch(ocrFeatureVisibleProvider) &&

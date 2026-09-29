@@ -66,9 +66,11 @@ Fix pass 2:
   Cinematic `ScreenId.reader` is still `PENDING` (mobile/12). The host, resolver, toast and `BubblePulse` are built
   and tested standalone; the Dialogue screen sets `dialogueJumpProvider` and pushes `Routes.reader`. Mount the host
   when mobile/12 lands. The bubble pulse proof is a painted page, not the real reader.
-- Third Discover tap focuses the field: `discoverFocusSignalProvider` is the local stand-in; bind it to the mobile/06
-  shell's focus-search signal.
-- Dip entry (`enterReader(entry: dip)`) waits for mobile/06.
+- Done after mobile/06 landed: the four screens are registered in `screens.dart` and off `PENDING`; Discover
+  listens to the shell's `focusSearchSignalProvider`; Dialogue hits use `enterReader(entry: dip)`; the sheets use the real
+  `CineSheetRoute`; 429 waits read `ApiError.retryAfter` (`retryAfterSeconds` in `ai_copy.dart`, `details.retry_after` kept as fallback).
+- Remaining stand-ins for mobile/04 and mobile/05 primitives (`cine_kit.dart`, `cine_extras.dart`, `cine_poster.dart`) keep their
+  DESIGN values and `TODO(mobile/NN)` markers; swapping each for the shared primitive is a follow-up.
 
 ## Deviations (each with its reason)
 

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/currently_open_chapter_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_stamper.dart';
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/retention_maintenance_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/storage_settings_provider.dart';
@@ -118,6 +119,8 @@ class _DownloadsLifecycleGateState extends ConsumerState<DownloadsLifecycleGate>
     // Both read now, while this state is certainly mounted.
     final backfill = ref.read(sourceProgressBackfillProvider);
     final outbox = ref.read(progressOutboxControllerProvider);
+    final stamper = ref.read(matureStamperProvider);
+    await stamper.restampMissing();
     await backfill.run();
     await outbox.flush();
   }

@@ -6,12 +6,16 @@ import 'package:manhwamaniacs/core/network/dio_client.dart';
 import 'package:manhwamaniacs/core/utils/haptics.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
+import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
+import 'package:manhwamaniacs/features/downloads/providers/downloaded_series_provider.dart';
+import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_audio_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
 import 'package:manhwamaniacs/features/settings/repositories/mature_settings_repository.dart';
@@ -156,6 +160,18 @@ final List<void Function(Ref ref)> matureScopedInvalidators = [
   // the gate leaves adult titles on screen until the next submit — and the
   // next submit is a paid request nobody is obliged to make.
   (ref) => ref.invalidate(suggestionsProvider),
+  // Downloads + narration saves are filtered by the gate on read (mobile-downloads). They watch
+  // the gate through this controller, so `ref.invalidate` would be a circular dependency:
+  // go through the container.
+  (ref) => ref.container.invalidate(downloadedSeriesProvider),
+  (ref) => ref.container.invalidate(downloadedShelfProvider),
+  (ref) => ref.container.invalidate(activeDownloadQueueProvider),
+  (ref) => ref.container.invalidate(activeDownloadCountProvider),
+  (ref) => ref.container.invalidate(seriesChapterDownloadStatusProvider),
+  (ref) => ref.container.invalidate(seriesNarrationStatusProvider),
+  (ref) => ref.container.invalidate(seriesActiveChapterProgressProvider),
+  (ref) => ref.container.invalidate(savedNarrationProvider),
+  (ref) => ref.container.invalidate(unplayableNarrationSavesProvider),
 ];
 
 // ── Theme ────────────────────────────────────────────────────────────────
@@ -392,6 +408,14 @@ final setupCompletedProvider = Provider<bool>(
   (ref) => ref.watch(preferencesProvider).setupCompleted,
   name: 'setupCompleted',
 );
+
+/// Drops every gated cache after a per-series `mature_override` change
+/// (true, false or clear): the shelf and updates rows were served through the gate.
+final matureOverrideChangedProvider = Provider<void Function()>((ref) => () {
+      for (final invalidate in matureScopedInvalidators) {
+        invalidate(ref);
+      }
+    },);
 
 /// Providers invalidated by [SettingsActions.clearMetadataCache], exposed
 /// separately so tests can verify the exact set without invoking the whole

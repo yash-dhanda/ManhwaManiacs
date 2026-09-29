@@ -5,6 +5,8 @@ import 'package:manhwamaniacs/app/theme/app_metrics.dart';
 import 'package:manhwamaniacs/app/theme/preset_controller.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_stamper.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
 import 'package:manhwamaniacs/features/library/models/library_list_state.dart';
@@ -93,8 +95,8 @@ final libraryListProvider =
 /// The name is deliberately unchanged: `profileScopedInvalidators` and the
 /// settings metadata-cache invalidators both drop this provider by name when
 /// the active profile or the server changes.
-final searchListProvider =
-    AsyncNotifierProvider.autoDispose<SearchListNotifier, GroupedSearchResult>(
+final searchListProvider = AsyncNotifierProvider.autoDispose<SearchListNotifier,
+    GroupedSearchResult>(
   SearchListNotifier.new,
   name: 'searchList',
 );
@@ -103,8 +105,7 @@ final searchListProvider =
 ///
 /// Filtering lives here rather than in the screen so the chip counts and the
 /// list can never disagree.
-final visibleSearchGroupsProvider =
-    Provider.autoDispose<List<SourceSearchGroup>>(
+final visibleSearchGroupsProvider = Provider.autoDispose<List<SourceSearchGroup>>(
   (ref) {
     final result = ref.watch(searchListProvider).valueOrNull;
     if (result == null) return const [];
@@ -301,21 +302,18 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
   /// "Favorite selected" on an already-mixed selection doesn't needlessly
   /// re-toggle series that are already favorited), and only flips items in
   /// local state whose API call actually succeeded.
-  Future<void> batchSetFavorite(Set<int> followedIds,
-      {required bool favorite,}) async {
+  Future<void> batchSetFavorite(Set<int> followedIds, {required bool favorite}) async {
     final current = state.valueOrNull;
     if (current == null) return;
 
     final targets = current.items
-        .where((series) =>
-            followedIds.contains(series.id) && series.isFavorite != favorite,)
+        .where((series) => followedIds.contains(series.id) && series.isFavorite != favorite)
         .toList();
     if (targets.isEmpty) return;
 
     final repo = ref.read(libraryRepositoryProvider);
     final results = await Future.wait(
-      targets
-          .map((series) => repo.patchSeries(series.id, isFavorite: favorite)),
+      targets.map((series) => repo.patchSeries(series.id, isFavorite: favorite)),
     );
 
     final updatedById = <int, FollowedSeries>{
@@ -324,8 +322,9 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
     };
     if (updatedById.isEmpty) return;
 
-    final updatedItems =
-        current.items.map((s) => updatedById[s.id] ?? s).toList();
+    final updatedItems = current.items
+        .map((s) => updatedById[s.id] ?? s)
+        .toList();
 
     state = AsyncData(current.copyWith(items: updatedItems, clearError: true));
   }
@@ -383,6 +382,7 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
 
     if (authoritative) {
       await writeCachedFollowedSeries(prefs, key, items);
+      unawaited(ref.read(matureStamperProvider).restampMissing());
       return;
     }
     final merged = {
@@ -390,6 +390,7 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
       for (final series in items) series.id: series,
     };
     await writeCachedFollowedSeries(prefs, key, merged.values.toList());
+    unawaited(ref.read(matureStamperProvider).restampMissing());
   }
 
   /// The cached shelf, narrowed by the parts of [query] that can be honoured
@@ -402,8 +403,11 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
     final status = query.readingStatusParam;
 
     return [
-      for (final series
-          in readCachedFollowedSeries(ref.read(sharedPrefsProvider), key))
+      for (final series in readCachedFollowedSeries(
+        ref.read(sharedPrefsProvider),
+        key,
+        gateOpen: ref.read(matureGateOpenProvider),
+      ))
         if ((search.isEmpty || series.title.toLowerCase().contains(search)) &&
             (!query.favoritesOnly || series.isFavorite) &&
             (status == null || series.readingStatus == status))
@@ -602,8 +606,7 @@ class SearchListNotifier
   }
 }
 
-Future<({List<FollowedSeries> items, int total, bool hasNext})>
-    fetchLibraryListPage(
+Future<({List<FollowedSeries> items, int total, bool hasNext})> fetchLibraryListPage(
   Ref ref,
   LibraryQuery query,
   int page,

@@ -739,6 +739,14 @@ SOURCE_SCOPED_READS = [
             headers=h,
         ),
     ),
+    (
+        "/reader/panels",
+        lambda c, h: c.get(
+            "/reader/panels",
+            params={"source": MATURE_SRC, "series": "s1", "chapter": "c1"},
+            headers=h,
+        ),
+    ),
 ]
 
 
@@ -925,6 +933,7 @@ NOT_SERIES_DERIVED = {
     "/backup/status": "backup file sizes and timestamps",
     "/settings": "the gate's own value, per profile",
     "/profiles": "the caller's own profiles",
+    "/profiles/{profile_id}/taste": "the caller's own onboarding answers (genre names)",
     "/updates/settings": "the instance-wide sweep singleton",
     "/updates/runs": "admin-only; counts per sweep, no series identity",
     "/updates/runs/{run_id}": "admin-only; counts for one sweep",
@@ -956,10 +965,19 @@ WALKED_HERE = (
         "/library/collections",
         "/library/collections/{collection_id}",
         "/library/recommendations",
+        # walked by tests/test_home_feed.py::test_gate_change_recomposes_...
+        "/home",
         "/library/annual",
         "/library/statistics",
         "/library/tags",
         "/series/enrichment",
+        # walked by tests/test_ai_similar_tags.py, test_ai_recap_stream.py and
+        # test_taste_onboarding.py (gated 404 / gated items / gated genres)
+        "/ai/similar",
+        "/ai/tags",
+        "/ai/recap",
+        "/ai/recap/availability",
+        "/onboarding/catalog",
         "/updates/notifications/unread-count",
         "/sources/search",
         "/system/source-health",

@@ -29,4 +29,6 @@ CACHE_TABLES = (
     "source_browse_cache",
     "world_catalog_cache",
     "cover_palette",
+    "ai_result_cache",
+    "reader_page_annotations",
 )

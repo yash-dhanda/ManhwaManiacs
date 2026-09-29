@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { createContext, createElement, useContext, useSyncExternalStore, type ReactNode } from "react";
 
 export type GlassLayer = "controls" | "overlays" | "interruptions" | "hud";
 /** z layers 3 to 6 of DESIGN 2.4.1 */
@@ -16,7 +16,16 @@ export interface BudgetEntry {
   layer: GlassLayer;
   label: string;
   el: HTMLElement | null;
+  /** development galleries only: shown in the live count, never counted against GLASS_LIMIT */
+  exempt?: boolean;
 }
+
+/** Development galleries show many live specimens at once; screens never use this. */
+export const BudgetScopeContext = createContext<{ exempt: boolean; label?: string }>({ exempt: false });
+export function GlassBudgetScope({ exempt = false, label, children }: { exempt?: boolean; label?: string; children: ReactNode }) {
+  return createElement(BudgetScopeContext.Provider, { value: { exempt, label } }, children);
+}
+export const useBudgetScope = () => useContext(BudgetScopeContext);
 
 const overlap = (a: Rect, b: Rect) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
 
@@ -36,7 +45,7 @@ export function forcedSolidIds(items: readonly { id: string; layer: GlassLayer; 
 }
 
 const entries = new Map<string, BudgetEntry>();
-let counts = { glass: 0, scrims: 0 };
+let counts = { glass: 0, scrims: 0, exempt: 0 };
 let solid: ReadonlySet<string> = new Set();
 let warned = false;
 const listeners = new Set<() => void>();
@@ -48,14 +57,15 @@ function checkLimit() {
   if (counts.glass <= GLASS_LIMIT) { warned = false; return; }
   if (warned) return;
   warned = true;
-  console.warn(`[glass] ${counts.glass} live glass elements (limit ${GLASS_LIMIT}): ${[...entries.values()].filter((e) => e.kind === "glass").map((e) => e.label).join(", ")}`);
+  console.warn(`[glass] ${counts.glass} live glass elements (limit ${GLASS_LIMIT}): ${[...entries.values()].filter((e) => e.kind === "glass" && !e.exempt).map((e) => e.label).join(", ")}`);
 }
 
 function recompute() {
   const list = [...entries.values()];
   const glass = list.filter((e) => e.kind === "glass");
-  const next = { glass: glass.length, scrims: list.length - glass.length };
-  if (next.glass !== counts.glass || next.scrims !== counts.scrims) counts = next;
+  const exempt = glass.filter((e) => e.exempt).length;
+  const next = { glass: glass.length - exempt, scrims: list.length - glass.length, exempt };
+  if (next.glass !== counts.glass || next.scrims !== counts.scrims || next.exempt !== counts.exempt) counts = next;
   const rects = glass.flatMap((e) => (e.el ? [{ id: e.id, layer: e.layer, rect: e.el.getBoundingClientRect() }] : []));
   const f = forcedSolidIds(rects);
   if (f.size !== solid.size || [...f].some((id) => !solid.has(id))) solid = f;
@@ -78,4 +88,8 @@ export const useGlassCount = () => useSyncExternalStore(subscribe, () => counts,
 export const useForcedSolid = (id: string) => useSyncExternalStore(subscribe, () => solid.has(id), () => false);
 
 /** test hook */
-export const _resetBudget = () => { entries.clear(); counts = { glass: 0, scrims: 0 }; solid = new Set(); warned = false; };
+export const _resetBudget = () => { entries.clear(); counts = { glass: 0, scrims: 0, exempt: 0 }; solid = new Set(); warned = false; };
+
+/** dev/e2e hook: the live counts and the forced-solid ids */
+if (typeof window !== "undefined" && process.env.NODE_ENV !== "production")
+  (window as unknown as { __glassBudget?: () => unknown }).__glassBudget = () => ({ ...counts, solid: [...solid] });

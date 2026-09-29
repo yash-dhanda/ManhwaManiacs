@@ -1,0 +1,19 @@
+{
+ "chapters": [
+  {
+   "chapter_key": "n2",
+   "bytes": 1000,
+   "has_timing": true
+  },
+  {
+   "chapter_key": "n3",
+   "bytes": 1000,
+   "has_timing": true
+  }
+ ],
+ "narratable": [
+  "n2",
+  "n3"
+ ],
+ "can_render": true
+}

@@ -1,0 +1,47 @@
+import 'package:manhwamaniacs/features/profiles/models/profile.dart';
+import 'package:manhwamaniacs/skins/contract.g.dart';
+
+/// What the picker does after a profile is chosen (cinematic 8.5 steps 3 and 4).
+enum PickerOutcomeKind { home, onboarding, restartSkin }
+
+class PickerOutcome {
+  const PickerOutcome(this.kind, {this.route = '/'});
+  final PickerOutcomeKind kind;
+
+  /// Where `context.go` lands for [PickerOutcomeKind.home] and [PickerOutcomeKind.onboarding].
+  final String route;
+
+  @override
+  bool operator ==(Object other) => other is PickerOutcome && other.kind == kind && other.route == route;
+  @override
+  int get hashCode => Object.hash(kind, route);
+  @override
+  String toString() => 'PickerOutcome($kind, $route)';
+}
+
+PickerOutcome decidePickerOutcome({
+  required Profile profile,
+  required String runningSkin,
+  required bool glassAvailable,
+  required bool onboardingBuilt,
+}) {
+  final saved = profile.skin;
+  if (glassAvailable && saved != null && saved != runningSkin) {
+    return const PickerOutcome(PickerOutcomeKind.restartSkin);
+  }
+  if (profile.onboardingStep == null && onboardingBuilt) {
+    return PickerOutcome(PickerOutcomeKind.onboarding, route: Routes.onboarding({'step': glassAvailable ? 1 : 2}));
+  }
+  return const PickerOutcome(PickerOutcomeKind.home);
+}
+
+/// The credit line under a name: `NEW` until onboarding is done, never reading activity.
+String pickerCredit(Profile p) => p.onboardingStep != 'done' ? 'NEW' : '';
+
+/// The columns of avatars in one row by width (cinematic 8.0.9): phones use a 2-column grid of
+/// 112 px avatars, tablets a centred row up to four, from 900 px one row of 144 px (up to five).
+({double size, int perRow}) pickerGridFor(double width, int cells) {
+  if (width >= 900) return (size: 144, perRow: cells < 5 ? cells : 5);
+  if (width >= 600) return (size: 112, perRow: cells < 4 ? cells : 4);
+  return (size: 112, perRow: 2);
+}

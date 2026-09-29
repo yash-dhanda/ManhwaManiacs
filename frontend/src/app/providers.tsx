@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { KeyboardProvider } from "@/lib/keyboard";
+import { busyRetry, busyRetryDelay } from "@/lib/busy-retry";
 import { setStorageScope } from "@/lib/scoped-storage";
 import { isAuthQueryKey, isUnauthorizedError } from "@/features/auth/access";
 import { CURRENT_USER_QUERY_KEY, useCurrentUser } from "@/features/auth/hooks";
@@ -79,7 +80,8 @@ function createQueryClient(): QueryClient {
       queries: {
         staleTime: 30_000,
         refetchOnWindowFocus: false,
-        retry: 1,
+        retry: busyRetry,
+        retryDelay: busyRetryDelay,
       },
     },
   });

@@ -963,3 +963,60 @@ def test_the_service_cannot_reach_a_source_at_all():
                 "this service picks from the catalog cache and must never be "
                 "able to fan out to a source"
             )
+
+
+# --- backend/05: use_taste and content_kind ------------------------------------------------
+
+
+def _taste(db_session, uid, pid, **taste):
+    from database.models import ReadingProfile
+
+    db_session.get(ReadingProfile, pid).taste = json.dumps(
+        {"formats": ["manhwa"], "genres": {"Action": 2, "Romance": 1, "Horror": -1},
+         "styles": ["noir"], "seeds": [], **taste}
+    )
+    db_session.commit()
+
+
+def test_use_taste_false_leaves_the_prompt_byte_identical(service, shelf, captured, db_session, acct):
+    _fill_shelf(shelf)
+    _taste(db_session, *acct)
+    service.suggest("something dark", base_url="http://x/")
+    plain = captured["prompt"]
+    service.suggest("something dark", base_url="http://x/", use_taste=False)
+    assert captured["prompt"] == plain and "STATED TASTE" not in plain
+
+
+def test_use_taste_true_adds_one_labelled_block(service, shelf, captured, db_session, acct):
+    _fill_shelf(shelf)
+    _taste(db_session, *acct)
+    service.suggest("something dark", base_url="http://x/")
+    plain = captured["prompt"]
+    service.suggest("something dark", base_url="http://x/", use_taste=True)
+    assert captured["prompt"].startswith(plain)
+    block = captured["prompt"][len(plain):]
+    assert "STATED TASTE" in block and "Loves: Action" in block and "Likes: Romance" in block
+    assert "Skips: Horror" in block and "Art styles: noir" in block
+
+
+def test_use_taste_with_nothing_stated_changes_nothing(service, shelf, captured):
+    _fill_shelf(shelf)
+    service.suggest("x y z", base_url="http://x/")
+    plain = captured["prompt"]
+    service.suggest("x y z", base_url="http://x/", use_taste=True)
+    assert captured["prompt"] == plain
+
+
+def test_content_kind_novel_keeps_only_novel_rows(service, shelf, acct, monkeypatch):
+    from tests import _home_stubs
+
+    _home_stubs.install(monkeypatch)
+    for i in range(3):
+        shelf(f"m{i}", f"Manga {i}", ["action"], source_id="hm_manga")
+        shelf(f"n{i}", f"Novel {i}", ["action"], source_id="hm_novel")
+    taste = service._library.taste_profile()
+    novel = service.shelf("action", taste=taste, content_kind="novel")
+    assert {r["source_id"] for r in novel} == {"hm_novel"} and len(novel) == 3
+    manga = service.shelf("action", taste=taste, content_kind="manga")
+    assert {r["source_id"] for r in manga} == {"hm_manga"}
+    assert len(service.shelf("action", taste=taste)) == 6

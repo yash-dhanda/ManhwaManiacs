@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/browse_freshness.dart';
+import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/opening_state.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/top_button.dart';
@@ -526,9 +527,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
 
   int? _retrySeconds(Object? err) {
     if (err is ApiError && err.code == 'rate_limited') {
-      final after =
-          err.details is Map ? (err.details! as Map)['retry_after'] : null;
-      return after is num ? after.toInt() : 12;
+      return retryAfterSeconds(err) ?? 12;
     }
     return null;
   }

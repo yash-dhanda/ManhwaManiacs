@@ -41,16 +41,14 @@ class AskScope extends ConsumerWidget {
     if (state.hasError) {
       final copy = aiCopyForError(state.error!);
       final err = state.error;
-      final after = err is ApiError && err.details is Map
-          ? (err.details! as Map)['retry_after']
-          : null;
+      final after = err is ApiError ? retryAfterSeconds(err) : null;
       return CineNotice(
         kicker: copy.kicker,
         kickerColor: t.colorSpot,
         headline: copy.rateLimited ? 'Too many asks at once.' : copy.text,
         folio: copy.rateLimited
             ? RetryCountdown(
-                seconds: after is num ? after.toInt() : 12,
+                seconds: after ?? 12,
                 style: cineText(context, t.typeFolio, color: t.colorSpot),
               )
             : null,

@@ -10,22 +10,28 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/app/theme/app_theme.dart';
 import 'package:manhwamaniacs/app/theme/preset_controller.dart';
 import 'package:manhwamaniacs/app/theme/theme_controller.dart';
+import 'package:manhwamaniacs/core/diagnostics/debug_overlays.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/screens/dashboard_screen.dart';
 import 'package:manhwamaniacs/features/library/screens/statistics_screen.dart';
-
 import 'package:manhwamaniacs/features/settings/screens/theme_gallery_screen.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/gallery/overlays_gallery.dart';
+import 'package:manhwamaniacs/skins/cinematic/gallery/primitives_gallery.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/test_overrides.dart';
+import 'mobile_05_shots.dart';
+import 'mobile_06_shots.dart';
+import 'mobile_07_shots.dart';
+import 'mobile_11_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
 import 'support/shot_harness.dart';
@@ -61,6 +67,11 @@ void main() {
   setUpAll(loadAppFonts);
   setUpAll(setUpShotCoverCache);
 
+  // mobile-11: the Cinematic series page, Book page and chapter downloads.
+  group('mobile-11', mobile11Shots);
+  group('mobile-05', mobile05Shots);
+  group('mobile-06', mobile06Shots);
+  group('mobile-07', mobile07Shots);
   // Both skins at every proof size (mobile/03). Default: Tonight only, so the
   // plain suite stays fast; a proof run sets MM_PROOF_SCREENS and MM_PROOF_DIR.
   group('skins', () {
@@ -86,6 +97,79 @@ void main() {
       );
       expect(File('${dir.path}/plain-phone.png').existsSync(), isTrue);
     });
+  });
+
+
+  // Cinematic primitives gallery (mobile/04): one capture per section, grid off and on, plus
+  // reduced-motion and text-scale-2 variants of the four sections that reflow or animate most.
+  group('mobile-04', () {
+    const heights = {
+      'buttons': 1500.0,
+      'icon-buttons': 900.0,
+      'fields': 1700.0,
+      'search': 500.0,
+      'slug-lines': 900.0,
+      'cards': 3600.0,
+      'posters': 2200.0,
+      'rails': 2400.0,
+      'galleys': 800.0,
+      'progress': 1500.0,
+      'badges': 500.0,
+      'avatars': 800.0,
+      'keycaps': 300.0,
+      'masthead': 1100.0,
+      'layout': 1900.0,
+      'grain-duotone': 700.0,
+      'reveals': 800.0,
+      'motion-timings': 700.0,
+      // mobile-05 sections: captured open by the mobile-05 group; here only their resting page.
+      'sheets': 800.0,
+      'dialogs': 1000.0,
+      'toasts': 700.0,
+      'tabs': 900.0,
+      'rows': 4200.0,
+      'sliders': 900.0,
+      'toggles': 1100.0,
+      'menus': 700.0,
+      'notices': 1900.0,
+      'certificate': 700.0,
+      'other': 2600.0,
+      'lightbox': 500.0,
+      // mobile-06: captured by the mobile-06 group; here only their resting page.
+      'shell': 6400.0,
+      'shell-frames': 2600.0,
+      // mobile-07: captured by the mobile-07 group; here only its resting page.
+      'auth': 2400.0,
+    };
+    const variants = {'buttons', 'fields', 'rails', 'reveals'};
+    for (final size in kSkinShotSizes) {
+      for (final section in kGallerySections.where((s) => !kOverlayGallerySections.contains(s))) {
+        final tall = SkinShotSize(size.name, Size(size.logical.width, heights[section]!), size.pixelRatio, size.padding);
+        Future<void> shot(WidgetTester t, String name, {bool grid = false, bool reduced = false, double scale = 1.0, Future<void> Function(WidgetTester)? settle}) =>
+            captureSkinWidget(
+              t,
+              name: name,
+              size: tall,
+              disableAnimations: reduced,
+              textScale: scale,
+              settle: settle,
+              overrides: [if (grid) layoutGridOverlayProvider.overrideWith((ref) => true)],
+              child: MaterialApp(debugShowCheckedModeBanner: false, home: CinePrimitivesGalleryPage(section: section)),
+            );
+        testWidgets('mobile-04 $section ${size.name}', (t) => shot(t, section));
+        testWidgets('mobile-04 $section grid ${size.name}', (t) => shot(t, '$section-grid', grid: true));
+        if (variants.contains(section)) {
+          testWidgets('mobile-04 $section reduced ${size.name}', (t) => shot(t, '$section-reduced', reduced: true));
+          testWidgets('mobile-04 $section scale2 ${size.name}', (t) => shot(t, '$section-scale2', scale: 2.0));
+        }
+        if (section == 'reveals') {
+          testWidgets('mobile-04 reveals mid-reveal ${size.name}', (t) => shot(t, 'reveals-mid400', settle: (t) async {
+                await t.pump();
+                await t.pump(const Duration(milliseconds: 400));
+              },),);
+        }
+      }
+    }
   });
 
   testWidgets('library — the followed shelf', (tester) async {

@@ -4,7 +4,7 @@ import { PHOSPHOR } from "./icons/phosphor";
 
 type Props = {
   name: IconRole;
-  size?: 16 | 20 | 24 | 32;
+  size?: 16 | 20 | 24 | 28 | 32;
   filled?: boolean;
   label?: string;
   className?: string;

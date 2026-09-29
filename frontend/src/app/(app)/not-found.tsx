@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getSkin } from "@/skins/server";
+import CinematicNotFound from "@/skins/cinematic/screens/system/NotFound";
 import { GhostPillButton } from "@/components/premium/GhostPillButton";
 import { PrimaryPillButton } from "@/components/premium/PrimaryPillButton";
 import { StatusScreen } from "@/components/layout/status-screen";
@@ -13,7 +15,8 @@ export const metadata: Metadata = {
  * active profile's mood tint stay put — a mistyped URL should feel like a wrong
  * turn inside the app, not like leaving it.
  */
-export default function NotFound() {
+export default async function NotFound() {
+  if ((await getSkin()) === "cinematic") return <CinematicNotFound />;
   return (
     <StatusScreen
       code="404"

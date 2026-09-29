@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
+import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/dialogue_screen.dart';
@@ -157,7 +158,7 @@ void main() {
       await settle(tester);
       final c = ProviderScope.containerOf(tester.element(find.byType(DiscoverScreen)));
       expect(_fieldFocused(tester), isFalse);
-      c.read(discoverFocusSignalProvider.notifier).state++;
+      c.read(focusSearchSignalProvider.notifier).state++;
       await tester.pump();
       expect(_fieldFocused(tester), isTrue);
     });

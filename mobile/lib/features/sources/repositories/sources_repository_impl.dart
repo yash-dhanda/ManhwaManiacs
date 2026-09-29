@@ -4,6 +4,7 @@ import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
@@ -22,9 +23,8 @@ class SourcesRepositoryImpl implements SourcesRepository {
   Future<Result<List<SourceSummary>>> listSources() async {
     try {
       final r = await _dio.get<List<dynamic>>('/sources');
-      final items = (r.data ?? [])
-          .map((e) => SourceSummary.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final items =
+          (r.data ?? []).map((e) => SourceSummary.fromJson(e as Map<String, dynamic>)).toList();
       return Ok(items);
     } on DioException catch (e) {
       return Err(_err(e));
@@ -87,9 +87,8 @@ class SourcesRepositoryImpl implements SourcesRepository {
     }
   }
 
-  List<SourcePin> _parsePins(List<dynamic>? data) => (data ?? const [])
-      .map((e) => SourcePin.fromJson(e as Map<String, dynamic>))
-      .toList();
+  List<SourcePin> _parsePins(List<dynamic>? data) =>
+      (data ?? const []).map((e) => SourcePin.fromJson(e as Map<String, dynamic>)).toList();
 
   @override
   Future<Result<List<ReaderPage>>> getChapterPages(
@@ -262,6 +261,25 @@ class SourcesRepositoryImpl implements SourcesRepository {
         '/sources/$sourceId/series/${Uri.encodeComponent(seriesId)}/chapters/$chapterId/reader',
       );
       return Ok(ReaderChapter.fromJson(r.data!, _apiBaseUrl));
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async {
+    try {
+      final r = await _dio.get<Map<String, dynamic>?>(
+        '/series/enrichment',
+        queryParameters: {'source': sourceId, 'series': seriesKey},
+      );
+      final data = r.data;
+      return Ok(data == null ? null : SeriesEnrichment.fromJson(data));
     } on DioException catch (e) {
       return Err(_err(e));
     } catch (e) {

@@ -1,0 +1,8 @@
+               total        used        free      shared  buff/cache   available
+Mem:           31686       12806       15367         681        4950       18879
+Swap:          31685        7160       24525
+[38;5;196m└───────────────────────────────────────────────────────────────────────────────────────────────────[0m
+01:29 +2131: /home/yash/mm-dev/wt/L25/mobile/test/features/reader/reader_parity_golden_test.dart: reader parity goldens
+01:30 +2132: /home/yash/mm-dev/wt/L25/mobile/test/features/reader/reader_parity_golden_test.dart: reader parity goldens
+01:32 +2133: /home/yash/mm-dev/wt/L25/mobile/test/features/reader/reader_parity_golden_test.dart: (tearDownAll)
+01:32 +2133: All tests passed!

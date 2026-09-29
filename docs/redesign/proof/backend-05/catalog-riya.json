@@ -1,0 +1,1392 @@
+{
+    "formats": [
+        {
+            "format": "manhwa",
+            "covers": [
+                "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx106929-flAUvHZDUz5v.jpg",
+                "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx196874-uOCccjDZR8vj.jpg",
+                "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx180891-ZBbyOWSYI41R.jpg"
+            ]
+        }
+    ],
+    "genres": [
+        {
+            "name": "Drama",
+            "weight": 17
+        },
+        {
+            "name": "Romance",
+            "weight": 17
+        },
+        {
+            "name": "Fantasy",
+            "weight": 16
+        },
+        {
+            "name": "Action",
+            "weight": 15
+        },
+        {
+            "name": "Comedy",
+            "weight": 15
+        },
+        {
+            "name": "Harem",
+            "weight": 14
+        },
+        {
+            "name": "Historical",
+            "weight": 14
+        },
+        {
+            "name": "Horror",
+            "weight": 14
+        },
+        {
+            "name": "Mystery",
+            "weight": 14
+        },
+        {
+            "name": "Slice of Life",
+            "weight": 14
+        },
+        {
+            "name": "Sports",
+            "weight": 14
+        },
+        {
+            "name": "Supernatural",
+            "weight": 14
+        },
+        {
+            "name": "Adventure",
+            "weight": 13
+        },
+        {
+            "name": "Psychological",
+            "weight": 13
+        },
+        {
+            "name": "Martial Arts",
+            "weight": 12
+        },
+        {
+            "name": "Mature",
+            "weight": 12
+        },
+        {
+            "name": "School Life",
+            "weight": 12
+        },
+        {
+            "name": "Seinen",
+            "weight": 12
+        },
+        {
+            "name": "Ecchi",
+            "weight": 11
+        },
+        {
+            "name": "Gender Bender",
+            "weight": 11
+        },
+        {
+            "name": "Isekai",
+            "weight": 11
+        },
+        {
+            "name": "Sci-fi",
+            "weight": 11
+        },
+        {
+            "name": "Shounen",
+            "weight": 11
+        },
+        {
+            "name": "Tragedy",
+            "weight": 11
+        },
+        {
+            "name": "Yuri",
+            "weight": 11
+        },
+        {
+            "name": "Josei",
+            "weight": 10
+        },
+        {
+            "name": "Mecha",
+            "weight": 10
+        },
+        {
+            "name": "Shoujo",
+            "weight": 10
+        },
+        {
+            "name": "Thriller",
+            "weight": 10
+        },
+        {
+            "name": "Magic",
+            "weight": 9
+        },
+        {
+            "name": "Smut",
+            "weight": 8
+        },
+        {
+            "name": "Yaoi",
+            "weight": 8
+        },
+        {
+            "name": "Doujinshi",
+            "weight": 7
+        },
+        {
+            "name": "Manhwa",
+            "weight": 7
+        },
+        {
+            "name": "Reincarnation",
+            "weight": 7
+        },
+        {
+            "name": "Adult",
+            "weight": 6
+        },
+        {
+            "name": "Cooking",
+            "weight": 6
+        },
+        {
+            "name": "Demons",
+            "weight": 6
+        },
+        {
+            "name": "Military",
+            "weight": 6
+        },
+        {
+            "name": "Shoujo Ai",
+            "weight": 6
+        }
+    ],
+    "seeds": [
+        {
+            "anilist_id": 106929,
+            "title": "Eleceed",
+            "alt_titles": [
+                "\uc77c\ub809\uc2dc\ub4dc",
+                "Eleceed: Velocidad el\u00e9ctrica",
+                "\u89c9\u9192\u5427\uff0c\u94f2\u5c4e\u5b98\uff01",
+                "\u89ba\u9192\u5427\uff01\u8c93\u5974"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 420,
+            "rating": 8.5,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Comedy",
+                "Supernatural"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx106929-flAUvHZDUz5v.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Naver Webtoon",
+                    "url": "https://comic.naver.com/webtoon/list.nhn?titleId=717481"
+                },
+                {
+                    "site": "WEBTOON",
+                    "url": "https://www.webtoons.com/en/action/eleceed/list?title_no=1571"
+                },
+                {
+                    "site": "WEBTOON",
+                    "url": "https://www.webtoons.com/es/action/eleceed/list?title_no=2642"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/106929",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#47E5F5",
+                "tint": "#0A1415",
+                "ink": "#A0E7EE"
+            },
+            "palette": {
+                "a": [
+                    "#22E0F8",
+                    "#374B59",
+                    "#648094"
+                ],
+                "l": 0.348,
+                "lMax": 0.766
+            }
+        },
+        {
+            "anilist_id": 196874,
+            "title": "Barbarian's Adventure in a Fantasy World",
+            "alt_titles": [
+                "Fantasy Segye Song Babarian-euro Saragagi",
+                "\ud310\ud0c0\uc9c0 \uc138\uacc4 \uc18d \ubc14\ubc14\ub9ac\uc548\uc73c\ub85c \uc0b4\uc544\uac00\uae30",
+                "Surviving as a Barbarian in a Fantasy World"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 70,
+            "rating": 7.2,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx196874-uOCccjDZR8vj.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/67190826"
+                },
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://webtoon.kakao.com/content/\ud310\ud0c0\uc9c0-\uc138\uacc4-\uc18d-\ubc14\ubc14\ub9ac\uc548\uc73c\ub85c-\uc0b4\uc544\uac00\uae30/4572?tab=episode"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/barbarians-adventure-in-a-fantasy-world/info"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/196874",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#72B6CA",
+                "tint": "#0A1214",
+                "ink": "#B3D2DB"
+            },
+            "palette": {
+                "a": [
+                    "#2B2C3F",
+                    "#AEC4CE",
+                    "#AA8890"
+                ],
+                "l": 0.409,
+                "lMax": 0.921
+            }
+        },
+        {
+            "anilist_id": 180891,
+            "title": "Absolute Regression",
+            "alt_titles": [
+                "Jeoldaehoegwi",
+                "\uc808\ub300\ud68c\uadc0",
+                "\u7d55\u5c0d\u56de\u6b78",
+                "\u7edd\u5bf9\u56de\u5f52"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 121,
+            "rating": 8.2,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx180891-ZBbyOWSYI41R.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Naver Series",
+                    "url": "https://series.naver.com/comic/detail.series?productNo=11418449"
+                },
+                {
+                    "site": "Naver Webtoon",
+                    "url": "https://comic.naver.com/webtoon/list?titleId=828715"
+                },
+                {
+                    "site": "WEBTOON",
+                    "url": "https://www.webtoons.com/en/fantasy/absolute-regression/list?title_no=7004"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/180891",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#47DCF5",
+                "tint": "#0A1315",
+                "ink": "#A0E3EE"
+            },
+            "palette": {
+                "a": [
+                    "#182337",
+                    "#96F2FC",
+                    "#284463"
+                ],
+                "l": 0.314,
+                "lMax": 0.883
+            }
+        },
+        {
+            "anilist_id": 182066,
+            "title": "The Regressed Mercenary Has a Plan",
+            "alt_titles": [
+                "Hoegwihan Yongbyeongeun Da Gyehoegi Itda",
+                "\ud68c\uadc0\ud55c \uc6a9\ubcd1\uc740 \ub2e4 \uacc4\ud68d\uc774 \uc788\ub2e4",
+                "The Regressed Mercenary\u2019s Machinations",
+                "El mercenario que regres\u00f3 tiene un plan"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 108,
+            "rating": 8.1,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx182066-kqOV7WW1DAH4.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Naver Webtoon",
+                    "url": "https://comic.naver.com/webtoon/list?titleId=832557"
+                },
+                {
+                    "site": "Naver Series",
+                    "url": "https://series.naver.com/comic/detail.series?productNo=11634583"
+                },
+                {
+                    "site": "WEBTOON",
+                    "url": "https://www.webtoons.com/en/action/the-regressed-mercenary-has-a-plan/list?title_no=7261"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/182066",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#F5E547",
+                "tint": "#15140A",
+                "ink": "#EEE7A0"
+            },
+            "palette": {
+                "a": [
+                    "#CEBDA2",
+                    "#7D6569",
+                    "#B59C84"
+                ],
+                "l": 0.458,
+                "lMax": 0.844
+            }
+        },
+        {
+            "anilist_id": 175946,
+            "title": "Myst, Might, Mayhem",
+            "alt_titles": [
+                "Goeryeok Nansin",
+                "\uad34\ub825 \ub09c\uc2e0",
+                "The Chaotic God of Extraordinary Strength",
+                "\u602a\u529b \u4e82\u795e"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 118,
+            "rating": 8.3,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx175946-rx6eIfakvWYV.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Naver Webtoon",
+                    "url": "https://comic.naver.com/webtoon/list?titleId=821597"
+                },
+                {
+                    "site": "Naver Series",
+                    "url": "https://series.naver.com/comic/detail.series?productNo=10782038"
+                },
+                {
+                    "site": "WEBTOON",
+                    "url": "https://www.webtoons.com/th/fantasy/myst-might-mayhem/list?title_no=6511"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/175946",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#D061DB",
+                "tint": "#140A15",
+                "ink": "#E4A4EA"
+            },
+            "palette": {
+                "a": [
+                    "#281439",
+                    "#472446",
+                    "#52BAE2"
+                ],
+                "l": 0.215,
+                "lMax": 0.798
+            }
+        },
+        {
+            "anilist_id": 207089,
+            "title": "Became the Lout First Prince",
+            "alt_titles": [
+                "Mangnani 1-wangjaga Doeeotda",
+                "\ub9dd\ub098\ub2c8 1\uc655\uc790\uac00 \ub418\uc5c8\ub2e4",
+                "I Became the First Prince: Legend of Sword's Song",
+                "\u0e40\u0e21\u0e37\u0e48\u0e2d\u0e14\u0e32\u0e1a\u0e21\u0e32\u0e23\u0e44\u0e14\u0e49\u0e40\u0e1b\u0e47\u0e19\u0e40\u0e08\u0e49\u0e32\u0e0a\u0e32\u0e22"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 55,
+            "rating": 7.2,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx207089-BhTVeCdo6oOX.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/68486653"
+                },
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://webtoon.kakao.com/content/\ub9dd\ub098\ub2c8-1\uc655\uc790\uac00-\ub418\uc5c8\ub2e4/4758"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/became-the-lout-first-prince/info"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/207089",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#CA72B1",
+                "tint": "#150A12",
+                "ink": "#DBB3D0"
+            },
+            "palette": {
+                "a": [
+                    "#241721",
+                    "#997273",
+                    "#6D3E49"
+                ],
+                "l": 0.24,
+                "lMax": 0.887
+            }
+        },
+        {
+            "anilist_id": 159930,
+            "title": "The Infinite Mage",
+            "alt_titles": [
+                "Muhanui Mabeopsa",
+                "\ubb34\ud55c\uc758 \ub9c8\ubc95\uc0ac",
+                "Infinite Mage",
+                "\u7121\u9650\u306e\u9b54\u6cd5\u4f7f\u3044"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 187,
+            "rating": 7.8,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Drama",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx159930-qK1P4BNQL0zG.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/60910969"
+                },
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://webtoon.kakao.com/content/\ubb34\ud55c\uc758-\ub9c8\ubc95\uc0ac/3211"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/the-infinite-mage"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/159930",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#538BE9",
+                "tint": "#0A0E15",
+                "ink": "#A0BDEE"
+            },
+            "palette": {
+                "a": [
+                    "#09214F",
+                    "#6799BE",
+                    "#1C3F7D"
+                ],
+                "l": 0.301,
+                "lMax": 0.885
+            }
+        },
+        {
+            "anilist_id": 144957,
+            "title": "The World After the Fall",
+            "alt_titles": [
+                "Myeolmang Ihuui Segye",
+                "\uba78\ub9dd \uc774\ud6c4\uc758 \uc138\uacc4",
+                "The World After the End",
+                "\u0e2b\u0e25\u0e31\u0e07\u0e27\u0e31\u0e19\u0e2a\u0e34\u0e49\u0e19\u0e42\u0e25\u0e01"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 254,
+            "rating": 7.6,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx144957-h0qIwRwxOEdg.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Naver Series",
+                    "url": "https://series.naver.com/comic/detail.series?productNo=8144546"
+                },
+                {
+                    "site": "Naver Webtoon",
+                    "url": "https://comic.naver.com/webtoon/list?titleId=789979"
+                },
+                {
+                    "site": "WEBTOON",
+                    "url": "https://www.webtoons.com/en/action/the-world-after-the-fall/list?title_no=4011"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/144957",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#D8B964",
+                "tint": "#15120A",
+                "ink": "#E9D7A5"
+            },
+            "palette": {
+                "a": [
+                    "#623F29",
+                    "#2F1A11",
+                    "#8E6343"
+                ],
+                "l": 0.277,
+                "lMax": 0.93
+            }
+        },
+        {
+            "anilist_id": 183855,
+            "title": "The Bastard of Swordborne",
+            "alt_titles": [
+                "Hoegwigeomgaui Seojaga Saneun Beop",
+                "\ud68c\uadc0\uac80\uac00\uc758 \uc11c\uc790\uac00 \uc0ac\ub294 \ubc95",
+                "Regressing as the Reincarnated Bastard of the Sword Clan",
+                "\u30e9\u30b0\u30ca\u30fc\u30eb\uff5e\u56de\u5e30\u306e\u5263\u58eb\uff5e"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 114,
+            "rating": 7.4,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx183855-BbnSsUPiOVrM.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/65125886"
+                },
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://webtoon.kakao.com/content/\ud68c\uadc0\uac80\uac00\uc758-\uc11c\uc790\uac00-\uc0ac\ub294-\ubc95/4251"
+                },
+                {
+                    "site": "Piccoma",
+                    "url": "https://piccoma.com/web/product/174237"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/183855",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#6F96CD",
+                "tint": "#0A0E15",
+                "ink": "#ACC2E2"
+            },
+            "palette": {
+                "a": [
+                    "#1F2846",
+                    "#7D95C6",
+                    "#415083"
+                ],
+                "l": 0.291,
+                "lMax": 0.863
+            }
+        },
+        {
+            "anilist_id": 180890,
+            "title": "Shadow of the Supreme",
+            "alt_titles": [
+                "Cheonhajeirinui Sokkupchingu",
+                "\ucc9c\ud558\uc81c\uc77c\uc778\uc758 \uc18c\uafc9\uce5c\uad6c",
+                "Childhood Friend of the Zenith",
+                "The Best Childhood Friend in the World"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 108,
+            "rating": 7.5,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx180890-GRVR4m4ImzQN.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://webtoon.kakao.com/content/\ucc9c\ud558\uc81c\uc77c\uc778\uc758-\uc18c\uafc9\uce5c\uad6c/4175?tab=episode"
+                },
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/64688681"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/shadow-of-the-supreme/info"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/180890",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#D26A75",
+                "tint": "#150A0B",
+                "ink": "#E5A9AF"
+            },
+            "palette": {
+                "a": [
+                    "#2A1B2A",
+                    "#9D7688",
+                    "#7C5162"
+                ],
+                "l": 0.251,
+                "lMax": 0.881
+            }
+        },
+        {
+            "anilist_id": 214050,
+            "title": "Naega Jugin Dragon-gwa Gyeolhonhaetda",
+            "alt_titles": [
+                "\ub0b4\uac00 \uc8fd\uc778 \ub4dc\ub798\uace4\uacfc \uacb0\ud63c\ud588\ub2e4",
+                "My Slain Dragon Bride",
+                "I Married the Dragon I Killed"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": null,
+            "rating": 7.3,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx214050-8wo2aoqt2oC4.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Naver Series",
+                    "url": "https://series.naver.com/comic/detail.series?productNo=14451876"
+                },
+                {
+                    "site": "Naver Webtoon",
+                    "url": "https://comic.naver.com/webtoon/list?titleId=852628"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/214050",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#CA7E72",
+                "tint": "#130D0C",
+                "ink": "#DBB9B3"
+            },
+            "palette": {
+                "a": [
+                    "#6C2E2B",
+                    "#BC786E"
+                ],
+                "l": 0.261,
+                "lMax": 0.972
+            }
+        },
+        {
+            "anilist_id": 208208,
+            "title": "The Shepherd Wizard",
+            "alt_titles": [
+                "Yangchigi Mabeopsa",
+                "\uc591\uce58\uae30 \ub9c8\ubc95\uc0ac",
+                "El pastor hechicero",
+                "\u7267\u7f8a\u9b54\u6cd5\u5e2b"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 24,
+            "rating": 7.7,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx208208-azuHfUiSOUSZ.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Naver Series",
+                    "url": "https://series.naver.com/comic/detail.series?productNo=13791323"
+                },
+                {
+                    "site": "Naver Webtoon",
+                    "url": "https://comic.naver.com/webtoon/list?titleId=848349"
+                },
+                {
+                    "site": "WEBTOON",
+                    "url": "https://www.webtoons.com/en/fantasy/the-shepherd-wizard/list?title_no=10039"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/208208",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#7277CA",
+                "tint": "#0B0C13",
+                "ink": "#B3B5DB"
+            },
+            "palette": {
+                "a": [
+                    "#29283F",
+                    "#90737C",
+                    "#595D84"
+                ],
+                "l": 0.396,
+                "lMax": 0.997
+            }
+        },
+        {
+            "anilist_id": 152128,
+            "title": "The Novel's Extra",
+            "alt_titles": [
+                "Soseol Sok Extra",
+                "\uc18c\uc124 \uc18d \uc5d1\uc2a4\ud2b8\ub77c",
+                "The Novel's Extra (2022)",
+                "The Novel's Extra (Remake)"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 1,
+            "rating": 7.7,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Drama",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx152128-hk1Dq8zlEPVn.png",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/home?seriesId=59365151"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/the-novels-extra/info"
+                },
+                {
+                    "site": "Piccoma",
+                    "url": "https://piccoma.com/web/product/118065"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/152128",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#56ABE6",
+                "tint": "#0A1015",
+                "ink": "#A0CEEE"
+            },
+            "palette": {
+                "a": [
+                    "#121732",
+                    "#3E4571",
+                    "#5C6BA8"
+                ],
+                "l": 0.239,
+                "lMax": 0.857
+            }
+        },
+        {
+            "anilist_id": 214315,
+            "title": "Myeolgwisudojeon",
+            "alt_titles": [
+                "\uba78\uadc0\uc218\ub3c4\uc804",
+                "The Tale of Cultivation and Demon Extermination",
+                "Chronicles of the Demon-Slaying Ascetic"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": null,
+            "rating": 7.2,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx214315-OsaF41X6tIvB.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Naver Webtoon",
+                    "url": "https://comic.naver.com/webtoon/list?titleId=851689"
+                },
+                {
+                    "site": "Naver Series",
+                    "url": "https://series.naver.com/comic/detail.series?productNo=14298592"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/214315",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#F54747",
+                "tint": "#150A0A",
+                "ink": "#EEA0A0"
+            },
+            "palette": {
+                "a": [
+                    "#100302",
+                    "#2A110F",
+                    "#981615"
+                ],
+                "l": 0.106,
+                "lMax": 0.479
+            }
+        },
+        {
+            "anilist_id": 117460,
+            "title": "Overgeared",
+            "alt_titles": [
+                "Temppal",
+                "\ud15c\ube68",
+                "\u88dd\u5099\u4ed4",
+                "\u88c5\u5907\u6211\u6700\u5f3a"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 24,
+            "rating": 7.7,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Comedy",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx117460-46JbftfHSXoc.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/home?seriesId=54727849"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/overgeared/info"
+                },
+                {
+                    "site": "Piccoma",
+                    "url": "https://jp.piccoma.com/web/product/43170"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/117460",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#CA8872",
+                "tint": "#120E0D",
+                "ink": "#DBBDB3"
+            },
+            "palette": {
+                "a": [
+                    "#856562"
+                ],
+                "l": 0.303,
+                "lMax": 0.948
+            }
+        },
+        {
+            "anilist_id": 163824,
+            "title": "Revenge of the Baskerville Bloodhound",
+            "alt_titles": [
+                "Cheolhyeolgeomga Sanyanggaeui Hoegwi",
+                "\ucca0\ud608\uac80\uac00 \uc0ac\ub0e5\uac1c\uc758 \ud68c\uadc0",
+                "Revenge of the Iron-Blooded Sword Hound",
+                "Revenge of the Sword Clan's Hound"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 182,
+            "rating": 7.9,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx163824-KiablxybJD6i.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/61614855"
+                },
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://webtoon.kakao.com/content/\ucca0\ud608\uac80\uac00-\uc0ac\ub0e5\uac1c\uc758-\ud68c\uadc0/3455"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/revenge-of-the-baskerville-bloodhound/info"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/163824",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#7872CA",
+                "tint": "#0D0C12",
+                "ink": "#B6B3DB"
+            },
+            "palette": {
+                "a": [
+                    "#3F2733",
+                    "#777DB6",
+                    "#88596C"
+                ],
+                "l": 0.129,
+                "lMax": 0.463
+            }
+        },
+        {
+            "anilist_id": 195334,
+            "title": "The Apocalypse-Level Death Knight Returns",
+            "alt_titles": [
+                "Myeolmanggeup Death Knight-ga Hoegwiham",
+                "\uba78\ub9dd\uae09 \ub370\uc2a4\ub098\uc774\ud2b8\uac00 \ud68c\uadc0\ud568",
+                "Return of the Apocalypse-Class Death Knight"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 89,
+            "rating": 6.7,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx195334-AoDunvin8J2G.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://webtoon.kakao.com/content/\uba78\ub9dd\uae09-\ub370\uc2a4\ub098\uc774\ud2b8\uac00-\ud68c\uadc0\ud568/4545"
+                },
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/66921235"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/the-apocalypse-level-death-knight-returns/info"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/195334",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#9772CA",
+                "tint": "#0E0A15",
+                "ink": "#C4B2DC"
+            },
+            "palette": {
+                "a": [
+                    "#35224D",
+                    "#130D1B",
+                    "#6C4260"
+                ],
+                "l": 0.124,
+                "lMax": 0.582
+            }
+        },
+        {
+            "anilist_id": 128067,
+            "title": "SSS-Class Revival Hunter",
+            "alt_titles": [
+                "SSS-geup Jugeoya Saneun Hunter",
+                "SSS\uae09 \uc8fd\uc5b4\uc57c \uc0ac\ub294 \ud5cc\ud130",
+                "SSS-Class Suicide Hunter",
+                "SSS\uae09 \uc790\uc0b4\ud5cc\ud130"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 153,
+            "rating": 8.3,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Drama",
+                "Fantasy",
+                "Supernatural"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx128067-wnLBg6Cy1ncs.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/home?seriesId=56243215"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/sss-class-revival-hunter/info"
+                },
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://th.kakaowebtoon.com/content/\u0e19\u0e31\u0e01\u0e25\u0e48\u0e32\u0e1e\u0e25\u0e35\u0e0a\u0e35\u0e1e_\u0e23\u0e30\u0e14\u0e31\u0e1a_SSS/98"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/128067",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#CA8372",
+                "tint": "#130D0C",
+                "ink": "#DBBBB3"
+            },
+            "palette": {
+                "a": [
+                    "#291B1A",
+                    "#6D5C55"
+                ],
+                "l": 0.422,
+                "lMax": 0.984
+            }
+        },
+        {
+            "anilist_id": 176812,
+            "title": "The Reincarnated King of Fists",
+            "alt_titles": [
+                "Gwonwangjeonsaeng",
+                "\uad8c\uc655\uc804\uc0dd",
+                "The Indomitable Martial King",
+                "Time Slip of the Fist King"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 153,
+            "rating": 7.3,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Drama",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx176812-fXxJHqdO5Koo.png",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/63857471?tab_type=overview"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/the-reincarnated-king-of-fists/info"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/176812",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#D29C6B",
+                "tint": "#150F0A",
+                "ink": "#E5C6A9"
+            },
+            "palette": {
+                "a": [
+                    "#694035",
+                    "#CF9D7A",
+                    "#E8BE98"
+                ],
+                "l": 0.33,
+                "lMax": 0.734
+            }
+        },
+        {
+            "anilist_id": 202718,
+            "title": "How to Survive as a Wandering Knight",
+            "alt_titles": [
+                "Bangnanggisaro Saraganeun Beop",
+                "\ubc29\ub791\uae30\uc0ac\ub85c \uc0b4\uc544\uac00\ub294 \ubc95",
+                "The Wandering Knight\u2019s Survival Manual"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 61,
+            "rating": 7.0,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx202718-AkkO9OkIYbiw.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Naver Webtoon",
+                    "url": "https://comic.naver.com/webtoon/list?titleId=844589"
+                },
+                {
+                    "site": "Naver Series",
+                    "url": "https://series.naver.com/comic/detail.series?productNo=13360534"
+                },
+                {
+                    "site": "WEBTOON",
+                    "url": "https://www.webtoons.com/en/fantasy/how-to-survive-as-a-wandering-knight/list?title_no=11051"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/202718",
+            "available": [],
+            "why": null,
+            "ambient": {
+                "duo": "#CA7294",
+                "tint": "#140B0E",
+                "ink": "#DBB3C2"
+            },
+            "palette": {
+                "a": [
+                    "#2F1821",
+                    "#7D5D63",
+                    "#BDB5A3"
+                ],
+                "l": 0.213,
+                "lMax": 0.869
+            }
+        },
+        {
+            "anilist_id": 149332,
+            "title": "The Swordmaster's Son",
+            "alt_titles": [
+                "Geomsulmyeongga Mangnaeadeul",
+                "\uac80\uc220\uba85\uac00 \ub9c9\ub0b4\uc544\ub4e4",
+                "The Youngest Son of a Master Swordsman   ",
+                "Swordmaster's Youngest Son"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 214,
+            "rating": 7.9,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx149332-adkSyOFY3c5U.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/59264548"
+                },
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://webtoon.kakao.com/content/\uac80\uc220\uba85\uac00-\ub9c9\ub0b4\uc544\ub4e4/2852"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/the-swordmasters-son/info"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/149332",
+            "available": [],
+            "why": null,
+            "ambient": null,
+            "palette": null
+        },
+        {
+            "anilist_id": 214065,
+            "title": "Juingongi Keonsepchungimyeon Gollanhangayo",
+            "alt_titles": [
+                "\uc8fc\uc778\uacf5\uc774 \ucee8\uc149\ucda9\uc774\uba74 \uace4\ub780\ud55c\uac00\uc694",
+                "Is It Bad That the Main Character\u2019s a Roleplayer?"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": null,
+            "rating": 6.1,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx214065-vfp7B8IVK2cw.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://webtoon.kakao.com/content/\uc8fc\uc778\uacf5\uc774-\ucee8\uc149\ucda9\uc774\uba74-\uace4\ub780\ud55c\uac00\uc694/4911"
+                },
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/69510272/"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/214065",
+            "available": [],
+            "why": null,
+            "ambient": null,
+            "palette": null
+        },
+        {
+            "anilist_id": 129632,
+            "title": "The Tutorial Is Too Tough!",
+            "alt_titles": [
+                "Tutorial-i Neomu Eoryeopda",
+                "\ud29c\ud1a0\ub9ac\uc5bc\uc774 \ub108\ubb34 \uc5b4\ub835\ub2e4",
+                "The Tutorial is Too Hard",
+                "\u30c1\u30e5\u30fc\u30c8\u30ea\u30a2\u30eb\u304c\u6b7b\u306c\u307b\u3069\u96e3\u3057\u3044"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 290,
+            "rating": 7.1,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx129632-ArHo6qvYQoHs.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "KakaoPage",
+                    "url": "https://page.kakao.com/content/56443245"
+                },
+                {
+                    "site": "Tapas",
+                    "url": "https://tapas.io/series/the-tutorial-is-too-tough/info"
+                },
+                {
+                    "site": "Kakao Webtoon",
+                    "url": "https://th.kakaowebtoon.com/content/\u0e21\u0e34\u0e15\u0e34\u0e42\u0e2b\u0e14_\u0e42\u0e2b\u0e21\u0e14\u0e1d\u0e36\u0e01\u0e2b\u0e31\u0e14/224?tab=episode"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/129632",
+            "available": [],
+            "why": null,
+            "ambient": null,
+            "palette": null
+        },
+        {
+            "anilist_id": 135325,
+            "title": "The Lazy Lord Masters the Sword",
+            "alt_titles": [
+                "Natae Gongja, Nolyeog Cheonjae Doeda",
+                "\ub098\ud0dc \uacf5\uc790, \ub178\ub825 \ucc9c\uc7ac \ub418\ub2e4",
+                "The Lazy Prince Becomes a Genius",
+                "Reformation of the Deadbeat Noble"
+            ],
+            "format": "Manhwa",
+            "country": "KR",
+            "status": "Ongoing",
+            "chapters": 161,
+            "rating": 7.7,
+            "rating_count_hint": null,
+            "genres": [
+                "Action",
+                "Adventure",
+                "Fantasy"
+            ],
+            "cover_url": "https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx135325-YAhEGWro8zFK.jpg",
+            "is_adult": false,
+            "platforms": [
+                {
+                    "site": "Naver Webtoon",
+                    "url": "https://comic.naver.com/webtoon/list.nhn?titleId=772853"
+                },
+                {
+                    "site": "WEBTOON",
+                    "url": "https://www.webtoons.com/en/fantasy/the-lazy-lord-masters-the-sword/list?title_no=3349"
+                },
+                {
+                    "site": "WEBTOON",
+                    "url": "https://www.webtoons.com/fr/action/the-lazy-lord-masters-the-sword/list?title_no=3675"
+                }
+            ],
+            "anilist_url": "https://anilist.co/manga/135325",
+            "available": [],
+            "why": null,
+            "ambient": null,
+            "palette": null
+        }
+    ],
+    "unavailable_reason": null
+}

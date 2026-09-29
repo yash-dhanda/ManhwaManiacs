@@ -17,6 +17,21 @@ export function useContentPreferences(options?: { enabled?: boolean }) {
   });
 }
 
+/** What the server offers, from the `GET /settings` query. Missing keys mean "assume on" (older servers). */
+export function useServerCapabilities() {
+  const { data } = useContentPreferences();
+  const c = data?.capabilities;
+  return {
+    online_sources: c?.online_sources ?? true,
+    client_downloads: c?.client_downloads ?? true,
+    ocr: c?.ocr ?? true,
+    collections: c?.collections ?? true,
+    bookmarks: c?.bookmarks ?? true,
+    continue_reading: c?.continue_reading ?? true,
+    reading_progress: c?.reading_progress ?? true,
+  };
+}
+
 /**
  * Why the mature toggle is currently unwritable, or null. Panels use this to
  * disable the control and explain it, rather than letting the user flip a

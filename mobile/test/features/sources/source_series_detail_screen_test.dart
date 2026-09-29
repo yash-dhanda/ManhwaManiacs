@@ -20,6 +20,7 @@ import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
@@ -53,6 +54,12 @@ class _FakeSourcesRepository implements SourcesRepository {
 
   @override
   Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   _FakeSourcesRepository(this.series, this.chapters);
 
   final SourceSeriesSummary series;
@@ -124,6 +131,14 @@ class _FakeLibraryRepository implements LibraryRepository {
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   _FakeLibraryRepository({List<FollowedSeries> followed = const []})
       : _followed = followed;
 
@@ -200,7 +215,7 @@ class _FakeLibraryRepository implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) =>
       throw UnimplementedError();

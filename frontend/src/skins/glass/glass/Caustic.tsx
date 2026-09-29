@@ -10,9 +10,9 @@ import { beginRecord, trackFrames } from "../motion-recorder";
  * offset 8 px along the light direction; 14 % at rest, 22 % pressed. The wrapper must not create a stacking
  * context (no isolation, opacity, transform or filter) or the screen blend has nothing to blend with.
  */
-export function CausticWrap({ pressed = false, overContent = true, className, children }: { pressed?: boolean; overContent?: boolean; className?: string; children: ReactNode }) {
+export function CausticWrap({ pressed = false, suppressed = false, overContent = true, className, children }: { pressed?: boolean; /** lit object suppressed by a sheet or alert: fades the caustic out over 180 ms */ suppressed?: boolean; overContent?: boolean; className?: string; children: ReactNode }) {
   return (
-    <div className={`caustic${className ? ` ${className}` : ""}`} data-pressed={pressed && !isGlassReduced() ? "on" : undefined} data-over-content={overContent ? undefined : "false"}>
+    <div className={`caustic${className ? ` ${className}` : ""}`} data-pressed={pressed && !isGlassReduced() ? "on" : undefined} data-over-content={overContent ? undefined : "false"} data-suppressed={suppressed ? "" : undefined}>
       {children}
     </div>
   );

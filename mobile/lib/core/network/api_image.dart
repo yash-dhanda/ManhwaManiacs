@@ -86,3 +86,16 @@ String coverUrlAtWidth(String url, int? width) {
   if (width == null || !url.endsWith('/cover')) return url;
   return '$url?w=$width';
 }
+
+/// The cover width ladder a slot snaps to (cinematic 7.7): the nearest step at
+/// or above `logicalWidth × devicePixelRatio`, the largest step capping it.
+const List<int> kCoverSnapWidths = [96, 160, 240, 360, 480, 720];
+
+int snappedCoverWidth(double logicalWidth, double devicePixelRatio) {
+  final px = logicalWidth * devicePixelRatio;
+  if (!px.isFinite || px <= 0) return kCoverSnapWidths.last;
+  for (final w in kCoverSnapWidths) {
+    if (px <= w) return w;
+  }
+  return kCoverSnapWidths.last;
+}

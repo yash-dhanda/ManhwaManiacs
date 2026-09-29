@@ -41,6 +41,7 @@ from core.connector_directory import descriptor_for_source
 from core.time_utils import utcnow
 from database.models import FollowedSeries, SourceSeriesCache, WorldCatalogCache
 from database.session import get_db
+from services import ai_feedback
 from services.cover_colour import attach_world_colours
 from services.followed_series_service import (
     FollowedSeriesService,
@@ -85,6 +86,35 @@ _SEARCH_QUERY = (
 _RECS_QUERY = (
     "query($id:Int){Media(id:$id){recommendations(sort:RATING_DESC,perPage:15)"
     "{nodes{rating mediaRecommendation{" + _MEDIA_FIELDS + "}}}}}"
+)
+
+def _trending_query(adult_filter: bool) -> str:
+    # AniList treats ``isAdult: null`` as "not adult" too, so the filter is
+    # left out of the query entirely when adult entries are wanted.
+    return (
+        "query($country:CountryCode,$formats:[MediaFormat],$genres:[String]"
+        + (",$adult:Boolean)" if adult_filter else ")")
+        + "{Page(perPage:24){media(type:MANGA,sort:TRENDING_DESC,"
+        + ("isAdult:$adult," if adult_filter else "")
+        + "countryOfOrigin:$country,format_in:$formats,genre_in:$genres){"
+        + _MEDIA_FIELDS
+        + "}}}"
+    )
+
+
+#: Onboarding format -> (AniList country, AniList formats).
+TRENDING_FORMATS: dict[str, tuple[str | None, list[str]]] = {
+    "manhwa": ("KR", ["MANGA", "ONE_SHOT"]),
+    "manga": ("JP", ["MANGA", "ONE_SHOT"]),
+    "manhua": ("CN", ["MANGA", "ONE_SHOT"]),
+    "novel": (None, ["NOVEL"]),
+}
+TRENDING_TTL = timedelta(hours=24)
+#: AniList's fixed genre facet (``genre_in`` accepts only these).
+ANILIST_GENRES = (
+    "Action", "Adventure", "Comedy", "Drama", "Ecchi", "Fantasy", "Hentai", "Horror",
+    "Mahou Shoujo", "Mecha", "Music", "Mystery", "Psychological", "Romance", "Sci-Fi",
+    "Slice of Life", "Sports", "Supernatural", "Thriller",
 )
 
 _STATUS = {
@@ -292,6 +322,34 @@ class WorldCatalog:
             ]
         return out
 
+    @staticmethod
+    def _anilist_page(client: httpx.Client, args: dict[str, Any]) -> Any:
+        response = client.post(
+            ANILIST_URL,
+            json={"query": _trending_query("adult" in args), "variables": args},
+        )
+        response.raise_for_status()
+        return response.json()["data"]["Page"]["media"] or []
+
+    def trending(
+        self, fmt: str, genres: list[str] | None = None, *, adult: bool = False
+    ) -> list[dict[str, Any]]:
+        """Trending AniList entries of one onboarding format, cached 24 hours.
+
+        ``adult`` False asks AniList to leave adult entries out; True leaves the
+        filter off. ``genres`` must already be AniList spellings."""
+        country, formats = TRENDING_FORMATS[fmt]
+        names = sorted(genres or [])
+        key = f"al:trending:{fmt}:{','.join(names)}:{int(adult)}"
+        args = {
+            "country": country,
+            "formats": formats,
+            "genres": names or None,
+        }
+        if not adult:
+            args["adult"] = False
+        return self._lookup({key: args}, self._anilist_page, TRENDING_TTL).get(key) or []
+
     # --- MangaUpdates -----------------------------------------------------
 
     @staticmethod
@@ -467,7 +525,26 @@ class WorldRecs:
 
     # --- public -----------------------------------------------------------
 
-    def recommendations(self, *, seeds: int = 5, per_seed: int = 10) -> dict[str, Any]:
+    def not_interested(self) -> tuple[set[tuple[str, str]], set[int]]:
+        """This profile's "Not interested" targets: source pairs, AniList ids."""
+        return ai_feedback.not_interested(
+            self._db, self._library._user_id, self._library._profile_id
+        )
+
+    def drop_not_interested(self, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        pairs, ids = self.not_interested()
+        if not pairs and not ids:
+            return items
+        return [
+            i
+            for i in items
+            if i.get("anilist_id") not in ids
+            and not any((a["source_id"], a["series_key"]) in pairs for a in i.get("available") or [])
+        ]
+
+    def recommendations(
+        self, *, seeds: int = 5, per_seed: int = 10, genre: str | None = None
+    ) -> dict[str, Any]:
         self._library._require_owner()
         taste, excluded, preferred = self._context()
         gate_open = bool(taste.get("gate_open"))
@@ -519,20 +596,31 @@ class WorldRecs:
                 [(m, None) for m in unique], gate_open=gate_open, index=index, preferred=preferred
             )
         }
+        want = genre.strip().casefold() if genre else None
+
+        def keep(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            items = self.drop_not_interested(items)
+            if want:
+                items = [
+                    i for i in items if want in {g.casefold() for g in i.get("genres") or []}
+                ]
+            return items
+
+        sections = [
+            {
+                "because": {
+                    "title": seed["title"],
+                    "source_id": seed.get("source_id"),
+                    "series_key": seed.get("series_key"),
+                },
+                "items": keep([built[m["id"]] for m in medias if m["id"] in built]),
+            }
+            for seed, medias in section_media
+            if medias
+        ]
         return {
-            "for_you": [built[i] for i in ranked if i in built],
-            "sections": [
-                {
-                    "because": {
-                        "title": seed["title"],
-                        "source_id": seed.get("source_id"),
-                        "series_key": seed.get("series_key"),
-                    },
-                    "items": [built[m["id"]] for m in medias if m["id"] in built],
-                }
-                for seed, medias in section_media
-                if medias
-            ],
+            "for_you": keep([built[i] for i in ranked if i in built]),
+            "sections": [sec for sec in sections if sec["items"]],
             "unavailable_reason": (
                 "The worldwide catalog could not be reached; showing what was cached."
                 if self.catalog.failed

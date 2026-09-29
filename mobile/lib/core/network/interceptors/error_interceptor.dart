@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
-import 'package:manhwamaniacs/core/network/request_limiter.dart';
+import 'package:manhwamaniacs/core/network/network_failures.dart';
+import 'package:manhwamaniacs/core/network/retry_after.dart';
 
 /// Converts DioException into domain AppError and re-throws.
 ///
@@ -9,6 +10,7 @@ class ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final appError = _mapDioError(err);
+    if (appError is NetworkError || appError is TimeoutError) reportNetworkFailure(appError);
     handler.reject(
       DioException(
         requestOptions: err.requestOptions,
@@ -54,8 +56,7 @@ class ErrorInterceptor extends Interceptor {
 
       case DioExceptionType.unknown:
         if (err.error is AppError) return err.error! as AppError;
-        return UnknownError(
-            message: err.message ?? 'Unknown error', cause: err.error,);
+        return UnknownError(message: err.message ?? 'Unknown error', cause: err.error);
     }
   }
 
@@ -74,28 +75,16 @@ class ErrorInterceptor extends Interceptor {
         statusCode: response.statusCode ?? 0,
         code: body['code'] as String? ?? 'unknown',
         message: body['message'] as String? ?? 'Unknown error',
-        details: _withRetryAfter(response, body['details']),
+        details: body['details'],
+        retryAfter: parseRetryAfter(response.headers.value('retry-after')),
       );
     } catch (_) {
       return ApiError(
         statusCode: response.statusCode ?? 0,
         code: 'unknown',
         message: 'HTTP ${response.statusCode}',
-        details: _withRetryAfter(response, null),
+        retryAfter: parseRetryAfter(response.headers.value('retry-after')),
       );
     }
-  }
-
-  /// 429s carry the wait in the Retry-After header (slowapi), not the body:
-  /// fold it into details so screens can run a live countdown.
-  Object? _withRetryAfter(Response<dynamic> response, Object? details) {
-    if (response.statusCode != 429) return details;
-    final d = parseRetryAfter(response.headers.value('retry-after'));
-    if (d == null) return details;
-    final base = details is Map
-        ? Map<String, dynamic>.from(details)
-        : <String, dynamic>{};
-    base.putIfAbsent('retry_after', () => d.inSeconds);
-    return base;
   }
 }

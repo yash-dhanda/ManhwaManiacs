@@ -14,7 +14,7 @@ Set<ScreenId> _pendingOf(SkinId id) =>
     id == SkinId.cinematic ? cine.PENDING : glass.PENDING;
 
 Set<String> _namedPending(GoRouter r) => {
-      for (final route in r.configuration.routes)
+      for (final route in RouteBase.routesRecursively(r.configuration.routes))
         if (route is GoRoute &&
             (route.name ?? '').startsWith(kPendingRoutePrefix))
           route.name!.substring(kPendingRoutePrefix.length),
@@ -58,7 +58,9 @@ void main() {
           '$kPendingRoutePrefix${ScreenId.history.id}',);
       final byFollow = router.configuration.findMatch(Uri.parse('/library/42'));
       expect((byFollow.routes.last as GoRoute).name,
-          '$kPendingRoutePrefix${ScreenId.featureByFollow.id}',);
+          pending.contains(ScreenId.featureByFollow)
+              ? '$kPendingRoutePrefix${ScreenId.featureByFollow.id}'
+              : ScreenId.featureByFollow.id,);
 
       expect(ScreenId.values.toSet().containsAll(pending), isTrue);
       expect(_namedPending(router), pending.map((e) => e.id).toSet());

@@ -27,10 +27,12 @@ List<String> boundaryViolations(String path, String source) {
         'app/app.dart',
         'skins/legacy/',
       ]) {
-        // A skin's own `screens/` and `widgets/` folders are its own code.
+        // A skin's own screens/ and widgets/ folders are its own code.
         final own = (inCine && i.contains('skins/cinematic/')) ||
             (inGlass && i.contains('skins/glass/'));
-        if (i.contains(banned) && !own) {
+        // Third-party packages have their own widgets/ folders; the ban is about the app's features.
+        final external = i.startsWith('package:') && !i.startsWith('package:manhwamaniacs/');
+        if (!own && !external && i.contains(banned)) {
           out.add('$p imports $i (banned: $banned)');
         }
       }

@@ -1,0 +1,40 @@
+/* Route transitions (cinematic §4.5, §8.0.4). Classes are named by <ViewTransition> in shell/PageTransition.tsx. */
+@keyframes mm-vt-fade-in { from { opacity: 0; } }
+@keyframes mm-vt-fade-out { to { opacity: 0; } }
+@keyframes mm-page-in { from { transform: translateX(24px); opacity: 0; } }
+@keyframes mm-page-out { to { transform: translateX(-24px); opacity: 0; } }
+@keyframes mm-vt-back-in { from { transform: translateX(-24px); opacity: 0; } }
+@keyframes mm-vt-back-out { to { transform: translateX(24px); opacity: 0; } }
+
+/* Page: new content arrives from the right over 320 ms; the old leaves left over 224 ms. */
+::view-transition-new(.mm-page-in) { animation: mm-page-in var(--mm-dur-column) var(--mm-ease-settle) both; }
+::view-transition-old(.mm-page-out) { animation: mm-page-out var(--mm-dur-page-out) var(--mm-ease-lift) both; }
+/* Back reverses both over 224 ms. */
+::view-transition-old(.mm-page-back-out) { animation: mm-vt-back-out var(--mm-dur-page-out) var(--mm-ease-lift) both; }
+::view-transition-new(.mm-page-back-in) { animation: mm-vt-back-in var(--mm-dur-page-out) var(--mm-ease-settle) both; }
+
+/* Dip (desktop frame): 160 ms out, 40 ms hold on #000, 240 ms in. Phone frame: Cut. */
+::view-transition-old(.mm-dip-out) { animation: mm-vt-fade-out var(--mm-dur-beat) var(--mm-ease-lift) both; }
+::view-transition-new(.mm-dip-in) { animation: mm-vt-fade-in var(--mm-dur-line) var(--mm-ease-settle) calc(var(--mm-dur-beat) + var(--mm-dur-hold-dip)) both; }
+@media (max-width: 767px) {
+  ::view-transition-old(.mm-dip-out), ::view-transition-new(.mm-dip-in) { animation: none; }
+}
+
+/* Match cut: the shared cover moves 480 ms (336 back); everything else dissolves 240 ms. */
+::view-transition-group(.mm-match-cut) { animation-duration: var(--mm-dur-spread); animation-timing-function: var(--mm-ease-turn); }
+html:active-view-transition-type(nav-back) ::view-transition-group(.mm-match-cut),
+html[data-mm-nav="back"]::view-transition-group(.mm-match-cut) { animation-duration: var(--mm-dur-match-back); }
+::view-transition-new(.mm-dissolve-in) { animation: mm-vt-fade-in var(--mm-dur-line) var(--mm-ease-turn) both; }
+::view-transition-old(.mm-dissolve-out) { animation: mm-vt-fade-out var(--mm-dur-line) var(--mm-ease-turn) both; }
+
+/* Reduced motion (§4.8): opacity-only cross-fades of 150 ms; the match cut group stops and its images cross-fade 200 ms. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(.mm-page-in), ::view-transition-new(.mm-page-back-in), ::view-transition-new(.mm-dip-in), ::view-transition-new(.mm-dissolve-in) { animation: mm-vt-fade-in var(--mm-dur-reduced) linear both; }
+  ::view-transition-old(.mm-page-out), ::view-transition-old(.mm-page-back-out), ::view-transition-old(.mm-dip-out), ::view-transition-old(.mm-dissolve-out) { animation: mm-vt-fade-out var(--mm-dur-reduced) linear both; }
+  ::view-transition-group(.mm-match-cut) { animation: none; }
+  ::view-transition-old(.mm-match-cut), ::view-transition-new(.mm-match-cut) { animation-duration: var(--mm-dur-clip); }
+}
+html[data-motion="reduced"]::view-transition-new(.mm-page-in), html[data-motion="reduced"]::view-transition-new(.mm-page-back-in), html[data-motion="reduced"]::view-transition-new(.mm-dip-in), html[data-motion="reduced"]::view-transition-new(.mm-dissolve-in) { animation: mm-vt-fade-in var(--mm-dur-reduced) linear both; }
+html[data-motion="reduced"]::view-transition-old(.mm-page-out), html[data-motion="reduced"]::view-transition-old(.mm-page-back-out), html[data-motion="reduced"]::view-transition-old(.mm-dip-out), html[data-motion="reduced"]::view-transition-old(.mm-dissolve-out) { animation: mm-vt-fade-out var(--mm-dur-reduced) linear both; }
+html[data-motion="reduced"]::view-transition-group(.mm-match-cut) { animation: none; }
+html[data-motion="reduced"]::view-transition-old(.mm-match-cut), html[data-motion="reduced"]::view-transition-new(.mm-match-cut) { animation-duration: var(--mm-dur-clip); }

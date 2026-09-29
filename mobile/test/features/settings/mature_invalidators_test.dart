@@ -49,6 +49,20 @@ const Map<String, List<String>> _providersByService = {
   'update_service': ['updatesProvider'],
 };
 
+/// Downloads and narration saves are filtered by the gate on read (mobile-downloads), not by a
+/// backend service, so they are claimed here rather than in [_providersByService].
+const List<String> _localGated = [
+  'downloadedSeriesProvider',
+  'downloadedShelfProvider',
+  'activeDownloadQueueProvider',
+  'activeDownloadCountProvider',
+  'seriesChapterDownloadStatusProvider',
+  'seriesNarrationStatusProvider',
+  'seriesActiveChapterProgressProvider',
+  'savedNarrationProvider',
+  'unplayableNarrationSavesProvider',
+];
+
 /// The providers `matureScopedInvalidators` actually drops, read out of the
 /// source: a `void Function(Ref)` cannot be asked what it invalidates.
 Set<String> _declaredInvalidations() {
@@ -60,7 +74,7 @@ Set<String> _declaredInvalidations() {
   final end = source.indexOf('\n];', start);
   expect(end, isNot(-1), reason: 'the invalidator list is unterminated');
   final body = source.substring(start, end);
-  return RegExp(r'ref\.invalidate\((\w+)\)')
+  return RegExp(r'ref(?:\.container)?\.invalidate\((\w+)\)')
       .allMatches(body)
       .map((match) => match.group(1)!)
       .toSet();
@@ -86,8 +100,12 @@ void main() {
       }
     });
 
+    test('the filtered downloads and narration providers are invalidated', () {
+      expect(_declaredInvalidations(), containsAll(_localGated));
+    });
+
     test('the invalidator list has no providers nobody claimed', () {
-      final claimed = _providersByService.values.expand((e) => e).toSet();
+      final claimed = {..._providersByService.values.expand((e) => e), ..._localGated};
       expect(
         _declaredInvalidations().difference(claimed),
         isEmpty,
@@ -108,8 +126,13 @@ void main() {
               entity.uri.pathSegments.last.replaceAll('.py', ''),
       };
 
+      // Gated on the server but no client cache to drop yet: the Wrapped payload
+      // (annual_service) is fetched fresh per open, and no client provider reads
+      // GET /home (home_service) until the home screens land, and no client reads
+      // the taste catalogue (taste_service) yet.
+      const noClientCache = {'annual_service', 'home_service', 'taste_service'};
       expect(
-        gated,
+        gated.difference(noClientCache),
         kMatureGatedBackendServices,
         reason: 'a service started (or stopped) filtering on the 18+ gate; '
             'decide which client caches it feeds before shipping it',

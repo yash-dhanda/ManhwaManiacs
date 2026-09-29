@@ -82,6 +82,7 @@ class LibraryRepositoryImpl implements LibraryRepository {
     String? readingStatus,
     bool? notify,
     bool? matureOverride,
+    bool clearMatureOverride = false,
     int? sortOrder,
   }) =>
       _request(
@@ -92,6 +93,7 @@ class LibraryRepositoryImpl implements LibraryRepository {
             if (readingStatus != null) 'reading_status': readingStatus,
             if (notify != null) 'notify': notify,
             if (matureOverride != null) 'mature_override': matureOverride,
+            if (clearMatureOverride && matureOverride == null) 'mature_override': null,
             if (sortOrder != null) 'sort_order': sortOrder,
           },
         ),
@@ -99,8 +101,26 @@ class LibraryRepositoryImpl implements LibraryRepository {
       );
 
   @override
-  Future<Result<List<ContinueReadingItem>>> continueReading({int limit = 10}) =>
-      _requestList(
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) =>
+      _request(
+        () => _dio.post<Map<String, dynamic>>(
+          '/library/series/$followedId/repoint',
+          data: {'source_id': sourceId, 'series_key': seriesKey, 'keep_old': keepOld},
+        ),
+        (json) => (
+          followed: FollowedSeries.fromJson(json['followed'] as Map<String, dynamic>),
+          mappedChapterKey: json['mapped_chapter_key'] as String?,
+          mappedChapterNumber: (json['mapped_chapter_number'] as num?)?.toDouble(),
+        ),
+      );
+
+  @override
+  Future<Result<List<ContinueReadingItem>>> continueReading({int limit = 10}) => _requestList(
         () => _dio.get<List<dynamic>>(
           '/library/continue-reading',
           queryParameters: {'limit': limit},
@@ -109,8 +129,7 @@ class LibraryRepositoryImpl implements LibraryRepository {
       );
 
   @override
-  Future<Result<List<FollowedSeries>>> recentlyUpdated({int limit = 10}) =>
-      _requestList(
+  Future<Result<List<FollowedSeries>>> recentlyUpdated({int limit = 10}) => _requestList(
         () => _dio.get<List<dynamic>>(
           '/library/recently-updated',
           queryParameters: {'limit': limit},
@@ -197,8 +216,7 @@ class LibraryRepositoryImpl implements LibraryRepository {
             // 05:30 instead of midnight. Clamped to the API's accepted range
             // (UTC-12:00..UTC+14:00, the range of real offsets) so a
             // mis-zoned device degrades to UTC-ish bucketing, not a 422.
-            'tz_offset_minutes':
-                DateTime.now().timeZoneOffset.inMinutes.clamp(-720, 840),
+            'tz_offset_minutes': DateTime.now().timeZoneOffset.inMinutes.clamp(-720, 840),
           },
         ),
         LibraryStatistics.fromJson,
@@ -417,9 +435,7 @@ class LibraryRepositoryImpl implements LibraryRepository {
   ) async {
     try {
       final response = await call();
-      final items = (response.data ?? [])
-          .map((e) => fromJson(e as Map<String, dynamic>))
-          .toList();
+      final items = (response.data ?? []).map((e) => fromJson(e as Map<String, dynamic>)).toList();
       return Ok(items);
     } on DioException catch (e) {
       return Err(_extractError(e));

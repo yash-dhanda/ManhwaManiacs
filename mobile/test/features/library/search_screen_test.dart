@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/library/providers/library_list_provider.d
 import 'package:manhwamaniacs/features/library/screens/search_screen.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
@@ -39,6 +40,12 @@ class _FakeSourcesRepository implements SourcesRepository {
 
   @override
   Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   _FakeSourcesRepository({this.result, this.error, this.browseItems = const []});
 
   final GroupedSearchResult? result;

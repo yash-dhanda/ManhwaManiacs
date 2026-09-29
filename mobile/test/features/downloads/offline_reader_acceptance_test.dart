@@ -1,7 +1,3 @@
-import 'package:manhwamaniacs/features/sources/models/source.dart';
-import 'package:manhwamaniacs/features/sources/models/source_health.dart';
-import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
-import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
@@ -11,6 +7,7 @@ import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
 import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_reader_provider.dart';
 import 'package:manhwamaniacs/features/sources/repositories/sources_repository.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -31,7 +28,13 @@ import '../../support/downloads_test_support.dart';
 /// same shape a real Dio call throws when there is no connection.
 class _FailingReaderRepository extends Mock implements ReaderRepository {}
 
-class _FailingSourcesRepository extends Mock implements SourcesRepository {}
+class _FailingSourcesRepository extends Mock implements SourcesRepository {
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+}
 
 const _networkDown = NetworkError(message: 'No route to host', host: 'app.manhwamaniacs.xyz');
 

@@ -31,14 +31,19 @@ AiCopy aiCopyForCode(String? code, {int? retryAfter}) => switch (code) {
     };
 
 /// Branches on the error `code` (a bare 429 counts as `rate_limited`), never
-/// on other statuses. Carries the Retry-After the error interceptor folded
-/// into `details`.
+/// on other statuses. Carries the Retry-After wait.
 AiCopy aiCopyForError(Object error) {
   if (error is! ApiError) return aiCopyForCode(null);
-  final d = error.details;
-  final after = d is Map ? d['retry_after'] : null;
   return aiCopyForCode(
     error.statusCode == 429 ? 'rate_limited' : error.code,
-    retryAfter: after is num ? after.toInt() : null,
+    retryAfter: retryAfterSeconds(error),
   );
+}
+
+/// Seconds to wait after a 429: the interceptor's `ApiError.retryAfter`, else a `retry_after`
+/// the server put in `details`.
+int? retryAfterSeconds(ApiError e) {
+  final d = e.details;
+  final after = d is Map ? d['retry_after'] : null;
+  return e.retryAfter?.inSeconds ?? (after is num ? after.toInt() : null);
 }

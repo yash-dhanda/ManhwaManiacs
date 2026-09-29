@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/downloads/utils/progress_outbox_batch.dart';
 import 'package:manhwamaniacs/features/downloads/utils/progress_outbox_priority.dart';
@@ -93,6 +94,19 @@ class ProgressOutboxController {
       });
     }
     return _draining = _drain().whenComplete(() => _draining = null);
+  }
+
+  /// Rows waiting in the active scope's outbox (0 outside a session or when the store fails).
+  Future<int> pendingCount() async {
+    try {
+      return (await ref
+                  .read(downloadsStoreProvider)
+                  ?.pendingProgressOutbox(hideMature: !ref.read(matureGateOpenProvider)))
+              ?.length ??
+          0;
+    } catch (_) {
+      return 0;
+    }
   }
 
   /// One pass over the outbox.

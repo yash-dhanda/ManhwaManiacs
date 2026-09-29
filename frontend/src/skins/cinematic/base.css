@@ -1,0 +1,62 @@
+/* Cinematic base (cinematic §2.1.1, §2.4, §7 intro, §14.4, §14.6). Everything scoped to the skin. */
+/* Raised / wash stock scopes: ink.45 stays legible on lighter grounds. */
+[data-skin="cinematic"] [data-stock="raised"] { --mm-color-ink-45: var(--mm-color-ink-60); }
+[data-skin="cinematic"] [data-stock="wash"] { --mm-color-ink-45: var(--mm-color-ink-80); --mm-color-ink-60: var(--mm-color-ink-80); }
+
+/* Focus: square double ring, never for pointer focus. */
+[data-skin="cinematic"] :focus-visible { outline: 2px solid var(--mm-color-ink-100); outline-offset: 2px; box-shadow: 0 0 0 6px #000; }
+[data-skin="cinematic"] :focus:not(:focus-visible) { outline: none; }
+[data-skin="cinematic"] .cine-poster:focus-visible { box-shadow: inset 0 0 0 1px var(--mm-color-hairline-art), 0 0 0 6px #000; }
+
+/* Cursors. */
+[data-skin="cinematic"] [data-clickable], [data-skin="cinematic"] .cine-press { cursor: pointer; }
+[data-skin="cinematic"] [aria-disabled="true"], [data-skin="cinematic"] :disabled { cursor: default; }
+[data-skin="cinematic"] input, [data-skin="cinematic"] textarea { cursor: text; }
+
+/* Long-press hygiene on images. */
+[data-skin="cinematic"] .cine-press { -webkit-touch-callout: none; user-select: none; -webkit-user-drag: none; }
+
+/* Contrast preferences. */
+@media (prefers-contrast: more) {
+  [data-skin="cinematic"] { --mm-color-ink-45: var(--mm-color-ink-80); --mm-color-rule-1: var(--mm-color-rule-2); }
+}
+html[data-contrast="more"][data-skin="cinematic"] { --mm-color-ink-45: var(--mm-color-ink-80); --mm-color-rule-1: var(--mm-color-rule-2); }
+
+/* Forced colours: rules, focus and outlines use system colours; spot fills become Highlight; decoration is dropped. */
+@media (forced-colors: active) {
+  [data-skin="cinematic"] :focus-visible { outline-color: CanvasText; box-shadow: none; }
+  [data-skin="cinematic"] .cine-rule { background: CanvasText; border-color: CanvasText; }
+  /* Selectors match what the components emit: Tailwind border-*, .bg-spot fills, scrim-* gradients, inline duotone filters. */
+  [data-skin="cinematic"] [class*=border-ink-], [data-skin="cinematic"] [class*=border-rule-] { border-color: CanvasText; }
+  [data-skin="cinematic"] .bg-spot, [data-skin="cinematic"] .bg-ink-100 { background: Highlight; color: HighlightText; forced-color-adjust: none; }
+  [data-skin="cinematic"] .cine-grain, [data-skin="cinematic"] [class*="scrim-"] { display: none; }
+  [data-skin="cinematic"] [style*="url(#duo-"] { filter: none !important; }
+  [data-skin="cinematic"] img { forced-color-adjust: none; }
+}
+
+/* Screen-reader-only helper for as="p" reveals is Tailwind's `sr-only`. */
+
+/* Placeholders: ink.45; hidden while the typed visual layer of the index search field shows the same string. */
+[data-skin="cinematic"] input::placeholder, [data-skin="cinematic"] textarea::placeholder { color: var(--mm-color-ink-45); opacity: 1; }
+[data-skin="cinematic"] input[data-typed-placeholder="true"]::placeholder { color: transparent; }
+
+/* Posters (§7.7): inner hairline, hover outline + art-light bloom, siblings dim, image zoom inside the fixed frame. */
+[data-skin="cinematic"] .cine-poster-face { position: relative; display: block; overflow: visible; }
+[data-skin="cinematic"] .cine-poster-face::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 1px var(--mm-color-hairline-art); }
+[data-skin="cinematic"] .cine-poster:hover .cine-poster-face::after,
+[data-skin="cinematic"] .cine-poster:focus-within .cine-poster-face::after { box-shadow: inset 0 0 0 2px var(--mm-color-ink-100); }
+[data-skin="cinematic"] .cine-poster:hover .cine-poster-face { box-shadow: 0 0 48px -16px color-mix(in srgb, var(--amb-duo) 60%, transparent); }
+[data-skin="cinematic"] .cine-poster:hover .cine-poster-face:focus-visible { box-shadow: 0 0 0 6px #000, 0 0 48px -16px color-mix(in srgb, var(--amb-duo) 60%, transparent); }
+[data-skin="cinematic"] .cine-poster:hover .cine-zoom,
+[data-skin="cinematic"] .cine-poster:focus-within .cine-zoom { transform: scale(1.04); }
+[data-skin="cinematic"] .cine-poster-face:active { transform: scale(0.98); transition: transform 80ms var(--mm-ease-set); }
+[data-skin="cinematic"] [data-poster-group]:has(.cine-poster:hover) .cine-poster:not(:hover) { filter: brightness(0.55) saturate(0.8); }
+[data-skin="cinematic"] .cine-poster { transition: filter 280ms var(--mm-ease-set); }
+[data-skin="cinematic"] .cine-poster-face:focus-visible { box-shadow: 0 0 0 6px #000; }
+@media (prefers-reduced-motion: reduce) { [data-skin="cinematic"] .cine-poster-face:active { transform: none; } }
+html[data-motion="reduced"] .cine-poster-face:active { transform: none; }
+[data-skin="cinematic"] .cine-z1 { z-index: 1; }
+[data-skin="cinematic"] .cine-z2 { z-index: 2; }
+
+/* The ground: black stock, bone ink (§1, §2.1.1). The Shell paints it in the app; the preview layout has no Shell. */
+html[data-skin="cinematic"] body { background: var(--mm-color-paper-0); color: var(--mm-color-ink-100); }

@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/providers/dialogue_jump_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/transcript_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
@@ -67,13 +68,10 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
             box: hit.box,
           ),
         );
-    // TODO(mobile/06): enterReader(context, target, entry: ReaderEntry.dip).
-    unawaited(
-      context.push(
-        Routes.reader(hit.sourceId, hit.seriesKey, hit.chapterKey, {
-          'page': hit.page,
-        }),
-      ),
+    enterReader(
+      context,
+      ReaderTarget.manifest(hit.sourceId, hit.seriesKey, hit.chapterKey, page: hit.page),
+      entry: ReaderEntry.dip,
     );
   }
 

@@ -100,6 +100,12 @@ dependencies:
   custom_refresh_indicator: 4.0.2
   flutter_reorderable_grid_view: 5.7.0
   liquid_glass_widgets: 1.7.2
+  # Glass foundation (mobile/25, ledger glass 15.11). material_color_utilities is
+  # the version the Flutter SDK pins (0.13.0 on 3.44.6), never a direct constraint.
+  motor: 1.1.0
+  heroine: 0.7.2
+  smooth_sheets: 1.2.0
+  material_color_utilities: any
 
 dev_dependencies:
   flutter_launcher_icons: 0.14.4
@@ -151,6 +157,9 @@ flutter:
     - assets/sounds/cinematic/
     - assets/sounds/glass/
     - assets/licenses/
+    - assets/gallery/covers/
+  shaders:
+    - lib/skins/cinematic/shaders/grain.frag
   fonts:
     # Syne (display / headings) and DM Sans (body / UI) are bundled as variable
     # fonts so the app NEVER depends on runtime fetching from fonts.gstatic.com.

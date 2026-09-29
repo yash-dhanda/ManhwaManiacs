@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/ocr/services/ocr_snippet.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/discover_scope.dart';
+import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -289,12 +290,12 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
       );
     }
     if (error is ApiError && error.code == 'rate_limited') {
-      final after = (error.details is Map ? (error.details! as Map)['retry_after'] : null);
+      final after = retryAfterSeconds(error);
       return CineNotice(
         kicker: 'SLOW DOWN',
         headline: 'Too many searches at once.',
         folio: RetryCountdown(
-          seconds: after is num ? after.toInt() : 12,
+          seconds: after ?? 12,
           style: cineText(context, context.cine.typeFolio, color: context.cine.colorSpot),
           onZero: retry,
         ),

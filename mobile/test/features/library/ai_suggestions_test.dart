@@ -31,9 +31,14 @@ class _SuggestRepository implements LibraryRepository {
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
-
   @override
-  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   _SuggestRepository({
     this.available = true,
     this.dropped = 0,

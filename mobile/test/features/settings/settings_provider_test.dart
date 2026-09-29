@@ -38,6 +38,14 @@ class _EmptyLibraryRepository implements LibraryRepository {
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   var statisticsCallCount = 0;
   var continueReadingCallCount = 0;
   var listSeriesCallCount = 0;
@@ -74,7 +82,7 @@ class _EmptyLibraryRepository implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) =>
       throw UnimplementedError();

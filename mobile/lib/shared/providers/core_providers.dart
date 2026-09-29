@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/config/env.dart';
+import 'package:manhwamaniacs/core/network/db_busy.dart';
 import 'package:manhwamaniacs/core/network/dio_client.dart';
 import 'package:manhwamaniacs/core/network/interceptors/auth_interceptor.dart';
 import 'package:manhwamaniacs/core/network/request_limiter.dart';
@@ -56,6 +57,7 @@ final dioProvider = Provider<Dio>(
     return createDioClient(
       baseUrl: ref.watch(apiBaseUrlProvider),
       sourcesLimiter: ref.watch(sourcesLimiterProvider),
+      onDbBusyExhausted: () => ref.read(dbBusyExhaustedProvider.notifier).state++,
       authInterceptor: AuthInterceptor(
         tokenStore: tokenStore,
         onUnauthorized: () => tokenStore.onUnauthorized(),

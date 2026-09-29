@@ -21,9 +21,14 @@ class _CollectionsRepo implements LibraryRepository {
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
-
   @override
-  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   _CollectionsRepo(this.items);
 
   final List<Collection> items;
@@ -112,7 +117,7 @@ class _CollectionsRepo implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) =>
       throw UnimplementedError();

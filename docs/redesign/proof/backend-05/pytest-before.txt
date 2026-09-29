@@ -1,0 +1,6 @@
+Baseline: the merged tip before this step (backend/04 landed, 0059cba0). A fresh baseline run was not
+possible: the shared backend lock queued behind other lanes for over 30 minutes, so it was skipped.
+The recorded run of the same code is docs/redesign/proof/backend-04/pytest-after.txt:
+3543 passed, 2 skipped, 7 deselected (after its one fix). The merge of feat/vps-slim-source-native at
+the start of this step added no backend tests.
+PRE-EXISTING FAILURES: none.

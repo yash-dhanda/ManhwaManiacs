@@ -23,7 +23,7 @@ from database.models import Base
 from database.session import run_alembic_migrations
 
 _BASELINE = "0001_source_native"
-_HEAD = "0021_streaks_listen_sessions"
+_HEAD = "0024_reader_page_annotations"
 
 # Every revision, oldest first. A new migration is added here deliberately —
 # the point of the guard is that revisions arrive on purpose, not that there is
@@ -50,6 +50,9 @@ _REVISIONS = [
     "0019_cover_palette.py",
     "0020_collection_rules.py",
     "0021_streaks_listen_sessions.py",
+    "0022_home_feed.py",
+    "0023_ai_taste_feedback.py",
+    "0024_reader_page_annotations.py",
 ]
 
 # Every ORM-mapped table the baseline must create (spec §3).
@@ -79,6 +82,9 @@ _EXPECTED_TABLES = {
     "cover_palette",
     "streak_milestones",
     "listen_sessions",
+    "ai_result_cache",
+    "reader_page_annotations",
+    "ai_feedback",
 }
 
 # Tables that must be gone (spec §3.11).
@@ -806,3 +812,51 @@ def test_profile_redesign_cols_mark_existing_profiles_onboarded(tmp_path):
         s.refresh(fresh)
         assert fresh.onboarding_step is None
         assert fresh.notify_enabled == 1
+
+
+# --- 0022_home_feed ---------------------------------------------------------
+
+
+def test_home_feed_backfills_last_new_chapter_at_from_notifications(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'home.db'}")
+    _upgrade_to(engine, "0021_streaks_listen_sessions")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO users (id, username, password_hash, is_admin,"
+                " is_active, created_at, updated_at) VALUES"
+                " (1, 'owner', 'x', 1, 1, '2026-01-01', '2026-01-01')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO reading_profiles (id, user_id, name, avatar_key,"
+                " mood, mature_content_enabled, sort_order, created_at)"
+                " VALUES (10, 1, 'P', 'a', 'default', 0, 0, '2026-01-01')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO followed_series (id, user_id, profile_id, source_id,"
+                " series_key, title, is_favorite, reading_status, notify,"
+                " sort_order, known_chapters, chapter_count, created_at, updated_at)"
+                " VALUES (5, 1, 10, 's', 'k', 'T', 0, 'reading', 1, 0, '[]', 0,"
+                " '2026-01-01', '2026-01-01')"
+            )
+        )
+        for n, day in (("a", "2026-09-26 10:00:00"), ("b", "2026-09-28 10:00:00")):
+            conn.execute(
+                text(
+                    "INSERT INTO update_notifications (user_id, profile_id,"
+                    " followed_series_id, source_id, series_key, chapter_key,"
+                    " chapter_title, is_read, created_at) VALUES"
+                    " (1, 10, 5, 's', 'k', :n, :n, 0, :d)"
+                ),
+                {"n": n, "d": day},
+            )
+    _upgrade_to(engine, "head")
+    with engine.connect() as conn:
+        got = conn.execute(
+            text("SELECT last_new_chapter_at FROM followed_series WHERE id = 5")
+        ).scalar_one()
+    assert str(got).startswith("2026-09-28 10:00:00")

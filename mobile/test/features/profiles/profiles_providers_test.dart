@@ -48,6 +48,7 @@ class _FakeProfilesRepository implements ProfilesRepository {
     required Mood mood,
     int? sortOrder,
     bool? matureContentEnabled,
+    String? skin,
   }) async {
     calls.add('create');
     final created = _profile(
@@ -306,6 +307,7 @@ class _ErroringRepository extends _FakeProfilesRepository {
     required String avatarKey,
     required Mood mood,
     int? sortOrder,
+    String? skin,
     bool? matureContentEnabled,
   }) async =>
       const Err(

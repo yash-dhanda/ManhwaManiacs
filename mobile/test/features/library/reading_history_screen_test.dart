@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/library/models/reading_history_item.dart'
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/screens/reading_history_screen.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
@@ -70,6 +71,12 @@ class _FakeSources implements SourcesRepository {
 
   @override
   Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   _FakeSources(this.chapters);
 
   final Result<List<SourceChapterSummary>> chapters;

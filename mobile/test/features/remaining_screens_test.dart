@@ -1,6 +1,3 @@
-import 'package:manhwamaniacs/features/sources/models/source_health.dart';
-import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
-import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,12 +22,16 @@ import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest_window.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
 import 'package:manhwamaniacs/features/settings/models/app_version.dart';
 import 'package:manhwamaniacs/features/settings/providers/app_update_provider.dart';
 import 'package:manhwamaniacs/features/settings/screens/settings_screen.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -72,6 +73,14 @@ class _FakeIntelligenceRepository implements LibraryRepository {
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   @override
   Future<Result<WorldRecommendations>> worldRecommendations({
     int seeds = 5,
@@ -142,7 +151,7 @@ class _FakeIntelligenceRepository implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) =>
       throw UnimplementedError();
@@ -390,6 +399,12 @@ class _FakeSourcesRepository implements SourcesRepository {
   @override
   Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
   @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
+  @override
   Future<Result<List<SourceSummary>>> listSources() async => const Ok([
         SourceSummary(
           id: 'asura',
@@ -414,6 +429,7 @@ class _FakeSourcesRepository implements SourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
+    int? tier,
   }) =>
       throw UnimplementedError();
 
@@ -427,6 +443,8 @@ class _FakeSourcesRepository implements SourcesRepository {
     int page = 1,
     String? query,
     String? sort,
+    String? genre,
+    bool refresh = false,
   }) =>
       throw UnimplementedError();
 

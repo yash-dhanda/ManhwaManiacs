@@ -131,6 +131,8 @@ class ReadingProfile(Base):
     )
     onboarding_step: Mapped[str | None] = mapped_column(String(8))
     daily_goal_minutes: Mapped[int | None] = mapped_column(Integer)
+    # 0023: onboarding answers as JSON {formats, genres, styles, seeds}.
+    taste: Mapped[str | None] = mapped_column(Text)
 
 
 class BootstrapState(Base):
@@ -320,6 +322,9 @@ class FollowedSeries(Base):
         Integer, nullable=False, default=0, server_default="0"
     )
     last_checked_at: Mapped[datetime | None] = mapped_column(DateTime)
+    #: When an update check last found new chapters here, recorded whether or
+    #: not a notification was allowed (``GET /home``'s "New this week").
+    last_new_chapter_at: Mapped[datetime | None] = mapped_column(DateTime)
     last_error: Mapped[str | None] = mapped_column(Text)
     migrated_from_source: Mapped[str | None] = mapped_column(String(64))
     migrated_from_series_key: Mapped[str | None] = mapped_column(String(512))
@@ -1414,6 +1419,99 @@ class CoverPalette(Base):
     #: JSON ``{"a": [hex, ...], "l", "lMax"}`` (glass §2.1.8).
     palette: Mapped[str] = mapped_column(Text, nullable=False)
     computed_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+
+
+class AiFeedback(Base):
+    """A profile's verdicts on AI picks (owned data, not a cache)."""
+
+    __tablename__ = "ai_feedback"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_ai_feedback_scope",
+        ),
+        Index("ix_ai_feedback_scope", "user_id", "profile_id", "signal"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    signal: Mapped[str] = mapped_column(String(16), nullable=False)
+    anilist_id: Mapped[int | None] = mapped_column(Integer)
+    source_id: Mapped[str | None] = mapped_column(String(64))
+    series_key: Mapped[str | None] = mapped_column(String(512))
+    tag: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+
+
+class ReaderPageAnnotation(Base):
+    """Client-reported tint and panel boxes for one page (a shared cache).
+
+    A page's colour and panel layout are the same for every reader, so rows are
+    global; the 18+ gate is applied when serving. The server never decodes an
+    image: clients report. ``page_etag`` is ``sha256(page proxy url)[:32]``
+    (``services.page_annotations.page_etag``): the proxy's byte ETag depends on
+    ``?w=`` and ``Accept`` and needs the bytes, but the URL embeds the upstream
+    page key, so a re-uploaded page never inherits an old image's report.
+    ``panels`` is a JSON list of ``{x, y, w, h}`` page fractions; ``[]`` means
+    analysed, no panels found.
+    """
+
+    # ponytail: no pruning; add an updated_at sweep if it passes 1M rows
+    __tablename__ = "reader_page_annotations"
+    __table_args__ = (
+        UniqueConstraint(
+            "source_id", "series_key", "chapter_key", "page_etag",
+            name="uq_reader_page_annotations_page",
+        ),
+        Index(
+            "ix_reader_page_annotations_chapter",
+            "source_id", "series_key", "chapter_key",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    series_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    chapter_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    page_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    page_etag: Mapped[str] = mapped_column(String(32), nullable=False)
+    page_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    tint: Mapped[str | None] = mapped_column(String(7))
+    panels: Mapped[str | None] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+
+
+class AiResultCache(Base):
+    """Every AI answer this redesign stores (derived data, safe to lose).
+
+    ``key`` is the SHA-256 hex digest of the logical key so a 512-character
+    series key never overflows it. ``profile_id`` is set only for per-profile
+    answers (the home editorial), so a deleted profile takes its rows along.
+    """
+
+    __tablename__ = "ai_result_cache"
+    __table_args__ = (
+        Index("ix_ai_result_cache_expires_at", "expires_at"),
+        Index("ix_ai_result_cache_series", "source_id", "series_key"),
+        Index("ix_ai_result_cache_profile", "profile_id"),
+    )
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    profile_id: Mapped[int | None] = mapped_column(
+        ForeignKey("reading_profiles.id", ondelete="CASCADE"), nullable=True
+    )
+    source_id: Mapped[str | None] = mapped_column(String(64))
+    series_key: Mapped[str | None] = mapped_column(String(512))
+    payload: Mapped[str] = mapped_column(Text, nullable=False)
+    model: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="", server_default=""
+    )
+    generated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
 
 # ---------------------------------------------------------------------------

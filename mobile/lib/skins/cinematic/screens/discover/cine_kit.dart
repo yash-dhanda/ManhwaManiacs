@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_health.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart'
+    as real;
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -533,10 +535,11 @@ class ZeroSizeHeading extends StatelessWidget {
 
 /// Shows [child] only after [delay] (the ASK dial appears after 1 s).
 class DelayedShow extends StatefulWidget {
-  const DelayedShow(
-      {super.key,
-      required this.child,
-      this.delay = const Duration(seconds: 1),});
+  const DelayedShow({
+    super.key,
+    required this.child,
+    this.delay = const Duration(seconds: 1),
+  });
 
   final Widget child;
   final Duration delay;
@@ -576,60 +579,17 @@ void announce(BuildContext context, String message) => unawaited(
       ),
     );
 
-/// A 56 px header sheet with a grabber (the `CineSheetRoute` shape of §7.9).
-/// TODO(mobile/05): swap for the real route; [body] fills the sheet below the
-/// header.
+/// A header sheet (the shared `CineSheetRoute`); [body] fills the sheet below the header.
 Future<T?> showCineSheet<T>(
   BuildContext context, {
   required String title,
   required WidgetBuilder body,
 }) =>
-    showModalBottomSheet<T>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.cine.colorPaper2,
-      barrierColor: CineScrim.modal,
-      shape: const RoundedRectangleBorder(),
-      constraints:
-          BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
-      builder: (context) {
-        final t = context.cine;
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: CineSpace.s2),
-                  width: 32,
-                  height: 3,
-                  color: t.colorInk30,
-                ),
-              ),
-              SizedBox(
-                height: 56,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Semantics(
-                      header: true,
-                      child: Text(title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: cineText(context, t.typeSubhead),),
-                    ),
-                  ),
-                ),
-              ),
-              Divider(height: 1, thickness: 1, color: t.colorRule1),
-              Flexible(child: body(context)),
-            ],
-          ),
-        );
-      },
-    );
+    real.showCineSheet<T>(context,
+        kicker: 'DISCOVER',
+        title: title,
+        builder: (c) =>
+            Material(type: MaterialType.transparency, child: body(c)));
 
 /// The heavy rule under a masthead: drawn left to right over [CineDur.beat]
 /// once the letters have landed ([CineDur.letter]); whole under reduced motion.
@@ -681,8 +641,9 @@ class _DrawnRuleState extends State<DrawnRule>
               child: FractionallySizedBox(
                 widthFactor: CineCurves.easeSet.transform(_c.value),
                 child: ColoredBox(
-                    color: context.cine.colorInk100,
-                    child: SizedBox(height: widget.thickness),),
+                  color: context.cine.colorInk100,
+                  child: SizedBox(height: widget.thickness),
+                ),
               ),
             ),
           ),

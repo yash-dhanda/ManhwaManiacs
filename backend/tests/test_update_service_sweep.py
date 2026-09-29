@@ -245,3 +245,30 @@ def test_empty_live_list_still_seeds_a_row_that_has_no_snapshot(
     db_session.refresh(row)
     assert json.loads(row.known_chapters) == []
     assert row.last_error is None
+
+
+def test_sweep_records_last_new_chapter_at_even_when_notifications_are_off(
+    db_session, make_user, make_profile, seed_follow, stub_connector
+):
+    user = make_user("quiet")
+    profile = make_profile(user.id, "Main")
+    profile.notify_enabled = False
+    db_session.commit()
+    row = seed_follow(
+        user.id, profile.id, source_id=SRC, series_key="quiet",
+        known_chapters=_known(("c1", 1.0)), notify=True,
+    )
+    same = seed_follow(
+        user.id, profile.id, source_id=SRC, series_key="same",
+        known_chapters=_known(("c1", 1.0)), notify=True,
+    )
+    stub_connector["quiet"] = [_chap("c1", 1.0), _chap("c2", 2.0)]
+    stub_connector["same"] = [_chap("c1", 1.0)]
+
+    UpdateService(db_session).run_check(trigger="manual")
+
+    db_session.refresh(row)
+    db_session.refresh(same)
+    assert row.last_new_chapter_at is not None
+    assert same.last_new_chapter_at is None
+    assert db_session.query(UpdateNotification).count() == 0

@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/theme/app_colors.dart';
 import 'package:manhwamaniacs/app/theme/app_presets.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
-import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
-import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
+import 'package:manhwamaniacs/features/downloads/providers/series_download_summary_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/storage_settings_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_copy.dart';
@@ -38,26 +37,21 @@ class SeriesDownloadProgress extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statuses =
-        ref.watch(seriesChapterDownloadStatusProvider(identity)).valueOrNull;
-    if (statuses == null || statuses.isEmpty) return const SizedBox.shrink();
+    final summary = ref.watch(
+      seriesDownloadSummaryProvider((series: identity, listed: totalChapters)),
+    );
+    if (summary == null) return const SizedBox.shrink();
 
-    final saved = statuses.values
-        .where((s) => s.state == DownloadChapterState.complete)
-        .length;
-    final failed =
-        statuses.values.where((s) => s.state == DownloadChapterState.failed).length;
-    final waiting = statuses.length - saved - failed;
-
-    // The store can hold chapters the page is not listing (a chapter pulled
-    // from the source list since the download), so the denominator is
-    // whichever number is actually the larger of the two truths.
-    final total = totalChapters > statuses.length ? totalChapters : statuses.length;
-    final active = ref.watch(seriesActiveChapterProgressProvider(identity));
+    final saved = summary.saved;
+    final failed = summary.failed;
+    final waiting = summary.waiting;
+    final total = summary.total;
+    final activePage = summary.downloadingPage;
+    final activePageTotal = summary.pageTotal ?? 0;
     final queue = ref.watch(downloadQueueControllerProvider);
-    final pauseMessage = active == null && waiting == 0
+    final pauseMessage = summary.pauseReason == null
         ? null
-        : downloadPauseMessage(queue.pauseReason, ref.watch(storageCapProvider));
+        : downloadPauseMessage(summary.pauseReason!, ref.watch(storageCapProvider));
 
     return GlassCard(
       padding: EdgeInsets.all(context.space.lg),
@@ -95,12 +89,12 @@ class SeriesDownloadProgress extends ConsumerWidget {
               ),
             ),
           ),
-          if (active != null) ...[
+          if (activePage != null) ...[
             SizedBox(height: context.space.sm),
             Text(
-              active.progress.pageTotal > 0
-                  ? 'Downloading now · page ${active.progress.pagesDone} of '
-                      '${active.progress.pageTotal}'
+              activePageTotal > 0
+                  ? 'Downloading now · page $activePage of '
+                      '$activePageTotal'
                   : 'Downloading now · reading chapter details…',
               key: const Key('series-download-current'),
               style: context.text.bodySm.copyWith(color: context.colors.primary),
@@ -135,7 +129,7 @@ class SeriesDownloadProgress extends ConsumerWidget {
               ],
             ),
           ],
-          if (waiting > 0 || active != null) ...[
+          if (waiting > 0 || activePage != null) ...[
             SizedBox(height: context.space.sm),
             Text(
               kForegroundOnlyDownloadsNote,
