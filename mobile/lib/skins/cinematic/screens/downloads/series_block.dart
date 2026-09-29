@@ -221,7 +221,7 @@ class DownloadSeriesBlockState extends ConsumerState<DownloadSeriesBlock> {
                                 child: Stack(
                                   fit: StackFit.expand,
                                   children: [
-                                    CineImage(url: cover, title: _title, width: 48),
+                                    CineImage(url: cover, width: 48),
                                     IgnorePointer(
                                       child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: c.colorRule1))),
                                     ),

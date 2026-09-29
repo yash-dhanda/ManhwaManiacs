@@ -48,6 +48,7 @@ Future<_Rig> _pump(WidgetTester t, {int unread = 0, int downloads = 0, String st
     unreadNotificationCountProvider.overrideWith(() => _Unread(unread)),
     activeDownloadCountProvider.overrideWithValue(downloads),
     setupCompletedProvider.overrideWithValue(true),
+    ...noDownloadsStoreOverrides(),
   ],);
   addTearDown(c.dispose);
   t.view.physicalSize = const Size(390, 844);

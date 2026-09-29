@@ -1,0 +1,127 @@
+import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/skins/cinematic/a11y/folio.dart';
+import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/glyphs.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_dot_leader.dart';
+import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
+
+/// The leader draw (cinematic 4.5): a clip reveal left to right, 320 ms per row, rows 24 ms
+/// apart, `easeSettle`. Reduced motion, and every visit after the first of the session, show the
+/// leader at rest.
+class LeaderDraw extends StatefulWidget {
+  const LeaderDraw({super.key, required this.index, required this.play, required this.child});
+  final int index;
+  final bool play;
+  final Widget child;
+
+  @override
+  State<LeaderDraw> createState() => _LeaderDrawState();
+}
+
+class _LeaderDrawState extends State<LeaderDraw> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 320));
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (!widget.play || CineMotion.reduced(context)) {
+      _c.value = 1;
+      return;
+    }
+    Future<void>.delayed(Duration(milliseconds: 24 * widget.index), () {
+      if (mounted) _c.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _c,
+        child: widget.child,
+        builder: (context, child) => ClipRect(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            widthFactor: context.cine.easeSettle.transform(_c.value).clamp(0.0, 1.0),
+            child: child,
+          ),
+        ),
+      );
+}
+
+/// One row of the Index (48 dp): label, dot leader, folio value, caret. [value] null hides the
+/// value only (a failed count); [loading] shows `–`.
+class IndexRow extends StatelessWidget {
+  const IndexRow({
+    super.key,
+    required this.label,
+    this.value,
+    this.loading = false,
+    this.onTap,
+    this.leading,
+    this.index = 0,
+    this.playLeaders = false,
+    this.focusNode,
+  });
+
+  final String label;
+  final String? value;
+  final bool loading;
+  final VoidCallback? onTap;
+  final Widget? leading;
+  final int index;
+  final bool playLeaders;
+  final FocusNode? focusNode;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.cine;
+    final shown = loading ? '–' : value;
+    final spoken = shown == null ? label : (loading ? '$label, loading' : '$label, ${folioLabel(shown)}');
+    return Semantics(
+      button: true,
+      container: true,
+      label: spoken,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: CinePressable(
+        focusNode: focusNode,
+        onTap: onTap,
+        hit: false,
+        builder: (context, st) => Container(
+          constraints: BoxConstraints(minHeight: cineHitMin(context) > 48 ? cineHitMin(context) : 48),
+          decoration: BoxDecoration(border: Border(bottom: c.ruleHair), color: st.pressed ? c.colorPaper3 : null),
+          child: Row(
+            children: [
+              if (leading != null) ...[leading!, SizedBox(width: c.space2)],
+              Flexible(child: CineRoleText(label, c.typeUi, color: st.hovered || st.focused ? c.colorInk100 : c.colorInk100)),
+              SizedBox(width: c.space2),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: LeaderDraw(index: index, play: playLeaders, child: const CineDotLeader()),
+                ),
+              ),
+              if (shown != null) ...[
+                SizedBox(width: c.space2),
+                CineRoleText(shown, c.typeFolio, color: c.colorInk45),
+              ],
+              SizedBox(width: c.space2),
+              CineGlyphIcon(CineGlyph.caretRight, size: 16, color: c.colorInk45),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

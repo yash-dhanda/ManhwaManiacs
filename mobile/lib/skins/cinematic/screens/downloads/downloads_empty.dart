@@ -100,7 +100,7 @@ class _CardState extends ConsumerState<_Card> {
               aspectRatio: 2 / 3,
               child: DecoratedBox(
                 decoration: BoxDecoration(color: c.colorPaper1),
-                child: CineImage(url: cover, title: title, width: 120),
+                child: CineImage(url: cover, width: 120),
               ),
             ),
           ),
