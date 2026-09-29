@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/glass/caustic.dart';
 
@@ -79,7 +80,16 @@ mixin GlassLitState<T extends StatefulWidget> on State<T> {
   }
 
   void _onSuppress() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    // An overlay mounting inside a build (its initState calls suppressLit) must not rebuild a sibling now.
+    final phase = SchedulerBinding.instance.schedulerPhase;
+    if (phase == SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    } else {
+      setState(() {});
+    }
   }
 
   @override

@@ -103,7 +103,7 @@ class _GlassStatusCapsuleState extends State<GlassStatusCapsule> {
         children: [
           if (widget.kind == GlassStatusKind.syncing) const GlassSpinner(size: 14) else if (warn) GlassBacking(size: 20, child: GlyphIcon(GlassGlyph.wifiSlash, size: 14, color: gt.colorWarning, weight: GlassIconWeight.bold)),
           const SizedBox(width: 6),
-          GlassText(_text(), role: gt.typeFootnote, wght: 600, onGlass: true, maxScale: 1.5),
+          Flexible(child: GlassText(_text(), role: gt.typeFootnote, wght: 600, onGlass: true, maxScale: 1.5)),
         ],
       ),
     );

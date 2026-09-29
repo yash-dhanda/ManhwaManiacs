@@ -292,11 +292,17 @@ class GlassPullDemo extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox(
         height: 320,
-        child: GlassPullToRefresh(
-          onRefresh: () async {
-            await Future<void>.delayed(const Duration(seconds: 1));
-            return RefreshResult.changed;
-          },
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          slivers: [
+            GlassPullToRefresh(
+              onRefresh: () async {
+                await Future<void>.delayed(const Duration(seconds: 1));
+                return RefreshResult.changed;
+              },
+            ),
+            SliverList.builder(itemCount: 30, itemBuilder: (_, i) => SizedBox(height: 48, child: Center(child: GlassLabel('Row $i', role: gt.typeBody)))),
+          ],
         ),
       );
 }
