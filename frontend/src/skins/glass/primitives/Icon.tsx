@@ -4,6 +4,7 @@ import {
   EyeIcon, EyeSlashIcon, FlameIcon, GhostIcon, GlobeIcon, HeartIcon, ImageBrokenIcon, MagicWandIcon,
   MagnifyingGlassIcon, MoonIcon, PlayIcon, PlusIcon, PushPinIcon, RocketLaunchIcon, SparkleIcon, StarIcon,
   SwordIcon, TrashSimpleIcon, WarningCircleIcon, WarningIcon, WifiSlashIcon, XIcon, BookOpenTextIcon, ArrowLeftIcon, ArrowRightIcon, ExportIcon,
+  SunIcon, SpeakerHighIcon, MinusIcon, DownloadSimpleIcon, InfoIcon, CaretUpIcon,
 } from "@phosphor-icons/react/ssr";
 import type { ComponentType } from "react";
 import { AgeGate, Droplet, StripScroll } from "../icons/glyphs.generated";
@@ -24,6 +25,7 @@ const PH = {
   moon: MoonIcon, play: PlayIcon, plus: PlusIcon, "push-pin": PushPinIcon, "rocket-launch": RocketLaunchIcon, sparkle: SparkleIcon,
   star: StarIcon, sword: SwordIcon, trash: TrashSimpleIcon, "warning-circle": WarningCircleIcon, warning: WarningIcon,
   "wifi-slash": WifiSlashIcon, x: XIcon, share: ExportIcon, "arrow-left": ArrowLeftIcon, "arrow-right": ArrowRightIcon,
+  sun: SunIcon, "speaker-high": SpeakerHighIcon, minus: MinusIcon, "download-simple": DownloadSimpleIcon, info: InfoIcon, "caret-up": CaretUpIcon,
 } as const satisfies Record<string, ComponentType<PhProps>>;
 
 const GL = { droplet: Droplet, "age-gate": AgeGate, "strip-scroll": StripScroll } as const;
