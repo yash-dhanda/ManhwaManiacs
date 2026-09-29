@@ -9,10 +9,11 @@ import {
 
 const PREFERENCES_KEY = ["preferences"] as const;
 
-export function useContentPreferences() {
+export function useContentPreferences(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...PREFERENCES_KEY, "content"],
     queryFn: () => preferencesApi.get(),
+    enabled: options?.enabled ?? true,
   });
 }
 
