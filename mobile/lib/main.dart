@@ -1,5 +1,6 @@
 ﻿import 'dart:async';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/app.dart';
@@ -12,9 +13,11 @@ import 'package:manhwamaniacs/core/network/interceptors/app_version_interceptor.
 import 'package:manhwamaniacs/core/platform/system_ui.dart';
 import 'package:manhwamaniacs/core/storage/preferences.dart';
 import 'package:manhwamaniacs/core/storage/secure_storage.dart';
-import 'package:manhwamaniacs/features/novels/utils/novel_audio_session.dart';
+import 'package:manhwamaniacs/features/novels/providers/narration_audio_handler_provider.dart';
+import 'package:manhwamaniacs/features/novels/services/narration_audio_handler.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/features/novels/utils/novel_audio_session.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,10 +54,25 @@ Future<void> main() async {
   await systemUi;
   appLogger.i('API base URL: $apiUrl  flavor: ${Env.flavor}');
 
-  // Narration is spoken word, not music: an interruption pauses the chapter
-  // rather than talking over it. Not awaited — nothing plays before a reader
-  // presses play, and a platform that refuses it must not delay first frame.
+  // State A of the audio session (ambient, mixes with others; narration flips
+  // it to spoken word while a chapter plays). SkinAudio owns the session for
+  // the process, so a skin restart never resets it. Not awaited: nothing plays
+  // before a reader presses play and the first frame must not wait.
   unawaited(configureNovelAudioSession());
+
+  // Once per engine, before runApp and never inside the restart builder (it
+  // asserts a single init; a skin switch restarts inside the same engine).
+  // Idle until mobile/15 attaches narration, so no notification ever shows.
+  final handler = await AudioService.init<NarrationAudioHandler>(
+    builder: NarrationAudioHandler.new,
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.manhwamaniacs.reader.listen',
+      androidNotificationChannelName: 'Listen',
+      // mobile/15 switches to drawable/ic_stat_mm (shared/04).
+      androidNotificationIcon: 'mipmap/ic_launcher',
+      notificationColor: Color(0xFFF4D03F),
+    ),
+  );
 
   await skinFor(SkinBoot.resolveSkin(prefs)).prepare();
 
@@ -71,6 +89,7 @@ Future<void> main() async {
             skinIdProvider.overrideWithValue(boot.skin),
             returnRouteProvider.overrideWithValue(boot.returnRoute),
             skinRestartCarriesSessionProvider.overrideWithValue(boot.carrySession),
+            audioHandlerProvider.overrideWithValue(handler),
           ],
           child: const SkinApp(),
         );
