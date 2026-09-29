@@ -189,6 +189,7 @@ class CoverActions extends StatelessWidget {
         folio: data.primaryFolio,
         variant: data.primaryFolio == null ? CineButtonVariant.primary : CineButtonVariant.split,
         size: size,
+        fullWidth: !wide,
         onPressed: data.canContinue ? data.onContinue : data.onDetails,
       ),
     );

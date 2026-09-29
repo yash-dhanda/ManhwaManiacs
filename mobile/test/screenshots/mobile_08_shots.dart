@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,7 +24,6 @@ import '../skins/cinematic/feature/feature_test_support.dart' show featureTheme;
 import '../skins/cinematic/tonight/tonight_test_support.dart';
 import 'support/series_shots.dart';
 import 'support/shot_covers.dart';
-import 'support/shot_harness.dart';
 import 'support/shot_network.dart';
 import 'support/skin_shots.dart';
 
@@ -116,13 +114,15 @@ void mobile08Shots() {
           sharedPrefsProvider.overrideWithValue(await _prefs()),
           if (grid) layoutGridOverlayProvider.overrideWith((ref) => true),
         ],
-        child: Stack(children: [
-          MaterialApp(debugShowCheckedModeBanner: false, theme: featureTheme(TargetPlatform.android), home: const TonightScreen()),
-          if (grid) const Positioned.fill(child: CineGridOverlay()),
-        ]),
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: featureTheme(TargetPlatform.android),
+          builder: (context, child) => Stack(children: [child!, if (grid) const Positioned.fill(child: CineGridOverlay())]),
+          home: const TonightScreen(),
+        ),
         settle: (t) async {
-          await pumpUntilCoversLoad(t, rounds: 3);
           await settleTonight(t, by: settle);
+          await pumpUntilCoversLoad(t, rounds: 8);
           if (drive != null) await drive(t, wide);
         },
       );
@@ -214,7 +214,10 @@ void mobile08Shots() {
     addTearDown(t.view.reset);
     await t.pumpWidget(ProviderScope(
       overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
-      child: RepaintBoundary(key: kSkinShotKey, child: const CinePrimitivesGalleryPage(section: 'streak-flame')),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: MediaQuery(data: MediaQueryData.fromView(t.view), child: RepaintBoundary(key: kSkinShotKey, child: const CinePrimitivesGalleryPage(section: 'streak-flame'))),
+      ),
     ));
     await t.pump(const Duration(milliseconds: 600));
     await captureSeriesShotPlain(t, 'streak-flame-gallery');

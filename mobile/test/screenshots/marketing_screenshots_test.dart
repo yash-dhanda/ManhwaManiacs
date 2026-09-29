@@ -122,7 +122,9 @@ void main() {
       'masthead': 1100.0,
       'layout': 1900.0,
       'grain-duotone': 700.0,
-      'reveals': 800.0,
+      'reveals': 1000.0,
+      // mobile-08: the streak flame in every tier and state.
+      'streak-flame': 900.0,
       'motion-timings': 700.0,
       // mobile-05 sections: captured open by the mobile-05 group; here only their resting page.
       'sheets': 800.0,

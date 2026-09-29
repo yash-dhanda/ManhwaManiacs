@@ -64,7 +64,7 @@ void main() {
     expect(_stripOpacity(t), 1);
     expect(t.getSize(find.ancestor(of: find.byType(CoverArt), matching: find.byType(ClipRect)).first), const Size(32, 48), reason: 'the thumbnail slot');
     expect(find.text('The Lantern Courier'), findsWidgets);
-    expect(find.text('▸'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('chapter 143')), findsWidgets);
     expect(find.text('CH 143'), findsWidgets);
     // Pinned: further scrolling keeps the strip at the top.
     await _shrink(t, _max - _min + 600);

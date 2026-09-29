@@ -41,6 +41,7 @@ class CineButton extends StatefulWidget {
     this.toggle = false,
     this.disabledReason,
     this.focusNode,
+    this.fullWidth = false,
   });
 
   final String label;
@@ -63,6 +64,9 @@ class CineButton extends StatefulWidget {
   /// Shown in a tooltip when the disabled state is not obvious.
   final String? disabledReason;
   final FocusNode? focusNode;
+
+  /// Fills the width it is given instead of hugging its label (Tonight's `Continue`).
+  final bool fullWidth;
 
   @override
   State<CineButton> createState() => _CineButtonState();
@@ -336,6 +340,6 @@ class _CineButtonState extends State<CineButton> with SingleTickerProviderStateM
           ),
         ),
     ];
-    return Stack(clipBehavior: Clip.none, children: stackChildren);
+    return Stack(fit: widget.fullWidth ? StackFit.passthrough : StackFit.loose, clipBehavior: Clip.none, children: stackChildren);
   }
 }

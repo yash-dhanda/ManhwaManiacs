@@ -346,7 +346,8 @@ class _Strip extends StatelessWidget {
             child: ExcludeSemantics(
               child: CineButton(
                 key: const Key('tonight-strip-continue'),
-                label: '▸',
+                label: '',
+                icon: CineIconRole.play,
                 folio: ch,
                 variant: CineButtonVariant.split,
                 size: CineButtonSize.sm,

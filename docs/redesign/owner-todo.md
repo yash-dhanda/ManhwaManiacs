@@ -94,3 +94,6 @@ Items only the owner can do, by step.
 - 18+ on-device run: `docs/redesign/proof/mobile-07/18plus-checklist.md` (throwaway profile, own server; undo afterwards).
 - mobile/27: device checks listed in docs/redesign/proof/mobile-27/device-check.md (predictive back, keyboard rule, viewer gestures, real blur, haptics).
 - mobile/27: run docs/redesign/proof/mobile-27/device-check.md on the iPhone (SideStore) and the Android flagship.
+
+## mobile/08 (Tonight)
+- Device checks: see docs/redesign/proof/mobile-08/device-checklist.md (iPhone via SideStore, Android flagship).
