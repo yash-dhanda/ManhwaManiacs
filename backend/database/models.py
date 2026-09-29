@@ -218,6 +218,103 @@ class CircleEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
 
+class CircleReaction(Base):
+    """One reaction per profile per chapter (backend/09). User data.
+
+    ``shared`` is fixed at write time (``share_activity AND share_reactions``
+    of the author then), so a reaction made while sharing was off never
+    surfaces later.
+    """
+
+    __tablename__ = "circle_reactions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_circle_reactions_scope",
+        ),
+        Index("ix_circle_reactions_chapter", "source_id", "series_key", "chapter_key"),
+    )
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("reading_profiles.id", ondelete="CASCADE"), primary_key=True
+    )
+    source_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    series_key: Mapped[str] = mapped_column(String(512), primary_key=True)
+    chapter_key: Mapped[str] = mapped_column(String(512), primary_key=True)
+    chapter_number: Mapped[float | None] = mapped_column(Float)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    shared: Mapped[bool] = mapped_column(Integer, nullable=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+
+class CircleLetter(Base):
+    """Recommend to / Pass it on: one row per recipient (backend/09)."""
+
+    __tablename__ = "circle_letters"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["from_user_id", "from_profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_circle_letters_from_scope",
+        ),
+        ForeignKeyConstraint(
+            ["to_user_id", "to_profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_circle_letters_to_scope",
+        ),
+        Index("ix_circle_letters_to", "to_profile_id", "created_at"),
+        Index("ix_circle_letters_from", "from_profile_id", "sent_group"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    from_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    from_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("reading_profiles.id", ondelete="CASCADE"), nullable=False
+    )
+    to_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    to_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("reading_profiles.id", ondelete="CASCADE"), nullable=False
+    )
+    sent_group: Mapped[str] = mapped_column(String(32), nullable=False)
+    source_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    series_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    title: Mapped[str] = mapped_column(String(512), nullable=False)
+    cover_url: Mapped[str | None] = mapped_column(String(1024))
+    note: Mapped[str | None] = mapped_column(String(140))
+    state: Mapped[str] = mapped_column(String(16), nullable=False, server_default="new")
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+
+class CollectionShare(Base):
+    """A member a shelf is shared with (``collections.share_mode`` says how)."""
+
+    __tablename__ = "collection_shares"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_collection_shares_scope",
+        ),
+        Index("ix_collection_shares_profile", "profile_id"),
+    )
+
+    collection_id: Mapped[int] = mapped_column(
+        ForeignKey("collections.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("reading_profiles.id", ondelete="CASCADE"), primary_key=True
+    )
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+
+
 class BootstrapState(Base):
     """Singleton row (id=1): when the ``users`` table was first observed empty.
 
@@ -852,6 +949,8 @@ class Collection(Base):
     #: Smart-shelf rules as JSON ``{"all": [{field, op, value}]}``, or NULL
     #: for a plain collection. Stored only; the device evaluates membership.
     rules: Mapped[str | None] = mapped_column(Text)
+    #: ``can_add`` | ``view_only``; NULL = not shared (``collection_shares``).
+    share_mode: Mapped[str | None] = mapped_column(String(16))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=utcnow, onupdate=utcnow
@@ -866,6 +965,15 @@ class CollectionSeries(Base):
     __tablename__ = "collection_series"
     __table_args__ = (
         Index("ix_collection_series_series", "source_id", "series_key"),
+        # Deleting a profile removes the series it added to other profiles'
+        # shelves, so a reused profile id can never inherit its add rights.
+        ForeignKeyConstraint(
+            ["added_by_user_id", "added_by_profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_collection_series_added_by",
+        ),
+        Index("ix_collection_series_added_by", "added_by_profile_id"),
     )
 
     collection_id: Mapped[int] = mapped_column(
@@ -875,6 +983,12 @@ class CollectionSeries(Base):
     series_key: Mapped[str] = mapped_column(String(512), primary_key=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     added_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    #: The shelf's own snapshot of what the adder saw (shared rows render
+    #: from these, never from the viewer's library).
+    title: Mapped[str | None] = mapped_column(String(512))
+    cover_url: Mapped[str | None] = mapped_column(String(1024))
+    added_by_user_id: Mapped[int | None] = mapped_column(Integer)
+    added_by_profile_id: Mapped[int | None] = mapped_column(Integer)
 
     collection: Mapped[Collection] = relationship(back_populates="series")
 

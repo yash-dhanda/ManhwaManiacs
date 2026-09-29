@@ -23,7 +23,7 @@ from database.models import Base
 from database.session import run_alembic_migrations
 
 _BASELINE = "0001_source_native"
-_HEAD = "0025_circle_core"
+_HEAD = "0026_circle_social"
 
 # Every revision, oldest first. A new migration is added here deliberately —
 # the point of the guard is that revisions arrive on purpose, not that there is
@@ -54,6 +54,7 @@ _REVISIONS = [
     "0023_ai_taste_feedback.py",
     "0024_reader_page_annotations.py",
     "0025_circle_core.py",
+    "0026_circle_social.py",
 ]
 
 # Every ORM-mapped table the baseline must create (spec §3).
@@ -64,6 +65,9 @@ _EXPECTED_TABLES = {
     "reading_profiles",
     "circle_hidden_series",
     "circle_events",
+    "circle_reactions",
+    "circle_letters",
+    "collection_shares",
     "source_pins",
     "source_health",
     "update_settings",
@@ -863,3 +867,66 @@ def test_home_feed_backfills_last_new_chapter_at_from_notifications(tmp_path):
             text("SELECT last_new_chapter_at FROM followed_series WHERE id = 5")
         ).scalar_one()
     assert str(got).startswith("2026-09-28 10:00:00")
+
+
+# --- 0026_circle_social ------------------------------------------------------
+
+
+def test_circle_social_migration_backfills_collection_rows(tmp_path):
+    """0026 stamps every shelf row with its owner as adder and a title snapshot.
+
+    The snapshot is the owner's follow title, else the cached series title
+    (never ``''``), else the ``series_key``.
+    """
+    engine = create_engine(f"sqlite:///{tmp_path / 'social.db'}")
+    _upgrade_to(engine, "0025_circle_core")
+    with engine.begin() as conn:
+        _seed_pre_0008_follows_accounts(conn)
+        conn.execute(
+            text(
+                "INSERT INTO collections (id, user_id, profile_id, name, sort_order,"
+                " created_at, updated_at) VALUES"
+                " (5, 1, 10, 'Shelf', 0, '2026-01-01', '2026-01-01')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO followed_series (user_id, profile_id, source_id,"
+                " series_key, title, cover_url, is_favorite, reading_status, notify,"
+                " sort_order, created_at, updated_at) VALUES (1, 10, 'mangadex',"
+                " 'followed', 'Followed Title', 'http://c/f.jpg', 0, 'reading', 1, 0,"
+                " '2026-01-01', '2026-01-01')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO source_series_cache (source_id, series_key, title,"
+                " cover_url, fetched_at) VALUES"
+                " ('mangadex', 'cached', 'Cached Title', 'http://c/c.jpg', '2026-01-01')"
+            )
+        )
+        for i, key in enumerate(("followed", "cached", "bare")):
+            conn.execute(
+                text(
+                    "INSERT INTO collection_series (collection_id, source_id,"
+                    " series_key, sort_order, added_at) VALUES"
+                    " (5, 'mangadex', :k, :i, '2026-01-01')"
+                ),
+                {"k": key, "i": i},
+            )
+    _upgrade_to(engine, "0026_circle_social")
+    with engine.connect() as conn:
+        rows = {
+            r[0]: r[1:]
+            for r in conn.execute(
+                text(
+                    "SELECT series_key, added_by_user_id, added_by_profile_id, title,"
+                    " cover_url FROM collection_series"
+                )
+            ).all()
+        }
+    assert rows == {
+        "followed": (1, 10, "Followed Title", "http://c/f.jpg"),
+        "cached": (1, 10, "Cached Title", "http://c/c.jpg"),
+        "bare": (1, 10, "bare", None),
+    }
