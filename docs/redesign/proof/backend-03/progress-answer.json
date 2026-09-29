@@ -1,0 +1,21 @@
+{
+    "id": 9,
+    "source_id": "mangadex",
+    "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+    "chapter_key": "82505cb1-fd60-4f5a-a148-86f04d3166b7",
+    "chapter_number": null,
+    "last_page": 30,
+    "page_count": 40,
+    "scroll_offset_px": 0,
+    "is_completed": false,
+    "started_at": "2026-09-29T15:09:38.907373",
+    "last_read_at": "2026-09-29T15:09:38.907373",
+    "completed_at": null,
+    "time_spent_seconds": 120,
+    "advanced": true,
+    "streak": {
+        "current_days": 5,
+        "extended_today": true
+    },
+    "today_seconds": 1800
+}

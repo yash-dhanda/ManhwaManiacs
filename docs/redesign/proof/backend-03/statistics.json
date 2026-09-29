@@ -1,0 +1,778 @@
+{
+    "followed_total": 8,
+    "favorites": 0,
+    "by_reading_status": {
+        "reading": 8
+    },
+    "chapters_completed": 5,
+    "range": {
+        "days": 30,
+        "since": "2026-08-30T18:30:00",
+        "until": "2026-09-29T15:09:34.113657",
+        "timezone_offset_minutes": 330,
+        "session_cap_seconds": 3600
+    },
+    "totals": {
+        "sessions": 6,
+        "pages_read": 162,
+        "chapters_read": 6,
+        "series_read": 4,
+        "seconds_read": 3600,
+        "first_session_at": "2026-09-24T20:55:00",
+        "last_session_at": "2026-09-29T10:04:54.220035"
+    },
+    "window": {
+        "sessions": 6,
+        "pages_read": 162,
+        "chapters_read": 6,
+        "series_read": 4,
+        "seconds_read": 3600
+    },
+    "streak": {
+        "current_days": 5,
+        "longest_days": 5,
+        "last_active_date": "2026-09-29",
+        "at_risk": false,
+        "milestones_seen": []
+    },
+    "daily": [
+        {
+            "date": "2026-08-31",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-01",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-02",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-03",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-04",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-05",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-06",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-07",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-08",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-09",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-10",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-11",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-12",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-13",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-14",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-15",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-16",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-17",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-18",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-19",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-20",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-21",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-22",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-23",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-24",
+            "sessions": 0,
+            "pages_read": 0,
+            "chapters_read": 0,
+            "series_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "date": "2026-09-25",
+            "sessions": 1,
+            "pages_read": 57,
+            "chapters_read": 1,
+            "series_read": 1,
+            "seconds_read": 300
+        },
+        {
+            "date": "2026-09-26",
+            "sessions": 1,
+            "pages_read": 4,
+            "chapters_read": 1,
+            "series_read": 1,
+            "seconds_read": 420
+        },
+        {
+            "date": "2026-09-27",
+            "sessions": 1,
+            "pages_read": 20,
+            "chapters_read": 1,
+            "series_read": 1,
+            "seconds_read": 540
+        },
+        {
+            "date": "2026-09-28",
+            "sessions": 1,
+            "pages_read": 20,
+            "chapters_read": 1,
+            "series_read": 1,
+            "seconds_read": 660
+        },
+        {
+            "date": "2026-09-29",
+            "sessions": 2,
+            "pages_read": 61,
+            "chapters_read": 2,
+            "series_read": 2,
+            "seconds_read": 1680
+        }
+    ],
+    "by_hour": [
+        {
+            "hour": 0,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 1,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 2,
+            "sessions": 5,
+            "pages_read": 158,
+            "seconds_read": 2700
+        },
+        {
+            "hour": 3,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 4,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 5,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 6,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 7,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 8,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 9,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 10,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 11,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 12,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 13,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 14,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 15,
+            "sessions": 1,
+            "pages_read": 4,
+            "seconds_read": 900
+        },
+        {
+            "hour": 16,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 17,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 18,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 19,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 20,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 21,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 22,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 23,
+            "sessions": 0,
+            "pages_read": 0,
+            "seconds_read": 0
+        }
+    ],
+    "by_source": [
+        {
+            "source_id": "mangadex",
+            "name": "MangaDex",
+            "sessions": 5,
+            "pages_read": 142,
+            "chapters_read": 5,
+            "series_read": 3,
+            "seconds_read": 2940
+        },
+        {
+            "source_id": "mangapill",
+            "name": "MangaPill",
+            "sessions": 1,
+            "pages_read": 20,
+            "chapters_read": 1,
+            "series_read": 1,
+            "seconds_read": 660
+        }
+    ],
+    "by_series": [
+        {
+            "source_id": "mangadex",
+            "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+            "title": "Rekkyou Sensen",
+            "cover_url": "/sources/mangadex/series/3683f667-c23d-4688-b872-0ade276aaafa/cover",
+            "last_read_at": "2026-09-28T20:47:00",
+            "sessions": 2,
+            "pages_read": 114,
+            "chapters_read": 2,
+            "seconds_read": 1080
+        },
+        {
+            "source_id": "mangadex",
+            "series_key": "98cad238-faca-42ee-b951-7a6b8c478d0a",
+            "title": "Guardians of Man",
+            "cover_url": "/sources/mangadex/series/98cad238-faca-42ee-b951-7a6b8c478d0a/cover",
+            "last_read_at": "2026-09-26T20:51:00",
+            "sessions": 1,
+            "pages_read": 20,
+            "chapters_read": 1,
+            "seconds_read": 540
+        },
+        {
+            "source_id": "mangapill",
+            "series_key": "10328/ningen-yametai-yonezawa-san",
+            "title": "Ningen Yametai Yonezawa-san",
+            "cover_url": "/sources/mangapill/series/10328%2Fningen-yametai-yonezawa-san/cover",
+            "last_read_at": "2026-09-27T20:49:00",
+            "sessions": 1,
+            "pages_read": 20,
+            "chapters_read": 1,
+            "seconds_read": 660
+        },
+        {
+            "source_id": "mangadex",
+            "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+            "title": "Alphabet[a]",
+            "cover_url": "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover",
+            "last_read_at": "2026-09-29T10:04:54.220035",
+            "sessions": 2,
+            "pages_read": 8,
+            "chapters_read": 2,
+            "seconds_read": 1320
+        }
+    ],
+    "recent_sessions": [
+        {
+            "source_id": "mangadex",
+            "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+            "chapter_key": "82505cb1-fd60-4f5a-a148-86f04d3166b7",
+            "chapter_number": 1.0,
+            "title": "Alphabet[a]",
+            "day": "2026-09-29",
+            "pages_read": 4,
+            "seconds_read": 900,
+            "sessions": 1,
+            "started_at": "2026-09-29T10:04:54.220035",
+            "ended_at": "2026-09-29T10:19:54.220035"
+        },
+        {
+            "source_id": "mangadex",
+            "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+            "chapter_key": "8a409b42-150f-4567-ab98-0574dde0e036",
+            "chapter_number": 1.0,
+            "title": "Rekkyou Sensen",
+            "day": "2026-09-29",
+            "pages_read": 57,
+            "seconds_read": 780,
+            "sessions": 1,
+            "started_at": "2026-09-28T20:47:00",
+            "ended_at": "2026-09-28T21:00:00"
+        },
+        {
+            "source_id": "mangapill",
+            "series_key": "10328/ningen-yametai-yonezawa-san",
+            "chapter_key": "10328-10001000/ningen-yametai-yonezawa-san-chapter-1",
+            "chapter_number": 1.0,
+            "title": "Ningen Yametai Yonezawa-san",
+            "day": "2026-09-28",
+            "pages_read": 20,
+            "seconds_read": 660,
+            "sessions": 1,
+            "started_at": "2026-09-27T20:49:00",
+            "ended_at": "2026-09-27T21:00:00"
+        },
+        {
+            "source_id": "mangadex",
+            "series_key": "98cad238-faca-42ee-b951-7a6b8c478d0a",
+            "chapter_key": "bd477f0e-6499-4f44-844f-4c1b5216ea15",
+            "chapter_number": 1.0,
+            "title": "Guardians of Man",
+            "day": "2026-09-27",
+            "pages_read": 20,
+            "seconds_read": 540,
+            "sessions": 1,
+            "started_at": "2026-09-26T20:51:00",
+            "ended_at": "2026-09-26T21:00:00"
+        },
+        {
+            "source_id": "mangadex",
+            "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+            "chapter_key": "31b4e314-afc4-4a1e-b042-c58ac60e12e6",
+            "chapter_number": 1.0,
+            "title": "Alphabet[a]",
+            "day": "2026-09-26",
+            "pages_read": 4,
+            "seconds_read": 420,
+            "sessions": 1,
+            "started_at": "2026-09-25T20:53:00",
+            "ended_at": "2026-09-25T21:00:00"
+        },
+        {
+            "source_id": "mangadex",
+            "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+            "chapter_key": "3aadf00e-70d8-47c7-9521-e3f204413812",
+            "chapter_number": 0.0,
+            "title": "Rekkyou Sensen",
+            "day": "2026-09-25",
+            "pages_read": 57,
+            "seconds_read": 300,
+            "sessions": 1,
+            "started_at": "2026-09-24T20:55:00",
+            "ended_at": "2026-09-24T21:00:00"
+        }
+    ],
+    "shareable": {
+        "genre_weights": [
+            {
+                "genre": "Post-Apocalyptic",
+                "weight": 0.121
+            },
+            {
+                "genre": "Sci-Fi",
+                "weight": 0.121
+            },
+            {
+                "genre": "Drama",
+                "weight": 0.115
+            },
+            {
+                "genre": "Slice of Life",
+                "weight": 0.1
+            },
+            {
+                "genre": "Adventure",
+                "weight": 0.067
+            },
+            {
+                "genre": "Action",
+                "weight": 0.055
+            },
+            {
+                "genre": "Gore",
+                "weight": 0.055
+            },
+            {
+                "genre": "Martial Arts",
+                "weight": 0.055
+            }
+        ],
+        "top_series": [
+            {
+                "source_id": "mangadex",
+                "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+                "title": "Alphabet[a]",
+                "cover_url": "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover",
+                "seconds_read": 1320,
+                "chapters_read": 2,
+                "ambient": {
+                    "duo": "#786ECE",
+                    "tint": "#0B0A15",
+                    "ink": "#B1ABE3"
+                },
+                "palette": {
+                    "a": [
+                        "#CBC7F2",
+                        "#9277B2",
+                        "#ADC2E6"
+                    ],
+                    "l": 0.622,
+                    "lMax": 0.985
+                }
+            },
+            {
+                "source_id": "mangadex",
+                "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+                "title": "Rekkyou Sensen",
+                "cover_url": "/sources/mangadex/series/3683f667-c23d-4688-b872-0ade276aaafa/cover",
+                "seconds_read": 1080,
+                "chapters_read": 2,
+                "ambient": {
+                    "duo": "#CA727F",
+                    "tint": "#130C0D",
+                    "ink": "#DBB3B9"
+                },
+                "palette": {
+                    "a": [
+                        "#544043"
+                    ],
+                    "l": 0.276,
+                    "lMax": 0.999
+                }
+            },
+            {
+                "source_id": "mangapill",
+                "series_key": "10328/ningen-yametai-yonezawa-san",
+                "title": "Ningen Yametai Yonezawa-san",
+                "cover_url": "/sources/mangapill/series/10328%2Fningen-yametai-yonezawa-san/cover",
+                "seconds_read": 660,
+                "chapters_read": 1,
+                "ambient": {
+                    "duo": "#7293CA",
+                    "tint": "#0D0F12",
+                    "ink": "#B3C2DB"
+                },
+                "palette": {
+                    "a": [
+                        "#6F6972",
+                        "#FFFEFE"
+                    ],
+                    "l": 0.66,
+                    "lMax": 1.0
+                }
+            },
+            {
+                "source_id": "mangadex",
+                "series_key": "98cad238-faca-42ee-b951-7a6b8c478d0a",
+                "title": "Guardians of Man",
+                "cover_url": "/sources/mangadex/series/98cad238-faca-42ee-b951-7a6b8c478d0a/cover",
+                "seconds_read": 540,
+                "chapters_read": 1,
+                "ambient": {
+                    "duo": "#D86465",
+                    "tint": "#150A0A",
+                    "ink": "#E9A5A6"
+                },
+                "palette": {
+                    "a": [
+                        "#6F1C1E"
+                    ],
+                    "l": 0.283,
+                    "lMax": 0.996
+                }
+            }
+        ],
+        "art_series": [
+            {
+                "source_id": "mangadex",
+                "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+                "cover_url": "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover",
+                "ambient": {
+                    "duo": "#786ECE",
+                    "tint": "#0B0A15",
+                    "ink": "#B1ABE3"
+                },
+                "palette": {
+                    "a": [
+                        "#CBC7F2",
+                        "#9277B2",
+                        "#ADC2E6"
+                    ],
+                    "l": 0.622,
+                    "lMax": 0.985
+                }
+            },
+            {
+                "source_id": "mangadex",
+                "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+                "cover_url": "/sources/mangadex/series/3683f667-c23d-4688-b872-0ade276aaafa/cover",
+                "ambient": {
+                    "duo": "#CA727F",
+                    "tint": "#130C0D",
+                    "ink": "#DBB3B9"
+                },
+                "palette": {
+                    "a": [
+                        "#544043"
+                    ],
+                    "l": 0.276,
+                    "lMax": 0.999
+                }
+            },
+            {
+                "source_id": "mangapill",
+                "series_key": "10328/ningen-yametai-yonezawa-san",
+                "cover_url": "/sources/mangapill/series/10328%2Fningen-yametai-yonezawa-san/cover",
+                "ambient": {
+                    "duo": "#7293CA",
+                    "tint": "#0D0F12",
+                    "ink": "#B3C2DB"
+                },
+                "palette": {
+                    "a": [
+                        "#6F6972",
+                        "#FFFEFE"
+                    ],
+                    "l": 0.66,
+                    "lMax": 1.0
+                }
+            },
+            {
+                "source_id": "mangadex",
+                "series_key": "98cad238-faca-42ee-b951-7a6b8c478d0a",
+                "cover_url": "/sources/mangadex/series/98cad238-faca-42ee-b951-7a6b8c478d0a/cover",
+                "ambient": {
+                    "duo": "#D86465",
+                    "tint": "#150A0A",
+                    "ink": "#E9A5A6"
+                },
+                "palette": {
+                    "a": [
+                        "#6F1C1E"
+                    ],
+                    "l": 0.283,
+                    "lMax": 0.996
+                }
+            }
+        ],
+        "top_sources": [
+            {
+                "source_id": "mangadex",
+                "name": "MangaDex",
+                "share": 0.817
+            },
+            {
+                "source_id": "mangapill",
+                "name": "MangaPill",
+                "share": 0.183
+            }
+        ]
+    }
+}

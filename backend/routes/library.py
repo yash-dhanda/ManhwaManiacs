@@ -389,6 +389,27 @@ def statistics(
     return service.statistics(days=days, tz_offset_minutes=tz_offset_minutes)
 
 
+@router.post(
+    "/statistics/milestones/{days}/seen",
+    status_code=204,
+    dependencies=[Depends(require_profile_context)],
+)
+def milestone_seen(days: int, service: ServiceDep) -> Response:
+    """Record that this profile has seen a streak milestone card (idempotent)."""
+    service.mark_milestone_seen(days)
+    return Response(status_code=204)
+
+
+@router.get("/annual")
+def annual(
+    service: ServiceDep,
+    year: int | None = Query(None, ge=2000, le=2100),
+    tz_offset_minutes: int = Query(..., ge=-720, le=840),
+) -> dict[str, object]:
+    """The year in reading (The Annual / Wrapped); cached per profile per day."""
+    return service.annual(year, tz_offset_minutes)
+
+
 @router.get("/search")
 def search(
     service: ServiceDep,
