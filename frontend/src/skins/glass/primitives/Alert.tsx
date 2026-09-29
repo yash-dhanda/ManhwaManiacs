@@ -12,7 +12,7 @@ import { settleConfirm, useConfirmRequest } from "./confirmAlert";
 import { Icon } from "./Icon";
 import { suppressLit } from "./lit";
 import { useBlocker } from "./overlay-queue";
-import { springTo, useGlassHost } from "./overlay-utils";
+import { springTo, trapTab, useGlassHost } from "./overlay-utils";
 import { shake } from "./shake";
 
 export interface AlertAction {
@@ -126,6 +126,7 @@ function AlertBody({ open, onOpenChange, title, body, secondary, box, actions, s
           <div className="g-alert__center">
             <AlertDialog.Popup
               className="g-alert"
+              onKeyDown={trapTab}
               initialFocus={first}
               finalFocus={() => (src && src.isConnected ? src : true)}
               render={(p) => (

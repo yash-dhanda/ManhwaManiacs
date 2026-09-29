@@ -125,7 +125,8 @@ export function Menu({ items, label, trigger, open: openProp, onOpenChange, anch
   const setOpen = useCallback((o: boolean) => { setInner(o); onOpenChange?.(o); }, [onOpenChange]);
   const host = useGlassHost();
   const popup = useRef<HTMLElement | null>(null);
-  const trig = useRef<HTMLElement | null>(null);
+  const [trigEl, setTrigEl] = useState<HTMLElement | null>(null);
+  const pointerOpen = useRef<boolean | null>(null);
   useBlocker(open, "menu");
   useEffect(() => (open ? suppressLit() : undefined), [open]);
   useEffect(() => {
@@ -133,12 +134,23 @@ export function Menu({ items, label, trigger, open: openProp, onOpenChange, anch
     document.addEventListener("mm:menu-close", on);
     return () => document.removeEventListener("mm:menu-close", on);
   }, [setOpen]);
-  const originOf = () => { const r = (anchor ?? trig.current)?.getBoundingClientRect(); return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null; };
+  useEffect(() => {
+    if (!trigEl) return;
+    trigEl.setAttribute("aria-haspopup", "menu");
+    trigEl.setAttribute("aria-expanded", String(open));
+  }, [trigEl, open]);
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (wasOpen.current && !open) trigEl?.focus({ preventScroll: true });
+    wasOpen.current = open;
+  }, [open, trigEl]);
+  const originOf = () => { const r = (anchor ?? trigEl)?.getBoundingClientRect(); return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null; };
   const { scale, opacity, content, tier, mounted } = useBloom(open, fromTier, originOf, popup);
 
   // slide to select: press the trigger and, without lifting, slide onto a row; release selects
   const slide = useRef({ down: false, x: 0, y: 0, moved: false, hot: null as HTMLElement | null });
   const onTriggerDown = (e: React.PointerEvent) => {
+    pointerOpen.current = open;
     slide.current = { down: true, x: e.clientX, y: e.clientY, moved: false, hot: null };
     const move = (ev: PointerEvent) => {
       const s = slide.current;
@@ -161,10 +173,15 @@ export function Menu({ items, label, trigger, open: openProp, onOpenChange, anch
 
   return (
     <BaseMenu.Root open={open} onOpenChange={setOpen} modal={false}>
-      <BaseMenu.Trigger render={trigger} ref={(el: HTMLElement | null) => { trig.current = el; }} onPointerDown={onTriggerDown} />
+      <span
+        ref={(el) => setTrigEl((el?.firstElementChild as HTMLElement | null) ?? null)}
+        className="g-menu-trigger"
+        onPointerDown={onTriggerDown}
+        onClick={() => { const was = pointerOpen.current ?? open; pointerOpen.current = null; setOpen(!was); }}
+      >{trigger}</span>
       {mounted && host ? (
         <BaseMenu.Portal container={host}>
-          <BaseMenu.Positioner anchor={anchor ?? undefined} sideOffset={8} align="start" collisionPadding={12} className="g-menu-pos">
+          <BaseMenu.Positioner anchor={anchor ?? trigEl ?? undefined} sideOffset={8} align="start" collisionPadding={12} className="g-menu-pos">
             <BaseMenu.Popup
               className="g-menu"
               aria-label={label}

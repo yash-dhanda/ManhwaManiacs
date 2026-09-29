@@ -16,3 +16,4 @@
 [data-skin="glass"] .g-menu__tick { display: inline-flex; }
 [data-skin="glass"] .g-ctx-dim { position: fixed; inset: 0; z-index: 70; background: var(--mm-color-dim-context); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 html[data-solid="on"] [data-skin="glass"] .g-ctx-dim { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(0 0 0 / 0.75); }
+[data-skin="glass"] .g-menu-trigger { display: contents; }

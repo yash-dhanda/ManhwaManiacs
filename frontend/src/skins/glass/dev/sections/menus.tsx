@@ -22,6 +22,7 @@ const READ: MenuEntry[] = [
 export function MenusSection() {
   const [hide, setHide] = useState(false);
   const [splitOpen, setSplitOpen] = useState(false);
+  const [splitAnchor, setSplitAnchor] = useState<HTMLElement | null>(null);
   const [log, setLog] = useState("");
   const posterBox = useRef<HTMLDivElement>(null);
   const preview = useContextPreview(posterBox, "poster");
@@ -52,8 +53,8 @@ export function MenusSection() {
         <Menu label="More" items={READ} trigger={<IconButton icon="dots-three" label="More" data-testid="menu-more" />} />
       </Row>
       <Row label="SplitButton trailing segment">
-        <Menu label="Read options" items={READ} open={splitOpen} onOpenChange={setSplitOpen} anchor={null} trigger={<span />} data-testid="split-menu" />
-        <SplitButton label="Continue Ch 12" icon="play" onPress={() => setLog("continue")} moreLabel="Read options" menuOpen={splitOpen} onMore={() => setSplitOpen(true)} data-testid="split" />
+        <Menu label="Read options" items={READ} open={splitOpen} onOpenChange={setSplitOpen} anchor={splitAnchor} trigger={<span />} data-testid="split-menu" />
+        <SplitButton label="Continue Ch 12" icon="play" onPress={() => setLog("continue")} moreLabel="Read options" menuOpen={splitOpen} onMore={(el) => { setSplitAnchor(el); setSplitOpen(true); }} data-testid="split" />
       </Row>
       <Row label="Poster lift (long press 450 ms, or . / Shift+F10) and right-click">
         <div ref={posterBox} style={{ display: "inline-block" }}>

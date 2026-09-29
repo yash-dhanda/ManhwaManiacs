@@ -16,7 +16,7 @@ import { createTracker, catchMotion, slope } from "../physics/tracker";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
 import { suppressLit } from "./lit";
-import { clamp01, focusQuiet, safeTop, springTo, useGlassHost, useIsDesktop } from "./overlay-utils";
+import { clamp01, focusQuiet, safeTop, springTo, trapTab, useGlassHost, useIsDesktop } from "./overlay-utils";
 import { Skeleton } from "./Skeleton";
 import {
   detentsPassed, detentTops, dismissLine, largeProgress, MEDIUM_RATIO, pickDetent, projectedTop, applyRubberBand,
@@ -373,6 +373,7 @@ function PhoneSheet({ id, title, children, detents: names = ["medium", "large"],
           <Dialog.Backdrop className="g-sheet__dim" render={<motion.div onClick={() => requestClose(0)} />} />
           <Dialog.Popup
             className="g-sheet"
+            onKeyDown={trapTab}
             initialFocus={titleRef}
             finalFocus={finalFocus}
             render={(props) => (
@@ -509,6 +510,7 @@ function DesktopSheet({ id, title, children, desktop = "panel", material = "glas
           <Dialog.Backdrop className="g-sheet__dim" render={<motion.div onClick={() => close()} />} />
           <Dialog.Popup
             className={`g-sheet-d g-sheet-d--${desktop}`}
+            onKeyDown={trapTab}
             initialFocus={titleRef}
             finalFocus={finalFocus}
             render={(props) => <motion.div {...(props as object)} style={{ ...style, ...(covered ? { scale: coverScale as unknown as number } : {}) } as never} data-testid={tid ?? `sheet-${id}`} data-desktop={desktop} data-covered={covered ? "" : undefined} />}

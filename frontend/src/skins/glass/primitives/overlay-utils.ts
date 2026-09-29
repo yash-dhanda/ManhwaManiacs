@@ -61,3 +61,15 @@ export function springOrJump(mv: MotionValue<number>, to: number, name: SpringNa
   if (isGlassReduced()) { mv.set(to); opts.onComplete?.(); return null; }
   return springTo(mv, to, name, opts);
 }
+
+/** Tab wraps inside the overlay: the last control forwards to the first, and Shift+Tab from the first (or the title) to the last. */
+export function trapTab(e: { key: string; shiftKey: boolean; currentTarget: HTMLElement; preventDefault: () => void }) {
+  if (e.key !== "Tab") return;
+  const root = e.currentTarget;
+  const items = Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.offsetParent !== null);
+  const a = document.activeElement as HTMLElement | null;
+  if (!items.length) { e.preventDefault(); return; }
+  const first = items[0], last = items[items.length - 1];
+  if (e.shiftKey && (a === first || !a || !items.includes(a))) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && (a === last || !a || !root.contains(a))) { e.preventDefault(); first.focus(); }
+}

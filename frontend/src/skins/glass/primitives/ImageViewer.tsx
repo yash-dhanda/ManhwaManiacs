@@ -12,7 +12,7 @@ import { isGlassReduced, play } from "../motion";
 import { project } from "../physics/project";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
-import { focusQuiet, springTo, useGlassHost, useIsDesktop } from "./overlay-utils";
+import { focusQuiet, springTo, trapTab, useGlassHost, useIsDesktop } from "./overlay-utils";
 import { sheetTrigger, useSheetParam } from "./useSheetParam";
 import { clamp } from "./slider-math";
 import { DOUBLE_TAP_ZOOM, dragDismiss, isDoubleTap, keepFocal, MAX_ZOOM, MIN_ZOOM, panLimit, pastDismissLine, shouldDismiss } from "./viewer-math";
@@ -175,7 +175,8 @@ function ViewerBody({ src, thumbSrc, alt, open, close, onExited, tid }: { src: s
   );
   // a dismiss that started from the release velocity: `close()` flips the URL, `exit()` then flies back into the thumbnail
 
-  const onKey = (e: React.KeyboardEvent) => {
+  const onKey = (e: React.KeyboardEvent<HTMLElement>) => {
+    trapTab(e);
     poke();
     if (e.key === "+" || e.key === "=") { e.preventDefault(); setZoom(sc.get() * 1.25); }
     else if (e.key === "-") { e.preventDefault(); setZoom(sc.get() / 1.25); }
