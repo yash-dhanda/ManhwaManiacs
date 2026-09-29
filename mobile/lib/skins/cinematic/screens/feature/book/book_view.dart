@@ -445,10 +445,13 @@ class _BookViewState extends ConsumerState<BookView> {
                       showWholeBook: true,
                     )
                   : null,
-              body: ListView(
+              body: CustomScrollView(
                 controller: _scroll,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-                children: [
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
                   BookFrontMatter(
                     kicker:
                         'NOVEL · ${(formatStatus(s.status) ?? '').toUpperCase()} · ${d.sourceId.toUpperCase()}',
@@ -551,48 +554,54 @@ class _BookViewState extends ConsumerState<BookView> {
                     onPickMatch: (c) => _focusOn(c, shown),
                     showNarrated: audio != null,
                   ),
-                  BookContentsList(
-                    shown: shown,
-                    window: win,
-                    onWindow: (w) => setState(() => _window = w),
-                    progress: progress,
-                    statuses: statuses,
-                    narrated: narrated,
-                    focusKey: _focus,
-                    selection: _selection,
-                    notice: contentsNotice,
-                    startKey: _startKey,
-                    rowBuilder: (c, {required current}) {
-                      final pr = progress[c.id];
-                      final done = pr?.completed ?? false;
-                      final st = statuses[c.id];
-                      return ContentsRow(
-                        key: ValueKey('row-${c.id}'),
-                        chapter: c,
-                        read: done,
-                        percent: (pr?.pageCount ?? 0) > 0 && !done
-                            ? (pr!.page * 100 / pr.pageCount).round()
-                            : null,
-                        narrated: narrated.contains(c.id),
-                        downloadState: st?.state,
-                        current: current,
-                        selecting: _selection.isActive,
-                        selected: _selection.isSelected(c.id),
-                        onSwipeRead: online && !_selection.isActive
-                            ? () => unawaited(_markRead([c], 'Marked chapter${_num(c)} read.'))
-                            : null,
-                        onMenu: () => unawaited(_rowMenu(c)),
-                        onLongPress: () => unawaited(_rowMenu(c)),
-                        onTap: () {
-                          if (_selection.isActive) {
-                            if (st?.state != DownloadChapterState.complete) _selection.toggle(c.id);
-                          } else {
-                            _open(c);
-                          }
-                        },
-                      );
-                    },
+                      ]),
+                    ),
                   ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverMainAxisGroup(
+                      slivers: bookContentsSlivers(
+                        shown: shown,
+                        window: win,
+                        onWindow: (w) => setState(() => _window = w),
+                        notice: contentsNotice,
+                        startKey: _startKey,
+                        rowBuilder: (c) {
+                          final pr = progress[c.id];
+                          final done = pr?.completed ?? false;
+                          final st = statuses[c.id];
+                          return ContentsRow(
+                            key: ValueKey('row-${c.id}'),
+                            chapter: c,
+                            read: done,
+                            percent: (pr?.pageCount ?? 0) > 0 && !done
+                                ? (pr!.page * 100 / pr.pageCount).round()
+                                : null,
+                            narrated: narrated.contains(c.id),
+                            downloadState: st?.state,
+                            current: c.id == _focus,
+                            selecting: _selection.isActive,
+                            selected: _selection.isSelected(c.id),
+                            onSwipeRead: online && !_selection.isActive
+                                ? () => unawaited(_markRead([c], 'Marked chapter${_num(c)} read.'))
+                                : null,
+                            onMenu: () => unawaited(_rowMenu(c)),
+                            onLongPress: () => unawaited(_rowMenu(c)),
+                            onTap: () {
+                              if (_selection.isActive) {
+                                if (st?.state != DownloadChapterState.complete) {
+                                  _selection.toggle(c.id);
+                                }
+                              } else {
+                                _open(c);
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 96)),
                 ],
               ),
             ),

@@ -25,6 +25,7 @@ import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/repositories/progress_deleter.dart';
+import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_coverage.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
@@ -360,6 +361,9 @@ List<Override> featureOverrides(FeatureRig r, SharedPreferences prefs, {required
             wordCountByChapterKey: r.ocrWords,
           ),),
       seriesChapterDownloadStatusProvider.overrideWith((ref, k) async => r.statuses),
+      seriesAudioProvider.overrideWith(
+        (ref, k) async => (rendered: r.narrated, narratable: r.narrated, canRender: null),
+      ),
       deviceOnlineProvider.overrideWith((ref) => Stream.value(r.online)),
       readerRepositoryProvider.overrideWithValue(FakeReader(r.rec)),
       progressDeleterProvider.overrideWithValue(FakeDeleter(r.rec)),
