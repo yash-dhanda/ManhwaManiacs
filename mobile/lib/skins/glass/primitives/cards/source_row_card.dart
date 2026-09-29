@@ -69,9 +69,9 @@ class GlassSourceRowCard extends StatelessWidget {
                     Row(
                       children: [
                         Flexible(child: GlassLabel(name, role: gt.typeHeadline)),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         GlassHealthBead(status: health, demoted: demoted),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         GlassChip(label: language, kind: GlassChipKind.tag),
                         if (mature) ...[const SizedBox(width: 4), const GlassBadge.mature()],
                       ],

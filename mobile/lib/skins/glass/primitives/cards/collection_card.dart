@@ -77,7 +77,13 @@ class GlassCollectionCardState extends ConsumerState<GlassCollectionCard> with S
         child: Row(
           children: [
             SizedBox(
+              width: widget.width * 0.6,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
               width: 72 + (n - 1) * 43.2 + 8,
+              height: h - 24,
               child: AnimatedBuilder(
                 animation: _open,
                 builder: (context, _) => Stack(
@@ -96,6 +102,8 @@ class GlassCollectionCardState extends ConsumerState<GlassCollectionCard> with S
                       ),
                   ],
                 ),
+              ),
+            ),
               ),
             ),
             const SizedBox(width: 12),

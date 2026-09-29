@@ -105,7 +105,7 @@ class GlassContinueStack extends StatelessWidget {
                     children: [
                       GlassRingProgress(value: ratio, child: GlassLabel('$chapter', role: gt.typeMono, size: 9, height: 12, color: gt.colorLabel1, maxScale: 1.2)),
                       const Spacer(),
-                      GlassButton(label: unopened ? 'Start' : 'Continue', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: onContinue),
+                      Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: GlassButton(label: unopened ? 'Start' : 'Continue', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: onContinue))),
                     ],
                   ),
                 ],

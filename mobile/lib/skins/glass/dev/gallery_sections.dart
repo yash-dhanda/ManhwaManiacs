@@ -513,6 +513,12 @@ Widget _segmented(BuildContext context, GalleryGround g) => Column(
 
 // -- H: cards -----------------------------------------------------------------------------------
 
+/// Card widths that fit the narrow tablet grounds.
+double _cardW(BuildContext context) {
+  final w = MediaQuery.sizeOf(context).width;
+  return w >= 720 ? (w - 48 - 16) / 3 - 24 : 300;
+}
+
 Widget _cards(BuildContext context, GalleryGround g) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -538,13 +544,13 @@ Widget _cards(BuildContext context, GalleryGround g) => Column(
           _Cell('history', GlassHistoryTile(cover: const GalleryCover(9), title: 'Blue Hour Duel', when: 'Ch 12 · 3 h ago', position: 'p. 18', progress: 0.45, width: 110, onOpen: () {}, onResume: () {})),
         ]),
         _title(context, 'collection'),
-        _Cell('default', GlassCollectionCard(name: 'Weekend reads', count: 12, covers: const [GalleryCover(0), GalleryCover(6), GalleryCover(12), GalleryCover(16)], width: 300, onTap: () {})),
+        _Cell('default', GlassCollectionCard(name: 'Weekend reads', count: 12, covers: const [GalleryCover(0), GalleryCover(6), GalleryCover(12), GalleryCover(16)], width: _cardW(context), onTap: () {})),
         _title(context, 'notification'),
-        _Cell('default', SizedBox(width: 300, child: GlassNotificationCard(cover: const GalleryCover(4), title: 'Dune Courier', summary: '3 new · Ch 141–143', time: '2 h', chapters: const [141, 142, 143], onOpenSeries: () {}, onOpenChapter: (_) {}))),
+        _Cell('default', SizedBox(width: _cardW(context), child: GlassNotificationCard(cover: const GalleryCover(4), title: 'Dune Courier', summary: '3 new · Ch 141–143', time: '2 h', chapters: const [141, 142, 143], onOpenSeries: () {}, onOpenChapter: (_) {}))),
         _title(context, 'source rows'),
-        _Cell('working', SizedBox(width: 300, child: GlassSourceRowCard(sourceId: 'shelf', name: 'Shelf', description: 'Community scans, English', health: GlassSourceHealth.ok, pinned: true, onTap: () {}, onPin: () {}))),
-        _Cell('trouble, demoted', SizedBox(width: 300, child: GlassSourceRowCard(sourceId: 'lantern', name: 'Lantern', description: 'Sometimes slow', health: GlassSourceHealth.failing, demoted: true, mature: true, onTap: () {}, onPin: () {}))),
-        _Cell('dead', SizedBox(width: 300, child: GlassSourceRowCard(sourceId: 'gone', name: 'Gone', description: 'Not answering', health: GlassSourceHealth.dead, enabled: false, disabledReason: 'This source is not working', onTap: () {}, onPin: () {}))),
+        _Cell('working', SizedBox(width: _cardW(context), child: GlassSourceRowCard(sourceId: 'shelf', name: 'Shelf', description: 'Community scans, English', health: GlassSourceHealth.ok, pinned: true, onTap: () {}, onPin: () {}))),
+        _Cell('trouble, demoted', SizedBox(width: _cardW(context), child: GlassSourceRowCard(sourceId: 'lantern', name: 'Lantern', description: 'Sometimes slow', health: GlassSourceHealth.failing, demoted: true, mature: true, onTap: () {}, onPin: () {}))),
+        _Cell('dead', SizedBox(width: _cardW(context), child: GlassSourceRowCard(sourceId: 'gone', name: 'Gone', description: 'Not answering', health: GlassSourceHealth.dead, enabled: false, disabledReason: 'This source is not working', onTap: () {}, onPin: () {}))),
       ],
     );
 

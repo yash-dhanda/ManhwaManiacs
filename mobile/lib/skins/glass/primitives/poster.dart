@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/shared/widgets/series_cover_image.dart';
+import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/lb.dart';
@@ -50,16 +53,31 @@ class GlassPosterMeta {
   final double? progress;
 }
 
-/// The cover, arriving: opacity 0 to 1 over `curveFadeIn` and scale 1.02 to 1 on `springSnappy`.
-class GlassCoverImage extends StatelessWidget {
-  const GlassCoverImage({super.key, required this.url, this.width});
+/// The cover, arriving: opacity 0 to 1 over `curveFadeIn` and scale 1.02 to 1 on `springSnappy`. It asks the
+/// cover proxy for a right-sized image with the session credentials, like every cover in the app (the
+/// data layer's helpers, not a Cinematic widget).
+class GlassCoverImage extends ConsumerWidget {
+  const GlassCoverImage({super.key, required this.url, this.width, this.withCredentials = true});
   final String url;
+
+  /// The declared slot width, so the disk cache keys on one URL per device.
   final double? width;
+  final bool withCredentials;
 
   @override
-  Widget build(BuildContext context) => _Arrival(
-        child: SeriesCoverImage(url: url, borderRadius: 0, displayWidth: width),
-      );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final headers = withCredentials ? apiImageHttpHeaders(ref.watch(authTokenStoreProvider).token, profileId: ref.watch(activeProfileProvider)?.id) : null;
+    final imageUrl = coverUrlAtWidth(url, coverRequestWidth(width, MediaQuery.devicePixelRatioOf(context)));
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      httpHeaders: headers,
+      fit: BoxFit.cover,
+      fadeInDuration: Duration.zero,
+      imageBuilder: (context, image) => _Arrival(child: Image(image: image, fit: BoxFit.cover)),
+      placeholder: (_, __) => ColoredBox(color: gt.colorSurface2),
+      errorWidget: (_, __, ___) => ColoredBox(color: gt.colorSurface2, child: const Center(child: GlyphIcon(GlassGlyph.imageBroken, size: 24, color: GlassColors.g600))),
+    );
+  }
 }
 
 class _Arrival extends ConsumerWidget {
