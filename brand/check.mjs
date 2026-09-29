@@ -225,7 +225,101 @@ function cinematic() {
   ]);
 }
 
-const GROUPS = { glyphs, 'cinematic-brand': cinematic };
+function glass() {
+  const G = 'glass-brand';
+  const buf = (f) => fs.readFileSync(rel(f));
+  const png = (f) => readPng(buf(f));
+  const man = JSON.parse(read('brand/glass/export/manifest.json') ?? '{"outputs":[]}').outputs;
+
+  const bad = [];
+  for (const o of man) {
+    if (!fs.existsSync(rel(o.path))) { bad.push(`missing ${o.path}`); continue; }
+    const s = o.path.endsWith('.png') ? png(o.path) : o.path.endsWith('.webp') ? readWebpSize(buf(o.path)) : null;
+    if (s && (s.width !== o.width || s.height !== o.height)) bad.push(`${o.path} is ${s.width}x${s.height}`);
+  }
+  const dens = { mdpi: 108, hdpi: 162, xhdpi: 216, xxhdpi: 324, xxxhdpi: 432 };
+  const leg = { mdpi: 48, hdpi: 72, xhdpi: 96, xxhdpi: 144, xxxhdpi: 192 };
+  const res = 'mobile/android/app/src/main/res';
+  for (const [d, px] of Object.entries(dens)) for (const l of ['foreground', 'background', 'monochrome']) {
+    const f = `${res}/drawable-${d}/ic_launcher_glass_${l}.png`;
+    if (!fs.existsSync(rel(f))) bad.push(`missing ${f}`); else if (png(f).width !== px) bad.push(`${f} is ${png(f).width}, want ${px}`);
+  }
+  for (const [d, px] of Object.entries(leg)) {
+    const f = `${res}/mipmap-${d}/ic_launcher_glass.png`;
+    if (!fs.existsSync(rel(f))) bad.push(`missing ${f}`); else if (png(f).width !== px) bad.push(`${f} is ${png(f).width}, want ${px}`);
+  }
+  const X = 'mobile/ios/Runner/Assets.xcassets/AppIcon-Glass.appiconset';
+  for (const n of ['AppIcon-Glass-1024', 'AppIcon-Glass-1024-dark', 'AppIcon-Glass-1024-tinted']) {
+    const f = `${X}/${n}.png`;
+    if (!fs.existsSync(rel(f))) bad.push(`missing ${f}`); else if (png(f).width !== 1024 || png(f).height !== 1024) bad.push(`${f} not 1024`);
+  }
+  if (!fs.existsSync(rel('frontend/public/glass/droplets.webp'))) bad.push('missing droplets.webp');
+  else { const s = readWebpSize(buf('frontend/public/glass/droplets.webp')); if (s.width !== 480 || s.height !== 480) bad.push(`droplets.webp ${s.width}x${s.height}`); }
+  report(G, `${man.length} exported files, ic_launcher_glass densities 108..432 / 48..192, appiconset 1024, droplets 480x480`, bad.length || !man.length ? bad.concat(man.length ? [] : ['empty manifest']) : []);
+
+  const alpha = [];
+  for (const f of ['brand/glass/export/icon-ios-1024.png', 'brand/glass/export/icon-ios-tinted-1024.png', `${X}/AppIcon-Glass-1024.png`, `${X}/AppIcon-Glass-1024-tinted.png`])
+    if (png(f).colorType !== 2) alpha.push(`${f} is not colour type 2`);
+  const dk = png(`${X}/AppIcon-Glass-1024-dark.png`), da = dk.rgba();
+  for (const [x, y] of [[0, 0], [1023, 0], [0, 1023], [1023, 1023]]) if (da[(y * 1024 + x) * 4 + 3] !== 0) alpha.push('dark icon corner is not transparent');
+  report(G, 'iOS light/tinted are colour type 2; dark has transparent corners', alpha);
+
+  const circ = [];
+  for (const f of ['android-foreground-1024.png', 'android-monochrome-1024.png']) {
+    const p = png(`brand/glass/export/${f}`);
+    const r = insideCircle(p.rgba(), p.width, p.height, 512, 512, 312.89, (_r, _g, _b, a) => a > 8);
+    if (!r.ok) circ.push(`${f} ink at radius ${r.worst.toFixed(1)}`);
+  }
+  for (const l of ['foreground', 'monochrome']) {
+    const f = `${res}/drawable-xxxhdpi/ic_launcher_glass_${l}.png`;
+    const p = png(f);
+    const r = insideCircle(p.rgba(), 432, 432, 216, 216, 132, (_r, _g, _b, a) => a > 8);
+    if (!r.ok) circ.push(`${f} ink at radius ${r.worst.toFixed(1)}`);
+  }
+  report(G, 'Android foreground/monochrome inside the 66 dp circle (312.89 of 1024, 132 px at xxxhdpi)', circ);
+
+  const mk = png('frontend/public/icons/maskable-512.png');
+  const rm = insideCircle(mk.rgba(), 512, 512, 256, 256, 204.8, (R, Gc, B) => R > 8 || Gc > 8 || B > 8);
+  report(G, 'PWA maskable-512 inside the 40 % safe circle (shared, skin-neutral)', rm.ok ? [] : [`ink at radius ${rm.worst.toFixed(1)}`]);
+
+  const ic = [];
+  const I = 'mobile/ios/Runner/AppIcon-Glass.icon';
+  try {
+    const j = JSON.parse(read(`${I}/icon.json`));
+    const names = j.groups.map((g) => g.name).join();
+    if (names !== 'top-m,gutter-bar,bottom-m,field') ic.push(`groups ${names}`);
+    for (const g of j.groups) for (const l of g.layers) {
+      if (!fs.existsSync(rel(`${I}/Assets/${l['image-name']}`))) ic.push(`missing Assets/${l['image-name']}`);
+      if (l['image-name'].endsWith('.svg') && !/viewBox="0 0 1024 1024"/.test(read(`${I}/Assets/${l['image-name']}`) ?? '')) ic.push(`${l['image-name']} viewBox`);
+    }
+    const assets = fs.readdirSync(rel(`${I}/Assets`)).sort().join();
+    if (assets !== 'bottom-m.svg,field.png,gutter-bar.svg,top-m.svg') ic.push(`Assets is ${assets}`);
+  } catch (e) { ic.push(e.message); }
+  report(G, 'AppIcon-Glass.icon: groups, images and 1024 viewBoxes', ic);
+
+  const fv = read('frontend/public/favicon-glass.svg') ?? '';
+  const fp = [];
+  if (!/viewBox="0 0 32 32"/.test(fv)) fp.push('viewBox');
+  if (!/class="full"/.test(fv) || !/class="small"/.test(fv)) fp.push('.full/.small groups');
+  if (!/max-width:\s*31px/.test(fv)) fp.push('max-width: 31px rule');
+  report(G, 'favicon-glass.svg: 32 box, .full and .small groups, 31px rule', fp);
+
+  const flag = JSON.parse(read('design/contract.json')).flags.glass_available;
+  const parts = {
+    'activity-alias': (read('mobile/android/app/src/main/AndroidManifest.xml') ?? '').includes('activity-alias'),
+    FlutterDynamicIconPlusService: (read('mobile/android/app/src/main/AndroidManifest.xml') ?? '').includes('FlutterDynamicIconPlusService'),
+    'AppIcon-Glass': (read('mobile/ios/Runner.xcodeproj/project.pbxproj') ?? '').includes('AppIcon-Glass'),
+    ALTERNATE_APPICON_NAMES: (read('mobile/ios/Runner.xcodeproj/project.pbxproj') ?? '').includes('ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES'),
+  };
+  report(G, `registration gate (glass_available=${flag})`, Object.entries(parts).filter(([, present]) => present !== flag).map(([k, present]) => (flag ? `${k} missing` : `${k} present while glass_available is false`)));
+
+  const ids = 11;
+  const styles = 'brand/onboarding/styles';
+  const miss = ['painted', 'cel', 'screentone', 'manhua-3d', 'watercolour', 'sketch', 'retro', 'pastel', 'noir', 'chibi', 'dark-realism'].filter((i) => !fs.existsSync(rel(`${styles}/masters/${i}.png`))).length;
+  console.log(`warn ${G}: art intake: ${miss} of ${ids} masters missing (node brand/onboarding/styles/intake.mjs --check)`);
+}
+
+const GROUPS = { glyphs, 'cinematic-brand': cinematic, 'glass-brand': glass };
 for (const [name, run] of Object.entries(GROUPS)) {
   try {
     run();
