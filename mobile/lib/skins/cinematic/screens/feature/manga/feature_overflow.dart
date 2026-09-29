@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
+import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -47,6 +48,8 @@ Future<void> showFeatureOverflow(
               );
           if (r.isErr) return toast("Couldn't update this series.");
           ref.invalidate(updatesProvider);
+          // TODO(mobile/07): MatureStamper.restampSeries for the local rows.
+          ref.read(matureOverrideChangedProvider)();
           toast(
             clear
                 ? "Using the source's rating."

@@ -55,6 +55,7 @@ class SelectionBar extends StatelessWidget {
                 ),
                 Wrap(
                   spacing: 8,
+                  runSpacing: 8,
                   children: [
                     pick('NEXT 10', nextUnreadUndownloadedKeys(chapters)),
                     pick('ALL UNREAD${superscript(unread.length)}', unread),
@@ -63,6 +64,7 @@ class SelectionBar extends StatelessWidget {
                     pick('NONE', const []),
                   ],
                 ),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     TextButton(
