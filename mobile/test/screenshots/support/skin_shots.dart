@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/app/skin_app.dart';
@@ -64,7 +65,21 @@ String skinShotPath(ScreenId screen) => screen.path.replaceAllMapped(
       },
     );
 
+/// The app root listens to connectivity; a test host has no plugin, so answer the channels.
+void _mockPlatformChannels(WidgetTester tester) {
+  final messenger = tester.binding.defaultBinaryMessenger;
+  const status = MethodChannel('dev.fluttercommunity.plus/connectivity_status');
+  const check = MethodChannel('dev.fluttercommunity.plus/connectivity');
+  messenger.setMockMethodCallHandler(status, (_) async => null);
+  messenger.setMockMethodCallHandler(check, (_) async => <String>['wifi']);
+  addTearDown(() {
+    messenger.setMockMethodCallHandler(status, null);
+    messenger.setMockMethodCallHandler(check, null);
+  });
+}
+
 void _setView(WidgetTester tester, SkinShotSize size) {
+  _mockPlatformChannels(tester);
   tester.view.physicalSize = size.logical * size.pixelRatio;
   tester.view.devicePixelRatio = size.pixelRatio;
   tester.view.padding = FakeViewPadding(
