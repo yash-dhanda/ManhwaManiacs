@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { GhostPillButton } from "@/components/premium/GhostPillButton";
 import { PrimaryPillButton } from "@/components/premium/PrimaryPillButton";
 import { StatusScreen } from "@/components/layout/status-screen";
 import { ApiError } from "@/types/api";
+import RouteError from "@/skins/cinematic/screens/system/RouteError";
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
@@ -18,7 +19,18 @@ interface ErrorPageProps {
  * failure (a request that timed out, a source that blinked) costs one click
  * rather than a reload that also drops every warm cache.
  */
-export default function ErrorPage({ error, reset }: ErrorPageProps) {
+const noSubscribe = () => () => {};
+
+/**
+ * Picks the body by the skin stamped on <html> by the layout. Reading `data-skin` (never importing `@/skins`) keeps every
+ * screen out of this bundle; the server snapshot is the legacy body.
+ */
+export default function ErrorPage(props: ErrorPageProps) {
+  const skin = useSyncExternalStore(noSubscribe, () => document.documentElement.dataset.skin ?? "", () => "");
+  return skin === "cinematic" ? <RouteError {...props} /> : <LegacyError {...props} />;
+}
+
+function LegacyError({ error, reset }: ErrorPageProps) {
   useEffect(() => {
     // Next.js only forwards the digest to the client in production; the message
     // stays server-side. Logging here is what makes the browser console useful

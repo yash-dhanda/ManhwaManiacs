@@ -1,6 +1,6 @@
 "use client";
 
-import { ViewTransition, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useIsNovelSource } from "@/features/novels/hooks";
 import { ApiError } from "@/types/api";
 import { BookFeature } from "./book/BookFeature";
@@ -11,7 +11,6 @@ import { MotionTimings } from "./MotionTimings";
 import { sampleTransitions } from "./motion-log";
 import { ToastStack } from "./toasts";
 import { useSeriesPage } from "./use-series-page";
-import "./view-transitions.css";
 import s from "./feature.module.css";
 
 export interface FeatureViewProps {
@@ -145,12 +144,10 @@ export function FeatureView({ sourceId, seriesKey, followedId, focusChapterKey =
   }
 
   return (
-    <ViewTransition enter="mm-page-in" exit="mm-page-out" default="none">
-      <div ref={root} className={s.page} data-screen="feature" data-kind={isNovel ? "book" : "feature"}>
-        {body}
-        <ToastStack toasts={page.toasts.toasts} dismiss={page.toasts.dismiss} />
-        <MotionTimings />
-      </div>
-    </ViewTransition>
+    <div ref={root} className={s.page} data-screen="feature" data-kind={isNovel ? "book" : "feature"}>
+      {body}
+      <ToastStack toasts={page.toasts.toasts} dismiss={page.toasts.dismiss} />
+      <MotionTimings />
+    </div>
   );
 }

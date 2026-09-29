@@ -30,6 +30,8 @@
 @import "../skins/cinematic/tokens.generated.css";
 @import "../skins/cinematic/motion.css";
 @import "../skins/cinematic/base.css";
+@import "../skins/cinematic/view-transitions.css";
+@import "../skins/cinematic/shell/shell.css";
 @import "../skins/glass/tokens.generated.css";
 @import "../skins/glass/glass.css";
 @import "../skins/legacy-bridge.css";

@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { isEditableTarget, matchesCombo } from "./match";
+import { comboAllowed, singleKeyShortcutsEnabled } from "./single-key";
 import type { Shortcut } from "./types";
 
 interface KeyboardRegistry {
@@ -47,8 +48,10 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const editable = isEditableTarget(event.target);
+      const singleOn = singleKeyShortcutsEnabled();
       for (const shortcut of registry.current.values()) {
         if (editable && !shortcut.allowInInput) continue;
+        if (!comboAllowed(shortcut.keys, singleOn)) continue;
         const combos = Array.isArray(shortcut.keys) ? shortcut.keys : [shortcut.keys];
         if (combos.some((combo) => matchesCombo(event, combo))) {
           if (shortcut.preventDefault !== false) event.preventDefault();

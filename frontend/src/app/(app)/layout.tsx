@@ -6,11 +6,12 @@ import { ServiceWorkerBoundary } from "@/features/offline";
 import { AppearanceBootScript } from "@/features/preferences/appearance-boot";
 import { SkinBoot } from "@/features/skin/SkinBoot";
 import { skins } from "@/skins";
+import { APPLE_STARTUP_IMAGES, APPLE_TOUCH_ICON, SKIN_FAVICONS } from "@/skins/brand.generated";
 import { getSkin } from "@/skins/server";
 import { Providers } from "../providers";
 import "../globals.css";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: "ManhwaManiacs",
   description:
     "ManhwaManiacs — read and manage your manga, manhwa and novel library.",
@@ -29,6 +30,16 @@ export const metadata: Metadata = {
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
 };
+
+/** Favicon and install metadata (§12.3): Cinematic takes its values from `brand.generated.ts`; legacy keeps its icons. */
+export async function generateMetadata(): Promise<Metadata> {
+  if ((await getSkin()) !== "cinematic") return baseMetadata;
+  return {
+    ...baseMetadata,
+    icons: { icon: [{ url: SKIN_FAVICONS.cinematic, type: "image/svg+xml" }, { url: "/favicon.ico", sizes: "16x16 32x32" }], apple: APPLE_TOUCH_ICON },
+    appleWebApp: { capable: true, title: "Maniacs", statusBarStyle: "black-translucent", startupImage: APPLE_STARTUP_IMAGES.map((i) => ({ url: i.url, media: i.media })) },
+  };
+}
 
 export async function generateViewport(): Promise<Viewport> {
   if ((await getSkin()) !== "legacy") {
