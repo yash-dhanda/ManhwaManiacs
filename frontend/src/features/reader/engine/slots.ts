@@ -6,7 +6,7 @@ import type { StripEdge } from "../use-chapter-strip";
  * seam marker, the strip's two ends, the page box while it loads and when it
  * breaks. The engine renders NONE of it itself; a skin (or the legacy frame)
  * hands one object of these to `ReaderEngineView`. Legacy markup lives in
- * `components/legacy-surface-slots.tsx` and goes away at the flip.
+ * the legacy frame (legacy-surface-slots) and goes away at the flip.
  */
 export interface ReaderSurfaceSlots {
   loading(): ReactNode;

@@ -46,6 +46,30 @@ const eslintConfig = defineConfig([
     rules: { "no-restricted-imports": ["error", { patterns: skinBoundary("cinematic") }] },
   },
   {
+    // The reader engine is skin-neutral: it never leans on UI the flip deletes.
+    files: ["src/features/reader/engine/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "../components",
+                "../components/**",
+                "@/features/*/components/**",
+                "@/components/**",
+                "@/skins/**",
+              ],
+              message:
+                "The reader engine is skin-neutral: no legacy components, shared UI or skins. Paint through slots and renderChrome.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // The skin-neutral placeholder files every new skin shares.
     files: ["src/skins/pending.tsx", "src/skins/pending-shell.tsx", "src/skins/setup-redirect.ts"],
     rules: {
