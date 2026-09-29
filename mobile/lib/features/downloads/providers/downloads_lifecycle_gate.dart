@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/downloads/providers/retention_maintenance
 import 'package:manhwamaniacs/features/downloads/providers/storage_settings_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
+import 'package:manhwamaniacs/features/profiles/providers/skin_outbox.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_backfill.dart';
 
 /// Wraps the app and drives every piece of 1c-M3 that has to run on a
@@ -106,6 +107,7 @@ class _DownloadsLifecycleGateState extends ConsumerState<DownloadsLifecycleGate>
     unawaited(_backfillThenFlushProgress());
     unawaited(ref.read(bookmarkOutboxControllerProvider).flush());
     unawaited(ref.read(bookmarkOutboxControllerProvider).sync());
+    unawaited(ref.read(skinOutboxProvider).flush());
   }
 
   /// Queues this profile's stranded Sources-tab progress (once per profile,
@@ -136,6 +138,7 @@ class _DownloadsLifecycleGateState extends ConsumerState<DownloadsLifecycleGate>
   void _flushOutbox() {
     unawaited(ref.read(progressOutboxControllerProvider).flush());
     unawaited(ref.read(bookmarkOutboxControllerProvider).flush());
+    unawaited(ref.read(skinOutboxProvider).flush());
   }
 
   @override
