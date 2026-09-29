@@ -8,7 +8,7 @@ import {
   Noto_Sans_SC,
 } from "next/font/google";
 
-export const googleSansFlex = Google_Sans_Flex({ subsets: ["latin"], axes: ["ROND", "GRAD", "opsz"], display: "swap", preload: true, variable: "--mm-font-sans" });
+export const googleSansFlex = Google_Sans_Flex({ subsets: ["latin"], axes: ["ROND", "GRAD", "opsz"], display: "swap", preload: false, variable: "--mm-font-sans" });
 export const googleSansCode = Google_Sans_Code({ subsets: ["latin"], display: "swap", preload: false, variable: "--mm-font-mono" });
 export const literata = Literata({ axes: ["opsz"], style: ["normal", "italic"], display: "swap", preload: false, variable: "--mm-font-serif" });
 // Never preloaded: the server cannot know the profile's Legible text setting.

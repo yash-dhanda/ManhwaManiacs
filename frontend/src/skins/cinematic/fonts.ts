@@ -11,7 +11,7 @@ import {
   Noto_Serif_SC,
 } from "next/font/google";
 
-export const bodoni = Bodoni_Moda({ subsets: ["latin", "latin-ext"], axes: ["opsz"], style: ["normal", "italic"], display: "block", preload: true, variable: "--mm-font-display" });
+export const bodoni = Bodoni_Moda({ subsets: ["latin", "latin-ext"], axes: ["opsz"], style: ["normal", "italic"], display: "block", preload: false, variable: "--mm-font-display" });
 export const archivo = Archivo({ subsets: ["latin", "latin-ext"], axes: ["wdth"], display: "swap", variable: "--mm-font-grotesk" });
 export const newsreader = Newsreader({ subsets: ["latin", "latin-ext"], axes: ["opsz"], style: ["normal", "italic"], display: "swap", variable: "--mm-font-newsreader" });
 export const plexMono = IBM_Plex_Mono({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600"], display: "swap", variable: "--mm-font-folio" });
