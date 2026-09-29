@@ -96,13 +96,16 @@ class _IndexFieldState extends State<IndexField> {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: CineSpace.s3),
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: CineSpace.s3),
                         // The label doubles as the hint and as the semantics
                         // label; it only paints where a hint would.
                         labelText: label,
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         labelStyle: base.copyWith(
-                          color: (widget.compact || focused) ? t.colorInk45 : const Color(0x00000000),
+                          color: (widget.compact || focused)
+                              ? t.colorInk45
+                              : const Color(0x00000000),
                         ),
                       ),
                     ),

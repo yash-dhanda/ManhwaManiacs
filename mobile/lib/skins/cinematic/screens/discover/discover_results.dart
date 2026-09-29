@@ -90,8 +90,18 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
     final notifier = ref.read(searchListProvider.notifier);
     var groups = ref.watch(visibleSearchGroupsProvider);
     final scope = widget.scope;
-    if (scope == DiscoverScope.library) groups = [for (final g in groups) if (g.isLocal) g];
-    if (scope == DiscoverScope.sources) groups = [for (final g in groups) if (!g.isLocal) g];
+    if (scope == DiscoverScope.library) {
+      groups = [
+        for (final g in groups)
+          if (g.isLocal) g,
+      ];
+    }
+    if (scope == DiscoverScope.sources) {
+      groups = [
+        for (final g in groups)
+          if (!g.isLocal) g,
+      ];
+    }
     final result = async.valueOrNull;
     final pinned = ref.watch(pinnedSourceIdsProvider).length;
     final dialogueOn = widget.dialogueAvailable &&
@@ -105,7 +115,8 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _status(context, 'Searching your library and $pinned pinned sources…'),
+          _status(
+              context, 'Searching your library and $pinned pinned sources…',),
           for (var g = 0; g < 3; g++) ...[
             const Padding(
               padding: EdgeInsets.all(CineSpace.s4),
@@ -130,19 +141,23 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
       );
     }
 
-    final withResults = groups.where((g) => g.items.isNotEmpty || g.hasError).toList();
+    final withResults =
+        groups.where((g) => g.items.isNotEmpty || g.hasError).toList();
     final empty = groups.where((g) => g.items.isEmpty && !g.hasError).toList();
     final shown = [...withResults, if (_showEmpty) ...empty];
     _order = [for (final g in withResults) g.key];
     final count = result?.resultCount ?? 0;
-    final sources = groups.where((g) => !g.isLocal && g.items.isNotEmpty).length;
+    final sources =
+        groups.where((g) => !g.isLocal && g.items.isNotEmpty).length;
     final tier2 = result?.phase == SearchPhase.tier2;
     final status = tier2
         ? '$count results so far · searching ${result!.sourcesPending} more sources…'
         : '$count results · $sources sources';
     final failed = result?.sourcesFailed ?? 0;
 
-    final dialogue = dialogueOn ? ref.watch(ocrSearchProvider(widget.query)).valueOrNull : null;
+    final dialogue = dialogueOn
+        ? ref.watch(ocrSearchProvider(widget.query)).valueOrNull
+        : null;
 
     if (scope == DiscoverScope.dialogue) {
       return Column(
@@ -152,11 +167,16 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
     }
 
     if (count == 0 && !tier2 && (dialogue?.items.isEmpty ?? true)) {
-      final ai = ref.watch(suggestAvailabilityProvider).valueOrNull?.available ?? false;
+      final ai =
+          ref.watch(suggestAvailabilityProvider).valueOrNull?.available ??
+              false;
       return CineNotice(
         kicker: 'NOTHING FOUND',
-        headline: 'No series match "${widget.query}" in your library or sources.',
-        actions: [if (ai) QuietButton('Ask the editors', onPressed: widget.onAsk)],
+        headline:
+            'No series match "${widget.query}" in your library or sources.',
+        actions: [
+          if (ai) QuietButton('Ask the editors', onPressed: widget.onAsk),
+        ],
       );
     }
 
@@ -164,13 +184,15 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _status(context, status),
-        if (tier2) const Padding(
-          padding: EdgeInsets.symmetric(horizontal: CineSpace.s4),
-          child: IndeterminateRule(),
-        ),
+        if (tier2)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: CineSpace.s4),
+            child: IndeterminateRule(),
+          ),
         if (failed > 0)
           Padding(
-            padding: const EdgeInsets.fromLTRB(CineSpace.s4, CineSpace.s2, CineSpace.s4, 0),
+            padding: const EdgeInsets.fromLTRB(
+                CineSpace.s4, CineSpace.s2, CineSpace.s4, 0,),
             child: Text.rich(
               TextSpan(
                 children: [
@@ -179,8 +201,10 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
                     style: cineText(context, t.typeKicker, color: t.colorSpot),
                   ),
                   TextSpan(
-                    text: "$failed ${failed == 1 ? "source didn't" : "sources didn't"} answer.",
-                    style: cineText(context, t.typeCaption, color: t.colorInk60),
+                    text:
+                        "$failed ${failed == 1 ? "source didn't" : "sources didn't"} answer.",
+                    style:
+                        cineText(context, t.typeCaption, color: t.colorInk60),
                   ),
                 ],
               ),
@@ -189,7 +213,9 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
         SlugTabs(
           labels: _filterLabels,
           folios: false,
-          selected: filter.index == 0 ? 0 : (filter == SearchGroupFilter.hasResults ? 1 : 2),
+          selected: filter.index == 0
+              ? 0
+              : (filter == SearchGroupFilter.hasResults ? 1 : 2),
           onSelected: (i) {
             ref.read(searchGroupFilterProvider.notifier).state = switch (i) {
               1 => SearchGroupFilter.hasResults,
@@ -244,14 +270,18 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
   }
 
   Widget _status(BuildContext context, String text) => Padding(
-        padding: const EdgeInsets.fromLTRB(CineSpace.s4, CineSpace.s3, CineSpace.s4, CineSpace.s2),
+        padding: const EdgeInsets.fromLTRB(
+            CineSpace.s4, CineSpace.s3, CineSpace.s4, CineSpace.s2,),
         child: Semantics(
           liveRegion: true,
-          child: Text(text, style: cineText(context, context.cine.typeCaption, color: context.cine.colorInk60)),
+          child: Text(text,
+              style: cineText(context, context.cine.typeCaption,
+                  color: context.cine.colorInk60,),),
         ),
       );
 
-  Widget _dialogueGroup(BuildContext context, OcrSearchPage? page, {required int limit}) {
+  Widget _dialogueGroup(BuildContext context, OcrSearchPage? page,
+      {required int limit,}) {
     final t = context.cine;
     final items = page?.items ?? const <OcrSearchResult>[];
     if (items.isEmpty) {
@@ -259,7 +289,8 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
           ? CineNotice(
               kicker: 'NOTHING FOUND',
               headline: 'Nothing found for "${widget.query}".',
-              deck: 'Only chapters whose dialogue was scanned, in series you follow, can be searched.',
+              deck:
+                  'Only chapters whose dialogue was scanned, in series you follow, can be searched.',
             )
           : const SizedBox.shrink();
     }
@@ -267,11 +298,11 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4, vertical: CineSpace.s2),
+          padding: const EdgeInsets.symmetric(
+              horizontal: CineSpace.s4, vertical: CineSpace.s2,),
           child: Text('IN DIALOGUE', style: cineText(context, t.typeTitle)),
         ),
-        for (final r in items.take(limit))
-          _dialogueRow(context, r),
+        for (final r in items.take(limit)) _dialogueRow(context, r),
         QuietButton(
           'See all',
           onPressed: () => context.push(Routes.dialogue({'q': widget.query})),
@@ -284,9 +315,13 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
     if (error is NetworkError || error is TimeoutError) {
       return CineNotice(
         kicker: 'OFFLINE EDITION',
-        headline: 'Search needs a connection to reach your library and sources.',
+        headline:
+            'Search needs a connection to reach your library and sources.',
         deck: 'Saved chapters still open.',
-        actions: [QuietButton('Go to Downloads', onPressed: () => context.go(Routes.downloads()))],
+        actions: [
+          QuietButton('Go to Downloads',
+              onPressed: () => context.go(Routes.downloads()),),
+        ],
       );
     }
     if (error is ApiError && error.code == 'rate_limited') {
@@ -296,7 +331,8 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
         headline: 'Too many searches at once.',
         folio: RetryCountdown(
           seconds: after ?? 12,
-          style: cineText(context, context.cine.typeFolio, color: context.cine.colorSpot),
+          style: cineText(context, context.cine.typeFolio,
+              color: context.cine.colorSpot,),
           onZero: retry,
         ),
         kickerColor: context.cine.colorSpot,
@@ -322,13 +358,14 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
             title: ocrSnippetSpans(r.snippet).map((s) => s.text).join(),
             coverUrl: null,
             kicker: 'IN DIALOGUE',
-            caption: r.page == null ? 'CH ${r.chapterKey}' : 'CH ${r.chapterKey} · PAGE ${r.page}',
+            caption: r.page == null
+                ? 'CH ${r.chapterKey}'
+                : 'CH ${r.chapterKey} · PAGE ${r.page}',
             onOpen: open,
             openLabel: 'See in dialogue',
           ),
         );
-    return CineFocusRing(
-      child: CineLongPress(
+    return ChildFocusRing(child: CineLongPress(
         onLongPress: quickLook,
         child: InkWell(
           onTap: open,
@@ -350,8 +387,12 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
                               style: cineText(
                                 context,
                                 t.typeBody,
-                                color: s.highlighted ? t.colorInk100 : t.colorInk60,
-                              ).copyWith(backgroundColor: s.highlighted ? t.colorSpotWash : null),
+                                color: s.highlighted
+                                    ? t.colorInk100
+                                    : t.colorInk60,
+                              ).copyWith(
+                                  backgroundColor:
+                                      s.highlighted ? t.colorSpotWash : null,),
                             ),
                         ],
                       ),
@@ -361,8 +402,10 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
                 IconButton(
                   tooltip: 'More for this line',
                   onPressed: quickLook,
-                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                  icon: Icon(PhosphorRegular.dotsThree, size: 24, color: t.colorInk100),
+                  constraints:
+                      const BoxConstraints(minWidth: 48, minHeight: 48),
+                  icon: Icon(PhosphorRegular.dotsThree,
+                      size: 24, color: t.colorInk100,),
                 ),
               ],
             ),

@@ -9,9 +9,12 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart'
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
-// TODO(mobile/04, mobile/05): stand-ins for the Cinematic primitives (slug
-// lines, notices, plates, typed text, quiet buttons) until those steps land;
-// each keeps the DESIGN.md values so swapping is a rename.
+// TODO(mobile/04): stand-ins still local: slug tabs, notice, typed text, quiet
+// button, flicker plate. Their real counterparts (primitives/cine_slug_lines,
+// cine_notice, typed_headline, cine_button, CinePlate) take a different API
+// (tone enums, actions), so swapping is a per-screen rewrite left for a
+// follow-up; the primitives already swapped here are focus ring painter,
+// poster, toast, Quick look, pull to reprint and SetHeading.
 
 bool cineReduced(BuildContext context) =>
     MediaQuery.disableAnimationsOf(context);
@@ -151,8 +154,7 @@ class QuietButton extends StatelessWidget {
       enabled: onPressed != null,
       label: semanticsLabel ?? label,
       excludeSemantics: true,
-      child: CineFocusRing(
-        child: InkWell(
+      child: ChildFocusRing(child: InkWell(
           onTap: onPressed,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
@@ -227,8 +229,7 @@ class SlugTabs extends StatelessWidget {
       selected: on,
       label: labels[i],
       excludeSemantics: true,
-      child: CineFocusRing(
-        child: InkWell(
+      child: ChildFocusRing(child: InkWell(
           onTap: () => onSelected(i),
           child: Stack(
             alignment: Alignment.center,
@@ -585,11 +586,12 @@ Future<T?> showCineSheet<T>(
   required String title,
   required WidgetBuilder body,
 }) =>
-    real.showCineSheet<T>(context,
-        kicker: 'DISCOVER',
-        title: title,
-        builder: (c) =>
-            Material(type: MaterialType.transparency, child: body(c)));
+    real.showCineSheet<T>(
+      context,
+      kicker: 'DISCOVER',
+      title: title,
+      builder: (c) => Material(type: MaterialType.transparency, child: body(c)),
+    );
 
 /// The heavy rule under a masthead: drawn left to right over [CineDur.beat]
 /// once the letters have landed ([CineDur.letter]); whole under reduced motion.

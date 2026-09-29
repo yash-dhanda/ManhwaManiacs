@@ -17,23 +17,29 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// Opens [genre]: straight into the catalogue when one pinned source has it,
 /// else the genre sheet (one row per pinned source exposing it).
-Future<void> openGenre(BuildContext context, WidgetRef ref, GenreEntry genre,
-    List<SourcePin> pinned,) async {
+Future<void> openGenre(
+  BuildContext context,
+  WidgetRef ref,
+  GenreEntry genre,
+  List<SourcePin> pinned,
+) async {
   final rows = [
     for (final p in pinned)
       if (genre.sourceIds.contains(p.sourceId)) p,
   ];
   if (rows.length == 1) {
-    unawaited(context
-        .push(Routes.source(rows.first.sourceId, {'genre': genre.label})),);
+    unawaited(
+      context.push(Routes.source(rows.first.sourceId, {'genre': genre.label})),
+    );
     return;
   }
   final base = ref.read(apiBaseUrlProvider);
   final live =
       ref.read(sourcesListProvider).valueOrNull ?? const <SourceSummary>[];
   HealthState healthOf(String id) => describeHealth(
-          live.where((x) => x.id == id).firstOrNull?.health, DateTime.now(),)
-      .state;
+        live.where((x) => x.id == id).firstOrNull?.health,
+        DateTime.now(),
+      ).state;
   final picked = await showCineSheet<String>(
     context,
     title: genre.label,
@@ -59,12 +65,16 @@ Future<void> openGenre(BuildContext context, WidgetRef ref, GenreEntry genre,
                             ? ColoredBox(color: t.colorPaper1)
                             : CineCover(
                                 url: resolveApiResourceUrl(base, p.iconUrl!),
-                                displayWidth: 24,),
+                                displayWidth: 24,
+                              ),
                       ),
                       const SizedBox(width: CineSpace.s3),
                       Expanded(
-                          child: Text(p.name,
-                              style: cineText(context, t.typeTitle),),),
+                        child: Text(
+                          p.name,
+                          style: cineText(context, t.typeTitle),
+                        ),
+                      ),
                       HealthMark(healthOf(p.sourceId)),
                     ],
                   ),

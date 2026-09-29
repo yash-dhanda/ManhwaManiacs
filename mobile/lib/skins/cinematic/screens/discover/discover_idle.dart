@@ -154,8 +154,11 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ExcludeSemantics(
-                  child: Icon(CineGlyphs.bubbleSearchLight,
-                      size: 32, color: t.colorInk45,),
+                  child: Icon(
+                    CineGlyphs.bubbleSearchLight,
+                    size: 32,
+                    color: t.colorInk45,
+                  ),
                 ),
                 const SizedBox(width: CineSpace.s4),
                 Expanded(
@@ -167,8 +170,10 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
                         'Find the chapter by a line someone said.',
                         style: cineText(context, t.typeDeck),
                       ),
-                      QuietButton('Search dialogue',
-                          onPressed: () => context.push(Routes.dialogue()),),
+                      QuietButton(
+                        'Search dialogue',
+                        onPressed: () => context.push(Routes.dialogue()),
+                      ),
                     ],
                   ),
                 ),
@@ -200,8 +205,11 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
 }
 
 class _PinnedCredit extends StatelessWidget {
-  const _PinnedCredit(
-      {required this.pin, required this.mature, required this.health,});
+  const _PinnedCredit({
+    required this.pin,
+    required this.mature,
+    required this.health,
+  });
 
   final SourcePin pin;
   final bool mature;
@@ -223,17 +231,21 @@ class _PinnedCredit extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                    child:
-                        Text(pin.name, style: cineText(context, t.typeTitle)),),
+                  child: Text(pin.name, style: cineText(context, t.typeTitle)),
+                ),
                 HealthMark(health.state),
                 const SizedBox(width: CineSpace.s2),
-                Text(health.label,
-                    style:
-                        cineText(context, t.typeCaption, color: t.colorInk60),),
+                Text(
+                  health.label,
+                  style: cineText(context, t.typeCaption, color: t.colorInk60),
+                ),
                 if (mature) ...[
                   const SizedBox(width: CineSpace.s2),
-                  Icon(CineGlyphs.certificate18Regular,
-                      size: 16, color: t.colorInk100,),
+                  Icon(
+                    CineGlyphs.certificate18Regular,
+                    size: 16,
+                    color: t.colorInk100,
+                  ),
                 ],
               ],
             ),
@@ -258,8 +270,11 @@ class _GenreTile extends ConsumerWidget {
       orElse: () => pinned.first,
     );
     final cover = ref
-        .watch(genreCoverProvider(
-            (sourceId: firstSource.sourceId, genre: genre.label),),)
+        .watch(
+          genreCoverProvider(
+            (sourceId: firstSource.sourceId, genre: genre.label),
+          ),
+        )
         .valueOrNull;
     return Semantics(
       button: true,
@@ -279,7 +294,8 @@ class _GenreTile extends ConsumerWidget {
                   child: CineCover(url: cover.coverUrl, displayWidth: 200),
                 ),
               const DecoratedBox(
-                  decoration: BoxDecoration(gradient: CineScrim.footBlack),),
+                decoration: BoxDecoration(gradient: CineScrim.footBlack),
+              ),
               Positioned(
                 left: 12,
                 right: 12,

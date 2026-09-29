@@ -32,15 +32,20 @@ class DialogueScanBlock extends ConsumerWidget {
     }
     if (s.phase == OcrRunPhase.idle) return const SizedBox.shrink();
 
-    Widget line(String text, {Color? color}) =>
-        Text(text, style: cineText(context, t.typeUi, color: color ?? t.colorInk100));
+    Widget line(String text, {Color? color}) => Text(text,
+        style: cineText(context, t.typeUi, color: color ?? t.colorInk100),);
 
-    final children = <Widget>[const Kicker('Reading the dialogue'), const SizedBox(height: CineSpace.s2)];
+    final children = <Widget>[
+      const Kicker('Reading the dialogue'),
+      const SizedBox(height: CineSpace.s2),
+    ];
     switch (s.phase) {
       case OcrRunPhase.recognizing:
       case OcrRunPhase.paused:
         children.addAll([
-          Semantics(liveRegion: true, child: line('Page ${s.completedPages + 1} of ${s.totalPages}')),
+          Semantics(
+              liveRegion: true,
+              child: line('Page ${s.completedPages + 1} of ${s.totalPages}'),),
           const SizedBox(height: CineSpace.s2),
           _Rule(progress: s.progress),
           if (s.phase == OcrRunPhase.paused)
@@ -49,10 +54,15 @@ class DialogueScanBlock extends ConsumerWidget {
               child: Text.rich(
                 TextSpan(
                   children: [
-                    TextSpan(text: 'NOTE  ', style: cineText(context, t.typeKicker, color: t.colorSpot)),
                     TextSpan(
-                      text: 'Text extraction pauses in the background; keep the app open.',
-                      style: cineText(context, t.typeCaption, color: t.colorInk60),
+                        text: 'NOTE  ',
+                        style: cineText(context, t.typeKicker,
+                            color: t.colorSpot,),),
+                    TextSpan(
+                      text:
+                          'Text extraction pauses in the background; keep the app open.',
+                      style:
+                          cineText(context, t.typeCaption, color: t.colorInk60),
                     ),
                   ],
                 ),
@@ -67,36 +77,50 @@ class DialogueScanBlock extends ConsumerWidget {
         ]);
       case OcrRunPhase.done:
         children.addAll([
-          Semantics(liveRegion: true, child: line('${s.wordCount} words are now searchable.')),
-          QuietButton('Search dialogue', onPressed: () => context.go(Routes.dialogue())),
+          Semantics(
+              liveRegion: true,
+              child: line('${s.wordCount} words are now searchable.'),),
+          QuietButton('Search dialogue',
+              onPressed: () => context.go(Routes.dialogue()),),
         ]);
       case OcrRunPhase.cancelled:
-        children.add(Semantics(liveRegion: true, child: line('Scan cancelled.')));
+        children
+            .add(Semantics(liveRegion: true, child: line('Scan cancelled.')));
       case OcrRunPhase.failed:
         children.addAll([
           Text.rich(
             TextSpan(
               children: [
-                TextSpan(text: 'CORRECTION  ', style: cineText(context, t.typeKicker, color: t.colorProof)),
-                TextSpan(text: s.message ?? "The scan didn't finish.", style: cineText(context, t.typeCaption)),
+                TextSpan(
+                    text: 'CORRECTION  ',
+                    style:
+                        cineText(context, t.typeKicker, color: t.colorProof),),
+                TextSpan(
+                    text: s.message ?? "The scan didn't finish.",
+                    style: cineText(context, t.typeCaption),),
               ],
             ),
           ),
           if (s.chapter != null)
             QuietButton(
               'Try again',
-              onPressed: () => ref.read(ocrRunControllerProvider.notifier).runChapter(id: s.chapter!),
+              onPressed: () => ref
+                  .read(ocrRunControllerProvider.notifier)
+                  .runChapter(id: s.chapter!),
             ),
         ]);
       case OcrRunPhase.idle:
         break;
     }
     if (s.isBusy) {
-      children.add(QuietButton('Cancel', onPressed: () => ref.read(ocrRunControllerProvider.notifier).cancel()));
+      children.add(QuietButton('Cancel',
+          onPressed: () =>
+              ref.read(ocrRunControllerProvider.notifier).cancel(),),);
     }
     return Padding(
       padding: const EdgeInsets.all(CineSpace.s4),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, children: children,),
     );
   }
 }

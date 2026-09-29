@@ -24,13 +24,15 @@ class SourceTableHead extends StatelessWidget {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4, vertical: CineSpace.s2),
+            padding: const EdgeInsets.symmetric(
+                horizontal: CineSpace.s4, vertical: CineSpace.s2,),
             child: Row(
               children: [
                 const SizedBox(width: 32 + CineSpace.s3),
                 Expanded(child: Text('SOURCE', style: head())),
                 SizedBox(width: kindWidth, child: Text('KIND', style: head())),
-                SizedBox(width: healthWidth, child: Text('HEALTH', style: head())),
+                SizedBox(
+                    width: healthWidth, child: Text('HEALTH', style: head()),),
                 const SizedBox(width: 6 + CineSpace.s2 + 48 + 48 + handleWidth),
               ],
             ),

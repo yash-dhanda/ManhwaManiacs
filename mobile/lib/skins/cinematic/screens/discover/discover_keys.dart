@@ -58,7 +58,11 @@ abstract final class CineKeyRegistry {
 /// Wraps [child] in Shortcuts + Actions for [keys] and registers them under
 /// the screen's masthead [group].
 class CineKeys extends StatefulWidget {
-  const CineKeys({super.key, required this.group, required this.keys, required this.child});
+  const CineKeys(
+      {super.key,
+      required this.group,
+      required this.keys,
+      required this.child,});
 
   final String group;
   final List<CineKey> keys;

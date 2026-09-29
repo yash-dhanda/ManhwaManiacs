@@ -11,7 +11,8 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 /// is available. Busy: a leader dial; indexed: the `TEXT` badge and a
 /// re-scan confirmation.
 class ScanDialogueButton extends ConsumerWidget {
-  const ScanDialogueButton({super.key, required this.chapter, this.chapterNumber});
+  const ScanDialogueButton(
+      {super.key, required this.chapter, this.chapterNumber,});
 
   final ChapterIdentity chapter;
   final double? chapterNumber;
@@ -26,7 +27,8 @@ class ScanDialogueButton extends ConsumerWidget {
         run.chapter?.seriesKey == chapter.seriesKey &&
         run.chapter?.chapterKey == chapter.chapterKey;
     final indexed = ref
-            .watch(ocrCoverageProvider((sourceId: chapter.sourceId, seriesKey: chapter.seriesKey)))
+            .watch(ocrCoverageProvider(
+                (sourceId: chapter.sourceId, seriesKey: chapter.seriesKey),),)
             .valueOrNull
             ?.covers(chapter.chapterKey) ??
         false;
@@ -39,12 +41,15 @@ class ScanDialogueButton extends ConsumerWidget {
           builder: (context) => AlertDialog(
             backgroundColor: t.colorPaper2,
             shape: const RoundedRectangleBorder(),
-            title: Text('Scan this chapter again?', style: cineText(context, t.typeSubhead)),
+            title: Text('Scan this chapter again?',
+                style: cineText(context, t.typeSubhead),),
             actions: [
-              QuietButton('Cancel', onPressed: () => Navigator.of(context).pop(false)),
+              QuietButton('Cancel',
+                  onPressed: () => Navigator.of(context).pop(false),),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: Text('Scan again', style: cineText(context, t.typeUi, color: t.colorSpot)),
+                child: Text('Scan again',
+                    style: cineText(context, t.typeUi, color: t.colorSpot),),
               ),
             ],
           ),
@@ -63,7 +68,8 @@ class ScanDialogueButton extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(border: Border.all(color: t.colorInk60)),
-            child: Text('TEXT', style: cineText(context, t.typeMicro, color: t.colorInk60)),
+            child: Text('TEXT',
+                style: cineText(context, t.typeMicro, color: t.colorInk60),),
           ),
         Semantics(
           button: true,
@@ -76,7 +82,8 @@ class ScanDialogueButton extends ConsumerWidget {
                 ? const Center(child: LeaderDial())
                 : IconButton(
                     onPressed: run.isBusy ? null : scan,
-                    icon: Icon(CineGlyphs.bubbleSearchRegular, size: 20, color: t.colorInk100),
+                    icon: Icon(CineGlyphs.bubbleSearchRegular,
+                        size: 20, color: t.colorInk100,),
                   ),
           ),
         ),

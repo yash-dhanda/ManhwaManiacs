@@ -70,7 +70,8 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
         );
     enterReader(
       context,
-      ReaderTarget.manifest(hit.sourceId, hit.seriesKey, hit.chapterKey, page: hit.page),
+      ReaderTarget.manifest(hit.sourceId, hit.seriesKey, hit.chapterKey,
+          page: hit.page,),
       entry: ReaderEntry.dip,
     );
   }
@@ -103,23 +104,29 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
         headline:
             "Dialogue search is for manga. Switch to Manga, or search the novels' text.",
         actions: [
-          QuietButton('Search novels',
-              onPressed: () => context.go(Routes.discover()),),
+          QuietButton(
+            'Search novels',
+            onPressed: () => context.go(Routes.discover()),
+          ),
         ],
       );
     } else if (!visible) {
       body = const CineNotice(
-          kicker: 'NOTE',
-          headline: "Dialogue search isn't available on this device.",);
+        kicker: 'NOTE',
+        headline: "Dialogue search isn't available on this device.",
+      );
     } else if (!(ref.watch(serverOcrCapabilityProvider).valueOrNull ?? true)) {
       body = const CineNotice(
-          kicker: 'NOTE',
-          headline: "Dialogue search isn't available on this server.",);
+        kicker: 'NOTE',
+        headline: "Dialogue search isn't available on this server.",
+      );
     } else if (_q.isEmpty) {
       body = Padding(
         padding: EdgeInsets.all(pad),
-        child: Text('Type a line you remember.',
-            style: cineText(context, t.typeDeck, color: t.colorInk60),),
+        child: Text(
+          'Type a line you remember.',
+          style: cineText(context, t.typeDeck, color: t.colorInk60),
+        ),
       );
     } else {
       final res = ref.watch(ocrSearchProvider(_q));
@@ -134,7 +141,9 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
             for (var i = 0; i < 3; i++)
               Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: pad, vertical: CineSpace.s3,),
+                  horizontal: pad,
+                  vertical: CineSpace.s3,
+                ),
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -153,8 +162,10 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
                 kicker: 'OFFLINE EDITION',
                 headline: 'Dialogue search needs a connection.',
                 actions: [
-                  QuietButton('Go to Downloads',
-                      onPressed: () => context.go(Routes.downloads()),),
+                  QuietButton(
+                    'Go to Downloads',
+                    onPressed: () => context.go(Routes.downloads()),
+                  ),
                 ],
               )
             : CineNotice(
@@ -163,8 +174,10 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
                 headline: "Dialogue search didn't finish.",
                 deck: e is AppError ? e.userMessage : null,
                 actions: [
-                  QuietButton('Try again',
-                      onPressed: () => ref.invalidate(ocrSearchProvider(_q)),),
+                  QuietButton(
+                    'Try again',
+                    onPressed: () => ref.invalidate(ocrSearchProvider(_q)),
+                  ),
                 ],
               ),
         data: (page) {
@@ -189,14 +202,21 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
                     children: [
                       Text(
                         'Showing the first ${items.length} of ${page.total} matches. Narrow the search.',
-                        style: cineText(context, t.typeCaption,
-                            color: t.colorInk60,),
+                        style: cineText(
+                          context,
+                          t.typeCaption,
+                          color: t.colorInk60,
+                        ),
                       ),
                       _loadingMore
                           ? const Padding(
-                              padding: EdgeInsets.all(16), child: LeaderDial(),)
-                          : QuietButton('Show more',
-                              onPressed: () => _showMore(items.length),),
+                              padding: EdgeInsets.all(16),
+                              child: LeaderDial(),
+                            )
+                          : QuietButton(
+                              'Show more',
+                              onPressed: () => _showMore(items.length),
+                            ),
                     ],
                   ),
                 ),
@@ -209,63 +229,75 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
       if (hits == null) body = other;
     }
 
-    final masthead = Column(children: [
-      Padding(
-        padding: EdgeInsets.fromLTRB(pad, CineSpace.s6, pad, CineSpace.s2),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Kicker('No. 09 — Dialogue'),
-            const ZeroSizeHeading('Dialogue search'),
-            const SizedBox(height: CineSpace.s3),
-            IndexField(
-              controller: _text,
-              focusNode: _field,
-              hint: 'Search what a character said',
-              onChanged: (v) {
-                _debounce?.cancel();
-                _debounce = Timer(const Duration(milliseconds: 300), () {
-                  if (mounted) _apply(v);
-                });
-              },
-              onSubmitted: _apply,
-              onClear: () {
-                _text.clear();
-                _apply('');
-              },
-            ),
-            const SizedBox(height: CineSpace.s3),
-            Text(
-              'Across chapters whose dialogue has been read, in series you follow.',
-              style: cineText(context, t.typeDeck, color: t.colorInk60),
-            ),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  'Scan more chapters from ',
-                  style: cineText(context, t.typeCaption, color: t.colorInk60),
-                ),
-                QuietButton('Downloads',
-                    onPressed: () => context.go(Routes.downloads()),),
-              ],
-            ),
-          ],
+    final masthead = Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(pad, CineSpace.s6, pad, CineSpace.s2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Kicker('No. 09 — Dialogue'),
+              const ZeroSizeHeading('Dialogue search'),
+              const SizedBox(height: CineSpace.s3),
+              IndexField(
+                controller: _text,
+                focusNode: _field,
+                hint: 'Search what a character said',
+                onChanged: (v) {
+                  _debounce?.cancel();
+                  _debounce = Timer(const Duration(milliseconds: 300), () {
+                    if (mounted) _apply(v);
+                  });
+                },
+                onSubmitted: _apply,
+                onClear: () {
+                  _text.clear();
+                  _apply('');
+                },
+              ),
+              const SizedBox(height: CineSpace.s3),
+              Text(
+                'Across chapters whose dialogue has been read, in series you follow.',
+                style: cineText(context, t.typeDeck, color: t.colorInk60),
+              ),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    'Scan more chapters from ',
+                    style:
+                        cineText(context, t.typeCaption, color: t.colorInk60),
+                  ),
+                  QuietButton(
+                    'Downloads',
+                    onPressed: () => context.go(Routes.downloads()),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    ],);
+      ],
+    );
 
     return CineKeys(
       group: 'Dialogue',
       keys: [
-        CineKey(key(LogicalKeyboardKey.slash), _field.requestFocus,
-            whenTextFieldFree: true,),
-        CineKey(key(LogicalKeyboardKey.keyJ),
-            () => focusStep(context, forward: true),
-            whenTextFieldFree: true,),
-        CineKey(key(LogicalKeyboardKey.keyK),
-            () => focusStep(context, forward: false),
-            whenTextFieldFree: true,),
+        CineKey(
+          key(LogicalKeyboardKey.slash),
+          _field.requestFocus,
+          whenTextFieldFree: true,
+        ),
+        CineKey(
+          key(LogicalKeyboardKey.keyJ),
+          () => focusStep(context, forward: true),
+          whenTextFieldFree: true,
+        ),
+        CineKey(
+          key(LogicalKeyboardKey.keyK),
+          () => focusStep(context, forward: false),
+          whenTextFieldFree: true,
+        ),
       ],
       child: Scaffold(
         backgroundColor: t.colorPaper0,

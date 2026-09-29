@@ -13,8 +13,11 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 /// ASK scope body: the thinking line, then World cards one column, or the
 /// §9.1.8 copy for an unavailable / failed ask (never `proof`).
 class AskScope extends ConsumerWidget {
-  const AskScope(
-      {super.key, required this.query, required this.onSearchInstead,});
+  const AskScope({
+    super.key,
+    required this.query,
+    required this.onSearchInstead,
+  });
 
   final String query;
   final VoidCallback onSearchInstead;
@@ -29,8 +32,10 @@ class AskScope extends ConsumerWidget {
         child: Row(
           children: [
             Expanded(
-              child: TypedText('Reading your shelf…',
-                  style: cineText(context, t.typePull),),
+              child: TypedText(
+                'Reading your shelf…',
+                style: cineText(context, t.typePull),
+              ),
             ),
             const SizedBox(width: CineSpace.s3),
             const DelayedShow(child: LeaderDial(size: 24)),
@@ -53,8 +58,10 @@ class AskScope extends ConsumerWidget {
               )
             : null,
         actions: [
-          QuietButton('Search sources for "$query" instead',
-              onPressed: onSearchInstead,),
+          QuietButton(
+            'Search sources for "$query" instead',
+            onPressed: onSearchInstead,
+          ),
         ],
       );
     }
@@ -79,10 +86,13 @@ class AskScope extends ConsumerWidget {
             coverUrl: items[i].coverUrl,
             why: items[i].why,
             onTap: () => context.push(
-                Routes.discover({'q': items[i].title, 'scope': 'sources'}),),
+              Routes.discover({'q': items[i].title, 'scope': 'sources'}),
+            ),
           ),
-        QuietButton('Search sources for "$query" instead',
-            onPressed: onSearchInstead,),
+        QuietButton(
+          'Search sources for "$query" instead',
+          onPressed: onSearchInstead,
+        ),
       ],
     );
   }
@@ -112,13 +122,14 @@ class _WorldCard extends StatelessWidget {
     final reduced = cineReduced(context);
     final card = Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: CineSpace.s4, vertical: CineSpace.s2,),
+        horizontal: CineSpace.s4,
+        vertical: CineSpace.s2,
+      ),
       child: Semantics(
         button: true,
         label: why == null ? title : '$title. $why',
         excludeSemantics: true,
-        child: CineFocusRing(
-          child: InkWell(
+        child: ChildFocusRing(child: InkWell(
             onTap: onTap,
             child: Container(
               color: t.colorPaper1,
@@ -127,9 +138,10 @@ class _WorldCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
-                      width: 64,
-                      height: 96,
-                      child: CineCover(url: coverUrl, displayWidth: 64),),
+                    width: 64,
+                    height: 96,
+                    child: CineCover(url: coverUrl, displayWidth: 64),
+                  ),
                   const SizedBox(width: CineSpace.s3),
                   Expanded(
                     child: Column(
@@ -137,9 +149,14 @@ class _WorldCard extends StatelessWidget {
                       children: [
                         Text(title, style: cineText(context, t.typeSubhead)),
                         if (why != null)
-                          Text(why!,
-                              style: cineText(context, t.typeDeck,
-                                  color: t.colorInk60,),),
+                          Text(
+                            why!,
+                            style: cineText(
+                              context,
+                              t.typeDeck,
+                              color: t.colorInk60,
+                            ),
+                          ),
                       ],
                     ),
                   ),

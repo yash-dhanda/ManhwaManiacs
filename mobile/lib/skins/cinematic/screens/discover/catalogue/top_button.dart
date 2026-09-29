@@ -20,7 +20,8 @@ class TopButton extends StatelessWidget {
           if (cineReduced(context)) {
             controller.jumpTo(0);
           } else {
-            controller.animateTo(0, duration: CineDur.glide, curve: CineCurves.settle);
+            controller.animateTo(0,
+                duration: CineDur.glide, curve: CineCurves.settle,);
           }
         },
         child: SizedBox(

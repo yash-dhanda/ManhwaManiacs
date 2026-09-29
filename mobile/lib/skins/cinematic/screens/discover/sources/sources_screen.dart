@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
@@ -49,8 +50,9 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
 
   FocusNode _node(String id) => _nodes.putIfAbsent(id, FocusNode.new);
 
-  void _toast(String text, {bool error = false}) =>
-      showCineToast(context, text, error: error);
+  void _toast(String text, {bool error = false}) => error
+      ? ref.read(cineToastsProvider.notifier).error(text)
+      : ref.read(cineToastsProvider.notifier).info(text);
 
   Future<void> _toggle(SourceSummary s) async {
     final pins = ref.read(sourcePinsProvider).valueOrNull;
@@ -75,7 +77,9 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
   /// Move within the [_visible] pins and write the full order: every pin the
   /// screen hides (unavailable, gated) stays exactly where it was.
   Future<void> _move(
-      String id, int Function(int index, int last) target,) async {
+    String id,
+    int Function(int index, int last) target,
+  ) async {
     final pins = ref.read(sourcePinsProvider).valueOrNull?.pins ?? const [];
     final vis = [..._visible];
     final from = vis.indexOf(id);
@@ -105,8 +109,12 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
     }
   }
 
-  Future<void> _menu(SourceSummary s,
-      {required bool pinned, required int index, required int last,}) async {
+  Future<void> _menu(
+    SourceSummary s, {
+    required bool pinned,
+    required int index,
+    required int last,
+  }) async {
     unawaited(ref.read(skinHapticsProvider).fire(HapticEvent.longpressOpen));
     final action = await showCineSheet<String>(
       context,
@@ -123,8 +131,11 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       label,
-                      style: cineText(context, t.typeTitle,
-                          color: enabled ? t.colorInk100 : t.colorInk30,),
+                      style: cineText(
+                        context,
+                        t.typeTitle,
+                        color: enabled ? t.colorInk100 : t.colorInk30,
+                      ),
                     ),
                   ),
                 ),
@@ -182,14 +193,21 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
     Widget scaffold(Widget body) => CineKeys(
           group: 'Sources',
           keys: [
-            CineKey(key(LogicalKeyboardKey.slash), _filterFocus.requestFocus,
-                whenTextFieldFree: true,),
-            CineKey(key(LogicalKeyboardKey.keyJ),
-                () => focusStep(context, forward: true),
-                whenTextFieldFree: true,),
-            CineKey(key(LogicalKeyboardKey.keyK),
-                () => focusStep(context, forward: false),
-                whenTextFieldFree: true,),
+            CineKey(
+              key(LogicalKeyboardKey.slash),
+              _filterFocus.requestFocus,
+              whenTextFieldFree: true,
+            ),
+            CineKey(
+              key(LogicalKeyboardKey.keyJ),
+              () => focusStep(context, forward: true),
+              whenTextFieldFree: true,
+            ),
+            CineKey(
+              key(LogicalKeyboardKey.keyK),
+              () => focusStep(context, forward: false),
+              whenTextFieldFree: true,
+            ),
             CineKey(
               key(LogicalKeyboardKey.keyP),
               () {
@@ -253,18 +271,23 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                   ? 'The source list needs a connection.'
                   : "Couldn't load the sources.",
               actions: [
-                QuietButton('Try again',
-                    onPressed: () => ref.invalidate(sourcesListProvider),),
+                QuietButton(
+                  'Try again',
+                  onPressed: () => ref.invalidate(sourcesListProvider),
+                ),
               ],
             ),
             if (offline)
               for (final p in cached)
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: CineSpace.s4, vertical: CineSpace.s2,),
-                  child: Text(p.name,
-                      style:
-                          cineText(context, t.typeTitle, color: t.colorInk60),),
+                    horizontal: CineSpace.s4,
+                    vertical: CineSpace.s2,
+                  ),
+                  child: Text(
+                    p.name,
+                    style: cineText(context, t.typeTitle, color: t.colorInk60),
+                  ),
                 ),
           ],
         ),
@@ -272,7 +295,9 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
     }
 
     var all = scope.filter(
-        sourcesAsync.valueOrNull ?? const <SourceSummary>[], (s) => s.id,);
+      sourcesAsync.valueOrNull ?? const <SourceSummary>[],
+      (s) => s.id,
+    );
     if (!gateOpen) {
       all = [
         for (final s in all)
@@ -323,7 +348,7 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
     final noMatch = !none && shownAll.isEmpty && query.isNotEmpty;
 
     return scaffold(
-      PullToReprint(
+      CinePullToReprint(
         onRefresh: () async {
           ref.invalidate(sourcesListProvider);
           await ref.read(sourcePinsProvider.notifier).refresh();
@@ -332,8 +357,12 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(tablet ? CineSpace.s8 : CineSpace.s4,
-                  CineSpace.s6, CineSpace.s4, CineSpace.s2,),
+              padding: EdgeInsets.fromLTRB(
+                tablet ? CineSpace.s8 : CineSpace.s4,
+                CineSpace.s6,
+                CineSpace.s4,
+                CineSpace.s2,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -345,14 +374,18 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                       headingLevel: 1,
                       child: SetHeading(
                         'Sources',
+                        id: 'sources',
                         style: cineText(context, t.typeMasthead),
-                        scaler: CineType.scaler(context, t.typeMasthead),
+                        cap: t.typeMasthead.cap,
+                        level: 1,
+                        trigger: SetTrigger.mount,
                       ),
                     ),
                   ),
-                  Text(deck,
-                      style:
-                          cineText(context, t.typeDeck, color: t.colorInk60),),
+                  Text(
+                    deck,
+                    style: cineText(context, t.typeDeck, color: t.colorInk60),
+                  ),
                   const SizedBox(height: CineSpace.s2),
                   const DrawnRule(),
                 ],
@@ -385,7 +418,8 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
               },
               onSelected: (i) {
                 unawaited(
-                    ref.read(skinHapticsProvider).fire(HapticEvent.select),);
+                  ref.read(skinHapticsProvider).fire(HapticEvent.select),
+                );
                 ref.read(sourcesFilterProvider.notifier).state = switch (i) {
                   1 => SourcesFilter.pinned,
                   2 => SourcesFilter.mature,
@@ -399,20 +433,24 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                 kickerColor: t.colorSpot,
                 headline: pinReason,
                 actions: [
-                  QuietButton('Try again',
-                      onPressed: () =>
-                          ref.read(sourcePinsProvider.notifier).refresh(),),
+                  QuietButton(
+                    'Try again',
+                    onPressed: () =>
+                        ref.read(sourcePinsProvider.notifier).refresh(),
+                  ),
                 ],
               ),
             if (!none) const SourceTableHead(),
             if (none)
               const CineNotice(
-                  kicker: 'NOTE',
-                  headline: 'No sources installed on this server.',)
+                kicker: 'NOTE',
+                headline: 'No sources installed on this server.',
+              )
             else if (noMatch)
               CineNotice(
-                  kicker: 'NOTE',
-                  headline: 'No sources match "${_filter.text.trim()}".',)
+                kicker: 'NOTE',
+                headline: 'No sources match "${_filter.text.trim()}".',
+              )
             else ...[
               if (filter != SourcesFilter.mature) ...[
                 const SectionHead(null, 'Pinned'),
@@ -444,13 +482,14 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                       ),
                     ),
                     onReorderItem: (from, to) {
-                      unawaited(ref
-                          .read(skinHapticsProvider)
-                          .fire(HapticEvent.select),);
+                      unawaited(
+                        ref.read(skinHapticsProvider).fire(HapticEvent.select),
+                      );
                       final id = shownPinned[from].id;
                       // Drop position in the filtered list -> slot in the full visible order.
                       final dest = _visible.indexOf(
-                          shownPinned[to.clamp(0, shownPinned.length - 1)].id,);
+                        shownPinned[to.clamp(0, shownPinned.length - 1)].id,
+                      );
                       unawaited(_move(id, (_, __) => dest));
                     },
                     children: [
@@ -465,8 +504,11 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                               child: SizedBox(
                                 width: 32,
                                 height: 48,
-                                child: Icon(kDotsSixVertical,
-                                    size: 20, color: t.colorInk60,),
+                                child: Icon(
+                                  kDotsSixVertical,
+                                  size: 20,
+                                  color: t.colorInk60,
+                                ),
                               ),
                             ),
                           ),

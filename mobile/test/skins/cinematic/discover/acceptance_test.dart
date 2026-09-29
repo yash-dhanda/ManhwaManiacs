@@ -7,7 +7,8 @@ import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show TypedText;
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart'
+    show TypedText;
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/dialogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_results.dart';
@@ -22,7 +23,11 @@ SourceSearchGroup _group(String id, int n) => SourceSearchGroup(
       status: n == 0 ? SourceGroupStatus.empty : SourceGroupStatus.ok,
       items: [
         for (var i = 0; i < n; i++)
-          GlobalSearchItem(kind: 'source', source: id, seriesId: '$id$i', title: 'Title $id $i'),
+          GlobalSearchItem(
+              kind: 'source',
+              source: id,
+              seriesId: '$id$i',
+              title: 'Title $id $i',),
       ],
     );
 
@@ -33,7 +38,9 @@ const _pins = [
 
 final _sources = [
   src('asura', health: const SourceHealth(status: SourceHealthStatus.ok)),
-  src('mangadex', health: const SourceHealth(status: SourceHealthStatus.failing, consecutiveFailures: 3)),
+  src('mangadex',
+      health: const SourceHealth(
+          status: SourceHealthStatus.failing, consecutiveFailures: 3,),),
 ];
 
 const _hit = OcrSearchResult(
@@ -48,7 +55,11 @@ const _hit = OcrSearchResult(
   box: OcrBox(x: 0.4, y: 0.4, w: 0.2, h: 0.1),
 );
 
-typedef _Case = ({String name, Widget Function() screen, Future<void> Function(WidgetTester, TargetPlatform) pump});
+typedef _Case = ({
+  String name,
+  Widget Function() screen,
+  Future<void> Function(WidgetTester, TargetPlatform) pump
+});
 
 Future<void> _settle(WidgetTester t) => settle(t, 900);
 
@@ -94,7 +105,9 @@ final _cases = <_Case>[
           const CatalogueScreen(sourceId: 'asura'),
           sources: FakeSources(
             sources: _sources,
-            series: [for (var i = 0; i < 6; i++) series('s$i', 'Series $i', 'asura')],
+            series: [
+              for (var i = 0; i < 6; i++) series('s$i', 'Series $i', 'asura'),
+            ],
           ),
           platform: p,
         ),
@@ -105,7 +118,13 @@ final _cases = <_Case>[
     pump: (t, p) => pumpScreen(
           t,
           const DialogueScreen(q: 'hello'),
-          ocr: FakeOcr(page: const OcrSearchPage(items: [_hit], total: 1, offset: 0, limit: 20, hasMore: false)),
+          ocr: FakeOcr(
+              page: const OcrSearchPage(
+                  items: [_hit],
+                  total: 1,
+                  offset: 0,
+                  limit: 20,
+                  hasMore: false,),),
           platform: p,
         ),
   ),
@@ -113,7 +132,8 @@ final _cases = <_Case>[
 
 void main() {
   for (final c in _cases) {
-    testWidgets('${c.name}: iOS tap targets, labels and contrast', (tester) async {
+    testWidgets('${c.name}: iOS tap targets, labels and contrast',
+        (tester) async {
       final h = tester.ensureSemantics();
       await c.pump(tester, TargetPlatform.iOS);
       await _settle(tester);
@@ -123,7 +143,8 @@ void main() {
       h.dispose();
     });
 
-    testWidgets('${c.name}: Android tap targets, labels and contrast', (tester) async {
+    testWidgets('${c.name}: Android tap targets, labels and contrast',
+        (tester) async {
       final h = tester.ensureSemantics();
       await c.pump(tester, TargetPlatform.android);
       await _settle(tester);
@@ -142,7 +163,8 @@ void main() {
       ('Dialogue', const DialogueScreen()),
     ]) {
       testWidgets(name, (tester) async {
-        await pumpScreen(tester, screen, sources: FakeSources(sources: _sources));
+        await pumpScreen(tester, screen,
+            sources: FakeSources(sources: _sources),);
         await tester.pump();
         expect(CineKeyRegistry.groups.value.keys, contains(name));
         expect(CineKeyRegistry.groups.value[name], isNotEmpty);
@@ -154,7 +176,8 @@ void main() {
   });
 
   group('reduced motion', () {
-    testWidgets('the letter reveal is complete after 250 ms and stops', (tester) async {
+    testWidgets('the letter reveal is complete after 250 ms and stops',
+        (tester) async {
       await pumpScreen(
         tester,
         const SourcesScreen(),
@@ -162,23 +185,29 @@ void main() {
         pins: _pins,
         reduced: true,
       );
+      await tester.pump(); // the first tick starts the 200 ms fade
       await tester.pump(const Duration(milliseconds: 250));
-      final state = tester.state<SetHeadingState>(find.byType(SetHeading).first);
-      expect(state.controller.isAnimating, isFalse);
-      expect(state.controller.value, 1);
+      final h = find.byType(SetHeading).first;
+      final fade = find.descendant(of: h, matching: find.byType(FadeTransition));
+      expect(fade, findsWidgets);
+      expect(tester.widget<FadeTransition>(fade.first).opacity.value, 1);
     });
 
     testWidgets('the letter reveal runs when motion is on', (tester) async {
-      await pumpScreen(tester, const SourcesScreen(), sources: FakeSources(sources: _sources), pins: _pins);
+      await pumpScreen(tester, const SourcesScreen(),
+          sources: FakeSources(sources: _sources), pins: _pins,);
       await tester.pump(const Duration(milliseconds: 100));
-      final state = tester.state<SetHeadingState>(find.byType(SetHeading).first);
-      expect(state.controller.isAnimating, isTrue);
-      await settle(tester, 1000);
-      expect(state.controller.value, 1);
+      double least() => tester
+          .widgetList<Opacity>(find.descendant(of: find.byType(SetHeading).first, matching: find.byType(Opacity)))
+          .fold(1.0, (m, o) => o.opacity < m ? o.opacity : m);
+      expect(least(), lessThan(1));
+      await settle(tester, 1500);
+      expect(least(), 1);
     });
 
     String typed(WidgetTester tester) => tester
-        .widget<Text>(find.descendant(of: find.byType(TypedText).first, matching: find.byType(Text)))
+        .widget<Text>(find.descendant(
+            of: find.byType(TypedText).first, matching: find.byType(Text),),)
         .data!;
 
     testWidgets('the typed hint is complete at once', (tester) async {
@@ -187,7 +216,8 @@ void main() {
       expect(typed(tester), 'Search every source');
     });
 
-    testWidgets('the typed hint is still typing with motion on', (tester) async {
+    testWidgets('the typed hint is still typing with motion on',
+        (tester) async {
       await pumpScreen(tester, const DiscoverScreen());
       await tester.pump(const Duration(milliseconds: 250));
       expect(typed(tester).length, lessThan('Search every source'.length));
@@ -199,13 +229,16 @@ void main() {
       await pumpScreen(
         tester,
         const DiscoverScreen(q: 'solo'),
-        sources: FakeSources(groups: [_group('asura', 3), _group('mangadex', 3)]),
+        sources:
+            FakeSources(groups: [_group('asura', 3), _group('mangadex', 3)]),
         size: const Size(390, 500),
         reduced: true,
       );
       await settle(tester, 800);
-      final state = tester.state<DiscoverResultsState>(find.byType(DiscoverResults));
-      final scroll = Scrollable.of(tester.element(find.byType(DiscoverResults))).position;
+      final state =
+          tester.state<DiscoverResultsState>(find.byType(DiscoverResults));
+      final scroll =
+          Scrollable.of(tester.element(find.byType(DiscoverResults))).position;
       expect(scroll.pixels, 0);
       final done = state.jumpTo('mangadex');
       await tester.pump();
@@ -220,12 +253,15 @@ void main() {
       await pumpScreen(
         tester,
         const DiscoverScreen(q: 'solo'),
-        sources: FakeSources(groups: [_group('asura', 3), _group('mangadex', 3)]),
+        sources:
+            FakeSources(groups: [_group('asura', 3), _group('mangadex', 3)]),
         size: const Size(390, 500),
       );
       await settle(tester, 800);
-      final state = tester.state<DiscoverResultsState>(find.byType(DiscoverResults));
-      final scroll = Scrollable.of(tester.element(find.byType(DiscoverResults))).position;
+      final state =
+          tester.state<DiscoverResultsState>(find.byType(DiscoverResults));
+      final scroll =
+          Scrollable.of(tester.element(find.byType(DiscoverResults))).position;
       final done = state.jumpTo('mangadex');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 60));
@@ -235,15 +271,18 @@ void main() {
       await done;
     });
 
-    testWidgets('the highlight sweep shows its end state at once', (tester) async {
-      await pumpScreen(tester, const DialogueScreen(q: 'hello'), reduced: true, ocr: FakeOcr(page: _page));
+    testWidgets('the highlight sweep shows its end state at once',
+        (tester) async {
+      await pumpScreen(tester, const DialogueScreen(q: 'hello'),
+          reduced: true, ocr: FakeOcr(page: _page),);
       await tester.pump(const Duration(milliseconds: 50));
-      final bands = tester.widgetList<FractionallySizedBox>(find.byType(FractionallySizedBox));
+      final bands = tester
+          .widgetList<FractionallySizedBox>(find.byType(FractionallySizedBox));
       expect(bands, isNotEmpty);
       expect(bands.every((b) => b.widthFactor == 1), isTrue);
     });
   });
 }
 
-const _page = OcrSearchPage(items: [_hit], total: 1, offset: 0, limit: 20, hasMore: false);
-
+const _page = OcrSearchPage(
+    items: [_hit], total: 1, offset: 0, limit: 20, hasMore: false,);

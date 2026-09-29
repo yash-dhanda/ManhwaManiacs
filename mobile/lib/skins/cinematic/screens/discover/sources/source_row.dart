@@ -56,8 +56,7 @@ class SourceRow extends ConsumerWidget {
       excludeSemantics: true,
       onTap: onOpen,
       onLongPress: onMenu,
-      child: CineFocusRing(
-        child: CineLongPress(
+      child: ChildFocusRing(child: CineLongPress(
           onLongPress: onMenu,
           child: InkWell(
             focusNode: focusNode,
@@ -106,8 +105,11 @@ class SourceRow extends ConsumerWidget {
                             source.description,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: cineText(context, t.typeCaption,
-                                color: t.colorInk60,),
+                            style: cineText(
+                              context,
+                              t.typeCaption,
+                              color: t.colorInk60,
+                            ),
                           ),
                         ],
                       ),
@@ -119,17 +121,22 @@ class SourceRow extends ConsumerWidget {
                           source.contentKind == kNovelContentKind
                               ? 'NOVEL'
                               : 'MANGA',
-                          style: cineText(context, t.typeFolio,
-                              color: t.colorInk60,),
+                          style: cineText(
+                            context,
+                            t.typeFolio,
+                            color: t.colorInk60,
+                          ),
                         ),
                       ),
                       SizedBox(
                         width: 200,
                         child: Text(
                           health.label,
-                          style: cineText(context, t.typeFolio,
-                                  color: t.colorInk60,)
-                              .copyWith(
+                          style: cineText(
+                            context,
+                            t.typeFolio,
+                            color: t.colorInk60,
+                          ).copyWith(
                             decoration:
                                 demoted ? TextDecoration.lineThrough : null,
                           ),
@@ -140,8 +147,11 @@ class SourceRow extends ConsumerWidget {
                     if (source.mature) ...[
                       const SizedBox(width: CineSpace.s2),
                       ExcludeSemantics(
-                        child: Icon(CineGlyphs.certificate18Regular,
-                            size: 16, color: t.colorInk100,),
+                        child: Icon(
+                          CineGlyphs.certificate18Regular,
+                          size: 16,
+                          color: t.colorInk100,
+                        ),
                       ),
                     ],
                     const SizedBox(width: CineSpace.s2),
@@ -188,8 +198,11 @@ class SourceRow extends ConsumerWidget {
                       child: IconButton(
                         tooltip: 'More for ${source.name}',
                         onPressed: onMenu,
-                        icon: Icon(PhosphorRegular.dotsThree,
-                            size: 24, color: t.colorInk100,),
+                        icon: Icon(
+                          PhosphorRegular.dotsThree,
+                          size: 24,
+                          color: t.colorInk100,
+                        ),
                       ),
                     ),
                     if (trailingHandle != null)

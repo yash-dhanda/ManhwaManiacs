@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/features/library/providers/intelligence_providers.
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
+import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/ask_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -32,7 +33,11 @@ SourceSearchGroup _group(String id, int n) => SourceSearchGroup(
       status: SourceGroupStatus.ok,
       items: [
         for (var i = 0; i < n; i++)
-          GlobalSearchItem(kind: 'source', source: id, seriesId: '$id$i', title: 'Title $id $i'),
+          GlobalSearchItem(
+              kind: 'source',
+              source: id,
+              seriesId: '$id$i',
+              title: 'Title $id $i',),
       ],
     );
 
@@ -54,13 +59,15 @@ Future<void> _key(WidgetTester tester, LogicalKeyboardKey k) async {
 }
 
 bool _headingFocused(WidgetTester tester) => tester
-    .widgetList<Focus>(find.descendant(of: find.byType(HeadingFocus), matching: find.byType(Focus)))
+    .widgetList<Focus>(find.descendant(
+        of: find.byType(HeadingFocus), matching: find.byType(Focus),),)
     .any((f) => f.focusNode?.hasPrimaryFocus ?? false);
 
 /// A 2 px foreground border is CineFocusRing painting.
-bool _ringPainted(WidgetTester tester) => tester.widgetList<DecoratedBox>(find.byType(DecoratedBox)).any(
-      (d) => d.position == DecorationPosition.foreground && (d.decoration as BoxDecoration).border != null,
-    );
+bool _ringPainted(WidgetTester tester) =>
+    tester.widgetList<CustomPaint>(find.byType(CustomPaint)).any(
+          (p) => p.foregroundPainter is CineFocusRingPainter && (p.foregroundPainter! as CineFocusRingPainter).visible,
+        );
 
 Future<void> _tabUntilRing(WidgetTester tester) async {
   for (var i = 0; i < 12 && !_ringPainted(tester); i++) {
@@ -69,7 +76,9 @@ Future<void> _tabUntilRing(WidgetTester tester) async {
 }
 
 void main() {
-  final wall = [for (var i = 0; i < 40; i++) series('s$i', 'Series $i', 'asura')];
+  final wall = [
+    for (var i = 0; i < 40; i++) series('s$i', 'Series $i', 'asura'),
+  ];
 
   group('Route focus lands on the level-1 heading', () {
     testWidgets('Discover', (tester) async {
@@ -83,12 +92,14 @@ void main() {
       expect(_headingFocused(tester), isTrue);
     });
     testWidgets('Sources', (tester) async {
-      await pumpScreen(tester, const SourcesScreen(), sources: FakeSources(sources: [src('asura')]));
+      await pumpScreen(tester, const SourcesScreen(),
+          sources: FakeSources(sources: [src('asura')]),);
       await settle(tester, 800);
       expect(_headingFocused(tester), isTrue);
     });
     testWidgets('Catalogue', (tester) async {
-      await pumpScreen(tester, const CatalogueScreen(sourceId: 'asura'), sources: FakeSources(sources: [src('asura')], series: wall));
+      await pumpScreen(tester, const CatalogueScreen(sourceId: 'asura'),
+          sources: FakeSources(sources: [src('asura')], series: wall),);
       await settle(tester, 800);
       expect(_headingFocused(tester), isTrue);
     });
@@ -131,10 +142,15 @@ void main() {
       await pumpScreen(
         tester,
         const DiscoverScreen(q: 'solo'),
-        sources: FakeSources(groups: [_group('asura', 6), _group('mangadex', 6), _group('quiet', 6)]),
+        sources: FakeSources(groups: [
+          _group('asura', 6),
+          _group('mangadex', 6),
+          _group('quiet', 6),
+        ],),
       );
       await settle(tester, 800);
-      final scroll = tester.state<ScrollableState>(find.byType(Scrollable).first);
+      final scroll =
+          tester.state<ScrollableState>(find.byType(Scrollable).first);
       final start = scroll.position.pixels;
       await _key(tester, LogicalKeyboardKey.bracketRight);
       await settle(tester, 800);
@@ -156,7 +172,8 @@ void main() {
   });
 
   group('Sources keys', () {
-    final rows = FakeSources(sources: [src('asura'), src('mangadex'), src('zed')]);
+    final rows =
+        FakeSources(sources: [src('asura'), src('mangadex'), src('zed')]);
 
     String? focusedRow() => FocusManager.instance.primaryFocus?.context
         ?.findAncestorWidgetOfExactType<SourceRow>()
@@ -169,7 +186,8 @@ void main() {
       }
     }
 
-    testWidgets('j and k move between rows, Enter opens the row', (tester) async {
+    testWidgets('j and k move between rows, Enter opens the row',
+        (tester) async {
       await pumpScreen(tester, const SourcesScreen(), sources: rows);
       await settle(tester, 800);
       await toFirstRow(tester);
@@ -185,10 +203,13 @@ void main() {
       expect(find.textContaining('at /sources/$first'), findsOneWidget);
     });
 
-    testWidgets('dragging a pinned row lifts it without a Material error', (tester) async {
-      await pumpScreen(tester, const SourcesScreen(), sources: rows, pins: _pins);
+    testWidgets('dragging a pinned row lifts it without a Material error',
+        (tester) async {
+      await pumpScreen(tester, const SourcesScreen(),
+          sources: rows, pins: _pins,);
       await settle(tester, 800);
-      final g = await tester.startGesture(tester.getCenter(find.byIcon(kDotsSixVertical).first));
+      final g = await tester
+          .startGesture(tester.getCenter(find.byIcon(kDotsSixVertical).first));
       for (var i = 0; i < 4; i++) {
         await g.moveBy(const Offset(0, 14));
         await tester.pump(const Duration(milliseconds: 60));
@@ -199,7 +220,8 @@ void main() {
     });
 
     testWidgets('Tab order paints the focus ring', (tester) async {
-      await pumpScreen(tester, const SourcesScreen(), sources: rows, pins: _pins);
+      await pumpScreen(tester, const SourcesScreen(),
+          sources: rows, pins: _pins,);
       await settle(tester, 800);
       await _tabUntilRing(tester);
       expect(_ringPainted(tester), isTrue);
@@ -208,7 +230,8 @@ void main() {
 
   group('Catalogue keys', () {
     Future<void> pumpCatalogue(WidgetTester tester, FakeSources s) async {
-      await pumpScreen(tester, const CatalogueScreen(sourceId: 'asura'), sources: s);
+      await pumpScreen(tester, const CatalogueScreen(sourceId: 'asura'),
+          sources: s,);
       await settle(tester, 800);
     }
 
@@ -216,7 +239,8 @@ void main() {
 
     testWidgets('Home and End jump to the ends', (tester) async {
       await pumpCatalogue(tester, fake());
-      final pos = tester.state<ScrollableState>(find.byType(Scrollable).first).position;
+      final pos =
+          tester.state<ScrollableState>(find.byType(Scrollable).first).position;
       await _key(tester, LogicalKeyboardKey.end);
       expect(pos.pixels, pos.maxScrollExtent);
       expect(pos.maxScrollExtent, greaterThan(0));
@@ -263,7 +287,13 @@ void main() {
       await pumpScreen(
         tester,
         const DialogueScreen(q: 'hello'),
-        ocr: FakeOcr(page: OcrSearchPage(items: [for (var i = 0; i < 4; i++) _hit(i)], total: 4, offset: 0, limit: 20, hasMore: false)),
+        ocr: FakeOcr(
+            page: OcrSearchPage(
+                items: [for (var i = 0; i < 4; i++) _hit(i)],
+                total: 4,
+                offset: 0,
+                limit: 20,
+                hasMore: false,),),
       );
       await settle(tester, 800);
     }
@@ -279,7 +309,8 @@ void main() {
       }
     }
 
-    testWidgets('j and k move between hits, Enter opens the reader', (tester) async {
+    testWidgets('j and k move between hits, Enter opens the reader',
+        (tester) async {
       await pumpHits(tester);
       await toFirstHit(tester);
       expect(focusedHit(), isNotNull);
@@ -305,17 +336,26 @@ void main() {
       await pumpScreen(
         tester,
         const DialogueScreen(q: 'hello'),
-        ocr: FakeOcr(page: OcrSearchPage(items: [for (var i = 0; i < 20; i++) _hit(i)], total: 20, offset: 0, limit: 20, hasMore: false)),
+        ocr: FakeOcr(
+            page: OcrSearchPage(
+                items: [for (var i = 0; i < 20; i++) _hit(i)],
+                total: 20,
+                offset: 0,
+                limit: 20,
+                hasMore: false,),),
       );
       await settle(tester, 800);
-      final mounted = tester.widgetList(find.byType(TranscriptBlock, skipOffstage: false)).length;
+      final mounted = tester
+          .widgetList(find.byType(TranscriptBlock, skipOffstage: false))
+          .length;
       expect(mounted, lessThan(20));
       expect(mounted, greaterThan(0));
     });
   });
 
   group('Dialogue availability', () {
-    testWidgets('the server capability off shows the server notice', (tester) async {
+    testWidgets('the server capability off shows the server notice',
+        (tester) async {
       await pumpScreen(tester, const DialogueScreen(), serverOcr: false);
       await settle(tester, 4000);
       expect(find.textContaining('on this server'), findsOneWidget);
@@ -327,7 +367,8 @@ void main() {
       expect(find.textContaining('on this device'), findsOneWidget);
     });
 
-    testWidgets('the server capability off removes the DIALOGUE scope', (tester) async {
+    testWidgets('the server capability off removes the DIALOGUE scope',
+        (tester) async {
       await pumpScreen(tester, const DiscoverScreen(), serverOcr: false);
       await settle(tester, 800);
       expect(find.text('DIALOGUE'), findsNothing);
@@ -335,13 +376,18 @@ void main() {
   });
 
   group('ASK scope', () {
-    Future<void> pumpAsk(WidgetTester tester, SuggestionsNotifier Function() n) => pumpScreen(
+    Future<void> pumpAsk(
+            WidgetTester tester, SuggestionsNotifier Function() n,) =>
+        pumpScreen(
           tester,
-          const Scaffold(body: SingleChildScrollView(child: AskScope(query: 'x', onSearchInstead: _noop))),
+          const Scaffold(
+              body: SingleChildScrollView(
+                  child: AskScope(query: 'x', onSearchInstead: _noop),),),
           extra: [suggestionsProvider.overrideWith(n)],
         );
 
-    testWidgets('a 429 counts down live from the Retry-After header value', (tester) async {
+    testWidgets('a 429 counts down live from the Retry-After header value',
+        (tester) async {
       await pumpAsk(tester, _Fails.new);
       await settle(tester, 300);
       expect(find.text('SLOW DOWN'), findsOneWidget);
@@ -363,7 +409,9 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 10));
       double opacity(String title) => tester
-          .widget<Opacity>(find.ancestor(of: find.text(title), matching: find.byType(Opacity)).first)
+          .widget<Opacity>(find
+              .ancestor(of: find.text(title), matching: find.byType(Opacity))
+              .first,)
           .opacity;
       expect(opacity('Second'), lessThan(opacity('First')));
       await tester.pump(const Duration(milliseconds: 400));
@@ -386,12 +434,16 @@ class _Fails extends SuggestionsNotifier {
 
 class _Thinks extends SuggestionsNotifier {
   @override
-  Future<WorldSuggestResponse?> build() => Completer<WorldSuggestResponse?>().future;
+  Future<WorldSuggestResponse?> build() =>
+      Completer<WorldSuggestResponse?>().future;
 }
 
 class _Answers extends SuggestionsNotifier {
   @override
   Future<WorldSuggestResponse?> build() async => const WorldSuggestResponse(
-        items: [WorldItem(title: 'First', why: 'because'), WorldItem(title: 'Second')],
+        items: [
+          WorldItem(title: 'First', why: 'because'),
+          WorldItem(title: 'Second'),
+        ],
       );
 }

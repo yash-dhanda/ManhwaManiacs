@@ -27,6 +27,7 @@ import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.da
 import 'package:manhwamaniacs/features/sources/repositories/sources_repository.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/skin_haptics.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -50,7 +51,8 @@ SourceSummary src(
       health: health,
     );
 
-SourceSeriesSummary series(String id, String title, String source) => SourceSeriesSummary(
+SourceSeriesSummary series(String id, String title, String source) =>
+    SourceSeriesSummary(
       id: id,
       sourceId: source,
       title: title,
@@ -99,14 +101,16 @@ class FakeSources implements SourcesRepository {
     int? tier,
   }) async {
     searched.add(query);
-    return Ok(GroupedSearchResult(groups: groups, sourcesQueried: groups.length));
+    return Ok(
+        GroupedSearchResult(groups: groups, sourcesQueried: groups.length),);
   }
 
   @override
   Future<Result<List<SourcePin>>> replacePins(List<String> ids) async {
     replaced.add(ids);
     return Ok([
-      for (var i = 0; i < ids.length; i++) SourcePin(sourceId: ids[i], sortOrder: i, name: ids[i].toUpperCase()),
+      for (var i = 0; i < ids.length; i++)
+        SourcePin(sourceId: ids[i], sortOrder: i, name: ids[i].toUpperCase()),
     ]);
   }
 
@@ -126,14 +130,23 @@ class FakeSources implements SourcesRepository {
     if (listSeriesError != null) {
       return Err(listSeriesError!);
     }
-    return Ok(PagedResult(items: series, total: series.length, page: page, perPage: 20, hasNext: next, cache: cache));
+    return Ok(PagedResult(
+        items: series,
+        total: series.length,
+        page: page,
+        perPage: 20,
+        hasNext: next,
+        cache: cache,),);
   }
 
   @override
-  Future<Result<List<SourceBrowseMode>>> listBrowseModes(String sourceId) async => Ok(modes);
+  Future<Result<List<SourceBrowseMode>>> listBrowseModes(
+          String sourceId,) async =>
+      Ok(modes);
 
   @override
-  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async => Ok(genres);
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async =>
+      Ok(genres);
 
   @override
   Future<Result<List<SourceSummary>>> listHealth() async => Ok(sources);
@@ -143,7 +156,9 @@ class FakeSources implements SourcesRepository {
       Ok(SourceHealthSummary(total: sources.length, ok: sources.length));
 
   @override
-  Future<Result<List<ReaderPage>>> getChapterPages(String sourceId, String chapterKey) async => Ok(pages);
+  Future<Result<List<ReaderPage>>> getChapterPages(
+          String sourceId, String chapterKey,) async =>
+      Ok(pages);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -156,7 +171,10 @@ class FakeLibrary implements LibraryRepository {
 
   @override
   Future<Result<SuggestionAvailability>> suggestAvailability() async =>
-      Ok(SuggestionAvailability(available: ai, reason: ai ? 'ok' : 'not_configured', remainingToday: 3));
+      Ok(SuggestionAvailability(
+          available: ai,
+          reason: ai ? 'ok' : 'not_configured',
+          remainingToday: 3,),);
 
   @override
   Future<Result<PagedResult<FollowedSeries>>> listSeries({
@@ -167,10 +185,12 @@ class FakeLibrary implements LibraryRepository {
     String? readingStatus,
     bool? isFavorite,
   }) async =>
-      const Ok(PagedResult(items: [], total: 0, page: 1, perPage: 40, hasNext: false));
+      const Ok(PagedResult(
+          items: [], total: 0, page: 1, perPage: 40, hasNext: false,),);
 
   @override
-  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async =>
+      const Ok([]);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -183,13 +203,15 @@ class FakeOcr implements OcrRepository {
   final queries = <String>[];
 
   @override
-  Future<Result<OcrSearchPage>> search(String query, {int limit = 20, int offset = 0}) async {
+  Future<Result<OcrSearchPage>> search(String query,
+      {int limit = 20, int offset = 0,}) async {
     queries.add(query);
     return Ok(page);
   }
 
   @override
-  Future<Result<List<PageText>?>> fetchChapterText(ChapterIdentity id) async => const Ok(null);
+  Future<Result<List<PageText>?>> fetchChapterText(ChapterIdentity id) async =>
+      const Ok(null);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -202,7 +224,8 @@ class FakePins extends SourcePinsNotifier {
   final bool synced;
 
   @override
-  Future<SourcePinsState> build() async => SourcePinsState(pins: pins, synced: synced);
+  Future<SourcePinsState> build() async =>
+      SourcePinsState(pins: pins, synced: synced);
 }
 
 /// The provider overrides every discover screen needs (also used by the
@@ -234,7 +257,8 @@ List<Override> discoverOverrides(
     ];
 
 /// The theme and router the discover screens run under in tests.
-ThemeData discoverTheme([TargetPlatform platform = TargetPlatform.android]) => ThemeData(
+ThemeData discoverTheme([TargetPlatform platform = TargetPlatform.android]) =>
+    ThemeData(
       brightness: Brightness.dark,
       platform: platform,
       extensions: const [cinematicTokens],
@@ -243,7 +267,9 @@ ThemeData discoverTheme([TargetPlatform platform = TargetPlatform.android]) => T
 GoRouter discoverRouter(Widget screen) => GoRouter(
       routes: [
         GoRoute(path: '/', builder: (_, __) => screen),
-        GoRoute(path: '/:rest(.*)', builder: (context, s) => Scaffold(body: Text('at ${s.uri}'))),
+        GoRoute(
+            path: '/:rest(.*)',
+            builder: (context, s) => Scaffold(body: Text('at ${s.uri}')),),
       ],
     );
 
@@ -288,7 +314,7 @@ Future<void> pumpScreen(
         theme: discoverTheme(platform),
         builder: (c, child) => MediaQuery(
           data: MediaQuery.of(c).copyWith(disableAnimations: reduced),
-          child: child!,
+          child: CineToastHost(child: child!),
         ),
       ),
     ),

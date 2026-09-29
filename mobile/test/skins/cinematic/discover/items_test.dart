@@ -36,7 +36,11 @@ SourceSearchGroup _group(String id, int n) => SourceSearchGroup(
       status: n == 0 ? SourceGroupStatus.empty : SourceGroupStatus.ok,
       items: [
         for (var i = 0; i < n; i++)
-          GlobalSearchItem(kind: 'source', source: id, seriesId: '$id$i', title: 'Title $id $i'),
+          GlobalSearchItem(
+              kind: 'source',
+              source: id,
+              seriesId: '$id$i',
+              title: 'Title $id $i',),
       ],
     );
 
@@ -47,7 +51,9 @@ const _pins = [
 
 final _sources = [
   src('asura', health: const SourceHealth(status: SourceHealthStatus.ok)),
-  src('mangadex', health: const SourceHealth(status: SourceHealthStatus.failing, consecutiveFailures: 3)),
+  src('mangadex',
+      health: const SourceHealth(
+          status: SourceHealthStatus.failing, consecutiveFailures: 3,),),
 ];
 
 /// Tier 1 answers at once and points at tier 2; tier 2 waits on [tier2].
@@ -58,11 +64,16 @@ class _Tiered extends FakeSources {
   final tiers = <int?>[];
 
   @override
-  Future<Result<GroupedSearchResult>> searchGrouped(String query, {int page = 1, int perPage = 40, int? tier}) {
+  Future<Result<GroupedSearchResult>> searchGrouped(String query,
+      {int page = 1, int perPage = 40, int? tier,}) {
     tiers.add(tier);
     if (tier == 2) return tier2.future;
     return Future.value(
-      Ok(GroupedSearchResult(groups: [_group('asura', 2)], tier: 1, nextTier: 2, sourcesDeferred: 5)),
+      Ok(GroupedSearchResult(
+          groups: [_group('asura', 2)],
+          tier: 1,
+          nextTier: 2,
+          sourcesDeferred: 5,),),
     );
   }
 }
@@ -87,13 +98,15 @@ OcrSearchPage _page(int n) => OcrSearchPage(
       hasMore: false,
     );
 
-bool _fieldFocused(WidgetTester tester) => tester.widget<TextField>(find.byType(TextField).first).focusNode!.hasFocus;
+bool _fieldFocused(WidgetTester tester) =>
+    tester.widget<TextField>(find.byType(TextField).first).focusNode!.hasFocus;
 
 void main() {
   stillWiring();
   group('Discover', () {
     testWidgets('/ focuses the field', (tester) async {
-      await pumpScreen(tester, const DiscoverScreen(), sources: FakeSources(sources: _sources), pins: _pins);
+      await pumpScreen(tester, const DiscoverScreen(),
+          sources: FakeSources(sources: _sources), pins: _pins,);
       await settle(tester);
       expect(_fieldFocused(tester), isFalse);
       await tester.sendKeyEvent(LogicalKeyboardKey.slash);
@@ -101,7 +114,8 @@ void main() {
       expect(_fieldFocused(tester), isTrue);
     });
 
-    testWidgets('Esc clears the query, and unfocuses an empty field', (tester) async {
+    testWidgets('Esc clears the query, and unfocuses an empty field',
+        (tester) async {
       await pumpScreen(tester, const DiscoverScreen());
       await settle(tester);
       await tester.sendKeyEvent(LogicalKeyboardKey.slash);
@@ -114,7 +128,8 @@ void main() {
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
       await tester.pump();
-      expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, '');
+      expect(tester.widget<TextField>(find.byType(TextField)).controller!.text,
+          '',);
     });
 
     testWidgets('Enter searches at once, before the debounce', (tester) async {
@@ -141,10 +156,13 @@ void main() {
       expect(find.textContaining('scope=sources'), findsOneWidget);
     });
 
-    testWidgets('the field is italic while empty and Roman once it holds a query', (tester) async {
+    testWidgets(
+        'the field is italic while empty and Roman once it holds a query',
+        (tester) async {
       await pumpScreen(tester, const DiscoverScreen());
       await settle(tester);
-      TextStyle style() => tester.widget<TextField>(find.byType(TextField)).style!;
+      TextStyle style() =>
+          tester.widget<TextField>(find.byType(TextField)).style!;
       final empty = style().fontStyle;
       await tester.enterText(find.byType(TextField), 'so');
       await tester.pump();
@@ -153,25 +171,31 @@ void main() {
       expect(tester.widget<TextField>(find.byType(TextField)).cursorWidth, 3);
     });
 
-    testWidgets('the third tap on the thumb index focuses the field', (tester) async {
+    testWidgets('the third tap on the thumb index focuses the field',
+        (tester) async {
       await pumpScreen(tester, const DiscoverScreen());
       await settle(tester);
-      final c = ProviderScope.containerOf(tester.element(find.byType(DiscoverScreen)));
+      final c = ProviderScope.containerOf(
+          tester.element(find.byType(DiscoverScreen)),);
       expect(_fieldFocused(tester), isFalse);
       c.read(focusSearchSignalProvider.notifier).state++;
       await tester.pump();
       expect(_fieldFocused(tester), isTrue);
     });
 
-    testWidgets('tier 1 publishes, tier 2 runs behind the rule, then merges', (tester) async {
+    testWidgets('tier 1 publishes, tier 2 runs behind the rule, then merges',
+        (tester) async {
       final sources = _Tiered();
-      await pumpScreen(tester, const DiscoverScreen(q: 'solo'), sources: sources);
+      await pumpScreen(tester, const DiscoverScreen(q: 'solo'),
+          sources: sources,);
       await settle(tester, 800);
       expect(sources.tiers, [1, 2]);
-      expect(find.text('2 results so far · searching 5 more sources…'), findsOneWidget);
+      expect(find.text('2 results so far · searching 5 more sources…'),
+          findsOneWidget,);
       expect(find.byType(IndeterminateRule), findsOneWidget);
       expect(find.text('ASURA'), findsOneWidget);
-      sources.tier2.complete(Ok(GroupedSearchResult(groups: [_group('mangadex', 3)], tier: 2, sourcesFailed: 1)));
+      sources.tier2.complete(Ok(GroupedSearchResult(
+          groups: [_group('mangadex', 3)], tier: 2, sourcesFailed: 1,),),);
       await settle(tester, 500);
       expect(find.byType(IndeterminateRule), findsNothing);
       expect(find.text('5 results · 2 sources'), findsOneWidget);
@@ -179,14 +203,16 @@ void main() {
       expect(find.textContaining("1 source didn't answer."), findsOneWidget);
     });
 
-    testWidgets('the filter slugs bind searchGroupFilterProvider', (tester) async {
+    testWidgets('the filter slugs bind searchGroupFilterProvider',
+        (tester) async {
       await pumpScreen(
         tester,
         const DiscoverScreen(q: 'solo'),
         sources: FakeSources(groups: [_group('asura', 3), _group('quiet', 0)]),
       );
       await settle(tester, 800);
-      final c = ProviderScope.containerOf(tester.element(find.byType(DiscoverScreen)));
+      final c = ProviderScope.containerOf(
+          tester.element(find.byType(DiscoverScreen)),);
       await tester.tap(find.text('PINNED'));
       await tester.pump();
       expect(c.read(searchGroupFilterProvider), SearchGroupFilter.pinned);
@@ -202,7 +228,11 @@ void main() {
         pins: _pins,
         sources: FakeSources(
           sources: _sources,
-          genres: [for (var i = 0; i < 15; i++) SourceGenre(id: 'g$i', label: 'Genre ${i.toString().padLeft(2, '0')}')],
+          genres: [
+            for (var i = 0; i < 15; i++)
+              SourceGenre(
+                  id: 'g$i', label: 'Genre ${i.toString().padLeft(2, '0')}',),
+          ],
         ),
       );
       await settle(tester, 800);
@@ -216,7 +246,9 @@ void main() {
       expect(find.text('Fewer genres'), findsOneWidget);
     });
 
-    testWidgets('trending: two titles per source, capped, from the popular pages', (tester) async {
+    testWidgets(
+        'trending: two titles per source, capped, from the popular pages',
+        (tester) async {
       await pumpScreen(
         tester,
         const DiscoverScreen(),
@@ -224,7 +256,9 @@ void main() {
         sources: FakeSources(
           sources: _sources,
           modes: const [SourceBrowseMode(id: 'popular', label: 'Popular')],
-          series: [for (var i = 0; i < 6; i++) series('s$i', 'Trend $i', 'asura')],
+          series: [
+            for (var i = 0; i < 6; i++) series('s$i', 'Trend $i', 'asura'),
+          ],
         ),
       );
       await settle(tester, 800);
@@ -233,21 +267,23 @@ void main() {
       expect(find.textContaining('Trend 5'), findsNothing);
     });
 
-    testWidgets('long-press on a result poster opens Quick look', (tester) async {
+    testWidgets('long-press on a result poster opens Quick look',
+        (tester) async {
       await pumpScreen(
         tester,
         const DiscoverScreen(q: 'solo'),
         sources: FakeSources(groups: [_group('asura', 2)]),
       );
       await settle(tester, 800);
-      await tester.longPress(find.text('Title asura 0'));
+      await tester.longPress(find.text('Title asura 0').first);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Open'), findsOneWidget);
       expect(find.text('IN DIALOGUE'), findsNothing);
     });
 
-    testWidgets('a rate limited search shows the live countdown', (tester) async {
+    testWidgets('a rate limited search shows the live countdown',
+        (tester) async {
       await pumpScreen(
         tester,
         const DiscoverScreen(q: 'solo'),
@@ -265,13 +301,19 @@ void main() {
   });
 
   group('Sources', () {
-    testWidgets('Alt+Down moves the focused pinned row; the full order is written', (tester) async {
+    testWidgets(
+        'Alt+Down moves the focused pinned row; the full order is written',
+        (tester) async {
       final repo = FakeSources(sources: _sources);
-      await pumpScreen(tester, const SourcesScreen(), sources: repo, pins: _pins);
+      await pumpScreen(tester, const SourcesScreen(),
+          sources: repo, pins: _pins,);
       await settle(tester);
       for (var i = 0; i < 20; i++) {
         final ctx = FocusManager.instance.primaryFocus?.context;
-        if (ctx?.findAncestorWidgetOfExactType<SourceRow>()?.source.id == 'asura') break;
+        if (ctx?.findAncestorWidgetOfExactType<SourceRow>()?.source.id ==
+            'asura') {
+          break;
+        }
         await tester.sendKeyEvent(LogicalKeyboardKey.tab);
         await tester.pump();
       }
@@ -285,7 +327,8 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
     });
 
-    testWidgets('/ focuses the filter; p toggles the focused row and toasts', (tester) async {
+    testWidgets('/ focuses the filter; p toggles the focused row and toasts',
+        (tester) async {
       final repo = FakeSources(sources: _sources);
       await pumpScreen(tester, const SourcesScreen(), sources: repo);
       await settle(tester);
@@ -299,11 +342,13 @@ void main() {
       await settle(tester, 300);
       expect(find.text('ASURA pinned'), findsOneWidget);
       await tester.pump(const Duration(seconds: 4));
+      await tester.pump(const Duration(seconds: 1));
       expect(find.text('ASURA pinned'), findsNothing);
     });
 
     testWidgets('the trailing dots-three opens the same menu', (tester) async {
-      await pumpScreen(tester, const SourcesScreen(), sources: FakeSources(sources: _sources), pins: _pins);
+      await pumpScreen(tester, const SourcesScreen(),
+          sources: FakeSources(sources: _sources), pins: _pins,);
       await settle(tester);
       await tester.tap(find.byTooltip('More for ASURA').first);
       await settle(tester, 300);
@@ -326,16 +371,22 @@ void main() {
   });
 
   group('Catalogue', () {
-    final wall = [for (var i = 0; i < 10; i++) series('s$i', 'Series $i', 'asura')];
+    final wall = [
+      for (var i = 0; i < 10; i++) series('s$i', 'Series $i', 'asura'),
+    ];
 
-    testWidgets('] steps the browse mode and / focuses the search', (tester) async {
+    testWidgets('] steps the browse mode and / focuses the search',
+        (tester) async {
       await pumpScreen(
         tester,
         const CatalogueScreen(sourceId: 'asura'),
         sources: FakeSources(
           sources: [src('asura')],
           series: wall,
-          modes: const [SourceBrowseMode(id: 'popular', label: 'Popular'), SourceBrowseMode(id: 'latest', label: 'Latest')],
+          modes: const [
+            SourceBrowseMode(id: 'popular', label: 'Popular'),
+            SourceBrowseMode(id: 'latest', label: 'Latest'),
+          ],
         ),
       );
       await settle(tester, 800);
@@ -350,7 +401,8 @@ void main() {
       expect(find.textContaining('mode=latest'), findsOneWidget);
     });
 
-    testWidgets('three posters per row on phones, five on tablets', (tester) async {
+    testWidgets('three posters per row on phones, five on tablets',
+        (tester) async {
       Future<int> perRow(Size size) async {
         await pumpScreen(
           tester,
@@ -359,7 +411,10 @@ void main() {
           size: size,
         );
         await settle(tester, 800);
-        final tops = [for (var i = 0; i < 10; i++) tester.getTopLeft(find.text('Series $i').first).dy];
+        final tops = [
+          for (var i = 0; i < 10; i++)
+            tester.getTopLeft(find.text('Series $i').first).dy,
+        ];
         return tops.where((y) => (y - tops.first).abs() < 2).length;
       }
 
@@ -367,8 +422,10 @@ void main() {
       expect(await perRow(const Size(834, 1194)), 5);
     });
 
-    testWidgets('the opening state: dial at 400 ms, deck and tip at 3 s', (tester) async {
-      await pumpScreen(tester, const CatalogueScreen(sourceId: 'asura'), sources: _Never());
+    testWidgets('the opening state: dial at 400 ms, deck and tip at 3 s',
+        (tester) async {
+      await pumpScreen(tester, const CatalogueScreen(sourceId: 'asura'),
+          sources: _Never(),);
       await tester.pump(const Duration(milliseconds: 200));
       expect(find.byType(LeaderDial), findsNothing);
       await tester.pump(const Duration(milliseconds: 300));
@@ -383,7 +440,11 @@ void main() {
         const CatalogueScreen(sourceId: 'asura'),
         sources: FakeSources(
           sources: [src('asura')],
-          listSeriesError: const ApiError(statusCode: 429, code: 'rate_limited', message: 'slow', details: {'retry_after': 12}),
+          listSeriesError: const ApiError(
+              statusCode: 429,
+              code: 'rate_limited',
+              message: 'slow',
+              details: {'retry_after': 12},),
         ),
       );
       await settle(tester, 800);
@@ -400,7 +461,7 @@ void main() {
         sources: FakeSources(sources: [src('asura')], series: wall),
       );
       await settle(tester, 800);
-      await tester.longPress(find.text('Series 1'));
+      await tester.longPress(find.text('Series 1').first);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Open'), findsOneWidget);
@@ -416,29 +477,45 @@ void main() {
       expect(_fieldFocused(tester), isTrue);
     });
 
-    testWidgets('rack focus on the first 12 stills; the 13th develops with a plain fade', (tester) async {
-      await pumpScreen(tester, const DialogueScreen(q: 'hello'), ocr: FakeOcr(page: _page(13)), size: const Size(390, 12000));
+    testWidgets(
+        'rack focus on the first 12 stills; the 13th develops with a plain fade',
+        (tester) async {
+      await pumpScreen(tester, const DialogueScreen(q: 'hello'),
+          ocr: FakeOcr(page: _page(13)), size: const Size(390, 12000),);
       await settle(tester, 800);
-      final stills = tester.widgetList<SubtitledStill>(find.byType(SubtitledStill, skipOffstage: false)).toList();
+      final stills = tester
+          .widgetList<SubtitledStill>(
+              find.byType(SubtitledStill, skipOffstage: false),)
+          .toList();
       expect(stills.length, 13);
       expect(stills.take(12).every((s) => s.rack), isTrue);
       expect(stills.last.rack, isFalse);
     });
 
-    testWidgets('the highlight band sweeps in: partial mid-way, full at the end', (tester) async {
-      await pumpScreen(tester, const DialogueScreen(q: 'hello'), ocr: FakeOcr(page: _page(1)));
+    testWidgets(
+        'the highlight band sweeps in: partial mid-way, full at the end',
+        (tester) async {
+      await pumpScreen(tester, const DialogueScreen(q: 'hello'),
+          ocr: FakeOcr(page: _page(1)),);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 700));
       await tester.pump(const Duration(milliseconds: 80));
-      final mid = tester.widgetList<FractionallySizedBox>(find.byType(FractionallySizedBox)).map((b) => b.widthFactor!).toList();
+      final mid = tester
+          .widgetList<FractionallySizedBox>(find.byType(FractionallySizedBox))
+          .map((b) => b.widthFactor!)
+          .toList();
       expect(mid, isNotEmpty);
       await tester.pump(const Duration(milliseconds: 500));
-      final end = tester.widgetList<FractionallySizedBox>(find.byType(FractionallySizedBox)).map((b) => b.widthFactor!);
+      final end = tester
+          .widgetList<FractionallySizedBox>(find.byType(FractionallySizedBox))
+          .map((b) => b.widthFactor!);
       expect(end.every((v) => v == 1), isTrue);
     });
 
-    testWidgets('long-press and the dots-three open Quick look', (tester) async {
-      await pumpScreen(tester, const DialogueScreen(q: 'hello'), ocr: FakeOcr(page: _page(1)));
+    testWidgets('long-press and the dots-three open Quick look',
+        (tester) async {
+      await pumpScreen(tester, const DialogueScreen(q: 'hello'),
+          ocr: FakeOcr(page: _page(1)),);
       await settle(tester, 800);
       await tester.tap(find.byTooltip('More for this line'));
       await tester.pump();
@@ -455,7 +532,11 @@ class _RateLimitedSearch extends SearchListNotifier {
     unawaited(
       Future<void>.microtask(
         () => state = const AsyncError(
-          ApiError(statusCode: 429, code: 'rate_limited', message: 'slow', details: {'retry_after': 3}),
+          ApiError(
+              statusCode: 429,
+              code: 'rate_limited',
+              message: 'slow',
+              details: {'retry_after': 3},),
           StackTrace.empty,
         ),
       ),
@@ -488,13 +569,15 @@ final _png = base64Decode(
 );
 
 void stillWiring() {
-  testWidgets('the still crops the page in layout by stillCropWindow', (tester) async {
+  testWidgets('the still crops the page in layout by stillCropWindow',
+      (tester) async {
     await pumpScreen(
       tester,
       const DialogueScreen(q: 'hello'),
       ocr: FakeOcr(page: _page(1)),
       extra: [
-        dialogueStillProvider.overrideWith((ref, key) async => DialogueStill(bytes: _png, aspect: 0.5)),
+        dialogueStillProvider.overrideWith(
+            (ref, key) async => DialogueStill(bytes: _png, aspect: 0.5),),
       ],
     );
     await settle(tester, 800);
@@ -502,7 +585,8 @@ void stillWiring() {
     final stillBox = tester.getSize(find.byType(SubtitledStill));
     final pageW = stillBox.width / w.width;
     final shift = tester
-        .widgetList<Transform>(find.descendant(of: find.byType(SubtitledStill), matching: find.byType(Transform)))
+        .widgetList<Transform>(find.descendant(
+            of: find.byType(SubtitledStill), matching: find.byType(Transform),),)
         .map((t) => t.transform.getTranslation())
         .where((v) => v.x != 0 || v.y != 0)
         .toList();

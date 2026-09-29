@@ -54,7 +54,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     super.initState();
     if (widget.q.trim().isNotEmpty) {
       unawaited(
-          Future<void>.microtask(() => _search(widget.q, replaceUrl: false)),);
+        Future<void>.microtask(() => _search(widget.q, replaceUrl: false)),
+      );
     }
   }
 
@@ -64,7 +65,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     if (widget.q != old.q && widget.q != _text.text) {
       _text.text = widget.q;
       unawaited(
-          Future<void>.microtask(() => _search(widget.q, replaceUrl: false)),);
+        Future<void>.microtask(() => _search(widget.q, replaceUrl: false)),
+      );
     }
   }
 
@@ -157,8 +159,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     final dialogue = ref.watch(ocrFeatureVisibleProvider) &&
         (ref.watch(serverOcrCapabilityProvider).valueOrNull ?? true) &&
         ref.watch(contentModeControllerProvider) == ContentMode.manga;
-    final scope = parseDiscoverScope(widget.scope,
-        aiAvailable: ai, dialogueAvailable: dialogue,);
+    final scope = parseDiscoverScope(
+      widget.scope,
+      aiAvailable: ai,
+      dialogueAvailable: dialogue,
+    );
     final scopes = [
       DiscoverScope.all,
       DiscoverScope.library,
@@ -193,8 +198,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     }
 
     final prefs = ref.watch(sharedPrefsProvider);
-    final recent = readRecentSearches(prefs,
-        profileId: ref.watch(activeProfileProvider)?.id,);
+    final recent = readRecentSearches(
+      prefs,
+      profileId: ref.watch(activeProfileProvider)?.id,
+    );
 
     Widget body;
     if (scope == DiscoverScope.ask) {
@@ -212,8 +219,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           _search(r);
         },
         onClearRecent: () async {
-          await clearRecentSearches(prefs,
-              profileId: ref.read(activeProfileProvider)?.id,);
+          await clearRecentSearches(
+            prefs,
+            profileId: ref.read(activeProfileProvider)?.id,
+          );
           if (mounted) setState(() {});
         },
       );
@@ -229,13 +238,21 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     }
 
     final keys = <CineKey>[
-      CineKey(key(LogicalKeyboardKey.slash), _field.requestFocus,
-          whenTextFieldFree: true,),
+      CineKey(
+        key(LogicalKeyboardKey.slash),
+        _field.requestFocus,
+        whenTextFieldFree: true,
+      ),
       CineKey(key(LogicalKeyboardKey.escape), _escape),
-      CineKey(key(LogicalKeyboardKey.enter), () => _submit(_text.text),
-          whenTextFieldFree: true,),
-      CineKey(key(LogicalKeyboardKey.arrowDown),
-          () => focusStep(context, forward: true),),
+      CineKey(
+        key(LogicalKeyboardKey.enter),
+        () => _submit(_text.text),
+        whenTextFieldFree: true,
+      ),
+      CineKey(
+        key(LogicalKeyboardKey.arrowDown),
+        () => focusStep(context, forward: true),
+      ),
       for (var i = 0; i < 5; i++)
         CineKey(
           key(
@@ -252,12 +269,16 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           },
           whenTextFieldFree: true,
         ),
-      CineKey(key(LogicalKeyboardKey.bracketRight),
-          () => _results.currentState?.step(1),
-          whenTextFieldFree: true,),
-      CineKey(key(LogicalKeyboardKey.bracketLeft),
-          () => _results.currentState?.step(-1),
-          whenTextFieldFree: true,),
+      CineKey(
+        key(LogicalKeyboardKey.bracketRight),
+        () => _results.currentState?.step(1),
+        whenTextFieldFree: true,
+      ),
+      CineKey(
+        key(LogicalKeyboardKey.bracketLeft),
+        () => _results.currentState?.step(-1),
+        whenTextFieldFree: true,
+      ),
     ];
 
     final tablet = isTablet(context);
@@ -267,7 +288,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
       child: Scaffold(
         backgroundColor: t.colorPaper0,
         body: SafeArea(
-          child: PullToReprint(
+          child: CinePullToReprint(
             onRefresh: () async {
               if (query.length >= 2) {
                 await ref.read(searchListProvider.notifier).refresh();

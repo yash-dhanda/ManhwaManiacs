@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/browse_freshness.dart';
 import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/opening_state.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/top_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
@@ -24,8 +25,13 @@ import 'package:manhwamaniacs/skins/skin_haptics.dart';
 
 /// `/sources/:sourceId`: browse modes, genres, search, the poster wall.
 class CatalogueScreen extends ConsumerStatefulWidget {
-  const CatalogueScreen(
-      {super.key, required this.sourceId, this.mode, this.genre, this.q,});
+  const CatalogueScreen({
+    super.key,
+    required this.sourceId,
+    this.mode,
+    this.genre,
+    this.q,
+  });
 
   final String sourceId;
   final String? mode;
@@ -82,7 +88,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     if (show != _showTop) setState(() => _showTop = show);
     if (_scroll.hasClients && _scroll.position.extentAfter < 600) {
       unawaited(
-          ref.read(sourceBrowseProvider(widget.sourceId).notifier).loadMore(),);
+        ref.read(sourceBrowseProvider(widget.sourceId).notifier).loadMore(),
+      );
     }
   }
 
@@ -104,7 +111,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
       ref.read(sourceBrowseQueryProvider(widget.sourceId).notifier).update(f);
 
   void _refresh() => unawaited(
-      ref.read(sourceBrowseProvider(widget.sourceId).notifier).refresh(),);
+        ref.read(sourceBrowseProvider(widget.sourceId).notifier).refresh(),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -146,10 +154,14 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
         headline: "This source isn't available here any more.",
         deck: 'It may have been removed from its source.',
         actions: [
-          QuietButton('Back to Tonight',
-              onPressed: () => context.go(Routes.tonight()),),
-          QuietButton('Search for it',
-              onPressed: () => context.go(Routes.discover()),),
+          QuietButton(
+            'Back to Tonight',
+            onPressed: () => context.go(Routes.tonight()),
+          ),
+          QuietButton(
+            'Search for it',
+            onPressed: () => context.go(Routes.discover()),
+          ),
         ],
       );
     } else if (!browsable && !searching) {
@@ -196,40 +208,46 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                     ],
                   )
                 : GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: state!.items.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: cols,
-                mainAxisSpacing: CineSpace.s3,
-                crossAxisSpacing: gap,
-                childAspectRatio: posterW /
-                    (posterW * 1.5 +
-                        CineSpace.s2 +
-                        2 * 22 * MediaQuery.textScalerOf(context).scale(1)),
-              ),
-              itemBuilder: (context, i) {
-                final s = state.items[i];
-                return CinePoster(
-                  title: s.title,
-                  coverUrl: s.coverUrl,
-                  width: posterW,
-                  heroTag: (id, s.id),
-                  onTap: () => context.push(Routes.feature(id, s.id)),
-                  onLongPress: () => showQuickLook(
-                    context,
-                    ref,
-                    title: s.title,
-                    coverUrl: s.coverUrl,
-                    kicker: name,
-                    caption: s.chapterCount > 0
-                        ? 'CHAPTERS ${s.chapterCount}'
-                        : null,
-                    onOpen: () => context.push(Routes.feature(id, s.id)),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: state!.items.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: cols,
+                      mainAxisSpacing: CineSpace.s3,
+                      crossAxisSpacing: gap,
+                      childAspectRatio: posterW /
+                          (posterW * 1.5 +
+                              CineSpace.s2 +
+                              2 *
+                                  22 *
+                                  MediaQuery.textScalerOf(context).scale(1)),
+                    ),
+                    itemBuilder: (context, i) {
+                      final s = state.items[i];
+                      return SizedBox(
+                        width: posterW,
+                        child: CinePoster(
+                          title: s.title,
+                          url: s.coverUrl,
+                          heroTag: (id, s.id),
+                          onTap: () => context.push(Routes.feature(id, s.id)),
+                          onQuickLook: () => showQuickLook(
+                            context,
+                            ref,
+                            title: s.title,
+                            coverUrl: s.coverUrl,
+                            kicker: name,
+                            caption: s.chapterCount > 0
+                                ? 'CHAPTERS ${s.chapterCount}'
+                                : null,
+                            onOpen: () =>
+                                context.push(Routes.feature(id, s.id)),
+                            haptic: false,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           if (state.isLoadingMore)
             const Padding(
@@ -247,13 +265,15 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Couldn't load more.",
-                    style:
-                        cineText(context, t.typeCaption, color: t.colorInk60),),
+                Text(
+                  "Couldn't load more.",
+                  style: cineText(context, t.typeCaption, color: t.colorInk60),
+                ),
                 QuietButton(
                   'Retry',
                   onPressed: () => unawaited(
-                      ref.read(sourceBrowseProvider(id).notifier).loadMore(),),
+                    ref.read(sourceBrowseProvider(id).notifier).loadMore(),
+                  ),
                 ),
               ],
             )
@@ -280,16 +300,31 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     return CineKeys(
       group: 'Catalogue',
       keys: [
-        CineKey(key(LogicalKeyboardKey.slash), _searchFocus.requestFocus,
-            whenTextFieldFree: true,),
-        CineKey(key(LogicalKeyboardKey.bracketRight), () => stepMode(1),
-            whenTextFieldFree: true,),
-        CineKey(key(LogicalKeyboardKey.bracketLeft), () => stepMode(-1),
-            whenTextFieldFree: true,),
-        CineKey(key(LogicalKeyboardKey.keyR), _refresh,
-            whenTextFieldFree: true,),
-        CineKey(key(LogicalKeyboardKey.home), () => _scroll.jumpTo(0),
-            whenTextFieldFree: true,),
+        CineKey(
+          key(LogicalKeyboardKey.slash),
+          _searchFocus.requestFocus,
+          whenTextFieldFree: true,
+        ),
+        CineKey(
+          key(LogicalKeyboardKey.bracketRight),
+          () => stepMode(1),
+          whenTextFieldFree: true,
+        ),
+        CineKey(
+          key(LogicalKeyboardKey.bracketLeft),
+          () => stepMode(-1),
+          whenTextFieldFree: true,
+        ),
+        CineKey(
+          key(LogicalKeyboardKey.keyR),
+          _refresh,
+          whenTextFieldFree: true,
+        ),
+        CineKey(
+          key(LogicalKeyboardKey.home),
+          () => _scroll.jumpTo(0),
+          whenTextFieldFree: true,
+        ),
         CineKey(
           key(LogicalKeyboardKey.end),
           () => _scroll.jumpTo(_scroll.position.maxScrollExtent),
@@ -318,7 +353,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
             children: [
               if (browse.isLoading && state == null && browsable)
                 CatalogueWash(sourceId: id),
-              PullToReprint(
+              CinePullToReprint(
                 onRefresh: () async {
                   await ref.read(sourceBrowseProvider(id).notifier).refresh();
                 },
@@ -328,10 +363,11 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                   children: [
                     Padding(
                       padding: EdgeInsets.fromLTRB(
-                          tablet ? CineSpace.s8 : CineSpace.s4,
-                          CineSpace.s4,
-                          CineSpace.s4,
-                          CineSpace.s2,),
+                        tablet ? CineSpace.s8 : CineSpace.s4,
+                        CineSpace.s4,
+                        CineSpace.s4,
+                        CineSpace.s2,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -342,15 +378,19 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                                 onPressed: () => context.canPop()
                                     ? context.pop()
                                     : context.go(Routes.sources()),
-                                icon: Icon(PhosphorRegular.arrowLeft,
-                                    color: t.colorInk100,),
+                                icon: Icon(
+                                  PhosphorRegular.arrowLeft,
+                                  color: t.colorInk100,
+                                ),
                               ),
                               if (source?.iconUrl != null)
                                 SizedBox(
                                   width: 24,
                                   height: 24,
                                   child: CineCover(
-                                      url: source!.iconUrl, displayWidth: 24,),
+                                    url: source!.iconUrl,
+                                    displayWidth: 24,
+                                  ),
                                 ),
                             ],
                           ),
@@ -361,10 +401,12 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                               headingLevel: 1,
                               child: SetHeading(
                                 name,
+                                key: ValueKey('h-$name'),
+                                id: 'catalogue-$name',
                                 style: cineText(context, t.typeMasthead),
-                                scaler:
-                                    CineType.scaler(context, t.typeMasthead),
-                                play: sources != null || err != null,
+                                cap: t.typeMasthead.cap,
+                                level: 1,
+                                trigger: SetTrigger.mount,
                               ),
                             ),
                           ),
@@ -375,13 +417,21 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                                         ValueKey('retry-${_retrySeconds(err)}'),
                                     seconds: _retrySeconds(err)!,
                                     prefix: 'Rate limited · retrying in',
-                                    style: cineText(context, t.typeDeck,
-                                        color: t.colorInk60,),
+                                    style: cineText(
+                                      context,
+                                      t.typeDeck,
+                                      color: t.colorInk60,
+                                    ),
                                     onZero: _refresh,
                                   )
-                                : Text(deck,
-                                    style: cineText(context, t.typeDeck,
-                                        color: t.colorInk60,),),
+                                : Text(
+                                    deck,
+                                    style: cineText(
+                                      context,
+                                      t.typeDeck,
+                                      color: t.colorInk60,
+                                    ),
+                                  ),
                           Row(
                             children: [
                               if (fresh != null)
@@ -395,28 +445,44 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                                               'The source is down; this is the last copy we saved.',
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 6, vertical: 2,),
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
                                             decoration: BoxDecoration(
-                                                border: Border.all(
-                                                    color: t.colorSpot,),),
-                                            child: Text(fresh.text,
-                                                style: cineText(
-                                                    context, t.typeMicro,
-                                                    color: t.colorSpot,),),
+                                              border: Border.all(
+                                                color: t.colorSpot,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              fresh.text,
+                                              style: cineText(
+                                                context,
+                                                t.typeMicro,
+                                                color: t.colorSpot,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       )
-                                    : Text(fresh.text,
-                                        style: cineText(context, t.typeFolio,
-                                            color: t.colorInk60,),),
+                                    : Text(
+                                        fresh.text,
+                                        style: cineText(
+                                          context,
+                                          t.typeFolio,
+                                          color: t.colorInk60,
+                                        ),
+                                      ),
                               const Spacer(),
                               browse.isLoading && state != null
                                   ? const Padding(
                                       padding: EdgeInsets.all(16),
-                                      child: LeaderDial(),)
-                                  : QuietButton('Refresh',
+                                      child: LeaderDial(),
+                                    )
+                                  : QuietButton(
+                                      'Refresh',
                                       icon: PhosphorRegular.arrowClockwise,
-                                      onPressed: _refresh,),
+                                      onPressed: _refresh,
+                                    ),
                             ],
                           ),
                         ],
@@ -451,9 +517,11 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                         labels: [for (final m in modes) m.label],
                         selected: modeIndex < 0 ? 0 : modeIndex,
                         onSelected: (i) {
-                          unawaited(ref
-                              .read(skinHapticsProvider)
-                              .fire(HapticEvent.select),);
+                          unawaited(
+                            ref
+                                .read(skinHapticsProvider)
+                                .fire(HapticEvent.select),
+                          );
                           _setQuery((q) => q.copyWith(sort: modes[i].id));
                           _url(mode: modes[i].id);
                         },
@@ -463,7 +531,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                         alignment: Alignment.centerLeft,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: CineSpace.s4,),
+                            horizontal: CineSpace.s4,
+                          ),
                           child: QuietButton(
                             query.genre == null
                                 ? 'Genre'
@@ -485,15 +554,21 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                                             Navigator.of(context).pop(entry.id),
                                         child: ConstrainedBox(
                                           constraints: const BoxConstraints(
-                                              minHeight: 48,),
+                                            minHeight: 48,
+                                          ),
                                           child: Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: CineSpace.s4,),
+                                              horizontal: CineSpace.s4,
+                                            ),
                                             child: Align(
                                               alignment: Alignment.centerLeft,
-                                              child: Text(entry.label,
-                                                  style: cineText(
-                                                      context, t.typeTitle,),),
+                                              child: Text(
+                                                entry.label,
+                                                style: cineText(
+                                                  context,
+                                                  t.typeTitle,
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -584,8 +659,7 @@ class _BookRow extends StatelessWidget {
       button: true,
       label: '$title${author == null ? '' : ', $author'}, $chapters chapters',
       excludeSemantics: true,
-      child: CineFocusRing(
-        child: InkWell(
+      child: ChildFocusRing(child: InkWell(
           onTap: onTap,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 96),
@@ -593,16 +667,26 @@ class _BookRow extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: CineSpace.s2),
               child: Row(
                 children: [
-                  SizedBox(width: 48, height: 72, child: CineCover(url: coverUrl, displayWidth: 48)),
+                  SizedBox(
+                      width: 48,
+                      height: 72,
+                      child: CineCover(url: coverUrl, displayWidth: 48),),
                   const SizedBox(width: CineSpace.s3),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: cineText(context, t.typeTitle)),
+                        Text(title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: cineText(context, t.typeTitle),),
                         if (author != null)
-                          Text(author!, style: cineText(context, t.typeCaption, color: t.colorInk60)),
-                        Text('$chapters CHAPTERS', style: cineText(context, t.typeFolio, color: t.colorInk60)),
+                          Text(author!,
+                              style: cineText(context, t.typeCaption,
+                                  color: t.colorInk60,),),
+                        Text('$chapters CHAPTERS',
+                            style: cineText(context, t.typeFolio,
+                                color: t.colorInk60,),),
                       ],
                     ),
                   ),

@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/providers/dialogue_jump_provider.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// Where a dialogue hit lands in the reader, and what to tell the reader.
@@ -39,7 +39,8 @@ Future<DialogueLanding> resolveDialogueLanding(
       toast: 'Opened at the chapter start. The line is in this chapter.',
     );
   }
-  return DialogueLanding(page: page, box: jump.box, toast: 'Found on page $page.');
+  return DialogueLanding(
+      page: page, box: jump.box, toast: 'Found on page $page.',);
 }
 
 /// A 2 px `spot` frame around a matched bubble, drawn inside the page's own
@@ -56,7 +57,8 @@ class BubblePulse extends StatefulWidget {
   State<BubblePulse> createState() => _BubblePulseState();
 }
 
-class _BubblePulseState extends State<BubblePulse> with SingleTickerProviderStateMixin {
+class _BubblePulseState extends State<BubblePulse>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(vsync: this);
   bool _started = false;
   bool _reduced = false;
@@ -110,7 +112,8 @@ class _BubblePulseState extends State<BubblePulse> with SingleTickerProviderStat
                   child: Opacity(
                     opacity: opacity,
                     child: DecoratedBox(
-                      decoration: BoxDecoration(border: Border.all(color: t.colorSpot, width: 2)),
+                      decoration: BoxDecoration(
+                          border: Border.all(color: t.colorSpot, width: 2),),
                     ),
                   ),
                 ),
@@ -149,10 +152,12 @@ class DialogueLandingHost extends ConsumerStatefulWidget {
   final void Function(int page) jumpToPage;
 
   /// `pageOverlay(page)` goes in the reader's per-page overlay slot.
-  final Widget Function(BuildContext context, Widget Function(int page) pageOverlay) builder;
+  final Widget Function(
+      BuildContext context, Widget Function(int page) pageOverlay,) builder;
 
   @override
-  ConsumerState<DialogueLandingHost> createState() => _DialogueLandingHostState();
+  ConsumerState<DialogueLandingHost> createState() =>
+      _DialogueLandingHostState();
 }
 
 class _DialogueLandingHostState extends ConsumerState<DialogueLandingHost> {
@@ -173,7 +178,7 @@ class _DialogueLandingHostState extends ConsumerState<DialogueLandingHost> {
     final landing = await resolveDialogueLanding(jump, widget.loadPages);
     if (!mounted) return;
     if (landing.found) widget.jumpToPage(landing.page!);
-    showCineToast(context, landing.toast);
+    ref.read(cineToastsProvider.notifier).info(landing.toast);
     setState(() => _landing = landing);
   }
 

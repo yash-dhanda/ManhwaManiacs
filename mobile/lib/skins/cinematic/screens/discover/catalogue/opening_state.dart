@@ -72,8 +72,11 @@ class _OpeningStateState extends State<OpeningState> {
                     child: Semantics(
                       liveRegion: true,
                       child: Text(
-                        _slow ? 'This source can take about 10 s.' : widget.deck,
-                        style: cineText(context, t.typeDeck, color: t.colorInk60),
+                        _slow
+                            ? 'This source can take about 10 s.'
+                            : widget.deck,
+                        style:
+                            cineText(context, t.typeDeck, color: t.colorInk60),
                       ),
                     ),
                   ),
@@ -154,7 +157,10 @@ class _CatalogueWashState extends State<CatalogueWash> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [sourceWash(widget.sourceId), const Color(0x00000000)],
+                  colors: [
+                    sourceWash(widget.sourceId),
+                    const Color(0x00000000),
+                  ],
                 ),
               ),
             ),

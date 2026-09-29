@@ -5,7 +5,9 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// The `Jump to source` sheet: groups with counts; returns the tapped key.
 Future<String?> showGroupJumpSheet(
-        BuildContext context, List<SourceSearchGroup> groups,) =>
+  BuildContext context,
+  List<SourceSearchGroup> groups,
+) =>
     showCineSheet<String>(
       context,
       title: 'Jump to source',
@@ -32,8 +34,11 @@ Future<String?> showGroupJumpSheet(
                         ),
                         Text(
                           '${g.items.length}',
-                          style: cineText(context, t.typeFolio,
-                              color: t.colorInk60,),
+                          style: cineText(
+                            context,
+                            t.typeFolio,
+                            color: t.colorInk60,
+                          ),
                         ),
                       ],
                     ),

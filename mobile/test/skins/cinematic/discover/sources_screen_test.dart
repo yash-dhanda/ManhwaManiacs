@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/sources_screen.dart';
 
 import 'harness.dart';
@@ -9,7 +10,9 @@ import 'harness.dart';
 void main() {
   final sources = [
     src('asura', health: const SourceHealth(status: SourceHealthStatus.ok)),
-    src('mangadex', health: const SourceHealth(status: SourceHealthStatus.failing, consecutiveFailures: 3)),
+    src('mangadex',
+        health: const SourceHealth(
+            status: SourceHealthStatus.failing, consecutiveFailures: 3,),),
     src('weeb', health: const SourceHealth(status: SourceHealthStatus.dead)),
   ];
   const pins = [
@@ -18,19 +21,23 @@ void main() {
     SourcePin(sourceId: 'mangadex', sortOrder: 2, name: 'MANGADEX'),
   ];
 
-  testWidgets('directory: deck, pinned first, health text in semantics', (tester) async {
+  testWidgets('directory: deck, pinned first, health text in semantics',
+      (tester) async {
     final h = tester.ensureSemantics();
-    await pumpScreen(tester, const SourcesScreen(), sources: FakeSources(sources: sources), pins: pins);
+    await pumpScreen(tester, const SourcesScreen(),
+        sources: FakeSources(sources: sources), pins: pins,);
     await settle(tester);
-    expect(find.text('Sources'), findsOneWidget);
+    expect(find.byWidgetPredicate((w) => w is SetHeading && w.text == 'Sources'), findsOneWidget);
     expect(find.text('3 sources · 1 healthy · 2 pinned'), findsOneWidget);
-    expect(find.bySemanticsLabel(RegExp('MANGADEX, FAILING · 3 errors')), findsWidgets);
+    expect(find.bySemanticsLabel(RegExp('MANGADEX, FAILING · 3 errors')),
+        findsWidgets,);
     expect(find.bySemanticsLabel(RegExp(r'WEEB, DEAD')), findsOneWidget);
     expect(find.text('GONE'), findsNothing); // unavailable pin is not rendered
     h.dispose();
   });
 
-  testWidgets('Move down writes the full order, unavailable pins kept in place', (tester) async {
+  testWidgets('Move down writes the full order, unavailable pins kept in place',
+      (tester) async {
     final repo = FakeSources(sources: sources);
     await pumpScreen(tester, const SourcesScreen(), sources: repo, pins: pins);
     await settle(tester);
@@ -45,15 +52,18 @@ void main() {
   });
 
   testWidgets('pinned empty and no match states', (tester) async {
-    await pumpScreen(tester, const SourcesScreen(), sources: FakeSources(sources: sources));
+    await pumpScreen(tester, const SourcesScreen(),
+        sources: FakeSources(sources: sources),);
     await settle(tester);
     expect(
-      find.text('No pinned sources. Tap the pin on any source to keep it at the top.'),
+      find.text(
+          'No pinned sources. Tap the pin on any source to keep it at the top.',),
       findsOneWidget,
     );
   });
 
-  testWidgets('pins that fail to load disable the toggle with a note', (tester) async {
+  testWidgets('pins that fail to load disable the toggle with a note',
+      (tester) async {
     await pumpScreen(
       tester,
       const SourcesScreen(),
@@ -61,10 +71,12 @@ void main() {
       pinsSynced: false,
     );
     await settle(tester, 5000);
-    expect(find.textContaining("Pinned sources couldn't be loaded"), findsWidgets);
+    expect(
+        find.textContaining("Pinned sources couldn't be loaded"), findsWidgets,);
   });
 
-  testWidgets('tablet shows the table with KIND and health text, no LANGUAGE', (tester) async {
+  testWidgets('tablet shows the table with KIND and health text, no LANGUAGE',
+      (tester) async {
     await pumpScreen(
       tester,
       const SourcesScreen(),
@@ -80,7 +92,8 @@ void main() {
 
   testWidgets('tap targets on iOS and Android', (tester) async {
     final h = tester.ensureSemantics();
-    await pumpScreen(tester, const SourcesScreen(), sources: FakeSources(sources: sources), pins: pins);
+    await pumpScreen(tester, const SourcesScreen(),
+        sources: FakeSources(sources: sources), pins: pins,);
     await settle(tester);
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));

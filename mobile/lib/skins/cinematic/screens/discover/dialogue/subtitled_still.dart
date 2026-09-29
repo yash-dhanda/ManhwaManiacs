@@ -24,16 +24,21 @@ class SubtitledStill extends ConsumerWidget {
     final t = context.cine;
     final page = hit.page;
     if (page == null) return const SizedBox.shrink();
-    final still = ref.watch(dialogueStillProvider((chapter: hit.identity, page: page)));
+    final still =
+        ref.watch(dialogueStillProvider((chapter: hit.identity, page: page)));
     final subtitle = _Subtitle(hit: hit);
     final Widget image = still.when(
       loading: () => ColoredBox(color: t.colorPaper1),
       error: (_, __) => const _Broken(),
       data: (s) {
-        if (s == null || (s.file == null && s.bytes == null)) return const _Broken();
+        if (s == null || (s.file == null && s.bytes == null)) {
+          return const _Broken();
+        }
         final aspect = s.aspect ?? 0.7;
         final w = stillCropWindow(hit.box, aspect);
-        final provider = s.file != null ? FileImage(s.file!) as ImageProvider : MemoryImage(s.bytes!);
+        final provider = s.file != null
+            ? FileImage(s.file!) as ImageProvider
+            : MemoryImage(s.bytes!);
         return LayoutBuilder(
           builder: (context, box) {
             final pageW = box.maxWidth / w.width;
@@ -55,7 +60,10 @@ class SubtitledStill extends ConsumerWidget {
                     child: SizedBox(
                       width: pageW,
                       height: pageH,
-                      child: Image(image: provider, fit: BoxFit.fill, gaplessPlayback: true),
+                      child: Image(
+                          image: provider,
+                          fit: BoxFit.fill,
+                          gaplessPlayback: true,),
                     ),
                   ),
                 ),
@@ -71,7 +79,9 @@ class SubtitledStill extends ConsumerWidget {
       aspectRatio: 16 / 9,
       child: Semantics(
         image: true,
-        label: still.hasError || still.valueOrNull == null && !still.isLoading ? 'Page didn\'t load' : null,
+        label: still.hasError || still.valueOrNull == null && !still.isLoading
+            ? 'Page didn\'t load'
+            : null,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -116,7 +126,8 @@ class _Rack extends StatelessWidget {
             child: blur < 0.1
                 ? c
                 : ImageFiltered(
-                    imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                    imageFilter:
+                        ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
                     child: c,
                   ),
           ),
@@ -141,7 +152,8 @@ class _Broken extends StatelessWidget {
           right: 8,
           bottom: 8,
           // TODO(icons): image-broken is not in the generated glyph subset.
-          child: Icon(Icons.broken_image_outlined, size: 16, color: t.colorInk60),
+          child:
+              Icon(Icons.broken_image_outlined, size: 16, color: t.colorInk60),
         ),
       ],
     );

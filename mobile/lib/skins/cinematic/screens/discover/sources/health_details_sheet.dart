@@ -23,8 +23,10 @@ Future<void> showHealthDetails(BuildContext context, SourceSummary source) =>
               children: [
                 Semantics(
                   header: true,
-                  child: Text(source.name,
-                      style: cineText(context, t.typeSubhead),),
+                  child: Text(
+                    source.name,
+                    style: cineText(context, t.typeSubhead),
+                  ),
                 ),
                 const SizedBox(height: CineSpace.s3),
                 Row(

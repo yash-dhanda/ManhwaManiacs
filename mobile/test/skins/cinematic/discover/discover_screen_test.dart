@@ -8,7 +8,8 @@ import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_screen.d
 
 import 'harness.dart';
 
-SourceSearchGroup group(String id, int n, {bool error = false}) => SourceSearchGroup(
+SourceSearchGroup group(String id, int n, {bool error = false}) =>
+    SourceSearchGroup(
       source: id,
       sourceName: id.toUpperCase(),
       status: error
@@ -16,12 +17,18 @@ SourceSearchGroup group(String id, int n, {bool error = false}) => SourceSearchG
           : (n == 0 ? SourceGroupStatus.empty : SourceGroupStatus.ok),
       items: [
         for (var i = 0; i < n; i++)
-          GlobalSearchItem(kind: 'source', source: id, seriesId: '$id$i', title: 'Title $id $i'),
+          GlobalSearchItem(
+              kind: 'source',
+              source: id,
+              seriesId: '$id$i',
+              title: 'Title $id $i',),
       ],
     );
 
 void main() {
-  testWidgets('idle: scopes follow availability, hint semantics, sources section', (tester) async {
+  testWidgets(
+      'idle: scopes follow availability, hint semantics, sources section',
+      (tester) async {
     final h = tester.ensureSemantics();
     await pumpScreen(
       tester,
@@ -34,15 +41,18 @@ void main() {
     expect(find.text('NO. 04 — DISCOVER'), findsOneWidget);
     expect(find.text('01 ALL'), findsOneWidget);
     expect(find.text('03 SOURCES'), findsOneWidget);
-    expect(find.textContaining('DIALOGUE'), findsNothing); // OCR off, no scope, no entry
-    expect(find.text('04 ASK'), findsOneWidget); // AI available, folios renumber
+    expect(find.textContaining('DIALOGUE'),
+        findsNothing,); // OCR off, no scope, no entry
+    expect(
+        find.text('04 ASK'), findsOneWidget,); // AI available, folios renumber
     expect(find.bySemanticsLabel('Search every source'), findsWidgets);
     expect(find.text('ASURA'), findsNothing);
     expect(find.text('Asura'), findsOneWidget); // pinned credit
     h.dispose();
   });
 
-  testWidgets('dialogue scope and entry appear with OCR in manga mode', (tester) async {
+  testWidgets('dialogue scope and entry appear with OCR in manga mode',
+      (tester) async {
     await pumpScreen(tester, const DiscoverScreen());
     await settle(tester);
     expect(find.text('04 DIALOGUE'), findsOneWidget);
@@ -58,13 +68,17 @@ void main() {
     h.dispose();
   });
 
-  testWidgets('results: status line, groups, library first, retry, empty toggle', (tester) async {
-    final sources = FakeSources(groups: [
-      group('local-not', 0),
-      group('asura', 3),
-      group('bad', 0, error: true),
-      group('quiet', 0),
-    ],);
+  testWidgets(
+      'results: status line, groups, library first, retry, empty toggle',
+      (tester) async {
+    final sources = FakeSources(
+      groups: [
+        group('local-not', 0),
+        group('asura', 3),
+        group('bad', 0, error: true),
+        group('quiet', 0),
+      ],
+    );
     await pumpScreen(tester, const DiscoverScreen(q: 'solo'), sources: sources);
     await settle(tester, 800);
     expect(sources.searched, ['solo']);
@@ -82,21 +96,26 @@ void main() {
     expect(find.text('Jump to source'), findsOneWidget);
   });
 
-  testWidgets('no results shows the notice with Ask the editors', (tester) async {
-    await pumpScreen(tester, const DiscoverScreen(q: 'zzzz'), sources: FakeSources());
+  testWidgets('no results shows the notice with Ask the editors',
+      (tester) async {
+    await pumpScreen(tester, const DiscoverScreen(q: 'zzzz'),
+        sources: FakeSources(),);
     await settle(tester, 2500);
     expect(find.text('NOTHING FOUND'), findsOneWidget);
     expect(find.text('Ask the editors'), findsWidgets);
   });
 
-  testWidgets('reduced motion: typed notice headline is complete at once', (tester) async {
-    await pumpScreen(tester, const DiscoverScreen(q: 'zzzz'), sources: FakeSources(), reduced: true);
+  testWidgets('reduced motion: typed notice headline is complete at once',
+      (tester) async {
+    await pumpScreen(tester, const DiscoverScreen(q: 'zzzz'),
+        sources: FakeSources(), reduced: true,);
     await tester.pump(const Duration(milliseconds: 250));
     await tester.pump(const Duration(milliseconds: 250));
     expect(find.textContaining('No series match "zzzz"'), findsOneWidget);
   });
 
-  testWidgets('hardware keys: 3 switches scope, Esc clears then unfocuses', (tester) async {
+  testWidgets('hardware keys: 3 switches scope, Esc clears then unfocuses',
+      (tester) async {
     await pumpScreen(tester, const DiscoverScreen());
     await settle(tester);
     await tester.tap(find.byType(TextField));
@@ -104,12 +123,14 @@ void main() {
     await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pump();
-    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, '');
+    expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text, '',);
   });
 
   testWidgets('meets the tap target and label guidelines', (tester) async {
     final handle = tester.ensureSemantics();
-    await pumpScreen(tester, const DiscoverScreen(), platform: TargetPlatform.iOS);
+    await pumpScreen(tester, const DiscoverScreen(),
+        platform: TargetPlatform.iOS,);
     await settle(tester);
     await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));

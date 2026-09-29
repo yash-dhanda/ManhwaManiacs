@@ -45,7 +45,9 @@ class TranscriptBlock extends ConsumerWidget {
 
     final page = hit.page;
     final failed = page != null &&
-        ref.watch(dialogueStillProvider((chapter: hit.identity, page: page))).maybeWhen(
+        ref
+            .watch(dialogueStillProvider((chapter: hit.identity, page: page)))
+            .maybeWhen(
               data: (s) => s == null || (s.file == null && s.bytes == null),
               error: (_, __) => true,
               orElse: () => false,
@@ -76,7 +78,8 @@ class TranscriptBlock extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Text(credit, style: cineText(context, t.typeCredit, color: t.colorInk60)),
+              child: Text(credit,
+                  style: cineText(context, t.typeCredit, color: t.colorInk60),),
             ),
             SizedBox(
               width: tablet ? 40 : 32,
@@ -87,51 +90,54 @@ class TranscriptBlock extends ConsumerWidget {
               tooltip: 'More for this line',
               onPressed: quickLook,
               constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              icon: Icon(PhosphorRegular.dotsThree, size: 24, color: t.colorInk100),
+              icon: Icon(PhosphorRegular.dotsThree,
+                  size: 24, color: t.colorInk100,),
             ),
           ],
         ),
       ],
     );
-    final still = hit.page == null
-        ? null
-        : SubtitledStill(hit: hit, rack: index < 12);
+    final still =
+        hit.page == null ? null : SubtitledStill(hit: hit, rack: index < 12);
 
     return Semantics(
       button: true,
-      label: '$credit. ${ocrSnippetSpans(hit.snippet).map((s) => s.text).join()}'
+      label:
+          '$credit. ${ocrSnippetSpans(hit.snippet).map((s) => s.text).join()}'
           '${failed ? " Page didn't load" : ''}',
       excludeSemantics: true,
       onLongPress: quickLook,
-      child: CineFocusRing(
-        child: CineLongPress(
+      child: ChildFocusRing(child: CineLongPress(
           onLongPress: quickLook,
           child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: tablet ? CineSpace.s8 : CineSpace.s4,
-            vertical: CineSpace.s3,
+            onTap: onTap,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: tablet ? CineSpace.s8 : CineSpace.s4,
+                vertical: CineSpace.s3,
+              ),
+              child: tablet && still != null
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: still),
+                        const SizedBox(width: CineSpace.s4),
+                        Expanded(child: meta),
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (still != null) ...[
+                          still,
+                          const SizedBox(height: CineSpace.s3),
+                        ],
+                        meta,
+                      ],
+                    ),
+            ),
           ),
-          child: tablet && still != null
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: still),
-                    const SizedBox(width: CineSpace.s4),
-                    Expanded(child: meta),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (still != null) ...[still, const SizedBox(height: CineSpace.s3)],
-                    meta,
-                  ],
-                ),
         ),
-      ),
-      ),
       ),
     );
   }

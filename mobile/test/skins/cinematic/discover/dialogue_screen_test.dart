@@ -37,7 +37,8 @@ OcrSearchPage page(int n, {int total = 0}) => OcrSearchPage(
     );
 
 void main() {
-  testWidgets('idle prompt, scanning entry link and typed hint', (tester) async {
+  testWidgets('idle prompt, scanning entry link and typed hint',
+      (tester) async {
     await pumpScreen(tester, const DialogueScreen());
     await settle(tester);
     expect(find.text('NO. 09 — DIALOGUE'), findsOneWidget);
@@ -46,21 +47,30 @@ void main() {
     expect(find.textContaining('Scan more chapters'), findsOneWidget);
   });
 
-  testWidgets('results: credit line, transcript, page-missing still, open sets the jump', (tester) async {
+  testWidgets(
+      'results: credit line, transcript, page-missing still, open sets the jump',
+      (tester) async {
     final ocr = FakeOcr(page: page(2, total: 134));
     final h = tester.ensureSemantics();
-    await pumpScreen(tester, const DialogueScreen(q: 'hello'), ocr: ocr, size: const Size(390, 4000));
+    await pumpScreen(tester, const DialogueScreen(q: 'hello'),
+        ocr: ocr, size: const Size(390, 4000),);
     await settle(tester, 800);
     expect(ocr.queries, ['hello']);
-    expect(find.textContaining('TOWER-OF-GOD · CH 88 · PAGE 12 · 214 WORDS · VISION'), findsWidgets);
-    expect(find.text('Showing the first 2 of 134 matches. Narrow the search.'), findsOneWidget);
+    expect(
+        find.textContaining(
+            'TOWER-OF-GOD · CH 88 · PAGE 12 · 214 WORDS · VISION',),
+        findsWidgets,);
+    expect(find.text('Showing the first 2 of 134 matches. Narrow the search.'),
+        findsOneWidget,);
     expect(find.text('Show more'), findsOneWidget);
     expect(find.bySemanticsLabel(RegExp("Page didn't load")), findsWidgets);
-    final container = ProviderScope.containerOf(tester.element(find.byType(DialogueScreen)));
+    final container =
+        ProviderScope.containerOf(tester.element(find.byType(DialogueScreen)));
     await tester.tap(find.byType(TranscriptBlock).first, warnIfMissed: false);
     await tester.pump();
     await settle(tester, 300);
-    expect(find.textContaining('/reader/asura/tower-of-god/88'), findsOneWidget);
+    expect(
+        find.textContaining('/reader/asura/tower-of-god/88'), findsOneWidget,);
     final jump = container.read(dialogueJumpProvider);
     expect(jump?.page, 12);
     expect(jump?.box?.x, 0.4);
@@ -68,15 +78,18 @@ void main() {
   });
 
   testWidgets('no matches notice', (tester) async {
-    await pumpScreen(tester, const DialogueScreen(q: 'zzz'), ocr: FakeOcr(), reduced: true);
+    await pumpScreen(tester, const DialogueScreen(q: 'zzz'),
+        ocr: FakeOcr(), reduced: true,);
     await settle(tester, 800);
     expect(find.textContaining('Nothing found for "zzz"'), findsOneWidget);
   });
 
   testWidgets('not available on this device', (tester) async {
-    await pumpScreen(tester, const DialogueScreen(q: 'x'), ocrOn: false, reduced: true);
+    await pumpScreen(tester, const DialogueScreen(q: 'x'),
+        ocrOn: false, reduced: true,);
     await settle(tester);
-    expect(find.text("Dialogue search isn't available on this device."), findsOneWidget);
+    expect(find.text("Dialogue search isn't available on this device."),
+        findsOneWidget,);
   });
 
   testWidgets('novels mode shows the manga-only notice', (tester) async {
@@ -91,7 +104,8 @@ void main() {
     expect(find.textContaining('Dialogue search is for manga'), findsOneWidget);
   });
 
-  testWidgets('tablet lays the still and transcript in two columns', (tester) async {
+  testWidgets('tablet lays the still and transcript in two columns',
+      (tester) async {
     await pumpScreen(
       tester,
       const DialogueScreen(q: 'hello'),
