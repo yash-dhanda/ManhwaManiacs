@@ -1,0 +1,36 @@
+/* Cinematic base (cinematic §2.1.1, §2.4, §7 intro, §14.4, §14.6). Everything scoped to the skin. */
+/* Raised / wash stock scopes: ink.45 stays legible on lighter grounds. */
+[data-skin="cinematic"] [data-stock="raised"] { --mm-color-ink-45: var(--mm-color-ink-60); }
+[data-skin="cinematic"] [data-stock="wash"] { --mm-color-ink-45: var(--mm-color-ink-80); --mm-color-ink-60: var(--mm-color-ink-80); }
+
+/* Focus: square double ring, never for pointer focus. */
+[data-skin="cinematic"] :focus-visible { outline: 2px solid var(--mm-color-ink-100); outline-offset: 2px; box-shadow: 0 0 0 6px #000; }
+[data-skin="cinematic"] :focus:not(:focus-visible) { outline: none; }
+[data-skin="cinematic"] .cine-poster:focus-visible { box-shadow: inset 0 0 0 1px var(--mm-color-hairline-art), 0 0 0 6px #000; }
+
+/* Cursors. */
+[data-skin="cinematic"] [data-clickable], [data-skin="cinematic"] .cine-press { cursor: pointer; }
+[data-skin="cinematic"] [aria-disabled="true"], [data-skin="cinematic"] :disabled { cursor: default; }
+[data-skin="cinematic"] input, [data-skin="cinematic"] textarea { cursor: text; }
+
+/* Long-press hygiene on images. */
+[data-skin="cinematic"] .cine-press { -webkit-touch-callout: none; user-select: none; -webkit-user-drag: none; }
+
+/* Contrast preferences. */
+@media (prefers-contrast: more) {
+  [data-skin="cinematic"] { --mm-color-ink-45: var(--mm-color-ink-80); --mm-color-rule-1: var(--mm-color-rule-2); }
+}
+html[data-contrast="more"][data-skin="cinematic"] { --mm-color-ink-45: var(--mm-color-ink-80); --mm-color-rule-1: var(--mm-color-rule-2); }
+
+/* Forced colours: rules, focus and outlines use system colours; spot fills become Highlight; decoration is dropped. */
+@media (forced-colors: active) {
+  [data-skin="cinematic"] :focus-visible { outline-color: CanvasText; box-shadow: none; }
+  [data-skin="cinematic"] .cine-rule { background: CanvasText; border-color: CanvasText; }
+  [data-skin="cinematic"] .cine-outline { border-color: CanvasText; }
+  [data-skin="cinematic"] .cine-spot-fill { background: Highlight; color: HighlightText; forced-color-adjust: none; }
+  [data-skin="cinematic"] .cine-grain, [data-skin="cinematic"] .cine-scrim { display: none; }
+  [data-skin="cinematic"] .cine-duotone { filter: none; }
+  [data-skin="cinematic"] img { forced-color-adjust: none; }
+}
+
+/* Screen-reader-only helper for as="p" reveals is Tailwind's `sr-only`. */

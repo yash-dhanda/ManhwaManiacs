@@ -1,9 +1,9 @@
 "use client";
 import { animate, MotionConfig, type AnimationPlaybackControlsWithThen, type DOMKeyframesDefinition } from "motion/react";
-import { createElement, useEffect, useRef, useState, type ReactNode } from "react";
+import { createElement, useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { startMove } from "@/lib/motion-timings";
-import { dur, durMs, ease, scalar } from "./tokens.generated";
+import { durMs, ease, scalar } from "./tokens.generated";
 import type { MotionName } from "./motion.generated";
 
 /** The named-move union of §4.5 (written by shared/01). */
@@ -81,11 +81,11 @@ export function MotionRoot({ children }: { children: ReactNode }) {
 export function useDelayedFlag(ms: number, active = true): boolean {
   const [on, setOn] = useState(false);
   useEffect(() => {
-    if (!active) { setOn(false); return; }
+    if (!active) return;
     const t = setTimeout(() => setOn(true), ms);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(t); setOn(false); };
   }, [ms, active]);
-  return on;
+  return on && active;
 }
 
 // ---- play(): the single entry point for named moves ----
@@ -128,3 +128,8 @@ export function play(name: CineMotionName, target: Target, opts: PlayOpts = {}):
   controls.then(done, done);
   return controls;
 }
+
+// Later steps import the reveal components from here (§15.2).
+export { SetHeading, useTitleSignal } from "./primitives/SetHeading";
+export { TypedHeadline, useTyped } from "./primitives/TypedHeadline";
+export { RackImage, Drift, Flicker, RuleDraw } from "./motion-components";

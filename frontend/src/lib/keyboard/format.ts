@@ -4,7 +4,11 @@ import type { KeyCombo } from "./types";
 const isMac =
   typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform);
 
-function formatKeyToken(key: string): string {
+/** `delete` and `backspace` render ⌫ on Mac and Del elsewhere (cinematic §7.26). */
+export function formatKeyToken(key: string, mac: boolean = isMac): string {
+  if (key === "delete" || key === "backspace") {
+    return mac ? "⌫" : "Del";
+  }
   if (key === "=" || key === "+") {
     return "+";
   }
