@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import type { ScreenProps } from "./types";
 import styles from "./pending.module.css";
+
+const noSubscribe = () => () => {};
 
 /**
  * The one skin-neutral "not built yet" screen, used for every unbuilt ScreenId
@@ -11,13 +13,12 @@ import styles from "./pending.module.css";
  */
 export default function Pending({ screenId }: ScreenProps) {
   const pathname = usePathname();
-  const [skin, setSkin] = useState("PREVIEW");
-
-  useEffect(() => {
-    const id = document.documentElement.dataset.skin;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- the skin is only known in the browser
-    if (id) setSkin(id.toUpperCase());
-  }, []);
+  // `data-skin` is only readable in the browser; the server renders PREVIEW.
+  const skin = useSyncExternalStore(
+    noSubscribe,
+    () => document.documentElement.dataset.skin?.toUpperCase() ?? "PREVIEW",
+    () => "PREVIEW",
+  );
 
   function leave() {
     document.cookie = "mm-skin-debug=; Path=/; Max-Age=0; SameSite=Lax; Secure";
