@@ -234,3 +234,49 @@ html[data-solid="on"] .caustic::before { display: none; }
   position: absolute; width: 0; height: 0; transform: translate(-50%, -50%); border-radius: 50%;
   border: 2px solid rgb(188 176 255 / 0.30); box-sizing: border-box; filter: blur(6px); mix-blend-mode: screen;
 }
+
+/* ------------------------------------------------------------------------- *
+ * Ambient field (2.1.8): one fixed element, three radial gradients, no filter.
+ * ------------------------------------------------------------------------- */
+@property --amb-op { syntax: "<number>"; inherits: false; initial-value: 0.3; }
+html[data-skin="glass"] {
+  transition: --amb-a1 var(--mm-dur-tint-shift, 900ms) var(--mm-ease-tint-shift, cubic-bezier(0.2, 0, 0, 1)),
+    --amb-a2 var(--mm-dur-tint-shift, 900ms) var(--mm-ease-tint-shift, cubic-bezier(0.2, 0, 0, 1)),
+    --amb-a3 var(--mm-dur-tint-shift, 900ms) var(--mm-ease-tint-shift, cubic-bezier(0.2, 0, 0, 1)),
+    --amb-rim var(--mm-dur-tint-shift, 900ms) var(--mm-ease-tint-shift, cubic-bezier(0.2, 0, 0, 1));
+}
+html[data-skin="glass"][data-motion="reduced"] { transition-duration: 200ms; transition-timing-function: linear; }
+@media (prefers-reduced-motion: reduce) { html[data-skin="glass"] { transition-duration: 200ms; transition-timing-function: linear; } }
+.ambient-field {
+  --amb-blur: 120px;
+  --amb-s3: 1;
+  position: fixed;
+  inset: 0;
+  z-index: 1; /* z.field: behind content (z 2) */
+  pointer-events: none;
+  transition: --amb-op var(--mm-dur-tint-shift, 900ms) var(--mm-ease-tint-shift, cubic-bezier(0.2, 0, 0, 1)),
+    --amb-x1 var(--mm-spring-drift-ms, 900ms) var(--mm-spring-drift, ease), --amb-y1 var(--mm-spring-drift-ms, 900ms) var(--mm-spring-drift, ease),
+    --amb-x2 var(--mm-spring-drift-ms, 900ms) var(--mm-spring-drift, ease), --amb-y2 var(--mm-spring-drift-ms, 900ms) var(--mm-spring-drift, ease),
+    --amb-x3 var(--mm-spring-drift-ms, 900ms) var(--mm-spring-drift, ease), --amb-y3 var(--mm-spring-drift-ms, 900ms) var(--mm-spring-drift, ease);
+  /* top layer: the vertical fall-off, opaque to 40 %, half at 55 %, black from 60 % (g25 then black), so the lower 40 % is true black */
+  background:
+    linear-gradient(to bottom, transparent 0, transparent 40%, rgb(0 0 0 / 0.5) 55%, #060608 60%, #000000 70%),
+    radial-gradient(circle calc(35vw + var(--amb-blur)) at var(--amb-x1) var(--amb-y1),
+      color-mix(in srgb, var(--amb-a1) calc(var(--amb-op) * 100%), transparent) 0,
+      color-mix(in srgb, var(--amb-a1) calc(var(--amb-op) * 100%), transparent) calc(35vw - var(--amb-blur) * 0.5),
+      color-mix(in srgb, var(--amb-a1) calc(var(--amb-op) * 45%), transparent) 35vw, transparent calc(35vw + var(--amb-blur))),
+    radial-gradient(circle calc(35vw + var(--amb-blur)) at var(--amb-x2) var(--amb-y2),
+      color-mix(in srgb, var(--amb-a2) calc(var(--amb-op) * 100%), transparent) 0,
+      color-mix(in srgb, var(--amb-a2) calc(var(--amb-op) * 100%), transparent) calc(35vw - var(--amb-blur) * 0.5),
+      color-mix(in srgb, var(--amb-a2) calc(var(--amb-op) * 45%), transparent) 35vw, transparent calc(35vw + var(--amb-blur))),
+    radial-gradient(circle calc((35vw + var(--amb-blur)) * var(--amb-s3)) at var(--amb-x3) var(--amb-y3),
+      color-mix(in srgb, var(--amb-a3) calc(var(--amb-op) * 100%), transparent) 0,
+      color-mix(in srgb, var(--amb-a3) calc(var(--amb-op) * 100%), transparent) calc((35vw - var(--amb-blur) * 0.5) * var(--amb-s3)),
+      color-mix(in srgb, var(--amb-a3) calc(var(--amb-op) * 45%), transparent) calc(35vw * var(--amb-s3)), transparent calc((35vw + var(--amb-blur)) * var(--amb-s3))),
+    #000000;
+}
+@media (min-width: 1024px) { .ambient-field { --amb-blur: 180px; } }
+html[data-solid="on"] .ambient-field { opacity: 0.5; }
+@media (prefers-reduced-transparency: reduce) { .ambient-field { opacity: 0.5; } }
+html[data-motion="reduced"] .ambient-field { transition: --amb-op 200ms linear; }
+@media (prefers-reduced-motion: reduce) { .ambient-field { transition: --amb-op 200ms linear; } }
