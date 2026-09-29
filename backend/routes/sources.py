@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from core.rate_limit import limiter, sources_limit
 from database.session import get_db
 from connectors.registry import list_installed_connectors
+from services import cover_colour
 from services.browse_service import BrowseService, get_browse_service
 from services.search_tiers import tier_one_source_ids
 from services.reader_service import ReaderService, get_reader_service
@@ -203,7 +204,7 @@ async def federated_search(
             },
         )
 
-    return await service.federated_search(
+    result = await service.federated_search(
         q.strip(),
         page=page,
         per_page=per_page,
@@ -211,6 +212,19 @@ async def federated_search(
         tier=tier,
         tier_ids=tier_ids,
     )
+    # The flat list and the per-source groups share item dicts; colour each
+    # distinct source item once, in one query.
+    items = {
+        id(item): item
+        for item in [
+            *(result.get("items") or []),
+            *(i for g in result.get("groups") or [] for i in g.get("items") or []),
+        ]
+    }
+    cover_colour.attach_cover_colours(
+        db, list(items.values()), key=lambda item: (item["source"], item["series_id"])
+    )
+    return result
 
 
 # NOTE: like ``/search`` above, this literal route MUST stay ahead of the
@@ -302,10 +316,14 @@ def list_source_series(
             source_id, page=page, query=normalized_query, sort=sort, genre=genre
         )
         listing["cache"] = live_cache_info()
-        return listing
-    return cache.get_browse_page(
-        source_id, page=page, sort=sort, genre=genre, force=refresh, warm_next=True
+    else:
+        listing = cache.get_browse_page(
+            source_id, page=page, sort=sort, genre=genre, force=refresh, warm_next=True
+        )
+    cover_colour.attach_cover_colours(
+        db, listing.get("items") or [], key=lambda item: (source_id, item["id"])
     )
+    return listing
 
 
 # --- key-bearing routes ----------------------------------------------------
@@ -450,6 +468,7 @@ def get_source_series_cover(
         # instead (it still needs the DB to read/write the derived rendering).
         _release_pooled_connection(db)
         media_type, data = service.resolve_series_cover(source_id, series_id)
+        cover_colour.ensure_cover_colours(db, source_id, series_id, data)
         return _conditional_image_response(request, media_type, data, headers)
 
     media_type, data, served_width = cache.get_series_cover(
@@ -458,6 +477,10 @@ def get_source_series_cover(
         width=snap_cover_width(w),
         fmt=negotiate_cover_format(request.headers.get("accept")),
     )
+    # The one place cover colours are computed (both branches): the first
+    # serve at any width writes ``cover_palette``; later serves cost one
+    # primary-key read. Never raises.
+    cover_colour.ensure_cover_colours(db, source_id, series_id, data)
     headers["Vary"] = "Accept"
     if served_width is not None:
         headers["X-Cover-Width"] = str(served_width)
@@ -480,7 +503,10 @@ def get_source_series(
     Declared last of the ``/series/...`` routes — see the CONTRACT note above.
     """
     _release_pooled_connection(db)
-    return service.get_series(source_id, series_id)
+    payload = service.get_series(source_id, series_id)
+    return cover_colour.attach_cover_colours(
+        db, [payload], key=lambda item: (item["source_id"], item["id"])
+    )[0]
 
 
 @router.get("/{source_id}/chapters/{chapter_id:path}/pages")

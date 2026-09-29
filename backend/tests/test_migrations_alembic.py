@@ -23,7 +23,7 @@ from database.models import Base
 from database.session import run_alembic_migrations
 
 _BASELINE = "0001_source_native"
-_HEAD = "0018_profile_redesign_cols"
+_HEAD = "0019_cover_palette"
 
 # Every revision, oldest first. A new migration is added here deliberately —
 # the point of the guard is that revisions arrive on purpose, not that there is
@@ -47,6 +47,7 @@ _REVISIONS = [
     "0016_backfill_last_login.py",
     "0017_world_catalog_cache.py",
     "0018_profile_redesign_cols.py",
+    "0019_cover_palette.py",
 ]
 
 # Every ORM-mapped table the baseline must create (spec §3).
@@ -73,6 +74,7 @@ _EXPECTED_TABLES = {
     "source_browse_cache",
     "novel_chapter_cache",
     "source_cover_cache",
+    "cover_palette",
 }
 
 # Tables that must be gone (spec §3.11).
