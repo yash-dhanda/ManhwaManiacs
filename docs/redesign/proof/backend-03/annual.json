@@ -1,0 +1,506 @@
+{
+    "year": 2026,
+    "partial": true,
+    "since": "2025-12-31T18:30:00",
+    "until": "2026-09-29T15:09:34.222670",
+    "recorded_days": 5,
+    "seconds_read": 3600,
+    "chapters_read": 6,
+    "pages_read": 162,
+    "chapters_by_month": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        0
+    ],
+    "top_series": [
+        {
+            "source_id": "mangadex",
+            "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+            "title": "Alphabet[a]",
+            "cover_url": "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover",
+            "seconds_read": 1320,
+            "chapters_read": 2,
+            "ambient": {
+                "duo": "#786ECE",
+                "tint": "#0B0A15",
+                "ink": "#B1ABE3"
+            },
+            "palette": {
+                "a": [
+                    "#CBC7F2",
+                    "#9277B2",
+                    "#ADC2E6"
+                ],
+                "l": 0.622,
+                "lMax": 0.985
+            }
+        },
+        {
+            "source_id": "mangadex",
+            "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+            "title": "Rekkyou Sensen",
+            "cover_url": "/sources/mangadex/series/3683f667-c23d-4688-b872-0ade276aaafa/cover",
+            "seconds_read": 1080,
+            "chapters_read": 2,
+            "ambient": {
+                "duo": "#CA727F",
+                "tint": "#130C0D",
+                "ink": "#DBB3B9"
+            },
+            "palette": {
+                "a": [
+                    "#544043"
+                ],
+                "l": 0.276,
+                "lMax": 0.999
+            }
+        },
+        {
+            "source_id": "mangapill",
+            "series_key": "10328/ningen-yametai-yonezawa-san",
+            "title": "Ningen Yametai Yonezawa-san",
+            "cover_url": "/sources/mangapill/series/10328%2Fningen-yametai-yonezawa-san/cover",
+            "seconds_read": 660,
+            "chapters_read": 1,
+            "ambient": {
+                "duo": "#7293CA",
+                "tint": "#0D0F12",
+                "ink": "#B3C2DB"
+            },
+            "palette": {
+                "a": [
+                    "#6F6972",
+                    "#FFFEFE"
+                ],
+                "l": 0.66,
+                "lMax": 1.0
+            }
+        },
+        {
+            "source_id": "mangadex",
+            "series_key": "98cad238-faca-42ee-b951-7a6b8c478d0a",
+            "title": "Guardians of Man",
+            "cover_url": "/sources/mangadex/series/98cad238-faca-42ee-b951-7a6b8c478d0a/cover",
+            "seconds_read": 540,
+            "chapters_read": 1,
+            "ambient": {
+                "duo": "#D86465",
+                "tint": "#150A0A",
+                "ink": "#E9A5A6"
+            },
+            "palette": {
+                "a": [
+                    "#6F1C1E"
+                ],
+                "l": 0.283,
+                "lMax": 0.996
+            }
+        }
+    ],
+    "genres": [
+        {
+            "genre": "Post-Apocalyptic",
+            "weight": 0.121
+        },
+        {
+            "genre": "Sci-Fi",
+            "weight": 0.121
+        },
+        {
+            "genre": "Drama",
+            "weight": 0.115
+        },
+        {
+            "genre": "Slice of Life",
+            "weight": 0.1
+        },
+        {
+            "genre": "Adventure",
+            "weight": 0.067
+        },
+        {
+            "genre": "Action",
+            "weight": 0.055
+        },
+        {
+            "genre": "Gore",
+            "weight": 0.055
+        },
+        {
+            "genre": "Martial Arts",
+            "weight": 0.055
+        }
+    ],
+    "by_hour": [
+        {
+            "hour": 0,
+            "seconds_read": 0
+        },
+        {
+            "hour": 1,
+            "seconds_read": 0
+        },
+        {
+            "hour": 2,
+            "seconds_read": 2700
+        },
+        {
+            "hour": 3,
+            "seconds_read": 0
+        },
+        {
+            "hour": 4,
+            "seconds_read": 0
+        },
+        {
+            "hour": 5,
+            "seconds_read": 0
+        },
+        {
+            "hour": 6,
+            "seconds_read": 0
+        },
+        {
+            "hour": 7,
+            "seconds_read": 0
+        },
+        {
+            "hour": 8,
+            "seconds_read": 0
+        },
+        {
+            "hour": 9,
+            "seconds_read": 0
+        },
+        {
+            "hour": 10,
+            "seconds_read": 0
+        },
+        {
+            "hour": 11,
+            "seconds_read": 0
+        },
+        {
+            "hour": 12,
+            "seconds_read": 0
+        },
+        {
+            "hour": 13,
+            "seconds_read": 0
+        },
+        {
+            "hour": 14,
+            "seconds_read": 0
+        },
+        {
+            "hour": 15,
+            "seconds_read": 900
+        },
+        {
+            "hour": 16,
+            "seconds_read": 0
+        },
+        {
+            "hour": 17,
+            "seconds_read": 0
+        },
+        {
+            "hour": 18,
+            "seconds_read": 0
+        },
+        {
+            "hour": 19,
+            "seconds_read": 0
+        },
+        {
+            "hour": 20,
+            "seconds_read": 0
+        },
+        {
+            "hour": 21,
+            "seconds_read": 0
+        },
+        {
+            "hour": 22,
+            "seconds_read": 0
+        },
+        {
+            "hour": 23,
+            "seconds_read": 0
+        }
+    ],
+    "longest_streak": {
+        "days": 5,
+        "month": 9,
+        "start": "2026-09-25",
+        "end": "2026-09-29"
+    },
+    "top_sources": [
+        {
+            "source_id": "mangadex",
+            "name": "MangaDex",
+            "share": 0.817
+        },
+        {
+            "source_id": "mangapill",
+            "name": "MangaPill",
+            "share": 0.183
+        }
+    ],
+    "busiest_day": {
+        "date": "2026-09-29",
+        "chapters": 2,
+        "series": [
+            {
+                "source_id": "mangadex",
+                "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+                "title": "Alphabet[a]",
+                "cover_url": "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover"
+            },
+            {
+                "source_id": "mangadex",
+                "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+                "title": "Rekkyou Sensen",
+                "cover_url": "/sources/mangadex/series/3683f667-c23d-4688-b872-0ade276aaafa/cover"
+            }
+        ]
+    },
+    "firsts_lasts": {
+        "first": {
+            "series": {
+                "source_id": "mangadex",
+                "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+                "title": "Rekkyou Sensen",
+                "cover_url": "/sources/mangadex/series/3683f667-c23d-4688-b872-0ade276aaafa/cover"
+            },
+            "read_at": "2026-09-24T20:55:00"
+        },
+        "last": {
+            "series": {
+                "source_id": "mangadex",
+                "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+                "title": "Alphabet[a]",
+                "cover_url": "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover"
+            },
+            "read_at": "2026-09-29T10:04:54.220035"
+        }
+    },
+    "circle": null,
+    "top_voices": [],
+    "available_years": [],
+    "shareable": {
+        "genre_weights": [
+            {
+                "genre": "Post-Apocalyptic",
+                "weight": 0.121
+            },
+            {
+                "genre": "Sci-Fi",
+                "weight": 0.121
+            },
+            {
+                "genre": "Drama",
+                "weight": 0.115
+            },
+            {
+                "genre": "Slice of Life",
+                "weight": 0.1
+            },
+            {
+                "genre": "Adventure",
+                "weight": 0.067
+            },
+            {
+                "genre": "Action",
+                "weight": 0.055
+            },
+            {
+                "genre": "Gore",
+                "weight": 0.055
+            },
+            {
+                "genre": "Martial Arts",
+                "weight": 0.055
+            }
+        ],
+        "top_series": [
+            {
+                "source_id": "mangadex",
+                "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+                "title": "Alphabet[a]",
+                "cover_url": "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover",
+                "seconds_read": 1320,
+                "chapters_read": 2,
+                "ambient": {
+                    "duo": "#786ECE",
+                    "tint": "#0B0A15",
+                    "ink": "#B1ABE3"
+                },
+                "palette": {
+                    "a": [
+                        "#CBC7F2",
+                        "#9277B2",
+                        "#ADC2E6"
+                    ],
+                    "l": 0.622,
+                    "lMax": 0.985
+                }
+            },
+            {
+                "source_id": "mangadex",
+                "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+                "title": "Rekkyou Sensen",
+                "cover_url": "/sources/mangadex/series/3683f667-c23d-4688-b872-0ade276aaafa/cover",
+                "seconds_read": 1080,
+                "chapters_read": 2,
+                "ambient": {
+                    "duo": "#CA727F",
+                    "tint": "#130C0D",
+                    "ink": "#DBB3B9"
+                },
+                "palette": {
+                    "a": [
+                        "#544043"
+                    ],
+                    "l": 0.276,
+                    "lMax": 0.999
+                }
+            },
+            {
+                "source_id": "mangapill",
+                "series_key": "10328/ningen-yametai-yonezawa-san",
+                "title": "Ningen Yametai Yonezawa-san",
+                "cover_url": "/sources/mangapill/series/10328%2Fningen-yametai-yonezawa-san/cover",
+                "seconds_read": 660,
+                "chapters_read": 1,
+                "ambient": {
+                    "duo": "#7293CA",
+                    "tint": "#0D0F12",
+                    "ink": "#B3C2DB"
+                },
+                "palette": {
+                    "a": [
+                        "#6F6972",
+                        "#FFFEFE"
+                    ],
+                    "l": 0.66,
+                    "lMax": 1.0
+                }
+            },
+            {
+                "source_id": "mangadex",
+                "series_key": "98cad238-faca-42ee-b951-7a6b8c478d0a",
+                "title": "Guardians of Man",
+                "cover_url": "/sources/mangadex/series/98cad238-faca-42ee-b951-7a6b8c478d0a/cover",
+                "seconds_read": 540,
+                "chapters_read": 1,
+                "ambient": {
+                    "duo": "#D86465",
+                    "tint": "#150A0A",
+                    "ink": "#E9A5A6"
+                },
+                "palette": {
+                    "a": [
+                        "#6F1C1E"
+                    ],
+                    "l": 0.283,
+                    "lMax": 0.996
+                }
+            }
+        ],
+        "art_series": [
+            {
+                "source_id": "mangadex",
+                "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+                "cover_url": "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover",
+                "ambient": {
+                    "duo": "#786ECE",
+                    "tint": "#0B0A15",
+                    "ink": "#B1ABE3"
+                },
+                "palette": {
+                    "a": [
+                        "#CBC7F2",
+                        "#9277B2",
+                        "#ADC2E6"
+                    ],
+                    "l": 0.622,
+                    "lMax": 0.985
+                }
+            },
+            {
+                "source_id": "mangadex",
+                "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+                "cover_url": "/sources/mangadex/series/3683f667-c23d-4688-b872-0ade276aaafa/cover",
+                "ambient": {
+                    "duo": "#CA727F",
+                    "tint": "#130C0D",
+                    "ink": "#DBB3B9"
+                },
+                "palette": {
+                    "a": [
+                        "#544043"
+                    ],
+                    "l": 0.276,
+                    "lMax": 0.999
+                }
+            },
+            {
+                "source_id": "mangapill",
+                "series_key": "10328/ningen-yametai-yonezawa-san",
+                "cover_url": "/sources/mangapill/series/10328%2Fningen-yametai-yonezawa-san/cover",
+                "ambient": {
+                    "duo": "#7293CA",
+                    "tint": "#0D0F12",
+                    "ink": "#B3C2DB"
+                },
+                "palette": {
+                    "a": [
+                        "#6F6972",
+                        "#FFFEFE"
+                    ],
+                    "l": 0.66,
+                    "lMax": 1.0
+                }
+            },
+            {
+                "source_id": "mangadex",
+                "series_key": "98cad238-faca-42ee-b951-7a6b8c478d0a",
+                "cover_url": "/sources/mangadex/series/98cad238-faca-42ee-b951-7a6b8c478d0a/cover",
+                "ambient": {
+                    "duo": "#D86465",
+                    "tint": "#150A0A",
+                    "ink": "#E9A5A6"
+                },
+                "palette": {
+                    "a": [
+                        "#6F1C1E"
+                    ],
+                    "l": 0.283,
+                    "lMax": 0.996
+                }
+            }
+        ],
+        "top_sources": [
+            {
+                "source_id": "mangadex",
+                "name": "MangaDex",
+                "share": 0.817
+            },
+            {
+                "source_id": "mangapill",
+                "name": "MangaPill",
+                "share": 0.183
+            }
+        ]
+    }
+}
