@@ -133,6 +133,12 @@ test.describe("focus and titles", () => {
     await expect(page.locator("main h1")).toBeFocused();
   });
 
+  test("the 404 title is not doubled", async ({ page }) => {
+    await page.goto("/nope");
+    await splashGone(page);
+    await expect(page).toHaveTitle("This page doesn't exist. · ManhwaManiacs");
+  });
+
   test("a sidebar navigation focuses the new h1 and sets the title", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/library/collections");

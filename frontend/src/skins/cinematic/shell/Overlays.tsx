@@ -47,12 +47,12 @@ export function bladeScaleAt(i: number, n: number, tMs: number): number {
 }
 
 /** The blades themselves: `#000` columns from column edge to column edge. `scaleAt` freezes them for the gallery. */
-export function ColumnWipe({ blades, bladeRef, scaleAt, className = "" }: { blades: Blade[]; bladeRef?: (i: number, el: HTMLDivElement | null) => void; scaleAt?: (i: number) => number; className?: string }) {
+export function ColumnWipe({ blades, bladeRef, scaleAt, freezeAt, className = "" }: { blades: Blade[]; bladeRef?: (i: number, el: HTMLDivElement | null) => void; scaleAt?: (i: number) => number; /** Freeze every blade at this many ms from the wipe start (gallery). */ freezeAt?: number; className?: string }) {
   return (
     <div aria-hidden className={`pointer-events-none absolute inset-0 ${className}`} data-column-wipe={blades.length} data-mm-wipe={blades.length}>
       {blades.map((b, i) => (
         <div key={i} ref={(el) => bladeRef?.(i, el)} data-blade
-          style={{ position: "absolute", top: 0, bottom: 0, left: b.left, width: b.width, background: "#000", transformOrigin: "top", transform: `scaleY(${scaleAt ? scaleAt(i) : 0})`, willChange: "transform" } as CSSProperties} />
+          style={{ position: "absolute", top: 0, bottom: 0, left: b.left, width: b.width, background: "#000", transformOrigin: "top", transform: `scaleY(${scaleAt ? scaleAt(i) : freezeAt !== undefined ? bladeScaleAt(i, blades.length, freezeAt) : 0})`, willChange: "transform" } as CSSProperties} />
       ))}
     </div>
   );

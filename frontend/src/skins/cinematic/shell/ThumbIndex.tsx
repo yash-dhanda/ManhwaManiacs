@@ -20,7 +20,7 @@ export function ThumbIndex() {
   const offline = useOfflineState();
   if (!visible) return null;
   const onTab = (id: Branch, e: React.MouseEvent) => {
-    if (id !== active) { haptic("nav.change"); return; } // a plain section change: the link navigates with nav="section"
+    if (id !== active) return; // a plain section change: the link navigates with nav="section"
     e.preventDefault();
     const atTop = window.scrollY < 8;
     const atRoot = pathname === BRANCH_ROOTS[id];

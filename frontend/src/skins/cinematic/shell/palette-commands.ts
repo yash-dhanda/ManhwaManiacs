@@ -19,6 +19,10 @@ export const PALETTE_SETTINGS: { id: string; label: string; admin?: boolean; nov
   { id: "about", label: "About" },
 ];
 
+/** Series title for the Continue action: the row's own title, else the followed-index join, else the key. */
+export const continueTitle = (c: { title?: string | null; source_id: string; series_key: string }, titles: ReadonlyMap<string, string>) =>
+  c.title ?? titles.get(`${c.source_id}:${c.series_key}`) ?? c.series_key;
+
 export type PaletteInput = {
   series: { id: number; title: string; chapterCount: number; sourceId: string; coverUrl?: string | null }[];
   sources: { id: string; name: string; description?: string; iconUrl?: string | null }[];

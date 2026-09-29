@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { groupCommands, rankCommands } from "@/lib/command-palette";
-import { buildPaletteCommands, type PaletteInput } from "./palette-commands";
+import { buildPaletteCommands, continueTitle, type PaletteInput } from "./palette-commands";
 
 const base: PaletteInput = { series: [{ id: 1, title: "Solo Leveling", chapterCount: 200, sourceId: "x" }], sources: [{ id: "bato", name: "Bato" }], isAdmin: false, novelsEnabled: false, novelMode: false, glassAvailable: false };
 
@@ -28,5 +28,11 @@ describe("palette commands", () => {
   it("offers Continue only with a continue-reading row", () => {
     expect(buildPaletteCommands(base).commands.some((c) => c.id === "action:continue")).toBe(false);
     expect(buildPaletteCommands({ ...base, continue: { title: "Tower", href: "/reader/a/b/c" } }).commands.some((c) => c.title === "Continue Tower")).toBe(true);
+  });
+  it("names Continue by series title, not the key", () => {
+    const c = { source_id: "s", series_key: "series/x" };
+    expect(continueTitle({ ...c, title: "Tower" }, new Map())).toBe("Tower");
+    expect(continueTitle(c, new Map([["s:series/x", "Joined"]]))).toBe("Joined");
+    expect(continueTitle(c, new Map())).toBe("series/x");
   });
 });

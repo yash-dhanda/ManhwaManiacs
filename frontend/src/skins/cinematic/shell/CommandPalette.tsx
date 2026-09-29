@@ -15,7 +15,8 @@ import { FLAGS } from "../../contract.generated";
 import { Icon } from "../Icon";
 import { Keycap } from "../primitives/Keycap";
 import { SearchField } from "../primitives/SearchField";
-import { buildPaletteCommands } from "./palette-commands";
+import { useFollowedIndex } from "@/features/library/hooks";
+import { buildPaletteCommands, continueTitle } from "./palette-commands";
 import { useShellState } from "./shell-state";
 import { useCineRouter } from "./use-cine-router";
 import { useSignOut } from "./AccountMenu";
@@ -118,6 +119,7 @@ function PaletteBody({ onDone, push }: { onDone: () => void; push: (href: string
   const search = useSearch({ q: debounced, per_page: SERIES_LIMIT });
   const sources = useSources();
   const cont = useContinueReading(1);
+  const { titles } = useFollowedIndex();
   const chapterHref = useChapterHref();
   const check = useManualCheck();
   const signOut = useSignOut();
@@ -126,16 +128,20 @@ function PaletteBody({ onDone, push }: { onDone: () => void; push: (href: string
     const t = setTimeout(() => setDebounced(q), q ? DEBOUNCE_MS : 0);
     return () => clearTimeout(t);
   }, [query]);
-  useEffect(() => { boxRef.current?.querySelector("input")?.focus(); }, []);
+  useEffect(() => { // the dialog moves focus to its popup after mount; take it back for the field
+    const f = () => boxRef.current?.querySelector("input")?.focus();
+    f(); const r = requestAnimationFrame(f), t = setTimeout(f, 60);
+    return () => { cancelAnimationFrame(r); clearTimeout(t); };
+  }, []);
   const { commands, folios } = useMemo(() => {
     const c = cont.data?.[0];
     return buildPaletteCommands({
       series: (search.data?.items ?? []).map((s) => ({ id: s.id, title: s.title, chapterCount: s.chapter_count, sourceId: s.source_id, coverUrl: libraryCoverUrl(s.cover_url, "40px") })),
       sources: (sources.data ?? []).map((s) => ({ id: s.id, name: s.name, description: s.description, iconUrl: s.icon_url ? sourceImageUrl(s.icon_url) : null })),
       isAdmin: Boolean(user?.is_admin), novelsEnabled, novelMode: mode === "novel", glassAvailable: FLAGS.glassAvailable,
-      continue: c ? { title: c.series_key, href: chapterHref({ sourceId: c.source_id, seriesKey: c.series_key, chapterKey: c.chapter_key }) } : null,
+      continue: c ? { title: continueTitle(c, titles), href: chapterHref({ sourceId: c.source_id, seriesKey: c.series_key, chapterKey: c.chapter_key }) } : null,
     });
-  }, [search.data, sources.data, user, novelsEnabled, mode, cont.data, chapterHref]);
+  }, [search.data, sources.data, user, novelsEnabled, mode, cont.data, chapterHref, titles]);
   const ranked = useMemo(() => rankCommands(commands, query, 40), [commands, query]);
   const groups = useMemo(() => groupCommands(ranked), [ranked]);
   const cur = Math.min(active, Math.max(0, ranked.length - 1));

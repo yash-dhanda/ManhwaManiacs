@@ -38,7 +38,7 @@ export function RunningHeadView(p: RunningHeadViewProps) {
   const art = Boolean(p.overArt);
   const transparent = art && !p.solid;
   return (
-    <header className="cine-head" data-solid={art ? p.solid : true} data-over-art={art || undefined} style={{ isolation: "isolate" }}>
+    <header className="cine-head" data-solid={art ? p.solid : true} data-scrolled={p.solid} data-over-art={art || undefined} style={{ isolation: "isolate" }}>
       {/* Desktop frame */}
       <div className={`cine-desktop-only cine-inset relative h-14 items-center gap-6 ${transparent ? "before:scrim-head [--scrim-fade:64px]" : ""}`}>
         <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2">

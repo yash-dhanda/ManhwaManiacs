@@ -21,7 +21,7 @@ import { SidebarView } from "../shell/SidebarView";
 import { StopPressBannerView } from "../shell/StopPressBanner";
 import { THUMB_TABS, ThumbIndexView } from "../shell/ThumbIndexView";
 import { buildPaletteCommands } from "../shell/palette-commands";
-import { ColumnWipe, Iris, bladeScaleAt } from "../shell/Overlays";
+import { ColumnWipe, Iris } from "../shell/Overlays";
 import { blades } from "../shell/wipe-geometry";
 import { Section, Row } from "./parts";
 import { Avatar } from "../primitives/Avatar";
@@ -49,11 +49,11 @@ const ranked = rankCommands(palette.commands, "so");
 const rankedAll = rankCommands(palette.commands, "");
 
 /** web/06 gallery: every shell state from fixture props. Development only. */
-export function ShellGallery({ freezeAt }: { freezeAt?: never }) {
+export function ShellGallery() {
   const [qc] = useState(() => new QueryClient());
   const ta = { updates: 12 };
-  void freezeAt; void ta;
-  const wipe = (vw: number, cols: number, margin: number, gutter: number, t: number) => { const b = blades(vw, { columns: cols, margin, gutter, max: 1760 }); return <><div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, #6b2d2d, #1b2a4a, #c9a24a)" }} /><ColumnWipe blades={b} scaleAt={(i) => bladeScaleAt(i, b.length, t)} /></>; };
+  void ta;
+  const wipe = (vw: number, cols: number, margin: number, gutter: number, t: number) => { const b = blades(vw, { columns: cols, margin, gutter, max: 1760 }); return <><div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, #6b2d2d, #1b2a4a, #c9a24a)" }} /><ColumnWipe blades={b} freezeAt={t} /></>; };
   return (
     <QueryClientProvider client={qc}>
       <KeyboardProvider>
