@@ -1,0 +1,82 @@
+{
+    "id": 1,
+    "name": "Weekend binge",
+    "description": "Seeded for screenshots",
+    "sort_order": 0,
+    "series_count": 3,
+    "rules": null,
+    "smart": false,
+    "created_at": "2026-09-29T22:56:34.952936",
+    "series": [
+        {
+            "source_id": "mangadex",
+            "series_key": "d0f9e331-e022-4b49-8399-e14091d8b703",
+            "sort_order": 0,
+            "title": "T\u012bng X\u012bng",
+            "cover_url": "/sources/mangadex/series/d0f9e331-e022-4b49-8399-e14091d8b703/cover",
+            "ambient": null,
+            "palette": null,
+            "added_by_profile_id": 1,
+            "added_by": {
+                "profile_id": 1,
+                "name": "Riya",
+                "avatar_key": "default",
+                "username": "demo"
+            }
+        },
+        {
+            "source_id": "mangadex",
+            "series_key": "d2b02bb0-a8ec-405f-9c2d-d63df7cff785",
+            "sort_order": 1,
+            "title": "Bijutsubu Girl",
+            "cover_url": "/sources/mangadex/series/d2b02bb0-a8ec-405f-9c2d-d63df7cff785/cover",
+            "ambient": null,
+            "palette": null,
+            "added_by_profile_id": 1,
+            "added_by": {
+                "profile_id": 1,
+                "name": "Riya",
+                "avatar_key": "default",
+                "username": "demo"
+            }
+        },
+        {
+            "source_id": "mangadex",
+            "series_key": "a29bd145-116e-49c8-bc2f-b15857299304",
+            "sort_order": 2,
+            "title": "Ginga Eiyuu Densetsu",
+            "cover_url": "/sources/mangadex/series/a29bd145-116e-49c8-bc2f-b15857299304/cover",
+            "ambient": null,
+            "palette": null,
+            "added_by_profile_id": 1,
+            "added_by": {
+                "profile_id": 1,
+                "name": "Riya",
+                "avatar_key": "default",
+                "username": "demo"
+            }
+        }
+    ],
+    "role": "can_add",
+    "shared": {
+        "owner_profile_id": 1,
+        "mode": "can_add",
+        "member_profile_ids": [
+            2
+        ],
+        "members": [
+            {
+                "profile_id": 2,
+                "name": "Aarav",
+                "avatar_key": "default",
+                "username": "demo"
+            }
+        ]
+    },
+    "owner": {
+        "profile_id": 1,
+        "name": "Riya",
+        "avatar_key": "default",
+        "username": "demo"
+    }
+}

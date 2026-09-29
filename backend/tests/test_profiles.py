@@ -22,6 +22,9 @@ from database.models import (
     AiFeedback,
     AiResultCache,
     CircleEvent,
+    CircleLetter,
+    CircleReaction,
+    CollectionShare,
     CircleHiddenSeries,
     Base,
     Bookmark,
@@ -215,6 +218,9 @@ SEEDED_TABLES = frozenset(
         "ai_feedback",
         "circle_events",
         "circle_hidden_series",
+        "circle_reactions",
+        "circle_letters",
+        "collection_shares",
     }
 )
 
@@ -281,6 +287,19 @@ def _seed_one_row_everywhere(db, user_id: int, profile_id: int) -> None:
         CircleHiddenSeries(
             user_id=user_id, profile_id=profile_id, source_id=SRC,
             series_key=SERIES, title="Series One",
+        ),
+        CircleReaction(
+            user_id=user_id, profile_id=profile_id, source_id=SRC,
+            series_key=SERIES, chapter_key="c1", kind="loved", created_at=utcnow(),
+        ),
+        CircleLetter(
+            from_user_id=user_id, from_profile_id=profile_id, to_user_id=user_id,
+            to_profile_id=profile_id, sent_group="g" * 32, source_id=SRC,
+            series_key=SERIES, title="Series One", created_at=utcnow(),
+            updated_at=utcnow(),
+        ),
+        CollectionShare(
+            collection_id=collection.id, user_id=user_id, profile_id=profile_id
         ),
         UserSession(
             user_id=user_id, token_hash="tok", expires_at=utcnow() + timedelta(days=1)

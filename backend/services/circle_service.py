@@ -17,6 +17,7 @@ when storing.
 from __future__ import annotations
 
 import json
+import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Annotated, Any, Iterator
@@ -40,6 +41,8 @@ from database.models import (
     ChapterProgress,
     CircleEvent,
     CircleHiddenSeries,
+    CircleLetter,
+    CircleReaction,
     FollowedSeries,
     ReadingProfile,
     ReadingSession,
@@ -55,6 +58,10 @@ CIRCLE_REQUIRES_VIEWER_SHARING = False
 
 PRESENCE_WINDOW = timedelta(minutes=15)
 READING_KINDS = ("started", "finished_chapter", "finished_series")
+#: The one shared enum of reaction kinds (both skins store these values).
+REACTION_KINDS = ("loved", "shook", "laughed", "tears", "chefs_kiss", "hype", "wrecked")
+LETTER_STATES = ("new", "read", "kept")  # dismissed never shows
+NOTE_MAX = 140
 _CHUNK = 200
 _EPOCH = datetime(1970, 1, 1)
 
@@ -170,6 +177,29 @@ def patch_sharing(
 # ---------------------------------------------------------------------------
 
 
+def snapshot_series(
+    db: Session, profile_id: int, source_id: str, series_key: str
+) -> tuple[str, str | None]:
+    """``(title, cover_url)`` as this profile sees the series: its own follow,
+    else the source cache, else the key. Used by events, letters and shelves."""
+    follow = db.execute(
+        select(FollowedSeries.title, FollowedSeries.cover_url).where(
+            FollowedSeries.profile_id == profile_id,
+            FollowedSeries.source_id == source_id,
+            FollowedSeries.series_key == series_key,
+        )
+    ).first()
+    if follow is None:
+        follow = db.execute(
+            select(SourceSeriesCache.title, SourceSeriesCache.cover_url).where(
+                SourceSeriesCache.source_id == source_id,
+                SourceSeriesCache.series_key == series_key,
+            )
+        ).first()
+    title, cover = follow if follow else (None, None)
+    return title or series_key, cover
+
+
 def record_event(
     db: Session,
     *,
@@ -181,6 +211,7 @@ def record_event(
     at: datetime,
     chapter_key: str | None = None,
     chapter_number: float | None = None,
+    reaction: str | None = None,
 ) -> None:
     """Add a ``circle_events`` row iff the actor shares and ``at`` is not
     before ``share_activity_since``. The 18+ rating is not checked here."""
@@ -189,25 +220,7 @@ def record_event(
         return
     if profile.share_activity_since and at < profile.share_activity_since:
         return
-    title = cover = None
-    follow = db.execute(
-        select(FollowedSeries.title, FollowedSeries.cover_url).where(
-            FollowedSeries.profile_id == profile_id,
-            FollowedSeries.source_id == source_id,
-            FollowedSeries.series_key == series_key,
-        )
-    ).first()
-    if follow:
-        title, cover = follow
-    else:
-        cache = db.execute(
-            select(SourceSeriesCache.title, SourceSeriesCache.cover_url).where(
-                SourceSeriesCache.source_id == source_id,
-                SourceSeriesCache.series_key == series_key,
-            )
-        ).first()
-        if cache:
-            title, cover = cache
+    title, cover = snapshot_series(db, profile_id, source_id, series_key)
     db.add(
         CircleEvent(
             user_id=user_id,
@@ -217,7 +230,8 @@ def record_event(
             series_key=series_key,
             chapter_key=chapter_key,
             chapter_number=chapter_number,
-            title=title or series_key,
+            reaction=reaction,
+            title=title,
             cover_url=cover,
             created_at=at,
         )
@@ -242,7 +256,8 @@ class CircleService:
 
     # --- members ---------------------------------------------------------
 
-    def _viewer_gate(self) -> bool:
+    def viewer_gate(self) -> bool:
+        """The viewer's own 18+ gate (public: shelves and letters ask it too)."""
         if self._gate is None:
             self._gate = bool(
                 resolve_mature_gate(self._db, self.profile_id, self.user_id)
@@ -293,6 +308,26 @@ class CircleService:
             "name": profile.name,
             "avatar_key": profile.avatar_key,
             "username": username,
+        }
+
+    def refs(self, ids: set[int] | list[int]) -> dict[int, dict[str, Any]]:
+        """``ProfileRef`` for any profile ids (no visibility decision: callers
+        only name profiles already implicated in a letter, shelf or reaction)."""
+        if not ids:
+            return {}
+        rows = self._db.execute(
+            select(ReadingProfile, User.username)
+            .join(User, User.id == ReadingProfile.user_id)
+            .where(ReadingProfile.id.in_(list(ids)))
+        ).all()
+        return {
+            p.id: {
+                "profile_id": p.id,
+                "name": p.name,
+                "avatar_key": p.avatar_key,
+                "username": u,
+            }
+            for p, u in rows
         }
 
     @staticmethod
@@ -363,7 +398,7 @@ class CircleService:
         return bool(
             profile.share_include_mature
             and profile.mature_content_enabled
-            and self._viewer_gate()
+            and self.viewer_gate()
         )
 
     def passes(
@@ -525,19 +560,28 @@ class CircleService:
             }
         return now, last_active, streak
 
-    def members_list(self, tz_offset_minutes: int = 0) -> list[dict[str, Any]]:
+    def members_list(
+        self,
+        tz_offset_minutes: int = 0,
+        source_id: str | None = None,
+        series_key: str | None = None,
+    ) -> list[dict[str, Any]]:
         out = []
+        if source_id is not None and series_key is not None:
+            series_key = fully_unquote(series_key)
+            self._require_sendable(source_id, series_key)
         for member_id, (profile, _u) in self.members().items():
             now, last_active, streak = self._presence(member_id, tz_offset_minutes)
-            out.append(
-                {
-                    **self.profile_ref(member_id),
-                    "shares": self.shares_of(profile),
-                    "now": now,
-                    "last_active_at": last_active,
-                    "streak": streak,
-                }
-            )
+            entry = {
+                **self.profile_ref(member_id),
+                "shares": self.shares_of(profile),
+                "now": now,
+                "last_active_at": last_active,
+                "streak": streak,
+            }
+            if source_id is not None and series_key is not None:
+                entry["can_receive"] = self.can_receive(member_id, source_id, series_key)
+            out.append(entry)
         self._colour([o["now"] for o in out if o["now"]])
         # nulls last, then name: name first, then a stable reverse sort on the stamp
         out.sort(key=lambda o: o["name"])
@@ -579,12 +623,16 @@ class CircleService:
         ]
         done = [shape(ev, finished_at=_iso(ev.created_at)) for ev in finished.values()]
         done.sort(key=lambda d: d["finished_at"], reverse=True)
+        sealed_by = self._completed({(e.source_id, e.series_key) for e in reacted})
         reactions = [
             shape(
                 ev,
                 chapter_key=ev.chapter_key,
                 chapter_number=ev.chapter_number,
                 reaction=ev.reaction,
+                sealed=self._sealed(
+                    sealed_by, ev.source_id, ev.series_key, {ev.chapter_key}, {ev.chapter_number}
+                ),
                 created_at=_iso(ev.created_at),
             )
             for ev in reacted
@@ -601,7 +649,7 @@ class CircleService:
             "reading": reading,
             "finished": done,
             "reactions": reactions,
-            "shelves": [],
+            "shelves": self._member_shelves(member_id),
         }
 
     # --- feed ------------------------------------------------------------
@@ -637,6 +685,7 @@ class CircleService:
                     )
                 ).all()
             }
+        done = self._completed({(e.source_id, e.series_key) for e in page if e.kind == "reacted"})
         items = [
             {
                 "id": ev.id,
@@ -646,6 +695,13 @@ class CircleService:
                 "chapter_key": ev.chapter_key,
                 "chapter_number": ev.chapter_number,
                 "reaction": ev.reaction,
+                "sealed": (
+                    self._sealed(
+                        done, ev.source_id, ev.series_key, {ev.chapter_key}, {ev.chapter_number}
+                    )
+                    if ev.kind == "reacted"
+                    else None
+                ),
                 "followed_by_viewer": (ev.source_id, ev.series_key) in followed,
                 "created_at": _iso(ev.created_at),
             }
@@ -703,6 +759,395 @@ class CircleService:
             readers.sort(key=lambda r: r["last_read_at"], reverse=True)
         return {"followers": followers, "readers": readers}
 
+    # --- reactions -------------------------------------------------------
+
+    def _completed(
+        self, pairs: set[tuple[str, str]]
+    ) -> dict[tuple[str, str], tuple[set[str], set[float]]]:
+        """The viewer's COMPLETED chapters per series: (keys, numbers)."""
+        out: dict[tuple[str, str], tuple[set[str], set[float]]] = {
+            p: (set(), set()) for p in pairs
+        }
+        if not pairs:
+            return out
+        for src, key, ck, num in self._db.execute(
+            select(
+                ChapterProgress.source_id,
+                ChapterProgress.series_key,
+                ChapterProgress.chapter_key,
+                ChapterProgress.chapter_number,
+            ).where(
+                ChapterProgress.profile_id == self.profile_id,
+                ChapterProgress.is_completed == 1,
+                tuple_(ChapterProgress.source_id, ChapterProgress.series_key).in_(
+                    list(pairs)
+                ),
+            )
+        ).all():
+            out[(src, key)][0].add(ck)
+            if num is not None:
+                out[(src, key)][1].add(num)
+        return out
+
+    @staticmethod
+    def _sealed(
+        done: dict[tuple[str, str], tuple[set[str], set[float]]],
+        source_id: str,
+        series_key: str,
+        chapter_keys: set[str | None],
+        numbers: set[float | None],
+    ) -> bool:
+        """The server's half of the spoiler guard: sealed until the viewer has
+        completed the chapter (same key, or the same non-null number)."""
+        keys, nums = done.get((source_id, series_key), (set(), set()))
+        return not (chapter_keys & keys or {n for n in numbers if n is not None} & nums)
+
+    def _visible_reactions(self, rows: list[CircleReaction]) -> list[CircleReaction]:
+        return [
+            r
+            for r in rows
+            if r.profile_id == self.profile_id
+            or (
+                r.shared
+                and self.passes(r.profile_id, r.source_id, r.series_key, r.created_at, "reacted")
+            )
+        ]
+
+    def _shape_reactions(self, rows: list[CircleReaction]) -> list[dict[str, Any]]:
+        refs = self.refs({r.profile_id for r in rows})
+        groups: dict[tuple[str, str, str], list[CircleReaction]] = defaultdict(list)
+        for r in rows:
+            groups[(r.source_id, r.series_key, r.chapter_key)].append(r)
+        done = self._completed({(s, k) for s, k, _c in groups})
+        out = []
+        for (src, key, ck), rs in groups.items():
+            rs.sort(key=lambda r: (r.created_at, r.profile_id), reverse=True)
+            counts = dict.fromkeys(REACTION_KINDS, 0)
+            for r in rs:
+                counts[r.kind] += 1
+            number = next((r.chapter_number for r in rs if r.chapter_number is not None), None)
+            out.append(
+                {
+                    "chapter_key": ck,
+                    "chapter_number": number,
+                    "counts": counts,
+                    "total": len(rs),
+                    "by": [
+                        {**refs[r.profile_id], "kind": r.kind, "created_at": _iso(r.created_at)}
+                        for r in rs
+                    ],
+                    "mine": next((r.kind for r in rs if r.profile_id == self.profile_id), None),
+                    "sealed": self._sealed(done, src, key, {ck}, {r.chapter_number for r in rs}),
+                }
+            )
+        out.sort(
+            key=lambda c: (
+                c["chapter_number"] is None,
+                -(c["chapter_number"] or 0),
+                c["chapter_key"],
+            )
+        )
+        return out
+
+    def _chapter_rows(
+        self, source_id: str, series_key: str, chapter_key: str | None = None
+    ) -> list[CircleReaction]:
+        stmt = select(CircleReaction).where(
+            CircleReaction.source_id == source_id, CircleReaction.series_key == series_key
+        )
+        if chapter_key is not None:
+            stmt = stmt.where(CircleReaction.chapter_key == chapter_key)
+        return self._visible_reactions(self._db.execute(stmt).scalars().all())
+
+    def reactions(self, source_id: str, series_key: str) -> dict[str, Any]:
+        series_key = fully_unquote(series_key)
+        return {"chapters": self._shape_reactions(self._chapter_rows(source_id, series_key))}
+
+    def _drop_reacted_event(self, source_id: str, series_key: str, chapter_key: str) -> None:
+        self._db.execute(
+            delete(CircleEvent).where(
+                CircleEvent.profile_id == self.profile_id,
+                CircleEvent.kind == "reacted",
+                CircleEvent.source_id == source_id,
+                CircleEvent.series_key == series_key,
+                CircleEvent.chapter_key == chapter_key,
+            )
+        )
+
+    def react(
+        self, source_id: str, series_key: str, chapter_key: str, kind: str
+    ) -> dict[str, Any]:
+        """Insert, keep or move the viewer's one reaction on the chapter. The
+        18+ gate is not checked when storing."""
+        series_key = fully_unquote(series_key)
+        row = self._db.get(
+            CircleReaction, (self.profile_id, source_id, series_key, chapter_key)
+        )
+        if row is None or row.kind != kind:
+            me = self._db.get(ReadingProfile, self.profile_id)
+            now = utcnow()
+            shared = bool(me.share_activity and me.share_reactions)
+            number = self._db.execute(
+                select(ChapterProgress.chapter_number).where(
+                    ChapterProgress.profile_id == self.profile_id,
+                    ChapterProgress.source_id == source_id,
+                    ChapterProgress.series_key == series_key,
+                    ChapterProgress.chapter_key == chapter_key,
+                )
+            ).scalars().first()
+            if row is None:
+                row = CircleReaction(
+                    user_id=self.user_id,
+                    profile_id=self.profile_id,
+                    source_id=source_id,
+                    series_key=series_key,
+                    chapter_key=chapter_key,
+                )
+                self._db.add(row)
+            row.kind = kind
+            row.chapter_number = number
+            row.shared = int(shared)
+            row.created_at = now
+            self._drop_reacted_event(source_id, series_key, chapter_key)
+            if shared:
+                record_event(
+                    self._db,
+                    user_id=self.user_id,
+                    profile_id=self.profile_id,
+                    kind="reacted",
+                    source_id=source_id,
+                    series_key=series_key,
+                    chapter_key=chapter_key,
+                    chapter_number=number,
+                    reaction=kind,
+                    at=now,
+                )
+            self._db.commit()
+        return self._shape_reactions(self._chapter_rows(source_id, series_key, chapter_key))[0]
+
+    def unreact(self, source_id: str, series_key: str, chapter_key: str) -> None:
+        series_key = fully_unquote(series_key)
+        self._db.execute(
+            delete(CircleReaction).where(
+                CircleReaction.profile_id == self.profile_id,
+                CircleReaction.source_id == source_id,
+                CircleReaction.series_key == series_key,
+                CircleReaction.chapter_key == chapter_key,
+            )
+        )
+        self._drop_reacted_event(source_id, series_key, chapter_key)
+        self._db.commit()
+
+    # --- letters ---------------------------------------------------------
+
+    def _sender_gated(self, source_id: str, series_key: str) -> bool:
+        """A closed-gate sender may not learn a mature series exists."""
+        return not self.viewer_gate() and self.series_mature(
+            self.profile_id, source_id, series_key
+        )
+
+    def _require_sendable(self, source_id: str, series_key: str) -> None:
+        if self._sender_gated(source_id, series_key):
+            raise AppError("Series not found.", code="series_not_found", status_code=404)
+
+    def can_receive(self, member_id: int, source_id: str, series_key: str) -> bool:
+        """Never explained to the client: the sheet must not reveal a gate."""
+        member = self.members().get(member_id)
+        if member is None or not member[0].share_recommendations:
+            return False
+        if not self.series_mature(member_id, source_id, series_key):
+            return True
+        profile = member[0]
+        return bool(
+            resolve_mature_gate(self._db, profile.id, profile.user_id)
+            and profile.share_include_mature
+        )
+
+    def send_letters(
+        self,
+        to_profile_ids: list[int],
+        source_id: str,
+        series_key: str,
+        note: str | None,
+    ) -> dict[str, Any]:
+        series_key = fully_unquote(series_key)
+        self._require_sendable(source_id, series_key)
+        failing = [
+            pid for pid in to_profile_ids if not self.can_receive(pid, source_id, series_key)
+        ]
+        if failing:
+            raise AppError(
+                "Some recipients can't receive this.",
+                code="recipient_unavailable",
+                status_code=409,
+                details={"profile_ids": failing},
+            )
+        title, cover = snapshot_series(self._db, self.profile_id, source_id, series_key)
+        now = utcnow()
+        group = uuid.uuid4().hex
+        for pid in to_profile_ids:
+            self._db.add(
+                CircleLetter(
+                    from_user_id=self.user_id,
+                    from_profile_id=self.profile_id,
+                    to_user_id=self.members()[pid][0].user_id,
+                    to_profile_id=pid,
+                    sent_group=group,
+                    source_id=source_id,
+                    series_key=series_key,
+                    title=title,
+                    cover_url=cover,
+                    note=note,
+                    state="new",
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+        self._db.commit()
+        return self._sent(group)[0]
+
+    def _letter_ok(self, letter: CircleLetter) -> bool:
+        return self.viewer_gate() or not self.series_mature(
+            letter.from_profile_id, letter.source_id, letter.series_key
+        )
+
+    def _inbox_rows(self, states: tuple[str, ...] = LETTER_STATES) -> list[CircleLetter]:
+        rows = self._db.execute(
+            select(CircleLetter)
+            .join(ReadingProfile, ReadingProfile.id == CircleLetter.from_profile_id)
+            .join(User, User.id == ReadingProfile.user_id)
+            .where(
+                CircleLetter.to_profile_id == self.profile_id,
+                CircleLetter.state.in_(states),
+                User.is_active == 1,
+            )
+            .order_by(CircleLetter.created_at.desc(), CircleLetter.id.desc())
+        ).scalars().all()
+        return [r for r in rows if self._letter_ok(r)]
+
+    def _letter_shapes(self, rows: list[CircleLetter]) -> list[dict[str, Any]]:
+        refs = self.refs({r.from_profile_id for r in rows})
+        out = [
+            {
+                "id": r.id,
+                "from": refs[r.from_profile_id],
+                **self.series_shape(r.source_id, r.series_key, r.title, r.cover_url),
+                "note": r.note,
+                "state": r.state,
+                "created_at": _iso(r.created_at),
+            }
+            for r in rows
+        ]
+        self._colour(out)
+        return out
+
+    def inbox(self) -> list[dict[str, Any]]:
+        return self._letter_shapes(self._inbox_rows())
+
+    def _sent(self, only_group: str | None = None) -> list[dict[str, Any]]:
+        stmt = select(CircleLetter).where(CircleLetter.from_profile_id == self.profile_id)
+        if only_group:
+            stmt = stmt.where(CircleLetter.sent_group == only_group)
+        rows = self._db.execute(
+            stmt.order_by(CircleLetter.created_at.desc(), CircleLetter.id.desc())
+        ).scalars().all()
+        groups: dict[str, list[CircleLetter]] = {}
+        for r in rows:
+            if not self._sender_gated(r.source_id, r.series_key):
+                groups.setdefault(r.sent_group, []).append(r)
+        refs = self.refs({r.to_profile_id for r in rows})
+        out = []
+        for group, rs in groups.items():
+            first = rs[0]
+            # Glass: "Not opened yet" or "Opened", never kept or dismissed.
+            to = [
+                {**refs[r.to_profile_id], "state": "new" if r.state == "new" else "read"}
+                for r in sorted(rs, key=lambda r: r.id)
+            ]
+            out.append(
+                {
+                    "id": group,
+                    "to": to,
+                    **self.series_shape(
+                        first.source_id, first.series_key, first.title, first.cover_url
+                    ),
+                    "note": first.note,
+                    "state": "new" if any(t["state"] == "new" for t in to) else "read",
+                    "created_at": _iso(first.created_at),
+                }
+            )
+        self._colour(out)
+        return out
+
+    def sent(self) -> list[dict[str, Any]]:
+        return self._sent()
+
+    def patch_letter(self, letter_id: int, state: str) -> dict[str, Any]:
+        # Through the inbox rule: another profile's letter, an unknown id, an
+        # inactive sender and a letter hidden by the gate all read as absent.
+        row = next(
+            (
+                r
+                for r in self._inbox_rows((*LETTER_STATES, "dismissed"))
+                if r.id == letter_id
+            ),
+            None,
+        )
+        if row is None:
+            raise AppError("Letter not found.", code="not_found", status_code=404)
+        row.state = state
+        row.updated_at = utcnow()
+        self._db.commit()
+        return self._letter_shapes([row])[0]
+
+    def letters_section(self, content_kind: str, generated_at: str) -> list[dict[str, Any]]:
+        if not self._has_others():
+            return []
+        rows = [
+            r
+            for r in self._inbox_rows(("new", "kept"))
+            if _kind_of(r.source_id) == content_kind
+        ][:10]
+        items = self._letter_shapes(rows)
+        return [
+            {
+                "type": "sent_to_you",
+                "title": "Sent to you",
+                "seed": None,
+                "note": items[0]["note"] if items else None,
+                "fallback": None,
+                "items": items,
+                "state": "ready" if items else "empty",
+                "generated_at": generated_at,
+            }
+        ]
+
+    def letter_candidate(self, content_kind: str) -> dict[str, Any] | None:
+        """``also[]`` candidate 3: the newest unopened letter, fresh per request."""
+        for r in self._inbox_rows(("new",)):
+            if _kind_of(r.source_id) != content_kind:
+                continue
+            letter = self._letter_shapes([r])[0]
+            return {
+                "kind": "letter",
+                "source_id": r.source_id,
+                "series_key": r.series_key,
+                "title": r.title,
+                "headline": f"{letter['from']['name']} recommends {r.title}",
+                "deck": r.note or "",
+                "ambient": letter["ambient"],
+            }
+        return None
+
+    # --- shelves on the member page --------------------------------------
+
+    def _member_shelves(self, member_id: int) -> list[dict[str, Any]]:
+        from services.followed_series_service import FollowedSeriesService
+
+        return FollowedSeriesService(
+            self._db, None, user_id=self.user_id, profile_id=self.profile_id  # type: ignore[arg-type]
+        ).shared_with_me(owner_id=member_id)
+
     # --- clear -----------------------------------------------------------
 
     def clear_activity(self) -> None:
@@ -716,19 +1161,23 @@ class CircleService:
 
     # --- /home sections --------------------------------------------------
 
+    def _has_others(self) -> bool:
+        return bool(
+            self._db.execute(
+                select(func.count())
+                .select_from(ReadingProfile)
+                .join(User, User.id == ReadingProfile.user_id)
+                .where(User.is_active == 1, ReadingProfile.id != self.profile_id)
+            ).scalar_one()
+        )
+
     def home_sections(self, content_kind: str, generated_at: str) -> list[dict[str, Any]]:
         def of_kind(ev: CircleEvent) -> bool:
             descriptor = descriptor_for_source(ev.source_id)
             return descriptor is not None and descriptor.content_kind == content_kind
 
         # A household of one has no Circle: no sections at all, not empty ones.
-        others = self._db.execute(
-            select(func.count())
-            .select_from(ReadingProfile)
-            .join(User, User.id == ReadingProfile.user_id)
-            .where(User.is_active == 1, ReadingProfile.id != self.profile_id)
-        ).scalar_one()
-        if not others:
+        if not self._has_others():
             return []
         now = utcnow()
         recent: list[CircleEvent] = []
@@ -884,5 +1333,16 @@ def _home_builder(home: Any, payload: dict[str, Any]) -> list[dict[str, Any]]:
     from services.home_service import _iso as home_iso
 
     return CircleService(home._db, home.user_id, home.profile_id).home_sections(
+        payload.get("content_kind", "manga"), home_iso(utcnow())
+    )
+
+
+def _letters_builder(home: Any, payload: dict[str, Any]) -> list[dict[str, Any]]:
+    """The ``sent_to_you`` section: fresh per request, never cached."""
+    if home.profile_id is None or home.user_id is None:
+        return []
+    from services.home_service import _iso as home_iso
+
+    return CircleService(home._db, home.user_id, home.profile_id).letters_section(
         payload.get("content_kind", "manga"), home_iso(utcnow())
     )
