@@ -24,6 +24,7 @@ import 'package:manhwamaniacs/features/library/providers/series_detail_provider.
 import 'package:manhwamaniacs/features/library/utils/continue_target.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
+import 'package:manhwamaniacs/features/library/utils/series_detail_meta.dart';
 import 'package:manhwamaniacs/features/library/utils/series_display.dart';
 import 'package:manhwamaniacs/features/library/widgets/series_detail/series_detail_skeleton.dart';
 import 'package:manhwamaniacs/features/reader/widgets/read_all_button.dart';
@@ -38,7 +39,6 @@ import 'package:manhwamaniacs/shared/widgets/series_cover_image.dart';
 import 'package:manhwamaniacs/shared/widgets/series_detail/series_chapter_tile.dart';
 import 'package:manhwamaniacs/shared/widgets/series_detail/series_detail_body.dart';
 import 'package:manhwamaniacs/shared/widgets/series_detail/series_detail_chips.dart';
-import 'package:manhwamaniacs/shared/widgets/series_detail/series_detail_meta.dart';
 
 /// The library (followed) series page.
 ///
