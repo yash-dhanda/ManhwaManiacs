@@ -320,6 +320,9 @@ class FollowedSeries(Base):
         Integer, nullable=False, default=0, server_default="0"
     )
     last_checked_at: Mapped[datetime | None] = mapped_column(DateTime)
+    #: When an update check last found new chapters here, recorded whether or
+    #: not a notification was allowed (``GET /home``'s "New this week").
+    last_new_chapter_at: Mapped[datetime | None] = mapped_column(DateTime)
     last_error: Mapped[str | None] = mapped_column(Text)
     migrated_from_source: Mapped[str | None] = mapped_column(String(64))
     migrated_from_series_key: Mapped[str | None] = mapped_column(String(512))
@@ -1414,6 +1417,36 @@ class CoverPalette(Base):
     #: JSON ``{"a": [hex, ...], "l", "lMax"}`` (glass §2.1.8).
     palette: Mapped[str] = mapped_column(Text, nullable=False)
     computed_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+
+
+class AiResultCache(Base):
+    """Every AI answer this redesign stores (derived data, safe to lose).
+
+    ``key`` is the SHA-256 hex digest of the logical key so a 512-character
+    series key never overflows it. ``profile_id`` is set only for per-profile
+    answers (the home editorial), so a deleted profile takes its rows along.
+    """
+
+    __tablename__ = "ai_result_cache"
+    __table_args__ = (
+        Index("ix_ai_result_cache_expires_at", "expires_at"),
+        Index("ix_ai_result_cache_series", "source_id", "series_key"),
+        Index("ix_ai_result_cache_profile", "profile_id"),
+    )
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    profile_id: Mapped[int | None] = mapped_column(
+        ForeignKey("reading_profiles.id", ondelete="CASCADE"), nullable=True
+    )
+    source_id: Mapped[str | None] = mapped_column(String(64))
+    series_key: Mapped[str | None] = mapped_column(String(512))
+    payload: Mapped[str] = mapped_column(Text, nullable=False)
+    model: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="", server_default=""
+    )
+    generated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
 
 # ---------------------------------------------------------------------------

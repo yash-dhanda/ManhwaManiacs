@@ -230,8 +230,7 @@ final RegExp _wordPrefix = RegExp(
 /// Royal Road's "1. Good Morning Brother", novelbin's "12 - " — a bare number
 /// and a separator. The web's `BARE_ORDINAL_PREFIX` (`chapter-label.ts`); the
 /// lookahead keeps "12.5 Special" from reading as 12.
-final RegExp _bareOrdinalPrefix =
-    RegExp(r'^\s*(\d+(?:\.\d+)?)\s*[.):\-–—]\s*(?=\D|$)');
+final RegExp _bareOrdinalPrefix = RegExp(r'^\s*(\d+(?:\.\d+)?)\s*[.):\-–—]\s*(?=\D|$)');
 
 /// A title that is nothing but a number.
 final RegExp _bareNumber = RegExp(r'^\s*(\d+(?:\.\d+)?)\s*$');
@@ -295,9 +294,7 @@ List<SourceChapterSummary> goToChapterMatches(
       numberOf: (chapter) => chapter.number,
       order: SeriesChapterSortOrder.oldest,
     ))
-      if (printedChapterNumber(title: chapter.title, number: chapter.number) ==
-          wanted)
-        chapter,
+      if (printedChapterNumber(title: chapter.title, number: chapter.number) == wanted) chapter,
   ];
 }
 
@@ -430,3 +427,24 @@ int countWords(Iterable<String> paragraphs) {
   }
   return total;
 }
+
+// --- Contents window --------------------------------------------------------
+
+/// The `[start, end)` slice of a long contents list centred on [focusIndex]
+/// ([size] rows at a time), so a 3,000-chapter book never builds them all.
+({int start, int end}) tocWindowAround(int length, int focusIndex, {int size = 400}) {
+  if (length <= size) return (start: 0, end: length);
+  final start = (focusIndex - size ~/ 2).clamp(0, length - size);
+  return (start: start, end: start + size);
+}
+
+/// Grows [w] by [step] rows in one direction, clamped to the list.
+({int start, int end}) extendTocWindow(
+  ({int start, int end}) w,
+  int length, {
+  required bool earlier,
+  int step = 400,
+}) =>
+    earlier
+        ? (start: (w.start - step).clamp(0, length), end: w.end)
+        : (start: w.start, end: (w.end + step).clamp(0, length));

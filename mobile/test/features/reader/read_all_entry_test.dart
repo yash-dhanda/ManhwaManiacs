@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/widgets/read_all_button.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
@@ -35,6 +36,12 @@ import '../../support/test_overrides.dart';
 /// at. Read-all is a way of presenting the series, not a way of starting over.
 
 class _FakeSourcesRepository implements SourcesRepository {
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   @override
   Future<Result<SourceSeriesSummary>> getSeries(String s, String i) async =>
       const Ok(
@@ -146,6 +153,14 @@ class _FakeUpdatesRepository implements UpdatesRepository {
 /// Only the followed-series read is exercised (the Follow button's cache);
 /// everything else throws so a stray call is loud rather than silently empty.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   @override
   Future<Result<PagedResult<FollowedSeries>>> listSeries({
     int page = 1,

@@ -14,10 +14,16 @@ class SourceSeriesSummary {
     required this.genres,
     this.latestChapter,
     required this.coverUrl,
+    this.cacheStale = false,
+    this.cacheFetchedAt,
   });
 
   final String id;
   final String sourceId;
+
+  /// `cache.stale` / `cache.fetched_at` of the payload: a saved copy.
+  final bool cacheStale;
+  final DateTime? cacheFetchedAt;
 
   /// Which series [id] names, as the library's follows carry it too
   /// (`FollowedSeries.seriesIdentity`). Null from an older server.
@@ -49,6 +55,13 @@ class SourceSeriesSummary {
       coverUrl: rawCover.isEmpty
           ? ''
           : resolveApiResourceUrl(apiBaseUrl, rawCover),
+      cacheStale: (json['cache'] is Map<String, dynamic>) &&
+          ((json['cache'] as Map<String, dynamic>)['stale'] as bool? ?? false),
+      cacheFetchedAt: json['cache'] is Map<String, dynamic>
+          ? DateTime.tryParse(
+              ((json['cache'] as Map<String, dynamic>)['fetched_at'] as String?) ?? '',
+            )
+          : null,
     );
   }
 }

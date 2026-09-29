@@ -11,6 +11,13 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 
+/// What a repoint answers: the moved follow and where reading resumes.
+typedef RepointResult = ({
+  FollowedSeries followed,
+  String? mappedChapterKey,
+  double? mappedChapterNumber,
+});
+
 /// The per-profile library — source-native (spec §4.2). A series is in the
 /// library iff a `followed_series` row exists for it; identity is
 /// `(sourceId, seriesKey)`, with the row's own `id` (`followedId`) a handle
@@ -40,7 +47,16 @@ abstract interface class LibraryRepository {
     String? readingStatus,
     bool? notify,
     bool? matureOverride,
+    bool clearMatureOverride = false,
     int? sortOrder,
+  });
+
+  /// `POST /library/series/{id}/repoint`: move a follow to another source.
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
   });
 
   Future<Result<List<ContinueReadingItem>>> continueReading({int limit = 10});

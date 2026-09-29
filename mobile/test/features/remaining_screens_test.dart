@@ -27,6 +27,7 @@ import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dar
 import 'package:manhwamaniacs/features/settings/models/app_version.dart';
 import 'package:manhwamaniacs/features/settings/providers/app_update_provider.dart';
 import 'package:manhwamaniacs/features/settings/screens/settings_screen.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
@@ -66,6 +67,14 @@ FollowedSeries _series({required int id, required String title}) {
 /// actually calls are wired; everything else throws so an unexpected call
 /// fails loudly instead of silently returning empty data.
 class _FakeIntelligenceRepository implements LibraryRepository {
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   @override
   Future<Result<WorldRecommendations>> worldRecommendations({
     int seeds = 5,
@@ -136,7 +145,7 @@ class _FakeIntelligenceRepository implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) =>
       throw UnimplementedError();
@@ -371,6 +380,12 @@ class _FakeUpdatesRepository implements UpdatesRepository {
 }
 
 class _FakeSourcesRepository implements SourcesRepository {
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   @override
   Future<Result<List<SourceSummary>>> listSources() async => const Ok([
         SourceSummary(

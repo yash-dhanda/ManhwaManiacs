@@ -1,0 +1,60 @@
+{
+ "items": [],
+ "sources_queried": 3,
+ "sources_failed": 1,
+ "page": 1,
+ "groups": [
+  {
+   "source": "mangapill",
+   "source_name": "MangaPill",
+   "icon_url": null,
+   "status": "ok",
+   "error": null,
+   "total": 1,
+   "has_more": false,
+   "items": [
+    {
+     "kind": "source",
+     "source": "mangapill",
+     "series_id": "9748/dustland",
+     "title": "Dustland",
+     "cover_url": "/api/sources/mangapill/series/9748/dustland/cover",
+     "author": null,
+     "chapter_count": 80,
+     "extra": null
+    }
+   ]
+  },
+  {
+   "source": "mangadex",
+   "source_name": "MangaDex",
+   "icon_url": null,
+   "status": "ok",
+   "error": null,
+   "total": 1,
+   "has_more": false,
+   "items": [
+    {
+     "kind": "source",
+     "source": "mangadex",
+     "series_id": "md-dustland",
+     "title": "Dustland",
+     "cover_url": "/api/sources/mangadex/series/md-dustland/cover",
+     "author": null,
+     "chapter_count": 150,
+     "extra": null
+    }
+   ]
+  },
+  {
+   "source": "weebcentral",
+   "source_name": "WeebCentral",
+   "icon_url": null,
+   "status": "error",
+   "error": "timeout",
+   "total": 0,
+   "has_more": false,
+   "items": []
+  }
+ ]
+}

@@ -93,7 +93,7 @@ export const libraryApi = {
       is_favorite?: boolean;
       reading_status?: string;
       notify?: boolean;
-      mature_override?: boolean;
+      mature_override?: boolean | null;
       sort_order?: number;
     },
   ) => http.patch<FollowedSeries>(`/library/series/${followedId}`, body),

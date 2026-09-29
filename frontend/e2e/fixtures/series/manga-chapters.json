@@ -1,0 +1,722 @@
+[
+ {
+  "id": "c1",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 1",
+  "number": 1,
+  "page_count": 19,
+  "release_date": "2026-07-12"
+ },
+ {
+  "id": "c2",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 2",
+  "number": 2,
+  "page_count": 20,
+  "release_date": "2026-07-13"
+ },
+ {
+  "id": "c3",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 3",
+  "number": 3,
+  "page_count": 21,
+  "release_date": "2026-07-14"
+ },
+ {
+  "id": "c4",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 4",
+  "number": 4,
+  "page_count": 22,
+  "release_date": "2026-07-15"
+ },
+ {
+  "id": "c5",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 5",
+  "number": 5,
+  "page_count": 23,
+  "release_date": "2026-07-16"
+ },
+ {
+  "id": "c6",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 6",
+  "number": 6,
+  "page_count": 24,
+  "release_date": "2026-07-17"
+ },
+ {
+  "id": "c7",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Ferry Road",
+  "number": 7,
+  "page_count": 25,
+  "release_date": "2026-07-18"
+ },
+ {
+  "id": "c8",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 8",
+  "number": 8,
+  "page_count": 26,
+  "release_date": "2026-07-19"
+ },
+ {
+  "id": "c9",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 9",
+  "number": 9,
+  "page_count": 18,
+  "release_date": "2026-07-20"
+ },
+ {
+  "id": "c10",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 10",
+  "number": 10,
+  "page_count": 19,
+  "release_date": "2026-07-21"
+ },
+ {
+  "id": "c11",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 11",
+  "number": 11,
+  "page_count": 20,
+  "release_date": "2026-07-22"
+ },
+ {
+  "id": "c12",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 12",
+  "number": 12,
+  "page_count": 21,
+  "release_date": "2026-07-23"
+ },
+ {
+  "id": "c13",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 13",
+  "number": 13,
+  "page_count": 22,
+  "release_date": "2026-07-24"
+ },
+ {
+  "id": "c14",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Bridge Road",
+  "number": 14,
+  "page_count": 23,
+  "release_date": "2026-07-25"
+ },
+ {
+  "id": "c15",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 15",
+  "number": 15,
+  "page_count": 24,
+  "release_date": "2026-07-26"
+ },
+ {
+  "id": "c16",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 16",
+  "number": 16,
+  "page_count": 25,
+  "release_date": "2026-07-27"
+ },
+ {
+  "id": "c17",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 17",
+  "number": 17,
+  "page_count": 26,
+  "release_date": "2026-07-28"
+ },
+ {
+  "id": "c18",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 18",
+  "number": 18,
+  "page_count": 18,
+  "release_date": "2026-07-29"
+ },
+ {
+  "id": "c19",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 19",
+  "number": 19,
+  "page_count": 19,
+  "release_date": "2026-07-30"
+ },
+ {
+  "id": "c20",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 20",
+  "number": 20,
+  "page_count": 20,
+  "release_date": "2026-07-31"
+ },
+ {
+  "id": "c21",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Salt Road",
+  "number": 21,
+  "page_count": 21,
+  "release_date": "2026-08-01"
+ },
+ {
+  "id": "c22",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 22",
+  "number": 22,
+  "page_count": 22,
+  "release_date": "2026-08-02"
+ },
+ {
+  "id": "c23",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 23",
+  "number": 23,
+  "page_count": 23,
+  "release_date": "2026-08-03"
+ },
+ {
+  "id": "c24",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 24",
+  "number": 24,
+  "page_count": 24,
+  "release_date": "2026-08-04"
+ },
+ {
+  "id": "c25",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 25",
+  "number": 25,
+  "page_count": 25,
+  "release_date": "2026-08-05"
+ },
+ {
+  "id": "c26",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 26",
+  "number": 26,
+  "page_count": 26,
+  "release_date": "2026-08-06"
+ },
+ {
+  "id": "c27",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 27",
+  "number": 27,
+  "page_count": 18,
+  "release_date": "2026-08-07"
+ },
+ {
+  "id": "c28",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Well Road",
+  "number": 28,
+  "page_count": 19,
+  "release_date": "2026-08-08"
+ },
+ {
+  "id": "c29",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 29",
+  "number": 29,
+  "page_count": 20,
+  "release_date": "2026-08-09"
+ },
+ {
+  "id": "c30",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 30",
+  "number": 30,
+  "page_count": 21,
+  "release_date": "2026-08-10"
+ },
+ {
+  "id": "c31",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 31",
+  "number": 31,
+  "page_count": 22,
+  "release_date": "2026-08-11"
+ },
+ {
+  "id": "c32",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 32",
+  "number": 32,
+  "page_count": 23,
+  "release_date": "2026-08-12"
+ },
+ {
+  "id": "c33",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 33",
+  "number": 33,
+  "page_count": 24,
+  "release_date": "2026-08-13"
+ },
+ {
+  "id": "c34",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 34",
+  "number": 34,
+  "page_count": 25,
+  "release_date": "2026-08-14"
+ },
+ {
+  "id": "c35",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Ferry Road",
+  "number": 35,
+  "page_count": 26,
+  "release_date": "2026-08-15"
+ },
+ {
+  "id": "c36",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 36",
+  "number": 36,
+  "page_count": 18,
+  "release_date": "2026-08-16"
+ },
+ {
+  "id": "c37",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 37",
+  "number": 37,
+  "page_count": 19,
+  "release_date": "2026-08-17"
+ },
+ {
+  "id": "c38",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 38",
+  "number": 38,
+  "page_count": 20,
+  "release_date": "2026-08-18"
+ },
+ {
+  "id": "c39",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 39",
+  "number": 39,
+  "page_count": 21,
+  "release_date": "2026-08-19"
+ },
+ {
+  "id": "c40",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 40",
+  "number": 40,
+  "page_count": 22,
+  "release_date": "2026-08-20"
+ },
+ {
+  "id": "c41",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 41",
+  "number": null,
+  "page_count": 23,
+  "release_date": "2026-08-21"
+ },
+ {
+  "id": "c42",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Bridge Road",
+  "number": 42,
+  "page_count": 24,
+  "release_date": "2026-08-22"
+ },
+ {
+  "id": "c43",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 43",
+  "number": 43,
+  "page_count": 25,
+  "release_date": "2026-08-23"
+ },
+ {
+  "id": "c44",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 44",
+  "number": 44,
+  "page_count": 26,
+  "release_date": "2026-08-24"
+ },
+ {
+  "id": "c45",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 45",
+  "number": 45,
+  "page_count": 18,
+  "release_date": "2026-08-25"
+ },
+ {
+  "id": "c46",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 46",
+  "number": 46,
+  "page_count": 19,
+  "release_date": "2026-08-26"
+ },
+ {
+  "id": "c47",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 47",
+  "number": 47,
+  "page_count": 20,
+  "release_date": "2026-08-27"
+ },
+ {
+  "id": "c48",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 48",
+  "number": 48,
+  "page_count": 21,
+  "release_date": "2026-08-28"
+ },
+ {
+  "id": "c49",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Salt Road",
+  "number": 49,
+  "page_count": 22,
+  "release_date": "2026-08-29"
+ },
+ {
+  "id": "c50",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 50",
+  "number": 50,
+  "page_count": 23,
+  "release_date": "2026-08-30"
+ },
+ {
+  "id": "c51",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 51",
+  "number": 51,
+  "page_count": 24,
+  "release_date": "2026-08-31"
+ },
+ {
+  "id": "c52",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 52",
+  "number": 52,
+  "page_count": 25,
+  "release_date": "2026-09-01"
+ },
+ {
+  "id": "c53",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 53",
+  "number": 53,
+  "page_count": 26,
+  "release_date": "2026-09-02"
+ },
+ {
+  "id": "c54",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 54",
+  "number": 54,
+  "page_count": 18,
+  "release_date": "2026-09-03"
+ },
+ {
+  "id": "c55",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 55",
+  "number": 55,
+  "page_count": 19,
+  "release_date": "2026-09-04"
+ },
+ {
+  "id": "c56",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Well Road",
+  "number": 56,
+  "page_count": 20,
+  "release_date": "2026-09-05"
+ },
+ {
+  "id": "c57",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 57",
+  "number": 57,
+  "page_count": 21,
+  "release_date": "2026-09-06"
+ },
+ {
+  "id": "c58",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 58",
+  "number": 58,
+  "page_count": 22,
+  "release_date": "2026-09-07"
+ },
+ {
+  "id": "c59",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 59",
+  "number": 59,
+  "page_count": 23,
+  "release_date": "2026-09-08"
+ },
+ {
+  "id": "c60",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 60",
+  "number": 60,
+  "page_count": 24,
+  "release_date": "2026-09-09"
+ },
+ {
+  "id": "c61",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 61",
+  "number": 61,
+  "page_count": 25,
+  "release_date": "2026-09-10"
+ },
+ {
+  "id": "c62",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 62",
+  "number": 62,
+  "page_count": 26,
+  "release_date": "2026-09-11"
+ },
+ {
+  "id": "c63",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Ferry Road",
+  "number": 63,
+  "page_count": 18,
+  "release_date": "2026-09-12"
+ },
+ {
+  "id": "c64",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 64",
+  "number": 64,
+  "page_count": 19,
+  "release_date": "2026-09-13"
+ },
+ {
+  "id": "c65",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 65",
+  "number": 65,
+  "page_count": 20,
+  "release_date": "2026-09-14"
+ },
+ {
+  "id": "c66",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 66",
+  "number": 66,
+  "page_count": 21,
+  "release_date": "2026-09-15"
+ },
+ {
+  "id": "c67",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 67",
+  "number": 67,
+  "page_count": 22,
+  "release_date": "2026-09-16"
+ },
+ {
+  "id": "c68",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 68",
+  "number": 68,
+  "page_count": 23,
+  "release_date": "2026-09-17"
+ },
+ {
+  "id": "c69",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 69",
+  "number": 69,
+  "page_count": 24,
+  "release_date": "2026-09-18"
+ },
+ {
+  "id": "c70",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Bridge Road",
+  "number": 70,
+  "page_count": 25,
+  "release_date": "2026-09-19"
+ },
+ {
+  "id": "c71",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 71",
+  "number": 71,
+  "page_count": 26,
+  "release_date": "2026-09-20"
+ },
+ {
+  "id": "c72",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 72",
+  "number": 72,
+  "page_count": 18,
+  "release_date": "2026-09-21"
+ },
+ {
+  "id": "c73",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 73",
+  "number": 73,
+  "page_count": 19,
+  "release_date": "2026-09-22"
+ },
+ {
+  "id": "c74",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 74",
+  "number": 74,
+  "page_count": 20,
+  "release_date": "2026-09-23"
+ },
+ {
+  "id": "c75",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 75",
+  "number": 75,
+  "page_count": 21,
+  "release_date": "2026-09-24"
+ },
+ {
+  "id": "c76",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 76",
+  "number": 76,
+  "page_count": 22,
+  "release_date": "2026-09-25"
+ },
+ {
+  "id": "c77",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "The Salt Road",
+  "number": 77,
+  "page_count": 23,
+  "release_date": "2026-09-26"
+ },
+ {
+  "id": "c78",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 78",
+  "number": 78,
+  "page_count": 24,
+  "release_date": "2026-09-27"
+ },
+ {
+  "id": "c79",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 79",
+  "number": 79,
+  "page_count": 25,
+  "release_date": "2026-09-28"
+ },
+ {
+  "id": "c80",
+  "source_id": "mangapill",
+  "series_id": "9748/dustland",
+  "title": "Chapter 80",
+  "number": 80,
+  "page_count": 26,
+  "release_date": "2026-09-29"
+ }
+]

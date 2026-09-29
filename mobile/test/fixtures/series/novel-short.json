@@ -1,0 +1,131 @@
+{
+ "series": {
+  "id": "k",
+  "source_id": "demo",
+  "title": "Ashes of the Salt Road",
+  "chapter_count": 12,
+  "description": "A salt trader walks the old road between two drowned cities, and every well she passes has a different story about what the sea took. She keeps a ledger of them. The ledger, she slowly realises, is keeping her. Nobody who reads it to the end remembers where the road began, and the final entry is always in her own hand.",
+  "author": "Han Seo",
+  "artist": "Mi Rae",
+  "status": "ongoing",
+  "genres": [
+   "Fantasy"
+  ],
+  "cover_url": "",
+  "cache": {
+   "status": "fresh",
+   "stale": false,
+   "fetched_at": "2026-09-29T08:00:00Z"
+  }
+ },
+ "chapters": [
+  {
+   "id": "c1",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 1: The Long Night 1",
+   "number": 1.0,
+   "page_count": 0,
+   "release_date": "2026-09-02"
+  },
+  {
+   "id": "c2",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 2: The Long Night 2",
+   "number": 2.0,
+   "page_count": 0,
+   "release_date": "2026-09-03"
+  },
+  {
+   "id": "c3",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 3: The Short Night 3",
+   "number": 3.0,
+   "page_count": 0,
+   "release_date": "2026-09-04"
+  },
+  {
+   "id": "c4",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 4: The Long Night 4",
+   "number": 4.0,
+   "page_count": 0,
+   "release_date": "2026-09-05"
+  },
+  {
+   "id": "c5",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 5: The Long Night 5",
+   "number": 5.0,
+   "page_count": 0,
+   "release_date": "2026-09-06"
+  },
+  {
+   "id": "c6",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 6: The Short Night 6",
+   "number": 6.0,
+   "page_count": 0,
+   "release_date": "2026-09-07"
+  },
+  {
+   "id": "c7",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 7: The Long Night 7",
+   "number": 7.0,
+   "page_count": 0,
+   "release_date": "2026-09-08"
+  },
+  {
+   "id": "c8",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 8: The Long Night 8",
+   "number": 8.0,
+   "page_count": 0,
+   "release_date": "2026-09-09"
+  },
+  {
+   "id": "c9",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 9: The Short Night 9",
+   "number": 9.0,
+   "page_count": 0,
+   "release_date": "2026-09-10"
+  },
+  {
+   "id": "c10",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 10: The Long Night 10",
+   "number": 10.0,
+   "page_count": 0,
+   "release_date": "2026-09-11"
+  },
+  {
+   "id": "c11",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 11: The Long Night 11",
+   "number": 11.0,
+   "page_count": 0,
+   "release_date": "2026-09-12"
+  },
+  {
+   "id": "c12",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 12: The Short Night 12",
+   "number": 12.0,
+   "page_count": 0,
+   "release_date": "2026-09-13"
+  }
+ ]
+}

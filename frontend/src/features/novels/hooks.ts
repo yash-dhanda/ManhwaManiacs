@@ -11,7 +11,7 @@ import { useBootstrapStatus } from "@/features/auth/hooks";
 import { useSources } from "@/features/sources/hooks";
 import type { SourceSummary } from "@/features/sources/types";
 import type { ChapterId, SeriesId } from "@/types/api";
-import { novelsApi, toNovelChapter } from "./api";
+import { fetchNovelSeriesAudio, novelsApi, toNovelChapter } from "./api";
 import { boundedWindow, collectChapterWindow } from "./chapter-window";
 import {
   isNovelsEnabled,
@@ -335,5 +335,15 @@ export function useSetNovelVoice(ref: ChapterId | null) {
         queryKey: novelAttributionQueryKey(ref),
       });
     },
+  });
+}
+
+/** Narrated chapters of a book; an error or a closed desk is "none". */
+export function useSeriesAudio(ref: SeriesId | null) {
+  return useQuery({
+    queryKey: ["novels", "audio-series", ref?.sourceId, ref?.seriesKey],
+    queryFn: () => fetchNovelSeriesAudio(ref!).catch(() => null),
+    enabled: ref !== null,
+    staleTime: 5 * 60 * 1000,
   });
 }

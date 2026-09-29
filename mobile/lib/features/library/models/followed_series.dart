@@ -1,6 +1,7 @@
 import 'package:manhwamaniacs/core/time/server_instant.dart';
 import 'package:manhwamaniacs/features/library/models/known_chapter.dart';
 import 'package:manhwamaniacs/features/library/models/read_state.dart';
+import 'package:manhwamaniacs/features/library/models/tag.dart';
 
 /// A followed series — `backend/services/followed_series_service.py`'s
 /// `FollowedSeriesService.serialize`. A series is in the library iff a
@@ -29,6 +30,7 @@ class FollowedSeries {
     this.createdAt,
     this.updatedAt,
     this.readState,
+    this.tags = const [],
   });
 
   final int id;
@@ -71,6 +73,9 @@ class FollowedSeries {
   /// and in a library cache written by an older build.
   final ReadState? readState;
 
+  /// This profile's own tags on the series, where the list payload sent them.
+  final List<Tag> tags;
+
   FollowedSeries copyWith({bool? isFavorite, String? readingStatus, bool? notify}) {
     return FollowedSeries(
       id: id,
@@ -92,6 +97,7 @@ class FollowedSeries {
       createdAt: createdAt,
       updatedAt: updatedAt,
       readState: readState,
+      tags: tags,
     );
   }
 
@@ -119,6 +125,10 @@ class FollowedSeries {
         readState: json['read_state'] is Map<String, dynamic>
             ? ReadState.fromJson(json['read_state'] as Map<String, dynamic>)
             : null,
+        tags: (json['tags'] as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .map(Tag.fromJson)
+            .toList(),
       );
 
   /// Round-trips through [FollowedSeries.fromJson]. Written to the offline

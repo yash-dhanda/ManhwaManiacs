@@ -48,7 +48,7 @@ export function prefetchChapterManifest(
   queryClient: QueryClient,
   ref: ChapterId,
 ) {
-  void queryClient.prefetchQuery({
+  return queryClient.prefetchQuery({
     queryKey: readerManifestQueryKey(ref),
     queryFn: () => readerApi.manifest(ref),
     staleTime: READER_CHAPTER_STALE_MS,
