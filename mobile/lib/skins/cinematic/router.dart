@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/pending_routes.dart';
 import 'package:manhwamaniacs/skins/pending_screen.dart';
@@ -26,8 +27,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.picks,
   ScreenId.numbers,
   ScreenId.annual,
-  ScreenId.featureByFollow,
-  ScreenId.feature,
   ScreenId.recap,
   ScreenId.circle,
   ScreenId.circleMember,
@@ -47,7 +46,27 @@ const Set<ScreenId> PENDING = {
 
 GoRouter buildCinematicRouter(Ref ref) => GoRouter(
       initialLocation: ref.read(returnRouteProvider) ?? ScreenId.tonight.path,
-      routes: pendingRoutes(PENDING),
+      routes: [
+        // Static /library/... paths precede /library/:followedId, so the real
+        // routes sit where pendingRoutes would have put them: after those.
+        ...pendingRoutes(PENDING),
+        GoRoute(
+          path: ScreenId.featureByFollow.path,
+          name: ScreenId.featureByFollow.id,
+          builder: (context, state) => FeatureByFollowScreen(
+            followedId: int.tryParse(state.pathParameters['followedId'] ?? '') ?? -1,
+          ),
+        ),
+        GoRoute(
+          path: ScreenId.feature.path,
+          name: ScreenId.feature.id,
+          builder: (context, state) => FeatureScreen(
+            sourceId: state.pathParameters['sourceId']!,
+            seriesKey: state.pathParameters['seriesKey']!,
+            chapter: state.uri.queryParameters['chapter'],
+          ),
+        ),
+      ],
       errorBuilder: (context, state) =>
           PendingScreen(screenId: 'not-found', location: state.uri.toString()),
     );
