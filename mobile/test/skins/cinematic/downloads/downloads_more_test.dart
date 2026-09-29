@@ -342,5 +342,13 @@ void main() {
       await expectLater(tester, meetsGuideline(textContrastGuideline));
       h.dispose();
     });
+
+    testWidgets('the STORAGE tab meets the tap target and label guidelines', (tester) async {
+      final h = tester.ensureSemantics();
+      await pumpDownloads(tester, tab: 'storage', size: const Size(390, 3000), rig: Rig(bytes: 4 * gb));
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      h.dispose();
+    });
   });
 }

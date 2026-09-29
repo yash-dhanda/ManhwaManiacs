@@ -196,4 +196,20 @@ void main() {
       expect(c.read(cineToastsProvider).any((t) => t.text == 'Source URL copied'), isTrue);
     });
   });
+
+  testWidgets('the sheet meets the tap target, label and contrast guidelines', (tester) async {
+    final h = tester.ensureSemantics();
+    await pumpHost(
+      tester,
+      extra: [appChangelogProvider.overrideWith((ref) async => _entries)],
+      home: (context, ref) => TextButton(onPressed: () => unawaited(showWhatsNewSheet(context, ref)), child: const Text('open')),
+    );
+    await tester.tap(find.text('open'));
+    await settle(tester, ms: 900);
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+    h.dispose();
+  });
 }
+

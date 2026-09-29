@@ -293,4 +293,28 @@ void main() {
     expect(find.text('Everything is running.'), findsWidgets);
     await unmount(tester);
   });
+
+  group('a11y', () {
+    testWidgets('Android tap targets, labels and contrast', (tester) async {
+      final h = tester.ensureSemantics();
+      await pumpStatus(
+        tester,
+        rig: StatusRig(sources: [src('a', SourceHealthStatus.dead, fails: 3, err: 'boom'), src('b', SourceHealthStatus.ok)], runs: [run(1, 'completed')]),
+      );
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(textContrastGuideline));
+      h.dispose();
+      await unmount(tester);
+    });
+
+    testWidgets('iOS tap targets', (tester) async {
+      final h = tester.ensureSemantics();
+      await pumpStatus(tester);
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+      h.dispose();
+      await unmount(tester);
+    });
+  });
 }
+

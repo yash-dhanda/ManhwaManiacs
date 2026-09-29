@@ -308,4 +308,22 @@ void main() {
     expect(find.text('3.5.0 · BUILD 57 · 28 SEP 2026'), findsOneWidget);
     expect(find.text('LATEST'), findsOneWidget);
   });
+
+  group('a11y', () {
+    testWidgets('Android tap targets, labels and contrast', (tester) async {
+      final h = tester.ensureSemantics();
+      await pumpIndex(tester, rig: IndexRig(update: _update));
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(textContrastGuideline));
+      h.dispose();
+    });
+
+    testWidgets('iOS tap targets', (tester) async {
+      final h = tester.ensureSemantics();
+      await pumpIndex(tester, platform: TargetPlatform.iOS);
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+      h.dispose();
+    });
+  });
 }
