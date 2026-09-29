@@ -10,3 +10,9 @@ export function shake(el: HTMLElement | null, amp = 8): void {
   if (!el || isGlassReduced()) return;
   play("errorShake", 0, 1, { onUpdate: (p) => { el.style.translate = `${shakeX(p * 420, amp).toFixed(2)}px 0`; }, onComplete: () => { el.style.translate = ""; } });
 }
+
+/** Tick pop 1 -> peak -> 1 (Count pop, selected toggles). Reduced motion: nothing. */
+export function pop(el: HTMLElement | null, peak = 1.12): void {
+  if (!el || isGlassReduced()) return;
+  play("countPop", el, { scale: peak }, { onComplete: () => void play("countPop", el, { scale: 1 }) });
+}

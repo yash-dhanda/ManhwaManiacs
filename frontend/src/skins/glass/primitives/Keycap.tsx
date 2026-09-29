@@ -1,12 +1,20 @@
 "use client";
-// STUB (interface frozen; the icon-button agent replaces the bodies).
-import type { ReactNode } from "react";
-import type { KeyCombo } from "@/lib/keyboard";
 
+import { Fragment, useEffect, useState, type ReactNode } from "react";
+import { formatKeyCombo, type KeyCombo } from "@/lib/keyboard";
+
+/** `mono` 12/600 `label1` on `surface3`, radius 6, min width 20, height 20, a 0.5 px rim. */
 export function Keycap({ children }: { children: ReactNode }) {
   return <kbd className="g-keycap">{children}</kbd>;
 }
-/** Renders every token of formatKeyCombo(combo) as Keycaps, 4 px apart. */
+
+/** Every token of formatKeyCombo(combo) as a Keycap, 4 px apart ("⌘ K" on macOS, "Ctrl" "K" elsewhere). Resolved after mount so SSR and hydration agree. */
 export function KeyCombos({ combo }: { combo: KeyCombo }) {
-  return <span className="g-keycaps">{String(combo)}</span>;
+  const [tokens, setTokens] = useState<string[]>([]);
+  useEffect(() => setTokens(formatKeyCombo(combo)), [combo]);
+  return (
+    <span className="g-keycaps" aria-label={tokens.join(" ")}>
+      {tokens.map((t, i) => <Fragment key={i}><Keycap>{t}</Keycap></Fragment>)}
+    </span>
+  );
 }

@@ -1,0 +1,23 @@
+"use client";
+
+import { useEffect, useState, type RefObject } from "react";
+import { announce } from "./announce";
+import { shake } from "./shake";
+
+/**
+ * The error state of a control (Button, IconButton, chips): when `error` becomes a non-empty string the control shakes
+ * with the `error` haptic, the text goes to the assertive region for 6 s, and `flashing` is true for 2 s (the caller swaps
+ * its label or glyph for a `warning-circle` while it is).
+ */
+export function useErrorFlash(error: string | null | undefined, ref: RefObject<HTMLElement | null>, amp = 8): { flashing: boolean; text: string } {
+  const [flash, setFlash] = useState<{ on: boolean; text: string }>({ on: false, text: "" });
+  useEffect(() => {
+    if (!error) return;
+    setFlash({ on: true, text: error });
+    shake(ref.current, amp);
+    announce(error, 6000);
+    const t = setTimeout(() => setFlash((f) => ({ ...f, on: false })), 2000);
+    return () => clearTimeout(t);
+  }, [error, ref, amp]);
+  return { flashing: flash.on, text: flash.text };
+}
