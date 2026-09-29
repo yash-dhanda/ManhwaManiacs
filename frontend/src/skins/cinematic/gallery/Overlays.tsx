@@ -1,4 +1,5 @@
 "use client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Badge } from "../primitives/Badge";
 import { BannerStrip } from "../primitives/BannerStrip";
@@ -72,6 +73,7 @@ export function OverlaySections() {
   const [from, setFrom] = useState<DOMRect | null>(null);
   const [running, setRunning] = useState(false);
   const [reprints, setReprints] = useState(0);
+  const [qc] = useState(() => new QueryClient());
   useEffect(() => { if (!swErr) return; const t = setTimeout(() => setSwErr(undefined), 2500); return () => clearTimeout(t); }, [swErr]);
   const menuItems = [
     { id: "open", label: "Open", icon: "external" as const, shortcut: "o", onSelect: () => subtitle.info("Opened.") },
@@ -243,7 +245,7 @@ export function OverlaySections() {
       </Section>
 
       <Section id="other" title="Content mode, pull to reprint, banners">
-        <Row label="content mode (renders nothing when novels are off)"><ContentModeToggle /><ContentModeChip /></Row>
+        <QueryClientProvider client={qc}><Row label="content mode (renders nothing when novels are off)"><ContentModeToggle /><ContentModeChip /></Row></QueryClientProvider>
         <Row label="pull to reprint (touch)"><PullToReprint onRefresh={async () => { await wait(1200); setReprints((n) => n + 1); }} className="w-full max-w-md border border-rule-1"><p className="type-body p-6 text-ink-60">{`Pull down here on a touch device. Reprints: ${reprints}`}</p></PullToReprint></Row>
         <div className="flex max-w-3xl flex-col gap-2">
           <BannerStrip kicker="FIRST RUN" actions={<Button variant="quiet" size="sm">Browse</Button>} data-gallery="w5-banner">Nothing followed yet.</BannerStrip>

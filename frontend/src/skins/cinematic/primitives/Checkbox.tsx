@@ -17,7 +17,7 @@ export function Checkbox({ checked, onCheckedChange, label, disabled = false, hi
   const on = checked === true;
   const mixed = checked === "indeterminate";
   return (
-    <label className={`inline-flex min-h-(--mm-hit-min) items-center gap-3 ${disabled ? "text-ink-30" : "text-ink-100"} ${className}`}>
+    <label className={`inline-flex min-h-(--mm-hit-min) min-w-(--mm-hit-min) items-center gap-3 ${disabled ? "text-ink-30" : "text-ink-100"} ${className}`}>
       <BaseCheckbox.Root
         checked={on} indeterminate={mixed} disabled={disabled} data-gallery={rest["data-gallery"]}
         onCheckedChange={(v) => { haptic("select"); onCheckedChange(v); }}

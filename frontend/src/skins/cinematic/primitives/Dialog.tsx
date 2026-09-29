@@ -1,6 +1,6 @@
 "use client";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
-import type { ReactNode, RefObject } from "react";
+import { useEffect, useRef, type ReactNode, type RefObject } from "react";
 
 export type DialogProps = {
   open: boolean;
@@ -21,8 +21,11 @@ export type DialogProps = {
 
 /** §7.10 dialog: paper.3 raised, 1 px ink.30 border, radius 0, max 560, Insert in / 160 ms fade out, no blur behind. */
 export function Dialog({ open, onOpenChange, title, description, children, actions, error, dismissible = true, initialFocus, className = "", ...rest }: DialogProps) {
+  const openedAt = useRef(0);
+  useEffect(() => { if (open) openedAt.current = performance.now(); }, [open]);
   return (
-    <BaseDialog.Root open={open} onOpenChange={(o) => { if (!o && !dismissible) return; onOpenChange(o); }} disablePointerDismissal={!dismissible}>
+    // An outside press in the first 400 ms is the second tap of the double tap that opened the dialog: ignore it.
+    <BaseDialog.Root open={open} onOpenChange={(o, d) => { if (!o && (!dismissible || (d.reason === "outside-press" && performance.now() - openedAt.current < 400))) return; onOpenChange(o); }} disablePointerDismissal={!dismissible}>
       <BaseDialog.Portal>
         <BaseDialog.Backdrop className="cine-barrier cine-barrier--insert" style={{ zIndex: "var(--mm-z-dialog)" }} />
         <div className="pointer-events-none fixed inset-0 flex items-center justify-center" style={{ zIndex: "var(--mm-z-dialog)" }}>
