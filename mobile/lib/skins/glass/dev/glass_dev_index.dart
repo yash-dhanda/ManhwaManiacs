@@ -32,11 +32,16 @@ class GlassDevIndex extends ConsumerWidget {
             onTap: onTap,
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: hit + 8),
-              child: Row(
-                children: [
-                  Expanded(child: GlassText(label, role: t.typeBody)),
-                  if (value != null) GlassText(value, role: t.typeMono, size: 12, height: 16, color: valueColor ?? t.colorLabel2),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GlassText(label, role: t.typeBody),
+                    if (value != null) GlassText(value, role: t.typeMono, size: 12, height: 16, color: valueColor ?? t.colorLabel2),
+                  ],
+                ),
               ),
             ),
           ),

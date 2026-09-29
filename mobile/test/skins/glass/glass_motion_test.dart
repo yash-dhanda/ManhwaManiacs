@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -89,13 +91,13 @@ void main() {
   testWidgets('a spring retarget keeps the velocity', (tester) async {
     final c = AnimationController.unbounded(vsync: const TestVSync());
     addTearDown(c.dispose);
-    c.springTo(500, GlassSprings.zoom);
+    unawaited(c.springTo(500, GlassSprings.zoom));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 120));
     final before = c.value;
     final v = c.velocity;
     expect(v, greaterThan(0));
-    c.springTo(800, GlassSprings.zoom); // retarget mid flight, velocity handed over
+    unawaited(c.springTo(800, GlassSprings.zoom)); // retarget mid flight, velocity handed over
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 16));
     expect(c.value, greaterThan(before), reason: 'no reversal or stall at the retarget');
@@ -112,8 +114,8 @@ void main() {
     final fast = AnimationController.unbounded(vsync: const TestVSync());
     addTearDown(slow.dispose);
     addTearDown(fast.dispose);
-    GlassMotion.play(MotionName.rubberBand, controller: slow, target: 100);
-    GlassMotion.play(MotionName.rubberBand, controller: fast, target: 100, velocityPxPerS: 2000);
+    unawaited(GlassMotion.play(MotionName.rubberBand, controller: slow, target: 100));
+    unawaited(GlassMotion.play(MotionName.rubberBand, controller: fast, target: 100, velocityPxPerS: 2000));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     expect(fast.value, greaterThan(slow.value));
@@ -139,7 +141,7 @@ void main() {
     final c = AnimationController.unbounded(vsync: const TestVSync());
     addTearDown(c.dispose);
     for (final n in [MotionName.pressSwell, MotionName.zoom, MotionName.tabSwitch]) {
-      GlassMotion.play(n, controller: c, target: 1);
+      unawaited(GlassMotion.play(n, controller: c, target: 1));
     }
     expect(recorder.entries.length, 3);
     final e = recorder.entries.first;

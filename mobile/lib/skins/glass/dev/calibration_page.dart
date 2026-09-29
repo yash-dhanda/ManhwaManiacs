@@ -71,7 +71,9 @@ class _GlassCalibrationPageState extends ConsumerState<GlassCalibrationPage> wit
   @override
   void dispose() {
     final a = _ambient;
-    Future.microtask(() => a?.state = null);
+    Future.microtask(() {
+      if (a != null && a.mounted) a.state = null;
+    });
     _tile.dispose();
     _demo.dispose();
     _barLb.dispose();

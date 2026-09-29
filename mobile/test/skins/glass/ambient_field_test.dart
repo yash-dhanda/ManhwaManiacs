@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -95,7 +94,7 @@ void main() {
     final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(key));
     final data = await tester.runAsync(() async {
       final image = await boundary.toImage();
-      final bytes = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+      final bytes = (await image.toByteData())!;
       image.dispose();
       return bytes;
     });

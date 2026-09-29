@@ -31,7 +31,7 @@ void main() {
             return Builder(builder: (context) {
               restart = AppRestart.of(context);
               return const SizedBox();
-            });
+            },);
           },
         ),
       ),

@@ -70,10 +70,27 @@ class GlassRegistryController extends Notifier<GlassRegistryState> {
 
   int newId() => ++_next;
 
+  void registerSafe(GlassRegistration r) {
+    try {
+      register(r);
+    } on StateError {
+      // The provider container was disposed first.
+    }
+  }
+
   void register(GlassRegistration r) {
     state = GlassRegistryState(entries: [...state.entries, r], forcedSolid: state.forcedSolid);
     _checkBudget();
     scheduleRecompute();
+  }
+
+  /// [unregister], tolerating a container that was disposed first (a screen torn down with its scope).
+  void unregisterSafe(int id) {
+    try {
+      unregister(id);
+    } on StateError {
+      // The provider container is gone; nothing left to update.
+    }
   }
 
   void unregister(int id) {

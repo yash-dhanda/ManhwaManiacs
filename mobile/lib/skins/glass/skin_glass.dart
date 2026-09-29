@@ -276,7 +276,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
     if (_registered) {
       final id = _id, registry = _registry;
       _registered = false;
-      scheduleMicrotask(() => registry.unregister(id));
+      scheduleMicrotask(() => registry.unregisterSafe(id));
     }
     _mat.dispose();
     _sweep.dispose();
@@ -331,7 +331,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
     scheduleMicrotask(() {
       if (live) {
         if (_disposed || !_registered) return;
-        registry.register(GlassRegistration(
+        registry.registerSafe(GlassRegistration(
           id: _id,
           label: widget.debugLabel ?? 'SkinGlass',
           kind: widget.layer,
@@ -340,7 +340,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
           exempt: exempt,
         ),);
       } else {
-        registry.unregister(_id);
+        registry.unregisterSafe(_id);
       }
     });
   }
@@ -565,16 +565,16 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
       // Twin: no backdrop read, no displacement, no dim, not registered.
       if (twinKind != null) {
         final look2 = _twins[twinKind]!;
-        return _stack(size, [
+        return _stack(size, fixed: grouped || widget.size != null, children: [
           ClipRSuperellipse(borderRadius: radius, child: ColoredBox(color: look2.fill, child: content)),
           rim(flat: look2.rim, specColor: look2.specular),
           overlays.last,
-        ]);
+        ],);
       }
 
       // Solid path: no library widget, no BackdropFilter, no dim, no caustic, no sweep, no dispersion.
       if (env.solid) {
-        return _stack(size, [
+        return _stack(size, fixed: grouped || widget.size != null, children: [
           if (shadow != null) shadow,
           ClipRSuperellipse(
             borderRadius: radius,
@@ -582,7 +582,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
           ),
           rim(solidPath: true),
           overlays.last,
-        ]);
+        ],);
       }
 
       final fill = foldDim(look.fill, dim);
@@ -606,7 +606,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
         final Widget glass = grouped
             ? liquidGroupedShape(shape: lshape, quality: quality, child: content)
             : liquidSurface(shape: lshape, settings: use, quality: quality, child: content);
-        return _stack(size, [if (shadow != null) shadow, glass, rim(), ...overlays]);
+        return _stack(size, fixed: grouped || widget.size != null, children: [if (shadow != null) shadow, glass, rim(), ...overlays]);
       }
 
       // Frost path: blur + 6, saturate, no displacement, no dispersion, painted rim (stack risk 4).
@@ -616,7 +616,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
       );
       final sigma = (look.blur + 6) * _matT(env);
       final filled = fill.withValues(alpha: fill.a * op);
-      return _stack(size, [
+      return _stack(size, fixed: grouped || widget.size != null, children: [
         if (shadow != null) shadow,
         ClipRSuperellipse(
           borderRadius: radius,
@@ -630,7 +630,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
         ),
         rim(),
         ...overlays,
-      ]);
+      ],);
     }
 
     // No dim over a twin or the solid path: the lb is irrelevant there.
@@ -643,11 +643,12 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
     );
   }
 
-  Widget _stack(Size size, List<Widget> children) => Stack(
-        clipBehavior: Clip.none,
-        fit: StackFit.passthrough,
-        children: children,
-      );
+  Widget _stack(Size size, {required List<Widget> children, bool fixed = false}) {
+    final stack = Stack(clipBehavior: Clip.none, fit: StackFit.passthrough, children: children);
+    // A group shape (or a surface given `size:`) is exactly its declared size, whatever its parent asks.
+    return fixed ? SizedBox.fromSize(size: size, child: stack) : stack;
+  }
+
 }
 
 class _Env {

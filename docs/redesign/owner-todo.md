@@ -40,3 +40,8 @@ Items only the owner can do, by step.
 - Demo art: `/dev/glass-calibration` uses 24 generated stand-in covers in `frontend/public/dev-covers/` (dark, mid and pale, one dark with a white patch) because `frontend/public/skin-preview/covers/` (shared/05) is not integrated yet. Swap them when it lands.
 - web/01 open: shared/02 ICON_RULES has no per-role fixed weight (design/icons.json defines none), so the Cinematic streak flame renders Light at 24, never Fill; Icon.tsx keeps a no-op roleWeights hook.
 - mobile/03: confirm tests + build-ios CI run ids/conclusions for commit abbace5 (liquid_glass_widgets pin), record in docs/redesign/proof/mobile-03/glass-gate.md
+
+## mobile/25 (Glass foundation)
+- Run proof/mobile-25/device-check.md on iPhone (SideStore) and the Android flagship.
+- Fill the Decision line of proof/mobile-03/glass-gate.md; `kGateRenderer` (skin_glass.dart) defaults to liquid until then.
+- Integrator: push ab48531 alone, watch `tests` and `Build iOS`, paste run URLs into proof/mobile-25/resolution.md.

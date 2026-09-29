@@ -116,7 +116,7 @@ class _GlassAmbientScopeState extends ConsumerState<GlassAmbientScope> {
   late final StateController<GlassAmbientSpec?> _target = ref.read(glassAmbientProvider.notifier);
 
   void _publish() => Future.microtask(() {
-        if (mounted && _target.state != widget.spec) _target.state = widget.spec;
+        if (mounted && _target.mounted && _target.state != widget.spec) _target.state = widget.spec;
       });
 
   @override
@@ -135,7 +135,7 @@ class _GlassAmbientScopeState extends ConsumerState<GlassAmbientScope> {
   void dispose() {
     final spec = widget.spec, target = _target;
     Future.microtask(() {
-      if (target.state == spec) target.state = null;
+      if (target.mounted && target.state == spec) target.state = null;
     });
     super.dispose();
   }
@@ -187,7 +187,6 @@ class GlassAmbientFieldState extends ConsumerState<GlassAmbientField> with Ticke
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _startTimer();
     ref.listenManual<GlassAmbientSpec?>(glassAmbientProvider, (_, s) => _onSpec(s), fireImmediately: true);
   }
 
