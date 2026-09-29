@@ -102,6 +102,9 @@ FollowedSeries followedRow({
       tags: tags,
     );
 
+/// The boundary the screenshot harness rasterises.
+final GlobalKey kShotBoundary = GlobalKey(debugLabel: 'series-shot');
+
 /// What the page asked the data layer to do.
 class Recorder {
   final List<List<ProgressPush>> pushed = [];
@@ -454,11 +457,14 @@ Future<FeatureRig> pumpFeature(
   await tester.pumpWidget(
     ProviderScope(
       overrides: featureOverrides(r, prefs, novel: novel),
-      child: MaterialApp(
-        theme: featureTheme(platform),
-        builder: (context, c) =>
-            featureMediaWrap(context, c, textScale: textScale, reduced: reducedMotion),
-        home: wrap == null ? home : wrap(home),
+      child: RepaintBoundary(
+        key: kShotBoundary,
+        child: MaterialApp(
+          theme: featureTheme(platform),
+          builder: (context, c) =>
+              featureMediaWrap(context, c, textScale: textScale, reduced: reducedMotion),
+          home: wrap == null ? home : wrap(home),
+        ),
       ),
     ),
   );
@@ -536,7 +542,10 @@ Future<({FeatureRig rig, GoRouter router})> pumpFeatureRouter(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [...featureOverrides(r, prefs, novel: novel), ...extra],
-      child: MaterialApp.router(routerConfig: router, theme: featureTheme(platform)),
+      child: RepaintBoundary(
+        key: kShotBoundary,
+        child: MaterialApp.router(routerConfig: router, theme: featureTheme(platform)),
+      ),
     ),
   );
   await tester.pump();

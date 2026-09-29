@@ -24,6 +24,7 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/test_overrides.dart';
+import 'mobile_11_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
 import 'support/shot_harness.dart';
@@ -57,6 +58,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppFonts);
   setUpAll(setUpShotCoverCache);
+
+  // mobile-11: the Cinematic series page, Book page and chapter downloads.
+  group('mobile-11', mobile11Shots);
 
   testWidgets('library — the followed shelf', (tester) async {
     useShotViewport(tester);

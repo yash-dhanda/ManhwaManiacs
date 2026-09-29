@@ -27,7 +27,9 @@ Items only the owner can do, by step.
 - After the integrator pushes: read CI (`android-apk`, `build-ios`) for the dependency, audio_service and mm/platform commits and record run ids in dependency-gate.md; apply a package's ledger fallback if a native job fails.
 
 ## mobile/11 (Cinematic Feature, Book, downloads)
-- Device checks from the prompt (match cut, edge swipe, predictive back, Column wipe, Lightbox, a real download read offline, `mature_override` hiding saved chapters, VoiceOver / TalkBack, text scale 1.3 and 2.0) are pending until the motion and reader steps land; nothing to supply from the owner now.
+- Device checks from the prompt (match cut, edge swipe, predictive back, Column wipe, Lightbox, a real download read offline, `mature_override` hiding saved chapters, VoiceOver / TalkBack, text scale 1.3 and 2.0): docs/redesign/proof/mobile-11/device-checklist.md.
+- mobile/11: the Cinematic type faces (Bodoni Moda, Newsreader, Archivo, IBM Plex Mono) are not bundled in mobile/pubspec.yaml; supply or approve the font files so the page stops falling back to the platform face.
+- mobile/11: `mature_override: null` does not clear on the server until web/11 lands the backend fix in `followed_series_service.py`; then re-check the third radio of the override menu on a device.
 - shared/04: owner to check the new launcher icon, `Maniacs` label and black native frame on a real iPhone and Android device after the next build; hairlines of the Bodoni monogram are ~1 unit, judge the icon at 60 px.
 
 ## shared/05
