@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, stagger, useInView, type Variants } from "motion/react";
 import { startMove } from "@/lib/motion-timings";
 import { graphemeCount, graphemes } from "../text";
@@ -95,15 +95,17 @@ export function SetHeading({ text, id, as: Tag = "h2", className, trigger = "inV
   const p = Tag === "p";
   // Letter spans in every state so the hover wipe also works on a revealed or reduced-motion heading.
   const spans = (animated: boolean) => words.map((w, wi) => (
-    <span key={wi} aria-hidden className="inline-block whitespace-nowrap">
+    <Fragment key={wi}>
+    {wi > 0 ? " " : null}
+    <span aria-hidden className="inline-block whitespace-nowrap">
       {graphemes(w).map((c) => {
         const k = i++;
         return animated
           ? <motion.span key={k} variants={letter} className="set-letter inline-block" style={{ ["--i" as string]: k }}>{c}</motion.span>
           : <span key={k} className="set-letter inline-block" style={{ ["--i" as string]: k }}>{c}</span>;
       })}
-      {wi < words.length - 1 && " "}
     </span>
+    </Fragment>
   ));
   // aria-label is ignored on <p>; render the text in an sr-only span and hide the letters.
   const label = p ? {} : { "aria-label": text };

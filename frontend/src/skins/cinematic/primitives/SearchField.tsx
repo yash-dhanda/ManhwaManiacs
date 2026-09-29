@@ -33,7 +33,7 @@ export function SearchField({ label, placeholder, value, onChange, variant = "in
             else if (e.key === "Enter") onSubmitNow?.(value);
             else if (e.key === "ArrowDown") { e.preventDefault(); onArrowDown?.(); }
           }}
-          className={`w-full text-ink-100 outline-none ${idx ? (value ? "type-body" : "type-field") : "type-ui"}`}
+          className={`min-h-(--mm-hit-min) w-full text-ink-100 outline-none ${idx ? (value ? "type-body" : "type-field") : "type-ui"}`}
           style={{ caretColor: "var(--mm-color-spot)", outline: "none", boxShadow: "none", ...(idx && value ? { fontFamily: "var(--font-display)", fontStyle: "normal", fontSize: "inherit" } : {}), ...(showTyped ? { color: "transparent" } : {}) }} />
       </div>
       {value ? <button type="button" onClick={() => { onChange(""); ref.current?.focus(); }} className="type-label min-h-(--mm-hit-min) px-1 text-ink-60 hover:text-ink-100 hover:underline hover:underline-offset-4">Clear</button> : null}

@@ -33,7 +33,7 @@ export function GalleyHeadline({ lineHeight = 36 }: { lineHeight?: number }) {
 /** paper.1 plate with the inner hairline and an optional title card (Bodoni Italic 14/16 ink.45, bottom-left, 8 px inset). */
 export function GalleyPlate({ title, index = 0, className = "", style }: { title?: string; index?: number; className?: string; style?: CSSProperties }) {
   return (
-    <Flicker index={index} className={className}>
+    <Flicker index={index} className={`size-full ${className}`}>
       <div aria-hidden className="relative size-full bg-paper-1" data-stock="raised" style={{ boxShadow: "inset 0 0 0 1px var(--mm-color-hairline-art)", ...style }}>
         {title ? <span className="absolute bottom-2 left-2 text-ink-45" style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 14, lineHeight: "16px" }}>{title}</span> : null}
       </div>

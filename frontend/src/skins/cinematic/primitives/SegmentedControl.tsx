@@ -21,13 +21,13 @@ export function SegmentedControl({ items, value, onChange, label }: { items: Slu
     }
   };
   return (
-    <div ref={root} role="radiogroup" aria-label={label} className="relative inline-flex h-10 items-stretch border border-rule-2">
+    <div ref={root} role="radiogroup" aria-label={label} className="relative inline-flex min-h-10 items-stretch border border-rule-2">
       {items.map((it, i) => {
         const on = it.id === value;
         const b = (
           <button ref={(el) => { btns.current[it.id] = el; }} type="button" data-slug-id={it.id} role="radio" aria-checked={on} aria-disabled={it.disabled || undefined}
             tabIndex={on ? 0 : -1} onKeyDown={(e) => key(e, i)} onClick={() => { if (it.disabled) return; haptic("select"); onChange(it.id); }}
-            className={cn("type-nav relative min-w-(--mm-hit-min) px-4 transition-colors duration-(--mm-dur-beat) active:translate-y-px", i > 0 && "border-l border-rule-2", it.disabled ? "text-ink-30" : on ? "text-ink-100" : "text-ink-45 hover:text-ink-100")}>
+            className={cn("type-nav relative min-h-(--mm-hit-min) min-w-(--mm-hit-min) px-4 transition-colors duration-(--mm-dur-beat) active:translate-y-px", i > 0 && "border-l border-rule-2", it.disabled ? "text-ink-30" : on ? "text-ink-100" : "text-ink-45 hover:text-ink-100")}>
             <span data-slug-label>{it.label}</span>
           </button>
         );

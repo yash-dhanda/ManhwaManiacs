@@ -94,7 +94,7 @@ export function Button({ variant = "primary", size = "md", children, icon, folio
           {isPlay ? <PlayGlyph playing={!!playing} /> : (
             <>
               {(selected && variant === "secondary") || icon ? (selected && variant === "secondary" ? <Glyph name="check" size={20} /> : <Icon name={icon!} size={20} />) : null}
-              <span className={`transition-opacity duration-(--mm-dur-beat)`}>{label}</span>
+              <span className="inline-flex items-center gap-1 transition-opacity duration-(--mm-dur-beat)">{label}</span>
               {variant === "split" && folio && !off ? (
                 <>
                   <span aria-hidden className={`${stacked ? "h-px w-full" : "h-5 w-px"} bg-paper-0`} />

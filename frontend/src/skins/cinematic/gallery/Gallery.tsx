@@ -1,5 +1,5 @@
 "use client";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { KeyboardProvider } from "@/lib/keyboard";
 import { useDuotone } from "../duotone";
 import { Grain } from "../Grain";
@@ -8,7 +8,7 @@ import { Avatar } from "../primitives/Avatar";
 import { AVATAR_PRESETS } from "../primitives/avatar-presets";
 import { Badge, readingStatusLabel } from "../primitives/Badge";
 import { Button } from "../primitives/Button";
-import { CineImage } from "../primitives/CineImage";
+import { CineImage, EagerImages } from "../primitives/CineImage";
 import { IconButton } from "../primitives/IconButton";
 import { Keycap } from "../primitives/Keycap";
 import { Credits } from "../primitives/layout/Credits";
@@ -74,9 +74,12 @@ export function Gallery() {
   const [tri, setTri] = useState<TriState>("neutral");
   const [sel, setSel] = useState(false);
   const [dl, setDl] = useState<DownloadState>("downloading");
+  const [eager, setEager] = useState(false);
+  useEffect(() => { setEager(new URLSearchParams(window.location.search).has("eager")); }, []); // eslint-disable-line react-hooks/set-state-in-effect -- read once after hydration
   return (
     <KeyboardProvider>
       <MotionRoot>
+        <EagerImages value={eager}>
         <GridOverlay />
         <main data-testid="gallery" className="mx-auto max-w-[1760px] px-4 pb-32 frame:px-8 desktop:px-12">
           <Masthead folio="No. 04" section="PRIMITIVES" title="Programme" deck="Every Cinematic primitive, every state." />
@@ -236,6 +239,7 @@ export function Gallery() {
             <div data-testid="typed" key={`typed-${n}`}><TypedHeadline as="h2" text={HEADLINE_40} className="type-headline text-ink-100" /></div>
           </Section>
         </main>
+        </EagerImages>
       </MotionRoot>
     </KeyboardProvider>
   );

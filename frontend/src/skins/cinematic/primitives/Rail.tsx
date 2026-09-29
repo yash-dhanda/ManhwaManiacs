@@ -79,6 +79,8 @@ export function Rail(p: RailProps) {
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual is used as documented
   const virt = useVirtualizer({ count: items.length, horizontal: true, getScrollElement: () => scroller.current, estimateSize: () => w + gap, overscan: 4, enabled: virtual });
 
+  useEffect(() => { if (virtual) virt.measure(); }, [w, gap, virtual, virt]);
+
   const focusItem = useCallback((i: number) => {
     const n = Math.max(0, Math.min(items.length - 1, i));
     setFocusIx(n);

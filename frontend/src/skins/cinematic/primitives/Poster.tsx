@@ -72,8 +72,8 @@ export function Poster(p: PosterProps) {
       </Face>
       {selectMode || p.hoverIcons ? (
         <button type="button" aria-label={selected ? `Deselect ${title}` : `Select ${title}`} aria-pressed={!!selected} onClick={p.onSelect}
-          className={cn("absolute top-1 right-1 cine-z2 inline-flex size-6 items-center justify-center border border-ink-100 bg-onart text-paper-0", selected && "bg-ink-100", !selectMode && "opacity-0 group-hover/poster:opacity-100 group-focus-within/poster:opacity-100")}>
-          {selected ? <Glyph name="check" size={16} /> : null}
+          className={cn("absolute top-0 right-0 cine-z2 inline-flex min-h-(--mm-hit-min) min-w-(--mm-hit-min) items-center justify-center", !selectMode && "opacity-0 group-hover/poster:opacity-100 group-focus-within/poster:opacity-100")}>
+          <span className={cn("inline-flex size-6 items-center justify-center border border-ink-100 bg-onart text-paper-0", selected && "bg-ink-100")}>{selected ? <Glyph name="check" size={16} /> : null}</span>
         </button>
       ) : null}
       {p.hoverIcons && !selectMode ? (

@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { sourcesLimiter, type Ticket } from "@/features/sources/request-limiter";
 import { coverTransitionName } from "@/features/sources/cover-transition-name";
 import { imagePixelRatio } from "@/lib/device-pixels";
@@ -11,6 +11,9 @@ import { Glyph } from "./glyphs";
 import { GalleyPlate } from "./Skeleton";
 
 const VT = (React as unknown as { ViewTransition?: React.ComponentType<{ name?: string; share?: string; children: React.ReactNode }> }).ViewTransition;
+
+/** Proof screenshots and tests load every cover at once (no viewport wait). */
+export const EagerImages = createContext(false);
 
 export type MatchCut = { sourceId: string; seriesKey: string };
 
@@ -28,6 +31,7 @@ export function CineImage({ src, alt, title, className = "", position = "50% 50%
   const [failed, setFailed] = useState(false);
   const [cached, setCached] = useState(false);
   const ticket = useRef<Ticket | null>(null);
+  const eager = useContext(EagerImages);
 
   useEffect(() => {
     const el = box.current;
@@ -40,14 +44,14 @@ export function CineImage({ src, alt, title, className = "", position = "50% 50%
       ac = new AbortController();
       try { ticket.current = await acquireCover(sourcesLimiter, ac.signal); setFinal(url); } catch { /* left the viewport before the grant */ }
     };
-    if (priority || typeof IntersectionObserver === "undefined") { void start(); return () => ac?.abort(); }
+    if (priority || eager || typeof IntersectionObserver === "undefined") { void start(); return () => ac?.abort(); }
     const io = new IntersectionObserver(([e]) => {
       if (e.isIntersecting) { if (!ac) void start(); }
       else if (ac && !final) { ac.abort(); ac = null; }
     }, { rootMargin: "200px" });
     io.observe(el);
     return () => { io.disconnect(); ac?.abort(); };
-  }, [src, priority, final]);
+  }, [src, priority, eager, final]);
 
   useEffect(() => {
     const i = img.current;

@@ -55,3 +55,6 @@ html[data-contrast="more"][data-skin="cinematic"] { --mm-color-ink-45: var(--mm-
 html[data-motion="reduced"] .cine-poster-face:active { transform: none; }
 [data-skin="cinematic"] .cine-z1 { z-index: 1; }
 [data-skin="cinematic"] .cine-z2 { z-index: 2; }
+
+/* The ground: black stock, bone ink (§1, §2.1.1). The Shell paints it in the app; the preview layout has no Shell. */
+html[data-skin="cinematic"] body { background: var(--mm-color-paper-0); color: var(--mm-color-ink-100); }

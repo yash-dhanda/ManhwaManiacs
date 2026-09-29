@@ -44,7 +44,7 @@ export function FieldFrame({ id, label, helper, error, success, loading, disable
   );
 }
 
-export const INPUT_CLASS = "type-ui w-full min-w-0 text-ink-100 outline-none placeholder:text-ink-45 disabled:text-ink-30";
+export const INPUT_CLASS = "type-ui min-h-(--mm-hit-min) w-full min-w-0 text-ink-100 outline-none placeholder:text-ink-45 disabled:text-ink-30";
 
 export type CoreInputProps = FieldShared & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "id"> & { ref?: Ref<HTMLInputElement>; inputClass?: string; align?: "left" | "right"; suffix?: string; inputId?: string };
 

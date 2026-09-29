@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { Avatar } from "../Avatar";
 import { CineImage } from "../CineImage";
 import { useDuotone } from "../../duotone";
+import { hexToHls, pageTint } from "../../tint";
 import { CardRoot } from "./shared";
 
 /** §7.6 collection plate: 16:9 mosaic of the first four member covers in duotone, name over scrim-foot, credit line, shared-with avatars. */
@@ -10,12 +11,14 @@ export function CollectionPlate({ name, covers, duo, credit, sharedWith = [], se
   name: string; covers: (string | null)[]; duo?: string; credit: string; sharedWith?: string[]; selected?: boolean; href?: string; onOpen?: () => void; "data-gallery"?: string;
 }) {
   const filter = useDuotone(duo ?? "#B8B2A4");
+  const hls = hexToHls(duo ?? "#B8B2A4");
+  const tint = pageTint(hls.h, hls.s);
   const text = useRef<HTMLDivElement>(null);
   const [solidAt, setSolidAt] = useState(48);
   useLayoutEffect(() => { if (text.current) setSolidAt(text.current.offsetHeight + 8); }, [name, credit]);
   return (
     <CardRoot href={href} onOpen={onOpen} label={`${name}. ${credit}`} data-gallery={g}>
-      <div className="relative aspect-video w-full overflow-hidden bg-paper-1" style={{ ["--amb-tint" as string]: duo }}>
+      <div className="relative aspect-video w-full overflow-hidden bg-paper-1" style={{ ["--amb-tint" as string]: tint }}>
         <div className="grid size-full grid-cols-2 grid-rows-2" style={{ filter }}>
           {[0, 1, 2, 3].map((i) => <div key={i} className="relative overflow-hidden"><CineImage src={covers[i]} alt="" /></div>)}
         </div>
