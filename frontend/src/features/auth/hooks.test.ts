@@ -24,6 +24,7 @@ const PROFILE_OF_A: Profile = {
   mood: "action",
   sort_order: 0,
   mature_content_enabled: true,
+  skin: null,
   created_at: "2026-09-01T00:00:00Z",
 };
 
