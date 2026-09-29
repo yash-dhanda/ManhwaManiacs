@@ -6,11 +6,13 @@ endpoints are scoped to the request's ``(user_id, profile_id)``.
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy.orm import Session
+
+from core.errors import AppError
 
 from core.profile_context import require_profile_context
 from core.rate_limit import limiter, sources_limit, suggest_limit
@@ -48,15 +50,56 @@ class SeriesPatchRequest(BaseModel):
     sort_order: int | None = None
 
 
+class RepointRequest(BaseModel):
+    source_id: str = Field(min_length=1, max_length=64)
+    series_key: str = Field(min_length=1, max_length=512)
+    keep_old: bool = False
+
+
+class RuleCondition(BaseModel):
+    """One smart-shelf condition (cinematic §15.5). Stored, never evaluated."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    field: Literal["reading_status", "is_favorite", "new_count", "format", "content_kind"]
+    op: Literal["eq", "gte", "in", "ne"]
+    value: (
+        bool
+        | int
+        | str
+        | Annotated[list[str], Field(min_length=1, max_length=20)]
+    )
+
+    @model_validator(mode="after")
+    def _shape(self) -> "RuleCondition":
+        if (self.op == "in") != isinstance(self.value, list):
+            raise ValueError("'in' takes a list of strings; every other op a scalar")
+        if self.op == "gte" and self.field != "new_count":
+            raise ValueError("'gte' applies to new_count only")
+        return self
+
+
+class CollectionRules(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    all: list[RuleCondition] = Field(min_length=1, max_length=8)
+
+
 class CollectionCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     description: str | None = None
+    rules: CollectionRules | None = None
 
 
 class CollectionUpdateRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = None
     sort_order: int | None = None
+    rules: CollectionRules | None = None
+
+
+class CollectionOrderRequest(BaseModel):
+    items: list["CollectionSeriesRequest"]
 
 
 class CollectionSeriesRequest(BaseModel):
@@ -68,6 +111,18 @@ class TagCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     category: str = Field(default="custom")
     color: str | None = Field(default=None, max_length=16)
+
+
+class TagPatchRequest(BaseModel):
+    name: str | None = Field(default=None, max_length=255)
+    color: str | None = Field(default=None, pattern=r"^#[0-9A-Fa-f]{6}$")
+
+    @field_validator("name")
+    @classmethod
+    def _trimmed(cls, value: str | None) -> str | None:
+        if value is not None and not value.strip():
+            raise ValueError("name must not be blank")
+        return value.strip() if value is not None else None
 
 
 class SeriesTagRequest(BaseModel):
@@ -91,12 +146,18 @@ def list_series(
     search: str | None = None,
     reading_status: str | None = None,
     is_favorite: bool | None = None,
+    tag_ids: str | None = None,
+    new_only: bool = False,
 ) -> dict[str, object]:
     """Paginated list of the profile's followed series.
 
     Each item carries ``read_state`` — started or not, the furthest chapter
     opened and how many lie past it — so a card can say where the reader is
-    without a request per series.
+    without a request per series — and its ``tags``.
+
+    Every filter and sort runs over the whole library before paging:
+    ``tag_ids=1,4`` (any-of), ``new_only``, and the sorts ``last_read_at`` /
+    ``-last_read_at`` (never-read last) and ``-new_count`` (unknown last).
     """
     listing = service.list_series(
         page=page,
@@ -105,9 +166,28 @@ def list_series(
         search=search,
         reading_status=reading_status,
         is_favorite=is_favorite,
+        tag_ids=_tag_ids(tag_ids),
+        new_only=new_only,
     )
     attach_cover_colours(db, listing["items"])
     return listing
+
+
+def _tag_ids(raw: str | None) -> list[int] | None:
+    """``"1,4"`` -> ``[1, 4]``; anything but positive integers is 422."""
+    if raw is None:
+        return None
+    try:
+        ids = [int(part) for part in raw.split(",")]
+    except ValueError:
+        ids = []
+    if not ids or any(i < 1 for i in ids):
+        raise AppError(
+            "tag_ids must be comma-separated positive integers.",
+            code="invalid_tag_ids",
+            status_code=422,
+        )
+    return ids
 
 
 @router.get("/series/{followed_id}")
@@ -125,6 +205,24 @@ def patch_series(
     """Update favorite / reading_status / notify / mature_override / sort_order."""
     row = service.patch(followed_id, **body.model_dump(exclude_unset=True))
     return attach_cover_colours(db, [row])[0]
+
+
+@router.post(
+    "/series/{followed_id}/repoint", dependencies=[Depends(require_profile_context)]
+)
+def repoint_series(
+    followed_id: int, body: RepointRequest, service: ServiceDep, db: DbDep
+) -> dict[str, object]:
+    """Move a follow to another source (``keep_old`` keeps the old one too).
+
+    Completed chapters carry over by chapter number without inventing reading
+    time; ``mapped_chapter_key`` is where the reader resumes on the target.
+    """
+    result = service.repoint(
+        followed_id, body.source_id, body.series_key, keep_old=body.keep_old
+    )
+    attach_cover_colours(db, [result["followed"]])
+    return result
 
 
 @router.post("/follow", dependencies=[Depends(require_profile_context)])
@@ -321,7 +419,11 @@ def list_collections(service: ServiceDep, response: Response) -> list[dict[str, 
 def create_collection(
     body: CollectionCreateRequest, service: ServiceDep
 ) -> dict[str, object]:
-    return service.create_collection(name=body.name, description=body.description)
+    return service.create_collection(
+        name=body.name,
+        description=body.description,
+        rules=body.rules.model_dump() if body.rules is not None else None,
+    )
 
 
 @router.get("/collections/{collection_id}")
@@ -362,6 +464,20 @@ def add_series_to_collection(
     )
 
 
+@router.put(
+    "/collections/{collection_id}/series/order",
+    status_code=204,
+    dependencies=[Depends(require_profile_context)],
+)
+def reorder_collection(
+    collection_id: int, body: CollectionOrderRequest, service: ServiceDep
+) -> None:
+    """The full ordered list of the members this profile can see."""
+    service.reorder_collection(
+        collection_id, [(i.source_id, i.series_key) for i in body.items]
+    )
+
+
 @router.delete(
     "/collections/{collection_id}/series",
     status_code=204,
@@ -394,6 +510,14 @@ def create_tag(body: TagCreateRequest, service: ServiceDep) -> dict[str, object]
     return service.create_tag(
         name=body.name, category=body.category, color=body.color
     )
+
+
+@router.patch("/tags/{tag_id}", dependencies=[Depends(require_profile_context)])
+def update_tag(
+    tag_id: int, body: TagPatchRequest, service: ServiceDep
+) -> dict[str, object]:
+    """Rename and/or recolour; ``"color": null`` clears the colour."""
+    return service.update_tag(tag_id, **body.model_dump(exclude_unset=True))
 
 
 @router.delete(

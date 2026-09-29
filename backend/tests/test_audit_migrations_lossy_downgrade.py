@@ -38,7 +38,7 @@ from alembic.config import Config
 
 import database.session as dbs
 
-_HEAD = "0019_cover_palette"
+_HEAD = "0020_collection_rules"
 _BEFORE_0010 = "0009_reading_session_duration"
 _BEFORE_0002 = "0001_source_native"
 

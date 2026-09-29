@@ -17,7 +17,8 @@ from typing import Annotated, Any, NamedTuple
 from urllib.parse import quote
 
 from fastapi import Depends
-from sqlalchemy import and_, func, or_, select, tuple_
+from sqlalchemy import and_, delete, func, literal as sa_literal, or_, select, tuple_
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session, defer
 
 from connectors.ids import fully_unquote
@@ -45,6 +46,7 @@ from database.models import (
     Tag,
 )
 from database.session import get_db
+from services.cover_colour import attach_cover_colours
 from services.browse_service import (
     BrowseService,
     chapter_identity,
@@ -107,6 +109,21 @@ def _next_known_chapter(
         if chapter["key"] == chapter_key:
             return ordered[index + 1] if index + 1 < len(ordered) else None
     return None
+
+
+def _known_chapters(chapters: list[dict[str, Any]]) -> str:
+    """A live chapter list as ``followed_series.known_chapters`` stores it."""
+    return json.dumps(
+        [
+            {
+                "key": c.get("id"),
+                "number": c.get("number"),
+                "title": c.get("title"),
+                "published_at": c.get("release_date"),
+            }
+            for c in chapters
+        ]
+    )
 
 
 def _reading_state(
@@ -575,21 +592,7 @@ class FollowedSeriesService:
         # fetch per row, every interval), so they are capped per profile —
         # uncapped follows let one profile turn the sweep into an hours-long
         # network job for the whole instance (audit finding 14).
-        max_follows = get_settings().max_follows_per_profile
-        if max_follows > 0:
-            count = int(
-                self._db.execute(
-                    self._scope(select(func.count()).select_from(FollowedSeries))
-                ).scalar_one()
-                or 0
-            )
-            if count >= max_follows:
-                raise AppError(
-                    "Follow limit reached for this profile.",
-                    code="follow_limit_reached",
-                    status_code=400,
-                    details={"max_follows": max_follows},
-                )
+        self._check_follow_limit()
 
         meta: dict[str, Any] = {}
         chapters: list[dict[str, Any]] = []
@@ -612,17 +615,7 @@ class FollowedSeriesService:
             title=str(meta.get("title") or series_key),
             cover_url=meta.get("cover_url"),
             content_rating=content_rating,
-            known_chapters=json.dumps(
-                [
-                    {
-                        "key": c.get("id"),
-                        "number": c.get("number"),
-                        "title": c.get("title"),
-                        "published_at": c.get("release_date"),
-                    }
-                    for c in chapters
-                ]
-            ),
+            known_chapters=_known_chapters(chapters),
             last_checked_at=utcnow() if chapters else None,
         )
         # Resolved before the insert, on the row as it would be stored: a
@@ -640,6 +633,248 @@ class FollowedSeriesService:
             self._cache.write_through(source_id, series_key, meta, chapters)
         # Progress outlives an unfollow, so a re-follow can already be started.
         return self._serialize_with_state(row)
+
+    def _check_follow_limit(self) -> None:
+        """Refuse a new follow past ``max_follows_per_profile``."""
+        max_follows = get_settings().max_follows_per_profile
+        if max_follows > 0:
+            count = int(
+                self._db.execute(
+                    self._scope(select(func.count()).select_from(FollowedSeries))
+                ).scalar_one()
+                or 0
+            )
+            if count >= max_follows:
+                raise AppError(
+                    "Follow limit reached for this profile.",
+                    code="follow_limit_reached",
+                    status_code=400,
+                    details={"max_follows": max_follows},
+                )
+
+    def repoint(
+        self, followed_id: int, source_id: str, series_key: str, *, keep_old: bool = False
+    ) -> dict[str, Any]:
+        """Move a follow to another source, carrying its progress by chapter number.
+
+        Completed chapters of the old series are copied onto the target
+        chapters with the same number, written directly so no reading session
+        (time, pages, streak day) is invented; the old rows stay. ``keep_old``
+        leaves the old follow alone and creates a second one; otherwise the row
+        is repointed in place and its collection and tag rows move with it.
+        """
+        profile_id = self._require_profile()
+        row = self._get_visible(followed_id)
+        self._browse.ensure_visible(source_id)
+        series_key = fully_unquote(series_key)
+        not_found = AppError("Series not found.", code="series_not_found", status_code=404)
+        if (source_id, series_key) == (row.source_id, row.series_key):
+            raise AppError("That is this series.", code="same_series", status_code=422)
+        existing = self._db.execute(
+            self._scope(
+                select(FollowedSeries).where(
+                    FollowedSeries.source_id == source_id,
+                    FollowedSeries.series_key == series_key,
+                )
+            )
+        ).scalar_one_or_none() or self._followed_under_another_key(source_id, series_key)
+        if existing is not None:
+            if existing.id == row.id:
+                raise AppError("That is this series.", code="same_series", status_code=422)
+            if self._hidden(existing):
+                raise not_found
+            raise AppError(
+                "That series is already followed.",
+                code="already_followed",
+                status_code=409,
+                details={"followed_id": existing.id},
+            )
+        if self._cache.series_hidden(source_id, series_key):
+            raise not_found
+
+        # Live, and allowed to fail: a connector error is the browse layer's
+        # own ``source_unreachable`` and nothing has been written yet.
+        meta = self._browse.get_series(source_id, series_key)
+        chapters = self._browse.get_chapters(source_id, series_key)
+        content_rating = rating_from_genres(tuple(meta.get("genres") or ()))
+        if self._hidden(
+            FollowedSeries(
+                source_id=source_id, series_key=series_key, content_rating=content_rating
+            )
+        ):
+            raise not_found
+
+        by_number: dict[float, dict[str, Any]] = {}
+        for chapter in chapters:
+            number = chapter.get("number")
+            if isinstance(number, (int, float)):
+                by_number.setdefault(round(float(number), 3), chapter)
+
+        # The furthest chapter, and the target chapter it lands on.
+        state = self._read_states([row])[row.id]
+        furthest = state.get("chapter_number") if state.get("started") else None
+        mapped: dict[str, Any] | None = None
+        if isinstance(furthest, (int, float)):
+            n = round(float(furthest), 3)
+            mapped = by_number.get(n)
+            if mapped is None:
+                below = [k for k in by_number if k <= n]
+                mapped = by_number[max(below)] if below else None
+
+        # Completed chapters, copied by number. ponytail: rows stored under
+        # another key of a drifting old series are not carried; add
+        # ``_alias_rows`` here if a repoint from Asura needs them.
+        old_rows = self._db.execute(
+            self._progress_scope(
+                select(ChapterProgress).where(
+                    ChapterProgress.source_id == row.source_id,
+                    ChapterProgress.series_key == row.series_key,
+                    ChapterProgress.is_completed.is_(True),
+                    ChapterProgress.chapter_number.is_not(None),
+                )
+            )
+        ).scalars().all()
+        held = {
+            p.chapter_key: p
+            for p in self._db.execute(
+                self._progress_scope(
+                    select(ChapterProgress).where(
+                        ChapterProgress.source_id == source_id,
+                        ChapterProgress.series_key == series_key,
+                    )
+                )
+            ).scalars()
+        }
+        for old in old_rows:
+            target = by_number.get(round(float(old.chapter_number), 3))
+            if target is None or not target.get("id"):
+                continue
+            key = fully_unquote(str(target["id"]))
+            current = held.get(key)
+            if current is None:
+                current = held[key] = ChapterProgress(
+                    user_id=self._user_id,
+                    profile_id=profile_id,
+                    source_id=source_id,
+                    series_key=series_key,
+                    chapter_key=key,
+                    chapter_number=float(target["number"]),
+                    last_page=old.last_page,
+                    page_count=old.page_count,
+                    is_completed=True,
+                    started_at=old.started_at or old.last_read_at,
+                    completed_at=old.completed_at,
+                    last_read_at=old.last_read_at,
+                    time_spent_seconds=0,
+                )
+                self._db.add(current)
+            elif not current.is_completed:
+                current.is_completed = True
+                current.completed_at = current.completed_at or old.completed_at
+                current.last_page = max(current.last_page, old.last_page)
+                current.page_count = max(current.page_count, old.page_count)
+
+        old_pair = (row.source_id, row.series_key)
+        now = utcnow()
+        if keep_old:
+            self._check_follow_limit()
+            target_row = FollowedSeries(
+                user_id=self._user_id,
+                profile_id=profile_id,
+                is_favorite=row.is_favorite,
+                reading_status=row.reading_status,
+                notify=row.notify,
+                sort_order=row.sort_order,
+            )
+            self._db.add(target_row)
+        else:
+            target_row = row
+            target_row.mature_override = None
+        target_row.source_id = source_id
+        target_row.series_key = series_key
+        target_row.title = str(meta.get("title") or series_key)
+        target_row.cover_url = meta.get("cover_url")
+        target_row.content_rating = content_rating
+        target_row.known_chapters = _known_chapters(chapters)
+        target_row.last_checked_at = now if chapters else None
+        target_row.migrated_from_source, target_row.migrated_from_series_key = old_pair
+        target_row.migrated_at = now
+        target_row.updated_at = now
+        self._carry_shelves(old_pair, (source_id, series_key), move=not keep_old)
+        self._db.commit()
+        self._db.refresh(target_row)
+        if meta or chapters:
+            self._cache.write_through(source_id, series_key, meta, chapters)
+        return {
+            "followed": self._serialize_with_state(target_row),
+            "mapped_chapter_key": mapped.get("id") if mapped else None,
+            "mapped_chapter_number": float(mapped["number"]) if mapped else None,
+        }
+
+    def _carry_shelves(
+        self, old: tuple[str, str], new: tuple[str, str], *, move: bool
+    ) -> None:
+        """Copy this profile's collection and tag rows from ``old`` to ``new``;
+        with ``move``, the old ones are then removed. A row the target already
+        has is kept as it is."""
+        collections = self._collection_scope(select(Collection.id))
+        member_cols = ("collection_id", "sort_order", "added_at")
+        members = select(
+            CollectionSeries.collection_id,
+            *(sa_literal(v) for v in new),
+            CollectionSeries.sort_order,
+            CollectionSeries.added_at,
+        ).where(
+            CollectionSeries.collection_id.in_(collections),
+            CollectionSeries.source_id == old[0],
+            CollectionSeries.series_key == old[1],
+        )
+        self._db.execute(
+            sqlite_insert(CollectionSeries)
+            .from_select(
+                [member_cols[0], "source_id", "series_key", *member_cols[1:]], members
+            )
+            .on_conflict_do_nothing()
+        )
+        tags = select(
+            ProfileSeriesTag.user_id,
+            ProfileSeriesTag.profile_id,
+            *(sa_literal(v) for v in new),
+            ProfileSeriesTag.tag_id,
+            ProfileSeriesTag.is_ai_generated,
+            ProfileSeriesTag.confidence,
+        ).where(
+            ProfileSeriesTag.user_id == self._user_id,
+            ProfileSeriesTag.profile_id == self._profile_id,
+            ProfileSeriesTag.source_id == old[0],
+            ProfileSeriesTag.series_key == old[1],
+        )
+        self._db.execute(
+            sqlite_insert(ProfileSeriesTag)
+            .from_select(
+                ["user_id", "profile_id", "source_id", "series_key", "tag_id",
+                 "is_ai_generated", "confidence"],
+                tags,
+            )
+            .on_conflict_do_nothing()
+        )
+        if not move:
+            return
+        self._db.execute(
+            delete(CollectionSeries).where(
+                CollectionSeries.collection_id.in_(collections),
+                CollectionSeries.source_id == old[0],
+                CollectionSeries.series_key == old[1],
+            )
+        )
+        self._db.execute(
+            delete(ProfileSeriesTag).where(
+                ProfileSeriesTag.user_id == self._user_id,
+                ProfileSeriesTag.profile_id == self._profile_id,
+                ProfileSeriesTag.source_id == old[0],
+                ProfileSeriesTag.series_key == old[1],
+            )
+        )
 
     def _next_follow_sort_order(self) -> int:
         """One past the largest ``sort_order`` this profile's follows hold.
@@ -825,10 +1060,26 @@ class FollowedSeriesService:
         search: str | None = None,
         reading_status: str | None = None,
         is_favorite: bool | None = None,
+        tag_ids: list[int] | None = None,
+        new_only: bool = False,
         **_ignored: Any,
     ) -> dict[str, Any]:
         self._require_owner()
         stmt = self._scope(select(FollowedSeries).options(*self._NO_CHAPTERS))
+        if tag_ids:
+            # Any-of, over the whole library before paging. Scoped to the
+            # caller, so an id another profile owns matches nothing.
+            stmt = stmt.where(
+                select(ProfileSeriesTag.tag_id)
+                .where(
+                    ProfileSeriesTag.user_id == FollowedSeries.user_id,
+                    ProfileSeriesTag.profile_id == FollowedSeries.profile_id,
+                    ProfileSeriesTag.source_id == FollowedSeries.source_id,
+                    ProfileSeriesTag.series_key == FollowedSeries.series_key,
+                    ProfileSeriesTag.tag_id.in_(tag_ids),
+                )
+                .exists()
+            )
         if reading_status:
             stmt = stmt.where(FollowedSeries.reading_status == reading_status)
         if is_favorite is not None:
@@ -857,17 +1108,45 @@ class FollowedSeriesService:
             )
         elif key in ("created_at", "recently_added"):
             rows.sort(key=lambda r: r.created_at, reverse=True)
+        elif key == "last_read_at":
+            last = self._last_read(rows)
+            rows.sort(key=lambda r: (r.title or "").lower())
+            rows = sorted(
+                (r for r in rows if r.id in last),
+                key=lambda r: last[r.id],
+                reverse=reverse,
+            ) + [r for r in rows if r.id not in last]
+
+        # The whole filtered set's read states, only when a sort or filter
+        # needs them; otherwise just the page's, below.
+        all_states: dict[int, dict[str, Any]] | None = None
+        if key == "new_count" or new_only:
+            all_states = self._read_states(rows)
+        if new_only:
+            rows = [r for r in rows if (all_states[r.id].get("new_count") or 0) >= 1]
+        if key == "new_count":
+            count = {r.id: all_states[r.id].get("new_count") for r in rows}
+            rows.sort(key=lambda r: (r.title or "").lower())
+            rows = sorted(
+                (r for r in rows if count[r.id] is not None),
+                key=lambda r: count[r.id],
+                reverse=reverse,
+            ) + [r for r in rows if count[r.id] is None]
 
         total = len(rows)
         start = (page - 1) * per_page
         window = rows[start : start + per_page]
         # For the page only: the rows beyond it are never drawn.
-        read_states = self._read_states(window)
+        read_states = all_states or self._read_states(window)
+        tags = self._tags_for([(r.source_id, r.series_key) for r in window])
         return {
             "items": [
-                self.serialize(
-                    r, include_chapters=False, read_state=read_states[r.id]
-                )
+                {
+                    **self.serialize(
+                        r, include_chapters=False, read_state=read_states[r.id]
+                    ),
+                    "tags": tags.get((r.source_id, r.series_key), []),
+                }
                 for r in window
             ],
             "total": total,
@@ -878,6 +1157,59 @@ class FollowedSeriesService:
             "has_more": start + per_page < total,
             "total_pages": max(1, -(-total // per_page)),
         }
+
+    def _last_read(self, rows: list[FollowedSeries]) -> dict[int, Any]:
+        """``followed_id -> newest last_read_at`` for the started ``rows``,
+        in one grouped statement. ponytail: rows under another key of a
+        drifting series are not counted; ``_alias_rows`` if Asura needs it."""
+        wanted = {r.id for r in rows}
+        stmt = self._progress_scope(
+            self._scope(
+                select(FollowedSeries.id, func.max(ChapterProgress.last_read_at))
+                .join(
+                    ChapterProgress,
+                    and_(
+                        ChapterProgress.user_id == FollowedSeries.user_id,
+                        ChapterProgress.profile_id == FollowedSeries.profile_id,
+                        ChapterProgress.source_id == FollowedSeries.source_id,
+                        ChapterProgress.series_key == FollowedSeries.series_key,
+                    ),
+                )
+                .group_by(FollowedSeries.id)
+            )
+        )
+        return {
+            fid: at
+            for fid, at in self._db.execute(stmt).all()
+            if fid in wanted and at is not None
+        }
+
+    def _tags_for(
+        self, pairs: list[tuple[str, str]]
+    ) -> dict[tuple[str, str], list[dict[str, Any]]]:
+        """``(source_id, series_key) -> [tag]`` for this profile, by tag name."""
+        out: dict[tuple[str, str], list[dict[str, Any]]] = {}
+        wanted = list(set(pairs))
+        if not wanted or self._profile_id is None:
+            return out
+        for chunk in _chunks(wanted, _IN_CHUNK):
+            stmt = self._tag_scope(
+                select(ProfileSeriesTag.source_id, ProfileSeriesTag.series_key, Tag)
+                .join(Tag, Tag.id == ProfileSeriesTag.tag_id)
+                .where(
+                    ProfileSeriesTag.user_id == self._user_id,
+                    ProfileSeriesTag.profile_id == self._profile_id,
+                    tuple_(ProfileSeriesTag.source_id, ProfileSeriesTag.series_key).in_(
+                        chunk
+                    ),
+                )
+                .order_by(Tag.name)
+            )
+            for source_id, series_key, tag in self._db.execute(stmt).all():
+                out.setdefault((source_id, series_key), []).append(
+                    self._serialize_tag(tag)
+                )
+        return out
 
     def get_detail(self, followed_id: int) -> dict[str, Any]:
         self._require_owner()
@@ -1617,7 +1949,7 @@ class FollowedSeriesService:
         """
         return mature_tracker_case(CollectionSeries.source_id)
 
-    def _visible_members(self, stmt):
+    def _visible_members(self, stmt, *, join: bool = False):
         """Restrict a ``collection_series`` statement to what the gate allows.
 
         A membership row carries no rating of its own — it is a bare
@@ -1628,11 +1960,13 @@ class FollowedSeriesService:
         inner join would silently drop every unfollowed member instead.
 
         Applied only when the gate is shut: an open gate filters nothing and
-        should not pay for the join.
+        should not pay for the join -- unless ``join`` asks for the follow's
+        columns (the plate's cover URL) anyway.
         """
-        if self._gate_open():
+        gate_open = self._gate_open()
+        if gate_open and not join:
             return stmt
-        return stmt.outerjoin(
+        stmt = stmt.outerjoin(
             FollowedSeries,
             and_(
                 FollowedSeries.user_id == self._user_id,
@@ -1640,7 +1974,8 @@ class FollowedSeriesService:
                 FollowedSeries.source_id == CollectionSeries.source_id,
                 FollowedSeries.series_key == CollectionSeries.series_key,
             ),
-        ).where(self._mature_case() == 0)
+        )
+        return stmt if gate_open else stmt.where(self._mature_case() == 0)
 
     def _member_counts(self, collection_ids: list[int]) -> dict[int, int]:
         """``collection_id -> visible member count``, in one statement.
@@ -1666,19 +2001,118 @@ class FollowedSeriesService:
             ).all()
         )
 
+    def _previews(self, collection_ids: list[int]) -> dict[int, list[tuple[str, str, str]]]:
+        """``collection_id -> [(source_id, series_key, cover_url)]``: the first
+        four VISIBLE members in ``(sort_order, added_at)`` order, one statement
+        for every collection. The gate filters before the window is counted,
+        so a gated plate shows its next safe member, never a mature cover."""
+        if not collection_ids:
+            return {}
+        rank = (
+            func.row_number()
+            .over(
+                partition_by=CollectionSeries.collection_id,
+                order_by=(CollectionSeries.sort_order, CollectionSeries.added_at),
+            )
+            .label("rank")
+        )
+        inner = self._visible_members(
+            select(
+                CollectionSeries.collection_id,
+                CollectionSeries.source_id,
+                CollectionSeries.series_key,
+                FollowedSeries.cover_url,
+                rank,
+            ).where(CollectionSeries.collection_id.in_(collection_ids)),
+            join=True,
+        ).subquery()
+        out: dict[int, list[tuple[str, str, str]]] = {}
+        for cid, source_id, series_key, cover, _rank in self._db.execute(
+            select(inner).where(inner.c.rank <= 4).order_by(
+                inner.c.collection_id, inner.c.rank
+            )
+        ).all():
+            out.setdefault(cid, []).append(
+                (
+                    source_id,
+                    series_key,
+                    cover
+                    or f"/sources/{source_id}/series/{quote(series_key, safe='')}/cover",
+                )
+            )
+        return out
+
     def list_collections(self) -> list[dict[str, Any]]:
         self._require_owner()
         rows = self._db.execute(
             self._collection_scope(select(Collection)).order_by(Collection.sort_order)
         ).scalars().all()
-        counts = self._member_counts([c.id for c in rows])
+        ids = [c.id for c in rows]
+        counts = self._member_counts(ids)
+        previews = self._previews(ids)
+        firsts = [
+            {"source_id": members[0][0], "series_key": members[0][1]}
+            for members in previews.values()
+        ]
+        attach_cover_colours(self._db, firsts)
+        duo = {
+            cid: (first["ambient"] or {}).get("duo")
+            for cid, first in zip(previews, firsts)
+        }
         return [
-            self._serialize_collection(c, series_count=counts.get(c.id, 0))
+            {
+                **self._serialize_collection(c, series_count=counts.get(c.id, 0)),
+                "preview_covers": [m[2] for m in previews.get(c.id, [])],
+                "preview_ambient_duo": duo.get(c.id),
+            }
             for c in rows
         ]
 
+    def reorder_collection(
+        self, collection_id: int, items: list[tuple[str, str]]
+    ) -> None:
+        """Set the member order from the full list of VISIBLE members.
+
+        ``items`` must be exactly the members this profile can see, no
+        duplicates, else 422 ``order_mismatch``. Members the gate hides keep
+        their relative order after the visible ones.
+        """
+        self._require_owner()
+        self._owned_collection(collection_id)
+        pairs = [(source_id, fully_unquote(key)) for source_id, key in items]
+        visible = {
+            (m.source_id, m.series_key)
+            for m in self._db.execute(
+                self._visible_members(
+                    select(CollectionSeries.source_id, CollectionSeries.series_key).where(
+                        CollectionSeries.collection_id == collection_id
+                    )
+                )
+            ).all()
+        }
+        if len(set(pairs)) != len(pairs) or set(pairs) != visible:
+            raise AppError(
+                "The order must list every member exactly once.",
+                code="order_mismatch",
+                status_code=422,
+            )
+        position = {pair: index for index, pair in enumerate(pairs)}
+        members = self._db.execute(
+            select(CollectionSeries)
+            .where(CollectionSeries.collection_id == collection_id)
+            .order_by(CollectionSeries.sort_order, CollectionSeries.added_at)
+        ).scalars().all()
+        for rank, member in enumerate(members):
+            pair = (member.source_id, member.series_key)
+            member.sort_order = position.get(pair, len(pairs) + rank)
+        self._db.commit()
+
     def create_collection(
-        self, *, name: str, description: str | None = None
+        self,
+        *,
+        name: str,
+        description: str | None = None,
+        rules: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         self._require_profile()
         row = Collection(
@@ -1686,6 +2120,7 @@ class FollowedSeriesService:
             profile_id=self._profile_id,
             name=name.strip(),
             description=description,
+            rules=json.dumps(rules) if rules is not None else None,
         )
         self._db.add(row)
         self._db.commit()
@@ -1733,6 +2168,9 @@ class FollowedSeriesService:
             row.description = changes["description"]
         if changes.get("sort_order") is not None:
             row.sort_order = int(changes["sort_order"])
+        if "rules" in changes:
+            rules = changes["rules"]
+            row.rules = json.dumps(rules) if rules is not None else None
         self._db.commit()
         self._db.refresh(row)
         return self._serialize_collection(
@@ -1841,6 +2279,11 @@ class FollowedSeriesService:
             "description": row.description,
             "sort_order": row.sort_order,
             "series_count": len(row.series) if series_count is None else series_count,
+            # Stored, never evaluated here: smart-shelf membership is computed
+            # on the device (cinematic §8.11).
+            "rules": _loads(row.rules),
+            "smart": row.rules is not None,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
         }
 
     # --- tags -----------------------------------------------------
@@ -1870,13 +2313,71 @@ class FollowedSeriesService:
             "color": row.color,
         }
 
+    def _tag_counts(self, tag_ids: list[int]) -> dict[int, int]:
+        """``tag_id -> series carrying it`` in this scope, counted through the
+        gate rule ``_visible_members`` uses, so a gated profile never learns a
+        hidden series carries the tag. The primary key makes each
+        ``(source_id, series_key)`` distinct per tag already."""
+        if not tag_ids:
+            return {}
+        stmt = select(ProfileSeriesTag.tag_id, func.count()).where(
+            ProfileSeriesTag.user_id == self._user_id,
+            ProfileSeriesTag.profile_id == self._profile_id,
+            ProfileSeriesTag.tag_id.in_(tag_ids),
+        )
+        if not self._gate_open():
+            stmt = stmt.outerjoin(
+                FollowedSeries,
+                and_(
+                    FollowedSeries.user_id == ProfileSeriesTag.user_id,
+                    FollowedSeries.profile_id == ProfileSeriesTag.profile_id,
+                    FollowedSeries.source_id == ProfileSeriesTag.source_id,
+                    FollowedSeries.series_key == ProfileSeriesTag.series_key,
+                ),
+            ).where(mature_tracker_case(ProfileSeriesTag.source_id) == 0)
+        return dict(self._db.execute(stmt.group_by(ProfileSeriesTag.tag_id)).all())
+
     def list_tags(self, *, category: str | None = None) -> list[dict[str, Any]]:
         self._require_owner()
         stmt = self._tag_scope(select(Tag))
         if category:
             stmt = stmt.where(Tag.category == category)
         rows = self._db.execute(stmt.order_by(Tag.name)).scalars().all()
-        return [self._serialize_tag(t) for t in rows]
+        counts = self._tag_counts([t.id for t in rows])
+        return [
+            {**self._serialize_tag(t), "series_count": counts.get(t.id, 0)}
+            for t in rows
+        ]
+
+    def update_tag(self, tag_id: int, **changes: Any) -> dict[str, Any]:
+        """Rename and recolour. ``color: None`` clears it; a name another tag
+        in this scope already has (any case) is 409 ``tag_exists``."""
+        self._require_owner()
+        row = self._owned_tag(tag_id)
+        if changes.get("name") is not None:
+            name = str(changes["name"]).strip()
+            clash = self._db.execute(
+                self._tag_scope(
+                    select(Tag.id).where(
+                        func.lower(Tag.name) == name.lower(), Tag.id != tag_id
+                    )
+                )
+            ).first()
+            if clash is not None:
+                raise AppError(
+                    "A tag with that name already exists.",
+                    code="tag_exists",
+                    status_code=409,
+                )
+            row.name = name
+        if "color" in changes:
+            row.color = changes["color"]
+        self._db.commit()
+        self._db.refresh(row)
+        return {
+            **self._serialize_tag(row),
+            "series_count": self._tag_counts([row.id]).get(row.id, 0),
+        }
 
     def create_tag(
         self, *, name: str, category: str = "custom", color: str | None = None
@@ -1947,7 +2448,11 @@ class FollowedSeriesService:
     # --- serialization -------------------------------------------
 
     def _serialize_with_state(self, row: FollowedSeries) -> dict[str, Any]:
-        return self.serialize(row, read_state=self._read_states([row])[row.id])
+        pair = (row.source_id, row.series_key)
+        return {
+            **self.serialize(row, read_state=self._read_states([row])[row.id]),
+            "tags": self._tags_for([pair]).get(pair, []),
+        }
 
     def serialize(
         self,

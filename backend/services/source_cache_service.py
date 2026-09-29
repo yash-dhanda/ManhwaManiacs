@@ -423,7 +423,7 @@ class SourceCacheService:
         gated["items"] = visible
         return gated
 
-    def _series_key_hides(self, source_id: str, series_key: str) -> bool:
+    def series_hidden(self, source_id: str, series_key: str) -> bool:
         """Whether this caller's gate hides the SERIES behind a cached artifact.
 
         A cover row carries no rating of its own -- it is bytes keyed by
@@ -629,7 +629,7 @@ class SourceCacheService:
         # ...and the SERIES' own rating, which ``ensure_visible`` says nothing
         # about. Before the cache lookup, so a hit cannot answer what a miss
         # would refuse.
-        if self._series_key_hides(source_id, series_key):
+        if self.series_hidden(source_id, series_key):
             raise AppError(
                 "Series not found.",
                 code="series_not_found",

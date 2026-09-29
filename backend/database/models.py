@@ -696,6 +696,9 @@ class Collection(Base):
     description: Mapped[str | None] = mapped_column(Text)
     cover_url: Mapped[str | None] = mapped_column(String(1024))
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    #: Smart-shelf rules as JSON ``{"all": [{field, op, value}]}``, or NULL
+    #: for a plain collection. Stored only; the device evaluates membership.
+    rules: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=utcnow, onupdate=utcnow

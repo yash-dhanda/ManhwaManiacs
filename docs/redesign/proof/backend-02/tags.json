@@ -1,0 +1,73 @@
+{"GET /library/tags":
+[
+    {
+        "id": 1,
+        "name": "Rewatch",
+        "category": "custom",
+        "color": "#FF8A3D",
+        "series_count": 1
+    }
+]
+, "GET /library/series?tag_ids=1":
+{
+    "items": [
+        {
+            "id": 2,
+            "source_id": "mangadex",
+            "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+            "series_identity": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+            "title": "Alphabet[a]",
+            "cover_url": "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover",
+            "is_favorite": false,
+            "reading_status": "reading",
+            "notify": true,
+            "sort_order": 1,
+            "content_rating": null,
+            "rating": "unknown",
+            "mature_override": null,
+            "chapter_count": 86,
+            "last_checked_at": "2026-09-29T10:14:50.783532",
+            "created_at": "2026-09-29T10:14:50.789288",
+            "updated_at": "2026-09-29T10:14:50.789294",
+            "read_state": {
+                "started": true,
+                "chapter_key": "82505cb1-fd60-4f5a-a148-86f04d3166b7",
+                "chapter_number": 1.0,
+                "position": 2,
+                "total": 86,
+                "latest_number": 41.0,
+                "new_count": 84
+            },
+            "tags": [
+                {
+                    "id": 1,
+                    "name": "Rewatch",
+                    "category": "custom",
+                    "color": "#FF8A3D"
+                }
+            ],
+            "ambient": {
+                "duo": "#786ECE",
+                "tint": "#0B0A15",
+                "ink": "#B1ABE3"
+            },
+            "palette": {
+                "a": [
+                    "#CBC7F2",
+                    "#9277B2",
+                    "#ADC2E6"
+                ],
+                "l": 0.622,
+                "lMax": 0.985
+            }
+        }
+    ],
+    "total": 1,
+    "page": 1,
+    "per_page": 40,
+    "page_size": 40,
+    "has_next": false,
+    "has_more": false,
+    "total_pages": 1
+}
+}

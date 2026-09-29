@@ -79,6 +79,9 @@ class ProgressRequest(BaseModel):
     #: a running total: the server accumulates (``merge_progress``), so a
     #: cumulative figure would be re-added on every push and on every replay.
     time_spent_seconds: int = Field(default=0, ge=0)
+    #: Mark read / Mark read up to here: saves the position but writes no
+    #: reading session, so no time, pages or streak day is invented.
+    manual: bool = False
 
     def to_input(self) -> ProgressInput:
         return ProgressInput(
@@ -92,7 +95,18 @@ class ProgressRequest(BaseModel):
             is_completed=self.is_completed,
             last_read_at=clamp_client_clock(self.last_read_at),
             time_spent_seconds=self.time_spent_seconds,
+            manual=self.manual,
         )
+
+
+class ProgressDeleteRequest(BaseModel):
+    """Mark unread: the chapters of one series whose positions to delete."""
+
+    source_id: str = Field(min_length=1, max_length=64)
+    series_key: str = Field(min_length=1, max_length=512)
+    chapter_keys: list[Annotated[str, Field(min_length=1, max_length=512)]] = Field(
+        min_length=1, max_length=200
+    )
 
 
 class BookmarkBody(BaseModel):
@@ -255,6 +269,24 @@ def save_progress(body: ProgressRequest, service: ProgressDep) -> dict[str, obje
         if exc.code != DB_BUSY_CODE:
             raise
         return _busy(exc)
+
+
+@router.delete(
+    "/progress", status_code=204, dependencies=[Depends(require_profile_context)]
+)
+def delete_progress(body: ProgressDeleteRequest, service: ProgressDep) -> Response:
+    """Mark unread: delete the caller's positions for up to 200 chapters.
+
+    Unknown keys are ignored; reading sessions are kept, so history and
+    statistics still show what was read. Ungated, like every write here.
+    """
+    try:
+        service.delete_chapters(body.source_id, body.series_key, body.chapter_keys)
+    except AppError as exc:
+        if exc.code != DB_BUSY_CODE:
+            raise
+        return _busy(exc)
+    return Response(status_code=204)
 
 
 # Offline-sync batches are bounded: an unbounded array was parsed fully into
