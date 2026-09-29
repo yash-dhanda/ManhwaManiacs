@@ -1,0 +1,12 @@
+{
+  "Version": 1.0,
+  "Metadata": { "Project": "ManhwaManiacs", "Description": "glass magnet" },
+  "Pattern": [
+    { "Event": { "Time": 0.0, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.4 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.9 } ] } },
+    { "Event": { "Time": 0.05, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.7 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.8 } ] } }
+  ]
+}

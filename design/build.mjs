@@ -9,10 +9,14 @@
 //   mobile/lib/skins/contract.g.dart                ScreenId, Routes, SettingsSection, events
 //   mobile/lib/skins/<skin>/tokens.g.dart           the ThemeExtension, static consts, CineType
 //   mobile/test/skins/generated_contract_test.dart  compile proof (the analyzer skips *.g.dart)
+//   mobile/test/skins/generated_glass_test.dart     the same for Glass and both motion enums
+// and, through design/build-haptics.mjs, the AHAP assets and motion-name unions of every skin.
+// A skin whose tokens carry a `glass` group uses the Glass emitters (lib/emit-glass-*.mjs).
 //
 //   node design/build.mjs           write the files
 //   node design/build.mjs --check   compare in memory, print each differing path, exit 1 on any
 //                                   difference or validation error, then run lint-utilities.mjs
+//                                   and check-contrast.mjs
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,6 +26,10 @@ import { hapticErrors } from "./lib/haptics.mjs";
 import { emitSkinCss, emitThemeCss, colorLeaves } from "./lib/emit-css.mjs";
 import { emitContractTs, emitTokensTs } from "./lib/emit-ts.mjs";
 import { emitTokensDart, emitTokenTypesDart, emitContractDart, emitContractTestDart } from "./lib/emit-dart.mjs";
+import { emitGlassCss, isGlassTokens } from "./lib/emit-glass-css.mjs";
+import { emitGlassTs } from "./lib/emit-glass-ts.mjs";
+import { emitGlassDart, emitGlassTestDart } from "./lib/emit-glass-dart.mjs";
+import { hapticsOutputs } from "./build-haptics.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const check = process.argv.includes("--check");
@@ -44,13 +52,13 @@ for (const { id, t } of skins) {
   for (const e of Object.keys(t.hapticsWeb ?? {})) if (!contract.hapticEvents.includes(e)) errors.push(`${id}: hapticsWeb names unknown event ${e}`);
   for (const e of contract.soundEvents) {
     if (!(e in (t.soundEvents ?? {}))) errors.push(`${id}: soundEvents is missing ${e}`);
-    else if (t.soundEvents[e] !== null && !(t.soundEvents[e] in (t.sounds ?? {}))) errors.push(`${id}: soundEvents ${e} names unknown cue ${t.soundEvents[e]}`);
+    else for (const cue of [t.soundEvents[e]].flat()) if (cue !== null && !(cue in (t.sounds ?? {}))) errors.push(`${id}: soundEvents ${e} names unknown cue ${cue}`);
   }
   for (const e of Object.keys(t.soundEvents ?? {})) if (!contract.soundEvents.includes(e)) errors.push(`${id}: soundEvents names unknown event ${e}`);
   // No key may collide after naming, for any target.
   const keys = [];
   for (const g of Object.keys(t)) {
-    if (g.startsWith("_") || typeof t[g] !== "object" || Array.isArray(t[g])) continue;
+    if (g.startsWith("_") || g === "runtime" || typeof t[g] !== "object" || Array.isArray(t[g])) continue;
     keys.push(...leaves(t[g], (v) => typeof v !== "object" || v === null || Array.isArray(v) || "value" in v || "bezier" in v || "ms" in v || "font" in v || "kind" in v, g).map(([k]) => k));
   }
   for (const fn of [cssName, twName, dartField]) {
@@ -68,11 +76,14 @@ out.set("frontend/src/skins/contract.generated.ts", emitContractTs(contract, hea
 out.set("mobile/lib/skins/token_types.g.dart", emitTokenTypesDart(head("design/tokens/*.json")));
 out.set("mobile/lib/skins/contract.g.dart", emitContractDart(contract, head(cSrc)));
 for (const { id, src, t } of skins) {
-  out.set(`frontend/src/skins/${id}/tokens.generated.css`, emitSkinCss(id, t, head(src)));
-  out.set(`frontend/src/skins/${id}/tokens.generated.ts`, emitTokensTs(t, head(src)));
-  out.set(`mobile/lib/skins/${id}/tokens.g.dart`, emitTokensDart(id, t, head(src)));
+  const glass = isGlassTokens(t);
+  out.set(`frontend/src/skins/${id}/tokens.generated.css`, (glass ? emitGlassCss : emitSkinCss)(id, t, head(src)));
+  out.set(`frontend/src/skins/${id}/tokens.generated.ts`, glass ? emitGlassTs(t, head(src)) : emitTokensTs(t, head(src)));
+  out.set(`mobile/lib/skins/${id}/tokens.g.dart`, (glass ? emitGlassDart : emitTokensDart)(id, t, head(src)));
 }
 out.set("mobile/test/skins/generated_contract_test.dart", emitContractTestDart(head(`${cSrc} and design/tokens/cinematic.json`)));
+out.set("mobile/test/skins/generated_glass_test.dart", emitGlassTestDart(head("design/tokens/glass.json and design/tokens/cinematic.json")));
+for (const [p, content] of hapticsOutputs(skins, head, errors)) out.set(p, content);
 
 if (errors.length) {
   for (const e of errors) console.error(`design: ${e}`);
@@ -87,8 +98,11 @@ if (check) {
   }
   console.log(differ ? `design: ${differ} of ${out.size} generated files differ; run node design/build.mjs` : `design: ${out.size} generated files match`);
   if (differ) process.exit(1);
-  const lint = spawnSync(process.execPath, [join(root, "design/lint-utilities.mjs")], { stdio: "inherit" });
-  process.exit(lint.status ?? 1);
+  for (const step of ["design/lint-utilities.mjs", "design/check-contrast.mjs"]) {
+    const r = spawnSync(process.execPath, [join(root, step)], { stdio: step.includes("contrast") ? ["inherit", "pipe", "inherit"] : "inherit", encoding: "utf8" });
+    if (step.includes("contrast")) process.stdout.write(r.status ? r.stdout : r.stdout.split("\n").filter((l) => /^(WARN|check-contrast)/.test(l)).join("\n") + "\n");
+    if (r.status !== 0) process.exit(r.status ?? 1);
+  }
 } else {
   for (const [p, content] of out) {
     const abs = join(root, p);
