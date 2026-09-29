@@ -21,6 +21,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster_throw.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/rail_focus.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/spring_value.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:motor/motor.dart';
@@ -529,6 +530,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
       checked: widget.selectMode ? widget.selected : null,
       selected: widget.selected,
       customActions: actions,
+      focusNode: GlassRailItemScope.maybeOf(context),
       focusScale: 1.04,
       hoverGlow: false,
       onHoverChanged: _hoverChanged,
@@ -557,7 +559,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
     Widget fade(bool visible, Widget child) => AnimatedOpacity(
           opacity: visible ? 1 : 0,
           duration: const Duration(milliseconds: 120),
-          child: IgnorePointer(ignoring: !visible, child: child),
+          child: ExcludeFocus(excluding: !visible, child: IgnorePointer(ignoring: !visible, child: child)),
         );
 
     Widget disc(double size, Widget child, {Color? colour}) => Container(
