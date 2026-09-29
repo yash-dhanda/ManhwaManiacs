@@ -1,20 +1,7 @@
-== cinematic /login
-1
-html preload-font links: 0
-== cinematic /
-1
-html preload-font links: 0
-== glass /login
-1
-html preload-font links: 0
-== glass /
-1
-html preload-font links: 0
-== cinematic /login Link header font preloads:
-12
-== glass /login Link header font preloads:
-12
+== cinematic /login: Link-header woff2 preloads: 0; html font links: 0
+== glass /login: Link-header woff2 preloads: 0; html font links: 0
+== legacy /login: Link-header woff2 preloads: 0; html font links: 0
 
-Result: the 12 font Link preloads on every page (Cinematic and Glass included) are Archivo, Newsreader and IBM Plex Mono,
-the pre-existing root-layout faces (present before this step). Zero preloads for Bodoni Moda, Google Sans Flex, Syne, DM Sans.
-Fallback taken: preload:false on Bodoni Moda, Google Sans Flex, Syne, DM Sans (also edited skins/legacy/fonts.ts, not listed in the spec).
+Result: zero font preloads on cinematic, glass and legacy pages, so no skin fetches another skin's faces.
+Archivo, Newsreader, IBM Plex Mono (introduced by this step), Bodoni Moda, Google Sans Flex, Syne and DM Sans all use preload:false; faces load on first use.
+Fallback taken per prompt: Bodoni is not preloaded on Cinematic. Deviation: skins/legacy/fonts.ts sets preload:false on Syne and DM Sans (not in the spec file layout); the root layout imports them for every skin, so they would otherwise preload on Cinematic and Glass pages.

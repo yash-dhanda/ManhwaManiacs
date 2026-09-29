@@ -220,7 +220,7 @@ describe("preset CSS blocks", () => {
 
   it("agrees with the motion multiplier the metadata carries", () => {
     // `--shape-motion` drives the CSS animations; `meta.motion` drives the
-    // the motion library primitives, which cannot read a custom property. Two
+    // framer-motion primitives, which cannot read a custom property. Two
     // numbers for one decision is a drift waiting to happen, so it is pinned.
     for (const preset of DESIGN_PRESETS) {
       const declared = presetBlock(preset)["--shape-motion"] ?? SHAPE_BASE["--shape-motion"];

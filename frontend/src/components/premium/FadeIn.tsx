@@ -29,7 +29,7 @@ const FULL_DURATION = 0.7;
 
 /**
  * How far outside the viewport an element starts its entrance. Kept at the
- * `viewport={{ margin: "50px" }}` this component used to pass the motion library, so
+ * `viewport={{ margin: "50px" }}` this component used to pass framer-motion, so
  * content still begins arriving just before it is scrolled to rather than
  * visibly popping at the edge.
  */
@@ -47,9 +47,9 @@ const ROOT_MARGIN = "50px";
  * transform and no observer at all.
  *
  * Plain `IntersectionObserver` and a CSS transition, not a motion library. This
- * was the only live the motion library consumer left in the app (`AnimatedText`,
+ * was the only live framer-motion consumer left in the app (`AnimatedText`,
  * `StickyStack`, `ScrollMarquee` and `Magnet` have no importers), and because
- * five routes reach it the bundler hoisted the whole of the motion library into the
+ * five routes reach it the bundler hoisted the whole of framer-motion into the
  * chunk EVERY route loads — 39 KB gzipped, carried by the reader too, to fade
  * some headings in. The animation here is a two-property transition with a
  * fixed easing; it never needed an animation engine, and on a phone the

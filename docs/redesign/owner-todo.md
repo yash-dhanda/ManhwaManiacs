@@ -13,3 +13,4 @@ Items only the owner can do, by step.
   their bounding boxes. The mark also does not read at 16 px (a ~9x4 px smudge).
   Geometry is unchanged until you decide; see the comment above `case 'mm-mark'` in
   `brand/make-glyph-masters.mjs`.
+- web/01 open: shared/02 ICON_RULES has no per-role fixed weight (design/icons.json defines none), so the Cinematic streak flame renders Light at 24, never Fill; Icon.tsx keeps a no-op roleWeights hook.

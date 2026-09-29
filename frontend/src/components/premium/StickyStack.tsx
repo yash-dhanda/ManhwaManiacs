@@ -15,7 +15,7 @@ export interface StickyStackProps {
   /**
    * Optional scroll ancestor that owns the page scroll — e.g. an app-shell inner
    * scroll container. Backward compatible: omit (or pass `null`) to track window
-   * scroll. Because the motion library binds the container on mount, remount this
+   * scroll. Because framer-motion binds the container on mount, remount this
    * component (via `key`) when the container resolves from `null` to an element.
    */
   scrollContainer?: HTMLElement | null;
