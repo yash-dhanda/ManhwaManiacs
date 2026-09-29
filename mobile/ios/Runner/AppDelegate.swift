@@ -74,8 +74,28 @@ import Vision
       name: platformChannelName,
       binaryMessenger: messenger
     )
+    // Live Reduce Transparency: Dart swaps every glass surface to solid without a restart.
+    NotificationCenter.default.addObserver(
+      forName: UIAccessibility.reduceTransparencyStatusDidChangeNotification,
+      object: nil,
+      queue: .main
+    ) { _ in
+      platformChannel.invokeMethod(
+        "a11y.reduceTransparencyChanged",
+        arguments: ["value": UIAccessibility.isReduceTransparencyEnabled]
+      )
+    }
     platformChannel.setMethodCallHandler { call, result in
       switch call.method {
+      case "a11y.reduceTransparency":
+        result(UIAccessibility.isReduceTransparencyEnabled)
+      case "a11y.contrastLevel":
+        // Increase Contrast reaches Dart through MediaQuery.highContrast on iOS.
+        result(0.0)
+      case "audio.isMusicActive":
+        result(AVAudioSession.sharedInstance().isOtherAudioPlaying)
+      case "gestures.setExclusionRects":
+        result(nil)
       case "haptics.impact":
         guard
           let args = call.arguments as? [String: Any],
