@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart' show CachingAssetBundle, ByteData;
 import 'package:haptic_feedback/haptic_feedback.dart' show HapticsType;
-import 'package:flutter/material.dart' show Theme, ThemeData;
+import 'package:flutter/material.dart' show DefaultMaterialLocalizations, Material, MaterialType, Theme, ThemeData;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -73,10 +73,17 @@ Widget primHost(
             child: DefaultTextStyle(
               style: const TextStyle(),
               child: SkinGlassRoot(
-                child: Overlay(
-                  initialEntries: [
-                    OverlayEntry(builder: (_) => align ? Align(alignment: Alignment.topLeft, child: child) : child),
-                  ],
+                child: Localizations(
+                  locale: const Locale('en'),
+                  delegates: const [DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate],
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Overlay(
+                      initialEntries: [
+                        OverlayEntry(builder: (_) => align ? Align(alignment: Alignment.topLeft, child: child) : child),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -12,6 +12,8 @@ import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 import 'package:manhwamaniacs/skins/skin_audio.dart';
+export 'package:manhwamaniacs/skins/glass/tokens.g.dart';
+
 
 const GlassTokens gt = glassTokens;
 
@@ -128,4 +130,60 @@ void glassSound(WidgetRef ref, SoundEvent e) {
   try {
     unawaited(ref.read(skinAudioProvider).play(e));
   } catch (_) {}
+}
+
+/// Text with the overrides the catalogue needs and [GlassText] does not carry: extra tracking, upper case,
+/// italics, tabular numerals. The size is already scaled and capped, like [GlassText].
+class GlassLabel extends ConsumerWidget {
+  const GlassLabel(
+    this.text, {
+    super.key,
+    required this.role,
+    this.wght,
+    this.size,
+    this.height,
+    this.color,
+    this.onGlass = false,
+    this.extraTrackingEm = 0,
+    this.upper = false,
+    this.italic = false,
+    this.maxScale = 1.5,
+    this.maxLines = 1,
+    this.textAlign,
+    this.overflow = TextOverflow.ellipsis,
+  });
+
+  final String text;
+  final GlassTypeRole role;
+  final int? wght;
+  final double? size;
+  final double? height;
+  final Color? color;
+  final bool onGlass;
+  final double extraTrackingEm;
+  final bool upper;
+  final bool italic;
+  final double maxScale;
+  final int? maxLines;
+  final TextAlign? textAlign;
+  final TextOverflow overflow;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final legible = ref.watch(glassA11yProvider.select((a) => a.legible));
+    var style = roleStyle(context, role, onGlass: onGlass, legible: legible, wght: wght, size: size, height: height, maxScale: maxScale);
+    style = style.copyWith(
+      color: color ?? (onGlass ? gt.colorOnGlass : gt.colorLabel1),
+      letterSpacing: (style.letterSpacing ?? 0) + extraTrackingEm * (style.fontSize ?? 12),
+      fontStyle: italic ? FontStyle.italic : null,
+    );
+    return Text(
+      upper ? text.toUpperCase() : text,
+      style: style,
+      maxLines: maxLines,
+      overflow: overflow,
+      textAlign: textAlign,
+      textScaler: TextScaler.noScaling,
+    );
+  }
 }

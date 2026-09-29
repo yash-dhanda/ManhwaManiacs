@@ -248,6 +248,13 @@ class GlassPressable extends ConsumerStatefulWidget {
     this.hoverGlow = true,
     this.focusScale = 1.0,
     this.onPressChanged,
+    this.onRawDown,
+    this.onRawMove,
+    this.onRawUp,
+    this.onRawCancel,
+    this.claimAfter,
+    this.cancelDistance,
+    this.suppressTap = false,
   });
 
   final Widget Function(BuildContext context, GlassPressInfo info) builder;
@@ -291,6 +298,19 @@ class GlassPressable extends ConsumerStatefulWidget {
   final bool hoverGlow;
   final double focusScale;
   final ValueChanged<bool>? onPressChanged;
+
+  /// Raw pointer passthrough for controls that own their timing (hold-to-confirm).
+  final void Function(PointerDownEvent e)? onRawDown;
+  final void Function(PointerMoveEvent e)? onRawMove;
+  final void Function(PointerUpEvent e)? onRawUp;
+  final VoidCallback? onRawCancel;
+
+  /// Claims the pointer after this long (defeating a scroll parent), and cancels [cancelDistance] away.
+  final Duration? claimAfter;
+  final double? cancelDistance;
+
+  /// A pointer release does not call [onTap] (keyboard and screen-reader activation still do).
+  final bool suppressTap;
 
   @override
   ConsumerState<GlassPressable> createState() => GlassPressableState();
@@ -351,6 +371,7 @@ class GlassPressableState extends ConsumerState<GlassPressable> with TickerProvi
     _down = true;
     _longFired = false;
     widget.onPressChanged?.call(true);
+    widget.onRawDown?.call(e);
     final local = _localOf(e.position);
     _lastLocal = local;
     _glow.value = GlassPressGlow(local, on: true);
@@ -365,6 +386,7 @@ class GlassPressableState extends ConsumerState<GlassPressable> with TickerProvi
 
   void _move(PointerMoveEvent e) {
     if (!_down) return;
+    widget.onRawMove?.call(e);
     final local = _localOf(e.position);
     _lastLocal = local;
     final g = _glow.value;
@@ -379,6 +401,7 @@ class GlassPressableState extends ConsumerState<GlassPressable> with TickerProvi
   void _release({required bool cancelled}) {
     if (!_down) return;
     _down = false;
+    if (cancelled) widget.onRawCancel?.call();
     widget.onPressChanged?.call(false);
     _glow.value = GlassPressGlow(_lastLocal, on: false);
     unawaited(GlassMotion.playMotor(_pressName, _press, 0));
@@ -389,8 +412,9 @@ class GlassPressableState extends ConsumerState<GlassPressable> with TickerProvi
 
   void _up(PointerUpEvent e) {
     final long = _longFired;
+    widget.onRawUp?.call(e);
     _release(cancelled: false);
-    if (long || !_active) return;
+    if (long || !_active || widget.suppressTap) return;
     _activate();
   }
 
@@ -446,8 +470,8 @@ class GlassPressableState extends ConsumerState<GlassPressable> with TickerProvi
         GlassPressRecognizer: GestureRecognizerFactoryWithHandlers<GlassPressRecognizer>(
           () => GlassPressRecognizer(debugOwner: this),
           (r) => r
-            ..cancelDistance = hit * 1.5
-            ..claimAfter = widget.onLongPress == null ? null : widget.longPressDuration
+            ..cancelDistance = widget.cancelDistance ?? hit * 1.5
+            ..claimAfter = widget.claimAfter ?? (widget.onLongPress == null ? null : widget.longPressDuration)
             ..onDown = _setDown
             ..onMove = _move
             ..onUp = _up

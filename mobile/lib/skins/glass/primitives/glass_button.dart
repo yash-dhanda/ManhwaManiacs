@@ -70,6 +70,7 @@ class GlassButton extends ConsumerStatefulWidget {
     this.lb = 1.0,
     this.debugLabel,
     this.onLongPress,
+    this.focusNode,
   });
 
   final String label;
@@ -97,6 +98,7 @@ class GlassButton extends ConsumerStatefulWidget {
   final double lb;
   final String? debugLabel;
   final VoidCallback? onLongPress;
+  final FocusNode? focusNode;
 
   @override
   ConsumerState<GlassButton> createState() => _GlassButtonState();
@@ -184,6 +186,7 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
         growth: GlassGrowth.medium,
         onTap: _disabled || loading ? null : widget.onPressed,
         onLongPress: widget.onLongPress,
+        focusNode: widget.focusNode,
         enabled: !_disabled,
         loading: loading,
         selected: selected,
