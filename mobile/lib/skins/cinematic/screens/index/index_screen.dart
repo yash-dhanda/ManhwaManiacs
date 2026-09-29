@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/features/collections/providers/collections_provide
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_storage_providers.dart';
+import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
@@ -22,12 +23,11 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
-import 'package:manhwamaniacs/skins/cinematic/icons/cine_icon.dart';
-import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/overlays/whats_new_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_content_mode.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_masthead.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/index/index_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/index/index_section.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/index/profile_block.dart';
@@ -121,8 +121,15 @@ class _IndexScreenState extends ConsumerState<IndexScreen> {
           value: stats.hasError ? null : (streak > 0 ? '$streak-DAY STREAK' : null),
           loading: stats.isLoading && !stats.hasValue,
           onTap: push(Routes.numbers()),
-          // TODO(mobile/08): the StreakFlame widget in its tier and state replaces this icon.
-          leading: CineIcon(CineIconRole.flame, color: streak > 0 ? c.colorSpot : c.colorInk45),
+          leading: StreakFlame(
+            size: 24,
+            ignite: false,
+            streak: HomeStreak(
+              currentDays: streak,
+              longestDays: stats.valueOrNull?.streak.longestDays ?? 0,
+              lastActiveDate: stats.valueOrNull?.streak.lastActiveDate,
+            ),
+          ),
         ),
         row('The Annual', value: '$year', onTap: () => unawaited(context.push<void>(Routes.annual(year), extra: const <String, String>{'transition': 'dip'}))),
         row('Circle', onTap: push(Routes.circle())),

@@ -103,6 +103,7 @@ Future<Rig> pumpShell(
       unreadNotificationCountProvider.overrideWith(_Unread.new),
       setupCompletedProvider.overrideWithValue(true),
       ...noDownloadsStoreOverrides(),
+      tonightIdleOverride(),
       retentionMaintenanceProvider.overrideWithValue(retention),
       bookmarkOutboxControllerProvider.overrideWithValue(bookmarks),
       downloadQueueControllerProvider.overrideWith(_LoggingQueue.new),
