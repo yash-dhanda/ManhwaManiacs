@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
@@ -73,6 +74,7 @@ bool isProfileScopeError(AppError error) =>
 /// error, so callers can skip a generic snackbar when the picker is taking over.
 bool recoverFromProfileScopeError(WidgetRef ref, AppError error) {
   if (!isProfileScopeError(error)) return false;
+  ref.read(sessionEndReasonProvider.notifier).state = SessionEndReason.profileGone;
   ref.read(activeProfileProvider.notifier).clear();
   ref.read(profileSessionReadyProvider.notifier).reset();
   // Force a fresh profile list so a rejected/foreign profile can't keep the

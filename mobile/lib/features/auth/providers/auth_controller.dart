@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/auth/models/auth_response.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_user.dart';
 import 'package:manhwamaniacs/features/auth/models/bootstrap_status.dart';
+import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -270,6 +271,7 @@ class AuthController extends Notifier<AuthState> {
   void onSessionExpired() {
     if (_expectsCredentialCheck) return;
     if (state is AuthUnauthenticated) return;
+    ref.read(sessionEndReasonProvider.notifier).state = SessionEndReason.signedOut;
     unawaited(_clearSession());
     unawaited(ref.read(activeProfileProvider.notifier).clear());
     ref.read(profileSessionReadyProvider.notifier).reset();

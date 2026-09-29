@@ -98,6 +98,8 @@ const Set<String> kMatureGatedBackendServices = {
   'source_cache_service',
   'source_pin_service',
   'suggestion_service',
+  // Taste picks feed the same recommendation rails as suggestion_service (recommendationsProvider).
+  'taste_service',
   'update_service',
 };
 

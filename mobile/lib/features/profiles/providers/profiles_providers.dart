@@ -52,12 +52,14 @@ class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
     required String avatarKey,
     required Mood mood,
     bool? matureContentEnabled,
+    String? skin,
   }) async {
     final result = await ref.read(profilesRepositoryProvider).create(
           name: name,
           avatarKey: avatarKey,
           mood: mood,
           matureContentEnabled: matureContentEnabled,
+          skin: skin,
         );
     if (result.isErr) return result.error;
     await refresh();
@@ -66,10 +68,12 @@ class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
 
   Future<AppError?> edit(
     int profileId, {
-    required String name,
-    required String avatarKey,
-    required Mood mood,
+    String? name,
+    String? avatarKey,
+    Mood? mood,
     bool? matureContentEnabled,
+    String? skin,
+    int? sortOrder,
   }) async {
     final result = await ref.read(profilesRepositoryProvider).update(
           profileId,
@@ -77,6 +81,8 @@ class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
           avatarKey: avatarKey,
           mood: mood,
           matureContentEnabled: matureContentEnabled,
+          skin: skin,
+          sortOrder: sortOrder,
         );
     if (result.isErr) return result.error;
     // Mirror the edit into the active-selection snapshot so the shell tint and

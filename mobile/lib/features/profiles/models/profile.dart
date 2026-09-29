@@ -13,6 +13,9 @@ class Profile {
     required this.matureContentEnabled,
     required this.createdAt,
     this.skin,
+    this.onboardingStep,
+    this.notifyEnabled = true,
+    this.dailyGoalMinutes,
   });
 
   final int id;
@@ -20,6 +23,11 @@ class Profile {
 
   /// The profile's edition, `cinematic` or `glass`; null means the default.
   final String? skin;
+
+  /// The onboarding step the profile stopped at; `"done"` once finished, null before it began.
+  final String? onboardingStep;
+  final bool notifyEnabled;
+  final int? dailyGoalMinutes;
 
   /// References an avatar in [kAvatarPresets]; may be null for legacy rows.
   final String? avatarKey;
@@ -44,6 +52,9 @@ class Profile {
           final String s when s == 'cinematic' || s == 'glass' => s,
           _ => null,
         },
+        onboardingStep: json['onboarding_step'] as String?,
+        notifyEnabled: json['notify_enabled'] as bool? ?? true,
+        dailyGoalMinutes: (json['daily_goal_minutes'] as num?)?.toInt(),
       );
 
   /// Reduce to the lightweight snapshot persisted as the active selection.
