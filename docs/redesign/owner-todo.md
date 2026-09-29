@@ -88,3 +88,6 @@ Items only the owner can do, by step.
 
 ## mobile/06
 - Device checks: `docs/redesign/proof/mobile-06/device-checklist.md` (Press start haptics, iOS edge back, Android predictive back, offline edition, tablet keyboard, screen-reader announcements).
+
+- mobile/27: device checks listed in docs/redesign/proof/mobile-27/device-check.md (predictive back, keyboard rule, viewer gestures, real blur, haptics).
+- mobile/27: run docs/redesign/proof/mobile-27/device-check.md on the iPhone (SideStore) and the Android flagship.

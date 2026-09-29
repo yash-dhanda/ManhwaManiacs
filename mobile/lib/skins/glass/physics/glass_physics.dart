@@ -162,3 +162,30 @@ class Magnet {
   }
 }
 
+
+/// Settle time in ms of the springs the overlays drive through a [Curve] (glass 4.2, 4.10).
+const Map<String, int> kSpringSettleMs = {'sheet': 447, 'dismiss': 378, 'sheetSnap': 342, 'settle': 414, 'zoom': 558};
+
+/// A curve that samples a unit spring (0 to 1, at rest) over its settle time, for APIs that only take a
+/// [Curve] and a duration (`SheetController.animateTo`, `PageController.animateToPage`).
+/// `transform(1.0) == 1.0`, so the animation always ends exactly on target.
+class SpringCurve extends Curve {
+  SpringCurve(SpringToken token, {int? settleMs})
+      : _sim = SpringSimulation(springOf(token), 0, 1, 0),
+        _settleMs = (settleMs ?? _settleFor(token)).toDouble();
+
+  final SpringSimulation _sim;
+  final double _settleMs;
+
+  static int _settleFor(SpringToken t) {
+    if (identical(t, GlassSprings.sheet)) return 447;
+    if (identical(t, GlassSprings.dismiss)) return 378;
+    if (identical(t, GlassSprings.sheetSnap)) return 342;
+    if (identical(t, GlassSprings.settle)) return 414;
+    if (identical(t, GlassSprings.zoom)) return 558;
+    return (t.ms * 1.06).round();
+  }
+
+  @override
+  double transformInternal(double t) => t >= 1.0 ? 1.0 : _sim.x(t * _settleMs / 1000);
+}

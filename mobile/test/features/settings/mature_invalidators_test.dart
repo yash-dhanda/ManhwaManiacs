@@ -107,8 +107,9 @@ void main() {
 
       // Gated on the server but no client cache to drop yet: the Wrapped payload
       // (annual_service) is fetched fresh per open, and no client provider reads
-      // GET /home (home_service) until the home screens land.
-      const noClientCache = {'annual_service', 'home_service'};
+      // GET /home (home_service) until the home screens land, and no client reads
+      // the taste catalogue (taste_service) yet.
+      const noClientCache = {'annual_service', 'home_service', 'taste_service'};
       expect(
         gated.difference(noClientCache),
         kMatureGatedBackendServices,

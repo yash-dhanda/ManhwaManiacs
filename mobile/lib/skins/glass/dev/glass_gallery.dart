@@ -2,9 +2,11 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/dev/dev_controls.dart';
 import 'package:manhwamaniacs/skins/glass/dev/gallery_sections.dart';
+import 'package:manhwamaniacs/skins/glass/dev/overlay_sections.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
@@ -27,6 +29,7 @@ const List<String> kGlassGallerySections = [
   'avatars',
   'tooltips',
   'reveals',
+  ...kGlassOverlaySections,
 ];
 
 /// `/dev/glass/primitives` (glass 15.8, `mobile/26`): one section per family of the first half of the
@@ -54,25 +57,27 @@ class GlassGallery extends ConsumerWidget {
         child: ColoredBox(
           color: const Color(0xFF000000),
           child: SafeArea(
-            child: ListView(
-              padding: EdgeInsets.fromLTRB(margin, 16, margin, 48),
-              children: [
-                GlassText('Primitives', role: glassTokens.typeLargeTitle),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 4,
-                  children: [
-                    for (final e in [
-                      ('Solid glass', inApp.solidGlass, ctl.setSolidGlass),
-                      ('Increase contrast', inApp.increaseContrast, ctl.setIncreaseContrast),
-                      ('Reduce motion', inApp.reduceMotion, ctl.setReduceMotion),
-                    ])
-                      SizedBox(width: 220, child: DevToggle(label: e.$1, value: e.$2, onChanged: e.$3)),
-                  ],
-                ),
-                for (final n in names) GlassGallerySection(name: n),
-              ],
+            child: GlassToastHost(
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(margin, 16, margin, 48),
+                children: [
+                  GlassText('Primitives', role: glassTokens.typeLargeTitle),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 4,
+                    children: [
+                      for (final e in [
+                        ('Solid glass', inApp.solidGlass, ctl.setSolidGlass),
+                        ('Increase contrast', inApp.increaseContrast, ctl.setIncreaseContrast),
+                        ('Reduce motion', inApp.reduceMotion, ctl.setReduceMotion),
+                      ])
+                        SizedBox(width: 220, child: DevToggle(label: e.$1, value: e.$2, onChanged: e.$3)),
+                    ],
+                  ),
+                  for (final n in names) GlassGallerySection(name: n),
+                ],
+              ),
             ),
           ),
         ),

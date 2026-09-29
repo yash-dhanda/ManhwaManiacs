@@ -2,6 +2,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/dev/calibration_covers.dart';
+import 'package:manhwamaniacs/skins/glass/dev/overlay_sections.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/badge.dart';
@@ -93,7 +94,7 @@ class GlassGallerySection extends StatelessWidget {
         'avatars' => _avatars(context, g),
         'tooltips' => _tooltips(context, g),
         'reveals' => _reveals(context, g),
-        _ => GlassLabel('Unknown section $name', role: gt.typeBody),
+        _ => glassOverlaySection(context, name, g) ?? GlassLabel('Unknown section $name', role: gt.typeBody),
       };
 }
 
