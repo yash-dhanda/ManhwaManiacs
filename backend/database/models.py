@@ -131,6 +131,8 @@ class ReadingProfile(Base):
     )
     onboarding_step: Mapped[str | None] = mapped_column(String(8))
     daily_goal_minutes: Mapped[int | None] = mapped_column(Integer)
+    # 0023: onboarding answers as JSON {formats, genres, styles, seeds}.
+    taste: Mapped[str | None] = mapped_column(Text)
 
 
 class BootstrapState(Base):
@@ -1417,6 +1419,31 @@ class CoverPalette(Base):
     #: JSON ``{"a": [hex, ...], "l", "lMax"}`` (glass §2.1.8).
     palette: Mapped[str] = mapped_column(Text, nullable=False)
     computed_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+
+
+class AiFeedback(Base):
+    """A profile's verdicts on AI picks (owned data, not a cache)."""
+
+    __tablename__ = "ai_feedback"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "profile_id"],
+            ["reading_profiles.user_id", "reading_profiles.id"],
+            ondelete="CASCADE",
+            name="fk_ai_feedback_scope",
+        ),
+        Index("ix_ai_feedback_scope", "user_id", "profile_id", "signal"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    signal: Mapped[str] = mapped_column(String(16), nullable=False)
+    anilist_id: Mapped[int | None] = mapped_column(Integer)
+    source_id: Mapped[str | None] = mapped_column(String(64))
+    series_key: Mapped[str | None] = mapped_column(String(512))
+    tag: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
 
 
 class AiResultCache(Base):

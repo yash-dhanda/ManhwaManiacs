@@ -11,9 +11,12 @@ from __future__ import annotations
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Response, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
+from core.errors import AppError
 from core.profile_context import get_active_profile_id
+from services import taste_service
+from services.home_service import invalidate_profile
 from services.profile_service import (
     REDESIGN_FIELDS,
     ProfileService,
@@ -100,3 +103,59 @@ def delete_profile(profile_id: int, service: ProfileDep) -> Response:
     """Delete a profile the current user owns (404 otherwise)."""
     service.delete_profile(profile_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+class TasteSeed(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    anilist_id: int | None = Field(default=None, ge=1)
+    source_id: str | None = Field(default=None, min_length=1, max_length=64)
+    series_key: str | None = Field(default=None, min_length=1, max_length=512)
+
+
+class TasteBody(BaseModel):
+    """Every field optional; partial bodies merge into the stored taste."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    step: Literal["done"] | Annotated[int, Field(ge=1, le=7)] | None = None
+    formats: list[taste_service.Format] | None = Field(default=None, max_length=4)
+    genres: dict[
+        Annotated[str, Field(min_length=1, max_length=64)], Literal[-1, 0, 1, 2]
+    ] | None = None
+    styles: list[taste_service.Style] | None = Field(default=None, max_length=11)
+    seeds: list[TasteSeed] | None = Field(default=None, max_length=taste_service.MAX_SEEDS)
+
+
+def _seed_ok(seed: TasteSeed) -> bool:
+    return seed.anilist_id is not None or bool(seed.source_id and seed.series_key)
+
+
+@router.put("/{profile_id}/taste")
+def put_taste(profile_id: int, body: TasteBody, service: ProfileDep) -> dict[str, object]:
+    """Merge onboarding answers into the profile's taste (404 for another
+    account's profile). ``step`` is written to ``onboarding_step``."""
+    profile = service._get_owned(profile_id)
+    patch = body.model_dump(exclude_unset=True)
+    if body.seeds is not None:
+        if not all(_seed_ok(s) for s in body.seeds):
+            raise AppError(
+                "A seed needs anilist_id, or source_id and series_key.",
+                code="taste_invalid",
+                status_code=422,
+            )
+        patch["seeds"] = [
+            {"anilist_id": s.anilist_id}
+            if s.anilist_id is not None
+            else {"source_id": s.source_id, "series_key": s.series_key}
+            for s in body.seeds
+        ]
+    out = taste_service.write_taste(profile, patch)
+    service._db.commit()
+    invalidate_profile(profile_id)
+    return out
+
+
+@router.get("/{profile_id}/taste")
+def get_taste(profile_id: int, service: ProfileDep) -> dict[str, object]:
+    return taste_service.read_taste(service._get_owned(profile_id))

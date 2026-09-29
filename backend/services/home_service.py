@@ -51,6 +51,7 @@ from services.followed_series_service import (
 from services.reading_stats_service import ReadingStatsService
 from services.recap_service import RecapService, _empty as _no_recap
 from services.source_cache_service import SourceCacheService
+from services.taste_service import taste_block, taste_genres
 from services.source_health import load_states
 from services.source_pin_service import SourcePinService, get_source_pin_service
 from services.suggestion_service import SuggestionService, get_suggestion_service
@@ -366,8 +367,8 @@ class HomeService:
         return descriptor.content_kind if descriptor else None
 
     def _excluded(self) -> set[tuple[str, str]]:
-        """Pairs never offered as a pick (``backend/05`` adds "Not interested")."""
-        return self.suggest._excluded_keys()
+        """Pairs never offered as a pick: followed, read, or "Not interested"."""
+        return self.suggest._excluded_keys() | self.world.not_interested()[0]
 
     def _stats(self, tz: int, gate: bool) -> ReadingStatsService:
         return ReadingStatsService(
@@ -521,6 +522,8 @@ class HomeService:
             logger.warning("home: world recs failed", exc_info=True)
             return [], []
 
+        not_ids = self.world.not_interested()[1]
+
         def keep(item: dict[str, Any]) -> bool:
             avail = item.get("available") or []
             if not gate:
@@ -528,6 +531,8 @@ class HomeService:
                     return False
                 if avail and all((descriptor_for_source(a["source_id"]) or _NoDescriptor).mature for a in avail):
                     return False
+            if item.get("anilist_id") in not_ids:
+                return False
             is_novel = str(item.get("format")) == "Novel"
             if is_novel != (kind == "novel"):
                 return False
@@ -749,6 +754,8 @@ class HomeService:
         add("sources", "Sources", source_items)
         if rows:
             add("genres", "Your genres", lib.recommendations(limit=12))
+        else:
+            add("genres", "Your genres", taste_genres(self._db, self.profile_id))
         if first_session is not None:
             window = stats._window(stats._bounds(7)[0])
             add("numbers", "This week in numbers", [{
@@ -1016,6 +1023,9 @@ class HomeService:
                 "genres": [g["genre"] for g in taste.get("genres", [])],
             },
         }
+        stated = taste_block(self._db, self.user_id, profile_id)
+        if stated is not None:
+            data["taste"]["stated"] = stated
         valid = {str(i["anilist_id"]) for i in world_items if i.get("anilist_id") is not None}
         midnight = datetime.combine(local.date() + timedelta(days=1), datetime.min.time())
         expires = utcnow() + (midnight - local) + timedelta(days=7)

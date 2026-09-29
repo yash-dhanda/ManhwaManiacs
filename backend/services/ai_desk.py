@@ -125,20 +125,19 @@ def desk_complete(system: str, message: str) -> Completion:
 
 # --- background runner ------------------------------------------------------
 
-_RUNNING: set[str] = set()
+_RUNNING: dict[str, threading.Event] = {}
 _RUNNING_LOCK = threading.Lock()
 
 
-def run_in_background(key: str, job: Callable[[], None]) -> bool:
-    """Run ``job`` on a daemon thread, one per ``key``. False if already running.
-
-    The job opens its own ``SessionLocal()``; the request's session is closed
-    when the response is sent.
-    """
+def _start(key: str, job: Callable[[], None]) -> tuple[threading.Event, bool]:
+    """``(event, started)``: the running job's event, and whether this call
+    started it. Single-flight per ``key``."""
     with _RUNNING_LOCK:
-        if key in _RUNNING:
-            return False
-        _RUNNING.add(key)
+        running = _RUNNING.get(key)
+        if running is not None:
+            return running, False
+        done = threading.Event()
+        _RUNNING[key] = done
 
     def _run() -> None:
         try:
@@ -147,10 +146,30 @@ def run_in_background(key: str, job: Callable[[], None]) -> bool:
             logger.warning("desk job %s failed", key[:12], exc_info=True)
         finally:
             with _RUNNING_LOCK:
-                _RUNNING.discard(key)
+                _RUNNING.pop(key, None)
+            done.set()
 
     threading.Thread(target=_run, name=f"desk-{key[:8]}", daemon=True).start()
-    return True
+    return done, True
+
+
+def run_in_background(key: str, job: Callable[[], None]) -> bool:
+    """Run ``job`` on a daemon thread, one per ``key``. False if already running.
+
+    The job opens its own ``SessionLocal()``; the request's session is closed
+    when the response is sent.
+    """
+    return _start(key, job)[1]
+
+
+def run_and_wait(key: str, job: Callable[[], None], *, timeout_s: float) -> bool:
+    """``run_in_background`` that waits up to ``timeout_s`` for the job.
+
+    True when the job finished inside the timeout; it keeps running when not.
+    A second caller for a running ``key`` waits on the same job.
+    """
+    done, _ = _start(key, job)
+    return done.wait(timeout_s)
 
 
 def open_session() -> Session:

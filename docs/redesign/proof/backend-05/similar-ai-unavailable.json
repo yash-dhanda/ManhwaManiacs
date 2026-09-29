@@ -1,0 +1,136 @@
+{
+    "items": [
+        {
+            "anilist_id": null,
+            "title": "Zettai Shinanai Stella-hime",
+            "alt_titles": [],
+            "format": null,
+            "country": null,
+            "status": "ongoing",
+            "chapters": null,
+            "rating": null,
+            "genres": [
+                "Reincarnation",
+                "Monsters",
+                "Action",
+                "Comedy",
+                "Survival"
+            ],
+            "cover_url": "/sources/mangadex/series/8a3aeff4-8d5b-471e-94f3-fe0f9425d94d/cover",
+            "is_adult": false,
+            "platforms": [],
+            "anilist_url": null,
+            "available": [
+                {
+                    "source_id": "mangadex",
+                    "source_name": "MangaDex",
+                    "series_key": "8a3aeff4-8d5b-471e-94f3-fe0f9425d94d"
+                }
+            ],
+            "why": null,
+            "basis": "genres",
+            "ambient": null,
+            "palette": null
+        },
+        {
+            "anilist_id": null,
+            "title": "Meitantei Conan",
+            "alt_titles": [],
+            "format": null,
+            "country": null,
+            "status": "ongoing",
+            "chapters": null,
+            "rating": null,
+            "genres": [
+                "Action",
+                "Psychological",
+                "Romance",
+                "Comedy",
+                "Crime"
+            ],
+            "cover_url": "/sources/mangadex/series/7f30dfc3-0b80-4dcc-a3b9-0cd746fac005/cover",
+            "is_adult": false,
+            "platforms": [],
+            "anilist_url": null,
+            "available": [
+                {
+                    "source_id": "mangadex",
+                    "source_name": "MangaDex",
+                    "series_key": "7f30dfc3-0b80-4dcc-a3b9-0cd746fac005"
+                }
+            ],
+            "why": null,
+            "basis": "genres",
+            "ambient": null,
+            "palette": null
+        },
+        {
+            "anilist_id": null,
+            "title": "Baki Gaiden - Retsu Kaiou wa Isekai Tensei Shitemo Ikkou ni Kamawan",
+            "alt_titles": [],
+            "format": null,
+            "country": null,
+            "status": "ongoing",
+            "chapters": null,
+            "rating": null,
+            "genres": [
+                "Reincarnation",
+                "Monsters",
+                "Action",
+                "Animals",
+                "Comedy"
+            ],
+            "cover_url": "/sources/mangadex/series/843c31ff-d390-4199-bc3b-94b0dfc63632/cover",
+            "is_adult": false,
+            "platforms": [],
+            "anilist_url": null,
+            "available": [
+                {
+                    "source_id": "mangadex",
+                    "source_name": "MangaDex",
+                    "series_key": "843c31ff-d390-4199-bc3b-94b0dfc63632"
+                }
+            ],
+            "why": null,
+            "basis": "genres",
+            "ambient": null,
+            "palette": null
+        },
+        {
+            "anilist_id": null,
+            "title": "Futoku no Guild",
+            "alt_titles": [],
+            "format": null,
+            "country": null,
+            "status": "ongoing",
+            "chapters": null,
+            "rating": null,
+            "genres": [
+                "Loli",
+                "Monsters",
+                "Action",
+                "Romance",
+                "Comedy"
+            ],
+            "cover_url": "/sources/mangadex/series/d58eb211-a1ae-426c-b504-fc88253de600/cover",
+            "is_adult": false,
+            "platforms": [],
+            "anilist_url": null,
+            "available": [
+                {
+                    "source_id": "mangadex",
+                    "source_name": "MangaDex",
+                    "series_key": "d58eb211-a1ae-426c-b504-fc88253de600"
+                }
+            ],
+            "why": null,
+            "basis": "genres",
+            "ambient": null,
+            "palette": null
+        }
+    ],
+    "available": false,
+    "reason": "not_configured",
+    "basis": "genres",
+    "generated_at": null
+}

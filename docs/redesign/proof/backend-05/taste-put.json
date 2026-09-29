@@ -1,0 +1,13 @@
+{
+    "step": 3,
+    "formats": [
+        "manhwa"
+    ],
+    "genres": {
+        "Action": 2,
+        "Romance": 1,
+        "Horror": -1
+    },
+    "styles": [],
+    "seeds": []
+}
