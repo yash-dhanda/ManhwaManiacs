@@ -14,6 +14,8 @@ const total = (p: readonly number[]) => p.reduce((a, b) => a + b, 0);
  * it replaces it, so a burst keeps the strongest.
  */
 export function haptic(event: HapticEvent): void {
+  // Development only: browser checks count events whether or not they map to navigator.vibrate.
+  if (process.env.NODE_ENV !== "production" && typeof window !== "undefined") window.dispatchEvent(new CustomEvent("mm:haptic", { detail: event }));
   const pattern = (hapticsWeb as Partial<Record<HapticEvent, readonly number[]>>)[event];
   if (!pattern || !webHapticsAvailable() || !readHapticsEnabled()) return;
   const now = performance.now();

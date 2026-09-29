@@ -7,6 +7,8 @@ import { LensDefs } from "../glass/GlassSurface";
 import { useLightAngle } from "../glass/useLightAngle";
 import { GlassMotionConfig } from "../motion";
 import { GlassMotionTimings } from "../motion-timings";
+import { AlertHost } from "../primitives/Alert";
+import { GlassToaster } from "../primitives/GlassToaster";
 import { SECTIONS } from "./sections";
 
 const root = () => document.documentElement;
@@ -40,6 +42,8 @@ export function Gallery({ section }: { section?: string }) {
             <nav className="gal-nav" aria-label="Sections">{SECTIONS.map((s) => <a key={s.id} href={`?section=${s.id}`}>{s.title}</a>)}<a href="?">All</a></nav>
             {shown.map((s) => <section key={s.id} id={s.id} data-section={s.id} className="gal-section"><h2>{s.title}</h2>{s.el()}</section>)}
           </main>
+          <AlertHost />
+          <GlassToaster />
           <GlassMotionTimings />
         </GlassBudgetScope>
       </AmbientProvider>

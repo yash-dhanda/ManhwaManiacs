@@ -89,3 +89,7 @@ export const useForcedSolid = (id: string) => useSyncExternalStore(subscribe, ()
 
 /** test hook */
 export const _resetBudget = () => { entries.clear(); counts = { glass: 0, scrims: 0, exempt: 0 }; solid = new Set(); warned = false; };
+
+/** dev/e2e hook: the live counts and the forced-solid ids */
+if (typeof window !== "undefined" && process.env.NODE_ENV !== "production")
+  (window as unknown as { __glassBudget?: () => unknown }).__glassBudget = () => ({ ...counts, solid: [...solid] });

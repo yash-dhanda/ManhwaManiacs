@@ -60,3 +60,7 @@ export function trackFrames(r: MoveRecord) {
     emit();
   };
 }
+
+/** dev/e2e hook: the recorded moves */
+if (typeof window !== "undefined" && process.env.NODE_ENV !== "production")
+  (window as unknown as { __glassMoves?: () => MoveRecord[] }).__glassMoves = () => getRecords();

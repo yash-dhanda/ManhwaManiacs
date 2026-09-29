@@ -1,0 +1,10 @@
+/* Pull to refresh (web/27 L) */
+[data-skin="glass"] .g-pull { position: relative; overflow-y: auto; overscroll-behavior-y: contain; height: 100%; }
+[data-skin="glass"] .g-pull__drop { position: sticky; top: 0; height: 0; z-index: 3; pointer-events: none; display: flex; justify-content: center; overflow: visible; }
+[data-skin="glass"] .g-pull__neck { position: absolute; top: 0; left: 50%; translate: -50% 0; background: rgb(255 255 255 / 0.22); border-radius: 0 0 9999px 9999px; }
+[data-skin="glass"] .g-pull__ball { position: absolute; top: 0; left: 50%; margin-left: -16px; width: 32px; height: 32px; display: grid; place-items: center; }
+[data-skin="glass"] .g-pull__glass { display: grid; place-items: center; min-width: 0; }
+[data-skin="glass"] .g-pull__glyph { position: relative; z-index: 1; display: inline-flex; color: var(--mm-color-on-glass); }
+[data-skin="glass"] .g-pull__content { position: relative; }
+[data-skin="glass"] .g-pull[data-phase="done"] .g-pull__ball { transition: opacity 250ms linear; }
+[data-skin="glass"] .g-pull[data-outcome="fade"] .g-pull__ball { opacity: 0; }
