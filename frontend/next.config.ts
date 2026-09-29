@@ -49,6 +49,7 @@ const nextConfig: NextConfig = {
     // Same-document view transitions for route changes (cinematic §15.2); off
     // by default in Next 16.2.
     viewTransition: true,
+    optimizePackageImports: ["@phosphor-icons/react"],
   },
 
   async rewrites() {

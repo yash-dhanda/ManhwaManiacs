@@ -1,0 +1,10 @@
+# skin route families(count of loaded font files); dev server, headless Chromium
+cinematic /login (none)
+cinematic /skin-preview/cinematic/specimen Archivox2, Atkinson Hyperlegible Nextx2, Bodoni Modax2, IBM Plex Monox2, Literatax2, Newsreaderx2, Noto Serif JPx1, Noto Serif KRx12, Noto Serif SCx1, Source Serif 4x1
+cinematic /skin-preview/glass/specimen Atkinson Hyperlegible Nextx2, Google Sans Codex1, Google Sans Flexx1, Literatax2, Noto Sans JPx1, Noto Sans KRx12, Noto Sans SCx1
+glass /login (none)
+glass /skin-preview/cinematic/specimen Archivox2, Atkinson Hyperlegible Nextx2, Bodoni Modax2, IBM Plex Monox2, Literatax2, Newsreaderx2, Noto Serif JPx1, Noto Serif KRx12, Noto Serif SCx1, Source Serif 4x1
+glass /skin-preview/glass/specimen Atkinson Hyperlegible Nextx2, Google Sans Codex1, Google Sans Flexx1, Literatax2, Noto Sans JPx1, Noto Sans KRx12, Noto Sans SCx1
+none /login DM Sansx3, Synex1
+none /skin-preview/cinematic/specimen Archivox2, Atkinson Hyperlegible Nextx2, Bodoni Modax2, IBM Plex Monox2, Literatax2, Newsreaderx2, Noto Serif JPx1, Noto Serif KRx12, Noto Serif SCx1, Source Serif 4x1
+none /skin-preview/glass/specimen Atkinson Hyperlegible Nextx2, Google Sans Codex1, Google Sans Flexx1, Literatax2, Noto Sans JPx1, Noto Sans KRx12, Noto Sans SCx1
