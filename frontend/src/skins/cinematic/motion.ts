@@ -90,7 +90,13 @@ export function useDelayedFlag(ms: number, active = true): boolean {
 
 // ---- play(): the single entry point for named moves ----
 type Target = Element | null;
-export type PlayOpts = { delayMs?: number; from?: DOMKeyframesDefinition; to?: DOMKeyframesDefinition; onComplete?: () => void };
+export type PlayOpts = {
+  delayMs?: number; from?: DOMKeyframesDefinition; to?: DOMKeyframesDefinition; onComplete?: () => void;
+  /** Override the table duration (Dip out is 160 ms and in 240 ms; blades take the stagger on top). */
+  durationMs?: number; easeOverride?: readonly number[] | string;
+  /** false: no recorder entry (a caller records one entry for a whole choreography). */
+  record?: boolean;
+};
 
 type Def = { ms: number; ease: readonly number[] | string; from: DOMKeyframesDefinition; to: DOMKeyframesDefinition; repeat?: boolean };
 const settle = ease.settle;
@@ -109,6 +115,9 @@ const DEFS: Partial<Record<CineMotionName, Def>> = {
   panel: { ms: durMs.column, ease: settle, from: { x: "100%" }, to: { x: "0%" } },
   arm: { ms: durMs.arm, ease: ease.linear, from: { scaleX: 0 }, to: { scaleX: 1 } },
   lightbox: { ms: durMs.spread, ease: ease.turn, from: {}, to: {} },
+  dip: { ms: durMs.beat, ease: ease.lift, from: { opacity: 0 }, to: { opacity: 1 } },
+  columnWipe: { ms: durMs.wipeClose, ease: settle, from: { scaleY: 0 }, to: { scaleY: 1 } },
+  iris: { ms: durMs.spread, ease: ease.turn, from: {}, to: {} },
   folioFlip: { ms: durMs.tick, ease: ease.set, from: { y: "100%", opacity: 0 }, to: { y: "0%", opacity: 1 } },
 };
 
@@ -126,12 +135,13 @@ export function play(name: CineMotionName, target: Target, opts: PlayOpts = {}):
   if (!def) throw new Error(`play(): move "${name}" arrives with the step that first uses it`);
   const to = opts.to ?? def.to;
   const from = opts.from ?? def.from;
-  const rec = startMove(move, def.ms + (opts.delayMs ?? 0));
+  const ms = opts.durationMs ?? def.ms;
+  const rec = opts.record === false ? { end: () => {} } : startMove(move, ms + (opts.delayMs ?? 0));
   const done = () => { if (racked) releaseRack(); rec.end(); opts.onComplete?.(); };
   // Per-property keyframes [from, to]; a property without a `from` animates from its current value (§4.7).
   const frames: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(to)) frames[k] = k in from ? [(from as Record<string, unknown>)[k], v] : v;
-  const controls = animate(target as Element, frames as never, { duration: def.ms / 1000, delay: (opts.delayMs ?? 0) / 1000, ease: def.ease as never });
+  const controls = animate(target as Element, frames as never, { duration: ms / 1000, delay: (opts.delayMs ?? 0) / 1000, ease: (opts.easeOverride ?? def.ease) as never });
   controls.then(done, done);
   return controls;
 }
@@ -140,3 +150,7 @@ export function play(name: CineMotionName, target: Target, opts: PlayOpts = {}):
 export { SetHeading, useTitleSignal } from "./primitives/SetHeading";
 export { TypedHeadline, useTyped } from "./primitives/TypedHeadline";
 export { RackImage, Drift, Flicker, RuleDraw } from "./motion-components";
+
+// Shell motion (web/06): one import place for every screen.
+export { ColumnWipe, Iris, dip, columnWipe, irisClose } from "./shell/Overlays";
+export { enterReader, useReaderPrefetch } from "./shell/reader-entry";

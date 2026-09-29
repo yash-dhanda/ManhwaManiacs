@@ -42,7 +42,7 @@ export function RackImage({ children, ready, alreadyDecoded = false, className =
 }
 
 /** A rule (hairline, heavy or Oxford) that draws with Rule draw on entrance (reduced motion: present at rest). */
-export function RuleDraw({ kind = "hairline", delayMs = 0, className = "" }: { kind?: "hairline" | "heavy" | "oxford"; delayMs?: number; className?: string }) {
+export function RuleDraw({ kind = "hairline", delayMs = 0, className = "", spotLead = false }: { kind?: "hairline" | "heavy" | "oxford"; delayMs?: number; className?: string; spotLead?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useCineReduced();
   const [drawn, setDrawn] = useState(false);
@@ -52,10 +52,12 @@ export function RuleDraw({ kind = "hairline", delayMs = 0, className = "" }: { k
     el.style.transformOrigin = "left";
     play("ruleDraw", el, { delayMs, onComplete: () => setDrawn(true) });
   }, [reduced, delayMs, drawn]);
+  // The Press start lockup (§12.4): the first 12 % of the heavy line is spot.
+  const lead = spotLead ? { background: "linear-gradient(to right, var(--mm-color-spot) 12%, var(--mm-color-ink-100) 12%)" } : undefined;
   const shape = kind === "hairline" ? "h-px bg-rule-1" : kind === "heavy" ? "h-[3px] bg-ink-100" : "flex flex-col gap-[2px]";
   return (
-    <div ref={ref} aria-hidden className={`cine-rule ${shape} ${className}`} style={reduced || drawn ? undefined : { transform: "scaleX(0)" }}>
-      {kind === "oxford" && (<><span className="block h-[3px] bg-ink-100" /><span className="block h-px bg-ink-100" /></>)}
+    <div ref={ref} aria-hidden className={`cine-rule ${shape} ${className}`} style={{ ...(kind === "heavy" ? lead : null), ...(reduced || drawn ? null : { transform: "scaleX(0)" }) }}>
+      {kind === "oxford" && (<><span className="block h-[3px] bg-ink-100" style={lead} /><span className="block h-px bg-ink-100" /></>)}
     </div>
   );
 }
