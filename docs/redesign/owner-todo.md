@@ -83,3 +83,5 @@ Items only the owner can do, by step.
 ## web/06
 - Device check of the Cinematic shell on a phone: thumb index long-press (Library, Downloads, Index), edge safe areas, Press start splash, Column wipe into a reader.
 - Open: web/11's feature-page motion log overlay (screens/feature/MotionTimings.tsx) still coexists with the shell's mod+shift+m overlay; unify later.
+## mobile/26 (Glass primitives 1)
+- Device check on iPhone and Android flagship: `docs/redesign/proof/mobile-26/device-check.md` (haptic ramp, 120 Hz press feel, throw, snap, screen readers).

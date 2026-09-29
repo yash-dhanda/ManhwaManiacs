@@ -57,6 +57,8 @@ class GlassDevIndex extends ConsumerWidget {
             const SizedBox(height: 12),
             DevButton(label: 'Glass calibration', onTap: () => context.push('/dev/glass/calibration')),
             const SizedBox(height: 8),
+            DevButton(label: 'Primitives gallery', onTap: () => context.push('/dev/glass/primitives')),
+            const SizedBox(height: 8),
             row(
               'Glass layers on screen',
               value: '${reg.layers} / $kGlassLayerBudget layers · ${reg.shapes} / $kGlassShapeBudget shapes · ${reg.scrims} scrims',
