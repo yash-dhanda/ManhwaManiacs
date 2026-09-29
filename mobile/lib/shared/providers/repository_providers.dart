@@ -3,6 +3,8 @@ import 'package:manhwamaniacs/features/admin/repositories/admin_repository.dart'
 import 'package:manhwamaniacs/features/admin/repositories/admin_repository_impl.dart';
 import 'package:manhwamaniacs/features/auth/repositories/auth_repository.dart';
 import 'package:manhwamaniacs/features/auth/repositories/auth_repository_impl.dart';
+import 'package:manhwamaniacs/features/home/repositories/home_repository.dart';
+import 'package:manhwamaniacs/features/home/repositories/home_repository_impl.dart';
 import 'package:manhwamaniacs/features/library/repositories/global_search_repository.dart';
 import 'package:manhwamaniacs/features/library/repositories/global_search_repository_impl.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
@@ -32,6 +34,11 @@ final authRepositoryProvider = Provider<AuthRepository>(
 final libraryRepositoryProvider = Provider<LibraryRepository>(
   (ref) => LibraryRepositoryImpl(ref.watch(dioProvider)),
   name: 'libraryRepository',
+);
+
+final homeRepositoryProvider = Provider<HomeRepository>(
+  (ref) => HomeRepositoryImpl(ref.watch(dioProvider)),
+  name: 'homeRepository',
 );
 
 final globalSearchRepositoryProvider = Provider<GlobalSearchRepository>(

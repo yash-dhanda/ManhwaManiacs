@@ -1,0 +1,257 @@
+{
+ "issue_no": 184,
+ "generated_at": "2026-09-30T15:34:12Z",
+ "content_kind": "manga",
+ "headline": "Tonight: you're caught up.",
+ "deck": "Nothing new on your shelf. Here's something else.",
+ "kicker_title": null,
+ "streak": {
+  "current_days": 12,
+  "longest_days": 31,
+  "at_risk": false,
+  "last_active_date": "2026-09-29",
+  "milestones_seen": [
+   7
+  ]
+ },
+ "cover": {
+  "reason": "caught_up",
+  "source_id": "shelf",
+  "series_key": "harbor-of-small-lights",
+  "chapter_key": "c1",
+  "chapter_number": 1,
+  "last_page": 1,
+  "page_count": 0,
+  "title": "Harbor of Small Lights",
+  "cover_url": "/sources/shelf/series/harbor-of-small-lights/cover",
+  "content_kind": "manga",
+  "ambient": {
+   "duo": "#B87A93",
+   "tint": "#140A0F",
+   "ink": "#E9A8C3"
+  },
+  "palette": null,
+  "new_count": 0,
+  "paused_days": 0,
+  "recap": null,
+  "why": "You like slow, warm stories set in one place.",
+  "world": null
+ },
+ "also": [],
+ "sections": [
+  {
+   "type": "picked",
+   "title": "Picked for you",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "kind": "world",
+     "why": "You like slow, warm stories set in one place.",
+     "item": {
+      "anilist_id": 9020,
+      "title": "Harbor of Small Lights",
+      "format": "Manhwa",
+      "status": "Ongoing",
+      "chapters": 100,
+      "rating": 8.5,
+      "genres": [
+       "Fantasy",
+       "Adventure"
+      ],
+      "cover_url": "/sources/shelf/series/harbor-of-small-lights/cover",
+      "is_adult": false,
+      "available": [
+       {
+        "source_id": "shelf",
+        "source_name": "Shelf Scans",
+        "series_key": "harbor-of-small-lights"
+       }
+      ],
+      "ambient": {
+       "duo": "#B87A93",
+       "tint": "#140A0F",
+       "ink": "#E9A8C3"
+      }
+     }
+    },
+    {
+     "kind": "world",
+     "why": "Same quiet rivalries, less fighting.",
+     "item": {
+      "anilist_id": 9021,
+      "title": "The Copper Sparrow",
+      "format": "Manhwa",
+      "status": "Ongoing",
+      "chapters": 101,
+      "rating": 8.6,
+      "genres": [
+       "Fantasy",
+       "Adventure"
+      ],
+      "cover_url": "/sources/shelf/series/the-copper-sparrow/cover",
+      "is_adult": false,
+      "available": [
+       {
+        "source_id": "shelf",
+        "source_name": "Shelf Scans",
+        "series_key": "the-copper-sparrow"
+       }
+      ],
+      "ambient": {
+       "duo": "#7AB88C",
+       "tint": "#0A140D",
+       "ink": "#A8E9BA"
+      }
+     }
+    },
+    {
+     "kind": "world",
+     "why": null,
+     "item": {
+      "anilist_id": 9022,
+      "title": "Glass Orchard Nights",
+      "format": "Manhwa",
+      "status": "Ongoing",
+      "chapters": 102,
+      "rating": 8.6,
+      "genres": [
+       "Fantasy",
+       "Adventure"
+      ],
+      "cover_url": "/sources/shelf/series/glass-orchard-nights/cover",
+      "is_adult": false,
+      "available": [],
+      "ambient": {
+       "duo": "#A67AB8",
+       "tint": "#100A14",
+       "ink": "#D2A8E9"
+      }
+     }
+    },
+    {
+     "kind": "source",
+     "why": "A gentle pick from your sources.",
+     "item": {
+      "id": "lookout-hill-diaries",
+      "source_id": "shelf",
+      "title": "Lookout Hill Diaries",
+      "chapter_count": 63,
+      "genres": [
+       "Drama"
+      ],
+      "cover_url": "/sources/shelf/series/lookout-hill-diaries/cover",
+      "ambient": {
+       "duo": "#B8917A",
+       "tint": "#140E0A",
+       "ink": "#E9C4A8"
+      }
+     }
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "sources",
+   "title": "Sources",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "source_id": "shelf",
+     "name": "Shelf Scans",
+     "icon_url": null,
+     "mature": false,
+     "available": true,
+     "suggested": false,
+     "latest_covers": [
+      "/sources/shelf/series/the-lantern-courier/cover",
+      "/sources/shelf/series/sword-of-the-ninth-spring/cover",
+      "/sources/shelf/series/skyward-gardeners/cover"
+     ]
+    },
+    {
+     "source_id": "harbor",
+     "name": "Harbor Reads",
+     "icon_url": null,
+     "mature": false,
+     "available": true,
+     "suggested": false,
+     "latest_covers": [
+      "/sources/harbor/series/paper-tiger-academy/cover",
+      "/sources/harbor/series/the-cartographer-s-apprentice/cover",
+      "/sources/harbor/series/moonlit-bakery/cover"
+     ]
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "genres",
+   "title": "Your genres",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "genre": "Fantasy",
+     "weight": 0.9
+    },
+    {
+     "genre": "Slice of life",
+     "weight": 0.7
+    },
+    {
+     "genre": "Action",
+     "weight": 0.6
+    },
+    {
+     "genre": "Romance",
+     "weight": 0.3
+    },
+    {
+     "genre": "Mystery",
+     "weight": 0.2
+    },
+    {
+     "genre": "Comedy",
+     "weight": 0.15
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "numbers",
+   "title": "This week in numbers",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "streak": {
+      "current_days": 12,
+      "longest_days": 31,
+      "at_risk": false,
+      "last_active_date": "2026-09-29",
+      "milestones_seen": [
+       7
+      ]
+     },
+     "chapters_week": 18,
+     "seconds_week": 12000
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  }
+ ],
+ "ai": {
+  "available": true,
+  "reason": "ok"
+ }
+}

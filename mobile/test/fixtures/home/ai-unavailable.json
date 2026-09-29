@@ -1,0 +1,699 @@
+{
+ "issue_no": 184,
+ "generated_at": "2026-09-30T15:34:12Z",
+ "content_kind": "manga",
+ "headline": "Tonight: chapter 143 of The Lantern Courier.",
+ "deck": "A fine night for it.",
+ "kicker_title": null,
+ "streak": {
+  "current_days": 12,
+  "longest_days": 31,
+  "at_risk": false,
+  "last_active_date": "2026-09-29",
+  "milestones_seen": [
+   7
+  ]
+ },
+ "cover": {
+  "reason": "new_chapters",
+  "source_id": "shelf",
+  "series_key": "the-lantern-courier",
+  "chapter_key": "c143",
+  "chapter_number": 143,
+  "last_page": 1,
+  "page_count": 0,
+  "title": "The Lantern Courier",
+  "cover_url": "/sources/shelf/series/the-lantern-courier/cover",
+  "content_kind": "manga",
+  "ambient": {
+   "duo": "#B8A27A",
+   "tint": "#14100A",
+   "ink": "#E9D7A8"
+  },
+  "palette": null,
+  "new_count": 2,
+  "paused_days": 0,
+  "recap": {
+   "available": true,
+   "reason": "ok",
+   "range": {
+    "from_key": "c131",
+    "to_key": "c142",
+    "from_number": 131,
+    "to_number": 142
+   },
+   "est_seconds": 104,
+   "cached": false
+  },
+  "why": null,
+  "world": null
+ },
+ "also": [
+  {
+   "kind": "new_chapters",
+   "source_id": "shelf",
+   "series_key": "paper-tiger-academy",
+   "title": "Paper Tiger Academy",
+   "headline": "Paper Tiger Academy: 3 new chapters.",
+   "deck": "The tournament arc starts.",
+   "ambient": {
+    "duo": "#7AB88C",
+    "tint": "#0A140D",
+    "ink": "#A8E9BA"
+   }
+  },
+  {
+   "kind": "because",
+   "source_id": "shelf",
+   "series_key": "skyward-gardeners",
+   "title": "Skyward Gardeners",
+   "headline": "Because you read Sword of the Ninth Spring",
+   "deck": "Same slow-burn rivalries, gentler art.",
+   "ambient": {
+    "duo": "#B87A93",
+    "tint": "#140A0F",
+    "ink": "#E9A8C3"
+   }
+  },
+  {
+   "kind": "almost_there",
+   "source_id": "shelf",
+   "series_key": "iron-kite",
+   "title": "Iron Kite",
+   "headline": "Two chapters left in Iron Kite.",
+   "deck": null,
+   "ambient": {
+    "duo": "#7AB8B3",
+    "tint": "#0A1413",
+    "ink": "#A8E9E4"
+   }
+  }
+ ],
+ "sections": [
+  {
+   "type": "continue",
+   "title": "Continue reading",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "source_id": "shelf",
+     "series_key": "the-lantern-courier",
+     "chapter_key": "c142",
+     "chapter_number": 142,
+     "last_page": 28,
+     "page_count": 40,
+     "last_read_at": "2026-09-29T18:00:00Z",
+     "title": "The Lantern Courier",
+     "cover_url": "/sources/shelf/series/the-lantern-courier/cover",
+     "ambient": {
+      "duo": "#B8A27A",
+      "tint": "#14100A",
+      "ink": "#E9D7A8"
+     },
+     "nudge": "new",
+     "new_count": 2,
+     "paused_days": 0,
+     "recap": {
+      "available": true,
+      "reason": "ok",
+      "range": {
+       "from_key": "c131",
+       "to_key": "c142",
+       "from_number": 131,
+       "to_number": 142
+      },
+      "est_seconds": 104,
+      "cached": false
+     }
+    },
+    {
+     "source_id": "shelf",
+     "series_key": "sword-of-the-ninth-spring",
+     "chapter_key": "c88",
+     "chapter_number": 88,
+     "last_page": 30,
+     "page_count": 32,
+     "last_read_at": "2026-09-27T18:00:00Z",
+     "title": "Sword of the Ninth Spring",
+     "cover_url": "/sources/shelf/series/sword-of-the-ninth-spring/cover",
+     "ambient": {
+      "duo": "#7A9EB8",
+      "tint": "#0A1014",
+      "ink": "#A8D0E9"
+     },
+     "nudge": "almost_done",
+     "new_count": 0,
+     "paused_days": 0,
+     "recap": {
+      "available": true,
+      "reason": "ok",
+      "range": {
+       "from_key": "c131",
+       "to_key": "c142",
+       "from_number": 131,
+       "to_number": 142
+      },
+      "est_seconds": 104,
+      "cached": false
+     }
+    },
+    {
+     "source_id": "shelf",
+     "series_key": "paper-tiger-academy",
+     "chapter_key": "c310",
+     "chapter_number": 310,
+     "last_page": 5,
+     "page_count": 30,
+     "last_read_at": "2026-09-28T18:00:00Z",
+     "title": "Paper Tiger Academy",
+     "cover_url": "/sources/shelf/series/paper-tiger-academy/cover",
+     "ambient": {
+      "duo": "#7AB88C",
+      "tint": "#0A140D",
+      "ink": "#A8E9BA"
+     },
+     "nudge": null,
+     "new_count": 0,
+     "paused_days": 0,
+     "recap": {
+      "available": true,
+      "reason": "ok",
+      "range": {
+       "from_key": "c131",
+       "to_key": "c142",
+       "from_number": 131,
+       "to_number": 142
+      },
+      "est_seconds": 104,
+      "cached": false
+     }
+    },
+    {
+     "source_id": "shelf",
+     "series_key": "the-cartographer-s-apprentice",
+     "chapter_key": "c51",
+     "chapter_number": 51,
+     "last_page": 12,
+     "page_count": 20,
+     "last_read_at": "2026-09-21T18:00:00Z",
+     "title": "The Cartographer's Apprentice",
+     "cover_url": "/sources/shelf/series/the-cartographer-s-apprentice/cover",
+     "ambient": {
+      "duo": "#A67AB8",
+      "tint": "#100A14",
+      "ink": "#D2A8E9"
+     },
+     "nudge": "paused",
+     "new_count": 0,
+     "paused_days": 9,
+     "recap": {
+      "available": true,
+      "reason": "ok",
+      "range": {
+       "from_key": "c131",
+       "to_key": "c142",
+       "from_number": 131,
+       "to_number": 142
+      },
+      "est_seconds": 104,
+      "cached": false
+     }
+    },
+    {
+     "source_id": "shelf",
+     "series_key": "tea-house-on-rain-street",
+     "chapter_key": "c77",
+     "chapter_number": 77,
+     "last_page": 0,
+     "page_count": 0,
+     "last_read_at": "2026-09-26T18:00:00Z",
+     "title": "Tea House on Rain Street",
+     "cover_url": "/sources/shelf/series/tea-house-on-rain-street/cover",
+     "ambient": {
+      "duo": "#B8B27A",
+      "tint": "#14130A",
+      "ink": "#E9E4A8"
+     },
+     "nudge": null,
+     "new_count": 0,
+     "paused_days": 0,
+     "recap": {
+      "available": true,
+      "reason": "ok",
+      "range": {
+       "from_key": "c131",
+       "to_key": "c142",
+       "from_number": 131,
+       "to_number": 142
+      },
+      "est_seconds": 104,
+      "cached": false
+     }
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "new_this_week",
+   "title": "New this week",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "id": 103,
+     "source_id": "shelf",
+     "series_key": "paper-tiger-academy",
+     "title": "Paper Tiger Academy",
+     "cover_url": "/sources/shelf/series/paper-tiger-academy/cover",
+     "is_favorite": false,
+     "reading_status": "reading",
+     "notify": true,
+     "sort_order": 3,
+     "content_rating": "safe",
+     "rating": "safe",
+     "chapter_count": 30,
+     "read_state": {
+      "started": true,
+      "chapter_key": "c20",
+      "chapter_number": 20,
+      "position": 20,
+      "total": 30,
+      "latest_number": 30,
+      "new_count": 3
+     },
+     "ambient": {
+      "duo": "#7AB88C",
+      "tint": "#0A140D",
+      "ink": "#A8E9BA"
+     }
+    },
+    {
+     "id": 100,
+     "source_id": "shelf",
+     "series_key": "the-lantern-courier",
+     "title": "The Lantern Courier",
+     "cover_url": "/sources/shelf/series/the-lantern-courier/cover",
+     "is_favorite": false,
+     "reading_status": "reading",
+     "notify": true,
+     "sort_order": 0,
+     "content_rating": "safe",
+     "rating": "safe",
+     "chapter_count": 30,
+     "read_state": {
+      "started": true,
+      "chapter_key": "c20",
+      "chapter_number": 20,
+      "position": 20,
+      "total": 30,
+      "latest_number": 30,
+      "new_count": 2
+     },
+     "ambient": {
+      "duo": "#B8A27A",
+      "tint": "#14100A",
+      "ink": "#E9D7A8"
+     }
+    },
+    {
+     "id": 108,
+     "source_id": "shelf",
+     "series_key": "the-quiet-duelist",
+     "title": "The Quiet Duelist",
+     "cover_url": "/sources/shelf/series/the-quiet-duelist/cover",
+     "is_favorite": false,
+     "reading_status": "reading",
+     "notify": true,
+     "sort_order": 8,
+     "content_rating": "safe",
+     "rating": "safe",
+     "chapter_count": 187,
+     "read_state": {
+      "started": true,
+      "chapter_key": "c180",
+      "chapter_number": 180,
+      "position": 180,
+      "total": 187,
+      "latest_number": 187,
+      "new_count": 1
+     },
+     "ambient": {
+      "duo": "#8C7AB8",
+      "tint": "#0D0A14",
+      "ink": "#BAA8E9"
+     }
+    },
+    {
+     "id": 107,
+     "source_id": "shelf",
+     "series_key": "tea-house-on-rain-street",
+     "title": "Tea House on Rain Street",
+     "cover_url": "/sources/shelf/series/tea-house-on-rain-street/cover",
+     "is_favorite": false,
+     "reading_status": "reading",
+     "notify": true,
+     "sort_order": 7,
+     "content_rating": "safe",
+     "rating": "safe",
+     "chapter_count": 208,
+     "read_state": {
+      "started": true,
+      "chapter_key": "c100",
+      "chapter_number": 100,
+      "position": 100,
+      "total": 208,
+      "latest_number": 208,
+      "new_count": 99
+     },
+     "ambient": {
+      "duo": "#B8B27A",
+      "tint": "#14130A",
+      "ink": "#E9E4A8"
+     }
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "almost_there",
+   "title": "Almost there",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "id": 106,
+     "source_id": "shelf",
+     "series_key": "iron-kite",
+     "title": "Iron Kite",
+     "cover_url": "/sources/shelf/series/iron-kite/cover",
+     "is_favorite": false,
+     "reading_status": "reading",
+     "notify": true,
+     "sort_order": 6,
+     "content_rating": "safe",
+     "rating": "safe",
+     "chapter_count": 63,
+     "read_state": {
+      "started": true,
+      "chapter_key": "c61",
+      "chapter_number": 61,
+      "position": 61,
+      "total": 63,
+      "latest_number": 63,
+      "new_count": 0
+     },
+     "ambient": {
+      "duo": "#7AB8B3",
+      "tint": "#0A1413",
+      "ink": "#A8E9E4"
+     },
+     "chapters_left": 2
+    },
+    {
+     "id": 108,
+     "source_id": "shelf",
+     "series_key": "the-quiet-duelist",
+     "title": "The Quiet Duelist",
+     "cover_url": "/sources/shelf/series/the-quiet-duelist/cover",
+     "is_favorite": false,
+     "reading_status": "reading",
+     "notify": true,
+     "sort_order": 8,
+     "content_rating": "safe",
+     "rating": "safe",
+     "chapter_count": 187,
+     "read_state": {
+      "started": true,
+      "chapter_key": "c185",
+      "chapter_number": 185,
+      "position": 185,
+      "total": 187,
+      "latest_number": 187,
+      "new_count": 0
+     },
+     "ambient": {
+      "duo": "#8C7AB8",
+      "tint": "#0D0A14",
+      "ink": "#BAA8E9"
+     },
+     "chapters_left": 2
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "where_were_we",
+   "title": "Where were we?",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "id": 104,
+     "source_id": "shelf",
+     "series_key": "the-cartographer-s-apprentice",
+     "title": "The Cartographer's Apprentice",
+     "cover_url": "/sources/shelf/series/the-cartographer-s-apprentice/cover",
+     "is_favorite": false,
+     "reading_status": "reading",
+     "notify": true,
+     "sort_order": 4,
+     "content_rating": "safe",
+     "rating": "safe",
+     "chapter_count": 96,
+     "read_state": {
+      "started": true,
+      "chapter_key": "c40",
+      "chapter_number": 40,
+      "position": 40,
+      "total": 96,
+      "latest_number": 96,
+      "new_count": 0
+     },
+     "ambient": {
+      "duo": "#A67AB8",
+      "tint": "#100A14",
+      "ink": "#D2A8E9"
+     },
+     "recap": {
+      "available": true,
+      "reason": "ok",
+      "range": {
+       "from_key": "c131",
+       "to_key": "c142",
+       "from_number": 131,
+       "to_number": 142
+      },
+      "est_seconds": 104,
+      "cached": false
+     }
+    },
+    {
+     "id": 101,
+     "source_id": "shelf",
+     "series_key": "sword-of-the-ninth-spring",
+     "title": "Sword of the Ninth Spring",
+     "cover_url": "/sources/shelf/series/sword-of-the-ninth-spring/cover",
+     "is_favorite": false,
+     "reading_status": "reading",
+     "notify": true,
+     "sort_order": 1,
+     "content_rating": "safe",
+     "rating": "safe",
+     "chapter_count": 246,
+     "read_state": {
+      "started": true,
+      "chapter_key": "c120",
+      "chapter_number": 120,
+      "position": 120,
+      "total": 246,
+      "latest_number": 246,
+      "new_count": 0
+     },
+     "ambient": {
+      "duo": "#7A9EB8",
+      "tint": "#0A1014",
+      "ink": "#A8D0E9"
+     }
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "picked",
+   "title": "From your shelf",
+   "seed": null,
+   "note": "budget_exhausted",
+   "fallback": "shelf",
+   "items": [
+    {
+     "kind": "source",
+     "why": null,
+     "item": {
+      "id": "skyward-gardeners",
+      "source_id": "shelf",
+      "title": "Skyward Gardeners",
+      "chapter_count": 42,
+      "genres": [
+       "Drama"
+      ],
+      "cover_url": "/sources/shelf/series/skyward-gardeners/cover",
+      "ambient": {
+       "duo": "#B87A93",
+       "tint": "#140A0F",
+       "ink": "#E9A8C3"
+      }
+     }
+    },
+    {
+     "kind": "source",
+     "why": null,
+     "item": {
+      "id": "moonlit-bakery",
+      "source_id": "shelf",
+      "title": "Moonlit Bakery",
+      "chapter_count": 45,
+      "genres": [
+       "Drama"
+      ],
+      "cover_url": "/sources/shelf/series/moonlit-bakery/cover",
+      "ambient": {
+       "duo": "#B8917A",
+       "tint": "#140E0A",
+       "ink": "#E9C4A8"
+      }
+     }
+    },
+    {
+     "kind": "source",
+     "why": null,
+     "item": {
+      "id": "paper-tiger-academy",
+      "source_id": "shelf",
+      "title": "Paper Tiger Academy",
+      "chapter_count": 43,
+      "genres": [
+       "Drama"
+      ],
+      "cover_url": "/sources/shelf/series/paper-tiger-academy/cover",
+      "ambient": {
+       "duo": "#7AB88C",
+       "tint": "#0A140D",
+       "ink": "#A8E9BA"
+      }
+     }
+    }
+   ],
+   "state": "unavailable",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "sources",
+   "title": "Sources",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "source_id": "shelf",
+     "name": "Shelf Scans",
+     "icon_url": null,
+     "mature": false,
+     "available": true,
+     "suggested": false,
+     "latest_covers": [
+      "/sources/shelf/series/the-lantern-courier/cover",
+      "/sources/shelf/series/sword-of-the-ninth-spring/cover",
+      "/sources/shelf/series/skyward-gardeners/cover"
+     ]
+    },
+    {
+     "source_id": "harbor",
+     "name": "Harbor Reads",
+     "icon_url": null,
+     "mature": false,
+     "available": true,
+     "suggested": false,
+     "latest_covers": [
+      "/sources/harbor/series/paper-tiger-academy/cover",
+      "/sources/harbor/series/the-cartographer-s-apprentice/cover",
+      "/sources/harbor/series/moonlit-bakery/cover"
+     ]
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "genres",
+   "title": "Your genres",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "genre": "Fantasy",
+     "weight": 0.9
+    },
+    {
+     "genre": "Slice of life",
+     "weight": 0.7
+    },
+    {
+     "genre": "Action",
+     "weight": 0.6
+    },
+    {
+     "genre": "Romance",
+     "weight": 0.3
+    },
+    {
+     "genre": "Mystery",
+     "weight": 0.2
+    },
+    {
+     "genre": "Comedy",
+     "weight": 0.15
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  },
+  {
+   "type": "numbers",
+   "title": "This week in numbers",
+   "seed": null,
+   "note": null,
+   "fallback": null,
+   "items": [
+    {
+     "streak": {
+      "current_days": 12,
+      "longest_days": 31,
+      "at_risk": false,
+      "last_active_date": "2026-09-29",
+      "milestones_seen": [
+       7
+      ]
+     },
+     "chapters_week": 18,
+     "seconds_week": 12000
+    }
+   ],
+   "state": "ready",
+   "generated_at": "2026-09-30T15:34:12Z"
+  }
+ ],
+ "ai": {
+  "available": false,
+  "reason": "budget_exhausted"
+ }
+}
