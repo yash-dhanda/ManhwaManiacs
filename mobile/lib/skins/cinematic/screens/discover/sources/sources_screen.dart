@@ -252,7 +252,9 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
       for (final s in all)
         if (matches(s) && (filter != SourcesFilter.mature || s.mature)) s,
     ];
-    final healthy = summary?.ok ?? all.where((s) => s.health?.status.name == 'ok').length;
+    // After the 18+ gate the server-wide summary would over-count.
+    final rowsHealthy = all.where((s) => s.health?.status.name == 'ok').length;
+    final healthy = gateOpen ? (summary?.ok ?? rowsHealthy) : rowsHealthy;
     final deck = '${all.length} sources · $healthy healthy · ${pinnedRows.length} pinned';
     const pinReason = "Pinned sources couldn't be loaded, so pinning is off until they are.";
 
@@ -341,6 +343,7 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                 headline: pinReason,
                 actions: [QuietButton('Try again', onPressed: () => ref.read(sourcePinsProvider.notifier).refresh())],
               ),
+            if (!none) const SourceTableHead(),
             if (none)
               const CineNotice(kicker: 'NOTE', headline: 'No sources installed on this server.')
             else if (noMatch)
@@ -395,7 +398,6 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
               ],
               if (filter != SourcesFilter.pinned) ...[
                 const SectionHead(null, 'All sources'),
-                const SourceTableHead(),
                 for (final s in shownAll) row(s),
               ],
             ],

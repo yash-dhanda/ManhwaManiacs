@@ -12,6 +12,9 @@ class SourceTableHead extends StatelessWidget {
   static const kindWidth = 72.0;
   static const healthWidth = 200.0;
 
+  /// The drag handle's column; rows without one keep the space.
+  static const handleWidth = 32.0;
+
   @override
   Widget build(BuildContext context) {
     if (!isTablet(context)) return const SizedBox.shrink();
@@ -28,7 +31,7 @@ class SourceTableHead extends StatelessWidget {
                 Expanded(child: Text('SOURCE', style: head())),
                 SizedBox(width: kindWidth, child: Text('KIND', style: head())),
                 SizedBox(width: healthWidth, child: Text('HEALTH', style: head())),
-                const SizedBox(width: 6 + CineSpace.s2 + 48 + 48),
+                const SizedBox(width: 6 + CineSpace.s2 + 48 + 48 + handleWidth),
               ],
             ),
           ),

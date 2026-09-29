@@ -199,6 +199,46 @@ class FakePins extends SourcePinsNotifier {
   Future<SourcePinsState> build() async => SourcePinsState(pins: pins, synced: synced);
 }
 
+/// The provider overrides every discover screen needs (also used by the
+/// proof shots).
+List<Override> discoverOverrides(
+  SharedPreferences prefs, {
+  FakeSources? sources,
+  FakeLibrary? library,
+  FakeOcr? ocr,
+  bool ocrOn = true,
+  List<SourcePin> pins = const [],
+  bool pinsSynced = true,
+}) =>
+    [
+      sharedPrefsProvider.overrideWithValue(prefs),
+      novelsEnabledProvider.overrideWithValue(false),
+      skinIdProvider.overrideWithValue(SkinId.cinematic),
+      skinHapticsProvider.overrideWithValue(
+        SkinHaptics(skin: SkinId.cinematic, map: const {}, enabled: false),
+      ),
+      sourcesRepositoryProvider.overrideWithValue(sources ?? FakeSources()),
+      libraryRepositoryProvider.overrideWithValue(library ?? FakeLibrary()),
+      ocrRepositoryProvider.overrideWithValue(ocr ?? FakeOcr()),
+      ocrFeatureVisibleProvider.overrideWithValue(ocrOn),
+      downloadsStoreProvider.overrideWithValue(null),
+      sourcePinsProvider.overrideWith(() => FakePins(pins, synced: pinsSynced)),
+    ];
+
+/// The theme and router the discover screens run under in tests.
+ThemeData discoverTheme([TargetPlatform platform = TargetPlatform.android]) => ThemeData(
+      brightness: Brightness.dark,
+      platform: platform,
+      extensions: const [cinematicTokens],
+    );
+
+GoRouter discoverRouter(Widget screen) => GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, __) => screen),
+        GoRoute(path: '/:rest(.*)', builder: (context, s) => Scaffold(body: Text('at ${s.uri}'))),
+      ],
+    );
+
 /// Pumps [screen] inside the providers every discover screen needs.
 Future<void> pumpScreen(
   WidgetTester tester,
@@ -219,37 +259,23 @@ Future<void> pumpScreen(
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-  final router = GoRouter(
-    routes: [
-      GoRoute(path: '/', builder: (_, __) => screen),
-      GoRoute(path: '/:rest(.*)', builder: (context, s) => Scaffold(body: Text('at ${s.uri}'))),
-    ],
-    initialLocation: '/',
-  );
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        sharedPrefsProvider.overrideWithValue(prefs),
-        novelsEnabledProvider.overrideWithValue(false),
-        skinIdProvider.overrideWithValue(SkinId.cinematic),
-        skinHapticsProvider.overrideWithValue(
-          SkinHaptics(skin: SkinId.cinematic, map: const {}, enabled: false),
+        ...discoverOverrides(
+          prefs,
+          sources: sources,
+          library: library,
+          ocr: ocr,
+          ocrOn: ocrOn,
+          pins: pins,
+          pinsSynced: pinsSynced,
         ),
-        sourcesRepositoryProvider.overrideWithValue(sources ?? FakeSources()),
-        libraryRepositoryProvider.overrideWithValue(library ?? FakeLibrary()),
-        ocrRepositoryProvider.overrideWithValue(ocr ?? FakeOcr()),
-        ocrFeatureVisibleProvider.overrideWithValue(ocrOn),
-        downloadsStoreProvider.overrideWithValue(null),
-        sourcePinsProvider.overrideWith(() => FakePins(pins, synced: pinsSynced)),
         ...extra,
       ],
       child: MaterialApp.router(
-        routerConfig: router,
-        theme: ThemeData(
-          brightness: Brightness.dark,
-          platform: platform,
-          extensions: const [cinematicTokens],
-        ),
+        routerConfig: discoverRouter(screen),
+        theme: discoverTheme(platform),
         builder: (c, child) => MediaQuery(
           data: MediaQuery.of(c).copyWith(disableAnimations: reduced),
           child: child!,

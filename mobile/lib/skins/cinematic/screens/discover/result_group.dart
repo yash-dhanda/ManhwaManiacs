@@ -120,7 +120,7 @@ class ResultGroup extends ConsumerWidget {
             )
           else
             SizedBox(
-              height: posterW * 1.5 + 64,
+              height: posterW * 1.5 + 16 + CineSpace.s2 + (2 * 22 + 16) * MediaQuery.textScalerOf(context).scale(1),
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4, vertical: 8),

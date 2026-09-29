@@ -170,7 +170,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                 crossAxisCount: cols,
                 mainAxisSpacing: CineSpace.s3,
                 crossAxisSpacing: gap,
-                childAspectRatio: posterW / (posterW * 1.5 + 56),
+                childAspectRatio: posterW / (posterW * 1.5 + CineSpace.s2 + 2 * 22 * MediaQuery.textScalerOf(context).scale(1)),
               ),
               itemBuilder: (context, i) {
                 final s = state.items[i];

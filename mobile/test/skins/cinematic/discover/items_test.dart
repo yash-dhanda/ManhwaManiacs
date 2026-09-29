@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,8 @@ import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
+import 'package:manhwamaniacs/features/ocr/providers/dialogue_still_provider.dart';
+import 'package:manhwamaniacs/features/ocr/utils/still_crop.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
@@ -86,6 +89,7 @@ OcrSearchPage _page(int n) => OcrSearchPage(
 bool _fieldFocused(WidgetTester tester) => tester.widget<TextField>(find.byType(TextField).first).focusNode!.hasFocus;
 
 void main() {
+  stillWiring();
   group('Discover', () {
     testWidgets('/ focuses the field', (tester) async {
       await pumpScreen(tester, const DiscoverScreen(), sources: FakeSources(sources: _sources), pins: _pins);
@@ -132,7 +136,7 @@ void main() {
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.digit3);
-      await settle(tester, 600);
+      await settle(tester);
       expect(find.textContaining('scope=sources'), findsOneWidget);
     });
 
@@ -475,4 +479,34 @@ class _Never extends FakeSources {
     bool refresh = false,
   }) =>
       Completer<Result<PagedResult<SourceSeriesSummary>>>().future;
+}
+
+// A valid 1 x 1 PNG.
+final _png = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+);
+
+void stillWiring() {
+  testWidgets('the still crops the page in layout by stillCropWindow', (tester) async {
+    await pumpScreen(
+      tester,
+      const DialogueScreen(q: 'hello'),
+      ocr: FakeOcr(page: _page(1)),
+      extra: [
+        dialogueStillProvider.overrideWith((ref, key) async => DialogueStill(bytes: _png, aspect: 0.5)),
+      ],
+    );
+    await settle(tester, 800);
+    final w = stillCropWindow(_hit(0).box, 0.5);
+    final stillBox = tester.getSize(find.byType(SubtitledStill));
+    final pageW = stillBox.width / w.width;
+    final shift = tester
+        .widgetList<Transform>(find.descendant(of: find.byType(SubtitledStill), matching: find.byType(Transform)))
+        .map((t) => t.transform.getTranslation())
+        .where((v) => v.x != 0 || v.y != 0)
+        .toList();
+    expect(shift, isNotEmpty);
+    expect(shift.first.x, closeTo(-w.left * pageW, 0.5));
+    expect(shift.first.y, closeTo(-w.top * (pageW / 0.5), 0.5));
+  });
 }

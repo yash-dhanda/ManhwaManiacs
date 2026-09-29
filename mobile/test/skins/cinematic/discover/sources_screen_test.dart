@@ -23,7 +23,7 @@ void main() {
     await pumpScreen(tester, const SourcesScreen(), sources: FakeSources(sources: sources), pins: pins);
     await settle(tester);
     expect(find.text('Sources'), findsOneWidget);
-    expect(find.text('3 sources · 3 healthy · 2 pinned'), findsOneWidget);
+    expect(find.text('3 sources · 1 healthy · 2 pinned'), findsOneWidget);
     expect(find.bySemanticsLabel(RegExp('MANGADEX, FAILING · 3 errors')), findsWidgets);
     expect(find.bySemanticsLabel(RegExp(r'WEEB, DEAD')), findsOneWidget);
     expect(find.text('GONE'), findsNothing); // unavailable pin is not rendered

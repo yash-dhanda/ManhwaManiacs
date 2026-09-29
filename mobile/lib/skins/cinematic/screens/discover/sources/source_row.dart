@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_poster.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/source_table.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// One directory row (64 dp): logo, name + description, health, 18, pin,
@@ -164,7 +165,10 @@ class SourceRow extends ConsumerWidget {
                     icon: Icon(PhosphorRegular.dotsThree, size: 24, color: t.colorInk100),
                   ),
                 ),
-                if (trailingHandle != null) trailingHandle!,
+                if (trailingHandle != null)
+                  trailingHandle!
+                else if (tablet)
+                  const SizedBox(width: SourceTableHead.handleWidth),
               ],
             ),
           ),
