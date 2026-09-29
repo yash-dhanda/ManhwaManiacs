@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
@@ -5,6 +7,8 @@ import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/providers/dialogue_still_provider.dart';
 import 'package:manhwamaniacs/features/ocr/services/ocr_snippet.dart';
 import 'package:manhwamaniacs/features/ocr/utils/engine_label.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/subtitled_still.dart';
@@ -46,20 +50,23 @@ class TranscriptBlock extends ConsumerWidget {
               error: (_, __) => true,
               orElse: () => false,
             );
-    final base = cineText(context, t.typeBody);
-    final transcript = RichText(
-      textScaler: MediaQuery.textScalerOf(context),
-      text: TextSpan(
-        style: base,
-        children: [
-          for (final s in ocrSnippetSpans(hit.snippet))
-            TextSpan(
-              text: s.text,
-              style: s.highlighted ? base.copyWith(backgroundColor: t.colorSpotWash) : base,
-            ),
-        ],
-      ),
+    final transcript = SweepHighlightText(
+      hit.snippet,
+      style: cineText(context, t.typeBody),
+      textAlign: TextAlign.start,
     );
+    void quickLook() => unawaited(
+          showQuickLook(
+            context,
+            ref,
+            title: series?.title ?? hit.seriesKey,
+            coverUrl: series?.coverUrl,
+            kicker: 'DIALOGUE',
+            caption: credit,
+            onOpen: onTap,
+            openLabel: 'Open in reader',
+          ),
+        );
     final meta = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -76,6 +83,12 @@ class TranscriptBlock extends ConsumerWidget {
               height: tablet ? 60 : 48,
               child: CineCover(url: series?.coverUrl, displayWidth: 40),
             ),
+            IconButton(
+              tooltip: 'More for this line',
+              onPressed: quickLook,
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              icon: Icon(PhosphorRegular.dotsThree, size: 24, color: t.colorInk100),
+            ),
           ],
         ),
       ],
@@ -89,7 +102,11 @@ class TranscriptBlock extends ConsumerWidget {
       label: '$credit. ${ocrSnippetSpans(hit.snippet).map((s) => s.text).join()}'
           '${failed ? " Page didn't load" : ''}',
       excludeSemantics: true,
-      child: InkWell(
+      onLongPress: quickLook,
+      child: CineFocusRing(
+        child: CineLongPress(
+          onLongPress: quickLook,
+          child: InkWell(
         onTap: onTap,
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -113,6 +130,8 @@ class TranscriptBlock extends ConsumerWidget {
                   ],
                 ),
         ),
+      ),
+      ),
       ),
     );
   }

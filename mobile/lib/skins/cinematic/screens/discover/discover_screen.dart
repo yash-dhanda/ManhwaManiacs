@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.da
 import 'package:manhwamaniacs/features/sources/utils/discover_scope.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/ask_scope.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_idle.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
@@ -249,11 +250,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
       child: Scaffold(
         backgroundColor: t.colorPaper0,
         body: SafeArea(
-          child: RefreshIndicator(
-            color: t.colorSpot,
-            backgroundColor: t.colorPaper2,
+          child: PullToReprint(
             onRefresh: () async {
-              unawaited(ref.read(skinHapticsProvider).fire(HapticEvent.refreshArm));
               if (query.length >= 2) await ref.read(searchListProvider.notifier).refresh();
             },
             child: ListView(

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/providers/dialogue_still_provider.dart';
-import 'package:manhwamaniacs/features/ocr/services/ocr_snippet.dart';
 import 'package:manhwamaniacs/features/ocr/utils/still_crop.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -156,27 +156,16 @@ class _Subtitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.cine;
-    final base = cineText(context, t.typeBody);
     return ColoredBox(
       color: t.colorOnart,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Center(
-          child: RichText(
-            textAlign: TextAlign.center,
+          child: SweepHighlightText(
+            hit.snippet,
+            style: cineText(context, t.typeBody),
             maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3),
-            text: TextSpan(
-              style: base,
-              children: [
-                for (final s in ocrSnippetSpans(hit.snippet))
-                  TextSpan(
-                    text: s.text,
-                    style: s.highlighted ? base.copyWith(backgroundColor: t.colorSpotWash) : base,
-                  ),
-              ],
-            ),
+            maxScale: 1.3,
           ),
         ),
       ),

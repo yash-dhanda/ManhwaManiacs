@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -11,7 +12,11 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// A cover image with the session's credentials, radius 0.
 class CineCover extends ConsumerWidget {
-  const CineCover({super.key, required this.url, this.fit = BoxFit.cover, this.displayWidth});
+  const CineCover(
+      {super.key,
+      required this.url,
+      this.fit = BoxFit.cover,
+      this.displayWidth,});
 
   final String? url;
   final BoxFit fit;
@@ -21,7 +26,8 @@ class CineCover extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.cine;
     if (url == null || url!.isEmpty) return ColoredBox(color: t.colorPaper1);
-    final w = coverRequestWidth(displayWidth, MediaQuery.devicePixelRatioOf(context));
+    final w =
+        coverRequestWidth(displayWidth, MediaQuery.devicePixelRatioOf(context));
     return CachedNetworkImage(
       imageUrl: coverUrlAtWidth(url!, w),
       httpHeaders: apiImageHttpHeaders(
@@ -69,25 +75,32 @@ class CinePoster extends StatelessWidget {
       button: true,
       label: caption == null ? title : '$title, $caption',
       excludeSemantics: true,
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        child: SizedBox(
-          width: width,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              art,
-              const SizedBox(height: CineSpace.s2),
-              Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: cineText(context, t.typeTitle),
+      onLongPress: onLongPress,
+      child: CineFocusRing(
+        child: CineLongPress(
+          onLongPress: onLongPress,
+          child: InkWell(
+            onTap: onTap,
+            child: SizedBox(
+              width: width,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  art,
+                  const SizedBox(height: CineSpace.s2),
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: cineText(context, t.typeTitle),
+                  ),
+                  if (caption != null)
+                    Text(caption!,
+                        style: cineText(context, t.typeFolio,
+                            color: t.colorInk60,),),
+                ],
               ),
-              if (caption != null)
-                Text(caption!, style: cineText(context, t.typeFolio, color: t.colorInk60)),
-            ],
+            ),
           ),
         ),
       ),

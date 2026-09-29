@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_health.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 // TODO(mobile/04, mobile/05): stand-ins for the Cinematic primitives (slug
 // lines, notices, plates, typed text, quiet buttons) until those steps land;
 // each keeps the DESIGN.md values so swapping is a rename.
 
-bool cineReduced(BuildContext context) => MediaQuery.disableAnimationsOf(context);
+bool cineReduced(BuildContext context) =>
+    MediaQuery.disableAnimationsOf(context);
 
 TextStyle cineText(BuildContext c, CineTextRole role, {Color? color}) =>
     CineType.style(c, role).copyWith(color: color ?? c.cine.colorInk100);
@@ -50,7 +52,8 @@ class Kicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text.toUpperCase(),
-        style: cineText(context, context.cine.typeKicker, color: color ?? context.cine.colorInk60),
+        style: cineText(context, context.cine.typeKicker,
+            color: color ?? context.cine.colorInk60,),
         textScaler: CineType.scaler(context, context.cine.typeKicker),
       );
 }
@@ -64,6 +67,7 @@ class CineNotice extends StatelessWidget {
     this.deck,
     this.actions = const [],
     this.kickerColor,
+    this.folio,
   });
 
   final String kicker;
@@ -72,11 +76,15 @@ class CineNotice extends StatelessWidget {
   final List<Widget> actions;
   final Color? kickerColor;
 
+  /// A live line under the headline (the `Retry-After` countdown).
+  final Widget? folio;
+
   @override
   Widget build(BuildContext context) {
     final t = context.cine;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4, vertical: CineSpace.s6),
+      padding: const EdgeInsets.symmetric(
+          horizontal: CineSpace.s4, vertical: CineSpace.s6,),
       child: Semantics(
         container: true,
         liveRegion: true,
@@ -86,13 +94,18 @@ class CineNotice extends StatelessWidget {
             Kicker(kicker, color: kickerColor),
             const SizedBox(height: CineSpace.s3),
             TypedText(headline, style: cineText(context, t.typePull)),
+            if (folio != null) ...[const SizedBox(height: CineSpace.s2), folio!],
             if (deck != null) ...[
               const SizedBox(height: CineSpace.s2),
-              Text(deck!, style: cineText(context, t.typeDeck, color: t.colorInk60)),
+              Text(deck!,
+                  style: cineText(context, t.typeDeck, color: t.colorInk60),),
             ],
             if (actions.isNotEmpty) ...[
               const SizedBox(height: CineSpace.s4),
-              Wrap(spacing: CineSpace.s4, runSpacing: CineSpace.s2, children: actions),
+              Wrap(
+                  spacing: CineSpace.s4,
+                  runSpacing: CineSpace.s2,
+                  children: actions,),
             ],
           ],
         ),
@@ -103,7 +116,8 @@ class CineNotice extends StatelessWidget {
 
 /// A `quiet` text button with a 44 dp hit area.
 class QuietButton extends StatelessWidget {
-  const QuietButton(this.label, {super.key, this.onPressed, this.icon, this.semanticsLabel});
+  const QuietButton(this.label,
+      {super.key, this.onPressed, this.icon, this.semanticsLabel,});
 
   final String label;
   final VoidCallback? onPressed;
@@ -119,24 +133,29 @@ class QuietButton extends StatelessWidget {
       enabled: onPressed != null,
       label: semanticsLabel ?? label,
       excludeSemantics: true,
-      child: InkWell(
-        onTap: onPressed,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-          child: Center(
-            widthFactor: 1,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (icon != null) ...[Icon(icon, size: 16, color: color), const SizedBox(width: 6)],
-                Flexible(
-                  child: Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    style: cineText(context, t.typeUi, color: color),
+      child: CineFocusRing(
+        child: InkWell(
+          onTap: onPressed,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            child: Center(
+              widthFactor: 1,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 16, color: color),
+                    const SizedBox(width: 6),
+                  ],
+                  Flexible(
+                    child: Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      style: cineText(context, t.typeUi, color: color),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -182,36 +201,42 @@ class SlugTabs extends StatelessWidget {
   Widget _tab(BuildContext context, int i) {
     final t = context.cine;
     final on = i == selected;
-    final label = folios ? '${(i + 1).toString().padLeft(2, '0')} ${labels[i]}' : labels[i];
+    final label = folios
+        ? '${(i + 1).toString().padLeft(2, '0')} ${labels[i]}'
+        : labels[i];
     return Semantics(
       button: true,
       selected: on,
       label: labels[i],
       excludeSemantics: true,
-      child: InkWell(
-        onTap: () => onSelected(i),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: CineSpace.s3),
-              child: Text(
-                label.toUpperCase(),
-                style: cineText(context, t.typeNav, color: on ? t.colorInk100 : t.colorInk60),
+      child: CineFocusRing(
+        child: InkWell(
+          onTap: () => onSelected(i),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: CineSpace.s3),
+                child: Text(
+                  label.toUpperCase(),
+                  style: cineText(context, t.typeNav,
+                      color: on ? t.colorInk100 : t.colorInk60,),
+                ),
               ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: AnimatedContainer(
-                duration: cineReduced(context) ? CineDur.reduced : CineDur.column,
-                curve: CineCurves.settle,
-                height: on ? 2 : 1,
-                color: on ? t.colorSpot : t.colorRule1,
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: AnimatedContainer(
+                  duration:
+                      cineReduced(context) ? CineDur.reduced : CineDur.column,
+                  curve: CineCurves.settle,
+                  height: on ? 2 : 1,
+                  color: on ? t.colorSpot : t.colorRule1,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -282,7 +307,8 @@ class FlickerPlate extends StatefulWidget {
   State<FlickerPlate> createState() => _FlickerPlateState();
 }
 
-class _FlickerPlateState extends State<FlickerPlate> with SingleTickerProviderStateMixin {
+class _FlickerPlateState extends State<FlickerPlate>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _c =
       AnimationController(vsync: this, duration: CineDur.flicker);
 
@@ -311,9 +337,12 @@ class _FlickerPlateState extends State<FlickerPlate> with SingleTickerProviderSt
         child: ColoredBox(color: context.cine.colorPaper1),
       ),
     );
-    final sized = SizedBox(width: widget.width, height: widget.height, child: plate);
+    final sized =
+        SizedBox(width: widget.width, height: widget.height, child: plate);
     return ExcludeSemantics(
-      child: widget.aspect == null ? sized : AspectRatio(aspectRatio: widget.aspect!, child: plate),
+      child: widget.aspect == null
+          ? sized
+          : AspectRatio(aspectRatio: widget.aspect!, child: plate),
     );
   }
 }
@@ -346,9 +375,11 @@ class _IndeterminateRuleState extends State<IndeterminateRule>
               animation: _c,
               builder: (context, _) => Stack(
                 children: [
-                  Positioned.fill(child: ColoredBox(color: context.cine.colorRule1)),
+                  Positioned.fill(
+                      child: ColoredBox(color: context.cine.colorRule1),),
                   Positioned(
-                    left: (box.maxWidth * 1.25) * _c.value - box.maxWidth * 0.25,
+                    left:
+                        (box.maxWidth * 1.25) * _c.value - box.maxWidth * 0.25,
                     width: box.maxWidth * 0.25,
                     top: 0,
                     bottom: 0,
@@ -393,7 +424,8 @@ class SectionHead extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.cine;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(CineSpace.s4, CineSpace.s3, CineSpace.s4, CineSpace.s3),
+      padding: const EdgeInsets.fromLTRB(
+          CineSpace.s4, CineSpace.s3, CineSpace.s4, CineSpace.s3,),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

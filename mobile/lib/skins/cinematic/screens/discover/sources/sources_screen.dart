@@ -12,17 +12,19 @@ import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/index_field_header.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/health_details_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/source_row.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/source_table.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/skin_haptics.dart';
 
 /// `/sources`: the directory with health marks, pins (drag / Move items) and
-/// the 18+ mark. TODO(mobile/05): swap SnackBar for the Cinematic toast.
+/// the 18+ mark.
 class SourcesScreen extends ConsumerStatefulWidget {
   const SourcesScreen({super.key});
 
@@ -47,17 +49,7 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
 
   FocusNode _node(String id) => _nodes.putIfAbsent(id, FocusNode.new);
 
-  void _toast(String text, {bool error = false}) {
-    final t = context.cine;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: t.colorPaper2,
-        shape: Border(left: BorderSide(color: error ? t.colorProof : t.colorSpot, width: 2)),
-        duration: error ? CineDur.holdToastError : CineDur.holdToast,
-        content: Text(text, style: cineText(context, t.typeUi)),
-      ),
-    );
-  }
+  void _toast(String text, {bool error = false}) => showCineToast(context, text, error: error);
 
   Future<void> _toggle(SourceSummary s) async {
     final pins = ref.read(sourcePinsProvider).valueOrNull;
@@ -284,11 +276,8 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
     final noMatch = !none && shownAll.isEmpty && query.isNotEmpty;
 
     return scaffold(
-      RefreshIndicator(
-        color: t.colorSpot,
-        backgroundColor: t.colorPaper2,
+      PullToReprint(
         onRefresh: () async {
-          unawaited(ref.read(skinHapticsProvider).fire(HapticEvent.refreshArm));
           ref.invalidate(sourcesListProvider);
           await ref.read(sourcePinsProvider.notifier).refresh();
         },
@@ -406,6 +395,7 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
               ],
               if (filter != SourcesFilter.pinned) ...[
                 const SectionHead(null, 'All sources'),
+                const SourceTableHead(),
                 for (final s in shownAll) row(s),
               ],
             ],

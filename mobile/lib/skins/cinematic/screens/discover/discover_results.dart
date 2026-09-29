@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +12,8 @@ import 'package:manhwamaniacs/features/ocr/services/ocr_snippet.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/discover_scope.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/group_jump_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/result_group.dart';
@@ -266,29 +270,7 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
           child: Text('IN DIALOGUE', style: cineText(context, t.typeTitle)),
         ),
         for (final r in items.take(limit))
-          InkWell(
-            onTap: () => context.push(Routes.dialogue({'q': widget.query})),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4, vertical: CineSpace.s2),
-              child: RichText(
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                text: TextSpan(
-                  children: [
-                    for (final s in ocrSnippetSpans(r.snippet))
-                      TextSpan(
-                        text: s.text,
-                        style: cineText(
-                          context,
-                          t.typeBody,
-                          color: s.highlighted ? t.colorInk100 : t.colorInk60,
-                        ).copyWith(backgroundColor: s.highlighted ? t.colorSpotWash : null),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          _dialogueRow(context, r),
         QuietButton(
           'See all',
           onPressed: () => context.push(Routes.dialogue({'q': widget.query})),
@@ -310,7 +292,12 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
       final after = (error.details is Map ? (error.details! as Map)['retry_after'] : null);
       return CineNotice(
         kicker: 'SLOW DOWN',
-        headline: 'Retrying in ${after is num ? after.toInt() : 12} s',
+        headline: 'Too many searches at once.',
+        folio: RetryCountdown(
+          seconds: after is num ? after.toInt() : 12,
+          style: cineText(context, context.cine.typeFolio, color: context.cine.colorSpot),
+          onZero: retry,
+        ),
         kickerColor: context.cine.colorSpot,
         actions: [QuietButton('Try again', onPressed: retry)],
       );
@@ -321,6 +308,66 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
       deck: error is AppError ? error.userMessage : null,
       kickerColor: context.cine.colorProof,
       actions: [QuietButton('Try again', onPressed: retry)],
+    );
+  }
+
+  Widget _dialogueRow(BuildContext context, OcrSearchResult r) {
+    final t = context.cine;
+    void open() => context.push(Routes.dialogue({'q': widget.query}));
+    void quickLook() => unawaited(
+          showQuickLook(
+            context,
+            ref,
+            title: ocrSnippetSpans(r.snippet).map((s) => s.text).join(),
+            coverUrl: null,
+            kicker: 'IN DIALOGUE',
+            caption: r.page == null ? 'CH ${r.chapterKey}' : 'CH ${r.chapterKey} · PAGE ${r.page}',
+            onOpen: open,
+            openLabel: 'See in dialogue',
+          ),
+        );
+    return CineFocusRing(
+      child: CineLongPress(
+        onLongPress: quickLook,
+        child: InkWell(
+          onTap: open,
+          child: Padding(
+            padding: const EdgeInsets.only(left: CineSpace.s4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: CineSpace.s2),
+                    child: RichText(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        children: [
+                          for (final s in ocrSnippetSpans(r.snippet))
+                            TextSpan(
+                              text: s.text,
+                              style: cineText(
+                                context,
+                                t.typeBody,
+                                color: s.highlighted ? t.colorInk100 : t.colorInk60,
+                              ).copyWith(backgroundColor: s.highlighted ? t.colorSpotWash : null),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'More for this line',
+                  onPressed: quickLook,
+                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                  icon: Icon(PhosphorRegular.dotsThree, size: 24, color: t.colorInk100),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/sources/utils/browse_freshness.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/opening_state.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/top_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
@@ -179,6 +180,15 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                   width: posterW,
                   heroTag: (id, s.id),
                   onTap: () => context.push(Routes.feature(id, s.id)),
+                  onLongPress: () => showQuickLook(
+                    context,
+                    ref,
+                    title: s.title,
+                    coverUrl: s.coverUrl,
+                    kicker: name,
+                    caption: s.chapterCount > 0 ? 'CHAPTERS ${s.chapterCount}' : null,
+                    onOpen: () => context.push(Routes.feature(id, s.id)),
+                  ),
                 );
               },
             ),
@@ -253,11 +263,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
         body: SafeArea(
           child: Stack(
             children: [
-              RefreshIndicator(
-                color: t.colorSpot,
-                backgroundColor: t.colorPaper2,
+              PullToReprint(
                 onRefresh: () async {
-                  unawaited(ref.read(skinHapticsProvider).fire(HapticEvent.refreshArm));
                   await ref.read(sourceBrowseProvider(id).notifier).refresh();
                 },
                 child: ListView(
@@ -295,10 +302,15 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                             ),
                           ),
                           if (!(browse.isLoading && state == null))
-                            Text(
-                              rateLimitDeck(err) ?? deck,
-                              style: cineText(context, t.typeDeck, color: t.colorInk60),
-                            ),
+                            _retrySeconds(err) != null
+                                ? RetryCountdown(
+                                    key: ValueKey('retry-${_retrySeconds(err)}'),
+                                    seconds: _retrySeconds(err)!,
+                                    prefix: 'Rate limited · retrying in',
+                                    style: cineText(context, t.typeDeck, color: t.colorInk60),
+                                    onZero: _refresh,
+                                  )
+                                : Text(deck, style: cineText(context, t.typeDeck, color: t.colorInk60)),
                           Row(
                             children: [
                               if (fresh != null)
@@ -419,10 +431,10 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     );
   }
 
-  String? rateLimitDeck(Object? err) {
+  int? _retrySeconds(Object? err) {
     if (err is ApiError && err.code == 'rate_limited') {
       final after = err.details is Map ? (err.details! as Map)['retry_after'] : null;
-      return 'Rate limited · retrying in ${after is num ? after.toInt() : 12} s';
+      return after is num ? after.toInt() : 12;
     }
     return null;
   }

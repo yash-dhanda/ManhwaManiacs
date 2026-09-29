@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/sources/utils/source_health.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -53,10 +54,12 @@ class SourceRow extends ConsumerWidget {
       excludeSemantics: true,
       onTap: onOpen,
       onLongPress: onMenu,
-      child: InkWell(
+      child: CineFocusRing(
+        child: CineLongPress(
+          onLongPress: onMenu,
+          child: InkWell(
         focusNode: focusNode,
         onTap: onOpen,
-        onLongPress: onMenu,
         child: SizedBox(
           height: 64,
           child: Padding(
@@ -166,6 +169,8 @@ class SourceRow extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+      ),
       ),
     );
   }

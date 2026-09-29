@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_health.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -131,13 +132,24 @@ class ResultGroup extends ConsumerWidget {
                   final path = item.isLocal
                       ? Routes.featureByFollow(item.seriesId)
                       : Routes.feature(item.source ?? group.key, item.seriesId);
+                  final cover = searchResultCoverUrl(base, item.coverUrl);
+                  final caption = chapters is num && chapters > 0 ? 'CHAPTERS ${chapters.toInt()}' : null;
                   return CinePoster(
                     title: item.title,
-                    coverUrl: searchResultCoverUrl(base, item.coverUrl),
-                    caption: chapters is num && chapters > 0 ? 'CHAPTERS ${chapters.toInt()}' : null,
+                    coverUrl: cover,
+                    caption: caption,
                     width: posterW,
                     heroTag: (item.source ?? '@local', item.seriesId),
                     onTap: () => context.push(path),
+                    onLongPress: () => showQuickLook(
+                      context,
+                      ref,
+                      title: item.title,
+                      coverUrl: cover,
+                      kicker: group.isLocal ? 'IN YOUR LIBRARY' : group.sourceName,
+                      caption: caption,
+                      onOpen: () => context.push(path),
+                    ),
                   );
                 },
               ),

@@ -35,10 +35,29 @@ class _Act extends Action<_Intent> {
   }
 }
 
-/// Wraps [child] in Shortcuts + Actions for [keys]. Registers under the
-/// screen's masthead group (`Discover`, `Sources`, `Catalogue`, `Dialogue`).
-// TODO(mobile/06): register [group] with the shell's key registry.
-class CineKeys extends StatelessWidget {
+/// The screens' key groups currently on screen, by masthead title
+/// (`Discover`, `Sources`, `Catalogue`, `Dialogue`), with their bindings.
+///
+/// TODO(mobile/06): replace with the shell's key registry (the shell's
+/// shortcut sheet reads it). Screens register through [CineKeys] only, so the
+/// swap is inside this file.
+abstract final class CineKeyRegistry {
+  static final ValueNotifier<Map<String, List<CineKey>>> groups =
+      ValueNotifier(const {});
+
+  static void register(String group, List<CineKey> keys) {
+    groups.value = {...groups.value, group: keys};
+  }
+
+  static void unregister(String group, List<CineKey> keys) {
+    if (!identical(groups.value[group], keys)) return;
+    groups.value = {...groups.value}..remove(group);
+  }
+}
+
+/// Wraps [child] in Shortcuts + Actions for [keys] and registers them under
+/// the screen's masthead [group].
+class CineKeys extends StatefulWidget {
   const CineKeys({super.key, required this.group, required this.keys, required this.child});
 
   final String group;
@@ -46,11 +65,47 @@ class CineKeys extends StatelessWidget {
   final Widget child;
 
   @override
+  State<CineKeys> createState() => _CineKeysState();
+}
+
+class _CineKeysState extends State<CineKeys> {
+  List<CineKey>? _registered;
+
+  @override
+  void initState() {
+    super.initState();
+    // After the first frame: the registry notifies listeners, which must not
+    // rebuild during this build.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+  }
+
+  void _sync() {
+    if (!mounted) return;
+    _registered = widget.keys;
+    CineKeyRegistry.register(widget.group, widget.keys);
+  }
+
+  @override
+  void didUpdateWidget(CineKeys old) {
+    super.didUpdateWidget(old);
+    if (_registered != null && !identical(old.keys, widget.keys)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+    }
+  }
+
+  @override
+  void dispose() {
+    final r = _registered;
+    if (r != null) CineKeyRegistry.unregister(widget.group, r);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) => Shortcuts(
-        shortcuts: {for (final k in keys) k.activator: _Intent(k)},
+        shortcuts: {for (final k in widget.keys) k.activator: _Intent(k)},
         child: Actions(
           actions: {_Intent: _Act()},
-          child: child,
+          child: widget.child,
         ),
       );
 }
