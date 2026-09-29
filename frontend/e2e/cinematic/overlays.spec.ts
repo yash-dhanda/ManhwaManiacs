@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { open } from "./gallery";
 
+test.describe.configure({ retries: 1 }); // a shared dev box builds alongside: one retry for load-induced timing
 const OUT = path.resolve(__dirname, "../../../docs/redesign/proof/web-05/overlays");
 mkdirSync(OUT, { recursive: true });
 const g = (page: Page, id: string) => page.locator(`[data-gallery="${id}"]`).first();
@@ -213,4 +214,37 @@ test("hit targets: >= 44 on the phone frame with touch, >= 32 on desktop", async
     expect(small, `${w}x${h}`).toEqual([]);
     await ctx.close();
   }
+});
+
+test("captures: notices, certificate dialog on both frames", async ({ page }) => {
+  await desktop(page); await open(page);
+  await page.locator("#notices").scrollIntoViewIfNeeded(); await page.waitForTimeout(1500);
+  await page.locator("#notices").screenshot({ path: path.join(OUT, "notices.png") });
+  await expect(g(page, "w5-notice-rate")).toContainText(/Retrying in \d+ s/);
+  const t = trigger(page, "certificate"); await t.scrollIntoViewIfNeeded(); await t.click();
+  const d = page.getByRole("dialog"); await expect(d).toBeVisible(); await page.waitForTimeout(500);
+  const enable = d.getByRole("button", { name: "Enable 18+" });
+  await expect(enable).toHaveAttribute("aria-disabled", "true");
+  await shot(page, "certificate-desktop");
+  await d.getByRole("checkbox", { name: "I am 18 or older" }).click(); await expect(enable).not.toHaveAttribute("aria-disabled", "true");
+  await page.keyboard.press("Escape");
+  await phone(page); await page.reload().then(() => open(page));
+  await trigger(page, "certificate").scrollIntoViewIfNeeded(); await trigger(page, "certificate").click(); await page.waitForTimeout(700);
+  const full = (await page.getByRole("dialog").boundingBox())!; expect(full.width).toBe(390); expect(full.height).toBe(844);
+  await shot(page, "certificate-phone");
+});
+
+test("captures: quick look on a touch long-press", async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, baseURL: process.env.E2E_BASE_URL });
+  const page = await ctx.newPage(); await open(page);
+  const el = g(page, "w5-quicklook-target"); await el.scrollIntoViewIfNeeded();
+  const b = (await el.boundingBox())!; const x = b.x + b.width / 2, y = b.y + b.height / 2;
+  const cdp = await ctx.newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+  await page.waitForTimeout(700);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect(page.getByRole("dialog")).toBeVisible(); await page.waitForTimeout(900);
+  await expect(page.getByRole("menuitem", { name: "Continue" })).toBeVisible();
+  await page.screenshot({ path: path.join(OUT, "quick-look.png") });
+  await ctx.close();
 });

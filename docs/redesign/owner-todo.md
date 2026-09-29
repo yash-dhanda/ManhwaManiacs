@@ -70,3 +70,7 @@ Items only the owner can do, by step.
 ## web/11 open issues
 - mature_override re-stamp not wired: web/07's local-row mature filter is not integrated; use-series-page.ts setMature only invalidates MATURE_GATED_QUERY_ROOTS (TODO(web/07)).
 - Stand-ins remain until web/06, web/07, web/09 integrate: reader-entry.ts (enterReader wipe), toasts.tsx (toast host), standins.tsx (AddToShelfSheet, TagSheet), tags-standin.ts (tag hooks), SetHeading.tsx and use-feature-keys.tsx (single-key setting).
+
+## web/05 owner checks (device only)
+- Real-device touch pass on a phone: sheet drag (rubber band, detent settle, 30 % / 800 px/s dismissal), swipe rows, reorder handle, pull to reprint, Lightbox pinch and drag-to-dismiss. The Playwright suite drives the same code with emulated touch, not a real finger.
+- Haptics on a real Android device for `sheet.detent`, `refresh.arm`, `zoom.snap`, `delete.confirm` (Cinematic web haptics only cover five events; the others are silent by design).

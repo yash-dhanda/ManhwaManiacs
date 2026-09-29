@@ -50,11 +50,11 @@ export function Notice({ tone, headline, deck, kicker, primary, quiet, glyph, pa
       <div className="flex flex-col gap-3 pt-4">
         {glyph ? <Icon name={glyph} size={32} className="text-ink-45" /> : null}
         <p className={`type-kicker ${KICKER_TONE[tone]}`}>{kicker ?? KICKER[tone]}</p>
-        <TypedHeadline as={Tag} text={headline} className={desktop ? "type-headline text-ink-100 [font-size:0.6em]" : "type-subhead text-ink-100"} />
+        <TypedHeadline as={Tag} text={headline} className={desktop ? "type-headline text-ink-100 [zoom:0.6]" : "type-subhead text-ink-100"} />
         {deck || tone === "rateLimit" || offlinePreset ? (
           <p className="type-deck max-w-[48ch] text-ink-60">
             {deck}{deck && (tone === "rateLimit" && left > 0 || offlinePreset) ? " " : ""}
-            {tone === "rateLimit" && left > 0 ? <span className="type-folio text-ink-100">{`Retrying in ${left} s`}</span> : null}
+            {tone === "rateLimit" && left > 0 ? <span className="type-folio mt-1 block text-ink-100">{`Retrying in ${left} s`}</span> : null}
             {offlinePreset ? "Saved chapters still open." : null}
           </p>
         ) : null}

@@ -12,13 +12,14 @@ import { pullDistance, pullPhase, pullRule } from "./pull";
  */
 export function PullToReprint({ onRefresh, children, className = "" }: { onRefresh: () => Promise<unknown>; children: ReactNode; className?: string }) {
   const [shown, setShown] = useState(0);
+  const [raw, setRaw] = useState(0);
   const [busy, setBusy] = useState(false);
   const start = useRef<{ y: number; x: number } | null>(null);
   const armed = useRef(false);
-  const phase = pullPhase(shown);
+  const phase = pullPhase(raw);
   const atTop = (el: HTMLElement) => (el.closest("[data-pull-scroll]") as HTMLElement | null ?? document.scrollingElement as HTMLElement).scrollTop <= 0;
   const end = () => {
-    const fire = armed.current; start.current = null; armed.current = false; setShown(0);
+    const fire = armed.current; start.current = null; armed.current = false; setShown(0); setRaw(0);
     if (!fire || busy) return;
     haptic("refresh.fire"); setBusy(true);
     onRefresh().finally(() => setBusy(false));
@@ -29,10 +30,10 @@ export function PullToReprint({ onRefresh, children, className = "" }: { onRefre
       onPointerMove={(e) => {
         const s = start.current; if (!s) return;
         const dy = e.clientY - s.y;
-        if (dy <= 0 || Math.abs(e.clientX - s.x) > dy) { if (dy <= 0) setShown(0); return; }
+        if (dy <= 0 || Math.abs(e.clientX - s.x) > dy) { if (dy <= 0) { setShown(0); setRaw(0); } return; }
         const d = pullDistance(dy);
-        setShown(d);
-        const a = pullPhase(d) === "release";
+        setShown(d); setRaw(dy);
+        const a = pullPhase(dy) === "release";
         if (a && !armed.current) { haptic("refresh.arm"); playSound("refresh.arm"); }
         armed.current = a;
       }}
@@ -40,7 +41,7 @@ export function PullToReprint({ onRefresh, children, className = "" }: { onRefre
       <div aria-live="polite" className="flex flex-col items-center overflow-hidden" style={{ height: busy ? 24 : shown, transition: shown ? "none" : "height var(--mm-dur-line) var(--mm-ease-set)" }}>
         {busy ? <IndeterminateRule label="Reprinting" className="mt-3" /> : shown > 0 ? (
           <>
-            <div aria-hidden className="mt-3 h-0.5 bg-spot" style={{ width: `${pullRule(shown) * 100}%` }} />
+            <div aria-hidden className="mt-3 h-0.5 bg-spot" style={{ width: `${pullRule(raw) * 100}%` }} />
             <p className="type-kicker mt-2 text-ink-45">{phase === "release" ? "RELEASE TO REPRINT" : "PULL TO REPRINT"}</p>
           </>
         ) : null}

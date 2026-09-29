@@ -36,7 +36,7 @@ export function CertificateDialog({ open, onOpenChange, profileName, onConfirm, 
       <Certificate stamped={stamped} />
       <div className="flex min-w-0 flex-col gap-3">
         <p className="type-kicker text-proof">RESTRICTED · THIS PROFILE ONLY</p>
-        <h2 className={`${desktop ? "type-headline [font-size:0.6em]" : "type-subhead"} text-ink-100`}>{title}</h2>
+        <h2 className={`${desktop ? "type-headline [zoom:0.6]" : "type-subhead"} text-ink-100`}>{title}</h2>
         <p className="type-body max-w-[48ch] text-ink-60">{BODY}</p>
         <Checkbox checked={ok} onCheckedChange={setOk} label="I am 18 or older" />
         {error ? <p role="alert" className="type-caption text-proof">{error}</p> : null}

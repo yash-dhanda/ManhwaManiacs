@@ -12,8 +12,7 @@ describe("pull to reprint", () => {
     expect(pullPhase(0)).toBe("idle");
     expect(pullPhase(PULL_TRIGGER - 0.1)).toBe("pull");
     expect(pullPhase(PULL_TRIGGER)).toBe("release");
-    expect(pullPhase(pullDistance(150))).toBe("pull");
-    expect(pullPhase(pullDistance(400))).toBe("release");
+    expect(pullPhase(200)).toBe("release");
   });
   it("rule grows to full at the trigger", () => {
     expect(pullRule(48)).toBe(0.5);
