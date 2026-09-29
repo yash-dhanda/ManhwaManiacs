@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<defs>
+<mask id="g" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"><rect x="0" y="0" width="256" height="256" fill="#FFFFFF"/><rect x="80" y="68" width="96" height="8" fill="#000000"/><rect x="80" y="120" width="96" height="8" fill="#000000"/></mask>
+</defs>
+<g mask="url(#g)"><rect x="88" y="24" width="80" height="152" fill="#000000" stroke="#000000" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></g><polyline points="104,200 128,224 152,200" fill="none" stroke="#000000" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

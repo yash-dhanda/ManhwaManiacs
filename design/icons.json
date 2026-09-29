@@ -1,0 +1,376 @@
+{
+  "skins": {
+    "cinematic": {
+      "phosphorWeights": [
+        "light",
+        "regular",
+        "fill"
+      ],
+      "glyphWeights": [
+        "light",
+        "regular",
+        "fill"
+      ],
+      "rules": {
+        "default": "light",
+        "smallAtOrBelow": 20,
+        "small": "regular",
+        "active": "fill"
+      },
+      "sizes": {
+        "caption": 16,
+        "button": 20,
+        "bar": 24,
+        "notice": 32
+      },
+      "hit": {
+        "coarse": 44,
+        "android": 48,
+        "fine": 32
+      }
+    },
+    "glass": {
+      "phosphorWeights": [
+        "regular",
+        "duotone",
+        "fill",
+        "light",
+        "bold",
+        "thin"
+      ],
+      "glyphWeights": [
+        "regular",
+        "duotone",
+        "fill"
+      ],
+      "glyphFallback": {
+        "light": "regular",
+        "bold": "fill",
+        "thin": "regular"
+      },
+      "rules": {
+        "default": "regular",
+        "active": "duotone",
+        "pressed": "fill",
+        "inline": "regular",
+        "ornamental": "light",
+        "dense": "bold",
+        "reaction": "fill"
+      },
+      "sizes": {
+        "default": 22,
+        "inline": 20,
+        "ornamentalMin": 48,
+        "ornamentalMax": 64,
+        "denseMin": 14,
+        "denseMax": 16,
+        "reactionStrip": 24,
+        "reactionPicker": 36
+      },
+      "hit": {
+        "coarse": 44,
+        "android": 48
+      },
+      "duotoneSecondaryOpacity": 0.2
+    }
+  },
+  "glyphs": {
+    "cinematic": [
+      "mm-mark",
+      "flame-1",
+      "flame-3",
+      "strip-scroll",
+      "panel-focus",
+      "bubble-search",
+      "certificate-18",
+      "voice-31",
+      "annual",
+      "highlighter"
+    ],
+    "glass": [
+      "mm-mark",
+      "strip-scroll",
+      "panel-focus",
+      "bubble-search",
+      "age-gate",
+      "voice-31",
+      "droplet",
+      "flywheel",
+      "strata-1",
+      "strata-2",
+      "strata-3",
+      "strata-4",
+      "sparkle-slash"
+    ]
+  },
+  "roles": {
+    "back": {
+      "cinematic": "arrow-left",
+      "glass": "caret-left"
+    },
+    "back-depth": {
+      "cinematic": null,
+      "glass": "glyph:strata"
+    },
+    "close": {
+      "cinematic": "x",
+      "glass": "x"
+    },
+    "search": {
+      "cinematic": "magnifying-glass",
+      "glass": "magnifying-glass"
+    },
+    "home": {
+      "cinematic": "moon-stars",
+      "glass": "house-simple"
+    },
+    "library": {
+      "cinematic": "books",
+      "glass": "books"
+    },
+    "discover": {
+      "cinematic": "compass",
+      "glass": null
+    },
+    "downloads": {
+      "cinematic": "download-simple",
+      "glass": null
+    },
+    "index": {
+      "cinematic": "list-numbers",
+      "glass": null
+    },
+    "updates": {
+      "cinematic": "bell-simple",
+      "glass": "bell-simple"
+    },
+    "sources": {
+      "cinematic": "globe-simple",
+      "glass": "globe-hemisphere-west"
+    },
+    "collections": {
+      "cinematic": "stack-simple",
+      "glass": null
+    },
+    "history": {
+      "cinematic": "clock-counter-clockwise",
+      "glass": null
+    },
+    "bookmark": {
+      "cinematic": "bookmark-simple",
+      "glass": "bookmark-simple"
+    },
+    "stats": {
+      "cinematic": "chart-bar",
+      "glass": "chart-bar"
+    },
+    "circle": {
+      "cinematic": "users-three",
+      "glass": "users-three"
+    },
+    "settings": {
+      "cinematic": "gear-six",
+      "glass": "gear-six"
+    },
+    "status": {
+      "cinematic": "pulse",
+      "glass": "pulse"
+    },
+    "picks": {
+      "cinematic": "sparkle",
+      "glass": "sparkle"
+    },
+    "dialogue-search": {
+      "cinematic": "glyph:bubble-search",
+      "glass": "glyph:bubble-search"
+    },
+    "reader-settings": {
+      "cinematic": "sliders-horizontal",
+      "glass": "sliders-horizontal"
+    },
+    "type": {
+      "cinematic": "text-aa",
+      "glass": "text-aa"
+    },
+    "contents": {
+      "cinematic": "list-numbers",
+      "glass": "list-numbers"
+    },
+    "listen": {
+      "cinematic": "headphones",
+      "glass": "headphones"
+    },
+    "play": {
+      "cinematic": "play",
+      "glass": "play"
+    },
+    "pause": {
+      "cinematic": "pause",
+      "glass": "pause"
+    },
+    "chapter-previous": {
+      "cinematic": "skip-back",
+      "glass": "skip-back"
+    },
+    "chapter-next": {
+      "cinematic": "skip-forward",
+      "glass": "skip-forward"
+    },
+    "download": {
+      "cinematic": "cloud-arrow-down",
+      "glass": "cloud-arrow-down"
+    },
+    "downloaded": {
+      "cinematic": "check-square",
+      "glass": "glyph:droplet"
+    },
+    "pin": {
+      "cinematic": "push-pin",
+      "glass": "push-pin"
+    },
+    "favourite": {
+      "cinematic": "star",
+      "glass": "star"
+    },
+    "follow": {
+      "cinematic": "plus",
+      "glass": "plus"
+    },
+    "following": {
+      "cinematic": "check",
+      "glass": "check"
+    },
+    "notify": {
+      "cinematic": "bell-ringing",
+      "glass": "bell-ringing"
+    },
+    "share": {
+      "cinematic": "export",
+      "glass": "export"
+    },
+    "recommend": {
+      "cinematic": "paper-plane-tilt",
+      "glass": "paper-plane-tilt"
+    },
+    "filter": {
+      "cinematic": "funnel-simple",
+      "glass": "funnel-simple"
+    },
+    "sort": {
+      "cinematic": "arrows-down-up",
+      "glass": "arrows-down-up"
+    },
+    "view-grid": {
+      "cinematic": "squares-four",
+      "glass": null
+    },
+    "view-list": {
+      "cinematic": "rows",
+      "glass": null
+    },
+    "select": {
+      "cinematic": "check-square-offset",
+      "glass": "check-circle"
+    },
+    "delete": {
+      "cinematic": "trash-simple",
+      "glass": "trash-simple"
+    },
+    "edit": {
+      "cinematic": "pencil-simple-line",
+      "glass": "pencil-simple"
+    },
+    "overflow": {
+      "cinematic": "dots-three",
+      "glass": "dots-three"
+    },
+    "fullscreen-enter": {
+      "cinematic": "corners-out",
+      "glass": null
+    },
+    "fullscreen-exit": {
+      "cinematic": "corners-in",
+      "glass": null
+    },
+    "zoom-in": {
+      "cinematic": "magnifying-glass-plus",
+      "glass": null
+    },
+    "zoom-out": {
+      "cinematic": "magnifying-glass-minus",
+      "glass": null
+    },
+    "brightness": {
+      "cinematic": "sun-dim",
+      "glass": "sun"
+    },
+    "warmth": {
+      "cinematic": "thermometer-simple",
+      "glass": "thermometer-simple"
+    },
+    "offline": {
+      "cinematic": "wifi-slash",
+      "glass": "wifi-slash"
+    },
+    "refresh": {
+      "cinematic": "arrow-clockwise",
+      "glass": "arrow-clockwise"
+    },
+    "external": {
+      "cinematic": "arrow-square-out",
+      "glass": "arrow-square-out"
+    },
+    "soundscape": {
+      "cinematic": "waveform",
+      "glass": "waveform"
+    },
+    "auto-scroll": {
+      "cinematic": "glyph:strip-scroll",
+      "glass": "glyph:flywheel"
+    },
+    "strip-mode": {
+      "cinematic": "glyph:strip-scroll",
+      "glass": "glyph:strip-scroll"
+    },
+    "guided-view": {
+      "cinematic": "glyph:panel-focus",
+      "glass": "glyph:panel-focus"
+    },
+    "flame": {
+      "cinematic": "flame",
+      "glass": "flame"
+    },
+    "streak-short": {
+      "cinematic": "glyph:flame-1",
+      "glass": null
+    },
+    "streak-long": {
+      "cinematic": "glyph:flame-3",
+      "glass": null
+    },
+    "age-gate": {
+      "cinematic": "glyph:certificate-18",
+      "glass": "glyph:age-gate"
+    },
+    "voice-cast": {
+      "cinematic": "glyph:voice-31",
+      "glass": "glyph:voice-31"
+    },
+    "annual": {
+      "cinematic": "glyph:annual",
+      "glass": null
+    },
+    "highlighter": {
+      "cinematic": "glyph:highlighter",
+      "glass": null
+    },
+    "brand-mark": {
+      "cinematic": "glyph:mm-mark",
+      "glass": "glyph:mm-mark"
+    },
+    "ai-unavailable": {
+      "cinematic": null,
+      "glass": "glyph:sparkle-slash"
+    }
+  }
+}
