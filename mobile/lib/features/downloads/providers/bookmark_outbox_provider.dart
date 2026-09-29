@@ -117,6 +117,15 @@ class BookmarkOutboxController {
     return removed;
   }
 
+  /// Ops waiting in the active scope's outbox.
+  Future<int> pendingCount() async {
+    try {
+      return (await store?.pendingBookmarkOutbox())?.length ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   /// Push every pending op for the active scope, oldest first.
   ///
   /// Never throws — a caller wiring this to a lifecycle event or firing it

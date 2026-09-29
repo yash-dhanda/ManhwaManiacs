@@ -95,6 +95,15 @@ class ProgressOutboxController {
     return _draining = _drain().whenComplete(() => _draining = null);
   }
 
+  /// Rows waiting in the active scope's outbox (0 outside a session or when the store fails).
+  Future<int> pendingCount() async {
+    try {
+      return (await ref.read(downloadsStoreProvider)?.pendingProgressOutbox())?.length ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   /// One pass over the outbox.
   ///
   /// Collapsed per chapter and then chunked, because both bound the same

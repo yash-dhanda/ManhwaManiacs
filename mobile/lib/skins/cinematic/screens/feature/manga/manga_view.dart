@@ -1,12 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -129,6 +131,7 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
         heroTag: d.followed != null
             ? seriesCoverHeroTag(d.followed!.id)
             : 'cover-${d.sourceId}-${d.seriesKey}',
+        headers: apiImageHttpHeaders(ref.read(authTokenStoreProvider).token, profileId: ref.read(activeProfileProvider)?.id),
       );
 
   Future<void> _downloadSelected() async {

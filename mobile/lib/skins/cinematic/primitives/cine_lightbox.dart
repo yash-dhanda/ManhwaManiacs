@@ -40,7 +40,11 @@ Future<void> openCineLightbox(
   });
 }
 
-class _LightboxRoute extends PageRoute<void> {
+/// Marks the Lightbox route so the app frame's toast host can hide its stack under it
+/// (cinematic 2.4: `z.lightbox` sits above `z.toast`).
+abstract interface class CineLightboxRoute {}
+
+class _LightboxRoute extends PageRoute<void> implements CineLightboxRoute {
   _LightboxRoute({required this.builder, required this.reduced});
   final Widget Function(BuildContext, _LightboxRoute) builder;
   final bool reduced;

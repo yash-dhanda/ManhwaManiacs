@@ -20,6 +20,7 @@ class CineDialog extends StatelessWidget {
     this.errorText,
     required this.actions,
     this.onCancel,
+    this.maxWidth = 560,
   });
 
   final String title;
@@ -33,10 +34,13 @@ class CineDialog extends StatelessWidget {
   final List<Widget> actions;
   final VoidCallback? onCancel;
 
+  /// 560 by default; the keyboard sheet is 720.
+  final double maxWidth;
+
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
-    final width = math.min(MediaQuery.sizeOf(context).width * 0.88, 560.0);
+    final width = math.min(MediaQuery.sizeOf(context).width * 0.88, maxWidth);
     return CallbackShortcuts(
       bindings: {if (onCancel != null) const SingleActivator(LogicalKeyboardKey.escape): onCancel!},
       child: Center(

@@ -24,7 +24,8 @@ List<(String, Rect)> _targets(WidgetTester tester) {
     });
   }
 
-  walk(tester.binding.rootPipelineOwner.semanticsOwner!.rootSemanticsNode!, Matrix4.identity());
+  // ignore: deprecated_member_use
+  walk(tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!, Matrix4.identity());
   return out;
 }
 

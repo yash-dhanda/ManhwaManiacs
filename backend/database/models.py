@@ -1446,6 +1446,44 @@ class AiFeedback(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
 
 
+class ReaderPageAnnotation(Base):
+    """Client-reported tint and panel boxes for one page (a shared cache).
+
+    A page's colour and panel layout are the same for every reader, so rows are
+    global; the 18+ gate is applied when serving. The server never decodes an
+    image: clients report. ``page_etag`` is ``sha256(page proxy url)[:32]``
+    (``services.page_annotations.page_etag``): the proxy's byte ETag depends on
+    ``?w=`` and ``Accept`` and needs the bytes, but the URL embeds the upstream
+    page key, so a re-uploaded page never inherits an old image's report.
+    ``panels`` is a JSON list of ``{x, y, w, h}`` page fractions; ``[]`` means
+    analysed, no panels found.
+    """
+
+    # ponytail: no pruning; add an updated_at sweep if it passes 1M rows
+    __tablename__ = "reader_page_annotations"
+    __table_args__ = (
+        UniqueConstraint(
+            "source_id", "series_key", "chapter_key", "page_etag",
+            name="uq_reader_page_annotations_page",
+        ),
+        Index(
+            "ix_reader_page_annotations_chapter",
+            "source_id", "series_key", "chapter_key",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    series_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    chapter_key: Mapped[str] = mapped_column(String(512), nullable=False)
+    page_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    page_etag: Mapped[str] = mapped_column(String(32), nullable=False)
+    page_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    tint: Mapped[str | None] = mapped_column(String(7))
+    panels: Mapped[str | None] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+
+
 class AiResultCache(Base):
     """Every AI answer this redesign stores (derived data, safe to lose).
 

@@ -11,19 +11,20 @@ import 'package:manhwamaniacs/features/sources/providers/source_progress_provide
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// Move to another source (repoint): candidates, then the mapping sentence,
-/// `Keep following it on … too`, and `Move`. TODO(mobile/06): `CineSheetRoute`.
+/// `Keep following it on … too`, and `Move`, in a `CineSheetRoute` (Rise).
 Future<void> showRepointSheet(BuildContext context, FeatureData data,
         {required bool sourceIsDown,}) =>
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: cineOf(context).colorPaper2,
-      builder: (_) => _RepointSheet(data: data, sourceIsDown: sourceIsDown),
+    showCineSheet<void>(
+      context,
+      kicker: 'MOVE TO ANOTHER SOURCE',
+      title: 'Move to another source',
+      builder: (_) => Material(type: MaterialType.transparency, child: _RepointSheet(data: data, sourceIsDown: sourceIsDown)),
     );
 
 class _RepointSheet extends ConsumerStatefulWidget {
@@ -167,8 +168,6 @@ class _RepointSheetState extends ConsumerState<_RepointSheet> {
               const Text('This source is down. Move the series to another source to keep reading.'),
               const SizedBox(height: 12),
             ],
-            Text('MOVE TO ANOTHER SOURCE', style: kickerStyle(context)),
-            const SizedBox(height: 8),
             if (picked == null) ...[
               if (_failed) ...[
                 Text('CORRECTION', style: kickerStyle(context)),

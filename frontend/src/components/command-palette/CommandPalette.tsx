@@ -42,8 +42,8 @@ import {
   routeCommands,
   type Command,
   type RankedCommand,
-} from "./commands";
-import { highlightSegments } from "./fuzzy";
+} from "@/lib/command-palette/commands";
+import { highlightSegments } from "@/lib/command-palette/fuzzy";
 
 /**
  * How long the input must be still before the library is queried. Long enough
