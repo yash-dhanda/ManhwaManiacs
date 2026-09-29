@@ -23,7 +23,7 @@ from database.models import Base
 from database.session import run_alembic_migrations
 
 _BASELINE = "0001_source_native"
-_HEAD = "0022_home_feed"
+_HEAD = "0023_ai_taste_feedback"
 
 # Every revision, oldest first. A new migration is added here deliberately —
 # the point of the guard is that revisions arrive on purpose, not that there is
@@ -51,6 +51,7 @@ _REVISIONS = [
     "0020_collection_rules.py",
     "0021_streaks_listen_sessions.py",
     "0022_home_feed.py",
+    "0023_ai_taste_feedback.py",
 ]
 
 # Every ORM-mapped table the baseline must create (spec §3).
@@ -81,6 +82,7 @@ _EXPECTED_TABLES = {
     "streak_milestones",
     "listen_sessions",
     "ai_result_cache",
+    "ai_feedback",
 }
 
 # Tables that must be gone (spec §3.11).
