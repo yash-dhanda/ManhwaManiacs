@@ -2,6 +2,19 @@
  * Glass skin material sheet (web/25). A GLOBAL stylesheet on purpose: Turbopack
  * rejects impure selectors in CSS modules and tsc/eslint do not catch it.
  */
+@import "./primitives/styles/press.css";
+@import "./primitives/styles/button.css";
+@import "./primitives/styles/hold.css";
+@import "./primitives/styles/icon-button.css";
+@import "./primitives/styles/fields.css";
+@import "./primitives/styles/chips.css";
+@import "./primitives/styles/poster.css";
+@import "./primitives/styles/progress.css";
+@import "./primitives/styles/cards.css";
+@import "./primitives/styles/rails.css";
+@import "./primitives/styles/reveals.css";
+@import "./primitives/styles/gallery.css";
+
 html[data-skin="glass"] { color-scheme: dark; }
 
 /* Autofill on wells (glass/DESIGN.md 8.0.7). */

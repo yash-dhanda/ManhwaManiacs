@@ -1,0 +1,50 @@
+/* Shared press states (web/26 A) and the pointer-cursor contract (web/26 T, DESIGN 7.40). Everything is keyed by data attributes set by usePress. */
+
+[data-skin="glass"] [data-press] { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; will-change: auto; }
+[data-skin="glass"] [data-press]:where(button) { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; }
+
+/* label eases to full white on hover (colorShift) and gains wght + 40 while pressed (glass) */
+[data-skin="glass"] [data-press="glass"] .g-label { transition: color var(--mm-dur-color-shift, 240ms) var(--mm-ease-color-shift, cubic-bezier(0.2, 0, 0, 1)); font-variation-settings: "wght" calc(var(--g-wght, 600) + 40 * var(--mm-swell, 0)); }
+[data-skin="glass"] [data-press="glass"][data-hover] .g-label { color: #fff; }
+/* the label sinks a little while the glass swells */
+[data-skin="glass"] [data-press="glass"] .g-label, [data-skin="glass"] [data-press="glass"] .g-icon { scale: calc(1 - 0.04 * var(--mm-swell, 0)); display: inline-flex; }
+
+/* hover glow at 8 % (half of the pressed 16 %), centred on the pointer; only where hover exists */
+@media (hover: hover) {
+  [data-skin="glass"] .glass[data-hover]:not([data-glow="on"]) > .glass__glow { opacity: 0.5; }
+}
+
+/* reduced motion: glass shows the glow only; content shows a fill2 wash instead of sinking */
+[data-skin="glass"] [data-press="content"][data-reduced][data-pressed] { box-shadow: inset 0 0 0 999px var(--mm-color-fill2); }
+
+/* disabled: 40 %, no specular, no glow, no growth */
+[data-skin="glass"] [data-press][data-disabled], [data-skin="glass"] [data-press][aria-disabled="true"] { opacity: 0.4; }
+[data-skin="glass"] .glass[data-disabled] > .glass__glow, [data-skin="glass"] .glass[data-disabled] > .glass__rim { opacity: 0; }
+
+/* focus: the two-tone ring of 2.6 on content (glass has its own in glass.css) */
+[data-skin="glass"] [data-press="content"]:focus-visible, [data-skin="glass"] [data-focus-ring]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300), 0 0 6px calc(2px + var(--g-focus-w, 2px)) rgb(188 176 255 / 0.28);
+}
+html[data-contrast="more"] [data-skin="glass"] { --g-focus-w: 3px; }
+@media (prefers-contrast: more) { [data-skin="glass"] { --g-focus-w: 3px; } }
+
+/* the 28 px (22 px glyph) and 20 px (16 px glyph) backing discs behind coloured glyphs on glass (2.1.2) */
+[data-skin="glass"] .g-disc { display: inline-grid; place-items: center; border-radius: 9999px; background: rgb(0 0 0 / 0.6); width: 28px; height: 28px; flex: none; }
+[data-skin="glass"] .g-disc[data-small] { width: 20px; height: 20px; }
+
+/* visually hidden */
+[data-skin="glass"] .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* ---- pointer cursors (T): one contract, set once ---- */
+[data-skin="glass"] :is(button, a[href], summary, label[for], [role="button"], [role="link"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [role="option"], [data-press]) { cursor: pointer; }
+[data-skin="glass"] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, [contenteditable="true"]) { cursor: text; }
+[data-skin="glass"] [data-cursor="grab"] { cursor: grab; }
+[data-skin="glass"] [data-cursor="grab"]:is([data-dragging], :active) { cursor: grabbing; }
+[data-skin="glass"] [data-cursor="ns-resize"] { cursor: ns-resize; }
+[data-skin="glass"] [data-cursor="zoom-in"] { cursor: zoom-in; }
+[data-skin="glass"] [data-cursor="zoom-out"] { cursor: zoom-out; }
+[data-skin="glass"] [data-cursor="none"] { cursor: none; }
+[data-skin="glass"] [data-cursor="all-scroll"] { cursor: all-scroll; }
+/* not-allowed wins over pointer */
+[data-skin="glass"] :is(:disabled, [aria-disabled="true"], [data-disabled]) { cursor: not-allowed; }
