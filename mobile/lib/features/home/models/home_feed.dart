@@ -504,16 +504,16 @@ class HomeFeed {
   final AiState ai;
   final DateTime? generatedAt;
 
-  HomeFeed copyWith({String? headline, String? deck, String? kickerTitle, bool clearKicker = false, HomeStreak? streak, List<HomeSection>? sections}) => HomeFeed(
+  HomeFeed copyWith({String? headline, String? deck, String? kickerTitle, bool clearKicker = false, HomeStreak? streak, List<HomeSection>? sections, List<HomeAlso>? also, AiState? ai}) => HomeFeed(
         issueNo: issueNo,
         headline: headline ?? this.headline,
         deck: deck ?? this.deck,
         kickerTitle: clearKicker ? null : (kickerTitle ?? this.kickerTitle),
         streak: streak ?? this.streak,
         cover: cover,
-        also: also,
+        also: also ?? this.also,
         sections: sections ?? this.sections,
-        ai: ai,
+        ai: ai ?? this.ai,
         generatedAt: generatedAt,
       );
 

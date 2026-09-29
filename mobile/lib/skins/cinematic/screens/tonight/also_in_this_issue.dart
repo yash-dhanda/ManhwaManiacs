@@ -38,6 +38,10 @@ class AlsoInThisIssue extends ConsumerStatefulWidget {
   const AlsoInThisIssue({super.key, required this.env});
   final TonightEnv env;
 
+  /// Counts builds so a test can prove the trailer scrub never rebuilds this row.
+  @visibleForTesting
+  static int debugBuilds = 0;
+
   @override
   ConsumerState<AlsoInThisIssue> createState() => _AlsoState();
 }
@@ -102,6 +106,7 @@ class _AlsoState extends ConsumerState<AlsoInThisIssue> {
 
   @override
   Widget build(BuildContext context) {
+    AlsoInThisIssue.debugBuilds++;
     final also = widget.env.feed.also;
     if (also.length < 2) return const SizedBox.shrink();
     final c = context.cine;
@@ -127,7 +132,11 @@ class _AlsoState extends ConsumerState<AlsoInThisIssue> {
             key: const Key('tonight-also-pager'),
             controller: _pager,
             itemCount: also.length,
-            itemBuilder: (context, i) => Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _card(also[i], i)),
+            // A neighbour peeking in from the side is not a tap target: the buttons below page to it.
+            itemBuilder: (context, i) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: ExcludeSemantics(excluding: i != _page, child: _card(also[i], i)),
+            ),
           ),
         ),
         SizedBox(height: c.space3),

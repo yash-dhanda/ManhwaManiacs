@@ -42,6 +42,13 @@ class _TonightScreenState extends ConsumerState<TonightScreen> {
 
   bool _decide(HomeFeedView v) {
     final feed = v.feed!;
+    if (_animate == null) {
+      // Focus on arrival: the level-1 headline takes focus once it exists (the feed can land after
+      // the route settled), so screen readers announce the page.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _headline.context != null) _headline.requestFocus();
+      });
+    }
     return _animate ??= !v.offline && shouldPlayFrontPage(ref.read(frontPageStoreProvider).read(), ref.read(clockProvider)(), _variant(feed));
   }
 

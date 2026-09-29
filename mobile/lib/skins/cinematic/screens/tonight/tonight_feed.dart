@@ -65,6 +65,9 @@ class _TonightFeedState extends ConsumerState<TonightFeed> {
   void initState() {
     super.initState();
     _scroll.addListener(() {
+      // Only a feed with no cover story paints a solid head; the scrub header owns that otherwise, and a
+      // rebuild of the page from a scroll would be a rebuild of every row below it.
+      if (_feed.cover != null) return;
       final s = _scroll.hasClients && _scroll.offset > 24;
       if (s != _scrolled && mounted) setState(() => _scrolled = s);
     });

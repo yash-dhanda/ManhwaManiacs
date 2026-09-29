@@ -124,7 +124,7 @@ class CoverStoryComposite extends StatefulWidget {
 }
 
 class _CoverStoryCompositeState extends State<CoverStoryComposite> {
-  final FocusScopeNode _text = FocusScopeNode(debugLabel: 'tonight-cover-text', skipTraversal: true, canRequestFocus: false);
+  final FocusScopeNode _text = FocusScopeNode(debugLabel: 'tonight-cover-text', skipTraversal: true);
   final FocusNode _stripContinue = FocusNode(debugLabel: 'tonight-strip-continue');
   bool _focusWasInText = false;
 
@@ -145,7 +145,10 @@ class _CoverStoryCompositeState extends State<CoverStoryComposite> {
     }
     if (now >= 2 && _focusWasInText) {
       _focusWasInText = false;
-      _stripContinue.requestFocus();
+      // The strip's controls join the focus order with this frame; ask once they have.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _stripContinue.requestFocus();
+      });
     }
     if (now < 1) _focusWasInText = false;
   }
@@ -269,16 +272,20 @@ class _CoverStoryCompositeState extends State<CoverStoryComposite> {
             right: 0,
             top: 0,
             height: headH,
-            child: Stack(children: [
-              Opacity(
-                opacity: reduced ? (gone ? 1 : 0) : math.min(1.0, p * 3),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(color: const Color(0xFF000000), border: Border(bottom: c.ruleHair)),
-                  child: const SizedBox.expand(),
-                ),
+            child: Opacity(
+              opacity: reduced ? (gone ? 1 : 0) : math.min(1.0, p * 3),
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: const Color(0xFF000000), border: Border(bottom: c.ruleHair)),
+                child: const SizedBox.expand(),
               ),
-              Opacity(opacity: reduced ? (gone ? 0 : 1) : 1 - ramp(p, 0, 0.6), child: IgnorePointer(ignoring: stripOn, child: widget.runningHead)),
-            ],),
+            ),
+          ),
+          // The running head keeps its natural height (a badge under the title grows it).
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: Opacity(opacity: reduced ? (gone ? 0 : 1) : 1 - ramp(p, 0, 0.6), child: IgnorePointer(ignoring: stripOn, child: widget.runningHead)),
           ),
           Positioned(
             left: widget.side,
@@ -350,6 +357,7 @@ class _Strip extends StatelessWidget {
           ),
         ),
       ),
+      if (data.hasRecap) const SizedBox(width: 8),
       if (data.hasRecap)
         Builder(
           builder: (ctx) => SizedBox(
