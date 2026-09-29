@@ -26,6 +26,10 @@ abstract class DeviceStorageInfo {
   /// version, or any platform-channel failure). Callers must have a sane
   /// fallback — see [DownloadQueueController]'s handling of `null`.
   Future<int?> freeSpaceBytes();
+
+  /// Total bytes of the same volume (the storage meter's "other apps" segment), or `null` on
+  /// failure.
+  Future<int?> totalSpaceBytes();
 }
 
 class PlatformDeviceStorageInfo implements DeviceStorageInfo {
@@ -38,6 +42,16 @@ class PlatformDeviceStorageInfo implements DeviceStorageInfo {
     if (!_supported) return null;
     try {
       return await _channel.invokeMethod<int>('getFreeDiskSpace');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<int?> totalSpaceBytes() async {
+    if (!_supported) return null;
+    try {
+      return await _channel.invokeMethod<int>('getTotalDiskSpace');
     } catch (_) {
       return null;
     }

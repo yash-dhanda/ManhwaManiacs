@@ -57,6 +57,8 @@ import Vision
       switch call.method {
       case "getFreeDiskSpace":
         result(self?.readFreeDiskSpaceBytes())
+      case "getTotalDiskSpace":
+        result(self?.readTotalDiskSpaceBytes())
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -139,6 +141,15 @@ import Vision
       forKeys: [.volumeAvailableCapacityForImportantUsageKey]
     )
     return values?.volumeAvailableCapacityForImportantUsage
+  }
+
+  private func readTotalDiskSpaceBytes() -> Int64? {
+    guard let documentsUrl = FileManager.default.urls(
+      for: .documentDirectory, in: .userDomainMask
+    ).first else { return nil }
+
+    let values = try? documentsUrl.resourceValues(forKeys: [.volumeTotalCapacityKey])
+    return values?.volumeTotalCapacity.map { Int64($0) }
   }
 
   // MARK: - mm/ocr

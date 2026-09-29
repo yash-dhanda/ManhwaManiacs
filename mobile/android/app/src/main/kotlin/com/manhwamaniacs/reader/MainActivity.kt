@@ -38,6 +38,7 @@ class MainActivity : AudioServiceActivity() {
     private var methodChannel: MethodChannel? = null
     private var ocrChannel: OcrChannel? = null
     private var mmPlatformChannel: MmPlatformChannel? = null
+    private var mediaChannel: MediaChannel? = null
 
     // Only intercept volume keys while the reader is open and the user has
     // the setting enabled -- toggled from Dart via setVolumeKeyNavEnabled.
@@ -148,12 +149,14 @@ class MainActivity : AudioServiceActivity() {
                 }
                 "getDeviceMemoryInfo" -> result.success(readDeviceMemoryInfo())
                 "getFreeDiskSpace" -> result.success(readFreeDiskSpaceBytes())
+                "getTotalDiskSpace" -> result.success(readTotalDiskSpaceBytes())
                 else -> result.notImplemented()
             }
         }
         methodChannel = channel
         ocrChannel = OcrChannel(flutterEngine.dartExecutor.binaryMessenger)
         mmPlatformChannel = MmPlatformChannel(flutterEngine.dartExecutor.binaryMessenger, this)
+        mediaChannel = MediaChannel(flutterEngine.dartExecutor.binaryMessenger, this)
     }
 
     override fun onDestroy() {
@@ -163,6 +166,8 @@ class MainActivity : AudioServiceActivity() {
         ocrChannel = null
         mmPlatformChannel?.dispose()
         mmPlatformChannel = null
+        mediaChannel?.dispose()
+        mediaChannel = null
         super.onDestroy()
     }
 
@@ -184,6 +189,12 @@ class MainActivity : AudioServiceActivity() {
     private fun readFreeDiskSpaceBytes(): Long {
         val stat = StatFs(filesDir.path)
         return stat.availableBytes
+    }
+
+    // Total bytes of the same volume, for the storage meter's "other apps" segment.
+    private fun readTotalDiskSpaceBytes(): Long {
+        val stat = StatFs(filesDir.path)
+        return stat.totalBytes
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {

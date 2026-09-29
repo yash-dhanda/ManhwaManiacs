@@ -55,6 +55,9 @@ class _Fetcher implements ChapterPageFetcher {
 
 class _Space implements DeviceStorageInfo {
   @override
+  Future<int?> totalSpaceBytes() async => null;
+
+  @override
   Future<int?> freeSpaceBytes() async => 1 << 40;
 }
 
