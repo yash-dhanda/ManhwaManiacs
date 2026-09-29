@@ -25,3 +25,6 @@ Items only the owner can do, by step.
 ## mobile/02 (L01)
 - Run docs/redesign/proof/mobile-02/device-check.md on the iPhone build and the Android flagship.
 - After the integrator pushes: read CI (`android-apk`, `build-ios`) for the dependency, audio_service and mm/platform commits and record run ids in dependency-gate.md; apply a package's ledger fallback if a native job fails.
+
+## mobile/11 (Cinematic Feature, Book, downloads)
+- Device checks from the prompt (match cut, edge swipe, predictive back, Column wipe, Lightbox, a real download read offline, `mature_override` hiding saved chapters, VoiceOver / TalkBack, text scale 1.3 and 2.0) are pending until the motion and reader steps land; nothing to supply from the owner now.
