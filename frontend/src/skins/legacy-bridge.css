@@ -1,0 +1,23 @@
+/*
+ * Keys both legacy's `@theme` and the generated shared theme define. Legacy
+ * wins in Tailwind (its `@theme` comes last), so utilities compile to
+ * `var(--key)`; each new skin re-points the key at its own token here. These
+ * rules are unlayered (they beat Tailwind's `@layer theme`) and `html[data-skin]`
+ * (0,1,1) beats legacy's `[data-theme]` / `[data-preset]` rules (0,1,0).
+ * Deleted at the flip together with legacy's @theme (release/00).
+ */
+html[data-skin="cinematic"] {
+  --font-display: var(--mm-font-display);
+}
+
+html[data-skin="glass"] {
+  --font-sans: var(--mm-font-sans);
+  --font-mono: var(--mm-font-mono);
+  --color-success: var(--mm-color-success);
+  --color-warning: var(--mm-color-warning);
+  --color-danger: var(--mm-color-danger);
+  --radius-sm: var(--mm-radius-sm);
+  --radius-md: var(--mm-radius-md);
+  --radius-lg: var(--mm-radius-lg);
+  --radius-xl: var(--mm-radius-xl);
+}
