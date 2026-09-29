@@ -41,3 +41,8 @@ becomes the bare id); `extra` keys `transition` (page|match|dip), `entry` (wipe|
 `splash-reduced-*`, `wipe-reduced-*`, `frame-{tonight,library,discover,downloads,index}-phone.png`. Critique: the
 first capture showed underlined running title and tab labels (no `Material` ancestor): fixed by a `Material` in the
 shell and scaffold. Web twin `web-06` captures not compared (not present).
+
+## Forced interface change in the Glass folder
+`Skin.scrollBehavior` (scope 2.1) is a member every `implements Skin` class must declare (an `implements` does not
+inherit a default body), so `mobile/lib/skins/glass/glass_skin.dart` gained one 3-line override returning
+`MaterialScrollBehavior()`. It changes no Glass behaviour.

@@ -24,7 +24,7 @@ List<(String, Rect)> _targets(WidgetTester tester) {
     });
   }
 
-  walk(tester.binding.rootPipelineOwner.semanticsOwner!.rootSemanticsNode!, Matrix4.identity());
+  walk(tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!, Matrix4.identity());
   return out;
 }
 

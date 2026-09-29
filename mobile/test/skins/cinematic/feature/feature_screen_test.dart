@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/transitions.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_view.dart';
@@ -170,20 +171,16 @@ void main() {
     unawaited(router.push<void>('/sources/demo/series/k'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
-    // Before the route animation completes the letters have not started.
-    final early = tester.widgetList<RichText>(find.byType(RichText)).where((r) => r.text.toPlainText() == 'Tower of Dawn');
-    expect(early, isNotEmpty);
-    double firstAlpha(RichText r) {
-      InlineSpan? leaf = r.text;
-      while (leaf is TextSpan && (leaf.children?.isNotEmpty ?? false)) {
-        leaf = leaf.children!.first;
-      }
-      return ((leaf as TextSpan).style?.color ?? const Color(0xFFFFFFFF)).a;
+    // The running head also shows the title (plain); read the SetHeading's own first letter.
+    double firstLetter() {
+      final t = find.descendant(of: find.byType(SetHeading), matching: find.text('T')).first;
+      return tester.widget<Opacity>(find.ancestor(of: t, matching: find.byType(Opacity)).first).opacity;
     }
-    expect(firstAlpha(early.first), lessThan(0.05));
+
+    // Before the route animation completes the letters have not started.
+    expect(firstLetter(), lessThan(0.05));
     await settleFeature(tester, by: const Duration(seconds: 4));
-    final done = tester.widgetList<RichText>(find.byType(RichText)).firstWhere((r) => r.text.toPlainText() == 'Tower of Dawn');
-    expect(firstAlpha(done), greaterThan(0.99));
+    expect(firstLetter(), greaterThan(0.99));
     await tester.pumpWidget(const SizedBox());
   });
 
