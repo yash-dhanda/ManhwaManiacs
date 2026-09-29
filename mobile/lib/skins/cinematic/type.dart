@@ -167,7 +167,7 @@ class CineLit extends StatelessWidget {
     var s = CineText.literal(context, face, size, line, upper: upper, italic: italic, wght: wght, wdth: wdth);
     s = s.copyWith(color: color, letterSpacing: tracking == null ? null : tracking! * size, decoration: decoration);
     return Text(
-      text,
+      upper ? text.toUpperCase() : text,
       style: s,
       textScaler: CineText.literalScaler(context, face, upper: upper),
       maxLines: maxLines,

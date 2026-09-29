@@ -211,7 +211,9 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
     final body = head(LayoutBuilder(builder: (context, box) {
       // A word wider than the line cannot break inside its nowrap Row: the plain string wraps
       // normally and fades in over 200 ms instead of revealing per letter (10.1.1 Long words).
-      final widest = words.map((w) => _width(w, s, scaler, dir)).fold(0.0, math.max);
+      final widest = [
+        for (var w = 0; w < words.length; w++) _width(w < words.length - 1 ? '${words[w]} ' : words[w], s, scaler, dir),
+      ].fold(0.0, math.max);
       if (widest > box.maxWidth) {
         return FadeTransition(opacity: _c.drive(CurveTween(curve: Interval(0, math.min(1, 200 / total)))), child: plain);
       }

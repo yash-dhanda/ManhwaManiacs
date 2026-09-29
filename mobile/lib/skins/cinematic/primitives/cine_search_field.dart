@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_text_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/glyphs.dart';
@@ -165,7 +166,7 @@ class _CineSearchFieldState extends State<CineSearchField> with SingleTickerProv
           label: widget.semanticLabel,
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             ConstrainedBox(
-              constraints: BoxConstraints(minHeight: index ? 56 : 44),
+              constraints: BoxConstraints(minHeight: index ? 56 : cineHitMin(context)),
               child: Row(children: [
                 if (!index) ...[CineGlyphIcon(CineGlyph.magnifyingGlass, color: c.colorInk60), SizedBox(width: c.space2)],
                 Expanded(child: field),

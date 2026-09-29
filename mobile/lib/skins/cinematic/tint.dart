@@ -104,3 +104,15 @@ StockColours issueStock(AmbientRoles? ambient) {
   }
   return StockColours(page: page, ink: ink, muted: muted);
 }
+
+/// `scrim.foot` (cinematic 2.8.3): 13 eased stops to [tint] from 40 % down the art to its solid
+/// point ([solidAtPx], the text block top minus 24 px), solid below.
+LinearGradient cineScrimFoot({required double solidAtPx, required double height, Color tint = _black}) {
+  final end = height <= 0 ? 1.0 : (solidAtPx / height).clamp(0.4, 1.0);
+  return LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    stops: [for (final s in CineScrim.kScrimStops) 0.4 + (end - 0.4) * s, if (end < 1.0) 1.0],
+    colors: [for (final a in CineScrim.kScrimAlpha) tint.withValues(alpha: a), if (end < 1.0) tint],
+  );
+}

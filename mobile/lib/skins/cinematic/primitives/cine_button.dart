@@ -20,6 +20,8 @@ enum CineButtonVariant { primary, split, secondary, quiet, destructive, onArt, p
 
 enum CineButtonSize { lg, md, sm }
 
+String _lowerFirst(String s) => s.isEmpty ? s : '${s[0].toLowerCase()}${s.substring(1)}';
+
 /// The button family (cinematic 7.1): square, no ripple, no shadow. Loading keeps the label's box
 /// and runs a 2 px `spot` segment along the inside bottom edge.
 class CineButton extends StatefulWidget {
@@ -30,6 +32,7 @@ class CineButton extends StatefulWidget {
     this.variant = CineButtonVariant.primary,
     this.size = CineButtonSize.md,
     this.icon,
+    this.leadingGlyph,
     this.folio,
     this.loadingLabel,
     this.loading = false,
@@ -37,6 +40,7 @@ class CineButton extends StatefulWidget {
     this.errorText,
     this.toggle = false,
     this.disabledReason,
+    this.focusNode,
   });
 
   final String label;
@@ -44,6 +48,9 @@ class CineButton extends StatefulWidget {
   final CineButtonVariant variant;
   final CineButtonSize size;
   final CineIconRole? icon;
+
+  /// A Phosphor codepoint (`CineGlyph.check`) for leading glyphs no icon role names.
+  final int? leadingGlyph;
   final String? folio;
   final String? loadingLabel;
   final bool loading;
@@ -55,6 +62,7 @@ class CineButton extends StatefulWidget {
 
   /// Shown in a tooltip when the disabled state is not obvious.
   final String? disabledReason;
+  final FocusNode? focusNode;
 
   @override
   State<CineButton> createState() => _CineButtonState();
@@ -146,13 +154,14 @@ class _CineButtonState extends State<CineButton> with SingleTickerProviderStateM
     Widget core = CinePressable(
       enabled: enabled,
       round: v == CineButtonVariant.play,
+      focusNode: widget.focusNode,
       onTap: _tap,
       onHover: _hover,
       builder: (context, st) => _visual(context, c, st, label, disabled: disabled, error: error, stack: reflow.stackSplit),
     );
 
     final semanticsLabel = v == CineButtonVariant.split && widget.folio != null && !disabled
-        ? '${widget.label}, ${folioLabel(widget.folio!)}'
+        ? '${widget.label}, ${_lowerFirst(folioLabel(widget.folio!))}'
         : widget.label;
     core = Semantics(
       button: true,
@@ -263,6 +272,7 @@ class _CineButtonState extends State<CineButton> with SingleTickerProviderStateM
     final leading = <Widget>[
       if (showCheck) ...[CineGlyphIcon(CineGlyph.check, color: fg), SizedBox(width: c.space2)],
       if (!showCheck && widget.icon != null) ...[CineIcon(widget.icon!, size: 20, color: fg), SizedBox(width: c.space2)],
+      if (!showCheck && widget.icon == null && widget.leadingGlyph != null) ...[CineGlyphIcon(widget.leadingGlyph!, color: fg), SizedBox(width: c.space2)],
     ];
 
     Widget body;

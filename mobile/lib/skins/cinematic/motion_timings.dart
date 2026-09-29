@@ -27,8 +27,8 @@ class CineMotionTimingsPanel extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    Expanded(child: CineRoleText('MOTION TIMINGS', c.typeKicker, color: c.colorInk60)),
+                  Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: c.space2, children: [
+                    CineRoleText('MOTION TIMINGS', c.typeKicker, color: c.colorInk60),
                     CineButton(label: 'Clear', variant: CineButtonVariant.quiet, onPressed: r.clear),
                     CineButton(
                       label: 'Copy log',
