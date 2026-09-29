@@ -47,28 +47,33 @@ class DropCapParagraph extends StatelessWidget {
           ..layout();
         final capW = capPainter.width;
         final lineH = (style.fontSize ?? 16) * (style.height ?? 1.5);
+        final bodyPainter = TextPainter(
+            text: TextSpan(text: 'x', style: style), textDirection: TextDirection.ltr,)
+          ..layout();
+        // The cap's baseline sits on the baseline of the last of the beside
+        // lines: its top is that baseline minus the cap's own ascent.
+        final thirdBaseline =
+            bodyPainter.computeDistanceToActualBaseline(TextBaseline.alphabetic) +
+                lineH * (lines - 1);
+        final capBaseline = capPainter.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+        final capTop = thirdBaseline - capBaseline;
         final parts = split(rest, style, box.maxWidth - capW - 8, lines);
         return Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
               height: lineH * lines,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  SizedBox(
-                    width: capW,
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      // The cap's baseline sits on the third text baseline.
-                      child: Transform.translate(
-                        offset: Offset(0, -(capPainter.height - lineH * lines) - 4),
-                        child: Text(cap, style: capStyle),
-                      ),
-                    ),
+                  Positioned(left: 0, top: capTop, child: Text(cap, style: capStyle)),
+                  Positioned(
+                    left: capW + 8,
+                    right: 0,
+                    top: 0,
+                    child: Text(parts.head, style: style),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(parts.head, style: style)),
                 ],
               ),
             ),
