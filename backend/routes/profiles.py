@@ -14,7 +14,11 @@ from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel, Field
 
 from core.profile_context import get_active_profile_id
-from services.profile_service import ProfileService, get_profile_service
+from services.profile_service import (
+    REDESIGN_FIELDS,
+    ProfileService,
+    get_profile_service,
+)
 
 # Kept in lockstep with services.profile_service.ALLOWED_MOODS.
 Mood = Literal[
@@ -44,6 +48,13 @@ class ProfileUpdate(BaseModel):
     mood: Mood | None = None
     sort_order: int | None = Field(default=None, ge=0)
     mature_content_enabled: bool | None = None
+    # Redesign fields. An explicit ``null`` resets skin / onboarding_step /
+    # daily_goal_minutes; omitting a field leaves it alone (the route passes
+    # only the fields the client sent). ``notify_enabled: null`` is "not sent".
+    skin: Literal["cinematic", "glass"] | None = None
+    notify_enabled: bool | None = None
+    onboarding_step: Literal["done"] | Annotated[int, Field(ge=1, le=7)] | None = None
+    daily_goal_minutes: Literal[5, 10, 15, 20, 30, 45, 60] | None = None
 
 
 @router.get("")
@@ -77,6 +88,9 @@ def update_profile(
         mood=body.mood,
         sort_order=body.sort_order,
         mature_content_enabled=body.mature_content_enabled,
+        redesign=body.model_dump(
+            exclude_unset=True, include=set(REDESIGN_FIELDS)
+        ),
     )
     return service.serialize(profile)
 
