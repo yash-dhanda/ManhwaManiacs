@@ -105,7 +105,8 @@ class _CineKeysState extends State<CineKeys> {
         shortcuts: {for (final k in widget.keys) k.activator: _Intent(k)},
         child: Actions(
           actions: {_Intent: _Act()},
-          child: widget.child,
+          // Route focus: keys reach the screen before anything is focused.
+          child: FocusScope(autofocus: true, child: widget.child),
         ),
       );
 }

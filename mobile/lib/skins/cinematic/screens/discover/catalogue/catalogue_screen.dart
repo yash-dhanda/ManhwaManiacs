@@ -295,10 +295,11 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                           Semantics(
                             header: true,
                             headingLevel: 1,
-                            child: Text(
+                            child: SetHeading(
                               name,
                               style: cineText(context, t.typeMasthead),
-                              textScaler: CineType.scaler(context, t.typeMasthead),
+                              scaler: CineType.scaler(context, t.typeMasthead),
+                              play: sources != null || err != null,
                             ),
                           ),
                           if (!(browse.isLoading && state == null))

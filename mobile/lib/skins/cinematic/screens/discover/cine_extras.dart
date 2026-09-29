@@ -381,3 +381,83 @@ class CineLongPress extends StatelessWidget {
     );
   }
 }
+
+/// The letter reveal (`SetHeading`): letters fade in one after another over
+/// `CineDur.letter`; the whole text at once under reduced motion. [play]
+/// false holds it hidden (the `signal` trigger: flip it when the data lands).
+/// TODO(mobile/04): swap for the real primitive; the blur half of the reveal
+/// (`CineDur.letterBlur`) is not drawn by this stand-in.
+class SetHeading extends StatefulWidget {
+  const SetHeading(this.text, {super.key, required this.style, this.play = true, this.scaler});
+
+  final String text;
+  final TextStyle style;
+  final bool play;
+  final TextScaler? scaler;
+
+  @override
+  State<SetHeading> createState() => SetHeadingState();
+}
+
+class SetHeadingState extends State<SetHeading> with SingleTickerProviderStateMixin {
+  late final AnimationController controller = AnimationController(vsync: this, duration: CineDur.letter);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(SetHeading oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.play != widget.play) _sync();
+  }
+
+  void _sync() {
+    if (cineReduced(context)) {
+      controller.value = 1;
+    } else if (widget.play && controller.value == 0 && !controller.isAnimating) {
+      unawaited(controller.forward());
+    }
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final letters = widget.text.characters.toList();
+    final base = widget.style.color ?? context.cine.colorInk100;
+    return Semantics(
+      label: widget.text,
+      excludeSemantics: true,
+      child: AnimatedBuilder(
+        animation: controller,
+        builder: (context, _) => Text.rich(
+          TextSpan(
+            style: widget.style,
+            children: [
+              for (var i = 0; i < letters.length; i++)
+                TextSpan(
+                  text: letters[i],
+                  style: TextStyle(
+                    color: base.withValues(
+                      alpha: base.a *
+                          CineCurves.settle.transform(
+                            ((controller.value * (letters.length + 8) - i) / 8).clamp(0.0, 1.0),
+                          ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          textScaler: widget.scaler,
+        ),
+      ),
+    );
+  }
+}

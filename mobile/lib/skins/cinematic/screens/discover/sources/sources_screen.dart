@@ -294,10 +294,10 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                   Semantics(
                     header: true,
                     headingLevel: 1,
-                    child: Text(
+                    child: SetHeading(
                       'Sources',
                       style: cineText(context, t.typeMasthead),
-                      textScaler: CineType.scaler(context, t.typeMasthead),
+                      scaler: CineType.scaler(context, t.typeMasthead),
                     ),
                   ),
                   Text(deck, style: cineText(context, t.typeDeck, color: t.colorInk60)),
