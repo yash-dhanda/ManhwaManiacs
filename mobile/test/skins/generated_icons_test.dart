@@ -29,7 +29,7 @@ void main() {
   });
 
   test('every Glass role whose duotone exists has a secondary', () {
-    expect(glassDuotoneSecondary.keys, unorderedEquals(<GlassIconRole>[
+    const expected = <GlassIconRole>[
       GlassIconRole.back,
       GlassIconRole.backDepth,
       GlassIconRole.close,
@@ -82,6 +82,7 @@ void main() {
       GlassIconRole.voiceCast,
       GlassIconRole.brandMark,
       GlassIconRole.aiUnavailable,
-    ]));
+    ];
+    expect(glassDuotoneSecondary.keys, unorderedEquals(expected));
   });
 }

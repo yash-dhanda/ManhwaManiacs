@@ -301,9 +301,10 @@ void main() {
   });
 
   test('every Glass role whose duotone exists has a secondary', () {
-    expect(glassDuotoneSecondary.keys, unorderedEquals(<GlassIconRole>[
+    const expected = <GlassIconRole>[
 ${g.roles.filter((r) => r.kind === 'glyph' || phosphor[r.name].duotone[1]).map((r) => `      GlassIconRole.${dartRole(r.role)},`).join('\n')}
-    ]));
+    ];
+    expect(glassDuotoneSecondary.keys, unorderedEquals(expected));
   });
 }
 `;
