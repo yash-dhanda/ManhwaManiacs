@@ -7,6 +7,8 @@ import { applyBootA11y, readBootA11y } from "@/features/preferences/boot-a11y";
 import { SKIN_MESSAGE } from "@/features/offline/protocol";
 import { subscribeStorageScope } from "@/lib/scoped-storage";
 import { logSkinRestart } from "@/lib/motion-timings";
+import { armSounds as armCinematicSounds } from "@/skins/cinematic/sounds";
+import { armSounds as armGlassSounds } from "@/skins/glass/sounds";
 import { FLAGS } from "@/skins/contract.generated";
 import { DEFAULT_SKIN, isSkinId, type SkinId } from "@/skins/types";
 import { resolveBootSkin } from "./boot";
@@ -53,6 +55,13 @@ export function SkinBoot() {
     apply();
     return subscribeStorageScope(apply);
   }, []);
+
+  // Sounds already on for this profile: listen for the first gesture so the first cue is not dropped.
+  useEffect(() => {
+    if (activeId === null) return;
+    armCinematicSounds();
+    armGlassSounds();
+  }, [activeId]);
 
   useEffect(() => {
     if (activeId === null || !profiles) return;

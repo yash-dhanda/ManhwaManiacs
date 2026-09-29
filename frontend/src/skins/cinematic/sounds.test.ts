@@ -84,3 +84,31 @@ describe("cinematic prefs", () => {
     expect(readSoundPrefs().volume).toBe(60);
   });
 });
+
+describe("arming at boot", () => {
+  it("prefs on + first pointerdown creates the context and fetches every cue", async () => {
+    vi.resetModules(); // earlier tests already primed the shared engine
+    const listeners: Record<string, () => void> = {};
+    const ctxs = vi.fn();
+    const fetched: string[] = [];
+    const scoped = await import("@/lib/scoped-storage");
+    scoped.setStorageScope({ userId: 1, profileId: 1 });
+    store[scoped.activeStorageKey("mm.sounds") as string] = JSON.stringify({ on: true, volume: 60 });
+    vi.stubGlobal("window", {
+      localStorage: globalThis.localStorage,
+      addEventListener: (t: string, f: () => void) => void (listeners[t] = f),
+      removeEventListener() {},
+    });
+    const Base = (globalThis as unknown as { AudioContext: new () => object }).AudioContext;
+    vi.stubGlobal("AudioContext", class extends Base { constructor() { super(); ctxs(); } });
+    vi.stubGlobal("fetch", async (u: string) => (fetched.push(u), { ok: true, arrayBuffer: async () => new ArrayBuffer(1) }));
+    const { armSounds, readSoundPrefs: read } = await import("./sounds");
+    expect(read().on).toBe(true);
+    armSounds();
+    expect(ctxs).not.toHaveBeenCalled();
+    listeners.pointerdown();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(ctxs).toHaveBeenCalledTimes(1);
+    expect(fetched.length).toBe(new Set(Object.values(sounds)).size);
+  });
+});
