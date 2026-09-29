@@ -117,7 +117,14 @@ class ChapterMarks {
 
   /// Mark unread. Returns what was deleted, for the Undo.
   Future<Map<String, SourceChapterProgress>> markUnread(List<String> keys) async {
-    final removed = await ref
+    // The merged (phone + server) positions, so an Undo re-posts rows that
+    // exist only on the server too.
+    final merged = ref.read(sourceSeriesProgressProvider(_key));
+    final prior = {
+      for (final k in keys)
+        if (merged[k] != null) k: merged[k]!,
+    };
+    await ref
         .read(sourceProgressProvider.notifier)
         .forget(sourceId: d.sourceId, seriesId: d.seriesKey, chapterIds: keys);
     await ref.read(progressDeleterProvider).deleteProgress(
@@ -126,7 +133,7 @@ class ChapterMarks {
           chapterKeys: keys,
         );
     _refresh();
-    return removed;
+    return prior;
   }
 
   /// The Undo of [markUnread]: re-posts the deleted rows.
@@ -429,6 +436,11 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
         statuses.values.where((s) => s.state == DownloadChapterState.complete).length;
     final current = _currentKey(progress);
     final pf = readerPrefetchOf(ref);
+    final active = ref.watch(seriesActiveChapterProgressProvider(d.identity));
+    final pauseReason = ref.watch(downloadQueueControllerProvider.select((q) => q.pauseReason));
+    final paused = pauseReason == DownloadQueuePauseReason.freeSpaceFloor ||
+        pauseReason == DownloadQueuePauseReason.cap ||
+        pauseReason == DownloadQueuePauseReason.userPaused;
 
     if (d.chapters.isEmpty) {
       return CustomScrollView(
@@ -536,6 +548,16 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
                     current: c.id == current,
                     highlighted: c.id == _highlight,
                     cursor: i == _cursor,
+                    paused: paused,
+                    pauseReason: paused ? pauseReason : null,
+                    markProgress: active != null &&
+                            active.chapterKey == c.id &&
+                            active.progress.pageTotal > 0
+                        ? active.progress.pagesDone / active.progress.pageTotal
+                        : 0,
+                    markPage: active != null && active.chapterKey == c.id && active.progress.pageTotal > 0
+                        ? active.progress.pagesDone
+                        : null,
                     onPress: () => pf.onPress(d.sourceId, d.seriesKey, c.id),
                     onDwell: () => pf.onDwell(d.sourceId, d.seriesKey, c.id),
                     onSwipeRead: canMark

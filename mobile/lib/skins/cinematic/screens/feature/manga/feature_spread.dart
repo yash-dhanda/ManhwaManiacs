@@ -18,7 +18,7 @@ class FeatureSpread extends StatelessWidget {
     final amb = CineAmbient.of(context);
     final h = (MediaQuery.sizeOf(context).height * 0.64).clamp(520.0, 760.0);
     return Padding(
-      padding: const EdgeInsets.only(top: 48),
+      padding: EdgeInsets.zero,
       child: SizedBox(
         key: const Key('feature-spread'),
         height: h,

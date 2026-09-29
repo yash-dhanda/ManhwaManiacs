@@ -1,0 +1,1832 @@
+{
+ "series": {
+  "id": "k",
+  "source_id": "demo",
+  "title": "The Long Way Back Through Every Floor of the Tower of Dawn",
+  "chapter_count": 201,
+  "description": "A hunter climbs a tower that rewrites its own floors every night. Nobody who went in has come back the same, and the ones who did will not say what they found on the ninth landing.",
+  "author": "Han Seo",
+  "artist": "Mi Rae",
+  "status": "ongoing",
+  "genres": [
+   "Action"
+  ],
+  "cover_url": "",
+  "cache": {
+   "status": "fresh",
+   "stale": false,
+   "fetched_at": "2026-09-29T08:00:00Z"
+  }
+ },
+ "chapters": [
+  {
+   "id": "c1",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 1",
+   "number": 1.0,
+   "page_count": 20,
+   "release_date": "2026-09-02"
+  },
+  {
+   "id": "c2",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 2",
+   "number": 2.0,
+   "page_count": 20,
+   "release_date": "2026-09-03"
+  },
+  {
+   "id": "c3",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 3",
+   "number": 3.0,
+   "page_count": 20,
+   "release_date": "2026-09-04"
+  },
+  {
+   "id": "c4",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 4",
+   "number": 4.0,
+   "page_count": 20,
+   "release_date": "2026-09-05"
+  },
+  {
+   "id": "c5",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 5",
+   "number": 5.0,
+   "page_count": 20,
+   "release_date": "2026-09-06"
+  },
+  {
+   "id": "c6",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 6",
+   "number": 6.0,
+   "page_count": 20,
+   "release_date": "2026-09-07"
+  },
+  {
+   "id": "c7",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 7",
+   "number": 7.0,
+   "page_count": 20,
+   "release_date": "2026-09-08"
+  },
+  {
+   "id": "c8",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 8",
+   "number": 8.0,
+   "page_count": 20,
+   "release_date": "2026-09-09"
+  },
+  {
+   "id": "c9",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 9",
+   "number": 9.0,
+   "page_count": 20,
+   "release_date": "2026-09-10"
+  },
+  {
+   "id": "c10",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 10",
+   "number": 10.0,
+   "page_count": 20,
+   "release_date": "2026-09-11"
+  },
+  {
+   "id": "c11",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 11",
+   "number": 11.0,
+   "page_count": 20,
+   "release_date": "2026-09-12"
+  },
+  {
+   "id": "c12",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 12",
+   "number": 12.0,
+   "page_count": 20,
+   "release_date": "2026-09-13"
+  },
+  {
+   "id": "c13",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 13",
+   "number": 13.0,
+   "page_count": 20,
+   "release_date": "2026-09-14"
+  },
+  {
+   "id": "c14",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 14",
+   "number": 14.0,
+   "page_count": 20,
+   "release_date": "2026-09-15"
+  },
+  {
+   "id": "c15",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 15",
+   "number": 15.0,
+   "page_count": 20,
+   "release_date": "2026-09-16"
+  },
+  {
+   "id": "c16",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 16",
+   "number": 16.0,
+   "page_count": 20,
+   "release_date": "2026-09-17"
+  },
+  {
+   "id": "c17",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 17",
+   "number": 17.0,
+   "page_count": 20,
+   "release_date": "2026-09-18"
+  },
+  {
+   "id": "c18",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 18",
+   "number": 18.0,
+   "page_count": 20,
+   "release_date": "2026-09-19"
+  },
+  {
+   "id": "c19",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 19",
+   "number": 19.0,
+   "page_count": 20,
+   "release_date": "2026-09-20"
+  },
+  {
+   "id": "c20",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 20",
+   "number": 20.0,
+   "page_count": 20,
+   "release_date": "2026-09-21"
+  },
+  {
+   "id": "c21",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 21",
+   "number": 21.0,
+   "page_count": 20,
+   "release_date": "2026-09-22"
+  },
+  {
+   "id": "c22",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 22",
+   "number": 22.0,
+   "page_count": 20,
+   "release_date": "2026-09-23"
+  },
+  {
+   "id": "c23",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 23",
+   "number": 23.0,
+   "page_count": 20,
+   "release_date": "2026-09-24"
+  },
+  {
+   "id": "c24",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 24",
+   "number": 24.0,
+   "page_count": 20,
+   "release_date": "2026-09-25"
+  },
+  {
+   "id": "c25",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 25",
+   "number": 25.0,
+   "page_count": 20,
+   "release_date": "2026-09-26"
+  },
+  {
+   "id": "c26",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 26",
+   "number": 26.0,
+   "page_count": 20,
+   "release_date": "2026-09-27"
+  },
+  {
+   "id": "c27",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 27",
+   "number": 27.0,
+   "page_count": 20,
+   "release_date": "2026-09-01"
+  },
+  {
+   "id": "c28",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 28",
+   "number": 28.0,
+   "page_count": 20,
+   "release_date": "2026-09-02"
+  },
+  {
+   "id": "c29",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 29",
+   "number": 29.0,
+   "page_count": 20,
+   "release_date": "2026-09-03"
+  },
+  {
+   "id": "c30",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 30",
+   "number": 30.0,
+   "page_count": 20,
+   "release_date": "2026-09-04"
+  },
+  {
+   "id": "c31",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 31",
+   "number": 31.0,
+   "page_count": 20,
+   "release_date": "2026-09-05"
+  },
+  {
+   "id": "c32",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 32",
+   "number": 32.0,
+   "page_count": 20,
+   "release_date": "2026-09-06"
+  },
+  {
+   "id": "c33",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 33",
+   "number": 33.0,
+   "page_count": 20,
+   "release_date": "2026-09-07"
+  },
+  {
+   "id": "c34",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 34",
+   "number": 34.0,
+   "page_count": 20,
+   "release_date": "2026-09-08"
+  },
+  {
+   "id": "c35",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 35",
+   "number": 35.0,
+   "page_count": 20,
+   "release_date": "2026-09-09"
+  },
+  {
+   "id": "c36",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 36",
+   "number": 36.0,
+   "page_count": 20,
+   "release_date": "2026-09-10"
+  },
+  {
+   "id": "c37",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 37",
+   "number": 37.0,
+   "page_count": 20,
+   "release_date": "2026-09-11"
+  },
+  {
+   "id": "c38",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 38",
+   "number": 38.0,
+   "page_count": 20,
+   "release_date": "2026-09-12"
+  },
+  {
+   "id": "c39",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 39",
+   "number": 39.0,
+   "page_count": 20,
+   "release_date": "2026-09-13"
+  },
+  {
+   "id": "c40",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 40",
+   "number": 40.0,
+   "page_count": 20,
+   "release_date": "2026-09-14"
+  },
+  {
+   "id": "c41",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 41",
+   "number": 41.0,
+   "page_count": 20,
+   "release_date": "2026-09-15"
+  },
+  {
+   "id": "c42",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 42",
+   "number": 42.0,
+   "page_count": 20,
+   "release_date": "2026-09-16"
+  },
+  {
+   "id": "c43",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 43",
+   "number": 43.0,
+   "page_count": 20,
+   "release_date": "2026-09-17"
+  },
+  {
+   "id": "c44",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 44",
+   "number": 44.0,
+   "page_count": 20,
+   "release_date": "2026-09-18"
+  },
+  {
+   "id": "c45",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 45",
+   "number": 45.0,
+   "page_count": 20,
+   "release_date": "2026-09-19"
+  },
+  {
+   "id": "c46",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 46",
+   "number": 46.0,
+   "page_count": 20,
+   "release_date": "2026-09-20"
+  },
+  {
+   "id": "c47",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 47",
+   "number": 47.0,
+   "page_count": 20,
+   "release_date": "2026-09-21"
+  },
+  {
+   "id": "c48",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 48",
+   "number": 48.0,
+   "page_count": 20,
+   "release_date": "2026-09-22"
+  },
+  {
+   "id": "c49",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 49",
+   "number": 49.0,
+   "page_count": 20,
+   "release_date": "2026-09-23"
+  },
+  {
+   "id": "c50",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 50",
+   "number": 50.0,
+   "page_count": 20,
+   "release_date": "2026-09-24"
+  },
+  {
+   "id": "c51",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 51",
+   "number": 51.0,
+   "page_count": 20,
+   "release_date": "2026-09-25"
+  },
+  {
+   "id": "c52",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 52",
+   "number": 52.0,
+   "page_count": 20,
+   "release_date": "2026-09-26"
+  },
+  {
+   "id": "c53",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 53",
+   "number": 53.0,
+   "page_count": 20,
+   "release_date": "2026-09-27"
+  },
+  {
+   "id": "c54",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 54",
+   "number": 54.0,
+   "page_count": 20,
+   "release_date": "2026-09-01"
+  },
+  {
+   "id": "c55",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 55",
+   "number": 55.0,
+   "page_count": 20,
+   "release_date": "2026-09-02"
+  },
+  {
+   "id": "c56",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 56",
+   "number": 56.0,
+   "page_count": 20,
+   "release_date": "2026-09-03"
+  },
+  {
+   "id": "c57",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 57",
+   "number": 57.0,
+   "page_count": 20,
+   "release_date": "2026-09-04"
+  },
+  {
+   "id": "c58",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 58",
+   "number": 58.0,
+   "page_count": 20,
+   "release_date": "2026-09-05"
+  },
+  {
+   "id": "c59",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 59",
+   "number": 59.0,
+   "page_count": 20,
+   "release_date": "2026-09-06"
+  },
+  {
+   "id": "c60",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 60",
+   "number": 60.0,
+   "page_count": 20,
+   "release_date": "2026-09-07"
+  },
+  {
+   "id": "c61",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 61",
+   "number": 61.0,
+   "page_count": 20,
+   "release_date": "2026-09-08"
+  },
+  {
+   "id": "c62",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 62",
+   "number": 62.0,
+   "page_count": 20,
+   "release_date": "2026-09-09"
+  },
+  {
+   "id": "c63",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 63",
+   "number": 63.0,
+   "page_count": 20,
+   "release_date": "2026-09-10"
+  },
+  {
+   "id": "c64",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 64",
+   "number": 64.0,
+   "page_count": 20,
+   "release_date": "2026-09-11"
+  },
+  {
+   "id": "c65",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 65",
+   "number": 65.0,
+   "page_count": 20,
+   "release_date": "2026-09-12"
+  },
+  {
+   "id": "c66",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 66",
+   "number": 66.0,
+   "page_count": 20,
+   "release_date": "2026-09-13"
+  },
+  {
+   "id": "c67",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 67",
+   "number": 67.0,
+   "page_count": 20,
+   "release_date": "2026-09-14"
+  },
+  {
+   "id": "c68",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 68",
+   "number": 68.0,
+   "page_count": 20,
+   "release_date": "2026-09-15"
+  },
+  {
+   "id": "c69",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 69",
+   "number": 69.0,
+   "page_count": 20,
+   "release_date": "2026-09-16"
+  },
+  {
+   "id": "c70",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 70",
+   "number": 70.0,
+   "page_count": 20,
+   "release_date": "2026-09-17"
+  },
+  {
+   "id": "c71",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 71",
+   "number": 71.0,
+   "page_count": 20,
+   "release_date": "2026-09-18"
+  },
+  {
+   "id": "c72",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 72",
+   "number": 72.0,
+   "page_count": 20,
+   "release_date": "2026-09-19"
+  },
+  {
+   "id": "c73",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 73",
+   "number": 73.0,
+   "page_count": 20,
+   "release_date": "2026-09-20"
+  },
+  {
+   "id": "c74",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 74",
+   "number": 74.0,
+   "page_count": 20,
+   "release_date": "2026-09-21"
+  },
+  {
+   "id": "c75",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 75",
+   "number": 75.0,
+   "page_count": 20,
+   "release_date": "2026-09-22"
+  },
+  {
+   "id": "c76",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 76",
+   "number": 76.0,
+   "page_count": 20,
+   "release_date": "2026-09-23"
+  },
+  {
+   "id": "c77",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 77",
+   "number": 77.0,
+   "page_count": 20,
+   "release_date": "2026-09-24"
+  },
+  {
+   "id": "c78",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 78",
+   "number": 78.0,
+   "page_count": 20,
+   "release_date": "2026-09-25"
+  },
+  {
+   "id": "c79",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 79",
+   "number": 79.0,
+   "page_count": 20,
+   "release_date": "2026-09-26"
+  },
+  {
+   "id": "c80",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 80",
+   "number": 80.0,
+   "page_count": 20,
+   "release_date": "2026-09-27"
+  },
+  {
+   "id": "c81",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 81",
+   "number": 81.0,
+   "page_count": 20,
+   "release_date": "2026-09-01"
+  },
+  {
+   "id": "c82",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 82",
+   "number": 82.0,
+   "page_count": 20,
+   "release_date": "2026-09-02"
+  },
+  {
+   "id": "c83",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 83",
+   "number": 83.0,
+   "page_count": 20,
+   "release_date": "2026-09-03"
+  },
+  {
+   "id": "c84",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 84",
+   "number": 84.0,
+   "page_count": 20,
+   "release_date": "2026-09-04"
+  },
+  {
+   "id": "c85",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 85",
+   "number": 85.0,
+   "page_count": 20,
+   "release_date": "2026-09-05"
+  },
+  {
+   "id": "c86",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 86",
+   "number": 86.0,
+   "page_count": 20,
+   "release_date": "2026-09-06"
+  },
+  {
+   "id": "c87",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 87",
+   "number": 87.0,
+   "page_count": 20,
+   "release_date": "2026-09-07"
+  },
+  {
+   "id": "c88",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 88",
+   "number": 88.0,
+   "page_count": 20,
+   "release_date": "2026-09-08"
+  },
+  {
+   "id": "c89",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 89",
+   "number": 89.0,
+   "page_count": 20,
+   "release_date": "2026-09-09"
+  },
+  {
+   "id": "c90",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 90",
+   "number": 90.0,
+   "page_count": 20,
+   "release_date": "2026-09-10"
+  },
+  {
+   "id": "c91",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 91",
+   "number": 91.0,
+   "page_count": 20,
+   "release_date": "2026-09-11"
+  },
+  {
+   "id": "c92",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 92",
+   "number": 92.0,
+   "page_count": 20,
+   "release_date": "2026-09-12"
+  },
+  {
+   "id": "c93",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 93",
+   "number": 93.0,
+   "page_count": 20,
+   "release_date": "2026-09-13"
+  },
+  {
+   "id": "c94",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 94",
+   "number": 94.0,
+   "page_count": 20,
+   "release_date": "2026-09-14"
+  },
+  {
+   "id": "c95",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 95",
+   "number": 95.0,
+   "page_count": 20,
+   "release_date": "2026-09-15"
+  },
+  {
+   "id": "c96",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 96",
+   "number": 96.0,
+   "page_count": 20,
+   "release_date": "2026-09-16"
+  },
+  {
+   "id": "c97",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 97",
+   "number": 97.0,
+   "page_count": 20,
+   "release_date": "2026-09-17"
+  },
+  {
+   "id": "c98",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 98",
+   "number": 98.0,
+   "page_count": 20,
+   "release_date": "2026-09-18"
+  },
+  {
+   "id": "c99",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 99",
+   "number": 99.0,
+   "page_count": 20,
+   "release_date": "2026-09-19"
+  },
+  {
+   "id": "c100",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 100",
+   "number": 100.0,
+   "page_count": 20,
+   "release_date": "2026-09-20"
+  },
+  {
+   "id": "c101",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 101",
+   "number": 101.0,
+   "page_count": 20,
+   "release_date": "2026-09-21"
+  },
+  {
+   "id": "c102",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 102",
+   "number": 102.0,
+   "page_count": 20,
+   "release_date": "2026-09-22"
+  },
+  {
+   "id": "c103",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 103",
+   "number": 103.0,
+   "page_count": 20,
+   "release_date": "2026-09-23"
+  },
+  {
+   "id": "c104",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 104",
+   "number": 104.0,
+   "page_count": 20,
+   "release_date": "2026-09-24"
+  },
+  {
+   "id": "c105",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 105",
+   "number": 105.0,
+   "page_count": 20,
+   "release_date": "2026-09-25"
+  },
+  {
+   "id": "c106",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 106",
+   "number": 106.0,
+   "page_count": 20,
+   "release_date": "2026-09-26"
+  },
+  {
+   "id": "c107",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 107",
+   "number": 107.0,
+   "page_count": 20,
+   "release_date": "2026-09-27"
+  },
+  {
+   "id": "c108",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 108",
+   "number": 108.0,
+   "page_count": 20,
+   "release_date": "2026-09-01"
+  },
+  {
+   "id": "c109",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 109",
+   "number": 109.0,
+   "page_count": 20,
+   "release_date": "2026-09-02"
+  },
+  {
+   "id": "c110",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 110",
+   "number": 110.0,
+   "page_count": 20,
+   "release_date": "2026-09-03"
+  },
+  {
+   "id": "c111",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 111",
+   "number": 111.0,
+   "page_count": 20,
+   "release_date": "2026-09-04"
+  },
+  {
+   "id": "c112",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 112",
+   "number": 112.0,
+   "page_count": 20,
+   "release_date": "2026-09-05"
+  },
+  {
+   "id": "c113",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 113",
+   "number": 113.0,
+   "page_count": 20,
+   "release_date": "2026-09-06"
+  },
+  {
+   "id": "c114",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 114",
+   "number": 114.0,
+   "page_count": 20,
+   "release_date": "2026-09-07"
+  },
+  {
+   "id": "c115",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 115",
+   "number": 115.0,
+   "page_count": 20,
+   "release_date": "2026-09-08"
+  },
+  {
+   "id": "c116",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 116",
+   "number": 116.0,
+   "page_count": 20,
+   "release_date": "2026-09-09"
+  },
+  {
+   "id": "c117",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 117",
+   "number": 117.0,
+   "page_count": 20,
+   "release_date": "2026-09-10"
+  },
+  {
+   "id": "c118",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 118",
+   "number": 118.0,
+   "page_count": 20,
+   "release_date": "2026-09-11"
+  },
+  {
+   "id": "c119",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 119",
+   "number": 119.0,
+   "page_count": 20,
+   "release_date": "2026-09-12"
+  },
+  {
+   "id": "c120",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 120",
+   "number": 120.0,
+   "page_count": 20,
+   "release_date": "2026-09-13"
+  },
+  {
+   "id": "c121",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 121",
+   "number": 121.0,
+   "page_count": 20,
+   "release_date": "2026-09-14"
+  },
+  {
+   "id": "c122",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 122",
+   "number": 122.0,
+   "page_count": 20,
+   "release_date": "2026-09-15"
+  },
+  {
+   "id": "c123",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 123",
+   "number": 123.0,
+   "page_count": 20,
+   "release_date": "2026-09-16"
+  },
+  {
+   "id": "c124",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 124",
+   "number": 124.0,
+   "page_count": 20,
+   "release_date": "2026-09-17"
+  },
+  {
+   "id": "c125",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 125",
+   "number": 125.0,
+   "page_count": 20,
+   "release_date": "2026-09-18"
+  },
+  {
+   "id": "c126",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 126",
+   "number": 126.0,
+   "page_count": 20,
+   "release_date": "2026-09-19"
+  },
+  {
+   "id": "c127",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 127",
+   "number": 127.0,
+   "page_count": 20,
+   "release_date": "2026-09-20"
+  },
+  {
+   "id": "c128",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 128",
+   "number": 128.0,
+   "page_count": 20,
+   "release_date": "2026-09-21"
+  },
+  {
+   "id": "c129",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 129",
+   "number": 129.0,
+   "page_count": 20,
+   "release_date": "2026-09-22"
+  },
+  {
+   "id": "c130",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 130",
+   "number": 130.0,
+   "page_count": 20,
+   "release_date": "2026-09-23"
+  },
+  {
+   "id": "c131",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 131",
+   "number": 131.0,
+   "page_count": 20,
+   "release_date": "2026-09-24"
+  },
+  {
+   "id": "c132",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 132",
+   "number": 132.0,
+   "page_count": 20,
+   "release_date": "2026-09-25"
+  },
+  {
+   "id": "c133",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 133",
+   "number": 133.0,
+   "page_count": 20,
+   "release_date": "2026-09-26"
+  },
+  {
+   "id": "c134",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 134",
+   "number": 134.0,
+   "page_count": 20,
+   "release_date": "2026-09-27"
+  },
+  {
+   "id": "c135",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 135",
+   "number": 135.0,
+   "page_count": 20,
+   "release_date": "2026-09-01"
+  },
+  {
+   "id": "c136",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 136",
+   "number": 136.0,
+   "page_count": 20,
+   "release_date": "2026-09-02"
+  },
+  {
+   "id": "c137",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 137",
+   "number": 137.0,
+   "page_count": 20,
+   "release_date": "2026-09-03"
+  },
+  {
+   "id": "c138",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 138",
+   "number": 138.0,
+   "page_count": 20,
+   "release_date": "2026-09-04"
+  },
+  {
+   "id": "c139",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 139",
+   "number": 139.0,
+   "page_count": 20,
+   "release_date": "2026-09-05"
+  },
+  {
+   "id": "c140",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 140",
+   "number": 140.0,
+   "page_count": 20,
+   "release_date": "2026-09-06"
+  },
+  {
+   "id": "c141",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 141",
+   "number": 141.0,
+   "page_count": 20,
+   "release_date": "2026-09-07"
+  },
+  {
+   "id": "c142",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 142",
+   "number": 142.0,
+   "page_count": 20,
+   "release_date": "2026-09-08"
+  },
+  {
+   "id": "c143",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 143",
+   "number": 143.0,
+   "page_count": 20,
+   "release_date": "2026-09-09"
+  },
+  {
+   "id": "c144",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 144",
+   "number": 144.0,
+   "page_count": 20,
+   "release_date": "2026-09-10"
+  },
+  {
+   "id": "c145",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 145",
+   "number": 145.0,
+   "page_count": 20,
+   "release_date": "2026-09-11"
+  },
+  {
+   "id": "c146",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 146",
+   "number": 146.0,
+   "page_count": 20,
+   "release_date": "2026-09-12"
+  },
+  {
+   "id": "c147",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 147",
+   "number": 147.0,
+   "page_count": 20,
+   "release_date": "2026-09-13"
+  },
+  {
+   "id": "c148",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 148",
+   "number": 148.0,
+   "page_count": 20,
+   "release_date": "2026-09-14"
+  },
+  {
+   "id": "c149",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 149",
+   "number": 149.0,
+   "page_count": 20,
+   "release_date": "2026-09-15"
+  },
+  {
+   "id": "c150",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 150",
+   "number": 150.0,
+   "page_count": 20,
+   "release_date": "2026-09-16"
+  },
+  {
+   "id": "c151",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 151",
+   "number": 151.0,
+   "page_count": 20,
+   "release_date": "2026-09-17"
+  },
+  {
+   "id": "c152",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 152",
+   "number": 152.0,
+   "page_count": 20,
+   "release_date": "2026-09-18"
+  },
+  {
+   "id": "c153",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 153",
+   "number": 153.0,
+   "page_count": 20,
+   "release_date": "2026-09-19"
+  },
+  {
+   "id": "c154",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 154",
+   "number": 154.0,
+   "page_count": 20,
+   "release_date": "2026-09-20"
+  },
+  {
+   "id": "c155",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 155",
+   "number": 155.0,
+   "page_count": 20,
+   "release_date": "2026-09-21"
+  },
+  {
+   "id": "c156",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 156",
+   "number": 156.0,
+   "page_count": 20,
+   "release_date": "2026-09-22"
+  },
+  {
+   "id": "c157",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 157",
+   "number": 157.0,
+   "page_count": 20,
+   "release_date": "2026-09-23"
+  },
+  {
+   "id": "c158",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 158",
+   "number": 158.0,
+   "page_count": 20,
+   "release_date": "2026-09-24"
+  },
+  {
+   "id": "c159",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 159",
+   "number": 159.0,
+   "page_count": 20,
+   "release_date": "2026-09-25"
+  },
+  {
+   "id": "c160",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 160",
+   "number": 160.0,
+   "page_count": 20,
+   "release_date": "2026-09-26"
+  },
+  {
+   "id": "c161",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 161",
+   "number": 161.0,
+   "page_count": 20,
+   "release_date": "2026-09-27"
+  },
+  {
+   "id": "c162",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 162",
+   "number": 162.0,
+   "page_count": 20,
+   "release_date": "2026-09-01"
+  },
+  {
+   "id": "c163",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 163",
+   "number": 163.0,
+   "page_count": 20,
+   "release_date": "2026-09-02"
+  },
+  {
+   "id": "c164",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 164",
+   "number": 164.0,
+   "page_count": 20,
+   "release_date": "2026-09-03"
+  },
+  {
+   "id": "c165",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 165",
+   "number": 165.0,
+   "page_count": 20,
+   "release_date": "2026-09-04"
+  },
+  {
+   "id": "c166",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 166",
+   "number": 166.0,
+   "page_count": 20,
+   "release_date": "2026-09-05"
+  },
+  {
+   "id": "c167",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 167",
+   "number": 167.0,
+   "page_count": 20,
+   "release_date": "2026-09-06"
+  },
+  {
+   "id": "c168",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 168",
+   "number": 168.0,
+   "page_count": 20,
+   "release_date": "2026-09-07"
+  },
+  {
+   "id": "c169",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 169",
+   "number": 169.0,
+   "page_count": 20,
+   "release_date": "2026-09-08"
+  },
+  {
+   "id": "c170",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 170",
+   "number": 170.0,
+   "page_count": 20,
+   "release_date": "2026-09-09"
+  },
+  {
+   "id": "c171",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 171",
+   "number": 171.0,
+   "page_count": 20,
+   "release_date": "2026-09-10"
+  },
+  {
+   "id": "c172",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 172",
+   "number": 172.0,
+   "page_count": 20,
+   "release_date": "2026-09-11"
+  },
+  {
+   "id": "c173",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 173",
+   "number": 173.0,
+   "page_count": 20,
+   "release_date": "2026-09-12"
+  },
+  {
+   "id": "c174",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 174",
+   "number": 174.0,
+   "page_count": 20,
+   "release_date": "2026-09-13"
+  },
+  {
+   "id": "c175",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 175",
+   "number": 175.0,
+   "page_count": 20,
+   "release_date": "2026-09-14"
+  },
+  {
+   "id": "c176",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 176",
+   "number": 176.0,
+   "page_count": 20,
+   "release_date": "2026-09-15"
+  },
+  {
+   "id": "c177",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 177",
+   "number": 177.0,
+   "page_count": 20,
+   "release_date": "2026-09-16"
+  },
+  {
+   "id": "c178",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 178",
+   "number": 178.0,
+   "page_count": 20,
+   "release_date": "2026-09-17"
+  },
+  {
+   "id": "c179",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 179",
+   "number": 179.0,
+   "page_count": 20,
+   "release_date": "2026-09-18"
+  },
+  {
+   "id": "c180",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 180",
+   "number": 180.0,
+   "page_count": 20,
+   "release_date": "2026-09-19"
+  },
+  {
+   "id": "c181",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 181",
+   "number": 181.0,
+   "page_count": 20,
+   "release_date": "2026-09-20"
+  },
+  {
+   "id": "c182",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 182",
+   "number": 182.0,
+   "page_count": 20,
+   "release_date": "2026-09-21"
+  },
+  {
+   "id": "c183",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 183",
+   "number": 183.0,
+   "page_count": 20,
+   "release_date": "2026-09-22"
+  },
+  {
+   "id": "c184",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 184",
+   "number": 184.0,
+   "page_count": 20,
+   "release_date": "2026-09-23"
+  },
+  {
+   "id": "c185",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 185",
+   "number": 185.0,
+   "page_count": 20,
+   "release_date": "2026-09-24"
+  },
+  {
+   "id": "c186",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 186",
+   "number": 186.0,
+   "page_count": 20,
+   "release_date": "2026-09-25"
+  },
+  {
+   "id": "c187",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 187",
+   "number": 187.0,
+   "page_count": 20,
+   "release_date": "2026-09-26"
+  },
+  {
+   "id": "c188",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 188",
+   "number": 188.0,
+   "page_count": 20,
+   "release_date": "2026-09-27"
+  },
+  {
+   "id": "c189",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 189",
+   "number": 189.0,
+   "page_count": 20,
+   "release_date": "2026-09-01"
+  },
+  {
+   "id": "c190",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 190",
+   "number": 190.0,
+   "page_count": 20,
+   "release_date": "2026-09-02"
+  },
+  {
+   "id": "c191",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 191",
+   "number": 191.0,
+   "page_count": 20,
+   "release_date": "2026-09-03"
+  },
+  {
+   "id": "c192",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 192",
+   "number": 192.0,
+   "page_count": 20,
+   "release_date": "2026-09-04"
+  },
+  {
+   "id": "c193",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 193",
+   "number": 193.0,
+   "page_count": 20,
+   "release_date": "2026-09-05"
+  },
+  {
+   "id": "c194",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 194",
+   "number": 194.0,
+   "page_count": 20,
+   "release_date": "2026-09-06"
+  },
+  {
+   "id": "c195",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 195",
+   "number": 195.0,
+   "page_count": 20,
+   "release_date": "2026-09-07"
+  },
+  {
+   "id": "c196",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 196",
+   "number": 196.0,
+   "page_count": 20,
+   "release_date": "2026-09-08"
+  },
+  {
+   "id": "c197",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 197",
+   "number": 197.0,
+   "page_count": 20,
+   "release_date": "2026-09-09"
+  },
+  {
+   "id": "c198",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 198",
+   "number": 198.0,
+   "page_count": 20,
+   "release_date": "2026-09-10"
+  },
+  {
+   "id": "c199",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 199",
+   "number": 199.0,
+   "page_count": 20,
+   "release_date": "2026-09-11"
+  },
+  {
+   "id": "c200",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 200",
+   "number": 200.0,
+   "page_count": 20,
+   "release_date": "2026-09-12"
+  },
+  {
+   "id": "c201",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 201",
+   "number": 201.0,
+   "page_count": 20,
+   "release_date": "2026-09-13"
+  }
+ ]
+}

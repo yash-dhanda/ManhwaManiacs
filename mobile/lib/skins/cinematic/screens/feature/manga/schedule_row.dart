@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
+import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/utils/download_mark.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -96,6 +97,8 @@ class ScheduleRow extends StatefulWidget {
     this.markProgress = 0,
     this.markPage,
     this.stale = false,
+    this.paused = false,
+    this.pauseReason,
   });
 
   final SourceChapterSummary chapter;
@@ -122,6 +125,8 @@ class ScheduleRow extends StatefulWidget {
   final double markProgress;
   final int? markPage;
   final bool stale;
+  final bool paused;
+  final DownloadQueuePauseReason? pauseReason;
 
   @override
   State<ScheduleRow> createState() => _ScheduleRowState();
@@ -157,6 +162,7 @@ class _ScheduleRowState extends State<ScheduleRow> {
       widget.downloadState,
       stale: widget.stale,
       progress: widget.markProgress,
+      paused: widget.paused,
     );
     final failed = mark is MarkFailed;
     final date = chapterDateLabel(c.releaseDate);
@@ -265,7 +271,8 @@ class _ScheduleRowState extends State<ScheduleRow> {
           CineDownloadMark(
             state: mark,
             page: widget.markPage,
-            pageTotal: c.pageCount,
+            pageTotal: widget.markPage == null ? null : (widget.markProgress > 0 ? (widget.markPage! / widget.markProgress).round() : c.pageCount),
+            reason: widget.pauseReason,
             onTap: widget.onMarkTap,
           ),
           if (!widget.selecting)

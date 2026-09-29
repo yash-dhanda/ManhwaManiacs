@@ -18,6 +18,15 @@ class FeatureData {
   final List<SourceChapterSummary> chapters;
   final FollowedSeries? followed;
 
+  /// The same page data with another chapter list (offline and empty states).
+  FeatureData withChapters(List<SourceChapterSummary> next) => FeatureData(
+        sourceId: sourceId,
+        seriesKey: seriesKey,
+        series: series,
+        chapters: next,
+        followed: followed,
+      );
+
   SeriesIdentity get identity => (sourceId: sourceId, seriesKey: seriesKey);
   bool get isFollowed => followed != null;
   String get title => series.title;

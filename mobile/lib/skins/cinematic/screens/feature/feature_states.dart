@@ -5,6 +5,14 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
+const _sup = {
+  '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', //
+  '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+};
+
+/// `201` as superscript numerals for counts on labels (`CHAPTERS²⁰¹`).
+String superscript(int n) => n.toString().split('').map((c) => _sup[c] ?? c).join();
+
 CineTokens cineOf(BuildContext c) => Theme.of(c).extension<CineTokens>()!;
 
 TextStyle kickerStyle(BuildContext c, {Color? color}) => CineType.style(c, cineOf(c).typeKicker)

@@ -27,11 +27,6 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/rating_card.
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/repoint_sheet.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
-const _sup = {'0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'};
-
-/// `201` as superscript numerals for the tab count (`CHAPTERS²⁰¹`).
-String superscript(int n) => n.toString().split('').map((c) => _sup[c] ?? c).join();
-
 /// The manga Feature page: hero or spread, then pinned contents tabs over
 /// swipeable CHAPTERS / DETAILS panels.
 class MangaFeatureView extends ConsumerStatefulWidget {
@@ -263,55 +258,52 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
                   NestedScrollView(
                     controller: _scroll,
                     headerSliverBuilder: (context, _) => [
+                      SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            FeatureHero(
+                              data: d,
+                              onSelect: _startSelect,
+                              onCover: _cover,
+                              commands: _commands,
+                              onOverflow: wide ? _overflow : null,
+                            ),
+                            if (widget.offlineEdition || widget.savedCopy != null)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                                child: Wrap(spacing: 8, children: [
+                                  if (widget.offlineEdition) const FeatureBadge('OFFLINE EDITION'),
+                                  if (widget.savedCopy != null)
+                                    FeatureBadge('SAVED COPY · ${widget.savedCopy}'),
+                                ],),
+                              ),
+                          ],
+                        ),
+                      ),
                       SliverOverlapAbsorber(
                         handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-                        sliver: MultiSliver2(
-                          children: [
-                            SliverToBoxAdapter(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  FeatureHero(
-                                    data: d,
-                                    onSelect: _startSelect,
-                                    onCover: _cover,
-                                    commands: _commands,
-                                    onOverflow: wide ? _overflow : null,
+                        sliver: SliverPersistentHeader(
+                          pinned: true,
+                          delegate: _TabsDelegate(
+                            clearance: 56 + topPad,
+                            color: t.colorPaper0,
+                            rule: t.colorRule1,
+                            bar: TabBar(
+                              controller: _tabController,
+                              indicatorColor: t.colorSpot,
+                              labelColor: t.colorInk100,
+                              unselectedLabelColor: t.colorInk60,
+                              tabs: [
+                                for (var i = 0; i < _tabs.length; i++)
+                                  Tab(
+                                    height: 48,
+                                    text: '${_tabs[i].folio(i)} ${_tabs[i].label}'
+                                        '${_tabs[i].count != null ? superscript(_tabs[i].count!) : ''}',
                                   ),
-                                  if (widget.offlineEdition || widget.savedCopy != null)
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                                      child: Wrap(spacing: 8, children: [
-                                        if (widget.offlineEdition) const FeatureBadge('OFFLINE EDITION'),
-                                        if (widget.savedCopy != null)
-                                          FeatureBadge('SAVED COPY · ${widget.savedCopy}'),
-                                      ],),
-                                    ),
-                                ],
-                              ),
+                              ],
                             ),
-                            SliverPersistentHeader(
-                              pinned: true,
-                              delegate: _TabsDelegate(
-                                TabBar(
-                                  controller: _tabController,
-                                  indicatorColor: t.colorSpot,
-                                  labelColor: t.colorInk100,
-                                  unselectedLabelColor: t.colorInk60,
-                                  tabs: [
-                                    for (var i = 0; i < _tabs.length; i++)
-                                      Tab(
-                                        height: 48,
-                                        text: '${_tabs[i].folio(i)} ${_tabs[i].label}'
-                                            '${_tabs[i].count != null ? superscript(_tabs[i].count!) : ''}',
-                                      ),
-                                  ],
-                                ),
-                                t.colorPaper0,
-                                t.colorRule1,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ],
@@ -339,31 +331,41 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
   }
 }
 
-/// Two adjacent slivers as one (the overlap absorber takes a single sliver).
-class MultiSliver2 extends StatelessWidget {
-  const MultiSliver2({super.key, required this.children});
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => SliverMainAxisGroup(slivers: children);
-}
-
+/// The pinned tab row, pinned under the running head: the box is the head's
+/// height plus the row, so the row stops right beneath the head and the
+/// absorbed overlap the panels inject is exactly the head plus the row.
 class _TabsDelegate extends SliverPersistentHeaderDelegate {
-  _TabsDelegate(this.bar, this.color, this.rule);
-  final TabBar bar;
+  _TabsDelegate({
+    required this.clearance,
+    required this.color,
+    required this.rule,
+    required this.bar,
+  });
+
+  final double clearance;
   final Color color, rule;
+  final TabBar bar;
 
   @override
-  double get minExtent => 48;
+  double get minExtent => 48 + clearance;
   @override
-  double get maxExtent => 48;
+  double get maxExtent => 48 + clearance;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => DecoratedBox(
-        decoration: BoxDecoration(color: color, border: Border(bottom: BorderSide(color: rule))),
-        child: bar,
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => ColoredBox(
+        color: color,
+        child: Column(
+          children: [
+            SizedBox(height: clearance),
+            DecoratedBox(
+              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: rule))),
+              child: SizedBox(height: 47, child: bar),
+            ),
+          ],
+        ),
       );
 
   @override
-  bool shouldRebuild(_TabsDelegate old) => old.bar != bar || old.color != color;
+  bool shouldRebuild(_TabsDelegate old) =>
+      old.bar != bar || old.color != color || old.clearance != clearance;
 }

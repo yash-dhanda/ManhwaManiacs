@@ -69,7 +69,12 @@ class AtAGlance extends ConsumerWidget {
     ].take(5).toList();
 
     Future<void> accept(String name) async {
-      final all = ref.read(profileTagsProvider).valueOrNull ?? const <Tag>[];
+      List<Tag> all;
+      try {
+        all = await ref.read(profileTagsProvider.future);
+      } catch (_) {
+        all = const <Tag>[];
+      }
       final match = all.where((x) => x.name.toLowerCase() == name.toLowerCase()).toList();
       if (match.isNotEmpty) {
         await ctl.tagSeries(key, match.first, current: own);

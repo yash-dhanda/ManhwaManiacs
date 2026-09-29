@@ -57,9 +57,9 @@ class SelectionBar extends StatelessWidget {
                   spacing: 8,
                   children: [
                     pick('NEXT 10', nextUnreadUndownloadedKeys(chapters)),
-                    pick('ALL UNREAD ${unread.length}', unread),
+                    pick('ALL UNREAD${superscript(unread.length)}', unread),
                     if (showWholeBook) pick('WHOLE BOOK', all),
-                    pick('ALL ${chapters.length}', all),
+                    pick('ALL${superscript(chapters.length)}', all),
                     pick('NONE', const []),
                   ],
                 ),
