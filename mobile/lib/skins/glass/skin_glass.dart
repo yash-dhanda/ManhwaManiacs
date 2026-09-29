@@ -301,7 +301,11 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   @override
   Future<void> playSweep() async {
     if (_disposed) return;
-    await _sweep.forward(from: 0);
+    try {
+      await _sweep.forward(from: 0).orCancel; // a disposed controller never completes the plain future
+    } on TickerCanceled {
+      return;
+    }
     if (!_disposed) _sweep.value = 0;
   }
 

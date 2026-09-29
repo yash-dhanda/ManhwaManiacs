@@ -114,6 +114,21 @@ void main() {
       expect(containerOf(tester).read(glassRegistryProvider).layers, 0);
     });
 
+    testWidgets('disposing a SkinGlass mid-sweep frees the sweep coordinator', (tester) async {
+      GlassSweep.reset();
+      await tester.pumpWidget(host(const SkinGlass(size: Size(100, 50), materialize: false, child: SizedBox())));
+      final state = tester.state<SkinGlassState>(find.byType(SkinGlass));
+      expect(GlassSweep.request(state), isTrue);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpWidget(host(const SizedBox()));
+      await tester.pump();
+      GlassSweep.now = () => Duration(microseconds: DateTime.now().microsecondsSinceEpoch) + const Duration(seconds: 5);
+      addTearDown(() => GlassSweep.now = () => Duration(microseconds: DateTime.now().microsecondsSinceEpoch));
+      await tester.pumpWidget(host(const SkinGlass(size: Size(100, 50), materialize: false, child: SizedBox())));
+      expect(GlassSweep.request(tester.state<SkinGlassState>(find.byType(SkinGlass))), isTrue);
+      GlassSweep.reset();
+    });
+
     testWidgets('a live surface registers once and unregisters on dispose', (tester) async {
       await tester.pumpWidget(host(const SkinGlass(size: Size(100, 50), materialize: false, child: SizedBox())));
       await tester.pump();

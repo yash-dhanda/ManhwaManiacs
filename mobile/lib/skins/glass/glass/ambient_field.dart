@@ -245,7 +245,9 @@ class GlassAmbientFieldState extends ConsumerState<GlassAmbientField> with Ticke
 
   @override
   Widget build(BuildContext context) {
+    final wasReduced = _reduced;
     _reduced = ref.watch(glassMotionPrefsProvider.select((m) => m.reduced));
+    if (wasReduced != _reduced) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _startTimer() : null);
     final solid = ref.watch(glassA11yProvider.select((a) => a.solid));
     final wide = MediaQuery.sizeOf(context).shortestSide >= 600;
     const t = glassTokens;

@@ -20,3 +20,8 @@ Tonight and Library, 390x844 and 834x1194, captured with MM_PROOF_DIR on base 59
 
 ## Importer rule
 `glass_engine.dart` shader init now lives in `glass/liquid.dart`; the device-gate page moved to `glass/gate_demo.dart` (still routed from diagnostics until release/00 deletes it). Only `skin_glass.dart` and `glass/` import liquid_glass_widgets.
+
+## Open issues (fix pass 2)
+
+- CI gate: the integrator must push ab485312 alone and paste the `tests` and `Build iOS` run URLs into resolution.md.
+- Renderer decision: `kGateRenderer` stays `GlassRenderer.liquid` until the owner's device pass sets the Decision line in mobile-03/glass-gate.md; frost fallback is in place.
