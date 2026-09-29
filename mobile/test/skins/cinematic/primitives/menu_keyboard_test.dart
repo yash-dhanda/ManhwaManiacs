@@ -23,7 +23,7 @@ Future<void> _open(WidgetTester t) async {
             CineMenuEntry(label: 'Disabled', value: 'no', disabled: true),
             CineMenuEntry(label: 'Favourite', value: 'fav'),
             CineMenuEntry(label: 'Remove', value: 'rm', destructive: true, separatorBefore: true),
-          ]),
+          ],),
         ),
       ),
     ),

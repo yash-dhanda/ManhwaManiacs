@@ -17,7 +17,6 @@ Future<ValueNotifier<double>> _pump(WidgetTester t, {List<HapticEvent>? haptics}
         valueListenable: v,
         builder: (_, val, __) => CineSlider(
           value: val,
-          min: 0,
           max: 20,
           divisions: 20,
           label: 'Size',
