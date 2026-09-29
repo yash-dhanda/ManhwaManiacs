@@ -1,7 +1,7 @@
 import { createElement } from "react";
+import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import type { ScreenId } from "../contract.generated";
-import { markScreenFound, markScreenMissing, settlesItself } from "../screen-status";
 import type { Screen, ScreenProps, Skin } from "../types";
 import { legacyFontClassName } from "./fonts";
 import AdminStatus from "./pages/admin-status";
@@ -46,12 +46,12 @@ const library: Screen = (props: ScreenProps) =>
   createElement(props.variant === "browse" ? LibraryBrowse : Library);
 
 // `/settings/anything` stays a 404 for legacy users, as it was before the
-// `[section]` route existed (web/02 adds the one diagnostics exception).
-const settings: Screen = settlesItself(async ({ params }: ScreenProps) => {
-  if ((await params).section !== undefined) markScreenMissing();
-  markScreenFound();
+// `[section]` route existed (web/02 adds the one diagnostics exception, here and
+// in `src/proxy.ts`, which sets the 404 status; keep its LEGACY_LACKS in step).
+const settings: Screen = async ({ params }: ScreenProps) => {
+  if ((await params).section !== undefined) notFound();
   return createElement(Settings);
-});
+};
 
 const screens: Partial<Record<ScreenId, Screen>> = {
   login: page(Login),

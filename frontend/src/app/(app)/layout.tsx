@@ -5,8 +5,6 @@ import { ServiceWorkerBoundary } from "@/features/offline";
 // component in the feature into its module graph to emit one <script>.
 import { AppearanceBootScript } from "@/features/preferences/appearance-boot";
 import { skins } from "@/skins";
-import { NotFoundStatus } from "@/skins/not-found-status";
-import { screenMissing } from "@/skins/screen-status";
 import { getSkin } from "@/skins/server";
 import { Providers } from "../providers";
 import "../globals.css";
@@ -88,8 +86,6 @@ export default async function AppLayout({
             renders only the update prompt and must survive every route change.
           */}
           <ServiceWorkerBoundary />
-          {/* Outside the Shell on purpose: a missing screen answers 404 (see `screenMissing`). */}
-          <NotFoundStatus missing={screenMissing().promise} />
           <skin.Shell>{children}</skin.Shell>
         </Providers>
       </body>

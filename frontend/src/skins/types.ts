@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import type { ScreenId } from "./contract.generated";
+import { FLAGS, type ScreenId } from "./contract.generated";
 
 export const SKIN_IDS = ["cinematic", "glass", "legacy"] as const;
 export type SkinId = (typeof SKIN_IDS)[number];
@@ -13,6 +13,18 @@ export const DEFAULT_SKIN: SkinId = "legacy";
 
 export const SKIN_COOKIE = "mm-skin";
 export const SKIN_DEBUG_COOKIE = "mm-skin-debug";
+
+/**
+ * The skin a request renders in, from its two cookies. Precedence: the
+ * `mm-skin-debug` preview cookie (any skin, Glass included), then the `mm-skin`
+ * device mirror (Glass falls back to Cinematic while `FLAGS.glassAvailable` is
+ * false, cinematic §8.0.7), then `DEFAULT_SKIN`. Invalid values are ignored.
+ */
+export function resolveSkin(debug: string | undefined, mirror: string | undefined): SkinId {
+  if (isSkinId(debug)) return debug;
+  if (isSkinId(mirror)) return mirror === "glass" && !FLAGS.glassAvailable ? "cinematic" : mirror;
+  return DEFAULT_SKIN;
+}
 
 export interface ScreenProps {
   screenId: ScreenId;
