@@ -7,6 +7,8 @@ import { http } from "@/services/http";
  */
 export interface ContentPreferences {
   mature_content_enabled: boolean;
+  /** What this server offers (`GET /settings`); absent on older servers. */
+  capabilities?: { client_downloads?: boolean };
 }
 
 export const preferencesApi = {

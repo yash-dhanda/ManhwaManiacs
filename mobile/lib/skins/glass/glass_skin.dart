@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/glass_engine.dart';
 import 'package:manhwamaniacs/skins/glass/router.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 import 'package:manhwamaniacs/skins/skin.dart';
@@ -42,7 +43,7 @@ class GlassSkin implements Skin {
   @override
   Widget wrap(BuildContext context, Widget child) => child;
 
-  // mobile/03 loads shaders here; the splash is built later.
+  // The splash is built later.
   @override
   Widget splash(BuildContext context) => const ColoredBox(color: Color(0xFF000000));
 
@@ -56,5 +57,5 @@ class GlassSkin implements Skin {
   Map<String, String> get soundCues => glassSoundCues;
 
   @override
-  Future<void> prepare() async {}
+  Future<void> prepare() => ensureLiquidGlassReady();
 }

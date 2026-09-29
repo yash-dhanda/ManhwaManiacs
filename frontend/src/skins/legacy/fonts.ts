@@ -5,6 +5,7 @@ const syne = Syne({
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-syne",
   display: "swap",
+  preload: false,
 });
 
 const dmSans = DM_Sans({
@@ -12,6 +13,7 @@ const dmSans = DM_Sans({
   weight: ["300", "400", "500", "600"],
   variable: "--font-dm-sans",
   display: "swap",
+  preload: false,
 });
 
 export const legacyFontClassName = `${syne.variable} ${dmSans.variable}`;

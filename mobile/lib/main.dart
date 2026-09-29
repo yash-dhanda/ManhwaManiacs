@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/app.dart';
 import 'package:manhwamaniacs/app/app_restart.dart';
+import 'package:manhwamaniacs/app/font_licenses.dart';
 import 'package:manhwamaniacs/app/skin_boot.dart';
 import 'package:manhwamaniacs/core/config/env.dart';
 import 'package:manhwamaniacs/core/config/startup_config.dart';
@@ -73,6 +74,8 @@ Future<void> main() async {
       notificationColor: Color(0xFFF4D03F),
     ),
   );
+
+  registerFontLicenses();
 
   await skinFor(SkinBoot.resolveSkin(prefs)).prepare();
 

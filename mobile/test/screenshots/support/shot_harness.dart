@@ -29,6 +29,32 @@ Future<void> loadAppFonts() async {
     ],
     'BebasNeue': ['assets/fonts/BebasNeue-Regular.ttf'],
     'SpaceMono': ['assets/fonts/SpaceMono-Regular.ttf'],
+    // Redesign faces (mobile/03).
+    'BodoniModa': ['assets/fonts/BodoniModa.ttf', 'assets/fonts/BodoniModa-Italic.ttf'],
+    'Archivo': ['assets/fonts/Archivo.ttf'],
+    'Newsreader': ['assets/fonts/Newsreader.ttf', 'assets/fonts/Newsreader-Italic.ttf'],
+    'IBMPlexMono': [
+      'assets/fonts/IBMPlexMono-Regular.ttf',
+      'assets/fonts/IBMPlexMono-Medium.ttf',
+      'assets/fonts/IBMPlexMono-SemiBold.ttf',
+    ],
+    'Literata': ['assets/fonts/Literata.ttf', 'assets/fonts/Literata-Italic.ttf'],
+    'LiterataMM': ['assets/fonts/Literata.ttf', 'assets/fonts/Literata-Italic.ttf'],
+    'SourceSerif4': ['assets/fonts/SourceSerif4.ttf', 'assets/fonts/SourceSerif4-Italic.ttf'],
+    'AtkinsonHyperlegibleNext': [
+      'assets/fonts/AtkinsonHyperlegibleNext.ttf',
+      'assets/fonts/AtkinsonHyperlegibleNext-Italic.ttf',
+    ],
+    'GoogleSansFlexMM': ['assets/fonts/GoogleSansFlexMM.ttf'],
+    'GoogleSansCodeMM': ['assets/fonts/GoogleSansCode.ttf'],
+    'CineGlyphs': ['assets/fonts/CineGlyphs.ttf'],
+    'GlassGlyphs': ['assets/fonts/GlassGlyphs.ttf'],
+    'PhosphorRegular': ['assets/fonts/phosphor/Phosphor.ttf'],
+    'PhosphorThin': ['assets/fonts/phosphor/Phosphor-Thin.ttf'],
+    'PhosphorLight': ['assets/fonts/phosphor/Phosphor-Light.ttf'],
+    'PhosphorBold': ['assets/fonts/phosphor/Phosphor-Bold.ttf'],
+    'PhosphorFill': ['assets/fonts/phosphor/Phosphor-Fill.ttf'],
+    'PhosphorDuotone': ['assets/fonts/phosphor/Phosphor-Duotone.ttf'],
   };
   for (final entry in families.entries) {
     final loader = FontLoader(entry.key);

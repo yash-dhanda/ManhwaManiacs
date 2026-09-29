@@ -35,3 +35,12 @@ Items only the owner can do, by step.
 ## shared/05
 - Deliver the eleven art masters per brand/onboarding/styles/BRIEF.md, fill LICENSE.md, run node brand/onboarding/styles/intake.mjs, commit outputs.
 - Optional (Mac): open mobile/ios/Runner/AppIcon-Glass.icon in Icon Composer to tune translucency.
+
+## web/25 (Glass foundation, lane L03)
+
+- Device checks on real hardware: the Glass motion-timings overlay (`mod+shift+m` on `/dev/glass-calibration`) showed 0 dropped frames for Materialise, Dematerialise, Dim shift, Specular sweep and the rubber-band release in headless Chromium at 1440x900 (software raster). Confirm on the GPU laptop, and on a phone (Android Chrome tilt for the light angle; iOS Safari needs `requestDeviceTilt()` from the Settings switch, web/39).
+- Safari and Firefox: the frosted tier (blur + 6 px, no displacement) was not looked at in those engines. Open `/dev/glass-calibration` in both once.
+- Side by side with the Flutter page (`mobile/25`): count the 16 px squares the rim bends on the web (T2 44 px button: 10 px max displacement inside a 10 px bezel, about 0.6 square; T4 240 px menu: 18 px inside an 18 px bezel, about 1.1 squares) and say if a tier should bend more or less; the knob is `design/tokens/glass.json` (shared track).
+- Demo art: `/dev/glass-calibration` uses 24 generated stand-in covers in `frontend/public/dev-covers/` (dark, mid and pale, one dark with a white patch) because `frontend/public/skin-preview/covers/` (shared/05) is not integrated yet. Swap them when it lands.
+- web/01 open: shared/02 ICON_RULES has no per-role fixed weight (design/icons.json defines none), so the Cinematic streak flame renders Light at 24, never Fill; Icon.tsx keeps a no-op roleWeights hook.
+- mobile/03: confirm tests + build-ios CI run ids/conclusions for commit abbace5 (liquid_glass_widgets pin), record in docs/redesign/proof/mobile-03/glass-gate.md

@@ -31,6 +31,12 @@ async function signInAndPickProfile(page: Page): Promise<void> {
   // Login replaces to "/", next.config 307s that to /library, and the app
   // shell bounces to the profile picker when no profile is active yet.
   await page.waitForURL(/\/(library|profiles)/);
+  // /library can match before the bounce to /profiles: let it settle first.
+  await page.waitForLoadState("networkidle");
+  await pickProfileIfAsked(page);
+}
+
+async function pickProfileIfAsked(page: Page): Promise<void> {
   if (new URL(page.url()).pathname.startsWith("/profiles")) {
     await page
       .getByRole("button", { name: /^Read as / })
@@ -50,6 +56,16 @@ test("login → profile → library → follow a source series → read → prog
 
   await test.step("open a source series", async () => {
     await page.goto("/sources");
+    // The shell may still bounce to the picker after the first paint: wait
+    // for whichever of the two shows up, then recover if it was the picker.
+    const sourceLink = page.locator('a[href^="/sources/"]').first();
+    await sourceLink
+      .or(page.getByRole("button", { name: /^Read as / }).first())
+      .waitFor();
+    if (new URL(page.url()).pathname.startsWith("/profiles")) {
+      await pickProfileIfAsked(page);
+      await page.goto("/sources");
+    }
     // Source cards link to /sources/{id}; series rows link deeper into
     // /sources/{id}/series/{key}.
     await page.locator('a[href^="/sources/"]').first().click();

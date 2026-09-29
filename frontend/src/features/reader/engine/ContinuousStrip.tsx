@@ -40,6 +40,7 @@ import {
 } from "../strip";
 import type { ReaderPage } from "../types";
 import { PageImage, type PageFrame } from "./PageImage";
+import type { ReaderSurfaceSlots } from "./slots";
 
 /**
  * Upcoming pages warmed into the browser cache ahead of the reader. Counted in
@@ -113,6 +114,7 @@ interface VirtualPageRowProps {
   zoom: number;
   priority: boolean;
   pageGap: boolean;
+  slots: ReaderSurfaceSlots;
   /**
    * Takes the row's identity instead of closing over it, so the strip can hand
    * every row the SAME function. A closure rebuilt per render defeats this
@@ -138,6 +140,7 @@ const VirtualPageRow = memo(function VirtualPageRow({
   zoom,
   priority,
   pageGap,
+  slots,
   onImageLoad,
 }: VirtualPageRowProps) {
   const sizing = continuousPageSizing(zoom);
@@ -157,6 +160,8 @@ const VirtualPageRow = memo(function VirtualPageRow({
     >
       <PageImage
         imageUrl={imageUrl}
+        pageIndex={pageNumber}
+        slots={slots}
         alt={`${chapterTitle} page ${pageNumber}`}
         width={page.width}
         height={page.height}
@@ -168,34 +173,12 @@ const VirtualPageRow = memo(function VirtualPageRow({
   );
 });
 
-/**
- * The seam marker.
- *
- * A hairline, the chapter's name, and nothing else: it has to be findable when
- * looked for and invisible when read past. Deliberately not a button and not a
- * card — the boundary is no longer a decision point, it is just a place in the
- * scroll, and anything clickable there would invite a stop.
- */
-const ChapterDivider = memo(function ChapterDivider({ label }: { label: string }) {
-  return (
-    <div
-      className="mx-auto flex w-full max-w-3xl items-center gap-4 px-6"
-      style={{ height: `${DIVIDER_HEIGHT_PX}px` }}
-    >
-      <span className="h-px flex-1 bg-border/70" aria-hidden />
-      <span className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.22em] text-muted">
-        {label}
-      </span>
-      <span className="h-px flex-1 bg-border/70" aria-hidden />
-    </div>
-  );
-});
-
 interface ContinuousStripProps {
   /** Loaded chapters, in reading order. The strip renders them as one scroll. */
   chapters: readonly StripChapter[];
   zoom: number;
   pageGap: boolean;
+  slots: ReaderSurfaceSlots;
   scrollElement: HTMLElement;
   initialScrollTop: number;
   /** Where the reader is, reported on every scroll frame. */
@@ -237,6 +220,7 @@ export const ContinuousStrip = memo(function ContinuousStrip({
   chapters,
   zoom,
   pageGap,
+  slots,
   scrollElement,
   initialScrollTop,
   onPositionChange,
@@ -822,7 +806,11 @@ export const ContinuousStrip = memo(function ContinuousStrip({
             style={{ transform: `translateY(${virtualItem.start}px)` }}
           >
             {row.kind === "divider" ? (
-              <ChapterDivider label={row.label} />
+              slots.chapterDivider({
+                chapterKey: row.chapterKey,
+                label: row.label,
+                height: DIVIDER_HEIGHT_PX,
+              })
             ) : row.kind === "spacer" ? (
               <div style={{ height: `${row.height}px` }} aria-hidden />
             ) : (
@@ -835,6 +823,7 @@ export const ContinuousStrip = memo(function ContinuousStrip({
                 chapterTitle={row.label}
                 zoom={zoom}
                 pageGap={pageGap}
+                slots={slots}
                 priority={virtualItem.index < 2}
                 onImageLoad={handleImageLoad}
               />

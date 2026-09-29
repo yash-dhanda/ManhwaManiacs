@@ -29,6 +29,7 @@
 @import "../skins/theme.generated.css";
 @import "../skins/cinematic/tokens.generated.css";
 @import "../skins/glass/tokens.generated.css";
+@import "../skins/glass/glass.css";
 @import "../skins/legacy-bridge.css";
 
 /*

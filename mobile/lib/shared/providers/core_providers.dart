@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/config/env.dart';
 import 'package:manhwamaniacs/core/network/dio_client.dart';
 import 'package:manhwamaniacs/core/network/interceptors/auth_interceptor.dart';
+import 'package:manhwamaniacs/core/network/request_limiter.dart';
 import 'package:manhwamaniacs/core/storage/preferences.dart';
 import 'package:manhwamaniacs/core/storage/secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -54,6 +55,7 @@ final dioProvider = Provider<Dio>(
     final tokenStore = ref.watch(authTokenStoreProvider);
     return createDioClient(
       baseUrl: ref.watch(apiBaseUrlProvider),
+      sourcesLimiter: ref.watch(sourcesLimiterProvider),
       authInterceptor: AuthInterceptor(
         tokenStore: tokenStore,
         onUnauthorized: () => tokenStore.onUnauthorized(),

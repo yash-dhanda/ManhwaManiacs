@@ -90,4 +90,12 @@ void main() {
     ];
     expect(violations, isEmpty);
   });
+
+  test('no file under lib imports package:phosphor_flutter', () {
+    final hits = [
+      for (final f in Directory('lib').listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.dart')))
+        if (f.readAsStringSync().contains('package:phosphor_flutter')) f.path,
+    ];
+    expect(hits, isEmpty);
+  });
 }

@@ -33,6 +33,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.profile_context import ProfileContext
+from core.time_utils import utcnow
 from database.models import (
     Base,
     Bookmark,
@@ -40,9 +41,11 @@ from database.models import (
     Collection,
     CollectionSeries,
     FollowedSeries,
+    ListenSession,
     ProfileSeriesTag,
     ReadingSession,
     SourcePin,
+    StreakMilestone,
     Tag,
     UpdateNotification,
     User,
@@ -94,6 +97,11 @@ def _seed_everything(db, user_id: int, profile_id: int) -> None:
         source_id=SRC, series_key=SERIES, chapter_key="c2", chapter_title="Two",
     ))
     db.add(SourcePin(user_id=user_id, profile_id=profile_id, source_id=SRC, sort_order=0))
+    db.add(StreakMilestone(user_id=user_id, profile_id=profile_id, days=7, seen_at=utcnow()))
+    db.add(ListenSession(
+        user_id=user_id, profile_id=profile_id, source_id=SRC, series_key=SERIES,
+        chapter_key="c1", seconds=60, started_at=utcnow(), created_at=utcnow(),
+    ))
     db.commit()
 
 
@@ -197,7 +205,8 @@ def test_recreated_profile_inherits_nothing_with_production_pragmas(prod_pragma_
     # And nothing is left behind under the old id in ANY table.
     for model in (
         FollowedSeries, ChapterProgress, Bookmark, ReadingSession, Collection,
-        Tag, ProfileSeriesTag, UpdateNotification, SourcePin,
+        Tag, ProfileSeriesTag, UpdateNotification, SourcePin, StreakMilestone,
+        ListenSession,
     ):
         left = db.execute(
             select(func.count()).select_from(model).where(model.profile_id == old_id)
