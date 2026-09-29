@@ -1,0 +1,169 @@
+# shared/03 cue commands, in order (written by design/sounds/render.mjs cues)
+# sox: not installed (no sudo on the render box); fallback: node design/sounds/synth.mjs (Node v22.14.0)
+# ffmpeg version n9.0.2 Copyright (c) 2000-2026 the FFmpeg developers
+
+# cinematic post-chain: lowpass 5000 reverb 30 50 20 0 0 -18.4 channels 1
+# cinematic/tick: 10 ms, peak -30 dBFS, timing: pad 0 1 trim 0 0.01 fade t 0.005 0.01 0.005 norm -30
+node design/sounds/synth.mjs cinematic/tick mobile/assets/sounds/cinematic/tick.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/tick.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/tick.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/tick.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/tick.m4a
+# cinematic/set: 60 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.06 fade t 0.005 0.06 0.005 norm -20
+node design/sounds/synth.mjs cinematic/set mobile/assets/sounds/cinematic/set.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/set.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/set.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/set.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/set.m4a
+# cinematic/impress: 140 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.14 fade t 0.005 0.14 0.005 norm -20
+node design/sounds/synth.mjs cinematic/impress mobile/assets/sounds/cinematic/impress.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/impress.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/impress.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/impress.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/impress.m4a
+# cinematic/turn: 160 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.16 fade t 0.005 0.16 0.005 norm -20
+node design/sounds/synth.mjs cinematic/turn mobile/assets/sounds/cinematic/turn.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/turn.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/turn.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/turn.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/turn.m4a
+# cinematic/wipe: 420 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.42 fade t 0.005 0.42 0.005 norm -20
+node design/sounds/synth.mjs cinematic/wipe mobile/assets/sounds/cinematic/wipe.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/wipe.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/wipe.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/wipe.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/wipe.m4a
+# cinematic/done: 300 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.3 fade t 0.005 0.3 0.005 norm -20
+node design/sounds/synth.mjs cinematic/done mobile/assets/sounds/cinematic/done.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/done.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/done.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/done.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/done.m4a
+# cinematic/bell: 450 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.45 fade t 0.005 0.45 0.005 norm -20
+node design/sounds/synth.mjs cinematic/bell mobile/assets/sounds/cinematic/bell.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/bell.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/bell.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/bell.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/bell.m4a
+# cinematic/pass: 220 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.22 fade t 0.005 0.22 0.005 norm -20
+node design/sounds/synth.mjs cinematic/pass mobile/assets/sounds/cinematic/pass.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/pass.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/pass.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/pass.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/pass.m4a
+# cinematic/error: 180 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.18 fade t 0.005 0.18 0.005 norm -20
+node design/sounds/synth.mjs cinematic/error mobile/assets/sounds/cinematic/error.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/error.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/error.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/error.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/error.m4a
+# cinematic/toggle-on: 40 ms, peak -30 dBFS, timing: pad 0 1 trim 0 0.04 fade t 0.005 0.04 0.005 norm -30
+node design/sounds/synth.mjs cinematic/toggle-on mobile/assets/sounds/cinematic/toggle-on.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/toggle-on.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/toggle-on.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/toggle-on.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/toggle-on.m4a
+# cinematic/toggle-off: 40 ms, peak -30 dBFS, timing: pad 0 1 trim 0 0.04 fade t 0.005 0.04 0.005 norm -30
+node design/sounds/synth.mjs cinematic/toggle-off mobile/assets/sounds/cinematic/toggle-off.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/toggle-off.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/toggle-off.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/toggle-off.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/toggle-off.m4a
+# cinematic/sheet: 120 ms, peak -30 dBFS, timing: pad 0 1 trim 0 0.12 fade t 0.005 0.12 0.005 norm -30
+node design/sounds/synth.mjs cinematic/sheet mobile/assets/sounds/cinematic/sheet.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/sheet.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/sheet.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/sheet.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/sheet.m4a
+# cinematic/reel: 1600 ms, peak -12 dBFS, timing: pad 0 1 trim 0 1.6 fade t 0.005 1.6 0.005 norm -12
+node design/sounds/synth.mjs cinematic/reel mobile/assets/sounds/cinematic/reel.wav
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/reel.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/reel.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/cinematic/reel.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/cinematic/reel.m4a
+# glass/tap: 24 ms, peak -26 dBFS, timing: pad 0 1 trim 0 0.024 fade t 0.005 0.024 0.005 norm -26
+node design/sounds/synth.mjs glass/tap mobile/assets/sounds/glass/tap.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/tap.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/tap.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/tap.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/tap.m4a
+# glass/tick: 8 ms, peak -30 dBFS, timing: pad 0 1 trim 0 0.008 fade t 0.004 0.008 0.004 norm -30
+node design/sounds/synth.mjs glass/tick mobile/assets/sounds/glass/tick.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/tick.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/tick.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/tick.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/tick.m4a
+# glass/toggle-on: 110 ms, peak -24 dBFS, timing: pad 0 1 trim 0 0.11 fade t 0.005 0.11 0.005 norm -24
+node design/sounds/synth.mjs glass/toggle-on mobile/assets/sounds/glass/toggle-on.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/toggle-on.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/toggle-on.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/toggle-on.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/toggle-on.m4a
+# glass/toggle-off: 110 ms, peak -24 dBFS, timing: pad 0 1 trim 0 0.11 fade t 0.005 0.11 0.005 norm -24
+node design/sounds/synth.mjs glass/toggle-off mobile/assets/sounds/glass/toggle-off.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/toggle-off.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/toggle-off.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/toggle-off.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/toggle-off.m4a
+# glass/sheet-up: 120 ms, peak -28 dBFS, timing: pad 0 1 trim 0 0.12 fade t 0.005 0.12 0.005 norm -28
+node design/sounds/synth.mjs glass/sheet-up mobile/assets/sounds/glass/sheet-up.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/sheet-up.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/sheet-up.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/sheet-up.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/sheet-up.m4a
+# glass/sheet-down: 120 ms, peak -28 dBFS, timing: pad 0 1 trim 0 0.12 fade t 0.005 0.12 0.005 norm -28
+node design/sounds/synth.mjs glass/sheet-down mobile/assets/sounds/glass/sheet-down.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/sheet-down.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/sheet-down.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/sheet-down.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/sheet-down.m4a
+# glass/push-1: 100 ms, peak -26 dBFS, timing: pad 0 1 trim 0 0.1 fade t 0.005 0.1 0.005 norm -26
+node design/sounds/synth.mjs glass/push-1 mobile/assets/sounds/glass/push-1.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/push-1.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/push-1.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/push-1.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/push-1.m4a
+# glass/push-2: 100 ms, peak -26 dBFS, timing: pad 0 1 trim 0 0.1 fade t 0.005 0.1 0.005 norm -26
+node design/sounds/synth.mjs glass/push-2 mobile/assets/sounds/glass/push-2.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/push-2.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/push-2.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/push-2.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/push-2.m4a
+# glass/push-3: 100 ms, peak -26 dBFS, timing: pad 0 1 trim 0 0.1 fade t 0.005 0.1 0.005 norm -26
+node design/sounds/synth.mjs glass/push-3 mobile/assets/sounds/glass/push-3.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/push-3.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/push-3.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/push-3.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/push-3.m4a
+# glass/push-4: 100 ms, peak -26 dBFS, timing: pad 0 1 trim 0 0.1 fade t 0.005 0.1 0.005 norm -26
+node design/sounds/synth.mjs glass/push-4 mobile/assets/sounds/glass/push-4.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/push-4.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/push-4.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/push-4.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/push-4.m4a
+# glass/back: 90 ms, peak -29 dBFS, timing: pad 0 1 trim 0 0.09 fade t 0.005 0.09 0.005 norm -29
+node design/sounds/synth.mjs glass/back mobile/assets/sounds/glass/back.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/back.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/back.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/back.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/back.m4a
+# glass/root: 140 ms, peak -26 dBFS, timing: pad 0 1 trim 0 0.14 fade t 0.005 0.14 0.005 norm -26
+node design/sounds/synth.mjs glass/root mobile/assets/sounds/glass/root.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/root.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/root.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/root.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/root.m4a
+# glass/fan: 140 ms, peak -26 dBFS, timing: pad 0 1 trim 0 0.14 fade t 0.005 0.14 0.005 norm -26
+node design/sounds/synth.mjs glass/fan mobile/assets/sounds/glass/fan.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/fan.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/fan.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/fan.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/fan.m4a
+# glass/dive: 300 ms, peak -22 dBFS, timing: pad 0 1 trim 0 0.3 fade t 0.005 0.3 0.005 norm -22
+node design/sounds/synth.mjs glass/dive mobile/assets/sounds/glass/dive.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/dive.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/dive.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/dive.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/dive.m4a
+# glass/droplet: 80 ms, peak -24 dBFS, timing: pad 0 1 trim 0 0.08 fade t 0.005 0.08 0.005 norm -24
+node design/sounds/synth.mjs glass/droplet mobile/assets/sounds/glass/droplet.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/droplet.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/droplet.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/droplet.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/droplet.m4a
+# glass/throw: 100 ms, peak -24 dBFS, timing: pad 0 1 trim 0 0.1 fade t 0.005 0.1 0.005 norm -24
+node design/sounds/synth.mjs glass/throw mobile/assets/sounds/glass/throw.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/throw.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/throw.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/throw.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/throw.m4a
+# glass/catch: 20 ms, peak -30 dBFS, timing: pad 0 1 trim 0 0.02 fade t 0.005 0.02 0.005 norm -30
+node design/sounds/synth.mjs glass/catch mobile/assets/sounds/glass/catch.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/catch.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/catch.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/catch.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/catch.m4a
+# glass/add: 400 ms, peak -18 dBFS, timing: pad 0 1 trim 0 0.4 fade t 0.005 0.4 0.005 norm -18
+node design/sounds/synth.mjs glass/add mobile/assets/sounds/glass/add.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/add.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/add.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/add.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/add.m4a
+# glass/download-done: 360 ms, peak -18 dBFS, timing: pad 0 1 trim 0 0.36 fade t 0.005 0.36 0.005 norm -18
+node design/sounds/synth.mjs glass/download-done mobile/assets/sounds/glass/download-done.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/download-done.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/download-done.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/download-done.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/download-done.m4a
+# glass/error: 200 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.2 fade t 0.005 0.2 0.005 norm -20
+node design/sounds/synth.mjs glass/error mobile/assets/sounds/glass/error.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/error.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/error.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/error.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/error.m4a
+# glass/unlock: 180 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.18 fade t 0.005 0.18 0.005 norm -20
+node design/sounds/synth.mjs glass/unlock mobile/assets/sounds/glass/unlock.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/unlock.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/unlock.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/unlock.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/unlock.m4a
+# glass/shimmer: 260 ms, peak -20 dBFS, timing: pad 0 1 trim 0 0.26 fade t 0.005 0.26 0.005 norm -20
+node design/sounds/synth.mjs glass/shimmer mobile/assets/sounds/glass/shimmer.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/shimmer.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/shimmer.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/shimmer.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/shimmer.m4a
+# glass/pop: 40 ms, peak -24 dBFS, timing: pad 0 1 trim 0 0.04 fade t 0.005 0.04 0.005 norm -24
+node design/sounds/synth.mjs glass/pop mobile/assets/sounds/glass/pop.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/pop.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/pop.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/pop.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/pop.m4a
+# glass/chapter: 320 ms, peak -22 dBFS, timing: pad 0 1 trim 0 0.32 fade t 0.005 0.32 0.005 norm -22
+node design/sounds/synth.mjs glass/chapter mobile/assets/sounds/glass/chapter.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/chapter.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/chapter.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/chapter.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/chapter.m4a
+# glass/flip: 140 ms, peak -24 dBFS, timing: pad 0 1 trim 0 0.14 fade t 0.005 0.14 0.005 norm -24
+node design/sounds/synth.mjs glass/flip mobile/assets/sounds/glass/flip.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/flip.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/flip.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/flip.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/flip.m4a
+# glass/send: 200 ms, peak -22 dBFS, timing: pad 0 1 trim 0 0.2 fade t 0.005 0.2 0.005 norm -22
+node design/sounds/synth.mjs glass/send mobile/assets/sounds/glass/send.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/send.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/send.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/send.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/send.m4a
+# glass/melt: 420 ms, peak -18 dBFS, timing: pad 0 1 trim 0 0.42 fade t 0.005 0.42 0.005 norm -18
+node design/sounds/synth.mjs glass/melt mobile/assets/sounds/glass/melt.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/melt.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/melt.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/melt.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/melt.m4a
+# glass/logo: 1400 ms, peak -12 dBFS, timing: pad 0 1 trim 0 1.4 fade t 0.005 1.4 0.005 norm -12
+node design/sounds/synth.mjs glass/logo mobile/assets/sounds/glass/logo.wav
+ffmpeg -y -v error -i mobile/assets/sounds/glass/logo.wav -c:a libopus -b:a 96k -ac 1 -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/logo.ogg
+ffmpeg -y -v error -i mobile/assets/sounds/glass/logo.wav -c:a aac -b:a 96k -ac 1 -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 frontend/public/sounds/glass/logo.m4a
