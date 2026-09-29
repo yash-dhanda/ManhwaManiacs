@@ -11,7 +11,7 @@ html[data-skin="glass"] { color-scheme: dark; }
   caret-color: var(--mm-color-iris400);
 }
 
-/* Registrations the generator did not emit (--glass-dim, --glass-*-t, --mm-light-angle and --amb-a*/rim are in theme.generated.css). --glass-rond and --glass-grad stay unregistered (3.5). */
+/* Registrations the generator did not emit (--glass-dim, --glass-grad-t, --glass-rond-t, --mm-light-angle, --amb-a1 to a3 and --amb-rim live in theme.generated.css). --glass-rond and --glass-grad stay unregistered (3.5). */
 @property --amb-x1 { syntax: "<percentage>"; inherits: false; initial-value: 18%; }
 @property --amb-y1 { syntax: "<percentage>"; inherits: false; initial-value: 8%; }
 @property --amb-x2 { syntax: "<percentage>"; inherits: false; initial-value: 78%; }

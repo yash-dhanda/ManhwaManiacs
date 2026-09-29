@@ -44,6 +44,13 @@ const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 const subscribe = (l: () => void) => (listeners.add(l), () => void listeners.delete(l));
 
+function checkLimit() {
+  if (counts.glass <= GLASS_LIMIT) { warned = false; return; }
+  if (warned) return;
+  warned = true;
+  console.warn(`[glass] ${counts.glass} live glass elements (limit ${GLASS_LIMIT}): ${[...entries.values()].filter((e) => e.kind === "glass").map((e) => e.label).join(", ")}`);
+}
+
 function recompute() {
   const list = [...entries.values()];
   const glass = list.filter((e) => e.kind === "glass");
@@ -52,12 +59,8 @@ function recompute() {
   const rects = glass.flatMap((e) => (e.el ? [{ id: e.id, layer: e.layer, rect: e.el.getBoundingClientRect() }] : []));
   const f = forcedSolidIds(rects);
   if (f.size !== solid.size || [...f].some((id) => !solid.has(id))) solid = f;
-  if (process.env.NODE_ENV !== "production") {
-    if (counts.glass > GLASS_LIMIT && !warned) {
-      warned = true;
-      console.warn(`[glass] ${counts.glass} live glass elements (limit ${GLASS_LIMIT}): ${glass.map((e) => e.label).join(", ")}`);
-    } else if (counts.glass <= GLASS_LIMIT) warned = false;
-  }
+  // Dev warning, one per crossing. Deferred a tick so StrictMode's mount/unmount/mount cycle does not warn twice.
+  if (process.env.NODE_ENV !== "production") setTimeout(checkLimit, 0);
   emit();
 }
 

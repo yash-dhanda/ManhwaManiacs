@@ -98,7 +98,7 @@ function Checkerboard() {
           </GlassSurface>
         </Cell>
         <Cell caption={captionFor("t5")}>
-          <GlassSurface tier="t5" radius={40} data-testid="t5-swatch" style={{ width: "min(420px, 100%)", aspectRatio: "1 / 1" }} />
+          <GlassSurface tier="t5" radius={40} data-testid="t5-swatch" style={{ width: 420, maxWidth: "calc(100vw - 80px)", aspectRatio: "1 / 1" }} />
         </Cell>
       </div>
       {Array.from({ length: extra }, (_, i) => (
