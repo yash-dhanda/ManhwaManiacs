@@ -67,3 +67,18 @@ test("every contract event is mapped: 90 haptic, 52 sound", () => {
   assert.equal(t.soundEvents["nav.push"].length, 4);
   assert.equal(Object.keys(t.hapticsWeb).length, 7);
 });
+
+test("theme.generated.css: every @theme inline name, @utility and @property once", () => {
+  const css = read("../../frontend/src/skins/theme.generated.css");
+  const inline = /@theme inline \{([\s\S]*?)\n\}/.exec(css)[1].match(/^\s+(--[\w-]+):/gm).map((x) => x.trim().slice(0, -1));
+  const utils = [...css.matchAll(/^@utility ([\w-]+)/gm)].map((m) => m[1]);
+  const props = [...css.matchAll(/^@property (--[\w-]+)/gm)].map((m) => m[1]);
+  for (const [what, xs] of [["@theme", inline], ["@utility", utils], ["@property", props]])
+    assert.deepEqual(xs.filter((x, i) => xs.indexOf(x) !== i), [], what);
+  for (const n of ["--color-iris600", "--color-amb-a1", "--color-page-bottom", "--radius-capsule", "--blur-thin", "--spacing-dock-height", "--ease-spring-page", "--ease-fade-in", "--text-large-title", "--text-body"])
+    assert.ok(inline.includes(n), n);
+  assert.equal(css.match(/@property --page-tint /g).length, 1);
+  for (const p of ["--mm-light-angle", "--glass-dim", "--glass-grad-t", "--glass-rond-t", "--amb-a1", "--amb-rim", "--page-top", "--page-bottom"]) assert.ok(props.includes(p), p);
+  assert.ok(!props.includes("--glass-rond") && !props.includes("--glass-grad"));
+  for (const r of ["large-title", "body", "wrapped-numeral", "sidebar-item"]) assert.ok(utils.includes(`type-${r}`), r);
+});

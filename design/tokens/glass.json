@@ -1,5 +1,5 @@
 {
-  "_comment": "Glass (\"Meniscus\") tokens (glass/DESIGN.md §2.8, §3.7, §4, §5, §6, §15.1). Dotted keys are nested objects. `spring.format` is generator configuration and emits no name. `motionNames` is the §4.10 table in order; `contrast` lists the pairs design/check-contrast.mjs composites (§15.8). Run `node design/build.mjs` after editing.",
+  "_comment": "Glass (\"Meniscus\") tokens (glass/DESIGN.md §2.8, §3.7, §4, §5, §6, §15.1). Dotted keys are nested objects. `runtime` lists the runtime values registered with @property (§2.8, not tokens; --page-tint reuses Cinematic's registration). `spring.format` is generator configuration and emits no name. `motionNames` is the §4.10 table in order; `contrast` lists the pairs design/check-contrast.mjs composites (§15.8). Run `node design/build.mjs` after editing.",
   "color": {
     "g0": "#000000",
     "g25": "#060608",
@@ -115,6 +115,18 @@
       "starlight": {"from": "#FACC15", "to": "#F59E0B", "glyph": "rgba(0,0,0,0.85)"},
       "bookworm": {"from": "#14B8A6", "to": "#0891B2", "glyph": "rgba(0,0,0,0.85)"}
     }
+  },
+  "runtime": {
+    "mm-light-angle": {"syntax": "<angle>", "inherits": true, "initial": "135deg"},
+    "glass-dim": {"syntax": "<number>", "inherits": false, "initial": "0.64"},
+    "glass-grad-t": {"syntax": "<number>", "inherits": false, "initial": "0"},
+    "glass-rond-t": {"syntax": "<number>", "inherits": false, "initial": "0"},
+    "amb-a1": {"syntax": "<color>", "inherits": true, "initial": "#4336A3"},
+    "amb-a2": {"syntax": "<color>", "inherits": true, "initial": "#4336A3"},
+    "amb-a3": {"syntax": "<color>", "inherits": true, "initial": "#4336A3"},
+    "amb-rim": {"syntax": "<color>", "inherits": true, "initial": "#4336A3"},
+    "page-top": {"syntax": "<color>", "inherits": true, "initial": "#000000"},
+    "page-bottom": {"syntax": "<color>", "inherits": true, "initial": "#000000"}
   },
   "font": {
     "sans": {
