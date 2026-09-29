@@ -20,7 +20,7 @@
 .credit { display: flex; align-items: center; gap: var(--mm-space-3); min-height: var(--mm-hit-min); border-bottom: 1px solid var(--mm-color-rule-1); color: inherit; text-decoration: none; }
 .creditName { font-family: var(--mm-font-ui, "Archivo", system-ui, sans-serif); font-size: 16px; flex: 1; }
 .dialogueEntry { display: flex; gap: var(--mm-space-4); align-items: center; color: var(--mm-color-ink-45); }
-.dialogueLine { font-family: var(--mm-font-display, "Bodoni Moda", Didot, Georgia, serif); font-style: italic; font-size: 22px; color: var(--mm-color-ink-100); text-decoration: none; }
+.dialogueLine { display: inline-flex; align-items: center; min-height: var(--mm-hit-min); font-family: var(--mm-font-display, "Bodoni Moda", Didot, Georgia, serif); font-style: italic; font-size: 22px; color: var(--mm-color-ink-100); text-decoration: none; }
 .status { margin: var(--mm-space-4) 0 var(--mm-space-2); min-height: 16px; }
 .note { color: var(--mm-color-spot); font-family: var(--mm-font-mono, "IBM Plex Mono", monospace); font-size: 11px; letter-spacing: 0.14em; }
 .jumpBar { position: sticky; top: 0; z-index: var(--mm-z-sticky); background: var(--mm-color-paper-0); border-bottom: 1px solid var(--mm-color-rule-1); display: none; padding: 0; }

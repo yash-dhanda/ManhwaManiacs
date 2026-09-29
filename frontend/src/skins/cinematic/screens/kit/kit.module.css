@@ -20,7 +20,7 @@
 @keyframes letter { from { opacity: 0; transform: translateY(0.42em); filter: blur(var(--mm-blur-letter)); } to { opacity: 1; transform: none; filter: none; } }
 .section { margin-top: var(--mm-space-16); }
 .sectionHead { font-family: var(--mm-font-display, "Bodoni Moda", Didot, Georgia, serif); font-style: italic; font-weight: 600; font-size: 24px; line-height: 28px; margin: var(--mm-space-3) 0; }
-.quiet { background: none; border: 0; color: var(--mm-color-ink-80); font-family: var(--mm-font-ui, "Archivo", system-ui, sans-serif); font-size: 13px; padding: 0 var(--mm-space-2); min-height: var(--mm-hit-min); cursor: pointer; display: inline-flex; align-items: center; gap: var(--mm-space-2); }
+.quiet { min-width: var(--mm-hit-min); justify-content: center; background: none; border: 0; color: var(--mm-color-ink-80); font-family: var(--mm-font-ui, "Archivo", system-ui, sans-serif); font-size: 13px; padding: 0 var(--mm-space-2); min-height: var(--mm-hit-min); cursor: pointer; display: inline-flex; align-items: center; gap: var(--mm-space-2); }
 .quiet:hover { color: var(--mm-color-ink-100); text-decoration: underline; }
 .quiet:disabled { color: var(--mm-color-ink-30); cursor: default; text-decoration: none; }
 .btn { background: transparent; border: 1px solid var(--mm-color-ink-100); color: var(--mm-color-ink-100); font-family: var(--mm-font-ui, "Archivo", system-ui, sans-serif); font-size: 14px; padding: 0 var(--mm-space-4); min-height: var(--mm-hit-min); cursor: pointer; display: inline-flex; align-items: center; gap: var(--mm-space-2); text-decoration: none; }
@@ -31,12 +31,12 @@
 .focusable:focus-visible, .btn:focus-visible, .quiet:focus-visible, .iconBtn:focus-visible, .tab:focus-visible, .link:focus-visible { outline: var(--mm-focus-width) solid var(--mm-color-ink-100); outline-offset: var(--mm-focus-offset); box-shadow: var(--mm-focus-halo); }
 .link { color: inherit; text-decoration: none; }
 .slug { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--mm-space-4); font-family: var(--mm-font-mono, "IBM Plex Mono", monospace); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
-.slugItem { background: none; border: 0; color: var(--mm-color-ink-60); min-height: var(--mm-hit-min); padding: 0; cursor: pointer; font: inherit; letter-spacing: inherit; text-transform: inherit; position: relative; }
+.slugItem { min-width: var(--mm-hit-min); background: none; border: 0; color: var(--mm-color-ink-60); min-height: var(--mm-hit-min); padding: 0; cursor: pointer; font: inherit; letter-spacing: inherit; text-transform: inherit; position: relative; }
 .slugItem[aria-pressed="true"], .slugItem[aria-current="true"] { color: var(--mm-color-ink-100); }
 .slugItem[aria-pressed="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 6px; border-bottom: 1px solid var(--mm-color-ink-100); }
 .raised { color: var(--mm-color-ink-45); font-size: 0.75em; vertical-align: super; margin-left: 2px; }
 .tabs { display: flex; gap: var(--mm-space-6); overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--mm-color-rule-1); }
-.tab { background: none; border: 0; color: var(--mm-color-ink-60); font-family: var(--mm-font-mono, "IBM Plex Mono", monospace); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; min-height: var(--mm-hit-min); padding: 0; cursor: pointer; position: relative; }
+.tab { min-width: var(--mm-hit-min); background: none; border: 0; color: var(--mm-color-ink-60); font-family: var(--mm-font-mono, "IBM Plex Mono", monospace); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; min-height: var(--mm-hit-min); padding: 0; cursor: pointer; position: relative; }
 .tab[aria-selected="true"] { color: var(--mm-color-ink-100); }
 .tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; border-bottom: 2px solid var(--mm-color-spot); transition: opacity var(--mm-dur-column) var(--mm-ease-settle); }
 .folioNum { color: var(--mm-color-ink-45); margin-right: 6px; }

@@ -1,0 +1,10 @@
+/search
+/search?q=solo
+/search?q=qzxwv
+/search?scope=ask
+/search#genre=Action
+/sources
+/sources/{id}
+/sources/{id}?q=a
+/ocr
+/ocr?q=the
