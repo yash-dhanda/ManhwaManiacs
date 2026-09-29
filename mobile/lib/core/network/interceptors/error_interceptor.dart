@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/network/network_failures.dart';
 import 'package:manhwamaniacs/core/network/retry_after.dart';
 
 /// Converts DioException into domain AppError and re-throws.
@@ -9,6 +10,7 @@ class ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final appError = _mapDioError(err);
+    if (appError is NetworkError || appError is TimeoutError) reportNetworkFailure(appError);
     handler.reject(
       DioException(
         requestOptions: err.requestOptions,
