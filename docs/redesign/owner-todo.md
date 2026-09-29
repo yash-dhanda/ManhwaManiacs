@@ -1,5 +1,12 @@
 # Owner to-do (redesign)
 
+Items only the owner can do. Each names its step; the step shipped with the stated fallback.
+
+## shared/03 (UI sounds and soundscape audio)
+
+- **Pick fifteen CC0 recordings for Glass's recorded soundscape layers.** Follow the intro of `backend/media/soundscapes/glass/SOURCES.md`: freesound.org, licence "Creative Commons 0" only, at least 96 s each; drop each original into `design/sounds/incoming/glass/{scene}-{layer}.<ext>`, fill its row, run `node design/sounds/trim-loop.mjs`, commit the two outputs and the row. `node design/sounds/trim-loop.mjs --check` lists the 30 missing files. Fallback meanwhile: web/44 and mobile/44 play the procedural layer for any missing recording.
+- **Listen through every cue and loop on headphones** (`ffplay -nodisp -autoexit <file>`): `mobile/assets/sounds/{cinematic,glass}/*.wav`, `backend/media/soundscapes/*.ogg`, `backend/media/soundscapes/glass/deep-*.ogg`. The render was checked by measurement only (lengths, peaks, LUFS, true peak, seams); nobody has listened to it. Flag anything harsh, clicky or off-scale; recipes live in `design/sounds/recipes.json` and re-render with `node design/sounds/render.mjs cues|loops`.
+- **Decide the Glass cue budget.** Glass §6 says "under 320 KB for the whole set", but its own lengths need 546,704 bytes at 48 kHz 16-bit mono. Either raise the figure in glass §6 or shorten cues (the logo alone is 134 KB).
 Items only the owner can do, by step.
 
 - **mobile/00** (reader engine extraction): run the device checklist in
