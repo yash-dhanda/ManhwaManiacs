@@ -282,6 +282,7 @@ glass.cover.hoverStar.streakCore  10.81  3  10.81  PASS
 glass.cover.playOrb.label1  13.96  4.5  13.96  PASS
 glass.field.home.label2  5.58  4.5  -  PASS
 glass.field.heroEnlargement.label2  4.57  4.5  4.57  PASS
+glass.field.imageViewer.label1  8.04  4.5  -  PASS
 glass.field.seriesDetail.label2  5.38  4.5  -  PASS
 glass.field.lists.label2  6.37  4.5  -  PASS
 glass.field.lists.label3  4.69  4.5  -  PASS
@@ -344,4 +345,4 @@ glass.avatar.bookworm.50  6.03  3  -  PASS
 glass.avatar.bookworm.70  5.62  3  -  PASS
 glass.focus.iris300.black  10.79  3  10.79  PASS
 glass.focus.inner.white  21.00  3  21  PASS
-check-contrast: 346 cases (cinematic 66 pass / 0 fail, glass 280 pass / 0 fail), 0 expect warnings
+check-contrast: 347 cases (cinematic 66 pass / 0 fail, glass 281 pass / 0 fail), 0 expect warnings
