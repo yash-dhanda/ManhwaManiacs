@@ -22,6 +22,7 @@ from services.followed_series_service import (
     FollowedSeriesService,
     get_followed_series_service,
 )
+from services.recap_service import RecapService
 from services.suggestion_service import (
     SuggestionService,
     get_suggestion_service,
@@ -251,12 +252,18 @@ def unfollow_series(followed_id: int, service: ServiceDep) -> None:
 @router.get("/continue-reading")
 def continue_reading(
     service: ServiceDep,
+    suggest: SuggestDep,
     db: DbDep,
     response: Response,
     limit: int = Query(10, ge=1, le=50),
 ) -> list[dict[str, object]]:
     items = service.continue_reading(limit=limit)
     set_list_total_header(response, len(items))
+    recaps = RecapService(db, service, suggest).availability_many(
+        [(i["source_id"], i["series_key"], i["chapter_key"]) for i in items]
+    )
+    for item, recap in zip(items, recaps):
+        item["recap"] = recap
     return attach_cover_colours(db, items)
 
 
