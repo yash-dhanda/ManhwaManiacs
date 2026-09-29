@@ -438,7 +438,7 @@ void main() {
         ),
         1,
       );
-      expect(await upgraded.getVersion(), 3);
+      expect(await upgraded.getVersion(), 4);
 
       // And the new tables are usable immediately, on the upgraded file.
       final store = DownloadsStore(

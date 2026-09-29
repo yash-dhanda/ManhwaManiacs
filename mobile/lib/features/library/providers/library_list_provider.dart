@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/theme/app_metrics.dart';
 import 'package:manhwamaniacs/app/theme/preset_controller.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_stamper.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
 import 'package:manhwamaniacs/features/library/models/library_list_state.dart';
@@ -378,6 +382,7 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
 
     if (authoritative) {
       await writeCachedFollowedSeries(prefs, key, items);
+      unawaited(ref.read(matureStamperProvider).restampMissing());
       return;
     }
     final merged = {
@@ -385,6 +390,7 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
       for (final series in items) series.id: series,
     };
     await writeCachedFollowedSeries(prefs, key, merged.values.toList());
+    unawaited(ref.read(matureStamperProvider).restampMissing());
   }
 
   /// The cached shelf, narrowed by the parts of [query] that can be honoured
@@ -397,7 +403,11 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
     final status = query.readingStatusParam;
 
     return [
-      for (final series in readCachedFollowedSeries(ref.read(sharedPrefsProvider), key))
+      for (final series in readCachedFollowedSeries(
+        ref.read(sharedPrefsProvider),
+        key,
+        gateOpen: ref.read(matureGateOpenProvider),
+      ))
         if ((search.isEmpty || series.title.toLowerCase().contains(search)) &&
             (!query.favoritesOnly || series.isFavorite) &&
             (status == null || series.readingStatus == status))

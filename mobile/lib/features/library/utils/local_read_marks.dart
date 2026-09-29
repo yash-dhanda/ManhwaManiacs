@@ -67,7 +67,8 @@ double? _chapterNumberOf(String sourceId, String chapterKey) {
 /// not one per record per card). Every other source is answered by a prefix
 /// scan over its own records, remembered per series.
 class LocalReadMarks {
-  LocalReadMarks(Map<String, SourceChapterProgress> records) {
+  LocalReadMarks(Map<String, SourceChapterProgress> records, {Set<(String, String)> hidden = const {}})
+      : _hidden = hidden {
     for (final key in records.keys) {
       final colon = key.indexOf(':');
       if (colon <= 0) continue;
@@ -97,6 +98,9 @@ class LocalReadMarks {
 
   final Map<String, LocalReadMark?> _memo = {};
 
+  /// `(sourceId, seriesKey)` pairs hidden by the 18+ gate: no mark exists for them.
+  final Set<(String, String)> _hidden;
+
   void _indexAsura(String rest) {
     final colon = rest.indexOf(':');
     if (colon <= 0) return;
@@ -121,6 +125,7 @@ class LocalReadMarks {
     required String seriesKey,
     String? identity,
   }) {
+    if (_hidden.contains((sourceId, seriesKey))) return null;
     if (sourceId == asuraSourceId) {
       return _asura[identity ?? seriesIdentityOf(sourceId, seriesKey)];
     }

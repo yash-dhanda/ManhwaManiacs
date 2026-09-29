@@ -51,7 +51,7 @@ class _CountingStore extends DownloadsStore {
   int outboxReads = 0;
 
   @override
-  Future<List<(int, ProgressPush)>> pendingProgressOutbox() {
+  Future<List<(int, ProgressPush)>> pendingProgressOutbox({bool hideMature = false}) {
     outboxReads++;
     return super.pendingProgressOutbox();
   }
@@ -71,7 +71,7 @@ class _PausingStore extends DownloadsStore {
   final Completer<void> release = Completer<void>();
 
   @override
-  Future<List<(int, ProgressPush)>> pendingProgressOutbox() async {
+  Future<List<(int, ProgressPush)>> pendingProgressOutbox({bool hideMature = false}) async {
     if (!reading.isCompleted) reading.complete();
     await release.future;
     return super.pendingProgressOutbox();

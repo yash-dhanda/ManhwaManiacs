@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
@@ -70,6 +71,7 @@ Future<SeriesDetail?> _offlineSeriesDetail(Ref ref, int seriesId) async {
     ref.read(sharedPrefsProvider),
     followedSeriesCacheKeyFor(scopeId),
     seriesId,
+    gateOpen: ref.read(matureGateOpenProvider),
   );
   if (cached == null) return null;
 

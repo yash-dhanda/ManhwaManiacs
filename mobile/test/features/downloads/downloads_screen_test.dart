@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/features/downloads/providers/active_download_queue
 import 'package:manhwamaniacs/features/downloads/providers/downloaded_series_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_storage_providers.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/screens/downloads_screen.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
@@ -112,6 +113,7 @@ void main() {
         activeDownloadQueueProvider.overrideWith((ref) async => queue),
         downloadQueueControllerProvider
             .overrideWith(() => _FixedQueueController(queueState)),
+        matureGateOpenProvider.overrideWithValue(true),
         if (store != null) downloadsStoreProvider.overrideWithValue(store),
       ],
     );

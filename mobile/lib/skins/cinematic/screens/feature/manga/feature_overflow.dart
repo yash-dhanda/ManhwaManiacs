@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
-import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -18,8 +18,8 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/series_sheet
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// The overflow menu (D8) as a menu sheet. TODO(mobile/07): MatureStamper
-/// re-stamps this series' local rows after an override change.
+/// The overflow menu (D8) as a menu sheet. An override change re-stamps the local rows
+/// (`LibrarySeriesActions.setMatureOverride`).
 Future<void> showFeatureOverflow(
   BuildContext context,
   WidgetRef ref,
@@ -41,15 +41,11 @@ Future<void> showFeatureOverflow(
 
         Future<void> setOverride({bool? value, bool clear = false}) async {
           Navigator.pop(ctx);
-          final r = await ref.read(libraryRepositoryProvider).patchSeries(
-                f!.id,
-                matureOverride: value,
-                clearMatureOverride: clear,
-              );
-          if (r.isErr) return toast("Couldn't update this series.");
+          final err = await ref
+              .read(librarySeriesActionsProvider)
+              .setMatureOverride(f!, value: value, clear: clear);
+          if (err != null) return toast("Couldn't update this series.");
           ref.invalidate(updatesProvider);
-          // TODO(mobile/07): MatureStamper.restampSeries for the local rows.
-          ref.read(matureOverrideChangedProvider)();
           toast(
             clear
                 ? "Using the source's rating."

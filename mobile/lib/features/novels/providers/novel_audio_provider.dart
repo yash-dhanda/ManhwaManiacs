@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
@@ -59,7 +60,10 @@ final savedNarrationProvider = FutureProvider.autoDispose
   final store = ref.watch(downloadsStoreProvider);
   ref.watch(downloadQueueControllerProvider.select((s) => s.queueRevision));
   if (store == null) return null;
-  final saved = await store.readSavedNarration(key);
+  final saved = await store.readSavedNarration(
+    key,
+    hideMature: !ref.watch(matureGateOpenProvider),
+  );
   if (saved == null) return null;
   final NovelAudio audio;
   try {

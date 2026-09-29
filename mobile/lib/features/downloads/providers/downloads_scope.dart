@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_stamper.dart';
 import 'package:manhwamaniacs/features/downloads/services/blob_store.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_db.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
@@ -175,6 +176,8 @@ final downloadsStoreProvider = Provider<DownloadsStore?>(
       scopeId: scopeId,
       database: ref.watch(downloadsDatabaseProvider),
       blobStore: ref.watch(blobStoreProvider),
+      matureResolver: (sourceId, seriesKey) =>
+          ref.read(matureStamperProvider).resolve(sourceId, seriesKey),
     );
   },
   name: 'downloadsStore',

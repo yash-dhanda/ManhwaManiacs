@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 
 /// One chapter's on-device download state, for driving a
@@ -35,7 +36,7 @@ final seriesChapterDownloadStatusProvider = FutureProvider.autoDispose
   ref.watch(downloadQueueControllerProvider.select((s) => s.queueRevision));
   if (store == null) return const {};
 
-  final chapters = await store.listChapters();
+  final chapters = await store.listChapters(hideMature: !ref.watch(matureGateOpenProvider));
   final vanished = await store.vanishedChapterKeys(series);
   return {
     for (final chapter in chapters)
@@ -56,7 +57,10 @@ final seriesNarrationStatusProvider = FutureProvider.autoDispose
   ref.watch(downloadQueueControllerProvider.select((s) => s.queueRevision));
   if (store == null) return const {};
 
-  final chapters = await store.listChapters(includeNarration: true);
+  final chapters = await store.listChapters(
+    includeNarration: true,
+    hideMature: !ref.watch(matureGateOpenProvider),
+  );
   return {
     for (final chapter in chapters)
       if (chapter.kind.isAudio &&

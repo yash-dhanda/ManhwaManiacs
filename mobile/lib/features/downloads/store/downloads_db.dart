@@ -37,6 +37,10 @@ abstract final class DownloadsSchema {
   static const colRetryCount = 'retry_count';
   static const colError = 'error';
 
+  /// 18+ stamp (schema v4): 1 mature, 0 not, NULL not stamped yet. Written from the server's
+  /// rule (`mature_filter.dart`) and re-stamped when `mature_override` changes.
+  static const colMature = 'mature';
+
   /// What the saved blobs hold: `'manga'` (one blob per page image) or
   /// `'novel'` (one blob of paragraph JSON for the whole chapter). Added in
   /// schema v2; every pre-existing row is manga, which is what the column
@@ -91,7 +95,7 @@ abstract final class DownloadsSchema {
   static const colDeletedAt = 'deleted_at';
 }
 
-const _dbVersion = 3;
+const _dbVersion = 4;
 
 /// The `kind` column's two values. A row's own kind, not a lookup through the
 /// sources listing — the offline path has no listing, and a downloaded
@@ -155,6 +159,7 @@ Future<Database> openDownloadsDatabase({String? overridePath}) async {
           ${DownloadsSchema.colRetryCount} INTEGER NOT NULL DEFAULT 0,
           ${DownloadsSchema.colError} TEXT,
           ${DownloadsSchema.colKind} TEXT NOT NULL DEFAULT '$kMangaDownloadKind',
+          ${DownloadsSchema.colMature} INTEGER,
           UNIQUE(
             ${DownloadsSchema.colScopeId},
             ${DownloadsSchema.colSourceId},
@@ -189,7 +194,8 @@ Future<Database> openDownloadsDatabase({String? overridePath}) async {
           ${DownloadsSchema.colId} INTEGER PRIMARY KEY AUTOINCREMENT,
           ${DownloadsSchema.colScopeId} TEXT NOT NULL,
           ${DownloadsSchema.colPayloadJson} TEXT NOT NULL,
-          ${DownloadsSchema.colCreatedAt} TEXT NOT NULL
+          ${DownloadsSchema.colCreatedAt} TEXT NOT NULL,
+          ${DownloadsSchema.colMature} INTEGER
         )
       ''');
       await db.execute(
@@ -234,6 +240,20 @@ Future<void> _migrate(Database db, int oldVersion) async {
   if (oldVersion < 3) {
     await _createBookmarkTables(db);
   }
+  // v3 → v4: the 18+ stamp on every table that names a series. Additive and nullable (null means
+  // "not stamped yet"), checked per table so it is idempotent across rollbacks and re-runs.
+  for (final table in const [
+    DownloadsSchema.savedChapters,
+    DownloadsSchema.bookmarks,
+    DownloadsSchema.bookmarkOutbox,
+    DownloadsSchema.progressOutbox,
+  ]) {
+    if (!await _hasColumn(db, table, DownloadsSchema.colMature)) {
+      await db.execute(
+        'ALTER TABLE $table ADD COLUMN ${DownloadsSchema.colMature} INTEGER',
+      );
+    }
+  }
 }
 
 Future<bool> _hasColumn(Database db, String table, String column) async {
@@ -270,6 +290,7 @@ Future<void> _createBookmarkTables(Database db) async {
       ${DownloadsSchema.colCreatedAt} TEXT NOT NULL,
       ${DownloadsSchema.colUpdatedAt} TEXT NOT NULL,
       ${DownloadsSchema.colDeletedAt} TEXT,
+      ${DownloadsSchema.colMature} INTEGER,
       PRIMARY KEY (
         ${DownloadsSchema.colScopeId},
         ${DownloadsSchema.colClientId}
@@ -288,7 +309,8 @@ Future<void> _createBookmarkTables(Database db) async {
       ${DownloadsSchema.colScopeId} TEXT NOT NULL,
       ${DownloadsSchema.colClientId} TEXT NOT NULL,
       ${DownloadsSchema.colPayloadJson} TEXT NOT NULL,
-      ${DownloadsSchema.colCreatedAt} TEXT NOT NULL
+      ${DownloadsSchema.colCreatedAt} TEXT NOT NULL,
+      ${DownloadsSchema.colMature} INTEGER
     )
   ''');
   // The Bookmarks screen's default order — newest change first, inside one

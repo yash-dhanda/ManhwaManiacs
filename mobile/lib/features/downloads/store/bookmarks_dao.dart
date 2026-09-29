@@ -29,6 +29,7 @@ extension DownloadsStoreBookmarks on DownloadsStore {
   /// re-bookmarking mints a new id rather than resurrecting a dead one.
   Future<Bookmark?> saveBookmark(Bookmark bookmark) async {
     final db = await database;
+    final stamp = await resolveStamp(bookmark.sourceId, bookmark.seriesKey);
     return db.transaction<Bookmark?>((txn) async {
       final existing = await _rowFor(txn, bookmark.clientId);
       if (existing != null && existing[DownloadsSchema.colDeletedAt] != null) {
@@ -42,10 +43,10 @@ extension DownloadsStoreBookmarks on DownloadsStore {
       );
       await txn.insert(
         DownloadsSchema.bookmarks,
-        _toRow(merged, scopeId),
+        _toRow(merged, scopeId, mature: stamp),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      await _enqueue(txn, BookmarkOp(op: kBookmarkOpUpsert, bookmark: merged));
+      await _enqueue(txn, BookmarkOp(op: kBookmarkOpUpsert, bookmark: merged), mature: stamp);
       return merged;
     });
   }
@@ -64,11 +65,12 @@ extension DownloadsStoreBookmarks on DownloadsStore {
       final stored = _fromRow(existing);
       if (stored.deleted) return false;
       final stamp = DateTime.now().toUtc();
+      final mature = existing[DownloadsSchema.colMature] as int?;
       final tombstone =
           stored.copyWith(deleted: true, deletedAt: stamp, updatedAt: stamp);
       await txn.update(
         DownloadsSchema.bookmarks,
-        _toRow(tombstone, scopeId),
+        _toRow(tombstone, scopeId, mature: mature),
         where: '${DownloadsSchema.colScopeId} = ? AND '
             '${DownloadsSchema.colClientId} = ?',
         whereArgs: [scopeId, clientId],
@@ -76,6 +78,7 @@ extension DownloadsStoreBookmarks on DownloadsStore {
       await _enqueue(
         txn,
         BookmarkOp(op: kBookmarkOpDelete, bookmark: tombstone),
+        mature: mature,
       );
       return true;
     });
@@ -83,12 +86,13 @@ extension DownloadsStoreBookmarks on DownloadsStore {
 
   /// Every live bookmark in this scope, most recently changed first — the
   /// Bookmarks screen's list, served with no signal at all.
-  Future<List<Bookmark>> listBookmarks() async {
+  Future<List<Bookmark>> listBookmarks({bool hideMature = false}) async {
     final db = await database;
     final rows = await db.query(
       DownloadsSchema.bookmarks,
       where: '${DownloadsSchema.colScopeId} = ? AND '
-          '${DownloadsSchema.colDeletedAt} IS NULL',
+          '${DownloadsSchema.colDeletedAt} IS NULL'
+          '${hideMature ? ' AND ${DownloadsSchema.colMature} IS NOT 1' : ''}',
       whereArgs: [scopeId],
       orderBy: '${DownloadsSchema.colUpdatedAt} DESC',
     );
@@ -183,13 +187,19 @@ extension DownloadsStoreBookmarks on DownloadsStore {
     if (remote.isEmpty) return 0;
     final db = await database;
     var written = 0;
+    final stamps = <(String, String), int?>{};
+    for (final b in remote) {
+      final k = (b.sourceId, b.seriesKey);
+      if (!stamps.containsKey(k)) stamps[k] = await resolveStamp(b.sourceId, b.seriesKey);
+    }
     await db.transaction((txn) async {
       for (final incoming in remote) {
+        final stamp = stamps[(incoming.sourceId, incoming.seriesKey)];
         final existing = await _rowFor(txn, incoming.clientId);
         if (existing == null) {
           await txn.insert(
             DownloadsSchema.bookmarks,
-            _toRow(incoming, scopeId),
+            _toRow(incoming, scopeId, mature: stamp),
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
           written++;
@@ -216,7 +226,7 @@ extension DownloadsStoreBookmarks on DownloadsStore {
         }
         await txn.insert(
           DownloadsSchema.bookmarks,
-          _toRow(incoming, scopeId),
+          _toRow(incoming, scopeId, mature: stamp),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
         written++;
@@ -225,8 +235,9 @@ extension DownloadsStoreBookmarks on DownloadsStore {
     return written;
   }
 
-  Future<void> _enqueue(DatabaseExecutor txn, BookmarkOp op) =>
+  Future<void> _enqueue(DatabaseExecutor txn, BookmarkOp op, {int? mature}) =>
       txn.insert(DownloadsSchema.bookmarkOutbox, {
+        DownloadsSchema.colMature: mature,
         DownloadsSchema.colScopeId: scopeId,
         DownloadsSchema.colClientId: op.bookmark.clientId,
         DownloadsSchema.colPayloadJson: jsonEncode(op.toJson()),
@@ -249,7 +260,8 @@ extension DownloadsStoreBookmarks on DownloadsStore {
   }
 }
 
-Map<String, Object?> _toRow(Bookmark bookmark, String scopeId) => {
+Map<String, Object?> _toRow(Bookmark bookmark, String scopeId, {int? mature}) => {
+      DownloadsSchema.colMature: mature,
       DownloadsSchema.colScopeId: scopeId,
       DownloadsSchema.colClientId: bookmark.clientId,
       DownloadsSchema.colServerId: bookmark.id,

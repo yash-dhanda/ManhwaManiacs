@@ -31,7 +31,22 @@ class DownloadsStore {
     required this.scopeId,
     required this.database,
     required this.blobStore,
+    this.matureResolver,
   });
+
+  /// Resolves a series' 18+ stamp from what the device knows (`MatureStamper.resolve`), or null
+  /// when nothing does. Rows are stamped with it when they are stored.
+  final Future<bool?> Function(String sourceId, String seriesKey)? matureResolver;
+
+  /// The stamp value for a series about to be stored: 1, 0 or null (unknown).
+  Future<int?> resolveStamp(String sourceId, String seriesKey) async {
+    try {
+      final m = await matureResolver?.call(sourceId, seriesKey);
+      return m == null ? null : (m ? 1 : 0);
+    } catch (_) {
+      return null;
+    }
+  }
 
   final String scopeId;
   final Future<Database> database;
@@ -109,7 +124,9 @@ class DownloadsStore {
       limit: 1,
     );
 
+    final stamp = await resolveStamp(id.sourceId, id.seriesKey);
     return db.insert(DownloadsSchema.savedChapters, {
+      DownloadsSchema.colMature: stamp,
       DownloadsSchema.colScopeId: scopeId,
       DownloadsSchema.colSourceId: id.sourceId,
       DownloadsSchema.colSeriesKey: id.seriesKey,
@@ -132,11 +149,12 @@ class DownloadsStore {
   /// Chapters waiting for or mid-download, oldest first — the durable queue.
   /// Re-read on every app launch so a kill mid-download resumes rather than
   /// vanishing.
-  Future<List<SavedChapter>> pendingChapters() async {
+  Future<List<SavedChapter>> pendingChapters({bool hideMature = false}) async {
     final db = await database;
     final rows = await db.query(
       DownloadsSchema.savedChapters,
-      where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colState} IN (?, ?)',
+      where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colState} IN (?, ?)'
+          '${_matureClause(hideMature)}',
       whereArgs: [
         scopeId,
         DownloadChapterState.queued.wire,
@@ -155,12 +173,13 @@ class DownloadsStore {
   /// must never re-pick a chapter that exhausted its retries): a failed
   /// chapter is not work the queue will do on its own, but it is absolutely
   /// still something the user is waiting on and can retry.
-  Future<List<SavedChapter>> unfinishedChapters() async {
+  Future<List<SavedChapter>> unfinishedChapters({bool hideMature = false}) async {
     final db = await database;
     final rows = await db.query(
       DownloadsSchema.savedChapters,
       where:
-          '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colState} IN (?, ?, ?)',
+          '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colState} IN (?, ?, ?)'
+          '${_matureClause(hideMature)}',
       whereArgs: [
         scopeId,
         DownloadChapterState.queued.wire,
@@ -427,12 +446,14 @@ class DownloadsStore {
   /// half-finished download or a corrupt map all read as "not saved", which
   /// sends the reader back to streaming instead of to an error.
   Future<({File audio, Map<String, dynamic> timing})?> readSavedNarration(
-    ChapterIdentity id,
-  ) async {
+    ChapterIdentity id, {
+    bool hideMature = false,
+  }) async {
     try {
       final audioId = audioIdentity(textIdentity(id));
       final chapter = await getChapter(audioId);
       if (chapter == null ||
+          (hideMature && (chapter.mature ?? false)) ||
           !chapter.kind.isAudio ||
           chapter.state != DownloadChapterState.complete) {
         return null;
@@ -589,14 +610,16 @@ class DownloadsStore {
   /// is the one place that asks for them, so the megabytes are never hidden.
   Future<List<SavedChapter>> listChapters({
     bool includeNarration = false,
+    bool hideMature = false,
   }) async {
     final db = await database;
     final rows = await db.query(
       DownloadsSchema.savedChapters,
-      where: includeNarration
-          ? '${DownloadsSchema.colScopeId} = ?'
-          : '${DownloadsSchema.colScopeId} = ? AND '
-              '${DownloadsSchema.colKind} IS NOT ?',
+      where: (includeNarration
+              ? '${DownloadsSchema.colScopeId} = ?'
+              : '${DownloadsSchema.colScopeId} = ? AND '
+                  '${DownloadsSchema.colKind} IS NOT ?') +
+          _matureClause(hideMature),
       whereArgs: [scopeId, if (!includeNarration) kAudioDownloadKind],
       orderBy: '${DownloadsSchema.colCreatedAt} DESC',
     );
@@ -762,7 +785,9 @@ class DownloadsStore {
 
   Future<void> enqueueProgress(ProgressPush push) async {
     final db = await database;
+    final stamp = await resolveStamp(push.sourceId, push.seriesKey);
     await db.insert(DownloadsSchema.progressOutbox, {
+      DownloadsSchema.colMature: stamp,
       DownloadsSchema.colScopeId: scopeId,
       DownloadsSchema.colPayloadJson: jsonEncode(push.toJson()),
       DownloadsSchema.colCreatedAt: DateTime.now().toUtc().toIso8601String(),
@@ -772,11 +797,13 @@ class DownloadsStore {
   /// Every push still waiting to reach the server, oldest first, alongside
   /// the outbox row id a caller must pass back to [clearProgressOutbox] once
   /// it has actually been accepted.
-  Future<List<(int outboxId, ProgressPush push)>> pendingProgressOutbox() async {
+  Future<List<(int outboxId, ProgressPush push)>> pendingProgressOutbox({
+    bool hideMature = false,
+  }) async {
     final db = await database;
     final rows = await db.query(
       DownloadsSchema.progressOutbox,
-      where: '${DownloadsSchema.colScopeId} = ?',
+      where: '${DownloadsSchema.colScopeId} = ?${_matureClause(hideMature)}',
       whereArgs: [scopeId],
       orderBy: DownloadsSchema.colCreatedAt,
     );
@@ -800,6 +827,135 @@ class DownloadsStore {
       DownloadsSchema.progressOutbox,
       where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colId} IN ($placeholders)',
       whereArgs: [scopeId, ...outboxIds],
+    );
+  }
+
+  // ── 18+ stamps ─────────────────────────────────────────────────────────
+
+  /// ` AND mature IS NOT 1` while the gate is closed: hidden rows are absent, never marked. An
+  /// unstamped row (null) counts as visible until the stamper has stamped it.
+  String _matureClause(bool hide) => hide ? ' AND ${DownloadsSchema.colMature} IS NOT 1' : '';
+
+  static const _stampedTables = [
+    DownloadsSchema.savedChapters,
+    DownloadsSchema.bookmarks,
+    DownloadsSchema.bookmarkOutbox,
+    DownloadsSchema.progressOutbox,
+  ];
+
+  /// Sets [mature] on every row of this scope that names the series, in every stamped table.
+  Future<void> stampSeries(String sourceId, String seriesKey, bool mature) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (final table in _stampedTables) {
+        await _stampTable(txn, table, sourceId, seriesKey, mature ? 1 : 0, onlyNull: false);
+      }
+    });
+  }
+
+  Future<void> _stampTable(
+    DatabaseExecutor db,
+    String table,
+    String sourceId,
+    String seriesKey,
+    int value, {
+    required bool onlyNull,
+  }) async {
+    if (table == DownloadsSchema.progressOutbox || table == DownloadsSchema.bookmarkOutbox) {
+      // The series lives inside the payload; match on it row by row.
+      final rows = await db.query(
+        table,
+        columns: [DownloadsSchema.colId, DownloadsSchema.colPayloadJson, DownloadsSchema.colMature],
+        where: '${DownloadsSchema.colScopeId} = ?',
+        whereArgs: [scopeId],
+      );
+      for (final row in rows) {
+        if (onlyNull && row[DownloadsSchema.colMature] != null) continue;
+        final id = _payloadSeries(row[DownloadsSchema.colPayloadJson]! as String);
+        if (id == (sourceId, seriesKey)) {
+          await db.update(
+            table,
+            {DownloadsSchema.colMature: value},
+            where: '${DownloadsSchema.colId} = ?',
+            whereArgs: [row[DownloadsSchema.colId]],
+          );
+        }
+      }
+      return;
+    }
+    await db.update(
+      table,
+      {DownloadsSchema.colMature: value},
+      where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colSourceId} = ? AND '
+          '${DownloadsSchema.colSeriesKey} = ?'
+          '${onlyNull ? ' AND ${DownloadsSchema.colMature} IS NULL' : ''}',
+      whereArgs: [scopeId, sourceId, seriesKey],
+    );
+  }
+
+  /// Like [stampSeries], but leaves rows that already carry a stamp alone.
+  Future<void> stampSeriesWhereMissing(String sourceId, String seriesKey, bool mature) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (final table in _stampedTables) {
+        await _stampTable(txn, table, sourceId, seriesKey, mature ? 1 : 0, onlyNull: true);
+      }
+    });
+  }
+
+  /// Every `(sourceId, seriesKey)` that still has an unstamped row in this scope.
+  Future<Set<(String, String)>> unstampedSeries() async {
+    final db = await database;
+    final out = <(String, String)>{};
+    for (final table in [DownloadsSchema.savedChapters, DownloadsSchema.bookmarks]) {
+      final rows = await db.query(
+        table,
+        distinct: true,
+        columns: [DownloadsSchema.colSourceId, DownloadsSchema.colSeriesKey],
+        where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colMature} IS NULL',
+        whereArgs: [scopeId],
+      );
+      for (final r in rows) {
+        out.add((r[DownloadsSchema.colSourceId]! as String, r[DownloadsSchema.colSeriesKey]! as String));
+      }
+    }
+    for (final table in [DownloadsSchema.progressOutbox, DownloadsSchema.bookmarkOutbox]) {
+      final rows = await db.query(
+        table,
+        columns: [DownloadsSchema.colPayloadJson],
+        where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colMature} IS NULL',
+        whereArgs: [scopeId],
+      );
+      for (final r in rows) {
+        final id = _payloadSeries(r[DownloadsSchema.colPayloadJson]! as String);
+        if (id != null) out.add(id);
+      }
+    }
+    return out;
+  }
+
+  /// The series a progress or bookmark outbox payload names.
+  static (String, String)? _payloadSeries(String json) {
+    try {
+      var m = jsonDecode(json) as Map<String, dynamic>;
+      if (m['bookmark'] is Map) m = m['bookmark'] as Map<String, dynamic>;
+      final s = m['source_id'] as String?;
+      final k = m['series_key'] as String?;
+      return s == null || k == null ? null : (s, k);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Puts a running chapter back to `queued` with its pages kept and its place in the queue
+  /// (created_at) unchanged. The queue uses it when the gate closes on a series it was fetching.
+  Future<void> requeueRow(int rowId) async {
+    final db = await database;
+    await db.update(
+      DownloadsSchema.savedChapters,
+      {DownloadsSchema.colState: DownloadChapterState.queued.wire},
+      where: '${DownloadsSchema.colId} = ? AND ${DownloadsSchema.colState} = ?',
+      whereArgs: [rowId, DownloadChapterState.downloading.wire],
     );
   }
 

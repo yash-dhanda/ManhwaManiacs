@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_stamper.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
+import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
@@ -46,6 +48,34 @@ class LibrarySeriesActions {
         .patchSeries(series.id, isFavorite: favorite);
     if (result.isErr) return result.error;
     _remember(result.value, _noSlots);
+    return null;
+  }
+
+  /// Sets, clears or leaves the per-series 18+ override ([value] true or false, [clear] to use
+  /// the source's rating). The one path that sends `mature_override`: on success the device's
+  /// local rows for the series are re-stamped (`MatureStamper.restampSeries`) from the returned
+  /// row's resolved rating and every gated cache is dropped. Returns the error, or null.
+  Future<AppError?> setMatureOverride(
+    FollowedSeries series, {
+    bool? value,
+    bool clear = false,
+  }) async {
+    final result = await _ref.read(libraryRepositoryProvider).patchSeries(
+          series.id,
+          matureOverride: value,
+          clearMatureOverride: clear,
+        );
+    if (result.isErr) return result.error;
+    final row = result.value;
+    await _ref.read(matureStamperProvider).restampSeries(
+          row.sourceId,
+          row.seriesKey,
+          row.rating == 'mature',
+          rating: row.rating,
+          matureOverride: row.matureOverride,
+          overrideGiven: true,
+        );
+    _ref.read(matureOverrideChangedProvider)();
     return null;
   }
 
