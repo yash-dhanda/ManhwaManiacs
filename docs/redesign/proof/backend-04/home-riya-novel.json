@@ -1,0 +1,472 @@
+{
+    "issue_no": 5,
+    "generated_at": "2026-09-29T15:47:21Z",
+    "content_kind": "novel",
+    "headline": "Tonight: start Barlasch of the Guard.",
+    "deck": "Chapter 1 is waiting. The rest of your picks are below.",
+    "kicker_title": null,
+    "streak": {
+        "current_days": 5,
+        "longest_days": 5,
+        "last_active_date": "2026-09-29",
+        "at_risk": false,
+        "milestones_seen": []
+    },
+    "cover": {
+        "reason": "first_pick",
+        "source_id": "standardebooks",
+        "series_key": "henry-seton-merriman/barlasch-of-the-guard",
+        "chapter_key": "epigraph",
+        "chapter_number": 1.0,
+        "last_page": 1,
+        "page_count": 0,
+        "title": "Barlasch of the Guard",
+        "cover_url": "/sources/standardebooks/series/henry-seton-merriman%2Fbarlasch-of-the-guard/cover",
+        "content_kind": "novel",
+        "new_count": 0,
+        "paused_days": 0,
+        "recap": {
+            "available": false,
+            "reason": "first_chapter",
+            "range": null,
+            "est_seconds": 0,
+            "cached": false
+        },
+        "why": null,
+        "world": null,
+        "ambient": null,
+        "palette": null
+    },
+    "also": [],
+    "sections": [
+        {
+            "type": "first_picks",
+            "title": "Your first picks",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "henry-seton-merriman/barlasch-of-the-guard",
+                        "source_id": "standardebooks",
+                        "series_identity": "henry-seton-merriman/barlasch-of-the-guard",
+                        "title": "Barlasch of the Guard",
+                        "cover_url": "/sources/standardebooks/series/henry-seton-merriman%2Fbarlasch-of-the-guard/cover",
+                        "chapter_count": 31,
+                        "genres": [
+                            "Fiction"
+                        ],
+                        "status": "completed",
+                        "description": "One of Henry Seton Merriman\u2019s most popular and acclaimed novels, Barlasch of the Guard explores the ideals and imperfections of people, great and small alike, under the incomprehensible strains of life under siege, beset by the destructive forces of both man and nature.\n\nThe events are those of the months before, during, and after the Grande Arm\u00e9e\u2019s 1812 invasion of and catastrophic retreat from Russia, during which approximately one million soldiers and civilians died, and which marked the end of Napoleon\u2019s campaign to conquer Europe and the beginning of his eventual downfall. The focus of the story is the unlikely friendship between D\u00e9sir\u00e9e Sebastian, a poor but cultured young woman raised in Danzig (modern-day Gdansk, Poland), a strategically important \u201cfree city\u201d occupied by Napoleon\u2019s army, and \u201cPapa\u201d Barlasch, an earthy, low-born, veteran sergeant in Napoleon\u2019s Old Guard, who finds himself quartered in the Sebastian home on D\u00e9sir\u00e9e\u2019s wedding day. They\u2019re surrounded by a vividly drawn supporting characters: D\u00e9sir\u00e9e\u2019s new husband, a French officer; his cousin, a captain who sails under the English flag; his patron, an officer in Napoleon\u2019s secret service; her father, an enigmatic French expatriate; and her sister, whose calculating nature contrasts with D\u00e9sir\u00e9e\u2019s free-spirited outlook.\n\nBarlasch shares with other Merriman novels his intricate plotting and attention to detail informed by his own extensive travels, but differs from some of his other works in its use of often brutal historic and military detail in service of the underlying romanticism. Ultimately though, this is a very human drama focused not on the movements of armies, but on the changes wrought in their wake on soldiers and civilians caught up in epic events.",
+                        "author": "Henry Seton Merriman",
+                        "artist": null,
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "winnifred-eaton-reeve/his-royal-nibs",
+                        "source_id": "standardebooks",
+                        "series_identity": "winnifred-eaton-reeve/his-royal-nibs",
+                        "title": "His Royal Nibs",
+                        "cover_url": "/sources/standardebooks/series/winnifred-eaton-reeve%2Fhis-royal-nibs/cover",
+                        "chapter_count": 28,
+                        "genres": [
+                            "Fiction"
+                        ],
+                        "status": "completed",
+                        "description": "A young man dubbed \u201cCheerio\u201d for his English background, clean appearance, and well-kept suit, unexpectedly arrives at the highly regarded O Bar O ranch with one goal in mind: to offer his services as a hired hand, and thus find a new start in life in a foreign land. The ranch\u2019s foreman, Bully Bill, surprised and irritated by the unwelcome stranger, decides to give Cheerio the job after witnessing his cool composure in the presence of a startled herd, preventing the ranch owner\u2019s son from getting injured.\n\nCheerio proves his worth at every opportunity and earns the respect, both honest and begrudging, from riders and cowpunchers alike. His hard working day-to-day routine is balanced by his developing friendship with the boy he saved, Sandy McPherson, and the boy\u2019s sister Hilda, for whom Cheerio develops a liking and who has become the subject of Cheerio\u2019s artistic endeavors.\n\nEverything seems to be going well for Cheerio until an incident at the branding corral brings back uncomfortable memories of his past life. Being deemed a coward and a weak man by his boss and peers, Cheerio grasps at one final chance to redeem himself and achieve his dream: to play a nightly game of chess with Canadian champion and famous rancher P. D. McPherson.\n\nHis Royal Nibs is a story of resilience, newfound love, and fresh beginnings inspired by Winnifred Eaton Reeve\u2019s desire to write fiction set in Alberta, Canada after a career spent writing Japanese-themed works under a variety of pseudonyms, the most famous of which being \u201cOnoto Watanna.\u201d His Royal Nibs would turn out to be her last published novel.",
+                        "author": "Winnifred Eaton Reeve",
+                        "artist": null,
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "popular",
+            "title": "Popular on your sources",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "w-h-davies/the-autobiography-of-a-super-tramp",
+                        "source_id": "standardebooks",
+                        "series_identity": "w-h-davies/the-autobiography-of-a-super-tramp",
+                        "title": "The Autobiography of a Super-Tramp",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "W. H. Davies",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/w-h-davies%2Fthe-autobiography-of-a-super-tramp/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "pauline-e-hopkins/contending-forces",
+                        "source_id": "standardebooks",
+                        "series_identity": "pauline-e-hopkins/contending-forces",
+                        "title": "Contending Forces",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "Pauline E. Hopkins",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/pauline-e-hopkins%2Fcontending-forces/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "gustave-flaubert/sentimental-education/m-walter-dunne",
+                        "source_id": "standardebooks",
+                        "series_identity": "gustave-flaubert/sentimental-education/m-walter-dunne",
+                        "title": "Sentimental Education",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "Gustave Flaubert",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/gustave-flaubert%2Fsentimental-education%2Fm-walter-dunne/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "edmund-burke/reflections-on-the-revolution-in-france",
+                        "source_id": "standardebooks",
+                        "series_identity": "edmund-burke/reflections-on-the-revolution-in-france",
+                        "title": "Reflections on the Revolution in France",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "Edmund Burke",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/edmund-burke%2Freflections-on-the-revolution-in-france/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "thomas-mann/short-fiction/various-translators",
+                        "source_id": "standardebooks",
+                        "series_identity": "thomas-mann/short-fiction/various-translators",
+                        "title": "Short Fiction",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "Thomas Mann",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/thomas-mann%2Fshort-fiction%2Fvarious-translators/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "c-h-spurgeon/the-art-of-illustration",
+                        "source_id": "standardebooks",
+                        "series_identity": "c-h-spurgeon/the-art-of-illustration",
+                        "title": "The Art of Illustration",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "C. H. Spurgeon",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/c-h-spurgeon%2Fthe-art-of-illustration/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "george-macdonald/within-and-without",
+                        "source_id": "standardebooks",
+                        "series_identity": "george-macdonald/within-and-without",
+                        "title": "Within and Without",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "George MacDonald",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/george-macdonald%2Fwithin-and-without/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "h-c-mcneile/the-final-count",
+                        "source_id": "standardebooks",
+                        "series_identity": "h-c-mcneile/the-final-count",
+                        "title": "The Final Count",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "H. C. McNeile",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/h-c-mcneile%2Fthe-final-count/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "theodore-roosevelt/a-book-lovers-holidays-in-the-open",
+                        "source_id": "standardebooks",
+                        "series_identity": "theodore-roosevelt/a-book-lovers-holidays-in-the-open",
+                        "title": "A Book-Lover\u2019s Holidays in the Open",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "Theodore Roosevelt",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/theodore-roosevelt%2Fa-book-lovers-holidays-in-the-open/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "arthur-conan-doyle/brigadier-gerard-stories",
+                        "source_id": "standardebooks",
+                        "series_identity": "arthur-conan-doyle/brigadier-gerard-stories",
+                        "title": "Brigadier Gerard Stories",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "Arthur Conan Doyle",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/arthur-conan-doyle%2Fbrigadier-gerard-stories/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "dorothy-m-richardson/the-trap",
+                        "source_id": "standardebooks",
+                        "series_identity": "dorothy-m-richardson/the-trap",
+                        "title": "The Trap",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "Dorothy M. Richardson",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/dorothy-m-richardson%2Fthe-trap/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                },
+                {
+                    "kind": "source",
+                    "item": {
+                        "id": "heinrich-kramer/malleus-maleficarum/montague-summers",
+                        "source_id": "standardebooks",
+                        "series_identity": "heinrich-kramer/malleus-maleficarum/montague-summers",
+                        "title": "Malleus Maleficarum",
+                        "chapter_count": 0,
+                        "description": null,
+                        "author": "Heinrich Kramer",
+                        "artist": null,
+                        "status": "completed",
+                        "genres": [],
+                        "content_rating": null,
+                        "latest_chapter": null,
+                        "cover_url": "/sources/standardebooks/series/heinrich-kramer%2Fmalleus-maleficarum%2Fmontague-summers/cover",
+                        "ambient": null,
+                        "palette": null
+                    },
+                    "why": null
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "sources",
+            "title": "Sources",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "source_id": "standardebooks",
+                    "name": "Standard Ebooks",
+                    "icon_url": "https://standardebooks.org/favicon.ico",
+                    "mature": false,
+                    "available": true,
+                    "latest_covers": [
+                        "/sources/standardebooks/series/winnifred-eaton-reeve%2Fhis-royal-nibs/cover",
+                        "/sources/standardebooks/series/henry-seton-merriman%2Fbarlasch-of-the-guard/cover",
+                        "/sources/standardebooks/series/anne-parrish%2Fthe-perennial-bachelor/cover"
+                    ],
+                    "suggested": true
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "genres",
+            "title": "Your genres",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "genre": "comedy",
+                    "weight": 5
+                },
+                {
+                    "genre": "romance",
+                    "weight": 4
+                },
+                {
+                    "genre": "slice of life",
+                    "weight": 4
+                },
+                {
+                    "genre": "school life",
+                    "weight": 2
+                },
+                {
+                    "genre": "fantasy",
+                    "weight": 2
+                },
+                {
+                    "genre": "fiction",
+                    "weight": 2
+                },
+                {
+                    "genre": "psychological",
+                    "weight": 1
+                },
+                {
+                    "genre": "drama",
+                    "weight": 1
+                },
+                {
+                    "genre": "mystery",
+                    "weight": 1
+                },
+                {
+                    "genre": "action",
+                    "weight": 1
+                },
+                {
+                    "genre": "adventure",
+                    "weight": 1
+                },
+                {
+                    "genre": "ecchi",
+                    "weight": 1
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        },
+        {
+            "type": "numbers",
+            "title": "This week in numbers",
+            "seed": null,
+            "note": null,
+            "fallback": null,
+            "items": [
+                {
+                    "streak": {
+                        "current_days": 5,
+                        "longest_days": 5,
+                        "last_active_date": "2026-09-29",
+                        "at_risk": false,
+                        "milestones_seen": []
+                    },
+                    "chapters_week": 6,
+                    "seconds_week": 3600
+                }
+            ],
+            "state": "ready",
+            "generated_at": "2026-09-29T15:47:21Z"
+        }
+    ],
+    "ai": {
+        "available": false,
+        "reason": "not_configured"
+    }
+}

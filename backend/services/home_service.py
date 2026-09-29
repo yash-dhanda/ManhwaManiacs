@@ -639,12 +639,19 @@ class HomeService:
 
         sources, suggested = self._source_rows(kind)
         popular_needed = not rows or not has_history
-        popular = self._popular_items(sources, excluded) if popular_needed else []
+        popular_memo: list[list[dict[str, Any]]] = []
+
+        def get_popular() -> list[dict[str, Any]]:
+            if not popular_memo:
+                popular_memo.append(self._popular_items(sources, excluded))
+            return popular_memo[0]
+
+        popular = get_popular() if popular_needed else []
 
         # --- cover story -------------------------------------------------------
         cover_info = self._pick_cover(
             kind, rows, states, last_read, cont, cont_by_pair, by_pair, reading,
-            has_history, world_picked, popular, days_ago, editorial,
+            has_history, world_picked, get_popular, days_ago, editorial,
         )
 
         # --- sections ------------------------------------------------------------
@@ -815,7 +822,7 @@ class HomeService:
     # --- cover story rules (cinematic §9.1.2) --------------------------------
 
     def _pick_cover(self, kind, rows, states, last_read, cont, cont_by_pair, by_pair,
-                    reading, has_history, world_picked, popular, days_ago, editorial):
+                    reading, has_history, world_picked, get_popular, days_ago, editorial):
         lib = self.library
         none = {"reason": None}
 
@@ -879,7 +886,7 @@ class HomeService:
             return None
 
         def from_popular():
-            for p in popular:
+            for p in get_popular():
                 i = p["item"]
                 if i.get("source_id") and i.get("id"):
                     return {"reason": None, "source_id": i["source_id"], "series_key": i["id"],

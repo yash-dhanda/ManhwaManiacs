@@ -414,6 +414,21 @@ def test_caught_up_uses_the_world_pick(client, as_user, acct, seed_follow, seed_
     assert body["headline"].endswith(": you're caught up.")
 
 
+def test_caught_up_falls_back_to_the_first_popular_title(
+    client, as_user, acct, seed_follow, seed_progress, db_session
+):
+    uid, pid = acct
+    follow(seed_follow, acct, "done", "All Read", 2)
+    read(seed_progress, acct, "done", 2, ago_days=1)
+    db_session.add(SourcePin(user_id=uid, profile_id=pid, source_id=SRC, sort_order=0))
+    db_session.commit()
+    POPULAR[SRC] = [{"id": "hot", "source_id": SRC, "title": "Hot Right Now", "genres": [],
+                     "cover_url": "/sources/hm_manga/series/hot/cover"}]
+    body = get(client, as_user, acct).json()
+    assert body["cover"]["reason"] == "caught_up" and body["cover"]["title"] == "Hot Right Now"
+    assert "popular" not in types(body)  # the section is only for profiles with no history
+
+
 def test_ai_pick_when_reading_history_has_no_reading_follow(
     client, as_user, acct, seed_progress
 ):
