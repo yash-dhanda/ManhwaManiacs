@@ -14,6 +14,7 @@ silently rewinds a reader that synced an older device.
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -115,6 +116,9 @@ _WRITE_RETRY_DELAY = 0.05
 # ---------------------------------------------------------------------------
 # Pure merge — unit-tested in isolation (tests/test_progress_merge.py)
 # ---------------------------------------------------------------------------
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -1281,6 +1285,36 @@ class ProgressService:
             return {**self._serialize(row), "advanced": merged.advanced}
 
         return self._write(apply)
+
+    def streak_snapshot(self, tz_offset_minutes: int) -> dict[str, Any]:
+        """``streak`` and ``today_seconds`` for a save's answer.
+
+        Runs after the save's commit and outside ``_write``: a statistics
+        hiccup must never fail a save, so it answers nulls instead.
+        """
+        from services.reading_stats_service import ReadingStatsService
+
+        try:
+            stats = ReadingStatsService(
+                self._db,
+                user_id=self._user_id,
+                profile_id=self._profile_id,
+                gate_open=self._gate_open(),
+                tz_offset_minutes=tz_offset_minutes,
+            )
+            streak = stats.streak()
+            today = (stats._now + timedelta(minutes=stats._tz)).date().isoformat()
+            return {
+                "streak": {
+                    "current_days": streak["current_days"],
+                    "extended_today": streak["last_active_date"] == today,
+                },
+                "today_seconds": stats.today_seconds(),
+            }
+        except OperationalError:
+            logger.warning("streak snapshot failed", exc_info=True)
+            self._db.rollback()
+            return {"streak": None, "today_seconds": None}
 
     def save_batch(self, payloads: list[ProgressInput]) -> dict[str, Any]:
         """Offline-sync catch-up, applied in ONE transaction.

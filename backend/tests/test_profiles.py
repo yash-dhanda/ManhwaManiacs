@@ -25,10 +25,12 @@ from database.models import (
     Collection,
     CollectionSeries,
     FollowedSeries,
+    ListenSession,
     ProfileSeriesTag,
     ReadingDayStats,
     ReadingSession,
     SourcePin,
+    StreakMilestone,
     Tag,
     UpdateNotification,
     User,
@@ -203,6 +205,8 @@ SEEDED_TABLES = frozenset(
         "update_notifications",
         "source_pins",
         "sessions",
+        "streak_milestones",
+        "listen_sessions",
     }
 )
 
@@ -247,6 +251,13 @@ def _seed_one_row_everywhere(db, user_id: int, profile_id: int) -> None:
         ),
         SourcePin(
             user_id=user_id, profile_id=profile_id, source_id=SRC, sort_order=0
+        ),
+        StreakMilestone(
+            user_id=user_id, profile_id=profile_id, days=7, seen_at=utcnow()
+        ),
+        ListenSession(
+            user_id=user_id, profile_id=profile_id, source_id=SRC, series_key=SERIES,
+            chapter_key="c1", seconds=60, started_at=utcnow(), created_at=utcnow(),
         ),
         UserSession(
             user_id=user_id, token_hash="tok", expires_at=utcnow() + timedelta(days=1)

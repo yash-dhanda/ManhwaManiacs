@@ -28,7 +28,9 @@ from database.models import (
     Bookmark,
     ChapterProgress,
     FollowedSeries,
+    ListenSession,
     ReadingSession,
+    StreakMilestone,
 )
 
 
@@ -50,6 +52,13 @@ def _make_rows():
             user_id=uid, profile_id=pid, source_id="mangadex",
             series_key="s", chapter_key="c1", start_page=1, end_page=2,
             pages_read=2, started_at=utcnow(), ended_at=utcnow(),
+        ),
+        "streak_milestones": lambda uid, pid: StreakMilestone(
+            user_id=uid, profile_id=pid, days=7, seen_at=utcnow(),
+        ),
+        "listen_sessions": lambda uid, pid: ListenSession(
+            user_id=uid, profile_id=pid, source_id="mangadex", series_key="s",
+            chapter_key="c1", seconds=60, started_at=utcnow(), created_at=utcnow(),
         ),
     }
 
