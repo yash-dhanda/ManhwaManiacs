@@ -181,47 +181,50 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
           builder: (context, c) {
             final cancel = v == GlassSearchVariant.bottom;
             final w = c.hasBoundedWidth ? c.maxWidth : 320.0;
-            final cancelW = cancel ? 76.0 : 0.0;
-            final size = Size(w - cancelW, h);
-            final glass = GlassPressable(
-              material: GlassMaterial.glass,
-              growth: GlassGrowth.medium,
-              hoverGlow: false,
-              onTap: () => _node.requestFocus(),
-              isButton: false,
-              minHit: false,
-              forceStates: widget.forceStates,
-              builder: (context, info) => SkinGlass(
-                size: size,
-                tier: GlassTierId.t3,
-                twin: widget.twin,
-                glow: info.glow,
-                debugLabel: 'GlassSearchField',
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      _lead(true),
-                      const SizedBox(width: 10),
-                      Expanded(child: _input(true)),
-                      if (_c.text.isNotEmpty) _clear(),
-                    ],
+            Widget glassFor(double width) => GlassPressable(
+                  material: GlassMaterial.glass,
+                  growth: GlassGrowth.medium,
+                  hoverGlow: false,
+                  onTap: () => _node.requestFocus(),
+                  noSemantics: true,
+                  minHit: false,
+                  forceStates: widget.forceStates,
+                  builder: (context, info) => SkinGlass(
+                    size: Size(width, h),
+                    tier: GlassTierId.t3,
+                    twin: widget.twin,
+                    glow: info.glow,
+                    debugLabel: 'GlassSearchField',
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          _lead(true),
+                          const SizedBox(width: 10),
+                          Expanded(child: _input(true)),
+                          if (_c.text.isNotEmpty) _clear(),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            );
-            Widget row = Row(
-              children: [
-                glass,
-                if (cancel) ...[
-                  const SizedBox(width: 8),
-                  GlassButton(label: 'Cancel', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () {
-                    _node.unfocus();
-                    widget.onCancel?.call();
-                  }),
-                ],
-              ],
-            );
+                );
+            Widget row = cancel
+                ? Row(
+                    children: [
+                      Expanded(child: LayoutBuilder(builder: (context, cc) => glassFor(cc.maxWidth))),
+                      const SizedBox(width: 8),
+                      GlassButton(
+                        label: 'Cancel',
+                        variant: GlassButtonVariant.plain,
+                        size: GlassButtonSize.small,
+                        onPressed: () {
+                          _node.unfocus();
+                          widget.onCancel?.call();
+                        },
+                      ),
+                    ],
+                  )
+                : glassFor(w);
             if (v == GlassSearchVariant.bottom) {
               row = GestureDetector(
                 behavior: HitTestBehavior.translucent,
@@ -241,7 +244,7 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
         field = GlassWell(
           focused: _focused || widget.forceStates.focused,
           hovered: widget.forceStates.hovered,
-          minHeight: 44,
+          minHeight: GlassFrame.hitMin(context),
           padding: const EdgeInsets.only(left: 14),
           child: Row(
             children: [

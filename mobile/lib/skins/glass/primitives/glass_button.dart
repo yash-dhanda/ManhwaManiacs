@@ -144,6 +144,7 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
     final loading = widget.loading || states.loading;
     final selected = widget.selected || states.selected;
     final suppressed = GlassLit.suppressed;
+    final solid = ref.watch(glassA11yProvider.select((a) => a.solid));
     final baseWght = (m.wght ?? m.role.wght.round());
 
     final hasIcon = widget.icon != null || v == GlassButtonVariant.destructive || showError;
@@ -306,7 +307,7 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
                   ],
                 )
               : surface;
-          if (onTint && widget.overContent && twin == null) {
+          if (onTint && widget.overContent && twin == null && !solid) {
             body = SizedBox.fromSize(size: size, child: GlassLitCaustic(pressed: info.states.pressed, child: body));
           }
           return body;

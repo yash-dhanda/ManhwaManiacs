@@ -125,6 +125,7 @@ class GlassPressRecognizer extends OneSequenceGestureRecognizer {
   bool _active = false;
   PointerUpEvent? _pendingUp;
   Timer? _claim;
+  bool _claimFired = false;
 
   @override
   void addAllowedPointer(PointerDownEvent event) {
@@ -133,11 +134,15 @@ class GlassPressRecognizer extends OneSequenceGestureRecognizer {
     _pointer = event.pointer;
     _down = event.position;
     _accepted = false;
+    _claimFired = false;
     _active = true;
     onDown?.call(event);
     if (claimAfter != null) {
       _claim = Timer(claimAfter!, () {
-        if (_active) resolve(GestureDisposition.accepted);
+        if (!_active) return;
+        _claimFired = true;
+        resolve(GestureDisposition.accepted);
+        if (_accepted) onClaimed?.call();
       });
     }
   }
@@ -187,7 +192,7 @@ class GlassPressRecognizer extends OneSequenceGestureRecognizer {
     if (up != null) {
       _finish(cancelled: false);
       onUp?.call(up);
-    } else {
+    } else if (_claimFired) {
       onClaimed?.call();
     }
   }
@@ -255,6 +260,7 @@ class GlassPressable extends ConsumerStatefulWidget {
     this.claimAfter,
     this.cancelDistance,
     this.suppressTap = false,
+    this.noSemantics = false,
   });
 
   final Widget Function(BuildContext context, GlassPressInfo info) builder;
@@ -311,6 +317,9 @@ class GlassPressable extends ConsumerStatefulWidget {
 
   /// A pointer release does not call [onTap] (keyboard and screen-reader activation still do).
   final bool suppressTap;
+
+  /// The control only decorates something that already carries its own semantics (a text field).
+  final bool noSemantics;
 
   @override
   ConsumerState<GlassPressable> createState() => GlassPressableState();
@@ -597,7 +606,7 @@ class GlassPressableState extends ConsumerState<GlassPressable> with TickerProvi
     );
 
     final actions = <CustomSemanticsAction, VoidCallback>{...widget.customActions};
-    body = Semantics(
+    if (!widget.noSemantics) body = Semantics(
       container: true,
       button: widget.isButton,
       enabled: widget.enabled,

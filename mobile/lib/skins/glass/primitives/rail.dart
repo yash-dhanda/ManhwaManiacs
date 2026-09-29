@@ -408,7 +408,6 @@ class _Arrow extends StatelessWidget {
                   material: GlassMaterial.content,
                   sink: 0.92,
                   shape: const GlassShape.circle(),
-                  minHit: false,
                   onTap: onTap,
                   semanticsLabel: left ? 'Previous items' : 'Next items',
                   tooltip: left ? 'Previous' : 'Next',

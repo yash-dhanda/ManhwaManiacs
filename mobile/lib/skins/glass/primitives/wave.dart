@@ -117,7 +117,7 @@ class _WaveItem extends StatefulWidget {
   State<_WaveItem> createState() => _WaveItemState();
 }
 
-class _WaveItemState extends State<_WaveItem> with SingleTickerProviderStateMixin {
+class _WaveItemState extends State<_WaveItem> with TickerProviderStateMixin {
   late final SingleMotionController _c = SingleMotionController(motion: SpringMotion(springOf(glassTokens.springSnappy)), vsync: this, initialValue: widget.initiallyShown ? 1 : 0);
   late final AnimationController _f = AnimationController(vsync: this, duration: glassTokens.curveFadeIn.duration, value: widget.initiallyShown ? 1 : 0);
   Offset _from = Offset.zero;

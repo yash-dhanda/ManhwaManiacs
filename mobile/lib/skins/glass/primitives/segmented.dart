@@ -85,6 +85,12 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
   int get _index => math.max(0, widget.segments.indexWhere((s) => s.value == widget.selected));
 
   @override
+  void initState() {
+    super.initState();
+    _x.value = 0;
+  }
+
+  @override
   void didUpdateWidget(GlassSegmented<T> old) {
     super.didUpdateWidget(old);
     if (widget.errorTrigger > old.errorTrigger) {
@@ -216,95 +222,93 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
         final trackFill = inHost ? gt.colorWellOnGlass : gt.colorFill3;
         final showGlassThumb = _dragging || widget.forceDragging;
 
-        return GlassShake(
-          trigger: 0,
-          child: Opacity(
-            opacity: disabled ? 0.4 : 1,
-            child: GlassFocusRing(
-              shape: const GlassShape.capsule(),
-              forceVisible: widget.forceStates.focused,
-              child: Focus(
-                focusNode: _focus,
-                canRequestFocus: !disabled,
-                onKeyEvent: _key,
-                child: Semantics(
-                  container: true,
-                  child: SizedBox(
-                    width: total,
-                    height: math.max(hit, trackH),
-                    child: Center(
-                      child: SizedBox(
+        final rowH = math.max(hit, trackH);
+        return Opacity(
+          opacity: disabled ? 0.4 : 1,
+          child: GlassFocusRing(
+            shape: const GlassShape.capsule(),
+            forceVisible: widget.forceStates.focused,
+            child: Focus(
+              focusNode: _focus,
+              canRequestFocus: !disabled,
+              onKeyEvent: _key,
+              child: SizedBox(
+                width: total,
+                height: rowH,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onHorizontalDragStart: (_) => _dragStart(),
+                  onHorizontalDragUpdate: (d) => _dragUpdate(d.delta.dx),
+                  onHorizontalDragEnd: (d) => _dragEnd(d.velocity.pixelsPerSecond.dx),
+                  onHorizontalDragCancel: () => _dragEnd(0),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // The visual: a 36 px track and its thumb, inside the hit row.
+                      SizedBox(
                         width: total,
                         height: trackH,
                         child: DecoratedBox(
                           decoration: BoxDecoration(color: trackFill, borderRadius: BorderRadius.circular(trackH / 2)),
                           child: Padding(
                             padding: const EdgeInsets.all(2),
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.translucent,
-                              onHorizontalDragStart: (_) => _dragStart(),
-                              onHorizontalDragUpdate: (d) => _dragUpdate(d.delta.dx),
-                              onHorizontalDragEnd: (d) => _dragEnd(d.velocity.pixelsPerSecond.dx),
-                              onHorizontalDragCancel: () => _dragEnd(0),
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  AnimatedBuilder(
-                                    animation: _x,
-                                    builder: (context, _) {
-                                      final w = _widths[_index];
-                                      final sx = (1 + math.min(_x.velocity.abs() / 2000, 0.25)).toDouble();
-                                      final thumbSize = Size(w, trackH - 4);
-                                      final thumb = showGlassThumb
-                                          ? SkinGlass(
-                                              size: thumbSize,
-                                              tier: GlassTierId.t1,
-                                              finish: GlassFinishKind.clear,
-                                              role: GlassRole.transient,
-                                              materialize: false,
-                                              moving: true,
-                                              debugLabel: 'GlassSegmentedThumb',
-                                              child: const SizedBox.expand(),
-                                            )
-                                          : DecoratedBox(
-                                              decoration: ShapeDecoration(
-                                                color: gt.colorSurface3,
-                                                shape: StadiumBorder(side: BorderSide(color: const Color(0x38FFFFFF), width: 0.5)),
-                                              ),
-                                              child: SizedBox.fromSize(size: thumbSize),
-                                            );
-                                      return Positioned(
-                                        left: _x.value,
-                                        top: 0,
-                                        width: w,
-                                        height: trackH - 4,
-                                        child: IgnorePointer(
-                                          child: Transform(
-                                            alignment: Alignment.center,
-                                            transform: Matrix4.diagonal3Values(reduced ? 1 : sx, reduced ? 1 : (1 / math.sqrt(sx)).toDouble(), 1),
-                                            child: thumb,
-                                          ),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                AnimatedBuilder(
+                                  animation: _x,
+                                  builder: (context, _) {
+                                    final w = _widths[_index];
+                                    final sx = (1 + math.min(_x.velocity.abs() / 2000, 0.25)).toDouble();
+                                    final thumbSize = Size(w, trackH - 4);
+                                    final thumb = showGlassThumb
+                                        ? SkinGlass(
+                                            size: thumbSize,
+                                            tier: GlassTierId.t1,
+                                            finish: GlassFinishKind.clear,
+                                            role: GlassRole.transient,
+                                            materialize: false,
+                                            moving: true,
+                                            debugLabel: 'GlassSegmentedThumb',
+                                            child: const SizedBox.expand(),
+                                          )
+                                        : DecoratedBox(
+                                            decoration: ShapeDecoration(
+                                              color: gt.colorSurface3,
+                                              shape: const StadiumBorder(side: BorderSide(color: Color(0x38FFFFFF), width: 0.5)),
+                                            ),
+                                            child: SizedBox.fromSize(size: thumbSize),
+                                          );
+                                    return Positioned(
+                                      left: _x.value,
+                                      top: 0,
+                                      width: w,
+                                      height: trackH - 4,
+                                      child: IgnorePointer(
+                                        child: Transform(
+                                          alignment: Alignment.center,
+                                          transform: Matrix4.diagonal3Values(reduced ? 1 : sx, reduced ? 1 : (1 / math.sqrt(sx)).toDouble(), 1),
+                                          child: thumb,
                                         ),
-                                      );
-                                    },
-                                  ),
-                                  Row(
-                                    children: [
-                                      for (var i = 0; i < n; i++)
-                                        SizedBox(
-                                          width: _widths[i],
-                                          height: trackH - 4,
-                                          child: _segment(context, i, selectedIdx, legible),
-                                        ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ),
-                    ),
+                      // The hit row: every segment is at least `hitMin` tall.
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: Row(
+                          children: [
+                            for (var i = 0; i < n; i++) SizedBox(width: _widths[i], height: rowH, child: _segment(context, i, selectedIdx, legible)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -332,12 +336,17 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
       inGroup: !widget.asTabs,
       checked: widget.asTabs ? null : sel,
       semanticsSelected: widget.asTabs ? sel : null,
-      builder: (context, info) => DecoratedBox(
-        decoration: BoxDecoration(color: !sel && info.states.hovered ? gt.colorFill4 : const Color(0x00000000), borderRadius: BorderRadius.circular(18)),
-        child: Center(
-          child: loading
-              ? const GlassSpinner(size: 16)
-              : GlassLabel(s.label, role: gt.typeSubhead, wght: 620, color: sel ? gt.colorLabel1 : gt.colorLabel2),
+      builder: (context, info) => Center(
+        child: SizedBox(
+          height: (widget.compact ? 32.0 : 36.0) - 4,
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: !sel && info.states.hovered ? gt.colorFill4 : const Color(0x00000000), borderRadius: BorderRadius.circular(18)),
+            child: Center(
+              child: loading
+                  ? const GlassSpinner(size: 16)
+                  : GlassLabel(s.label, role: gt.typeSubhead, wght: 620, color: sel ? gt.colorLabel1 : gt.colorLabel2),
+            ),
+          ),
         ),
       ),
     );

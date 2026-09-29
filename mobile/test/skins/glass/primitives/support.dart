@@ -72,16 +72,27 @@ Widget primHost(
             textDirection: TextDirection.ltr,
             child: DefaultTextStyle(
               style: const TextStyle(),
-              child: SkinGlassRoot(
-                child: Localizations(
-                  locale: const Locale('en'),
-                  delegates: const [DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate],
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: Overlay(
-                      initialEntries: [
-                        OverlayEntry(builder: (_) => align ? Align(alignment: Alignment.topLeft, child: child) : child),
-                      ],
+              child: Shortcuts(
+                shortcuts: WidgetsApp.defaultShortcuts,
+                child: Actions(
+                  actions: WidgetsApp.defaultActions,
+                  child: FocusTraversalGroup(
+                    child: FocusScope(
+                      autofocus: true,
+                      child: SkinGlassRoot(
+                      child: Localizations(
+                        locale: const Locale('en'),
+                        delegates: const [DefaultWidgetsLocalizations.delegate, DefaultMaterialLocalizations.delegate],
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: Overlay(
+                            initialEntries: [
+                              OverlayEntry(builder: (_) => align ? Align(alignment: Alignment.topLeft, child: child) : child),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                     ),
                   ),
                 ),

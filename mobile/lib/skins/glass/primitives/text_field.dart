@@ -288,7 +288,7 @@ class _GlassTextFieldState extends ConsumerState<GlassTextField> {
       hovered: _hovered || widget.forceStates.hovered,
       error: hasError,
       onSheet: widget.onSheet,
-      minHeight: number ? 44 : 50,
+      minHeight: number ? hit : 50,
       padding: EdgeInsets.only(left: number ? 8 : 16, right: trailing is SizedBox ? 4 : (number ? 8 : 16)),
       child: Row(
         children: [

@@ -90,8 +90,8 @@ class GlassContinueStack extends StatelessWidget {
               ),
             Positioned(left: 8, top: 0, bottom: 0, width: coverW, child: ClipRRect(borderRadius: BorderRadius.circular(gt.radiusMd), child: cover)),
             Positioned(
-              left: coverW + 8 + 12 + 8,
-              right: 12,
+              left: coverW + 8 + 12,
+              right: 8,
               top: 12,
               bottom: 8,
               child: Column(

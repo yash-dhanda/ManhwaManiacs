@@ -164,7 +164,8 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
   late final SingleMotionController _tx = SingleMotionController(motion: SpringMotion(springOf(gt.springTrack)), vsync: this);
   late final SingleMotionController _ty = SingleMotionController(motion: SpringMotion(springOf(gt.springTrack)), vsync: this);
   late final Ticker _ticker = createTicker(_onTick);
-  final Stopwatch _held = Stopwatch();
+  Duration _t0 = Duration.zero;
+  double _heldMs = 0;
   final GlobalKey _box = GlobalKey();
   final VelocityTracker _velocity = VelocityTracker.withKind(PointerDeviceKind.touch);
   late final Magnet _magnet = Magnet(
@@ -225,9 +226,10 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
 
   // -- touch: press, lift, throw ------------------------------------------------
 
-  void _onTick(Duration _) {
+  void _onTick(Duration elapsed) {
+    _heldMs = elapsed.inMicroseconds / 1000;
     if (!_lifting || _reduced) return;
-    final ms = _held.elapsedMicroseconds / 1000;
+    final ms = _heldMs;
     if (ms >= GlassThresholds.liftStart) {
       if (!_haptic150) {
         _haptic150 = true;
@@ -245,9 +247,8 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
     _downGlobal = e.position;
     _lastPos = e.position;
     _velocity.addPosition(e.timeStamp, e.position);
-    _held
-      ..reset()
-      ..start();
+    _t0 = e.timeStamp;
+    _heldMs = 0;
     _lifting = true;
     _haptic150 = false;
     _menuFired = false;
@@ -301,11 +302,10 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
   }
 
   void _up(PointerUpEvent e) {
-    final ms = _held.elapsedMicroseconds / 1000;
+    final ms = (e.timeStamp - _t0).inMicroseconds / 1000;
     final moved = (e.position - _downGlobal).distance;
     _lifting = false;
     _ticker.stop();
-    _held.stop();
     if (!_lifted) {
       _settleScale();
       if (ms < GlassThresholds.tapMax && moved <= _slop) widget.onTap?.call();
@@ -346,7 +346,6 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
     _lifting = false;
     _lifted = false;
     _ticker.stop();
-    _held.stop();
     _settleScale();
     _return(Offset.zero);
   }
@@ -504,6 +503,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
 
     poster = Opacity(opacity: _gone ? 0 : (disabled ? 0.55 : 1), child: poster);
 
+    final posterInner = poster;
     poster = GlassPressable(
       material: GlassMaterial.content,
       sink: 1,
@@ -535,7 +535,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
       focusScale: 1.04,
       hoverGlow: false,
       onHoverChanged: _hoverChanged,
-      builder: (context, info) => poster,
+      builder: (context, info) => posterInner,
     );
     poster = Focus(
       canRequestFocus: false,

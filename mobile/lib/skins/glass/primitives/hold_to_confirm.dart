@@ -61,7 +61,8 @@ class HoldToConfirm extends ConsumerStatefulWidget {
 
 class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProviderStateMixin {
   final HoldMachine _m = HoldMachine();
-  final Stopwatch _sw = Stopwatch();
+  Duration _t0 = Duration.zero;
+  double _nowMs = 0;
   late final Ticker _ticker = createTicker(_onTick);
   late final SingleMotionController _drain = SingleMotionController(motion: SpringMotion(springOf(gt.springDismiss)), vsync: this);
   final FocusNode _fallback = FocusNode(debugLabel: 'HoldToConfirm.fallback');
@@ -92,9 +93,10 @@ class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProvid
     super.dispose();
   }
 
-  double get _t => _sw.elapsedMicroseconds / 1000;
+  double get _t => _nowMs;
 
-  void _onTick(Duration _) {
+  void _onTick(Duration elapsed) {
+    _nowMs = elapsed.inMicroseconds / 1000;
     _handle(_m.tick(_t));
     final l = _m.levelAt(_t, stepped: _reduced);
     if (l != _level) setState(() => _level = l);
@@ -148,7 +150,6 @@ class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProvid
   void _endFill({required bool drain}) {
     _endEntry();
     _ticker.stop();
-    _sw.stop();
     if (mounted) {
       setState(() {
         _filling = false;
@@ -195,8 +196,8 @@ class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProvid
   void _down(PointerDownEvent e) {
     _drain.stop();
     _drain.value = 0;
-    _sw.reset();
-    _sw.start();
+    _t0 = e.timeStamp;
+    _nowMs = 0;
     _m.down(0, e.position);
     if (!_ticker.isActive) unawaited(_ticker.start());
   }
@@ -217,8 +218,14 @@ class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProvid
       claimAfter: const Duration(milliseconds: 200),
       cancelDistance: double.infinity,
       onRawDown: _down,
-      onRawMove: (e) => _handle(_m.move(_t, e.position)),
-      onRawUp: (e) => _handle(_m.up(_t)),
+      onRawMove: (e) {
+        _nowMs = (e.timeStamp - _t0).inMicroseconds / 1000;
+        _handle(_m.move(_t, e.position));
+      },
+      onRawUp: (e) {
+        _nowMs = (e.timeStamp - _t0).inMicroseconds / 1000;
+        _handle(_m.up(_t));
+      },
       onRawCancel: () => _handle(_m.cancel()),
       onTap: _click,
       forceStates: states,

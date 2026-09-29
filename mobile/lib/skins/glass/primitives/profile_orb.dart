@@ -201,6 +201,7 @@ class _GlassProfileOrbState extends ConsumerState<GlassProfileOrb> with SingleTi
     );
 
     if (widget.onPressed != null || states.pressed || states.hovered) {
+      final inner = body;
       body = GlassPressable(
         material: GlassMaterial.glass,
         growth: GlassGrowth.medium,
@@ -214,7 +215,7 @@ class _GlassProfileOrbState extends ConsumerState<GlassProfileOrb> with SingleTi
         focusScale: 1,
         builder: (context, info) => Transform.scale(
           scale: info.states.hovered && !reduced ? (s >= 96 && widget.drift ? 1.08 : 1.04) : 1,
-          child: body,
+          child: inner,
         ),
       );
     } else {

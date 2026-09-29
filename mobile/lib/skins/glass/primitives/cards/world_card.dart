@@ -76,19 +76,22 @@ class GlassWorldCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Expanded(
-      child: Column(
+      child: ClipRect(
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           GlassLabel(title, role: gt.typeHeadline, maxLines: 2),
           GlassLabel(kind, role: gt.typeCaption1, color: gt.colorLabel3),
-          GlassLabel(stats, role: gt.typeMono, size: 13, height: 18, color: gt.colorLabel2),
+          GlassLabel(stats, role: gt.typeMono, size: 13, height: 16, color: gt.colorLabel2),
           if (tags.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
+              padding: EdgeInsets.zero,
               child: Wrap(spacing: 4, children: [for (final t in tags.take(3)) GlassChip(label: t, kind: GlassChipKind.tag)]),
             ),
-          const Spacer(),
+          const SizedBox(height: 4),
           Row(
             children: [
               GlyphIcon(GlassGlyph.sparkle, size: 14, color: gt.colorMachine),
@@ -97,6 +100,8 @@ class GlassWorldCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+        ),
       ),
     );
     final head = SizedBox(
@@ -129,7 +134,7 @@ class GlassWorldCard extends StatelessWidget {
     }
     return SizedBox(
       width: 300,
-      height: 172,
+      height: 200,
       child: GlassSlab(
         padding: const EdgeInsets.all(6),
         dashed: true,
@@ -139,10 +144,9 @@ class GlassWorldCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: head),
-            Row(
+            Padding(padding: const EdgeInsets.only(left: 8), child: GlassLabel('Not on your sources', role: gt.typeCaption1, color: gt.colorLabel3)),
+            Wrap(
               children: [
-                GlassLabel('Not on your sources', role: gt.typeCaption1, color: gt.colorLabel3),
-                const Spacer(),
                 GlassButton(label: 'Search my sources', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: onSearchMySources),
                 GlassButton(label: 'Read on $site', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, icon: GlassButtonIcon.glyph(GlassGlyph.arrowSquareOut), onPressed: _external),
               ],

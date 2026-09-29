@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
+import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 
 /// A history tile (glass 7.7): a poster with a 3 px progress line along its bottom edge, a 36 px play orb
 /// bottom-right ("p. 18" or "42 %") drawn as a content twin on the cover-overlay backing (`rgba(0,0,0,0.86)`
@@ -34,22 +36,20 @@ class GlassHistoryTile extends StatelessWidget {
             children: [
               GlassPoster(cover: cover, title: '$title, $when, $position', width: w, meta: GlassPosterMeta(progress: progress), onTap: onOpen),
               Positioned(
-                right: 6,
-                bottom: 12,
-                child: Semantics(
-                  label: 'Resume at $position',
-                  button: true,
+                right: 2,
+                bottom: 8,
+                child: GlassPressable(
+                  material: GlassMaterial.content,
+                  sink: 0.92,
+                  shape: const GlassShape.circle(),
                   onTap: onResume,
-                  excludeSemantics: true,
-                  child: GestureDetector(
-                    onTap: onResume,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: const Color(0xDB000000), shape: BoxShape.circle, border: Border.all(color: const Color(0x38FFFFFF), width: 0.5)),
-                      child: GlyphIcon(GlassGlyph.play, size: 16, color: gt.colorLabel1),
-                    ),
+                  semanticsLabel: 'Resume at $position',
+                  builder: (context, info) => Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: const Color(0xDB000000), shape: BoxShape.circle, border: Border.all(color: const Color(0x38FFFFFF), width: 0.5)),
+                    child: GlyphIcon(GlassGlyph.play, size: 16, color: gt.colorLabel1),
                   ),
                 ),
               ),

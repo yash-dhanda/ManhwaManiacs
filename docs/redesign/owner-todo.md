@@ -70,3 +70,6 @@ Items only the owner can do, by step.
 ## web/11 open issues
 - mature_override re-stamp not wired: web/07's local-row mature filter is not integrated; use-series-page.ts setMature only invalidates MATURE_GATED_QUERY_ROOTS (TODO(web/07)).
 - Stand-ins remain until web/06, web/07, web/09 integrate: reader-entry.ts (enterReader wipe), toasts.tsx (toast host), standins.tsx (AddToShelfSheet, TagSheet), tags-standin.ts (tag hooks), SetHeading.tsx and use-feature-keys.tsx (single-key setting).
+
+## mobile/26 (Glass primitives 1)
+- Device check on iPhone and Android flagship: `docs/redesign/proof/mobile-26/device-check.md` (haptic ramp, 120 Hz press feel, throw, snap, screen readers).

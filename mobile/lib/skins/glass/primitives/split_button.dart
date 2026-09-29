@@ -26,6 +26,7 @@ class GlassSplitButton extends ConsumerStatefulWidget {
     required this.onPressed,
     required this.onMore,
     this.moreLabel = 'More ways to read',
+    this.semanticsLabel,
     this.twin,
     this.forcePressed,
   });
@@ -34,6 +35,9 @@ class GlassSplitButton extends ConsumerStatefulWidget {
   final VoidCallback? onPressed;
   final void Function(Rect anchor) onMore;
   final String moreLabel;
+
+  /// "Continue, chapter 143": what the primary segment says to assistive tech when its visible label is shorter.
+  final String? semanticsLabel;
   final GlassTwin? twin;
 
   /// For the gallery: 0 for the primary segment, 1 for the trailing one.
@@ -102,7 +106,7 @@ class _GlassSplitButtonState extends ConsumerState<GlassSplitButton> with GlassL
                 primary,
                 (info) => Center(child: GlassLabel(widget.label, role: gt.typeHeadline, wght: 640, color: disabled ? gt.colorLabel4 : gt.colorOnTint, onGlass: true)),
                 widget.onPressed,
-                widget.label,
+                widget.semanticsLabel ?? widget.label,
               ),
               Positioned(right: 0, top: 6, bottom: 6, width: 0.5, child: ColoredBox(color: gt.colorSeparator)),
             ],

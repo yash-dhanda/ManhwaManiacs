@@ -190,11 +190,24 @@ class _LetterRevealState extends ConsumerState<LetterReveal> with SingleTickerPr
 
   /// The fraction of the heading inside the nearest scrollable's viewport (1 outside any scroll view).
   double _visibleFraction() {
-    final box = context.findRenderObject();
+    // An element that is being unmounted has no render object to ask.
+    if (!(context as Element).debugIsActive && !context.mounted) return 0;
+    RenderObject? ro;
+    try {
+      ro = context.findRenderObject();
+    } catch (_) {
+      return 0;
+    }
+    final box = ro;
     if (box is! RenderBox || !box.attached || !box.hasSize) return 0;
     final scrollable = Scrollable.maybeOf(context);
     if (scrollable == null) return 1;
-    final vb = scrollable.context.findRenderObject();
+    RenderObject? vb;
+    try {
+      vb = scrollable.context.findRenderObject();
+    } catch (_) {
+      return 0;
+    }
     if (vb is! RenderBox || !vb.attached || !vb.hasSize) return 0;
     final r = box.localToGlobal(Offset.zero) & box.size;
     final v = vb.localToGlobal(Offset.zero) & vb.size;
@@ -243,8 +256,13 @@ class _LetterRevealState extends ConsumerState<LetterReveal> with SingleTickerPr
     }
     // A waiter that is no longer visible completes at once.
     if (_visibleFraction() <= 0) {
-      _finishAt();
+      _phase = _Phase.done;
+      final k = _key;
+      if (k != null) _revealed.add(k);
       glassRevealSlots.release(_slotId!);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
       return;
     }
     final k = _key;
