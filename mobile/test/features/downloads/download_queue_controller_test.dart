@@ -129,6 +129,9 @@ class _FixedDeviceStorageInfo implements DeviceStorageInfo {
   int? bytes;
 
   @override
+  Future<int?> totalSpaceBytes() async => null;
+
+  @override
   Future<int?> freeSpaceBytes() async => bytes;
 }
 

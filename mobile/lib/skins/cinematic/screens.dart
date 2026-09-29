@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/admin/status_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/setup_screen.dart';
@@ -7,7 +8,9 @@ import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalog
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/dialogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/sources_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/downloads/downloads_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/index/index_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/library_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
@@ -39,6 +42,10 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
         genre: state.uri.queryParameters['genre'],
       ),
   ScreenId.sources: (context, state) => const SourcesScreen(),
+  ScreenId.status: (context, state) => const StatusScreen(),
+  ScreenId.indexHub: (context, state) => const IndexScreen(),
+  ScreenId.downloads: (context, state) =>
+      DownloadsScreen(tab: state.uri.queryParameters['tab'], view: state.uri.queryParameters['view']),
   ScreenId.source: (context, state) => CatalogueScreen(
         key: ValueKey(state.pathParameters['sourceId']),
         sourceId: state.pathParameters['sourceId']!,

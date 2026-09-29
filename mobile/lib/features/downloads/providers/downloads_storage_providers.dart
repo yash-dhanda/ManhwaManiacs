@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.
 import 'package:manhwamaniacs/features/downloads/providers/retention_maintenance_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/storage_settings_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
+import 'package:manhwamaniacs/features/downloads/services/device_storage_info.dart';
 
 /// Real, dedup-aware on-device bytes — what the cap in Settings → Storage is
 /// enforced against. Device-wide (every profile), not just the active one —
@@ -26,6 +27,14 @@ final seriesStorageBreakdownProvider =
   if (store == null) return const [];
   // The per-series rows name series, so hidden 18+ ones are absent; the totals above keep every byte.
   return store.seriesBreakdown(hideMature: !ref.watch(matureGateOpenProvider));
+});
+
+/// Free and total bytes of the volume the store writes to (null on failure), re-read whenever a
+/// chapter's state changes so the meter's free segment never goes stale.
+final deviceSpaceProvider = FutureProvider.autoDispose<({int? free, int? total})>((ref) async {
+  ref.watch(downloadQueueControllerProvider.select((s) => s.queueRevision));
+  final info = ref.watch(deviceStorageInfoProvider);
+  return (free: await info.freeSpaceBytes(), total: await info.totalSpaceBytes());
 });
 
 class DownloadsStorageActions {

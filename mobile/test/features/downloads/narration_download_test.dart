@@ -96,6 +96,9 @@ class _FixedStorageCapNotifier extends StorageCapNotifier {
 
 class _FixedDeviceStorageInfo implements DeviceStorageInfo {
   @override
+  Future<int?> totalSpaceBytes() async => null;
+
+  @override
   Future<int?> freeSpaceBytes() async => 10 * 1024 * 1024 * 1024;
 }
 

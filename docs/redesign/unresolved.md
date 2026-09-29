@@ -52,3 +52,9 @@ Verifier items (fix attempted, not re-checked):
 ## mobile/09
 
 No unresolved items.
+
+## mobile/17 (L09, cinematic downloads/index/status)
+
+- (fix attempted, not re-checked) Acceptance: iOSTapTargetGuideline, androidTapTargetGuideline and labeledTapTargetGuideline pass on the three screens AND the What's new sheet
+- (fix attempted, not re-checked) Acceptance: Save to Files 'CI's APK build and iOS dry run are green for the native commit'
+- (fix attempted, not re-checked) Dependency stand-ins (informational, not code defects): StreakFlame (mobile/08) and NarratingIndicator plus activeNarrationJobsProvider (mobile/15)

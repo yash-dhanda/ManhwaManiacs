@@ -1,15 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
+import 'package:manhwamaniacs/features/downloads/utils/auto_download.dart';
+import 'package:manhwamaniacs/features/downloads/utils/pending_removals.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/settings/providers/app_update_provider.dart';
+import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/back_order.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/nav_map.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/overlays/whats_new_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_mood_grade.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/thumb_index.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -39,10 +47,61 @@ class CineShell extends ConsumerStatefulWidget {
   ConsumerState<CineShell> createState() => _CineShellState();
 }
 
-class _CineShellState extends ConsumerState<CineShell> {
+class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserver {
   int _taps = 0;
+  bool _whatsNewChecked = false;
   int? _previousFolio;
   String? _lastFolio;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_maybeWhatsNew()));
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(CineShell old) {
+    super.didUpdateWidget(old);
+    if (!_whatsNewChecked) WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_maybeWhatsNew()));
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      // Pending chapter removals must not wait on a timer the OS may never wake.
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        unawaited(ref.read(pendingRemovalsProvider).flushAll());
+      case AppLifecycleState.resumed:
+        // Returning after installing a new APK: re-read the package and the version check.
+        ref
+          ..invalidate(packageInfoProvider)
+          ..invalidate(appUpdateProvider);
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+        break;
+    }
+  }
+
+  /// What's new opens by itself once per new build: after the active profile loads, only while a
+  /// shell branch route is current (never over a reader, a takeover or a sheet).
+  Future<void> _maybeWhatsNew() async {
+    if (_whatsNewChecked || !mounted) return;
+    if (ref.read(activeProfileProvider) == null) return;
+    if (navInfoFor(widget.location).branch == null || !(ModalRoute.of(context)?.isCurrent ?? true)) return;
+    _whatsNewChecked = true;
+    final due = await whatsNewDue(ref);
+    if (!due || !mounted) return;
+    if (navInfoFor(widget.location).branch == null || !(ModalRoute.of(context)?.isCurrent ?? true)) return;
+    await showWhatsNewSheet(context, ref);
+  }
 
   void _select(int i) {
     final shell = widget.navigationShell;
@@ -71,7 +130,7 @@ class _CineShellState extends ConsumerState<CineShell> {
       case 1:
         router.go(Routes.updates());
       case 3:
-        router.go(Routes.downloads());
+        router.go(Routes.downloads({'view': 'queue'}));
       case 4:
         router.push<void>(Routes.profiles(), extra: <String, String>{'mode': 'switch'});
     }
@@ -90,6 +149,10 @@ class _CineShellState extends ConsumerState<CineShell> {
     final unread = ref.watch(unreadNotificationCountProvider);
     final downloads = ref.watch(activeDownloadCountProvider);
     final back = cineBranchBack(info);
+
+    ref.listen(activeProfileProvider, (_, p) {
+      if (p != null) unawaited(_maybeWhatsNew());
+    });
 
     final mq = MediaQuery.of(context);
     final body = Stack(children: [
@@ -112,7 +175,9 @@ class _CineShellState extends ConsumerState<CineShell> {
       ),
     ],);
 
-    return PopScope(
+    return AutoDownloadTrigger(
+      onQueued: (n) => ref.read(cineToastsProvider.notifier).info(queuedNewChaptersLine(n)),
+      child: PopScope(
       canPop: back == CineBranchBack.system,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
@@ -136,6 +201,7 @@ class _CineShellState extends ConsumerState<CineShell> {
             ),
           ],),
         ),
+      ),
       ),
     );
   }

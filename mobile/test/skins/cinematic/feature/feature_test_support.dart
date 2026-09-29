@@ -200,6 +200,9 @@ class _FreeSpace implements DeviceStorageInfo {
   const _FreeSpace(this.bytes);
   final int bytes;
   @override
+  Future<int?> totalSpaceBytes() async => null;
+
+  @override
   Future<int?> freeSpaceBytes() async => bytes;
 }
 

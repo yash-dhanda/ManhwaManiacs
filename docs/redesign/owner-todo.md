@@ -102,6 +102,9 @@ Items only the owner can do, by step.
 - mobile/27: device checks listed in docs/redesign/proof/mobile-27/device-check.md (predictive back, keyboard rule, viewer gestures, real blur, haptics).
 - mobile/27: run docs/redesign/proof/mobile-27/device-check.md on the iPhone (SideStore) and the Android flagship.
 
+## mobile/17
+- Device checks: `docs/redesign/proof/mobile-17/device-checklist.md` (real queue with pause and background, the meter growing, swipe removal with Undo, Save to Files into Files and Download/ManhwaManiacs, Open Files, restart resume, automatic new-chapter downloads, What's new after an update, the APK banner and Install now, System status as admin, screen readers).
+- The native commit (`MediaChannel.kt`, `getTotalDiskSpace` in `MainActivity.kt` and `AppDelegate.swift`) is not built on this box (no Gradle, no Xcode): CI's APK build and iOS dry run must go green once the integrator pushes.
 ## mobile/08 (Tonight)
 - Device checks: see docs/redesign/proof/mobile-08/device-checklist.md (iPhone via SideStore, Android flagship).
 
