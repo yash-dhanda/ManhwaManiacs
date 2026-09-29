@@ -3,6 +3,10 @@ import Pending from "../pending";
 import { PendingShell } from "../pending-shell";
 import SetupRedirect from "../setup-redirect";
 import type { Screen, Skin } from "../types";
+import SCREEN_discover from "./screens/discover/DiscoverScreen";
+import SCREEN_sources from "./screens/sources/SourcesScreen";
+import SCREEN_source from "./screens/catalogue/CatalogueScreen";
+import SCREEN_dialogue from "./screens/dialogue/DialogueScreen";
 
 /**
  * Every ScreenId this skin has not built yet. Finishing a screen is two edits
@@ -31,14 +35,10 @@ export const PENDING = new Set<ScreenId>([
   "recap",
   "circle",
   "circleMember",
-  "discover",
-  "sources",
-  "source",
   "reader",
   "readAll",
   "novel",
   "downloads",
-  "dialogue",
   "index",
   "settings",
   "status",
@@ -69,14 +69,14 @@ export const screens = {
   recap: Pending,
   circle: Pending,
   circleMember: Pending,
-  discover: Pending,
-  sources: Pending,
-  source: Pending,
+  discover: SCREEN_discover,
+  sources: SCREEN_sources,
+  source: SCREEN_source,
   reader: Pending,
   readAll: Pending,
   novel: Pending,
   downloads: Pending,
-  dialogue: Pending,
+  dialogue: SCREEN_dialogue,
   index: Pending,
   settings: Pending,
   status: Pending,
