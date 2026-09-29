@@ -1,7 +1,7 @@
 // The haptic pattern grammar shared by both skins (shared/00; glass adds its values in shared/01).
 //   pattern  = "none" | primitive [":" (0..1 | "velocity" | "velocity<=" 0..1)] | "ahap:" name ["{depth}"]
 //   value    = pattern | [pattern, {after: ms, then: pattern}, …] | {repeat: pattern, every: ms, max: n}
-// "{depth}" is a placeholder the runtime fills with the depth 1 to 4.
+// "{depth}" is a placeholder the runtime fills with the depth 1 to 4, so name1 … name4 must exist.
 
 export const PRIMITIVES = ["selection", "light", "medium", "heavy", "rigid", "soft", "success", "warning", "error", "toggleOn", "toggleOff", "dragStart", "rigidBack"];
 
@@ -31,6 +31,7 @@ export function hapticErrors(value, ahapNames) {
   const check = (p) => {
     const r = parsePattern(p);
     if (!r) errs.push(`bad pattern ${JSON.stringify(p)}`);
+    else if (r.kind === "ahap" && r.depth) { for (const d of [1, 2, 3, 4]) if (!ahapNames.has(r.name + d)) errs.push(`unknown ahap ${r.name}${d}`); }
     else if (r.kind === "ahap" && !ahapNames.has(r.name)) errs.push(`unknown ahap ${r.name}`);
   };
   if (Array.isArray(value)) {
