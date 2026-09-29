@@ -76,6 +76,7 @@ import {
 } from "../engine/ContinuousStrip";
 import { PagedView } from "../engine/PagedView";
 import { ReaderControls, StripHead, StripTail } from "./ReaderControls";
+import { createLegacySurfaceSlots } from "./legacy-surface-slots";
 
 interface ChapterReaderProps {
   /**
@@ -209,6 +210,7 @@ export function ChapterReader({
   continuousOnly = false,
 }: ChapterReaderProps) {
   const router = useRouter();
+  const surfaceSlots = useMemo(() => createLegacySurfaceSlots(seriesHref), [seriesHref]);
   const scrollElement = useScrollContainer();
   const toggleControls = useReaderStore((state) => state.toggleControls);
   const {
@@ -1261,6 +1263,7 @@ export function ChapterReader({
               chapters={chapters}
               zoom={zoom}
               pageGap={pageGap}
+              slots={surfaceSlots}
               scrollElement={scrollElement}
               initialScrollTop={initialScrollTop}
               onPositionChange={handleStripPosition}
@@ -1297,6 +1300,7 @@ export function ChapterReader({
           onTap={handleTap}
           onZoom={zoomSteps}
           pageTransition={pageTransition}
+          slots={surfaceSlots}
         />
       )}
 

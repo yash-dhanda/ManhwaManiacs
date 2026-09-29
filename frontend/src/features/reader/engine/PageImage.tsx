@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import { memo, useCallback, useEffect, useState } from "react";
-import { ImageOff } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { readerDebug } from "../debug";
 import { pageContainerStyle, UNKNOWN_PAGE_ASPECT } from "../page-layout";
+import type { ReaderSurfaceSlots } from "./slots";
 
 export interface PageFrame {
   width: number;
@@ -17,6 +17,9 @@ const DEFAULT_INTRINSIC_WIDTH = 800;
 
 interface PageImageProps {
   imageUrl: string;
+  /** 1-based page number, handed to the broken-page slot. */
+  pageIndex: number;
+  slots: Pick<ReaderSurfaceSlots, "pagePlaceholder" | "brokenPage">;
   alt: string;
   width?: number | null;
   height?: number | null;
@@ -41,6 +44,8 @@ interface PageImageProps {
 
 export const PageImage = memo(function PageImage({
   imageUrl,
+  pageIndex,
+  slots,
   alt,
   width,
   height,
@@ -92,9 +97,7 @@ export const PageImage = memo(function PageImage({
   return (
     <div
       className={cn(
-        // Letterboxing / placeholder fill uses the reader backdrop so any
-        // aspect mismatch blends into the page flow instead of a harsh black seam.
-        "relative overflow-hidden bg-bg",
+        "relative overflow-hidden",
         frame ? "shrink-0" : "w-full",
         seamless ? "block" : "rounded-sm shadow-lg shadow-black/40",
       )}
@@ -133,39 +136,8 @@ export const PageImage = memo(function PageImage({
           setFailedUrl(imageUrl);
         }}
       />
-      {failed ? <BrokenPage onRetry={retry} /> : null}
+      {!loaded && !failed ? slots.pagePlaceholder({ width: width ?? null, height: height ?? null }) : null}
+      {failed ? slots.brokenPage({ index: pageIndex }, retry) : null}
     </div>
   );
 });
-
-/**
- * What a page that never arrived looks like.
- *
- * Overlaid on the reserved box rather than replacing it, so a dead page does
- * not resize the row underneath a reader who is mid-scroll — the virtualizer
- * measured that box and the seam depends on it. Wording, icon and the single
- * Retry match `reader_page_image.dart`'s `_brokenPageBox`, because a source
- * that rotates its CDN mid-chapter should look the same on the phone and on
- * the laptop.
- *
- * Without this the box simply stayed empty: `onLoad` never fires for an image
- * that failed, so the placeholder — 3.4x the column width for the common case
- * of a connector that reports no page dimensions, about 2,600px at a 768px
- * column — sat there in the backdrop colour, indistinguishable from a slow
- * load, with no way to ask for the page again short of reloading the chapter.
- */
-function BrokenPage({ onRetry }: { onRetry: () => void }) {
-  return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-bg px-6 text-center">
-      <ImageOff className="size-6 text-muted" aria-hidden />
-      <p className="text-sm text-muted">Failed to load page</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="inline-flex h-9 items-center rounded-lg border border-border/60 px-4 text-sm font-medium text-fg transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-      >
-        Retry
-      </button>
-    </div>
-  );
-}

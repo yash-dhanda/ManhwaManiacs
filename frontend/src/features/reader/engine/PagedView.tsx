@@ -9,6 +9,7 @@ import { PRELOAD_AHEAD_PAGED } from "../preload";
 import { spreadDisplayOrder } from "../spread";
 import type { FitMode, ReaderPage, ReadingDirection } from "../types";
 import { PageImage } from "./PageImage";
+import type { ReaderSurfaceSlots } from "./slots";
 
 /** Gutter between the two halves of a spread, in CSS pixels. */
 const SPREAD_GAP = 8;
@@ -40,6 +41,7 @@ interface PagedViewProps {
   onZoom: (steps: number) => void;
   /** Subtle fade between page turns (reader settings, off by default). */
   pageTransition?: boolean;
+  slots: ReaderSurfaceSlots;
 }
 
 export function PagedView({
@@ -54,6 +56,7 @@ export function PagedView({
   onTap,
   onZoom,
   pageTransition = false,
+  slots: surfaceSlots,
 }: PagedViewProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -156,7 +159,7 @@ export function PagedView({
         key={pageTransition ? view.join("-") : undefined}
         className={cn(
           "m-auto flex items-center justify-center",
-          pageTransition && "reader-page-transition-enter",
+          pageTransition && surfaceSlots.pageTurnClass,
         )}
         style={{ gap: `${SPREAD_GAP}px` }}
       >
@@ -183,6 +186,8 @@ export function PagedView({
               width={page.width}
               height={page.height}
               frame={frame}
+              pageIndex={pageNumber}
+              slots={surfaceSlots}
               seamless
             />
           );
