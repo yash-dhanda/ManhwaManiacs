@@ -80,7 +80,14 @@
 }
 .spreadIn { min-height: clamp(520px, 64vh, 760px); position: relative; }
 .spreadText { position: relative; z-index: 2; grid-column: 1 / span 5; padding-block: 24px 40px; align-self: center; }
-.art { position: absolute; inset: 0 0 0 calc(41.66% - 12px); z-index: 0; overflow: hidden; }
+.art {
+  position: absolute; inset: 0 0 0 var(--art-left); z-index: 0; overflow: hidden;
+  /* the left edge of column 6 of 12 (the spread is full-bleed, the grid is not) */
+  --art-left: calc(var(--mm-grid-margin) + 5 * ((100% - 2 * var(--mm-grid-margin) - 11 * var(--mm-grid-gutter)) / 12 + var(--mm-grid-gutter)));
+}
+@media (min-width: 1761px) {
+  .art { --art-left: calc((100% - 1760px) / 2 + var(--mm-grid-margin) + 5 * ((1760px - 2 * var(--mm-grid-margin) - 11 * var(--mm-grid-gutter)) / 12 + var(--mm-grid-gutter))); }
+}
 .artBleed {
   position: absolute; inset: -40px; background-size: cover; background-position: center;
   filter: blur(var(--mm-blur-bleed)); opacity: 0.9;
@@ -136,7 +143,7 @@
 }
 @media (min-width: 768px) and (max-width: 1023px) {
   .spreadText { grid-column: 1 / span 4; }
-  .art { inset: 0 0 0 calc(50% - 8px); }
+  .art { --art-left: calc(var(--mm-grid-margin) + 4 * ((100% - 2 * var(--mm-grid-margin) - 7 * var(--mm-grid-gutter)) / 8 + var(--mm-grid-gutter))); }
 }
 
 /* ---- tabs ---- */
@@ -352,3 +359,5 @@
 .pager::-webkit-scrollbar { display: none; }
 .pagerPanel { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; padding-inline: var(--mm-grid-margin); box-sizing: border-box; }
 .pagerPanel:not([data-active]) { max-height: 100dvh; overflow: hidden; }
+/* An open row menu must paint above the rows after it (each virtual item is its own stacking context). */
+.vitem:has([aria-expanded="true"]), .swipeWrap:has([aria-expanded="true"]) { z-index: 5; }

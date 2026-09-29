@@ -57,21 +57,20 @@ export function FeatureView({ sourceId, seriesKey, followedId, focusChapterKey =
     if (title) document.title = `${title} · ManhwaManiacs`;
   }, [title]);
 
-  // Back (in-page or browser) plays the 336 ms reverse match cut; a page arriving samples its own.
+  // Back (in-page or browser) plays the 336 ms reverse match cut; arriving and leaving sample their transitions.
   useEffect(() => {
-    sampleTransitions("in");
     const html = document.documentElement;
+    if (html.dataset.mmNav !== "back") sampleTransitions("in");
     let t: ReturnType<typeof setTimeout> | undefined;
     const back = () => {
       html.dataset.mmNav = "back";
-      sampleTransitions("out");
       clearTimeout(t);
       t = setTimeout(() => delete html.dataset.mmNav, 900);
     };
     window.addEventListener("popstate", back);
     return () => {
-      window.removeEventListener("popstate", back);
-      clearTimeout(t);
+      window.removeEventListener("popstate", back); // the timer stays: it clears the flag after the transition
+      sampleTransitions("out");
     };
   }, []);
 

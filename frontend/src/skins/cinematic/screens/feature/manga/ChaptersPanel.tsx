@@ -118,6 +118,7 @@ export function ChaptersPanel({
           ? v.getVirtualItems().map((it) => (
               <div
                 key={it.key}
+                className={s.vitem}
                 style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${it.start - v.options.scrollMargin}px)` }}
               >
                 {render(it.index)}

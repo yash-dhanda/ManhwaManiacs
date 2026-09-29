@@ -24,24 +24,29 @@ export function subscribeMotion(l: () => void) {
   return () => void listeners.delete(l);
 }
 
-/** Sample the running view-transition animations (match cut, page in and out) a beat after a commit. */
+/**
+ * Sample the running view-transition animations a beat after a commit and log
+ * the match cut (480 in, 336 back), Page in (320) and Page out (224).
+ */
 export function sampleTransitions(label: "in" | "out") {
   if (typeof document === "undefined") return;
+  const back = document.documentElement.dataset.mmNav === "back";
   window.setTimeout(() => {
-    const seen = new Set<string>();
+    const logged = new Set<string>();
     for (const a of document.getAnimations()) {
       const e = a.effect as KeyframeEffect | null;
-      const pe = e?.pseudoElement;
-      if (!pe?.startsWith("::view-transition-group") && !pe?.startsWith("::view-transition-new") && !pe?.startsWith("::view-transition-old")) continue;
-      const name = pe.replace(/^::view-transition-(group|new|old)\(/, "").replace(/\)$/, "");
-      if (name === "root" || seen.has(name)) continue;
-      const cover = name.startsWith("mm-cover-");
+      const pe = e?.pseudoElement ?? "";
+      const m = /^::view-transition-(group|new|old)\((.+)\)$/.exec(pe);
+      if (!m || m[2] === "root") continue;
+      const cover = m[2].startsWith("mm-cover-");
+      if (cover && m[1] !== "group") continue;
       const dur = Number(e!.getTiming().duration);
-      const key = cover ? (label === "in" ? "matchCut" : "matchCutBack") : label === "in" ? "pageIn" : "pageOut";
-      if (seen.has(key)) continue;
-      seen.add(key);
-      seen.add(name);
-      logMotion(key, dur, dur);
+      let key: string | null;
+      if (cover) key = label === "in" ? "matchCut" : back ? "matchCutBack" : null;
+      else key = label === "in" ? (m[2] === "mm-page-in" ? "pageIn" : null) : m[2] === "mm-page-out" ? "pageOut" : null;
+      if (!key || logged.has(key)) continue;
+      logged.add(key);
+      logMotion(key, key === "matchCutBack" ? 336 : key === "matchCut" ? 480 : key === "pageIn" ? 320 : 224, dur);
     }
   }, 24);
 }

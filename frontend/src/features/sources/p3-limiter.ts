@@ -17,10 +17,11 @@ export function runP3<T>(task: () => Promise<T>): Promise<T | undefined> {
     queue.push(() => {
       inFlight += 1;
       task()
-        .then(resolve, () => resolve(undefined))
-        .finally(() => {
+        .catch(() => undefined)
+        .then((v) => {
           inFlight -= 1;
           pump();
+          resolve(v);
         });
     });
     pump();

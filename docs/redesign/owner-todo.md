@@ -43,3 +43,7 @@ Items only the owner can do, by step.
 ## web/11 (L19)
 - Device check of the Feature and Book pages on a phone (long-press row menu, swipe to Mark read, Lightbox drag down).
 - Confirm `DELETE /reader/progress` exists once backend/02 lands; Mark unread and Undo call it.
+
+## web/11 fix pass (L19)
+- The `?` shortcuts sheet is hosted by the legacy AppShell only; the Series keys are registered in the app keyboard registry (group "Series"), so they show as soon as the Cinematic shell (web/06) mounts `ShortcutsDialog`. Check the sheet once then.
+- Posters elsewhere in the app must wear `coverTransitionName(sourceId, seriesKey)` (`screens/feature/cover-name.ts`) inside a `<ViewTransition share="mm-match-cut">` for the match cut into the Feature page; web/09-web/10 posters do not exist in this tree, so the cut was verified between the two routes of one series.
