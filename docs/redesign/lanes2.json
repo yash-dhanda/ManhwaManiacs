@@ -1,133 +1,5 @@
-{
- "shared": {
-  "lane": "shared",
-  "worktree": "/srv/manhwamaniacs/dev/wt/shared",
-  "branch": "redesign/shared",
-  "apiPort": 8011,
-  "webPort": 3011,
-  "steps": [
-   {
-    "path": "docs/redesign/prompts/shared/00-design-contract-and-token-generator.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/shared/01-glass-tokens-haptics-motion-names-contrast.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/shared/02-icon-sets-and-custom-glyphs.md",
-    "waitFor": []
-   }
-  ]
- },
- "backend": {
-  "lane": "backend",
-  "worktree": "/srv/manhwamaniacs/dev/wt/backend",
-  "branch": "redesign/backend",
-  "apiPort": 8012,
-  "webPort": 3012,
-  "steps": [
-   {
-    "path": "docs/redesign/prompts/backend/00-profile-columns-and-dev-stack.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/backend/01-cover-ambient-and-palette.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/backend/02-library-series-ocr-extensions.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/backend/03-stats-streaks-annual-listen-sessions.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/backend/04-ai-home-composition.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/backend/05-ai-similar-recap-taste-onboarding.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/backend/06-reader-tints-panels-novel-audio.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/backend/07-media-routes-and-install-page.md",
-    "waitFor": [
-     "shared/03",
-     "shared/04"
-    ]
-   },
-   {
-    "path": "docs/redesign/prompts/backend/08-circle-core-sharing-presence.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/backend/09-circle-reactions-letters-shelves.md",
-    "waitFor": []
-   }
-  ]
- },
- "release": {
-  "lane": "release",
-  "worktree": "/srv/manhwamaniacs/dev/wt/release",
-  "branch": "redesign/release",
-  "apiPort": 8025,
-  "webPort": 3025,
-  "steps": [
-   {
-    "path": "docs/redesign/prompts/release/00-cinematic-flip-release.md",
-    "waitFor": [
-     "web/24",
-     "mobile/24",
-     "backend/07",
-     "backend/09"
-    ]
-   },
-   {
-    "path": "docs/redesign/prompts/release/01-glass-final-release.md",
-    "waitFor": [
-     "web/45",
-     "mobile/45"
-    ]
-   }
-  ]
- },
- "shared2": {
-  "lane": "shared2",
-  "worktree": "/srv/manhwamaniacs/dev/wt/shared2",
-  "branch": "redesign/shared2",
-  "apiPort": 8025,
-  "webPort": 3025,
-  "steps": [
-   {
-    "path": "docs/redesign/prompts/shared/03-ui-sounds-and-soundscape-audio.md",
-    "waitFor": []
-   }
-  ]
- },
- "shared3": {
-  "lane": "shared3",
-  "worktree": "/srv/manhwamaniacs/dev/wt/shared3",
-  "branch": "redesign/shared3",
-  "apiPort": 8026,
-  "webPort": 3026,
-  "steps": [
-   {
-    "path": "docs/redesign/prompts/shared/04-brand-cinematic-and-platform-icons.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/shared/05-brand-glass-and-art-intake.md",
-    "waitFor": []
-   }
-  ]
- },
- "L01": {
+[
+ {
   "lane": "L01",
   "worktree": "/srv/manhwamaniacs/dev/wt/L01",
   "branch": "redesign/L01",
@@ -217,7 +89,7 @@
    }
   ]
  },
- "L02": {
+ {
   "lane": "L02",
   "worktree": "/srv/manhwamaniacs/dev/wt/L02",
   "branch": "redesign/L02",
@@ -296,7 +168,7 @@
    }
   ]
  },
- "L03": {
+ {
   "lane": "L03",
   "worktree": "/srv/manhwamaniacs/dev/wt/L03",
   "branch": "redesign/L03",
@@ -355,7 +227,7 @@
    }
   ]
  },
- "L04": {
+ {
   "lane": "L04",
   "worktree": "/srv/manhwamaniacs/dev/wt/L04",
   "branch": "redesign/L04",
@@ -402,7 +274,7 @@
    }
   ]
  },
- "L05": {
+ {
   "lane": "L05",
   "worktree": "/srv/manhwamaniacs/dev/wt/L05",
   "branch": "redesign/L05",
@@ -433,7 +305,7 @@
    }
   ]
  },
- "L06": {
+ {
   "lane": "L06",
   "worktree": "/srv/manhwamaniacs/dev/wt/L06",
   "branch": "redesign/L06",
@@ -468,7 +340,7 @@
    }
   ]
  },
- "L07": {
+ {
   "lane": "L07",
   "worktree": "/srv/manhwamaniacs/dev/wt/L07",
   "branch": "redesign/L07",
@@ -504,7 +376,7 @@
    }
   ]
  },
- "L08": {
+ {
   "lane": "L08",
   "worktree": "/srv/manhwamaniacs/dev/wt/L08",
   "branch": "redesign/L08",
@@ -540,7 +412,7 @@
    }
   ]
  },
- "L09": {
+ {
   "lane": "L09",
   "worktree": "/srv/manhwamaniacs/dev/wt/L09",
   "branch": "redesign/L09",
@@ -578,7 +450,7 @@
    }
   ]
  },
- "L10": {
+ {
   "lane": "L10",
   "worktree": "/srv/manhwamaniacs/dev/wt/L10",
   "branch": "redesign/L10",
@@ -603,7 +475,7 @@
    }
   ]
  },
- "L11": {
+ {
   "lane": "L11",
   "worktree": "/srv/manhwamaniacs/dev/wt/L11",
   "branch": "redesign/L11",
@@ -629,7 +501,7 @@
    }
   ]
  },
- "L12": {
+ {
   "lane": "L12",
   "worktree": "/srv/manhwamaniacs/dev/wt/L12",
   "branch": "redesign/L12",
@@ -654,7 +526,7 @@
    }
   ]
  },
- "L13": {
+ {
   "lane": "L13",
   "worktree": "/srv/manhwamaniacs/dev/wt/L13",
   "branch": "redesign/L13",
@@ -673,7 +545,7 @@
    }
   ]
  },
- "L14": {
+ {
   "lane": "L14",
   "worktree": "/srv/manhwamaniacs/dev/wt/L14",
   "branch": "redesign/L14",
@@ -704,7 +576,7 @@
    }
   ]
  },
- "L15": {
+ {
   "lane": "L15",
   "worktree": "/srv/manhwamaniacs/dev/wt/L15",
   "branch": "redesign/L15",
@@ -723,7 +595,7 @@
    }
   ]
  },
- "L16": {
+ {
   "lane": "L16",
   "worktree": "/srv/manhwamaniacs/dev/wt/L16",
   "branch": "redesign/L16",
@@ -742,7 +614,7 @@
    }
   ]
  },
- "L17": {
+ {
   "lane": "L17",
   "worktree": "/srv/manhwamaniacs/dev/wt/L17",
   "branch": "redesign/L17",
@@ -757,7 +629,7 @@
    }
   ]
  },
- "L18": {
+ {
   "lane": "L18",
   "worktree": "/srv/manhwamaniacs/dev/wt/L18",
   "branch": "redesign/L18",
@@ -773,7 +645,7 @@
    }
   ]
  },
- "L19": {
+ {
   "lane": "L19",
   "worktree": "/srv/manhwamaniacs/dev/wt/L19",
   "branch": "redesign/L19",
@@ -786,7 +658,7 @@
    }
   ]
  },
- "L20": {
+ {
   "lane": "L20",
   "worktree": "/srv/manhwamaniacs/dev/wt/L20",
   "branch": "redesign/L20",
@@ -801,7 +673,7 @@
    }
   ]
  },
- "L21": {
+ {
   "lane": "L21",
   "worktree": "/srv/manhwamaniacs/dev/wt/L21",
   "branch": "redesign/L21",
@@ -816,7 +688,7 @@
    }
   ]
  },
- "L22": {
+ {
   "lane": "L22",
   "worktree": "/srv/manhwamaniacs/dev/wt/L22",
   "branch": "redesign/L22",
@@ -831,7 +703,7 @@
    }
   ]
  },
- "L23": {
+ {
   "lane": "L23",
   "worktree": "/srv/manhwamaniacs/dev/wt/L23",
   "branch": "redesign/L23",
@@ -847,7 +719,7 @@
    }
   ]
  },
- "L24": {
+ {
   "lane": "L24",
   "worktree": "/srv/manhwamaniacs/dev/wt/L24",
   "branch": "redesign/L24",
@@ -863,7 +735,7 @@
    }
   ]
  },
- "L25": {
+ {
   "lane": "L25",
   "worktree": "/srv/manhwamaniacs/dev/wt/L25",
   "branch": "redesign/L25",
@@ -878,4 +750,4 @@
    }
   ]
  }
-}
+]
