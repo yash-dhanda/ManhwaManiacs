@@ -43,7 +43,6 @@ const Map<String, List<String>> _providersByService = {
   // is as stale as any other cached list when the switch flips. Availability
   // is not listed: it reports a key and a counter, neither gated.
   'suggestion_service': ['suggestionsProvider'],
-  'taste_service': ['recommendationsProvider'],
   'update_service': ['updatesProvider'],
 };
 
