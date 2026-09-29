@@ -27,7 +27,12 @@ List<String> boundaryViolations(String path, String source) {
         'app/app.dart',
         'skins/legacy/',
       ]) {
-        if (i.contains(banned)) out.add('$p imports $i (banned: $banned)');
+        // A skin's own `screens/` and `widgets/` folders are its own code.
+        final own = (inCine && i.contains('skins/cinematic/')) ||
+            (inGlass && i.contains('skins/glass/'));
+        if (i.contains(banned) && !own) {
+          out.add('$p imports $i (banned: $banned)');
+        }
       }
       if (inCine && i.contains('skins/glass/')) {
         out.add('$p imports $i (other skin)');
@@ -61,6 +66,10 @@ void main() {
       expect(boundaryViolations(cine, "import '$bad';"), isNotEmpty,
           reason: bad,);
     }
+    expect(
+        boundaryViolations(cine,
+            "import 'package:manhwamaniacs/skins/cinematic/screens/discover/a.dart';",),
+        isEmpty,);
     expect(
         boundaryViolations('lib/skins/glass/x.dart',
             "import 'package:manhwamaniacs/skins/cinematic/router.dart';",),

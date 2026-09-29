@@ -229,7 +229,8 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
                       'Across chapters whose dialogue has been read, in series you follow.',
                       style: cineText(context, t.typeDeck, color: t.colorInk60),
                     ),
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           'Scan more chapters from ',

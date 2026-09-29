@@ -25,3 +25,7 @@ Items only the owner can do, by step.
 ## mobile/02 (L01)
 - Run docs/redesign/proof/mobile-02/device-check.md on the iPhone build and the Android flagship.
 - After the integrator pushes: read CI (`android-apk`, `build-ios`) for the dependency, audio_service and mm/platform commits and record run ids in dependency-gate.md; apply a package's ledger fallback if a native job fails.
+
+## mobile/16 (L09)
+
+- Run `docs/redesign/proof/mobile-16/device-checklist.md` on the iPhone and the Android flagship once CI builds them.

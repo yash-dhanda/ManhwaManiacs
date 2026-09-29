@@ -162,7 +162,6 @@ class SlugTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.cine;
     return SizedBox(
       height: 48,
       child: SingleChildScrollView(

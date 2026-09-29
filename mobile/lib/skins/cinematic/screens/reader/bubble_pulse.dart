@@ -73,16 +73,10 @@ class _BubblePulseState extends State<BubblePulse> with SingleTickerProviderStat
         widget.onDone?.call();
       });
     } else {
-      unawaited(_run());
+      // Two 480 ms passes as one 960 ms run.
+      _c.duration = const Duration(milliseconds: 960);
+      unawaited(_c.forward().whenComplete(() => widget.onDone?.call()));
     }
-  }
-
-  Future<void> _run() async {
-    for (var i = 0; i < 2; i++) {
-      _c.duration = const Duration(milliseconds: 480);
-      await _c.forward(from: 0);
-    }
-    widget.onDone?.call();
   }
 
   @override
@@ -101,8 +95,8 @@ class _BubblePulseState extends State<BubblePulse> with SingleTickerProviderStat
           animation: _c,
           builder: (context, _) {
             // 0 -> 1 -> 0 within one 480 ms pass: a triangle eased by settle.
-            final v = _c.value;
-            final tri = v < 0.5 ? v * 2 : (1 - v) * 2;
+            final pass = _c.value >= 1 ? 1.0 : (_c.value * 2) % 1;
+            final tri = pass < 0.5 ? pass * 2 : (1 - pass) * 2;
             final opacity = _reduced ? 1.0 : CineCurves.settle.transform(tri);
             final b = widget.box;
             return Stack(

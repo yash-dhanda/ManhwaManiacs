@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
+import 'package:manhwamaniacs/features/ocr/providers/dialogue_still_provider.dart';
 import 'package:manhwamaniacs/features/ocr/services/ocr_snippet.dart';
 import 'package:manhwamaniacs/features/ocr/utils/engine_label.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -38,6 +39,13 @@ class TranscriptBlock extends ConsumerWidget {
       engineLabel(hit.engine),
     ].join(' · ');
 
+    final page = hit.page;
+    final failed = page != null &&
+        ref.watch(dialogueStillProvider((chapter: hit.identity, page: page))).maybeWhen(
+              data: (s) => s == null || (s.file == null && s.bytes == null),
+              error: (_, __) => true,
+              orElse: () => false,
+            );
     final base = cineText(context, t.typeBody);
     final transcript = RichText(
       textScaler: MediaQuery.textScalerOf(context),
@@ -78,7 +86,8 @@ class TranscriptBlock extends ConsumerWidget {
 
     return Semantics(
       button: true,
-      label: '$credit. ${ocrSnippetSpans(hit.snippet).map((s) => s.text).join()}',
+      label: '$credit. ${ocrSnippetSpans(hit.snippet).map((s) => s.text).join()}'
+          '${failed ? " Page didn't load" : ''}',
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
