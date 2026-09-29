@@ -1,1 +1,26 @@
-/* web/27 edges */
+/* Scroll edges and scrollbars (web/27 K) */
+[data-skin="glass"] .g-edge { position: absolute; left: 0; right: 0; height: calc(var(--plateau, 60px) + 24px); pointer-events: none; z-index: 5; opacity: var(--edge-o, 0); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+[data-skin="glass"] .g-edge[data-edge="top"] { top: 0; background: linear-gradient(to bottom, rgb(0 0 0 / 0.72) var(--plateau, 60px), transparent); -webkit-mask-image: linear-gradient(to bottom, #000 var(--plateau, 60px), transparent); mask-image: linear-gradient(to bottom, #000 var(--plateau, 60px), transparent); }
+[data-skin="glass"] .g-edge[data-edge="bottom"] { bottom: 0; background: linear-gradient(to top, rgb(0 0 0 / 0.72) var(--plateau, 60px), transparent); -webkit-mask-image: linear-gradient(to top, #000 var(--plateau, 60px), transparent); mask-image: linear-gradient(to top, #000 var(--plateau, 60px), transparent); }
+/* Solid glass and Reduce Transparency: the hard edge */
+html[data-solid="on"] [data-skin="glass"] .g-edge { height: var(--plateau, 60px); -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(0 0 0 / 0.92); -webkit-mask-image: none; mask-image: none; }
+@media (prefers-reduced-transparency: reduce) { [data-skin="glass"] .g-edge { height: var(--plateau, 60px); -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(0 0 0 / 0.92); -webkit-mask-image: none; mask-image: none; } }
+[data-skin="glass"] .g-edge-hard { position: absolute; left: 0; right: 0; background: rgb(0 0 0 / 0.92); pointer-events: none; z-index: 5; }
+[data-skin="glass"] .g-edge-hard[data-edge="top"] { top: 0; border-bottom: 0.5px solid var(--mm-color-separator); }
+[data-skin="glass"] .g-edge-hard[data-edge="bottom"] { bottom: 0; border-top: 0.5px solid var(--mm-color-separator); }
+
+/* Scrollbars: a 6 px capsule thumb widening to 10 px on hover, shown only while scrolling (data-scrolling for 800 ms) or hovered */
+.glass-scroll { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+.glass-scroll[data-scrolling], .glass-scroll:hover { scrollbar-color: rgb(255 255 255 / 0.28) transparent; }
+.glass-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+.glass-scroll::-webkit-scrollbar-track { background: transparent; }
+.glass-scroll::-webkit-scrollbar-thumb { background: transparent; border-radius: 9999px; border: 2px solid transparent; background-clip: padding-box; }
+.glass-scroll[data-scrolling]::-webkit-scrollbar-thumb, .glass-scroll:hover::-webkit-scrollbar-thumb { background-color: rgb(255 255 255 / 0.28); }
+.glass-scroll::-webkit-scrollbar-thumb:hover { border-width: 0; }
+
+[data-skin="glass"] .g-fastscroll { position: absolute; right: 0; top: 0; bottom: 0; width: 44px; touch-action: none; outline: none; z-index: 6; }
+[data-skin="glass"] .g-fastscroll__thumb { position: absolute; right: 4px; width: 6px; height: 40px; margin-top: -20px; border-radius: 9999px; background: rgb(255 255 255 / 0.28); }
+[data-skin="glass"] .g-fastscroll[data-dragging] .g-fastscroll__thumb { background: rgb(255 255 255 / 0.6); width: 10px; }
+[data-skin="glass"] .g-fastscroll__bubble { position: absolute; right: 44px; translate: 0 -50%; pointer-events: none; }
+[data-skin="glass"] .g-fastscroll__glass { position: relative; min-width: 56px; height: 44px; }
+[data-skin="glass"] .g-fastscroll__label { position: relative; z-index: 1; display: grid; place-items: center; height: 44px; padding: 0 16px; font: 600 20px/24px var(--mm-font-mono, ui-monospace, monospace); color: var(--mm-color-on-glass); }

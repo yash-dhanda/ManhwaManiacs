@@ -1,1 +1,18 @@
-/* web/27 viewer */
+/* Image viewer (web/27 J) */
+[data-skin="glass"] .g-viewer { position: fixed; inset: 0; z-index: 80; outline: none; color: #fff; }
+[data-skin="glass"] .g-viewer__bg { position: absolute; inset: 0; background: #000; }
+[data-skin="glass"] .g-viewer__stage { position: absolute; inset: 0; display: grid; place-items: center; touch-action: none; overflow: hidden; outline: none; }
+[data-skin="glass"] .g-viewer__frame { position: relative; display: grid; max-width: 100vw; max-height: 100dvh; overflow: hidden; will-change: transform; }
+[data-skin="glass"] .g-viewer__thumb, [data-skin="glass"] .g-viewer__img { grid-area: 1 / 1; display: block; max-width: 100vw; max-height: 100dvh; object-fit: contain; user-select: none; -webkit-user-drag: none; }
+[data-skin="glass"] .g-viewer__thumb[data-loading] { filter: blur(8px); }
+[data-skin="glass"] .g-viewer__img { position: relative; }
+[data-skin="glass"] .g-viewer__chrome { position: absolute; inset: 0; pointer-events: none; display: flex; justify-content: space-between; align-items: flex-start; padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px 0; transition: opacity 200ms linear; }
+[data-skin="glass"] .g-viewer[data-chrome="hidden"] .g-viewer__chrome { opacity: 0; }
+[data-skin="glass"] .g-viewer__right { display: flex; gap: 8px; }
+[data-skin="glass"] .g-viewer__btn { pointer-events: auto; position: relative; width: 44px; height: 44px; }
+[data-skin="glass"] .g-viewer__btn > :is(button, a) { position: relative; z-index: 1; width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; color: #fff; border-radius: 9999px; }
+[data-skin="glass"] .g-viewer__btn > :is(button, a):focus-visible { outline: none; box-shadow: 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300); }
+[data-skin="glass"] .g-viewer__error { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+[data-skin="glass"] .g-viewer__errglass { position: relative; pointer-events: auto; }
+[data-skin="glass"] .g-viewer__errinner { position: relative; z-index: 1; display: grid; gap: 12px; padding: 20px; justify-items: center; color: var(--mm-color-on-glass); }
+[data-skin="glass"] .g-viewer__errinner p { margin: 0; }

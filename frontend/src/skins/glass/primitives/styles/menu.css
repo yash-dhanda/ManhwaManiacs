@@ -1,1 +1,18 @@
-/* web/27 menu */
+/* Menus and context menus (web/27 H) */
+[data-skin="glass"] .g-menu-pos { z-index: 72; }
+[data-skin="glass"] .g-menu { outline: none; min-width: 220px; max-width: 320px; color: var(--mm-color-on-glass); }
+[data-skin="glass"] .g-menu__glass { position: relative; padding: 6px; }
+[data-skin="glass"] .g-menu__inner { position: relative; z-index: 1; display: grid; }
+[data-skin="glass"] .g-menu__row { position: relative; display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 20px; background: none; border: 0; color: var(--mm-color-on-glass); font: 420 17px/22px var(--mm-font-sans, system-ui); text-align: left; outline: none; cursor: pointer; transition: background var(--mm-dur-color-shift, 240ms) ease; }
+[data-skin="glass"] .g-menu__row[data-highlighted], [data-skin="glass"] .g-menu__row[data-slide-hot], [data-skin="glass"] .g-menu__row[data-force="hover"] { background: var(--mm-color-fill2); }
+@media (hover: hover) { [data-skin="glass"] .g-menu__row:hover { background: var(--mm-color-fill2); } }
+[data-skin="glass"] .g-menu__row:active, [data-skin="glass"] .g-menu__row[data-force="pressed"] { scale: 0.98; }
+[data-skin="glass"] .g-menu__row:focus-visible, [data-skin="glass"] .g-menu__row[data-force="focus"] { box-shadow: inset 0 0 0 2px var(--mm-color-iris300); }
+[data-skin="glass"] .g-menu__row[data-disabled] { color: var(--mm-color-label4); pointer-events: none; }
+[data-skin="glass"] .g-menu__label { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+[data-skin="glass"] .g-menu__noicon { width: 0; }
+[data-skin="glass"] .g-menu__gap { height: 6px; }
+[data-skin="glass"] .g-menu__keys { display: inline-flex; gap: 4px; }
+[data-skin="glass"] .g-menu__tick { display: inline-flex; }
+[data-skin="glass"] .g-ctx-dim { position: fixed; inset: 0; z-index: 70; background: var(--mm-color-dim-context); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+html[data-solid="on"] [data-skin="glass"] .g-ctx-dim { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(0 0 0 / 0.75); }
