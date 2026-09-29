@@ -1,0 +1,3 @@
+Baseline run was interrupted (my own edits landed mid-run). Baseline taken from the merged
+tip before this step: backend-03's proof records 3479 passed, 2 skipped, 7 deselected; the
+merge of feat/vps-slim-source-native added no backend tests. PRE-EXISTING FAILURES: none.

@@ -1,3 +1,4 @@
+import { sourceHealthService } from "@/services/system";
 import {
   useInfiniteQuery,
   useMutation,
@@ -22,6 +23,9 @@ import type {
   SourceChapterSummary,
   SourcePin,
 } from "./types";
+import { sourcesLimiter } from "./standins/request-limiter"; // TODO(web/03): real limiter
+
+const p1 = <T,>(task: () => Promise<T>) => sourcesLimiter.run("P1", task);
 
 /**
  * Cache root for everything served out of `/sources`. Exported because the
@@ -97,7 +101,7 @@ export function sourceReaderChapterPath(
 export function useSources(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...SOURCES_KEY, "installed"],
-    queryFn: () => sourcesApi.listSources(),
+    queryFn: () => p1(() => sourcesApi.listSources()),
     enabled: options?.enabled ?? true,
   });
 }
@@ -163,7 +167,7 @@ export function useFederatedSearch(params: FederatedSearchParams) {
   // behind it, so the screen fills immediately instead of after ten seconds.
   const first = useQuery({
     queryKey: federatedSearchQueryKey(params, 1),
-    queryFn: () => sourcesApi.federatedSearch({ ...params, tier: 1 }),
+    queryFn: () => p1(() => sourcesApi.federatedSearch({ ...params, tier: 1 })),
     enabled: params.q.length > 0,
     placeholderData: (previous) => previous,
     staleTime: SEARCH_STALE_MS,
@@ -199,7 +203,7 @@ export function federatedSearchRestOptions(
 ) {
   return {
     queryKey: federatedSearchQueryKey(params, 2),
-    queryFn: () => sourcesApi.federatedSearch({ ...params, tier: 2 }),
+    queryFn: () => p1(() => sourcesApi.federatedSearch({ ...params, tier: 2 })),
     enabled: params.q.length > 0 && first?.next_tier === 2,
     staleTime: SEARCH_STALE_MS,
   };
@@ -290,7 +294,7 @@ export function useRetrySearchSource(params: FederatedSearchParams) {
 
   return useMutation({
     mutationFn: (sourceId: string) =>
-      sourcesApi.listSeries(sourceId, { query: params.q }),
+      p1(() => sourcesApi.listSeries(sourceId, { query: params.q })),
     onSuccess: (page, sourceId) => {
       patch(sourceId, (previous, group) =>
         replaceSearchGroup(
@@ -330,7 +334,7 @@ export function useSourcePins() {
   const profileId = useActiveProfileStore((state) => state.activeProfile?.id ?? null);
   return useQuery({
     queryKey: sourcePinsQueryKey(profileId),
-    queryFn: () => sourcesApi.listPins(),
+    queryFn: () => p1(() => sourcesApi.listPins()),
     enabled: profileId !== null,
   });
 }
@@ -366,7 +370,7 @@ export function useReplaceSourcePins() {
 export function useSourceBrowseModes(sourceId: string) {
   return useQuery({
     queryKey: [...SOURCES_KEY, sourceId, "browse-modes"],
-    queryFn: () => sourcesApi.browseModes(sourceId),
+    queryFn: () => p1(() => sourcesApi.browseModes(sourceId)),
     enabled: Boolean(sourceId),
   });
 }
@@ -374,7 +378,7 @@ export function useSourceBrowseModes(sourceId: string) {
 export function useSourceGenres(sourceId: string) {
   return useQuery({
     queryKey: [...SOURCES_KEY, sourceId, "genres"],
-    queryFn: () => sourcesApi.genres(sourceId),
+    queryFn: () => p1(() => sourcesApi.genres(sourceId)),
     enabled: Boolean(sourceId),
   });
 }
@@ -385,7 +389,7 @@ export function useSourceSeries(
 ) {
   return useQuery({
     queryKey: [...SOURCES_KEY, sourceId, "series", params],
-    queryFn: () => sourcesApi.listSeries(sourceId, params),
+    queryFn: () => p1(() => sourcesApi.listSeries(sourceId, params)),
     enabled: Boolean(sourceId),
     placeholderData: (previous) => previous,
   });
@@ -433,12 +437,12 @@ export function useInfiniteSourceSeries(
   return useInfiniteQuery({
     queryKey: sourceSeriesInfiniteQueryKey(sourceId, { query, sort, genre }),
     queryFn: ({ pageParam }) =>
-      sourcesApi.listSeries(sourceId, {
+      p1(() => sourcesApi.listSeries(sourceId, {
         page: pageParam,
         query: normalized.query,
         sort: normalized.sort,
         genre: normalized.genre,
-      }),
+      })),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => (lastPage.has_more ? lastPage.page + 1 : undefined),
     enabled: Boolean(sourceId),
@@ -483,13 +487,13 @@ export function useRefreshSourceBrowse(
 
   return useMutation({
     mutationFn: () =>
-      sourcesApi.listSeries(sourceId, {
+      p1(() => sourcesApi.listSeries(sourceId, {
         page: 1,
         query: normalized.query,
         sort: normalized.sort,
         genre: normalized.genre,
         refresh: true,
-      }),
+      })),
     onSuccess: (page) => applyRefreshedBrowsePage(queryClient, key, page),
   });
 }
@@ -597,5 +601,14 @@ export function useSourceReaderChapter(
     },
     enabled: Boolean(sourceId) && Boolean(seriesId) && Boolean(chapterId),
     staleTime: SOURCE_READER_STALE_MS,
+  });
+}
+
+/** Aggregate source health for the Sources masthead deck. */
+export function useSourceHealthSummary() {
+  return useQuery({
+    queryKey: [...SOURCES_KEY, "health-summary"],
+    queryFn: () => sourceHealthService.summary(),
+    staleTime: 60_000,
   });
 }

@@ -1,0 +1,7 @@
+/* HoldToConfirm (web/26 B) */
+[data-skin="glass"] .g-hold { display: inline-flex; flex-direction: column; align-items: center; gap: 8px; max-width: 100%; }
+[data-skin="glass"] .g-hold__btn { position: relative; display: grid; place-items: center; min-height: 50px; padding: 0 24px; border-radius: 9999px; outline: none; color: var(--mm-color-on-glass); overflow: hidden; touch-action: none; }
+[data-skin="glass"] .g-hold__btn[data-focus-visible] { box-shadow: var(--glass-shadow), 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300); }
+[data-skin="glass"] .g-hold__label { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 8px; font: 600 17px/22px var(--mm-font-sans, system-ui); }
+[data-skin="glass"] .g-hold__helper { min-height: 18px; margin: 0; text-align: center; font: 13px/18px var(--mm-font-sans, system-ui); color: var(--mm-color-label2); }
+[data-skin="glass"] .g-hold[data-mode="inAlert"] .g-btn { align-self: stretch; }

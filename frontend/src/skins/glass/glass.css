@@ -2,6 +2,19 @@
  * Glass skin material sheet (web/25). A GLOBAL stylesheet on purpose: Turbopack
  * rejects impure selectors in CSS modules and tsc/eslint do not catch it.
  */
+@import "./primitives/styles/press.css";
+@import "./primitives/styles/button.css";
+@import "./primitives/styles/hold.css";
+@import "./primitives/styles/icon-button.css";
+@import "./primitives/styles/fields.css";
+@import "./primitives/styles/chips.css";
+@import "./primitives/styles/poster.css";
+@import "./primitives/styles/progress.css";
+@import "./primitives/styles/cards.css";
+@import "./primitives/styles/rails.css";
+@import "./primitives/styles/reveals.css";
+@import "./primitives/styles/gallery.css";
+
 html[data-skin="glass"] { color-scheme: dark; }
 
 /* Autofill on wells (glass/DESIGN.md 8.0.7). */
@@ -215,6 +228,7 @@ html[data-motion="reduced"] .glass[data-materialize="out"] > :is(.glass__bg, .gl
  * ------------------------------------------------------------------------- */
 .caustic { position: relative; --caustic-a: var(--mm-caustic-alpha, 0.14); transition: --caustic-a var(--mm-dur-glow-out, 60ms) linear; }
 .caustic[data-pressed="on"] { --caustic-a: var(--mm-caustic-alpha-pressed, 0.22); transition-duration: var(--mm-dur-glow-in, 150ms); }
+.caustic[data-suppressed] { --caustic-a: 0 !important; transition: --caustic-a 180ms linear; }
 .caustic::before {
   content: "";
   position: absolute;

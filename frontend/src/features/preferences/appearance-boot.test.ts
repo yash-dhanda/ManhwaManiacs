@@ -273,8 +273,10 @@ describe("appearance boot script — first-paint accessibility", () => {
       key: (i: number) => keys[i] ?? null,
       getItem: (k: string) => store[k] ?? null,
     };
-    const doc = { documentElement: { setAttribute: (n: string, v: string) => (attrs[n] = v) } };
+    const doc = { documentElement: { setAttribute: (n: string, v: string) => { if (n !== "data-glass-renderer") attrs[n] = v; } } };
     new Function("localStorage", "document", "location", APPEARANCE_BOOT_SOURCE)(ls, doc, { pathname });
+    // The Glass renderer stamp is unconditional and covered by its own test below.
+    delete attrs["data-glass-renderer"];
     return attrs;
   }
   const five = {
@@ -284,6 +286,14 @@ describe("appearance boot script — first-paint accessibility", () => {
     "data-contrast": "more",
     "data-sr": "on",
   };
+
+  it("stamps the frosted glass renderer by default", () => {
+    const attrs: Record<string, string> = {};
+    const ls = { length: 0, key: () => null, getItem: () => null };
+    const doc = { documentElement: { setAttribute: (n: string, v: string) => (attrs[n] = v) } };
+    new Function("localStorage", "document", "location", APPEARANCE_BOOT_SOURCE)(ls, doc, { pathname: "/library" });
+    expect(attrs["data-glass-renderer"]).toBe("frosted");
+  });
 
   it("stamps all five attributes from the profile's entry", () => {
     expect(stamped(storeFor(7, { [a11yKey(1, 7)]: ALL }))).toEqual(five);

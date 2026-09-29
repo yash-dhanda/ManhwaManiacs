@@ -11,6 +11,8 @@ function hit(overrides: Partial<OcrSearchResultItem> = {}): OcrSearchResultItem 
     engine: "tesseract",
     snippet: "the <mark>hero</mark> speaks",
     highlighted_terms: ["hero"],
+    page: null,
+    box: null,
     ...overrides,
   };
 }
