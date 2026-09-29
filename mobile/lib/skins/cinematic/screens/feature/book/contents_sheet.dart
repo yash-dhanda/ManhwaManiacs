@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/contents_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 
 /// N2: the contents sheet in search mode: the go-to field (autofocused), the
 /// match list (up to 12 buttons, "and n more"), the captions, and the full
-/// contents pre-scrolled to the current chapter. TODO(mobile/06): `CineSheetRoute`.
+/// contents pre-scrolled to the current chapter, in a `CineSheetRoute` (Rise).
 Future<SourceChapterSummary?> showContentsSheet(
   BuildContext context, {
   required List<SourceChapterSummary> chapters,
   String? currentKey,
   bool online = true,
 }) =>
-    showModalBottomSheet<SourceChapterSummary>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: cineOf(context).colorPaper2,
-      builder: (ctx) => ContentsSheet(chapters: chapters, currentKey: currentKey, online: online),
+    showCineSheet<SourceChapterSummary>(
+      context,
+      kicker: 'CONTENTS',
+      title: 'Contents',
+      builder: (ctx) => Material(
+        type: MaterialType.transparency,
+        child: ContentsSheet(chapters: chapters, currentKey: currentKey, online: online),
+      ),
     );
 
 class ContentsSheet extends StatefulWidget {
@@ -60,10 +63,6 @@ class _ContentsSheetState extends State<ContentsSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Text('CONTENTS', style: kickerStyle(context)),
-            ),
             if (!widget.online)
               const Padding(
                 padding: EdgeInsets.all(16),

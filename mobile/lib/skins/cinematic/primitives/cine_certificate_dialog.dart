@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_certificate.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_checkbox.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_measure.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/transitions.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
@@ -116,36 +116,18 @@ class _CineCertificateDialogState extends State<CineCertificateDialog> {
   }
 }
 
-/// Pushes the shell with the local Dip (out 160 ms `lift` to `#000`, hold 40 ms, in 240 ms
-/// `settle`, 440 ms both directions; reduced motion a 150 ms fade). mobile/06 later points this at
-/// its shared Dip builder.
+/// Pushes the shell on the shared Dip (out 160 ms `lift` to `#000`, hold 40 ms, in 240 ms
+/// `settle`, 440 ms both directions; reduced motion a 150 ms fade): the takeover move of
+/// `transitions.dart`.
 Future<bool?> openCineCertificateDialog(BuildContext context, {String profileName = '', required Future<bool> Function() onConfirm, VoidCallback? onCancel}) {
-  final reduced = CineMotion.reduced(context);
   final navigator = Navigator.of(context, rootNavigator: true);
   final themes = InheritedTheme.capture(from: context, to: navigator.context);
   return navigator.push<bool>(
     PageRouteBuilder<bool>(
-      transitionDuration: reduced ? CineDur.reduced : const Duration(milliseconds: 440),
-      reverseTransitionDuration: reduced ? CineDur.reduced : const Duration(milliseconds: 440),
+      transitionDuration: CineRouteMotion.forward(CineTransitionKind.dip),
+      reverseTransitionDuration: CineRouteMotion.reverse(CineTransitionKind.dip),
       pageBuilder: (_, __, ___) => themes.wrap(CineCertificateDialog(profileName: profileName, onConfirm: onConfirm, onCancel: onCancel)),
-      transitionsBuilder: (context, a, _, child) {
-        if (reduced) return FadeTransition(opacity: a, child: child);
-        return AnimatedBuilder(
-          animation: a,
-          child: child,
-          builder: (context, child) {
-            const total = 440.0;
-            final ms = a.value * total;
-            // 0..160 the old screen dips to black; 160..200 holds; 200..440 the new one settles in.
-            final dip = CineCurves.lift.flipped.transform((ms / 160).clamp(0.0, 1.0));
-            final inT = CineCurves.settle.transform(((ms - 200) / 240).clamp(0.0, 1.0));
-            return Stack(fit: StackFit.expand, children: [
-              Opacity(opacity: dip, child: const ColoredBox(color: Color(0xFF000000))),
-              Opacity(opacity: inT, child: child),
-            ],);
-          },
-        );
-      },
+      transitionsBuilder: (context, a, _, child) => cineDipTransition(context: context, animation: a, child: child),
     ),
   );
 }

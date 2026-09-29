@@ -81,3 +81,6 @@ Items only the owner can do, by step.
 - mobile/05: run docs/redesign/proof/mobile-05/device-checklist.md on iPhone (SideStore) and the Android flagship.
 ## mobile/26 (Glass primitives 1)
 - Device check on iPhone and Android flagship: `docs/redesign/proof/mobile-26/device-check.md` (haptic ramp, 120 Hz press feel, throw, snap, screen readers).
+
+## mobile/06
+- Device checks: `docs/redesign/proof/mobile-06/device-checklist.md` (Press start haptics, iOS edge back, Android predictive back, offline edition, tablet keyboard, screen-reader announcements).
