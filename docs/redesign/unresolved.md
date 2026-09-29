@@ -44,3 +44,7 @@ Verifier items (fix attempted, not re-checked):
 - Section F.3: scan widgets added to the mobile/04 Diagnostics primitives gallery with fixture states
 - Ground rules / scope: use the mobile/04, mobile/05 and mobile/06 primitives and the real SetHeading
 - Screenshots of the states 'Discover searching, group jump, scan block in each phase, reader bubble pulse' and 'Dip into the reader' (E.3)
+
+## mobile/08 (cinematic tonight, lane L06)
+
+- (fix attempted, not re-checked) Acceptance: hardware keyboard `R`, `↓`/`↑`, `C`, `P`, `V`, `Enter` and rail keys work in a widget test with `tester.sendKeyEvent`, and the CineFocusRing double ring shows on keyboard focus only
