@@ -20,7 +20,7 @@ Synthesis runs `node design/sounds/synth.mjs loop/<id> <wav> --gain <dB>`: the s
 - Integrated loudness -26.0 LUFS (target -26), true peak -13.9 dBTP, gain -10.06 dB
 - Seam: L: last -26.1 / first -26.2 dB RMS (diff 0.09), jump 0.0002; R: last -27.7 / first -26.4 dB RMS (diff 1.30), jump 0.0013
 - `backend/media/soundscapes/projector-room.ogg`: 1275057 bytes, SHA-256 cdb31ceebd7f132da0c24cac60c82b82b73756cd37ee8fa9bd7734952c22de04
-- `backend/media/soundscapes/projector-room.m4a`: 1172204 bytes, SHA-256 5549dab5349fc590f46e2ecddf39712452c1b91a172e8608b566d2b528b0bf24
+- `backend/media/soundscapes/projector-room.m4a`: 1374450 bytes, SHA-256 54da5196455265b766e1a9de3071aa55b22fb5744d588a315ea8dec4f19daa60
 
 Commands, in order:
 
@@ -30,6 +30,7 @@ node design/sounds/synth.mjs loop/projector-room design/sounds/.build/projector-
 ffmpeg -hide_banner -nostats -i design/sounds/.build/projector-room.wav -af ebur128=peak=true -f null -
 ffmpeg -y -v error -i design/sounds/.build/projector-room.wav -c:a libvorbis -b:a 96k -fflags +bitexact -flags:a +bitexact -map_metadata -1 backend/media/soundscapes/projector-room.ogg
 ffmpeg -y -v error -i design/sounds/.build/projector-room.wav -c:a aac -b:a 96k -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 backend/media/soundscapes/projector-room.m4a
+ffmpeg -y -v error -i design/sounds/.build/projector-room.wav -c:a aac -b:a 112k -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 backend/media/soundscapes/projector-room.m4a
 ```
 
 ## rain-on-glass

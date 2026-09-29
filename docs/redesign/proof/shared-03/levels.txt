@@ -54,7 +54,7 @@ glass WAV total: 546704 bytes (533.9 KB) against 320 KB: OVER by 219024 bytes (t
 soundscape loops (measured on the shipped files)
 id                  file                                              seconds   LUFS  TP dBTP  bytes    seam (decoded)  sha256
 projector-room      backend/media/soundscapes/projector-room.ogg       90.000  -26.0    -13.9  1275057  1.35 dB/0.0047 cdb31ceebd7f132da0c24cac60c82b82b73756cd37ee8fa9bd7734952c22de04
-projector-room      backend/media/soundscapes/projector-room.m4a       90.000  -26.0    -13.8  1172204  1.17 dB/0.0389 5549dab5349fc590f46e2ecddf39712452c1b91a172e8608b566d2b528b0bf24
+projector-room      backend/media/soundscapes/projector-room.m4a       90.000  -26.0    -13.9  1374450  1.25 dB/0.0172 54da5196455265b766e1a9de3071aa55b22fb5744d588a315ea8dec4f19daa60
 rain-on-glass       backend/media/soundscapes/rain-on-glass.ogg        90.000  -26.4    -17.1  1074310  0.33 dB/0.0144 e7ff0b458c7c6b1adc855939dc6136e4811f22f04ac31fe01dbe199884d2be6a
 rain-on-glass       backend/media/soundscapes/rain-on-glass.m4a        90.000  -25.5    -16.0  1101133  0.73 dB/0.0110 a0de85e6505a52facfe0e0d41aa8bdbc85786ae133c30fc8f7930fd1dafc7ed7
 night-city          backend/media/soundscapes/night-city.ogg           90.000  -26.1    -11.9  1103525  0.72 dB/0.0047 17acd1d242a4fbffdfa918dbae0b13578be37926297e9cf2a05d87bf0932e3f3
@@ -70,7 +70,7 @@ afternoon-park      backend/media/soundscapes/afternoon-park.m4a       90.000  -
 temple-bells        backend/media/soundscapes/temple-bells.ogg         90.000  -26.0     -4.3  1008832  0.50 dB/0.0050 77da140cac1b4e167ddad5cb36236ec207496166aa202639145d8e69723b42e6
 temple-bells        backend/media/soundscapes/temple-bells.m4a         90.000  -26.0     -4.1  1100754  0.50 dB/0.0056 447ad366e7f5f17d8d22bef383b9b400fe8084685197ba63e5ee841452db447a
 glass-deep-bed      backend/media/soundscapes/glass/deep-bed.ogg       90.000  -26.0    -17.0   968365  0.33 dB/0.0062 30dd21de4073def13c49ca6973d1a439b2050019d88afe7145a49f3d56b00392
-glass-deep-bed      backend/media/soundscapes/glass/deep-bed.m4a       90.000  -26.0    -15.1  1103054  0.33 dB/0.0238 d640eaab561ef3c36f432c941816214264e85de8e5110e03cae23d8d6ca9f609
+glass-deep-bed      backend/media/soundscapes/glass/deep-bed.m4a       90.000  -26.0    -13.8  1283436  0.41 dB/0.0069 f5e556ce07851a8ffcc680acdee372afe27f06bf3e65f62fda88f88a8a0fe9fb
 glass-deep-detail   backend/media/soundscapes/glass/deep-detail.ogg    90.000  -30.0    -25.1  1388145  1.02 dB/0.0023 2dd8ce1e3bc10e1726110d740b46e220a35915259b70276fa15016900e3ceea5
 glass-deep-detail   backend/media/soundscapes/glass/deep-detail.m4a    90.000  -30.0    -25.0  1101156  1.07 dB/0.0037 b06aff0c742c7ba2aeb7041a3207cd45c1373b4cabff67641884728eaa04d78e
 glass-deep-tone     backend/media/soundscapes/glass/deep-tone.ogg      90.000  -32.0    -24.3   103670  0.03 dB/0.0013 e2d0a7ad8cae06eabd458a979f7b7e87771df77f1034eb2fbb38c7c66cbc633e

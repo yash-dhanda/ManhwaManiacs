@@ -1,5 +1,5 @@
 # shared/03 cue commands, in order (written by design/sounds/render.mjs cues)
-# sox: not installed (no sudo on the render box); fallback: node design/sounds/synth.mjs (Node v22.14.0)
+# sox: not installed (no sudo on the render box, so apt/pacman could not run); fallback: node design/sounds/synth.mjs (Node v22.14.0)
 # ffmpeg version n9.0.2 Copyright (c) 2000-2026 the FFmpeg developers
 
 # cinematic post-chain: lowpass 5000 reverb 30 50 20 0 0 -18.4 channels 1

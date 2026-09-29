@@ -8,6 +8,7 @@
 //                                          -> backend/media/soundscapes/, commands -> the SOURCES.md files
 //   node design/sounds/render.mjs --proof  docs/redesign/proof/shared-03/{cues.svg, soundscapes.svg, levels.txt}
 //
+// Tests: node --test design/sounds/test/*.test.mjs   (Node 22 rejects a bare directory argument)
 // sox is not installed on the render box (no sudo), so synthesis is design/sounds/synth.mjs (the
 // shared/03 fallback); ffmpeg ($FFMPEG or PATH) encodes and measures loudness. Render-time checks
 // fail the run: decoded web length within 2 ms of the master, loop seam, loudness and true peak.
@@ -16,7 +17,7 @@ import { join } from "node:path";
 import { renderCue, renderLoop, timingChain, fnv1a, RATE, scaleBy } from "./synth.mjs";
 import { readWav, writeWav, peakDbfs, rmsDb } from "./wav.mjs";
 import {
-  root, FFMPEG, run, toolVersions, encodeArgs, decodedFrames, normaliseLoop, seamOk, loudness, seam,
+  root, FFMPEG, run, toolVersions, encodeArgs, decodedFrames, normaliseLoop, encodeLoopAac, seamOk, loudness, seam,
   sha256, sizeOf, parseSources, writeSources, missingList, missingText, GLASS_DIR, GLASS_SOURCES,
 } from "./trim-loop.mjs";
 
@@ -39,7 +40,7 @@ const master = (skin, stem) => `mobile/assets/sounds/${skin}/${stem}.wav`;
 const web = (skin, stem, ext) => `frontend/public/sounds/${skin}/${stem}.${ext}`;
 
 function renderCues() {
-  const v = toolVersions(), log = [`# shared/03 cue commands, in order (written by design/sounds/render.mjs cues)`, `# ${v.sox}`, `# ${v.ffmpeg}`, ""];
+  const v = toolVersions(), log = [`# shared/03 cue commands, in order (written by design/sounds/render.mjs cues)`, `# sox: ${v.sox}`, `# ${v.ffmpeg}`, ""];
   for (const skin of SKINS) {
     const list = stems(skin);
     for (const dir of [`mobile/assets/sounds/${skin}`, `frontend/public/sounds/${skin}`]) { // no stale files
@@ -92,7 +93,7 @@ function renderLoops() {
     const glass = r.skin === "glass";
     mkdirSync(join(root, files.ogg, ".."), { recursive: true });
     run(FFMPEG, glass ? encodeArgs.opus(wav, files.ogg) : encodeArgs.vorbis(wav, files.ogg), log);
-    run(FFMPEG, encodeArgs.aac(wav, files.m4a), log);
+    encodeLoopAac(wav, files.m4a, log);
     for (const ext of ["ogg", "m4a"]) {
       const d = decodedFrames(files[ext], 2);
       if (Math.abs(d - 90 * RATE) > 0.002 * RATE) throw new Error(`${files[ext]} decodes to ${d} frames`);

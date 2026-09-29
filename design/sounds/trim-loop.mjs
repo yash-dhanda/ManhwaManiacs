@@ -50,7 +50,7 @@ const BITEXACT = ["-fflags", "+bitexact", "-flags:a", "+bitexact", "-map_metadat
 export const encodeArgs = {
   opus: (wav, out, mono) => ["-y", "-v", "error", "-i", wav, "-c:a", "libopus", "-b:a", "96k", ...(mono ? ["-ac", "1"] : []), ...BITEXACT, out],
   vorbis: (wav, out) => ["-y", "-v", "error", "-i", wav, "-c:a", "libvorbis", "-b:a", "96k", ...BITEXACT, out],
-  aac: (wav, out, mono) => ["-y", "-v", "error", "-i", wav, "-c:a", "aac", "-b:a", "96k", ...(mono ? ["-ac", "1"] : []), "-movflags", "+faststart", ...BITEXACT, out],
+  aac: (wav, out, mono, kbps = 96) => ["-y", "-v", "error", "-i", wav, "-c:a", "aac", "-b:a", `${kbps}k`, ...(mono ? ["-ac", "1"] : []), "-movflags", "+faststart", ...BITEXACT, out],
 };
 /** Integrated loudness (LUFS) and true peak (dBTP) of a file, via ffmpeg's ebur128. */
 export function loudness(file, log) {
@@ -79,6 +79,21 @@ export function seam(chs) {
     const diff = end === -Infinity && start === -Infinity ? 0 : Math.abs(end - start);
     return { endRms: end, startRms: start, rmsDiff: diff, jump: Math.abs(x[n - 1] - x[0]) };
   });
+}
+/** Seam of the decoded (stereo, 48 kHz) file, so codec noise is counted. */
+export function decodedSeam(file) {
+  const r = spawnSync(FFMPEG, ["-v", "error", "-i", file, "-f", "f32le", "-ac", "2", "-ar", "48000", "-"], { cwd: root, maxBuffer: 1 << 30 });
+  if (r.status !== 0) throw new Error(`decode ${file}: ${r.stderr}`);
+  const f = new Float32Array(r.stdout.buffer.slice(r.stdout.byteOffset, r.stdout.byteOffset + r.stdout.length)), n = f.length / 2;
+  return seam([0, 1].map((c) => Float64Array.from({ length: n }, (_, i) => f[2 * i + c])));
+}
+/** Encode a loop's AAC, raising the bitrate until the decoded seam meets the 0.02 jump limit. */
+export function encodeLoopAac(wav, out, log, maxJump = 0.02) {
+  for (const kbps of [96, 112, 128, 144, 160, 192]) {
+    run(FFMPEG, encodeArgs.aac(wav, out, false, kbps), log);
+    if (decodedSeam(out).every((c) => c.jump < maxJump)) return kbps;
+  }
+  throw new Error(`${out}: decoded AAC seam jump stays above ${maxJump}`);
 }
 export const seamOk = (s, maxJump = 0.02) => s.every((c) => (c.endRms < -90 && c.startRms < -90) || c.rmsDiff <= 1.5) && s.every((c) => c.jump < maxJump);
 /**
@@ -239,10 +254,10 @@ function processIncoming() {
     if (!seamOk(res.seam, maxJump)) throw new Error(`${f}: seam check failed (jump limit ${maxJump.toFixed(4)}) ${JSON.stringify(res.seam)}`);
     const out = { ogg: `${GLASS_DIR}/${stem}.ogg`, m4a: `${GLASS_DIR}/${stem}.m4a` };
     run(FFMPEG, encodeArgs.opus(`${tmp}/loop.wav`, out.ogg), log);
-    run(FFMPEG, encodeArgs.aac(`${tmp}/loop.wav`, out.m4a), log);
+    encodeLoopAac(`${tmp}/loop.wav`, out.m4a, log, maxJump);
     rows.set(id, {
       ...r,
-      Processing: `trim-loop.mjs: 96 s from ${start} s, 90 s equal-power loop, gain ${res.gain} dB, Opus + AAC 96k`,
+      Processing: `trim-loop.mjs: 96 s from ${start} s, 90 s equal-power loop, gain ${res.gain} dB, Opus + AAC (96k, raised until the decoded seam jump is under 0.02)`,
       LUFS: `${res.lufs.toFixed(1)} (TP ${res.truePeak.toFixed(1)} dBTP)`,
       Size: `ogg ${sizeOf(out.ogg)} B, m4a ${sizeOf(out.m4a)} B`,
       "SHA-256": `ogg ${sha256(out.ogg)}, m4a ${sha256(out.m4a)}`,

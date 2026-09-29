@@ -27,7 +27,7 @@ Glass's six scenes (glass/DESIGN.md §9.4.2) each have three recorded layers, `b
 | glass-stream-bed | stream | bed | running water |  |  |  |  |  |  |  |  |  |
 | glass-stream-detail | stream | detail | pebbles and a small fall |  |  |  |  |  |  |  |  |  |
 | glass-stream-tone | stream | tone | birds far off |  |  |  |  |  |  |  |  |  |
-| glass-deep-bed | deep | bed | synthesised drone in A (sines 55 + 82.41 Hz, 0.03 Hz chorus, pink noise under 300 Hz) | none (synthesised) | ManhwaManiacs (synthesised by design/sounds/render.mjs) | no third-party material | none |  | Synthesised: node design/sounds/synth.mjs loop/glass-deep-bed … --gain -24.26, then Opus + AAC 96k (commands below) | -26.0 (TP -16.9 dBTP) | ogg 968365 B, m4a 1103054 B | ogg 30dd21de4073def13c49ca6973d1a439b2050019d88afe7145a49f3d56b00392, m4a d640eaab561ef3c36f432c941816214264e85de8e5110e03cae23d8d6ca9f609 |
+| glass-deep-bed | deep | bed | synthesised drone in A (sines 55 + 82.41 Hz, 0.03 Hz chorus, pink noise under 300 Hz) | none (synthesised) | ManhwaManiacs (synthesised by design/sounds/render.mjs) | no third-party material | none |  | Synthesised: node design/sounds/synth.mjs loop/glass-deep-bed … --gain -24.26, then Opus + AAC 96k (commands below) | -26.0 (TP -16.9 dBTP) | ogg 968365 B, m4a 1283436 B | ogg 30dd21de4073def13c49ca6973d1a439b2050019d88afe7145a49f3d56b00392, m4a f5e556ce07851a8ffcc680acdee372afe27f06bf3e65f62fda88f88a8a0fe9fb |
 | glass-deep-detail | deep | detail | synthesised slow shimmer (A6 + E7, tremolo, reverb) | none (synthesised) | ManhwaManiacs (synthesised by design/sounds/render.mjs) | no third-party material | none |  | Synthesised: node design/sounds/synth.mjs loop/glass-deep-detail … --gain -30.05, then Opus + AAC 96k (commands below) | -30.0 (TP -25.1 dBTP) | ogg 1388145 B, m4a 1101156 B | ogg 2dd8ce1e3bc10e1726110d740b46e220a35915259b70276fa15016900e3ceea5, m4a b06aff0c742c7ba2aeb7041a3207cd45c1373b4cabff67641884728eaa04d78e |
 | glass-deep-tone | deep | tone | synthesised soft pulses (110 Hz, 16 per loop) | none (synthesised) | ManhwaManiacs (synthesised by design/sounds/render.mjs) | no third-party material | none |  | Synthesised: node design/sounds/synth.mjs loop/glass-deep-tone … --gain -24.4, then Opus + AAC 96k (commands below) | -32.0 (TP -24.4 dBTP) | ogg 103670 B, m4a 131198 B | ogg e2d0a7ad8cae06eabd458a979f7b7e87771df77f1034eb2fbb38c7c66cbc633e, m4a 9594ef6c651c12db643ba26e7e3aee28b380ea89a3c2ced3659faeec67042f2a |
 
@@ -48,7 +48,7 @@ Glass's six scenes (glass/DESIGN.md §9.4.2) each have three recorded layers, `b
 - Integrated loudness -26.0 LUFS (target -26), true peak -16.9 dBTP, gain -24.26 dB
 - Seam: L: last -25.9 / first -25.6 dB RMS (diff 0.26), jump 0.0007; R: last -25.9 / first -25.6 dB RMS (diff 0.32), jump 0.0007
 - `backend/media/soundscapes/glass/deep-bed.ogg`: 968365 bytes, SHA-256 30dd21de4073def13c49ca6973d1a439b2050019d88afe7145a49f3d56b00392
-- `backend/media/soundscapes/glass/deep-bed.m4a`: 1103054 bytes, SHA-256 d640eaab561ef3c36f432c941816214264e85de8e5110e03cae23d8d6ca9f609
+- `backend/media/soundscapes/glass/deep-bed.m4a`: 1283436 bytes, SHA-256 f5e556ce07851a8ffcc680acdee372afe27f06bf3e65f62fda88f88a8a0fe9fb
 
 Commands, in order:
 
@@ -58,6 +58,7 @@ node design/sounds/synth.mjs loop/glass-deep-bed design/sounds/.build/glass-deep
 ffmpeg -hide_banner -nostats -i design/sounds/.build/glass-deep-bed.wav -af ebur128=peak=true -f null -
 ffmpeg -y -v error -i design/sounds/.build/glass-deep-bed.wav -c:a libopus -b:a 96k -fflags +bitexact -flags:a +bitexact -map_metadata -1 backend/media/soundscapes/glass/deep-bed.ogg
 ffmpeg -y -v error -i design/sounds/.build/glass-deep-bed.wav -c:a aac -b:a 96k -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 backend/media/soundscapes/glass/deep-bed.m4a
+ffmpeg -y -v error -i design/sounds/.build/glass-deep-bed.wav -c:a aac -b:a 112k -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 backend/media/soundscapes/glass/deep-bed.m4a
 ```
 
 ### glass-deep-detail
