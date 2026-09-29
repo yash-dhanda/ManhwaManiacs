@@ -11,6 +11,7 @@ import { Icon, type IconName } from "./Icon";
 import { LiquidProgress } from "./LiquidProgress";
 import { usePress, type PressState } from "./usePress";
 import { Button } from "./Button";
+import { confirmAlert } from "./confirmAlert";
 
 export interface HoldToConfirmProps {
   label: string;
@@ -18,7 +19,7 @@ export interface HoldToConfirmProps {
   /** `standalone`: a click calls onRequestConfirm (the confirm alert, web/27). `inAlert`: an explicit confirm button is always visible under the hold button. */
   mode: "standalone" | "inAlert";
   onConfirm: () => void;
-  /** required in standalone mode: opens the explicit confirm alert (WCAG 2.5.1 fallback) */
+  /** standalone mode: opens the explicit confirm alert (WCAG 2.5.1 fallback); defaults to `confirmAlert` */
   onRequestConfirm?: () => void;
   /** inAlert: label of the always-visible explicit button, e.g. "Turn on 18+" */
   fallbackLabel?: string;
@@ -32,7 +33,6 @@ export interface HoldToConfirmProps {
 
 /** Hold-to-confirm: a `glassThin` capsule, L 50, whose liquid fill rises from 200 ms to 1,200 ms. The fallback is never optional. */
 export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, fallbackLabel = "Confirm", holdingLabel = "Keep holding…", disabled, forceState, previewLevel, "data-testid": tid }: HoldToConfirmProps) {
-  if (process.env.NODE_ENV !== "production" && mode === "standalone" && !onRequestConfirm) console.error("HoldToConfirm mode=standalone requires onRequestConfirm");
   const reduced = useGlassReduced();
   const [level, setLevel] = useState(0);
   const [phase, setPhase] = useState<HoldState["phase"]>("idle");
@@ -45,8 +45,9 @@ export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, 
   const origin = useRef({ x: 0, y: 0 });
   const helperT = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const fallback = useRef<HTMLButtonElement>(null);
-  const cbs = useRef({ onConfirm, onRequestConfirm });
-  useEffect(() => { cbs.current = { onConfirm, onRequestConfirm }; });
+  const btn = useRef<HTMLButtonElement | null>(null);
+  const cbs = useRef({ onConfirm, onRequestConfirm, label, fallbackLabel });
+  useEffect(() => { cbs.current = { onConfirm, onRequestConfirm, label, fallbackLabel }; });
 
   const showHelper = useCallback((text: string) => {
     setHelper(text);
@@ -54,7 +55,10 @@ export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, 
     helperT.current = setTimeout(() => setHelper(null), 2000);
   }, []);
   const onClick = useCallback(() => {
-    if (mode === "standalone") cbs.current.onRequestConfirm?.();
+    if (mode === "standalone") {
+      if (cbs.current.onRequestConfirm) cbs.current.onRequestConfirm();
+      else void confirmAlert({ title: cbs.current.label, confirmLabel: cbs.current.fallbackLabel, destructive: true, source: btn.current }).then((ok) => { if (ok) cbs.current.onConfirm(); });
+    }
     else { fallback.current?.focus(); showHelper("Hold, or use the button below"); }
   }, [mode, showHelper]);
 
@@ -87,7 +91,7 @@ export function HoldToConfirm({ label, icon, mode, onConfirm, onRequestConfirm, 
   }, [feed]);
   useEffect(() => () => { endRec.current?.(); cancelAnimationFrame(raf.current); clearTimeout(helperT.current); }, []);
 
-  const p = usePress<HTMLButtonElement>({ material: "glass", growth: "medium", disabled, forceState, haptic: false, onPress: (e) => { if (e.type !== "pointerup") onClick(); }, stretch: false });
+  const p = usePress<HTMLButtonElement>({ material: "glass", growth: "medium", disabled, forceState, haptic: false, forwardRef: btn, onPress: (e) => { if (e.type !== "pointerup") onClick(); }, stretch: false });
   const down = (e: PointerEvent<HTMLButtonElement>) => {
     if (disabled || (e.pointerType === "mouse" && e.button !== 0)) return;
     p.props.onPointerDown(e);

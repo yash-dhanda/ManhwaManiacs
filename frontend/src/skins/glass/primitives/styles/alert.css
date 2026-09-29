@@ -1,1 +1,19 @@
-/* web/27 alert */
+/* Dialogs and alerts (web/27 C) */
+[data-skin="glass"] .g-alert-layer { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
+[data-skin="glass"] .g-alert__dim { position: absolute; inset: 0; background: var(--mm-color-dim-modal); pointer-events: auto; }
+[data-skin="glass"] .g-alert__center { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; pointer-events: none; }
+[data-skin="glass"] .g-alert { width: 300px; max-width: 100%; pointer-events: auto; outline: none; color: var(--mm-color-on-glass); }
+@media (min-width: 768px) { [data-skin="glass"] .g-alert { width: 420px; } }
+[data-skin="glass"] .g-alert__glass { position: relative; width: 100%; }
+[data-skin="glass"] .g-alert__inner { position: relative; z-index: 1; display: grid; gap: 10px; padding: 20px; }
+[data-skin="glass"] .g-alert__title { margin: 0; text-align: left; color: var(--mm-color-on-glass); font: 700 20px/26px var(--mm-font-sans, system-ui); }
+[data-skin="glass"] .g-alert__body { margin: 0; color: var(--mm-color-on-glass); font: 400 16px/22px var(--mm-font-sans, system-ui); }
+[data-skin="glass"] .g-alert__secondary { margin: 0; color: var(--mm-color-on-glass); font: 400 13px/18px var(--mm-font-sans, system-ui); }
+[data-skin="glass"] .g-alert__box { position: relative; padding: 10px 12px 10px 16px; border-radius: 14px; background: var(--mm-color-surface2); overflow: hidden; color: var(--mm-color-on-glass); }
+[data-skin="glass"] .g-alert__bar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--mm-color-warning); }
+[data-skin="glass"] .g-alert__box[data-tone="danger"] .g-alert__bar { background: var(--mm-color-danger); }
+[data-skin="glass"] .g-alert__error { margin: 0; display: flex; align-items: center; gap: 8px; color: var(--mm-color-on-glass); font: 500 13px/18px var(--mm-font-sans, system-ui); }
+[data-skin="glass"] .g-alert__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+[data-skin="glass"] .g-alert__actions > * { flex: 0 0 auto; white-space: nowrap; }
+[data-skin="glass"] .g-alert__actions[data-stacked] { flex-direction: column; align-items: stretch; }
+[data-skin="glass"] .g-alert__actions[data-stacked] > * { width: 100%; }

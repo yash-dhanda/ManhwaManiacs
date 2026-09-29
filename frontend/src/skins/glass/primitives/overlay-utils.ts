@@ -55,3 +55,9 @@ export const focusQuiet = (el: HTMLElement | null | undefined) => el?.focus({ pr
 
 /** Elements inside `root` that take keyboard focus, in DOM order. */
 export const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** A jump under Reduce Motion, the token spring otherwise (knobs, checks and dots "jump to their end state"). */
+export function springOrJump(mv: MotionValue<number>, to: number, name: SpringName, opts: { velocity?: number; onComplete?: () => void } = {}): AnimationPlaybackControls | null {
+  if (isGlassReduced()) { mv.set(to); opts.onComplete?.(); return null; }
+  return springTo(mv, to, name, opts);
+}

@@ -1,1 +1,54 @@
-/* web/27 slider */
+/* Sliders, the fill slider, the scrub rail and the speed dial (web/27 F) */
+[data-skin="glass"] .g-slider { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 360px; min-width: 0; }
+[data-skin="glass"] .g-slider__rail { position: relative; flex: 1; height: 44px; touch-action: none; min-width: 0; }
+[data-skin="glass"] .g-slider__track { position: absolute; left: 0; right: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 9999px; background: var(--mm-color-fill1); transition: height var(--mm-spring-press-ms, 253ms) var(--mm-spring-press, ease), margin var(--mm-spring-press-ms, 253ms) var(--mm-spring-press, ease); overflow: hidden; }
+[data-skin="glass"] .g-slider[data-drag] .g-slider__track, [data-skin="glass"] .g-slider[data-force="pressed"] .g-slider__track { height: 8px; margin-top: -4px; }
+[data-skin="glass"] .g-slider__fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--mm-color-iris500); border-radius: 9999px; }
+[data-skin="glass"] .g-slider__thumb { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin-left: -8px; display: grid; place-items: center; outline: none; touch-action: none; border-radius: 9999px; }
+[data-skin="glass"] .g-slider__knob { width: 28px; height: 28px; border-radius: 9999px; background: #fff; box-shadow: 0 2px 8px rgb(0 0 0 / 0.4); transition: width 160ms ease, height 160ms ease; }
+@media (hover: hover) { [data-skin="glass"] .g-slider:not([data-disabled]) .g-slider__thumb:hover .g-slider__knob, [data-skin="glass"] .g-slider[data-force="hover"] .g-slider__knob { width: 30px; height: 30px; } }
+[data-skin="glass"] .g-slider__glassThumb { position: relative; width: 34px; height: 34px; }
+[data-skin="glass"] .g-slider__glass { position: absolute; inset: 0; border-radius: 9999px; }
+[data-skin="glass"] .g-slider__thumb:focus-visible .g-slider__knob, [data-skin="glass"] .g-slider[data-force="focus"] .g-slider__knob { box-shadow: 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300), 0 2px 8px rgb(0 0 0 / 0.4); }
+[data-skin="glass"] .g-slider[data-disabled] .g-slider__track, [data-skin="glass"] .g-slider[data-force="disabled"] .g-slider__track { background: var(--mm-color-g300); }
+[data-skin="glass"] .g-slider[data-disabled] .g-slider__fill, [data-skin="glass"] .g-slider[data-force="disabled"] .g-slider__fill { background: var(--mm-color-g500); }
+[data-skin="glass"] .g-slider[data-disabled] .g-slider__knob, [data-skin="glass"] .g-slider[data-force="disabled"] .g-slider__knob { background: var(--mm-color-g500); box-shadow: none; }
+[data-skin="glass"] .g-slider[data-error] .g-slider__fill { background: var(--mm-color-danger); }
+[data-skin="glass"] .g-slider__value { min-width: 44px; text-align: right; font: 500 13px/18px var(--mm-font-mono, ui-monospace, monospace); color: var(--mm-color-label2); display: inline-flex; justify-content: flex-end; }
+[data-skin="glass"] .g-slider__bubble { position: absolute; left: 50%; bottom: 100%; translate: -50% 0; margin-bottom: -2px; pointer-events: none; }
+[data-skin="glass"] .g-slider__bubbleGlass { position: relative; min-width: 44px; height: 32px; }
+[data-skin="glass"] .g-slider__bubbleText { position: relative; z-index: 1; display: grid; place-items: center; height: 32px; padding: 0 12px; font: 500 13px/18px var(--mm-font-mono, ui-monospace, monospace); color: var(--mm-color-on-glass); white-space: nowrap; }
+
+[data-skin="glass"] .g-fillslider { position: relative; width: 72px; height: 160px; overflow: hidden; touch-action: none; }
+[data-skin="glass"] .g-fillslider__box { position: relative; width: 100%; height: 100%; display: flex; align-items: flex-end; touch-action: none; outline: none; border-radius: inherit; }
+[data-skin="glass"] .g-fillslider__fill { position: absolute; left: 0; right: 0; bottom: 0; background: color-mix(in srgb, var(--mm-color-on-glass) 90%, transparent); }
+[data-skin="glass"] .g-fillslider__glyph { position: relative; z-index: 1; display: grid; place-items: center; width: 100%; height: 56px; color: var(--mm-color-on-glass); mix-blend-mode: difference; }
+[data-skin="glass"] .g-fillslider__box:focus-visible { box-shadow: inset 0 0 0 2px var(--mm-color-iris300); }
+
+[data-skin="glass"] .g-scrub { position: relative; width: 44px; touch-action: none; outline: none; user-select: none; }
+[data-skin="glass"] .g-scrub__seg { position: absolute; left: 50%; width: 3px; margin-left: -1.5px; border-radius: 2px; background: rgb(255 255 255 / 0.5); outline: 1px solid rgb(0 0 0 / 0.6); outline-offset: 0; transition: width 160ms ease, margin 160ms ease; }
+[data-skin="glass"] .g-scrub[data-touch] .g-scrub__seg, [data-skin="glass"] .g-scrub[data-touch] .g-scrub__fill { width: 6px; margin-left: -3px; }
+[data-skin="glass"] .g-scrub__fill { position: absolute; left: 50%; top: 0; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--mm-color-iris500); transition: width 160ms ease, margin 160ms ease; }
+[data-skin="glass"] .g-scrub__thumb { position: absolute; left: 50%; top: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 9999px; background: #fff; box-shadow: 0 0 0 1.5px #000; }
+[data-skin="glass"] .g-scrub__mark { position: absolute; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 9999px; background: var(--mm-color-iris300); }
+[data-skin="glass"] .g-scrub:focus-visible { box-shadow: 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300); border-radius: 12px; }
+[data-skin="glass"] .g-scrub__lens { position: absolute; right: 56px; top: -82px; width: 120px; height: 164px; transform-origin: 100% 50%; pointer-events: none; z-index: 5; }
+[data-skin="glass"] .g-scrub__lensGlass { position: relative; width: 100%; height: 100%; overflow: hidden; }
+[data-skin="glass"] .g-scrub__preview { position: relative; z-index: 1; width: 100%; height: 100%; display: grid; place-items: center; }
+[data-skin="glass"] .g-scrub__preview img { position: absolute; inset: 8px; width: calc(100% - 16px); height: calc(100% - 16px); object-fit: cover; border-radius: 12px; }
+[data-skin="glass"] .g-scrub__num { position: relative; z-index: 2; font: 600 28px/32px var(--mm-font-mono, ui-monospace, monospace); color: var(--mm-color-on-glass); text-shadow: 0 1px 6px rgb(0 0 0 / 0.6); }
+
+[data-skin="glass"] .g-dial-pos { z-index: 75; }
+[data-skin="glass"] .g-dial { outline: none; color: var(--mm-color-on-glass); }
+[data-skin="glass"] .g-dial__glass { position: relative; padding: 8px; }
+[data-skin="glass"] .g-dial__inner { position: relative; z-index: 1; display: grid; justify-items: center; gap: 4px; }
+[data-skin="glass"] .g-dial__cap { position: relative; width: 64px; height: 240px; touch-action: none; border-radius: 32px; background: var(--mm-color-well-on-glass); outline: none; display: grid; grid-template-rows: 44px 1fr; justify-items: center; }
+[data-skin="glass"] .g-dial__cap:focus-visible { box-shadow: 0 0 0 2px #000, 0 0 0 calc(2px + var(--g-focus-w, 2px)) var(--mm-color-iris300); }
+[data-skin="glass"] .g-dial__value { align-self: center; font: 600 15px/20px var(--mm-font-mono, ui-monospace, monospace); }
+[data-skin="glass"] .g-dial__track { position: relative; width: 100%; margin-bottom: 12px; }
+[data-skin="glass"] .g-dial__track::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; margin-left: -2px; border-radius: 9999px; background: var(--mm-color-fill1); }
+[data-skin="glass"] .g-dial__mark { position: absolute; left: 0; right: 0; height: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; font: 400 10px/12px var(--mm-font-mono, ui-monospace, monospace); color: var(--mm-color-on-glass); opacity: 0.8; pointer-events: none; }
+[data-skin="glass"] .g-dial__mark i { width: 8px; height: 1px; background: currentColor; order: 2; }
+[data-skin="glass"] .g-dial__thumb { position: absolute; left: 50%; top: 0; width: 44px; height: 20px; margin: -10px 0 0 -22px; border-radius: 9999px; background: #fff; box-shadow: 0 2px 8px rgb(0 0 0 / 0.4); pointer-events: none; }
+[data-skin="glass"] .g-dial__wpm { margin: 4px 0 0; font: 400 12px/16px var(--mm-font-sans, system-ui); color: var(--mm-color-on-glass); }
+[data-skin="glass"] .g-dial__presets { display: flex; gap: 0; }

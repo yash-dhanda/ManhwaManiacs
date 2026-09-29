@@ -29,3 +29,4 @@
 .gal-page__filler { height: 480px; background: repeating-linear-gradient(135deg, rgb(139 92 246 / 0.18) 0 24px, transparent 24px 48px); margin: 16px 0; border-radius: 16px; }
 .gal-sheet-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .gal-sheet-rows li { min-height: 44px; display: flex; align-items: center; padding: 0 16px; border-radius: 20px; background: var(--mm-color-well-on-glass); }
+.gal-glass-pad { padding: 8px; display: inline-block; }
