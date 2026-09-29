@@ -91,7 +91,7 @@ class CineWordmark extends StatelessWidget {
 
   Widget _frozen(BuildContext context, String word, TextStyle style, int first, double ms) {
     final c = context.cine;
-    return Row(mainAxisSize: MainAxisSize.min, children: [
+    return FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Row(mainAxisSize: MainAxisSize.min, children: [
       for (var i = 0; i < word.length; i++)
         Builder(builder: (context) {
           final p = splashLetterAt(first + i, ms);
@@ -105,6 +105,6 @@ class CineWordmark extends StatelessWidget {
             ),
           );
         },),
-    ],);
+    ],),);
   }
 }

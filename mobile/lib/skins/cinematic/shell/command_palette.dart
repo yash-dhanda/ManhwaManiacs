@@ -347,9 +347,9 @@ class _CinePaletteState extends ConsumerState<CinePalette> {
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
-        padding: EdgeInsets.only(top: h * 0.12, left: c.space4, right: c.space4),
+        padding: EdgeInsets.only(top: widget.fixture != null ? 0 : h * 0.12, left: c.space4, right: c.space4),
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 720, maxHeight: h * 0.7),
+          constraints: BoxConstraints(maxWidth: 720, maxHeight: widget.fixture != null ? h : h * 0.7),
           child: Material(
             type: MaterialType.transparency,
             child: CineStock.raised(
@@ -413,15 +413,11 @@ class _CinePaletteState extends ConsumerState<CinePalette> {
                     Divider(height: 1, color: c.colorRule2),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: c.space4, vertical: c.space2),
-                      child: Row(children: [
+                      child: Wrap(spacing: c.space2, runSpacing: c.space1, crossAxisAlignment: WrapCrossAlignment.center, children: [
                         const _PaletteKey('↑ ↓'),
-                        SizedBox(width: c.space1),
                         CineRoleText('navigate', c.typeCaption, color: c.colorInk60),
-                        SizedBox(width: c.space3),
                         const _PaletteKey('↵'),
-                        SizedBox(width: c.space1),
                         CineRoleText('open', c.typeCaption, color: c.colorInk60),
-                        const Spacer(),
                         CineRoleText(rows.length == 1 ? '1 result' : '${rows.length} results', c.typeCaption, color: c.colorInk60),
                       ],),
                     ),

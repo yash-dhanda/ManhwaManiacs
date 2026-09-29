@@ -60,16 +60,22 @@ class CineStopPressBanner extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: EdgeInsets.fromLTRB(c.space3, c.space2, 0, c.space2),
-              child: Row(children: [
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                    CineRoleText('STOP PRESS', c.typeKicker, color: c.colorSpot),
-                    CineRoleText(line, c.typeUi, color: ink),
-                  ],),
-                ),
-                CineButton(label: 'Read updates', variant: CineButtonVariant.quiet, size: CineButtonSize.sm, onPressed: onRead),
-                CineIconButton(label: 'Dismiss', role: CineIconRole.close, onPressed: onDismiss),
-              ],),
+              child: () {
+                final text = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                  CineRoleText('STOP PRESS', c.typeKicker, color: c.colorSpot),
+                  CineRoleText(line, c.typeUi, color: ink),
+                ],);
+                final read = CineButton(label: 'Read updates', variant: CineButtonVariant.quiet, size: CineButtonSize.sm, onPressed: onRead);
+                final dismiss = CineIconButton(label: 'Dismiss', role: CineIconRole.close, onPressed: onDismiss);
+                // At large text the actions drop under the line instead of squeezing it.
+                if (CineReflow.of(context).railCompact) {
+                  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [Expanded(child: text), dismiss]),
+                    read,
+                  ],);
+                }
+                return Row(children: [Expanded(child: text), read, dismiss]);
+              }(),
             ),
           ),
         ],),
