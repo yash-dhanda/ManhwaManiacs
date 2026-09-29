@@ -146,7 +146,7 @@ void main() {
       headline: 'Offline edition.',
       deck: "Only what's saved on this device is here.",
       sections: [
-        HomeSection(type: HomeSectionType.saved, title: 'Saved on this device', items: const [HomeSavedItem(sourceId: 'shelf', seriesKey: 'iron-kite', title: 'Iron Kite', chapters: 3)]),
+        const HomeSection(type: HomeSectionType.saved, title: 'Saved on this device', items: [HomeSavedItem(sourceId: 'shelf', seriesKey: 'iron-kite', title: 'Iron Kite', chapters: 3)]),
       ],
       also: const [],
     );
@@ -234,15 +234,14 @@ void main() {
     await pumpTonight(t, feed: 'ready', prefs: _stamp);
     final header = t.widget<SliverPersistentHeader>(find.byType(SliverPersistentHeader));
     expect(header.pinned, isTrue);
-    final d = header.delegate as dynamic;
-    expect(d.maxExtent, closeTo(487.5, 0.01));
+    expect(header.delegate.maxExtent, closeTo(487.5, 0.01));
     await t.pumpWidget(const SizedBox());
   });
 
   testWidgets('the tablet spread height is clamp(560, 72 % of the screen, 820)', (t) async {
     await pumpTonight(t, feed: 'ready', wide: true, prefs: _stamp);
     final header = t.widget<SliverPersistentHeader>(find.byType(SliverPersistentHeader));
-    expect((header.delegate as dynamic).maxExtent, 820);
+    expect(header.delegate.maxExtent, 820);
     await t.pumpWidget(const SizedBox());
   });
 

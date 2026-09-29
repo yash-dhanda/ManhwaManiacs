@@ -67,6 +67,12 @@ int _lines(BuildContext context, String text, CineTextRole role, double width) {
   return n;
 }
 
+/// One line of [role] at the user's text scale (the row heights that follow text are minimums).
+double roleLineHeight(BuildContext context, CineTextRole role) {
+  final s = CineText.style(context, role);
+  return (s.fontSize ?? 16) * (s.height ?? 1.3) * CineText.scaler(context, role).scale(1);
+}
+
 /// The painted height of [text] set in [role] across [width].
 double measureText(BuildContext context, String text, CineTextRole role, double width, {int? maxLines}) {
   final p = TextPainter(

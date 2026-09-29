@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/quick_look.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/sections.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/sections/tonight_rail.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_layout.dart';
+import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// `Continue reading`: cuttings (a 3:2 crop biased to the top, a 2 px `spot` progress rule, a
 /// folio caption, a nudge badge); rows hidden with "Remove from row" are dropped (cinematic 8.8).
@@ -51,7 +52,10 @@ class ContinueCuttingsSection extends ConsumerWidget {
       visiblePhone: 1.6,
       visibleTablet: 3.2,
       onSeeAll: seeAllFor(context, plan.section.type),
-      itemHeight: (w) => w * 2 / 3 + 8 + 24 + 2 + 20,
+      itemHeight: (w) {
+        final c = context.cine;
+        return w * 2 / 3 + c.space2 + roleLineHeight(context, c.typeTitle) + c.space1 / 2 + roleLineHeight(context, c.typeFolio) + 4;
+      },
       itemBuilder: (context, i, w) {
         final it = items[i];
         final r = it.row;

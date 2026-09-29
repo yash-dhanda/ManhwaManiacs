@@ -22,8 +22,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../support/test_overrides.dart';
 import '../feature/feature_test_support.dart';
 
-/// The fixed evening of the Tonight tests: a Wednesday at 21:04.
-final DateTime kTonightNow = DateTime(2026, 9, 30, 21, 4);
+/// The fixed evening of the Tonight tests: a Wednesday at 21:04, in UTC so the ages in the fixtures
+/// (`generated_at` stamps) do not depend on the machine's zone.
+final DateTime kTonightNow = DateTime.utc(2026, 9, 30, 21, 4);
 
 HomeFeed loadFeed(String name) =>
     HomeFeed.fromJson(jsonDecode(File('test/fixtures/home/$name.json').readAsStringSync()) as Map<String, dynamic>);
@@ -63,7 +64,7 @@ class TonightRig {
 }
 
 const _stubPaths = [
-  '/library', '/discover', '/downloads', '/updates', '/picks', '/numbers', '/circle', '/sources', '/sources/:sid', '/collections',
+  '/library', '/search', '/downloads', '/updates', '/picks', '/numbers', '/circle', '/sources', '/sources/:sid', '/collections',
   '/sources/:sid/series/:kid', '/reader/:a/:b/:c', '/novels/:a/:b/:c', '/recap/:a/:b',
 ];
 

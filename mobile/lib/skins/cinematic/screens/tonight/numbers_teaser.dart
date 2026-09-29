@@ -90,10 +90,15 @@ class _StreakBlock extends StatelessWidget {
           Row(children: [
             StreakFlame(streak: streak, size: 24, now: now, ignite: ignite),
             SizedBox(width: c.space3),
-            if (ignite)
-              TypedHeadline('${streak.currentDays}', style: numeral.copyWith(color: c.colorInk100), cap: c.typeNumeral.cap)
-            else
-              CineRoleText('${streak.currentDays}', c.typeNumeral),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: ignite
+                    ? TypedHeadline('${streak.currentDays}', style: numeral.copyWith(color: c.colorInk100), cap: c.typeNumeral.cap)
+                    : CineRoleText('${streak.currentDays}', c.typeNumeral),
+              ),
+            ),
           ],),
         SizedBox(height: c.space1),
         CineRoleText(streakCaption(streak, now), c.typeCaption, color: c.colorInk60),

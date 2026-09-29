@@ -10,7 +10,7 @@ const _stamp = {'mm.tonight.typed.u1p1': '{"date":"2026-09-30","variant":"normal
 
 HomeFeedView _offline() {
   final f = HomeFeed.fromJson({'headline': 'Offline edition.', 'deck': "Only what's saved on this device is here."}).copyWith(sections: [
-    HomeSection(type: HomeSectionType.saved, title: 'Saved on this device', items: const [HomeSavedItem(sourceId: 'shelf', seriesKey: 'iron-kite', title: 'Iron Kite', chapters: 3)]),
+    const HomeSection(type: HomeSectionType.saved, title: 'Saved on this device', items: [HomeSavedItem(sourceId: 'shelf', seriesKey: 'iron-kite', title: 'Iron Kite', chapters: 3)]),
   ]);
   return viewOf(f, origin: HomeFeedOrigin.offline, offline: true);
 }
