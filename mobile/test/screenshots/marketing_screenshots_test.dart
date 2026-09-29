@@ -29,6 +29,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/test_overrides.dart';
 import 'mobile_05_shots.dart';
+import 'mobile_06_shots.dart';
 import 'mobile_11_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
@@ -68,6 +69,7 @@ void main() {
   // mobile-11: the Cinematic series page, Book page and chapter downloads.
   group('mobile-11', mobile11Shots);
   group('mobile-05', mobile05Shots);
+  group('mobile-06', mobile06Shots);
   // Both skins at every proof size (mobile/03). Default: Tonight only, so the
   // plain suite stays fast; a proof run sets MM_PROOF_SCREENS and MM_PROOF_DIR.
   group('skins', () {
@@ -131,6 +133,9 @@ void main() {
       'certificate': 700.0,
       'other': 2600.0,
       'lightbox': 500.0,
+      // mobile-06: captured by the mobile-06 group; here only their resting page.
+      'shell': 6400.0,
+      'shell-frames': 2600.0,
     };
     const variants = {'buttons', 'fields', 'rails', 'reveals'};
     for (final size in kSkinShotSizes) {

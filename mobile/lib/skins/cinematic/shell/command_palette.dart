@@ -105,17 +105,20 @@ Future<void> showCineCommandPalette(BuildContext navContext, WidgetRef ref) {
 }
 
 class CinePalette extends ConsumerStatefulWidget {
-  const CinePalette({super.key, this.fixture});
+  const CinePalette({super.key, this.fixture, this.initialQuery = ''});
 
   /// Items for the gallery and the tests; when set no provider is read.
   final List<PaletteItem>? fixture;
+
+  /// The gallery shows the empty state with one.
+  final String initialQuery;
 
   @override
   ConsumerState<CinePalette> createState() => _CinePaletteState();
 }
 
 class _CinePaletteState extends ConsumerState<CinePalette> {
-  final _ctl = TextEditingController();
+  late final _ctl = TextEditingController(text: widget.initialQuery);
   final _field = FocusNode(debugLabel: 'palette-field');
   final _scroll = ScrollController();
   Timer? _debounce;
@@ -338,8 +341,9 @@ class _CinePaletteState extends ConsumerState<CinePalette> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _announce(rows.length, q);
     });
-    final h = MediaQuery.sizeOf(context).height;
     String? lastGroup;
+    return LayoutBuilder(builder: (context, box) {
+    final h = box.hasBoundedHeight ? box.maxHeight : MediaQuery.sizeOf(context).height;
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
@@ -428,6 +432,7 @@ class _CinePaletteState extends ConsumerState<CinePalette> {
         ),
       ),
     );
+    },);
   }
 }
 

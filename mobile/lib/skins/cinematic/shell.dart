@@ -118,7 +118,7 @@ class _CineShellState extends ConsumerState<CineShell> {
         final router = GoRouter.of(context);
         router.go(back == CineBranchBack.toShelf ? Routes.library() : Routes.tonight());
       },
-      child: ColoredBox(
+      child: Material(
         color: const Color(0xFF000000),
         child: CineSectionFolio(
           previous: _previousFolio,

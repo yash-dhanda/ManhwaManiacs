@@ -301,7 +301,7 @@ class _CineScaffoldState extends ConsumerState<CineScaffold> {
       label: '$title · ManhwaManiacs',
       child: CineScaffoldScope(
         topExtent: topExtent,
-        child: ColoredBox(
+        child: Material(
           color: const Color(0xFF000000),
           child: Stack(children: [
             Positioned.fill(child: NotificationListener<ScrollNotification>(onNotification: _onScroll, child: content)),
