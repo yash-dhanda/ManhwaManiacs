@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<defs>
+<mask id="k" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"><rect x="0" y="0" width="256" height="256" fill="#FFFFFF"/><polyline points="71,109 71,59 128,96.5 185,59 185,109" fill="none" stroke="#000000" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><polyline points="71,197 71,147 128,184.5 185,147 185,197" fill="none" stroke="#000000" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><rect x="60" y="120" width="136" height="16" fill="#000000"/></mask>
+</defs>
+<g mask="url(#k)"><rect x="60" y="48" width="136" height="160" rx="54" fill="#000000"/></g>
+</svg>
