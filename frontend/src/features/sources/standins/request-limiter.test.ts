@@ -7,7 +7,7 @@ describe("stand-in limiter", () => {
     expect(await l.run("P1", async () => 7)).toBe(7);
   });
   it("holds P3 below the token floor but lets P1 through", async () => {
-    let t = 0;
+    const t = 0;
     const l = createLimiter({ capacity: 10, refillPerSecond: 0, now: () => t, p3Floor: 20 });
     let p3 = false;
     void l.run("P3", async () => (p3 = true));
