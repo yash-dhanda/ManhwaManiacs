@@ -45,6 +45,7 @@ import 'package:manhwamaniacs/features/sources/screens/source_series_detail_scre
 import 'package:manhwamaniacs/features/sources/screens/sources_list_screen.dart';
 import 'package:manhwamaniacs/features/updates/screens/updates_screen.dart';
 import 'package:manhwamaniacs/shared/widgets/premium/glass_panel.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
@@ -65,7 +66,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: Routes.home,
+    initialLocation: ref.read(returnRouteProvider) ?? Routes.home,
     // go_router 14's `log()` is a plain runtime flag check with no kDebugMode
     // guard, and one of its call sites builds a full dump of the ~35 registered
     // routes as its *argument* — evaluated before the flag is ever read. A
