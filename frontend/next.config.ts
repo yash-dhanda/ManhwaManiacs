@@ -6,6 +6,10 @@ const BACKEND_INTERNAL_URL =
   process.env.BACKEND_INTERNAL_URL ?? "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
+  // Dev only: lets the Playwright specs and the proof script drive `next dev` through 127.0.0.1 without
+  // Next blocking the HMR/dev resources (and with them hydration) as cross-origin.
+  allowedDevOrigins: ["127.0.0.1"],
+
   // Emit a self-contained server bundle (.next/standalone/server.js) for the
   // production Docker image.
   output: "standalone",
@@ -45,6 +49,7 @@ const nextConfig: NextConfig = {
     // Same-document view transitions for route changes (cinematic §15.2); off
     // by default in Next 16.2.
     viewTransition: true,
+    optimizePackageImports: ["@phosphor-icons/react"],
   },
 
   async rewrites() {
@@ -67,7 +72,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path(sw.js|sw-policy.js|offline-fallback.html)",
+        source: "/:path(sw.js|sw-policy.js|offline-fallback.html|offline-fallback-cinematic.html|offline-fallback-glass.html)",
         headers: [
           { key: "Cache-Control", value: "no-cache, must-revalidate" },
           { key: "Service-Worker-Allowed", value: "/" },

@@ -1,0 +1,97 @@
+.page {
+  background: #000000;
+  color: #ffffff;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px;
+  min-height: 100vh;
+}
+.title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+.caption {
+  margin: 8px 0 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(255, 255, 255, 0.64);
+}
+.line {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+.segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 0;
+  border: 0;
+}
+.segment {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 120px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+.segment:has(:checked) {
+  background: #ffffff;
+  color: #000000;
+}
+.segment:has(:focus-visible) {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+.radio {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.clear {
+  min-height: 44px;
+  padding: 0 16px;
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.clear:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+.status {
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  min-height: 20px;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: #000000;
+  z-index: 2147483000;
+  opacity: 0;
+  pointer-events: none;
+}
+.overlayOn {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 200ms linear;
+}

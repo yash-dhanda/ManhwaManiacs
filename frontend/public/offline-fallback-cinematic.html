@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#000000" />
+<title>Offline · ManhwaManiacs</title>
+<!-- Standalone by design: served by the service worker when the network is gone (Cinematic). No external files. -->
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: #000000; color: #F3F0E8; }
+body {
+  min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+}
+main { width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+.mark { color: #F3F0E8; display: block; }
+.badge { font: 700 11px/16px "Archivo Narrow", "Arial Narrow", "Roboto Condensed", sans-serif; text-transform: uppercase; letter-spacing: 0.16em; }
+.badge.off { color: #FF5B4A; }
+.badge.on { color: #57D68D; }
+h1 { margin: 0; font: italic 400 32px/36px "Bodoni Moda", Didot, "Bodoni 72", "Bodoni MT", Georgia, serif; color: #F3F0E8; }
+.deck { margin: 0; font: 400 18px/28px Newsreader, Georgia, serif; color: #9A978F; }
+.note { margin: 0; font: 400 12px/16px "IBM Plex Mono", ui-monospace, monospace; color: #9A978F; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 8px; }
+button, a.quiet { min-height: 44px; display: inline-flex; align-items: center; font: 600 15px/20px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; cursor: pointer; }
+button { border: 0; border-radius: 0; background: #F3F0E8; color: #000000; padding: 0 24px; }
+a.quiet { color: #F3F0E8; text-decoration: none; padding: 0 4px; }
+a.quiet:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+button:focus-visible, a.quiet:focus-visible { outline: 2px solid #F3F0E8; outline-offset: 2px; box-shadow: 0 0 0 6px #000000; }
+</style>
+</head>
+<body>
+<main>
+<svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="72" height="72" aria-hidden="true">
+<defs>
+<clipPath id="cu"><path d="M87.29 159.26L64.42 96.74L79.51 96.74L94.89 137.71L109.33 96.74L109.45 96.74L87.57 159.26ZM64.5 96.74L64.5 158.27L70.92 158.27L70.92 158.44L58.41 158.44L58.41 158.27L64.33 158.27L64.33 96.91L58 96.91L58 96.74ZM130.18 96.74L130.18 96.91L124.43 96.91L124.43 158.27L130.18 158.27L130.18 158.44L102.79 158.44L102.79 158.27L109.37 158.27L109.37 96.74Z"/></clipPath><clipPath id="ci"><path d="M142.76 159.26L133.06 96.74L148.15 96.74L154.94 137.87L177.97 96.74L178.14 96.74L143.09 159.26ZM114.3 158.44L114.3 158.27L127.42 158.27L127.42 158.44ZM119.81 158.44L132.98 96.91L126.64 96.91L126.64 96.74L133.14 96.74L119.98 158.44ZM159.13 158.44L159.13 158.27L186.49 158.27L186.49 158.44ZM164.89 158.44L178.05 96.74L198 96.74L198 96.91L192.98 96.91L179.9 158.44Z"/></clipPath><mask id="x" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"><rect x="0" y="0" width="256" height="256" fill="#FFFFFF"/><path d="M142.76 159.26L133.06 96.74L148.15 96.74L154.94 137.87L177.97 96.74L178.14 96.74L143.09 159.26ZM114.3 158.44L114.3 158.27L127.42 158.27L127.42 158.44ZM119.81 158.44L132.98 96.91L126.64 96.91L126.64 96.74L133.14 96.74L119.98 158.44ZM159.13 158.44L159.13 158.27L186.49 158.27L186.49 158.44ZM164.89 158.44L178.05 96.74L198 96.74L198 96.91L192.98 96.91L179.9 158.44Z" fill="#000000" clip-path="url(#cu)"/></mask>
+</defs>
+<g mask="url(#x)"><path d="M87.29 159.26L64.42 96.74L79.51 96.74L94.89 137.71L109.33 96.74L109.45 96.74L87.57 159.26ZM64.5 96.74L64.5 158.27L70.92 158.27L70.92 158.44L58.41 158.44L58.41 158.27L64.33 158.27L64.33 96.91L58 96.91L58 96.74ZM130.18 96.74L130.18 96.91L124.43 96.91L124.43 158.27L130.18 158.27L130.18 158.44L102.79 158.44L102.79 158.27L109.37 158.27L109.37 96.74Z" fill="currentColor" stroke="currentColor" stroke-width="5.84" stroke-linejoin="round"/><path d="M142.76 159.26L133.06 96.74L148.15 96.74L154.94 137.87L177.97 96.74L178.14 96.74L143.09 159.26ZM114.3 158.44L114.3 158.27L127.42 158.27L127.42 158.44ZM119.81 158.44L132.98 96.91L126.64 96.91L126.64 96.74L133.14 96.74L119.98 158.44ZM159.13 158.44L159.13 158.27L186.49 158.27L186.49 158.44ZM164.89 158.44L178.05 96.74L198 96.74L198 96.91L192.98 96.91L179.9 158.44Z" fill="currentColor" stroke="currentColor" stroke-width="5.84" stroke-linejoin="round"/></g><g clip-path="url(#ci)"><path d="M87.29 159.26L64.42 96.74L79.51 96.74L94.89 137.71L109.33 96.74L109.45 96.74L87.57 159.26ZM64.5 96.74L64.5 158.27L70.92 158.27L70.92 158.44L58.41 158.44L58.41 158.27L64.33 158.27L64.33 96.91L58 96.91L58 96.74ZM130.18 96.74L130.18 96.91L124.43 96.91L124.43 158.27L130.18 158.27L130.18 158.44L102.79 158.44L102.79 158.27L109.37 158.27L109.37 96.74Z" fill="none" stroke="currentColor" stroke-width="24" stroke-linejoin="round"/></g><g clip-path="url(#cu)"><path d="M142.76 159.26L133.06 96.74L148.15 96.74L154.94 137.87L177.97 96.74L178.14 96.74L143.09 159.26ZM114.3 158.44L114.3 158.27L127.42 158.27L127.42 158.44ZM119.81 158.44L132.98 96.91L126.64 96.91L126.64 96.74L133.14 96.74L119.98 158.44ZM159.13 158.44L159.13 158.27L186.49 158.27L186.49 158.44ZM164.89 158.44L178.05 96.74L198 96.74L198 96.91L192.98 96.91L179.9 158.44Z" fill="none" stroke="currentColor" stroke-width="24" stroke-linejoin="round"/></g>
+</svg>
+<div id="badge" class="badge off" role="status">NO CONNECTION</div>
+<h1>This page needs the server.</h1>
+<p class="deck">Chapters you saved still open on this device.</p>
+<p class="note">Served from your device by the app.</p>
+<div class="actions"><button id="retry" type="button">Try again</button><a class="quiet" href="/downloads">Downloads</a></div>
+</main>
+<script>
+  (function () {
+    var badge = document.getElementById("badge");
+    function sync() {
+      var on = navigator.onLine;
+      badge.textContent = on ? "BACK ONLINE" : "NO CONNECTION";
+      badge.className = "badge " + (on ? "on" : "off");
+    }
+    addEventListener("online", sync);
+    addEventListener("offline", sync);
+    sync();
+    document.getElementById("retry").addEventListener("click", function () { location.reload(); });
+  })();
+  </script>
+</body>
+</html>

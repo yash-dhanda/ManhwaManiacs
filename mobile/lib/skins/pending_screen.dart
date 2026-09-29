@@ -60,8 +60,7 @@ class PendingScreen extends ConsumerWidget {
                     Text(
                       location,
                       style: const TextStyle(
-                        fontFamily: 'Menlo',
-                        fontFamilyFallback: ['monospace', 'Courier'],
+                        fontFamily: 'IBMPlexMono',
                         fontSize: 13,
                         height: 16 / 13,
                         color: _dim,

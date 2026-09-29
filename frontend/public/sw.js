@@ -43,10 +43,20 @@ importScripts("/sw-policy.js?v=" + SW_BUILD);
 var policy = self.MMOfflinePolicy;
 
 var OFFLINE_URL = "/offline-fallback.html";
+var OFFLINE_URL_CINEMATIC = "/offline-fallback-cinematic.html";
+var OFFLINE_URL_GLASS = "/offline-fallback-glass.html";
+
+// The skin the page last reported, kept in Cache Storage (a worker can be
+// stopped at any time, so it never lives in a variable).
+var META_CACHE = "mm-sw-meta";
+var SKIN_URL = "/__skin";
+var SKINS = ["cinematic", "glass", "legacy"];
 
 /** Precached at install: enough to render *something* with no network at all. */
 var SHELL_ASSETS = [
   OFFLINE_URL,
+  OFFLINE_URL_CINEMATIC,
+  OFFLINE_URL_GLASS,
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/manifest.webmanifest",
@@ -348,6 +358,45 @@ function dispatch(event, request, strategy, context) {
  * is only ever consulted when the network has actually failed, which is what
  * stops a stale build stranding anybody.
  */
+async function storeSkin(skin) {
+  var cache = await caches.open(META_CACHE);
+  await cache.put(SKIN_URL, new Response(skin));
+}
+
+async function readSkin() {
+  try {
+    var cache = await caches.open(META_CACHE);
+    var hit = await cache.match(SKIN_URL);
+    return hit ? await hit.text() : null;
+  } catch {
+    return null;
+  }
+}
+
+// The skin changed: cached documents carry the old skin's markup. Drop the
+// page cache and refresh every saved chapter document in place.
+async function refreshAfterSkinChange() {
+  await caches.delete(policy.pagesCacheName());
+  var names = await caches.keys();
+  for (var i = 0; i < names.length; i += 1) {
+    var parsed = policy.parseCacheName(names[i]);
+    if (!parsed || parsed.kind !== "offline") continue;
+    var cache = await caches.open(names[i]);
+    var keys = await cache.keys();
+    for (var j = 0; j < keys.length; j += 1) {
+      var stored = await cache.match(keys[j], { ignoreVary: true });
+      var type = stored && stored.headers.get("Content-Type");
+      if (!type || type.indexOf("text/html") !== 0) continue;
+      try {
+        var fresh = await fetch(keys[j].url, { credentials: "include" });
+        if (policy.isCacheableResponse(fresh)) await cache.put(keys[j].url, fresh);
+      } catch {
+        // Offline: keep the old copy.
+      }
+    }
+  }
+}
+
 async function handleNavigation(event, request, context) {
   try {
     var response = await fetch(request);
@@ -386,8 +435,13 @@ async function handleNavigation(event, request, context) {
     var saved = await matchSaved(request, (context || {}).scope, true);
     if (saved) return saved;
 
+    var skin = await readSkin();
     var shell = await caches.open(policy.shellCacheName());
-    var fallback = await shell.match(OFFLINE_URL, { ignoreVary: true });
+    var wanted =
+      skin === "legacy" ? OFFLINE_URL : skin === "glass" ? OFFLINE_URL_GLASS : OFFLINE_URL_CINEMATIC;
+    var fallback =
+      (await shell.match(wanted, { ignoreVary: true })) ||
+      (await shell.match(OFFLINE_URL, { ignoreVary: true }));
     if (fallback) return fallback;
     return new Response("You are offline.", {
       status: 503,
@@ -1057,6 +1111,13 @@ async function handleMessage(event, data) {
   };
 
   switch (data.type) {
+    case "skin":
+    case "skin-changed":
+      if (SKINS.indexOf(data.skin) === -1) return;
+      await storeSkin(data.skin);
+      if (data.type === "skin-changed") await refreshAfterSkinChange();
+      return;
+
     case "mm-offline/skip-waiting":
       self.skipWaiting();
       reply({ ok: true });
