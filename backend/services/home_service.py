@@ -41,6 +41,7 @@ from database.session import get_db
 from services import ai_desk
 from services.ai_desk import DeskUnavailable, desk_availability
 from services.browse_service import BrowseService, get_browse_service, series_identity
+from services.circle_service import CircleService
 from services.cover_colour import attach_cover_colours
 from services.followed_series_service import (
     FollowedSeriesService,
@@ -291,6 +292,44 @@ def _iso(value: datetime | None) -> str | None:
     return value.isoformat(timespec="seconds") + "Z" if value else None
 
 
+#: Candidates kept per ``also[]`` priority group so a fresh candidate (a letter)
+#: can be slotted in at serve time without rebuilding the issue.
+ALSO_POOL_DEPTH = 5
+
+
+def select_also(
+    groups: list[list[tuple[Any, str, dict[str, Any]]]], cover: dict[str, Any] | None
+) -> list[dict[str, Any]]:
+    """Cinematic §8.8 **Also in this issue**: three slots, groups in priority
+    order (``new_chapters``, ``because``, ``letter``, ``almost_there``), one
+    from each group first, then fill; never the cover's series, never a series
+    twice, never fewer than two. ``groups`` hold ``(pair, title, item)``."""
+    used = {(cover["source_id"], cover["series_key"])} if cover else set()
+    used_titles = {cover["title"]} if cover else set()
+    picked: list[dict[str, Any]] = []
+
+    def take(entry: tuple[Any, str, dict[str, Any]]) -> bool:
+        pair, title, item = entry
+        if (pair and pair in used) or title in used_titles:
+            return False
+        if pair:
+            used.add(pair)
+        used_titles.add(title)
+        picked.append(item)
+        return True
+
+    for group in groups:
+        for entry in group:
+            if take(entry):
+                break
+    for group in groups:
+        for entry in group:
+            if len(picked) >= 3:
+                break
+            take(entry)
+    return picked[:3] if len(picked) >= 2 else []
+
+
 def _proxy_cover(source_id: str, series_key: str) -> str:
     return f"/sources/{source_id}/series/{quote(series_key, safe='')}/cover"
 
@@ -349,6 +388,16 @@ class HomeService:
         for builder in LIVE_SECTION_BUILDERS:
             for section in builder(self, out):
                 self._insert(out["sections"], section)
+        # The unopened-letter candidate is per request, so ``also`` is
+        # re-selected here rather than served from the cache.
+        pool = out.pop("_also_pool", None)
+        if pool is not None and self.profile_id is not None:
+            letter = CircleService(self._db, self.user_id, self.profile_id).letter_candidate(
+                content_kind
+            )
+            if letter is not None:
+                entry = ((letter["source_id"], letter["series_key"]), letter["title"], letter)
+                out["also"] = select_also([pool[0], pool[1], [entry], pool[2]], out.get("cover"))
         return out
 
     @staticmethod
@@ -798,11 +847,14 @@ class HomeService:
             attach_cover_colours(self._db, [cover_out])
 
         self._colour_sections(sections)
-        also = self._also(rows, states, last_read, chapters_left, world_because, lines, cover_out)
+        also, also_pool = self._also(
+            rows, states, last_read, chapters_left, world_because, lines, cover_out
+        )
         payload = {
             "issue_no": issue_no, "generated_at": gen, "content_kind": kind,
             "headline": head["headline"], "deck": head["deck"], "kicker_title": head["kicker_title"],
             "streak": streak, "cover": cover_out, "also": also, "sections": sections, "ai": desk,
+            "_also_pool": also_pool,
         }
         job = None
         if editorial is None or stale:
@@ -921,8 +973,6 @@ class HomeService:
     # --- also in this issue (cinematic §8.8) ------------------------------------------
 
     def _also(self, rows, states, last_read, chapters_left, world_because, lines, cover):
-        used = {(cover["source_id"], cover["series_key"])} if cover else set()
-        used_titles = {cover["title"]} if cover else set()
         colour_items: list[dict[str, Any]] = []
 
         def follow_item(kind, r, headline, deck):
@@ -962,38 +1012,23 @@ class HomeService:
             lists[2].append((r, lambda r=r, head=head: follow_item(
                 "almost_there", r, f"{head} {r.title}", None)))
 
-        picked: list[dict[str, Any]] = []
-
-        def take(entry) -> bool:
-            ident, make = entry
-            if isinstance(ident, FollowedSeries):
-                pair, title = (ident.source_id, ident.series_key), ident.title
-            else:
-                pair, title = ident
-            if (pair and pair in used) or title in used_titles:
-                return False
-            if pair:
-                used.add(pair)
-            used_titles.add(title)
-            picked.append(make())
-            return True
-
+        groups = []
         for group in lists:
-            for entry in group:
-                if take(entry):
-                    break
-        for group in lists:
-            for entry in group:
-                if len(picked) >= 3:
-                    break
-                take(entry)
-        if len(picked) < 2:
-            return []
+            entries = []
+            for ident, make in group[:ALSO_POOL_DEPTH]:
+                pair, title = (
+                    ((ident.source_id, ident.series_key), ident.title)
+                    if isinstance(ident, FollowedSeries)
+                    else ident
+                )
+                entries.append((pair, title, make()))
+            groups.append(entries)
         attach_cover_colours(self._db, colour_items)
-        for p in picked:
-            p.pop("palette", None)
-            p.setdefault("ambient", None)
-        return picked[:3]
+        for group in groups:
+            for _pair, _title, item in group:
+                item.pop("palette", None)
+                item.setdefault("ambient", None)
+        return select_also(groups, cover), groups
 
     # --- the editorial job (the only AI call) ------------------------------------------
 
