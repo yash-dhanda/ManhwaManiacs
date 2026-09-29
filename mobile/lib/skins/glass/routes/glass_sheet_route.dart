@@ -353,6 +353,9 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
   void initState() {
     super.initState();
     route._body = this;
+    // Eager: a late controller first touched in dispose() would look up a deactivated ancestor.
+    _fade.value;
+    _backC.value;
     _trigger = FocusManager.instance.primaryFocus;
     _unsuppress = suppressLit();
     _fade.value = 0;
