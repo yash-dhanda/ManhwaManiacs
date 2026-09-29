@@ -12,12 +12,12 @@ import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/currently_open_chapter_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/downloads/services/blob_store.dart';
 import 'package:manhwamaniacs/features/downloads/services/offline_reader.dart';
 import 'package:manhwamaniacs/features/downloads/services/retention_maintenance.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_db.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
-import 'package:manhwamaniacs/features/downloads/widgets/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart';
 import 'package:sqflite/sqflite.dart';
 

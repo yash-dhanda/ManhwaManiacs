@@ -16,7 +16,7 @@ import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/features/library/utils/series_display.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
-import 'package:manhwamaniacs/features/novels/widgets/novel_shelf.dart';
+import 'package:manhwamaniacs/features/novels/utils/novel_shelf_logic.dart';
 
 /// One followed book as a shelf row.
 ///

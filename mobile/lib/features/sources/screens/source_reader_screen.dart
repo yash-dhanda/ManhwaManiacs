@@ -5,14 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/router/routes.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
-import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
-import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
-import 'package:manhwamaniacs/features/downloads/widgets/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/library/providers/library_read_state.dart';
+import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
@@ -26,7 +25,6 @@ import 'package:manhwamaniacs/features/reader/widgets/reader_skeleton.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_reader_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
-import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 
 /// Online source chapter reader.
 ///
@@ -66,9 +64,9 @@ class SourceReaderScreen extends ConsumerStatefulWidget {
 }
 
 class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
-  /// Guards the eager next-chapter queue so it fires once per chapter shown,
-  /// not on every unrelated rebuild of this widget.
-  String? _prefetchedFor;
+  /// The eager next-chapter queue; fires once per chapter shown, not on every
+  /// unrelated rebuild of this widget.
+  final NextChapterAutoQueue _autoQueue = NextChapterAutoQueue();
 
   /// The continuous feed (spec R1). Built the moment the anchor chapter
   /// resolves; null until then.
@@ -284,23 +282,6 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
     }
   }
 
-  Future<void> _maybeQueueNextChapter(String nextId) async {
-    if (ref.read(activeDownloadsScopeIdProvider) == null) return;
-
-    if (ref.read(preferencesProvider).wifiOnlyDownloads) {
-      final onWifi = await ref.read(networkConnectivityProvider).isOnWifi();
-      if (!onWifi) return;
-    }
-
-    await ref.read(downloadQueueControllerProvider.notifier).enqueueChapter(
-          id: (
-            sourceId: widget.sourceId,
-            seriesKey: widget.seriesId,
-            chapterKey: nextId,
-          ),
-        );
-  }
-
   @override
   Widget build(BuildContext context) {
     final key = (
@@ -378,20 +359,13 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
             chapter.previousChapterId ?? neighbours?.previousChapterId;
         final nextChapterId = chapter.nextChapterId ?? neighbours?.nextChapterId;
 
-        // Guarded on the id being *known*, not merely on the chapter having
-        // been shown: a downloaded chapter paints from disk before anything
-        // knows what comes next, and the eager queue must still fire once the
-        // neighbours land rather than being marked done against a null.
-        if (nextChapterId != null && _prefetchedFor != widget.chapterId) {
-          _prefetchedFor = widget.chapterId;
-          // Deferred past this build, like every other one-shot side effect
-          // triggered from a build method in this codebase (see
-          // OpenChapterScope._claim) — reading providers is safe mid-build,
-          // but a network/DB-touching side effect belongs after it.
-          WidgetsBinding.instance.addPostFrameCallback(
-            (_) => unawaited(_maybeQueueNextChapter(nextChapterId)),
-          );
-        }
+        _autoQueue.maybeQueue(
+          ref,
+          sourceId: widget.sourceId,
+          seriesKey: widget.seriesId,
+          routeChapterId: widget.chapterId,
+          nextChapterId: nextChapterId,
+        );
 
         final feedController = _feedFor(
           chapter,

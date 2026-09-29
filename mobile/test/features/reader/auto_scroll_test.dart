@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/features/reader/widgets/reader_content.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_engine_view.dart';
 
 void main() {
   group('autoScrollFrameDelta', () {

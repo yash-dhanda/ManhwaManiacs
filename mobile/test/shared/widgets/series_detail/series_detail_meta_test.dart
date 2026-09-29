@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/shared/widgets/series_detail/series_detail_meta.dart';
+import 'package:manhwamaniacs/features/library/utils/series_detail_meta.dart';
 
 void main() {
   group('seriesDetailMetaLine', () {
