@@ -78,7 +78,10 @@ class ChapterAudio:
 
 
 def rendered_chapters(
-    source_id: str, series_key: str, chapter_keys: Iterable[str]
+    source_id: str,
+    series_key: str,
+    chapter_keys: Iterable[str],
+    with_mtime: bool = False,
 ) -> dict[str, dict[str, int]]:
     """Which of [chapter_keys] have audio on disk, and how much.
 
@@ -91,18 +94,25 @@ def rendered_chapters(
     Only the chapters that HAVE audio appear. Absence is the ordinary state
     for almost the whole library, and sending a row of zeroes for every
     chapter of a long book is most of the payload saying nothing.
+
+    ``with_mtime`` adds ``rendered_at`` (the audio file's mtime, from the same
+    ``stat``): ``complete`` replaces the file atomically, so that is the render
+    time.
     """
     out: dict[str, dict[str, int]] = {}
     for key in chapter_keys:
         audio, timing = chapter_paths(source_id, series_key, key)
         try:
-            size = audio.stat().st_size
+            st = audio.stat()
         except OSError:
             continue
+        size = st.st_size
         # Duration comes from the timing file's own size-free header only when
         # it is already cheap to get; otherwise the client asks per chapter
         # when it actually opens one.
         out[key] = {"bytes": size, "has_timing": int(timing.is_file())}
+        if with_mtime:
+            out[key]["rendered_at"] = st.st_mtime
     return out
 
 

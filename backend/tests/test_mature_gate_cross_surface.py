@@ -739,6 +739,14 @@ SOURCE_SCOPED_READS = [
             headers=h,
         ),
     ),
+    (
+        "/reader/panels",
+        lambda c, h: c.get(
+            "/reader/panels",
+            params={"source": MATURE_SRC, "series": "s1", "chapter": "c1"},
+            headers=h,
+        ),
+    ),
 ]
 
 
