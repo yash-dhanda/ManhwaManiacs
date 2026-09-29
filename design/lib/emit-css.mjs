@@ -2,6 +2,7 @@
 import { cssName, leaves } from "./naming.mjs";
 import { springCss } from "./spring.mjs";
 import { LEGACY_FALLBACKS } from "./legacy-fallbacks.mjs";
+import { isGlassTokens, glassThemeEntries } from "./emit-glass-css.mjs";
 
 export const BPS = ["phone", "tablet", "desktop", "wide"]; // type-role breakpoints (wide covers cinema)
 export const GRID_MIN = (t) => ({ phone: 0, tablet: t.bp.tablet, desktop: t.bp.desktop, wide: t.bp.wide, cinema: t.bp.cinema });
@@ -128,6 +129,7 @@ export function emitSkinCss(skin, t, header) {
 
 // Every @theme inline entry a skin contributes, as [name, value] (also read by lint-utilities.mjs).
 export function themeEntries(t) {
+  if (isGlassTokens(t)) return glassThemeEntries(t);
   const out = [];
   for (const [k] of colorLeaves(t)) out.push([cssName(k).replace("--mm-", "--"), `var(${cssName(k)})`]);
   for (const name of Object.keys(t.runtime ?? {})) out.push([`--color-${name}`, `var(--${name})`]);
@@ -153,19 +155,19 @@ function union(map, name, value, what, errors) {
 export function emitThemeCss(skins, header, errors) {
   const props = new Map(), bps = new Map(), theme = new Map(), utils = new Map();
   for (const { t } of skins) {
-    for (const [name, r] of Object.entries(t.runtime ?? {})) if (r.syntax) union(props, name, `syntax: "${r.syntax}"; inherits: true; initial-value: ${r.initial}`, "@property", errors);
-    for (const [k, v] of Object.entries(t.bp)) union(bps, `--breakpoint-${k}`, `${num(v / 16)}rem`, "breakpoint", errors);
+    for (const [name, r] of Object.entries(t.runtime ?? {})) if (r.syntax) union(props, name, `syntax: "${r.syntax}"; inherits: ${r.inherits ?? true}; initial-value: ${r.initial}`, "@property", errors);
+    if (!isGlassTokens(t)) for (const [k, v] of Object.entries(t.bp)) union(bps, `--breakpoint-${k}`, `${num(v / 16)}rem`, "breakpoint", errors); // Glass uses these variants, defines none
     for (const [n, v] of themeEntries(t)) union(theme, n, LEGACY_FALLBACKS[n] ?? v, "@theme", errors);
     for (const [k, r] of roleLeaves(t)) {
       const s = roleSlug(k);
-      const body = r.size
+      const body = !r.sizeRule
         ? [`font-family: var(--mm-type-${s}-family)`, `font-style: var(--mm-type-${s}-style, normal)`, `font-size: var(--mm-type-${s}-size)`, `line-height: var(--mm-type-${s}-lh)`, `font-weight: var(--mm-type-${s}-wght)`,
            `letter-spacing: calc(var(--mm-type-${s}-tracking) + var(--mm-tracking-legible, 0em))`, `text-transform: var(--mm-type-${s}-transform, none)`,
            `font-variation-settings: var(--mm-type-${s}-fvs, "wght" calc(var(--mm-type-${s}-wght) + var(--press-wght, 0)), "ROND" var(--glass-rond, var(--mm-type-${s}-rond, 0)), "GRAD" var(--glass-grad, 0))`]
         : [`float: left`, `font-family: ${fontVar(t, r.font)}`, `font-weight: ${r.wght}`, `font-size: calc(var(--para-lh) * 3)`, `line-height: 1`, `letter-spacing: ${num(r.tracking)}em`, `font-optical-sizing: auto`, `font-variation-settings: "wght" ${r.wght}`, `@supports (initial-letter: 3) { initial-letter: 3; }`];
       union(utils, `type-${s}`, body.join(";\n  "), "@utility", errors);
     }
-    for (const [k, s] of scrimLeaves(t)) { const body = scrimUtility(t, k, s); if (body) union(utils, cssName(k).slice(5), body.join(";\n  "), "@utility", errors); }
+    if (t.scrim) for (const [k, s] of scrimLeaves(t)) { const body = scrimUtility(t, k, s); if (body) union(utils, cssName(k).slice(5), body.join(";\n  "), "@utility", errors); }
   }
   for (const [n, v] of Object.entries(LEGACY_FALLBACKS)) if (!theme.has(n)) theme.set(n, v);
   let css = `/* ${header} */\n\n`;

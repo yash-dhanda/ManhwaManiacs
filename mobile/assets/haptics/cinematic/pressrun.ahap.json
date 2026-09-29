@@ -1,0 +1,15 @@
+{
+  "Version": 1.0,
+  "Metadata": { "Project": "ManhwaManiacs", "Description": "cinematic pressrun" },
+  "Pattern": [
+    { "Event": { "Time": 0.0, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.4 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.3 } ] } },
+    { "Event": { "Time": 0.06, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.6 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.3 } ] } },
+    { "Event": { "Time": 0.12, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.9 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.25 } ] } }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "Version": 1.0,
+  "Metadata": { "Project": "ManhwaManiacs", "Description": "glass swell" },
+  "Pattern": [
+    { "Event": { "Time": 0.0, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.2 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.6 } ] } },
+    { "Event": { "Time": 0.15, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.3 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.65 } ] } },
+    { "Event": { "Time": 0.3, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.4 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.7 } ] } },
+    { "Event": { "Time": 0.45, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.5 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.75 } ] } },
+    { "Event": { "Time": 0.6, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.6 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.8 } ] } },
+    { "Event": { "Time": 0.75, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.7 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.85 } ] } },
+    { "Event": { "Time": 0.9, "EventType": "HapticTransient",
+      "EventParameters": [ { "ParameterID": "HapticIntensity", "ParameterValue": 0.8 },
+                           { "ParameterID": "HapticSharpness", "ParameterValue": 0.9 } ] } }
+  ]
+}
