@@ -18,6 +18,9 @@ import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 class _CollectionsRepo implements LibraryRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
@@ -94,8 +97,7 @@ class _CollectionsRepo implements LibraryRepository {
     String? sort,
     String? search,
     String? readingStatus,
-    bool? isFavorite,
-  }) =>
+    bool? isFavorite, List<int>? tagIds, bool? newOnly,}) =>
       throw UnimplementedError();
 
   @override

@@ -6,12 +6,16 @@ class Tag {
     required this.name,
     required this.category,
     this.colorHex,
+    this.seriesCount,
   });
 
   final int id;
   final String name;
   final String category;
   final String? colorHex;
+
+  /// How many series carry the tag, where the server sent it.
+  final int? seriesCount;
 
   Color? get color {
     final hex = colorHex;
@@ -26,5 +30,6 @@ class Tag {
         name: json['name'] as String,
         category: json['category'] as String,
         colorHex: json['color'] as String?,
+        seriesCount: (json['series_count'] as num?)?.toInt(),
       );
 }

@@ -20,6 +20,7 @@ class ContinueReadingItem {
     this.title,
     this.coverUrl,
     this.ambient,
+    this.recapRaw,
   });
 
   final String sourceId;
@@ -40,6 +41,9 @@ class ContinueReadingItem {
   /// The series' issue colours where the payload carried them, else null.
   final Ambient? ambient;
 
+  /// The row's raw `recap` availability object (9.1.5); parsed by `RecapAvailability.tryParse`.
+  final Object? recapRaw;
+
   double get progressPct => pageCount > 0 ? lastPage / pageCount : 0;
 
   factory ContinueReadingItem.fromJson(Map<String, dynamic> json) =>
@@ -54,6 +58,7 @@ class ContinueReadingItem {
         title: _text(json['title']),
         coverUrl: _text(json['cover_url']),
         ambient: Ambient.tryParse(json['ambient']),
+        recapRaw: json['recap'],
       );
 }
 

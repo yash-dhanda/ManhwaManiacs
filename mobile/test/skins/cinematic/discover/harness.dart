@@ -183,8 +183,7 @@ class FakeLibrary implements LibraryRepository {
     String? sort,
     String? search,
     String? readingStatus,
-    bool? isFavorite,
-  }) async =>
+    bool? isFavorite, List<int>? tagIds, bool? newOnly,}) async =>
       const Ok(PagedResult(
           items: [], total: 0, page: 1, perPage: 40, hasNext: false,),);
 

@@ -49,6 +49,9 @@ FollowedSeries _pickerSeriesItem({
     );
 
 class _MutableCollectionsRepository implements LibraryRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
@@ -199,8 +202,7 @@ class _MutableCollectionsRepository implements LibraryRepository {
     String? sort,
     String? search,
     String? readingStatus,
-    bool? isFavorite,
-  }) async {
+    bool? isFavorite, List<int>? tagIds, bool? newOnly,}) async {
     // Paged the way the server pages (200 at most), so a library bigger than
     // one page is only whole to a caller that asks for every page.
     final start = (page - 1) * perPage;

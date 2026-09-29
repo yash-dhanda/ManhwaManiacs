@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
+import 'package:manhwamaniacs/features/library/providers/shelf_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 typedef TagSeriesKey = ({String sourceId, String seriesKey});
@@ -17,8 +18,8 @@ final profileTagsProvider = FutureProvider.autoDispose<List<Tag>>((ref) async {
 final seriesTagOverlayProvider =
     StateProvider<Map<TagSeriesKey, List<Tag>>>((ref) => const {});
 
-/// Adds and removes this profile's tags on a series. TODO(mobile/09): mobile/09
-/// owns `TagsController`; this stands in until it lands.
+/// This profile's tags: create, rename and delete them, and add or remove them on a series.
+/// Every change refreshes the tags list and the shelf (its tag filter and tag counts).
 class TagsController {
   TagsController(this._ref);
   final Ref _ref;
@@ -34,6 +35,7 @@ class TagsController {
         );
     if (r.isErr) return r.error;
     if (!current.any((t) => t.id == tag.id)) _set(k, [...current, tag]);
+    _refresh();
     return null;
   }
 
@@ -45,6 +47,37 @@ class TagsController {
         );
     if (r.isErr) return r.error;
     _set(k, [for (final t in current) if (t.id != tag.id) t]);
+    _refresh();
+    return null;
+  }
+
+  void _refresh() {
+    _ref
+      ..invalidate(profileTagsProvider)
+      ..invalidate(shelfProvider);
+  }
+
+  /// `POST /library/tags {name, category: "custom"}`.
+  Future<AppError?> create(String name) async {
+    final r = await _ref.read(libraryRepositoryProvider).createTag(name: name);
+    if (r.isErr) return r.error;
+    _refresh();
+    return null;
+  }
+
+  /// `PATCH /library/tags/{id} {name}`.
+  Future<AppError?> rename(int id, String name) async {
+    final r = await _ref.read(libraryRepositoryProvider).renameTag(id, name);
+    if (r.isErr) return r.error;
+    _refresh();
+    return null;
+  }
+
+  /// `DELETE /library/tags/{id}`: the tag comes off every series.
+  Future<AppError?> delete(int id) async {
+    final r = await _ref.read(libraryRepositoryProvider).deleteTag(id);
+    if (r.isErr) return r.error;
+    _refresh();
     return null;
   }
 

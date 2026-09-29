@@ -116,6 +116,9 @@ UpdateNotification _notification({
 /// everything else throws so an unexpected call fails loudly instead of
 /// silently returning empty data.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
@@ -191,8 +194,7 @@ class _FakeLibraryRepository implements LibraryRepository {
     String? sort,
     String? search,
     String? readingStatus,
-    bool? isFavorite,
-  }) =>
+    bool? isFavorite, List<int>? tagIds, bool? newOnly,}) =>
       throw UnimplementedError('the Library tab never lists through this');
 
   @override

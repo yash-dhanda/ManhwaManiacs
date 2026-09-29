@@ -16,6 +16,8 @@ import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/shelf_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/tags_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_audio_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
@@ -135,6 +137,11 @@ final List<void Function(Ref ref)> matureScopedInvalidators = [
   // The followed shelf, its per-series pages, and the dashboard rails built
   // from the same gated service (followed_series_service).
   (ref) => ref.invalidate(libraryListProvider),
+  // The Cinematic shelf reads the same gated service: page, counts, cuttings and tag counts.
+  (ref) => ref.invalidate(shelfProvider),
+  (ref) => ref.invalidate(shelfCountsProvider),
+  (ref) => ref.invalidate(shelfContinueProvider),
+  (ref) => ref.invalidate(tagsProvider),
   (ref) => ref.invalidate(seriesDetailProvider),
   (ref) => ref.invalidate(continueReadingProvider),
   (ref) => ref.invalidate(homeFeedProvider),
