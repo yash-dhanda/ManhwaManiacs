@@ -12,7 +12,6 @@ import 'package:manhwamaniacs/skins/glass/primitives/lit.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/progress.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
-import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// glass 7.1: the button variants. All capsules.
