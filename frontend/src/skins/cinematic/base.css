@@ -27,7 +27,7 @@ html[data-contrast="more"][data-skin="cinematic"] { --mm-color-ink-45: var(--mm-
   [data-skin="cinematic"] :focus-visible { outline-color: CanvasText; box-shadow: none; }
   [data-skin="cinematic"] .cine-rule { background: CanvasText; border-color: CanvasText; }
   /* Selectors match what the components emit: Tailwind border-*, .bg-spot fills, scrim-* gradients, inline duotone filters. */
-  [data-skin="cinematic"] [class*="border-ink-"], [data-skin="cinematic"] [class*="border-rule-"] { border-color: CanvasText; }
+  [data-skin="cinematic"] [class*=border-ink-], [data-skin="cinematic"] [class*=border-rule-] { border-color: CanvasText; }
   [data-skin="cinematic"] .bg-spot, [data-skin="cinematic"] .bg-ink-100 { background: Highlight; color: HighlightText; forced-color-adjust: none; }
   [data-skin="cinematic"] .cine-grain, [data-skin="cinematic"] [class*="scrim-"] { display: none; }
   [data-skin="cinematic"] [style*="url(#duo-"] { filter: none !important; }
