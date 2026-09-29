@@ -56,7 +56,7 @@ Stop and report which one failed if any of these is false:
 - **Skin boundary** (`test/skins/import_boundary_test.dart`): Glass files import only `features/*/{models,providers,repositories,services,store,queue,utils,controllers,engine}`, `core/`, `shared/`, the pinned packages and `skins/glass/**`.
 - **Shared logic in `features/`**, skin-neutral, each module with a Dart test. Extensions of `mobile/19`'s modules keep Cinematic's calls unchanged (defaults `shape=prose`, `use_taste` omitted).
 - **The AI stays server-side.** Branch on the error `code`, never on the HTTP status (429 is both `ai_budget_exhausted` and `rate_limited`); only `rate_limited` starts the automatic `Retry-After` retry.
-- **Values** from `GlassTokens`; every named move through `GlassMotion`; haptics through `GlassHaptics`; sounds through `skin_audio.dart` (off by default); paths from `Routes`; copy verbatim from `glass/DESIGN.md`; AI lines from `copy/ai.dart`, errors from `copy/errors.dart`.
+- **Values** from `GlassTokens`; every named move through `GlassMotion`; haptics through `GlassHaptics`; sounds through `skin_audio.dart` (off by default); paths from `Routes` in `mobile/lib/skins/contract.g.dart` (the `Routes` members written in this file, such as `Routes.settings(slug)` or `Routes.annual(year)`, name the ScreenIds; use the member and builder names `contract.g.dart` actually generates); copy verbatim from `glass/DESIGN.md`; AI lines from `copy/ai.dart`, errors from `copy/errors.dart`.
 - **Hit areas** at least `GlassFrame.hitMin(context)` (44 iOS, 48 Android), 8 px apart; heights are minimums.
 - Never edit `backend/connectors/`; never touch production containers or `/srv/manhwamaniacs/{app,data}`.
 
