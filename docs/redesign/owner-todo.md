@@ -13,3 +13,5 @@ Items only the owner can do, by step.
   their bounding boxes. The mark also does not read at 16 px (a ~9x4 px smudge).
   Geometry is unchanged until you decide; see the comment above `case 'mm-mark'` in
   `brand/make-glyph-masters.mjs`.
+
+- shared/04: owner to check the new launcher icon, `Maniacs` label and black native frame on a real iPhone and Android device after the next build; hairlines of the Bodoni monogram are ~1 unit, judge the icon at 60 px.
