@@ -38,3 +38,20 @@ html[data-contrast="more"][data-skin="cinematic"] { --mm-color-ink-45: var(--mm-
 /* Placeholders: ink.45; hidden while the typed visual layer of the index search field shows the same string. */
 [data-skin="cinematic"] input::placeholder, [data-skin="cinematic"] textarea::placeholder { color: var(--mm-color-ink-45); opacity: 1; }
 [data-skin="cinematic"] input[data-typed-placeholder="true"]::placeholder { color: transparent; }
+
+/* Posters (§7.7): inner hairline, hover outline + art-light bloom, siblings dim, image zoom inside the fixed frame. */
+[data-skin="cinematic"] .cine-poster-face { position: relative; display: block; overflow: visible; }
+[data-skin="cinematic"] .cine-poster-face::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 1px var(--mm-color-hairline-art); }
+[data-skin="cinematic"] .cine-poster:hover .cine-poster-face::after,
+[data-skin="cinematic"] .cine-poster:focus-within .cine-poster-face::after { box-shadow: inset 0 0 0 2px var(--mm-color-ink-100); }
+[data-skin="cinematic"] .cine-poster:hover .cine-poster-face { box-shadow: 0 0 48px -16px color-mix(in srgb, var(--amb-duo) 60%, transparent); }
+[data-skin="cinematic"] .cine-poster:hover .cine-zoom,
+[data-skin="cinematic"] .cine-poster:focus-within .cine-zoom { transform: scale(1.04); }
+[data-skin="cinematic"] .cine-poster-face:active { transform: scale(0.98); transition: transform 80ms var(--mm-ease-set); }
+[data-skin="cinematic"] [data-poster-group]:has(.cine-poster:hover) .cine-poster:not(:hover) { filter: brightness(0.55) saturate(0.8); }
+[data-skin="cinematic"] .cine-poster { transition: filter 280ms var(--mm-ease-set); }
+[data-skin="cinematic"] .cine-poster-face:focus-visible { box-shadow: 0 0 0 6px #000; }
+@media (prefers-reduced-motion: reduce) { [data-skin="cinematic"] .cine-poster-face:active { transform: none; } }
+html[data-motion="reduced"] .cine-poster-face:active { transform: none; }
+[data-skin="cinematic"] .cine-z1 { z-index: 1; }
+[data-skin="cinematic"] .cine-z2 { z-index: 2; }

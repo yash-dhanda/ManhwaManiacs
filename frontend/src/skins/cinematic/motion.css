@@ -69,3 +69,7 @@ html[data-motion="reduced"] .animate-grain { animation: none; }
 html[data-motion="reduced"] .cine-hover-rule { transform: scaleX(1); transition: none; }
 html[data-motion="reduced"] .cine-zoom, html[data-motion="reduced"] .cine-zoom:hover { transform: none !important; }
 /* animate-loop-rule, animate-leader and the button loading segment keep running (§14.1 essential progress). */
+
+@keyframes slug-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@keyframes cine-fade { from { opacity: 0; } to { opacity: 1; } }
