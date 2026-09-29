@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/rendering.dart' show RenderBox;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/confirm_alert.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/hold.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/liquid_progress.dart';
@@ -41,7 +43,7 @@ class HoldToConfirm extends ConsumerStatefulWidget {
     this.twin,
     this.forceStates = GlassWidgetStates.none,
     this.forceHelper,
-  }) : assert(mode == HoldMode.inAlert || onRequestConfirm != null, 'A standalone hold needs onRequestConfirm: the fallback is never optional (WCAG 2.5.1).');
+  });
 
   final String label;
   final VoidCallback onConfirm;
@@ -134,7 +136,17 @@ class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProvid
 
   void _click() {
     if (widget.mode == HoldMode.standalone) {
-      widget.onRequestConfirm!.call();
+      final custom = widget.onRequestConfirm;
+      if (custom != null) {
+        custom();
+      } else {
+        // The default (glass 7.11): a click always opens the confirm alert with an explicit button.
+        final box = context.findRenderObject();
+        final rect = box is RenderBox && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null;
+        confirmAlert(context, title: widget.label, confirmLabel: widget.fallbackLabel, destructive: true, sourceRect: rect).then((ok) {
+          if (ok && mounted) widget.onConfirm();
+        });
+      }
     } else {
       _fallback.requestFocus();
       _showHelper('Hold, or use the button below');
