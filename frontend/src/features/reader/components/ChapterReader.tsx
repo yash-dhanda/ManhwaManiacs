@@ -73,8 +73,8 @@ import {
   ContinuousStrip,
   READING_LINE_PX,
   type StripHandle,
-} from "./ContinuousStrip";
-import { PagedView } from "./PagedView";
+} from "../engine/ContinuousStrip";
+import { PagedView } from "../engine/PagedView";
 import { ReaderControls, StripHead, StripTail } from "./ReaderControls";
 
 interface ChapterReaderProps {
