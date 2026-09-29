@@ -80,6 +80,8 @@ dependencies:
   file_picker: ^8.1.2
 
 dev_dependencies:
+  flutter_launcher_icons: 0.14.4
+  flutter_native_splash: 2.4.8
   flutter_test:
     sdk: flutter
 
@@ -151,3 +153,37 @@ flutter:
       fonts:
         - asset: assets/fonts/SpaceMono-Regular.ttf
           weight: 400
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "../brand/cinematic/export/icon-ios-1024.png"
+  remove_alpha_ios: true
+  background_color_ios: "#000000"
+  image_path_ios_dark_transparent: "../brand/cinematic/export/icon-ios-dark-1024.png"
+  image_path_ios_tinted_grayscale: "../brand/cinematic/export/icon-ios-tinted-1024.png"
+  desaturate_tinted_to_grayscale_ios: true
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "../brand/cinematic/export/android-foreground-1024.png"
+  adaptive_icon_monochrome: "../brand/cinematic/export/android-monochrome-1024.png"
+  web:
+    generate: false
+  windows:
+    generate: false
+  macos:
+    generate: false
+
+flutter_native_splash:
+  color: "#000000"
+  color_dark: "#000000"
+  android: true
+  ios: true
+  web: false
+  fullscreen: false
+  android_12:
+    color: "#000000"
+    color_dark: "#000000"
+    icon_background_color: "#000000"
+    icon_background_color_dark: "#000000"
+    image: "../brand/splash/transparent-288.png"
+    image_dark: "../brand/splash/transparent-288.png"
