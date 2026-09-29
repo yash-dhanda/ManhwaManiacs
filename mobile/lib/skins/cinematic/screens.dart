@@ -3,6 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/setup_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/dialogue_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/sources_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
@@ -27,6 +31,20 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.profileNew: (context, state) => const ProfileFormScreen(),
   ScreenId.profileEdit: (context, state) => ProfileFormScreen(profileId: int.tryParse(state.pathParameters['id'] ?? '')),
   ScreenId.profilesManage: (context, state) => const ProfilesManageScreen(),
+  ScreenId.discover: (context, state) => DiscoverScreen(
+        q: state.uri.queryParameters['q'] ?? '',
+        scope: state.uri.queryParameters['scope'],
+        genre: state.uri.queryParameters['genre'],
+      ),
+  ScreenId.sources: (context, state) => const SourcesScreen(),
+  ScreenId.source: (context, state) => CatalogueScreen(
+        key: ValueKey(state.pathParameters['sourceId']),
+        sourceId: state.pathParameters['sourceId']!,
+        mode: state.uri.queryParameters['mode'],
+        genre: state.uri.queryParameters['genre'],
+        q: state.uri.queryParameters['q'],
+      ),
+  ScreenId.dialogue: (context, state) => DialogueScreen(q: state.uri.queryParameters['q'] ?? ''),
   ScreenId.featureByFollow: (context, state) => FeatureByFollowScreen(
         followedId: int.tryParse(state.pathParameters['followedId'] ?? '') ?? -1,
       ),

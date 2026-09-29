@@ -21,6 +21,8 @@ const Map<String, List<String>> _providersByService = {
     'sourceBrowseProvider',
     'sourceBrowseModesProvider',
     'searchListProvider',
+    'sourcesHealthProvider',
+    'popularFirstPageProvider',
   ],
   'followed_series_service': [
     'libraryListProvider',
@@ -37,6 +39,7 @@ const Map<String, List<String>> _providersByService = {
   'reading_stats_service': [
     'statisticsProvider',
     'recommendationsProvider',
+    'genreWeightsProvider',
     'readingHistoryProvider',
   ],
   'source_cache_service': ['sourcesListProvider'],

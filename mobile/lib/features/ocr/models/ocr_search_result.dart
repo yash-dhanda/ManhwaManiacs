@@ -1,5 +1,27 @@
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 
+/// A matched speech bubble, as fractions of the page (top-left origin).
+class OcrBox {
+  const OcrBox(
+      {required this.x, required this.y, required this.w, required this.h,});
+
+  final double x;
+  final double y;
+  final double w;
+  final double h;
+
+  static OcrBox? tryParse(Object? raw) {
+    if (raw is! Map) return null;
+    double? d(Object? v) => v is num ? v.toDouble() : null;
+    final x = d(raw['x']),
+        y = d(raw['y']),
+        w = d(raw['w'] ?? raw['width']),
+        h = d(raw['h'] ?? raw['height']);
+    if (x == null || y == null || w == null || h == null) return null;
+    return OcrBox(x: x, y: y, w: w, h: h);
+  }
+}
+
 /// One `GET /ocr/search` hit — a chapter whose OCR text matched, plus the
 /// server-built snippet around the match.
 class OcrSearchResult {
@@ -11,6 +33,8 @@ class OcrSearchResult {
     required this.wordCount,
     required this.engine,
     required this.highlightedTerms,
+    this.page,
+    this.box,
   });
 
   final String sourceId;
@@ -25,6 +49,10 @@ class OcrSearchResult {
   final String? engine;
   final List<String> highlightedTerms;
 
+  /// 1-based page of the match and its box; null from an older server.
+  final int? page;
+  final OcrBox? box;
+
   ChapterIdentity get identity =>
       (sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterKey);
 
@@ -35,6 +63,8 @@ class OcrSearchResult {
         snippet: json['snippet'] as String? ?? '',
         wordCount: (json['word_count'] as num?)?.toInt() ?? 0,
         engine: json['engine'] as String?,
+        page: (json['page'] as num?)?.toInt(),
+        box: OcrBox.tryParse(json['box']),
         highlightedTerms: [
           if (json['highlighted_terms'] case final List<dynamic> terms)
             for (final term in terms)

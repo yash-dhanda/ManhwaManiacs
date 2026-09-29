@@ -57,3 +57,6 @@ Future<void> writeRecentSearch(
   final next = [trimmed, ...existing].take(maxRecentSearches).toList();
   await prefs.setString(recentSearchesKeyFor(profileId), jsonEncode(next));
 }
+
+Future<void> clearRecentSearches(SharedPreferences prefs, {int? profileId}) =>
+    prefs.setString(recentSearchesKeyFor(profileId), jsonEncode(<String>[]));

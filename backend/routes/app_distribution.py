@@ -36,6 +36,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from core.config import REPO_ROOT
+from routes.app_media import FONT_FILES
 
 router = APIRouter(tags=["app"])
 
@@ -1255,28 +1256,16 @@ _RELEASE_NOTES: list[ChangelogEntry] = [
 ]
 
 
-# (filename, title, caption) — screenshots served from SCREENSHOTS_DIR.
+# (filename, caption, sub-label) -- the five "Front pages" (cinematic 12.6),
+# served from SCREENSHOTS_DIR. release/00 copies the captures in under exactly
+# these names; until they exist the install page and the SideStore manifest
+# simply leave the frames out.
 _SHOWCASE: list[tuple[str, str, str]] = [
-    (
-        "shot-library.png",
-        "Your shelf, and nothing else",
-        "The series you follow, with unread counts — no feed, no filler.",
-    ),
-    (
-        "shot-novels.png",
-        "Books, not just comics",
-        "Novels get their own shelf and a reader built for prose.",
-    ),
-    (
-        "shot-themes.png",
-        "Forty-two themes",
-        "Every one contrast-checked, and each profile keeps its own.",
-    ),
-    (
-        "shot-statistics.png",
-        "What you actually read",
-        "Streaks, time spent, and which sources you come back to.",
-    ),
+    ("front-01-every-source.png", "Every source. One shelf.", ""),
+    ("front-02-long-scroll.png", "Built for the long scroll.", ""),
+    ("front-03-novels-read-aloud.png", "Novels, read aloud.", "Thirty-one voices"),
+    ("front-04-year-in-chapters.png", "Your year in chapters.", ""),
+    ("front-05-read-together.png", "Read together.", ""),
 ]
 
 
@@ -1603,7 +1592,9 @@ def build_ios_source(request: Request) -> dict:
                 # the SideStore manifest ends up pointing at images the landing
                 # page no longer ships.
                 "screenshots": [
-                    f"{base}/app/media/{name}" for name, _title, _caption in _SHOWCASE
+                    f"{base}/app/media/{name}"
+                    for name, _caption, _sub in _SHOWCASE
+                    if (SCREENSHOTS_DIR / name).is_file()
                 ],
                 "versions": versions,
             }
@@ -1634,24 +1625,10 @@ def _format_size(num_bytes: int) -> str:
 # JSON endpoints use, so shipping a new build updates this page by itself and
 # there is no second place to remember to edit.
 
-# The app mark, drawn rather than fetched.
-#
-# There *is* an /app/media/app-icon.png, but it is still the stock Flutter logo
-# (so is the Android launcher icon; only the iOS asset catalogue carries the real
-# amber "M"). Putting a Flutter logo at the top of the page a stranger uses to
-# decide whether this is a real app is worse than drawing the mark, so this is
-# the iOS icon reproduced as a path: no request, no file to mount, and it cannot
-# regress to a placeholder. Replace this with the real asset once
-# mobile/docs/screenshots/app-icon.png is the actual icon -- the SideStore
-# manifest's iconURL points at that same wrong file and wants the same fix.
+# The Cinematic monogram (brand/cinematic/monogram.svg, the mm-mark master),
+# inlined so the page needs no request for it.
 _MARK = (
-    '<svg class="icon" viewBox="0 0 100 100" role="img" aria-label="ManhwaManiacs">'
-    '<defs><linearGradient id="m" x1="0" y1="0" x2="1" y2="1">'
-    '<stop offset="0" stop-color="#F5A00B"/><stop offset="1" stop-color="#D2740A"/>'
-    "</linearGradient></defs>"
-    '<rect width="100" height="100" rx="23" fill="url(#m)"/>'
-    '<path fill="#fff" d="M22 68V32h9l19 26 19-26h9v36h-8V45L53 68h-6L30 45v23z"/>'
-    "</svg>"
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="72" height="72" class="mark" role="img" aria-label="ManhwaManiacs"><defs><mask id="mU" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path d="M349.14 637.03L257.66 386.97L318.04 386.97L379.57 550.83L437.32 386.97L437.81 386.97L350.29 637.03ZM257.99 386.97L257.99 633.08L283.66 633.08L283.66 633.74L233.65 633.74L233.65 633.08L257.34 633.08L257.34 387.63L232 387.63L232 386.97ZM520.73 386.97L520.73 387.63L497.7 387.63L497.7 633.08L520.73 633.08L520.73 633.74L411.16 633.74L411.16 633.08L437.48 633.08L437.48 386.97Z" fill="#FFFFFF"/></mask></defs><path d="M349.14 637.03L257.66 386.97L318.04 386.97L379.57 550.83L437.32 386.97L437.81 386.97L350.29 637.03ZM257.99 386.97L257.99 633.08L283.66 633.08L283.66 633.74L233.65 633.74L233.65 633.08L257.34 633.08L257.34 387.63L232 387.63L232 386.97ZM520.73 386.97L520.73 387.63L497.7 387.63L497.7 633.08L520.73 633.08L520.73 633.74L411.16 633.74L411.16 633.08L437.48 633.08L437.48 386.97Z" fill="#F3F0E8"/><path d="M571.05 637.03L532.23 386.97L592.61 386.97L619.75 551.48L711.88 386.97L712.54 386.97L572.37 637.03ZM457.21 633.74L457.21 633.08L509.69 633.08L509.69 633.74ZM479.25 633.74L531.9 387.63L506.56 387.63L506.56 386.97L532.56 386.97L479.91 633.74ZM636.53 633.74L636.53 633.08L745.94 633.08L745.94 633.74ZM659.56 633.74L712.21 386.97L792 386.97L792 387.63L771.93 387.63L719.61 633.74Z" fill="#F3F0E8"/><g mask="url(#mU)"><path d="M571.05 637.03L532.23 386.97L592.61 386.97L619.75 551.48L711.88 386.97L712.54 386.97L572.37 637.03ZM457.21 633.74L457.21 633.08L509.69 633.08L509.69 633.74ZM479.25 633.74L531.9 387.63L506.56 387.63L506.56 386.97L532.56 386.97L479.91 633.74ZM636.53 633.74L636.53 633.08L745.94 633.08L745.94 633.74ZM659.56 633.74L712.21 386.97L792 386.97L792 387.63L771.93 387.63L719.61 633.74Z" fill="#F4D03F"/></g></svg>'
 )
 
 # The no-install option, and for a good number of visitors the right answer.
@@ -1743,55 +1720,78 @@ def _feed_url(request: Request | None) -> str:
 def _render_android(apk: _Artifact) -> str:
     if not apk.available:
         return """
-    <section class="card">
-      <h2>Android</h2>
-      <p class="unavailable">No Android build published yet.</p>
-      <p>Nothing to install here for the moment — read in your browser instead,
-        using the link below.</p>
-    </section>"""
+      <li class="step">
+        <span class="folio" aria-hidden="true">01</span>
+        <h3>Android: download the APK</h3>
+        <p class="unavailable">No Android build published yet.</p>
+        <p>Read in your browser for now: step 03.</p>
+      </li>"""
     return f"""
-    <section class="card">
-      <h2>Android</h2>
-      <a class="btn" href="/app/download">Download for Android</a>
-      <p class="meta">{escape(apk.size)} · updated {escape(apk.date)}</p>
-      <p>Tap the button, then open the file once it has downloaded. Android will
-        ask, once, whether to allow installs from your browser — allow it, then
-        tap Install. That's the whole thing.</p>
-    </section>"""
+      <li class="step">
+        <span class="folio" aria-hidden="true">01</span>
+        <h3>Android: download the APK</h3>
+        <a class="btn" href="/app/download">Download for Android</a>
+        <p class="meta">{escape(apk.size)} · updated {escape(apk.date)}</p>
+        <p>Open the file when it has downloaded. Android asks once whether to
+          allow installs from your browser; allow it, then tap Install.</p>
+      </li>"""
 
 
 def _render_iphone(ipa: _Artifact, feed_url: str, release: str) -> str:
     if not ipa.available:
         return """
-    <section class="card">
-      <h2>iPhone</h2>
-      <p class="unavailable">No iPhone build published yet.</p>
-      <p>When there is one it will appear here. Until then the website below
-        works on an iPhone with nothing to install.</p>
-    </section>"""
+      <li class="step">
+        <span class="folio" aria-hidden="true">02</span>
+        <h3>iPhone: add the SideStore source</h3>
+        <p class="unavailable">No iPhone build published yet.</p>
+        <p>Read in your browser for now: step 03.</p>
+      </li>"""
     return f"""
-    <section class="card">
-      <h2>iPhone</h2>
-      <p>Apple does not let a website install an app, so the iPhone route needs
-        <a href="{escape(SIDESTORE_URL)}" rel="noopener">SideStore</a> — a free
-        app that installs apps like this one. Install SideStore first.</p>
-      <p>Then open SideStore, go to <strong>Sources</strong>, tap
-        <strong>+</strong>, and paste this address:</p>
-      <p class="url">{escape(feed_url)}</p>
-      <p>ManhwaManiacs appears in that source, ready to install — and every
-        later update turns up in the same place.</p>
-      <p class="meta">{escape(release)} · {escape(ipa.size)} ·
-        updated {escape(ipa.date)}</p>
-    </section>"""
+      <li class="step">
+        <span class="folio" aria-hidden="true">02</span>
+        <h3>iPhone: add the SideStore source</h3>
+        <p>Apple does not let a website install an app, so the iPhone needs
+          <a href="{escape(SIDESTORE_URL)}" rel="noopener">SideStore</a>, a free
+          app that installs apps like this one. Install SideStore first.</p>
+        <p>Then open SideStore, go to <strong>Sources</strong>, tap
+          <strong>+</strong>, and paste this address:</p>
+        <p class="url">{escape(feed_url)}</p>
+        <p>ManhwaManiacs appears in that source, and every update arrives there.</p>
+        <p class="meta">{escape(release)} · {escape(ipa.size)} · updated {escape(ipa.date)}</p>
+      </li>"""
+
+
+def _render_web() -> str:
+    host = escape(WEB_APP_URL.split("//", 1)[-1])
+    return f"""
+      <li class="step">
+        <span class="folio" aria-hidden="true">03</span>
+        <h3>Or read in your browser</h3>
+        <a class="btn secondary" href="{escape(WEB_APP_URL)}">Open {host}</a>
+        <p>Nothing to install. Works on any phone or computer.</p>
+      </li>"""
+
+
+def _vfolio(entry: ChangelogEntry, latest: bool) -> str:
+    badge = ' <span class="badge">LATEST</span>' if latest else ""
+    return (
+        f'<p class="vfolio">{escape(entry.version)} · BUILD {entry.build} · '
+        f"{escape(entry.date.upper())}{badge}</p>"
+    )
+
+
+def _dashes(entry: ChangelogEntry) -> str:
+    items = "".join(f"<li>{escape(note)}</li>" for note in entry.highlights)
+    return f'<ul class="dashes">{items}</ul>'
 
 
 def _render_release(entry: ChangelogEntry) -> str:
-    notes = "".join(f"<li>{escape(note)}</li>" for note in entry.highlights)
     return f"""
-    <section class="card">
-      <h2>What's new in {escape(entry.version)}</h2>
-      <p class="meta">{escape(entry.date)} · build {entry.build}</p>
-      <ul>{notes}</ul>
+    <section class="notes" aria-labelledby="notes-h">
+      <p class="kicker">WHAT'S NEW</p>
+      <h2 id="notes-h">Release notes</h2>
+      <div class="erratum">{_vfolio(entry, True)}{_dashes(entry)}</div>
+{_render_older_releases()}
     </section>"""
 
 
@@ -1800,43 +1800,48 @@ def _render_older_releases() -> str:
     if not older:
         return ""
     items = "".join(
-        f"""
-        <h3>{escape(entry.version)} <span class="meta">{escape(entry.date)}</span></h3>
-        <ul>{"".join(f"<li>{escape(n)}</li>" for n in entry.highlights)}</ul>"""
-        for entry in older
+        f'<div class="erratum">{_vfolio(e, False)}{_dashes(e)}</div>' for e in older
     )
-    return f"""
-    <details class="card">
-      <summary>Earlier versions</summary>
-      {items}
-    </details>"""
+    return f"""      <details class="older">
+        <summary>Earlier versions</summary>
+        {items}
+      </details>"""
 
 
 def _render_shots(cache_key: str) -> str:
-    """Two real screenshots, and only ones actually on disk.
+    """The "Front pages", and only the frames actually on disk.
 
-    The deploy mounts these in; a missing mount must degrade to no pictures, not
-    to two broken-image icons on the page a new user is judging the app by.
+    The deploy mounts these in; a missing mount must degrade to no section, not
+    to broken-image icons on the page a new user is judging the app by.
     """
     present = [
-        (name, title)
-        for name, title, _caption in _SHOWCASE
+        (name, caption, sub)
+        for name, caption, sub in _SHOWCASE
         if (SCREENSHOTS_DIR / name).is_file()
-    ][:2]
+    ]
     if not present:
         return ""
-    shots = "".join(
+    figs = "".join(
         f"""
-      <img src="/app/media/{escape(name)}?v={escape(cache_key)}"
-           alt="{escape(title)}" loading="lazy" decoding="async" />"""
-        for name, title in present
+        <figure>
+          <img src="/app/media/{escape(name)}?v={escape(cache_key)}"
+               alt="{escape(caption)}" width="1320" height="2868"
+               loading="lazy" decoding="async" />
+          <figcaption>{escape(caption)}{f' <span class="sub">{escape(sub)}</span>' if sub else ""}</figcaption>
+        </figure>"""
+        for name, caption, sub in present
     )
-    return f'\n    <section class="shots">{shots}\n    </section>'
+    return f"""
+    <section aria-label="Front pages">
+      <p class="kicker">FRONT PAGES</p>
+      <div class="shots" role="region" aria-label="Screenshots" tabindex="0">{figs}
+      </div>
+    </section>"""
 
 
 def render_landing_html(request: Request | None = None) -> str:
     """The whole install page: self-contained HTML, built from live state."""
-    # The APK's own numbers, for the same reason the iPhone card uses the .ipa's:
+    # The APK's own numbers, for the same reason the iPhone step uses the .ipa's:
     # the header sits over the Download button, and the pubspec runs ahead of it
     # for the whole of a release.
     info = read_android_release()
@@ -1846,128 +1851,189 @@ def render_landing_html(request: Request | None = None) -> str:
     ios_release = ""
     if ipa.available:
         # The .ipa's own numbers, not this server's pubspec: CI stamps the build
-        # it published, and the two legitimately differ (an iOS build lags a
-        # deploy, or runs ahead of one). Claiming the pubspec version next to an
-        # older binary would be a lie the visitor cannot check.
+        # it published, and the two legitimately differ.
         ios_version, ios_build, ios_date = read_ios_release(IPA_PATH)
         ios_release = f"{ios_version} (build {ios_build})"
         ipa = _Artifact(True, ipa.size, _pretty_date(ios_date))
 
+    base = _public_base_url(request)
+    og = (
+        f'  <meta property="og:image" content="{escape(base)}/app/brand/og.png" />\n'
+        '  <meta property="og:image:width" content="1200" />\n'
+        '  <meta property="og:image:height" content="630" />\n'
+        if base
+        else ""
+    )
+    lines = "".join(f"<p>{escape(line)}</p>" for line in _COVER_LINES)
+
     body = f"""
+  <a class="skip" href="#install">Skip to install steps</a>
   <main>
-    <header class="head">
-      {_MARK}
-      <h1>ManhwaManiacs</h1>
-      <p class="version">Version {escape(info.version)} · build {info.build}</p>
-      <p class="tagline">Manga, manhwa and novels on your phone. One library
-        across every source, and chapters you can download and read with no
-        signal at all.</p>
-    </header>
-{_render_android(apk)}
-{_render_iphone(ipa, _feed_url(request), ios_release)}
-    <a class="card web" href="{escape(WEB_APP_URL)}">
-      <strong>Or just read in your browser</strong>
-      <span>{escape(WEB_APP_URL.split("//", 1)[-1])} — nothing to install, works
-        on anything.</span>
-    </a>
+    <div>
+      <header class="masthead">
+        {_MARK}
+        <p class="kicker">INSTALL</p>
+        <h1 class="wordmark"><span class="upright">Manhwa</span><span class="italic">Maniacs</span></h1>
+        <div class="oxford" aria-hidden="true"></div>
+        <p class="version">Version {escape(info.version)} · build {info.build}</p>
+      </header>
+    </div>
+    <section class="cover-lines" aria-label="What it does">
+      {lines}
+      <p class="deck">Manga, manhwa, manhua and web novels from every source you
+        add, on one shelf per profile. Save chapters and read them with no signal.</p>
+    </section>
+    <section id="install" aria-labelledby="install-h">
+      <p class="kicker">HOW TO INSTALL</p>
+      <h2 id="install-h" class="visually-hidden">Install</h2>
+      <ol class="steps">{_render_android(apk)}{_render_iphone(ipa, _feed_url(request), ios_release)}{_render_web()}
+      </ol>
+    </section>
 {_render_shots(cache_key)}
 {_render_release(_RELEASE_NOTES[0]) if _RELEASE_NOTES else ""}
-{_render_older_releases()}
-    <footer>ManhwaManiacs · {escape(info.version)} ({info.build})</footer>
+    <div>
+      <div class="oxford" aria-hidden="true"></div>
+      <footer><p>ManhwaManiacs · {escape(info.version)} ({info.build})</p></footer>
+    </div>
   </main>"""
 
     return (
         '<!doctype html>\n<html lang="en">\n<head>\n'
         '  <meta charset="utf-8" />\n'
-        '  <meta name="viewport" content="width=device-width, initial-scale=1" />\n'
-        '  <meta name="color-scheme" content="dark light" />\n'
-        '  <meta name="theme-color" content="#101013" />\n'
-        '  <meta name="description" content="Install ManhwaManiacs — a manga, '
-        'manhwa and novel reader for Android and iPhone." />\n'
+        '  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />\n'
+        '  <meta name="color-scheme" content="dark" />\n'
+        '  <meta name="theme-color" content="#000000" />\n'
+        '  <meta name="description" content="Install ManhwaManiacs: every source, '
+        "one shelf. Manga, manhwa, manhua and novels for Android, iPhone and the "
+        'web." />\n'
+        '  <meta property="og:title" content="ManhwaManiacs" />\n'
+        '  <meta property="og:description" content="Every source. One shelf. '
+        'Novels, read aloud. Your year in chapters. Read together." />\n'
+        f"{og}"
+        '  <meta name="twitter:card" content="summary_large_image" />\n'
+        '  <link rel="icon" type="image/png" sizes="192x192" href="/app/brand/icon-192.png" />\n'
+        '  <link rel="apple-touch-icon" href="/app/brand/apple-touch-icon.png" />\n'
+        '  <link rel="preload" href="/app/fonts/bodoni-moda-latin.woff2" as="font" '
+        'type="font/woff2" crossorigin />\n'
         "  <title>Install ManhwaManiacs</title>\n"
         f"  <style>{_CSS}</style>\n"
         f"</head>\n<body>{body}\n</body>\n</html>\n"
     )
 
 
-# Inlined because the page must render with zero extra requests, and there is
-# one page: a stylesheet would be a second round trip and a second file to keep
-# in step for no benefit. Dark by default with the light palette behind
-# prefers-color-scheme -- a system-level preference, not a theme system.
-_CSS = """
+_COVER_LINES = (
+    "Every source. One shelf.",
+    "Novels, read aloud.",
+    "Your year in chapters.",
+    "Read together.",
+)
+
+_FONTS_JSON = Path(__file__).resolve().parents[1] / "media" / "fonts" / "fonts.json"
+_AXES = {
+    "Bodoni Moda": "font-weight:400 900;",
+    "Archivo": "font-weight:400 800;font-stretch:62% 100%;",
+}
+
+
+def _font_face_css() -> str:
+    """One @font-face per served file, from fonts.json (unknown files ignored)."""
+    try:
+        entries = json.loads(_FONTS_JSON.read_text())
+    except (OSError, ValueError):
+        return ""
+    rules = []
+    for e in entries:
+        if e.get("file") not in FONT_FILES or e.get("family") not in _AXES:
+            continue
+        rules.append(
+            f'@font-face{{font-family:"{e["family"]}";font-style:{e.get("style", "normal")};'
+            f'{_AXES[e["family"]]}src:url(/app/fonts/{e["file"]}) format("woff2");'
+            f'unicode-range:{e.get("unicodeRange", "U+0-10FFFF")};font-display:swap}}'
+        )
+    return "\n".join(rules)
+
+
+_SERIF = '"Bodoni Moda","Didot","Bodoni 72",Georgia,serif'
+_SANS = '"Archivo",-apple-system,"Segoe UI",Roboto,Arial,sans-serif'
+_MONO = 'ui-monospace,"SF Mono",Menlo,Consolas,monospace'
+
+# Inlined because the page must render with zero extra requests. Dark only:
+# there is no light palette (cinematic 2.1). Tokens are literal hex on purpose;
+# every length is a multiple of 4px.
+_CSS = (
+    _font_face_css()
+    + """
 *,*::before,*::after{box-sizing:border-box}
-:root{
-  --bg:#101013;--card:#1a1a1f;--line:#2c2c34;
-  --fg:#ececf1;--muted:#a0a0ab;--accent:#f59e0b;--on-accent:#1a1200;
-}
-@media (prefers-color-scheme:light){
-  :root{
-    --bg:#faf9f7;--card:#ffffff;--line:#e3e1dd;
-    --fg:#1b1b1f;--muted:#5f5f6b;--accent:#b45309;--on-accent:#ffffff;
-  }
-}
-body{
-  margin:0;padding:32px 20px 64px;background:var(--bg);color:var(--fg);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%;
-}
-main{max-width:34rem;margin:0 auto;display:grid;gap:20px}
-h1,h2,h3{margin:0;line-height:1.25;letter-spacing:-.01em}
-p{margin:0}
-a{color:var(--accent)}
+html{background:#000000;color-scheme:dark}
+body{margin:0;color:#F3F0E8;font:500 16px/24px SANS;-webkit-text-size-adjust:100%}
+main{max-width:44rem;margin:0 auto;padding:max(48px,env(safe-area-inset-top)) 20px 64px;display:grid;gap:56px}
+@media (min-width:1024px){main{padding-left:32px;padding-right:32px;gap:72px}}
+h1,h2,h3,p,ol,ul,figure{margin:0}
+.visually-hidden{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:0;top:0;padding:8px 16px;background:#121211;color:#F3F0E8;font:500 14px/20px SANS;transform:translateY(-100%)}
+.skip:focus{transform:none;z-index:1}
+a{color:#F3F0E8;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+:focus-visible{outline:2px solid #F3F0E8;outline-offset:2px;box-shadow:0 0 0 6px #000000}
 
-.head{text-align:center;display:grid;gap:10px;justify-items:center;padding:8px 0 4px}
-.icon{width:84px;height:84px;border-radius:20px;display:block}
-h1{font-size:30px;font-weight:700}
-.version{color:var(--muted);font-size:14px}
-.tagline{color:var(--muted);max-width:30rem}
+.masthead{display:inline-grid;justify-items:start}
+.mark{display:block;width:72px;height:72px}
+.kicker{font:700 11px/16px SANS;font-stretch:62%;letter-spacing:.16em;text-transform:uppercase;color:#7A7770}
+@media (min-width:600px){.kicker{font-size:12px}}
+.masthead .kicker{margin-top:16px}
+.wordmark{font-family:SERIF;font-weight:800;font-size:clamp(2.5rem,1.582rem + 3.92vw,5.5rem);line-height:1;letter-spacing:-.035em;font-optical-sizing:auto;margin:8px 0 0;white-space:nowrap}
+.wordmark .italic{font-style:italic}
+.oxford{height:6px;margin-top:12px;background:linear-gradient(to right,#F4D03F 0 12%,#F3F0E8 12% 100%) 0 0/100% 3px no-repeat,linear-gradient(to right,#F4D03F 0 12%,#F3F0E8 12% 100%) 0 5px/100% 1px no-repeat;width:100%}
+.version{margin-top:12px;font:500 13px/16px SANS;font-stretch:90%;color:#7A7770;font-variant-numeric:tabular-nums}
 
-.card{
-  background:var(--card);border:1px solid var(--line);border-radius:16px;
-  padding:22px;display:grid;gap:12px;
-}
-h2{font-size:20px;font-weight:700}
-.card p{color:var(--muted)}
-.card strong{color:var(--fg)}
+.cover-lines p:not(.deck){font-family:SERIF;font-style:italic;font-weight:500;font-size:clamp(1.5rem,1.2rem + 1.3vw,2.25rem);line-height:1.25;letter-spacing:-.015em;padding:12px 0;border-top:1px solid #2B2A27}
+.cover-lines p:first-child{border-top:0;padding-top:0}
+.cover-lines .deck{font:450 17px/28px SANS;font-stretch:100%;color:#9A978F;max-width:36em;margin-top:20px}
 
-.btn{
-  display:block;text-align:center;background:var(--accent);color:var(--on-accent);
-  font-size:17px;font-weight:700;text-decoration:none;
-  padding:16px 20px;border-radius:12px;min-height:56px;line-height:24px;
-}
-.meta{font-size:14px}
-.unavailable{color:var(--fg);font-weight:600}
+.steps{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:40px}
+.step{display:grid;gap:12px;justify-items:start;border-top:1px solid #2B2A27;padding-top:20px;color:#9A978F}
+.step strong{color:#F3F0E8}
+.folio{font:600 15px/20px SANS;font-variant-numeric:tabular-nums;color:#9A978F}
+h3{font-family:SERIF;font-weight:600;font-size:20px;line-height:24px;letter-spacing:-.01em;color:#F3F0E8;margin-top:-8px}
+@media (min-width:768px){h3{font-size:24px;line-height:28px}}
+.meta{font:500 13px/16px SANS;font-variant-numeric:tabular-nums;color:#7A7770}
+.unavailable{font-weight:650;color:#F3F0E8}
+.url{width:100%;background:#0B0B0A;border:1px solid #3D3C38;border-radius:0;padding:12px 14px;font:400 14px/20px MONO;color:#F3F0E8;word-break:break-all;-webkit-user-select:all;user-select:all}
 
-.url{
-  color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  font-size:14px;word-break:break-all;background:var(--bg);
-  border:1px solid var(--line);border-radius:10px;padding:12px 14px;
-  -webkit-user-select:all;user-select:all;
-}
+.btn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;background:#F3F0E8;color:#000000;font:650 15px/20px SANS;letter-spacing:.005em;text-decoration:none;border-radius:0;position:relative;width:100%;transition:transform 80ms cubic-bezier(.2,0,0,1),background-color 80ms cubic-bezier(.2,0,0,1)}
+@media (min-width:600px){.btn{width:fit-content}}
+.btn::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;background:#F4D03F;transform:scaleX(0);transform-origin:left;transition:transform 160ms cubic-bezier(.7,0,.84,0)}
+@media (hover:hover){.btn:hover::after{transform:scaleX(1);transition:transform 240ms cubic-bezier(.16,1,.3,1)}}
+.btn:active{transform:translateY(1px);background:#C9C6BE}
+.btn.secondary{background:transparent;color:#F3F0E8;box-shadow:inset 0 0 0 1px #F3F0E8}
+@media (hover:hover){.btn.secondary:hover{background:#232220}}
+.btn.secondary:active{background:#1A1A18}
+.btn.secondary:focus-visible{box-shadow:inset 0 0 0 1px #F3F0E8,0 0 0 6px #000000}
+a,summary,.shots{min-width:32px;min-height:32px}
+@media (pointer:coarse){.btn,.shots{min-height:48px}.step p a,summary{display:inline-block;min-height:48px;line-height:48px}.btn{min-width:48px}}
 
-.web{text-decoration:none;color:inherit;gap:4px}
-.web span{color:var(--muted);font-size:15px}
+.shots{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px;margin:8px -8px 0}
+.shots figure{flex:0 0 min(46vw,240px);scroll-snap-align:start}
+.shots img{width:100%;height:auto;display:block;border:1px solid #2B2A27;border-radius:0;background:#0B0B0A}
+figcaption{font:italic 500 16px/24px SERIF;color:#F3F0E8;margin-top:8px}
+figcaption .sub{font:500 13px/16px SANS;color:#7A7770;font-style:normal;display:block}
 
-.shots{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.shots img{
-  width:100%;height:auto;border-radius:14px;border:1px solid var(--line);
-  display:block;background:var(--card);
-}
+.notes h2{font-family:SERIF;font-weight:600;font-size:24px;line-height:28px;letter-spacing:-.01em;margin-top:8px}
+.erratum{margin-top:24px}
+.vfolio{font:400 15px/20px MONO;font-variant-numeric:tabular-nums;color:#F3F0E8}
+.badge{display:inline-block;margin-left:8px;padding:0 6px;background:#F4D03F;color:#000000;font:700 10px/16px SANS;font-stretch:62%;letter-spacing:.12em}
+ul.dashes{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:8px;color:#C9C6BE}
+ul.dashes li::before{content:"— ";color:#7A7770}
+.older{margin-top:32px}
+summary{font:650 15px/20px SANS;cursor:pointer}
+footer{margin-top:16px;font:500 13px/16px SANS;color:#7A7770;text-align:center}
 
-.card ul{margin:0;padding-left:20px;color:var(--muted);display:grid;gap:8px}
-.card h3{font-size:16px;margin-top:16px}
-.card h3 .meta{color:var(--muted);font-weight:400}
-summary{font-size:17px;font-weight:700;cursor:pointer}
-
-footer{color:var(--muted);font-size:13px;text-align:center;padding-top:8px}
-
-/* The screenshots stay two-up at every width on purpose. Stacked full-width on
-   a phone they are portrait screenshots roughly a screen tall each, which buries
-   the release notes under 1500px of pictures; side by side they stay a glance. */
-@media (max-width:380px){
-  body{padding:24px 16px 48px}
-}
-"""
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+@media (forced-colors:active){.oxford{background:CanvasText}.btn{border:1px solid ButtonText}.badge{forced-color-adjust:none}}
+@media (prefers-contrast:more){.kicker,.version,.meta,.folio,.sub,footer,ul.dashes li::before{color:#C9C6BE}}
+""".replace("SERIF", _SERIF)
+    .replace("SANS", _SANS)
+    .replace("MONO", _MONO)
+)
 
 
 @router.get("/app/version", response_model=AppVersion)

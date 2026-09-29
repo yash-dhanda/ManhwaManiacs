@@ -89,6 +89,35 @@ class OcrRepositoryImpl implements OcrRepository {
     }
   }
 
+  @override
+  Future<Result<List<PageText>?>> fetchChapterText(ChapterIdentity id) async {
+    try {
+      final r = await _dio.get<Map<String, dynamic>>(
+        '/ocr/chapter',
+        queryParameters: {
+          'source': id.sourceId,
+          'series': id.seriesKey,
+          'chapter': id.chapterKey,
+        },
+      );
+      final raw = r.data?['page_texts'];
+      return Ok([
+        if (raw is List)
+          for (final p in raw)
+            if (p is Map)
+              PageText(
+                page: (p['page'] as num?)?.toInt() ?? 0,
+                text: p['text'] is String ? p['text'] as String : '',
+              ),
+      ]);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return const Ok(null);
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
   AppError _err(DioException e) {
     if (e.error is AppError) return e.error! as AppError;
     return UnknownError(message: e.message ?? 'Dio error', cause: e);

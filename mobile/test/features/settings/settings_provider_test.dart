@@ -23,6 +23,7 @@ import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dar
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/settings/services/image_cache_service.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
@@ -34,6 +35,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Empty-data fake — every list method returns an empty success so the
 /// top-level metadata providers resolve without a network call.
 class _EmptyLibraryRepository implements LibraryRepository {
+
+  @override
+  Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);
   @override
   Future<Result<RepointResult>> repoint(
     int followedId, {

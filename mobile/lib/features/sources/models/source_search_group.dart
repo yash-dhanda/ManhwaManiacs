@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 
 /// Per-source view of `GET /sources/search`.
 ///
@@ -33,7 +34,11 @@ class SourceSearchGroup {
     this.total = 0,
     this.hasMore = false,
     this.items = const [],
+    this.health,
   });
+
+  /// Recorded reachability of the source, when the server sends it.
+  final SourceHealth? health;
 
   /// Connector id, or null — which is what *identifies* the local-library
   /// group; there is no sentinel string for it.
@@ -75,6 +80,7 @@ class SourceSearchGroup {
         total: total ?? this.total,
         hasMore: hasMore ?? this.hasMore,
         items: items ?? this.items,
+        health: health,
       );
 
   factory SourceSearchGroup.fromJson(Map<String, dynamic> json) {
@@ -92,9 +98,14 @@ class SourceSearchGroup {
       total: (json['total'] as num?)?.toInt() ?? items.length,
       hasMore: json['has_more'] as bool? ?? false,
       items: items,
+      health: json['health'] is Map<String, dynamic>
+          ? SourceHealth.fromJson(json['health'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
+
+enum SearchPhase { idle, tier1, tier2, done }
 
 class GroupedSearchResult {
   const GroupedSearchResult({
@@ -104,7 +115,22 @@ class GroupedSearchResult {
     this.page = 1,
     this.hasMore = false,
     this.isLoadingMore = false,
+    this.tier,
+    this.nextTier,
+    this.sourcesDeferred = 0,
   });
+
+  /// Tiered search: which tier this answers, the one to ask next (null when
+  /// done) and how many sources it left for that tier.
+  final int? tier;
+
+  /// idle is never reported here (an empty query has no result); `tier1` is
+  /// never seen either, because tier 1 is what the provider is still loading.
+  int get sourcesPending => phase == SearchPhase.tier2 ? sourcesDeferred : 0;
+
+  SearchPhase get phase => nextTier == 2 ? SearchPhase.tier2 : SearchPhase.done;
+  final int? nextTier;
+  final int sourcesDeferred;
 
   final List<SourceSearchGroup> groups;
   final int sourcesQueried;
@@ -121,8 +147,10 @@ class GroupedSearchResult {
   bool get isEmpty => resultCount == 0;
 
   /// Groups that actually have something to render, in server order.
-  List<SourceSearchGroup> get groupsWithResults =>
-      [for (final group in groups) if (group.items.isNotEmpty) group];
+  List<SourceSearchGroup> get groupsWithResults => [
+        for (final group in groups)
+          if (group.items.isNotEmpty) group,
+      ];
 
   GroupedSearchResult copyWith({
     List<SourceSearchGroup>? groups,
@@ -131,6 +159,9 @@ class GroupedSearchResult {
     int? page,
     bool? hasMore,
     bool? isLoadingMore,
+    int? tier,
+    int? nextTier,
+    int? sourcesDeferred,
   }) =>
       GroupedSearchResult(
         groups: groups ?? this.groups,
@@ -139,6 +170,9 @@ class GroupedSearchResult {
         page: page ?? this.page,
         hasMore: hasMore ?? this.hasMore,
         isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+        tier: tier ?? this.tier,
+        nextTier: nextTier ?? this.nextTier,
+        sourcesDeferred: sourcesDeferred ?? this.sourcesDeferred,
       );
 
   /// Fold a later page into this one.
@@ -192,5 +226,8 @@ class GroupedSearchResult {
         sourcesFailed: (json['sources_failed'] as num?)?.toInt() ?? 0,
         page: (json['page'] as num?)?.toInt() ?? 1,
         hasMore: json['has_more'] as bool? ?? false,
+        tier: (json['tier'] as num?)?.toInt(),
+        nextTier: (json['next_tier'] as num?)?.toInt(),
+        sourcesDeferred: (json['sources_deferred'] as num?)?.toInt() ?? 0,
       );
 }

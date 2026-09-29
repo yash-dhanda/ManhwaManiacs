@@ -9,8 +9,11 @@ import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -54,6 +57,18 @@ class _RecordingQueue extends DownloadQueueController {
 }
 
 class _FakeSourcesRepository implements SourcesRepository {
+
+  @override
+  Future<Result<List<ReaderPage>>> getChapterPages(String sourceId, String chapterKey) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async => const Ok([]);
+
+  @override
+  Future<Result<List<SourceSummary>>> listHealth() async => const Ok([]);
+
+  @override
+  Future<Result<SourceHealthSummary>> healthSummary() async => const Ok(SourceHealthSummary());
   @override
   Future<Result<SeriesEnrichment?>> seriesEnrichment(
     String sourceId,
@@ -89,6 +104,7 @@ class _FakeSourcesRepository implements SourcesRepository {
     String query, {
     int page = 1,
     int perPage = 40,
+    int? tier,
   }) =>
       throw UnimplementedError();
 
@@ -109,6 +125,8 @@ class _FakeSourcesRepository implements SourcesRepository {
     int page = 1,
     String? query,
     String? sort,
+    String? genre,
+    bool refresh = false,
   }) =>
       throw UnimplementedError();
 

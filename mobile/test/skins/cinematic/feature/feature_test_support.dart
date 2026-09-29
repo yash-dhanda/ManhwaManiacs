@@ -515,7 +515,7 @@ class FakeSources implements SourcesRepository {
   final List<String> searched = [];
 
   @override
-  Future<Result<GroupedSearchResult>> searchGrouped(String query, {int page = 1, int perPage = 40}) async {
+  Future<Result<GroupedSearchResult>> searchGrouped(String query, {int page = 1, int perPage = 40, int? tier}) async {
     searched.add(query);
     return Ok(GroupedSearchResult(groups: groups));
   }

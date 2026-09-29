@@ -26,6 +26,10 @@ Items only the owner can do, by step.
 - Run docs/redesign/proof/mobile-02/device-check.md on the iPhone build and the Android flagship.
 - After the integrator pushes: read CI (`android-apk`, `build-ios`) for the dependency, audio_service and mm/platform commits and record run ids in dependency-gate.md; apply a package's ledger fallback if a native job fails.
 
+## mobile/16 (L09)
+
+- Run `docs/redesign/proof/mobile-16/device-checklist.md` on the iPhone and the Android flagship once CI builds them.
+
 ## mobile/11 (Cinematic Feature, Book, downloads)
 - Device checks from the prompt (match cut, edge swipe, predictive back, Column wipe, Lightbox, a real download read offline, `mature_override` hiding saved chapters, VoiceOver / TalkBack, text scale 1.3 and 2.0): docs/redesign/proof/mobile-11/device-checklist.md.
 - mobile/11: `mature_override: null` does not clear on the server until web/11 lands the backend fix in `followed_series_service.py`; then re-check the third radio of the override menu on a device.
@@ -53,6 +57,9 @@ Items only the owner can do, by step.
 
 - mobile/03: confirm tests + build-ios CI run ids/conclusions for commit abbace5 (liquid_glass_widgets pin), record in docs/redesign/proof/mobile-03/glass-gate.md
 
+## mobile/16 (lane L09, fix pass 2)
+- After mobile/12 lands: mount `DialogueLandingHost` in the Cinematic reader and check on a device that a Dialogue hit lands on the matched page and the bubble pulses twice.
+- mobile/06 landed: Discover listens to `focusSearchSignalProvider` and the Dialogue screen uses `enterReader(entry: dip)`. Check both on a device.
 
 ## web/26 (Glass primitives 1)
 - Device check: touch lift (150/450 ms), throw and magnet on a real phone; the software raster in the harness cannot show frame cost. Record the motion-timings overlay (Press swell, Content sink, Tab droplet, Hold fill, Liquid fill, Count pop, Wave, Letter reveal, Typing reveal) on the 3090 Ti desktop at 1440 x 900.

@@ -35,7 +35,7 @@ class CinePlate extends StatelessWidget {
           left: 8,
           bottom: 8,
           right: error ? 32 : 8,
-          child: ExcludeSemantics(child: CineLit(title!, CineFace.bodoni, 14, 16, italic: true, color: c.colorInk45, maxLines: 3, overflow: TextOverflow.ellipsis)),
+          child: ExcludeSemantics(child: CineLit(title!, CineFace.bodoni, 14, 16, italic: true, color: c.colorInk60, maxLines: 3, overflow: TextOverflow.ellipsis)),
         ),
       if (error)
         Positioned(

@@ -21,7 +21,11 @@ class PagedResult<T> {
     required this.page,
     required this.perPage,
     required this.hasNext,
+    this.cache,
   });
+
+  /// The `cache` block of a browse listing (`{status, stale, fetched_at}`).
+  final Map<String, dynamic>? cache;
 
   final List<T> items;
   final int total;

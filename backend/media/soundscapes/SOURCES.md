@@ -189,3 +189,7 @@ ffmpeg -hide_banner -nostats -i design/sounds/.build/temple-bells.wav -af ebur12
 ffmpeg -y -v error -i design/sounds/.build/temple-bells.wav -c:a libvorbis -b:a 96k -fflags +bitexact -flags:a +bitexact -map_metadata -1 backend/media/soundscapes/temple-bells.ogg
 ffmpeg -y -v error -i design/sounds/.build/temple-bells.wav -c:a aac -b:a 96k -movflags +faststart -fflags +bitexact -flags:a +bitexact -map_metadata -1 backend/media/soundscapes/temple-bells.m4a
 ```
+
+## Replacing a file
+
+A replaced recording keeps its name, and clients cache these files for a year (`Cache-Control: immutable`; web Cache Storage `mm-soundscapes-v1`, the app support directory on mobile). A changed recording therefore reaches devices only when the client steps bump that cache name; replacing the file on the server alone changes nothing for anyone who already has it.

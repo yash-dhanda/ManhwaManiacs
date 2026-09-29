@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/features/collections/providers/collection_detail_p
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
+import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
@@ -37,6 +38,7 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   (ref) => ref.invalidate(statisticsProvider),
   (ref) => ref.invalidate(recommendationsProvider),
   (ref) => ref.invalidate(readingHistoryProvider),
+  (ref) => ref.invalidate(genreWeightsProvider),
   // Bookmarks.
   (ref) => ref.invalidate(bookmarksProvider),
   // Per-series detail (progress/bookmark state, and the `is_followed` /

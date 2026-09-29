@@ -126,7 +126,8 @@ class SourcePinsNotifier extends AsyncNotifier<SourcePinsState> {
 
     state = AsyncData(SourcePinsState(pins: next, synced: true));
 
-    final result = await repo.replacePins([for (final pin in next) pin.sourceId]);
+    final result =
+        await repo.replacePins([for (final pin in next) pin.sourceId]);
     if (result.isErr) {
       state = AsyncData(current);
       throw result.error;
@@ -138,6 +139,36 @@ class SourcePinsNotifier extends AsyncNotifier<SourcePinsState> {
       _cacheKey,
       result.value,
     );
+  }
+
+  /// Write [orderedIds] (the FULL order, unavailable pins included) with one
+  /// `PUT /sources/pins`. Optimistic; throws the [AppError] after rolling back.
+  Future<void> reorder(List<String> orderedIds) async {
+    final current = state.valueOrNull ?? const SourcePinsState();
+    if (!current.synced) return;
+    final byId = {for (final pin in current.pins) pin.sourceId: pin};
+    final next = [
+      for (var i = 0; i < orderedIds.length; i++)
+        if (byId[orderedIds[i]] case final pin?)
+          SourcePin(
+            sourceId: pin.sourceId,
+            sortOrder: i,
+            name: pin.name,
+            iconUrl: pin.iconUrl,
+            mature: pin.mature,
+            available: pin.available,
+          ),
+    ];
+    state = AsyncData(SourcePinsState(pins: next, synced: true));
+    final result =
+        await ref.read(sourcesRepositoryProvider).replacePins(orderedIds);
+    if (result.isErr) {
+      state = AsyncData(current);
+      throw result.error;
+    }
+    state = AsyncData(SourcePinsState(pins: result.value, synced: true));
+    await writeCachedSourcePins(
+        ref.read(sharedPrefsProvider), _cacheKey, result.value,);
   }
 
   Future<void> refresh() async {

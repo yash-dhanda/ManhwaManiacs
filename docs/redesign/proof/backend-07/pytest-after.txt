@@ -1,0 +1,26 @@
+E         '/app/soundscapes/glass/{name}'
+E         '/app/brand/{name}'
+E         '/app/fonts/{name}'
+E         '/app/soundscapes/{name}'
+E         Use -v to get more diff
+
+tests/test_mature_gate_cross_surface.py:1020: AssertionError
+=============================== warnings summary ===============================
+.venv/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /home/yash/mm-dev/wt/backend/backend/.venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+.venv/lib/python3.14/site-packages/starlette/testclient.py:53
+  /home/yash/mm-dev/wt/backend/backend/.venv/lib/python3.14/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+.venv/lib/python3.14/site-packages/slowapi/extension.py:720: 22 warnings
+tests/test_ai_feedback.py: 15 warnings
+  /home/yash/mm-dev/wt/backend/backend/.venv/lib/python3.14/site-packages/slowapi/extension.py:720: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_mature_gate_cross_surface.py::test_no_read_route_escapes_this_file
+1 failed, 3694 passed, 2 skipped, 7 deselected, 39 warnings in 1533.06s (0:25:33)
+(the one failure, test_no_read_route_escapes_this_file, was fixed afterwards by listing the four new routes in NOT_SERIES_DERIVED; the file now passes 72/72)
