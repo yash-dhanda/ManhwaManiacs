@@ -27,3 +27,7 @@ None reported by the verifier.
 - Motion-timings overlay (scope 14; acceptance 'development only, production bundles never contain it'): a second overlay from web/11 still ships in production
 - Reader prefetch (scope 6): first two pages do not go through web/03's sources limiter
 - Minor deviations from scope 3, 4 and 9 (not blocking alone)
+
+## mobile/27
+
+None reported by the verifier.
