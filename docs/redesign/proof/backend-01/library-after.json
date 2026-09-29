@@ -1,0 +1,339 @@
+{
+    "items": [
+        {
+            "id": 2,
+            "source_id": "mangadex",
+            "series_key": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+            "series_identity": "09219153-8c84-4bfb-ba7a-b782f7f3dcbb",
+            "title": "Alphabet[a]",
+            "cover_url": "/sources/mangadex/series/09219153-8c84-4bfb-ba7a-b782f7f3dcbb/cover",
+            "is_favorite": false,
+            "reading_status": "reading",
+            "notify": true,
+            "sort_order": 1,
+            "content_rating": null,
+            "rating": "unknown",
+            "mature_override": null,
+            "chapter_count": 86,
+            "last_checked_at": "2026-09-29T10:14:50.783532",
+            "created_at": "2026-09-29T10:14:50.789288",
+            "updated_at": "2026-09-29T10:14:50.789294",
+            "read_state": {
+                "started": true,
+                "chapter_key": "82505cb1-fd60-4f5a-a148-86f04d3166b7",
+                "chapter_number": 1.0,
+                "position": 2,
+                "total": 86,
+                "latest_number": 41.0,
+                "new_count": 84
+            },
+            "ambient": {
+                "duo": "#786ECE",
+                "tint": "#0B0A15",
+                "ink": "#B1ABE3"
+            },
+            "palette": {
+                "a": [
+                    "#CBC7F2",
+                    "#9277B2",
+                    "#ADC2E6"
+                ],
+                "l": 0.622,
+                "lMax": 0.985
+            }
+        },
+        {
+            "id": 7,
+            "source_id": "standardebooks",
+            "series_key": "henry-seton-merriman/barlasch-of-the-guard",
+            "series_identity": "henry-seton-merriman/barlasch-of-the-guard",
+            "title": "Barlasch of the Guard",
+            "cover_url": "/sources/standardebooks/series/henry-seton-merriman%2Fbarlasch-of-the-guard/cover",
+            "is_favorite": false,
+            "reading_status": "reading",
+            "notify": true,
+            "sort_order": 6,
+            "content_rating": null,
+            "rating": "unknown",
+            "mature_override": null,
+            "chapter_count": 31,
+            "last_checked_at": "2026-09-29T10:14:53.515067",
+            "created_at": "2026-09-29T10:14:53.515964",
+            "updated_at": "2026-09-29T10:14:53.515968",
+            "read_state": {
+                "started": false,
+                "chapter_key": null,
+                "chapter_number": null,
+                "position": null,
+                "total": 31,
+                "latest_number": null,
+                "new_count": null
+            },
+            "ambient": {
+                "duo": "#64D2D9",
+                "tint": "#0A1415",
+                "ink": "#A5E5E9"
+            },
+            "palette": {
+                "a": [
+                    "#CDE6DF",
+                    "#A8E6EA"
+                ],
+                "l": 0.527,
+                "lMax": 0.905
+            }
+        },
+        {
+            "id": 6,
+            "source_id": "mangapill",
+            "series_key": "9748/dustland",
+            "series_identity": "9748/dustland",
+            "title": "Dustland",
+            "cover_url": "/sources/mangapill/series/9748%2Fdustland/cover",
+            "is_favorite": false,
+            "reading_status": "reading",
+            "notify": true,
+            "sort_order": 5,
+            "content_rating": null,
+            "rating": "unknown",
+            "mature_override": null,
+            "chapter_count": 18,
+            "last_checked_at": "2026-09-29T10:14:52.813395",
+            "created_at": "2026-09-29T10:14:52.815122",
+            "updated_at": "2026-09-29T10:14:52.815128",
+            "read_state": {
+                "started": false,
+                "chapter_key": null,
+                "chapter_number": null,
+                "position": null,
+                "total": 18,
+                "latest_number": null,
+                "new_count": null
+            },
+            "ambient": {
+                "duo": "#CA7276",
+                "tint": "#150A0A",
+                "ink": "#E0AEB0"
+            },
+            "palette": {
+                "a": [
+                    "#874345",
+                    "#DEC7C1"
+                ],
+                "l": 0.634,
+                "lMax": 1.0
+            }
+        },
+        {
+            "id": 3,
+            "source_id": "mangadex",
+            "series_key": "98cad238-faca-42ee-b951-7a6b8c478d0a",
+            "series_identity": "98cad238-faca-42ee-b951-7a6b8c478d0a",
+            "title": "Guardians of Man",
+            "cover_url": "/sources/mangadex/series/98cad238-faca-42ee-b951-7a6b8c478d0a/cover",
+            "is_favorite": false,
+            "reading_status": "reading",
+            "notify": true,
+            "sort_order": 2,
+            "content_rating": null,
+            "rating": "unknown",
+            "mature_override": null,
+            "chapter_count": 36,
+            "last_checked_at": "2026-09-29T10:14:51.521575",
+            "created_at": "2026-09-29T10:14:51.522523",
+            "updated_at": "2026-09-29T10:14:51.522527",
+            "read_state": {
+                "started": true,
+                "chapter_key": "bd477f0e-6499-4f44-844f-4c1b5216ea15",
+                "chapter_number": 1.0,
+                "position": 1,
+                "total": 36,
+                "latest_number": 20.0,
+                "new_count": 35
+            },
+            "ambient": {
+                "duo": "#D86465",
+                "tint": "#150A0A",
+                "ink": "#E9A5A6"
+            },
+            "palette": {
+                "a": [
+                    "#6F1C1E"
+                ],
+                "l": 0.283,
+                "lMax": 0.996
+            }
+        },
+        {
+            "id": 8,
+            "source_id": "standardebooks",
+            "series_key": "winnifred-eaton-reeve/his-royal-nibs",
+            "series_identity": "winnifred-eaton-reeve/his-royal-nibs",
+            "title": "His Royal Nibs",
+            "cover_url": "/sources/standardebooks/series/winnifred-eaton-reeve%2Fhis-royal-nibs/cover",
+            "is_favorite": false,
+            "reading_status": "reading",
+            "notify": true,
+            "sort_order": 7,
+            "content_rating": null,
+            "rating": "unknown",
+            "mature_override": null,
+            "chapter_count": 28,
+            "last_checked_at": "2026-09-29T10:14:53.937043",
+            "created_at": "2026-09-29T10:14:53.938296",
+            "updated_at": "2026-09-29T10:14:53.938301",
+            "read_state": {
+                "started": false,
+                "chapter_key": null,
+                "chapter_number": null,
+                "position": null,
+                "total": 28,
+                "latest_number": null,
+                "new_count": null
+            },
+            "ambient": {
+                "duo": "#E9A953",
+                "tint": "#15100A",
+                "ink": "#EECDA0"
+            },
+            "palette": {
+                "a": [
+                    "#6D5A65",
+                    "#422C2E",
+                    "#A96454"
+                ],
+                "l": 0.368,
+                "lMax": 0.826
+            }
+        },
+        {
+            "id": 5,
+            "source_id": "mangapill",
+            "series_key": "10149/kanojo-wo-dere-saseru-houhou-wo-shourai-kekkon-suru-ore-dake-ga-shitteiru",
+            "series_identity": "10149/kanojo-wo-dere-saseru-houhou-wo-shourai-kekkon-suru-ore-dake-ga-shitteiru",
+            "title": "Kanojo wo Dere saseru Houhou wo, Shourai Kekkon suru Ore dake ga Shitteiru",
+            "cover_url": "/sources/mangapill/series/10149%2Fkanojo-wo-dere-saseru-houhou-wo-shourai-kekkon-suru-ore-dake-ga-shitteiru/cover",
+            "is_favorite": false,
+            "reading_status": "reading",
+            "notify": true,
+            "sort_order": 4,
+            "content_rating": null,
+            "rating": "unknown",
+            "mature_override": null,
+            "chapter_count": 5,
+            "last_checked_at": "2026-09-29T10:14:52.569843",
+            "created_at": "2026-09-29T10:14:52.576934",
+            "updated_at": "2026-09-29T10:14:52.576944",
+            "read_state": {
+                "started": false,
+                "chapter_key": null,
+                "chapter_number": null,
+                "position": null,
+                "total": 5,
+                "latest_number": null,
+                "new_count": null
+            },
+            "ambient": {
+                "duo": "#D47A68",
+                "tint": "#150C0A",
+                "ink": "#E6B2A8"
+            },
+            "palette": {
+                "a": [
+                    "#796275",
+                    "#E5BFBF"
+                ],
+                "l": 0.596,
+                "lMax": 0.987
+            }
+        },
+        {
+            "id": 4,
+            "source_id": "mangapill",
+            "series_key": "10328/ningen-yametai-yonezawa-san",
+            "series_identity": "10328/ningen-yametai-yonezawa-san",
+            "title": "Ningen Yametai Yonezawa-san",
+            "cover_url": "/sources/mangapill/series/10328%2Fningen-yametai-yonezawa-san/cover",
+            "is_favorite": false,
+            "reading_status": "reading",
+            "notify": true,
+            "sort_order": 3,
+            "content_rating": null,
+            "rating": "unknown",
+            "mature_override": null,
+            "chapter_count": 27,
+            "last_checked_at": "2026-09-29T10:14:52.353599",
+            "created_at": "2026-09-29T10:14:52.354984",
+            "updated_at": "2026-09-29T10:14:52.354989",
+            "read_state": {
+                "started": true,
+                "chapter_key": "10328-10001000/ningen-yametai-yonezawa-san-chapter-1",
+                "chapter_number": 1.0,
+                "position": 1,
+                "total": 27,
+                "latest_number": 27.0,
+                "new_count": 26
+            },
+            "ambient": {
+                "duo": "#7293CA",
+                "tint": "#0D0F12",
+                "ink": "#B3C2DB"
+            },
+            "palette": {
+                "a": [
+                    "#6F6972",
+                    "#FFFEFE"
+                ],
+                "l": 0.66,
+                "lMax": 1.0
+            }
+        },
+        {
+            "id": 1,
+            "source_id": "mangadex",
+            "series_key": "3683f667-c23d-4688-b872-0ade276aaafa",
+            "series_identity": "3683f667-c23d-4688-b872-0ade276aaafa",
+            "title": "Rekkyou Sensen",
+            "cover_url": "/sources/mangadex/series/3683f667-c23d-4688-b872-0ade276aaafa/cover",
+            "is_favorite": false,
+            "reading_status": "reading",
+            "notify": true,
+            "sort_order": 0,
+            "content_rating": null,
+            "rating": "unknown",
+            "mature_override": null,
+            "chapter_count": 59,
+            "last_checked_at": "2026-09-29T10:14:50.107615",
+            "created_at": "2026-09-29T10:14:50.109474",
+            "updated_at": "2026-09-29T10:14:50.109479",
+            "read_state": {
+                "started": true,
+                "chapter_key": "8a409b42-150f-4567-ab98-0574dde0e036",
+                "chapter_number": 1.0,
+                "position": 2,
+                "total": 59,
+                "latest_number": 35.0,
+                "new_count": 57
+            },
+            "ambient": {
+                "duo": "#CA727F",
+                "tint": "#130C0D",
+                "ink": "#DBB3B9"
+            },
+            "palette": {
+                "a": [
+                    "#544043"
+                ],
+                "l": 0.276,
+                "lMax": 0.999
+            }
+        }
+    ],
+    "total": 8,
+    "page": 1,
+    "per_page": 40,
+    "page_size": 40,
+    "has_next": false,
+    "has_more": false,
+    "total_pages": 1
+}
