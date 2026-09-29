@@ -9,7 +9,7 @@ import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
-import 'package:manhwamaniacs/features/downloads/widgets/chapter_download_action.dart';
+import 'package:manhwamaniacs/features/downloads/utils/chapter_download_action.dart';
 import 'package:manhwamaniacs/features/downloads/widgets/download_series_button.dart';
 import 'package:manhwamaniacs/features/library/utils/resume_location.dart';
 import 'package:manhwamaniacs/features/novels/models/narration_save_state.dart';
