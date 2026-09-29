@@ -26,6 +26,9 @@ Items only the owner can do, by step.
 - Run docs/redesign/proof/mobile-02/device-check.md on the iPhone build and the Android flagship.
 - After the integrator pushes: read CI (`android-apk`, `build-ios`) for the dependency, audio_service and mm/platform commits and record run ids in dependency-gate.md; apply a package's ledger fallback if a native job fails.
 
+## mobile/11 (Cinematic Feature, Book, downloads)
+- Device checks from the prompt (match cut, edge swipe, predictive back, Column wipe, Lightbox, a real download read offline, `mature_override` hiding saved chapters, VoiceOver / TalkBack, text scale 1.3 and 2.0): docs/redesign/proof/mobile-11/device-checklist.md.
+- mobile/11: `mature_override: null` does not clear on the server until web/11 lands the backend fix in `followed_series_service.py`; then re-check the third radio of the override menu on a device.
 - shared/04: owner to check the new launcher icon, `Maniacs` label and black native frame on a real iPhone and Android device after the next build; hairlines of the Bodoni monogram are ~1 unit, judge the icon at 60 px.
 
 ## shared/05
@@ -39,6 +42,15 @@ Items only the owner can do, by step.
 - Side by side with the Flutter page (`mobile/25`): count the 16 px squares the rim bends on the web (T2 44 px button: 10 px max displacement inside a 10 px bezel, about 0.6 square; T4 240 px menu: 18 px inside an 18 px bezel, about 1.1 squares) and say if a tier should bend more or less; the knob is `design/tokens/glass.json` (shared track).
 - Demo art: `/dev/glass-calibration` uses 24 generated stand-in covers in `frontend/public/dev-covers/` (dark, mid and pale, one dark with a white patch) because `frontend/public/skin-preview/covers/` (shared/05) is not integrated yet. Swap them when it lands.
 - web/01 open: shared/02 ICON_RULES has no per-role fixed weight (design/icons.json defines none), so the Cinematic streak flame renders Light at 24, never Fill; Icon.tsx keeps a no-op roleWeights hook.
+
+## web/11 (L19)
+- Device check of the Feature and Book pages on a phone (long-press row menu, swipe to Mark read, Lightbox drag down).
+- Confirm `DELETE /reader/progress` exists once backend/02 lands; Mark unread and Undo call it.
+
+## web/11 fix pass (L19)
+- The `?` shortcuts sheet is hosted by the legacy AppShell only; the Series keys are registered in the app keyboard registry (group "Series"), so they show as soon as the Cinematic shell (web/06) mounts `ShortcutsDialog`. Check the sheet once then.
+- Posters elsewhere in the app must wear `coverTransitionName(sourceId, seriesKey)` (`screens/feature/cover-name.ts`) inside a `<ViewTransition share="mm-match-cut">` for the match cut into the Feature page; web/09-web/10 posters do not exist in this tree, so the cut was verified between the two routes of one series.
+
 - mobile/03: confirm tests + build-ios CI run ids/conclusions for commit abbace5 (liquid_glass_widgets pin), record in docs/redesign/proof/mobile-03/glass-gate.md
 
 
@@ -46,3 +58,15 @@ Items only the owner can do, by step.
 - Device check: touch lift (150/450 ms), throw and magnet on a real phone; the software raster in the harness cannot show frame cost. Record the motion-timings overlay (Press swell, Content sink, Tab droplet, Hold fill, Liquid fill, Count pop, Wave, Letter reveal, Typing reveal) on the 3090 Ti desktop at 1440 x 900.
 - iOS Safari: the bottom search field's visualViewport offset (`--vv-h`, `--vv-top`) needs an iPhone.
 - web/26: read the motion-timings overlay on a GPU browser at 1440x900 (headless run here was software raster; dropped-frame counts in docs/redesign/proof/web-26/report.md are an upper bound).
+
+## mobile/25 (Glass foundation)
+- Run proof/mobile-25/device-check.md on iPhone (SideStore) and the Android flagship.
+- Fill the Decision line of proof/mobile-03/glass-gate.md; `kGateRenderer` (skin_glass.dart) defaults to liquid until then.
+- Integrator: push ab48531 alone, watch `tests` and `Build iOS`, paste run URLs into proof/mobile-25/resolution.md.
+
+## mobile/11 (Cinematic feature and book pages)
+- Some mobile/04-10 stand-ins may remain (check TODO(mobile/NN)); still open: web/11 (mature_override null-clears in followed_series_service.py:953). Swap the TODO(mobile/NN) stand-ins when they land.
+
+## web/11 open issues
+- mature_override re-stamp not wired: web/07's local-row mature filter is not integrated; use-series-page.ts setMature only invalidates MATURE_GATED_QUERY_ROOTS (TODO(web/07)).
+- Stand-ins remain until web/06, web/07, web/09 integrate: reader-entry.ts (enterReader wipe), toasts.tsx (toast host), standins.tsx (AddToShelfSheet, TagSheet), tags-standin.ts (tag hooks), SetHeading.tsx and use-feature-keys.tsx (single-key setting).

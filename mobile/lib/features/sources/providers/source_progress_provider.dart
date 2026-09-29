@@ -187,6 +187,40 @@ class SourceProgressNotifier
     await _persist(next);
   }
 
+  /// Drops this phone's records for [chapterIds] (Mark unread) and returns
+  /// what was removed, so an Undo can hand it back to [restoreRecords].
+  Future<Map<String, SourceChapterProgress>> forget({
+    required String sourceId,
+    required String seriesId,
+    required Iterable<String> chapterIds,
+  }) async {
+    final removed = <String, SourceChapterProgress>{};
+    final next = {...state};
+    for (final id in chapterIds) {
+      final k = sourceProgressKey(sourceId: sourceId, seriesId: seriesId, chapterId: id);
+      final r = next.remove(k);
+      if (r != null) removed[id] = r;
+    }
+    state = next;
+    await _persist(next);
+    return removed;
+  }
+
+  /// Undo of [forget].
+  Future<void> restoreRecords({
+    required String sourceId,
+    required String seriesId,
+    required Map<String, SourceChapterProgress> records,
+  }) async {
+    final next = {
+      ...state,
+      for (final e in records.entries)
+        sourceProgressKey(sourceId: sourceId, seriesId: seriesId, chapterId: e.key): e.value,
+    };
+    state = next;
+    await _persist(next);
+  }
+
   /// Replay a migration's chapter map over this store, returning how many
   /// records carried over.
   ///

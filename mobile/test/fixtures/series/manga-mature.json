@@ -1,0 +1,51 @@
+{
+ "series": {
+  "id": "k",
+  "source_id": "demo",
+  "title": "After Hours",
+  "chapter_count": 3,
+  "description": "A hunter climbs a tower that rewrites its own floors every night. Nobody who went in has come back the same, and the ones who did will not say what they found on the ninth landing.",
+  "author": "Han Seo",
+  "artist": "Mi Rae",
+  "status": "ongoing",
+  "genres": [
+   "Action",
+   "Ecchi"
+  ],
+  "cover_url": "",
+  "cache": {
+   "status": "fresh",
+   "stale": false,
+   "fetched_at": "2026-09-29T08:00:00Z"
+  }
+ },
+ "chapters": [
+  {
+   "id": "c1",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 1",
+   "number": 1.0,
+   "page_count": 20,
+   "release_date": "2026-09-02"
+  },
+  {
+   "id": "c2",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 2",
+   "number": 2.0,
+   "page_count": 20,
+   "release_date": "2026-09-03"
+  },
+  {
+   "id": "c3",
+   "source_id": "demo",
+   "series_id": "k",
+   "title": "Chapter 3",
+   "number": 3.0,
+   "page_count": 20,
+   "release_date": "2026-09-04"
+  }
+ ]
+}

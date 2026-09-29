@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
@@ -16,6 +17,12 @@ import '../../support/test_overrides.dart';
 /// Behaves like `PUT /sources/pins` on a scope with no rows yet: a new id the
 /// server cannot resolve refuses the whole set with a 422.
 class _FakePinServer implements SourcesRepository {
+  @override
+  Future<Result<SeriesEnrichment?>> seriesEnrichment(
+    String sourceId,
+    String seriesKey,
+  ) async => const Ok(null);
+
   _FakePinServer(this.installed);
 
   final Set<String> installed;

@@ -114,6 +114,14 @@ List<Override> _metadataCacheProviderOverrides() => [
 
 class _EmptyLibraryRepository implements LibraryRepository {
   @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
+  @override
   Future<Result<PagedResult<FollowedSeries>>> listSeries({
     int page = 1,
     int perPage = 40,
@@ -143,7 +151,7 @@ class _EmptyLibraryRepository implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) =>
       throw UnimplementedError();

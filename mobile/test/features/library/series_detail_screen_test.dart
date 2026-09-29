@@ -42,6 +42,14 @@ import '../../support/test_overrides.dart';
 /// Everything else throws so a stray call fails loudly instead of silently
 /// returning empty data.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   _FakeLibraryRepository(this.detail, {List<FollowedSeries>? followed})
       : followed = followed ?? [detail];
 
@@ -99,7 +107,7 @@ class _FakeLibraryRepository implements LibraryRepository {
     bool? isFavorite,
     String? readingStatus,
     bool? notify,
-    bool? matureOverride,
+    bool? matureOverride, bool clearMatureOverride = false,
     int? sortOrder,
   }) async {
     lastPatchIsFavorite = isFavorite;

@@ -27,6 +27,7 @@ import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/test_overrides.dart';
+import 'mobile_11_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
 import 'support/shot_harness.dart';
@@ -62,6 +63,8 @@ void main() {
   setUpAll(loadAppFonts);
   setUpAll(setUpShotCoverCache);
 
+  // mobile-11: the Cinematic series page, Book page and chapter downloads.
+  group('mobile-11', mobile11Shots);
   // Both skins at every proof size (mobile/03). Default: Tonight only, so the
   // plain suite stays fast; a proof run sets MM_PROOF_SCREENS and MM_PROOF_DIR.
   group('skins', () {

@@ -1,6 +1,9 @@
 package com.manhwamaniacs.reader
 
 import android.app.Activity
+import android.app.UiModeManager
+import android.graphics.Rect
+import android.media.AudioManager
 import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
@@ -21,12 +24,47 @@ import io.flutter.plugin.common.MethodChannel
 class MmPlatformChannel(messenger: BinaryMessenger, private val activity: Activity) {
     private val channel = MethodChannel(messenger, "mm/platform")
 
+    private var contrastListener: Any? = null
+
     init {
         channel.setMethodCallHandler { call, result -> handle(call, result) }
+        registerContrastListener()
     }
 
     fun dispose() {
         channel.setMethodCallHandler(null)
+        if (Build.VERSION.SDK_INT >= 34) {
+            (contrastListener as? UiModeManager.ContrastChangeListener)?.let {
+                (activity.getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager)?.removeContrastChangeListener(it)
+            }
+        }
+        contrastListener = null
+    }
+
+    /** Android 14+: tell Dart when the user moves the system contrast slider (`a11y.contrastLevelChanged`). */
+    private fun registerContrastListener() {
+        if (Build.VERSION.SDK_INT < 34) return
+        val ui = activity.getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager ?: return
+        val listener = UiModeManager.ContrastChangeListener { level ->
+            channel.invokeMethod("a11y.contrastLevelChanged", mapOf("value" to level.toDouble()))
+        }
+        ui.addContrastChangeListener(activity.mainExecutor, listener)
+        contrastListener = listener
+    }
+
+    /** `[[left, top, width, height], ...]` in logical px to the system gesture exclusion list (API 29+). */
+    private fun setExclusionRects(rects: List<*>?) {
+        if (Build.VERSION.SDK_INT < 29) return
+        val d = activity.resources.displayMetrics.density
+        val out = (rects ?: emptyList<Any>()).mapNotNull { r ->
+            val v = (r as? List<*>)?.mapNotNull { (it as? Number)?.toDouble() }
+            if (v == null || v.size < 4) null
+            else Rect(
+                (v[0] * d).toInt(), (v[1] * d).toInt(),
+                ((v[0] + v[2]) * d).toInt(), ((v[1] + v[3]) * d).toInt(),
+            )
+        }
+        activity.window.decorView.systemGestureExclusionRects = out
     }
 
     private fun handle(call: MethodCall, result: MethodChannel.Result) {
@@ -40,6 +78,21 @@ class MmPlatformChannel(messenger: BinaryMessenger, private val activity: Activi
                     activity.contentResolver, Settings.System.HAPTIC_FEEDBACK_ENABLED, 1
                 ) == 1
             )
+            // Android has no Reduce Transparency signal (iOS answers this one).
+            "a11y.reduceTransparency" -> result.success(false)
+            "a11y.contrastLevel" -> result.success(
+                if (Build.VERSION.SDK_INT >= 34) {
+                    (activity.getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager)
+                        ?.contrast?.toDouble() ?: 0.0
+                } else 0.0
+            )
+            "audio.isMusicActive" -> result.success(
+                (activity.getSystemService(Context.AUDIO_SERVICE) as? AudioManager)?.isMusicActive ?: false
+            )
+            "gestures.setExclusionRects" -> {
+                setExclusionRects(call.argument<List<*>>("rects"))
+                result.success(null)
+            }
             else -> result.notImplemented()
         }
     }

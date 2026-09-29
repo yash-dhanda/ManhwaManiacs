@@ -175,3 +175,16 @@ export const novelsApi = {
       chapter_keys: chapterKeys,
     }),
 };
+
+export interface NovelSeriesAudio {
+  chapters: { chapter_key: string; bytes: number; has_timing: boolean }[];
+  narratable: string[];
+  can_render: boolean;
+}
+
+/** Which chapters of a book have narration (`GET /novels/audio/series`). */
+export function fetchNovelSeriesAudio(ref: SeriesId) {
+  return http.get<NovelSeriesAudio>("/novels/audio/series", {
+    query: { source: ref.sourceId, series: ref.seriesKey },
+  });
+}

@@ -3,6 +3,8 @@ import { readingFonts } from "./reading-fonts";
 import type { ScreenId } from "../contract.generated";
 import Pending from "../pending";
 import { PendingShell } from "../pending-shell";
+import FeatureByFollowScreen from "./screens/feature/FeatureByFollowScreen";
+import FeatureScreen from "./screens/feature/FeatureScreen";
 import SetupRedirect from "../setup-redirect";
 import type { Screen, Skin } from "../types";
 import SCREEN_discover from "./screens/discover/DiscoverScreen";
@@ -32,8 +34,6 @@ export const PENDING = new Set<ScreenId>([
   "picks",
   "numbers",
   "annual",
-  "featureByFollow",
-  "feature",
   "recap",
   "circle",
   "circleMember",
@@ -66,8 +66,8 @@ export const screens = {
   picks: Pending,
   numbers: Pending,
   annual: Pending,
-  featureByFollow: Pending,
-  feature: Pending,
+  featureByFollow: FeatureByFollowScreen,
+  feature: FeatureScreen,
   recap: Pending,
   circle: Pending,
   circleMember: Pending,

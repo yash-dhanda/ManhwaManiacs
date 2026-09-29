@@ -97,6 +97,18 @@ def test_patch_series_favorite_status_notify(api, h):
     assert body["notify"] is False
 
 
+def test_patch_series_mature_override_false_absent_null(api, h):
+    row = _follow(api, h)
+    url = f"/library/series/{row['id']}"
+    assert api.patch(url, json={"mature_override": False}, headers=h).json()["mature_override"] == 0
+    # An absent key leaves it untouched.
+    assert api.patch(url, json={"notify": True}, headers=h).json()["mature_override"] == 0
+    # An explicit null clears it.
+    assert api.patch(url, json={"mature_override": None}, headers=h).json()["mature_override"] is None
+    # True is stored too (the series is then gated for a closed 18+ gate).
+    assert api.patch(url, json={"mature_override": True}, headers=h).json()["mature_override"] == 1
+
+
 def test_patch_series_rejects_unknown_status(api, h):
     row = _follow(api, h)
     resp = api.patch(

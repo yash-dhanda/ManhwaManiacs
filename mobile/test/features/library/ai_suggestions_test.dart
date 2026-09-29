@@ -28,6 +28,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../support/test_overrides.dart';
 
 class _SuggestRepository implements LibraryRepository {
+  @override
+  Future<Result<RepointResult>> repoint(
+    int followedId, {
+    required String sourceId,
+    required String seriesKey,
+    required bool keepOld,
+  }) => throw UnimplementedError();
+
   _SuggestRepository({
     this.available = true,
     this.dropped = 0,
