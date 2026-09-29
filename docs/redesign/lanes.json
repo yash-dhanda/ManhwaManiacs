@@ -135,34 +135,12 @@
   "webPort": 3031,
   "steps": [
    {
-    "path": "docs/redesign/prompts/mobile/01-foundation-skin-engine-and-restart.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/mobile/02-foundation-native-plugins-haptics-sound.md",
-    "waitFor": [
-     "shared/03"
-    ]
-   },
-   {
-    "path": "docs/redesign/prompts/mobile/03-foundation-fonts-icons-harness-glass-gate.md",
-    "waitFor": [
-     "shared/02"
-    ]
-   },
-   {
-    "path": "docs/redesign/prompts/mobile/04-cinematic-primitives-core-and-reveals.md",
-    "waitFor": []
-   },
-   {
     "path": "docs/redesign/prompts/mobile/05-cinematic-primitives-overlays-controls-states.md",
     "waitFor": []
    },
    {
     "path": "docs/redesign/prompts/mobile/06-cinematic-shell-navigation-transitions.md",
-    "waitFor": [
-     "shared/04"
-    ]
+    "waitFor": []
    },
    {
     "path": "docs/redesign/prompts/mobile/07-cinematic-auth-profiles-18plus.md",
@@ -181,23 +159,28 @@
    {
     "path": "docs/redesign/prompts/mobile/34-reader-engine-glass-commands.md",
     "waitFor": [
+     "mobile/29",
      "signoffs"
     ]
    },
    {
     "path": "docs/redesign/prompts/mobile/35-glass-manga-reader.md",
-    "waitFor": []
+    "waitFor": [
+     "mobile/29"
+    ]
    },
    {
     "path": "docs/redesign/prompts/mobile/36-glass-novel-reader.md",
     "waitFor": [
-     "mobile/14"
+     "mobile/14",
+     "mobile/29"
     ]
    },
    {
     "path": "docs/redesign/prompts/mobile/37-glass-listen-mode.md",
     "waitFor": [
-     "mobile/15"
+     "mobile/15",
+     "mobile/29"
     ]
    },
    {
@@ -225,22 +208,12 @@
   "webPort": 3032,
   "steps": [
    {
-    "path": "docs/redesign/prompts/web/03-foundation-reader-seam-limiter-proof.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/web/04-cinematic-primitives-core-and-reveals.md",
-    "waitFor": []
-   },
-   {
     "path": "docs/redesign/prompts/web/05-cinematic-primitives-overlays-controls-states.md",
     "waitFor": []
    },
    {
     "path": "docs/redesign/prompts/web/06-cinematic-shell-navigation-transitions.md",
-    "waitFor": [
-     "shared/04"
-    ]
+    "waitFor": []
    },
    {
     "path": "docs/redesign/prompts/web/07-cinematic-auth-profiles-18plus.md",
@@ -260,23 +233,28 @@
    {
     "path": "docs/redesign/prompts/web/34-reader-engine-glass-commands.md",
     "waitFor": [
+     "web/29",
      "signoffs"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/35-glass-manga-reader.md",
-    "waitFor": []
+    "waitFor": [
+     "web/29"
+    ]
    },
    {
     "path": "docs/redesign/prompts/web/36-glass-novel-reader.md",
     "waitFor": [
-     "web/14"
+     "web/14",
+     "web/29"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/37-glass-listen-mode.md",
     "waitFor": [
-     "web/15"
+     "web/15",
+     "web/29"
     ]
    },
    {
@@ -304,14 +282,6 @@
   "webPort": 3033,
   "steps": [
    {
-    "path": "docs/redesign/prompts/web/25-glass-foundation-material-physics.md",
-    "waitFor": []
-   },
-   {
-    "path": "docs/redesign/prompts/web/26-glass-primitives-controls-and-reveals.md",
-    "waitFor": []
-   },
-   {
     "path": "docs/redesign/prompts/web/27-glass-primitives-overlays.md",
     "waitFor": []
    },
@@ -321,9 +291,7 @@
    },
    {
     "path": "docs/redesign/prompts/web/29-glass-shell-navigation-depth.md",
-    "waitFor": [
-     "shared/05"
-    ]
+    "waitFor": []
    },
    {
     "path": "docs/redesign/prompts/web/30-glass-auth-profiles-onboarding.md",
@@ -336,12 +304,14 @@
    {
     "path": "docs/redesign/prompts/web/31-glass-home.md",
     "waitFor": [
+     "web/07",
      "web/08"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/32-glass-library-hub-downloads.md",
     "waitFor": [
+     "web/07",
      "web/09",
      "web/10",
      "web/17"
@@ -350,6 +320,7 @@
    {
     "path": "docs/redesign/prompts/web/33-glass-series-and-book.md",
     "waitFor": [
+     "web/07",
      "web/11"
     ]
    }
@@ -362,12 +333,6 @@
   "apiPort": 8034,
   "webPort": 3034,
   "steps": [
-   {
-    "path": "docs/redesign/prompts/mobile/25-glass-foundation-material-physics.md",
-    "waitFor": [
-     "mobile/03"
-    ]
-   },
    {
     "path": "docs/redesign/prompts/mobile/26-glass-primitives-controls-and-reveals.md",
     "waitFor": []
@@ -382,9 +347,7 @@
    },
    {
     "path": "docs/redesign/prompts/mobile/29-glass-shell-navigation-depth.md",
-    "waitFor": [
-     "shared/05"
-    ]
+    "waitFor": []
    },
    {
     "path": "docs/redesign/prompts/mobile/30-glass-auth-profiles-onboarding.md",
@@ -397,6 +360,7 @@
    {
     "path": "docs/redesign/prompts/mobile/31-glass-home.md",
     "waitFor": [
+     "mobile/07",
      "mobile/08"
     ]
    }
@@ -412,24 +376,34 @@
    {
     "path": "docs/redesign/prompts/web/16-cinematic-discover-search-sources-dialogue.md",
     "waitFor": [
-     "backend/02"
+     "web/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/17-cinematic-downloads-index-status.md",
-    "waitFor": []
+    "waitFor": [
+     "web/07"
+    ]
    },
    {
     "path": "docs/redesign/prompts/web/18-cinematic-settings-and-edition-restart.md",
-    "waitFor": []
+    "waitFor": [
+     "web/07"
+    ]
    },
    {
     "path": "docs/redesign/prompts/web/39-glass-settings-and-skin-switch.md",
-    "waitFor": []
+    "waitFor": [
+     "web/07",
+     "web/29"
+    ]
    },
    {
     "path": "docs/redesign/prompts/web/40-glass-you-about-admin-status.md",
-    "waitFor": []
+    "waitFor": [
+     "web/07",
+     "web/29"
+    ]
    }
   ]
  },
@@ -449,22 +423,30 @@
    {
     "path": "docs/redesign/prompts/mobile/09-cinematic-library-shelf-browse.md",
     "waitFor": [
-     "backend/02"
+     "mobile/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/mobile/10-cinematic-updates-collections-history-bookmarks.md",
-    "waitFor": []
+    "waitFor": [
+     "mobile/07"
+    ]
    },
    {
     "path": "docs/redesign/prompts/mobile/32-glass-library-hub-downloads.md",
     "waitFor": [
-     "mobile/17"
+     "mobile/07",
+     "mobile/17",
+     "mobile/29"
     ]
    },
    {
     "path": "docs/redesign/prompts/mobile/33-glass-series-and-book.md",
-    "waitFor": []
+    "waitFor": [
+     "mobile/07",
+     "mobile/11",
+     "mobile/29"
+    ]
    }
   ]
  },
@@ -478,26 +460,30 @@
    {
     "path": "docs/redesign/prompts/web/14-cinematic-novel-reader.md",
     "waitFor": [
+     "web/07",
      "web/13"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/15-cinematic-listen-mode.md",
     "waitFor": [
-     "backend/03",
-     "backend/06"
+     "backend/06",
+     "web/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/23-cinematic-ambient-reader-extras.md",
     "waitFor": [
      "backend/06",
-     "backend/07"
+     "backend/07",
+     "web/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/44-glass-ambient-reader-extras.md",
     "waitFor": [
+     "web/07",
+     "web/29",
      "web/35",
      "web/36"
     ]
@@ -514,26 +500,30 @@
    {
     "path": "docs/redesign/prompts/mobile/14-cinematic-novel-reader.md",
     "waitFor": [
+     "mobile/07",
      "mobile/13"
     ]
    },
    {
     "path": "docs/redesign/prompts/mobile/15-cinematic-listen-mode.md",
     "waitFor": [
-     "backend/03",
-     "backend/06"
+     "backend/06",
+     "mobile/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/mobile/23-cinematic-ambient-reader-extras.md",
     "waitFor": [
      "backend/06",
-     "backend/07"
+     "backend/07",
+     "mobile/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/mobile/44-glass-ambient-reader-extras.md",
     "waitFor": [
+     "mobile/07",
+     "mobile/29",
      "mobile/35",
      "mobile/36"
     ]
@@ -550,16 +540,20 @@
    {
     "path": "docs/redesign/prompts/mobile/16-cinematic-discover-search-sources-dialogue.md",
     "waitFor": [
-     "backend/02"
+     "mobile/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/mobile/17-cinematic-downloads-index-status.md",
-    "waitFor": []
+    "waitFor": [
+     "mobile/07"
+    ]
    },
    {
     "path": "docs/redesign/prompts/mobile/18-cinematic-settings-and-edition-restart.md",
-    "waitFor": []
+    "waitFor": [
+     "mobile/07"
+    ]
    },
    {
     "path": "docs/redesign/prompts/mobile/24-cinematic-qa-polish.md",
@@ -588,17 +582,22 @@
    {
     "path": "docs/redesign/prompts/web/21-cinematic-numbers-streak-annual.md",
     "waitFor": [
-     "backend/03"
+     "web/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/42-glass-stats-streak-wrapped.md",
-    "waitFor": []
+    "waitFor": [
+     "web/07",
+     "web/29"
+    ]
    },
    {
     "path": "docs/redesign/prompts/web/43-glass-circle.md",
     "waitFor": [
-     "web/22"
+     "web/07",
+     "web/22",
+     "web/29"
     ]
    }
   ]
@@ -613,19 +612,20 @@
    {
     "path": "docs/redesign/prompts/web/08-cinematic-tonight.md",
     "waitFor": [
-     "backend/04",
      "web/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/09-cinematic-library-shelf-browse.md",
     "waitFor": [
-     "backend/02"
+     "web/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/10-cinematic-updates-collections-history-bookmarks.md",
-    "waitFor": []
+    "waitFor": [
+     "web/07"
+    ]
    }
   ]
  },
@@ -639,17 +639,22 @@
    {
     "path": "docs/redesign/prompts/mobile/21-cinematic-numbers-streak-annual.md",
     "waitFor": [
-     "backend/03"
+     "mobile/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/mobile/42-glass-stats-streak-wrapped.md",
-    "waitFor": []
+    "waitFor": [
+     "mobile/07",
+     "mobile/29"
+    ]
    },
    {
     "path": "docs/redesign/prompts/mobile/43-glass-circle.md",
     "waitFor": [
-     "mobile/22"
+     "mobile/07",
+     "mobile/22",
+     "mobile/29"
     ]
    }
   ]
@@ -664,12 +669,16 @@
    {
     "path": "docs/redesign/prompts/web/19-cinematic-ai-picks-similar-recap.md",
     "waitFor": [
-     "backend/05"
+     "backend/05",
+     "web/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/web/41-glass-ai-for-you-recaps.md",
-    "waitFor": []
+    "waitFor": [
+     "web/07",
+     "web/29"
+    ]
    }
   ]
  },
@@ -683,7 +692,8 @@
    {
     "path": "docs/redesign/prompts/web/20-cinematic-onboarding.md",
     "waitFor": [
-     "backend/05"
+     "backend/05",
+     "web/07"
     ]
    },
    {
@@ -699,7 +709,8 @@
      "web/18",
      "web/19",
      "web/21",
-     "web/22"
+     "web/22",
+     "web/23"
     ]
    }
   ]
@@ -714,12 +725,16 @@
    {
     "path": "docs/redesign/prompts/mobile/19-cinematic-ai-picks-similar-recap.md",
     "waitFor": [
-     "backend/05"
+     "backend/05",
+     "mobile/07"
     ]
    },
    {
     "path": "docs/redesign/prompts/mobile/41-glass-ai-for-you-recaps.md",
-    "waitFor": []
+    "waitFor": [
+     "mobile/07",
+     "mobile/29"
+    ]
    }
   ]
  },
@@ -732,12 +747,18 @@
   "steps": [
    {
     "path": "docs/redesign/prompts/mobile/39-glass-settings-and-skin-switch.md",
-    "waitFor": []
+    "waitFor": [
+     "mobile/07",
+     "mobile/18",
+     "mobile/29"
+    ]
    },
    {
     "path": "docs/redesign/prompts/mobile/40-glass-you-about-admin-status.md",
     "waitFor": [
-     "mobile/17"
+     "mobile/07",
+     "mobile/17",
+     "mobile/29"
     ]
    }
   ]
@@ -752,7 +773,9 @@
    {
     "path": "docs/redesign/prompts/web/38-glass-search-sources-dialogue.md",
     "waitFor": [
-     "web/16"
+     "web/07",
+     "web/16",
+     "web/29"
     ]
    }
   ]
@@ -768,7 +791,8 @@
     "path": "docs/redesign/prompts/web/22-cinematic-circle.md",
     "waitFor": [
      "backend/08",
-     "backend/09"
+     "backend/09",
+     "web/07"
     ]
    }
   ]
@@ -782,7 +806,9 @@
   "steps": [
    {
     "path": "docs/redesign/prompts/web/11-cinematic-feature-and-book-pages.md",
-    "waitFor": []
+    "waitFor": [
+     "web/07"
+    ]
    }
   ]
  },
@@ -792,14 +818,7 @@
   "branch": "redesign/L20",
   "apiPort": 8050,
   "webPort": 3050,
-  "steps": [
-   {
-    "path": "docs/redesign/prompts/web/02-foundation-restart-haptics-sound.md",
-    "waitFor": [
-     "shared/03"
-    ]
-   }
-  ]
+  "steps": []
  },
  "L21": {
   "lane": "L21",
@@ -807,14 +826,7 @@
   "branch": "redesign/L21",
   "apiPort": 8051,
   "webPort": 3051,
-  "steps": [
-   {
-    "path": "docs/redesign/prompts/web/01-foundation-motion-deps-fonts-icons.md",
-    "waitFor": [
-     "shared/02"
-    ]
-   }
-  ]
+  "steps": []
  },
  "L22": {
   "lane": "L22",
@@ -826,7 +838,9 @@
    {
     "path": "docs/redesign/prompts/mobile/38-glass-search-sources-dialogue.md",
     "waitFor": [
-     "mobile/16"
+     "mobile/07",
+     "mobile/16",
+     "mobile/29"
     ]
    }
   ]
@@ -842,7 +856,8 @@
     "path": "docs/redesign/prompts/mobile/22-cinematic-circle.md",
     "waitFor": [
      "backend/08",
-     "backend/09"
+     "backend/09",
+     "mobile/07"
     ]
    }
   ]
@@ -858,6 +873,7 @@
     "path": "docs/redesign/prompts/mobile/20-cinematic-onboarding.md",
     "waitFor": [
      "backend/05",
+     "mobile/07",
      "mobile/19"
     ]
    }
@@ -873,7 +889,7 @@
    {
     "path": "docs/redesign/prompts/mobile/11-cinematic-feature-and-book-pages.md",
     "waitFor": [
-     "backend/02"
+     "mobile/07"
     ]
    }
   ]
