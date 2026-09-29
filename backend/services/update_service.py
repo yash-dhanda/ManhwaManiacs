@@ -37,6 +37,7 @@ from core.errors import AppError
 from core.time_utils import utcnow
 from database.models import (
     FollowedSeries,
+    ReadingProfile,
     UpdateNotification,
     UpdateRun,
     UpdateSettings,
@@ -554,8 +555,9 @@ class UpdateService:
         try:
             # Sweep every followed series: ``known_chapters`` is kept fresh even
             # when the row's ``notify`` flag is off, so flipping it on later does
-            # not backfill a notification storm. ``notify`` gates only whether a
-            # new chapter produces an ``update_notifications`` row (``_check_one``).
+            # not backfill a notification storm. ``notify`` (and the owning
+            # profile's ``notify_enabled``) gate only whether a new chapter
+            # produces an ``update_notifications`` row (``_check_one``).
             #
             # The id-less full sweep is deliberately unscoped — it is the
             # scheduler's (and an admin's) job to check every account. Targeted
@@ -822,11 +824,16 @@ class UpdateService:
 
             new_chapters = [c for c in live if str(c["id"]) not in known_keys]
             settings = self.get_global_settings()
+            # The owning profile's master switch gates the notification only,
+            # exactly like the per-follow ``notify`` flag: the snapshot below
+            # still advances, so switching it back on never backfills a storm.
+            profile = self._db.get(ReadingProfile, row.profile_id)
             if (
                 new_chapters
                 and known
                 and _bool(row.notify)
                 and _bool(settings.notify_enabled)
+                and (profile is None or _bool(profile.notify_enabled))
             ):
                 # A chapter notifies a follow once — the guarantee
                 # ``uq_update_notifications_chapter`` enforces. A connector that
