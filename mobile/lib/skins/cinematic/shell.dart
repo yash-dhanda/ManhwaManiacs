@@ -70,7 +70,7 @@ class _CineShellState extends ConsumerState<CineShell> {
       case 1:
         router.go(Routes.updates());
       case 3:
-        router.go(Routes.downloads());
+        router.go(Routes.downloads({'view': 'queue'}));
       case 4:
         router.push<void>(Routes.profiles(), extra: <String, String>{'mode': 'switch'});
     }

@@ -18,6 +18,14 @@ void main() {
       ('1 NEW', null, '1 new chapter'),
       ('Filters', 2, 'Filters, 2'),
       ('CH 143 · p.12', null, 'Chapter 143, page 12'),
+      ('12-DAY STREAK', null, '12-day streak'),
+      ('4.1 GB', null, '4.1 gigabytes'),
+      ('84/89 OK', null, '84 of 89 answering'),
+      ('8 ASKS LEFT', null, '8 asks left'),
+      ('LIVE · 15 S', null, 'Live, refreshes in 15 seconds'),
+      ('4.1 GB OF 10 GB · 21 GB FREE ON THIS PHONE', null, '4.1 of 10 gigabytes used, 21 gigabytes free on this phone'),
+      ('4.1 GB · 21 GB FREE ON THIS TABLET', null, '4.1 gigabytes used, 21 gigabytes free on this tablet'),
+      ('12 CH · 240 MB', null, '12 chapters, 240 megabytes'),
     ];
     for (final (visual, count, spoken) in rows) {
       expect(folioLabel(visual, count: count), spoken, reason: visual);

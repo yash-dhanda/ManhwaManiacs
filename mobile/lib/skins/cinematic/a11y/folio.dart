@@ -6,6 +6,8 @@ String folioLabel(String visual, {int? count}) {
   return count == null ? base : '$base, $count';
 }
 
+String _unit(String u) => switch (u.toUpperCase()) { 'GB' => 'gigabytes', 'MB' => 'megabytes', _ => 'kilobytes' };
+
 String _plural(int n, String one, [String? many]) => n == 1 ? one : (many ?? '${one}s');
 
 String _spoken(String v) {
@@ -40,6 +42,24 @@ String _spoken(String v) {
   }
   m = RegExp(r'^p\.?\s*(\d+)$', caseSensitive: false).firstMatch(v);
   if (m != null) return 'page ${m[1]}';
+  m = RegExp(r'^(\d+)-DAY STREAK$', caseSensitive: false).firstMatch(v);
+  if (m != null) return '${m[1]}-day streak';
+  m = RegExp(r'^([\d.]+) (GB|MB|KB) OF ([\d.]+) GB · ([\d.]+) (GB|MB) FREE ON THIS (PHONE|TABLET)$', caseSensitive: false).firstMatch(v);
+  if (m != null) {
+    return '${m[1]} of ${m[3]} gigabytes used, ${m[4]} ${_unit(m[5]!)} free on this ${m[6]!.toLowerCase()}';
+  }
+  m = RegExp(r'^([\d.]+) (GB|MB|KB) · ([\d.]+) (GB|MB) FREE ON THIS (PHONE|TABLET)$', caseSensitive: false).firstMatch(v);
+  if (m != null) return '${m[1]} ${_unit(m[2]!)} used, ${m[3]} ${_unit(m[4]!)} free on this ${m[5]!.toLowerCase()}';
+  m = RegExp(r'^([\d.]+) (GB|MB|KB)$', caseSensitive: false).firstMatch(v);
+  if (m != null) return '${m[1]} ${_unit(m[2]!)}';
+  m = RegExp(r'^(\d+)/(\d+) OK$', caseSensitive: false).firstMatch(v);
+  if (m != null) return '${m[1]} of ${m[2]} answering';
+  m = RegExp(r'^(\d+) ASKS? LEFT$', caseSensitive: false).firstMatch(v);
+  if (m != null) return '${m[1]} ${_plural(int.parse(m[1]!), 'ask')} left';
+  m = RegExp(r'^LIVE · (\d+) S$', caseSensitive: false).firstMatch(v);
+  if (m != null) return 'Live, refreshes in ${m[1]} seconds';
+  m = RegExp(r'^(\d+) CH · ([\d.]+ (?:GB|MB|KB))$', caseSensitive: false).firstMatch(v);
+  if (m != null) return '${m[1]} ${_plural(int.parse(m[1]!), 'chapter')}, ${_spoken(m[2]!)}';
   if (v == '18+' || v == '18') return 'Mature, 18 plus';
   if (v.isEmpty) return v;
   // Plain words: sentence case ("READING" -> "Reading").
