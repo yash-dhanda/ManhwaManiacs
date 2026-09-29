@@ -1,0 +1,275 @@
+# Web Glass primitives 2: sheets, alerts, menus, toasts and controls
+
+Track: web · Order 72 · Depends on: `docs/redesign/prompts/web/26-glass-primitives-controls-and-reveals.md` · Runs in parallel with: `docs/redesign/prompts/mobile/27-glass-primitives-overlays.md` · Proof folder: `docs/redesign/proof/web-27/`
+
+## Goal
+
+Build the second half of the Glass component catalogue on the web client, in `frontend/src/skins/glass/primitives/`: the physics sheet (Motion `drag="y"` tracked 1:1, the projected release picking a detent on `sheetSnap`, the rubber band above the top detent, the visionOS recession of the page behind, URL state `?sheet={id}`, and its desktop panel, window and popover forms), dialogs and alerts that bloom from their source control, toasts on one `sonner` `toast.custom` queue with the draining rim, in-page tabs and pagers, sliders, the reader scrub rail and the speed dial, switches, checkboxes, radios and the Stepper, menus and context menus (the bloom from the trigger, the lift preview, right-click and `Shift+F10`), banners and inline notices (status, new-chapters and app-update capsules on one priority queue), the image viewer, scroll edges and scrollbars, pull to refresh with the meniscus that snaps at 100 raw px, and the Manga | Novels content-mode switch. Base UI 1.8.0 supplies focus management, roles and dismissal; Motion and the `web/25` physics supply every movement. Every overlay and control ships every state, full keyboard access, its reduced-motion replacement and its Solid glass variant, and appears in the primitives gallery. No screen is built; Glass stays behind the debug row.
+
+## Read first
+
+Read these completely before planning. Where this file and `glass/DESIGN.md` disagree, `glass/DESIGN.md` wins; say so in the report.
+
+1. `docs/redesign/inventory/00-decisions.md` (all of it).
+2. `docs/redesign/stack-decision.md` §2.2 (the lint boundary), §3 (`@base-ui/react` 1.8.0, `sonner` 2.0.8, `@use-gesture/react` 10.3.1).
+3. `docs/redesign/glass/DESIGN.md`:
+   - §2.1.2 (`onGlass` on T4/T5 bodies, `wellOnGlass`, the backing disc, `label4` only as disabled text), §2.1.7 (the `dimSheet` 0.28, `dimModal` 0.48, `dimContext` 0.55 + blur 12, `dimClear` 0.35, `edgeSoft` and `edgeHard` scrims and their `Lb` sources: menus, popovers and partial sheets read `max(field term, lItems under the surface's rect)`), §2.3 (`rSheet`: 36 on the web), §2.4.1 (the budget and the phone table), §2.4.2 rules 1, 2, 7 and 8, §2.5 (two stacked glass layers), §2.6.
+   - §4.2 springs (`morph`, `sheet`, `sheetSnap`, `dismiss`, `settle`, `lens`, `tick`, `track`, `zoom`, `camera`, `snappy`), §4.3, §4.4 (projection rows Sheets and Image viewer), §4.5 (rubber-band rows for sheets, sliders and dials, zoom), §4.6 (sheet dismiss, sheet detent, pull to refresh, image dismiss, magnet), §4.9 (catchable sheets, toasts, pagers and the image viewer; the sheet close that pops the route first runs to completion), §4.10 rows Bloom, Sheet present, Sheet snap, Recede, Toast fall, Catch, Rubber band, Meniscus refresh, Scrub lens, Tab droplet, Liquid fill, Error shake, and §4.11.
+   - §5.2 (the events: `sheet.pass`, `sheet.detent`, `sheet.dismiss`, `threshold.cross`, `threshold.back`, `select`, `toggle.on`, `toggle.off`, `detent.tick`, `detent.magnet`, `detent.limit`, `longpress.open`, `refresh.arm`, `refresh.fire`, `refresh.done`, `scrub.tick`, `scrub.boundary`, `zoom.snap`, `zoom.limit`, `undo`, `error`, `warning`, `success`), §6 (sounds, off by default; the `droplet` cue).
+   - §7.10, §7.11, §7.12, §7.13, §7.21, §7.22, the Stepper row of §7.3, §7.23, §7.30, §7.31, §7.32, §7.33, §7.36; §8.0.3 "URL state for sheets" (the id list and the anchored-picker exceptions); §8.14.2 (the scrub rail and its lens); §8.16.3 (the speed dial); §11 (the gesture alternatives these components own); §14.1–§14.9; §15.2 (Base UI for Dialog, Menu, ContextMenu and Popover; the sheet drives its own position; `sonner` through `toast.custom` only); §15.7 (the live-surface table: a toast waits while a menu is open).
+4. `docs/redesign/inventory/web.md` §2.7 (global floating layers today), §2.9 (keyboard layer), §9.5 (today's reader settings sheet: its states), §12.2 (the chapter download picker as a sheet) as a checklist.
+5. `docs/redesign/00-baseline.md`.
+6. `docs/redesign/prompts-plan.json`: the `web/00` entry (its `TRACK RULE`) and this file's entry.
+7. Code you build on: everything from `web/25` (`GlassSurface` with `tierValue`, `twin` and `layer`, `budget.ts` with `kind: "scrim"`, `useLb`, `physics/*`, `motion.ts`, `motion-timings.tsx`, `AmbientField`) and `web/26` (`usePress`, `lit.ts` `suppressLit()`, `Button`, `SplitButton`, `HoldToConfirm`, `IconButton`, `TextField`, `Segmented`, `Poster` `onContextPreview`, `Progress` and `LiquidProgress`, `Tooltip`, `Keycap`, `wave.ts`, the gallery); the Base UI parts in `node_modules/@base-ui/react/` (read the type definitions of `dialog`, `alert-dialog`, `menu`, `context-menu` and `popover` before using them); `node_modules/sonner/dist/index.d.ts` (verify `toast.custom`, `Toaster` props `position`, `visibleToasts`, `hotkey`, `containerAriaLabel`, `swipeDirections`, `offset`, `toastOptions`); the shared content-mode store and the `novels_enabled` setting hook (`grep -rn "contentMode\|content-mode\|novels_enabled" frontend/src/features frontend/src/stores`); the keyboard registry in `frontend/src/lib/keyboard`.
+
+## Preconditions (check before writing the plan)
+
+- `git log --oneline -20` shows the `web/26` work; the gallery `/dev/glass-primitives` renders and `glass-primitives.spec.ts` passes.
+- `node design/build.mjs --check` passes.
+- In `frontend/`: `free -m && npm run test` is green; record the vitest file and case counts (your floor).
+
+## Skills to invoke
+
+1. `superpowers:writing-plans` before any code: write the plan to `docs/redesign/proof/web-27/plan.md` (commit it with the proof).
+2. `superpowers:test-driven-development` for the pure physics and queues (detent picking, pull physics, slider and dial maths, the overlay queue): vitest first.
+3. `superpowers:subagent-driven-development` to run the plan (or `superpowers:executing-plans` inline). At most 6 implementer subagents, split by family (sheets; alerts and toasts; menus; controls; viewer, edges and pull; content mode and gallery); start each subagent prompt with a scope lock, pass `model: "opus"` explicitly, run builds, tests and browsers one at a time, and verify each subagent's work against `git status` and `git diff`, never against its report alone.
+4. `frontend-design:frontend-design`, `impeccable:impeccable` and `taste-skill:taste-skill` for every overlay and the gallery review (heavy glass moves heavily: sheets are slower than chips because of their mass; every object in flight can be caught).
+5. `superpowers:verification-before-completion` before you claim anything is done.
+
+## Scope: deliver every item below
+
+Sizes are CSS px and minimums (§7 intro); every named move goes through `play()`; every glass surface is a `GlassSurface` with its layer (`overlays` for sheets, menus and popovers, `interruptions` for alerts, `hud` for toasts and capsules) so the budget and the two-stacked-layer rule see it; every overlay that carries its own lit action calls `suppressLit()` while it is open; text on T4 and T5 bodies is `onGlass`, wells use `wellOnGlass`, state glyphs sit on the backing disc. Web "hit 44" is the element's own box. Sections cited are `glass/DESIGN.md`.
+
+### A. The overlay queue (`primitives/overlay-queue.ts`, §7.12, §7.30, §15.7)
+
+One small store (with `overlay-queue.test.ts`) that decides what may show:
+
+- **Blockers:** open menus and context menus, and on phones open alerts. While any blocker is open, toasts wait (the §15.7 budget: a toast waits while a menu is open, on every platform) and show when it closes.
+- **Top band on phones** (one slot under the nav row): alert > toast > global new-chapters capsule > app-update capsule; a lower item waits while a higher one shows, and the new-chapters capsule re-appears when a higher one leaves.
+- **Desktop and tablet:** toasts and the new-chapters capsule share one queue (a toast waits while the capsule shows); the app-update capsule waits while the bulk-selection toolbar or the "Unsaved changes" bar shows (`html[data-bottom-bar]`, set by `web/28`).
+- It exposes `useOverlaySlot(kind)` and `registerBlocker()`.
+
+### B. Sheets (`primitives/Sheet.tsx`, `sheet-physics.ts`, `useSheetParam.ts`, §7.10, §8.0.3)
+
+1. **URL state:** `useSheetParam(id)` is open when `useSearchParams().get("sheet") === id`; `openSheet(id, extra?)` pushes `?sheet={id}` (kebab-case, plus any parameter beside it, for example `?sheet=recommend&series=…`) with `window.history.pushState`, which Next 16 syncs into `useSearchParams` without re-rendering the route tree; closing calls `history.back()` when this session pushed the entry, and `router.replace` to the same URL without the parameter when the page was hard-loaded with it. Browser back therefore closes a sheet. Anchored pickers (menus, context menus, the speed dial, the sleep menu, popovers) never use URL state.
+2. **Detents (phone and mobile web below 768 px):** `peek` 96 px (only for the listen mini player expansion), `medium` 52 % of the viewport height, `large` = viewport height − safe-top − 10 px; each sheet declares the detents it uses.
+3. **Geometry:** inset 8 px at partial detents with radius 36 on all corners; toward `large` the inset lerps 8 → 0 over the last 20 % of travel, the bottom corners go to 0, and the material cross-fades `glassThick` (T4) → `solid1` `#1C1C22` (a tall sheet becomes opaque and attached). `material="monolith"` (the listen full player, `web/37`) is `glassMonolith` (T5) at `medium`, cross-fading to `solid2` `#26262E` at `large`.
+4. **Grabber:** a 36 × 5 `fill1` capsule 8 px from the top, a 44 × 44 hit button labelled "Sheet size"; a tap cycles the detents; with keyboard focus `↑`/`↓` change the detent.
+5. **Header:** 56 tall: title `title2` leading (or centred for pickers), a close button trailing (the `fill2` twin circle 32 with ×, 44 hit, labelled "Close"), an optional leading action. Focus moves to the title (`preventScroll: true`) on open and back to the trigger on close.
+6. **Behind:** partial detents dim the page with `dimSheet` `rgba(0,0,0,0.28)`, its opacity following the sheet from closed to the lowest detent. At `large` the page behind recedes: the sheet writes `--sheet-progress` (0 at `medium` or lower, 1 at `large`, following the sheet's position every frame, never time) on its `recedeTarget` element (a prop; the gallery passes its page wrapper, `web/29`'s Shell passes its root), and `glass.css` maps `.glass-recede` to `scale(1 − 0.06 p)`, radius `12 p` px, `filter: blur(8 p px) brightness(1 − 0.4 p)`. Reduced motion: dim only, no scale, radius or blur.
+7. **Physics (`sheet-physics.ts`, pure, tested):** the sheet tracks the finger 1:1 (Motion `drag="y"` with `dragListener={false}` and `useDragControls`, `dragMomentum={false}`, `dragElastic={0}`; our own maths on release). Drag writes the raw offset into a `rawY` motion value through Motion's `_dragY` prop (documented in `motion-dom`'s types: "Passing MotionValues as _dragX and _dragY instead applies drag updates to these motion values"), and the rendered `y` is `useTransform(rawY, applyRubberBand)`: above the top detent the displacement follows `rubberband(x, viewportHeight, 0.55)` capped at 60 px. On release, `pickDetent({ top, velocity, detents, sheetHeight })` projects the top edge (`project()`) and returns the nearest detent, or `dismiss` when the projected top is below the lowest detent by more than 50 % of the sheet's height at that detent, or when the downward velocity is at least 1,500 px/s at the lowest detent. Settling uses `sheetSnap` (k 223.8, c 26.33) with the release velocity; dismissal uses `dismiss` (k 385.5, c 39.27, bounce 0). Haptics: `sheet.pass` for each detent passed during a drag, `sheet.detent` on settle, `threshold.cross` when the projection crosses the dismiss line and `threshold.back` when it crosses back, `sheet.dismiss` on dismissal.
+8. **Scroll hand-off:** the grabber and header start drags directly (`touch-action: none` on them). In the body (`touch-action: pan-y`), a non-passive `touchmove` handler takes the gesture for the sheet (calling `preventDefault()` and `dragControls.start`) when the inner scroll view is at `scrollTop <= 0` and the finger moves down, or when the sheet is at a partial detent and the finger moves up (the sheet expands before the content scrolls); otherwise native scrolling proceeds. Mouse wheels and trackpads never drag the sheet.
+9. **Present and dismiss by button:** present on `sheet` (k 171.3, c 24.09, bounce 0.08), growing out of the trigger when the trigger sits at the bottom of the screen (a Bloom from its rect), otherwise from the bottom edge; dismiss by button on `dismiss`. Both animate the sheet's own `y`, so a touch catches either mid-flight (`catchMotion`, `motion.catch`), on the way up or down. Reduced motion: fade + 16 px translate over 150 ms, no recession.
+10. **Stacking:** at most two sheets; the lower one at `large` scales to 0.9165 and moves up 2 %; a lower partial sheet drops to 70 % brightness; only the lowest sheet blurs the page. A third sheet replaces the top one.
+11. **On-screen keyboard (phones):** when a field inside takes focus the sheet moves to `large` on `sheetSnap`, the field scrolls to 30 % of the visible height, and the content gets bottom padding equal to the keyboard height (`window.innerHeight − visualViewport.height`), returning to 0 on `sheetSnap` when the keyboard closes.
+12. **Desktop forms (768 px and wider), by the `desktop` prop:** `panel`: a right-side panel 440 wide, inset 12, radius 26, `glassThick` (T4), entering from the right on `sheet`, full window height minus the 12 px insets, the 56 px header sticky and the body scrolling; `window`: a centred window 560 wide, radius 32, `tier="auto"` (T4 or T5 by its shorter side), blooming from its trigger on `morph`, centred on the content column, top `max(12vh, 48px)`, `max-height: min(80dvh, 880px)`, sticky 56 px header, scrolling body; `detailWindow`: 960 wide, radius 32, top 24 px, `height: calc(100dvh - 48px)`, the window itself is the scroll container (so a left column's `position: sticky; top: 24px` works); `popover` (the recap `offer`): a 420 px `glassThick` popover blooming on `morph` from and anchored to its trigger, still URL state. Behind panels and windows: `dimSheet`. `Esc`, a backdrop click and browser back close them. A panel or window opened from inside the detail window stacks over it (the two-sheet limit).
+13. **Focus and roles:** Base UI `Dialog` (`modal`) supplies the focus trap, `role="dialog"`, `aria-labelledby` (the title), `Esc` handling and focus return; render its popup through Base UI's `render` prop as the Motion element, so Base UI never owns the animation.
+14. **States:** loading (skeleton rows inside, the header live), error (an inline error block with Retry), empty (the sheet's own copy), disabled actions greyed.
+15. `Lb` for partial sheets, panels, windows and popovers: `max(field term, lItems under the surface's rect)` through `useLb`.
+
+### C. Dialogs and alerts (`primitives/Alert.tsx`, `confirmAlert.ts`, §7.11)
+
+- **Visual:** `glassThick` (T4), width 300 on phones and 420 on desktop, radius 26, padding 20; title `title3` 20/700 left-aligned; body `callout` `onGlass`; secondary lines `onGlass` at `footnote` size (never alpha labels, because an alert can open over a reader page); an optional warning or danger box inside (a `surface2` slab with a 3 px leading bar in the semantic colour).
+- **Buttons:** stacked full-width capsules (L 50) when there are three, or when two labels do not both fit side by side at M 44 (measure; never truncate a label); otherwise side by side at M 44. Order: the least destructive first, on top of a stack, trailing when side by side. The destructive confirm is the solid `danger` variant; the other buttons are the §2.4.2 rule 7 twins of their §7.1 variants; initial focus goes to the least destructive action.
+- **Motion:** blooms from the control that opened it when there is one (scale 0.9 from that control's centre, `morph`, materialising), otherwise from the centre (0.94 → 1 on `morph`); `dimModal` `rgba(0,0,0,0.48)` fades in over 180 ms; dismissal shrinks to 0.96 on `dismiss` while dematerialising over 350 ms. Reduced motion: a 150 ms fade in place.
+- **Behaviour:** Base UI `AlertDialog`: `role="alertdialog"` with `aria-labelledby` and `aria-describedby`, focus trapped, `Esc` cancels, focus returns to the trigger. It registers as a blocker on phones (item A) and calls `suppressLit()`.
+- **States:** default; pending (the confirm shows its loading state and the alert cannot be dismissed); error (an inline `onGlass` line above the buttons led by a `danger` `warning-circle` on the backing disc, announced through the assertive region; the confirm shakes).
+- **`confirmAlert({ title, body, confirmLabel, destructive, source })`** returns a promise of `true | false`. Make it the default `onRequestConfirm` of `HoldToConfirm mode="standalone"` from `web/26`, so a click on a standalone hold button always opens this alert with an explicit confirm button.
+
+### D. Toasts (`primitives/Toast.tsx`, `GlassToaster.tsx`, §7.12)
+
+- **The one toast system is `sonner` 2.0.8 through `toast.custom` only.** `GlassToaster` mounts `<Toaster>` with `visibleToasts={2}`, `hotkey={["altKey", "KeyN"]}` (matched on `event.code`), `containerAriaLabel="Notifications"` (a `role="region"` landmark), `swipeDirections={[]}` (our Motion drag owns dismissal), `toastOptions={{ unstyled: true, duration: Infinity }}` (our component owns the timer), and a position by frame: phones `top-center` at `offset` safe-top + 60; desktop `bottom-left` at `left: calc(var(--glass-sidebar-edge, 0px) + 24px)` and `bottom: 24px`, or `88px` while `html[data-bottom-bar]` is set (24 + 52 + 12); inside the desktop readers (`html[data-reader]`) `top-center` at 60 px. If a `Toaster` prop listed here does not exist in the installed version, meet the same rule another way and say how in the report. `showToast()` goes through the overlay queue (item A).
+- **Visual:** a `glassThin` (T2) capsule, min height 44 (two-line variant 60 with radius 22; at large text it wraps onto further lines with radius 22 and never truncates), padding 0 16, max width 420; a leading 20 px glyph in its semantic colour on the backing disc; text `callout` `onGlass`; an optional plain action ("Undo", "View"); a trailing close button (× 16 px glyph, 44 hit, "Dismiss"). While a toast shows on phones, `html[data-toast]` is set so the Shell's top edge plateau extends to safe-top + 104 (`web/29`).
+- **Motion:** falls in from 60 px above on `snappy` while materialising; leaves upward on `dismiss`. It is catchable: a flick up or sideways whose projection passes 40 px dismisses it; a drag down holds it (the timer pauses while touched). Stacking: a newer toast pushes the older one down 8 px and scales it to 0.94 behind it. Reduced motion: 150 ms fades.
+- **Timing:** 4 s by default, 10 s with Undo; with Undo the capsule's rim drains clockwise as a progress ring (a `conic-gradient` mask on the rim from 12 o'clock), so the remaining time is visible. Hover, focus inside and a touch pause the timer. With a screen reader on (`html[data-sr="on"]`, Screen reader mode) toasts stay until dismissed.
+- **Undo:** `showToast({ undo })` registers the action; `undoLast()` runs the last destructive action's undo while its toast shows and for 60 s after it leaves (the `mod+z` binding is registered by `web/29`); `undo` haptic.
+- **Keyboard and a11y:** `Alt+N` moves focus to the newest toast; `Esc` dismisses the focused toast and returns focus where it was; `role="status"` (`aria-live="polite"`), errors `role="alert"`.
+
+### E. In-page tabs and pagers (`primitives/TabPager.tsx`, §7.13)
+
+- **Tab strip:** a scrollable row of labels (`subhead` 15/600; unselected `label2`) over a `glassFilm` clear capsule indicator 32 tall behind the selected label, drawn as its content twin (the strip is page content). Each tab is a 44 px hit.
+- **Pager:** the panels beneath form a CSS scroll-snap row (`scroll-snap-type: x mandatory; scroll-snap-stop: always; overscroll-behavior-x: contain`). The indicator reads the pager's continuous position (`scrollLeft / panelWidth`), so while a finger drags a panel it slides and stretches between the two labels (its width lerps between the two label widths, plus a velocity stretch up to 25 %); when the scroll settles the `select` haptic fires. Tapping a tab scrolls the pager with Motion `animate(scrollLeft)` on `settle`.
+- **Keys:** `[` and `]` go to the previous and next tab; arrows move inside the `tablist`; `role="tablist"`, `role="tab"` with `aria-selected` and `aria-controls`, `role="tabpanel"`, roving `tabindex`.
+- **States:** default; hover (`fill4` behind the label); pressed (label 0.96); focused (ring on the label); disabled (label `label4`, skipped by the arrows); loading (the panel shows its skeleton, the tab still works); selected (the capsule); error (the panel's error block).
+- Reduced motion: the indicator cross-fades 150 ms at the new tab and programmatic scrolls jump.
+
+### F. Sliders, the scrub rail and the speed dial (`primitives/Slider.tsx`, `FillSlider.tsx`, `ScrubRail.tsx`, `SpeedDial.tsx`, `slider-math.ts`, §7.21, §8.14.2, §8.16.3)
+
+- **`Slider`:** track 6 px capsule `fill1`, fill `iris500`; thumb a 28 px white circle with `0 2px 8px rgba(0,0,0,0.4)` inside a 44 px hit; while dragged the thumb becomes transient glass (`GlassSurface` T1 `glassFilm` clear), grows to 34 px on `press`, and the track thickens to 8 px. Stepped sliders fire `detent.tick` per step and magnetise: within 30 % of the step spacing the thumb is pulled to the step. Past min or max the thumb rubber-bands at most 12 px (`rubberband` with `d` = the track length) with `detent.limit`. The value shows in `mono` 13 trailing, or in a `glassThin` value bubble above the thumb while dragging. Keys: arrows step, `Page Up`/`Page Down` step × 10, `Home`/`End` the ends; `role="slider"` with `aria-valuetext`. States: default; hover (thumb 30); pressed/dragging (above); focused (ring around the thumb); disabled (track `g300` `#2D2D35`, thumb `g500` `#56565F`); loading (the value label shows a spinner, the thumb stays live); error (the thumb springs back to the last saved value on `tick` and the caller shows a toast).
+- **`FillSlider`** (Control Centre style; always on a glass host, so it is the `fill2` twin): a 72 × 160 capsule that fills from the bottom with `onGlass` at 90 %, a glyph at the bottom (`sun` for brightness, `speaker-high` for volume); drag anywhere on it; the fill follows on `track`; `role="slider"` with `aria-orientation="vertical"`.
+- **`ScrubRail`** (the reader rail; `web/35` places it): a vertical 44 px hit strip; the visible 3 px track `rgba(255,255,255,0.50)` with a 1 px `rgba(0,0,0,0.60)` outline, the `iris500` fill inside the outline, a 12 px `#FFFFFF` thumb with a 1.5 px `#000000` ring. On touch the track widens to 6 px and a magnifier lens (`glassThick` 120 × 164, radius 20) grows out of the thumb on `lens` and follows it on `track`, showing `renderPreview(page)` (the thumbnail at `w=240` and the page number in `monoLarge`). The thumb snaps page by page (projection to the nearest page); `scrub.tick` per page, `scrub.boundary` at the first and last page and at segment boundaries (`segments` prop: the read-all rail is segmented by chapter with 2 px gaps); bookmarks show as 4 px droplets on the track. Release calls `onCommit(page)`. `role="slider"` with `aria-valuetext="Page 18 of 40"`. A one-page chapter renders no rail. Reduced motion: the lens appears in place with a 150 ms fade and follows 1:1.
+- **`SpeedDial`:** a vertical glass capsule 64 × 240 rising out of its anchor on `morph`; dragging up or down anywhere on it sets 0.5× to 3.0× in 0.05 steps (6 px per step), with labelled marks at 0.5, 1, 1.5, 2, 2.5 and 3; `detent.tick` every 0.25×; a magnet at 1.0× (values within ±0.08 are pulled to 1.0 with `detent.magnet`); past the ends it rubber-bands 12 px; the value previews live while dragging and commits on release; a touch-and-hold of 600 ms without moving resets to 1.0×; under the value the words-per-minute equivalent in `caption1` ("≈ 190 wpm", from a `wpmAt(speed)` prop); preset chips beneath: 0.8 · 1 · 1.25 · 1.5 · 2. Semantics: `role="slider"`, `aria-orientation="vertical"`, `aria-valuemin="0.5"`, `aria-valuemax="3"`, `aria-valuetext="1.25 times, about 190 words a minute"`; arrows step 0.05, `Page Up`/`Page Down` 0.25, `Home`/`End` the ends. It is an anchored picker (no URL state).
+- `slider-math.ts` (tested): step snapping with the 30 % magnet, the 12 px rubber band, the dial's 6 px per 0.05 mapping and its ±0.08 magnet at 1.0.
+
+### G. Toggles, checkboxes, radios and the Stepper (`primitives/Switch.tsx`, `Checkbox.tsx`, `RadioList.tsx`, `SelectionCheck.tsx`, `Stepper.tsx`, §7.22, §7.3)
+
+- **`Switch`:** a 51 × 31 track (off `fill1`, on `iris600` `#7563F2`), a 27 px white knob with a small shadow, inside a 44 px hit. A tap moves the knob on `tick` (its 4.6 % overshoot is the click), the track colour shifts over `colorShift`, and `toggle.on`/`toggle.off` fire. Dragging the knob turns it into transient `glassFilm` clear glass stretched to 34 × 27 while held; it follows the finger and projects to on or off on release. States: default; hover (knob glow); pressed (the knob stretches toward the travel direction to 34 px on `press`); focused (ring around the track); disabled (40 %); loading (the knob shows a 12 px spinner, not toggleable); on; error (the knob springs back to the previous side on `tick` with the shake and a toast). `role="switch"`, `aria-checked`, `Space` toggles.
+- **`Checkbox`:** a 24 px squircle, radius 7; off `fill1` with a 1.5 px `g600` `#76767F` border; on an `iris600` fill with a white check whose stroke draws over 160 ms while the box pops 1 → 1.12 → 1 on `tick`; indeterminate a white bar; hit 44; `role="checkbox"` with `aria-checked` (`mixed` for indeterminate).
+- **Radios appear only in lists** (grouped rows with a trailing check glyph for the selected row, never bare circles in forms): `RadioList` renders `role="radiogroup"` rows (`role="radio"`, 44 px min height) with the trailing check; arrows move the selection. The 24 px `Radio` visual (off: a 1.5 px `g600` ring; on: a 10 px white dot inside an `iris600` disc, the dot growing on `tick`) exists for the gallery and the select-mode lists of `web/28`.
+- **`SelectionCheck`** (lists and select mode): a 24 px circle, `iris600` fill, white check, springing in from scale 0 on `tick`.
+- **`Stepper`:** two 36 px `fill2` circles (`wellOnGlass` inside T4/T5 glass) with − and +, the value in `mono` 15 between them (min width 64); hit 44 each; past a limit the value text stretches 4 px toward the pressed side and springs back, with `detent.limit`; `role="spinbutton"` with `aria-valuenow`, `aria-valuemin`, `aria-valuemax`; `↑`/`↓` step.
+- Reduced motion: knobs, checks and dots jump to their end state; the colour changes still ease (colour is not motion).
+
+### H. Menus and context menus (`primitives/Menu.tsx`, `ContextMenu.tsx`, `useContextPreview.ts`, §7.23, §7.8)
+
+- **Menu (pull-down)** on Base UI `Menu`: it blooms out of its trigger on `morph` (k 273.4, c 24.80): the trigger's glass layer and the menu body share a Motion `layoutId`, and the trigger's glass layer unmounts while the menu is open, so Motion morphs the box and its radius from the trigger into the menu; the tier interpolates from the trigger's tier to T4 through `tierValue` (§2.4.2 rule 2); the content fades in over the last 40 % of the bloom; dismissal reverses into the trigger over `dematerialize` 350 ms. Body: `glassThick`, radius 26, padding 6, min width 220, max 320; rows 44 tall, radius 20 (26 − 6); a 20 px icon leading (the web convention), label `body` `onGlass`; destructive rows keep the `onGlass` label and add a `danger` glyph on the backing disc; groups are separated by 6 px gaps; trailing `Keycap` shortcut hints where a row has a key.
+- **Slide to select:** press on the trigger and, without lifting, slide onto a row: rows highlight under the finger (`fill2`) with a `select` haptic per row, and release selects. A menu opened with a tap stays open.
+- **Context menu** on Base UI `ContextMenu` (right-click and long press), opened programmatically for the lift: `useContextPreview(element, kind)` (called by `Poster`'s `onContextPreview` at 450 ms, `longpress.open`) puts `dimContext` (`rgba(0,0,0,0.55)` + backdrop blur 12, registered in the budget as a scrim) behind a raised preview of the pressed object (poster 1.12, row 1.02, image 1.0) and blooms a `glassThick` menu from the object's nearest edge. The preview stays interactive: a poster can still be dragged and thrown (the `web/26` throw), a row can be dragged to reorder (`web/28`). Right-click on desktop opens the same menu at the pointer without the lift; `.` or `Shift+F10` on a focused item opens it anchored to the item.
+- **Keyboard:** arrows move, `Enter` selects, `Esc` closes and returns focus, type-ahead jumps by first letter; `role="menu"`, `role="menuitem"`; toggle rows ("Hide from my Circle", Content rating) are `role="menuitemcheckbox"` with `aria-checked`.
+- **States:** row default; hover (`fill2`); pressed (the row sinks to 0.98); focused (ring inside the row, radius 20); disabled (`label4`, skipped); loading (a trailing spinner while the row's action runs; the menu stays open until it is done); selected (a trailing `iris400` check on the backing disc); error (the row label swaps to the error for 2 s in `onGlass`, led by a `danger` `warning-circle` on the backing disc, and the error goes to the assertive region).
+- Menus and context menus register as blockers (item A). Reduced motion: a 150 ms fade in place.
+- In the gallery, wire `SplitButton`'s trailing segment to a `Menu` with Read from the start, Read all, Pick a chapter and Download next 10, and a poster's lift to a `ContextMenu`.
+
+### I. Banners and inline notices (`primitives/InlineNotice.tsx`, `StatusCapsule.tsx`, `NewChaptersCapsule.tsx`, `AppUpdateCapsule.tsx`, §7.30)
+
+- **`InlineNotice`:** a `surface1` slab, radius 20, padding 12 16, a leading 20 px glyph in the semantic colour, text `callout`, an optional plain action trailing, and a 3 px leading bar in the semantic colour. Variants `info`, `warning`, `danger`, `success`.
+- **`StatusCapsule`:** `glassThin` 32 tall, glyph + `footnote` 600 `onGlass`: "Offline" (a `warning` `wifi-slash` on the backing disc), "Saved copy · 2 h" (`warning`, same), "Syncing" (a spinner), and the rate-limit capsule "Sources are busy. Retrying in 12 s" with a live countdown. It materialises in and dematerialises out. "Offline" and the rate-limit capsule announce once through a polite live region when they first appear; the countdown is not re-announced. With `inGroup` (the desktop toolbar, `web/29`) it draws as a shape of its host group and adds nothing to the budget.
+- **`NewChaptersCapsule`:** a `glassRegular` capsule that drops in like a toast but stays until acted on: a stack of up to 3 covers, "5 new chapters in 3 series", a "View" plain button, and the toast close button (× 16 px, 44 hit); a swipe up or the close button dismisses it until a newer notification arrives. Desktop and tablet: top-centre of the content column, 12 px below the toolbar row (top 72 px), max width 480; it shares one queue with toasts (item A). Screens hide it inside readers and on Updates.
+- **`AppUpdateCapsule`:** "A new version is ready" + "Reload" (web): bottom-centre above the dock on phones, bottom-centre of the content column on desktop (never the bottom-left toast corner); on desktop it waits while the bulk-selection toolbar or the "Unsaved changes" bar shows.
+
+### J. The image viewer (`primitives/ImageViewer.tsx`, §7.31)
+
+- **Open:** URL state `?sheet=image`; the image zooms from its thumbnail's rect on `zoom` (k 125.9, c 21.09); the background is `#000000` with the ambient field at 40 % from the image's palette (`useAmbient`). Base UI `Dialog` supplies the focus trap; the accessible name is the image's description.
+- **Gestures** (`@use-gesture/react` 10.3.1, `touch-action: none` on the image layer): pinch 1× to 4× keeping the focal point, rubber-banding ±0.18 scale beyond the limits (`zoom.limit`); double tap (a second tap within 280 ms and 24 px) toggles 1× ↔ 2.5× at the tap point on `camera` (`zoom.snap`); pan when zoomed with momentum and an edge rubber band; at 1× a vertical drag dismisses: the image scales `1 − min(|dy| / 1200, 0.15)`, its radius grows 0 → 28, the backdrop opacity follows `1 − min(|dy| / 320, 1)`; `threshold.cross` and `threshold.back` fire at the dismiss line; a release whose projection passes ±180 px, or with `|vy| ≥ 800 px/s`, flies the image back into its thumbnail on `zoom` carrying the release velocity; otherwise it springs back on `settle`. A touch during the fly catches it.
+- **Chrome:** a `glassClear` close button top-left (44; its `Lb` is the image palette's `lMax`, with `dimClear` `rgba(0,0,0,0.35)` beneath the media region when `Lb > 0.45`); share (Web Share with the image when `navigator.canShare` allows files, otherwise the URL) and, on desktop, save, top-right; the chrome fades after 2 s idle and returns on pointer movement, a tap or a key.
+- **Keys:** `Esc` closes, `+`/`-`/`0` zoom, arrows pan.
+- **States:** loading (the thumbnail stays, upscaled with blur 8 until the full image arrives, then sharpens over `fadeIn`); error ("Couldn't load this image" + Retry on the glass); zoomed.
+- Reduced motion: open and close are 200 ms cross-fades; the drag still tracks 1:1 and finishes with a 150 ms fade.
+
+### K. Scroll edges and scrollbars (`primitives/ScrollEdge.tsx`, `FastScroll.tsx`, `glass.css`, §7.32, §2.1.7)
+
+- **`ScrollEdge edge="top|bottom"`** (`edgeSoft`): a plateau of `rgba(0,0,0,0.72)` from the screen edge to the far edge of its bar group (its `plateau` prop: top safe-top + 52, or safe-top + 104 while `html[data-toast]` is set; desktop 60; bottom safe-bottom + 85, + 56 while the accessory shows), then a 24 px linear fade to transparent, with `backdrop-filter: blur(6px)` (registered in the budget as a scrim). Its opacity follows how much content is under it: top `clamp(scrollTop / 24, 0, 1)`, bottom `clamp(remainingScroll / 24, 0, 1)`. Under Solid glass and Reduce Transparency it becomes the hard edge.
+- **`HardEdge`** (`edgeHard`): `rgba(0,0,0,0.92)` with a 0.5 px `separator` line, under pinned section headers.
+- **Scrollbars** (`.glass-scroll` in `glass.css`): a 6 px capsule thumb `rgba(255,255,255,0.28)` on a transparent track, widening to 10 px on hover (`scrollbar-width: thin` in Firefox), shown only while scrolling (a `data-scrolling` attribute held for 800 ms after the last `scroll` event) and while the scroll area is hovered.
+- **`FastScroll`** (lists over 200 rows: chapter lists, the source catalogue): a 44 px wide drag strip on the trailing edge; dragging it shows a `glassThin` capsule bubble at the thumb with the chapter number or the first letter (from a `labelAt(index)` prop), with a `select` tick per 10 chapters; `role="scrollbar"` with `aria-controls` and `aria-valuenow`.
+
+### L. Pull to refresh (`primitives/PullToRefresh.tsx`, `pull-physics.ts`, §7.33)
+
+- Touch only, and only when the list is at `scrollTop === 0`; the list gets `overscroll-behavior-y: contain` so the browser's own pull-to-refresh never fires; the displayed pull is `rubberband(raw, viewportHeight, 0.55)` (about 60 lines of pointer handling).
+- **The droplet:** a `glassThin` droplet hangs from the top edge on a meniscus neck: its radius grows 0 → 16 px over the first 60 raw px; the neck width is `12 × (1 − progress)` px, thinning as the pull continues; the `droplet` glyph inside rotates 360° per 100 raw px. At 100 raw px (`threshold.pullTrigger`) the neck snaps: the droplet pops free (`refresh.arm`; the `droplet` sound when UI sounds are on), springs to the 60 px rest line on `lens` (k 223.8, c 20.94; the Meniscus refresh move) and becomes a liquid ring spinner while `onRefresh()` runs (`refresh.fire`). Released before the trigger, it retracts into the edge on `settle`.
+- **Done:** when `onRefresh()` resolves `{ changed: true }` the spinner fills into a check (`refresh.done`; the caller runs the entrance wave for the new rows); with `{ changed: false }` it fades; then the list returns to 0 on `settle`. A polite live region announces "Updated", or the error.
+- **Alternatives** (§11): screens add a Refresh item to their ⋯ menu and `r` on desktop; the component exposes `refresh()` for them.
+- Reduced motion: a static spinner at the rest line once triggered.
+- `pull-physics.ts` (tested): the radius at 30, 60 and 90 raw px, the neck width, and the trigger at exactly 100 raw px.
+
+### M. The content-mode switch (`primitives/ContentModeSwitch.tsx`, §7.36)
+
+- Rendered only when the server enables novels (`novels_enabled` from the shared settings hook). A two-segment `Segmented` with the glyphs `strip-scroll` ("Manga") and `book-open` ("Novels").
+- Variants: `sidebar` (both segments shown); `navRow`, a compact 32 px capsule ("Manga" with a `caret-down`, 44 hit) that expands on press into the two segments (a `morph`) with the line "One setting for the whole app" in `footnote` `onGlass` under them; `menu`, a `menuitemradio` pair for the Library tab's long-press menu.
+- Switching fires `select`, persists per profile through the shared content-mode store, and records the switch's position in a small store (`lastModeSwitchOrigin`) so screens run their entrance wave from it.
+
+### N. Gallery and checks
+
+- Extend the gallery (`/dev/glass-primitives`) with the sections `sheets`, `alerts`, `toasts`, `tabs`, `sliders`, `toggles`, `menus`, `banners`, `image-viewer`, `scroll-edges`, `pull-to-refresh`, `content-mode`, each showing every variant and state, with launch buttons for the overlays (each sheet form, stacked sheets, an alert from a source button and from centre, a pending and an error alert, info, error and Undo toasts, a context menu from a poster lift and from right-click). The `sheets` section has a scrolling page wrapper passed as `recedeTarget`.
+- Haptic observability: in development builds `skins/glass/haptics.ts` also dispatches `window.dispatchEvent(new CustomEvent("mm:haptic", { detail: eventName }))` for every event it receives, whether or not the event maps to `navigator.vibrate` (compiled out of production with a `process.env.NODE_ENV` check), so the browser checks can count haptic events.
+- Vitest: `sheet-physics.test.ts` (detent picking from the projected top, dismissal by position and by 1,500 px/s, the 60 px rubber-band cap), `pull-physics.test.ts`, `slider-math.test.ts`, `overlay-queue.test.ts` (blockers, the phone top-band priority, the desktop shared queue).
+- `frontend/e2e/glass-overlays.spec.ts` (Playwright, against `next dev`): a sheet opens with `?sheet=` in the URL, traps `Tab`, closes on `Esc` and on browser back with focus returned to the trigger; a hard load of `?sheet=filters` renders the sheet and closing it replaces the URL without the parameter; a drag on the grabber at 390 × 844 (touch) released with a fast downward flick dismisses; an alert's initial focus is the least destructive button and `Esc` cancels; the `role="alertdialog"` has its label and description; a standalone `HoldToConfirm` click opens `confirmAlert`; `Alt+N` focuses the newest toast and `Esc` dismisses it; a toast shown while a menu is open appears only after the menu closes; menus open with `Enter`, move with arrows, jump by type-ahead and close with `Esc` returning focus; `Shift+F10` on a focused poster opens its context menu; the slider, speed dial and scrub rail respond to arrows, `Page Up`/`Page Down` and `Home`/`End` with the right `aria-valuetext`; the switch toggles on `Space`; `[` and `]` change tabs; the image viewer zooms with `+`/`-`/`0` and closes on `Esc`; at 390 × 844 every interactive element in the new sections is at least 44 × 44 px.
+
+## Out of scope here (owned by later steps; do not build)
+
+- `web/28`: lists, swipe row actions, drag to reorder and bulk selection (the bulk toolbar sets `html[data-bottom-bar]`), empty/error/offline states and `copy/errors.ts`, the 18+ gate alert, the download control, the depth glyph, AI surfaces, charts, `ReactionPicker`.
+- `web/29`: the Shell, the `SheetHost` for sheet routes (`feature`, `featureByFollow`, `recap`, `circleMember`, `profileNew`, `profileEdit`) with its desktop recession, the dock and orb (which morph into the `web/26` search field), the sidebar (which sets `--glass-sidebar-edge`), the top bars that host `StatusCapsule inGroup`, the command palette, the back menu, global keys (`mod+z`, `r`), the 18+ purge.
+- Every screen, and the reader and listen wiring of `ScrubRail` and `SpeedDial`.
+
+## File layout
+
+```
+frontend/src/skins/glass/primitives/
+├── overlay-queue.ts (+ overlay-queue.test.ts)                     A
+├── Sheet.tsx, sheet-physics.ts (+ test), useSheetParam.ts          B
+├── Alert.tsx, confirmAlert.ts                                      C
+├── Toast.tsx, GlassToaster.tsx                                     D
+├── TabPager.tsx                                                    E
+├── Slider.tsx, FillSlider.tsx, ScrubRail.tsx, SpeedDial.tsx, slider-math.ts (+ test)   F
+├── Switch.tsx, Checkbox.tsx, RadioList.tsx, SelectionCheck.tsx, Stepper.tsx            G
+├── Menu.tsx, ContextMenu.tsx, useContextPreview.ts                 H
+├── InlineNotice.tsx, StatusCapsule.tsx, NewChaptersCapsule.tsx, AppUpdateCapsule.tsx  I
+├── ImageViewer.tsx                                                 J
+├── ScrollEdge.tsx, FastScroll.tsx                                  K
+├── PullToRefresh.tsx, pull-physics.ts (+ test)                     L
+└── ContentModeSwitch.tsx                                           M
+frontend/src/skins/glass/primitives/HoldToConfirm.tsx               default onRequestConfirm = confirmAlert (C)
+frontend/src/skins/glass/haptics.ts                                 development-only mm:haptic event (N)
+frontend/src/skins/glass/glass.css                                  .glass-recede, .glass-scroll, edge and dim styles
+frontend/src/skins/glass/dev/Gallery.tsx                            N
+frontend/e2e/glass-overlays.spec.ts                                 N
+docs/redesign/proof/web-27/                                         plan.md, screenshots, report.md
+```
+
+Skin files import only `@/features/**` (never `@/features/*/components/**`), `@/lib/**`, `@/services/**`, `@/stores/**`, `@/types/**` and their own `skins/glass/**`; the lint rule bans `@/skins/cinematic/**`. No CSS modules.
+
+## Acceptance criteria
+
+- [ ] Every component of items A to M exists with every state of its section and appears in the gallery.
+- [ ] Sheets: the sheet tracks the finger 1:1; above the top detent it stretches at most 60 px; a release lands on the projected nearest detent on `sheetSnap` with the release velocity; a fast downward flick (≥ 1,500 px/s) at the lowest detent or a projection 50 % below it dismisses on `dismiss`; a touch catches a presenting or dismissing sheet mid-flight; `sheet.pass`, `sheet.detent`, `threshold.cross`/`threshold.back` and `sheet.dismiss` fire at the right moments (counted from the development `mm:haptic` events in `glass-overlays.spec.ts`).
+- [ ] The page behind recedes to scale 0.94, radius 12, blur 8 and 60 % brightness at `large`, driven by the sheet's position; partial detents show `dimSheet`; at `large` the sheet is attached and opaque `#1C1C22`; two stacked sheets show the 0.9165 / 2 % / 70 % rules; reduced motion keeps the dim only.
+- [ ] URL state: every sheet, panel and window is `?sheet={id}`; browser back and `Esc` close it; a hard-loaded `?sheet=` closes by replacing the URL; anchored pickers create no history entry.
+- [ ] Desktop forms: the 440 px panel from the right, the 560 px window blooming from its trigger, the 960 px detail window scrolling as one container, and the 420 px `offer` popover anchored to its trigger, each with `dimSheet` behind.
+- [ ] Alerts bloom from their source control (scale 0.9 from it) or from the centre (0.94 → 1) on `morph` with `dimModal` over 180 ms; buttons stack or sit side by side by the rule; the least destructive action has initial focus; pending and error states behave as specified; a standalone hold-to-confirm click always reaches an explicit confirm.
+- [ ] Toasts render only through `sonner` `toast.custom`, fall from 60 px on `snappy`, leave upward on `dismiss`, are catchable (flick past 40 px dismisses, drag down holds), drain their rim over 10 s with Undo, pause on hover, focus and touch, stay while Screen reader mode is on, stack at most two (8 px, 0.94), wait while a menu is open, and sit top-centre at safe-top + 60 on phones, bottom-left beside the sidebar on desktop (88 px up while a bottom bar shows) and top-centre inside desktop readers; `Alt+N` and `Esc` work; errors use `role="alert"`.
+- [ ] Tabs: the indicator follows the pager's continuous position with the velocity stretch, `select` fires on settle, `[`/`]` and arrows work, roles are `tablist`/`tab`/`tabpanel`.
+- [ ] Sliders, the fill slider, the scrub rail and the speed dial: steps, the 30 % magnet, the 12 px rubber band, `detent.tick`/`detent.magnet`/`detent.limit`, the dial's 0.05 steps at 6 px with the ±0.08 magnet at 1.0× and the 600 ms reset, the scrub lens growing on `lens` and following on `track`, and every keyboard binding with its `aria-valuetext`.
+- [ ] Switch, checkbox, radio list, selection check and Stepper match §7.22 and the Stepper row of §7.3, with roles and keys.
+- [ ] Menus bloom from the trigger through a shared `layoutId` with the tier thickening to T4, slide-to-select works, the context menu lifts the preview over `dimContext` at 450 ms and stays interactive, right-click opens at the pointer, `.`/`Shift+F10` open from a focused item, type-ahead works, and every row state renders.
+- [ ] Notices and capsules render per §7.30 and obey the overlay queue's priorities on phones and the shared desktop queue.
+- [ ] The image viewer zooms from its thumbnail, pinches 1×–4× around the focal point with the ±0.18 rubber band, double-taps 1× ↔ 2.5× on `camera`, dismisses by a vertical drag past 180 px projected or 800 px/s back into its thumbnail with velocity, fades its chrome after 2 s, and works from the keyboard.
+- [ ] Scroll edges fade in as content arrives under them and become hard edges under Solid glass; scrollbars show only while scrolling or hovered; the fast-scroll bubble appears on lists over 200 rows.
+- [ ] Pull to refresh: the droplet grows to 16 px over 60 raw px, the neck thins as `12 × (1 − progress)`, snaps at exactly 100 raw px with `refresh.arm`, rests at 60 px on `lens` as a spinner, ends in a check or a fade, and never triggers the browser's own refresh.
+- [ ] The content-mode switch exists only with novels enabled, persists per profile, fires `select`, and exposes the wave origin.
+- [ ] Budget: in the §15.7 phone case (nav row, dock, accessory, a sheet, and a toast or a menu) the live glass count stays at 5 or fewer; `dimContext` and the scroll edges count as scrims; a third stacked glass layer forces the lowest solid.
+- [ ] Keyboard and focus: every overlay traps focus and returns it to its trigger; every control is operable without a pointer; the two-tone focus ring shows on every control and is never clipped.
+- [ ] Every interactive element's own box is at least 44 × 44 px at 390 × 844 (touch), with at least 8 px between adjacent hit boxes.
+- [ ] Reduced motion (OS query and `data-motion="reduced"`) uses the §4.10 last-column replacement for every move here: sheets fade + 16 px over 150 ms with no recession, blooms fade in place, toasts and capsules fade, the droplet becomes a static spinner, the scrub lens fades in place, finger tracking stays 1:1.
+- [ ] Solid glass: every overlay renders its solid recipe (`solid1` for T1–T3, `solid2` for T4–T5, 1 px `rgba(255,255,255,0.10)` rim), soft edges become hard, no dispersion, caustic or sweep (screenshots of each section).
+- [ ] The four vitest files and `glass-overlays.spec.ts` pass.
+- [ ] The motion-timings overlay logs Bloom, Sheet present, Sheet snap, Recede, Toast fall, Meniscus refresh, Scrub lens and Zoom from the gallery at 1440 × 900 and 390 × 844 with no dropped frames (or a trace showing software-raster-only cost, listed for the owner's hardware check).
+- [ ] Per-skin difference: nothing under `frontend/src/skins/cinematic/` changed; the default (Cinematic) skin renders `/` and `/library` as before.
+- [ ] Glass `PENDING` is unchanged; the completeness test passes.
+- [ ] `npm run typecheck`, `npm run lint` (0 errors, 0 warnings), `npm run test` (counts at or above the floor plus the new tests), `npm run build` (0 errors, 0 warnings) and `node design/build.mjs --check` are green.
+
+## Verification
+
+**RAM guard (production shares this box).** Before every heavy command (a build, the vitest suite, `next dev`, a Playwright run) run `free -m` and read the `available` column of the `Mem:` row. If it is under 1024 MB, stop and report instead of running it. Never run two builds at once, and never run `next build` while `next dev` or a Playwright browser is running.
+
+From `frontend/`:
+
+```bash
+free -m && npm run typecheck
+free -m && npm run lint
+free -m && npm run test
+free -m && npm run build
+cd .. && node design/build.mjs --check && cd frontend
+```
+
+Browser checks (from `frontend/`):
+
+```bash
+free -m && npm run dev -- -p 3010
+# second shell
+free -m && E2E_BASE_URL=http://127.0.0.1:3010 npx playwright test e2e/glass-overlays.spec.ts --workers=1
+free -m && E2E_BASE_URL=http://127.0.0.1:3010 npx playwright test e2e/glass-primitives.spec.ts --workers=1   # the web/26 spec must still pass
+```
+
+**Visual proof** with `frontend/scripts/proof.mjs` (run `node scripts/proof.mjs --help` first) in the named session `web-27`, headless Chromium, at 1440 × 900 and 390 × 844 (touch emulation on the phone size), into `docs/redesign/proof/web-27/`: one capture per new gallery section (`<section>-{desktop,phone}.png`), and with `data-solid="on"` and with Increase contrast at 1440 × 900 (`<section>-solid-desktop.png`, `<section>-contrast-desktop.png`); plus `sheet-medium-phone.png`, `sheet-large-recession-phone.png`, `sheet-stacked-phone.png`, `sheet-rubberband-phone.png` (captured mid-drag 40 px above the top detent), `panel-desktop.png`, `window-desktop.png`, `detail-window-desktop.png`, `offer-popover-desktop.png`, `alert-from-source-desktop.png` (mid-bloom), `alert-error-phone.png`, `toasts-stacked-phone.png`, `toast-undo-rim-desktop.png`, `menu-bloom-desktop.png` (mid-bloom), `context-lift-phone.png`, `image-viewer-zoomed-phone.png`, `image-viewer-dismiss-drag-phone.png`, `pull-droplet-60px-phone.png`, `pull-snapped-phone.png`, `scrub-lens-phone.png`, `speed-dial-phone.png`. If you use `playwright-cli`, pass `-s=web-27`. Write `docs/redesign/proof/web-27/report.md` mapping each screenshot to the acceptance item it proves. Stop `next dev` when done.
+
+`00-baseline.md` records lint and build at 0 errors and 0 warnings; keep them there. This step changes nothing in `mobile/` or `backend/`: confirm `git diff --stat origin/feat/vps-slim-source-native -- mobile backend` is empty, so `flutter analyze`, `flutter test` (Flutter at `/srv/manhwamaniacs/dev/flutter/bin`) and the backend pytest (`backend/.venv/bin/python -m pytest -q --no-header`) are not rerun.
+
+## Git
+
+- Branch `feat/vps-slim-source-native`. Commit small and often, one family per commit with its test (`feat(web-glass): physics sheet with projected detents and recession`), then the gallery, then the browser spec, then the proof. Stage your paths explicitly (`git add frontend/src/skins/glass/primitives/Sheet.tsx …`), never `git add -A` or `git add .`, because the mobile, backend and shared sessions commit in the same checkout.
+- No Claude or AI attribution anywhere: no `Co-Authored-By` line, no "Generated with" line, no AI author. Never commit secrets or `.claude/`.
+- Run `npm run build` (after `free -m`, with `next dev` stopped) before every push, then `git push origin feat/vps-slim-source-native` after each working step.
+- Never edit `backend/connectors/`. Never touch production containers or `/srv/manhwamaniacs/{app,data}`. Do not deploy: Glass stays behind the debug row until `release/01`.
+
+## Report back
+
+Reply with:
+
+1. Done items by letter (A to N), and anything not done with the reason.
+2. Any `sonner` or Base UI prop that did not exist in the installed version and how you met the rule instead.
+3. The screenshot folder `docs/redesign/proof/web-27/` and its file list.
+4. Test counts: vitest files and cases before and after; each Playwright spec's result; lint, build and `build.mjs --check` results; the `free -m` available figure before each build.
+5. The live glass count in the §15.7 phone case measured on the gallery, and the motion-timings figures for the moves listed in the acceptance criteria, with any raster-only move for the owner's hardware check.
+6. Open issues, each with its `glass/DESIGN.md` section.
+
+Next prompt file: `docs/redesign/prompts/web/28-glass-primitives-lists-states-ai-charts.md` (`docs/redesign/prompts/mobile/27-glass-primitives-overlays.md` runs in parallel).
