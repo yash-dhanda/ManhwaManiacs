@@ -12,6 +12,9 @@ import 'package:manhwamaniacs/features/downloads/services/blob_store.dart';
 import 'package:manhwamaniacs/features/downloads/services/retention_maintenance.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_db.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
+import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/library/providers/shelf_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/tags_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
@@ -164,6 +167,20 @@ List<Override> contentModeOverrides({
       novelsEnabledProvider.overrideWithValue(novelsEnabled),
       contentModeControllerProvider
           .overrideWith(() => _FixedContentModeController(mode)),
+    ];
+
+class _IdleShelf extends ShelfNotifier {
+  @override
+  Future<ShelfResult> build() async => (rows: const <FollowedSeries>[], total: 0, offline: false);
+}
+
+/// The Library shelf's data pinned to an empty shelf: a test that mounts the real router on
+/// `/library` and calls `pumpAndSettle` needs it, as its fetches would go to a network that is not there.
+List<Override> shelfIdleOverrides() => [
+      shelfProvider.overrideWith(_IdleShelf.new),
+      shelfCountsProvider.overrideWith((ref) async => (total: 0, withNew: 0, favourites: 0, byStatus: const <String, int>{})),
+      shelfContinueProvider.overrideWith((ref) async => const []),
+      tagsProvider.overrideWith((ref) async => const []),
     ];
 
 class _IdleHomeFeed extends HomeFeedController {

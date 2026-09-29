@@ -9,7 +9,6 @@ import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
-import 'package:manhwamaniacs/features/library/providers/shelf_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/tags_provider.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
@@ -36,10 +35,10 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   // Library lists + search results.
   (ref) => ref.invalidate(libraryListProvider),
   (ref) => ref.invalidate(searchListProvider),
-  // The Cinematic shelf: its page, its counts, its Continue cuttings and the profile's tags.
-  (ref) => ref.invalidate(shelfProvider),
-  (ref) => ref.invalidate(shelfCountsProvider),
-  (ref) => ref.invalidate(shelfContinueProvider),
+  // The profile's tags. (The Cinematic shelf's `shelfProvider`, `shelfCountsProvider` and
+  // `shelfContinueProvider` are not listed: they watch the profile-scoped query, content mode and
+  // hidden rows, so they rebuild by themselves, and invalidating a provider that depends on the
+  // notifier that is switching would be a circular dependency.)
   (ref) => ref.invalidate(tagsProvider),
   // Reading intelligence surfaces.
   (ref) => ref.invalidate(statisticsProvider),

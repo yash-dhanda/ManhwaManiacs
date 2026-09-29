@@ -30,7 +30,8 @@ class ShelfNotifier extends AutoDisposeAsyncNotifier<ShelfResult> {
   Future<ShelfResult> build() async {
     final q = ref.watch(shelfQueryProvider);
     final scope = ref.watch(contentModeScopeProvider);
-    final gateOpen = ref.watch(matureGateOpenProvider);
+    // Read, not watched: the 18+ toggle drops this provider (`matureScopedInvalidators`).
+    final gateOpen = ref.read(matureGateOpenProvider);
     final repo = ref.read(libraryRepositoryProvider);
     final r = await repo.listSeries(
       perPage: 200,
@@ -124,7 +125,7 @@ class ShelfNotifier extends AutoDisposeAsyncNotifier<ShelfResult> {
 /// The masthead deck's and slug line's counts over the whole followed list, in the active mode.
 final shelfCountsProvider = FutureProvider.autoDispose<ShelfCounts>((ref) async {
   final scope = ref.watch(contentModeScopeProvider);
-  final gateOpen = ref.watch(matureGateOpenProvider);
+  final gateOpen = ref.read(matureGateOpenProvider);
   final r = await listAllFollowed(ref.read(libraryRepositoryProvider));
   if (r.isErr) {
     final e = r.error;
