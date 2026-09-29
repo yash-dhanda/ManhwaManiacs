@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-// mobile/03 adds liquid_glass_widgets here.
 const pins = {
   'haptic_feedback': '0.6.5',
   'gaimon': '1.5.0',
@@ -15,8 +14,9 @@ const pins = {
   'swipeable_page_route': '0.4.8',
   'custom_refresh_indicator': '4.0.2',
   'flutter_reorderable_grid_view': '5.7.0',
+  'liquid_glass_widgets': '1.7.2',
 };
-const absent = ['phosphor_flutter', 'dependency_overrides', 'liquid_glass_widgets'];
+const absent = ['phosphor_flutter', 'dependency_overrides'];
 
 void main() {
   final spec = File('pubspec.yaml').readAsStringSync();

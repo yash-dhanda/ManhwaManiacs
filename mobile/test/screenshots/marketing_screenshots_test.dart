@@ -1,6 +1,7 @@
 @Tags(['screenshots'])
 library;
 
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/test_overrides.dart';
@@ -28,6 +30,7 @@ import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
 import 'support/shot_harness.dart';
 import 'support/shot_network.dart';
+import 'support/skin_shots.dart';
 
 /// Regenerates the marketing screenshots served on the install page.
 ///
@@ -57,6 +60,33 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppFonts);
   setUpAll(setUpShotCoverCache);
+
+  // Both skins at every proof size (mobile/03). Default: Tonight only, so the
+  // plain suite stays fast; a proof run sets MM_PROOF_SCREENS and MM_PROOF_DIR.
+  group('skins', () {
+    for (final skin in [SkinId.cinematic, SkinId.glass]) {
+      for (final size in kSkinShotSizes) {
+        for (final screen in proofScreens) {
+          testWidgets('${skin.name} ${screen.id} ${size.name}', (tester) async {
+            await captureSkinScreen(tester, skin: skin, screen: screen, size: size);
+          });
+        }
+      }
+    }
+
+    testWidgets('captureSkinWidget writes <name>-<size>.png', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('mm-skinshot-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      await captureSkinWidget(
+        tester,
+        name: 'plain',
+        size: kSkinShotSizes.first,
+        child: const ColoredBox(color: Color(0xFF123456)),
+        proofDirOverride: dir.path,
+      );
+      expect(File('${dir.path}/plain-phone.png').existsSync(), isTrue);
+    });
+  });
 
   testWidgets('library — the followed shelf', (tester) async {
     useShotViewport(tester);
