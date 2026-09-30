@@ -214,7 +214,7 @@ class ReaderEngineView extends ConsumerStatefulWidget {
 
 class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     with TickerProviderStateMixin, WidgetsBindingObserver
-    implements ReaderEngineHost {
+    implements ReaderEngineHost, ReaderGeometryHost {
   late final ReaderScrollController _scrollController;
   late final ReaderPageExtents _pageExtents;
   late final bool _ownsPageExtents;
@@ -1379,12 +1379,14 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (_autoScrollActive) return;
     _autoScrollActive = true;
     _lastAutoScrollFrame = null;
+    widget.controller.autoScroll.start();
     _scheduleAutoScrollFrame();
   }
 
   void _stopAutoScroll() {
     _autoScrollActive = false;
     _lastAutoScrollFrame = null;
+    widget.controller.autoScroll.reset();
   }
 
   void _scheduleAutoScrollFrame() {
@@ -1401,10 +1403,11 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         _scheduleAutoScrollFrame();
         return;
       }
-      final dtSeconds = (timeStamp - previous).inMicroseconds / 1e6;
       final speed = ref.read(readerUiProvider).autoScrollSpeed;
       final pos = _scrollController.position;
-      final target = pos.pixels + autoScrollFrameDelta(speed, dtSeconds);
+      // The controller owns the 400 ms ramp, pace by dialogue and the touch / drag pauses; long
+      // frames are clamped inside it so dropped frames never change the pace.
+      final target = pos.pixels + widget.controller.autoScroll.advance(timeStamp - previous, speed);
       if (target >= pos.maxScrollExtent) {
         _scrollController.jumpTo(pos.maxScrollExtent);
         _stopAutoScroll();
@@ -1602,6 +1605,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (notification is ScrollStartNotification &&
         notification.dragDetails != null) {
       _isScrolling = true;
+      // A manual drag pauses auto-scroll and it stays paused.
+      if (_autoScrollActive) widget.controller.autoScroll.manualDrag();
       // The reader has taken over. Abandon a restore that is still homing in
       // rather than yanking them back to the saved offset mid-drag.
       _abandonPendingRestore();
@@ -1762,6 +1767,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   }
 
   void _onPointerDown(PointerDownEvent e) {
+    if (_autoScrollActive) widget.controller.autoScroll.touchDown();
     _pointers[e.pointer] = e.localPosition;
     _tapDown = _pointers.length == 1
         ? (position: e.localPosition, at: DateTime.now())
@@ -1809,6 +1815,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   void _onPointerUp(PointerUpEvent e) {
     final wasTap = _pointers.length == 1 ? _tapDown : null;
     _pointers.remove(e.pointer);
+    if (_pointers.isEmpty) widget.controller.autoScroll.touchUp();
     _endPinchIfDone();
     final slop = widget.options.tapSlop;
     if (wasTap != null &&
@@ -1822,6 +1829,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   void _onPointerCancel(PointerCancelEvent e) {
     _pointers.remove(e.pointer);
+    if (_pointers.isEmpty) widget.controller.autoScroll.touchUp();
     _tapDown = null;
     _endPinchIfDone();
   }
@@ -1960,6 +1968,40 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       furtherElsewhere: _furtherElsewhere,
       readAll: _readAllState(),
     );
+    _feedAmbient();
+  }
+
+  /// Hands the ambient duties (page tint, panel analysis) the page under the reading line.
+  void _feedAmbient() {
+    if (widget.feed.isEmpty || !_scrollController.hasClients) return;
+    final v = widget.controller.value;
+    final ambient = widget.controller.ambient..pageCount = v.pageCount;
+    final page = pageAtReadingLine();
+    final key = (v.chapterId, page);
+    if (key == _lastAmbientKey) return;
+    _lastAmbientKey = key;
+    ambient.onPage(v.chapterId, page);
+  }
+
+  (String, int)? _lastAmbientKey;
+
+  // ── Geometry (ReaderGeometryHost) ─────────────────────────────────────────
+
+  @override
+  Rect get viewportRect => Rect.fromLTWH(0, 0, _containerWidth ?? 0, _containerHeight ?? 0);
+
+  @override
+  Offset? pageToViewport(int page, double x, double y) {
+    if (widget.feed.isEmpty || !_scrollController.hasClients) return null;
+    final chapterId = widget.controller.value.chapterId;
+    final flat = widget.feed.flatIndexOf(chapterId: chapterId, page: page);
+    if (flat == null) return null;
+    final m = _metrics;
+    final top = m.offsetToPage(flat + 1) + m.leadingInsetAt(flat) - _scrollController.offset;
+    final height = m.extentForRatio(m.ratioAt(flat));
+    final width = m.contentWidth;
+    final left = ((_containerWidth ?? width) - width) / 2;
+    return Offset(left + x * width, top + y * height);
   }
 
   ReadAllState? _readAllState() {

@@ -70,6 +70,8 @@ class _Updates extends UpdatesNotifier {
 class _Wifi implements NetworkConnectivity {
   @override
   Future<bool> isOnWifi() async => true;
+  @override
+  Future<bool> isOnline() async => true;
 }
 
 class _Space implements DeviceStorageInfo {

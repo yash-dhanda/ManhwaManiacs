@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Reports whether the device is on an unmetered local connection.
 abstract class NetworkConnectivity {
   Future<bool> isOnWifi();
+
+  /// Any connection at all (the reader skips its exit reports offline).
+  Future<bool> isOnline();
 }
 
 class PlatformNetworkConnectivity implements NetworkConnectivity {
@@ -17,6 +20,12 @@ class PlatformNetworkConnectivity implements NetworkConnectivity {
     final results = await _connectivity.checkConnectivity();
     return results.contains(ConnectivityResult.wifi) ||
         results.contains(ConnectivityResult.ethernet);
+  }
+
+  @override
+  Future<bool> isOnline() async {
+    final results = await _connectivity.checkConnectivity();
+    return results.any((r) => r != ConnectivityResult.none);
   }
 }
 
