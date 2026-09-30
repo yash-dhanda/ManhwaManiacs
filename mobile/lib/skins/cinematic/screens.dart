@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_manage_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/updates/updates_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/pending_screen.dart';
@@ -26,6 +27,7 @@ import 'package:manhwamaniacs/skins/pending_screen.dart';
 final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.tonight: (context, state) => const TonightScreen(),
   ScreenId.library: (context, state) => LibraryScreen(params: state.uri.queryParameters, browse: state.uri.path == '/library/browse'),
+  ScreenId.updates: (context, state) => const UpdatesScreen(),
   ScreenId.setup: (context, state) => const SetupScreen(),
   ScreenId.login: (context, state) => const LoginScreen(),
   ScreenId.register: (context, state) => const RegisterScreen(),

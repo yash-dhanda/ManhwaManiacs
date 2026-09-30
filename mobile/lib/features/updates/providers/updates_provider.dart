@@ -83,6 +83,9 @@ final updateSourcesProvider = FutureProvider.autoDispose<List<String>>((ref) asy
 /// Notification ids whose folios have already typed themselves this session (not persisted).
 final seenUpdateIdsProvider = StateProvider<Set<int>>((ref) => const {}, name: 'seenUpdateIds');
 
+/// How often an admin's running check is polled (`GET /updates/runs/{id}`). An override point for tests.
+final updateRunPollIntervalProvider = Provider<Duration>((ref) => const Duration(seconds: 2), name: 'updateRunPollInterval');
+
 class UpdatesNotifier extends AutoDisposeAsyncNotifier<UpdatesState> {
   /// Riverpod 2.6 has no `ref.mounted`, and a queued check's follow-up looks
   /// can outlive the screen. Re-armed on every build, since a rebuild runs the
