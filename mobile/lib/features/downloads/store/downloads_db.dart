@@ -20,6 +20,12 @@ abstract final class DownloadsSchema {
   static const bookmarks = 'bookmarks';
   static const bookmarkOutbox = 'bookmark_outbox';
 
+  /// Closed narration listening sessions waiting to reach the server (schema v5).
+  static const listenSessionOutbox = 'listen_session_outbox';
+  static const colVoiceIds = 'voice_ids';
+  static const colSeconds = 'seconds';
+  static const colStartedAt = 'started_at';
+
   static const colId = 'id';
   static const colScopeId = 'scope_id';
   static const colSourceId = 'source_id';
@@ -95,7 +101,7 @@ abstract final class DownloadsSchema {
   static const colDeletedAt = 'deleted_at';
 }
 
-const _dbVersion = 4;
+const _dbVersion = 5;
 
 /// The `kind` column's two values. A row's own kind, not a lookup through the
 /// sources listing — the offline path has no listing, and a downloaded
@@ -207,6 +213,7 @@ Future<Database> openDownloadsDatabase({String? overridePath}) async {
         'ON ${DownloadsSchema.progressOutbox}(${DownloadsSchema.colScopeId})',
       );
       await _createBookmarkTables(db);
+      await _createListenSessionTable(db);
     },
   );
 }
@@ -255,6 +262,29 @@ Future<void> _migrate(Database db, int oldVersion) async {
       );
     }
   }
+  // v4 → v5: the Listen sessions outbox. A new table and its index, nothing rewritten; `IF NOT
+  // EXISTS` keeps it idempotent for the downgrade-reopen path.
+  await _createListenSessionTable(db);
+}
+
+Future<void> _createListenSessionTable(Database db) async {
+  await db.execute('''
+    CREATE TABLE IF NOT EXISTS ${DownloadsSchema.listenSessionOutbox} (
+      ${DownloadsSchema.colId} INTEGER PRIMARY KEY AUTOINCREMENT,
+      ${DownloadsSchema.colScopeId} TEXT NOT NULL,
+      ${DownloadsSchema.colSourceId} TEXT,
+      ${DownloadsSchema.colSeriesKey} TEXT,
+      ${DownloadsSchema.colChapterKey} TEXT,
+      ${DownloadsSchema.colSeconds} INTEGER,
+      ${DownloadsSchema.colVoiceIds} TEXT,
+      ${DownloadsSchema.colStartedAt} TEXT,
+      ${DownloadsSchema.colCreatedAt} INTEGER
+    )
+  ''');
+  await db.execute(
+    'CREATE INDEX IF NOT EXISTS idx_listen_session_outbox_scope '
+    'ON ${DownloadsSchema.listenSessionOutbox}(${DownloadsSchema.colScopeId})',
+  );
 }
 
 Future<bool> _hasTable(Database db, String table) async =>

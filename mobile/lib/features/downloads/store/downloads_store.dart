@@ -830,6 +830,60 @@ class DownloadsStore {
     );
   }
 
+  // ── Listen sessions outbox ─────────────────────────────────────────────
+
+  /// Queues a closed listening session for this scope.
+  Future<void> enqueueListenSession(Map<String, Object?> session) async {
+    final db = await database;
+    await db.insert(DownloadsSchema.listenSessionOutbox, {
+      DownloadsSchema.colScopeId: scopeId,
+      DownloadsSchema.colSourceId: session['source_id'],
+      DownloadsSchema.colSeriesKey: session['series_key'],
+      DownloadsSchema.colChapterKey: session['chapter_key'],
+      DownloadsSchema.colSeconds: session['seconds'],
+      DownloadsSchema.colVoiceIds: jsonEncode(session['voice_ids'] ?? const <String>[]),
+      DownloadsSchema.colStartedAt: session['started_at'],
+      DownloadsSchema.colCreatedAt: DateTime.now().toUtc().millisecondsSinceEpoch,
+    });
+  }
+
+  /// This scope's queued sessions, oldest first, as `(outbox id, POST item)`.
+  Future<List<(int, Map<String, Object?>)>> pendingListenSessions({int limit = 200}) async {
+    final db = await database;
+    final rows = await db.query(
+      DownloadsSchema.listenSessionOutbox,
+      where: '${DownloadsSchema.colScopeId} = ?',
+      whereArgs: [scopeId],
+      orderBy: '${DownloadsSchema.colCreatedAt}, ${DownloadsSchema.colId}',
+      limit: limit,
+    );
+    return [
+      for (final row in rows)
+        (
+          row[DownloadsSchema.colId]! as int,
+          <String, Object?>{
+            'source_id': row[DownloadsSchema.colSourceId],
+            'series_key': row[DownloadsSchema.colSeriesKey],
+            'chapter_key': row[DownloadsSchema.colChapterKey],
+            'seconds': row[DownloadsSchema.colSeconds],
+            'voice_ids': (jsonDecode((row[DownloadsSchema.colVoiceIds] as String?) ?? '[]') as List).cast<String>(),
+            'started_at': row[DownloadsSchema.colStartedAt],
+          },
+        ),
+    ];
+  }
+
+  Future<void> clearListenSessions(List<int> ids) async {
+    if (ids.isEmpty) return;
+    final db = await database;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    await db.delete(
+      DownloadsSchema.listenSessionOutbox,
+      where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colId} IN ($placeholders)',
+      whereArgs: [scopeId, ...ids],
+    );
+  }
+
   // ── 18+ stamps ─────────────────────────────────────────────────────────
 
   /// ` AND mature IS NOT 1` while the gate is closed: hidden rows are absent, never marked. An
