@@ -12,6 +12,9 @@
 /// than "Georgia or nothing".
 library;
 
+import 'package:flutter/foundation.dart' show immutable;
+import 'package:flutter/painting.dart';
+
 enum NovelFontFamily {
   serif,
   sans;
@@ -148,3 +151,172 @@ double novelColumnWidth({
   final wanted = measure * fontSize * kNovelMeasureEmFactor;
   return wanted < available ? wanted : available;
 }
+
+
+// ── Cinematic reader (mobile/14) ─────────────────────────────────────────────
+
+/// The five bundled reading faces of the Cinematic novel reader (cinematic 3.4).
+enum NovelFace {
+  newsreader('newsreader', 'Newsreader', 'Newsreader'),
+  literata('literata', 'Literata', 'Literata'),
+  sourceSerif('sourceserif', 'Source Serif', 'SourceSerif4'),
+  atkinson('atkinson', 'Atkinson Hyperlegible', 'AtkinsonHyperlegibleNext'),
+  archivo('archivo', 'Archivo', 'Archivo');
+
+  const NovelFace(this.wire, this.label, this.family);
+
+  /// The stored spelling; the same ids `kNovelFaces` (Settings) uses.
+  final String wire;
+  final String label;
+
+  /// The Flutter asset family in `pubspec.yaml`.
+  final String family;
+
+  static NovelFace? fromWire(String? v) {
+    for (final f in values) {
+      if (f.wire == v) return f;
+    }
+    return null;
+  }
+
+  bool get serif => this != atkinson && this != archivo;
+
+  /// The optical-size axis range, or null when the face has none.
+  (double, double)? get opszRange => switch (this) {
+        newsreader => (6, 72),
+        literata => (7, 72),
+        sourceSerif => (8, 60),
+        _ => null,
+      };
+
+  double get wghtMax => (this == literata || this == sourceSerif || this == archivo) ? 900 : 800;
+}
+
+/// Size and leading a face opens at when a book stores none (cinematic 3.4).
+({double size, double leading}) faceDefaults(NovelFace face, {required bool tablet}) => (
+      size: face == NovelFace.archivo ? (tablet ? 18 : 17) : (tablet ? 19 : 18),
+      leading: face == NovelFace.atkinson ? 1.70 : 1.60,
+    );
+
+/// Everything that decides how the Cinematic reader sets its body text, already resolved (book
+/// prefs over profile settings over face defaults). The page, the paginator and the Type sheet
+/// preview all read this one value.
+@immutable
+class NovelType {
+  const NovelType({
+    this.face = NovelFace.newsreader,
+    this.fontSize = 18,
+    this.lineHeight = 1.60,
+    this.measure = 64,
+    this.letterSpacing = 0,
+    this.paragraphSpacing = 0,
+    this.bold = false,
+    this.osBold = false,
+    this.justify = false,
+  });
+
+  final NovelFace face;
+
+  /// Absolute logical pixels, 14-40. The body renders with `TextScaler.noScaling`.
+  final double fontSize;
+  final double lineHeight;
+
+  /// Column width in `ch` (the advance of `0` in the body style), 48-88.
+  final double measure;
+
+  /// In em, -0.02 to +0.08.
+  final double letterSpacing;
+
+  /// Extra space between paragraphs in em, 0-1.2; when > 0 the first-line indent is dropped.
+  final double paragraphSpacing;
+  final bool bold;
+
+  /// OS Bold Text (`MediaQuery.boldTextOf`).
+  final bool osBold;
+  final bool justify;
+
+  double get wght => ((bold ? 520 : 400) + (osBold ? 120 : 0)).clamp(100, face.wghtMax).toDouble();
+
+  /// The body [TextStyle] in [color]; the caller passes the stock ink.
+  TextStyle style(Color color, {double? size}) {
+    final s = size ?? fontSize;
+    final opsz = face.opszRange;
+    return TextStyle(
+      fontFamily: face.family,
+      fontSize: s,
+      height: lineHeight,
+      color: color,
+      letterSpacing: letterSpacing * s,
+      fontVariations: [
+        if (opsz != null) FontVariation('opsz', s.clamp(opsz.$1, opsz.$2).toDouble()),
+        if (face == NovelFace.archivo) const FontVariation('wdth', 100),
+        FontVariation('wght', wght),
+      ],
+      fontFeatures: face.serif ? const [FontFeature.oldstyleFigures()] : null,
+    );
+  }
+
+  NovelType copyWith({
+    NovelFace? face,
+    double? fontSize,
+    double? lineHeight,
+    double? measure,
+    double? letterSpacing,
+    double? paragraphSpacing,
+    bool? bold,
+    bool? osBold,
+    bool? justify,
+  }) =>
+      NovelType(
+        face: face ?? this.face,
+        fontSize: fontSize ?? this.fontSize,
+        lineHeight: lineHeight ?? this.lineHeight,
+        measure: measure ?? this.measure,
+        letterSpacing: letterSpacing ?? this.letterSpacing,
+        paragraphSpacing: paragraphSpacing ?? this.paragraphSpacing,
+        bold: bold ?? this.bold,
+        osBold: osBold ?? this.osBold,
+        justify: justify ?? this.justify,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is NovelType &&
+      other.face == face &&
+      other.fontSize == fontSize &&
+      other.lineHeight == lineHeight &&
+      other.measure == measure &&
+      other.letterSpacing == letterSpacing &&
+      other.paragraphSpacing == paragraphSpacing &&
+      other.bold == bold &&
+      other.osBold == osBold &&
+      other.justify == justify;
+
+  @override
+  int get hashCode => Object.hash(face, fontSize, lineHeight, measure, letterSpacing, paragraphSpacing, bold, osBold, justify);
+}
+
+// ── Cinematic ranges (cinematic 8.15.5) ──────────────────────────────────────
+
+const double kCineMinFontSize = 14;
+const double kCineMaxFontSize = 40;
+const double kCineMinLeading = 1.30;
+const double kCineMaxLeading = 2.10;
+const double kCineMinMeasure = 48;
+const double kCineMaxMeasure = 88;
+const double kCineDefaultMeasure = 64;
+const double kCineMaxParagraphSpacing = 1.2;
+const double kCineMinLetterSpacing = -0.02;
+const double kCineMaxLetterSpacing = 0.08;
+
+double _snap(double v, double lo, double hi, double step, double fallback) {
+  if (v.isNaN || v.isInfinite) return fallback;
+  final c = v.clamp(lo, hi);
+  return ((c / step).round() * step * 1000).round() / 1000;
+}
+
+double clampCineFontSize(double v) => v.isNaN ? 18 : v.clamp(kCineMinFontSize, kCineMaxFontSize).roundToDouble();
+double clampCineLeading(double v) => _snap(v, kCineMinLeading, kCineMaxLeading, 0.05, 1.60);
+double clampCineMeasure(double v) => v.isNaN ? kCineDefaultMeasure : (v.clamp(kCineMinMeasure, kCineMaxMeasure) / 2).round() * 2.0;
+double clampParagraphSpacing(double v) => _snap(v, 0, kCineMaxParagraphSpacing, 0.1, 0);
+double clampLetterSpacing(double v) => _snap(v, kCineMinLetterSpacing, kCineMaxLetterSpacing, 0.01, 0);
