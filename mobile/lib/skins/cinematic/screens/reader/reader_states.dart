@@ -5,9 +5,8 @@ import 'package:manhwamaniacs/core/error/not_available.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_galley.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart' show CineFlicker;
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_not_available_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
@@ -41,7 +40,8 @@ class ReaderLoading extends ConsumerWidget {
           Center(
             child: SizedBox(
               width: column,
-              child: Column(
+              child: ListView(
+                physics: const NeverScrollableScrollPhysics(),
                 children: [
                   for (var i = 0; i < 3; i++)
                     AspectRatio(

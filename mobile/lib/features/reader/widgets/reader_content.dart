@@ -62,17 +62,21 @@ class ReaderContent extends ConsumerStatefulWidget implements ReaderFrameBody {
   });
 
   /// Which chapter and which way in, for a skin's frame; the legacy frame ignores it.
+  @override
   final ({String sourceId, String seriesKey, String chapterKey, ReaderOrigin origin})? identity;
 
   /// The chapters being read, as one page list. [ReaderFeed.single] is the
   /// ordinary case.
+  @override
   final ReaderFeed feed;
 
   /// Opaque key used to persist/restore scroll position for the chapter this
   /// reader was OPENED at — the feed's anchor. Positions inside chapters the
   /// feed later grew into are carried by reading progress instead, which is
   /// per-chapter and already saved.
+  @override
   final String scrollStorageKey;
+  @override
   final int initialPage;
 
   /// Open at an EXACT position rather than at the top of [initialPage] — what
@@ -83,15 +87,19 @@ class ReaderContent extends ConsumerStatefulWidget implements ReaderFrameBody {
   /// also **beats the persisted scroll position**: a reader who deliberately
   /// tapped "62% of chapter 14" is asking to go there, and resuming them
   /// wherever they last stopped instead would silently ignore the tap.
+  @override
   final ReaderAnchor? initialAnchor;
 
+  @override
   final bool showBookmark;
+  @override
   final VoidCallback onBack;
 
   /// Open the series page for this chapter, so the chapter list is reachable
   /// without retracing however the reader was entered. Required rather than
   /// optional: both entry points always know their series, and a null here
   /// would silently remove the only affordance for it.
+  @override
   final VoidCallback onOpenSeries;
 
   /// Persist reading progress. Only the local library reader supplies this.
@@ -99,6 +107,7 @@ class ReaderContent extends ConsumerStatefulWidget implements ReaderFrameBody {
   /// Takes the chapter as well as the page because a continuous feed spans
   /// several: reading into chapter 12 has to record chapter 12, page N — the
   /// page number is chapter-local, never an index into the feed.
+  @override
   final Future<void> Function(ReaderChapter chapter, int page)? onSaveProgress;
 
   /// Create a bookmark at the EXACT visible position of the chapter it
@@ -107,6 +116,7 @@ class ReaderContent extends ConsumerStatefulWidget implements ReaderFrameBody {
   /// The anchor's page is chapter-local (a continuous feed spans several
   /// chapters, and "page 3" means nothing without saying page 3 of what) and
   /// its fraction is of that page's own height.
+  @override
   final Future<bool> Function(ReaderChapter chapter, ReaderAnchor anchor)?
       onAddBookmark;
 
@@ -114,22 +124,28 @@ class ReaderContent extends ConsumerStatefulWidget implements ReaderFrameBody {
   /// that direction. In a continuous feed these are the edge prompts for a
   /// boundary the feed could not absorb (nothing beyond it, or the fetch
   /// failed) — crossing a loaded boundary never navigates.
+  @override
   final VoidCallback? onPreviousChapter;
+  @override
   final VoidCallback? onNextChapter;
 
   /// Called as the reader comes within [kSeamPrefetchPages] of either end of
   /// the feed, so the caller can fetch the adjacent chapter and hand back a
   /// longer feed **before** the seam is reached. Null in single-chapter mode,
   /// which is what keeps that mode exactly as it was.
+  @override
   final Future<void> Function()? onReachedFeedEnd;
+  @override
   final Future<void> Function()? onReachedFeedStart;
 
   /// Page geometry for this feed. The reader owns one per session when this
   /// is omitted; supplying it lets a test resolve a page's real size without a
   /// decoding image, which is otherwise unreachable from outside.
+  @override
   final ReaderPageExtents? pageExtents;
 
   /// Bookmarks already stored, by chapter id, for the engine state.
+  @override
   final Map<String, List<ReaderAnchor>> bookmarkAnchors;
 
   @override

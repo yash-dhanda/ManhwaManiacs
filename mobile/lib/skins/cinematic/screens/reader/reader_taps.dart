@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-/// The reader's tap rules, free of widgets (cinematic 8.14.3, 8.14.5, 11).
+// The reader tap rules, free of widgets (cinematic 8.14.3, 8.14.5, 11).
 
 /// The centre region lock mode listens to: 20-80 % of the width by 15-85 % of the height.
 bool isLockCentre(Offset position, Size size) =>

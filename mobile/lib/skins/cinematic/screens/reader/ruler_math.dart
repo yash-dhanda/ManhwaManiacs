@@ -1,4 +1,5 @@
 /// The ruler scrubber's geometry (cinematic 8.14.4), free of widgets.
+library;
 
 /// Page ticks are dropped above this many pages.
 const int kRulerTickLimit = 120;

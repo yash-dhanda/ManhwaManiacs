@@ -49,7 +49,7 @@ void main() {
     expect(d['tapZone.right'], 'next');
     expect(d['autoNextChapter'], false);
     expect(legacyDefaultsOf(await _prefs({LegacyReaderKeys.direction: 'vertical', LegacyReaderKeys.fit: 'width'}))['seriesDefaults'],
-        {'layout': 'strip', 'fit': 'width'});
+        {'layout': 'strip', 'fit': 'width'},);
     expect(legacyDefaultsOf(await _prefs({LegacyReaderKeys.direction: 'leftToRight'}))['seriesDefaults'], {'layout': 'single', 'direction': 'ltr'});
     expect(legacyDefaultsOf(await _prefs({})).containsKey('tapZone.left'), isFalse, reason: 'unset stays automatic');
   });
@@ -85,7 +85,7 @@ void main() {
   });
 
   test('ReaderPrefs resolves series over profile over built-ins', () {
-    final profile = const JsonRecord({
+    const profile = JsonRecord({
       'seriesDefaults': {'layout': 'single', 'direction': 'rtl', 'zoom': 120},
       'brightness': -40,
       'ground': 'slate',

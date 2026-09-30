@@ -1,3 +1,4 @@
+import 'dart:async';
 // ignore_for_file: require_trailing_commas, directives_ordering
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +8,6 @@ import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
-import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -107,7 +107,7 @@ Future<ReaderRig> pumpReader(
   );
   await tester.pump();
   if (pushed) {
-    router.push('/read');
+    unawaited(router.push<void>('/read'));
     await tester.pump();
   }
   await tester.pump(const Duration(milliseconds: 100));

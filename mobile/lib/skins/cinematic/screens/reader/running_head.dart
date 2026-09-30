@@ -5,8 +5,8 @@ import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/glyphs.dart';
-import 'package:manhwamaniacs/skins/cinematic/scrim_head.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_glyphs.dart';
+import 'package:manhwamaniacs/skins/cinematic/scrim_head.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 

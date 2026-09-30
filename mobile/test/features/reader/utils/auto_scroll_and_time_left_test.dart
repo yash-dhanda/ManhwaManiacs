@@ -13,7 +13,7 @@ void main() {
 
   test('time left is null until 2 minutes of pace samples exist', () {
     final t = PaceTracker();
-    final t0 = DateTime(2026, 1, 1);
+    final t0 = DateTime(2026);
     t.sample(1, t0);
     t.sample(4, t0.add(const Duration(seconds: 100)));
     expect(t.pagesPerMinute, isNull);

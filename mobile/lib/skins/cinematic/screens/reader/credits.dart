@@ -191,7 +191,7 @@ class ComingUpCard extends ConsumerWidget {
             duo: duo ?? c.colorAmbientFallbackDuo,
             child: ImageFiltered(
               imageFilter: ui.ImageFilter.blur(sigmaX: c.blurCard, sigmaY: c.blurCard),
-              child: CineImage(url: url, fit: BoxFit.cover),
+              child: CineImage(url: url),
             ),
           );
     return Semantics(
@@ -207,7 +207,7 @@ class ComingUpCard extends ConsumerWidget {
               left: 12,
               top: 12,
               bottom: 12,
-              child: AspectRatio(aspectRatio: 3 / 4, child: ExcludeSemantics(child: CineImage(url: url, fit: BoxFit.cover))),
+              child: AspectRatio(aspectRatio: 3 / 4, child: ExcludeSemantics(child: CineImage(url: url))),
             ),
             Align(
               alignment: Alignment.centerRight,

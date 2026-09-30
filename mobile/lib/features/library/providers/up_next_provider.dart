@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
+import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/utils/all_followed.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -67,8 +68,8 @@ final upNextProvider = FutureProvider.autoDispose.family<UpNext, UpNextKey>((ref
     for (final f in followed.value)
       if (!(f.sourceId == k.sourceId && f.seriesKey == k.seriesKey) && f.readingStatus != 'completed') f,
   ];
-  DateTime stamp(f) => (f.updatedAt ?? f.lastCheckedAt ?? DateTime.fromMillisecondsSinceEpoch(0)) as DateTime;
-  int recent(a, b) => stamp(b).compareTo(stamp(a));
+  DateTime stamp(FollowedSeries f) => f.updatedAt ?? f.lastCheckedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+  int recent(FollowedSeries a, FollowedSeries b) => stamp(b).compareTo(stamp(a));
   final favourites = rows.where((f) => f.isFavorite).toList()..sort(recent);
   final planned = rows.where((f) => !f.isFavorite && f.readingStatus == 'plan_to_read').toList()..sort(recent);
   final shelf = [...favourites, ...planned].take(12);
@@ -91,4 +92,4 @@ final upNextProvider = FutureProvider.autoDispose.family<UpNext, UpNextKey>((ref
     source: UpNextSource.shelf,
     reason: reason,
   );
-}, name: 'upNext');
+}, name: 'upNext',);

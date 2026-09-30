@@ -1,10 +1,9 @@
-import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 
 void main() {
-  final t0 = DateTime(2026, 1, 1);
+  final t0 = DateTime(2026);
   test('legacy parameters: 280 ms, any distance', () {
     final c = TapClassifier();
     expect(c.classify(const Offset(10, 10), t0), TapKind.single);

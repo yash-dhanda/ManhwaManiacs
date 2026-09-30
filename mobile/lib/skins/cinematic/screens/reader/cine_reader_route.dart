@@ -2,9 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
-import 'package:manhwamaniacs/skins/reader_entries.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/manga_reader.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_states.dart';
+import 'package:manhwamaniacs/skins/reader_entries.dart';
 
 /// The Cinematic frames of the reader: the manga reader chrome, the loading plates and the failure
 /// notices (cinematic 8.14).

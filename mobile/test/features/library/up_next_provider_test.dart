@@ -54,7 +54,7 @@ ProviderContainer _c({required AiRepository ai, WorldRecommendations rec = const
     aiRepositoryProvider.overrideWithValue(ai),
     recommendationsProvider.overrideWith((ref) async => rec),
     libraryRepositoryProvider.overrideWithValue(_Lib(rows)),
-  ]);
+  ],);
   addTearDown(c.dispose);
   return c;
 }
@@ -75,16 +75,16 @@ void main() {
     final r = await _c(ai: ai).read(upNextProvider(_caught).future);
     expect(r.source, UpNextSource.sameGenres);
     expect(r.reason, 'not_configured');
-    final none = await _c(ai: _Ai(available: false), rec: WorldRecommendations(sections: [WorldSection(becauseTitle: 'x', items: [const WorldItem(title: 'R')])]))
+    final none = await _c(ai: _Ai(available: false), rec: const WorldRecommendations(sections: [WorldSection(becauseTitle: 'x', items: [WorldItem(title: 'R')])]))
         .read(upNextProvider(_caught).future);
     expect(none.source, UpNextSource.none);
   });
 
   test('theEnd continues to recommendations, then to the shelf', () async {
-    final rec = WorldRecommendations(sections: [
-      const WorldSection(becauseTitle: 'empty'),
-      const WorldSection(becauseTitle: 'x', items: [WorldItem(title: 'R')]),
-    ]);
+    const rec = WorldRecommendations(sections: [
+      WorldSection(becauseTitle: 'empty'),
+      WorldSection(becauseTitle: 'x', items: [WorldItem(title: 'R')]),
+    ],);
     final a = await _c(ai: _Ai(available: false), rec: rec).read(upNextProvider(_key).future);
     expect(a.source, UpNextSource.recommendations);
     expect(a.items.single.title, 'R');

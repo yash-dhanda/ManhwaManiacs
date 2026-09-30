@@ -4,10 +4,10 @@ import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/glyphs.dart';
-import 'package:manhwamaniacs/skins/cinematic/scrim_head.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/jump_to_page_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_glyphs.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/ruler.dart';
+import 'package:manhwamaniacs/skins/cinematic/scrim_head.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
@@ -131,7 +131,7 @@ class _ChapterStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.cine;
     final enabled = onTap != null && label != null;
-    final glyph = CineGlyphIcon(previous ? ReaderCp.skipBack : ReaderCp.skipForward, size: 20, color: enabled ? c.colorInk100 : c.colorInk30);
+    final glyph = CineGlyphIcon(previous ? ReaderCp.skipBack : ReaderCp.skipForward, color: enabled ? c.colorInk100 : c.colorInk30);
     final text = CineRoleText(label ?? '', c.typeFolio, color: enabled ? c.colorInk100 : c.colorInk30);
     final tip = enabled ? (previous ? 'Previous chapter' : 'Next chapter') : (previous ? 'This is the first chapter' : 'This is the latest chapter');
     return Tooltip(

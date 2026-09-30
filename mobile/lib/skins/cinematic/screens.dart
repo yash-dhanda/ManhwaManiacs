@@ -17,9 +17,9 @@ import 'package:manhwamaniacs/skins/cinematic/screens/history/history_screen.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/index/index_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/library_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_manage_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/updates/updates_screen.dart';

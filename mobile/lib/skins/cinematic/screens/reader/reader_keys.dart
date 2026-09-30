@@ -1,4 +1,5 @@
 /// The reader's hardware-keyboard rules that are not widgets (cinematic 8.14.9).
+library;
 
 /// What `Esc` closes, in order: a sheet, then a panel, then cinema mode, then the reader itself.
 enum ReaderEscape { closeSheet, closePanel, leaveCinema, exitReader }

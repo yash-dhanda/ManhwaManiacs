@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart';
@@ -10,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
-import 'package:manhwamaniacs/core/storage/json_record.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
@@ -568,8 +566,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       autoHide: ReaderAutoHide(onScroll: !accessible),
       pinch: true,
       pageStateBuilder: cinePageState,
-      bandBuilder: (context, kind, {from, to, retryIn}) => _band(context, kind, from: from, to: to, retryIn: retryIn),
-      creditsBuilder: (context, chapter, nextId, mode) => _credits(context, chapter, nextId, mode),
+      bandBuilder: _band,
+      creditsBuilder: _credits,
       creditsMode: footerMode,
       topBandExtent: 96,
       footerExtent: footerExtent,
@@ -743,12 +741,6 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         },
       );
 
-  String _titleOf(String? title) {
-    if (title == null) return '';
-    final ch = ref.read(readerSeriesProvider(_seriesKey))?.chapterTitled(title);
-    return ch == null ? title : (ch.number == null ? title : '${chapterFolio(ch.number)} · ${title.toUpperCase()}');
-  }
-
   Widget _band(BuildContext context, BandKind kind, {String? from, String? to, Duration? retryIn}) {
     final series = ref.read(readerSeriesProvider(_seriesKey));
     final fromCh = from == null ? null : series?.chapterTitled(from);
@@ -903,8 +895,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
                       nextLabel: next == null ? null : chapterNumberText(next.number),
                       onPrevious: prev == null && !s.hasPrevious ? null : () => _stepChapter(forward: false),
                       onNext: next == null && !s.hasNext ? null : () => _stepChapter(forward: true),
-                      onSeek: (p) => _engine.jumpToPage(p),
-                      onJump: (p) => _engine.jumpToPage(p),
+                      onSeek: _engine.jumpToPage,
+                      onJump: _engine.jumpToPage,
                       counterKey: _counter,
                       autoScrolling: s.autoScrolling,
                       speedLabel: '${speedX.toStringAsFixed(1)}×',
