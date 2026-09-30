@@ -38,6 +38,7 @@ import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_scree
 import 'package:manhwamaniacs/skins/glass/screens/stats/statistics_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
+import 'package:manhwamaniacs/skins/glass/screens/wrapped/wrapped_screen.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
 import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell.dart';
@@ -58,7 +59,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.history,
   ScreenId.bookmarks,
   ScreenId.picks,
-  ScreenId.annual,
   ScreenId.featureByFollow,
   ScreenId.feature,
   ScreenId.recap,
@@ -341,7 +341,7 @@ GoRouter buildGlassRouter(Ref ref) {
       _screen(ScreenId.register, (s) => const GlassRegisterScreen(), parent: rootKey, takeover: true),
       _screen(ScreenId.profiles, (s) => const GlassProfilePicker(), parent: rootKey, takeover: true),
       _screen(ScreenId.onboarding, (s) => GlassOnboardingScreen(step: int.tryParse(s.uri.queryParameters['step'] ?? '')), parent: rootKey, takeover: true),
-      _route(ScreenId.annual, parent: rootKey, takeover: true),
+      _screen(ScreenId.annual, (s) => GlassWrappedScreen(yearParam: s.pathParameters['year']), parent: rootKey, takeover: true),
       _route(ScreenId.reader, parent: rootKey, reader: true),
       _route(ScreenId.readAll, parent: rootKey, reader: true),
       _route(ScreenId.novel, parent: rootKey, reader: true),

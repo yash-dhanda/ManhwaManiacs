@@ -81,6 +81,7 @@ class _GlassStreakEventsListenerState extends ConsumerState<GlassStreakEventsLis
     if (!mounted) return;
     final ui = ref.read(streakUiProvider.notifier)..flare();
     glassFire(ref, HapticEvent.streakExtend);
+    glassSound(ref, SoundEvent.streakExtend);
     showGlassToast(ref, GlassToastSpec('$days-day streak', kind: GlassToastKind.success));
     final before = ref.read(numbersStatisticsProvider(1)).valueOrNull?.data.streak.longestDays;
     try {
@@ -90,6 +91,7 @@ class _GlassStreakEventsListenerState extends ConsumerState<GlassStreakEventsLis
       final m = pendingMilestone(fresh);
       if (m == null) return;
       glassFire(ref, HapticEvent.streakMilestone);
+      glassSound(ref, SoundEvent.streakMilestone);
       showGlassToast(
         ref,
         GlassToastSpec(

@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.
 import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/library/repositories/numbers_repository.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
+import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 
 import '../../../support/numbers_fixtures.dart';
 import '../shell/shell_rig.dart';
@@ -58,6 +59,7 @@ final kStatsNow = DateTime(2026, 9, 29, 15);
 
 List<Override> statsOverrides(FakeNumbers repo, {DateTime? now}) => [
       numbersRepositoryProvider.overrideWithValue(repo),
+      sourcesListProvider.overrideWith((ref) async => const []),
       clockProvider.overrideWithValue(() => now ?? kStatsNow),
       genreWeightsProvider.overrideWith((ref, limit) async => const [GenreWeight(genre: 'Fantasy', weight: 0.41), GenreWeight(genre: 'Romance', weight: 0.22), GenreWeight(genre: 'Action', weight: 0.15), GenreWeight(genre: 'Drama', weight: 0.1)]),
     ];
