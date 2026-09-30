@@ -1,0 +1,388 @@
+Resolving dependencies...
+Downloading packages...
+  audio_session 0.1.25 (0.2.4 available)
+  cached_network_image 3.4.1 (4.0.3 available)
+  cached_network_image_platform_interface 4.1.1 (5.0.2 available)
+  cached_network_image_web 1.3.1 (2.0.2 available)
+  cli_util 0.4.2 (0.6.0 available)
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.1.0 available)
+  connectivity_plus 6.1.5 (7.3.1 available)
+  cross_file 0.3.5+4 (0.4.0 available)
+  dbus 0.7.14 (0.8.0 available)
+  dio 5.10.0 (5.11.1 available)
+  dio_web_adapter 2.2.0 (2.2.2 available)
+  equatable 2.1.0 (3.0.0 available)
+  file_picker 8.3.7 (13.1.0 available)
+  flutter_cache_manager 3.4.1 (3.4.5 available)
+  flutter_displaymode 0.6.0 (0.7.0 available)
+  flutter_lints 4.0.0 (6.0.0 available)
+  flutter_riverpod 2.6.1 (3.4.3 available)
+  flutter_secure_storage 9.2.4 (11.2.0 available)
+  flutter_secure_storage_linux 1.2.3 (3.0.3 available)
+  flutter_secure_storage_macos 3.1.3 (4.0.0 available)
+  flutter_secure_storage_platform_interface 1.1.2 (2.1.1 available)
+  flutter_secure_storage_web 1.2.1 (2.1.1 available)
+  flutter_secure_storage_windows 3.1.2 (4.2.2 available)
+  flutter_soloud 4.1.7 (5.1.4 available)
+  go_router 14.8.1 (18.0.2 available)
+  haptic_feedback 0.6.5 (0.8.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  intl 0.19.0 (0.20.3 available)
+  jni 1.0.0 (1.0.3 available)
+  jni_flutter 1.0.1 (1.0.3 available)
+  js 0.6.7 (0.7.2 available)
+  just_audio 0.9.46 (0.10.6 available)
+  lints 4.0.0 (6.1.0 available)
+  liquid_glass_widgets 1.7.2 (1.8.0 available)
+  logger 2.7.0 (2.8.0 available)
+  matcher 0.12.19 (0.12.20 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.0 (1.19.0 available)
+  mime 2.0.0 (2.1.0 available)
+  native_toolchain_c 0.19.2 (0.19.5 available)
+  nm 0.5.0 (0.6.0 available)
+  objective_c 9.4.1 (9.6.0 available)
+  octo_image 2.1.0 (2.1.1 available)
+  package_config 2.2.0 (3.0.0 available)
+  package_info_plus 8.3.1 (10.2.1 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  platform 3.1.6 (3.2.0 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  record_use 0.6.0 (1.1.1 available)
+  riverpod 2.6.1 (3.4.3 available)
+  share_plus 12.0.2 (13.3.0 available)
+  share_plus_platform_interface 6.1.0 (7.2.0 available)
+  shared_preferences_android 2.4.26 (2.4.28 available)
+  shared_preferences_foundation 2.5.6 (2.5.7 available)
+  sqflite 2.4.3 (2.4.4 available)
+  sqflite_android 2.4.3 (2.4.4 available)
+  sqflite_common 2.5.11 (2.5.13 available)
+  sqflite_common_ffi 2.4.2+1 (2.4.3 available)
+  sqflite_darwin 2.4.3+1 (2.4.4 available)
+  sqflite_platform_interface 2.4.1 (2.4.2 available)
+  sqlite3 3.5.2 (3.6.0 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  synchronized 3.4.1 (3.4.2 available)
+  test_api 0.7.11 (0.7.14 available)
+  url_launcher_android 6.3.32 (6.3.33 available)
+  url_launcher_ios 6.4.1 (6.4.2 available)
+  url_launcher_linux 3.2.2 (3.2.3 available)
+  url_launcher_macos 3.2.5 (3.2.6 available)
+  url_launcher_windows 3.1.5 (3.1.6 available)
+  uuid 4.5.3 (4.6.0 available)
+  vector_math 2.2.0 (2.4.3 available)
+  vm_service 15.2.0 (15.3.0 available)
+  wakelock_plus 1.3.3 (1.8.0 available)
+  wakelock_plus_platform_interface 1.5.1 (1.7.0 available)
+  win32 5.15.0 (6.4.0 available)
+  xml 6.6.1 (7.1.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+79 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/yash/mm-dev/wt/M34/mobile/test/features/reader/auto_scroll_test.dart
+00:00 +0: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/engine_boundary_test.dart: the scan catches a banned import (self-check)
+00:00 +1: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/engine_boundary_test.dart: nothing under lib/features/reader/engine/ imports legacy UI
+00:00 +2: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/auto_scroll_test.dart: autoScrollFrameDelta advances speed/60 px on a 60 fps frame
+00:00 +3: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/auto_scroll_test.dart: autoScrollFrameDelta is frame-rate independent: same distance per second at any Hz
+00:00 +4: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/auto_scroll_test.dart: autoScrollFrameDelta clamps an over-long frame (stall / resume) to one 60 fps step
+00:00 +5: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/auto_scroll_test.dart: autoScrollFrameDelta ignores non-positive deltas
+00:00 +6: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +7: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +8: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +9: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +10: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +11: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +12: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +13: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +14: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +15: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +16: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +17: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +18: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list two chapters are one continuous list, not two screens
+00:00 +19: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: ReaderEngine commands through ReaderContent seekToPage(7) moves the state to page 7
+00:00 +20: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: ReaderEngine commands through ReaderContent seekToPage(7) moves the state to page 7
+00:00 +21: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: ReaderEngine commands through ReaderContent seekToPage(7) moves the state to page 7
+00:00 +22: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: ReaderEngine commands through ReaderContent seekToPage(7) moves the state to page 7
+00:01 +23: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: ReaderEngine commands through ReaderContent seekToPage(7) moves the state to page 7
+00:01 +24: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list the counter and the title follow the chapter under the reader
+00:01 +25: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: ReaderEngine commands through ReaderContent toggleAutoScroll flips autoScrolling
+00:01 +26: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list progress is filed against the chapter the page belongs to
+00:01 +27: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/next_chapter_auto_queue_test.dart: no downloads scope: nothing is queued
+00:01 +28: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/next_chapter_auto_queue_test.dart: no downloads scope: nothing is queued
+00:01 +29: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/next_chapter_auto_queue_test.dart: no downloads scope: nothing is queued
+00:01 +30: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: ReaderEngine commands through ReaderContent bookmark() stores and the anchor reaches the state
+00:01 +31: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: ReaderEngine commands through ReaderContent bookmark() stores and the anchor reaches the state
+00:01 +32: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: ReaderEngine commands through ReaderContent bookmark() stores and the anchor reaches the state
+00:01 +33: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: ReaderEngine commands through ReaderContent bookmark() stores and the anchor reaches the state
+00:01 +34: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a window slide leaves the reader on the page they were on
+00:01 +35: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a window slide leaves the reader on the page they were on
+00:01 +36: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a window slide leaves the reader on the page they were on
+00:01 +37: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a window slide leaves the reader on the page they were on
+00:01 +38: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_commands_test.dart: chromeBuilder gets a new state when the page changes, and is not rebuilt while the state is equal
+00:01 +39: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a window slide BACKWARD leaves the reader where they were
+00:01 +40: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a window slide BACKWARD leaves the reader where they were
+00:01 +41: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a window slide BACKWARD leaves the reader where they were
+00:01 +42: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list the backward slide holds with the geometry supplied too
+00:01 +43: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a seam page resolving above the viewport corrects in full
+00:01 +44: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a seam page resolving above the viewport corrects in full
+00:01 +45: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a seam page resolving above the viewport corrects in full
+00:01 +46: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a seam page resolving above the viewport corrects in full
+00:01 +47: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a seam page resolving above the viewport corrects in full
+00:01 +48: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: the seam in the page list a seam page resolving above the viewport corrects in full
+00:01 +49: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: a feed change leaves the page under the thumb where it was appended at the end
+00:01 +50: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: a feed change leaves the page under the thumb where it was prepended at the front
+00:01 +51: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: a feed change leaves the page under the thumb where it was prepended at the front
+00:01 +52: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_prefetch_test.dart: warmThroughLimiter takes a slot at that priority and releases it
+00:01 +53: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: a feed change leaves the page under the thumb where it was released from the front
+00:01 +54: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: a feed change leaves the page under the thumb where it was released from the end
+00:02 +55: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: a feed change leaves the page under the thumb where it was slid forward — released at the front, appended at the end
+00:02 +56: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +57: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +58: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +59: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +60: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +61: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +62: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +63: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +64: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +65: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +66: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +67: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +68: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +69: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +70: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +71: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +72: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +73: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +74: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +75: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +76: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +77: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +78: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +79: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +80: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +81: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +82: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +83: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +84: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +85: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +86: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +87: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +88: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +89: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +90: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +91: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/paged_reader_view_test.dart: single: state, cut, slide and fade turns
+00:02 +92: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:02 +93: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:02 +94: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:02 +95: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:02 +96: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:02 +97: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +98: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +99: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +100: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +101: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +102: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +103: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +104: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +105: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +106: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +107: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +108: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +109: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +110: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +111: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +112: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +113: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +114: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +115: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +116: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +117: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/chapter_seam_test.dart: reading forward through ten chapters never goes backwards
+00:03 +118: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +119: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +120: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +121: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +122: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +123: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +124: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +125: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +126: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +127: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +128: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +129: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +130: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +131: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +132: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: pageStateBuilder is called with the page and the placeholder status
+00:03 +133: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +134: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +135: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +136: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +137: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +138: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +139: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +140: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +141: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +142: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +143: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +144: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:03 +145: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:04 +146: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:04 +147: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState nothing next anywhere: none
+00:04 +148: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: chapterCompleted fires once when the last page passes 60 % of the viewport
+00:04 +149: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState the last chapter of a series: the fetch finding nothing is none, not failed
+00:04 +150: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState the last chapter of a series: the fetch finding nothing is none, not failed
+00:04 +151: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState the last chapter of a series: the fetch finding nothing is none, not failed
+00:04 +152: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState the last chapter of a series: the fetch finding nothing is none, not failed
+00:04 +153: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: setAutoScrollSpeedX converts with the viewport height
+00:04 +154: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: setAutoScrollSpeedX converts with the viewport height
+00:04 +155: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: setAutoScrollSpeedX converts with the viewport height
+00:04 +156: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_options_test.dart: setAutoScrollSpeedX converts with the viewport height
+00:04 +157: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState a next chapter exists: loading while it is fetched, failed when it does not stitch in, then ready
+00:04 +158: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState a next chapter exists: loading while it is fetched, failed when it does not stitch in, then ready
+00:04 +159: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/reader_engine_state_test.dart: nextState a next chapter exists: loading while it is fetched, failed when it does not stitch in, then ready
+00:04 +160: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/seam_test.dart: progress
+00:04 +161: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/seam_test.dart: reading line crossing forward and back, once under wobble
+00:04 +162: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/seam_test.dart: top event when bottom passes the viewport top going forward
+00:04 +163: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/swipe_neighbour_test.dart: axis lock
+00:04 +164: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/swipe_neighbour_test.dart: 0.35 band on 390
+00:04 +165: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/swipe_neighbour_test.dart: rtl mirrors
+00:04 +166: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/swipe_neighbour_test.dart: release
+00:04 +167: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/cruise_engage_test.dart: engageSpeed
+00:04 +168: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/lens_layout_test.dart: scale 1 lines up relative to clip; outside pages dropped
+00:04 +169: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/lens_layout_test.dart: 1.12 fixes the origin
+00:05 +170: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/lru_test.dart: evicts least recently used
+00:05 +171: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/panel_boxes_test.dart: mapping
+00:05 +172: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/resolve_sample_test.dart: chromatic replaces
+00:05 +173: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/resolve_sample_test.dart: grey keeps previous
+00:05 +174: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/resolve_sample_test.dart: 6 greys fall back to cover
+00:05 +175: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/resolve_sample_test.dart: grey run counter
+00:05 +176: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/resolve_sample_test.dart: manifest sample
+00:05 +177: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/page_sample_test.dart: white
+00:05 +178: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/page_sample_test.dart: black
+00:05 +179: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/page_sample_test.dart: top quarter white
+00:05 +180: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/page_sample_test.dart: bubble counts for p95, not l
+00:05 +181: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/page_sample_test.dart: flat red
+00:05 +182: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/page_sample_test.dart: grey ramp
+00:05 +183: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/page_sample_test.dart: equality
+00:05 +184: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/neighbour_test.dart: phases
+00:05 +185: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/neighbour_test.dart: wheel mapping
+00:05 +186: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/neighbour_test.dart: wheel accumulator resets after 400 ms
+00:05 +187: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/neighbour_test.dart: raw/displayed round trip on 844
+00:05 +188: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/neighbour_test.dart: fling
+00:05 +189: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/velocity_test.dart: constant motion
+00:05 +190: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/velocity_test.dart: reversal flips within a window
+00:05 +191: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/velocity_test.dart: stop reads 0 after 100 ms
+00:06 +192: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/chapter_end_physics_test.dart: overscrollUserOffset follows the 0.55 band (drag delta: negative scrolls forward)
+00:06 +193: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/chapter_end_physics_test.dart: a drag 93 raw px past the end reads 48.2 and arms; 144 reads 72.4 and locks
+00:06 +194: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +195: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +196: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +197: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +198: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +199: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +200: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +201: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +202: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +203: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +204: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +205: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +206: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +207: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +208: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +209: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +210: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +211: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +212: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +213: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +214: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +215: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +216: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +217: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +218: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +219: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +220: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +221: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +222: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +223: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +224: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +225: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +226: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:06 +227: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +228: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +229: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +230: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +231: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +232: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +233: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +234: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +235: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +236: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +237: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +238: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +239: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +240: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +241: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +242: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +243: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +244: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +245: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +246: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +247: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +248: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +249: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +250: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +251: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +252: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +253: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:07 +254: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +255: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +256: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +257: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +258: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +259: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +260: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +261: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +262: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +263: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +264: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +265: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +266: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +267: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +268: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +269: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +270: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +271: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +272: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +273: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +274: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +275: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +276: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +277: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +278: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +279: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:08 +280: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:09 +281: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:09 +282: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:09 +283: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:09 +284: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:09 +285: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:09 +286: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/engine/strip_120_test.dart: 120 pages of 720 x 2880 scroll end to end at 6000 px/s
+00:09 +287: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent clears bookmark pending after callback throws
+00:09 +288: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent re-arms auto-next timer after scrolling away from bottom
+00:10 +289: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent does not restart the auto-next countdown on repeated scroll events while remaining at the bottom
+00:10 +290: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent cancels the auto-next countdown when leaving the bottom before it fires
+00:10 +291: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent returning to the bottom starts exactly one new countdown
+00:10 +292: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent a page resolving taller ABOVE the viewport does not move the reader
+00:10 +293: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent a page resolving BELOW the viewport leaves the offset alone
+00:10 +294: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent a page only ever changes extent once
+00:10 +295: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent a page resolving ABOVE the viewport mid-fling does not move the reader
+00:10 +296: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent a page resolving ABOVE the viewport mid page-turn does not move the reader
+00:10 +297: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent scrubbing right after the window slides stays in the chapter on screen
+00:10 +298: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent no page counter floats over the reading area
+00:10 +299: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent dragging the bottom rail to the end jumps to the last page
+00:10 +300: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent tapping the bottom rail jumps to that point in the chapter
+00:10 +301: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent the bottom rail runs right-to-left in a right-to-left chapter
+00:10 +302: /home/yash/mm-dev/wt/M34/mobile/test/features/reader/reader_content_test.dart: ReaderContent auto-next fires exactly once even with further scroll activity at bottom
