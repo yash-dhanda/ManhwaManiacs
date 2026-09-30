@@ -127,3 +127,7 @@ Fix attempted, not re-checked:
 - Git: "the extraction first as its own no-pixel commit"
 - Report and proof gaps
 - A1: one just_audio AudioPlayer that the audio_service handler wraps
+
+## mobile/23
+
+None reported by the verifier. (flutter analyze: 18 info-level avoid_dynamic_calls lints in new tests, no errors.)
