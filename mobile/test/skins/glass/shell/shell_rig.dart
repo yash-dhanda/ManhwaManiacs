@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
+import 'package:manhwamaniacs/features/profiles/models/profile.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/settings/providers/server_capabilities_provider.dart';
+import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -19,6 +25,21 @@ class _Unread extends UnreadCountNotifier {
   final int n;
   @override
   int build() => n;
+}
+
+class _NoLetters extends LettersNotifier {
+  @override
+  Future<List<Letter>> build() async => const [];
+}
+
+class _NoPins extends SourcePinsNotifier {
+  @override
+  Future<SourcePinsState> build() async => const SourcePinsState(synced: true);
+}
+
+class _NoProfiles extends ProfilesNotifier {
+  @override
+  Future<List<Profile>> build() async => const [];
 }
 
 class ShellRig {
@@ -40,8 +61,10 @@ Future<ShellRig> pumpGlassShell(
   int downloads = 0,
   List<Override> extra = const [],
   bool platformAndroid = false,
+  bool settle = true,
+  Map<String, Object> prefsExtra = const {},
 }) async {
-  SharedPreferences.setMockInitialValues(testPrefsDefaults());
+  SharedPreferences.setMockInitialValues(testPrefsDefaults(prefsExtra));
   final prefs = await SharedPreferences.getInstance();
   final c = ProviderContainer(
     overrides: [
@@ -55,6 +78,10 @@ Future<ShellRig> pumpGlassShell(
       setupCompletedProvider.overrideWithValue(true),
       ...noDownloadsStoreOverrides(),
       ...contentModeOverrides(),
+      lettersProvider.overrideWith(_NoLetters.new),
+      profilesProvider.overrideWith(_NoProfiles.new),
+      sourcePinsProvider.overrideWith(_NoPins.new),
+      serverCapabilitiesProvider.overrideWith((ref) async => const ServerCapabilities()),
       ...extra,
     ],
   );
@@ -79,8 +106,12 @@ Future<ShellRig> pumpGlassShell(
       ),
     ),
   );
-  await t.pump(const Duration(milliseconds: 500));
-  await t.pump(const Duration(milliseconds: 500));
+  if (settle) {
+    await t.pump(const Duration(milliseconds: 500));
+    await t.pump(const Duration(milliseconds: 500));
+  } else {
+    await t.pump();
+  }
   return ShellRig(router, c);
 }
 

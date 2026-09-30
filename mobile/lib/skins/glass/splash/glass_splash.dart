@@ -174,7 +174,11 @@ class _GlassSplashState extends ConsumerState<GlassSplash> with SingleTickerProv
     if (_done || _skipped) return;
     _skipped = true;
     final hold = splashHandoffStart(_kind) / splashDuration(_kind);
-    if (_c.value < hold) _c.value = hold;
+    if (_c.value < hold) {
+      // `stop(canceled: false)` completes the running `animateTo` so `_run` goes on to the hand-off.
+      _c.stop(canceled: false);
+      _c.value = hold;
+    }
   }
 
   void _finish() {
@@ -227,6 +231,7 @@ class _GlassSplashState extends ConsumerState<GlassSplash> with SingleTickerProv
       onTap: _skip,
       child: Semantics(
         label: 'Loading ManhwaManiacs',
+        excludeSemantics: true,
         child: AnimatedBuilder(
           animation: _c,
           builder: (context, _) {
