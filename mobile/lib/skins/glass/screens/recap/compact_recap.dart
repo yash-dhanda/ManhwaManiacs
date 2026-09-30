@@ -9,7 +9,13 @@ class CompactRecap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sec = deck.sections.where((s) => s.kind == 'last_time' || s.kind == 'left_off').firstOrNull;
-    return DeckCardFrame(title: sec != null && sec.title.trim().isNotEmpty ? sec.title : 'Last time', child: sectionBody(sec));
+    final sec = deck.sections
+        .where((s) => s.kind == 'last_time' || s.kind == 'left_off')
+        .firstOrNull;
+    return DeckCardFrame(
+        title: sec != null && sec.title.trim().isNotEmpty
+            ? sec.title
+            : 'Last time',
+        child: sectionBody(sec),);
   }
 }

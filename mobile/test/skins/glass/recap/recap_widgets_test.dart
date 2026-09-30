@@ -8,12 +8,10 @@ import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/recap/background_recaps.dart';
-import 'package:manhwamaniacs/features/recap/providers/recap_providers.dart';
 import 'package:manhwamaniacs/features/recap/recap_cache.dart';
 import 'package:manhwamaniacs/features/recap/recap_deck.dart';
 import 'package:manhwamaniacs/features/recap/recap_setting.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
-import 'package:manhwamaniacs/skins/glass/parts/recap/chapter_pill.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/how_it_works_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/offer_sheet.dart';
@@ -23,7 +21,7 @@ import 'package:manhwamaniacs/skins/glass/screens/recap/recap_deck.dart';
 import 'package:manhwamaniacs/skins/glass/screens/recap/recap_footer.dart';
 
 import '../../../screenshots/support/shot_harness.dart';
-import '../primitives/support.dart' show primHost, pumpFor;
+import '../primitives/support.dart' show pumpFor;
 import '../shell/shell_rig.dart';
 import 'recap_rig.dart';
 

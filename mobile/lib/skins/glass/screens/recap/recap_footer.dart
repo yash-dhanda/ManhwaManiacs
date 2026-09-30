@@ -17,15 +17,19 @@ String? _age(DateTime? savedAt, DateTime now) {
 String? writtenAgo(DateTime? savedAt, DateTime now, {bool offline = false}) {
   final age = _age(savedAt, now);
   if (age == null) return null;
-  if (age == 'just now') return offline ? 'Saved recap from just now' : 'Written just now';
+  if (age == 'just now') {
+    return offline ? 'Saved recap from just now' : 'Written just now';
+  }
   return offline ? 'Saved recap from $age' : 'Written $age';
 }
 
 /// The spoiler-guard footer (glass 9.1.3): who wrote it, from which chapters, and that nothing past where the reader stopped is in it.
-String footerText(DeckDone done, {DateTime? savedAt, required DateTime now, bool offline = false}) {
+String footerText(DeckDone done,
+    {DateTime? savedAt, required DateTime now, bool offline = false,}) {
   final range = done.rangeLabel;
   final covered = done.coveredThrough ?? done.to;
-  String n(num v) => v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+  String n(num v) =>
+      v == v.roundToDouble() ? v.toInt().toString() : v.toString();
   final b = StringBuffer();
   b.write(done.model.isEmpty ? 'Written' : 'Written by ${done.model}');
   if (range != null) b.write(' from chapters $range');
@@ -38,7 +42,13 @@ String footerText(DeckDone done, {DateTime? savedAt, required DateTime now, bool
 }
 
 class RecapFooter extends StatelessWidget {
-  const RecapFooter({super.key, required this.done, this.savedAt, required this.now, this.onGlass = false, this.offline = false});
+  const RecapFooter(
+      {super.key,
+      required this.done,
+      this.savedAt,
+      required this.now,
+      this.onGlass = false,
+      this.offline = false,});
   final DeckDone done;
   final DateTime? savedAt;
   final DateTime now;
@@ -54,8 +64,14 @@ class RecapFooter extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(padding: EdgeInsets.only(top: 2, right: 6), child: MachineBadge(size: 12)),
-          Expanded(child: GlassText(text, role: gt.typeFootnote, color: onGlass ? gt.colorOnGlass : gt.colorLabel3, onGlass: onGlass)),
+          const Padding(
+              padding: EdgeInsets.only(top: 2, right: 6),
+              child: MachineBadge(size: 12),),
+          Expanded(
+              child: GlassText(text,
+                  role: gt.typeFootnote,
+                  color: onGlass ? gt.colorOnGlass : gt.colorLabel3,
+                  onGlass: onGlass,),),
         ],
       ),
     );

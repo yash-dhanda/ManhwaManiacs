@@ -41,7 +41,12 @@ enum RecapPhaseG { opening, writing, ready, problem }
 /// pinned actions. `GET /ai/recap?shape=deck&scope=` streams through `deckReducer`; a cached deck opens at once; closing the sheet
 /// while it writes hands the stream to `backgroundRecapsProvider.keepAlive` (60 s from the request).
 class RecapSheet extends ConsumerStatefulWidget {
-  const RecapSheet({super.key, required this.sourceId, required this.seriesKey, this.to, this.scope = 'series'});
+  const RecapSheet(
+      {super.key,
+      required this.sourceId,
+      required this.seriesKey,
+      this.to,
+      this.scope = 'series',});
   final String sourceId, seriesKey;
   final String? to;
   final String scope;
@@ -70,7 +75,8 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
   String get _to => widget.to ?? '';
   bool get _compact => widget.scope == 'chapter';
   RecapKey get _key => RecapKey(widget.sourceId, widget.seriesKey, _to);
-  String get _cacheKey => recapCacheKey(widget.sourceId, widget.seriesKey, _to, widget.scope);
+  String get _cacheKey =>
+      recapCacheKey(widget.sourceId, widget.seriesKey, _to, widget.scope);
   late final BackgroundRecaps _bg;
   late final RecapCache _cache;
 
@@ -85,7 +91,11 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
 
   @override
   void dispose() {
-    final running = _phase == RecapPhaseG.writing && _bridge != null && !_deck.finished && _cancel != null && _startedAt != null;
+    final running = _phase == RecapPhaseG.writing &&
+        _bridge != null &&
+        !_deck.finished &&
+        _cancel != null &&
+        _startedAt != null;
     unawaited(_sub?.cancel());
     if (running) {
       _bg.keepAlive(
@@ -142,7 +152,9 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     _startedAt = ref.read(clockProvider)();
     final RecapOpen open;
     try {
-      open = await ref.read(recapRepositoryProvider).openDeck(_key, scope: widget.scope, cancel: token);
+      open = await ref
+          .read(recapRepositoryProvider)
+          .openDeck(_key, scope: widget.scope, cancel: token);
     } on DioException {
       return;
     }
@@ -152,9 +164,16 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
         _problemFor(reason);
       case DeckStream(:final events):
         final bridge = _bridge = StreamController<SseEvent>.broadcast();
-        unawaited(events.listen(bridge.add, onError: bridge.addError, onDone: () => unawaited(bridge.close()), cancelOnError: false).asFuture<void>().catchError((Object _) {}));
+        unawaited(events
+            .listen(bridge.add,
+                onError: bridge.addError,
+                onDone: () => unawaited(bridge.close()),
+                cancelOnError: false,)
+            .asFuture<void>()
+            .catchError((Object _) {}),);
         setState(() => _phase = RecapPhaseG.writing);
-        _sub = bridge.stream.listen(_onEvent, onError: (Object _) => _problemFor('error'));
+        _sub = bridge.stream
+            .listen(_onEvent, onError: (Object _) => _problemFor('error'));
       case RecapStream():
         _problemFor('error');
     }
@@ -175,7 +194,12 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
       _problem = switch (reason) {
         'no_dialogue' || 'no_source_text' => RecapProblem.noSourceText,
         'not_enough_read' || 'too_short' => RecapProblem.notEnoughRead,
-        'not_configured' || 'ai_not_configured' || 'budget_exhausted' || 'ai_budget_exhausted' || 'rate_limited' => RecapProblem.aiUnavailable,
+        'not_configured' ||
+        'ai_not_configured' ||
+        'budget_exhausted' ||
+        'ai_budget_exhausted' ||
+        'rate_limited' =>
+          RecapProblem.aiUnavailable,
         'offline' => RecapProblem.offline,
         _ => RecapProblem.error,
       };
@@ -196,8 +220,16 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
 
   /// Space, arrows, Enter, `s` and Esc while this sheet is the top route (glass 8.0.6, group "Recap").
   bool _onKey(KeyEvent e) {
-    if (e is! KeyDownEvent || !mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return false;
-    if (FocusManager.instance.primaryFocus?.context?.findAncestorWidgetOfExactType<EditableText>() != null) return false;
+    if (e is! KeyDownEvent ||
+        !mounted ||
+        !(ModalRoute.of(context)?.isCurrent ?? true)) {
+      return false;
+    }
+    if (FocusManager.instance.primaryFocus?.context
+            ?.findAncestorWidgetOfExactType<EditableText>() !=
+        null) {
+      return false;
+    }
     final k = e.logicalKey;
     if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.keyS) {
       unawaited(_continue());
@@ -215,52 +247,78 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
   }
 
   Future<void> _continue([String? chapterKey]) async {
-    final novel = isNovelSource(ref.read(contentModeScopeProvider), widget.sourceId) ?? false;
+    final novel =
+        isNovelSource(ref.read(contentModeScopeProvider), widget.sourceId) ??
+            false;
     final at = chapterKey ?? _to;
-    final loc = novel ? Routes.novel(widget.sourceId, widget.seriesKey, at) : Routes.reader(widget.sourceId, widget.seriesKey, at);
+    final loc = novel
+        ? Routes.novel(widget.sourceId, widget.seriesKey, at)
+        : Routes.reader(widget.sourceId, widget.seriesKey, at);
     final box = context.findRenderObject() as RenderBox?;
-    final from = box != null && box.attached ? box.localToGlobal(Offset.zero) & box.size : const Rect.fromLTWH(0, 0, 1, 1);
+    final from = box != null && box.attached
+        ? box.localToGlobal(Offset.zero) & box.size
+        : const Rect.fromLTWH(0, 0, 1, 1);
     final nav = Navigator.of(context);
     final ctx = nav.context;
     nav.pop();
     if (ctx.mounted) await enterReader(ctx, ref, loc, fromRect: from);
   }
 
-  SourceChapterSummary? _chapter(SourceSeriesDetailData? d, String key) => d?.chapters.where((c) => c.id == key).firstOrNull;
+  SourceChapterSummary? _chapter(SourceSeriesDetailData? d, String key) =>
+      d?.chapters.where((c) => c.id == key).firstOrNull;
 
-  String _n(num? v) => v == null ? '' : (v == v.roundToDouble() ? v.toInt().toString() : v.toString());
+  String _n(num? v) => v == null
+      ? ''
+      : (v == v.roundToDouble() ? v.toInt().toString() : v.toString());
 
   String? _startFrom(SourceSeriesDetailData? d) {
     final done = _deck.done;
-    if (d == null || done == null || done.from == null || done.to == null) return null;
-    final inRange = [for (final c in d.chapters) if (c.number != null && c.number! >= done.from! && c.number! <= done.to!) c]..sort((a, b) => a.number!.compareTo(b.number!));
+    if (d == null || done == null || done.from == null || done.to == null) {
+      return null;
+    }
+    final inRange = [
+      for (final c in d.chapters)
+        if (c.number != null &&
+            c.number! >= done.from! &&
+            c.number! <= done.to!)
+          c,
+    ]..sort((a, b) => a.number!.compareTo(b.number!));
     if (inRange.length < 3) return null;
     return lastThirdStart([for (final c in inRange) c.id]);
   }
 
   @override
   Widget build(BuildContext context) {
-    final detail = ref.watch(sourceSeriesDetailProvider((sourceId: widget.sourceId, seriesId: widget.seriesKey))).valueOrNull;
+    final detail = ref
+        .watch(sourceSeriesDetailProvider(
+            (sourceId: widget.sourceId, seriesId: widget.seriesKey),),)
+        .valueOrNull;
     final title = detail?.series.title ?? widget.seriesKey;
     _title = title;
     final now = ref.read(clockProvider)();
     final chNo = _n(_chapter(detail, _to)?.number);
     final wide = GlassFrame.of(context) != GlassFrameKind.phone;
     final startKey = _startFrom(detail);
-    final startCh = startKey == null ? null : _n(_chapter(detail, startKey)?.number);
+    final startCh =
+        startKey == null ? null : _n(_chapter(detail, startKey)?.number);
 
     Widget body;
     switch (_phase) {
       case RecapPhaseG.opening:
-        body = const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: ThinkingOrbit(size: 64)));
+        body = const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: ThinkingOrbit(size: 64)),);
       case RecapPhaseG.problem:
         body = _problemBody(detail);
       case RecapPhaseG.writing:
       case RecapPhaseG.ready:
-        body = _compact ? CompactRecap(deck: _deck) : RecapDeckView(key: _deckKey, deck: _deck);
+        body = _compact
+            ? CompactRecap(deck: _deck)
+            : RecapDeckView(key: _deckKey, deck: _deck);
     }
 
-    final writing = _phase == RecapPhaseG.writing || _phase == RecapPhaseG.opening;
+    final writing =
+        _phase == RecapPhaseG.writing || _phase == RecapPhaseG.opening;
     return Semantics(
       explicitChildNodes: true,
       child: Padding(
@@ -269,18 +327,56 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [const MachineBadge(streaming: true), const SizedBox(width: 6), GlassText('PREVIOUSLY ON', role: gt.typeCaption1, color: gt.colorMachine, onGlass: wide)]),
+            Row(children: [
+              const MachineBadge(streaming: true),
+              const SizedBox(width: 6),
+              GlassText('PREVIOUSLY ON',
+                  role: gt.typeCaption1, color: gt.colorMachine, onGlass: wide,),
+            ],),
             const SizedBox(height: 4),
-            Semantics(header: true, child: TypedHeadline('Previously on $title', role: gt.typeTitle2, placement: 'recap.deck', headingLevel: 1)),
-            if (writing && _phase == RecapPhaseG.writing) Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const ThinkingOrbit(), const SizedBox(width: 8), GlassText('Writing your recap', role: gt.typeFootnote, color: gt.colorLabel2)])),
+            Semantics(
+                header: true,
+                child: TypedHeadline('Previously on $title',
+                    role: gt.typeTitle2,
+                    placement: 'recap.deck',
+                    headingLevel: 1,),),
+            if (writing && _phase == RecapPhaseG.writing)
+              Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(children: [
+                    const ThinkingOrbit(),
+                    const SizedBox(width: 8),
+                    GlassText('Writing your recap',
+                        role: gt.typeFootnote, color: gt.colorLabel2,),
+                  ],),),
             const SizedBox(height: 12),
             Flexible(child: SingleChildScrollView(child: body)),
-            if (_deck.done != null) Padding(padding: const EdgeInsets.only(top: 12), child: RecapFooter(done: _deck.done!, savedAt: _savedAt, now: now, onGlass: wide, offline: _offline)),
+            if (_deck.done != null)
+              Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: RecapFooter(
+                      done: _deck.done!,
+                      savedAt: _savedAt,
+                      now: now,
+                      onGlass: wide,
+                      offline: _offline,),),
             if (_phase != RecapPhaseG.problem) ...[
               const SizedBox(height: 12),
-              GlassButton(label: chNo.isEmpty ? 'Continue' : 'Continue · Ch $chNo', variant: GlassButtonVariant.primary, size: GlassButtonSize.large, fullWidth: true, onPressed: () => unawaited(_continue())),
-              if (!_compact && startKey != null && startCh != null && startCh.isNotEmpty)
-                GlassButton(label: 'Start from Ch $startCh instead', size: GlassButtonSize.large, fullWidth: true, onPressed: () => unawaited(_continue(startKey))),
+              GlassButton(
+                  label: chNo.isEmpty ? 'Continue' : 'Continue · Ch $chNo',
+                  variant: GlassButtonVariant.primary,
+                  size: GlassButtonSize.large,
+                  fullWidth: true,
+                  onPressed: () => unawaited(_continue()),),
+              if (!_compact &&
+                  startKey != null &&
+                  startCh != null &&
+                  startCh.isNotEmpty)
+                GlassButton(
+                    label: 'Start from Ch $startCh instead',
+                    size: GlassButtonSize.large,
+                    fullWidth: true,
+                    onPressed: () => unawaited(_continue(startKey)),),
             ],
           ],
         ),
@@ -292,9 +388,16 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     final ocr = ref.watch(ocrRunControllerProvider);
     String? extractLine;
     VoidCallback? extract;
-    if (_problem == RecapProblem.noSourceText && ref.watch(ocrFeatureVisibleProvider) && !(isNovelSource(ref.watch(contentModeScopeProvider), widget.sourceId) ?? false)) {
+    if (_problem == RecapProblem.noSourceText &&
+        ref.watch(ocrFeatureVisibleProvider) &&
+        !(isNovelSource(ref.watch(contentModeScopeProvider), widget.sourceId) ??
+            false)) {
       extractLine = extractLineOf(ocr);
-      final status = ref.watch(seriesChapterDownloadStatusProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey))).valueOrNull ?? const {};
+      final status = ref
+              .watch(seriesChapterDownloadStatusProvider(
+                  (sourceId: widget.sourceId, seriesKey: widget.seriesKey),),)
+              .valueOrNull ??
+          const {};
       final saved = [
         if (detail != null)
           for (final c in detail.chapters)
@@ -305,7 +408,11 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
           setState(() => _ocrTried = true);
           unawaited(() async {
             for (final c in saved) {
-              await ref.read(ocrRunControllerProvider.notifier).runChapter(id: (sourceId: widget.sourceId, seriesKey: widget.seriesKey, chapterKey: c.id), chapterNumber: c.number);
+              await ref.read(ocrRunControllerProvider.notifier).runChapter(id: (
+                sourceId: widget.sourceId,
+                seriesKey: widget.seriesKey,
+                chapterKey: c.id
+              ), chapterNumber: c.number,);
             }
             if (mounted) unawaited(_open());
           }());
@@ -318,7 +425,9 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
       reason: _reason,
       onContinue: () => unawaited(_continue()),
       onTryAgain: () => unawaited(_open()),
-      onHowItWorks: () => unawaited(ref.read(skinRouterProvider).push<void>(Routes.tonight({'sheet': 'how-it-works'}))),
+      onHowItWorks: () => unawaited(ref
+          .read(skinRouterProvider)
+          .push<void>(Routes.tonight({'sheet': 'how-it-works'})),),
       onExtract: extract,
       extractLine: extractLine,
     );

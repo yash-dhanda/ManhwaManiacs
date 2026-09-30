@@ -28,13 +28,15 @@ double deckDim(double pos) {
 }
 
 /// A swipe up past 80 px (projected) or at `vy <= -800` lifts the front card.
-bool swipeUpAdvances(double dy, double vy) => dy + vy * 0.1 <= -80 || vy <= -800;
+bool swipeUpAdvances(double dy, double vy) =>
+    dy + vy * 0.1 <= -80 || vy <= -800;
 
 /// Four cards stacked in depth (glass 9.1.3, Deck lift-off): the front one lifts toward the viewer (scale 1 to 1.06, up 40 px) and
 /// away on `springSmooth`, the next one rising from 0.94. Swipe up, a tap on the right half, `Right` or `Space` advance; swipe down,
 /// the left half or `Left` go back. A finger during the lift catches it. Reduced motion: 150 ms cross-fades.
 class RecapDeckView extends ConsumerStatefulWidget {
-  const RecapDeckView({super.key, required this.deck, this.onIndexChanged, this.width});
+  const RecapDeckView(
+      {super.key, required this.deck, this.onIndexChanged, this.width,});
   final DeckState deck;
   final ValueChanged<int>? onIndexChanged;
   final double? width;
@@ -43,8 +45,10 @@ class RecapDeckView extends ConsumerStatefulWidget {
   ConsumerState<RecapDeckView> createState() => RecapDeckViewState();
 }
 
-class RecapDeckViewState extends ConsumerState<RecapDeckView> with SingleTickerProviderStateMixin {
-  late final AnimationController _t = AnimationController.unbounded(vsync: this);
+class RecapDeckViewState extends ConsumerState<RecapDeckView>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _t =
+      AnimationController.unbounded(vsync: this);
   int index = 0;
   bool _busy = false;
 
@@ -101,14 +105,19 @@ class RecapDeckViewState extends ConsumerState<RecapDeckView> with SingleTickerP
 
   @override
   Widget build(BuildContext context) {
-    final reduced = ref.watch(glassMotionPrefsProvider.select((m) => m.reduced));
+    final reduced =
+        ref.watch(glassMotionPrefsProvider.select((m) => m.reduced));
     final assistive = ref.watch(glassAssistiveProvider);
     if (assistive) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (final k in kDeckKinds)
-            Padding(padding: const EdgeInsets.only(bottom: 16), child: DeckCardFrame(title: deckTitleOf(k.$1, widget.deck), child: deckBodyFor(k.$1, widget.deck))),
+            Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: DeckCardFrame(
+                    title: deckTitleOf(k.$1, widget.deck),
+                    child: deckBodyFor(k.$1, widget.deck),),),
         ],
       );
     }
@@ -123,7 +132,9 @@ class RecapDeckViewState extends ConsumerState<RecapDeckView> with SingleTickerP
             RawGestureDetector(
               behavior: HitTestBehavior.opaque,
               gestures: {
-                VerticalDragGestureRecognizer: GestureRecognizerFactoryWithHandlers<VerticalDragGestureRecognizer>(
+                VerticalDragGestureRecognizer:
+                    GestureRecognizerFactoryWithHandlers<
+                        VerticalDragGestureRecognizer>(
                   VerticalDragGestureRecognizer.new,
                   (r) => r
                     ..onDown = ((_) => _catch())
@@ -158,7 +169,10 @@ class RecapDeckViewState extends ConsumerState<RecapDeckView> with SingleTickerP
                     builder: (context, _) => Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        for (var i = (index + 2).clamp(0, count - 1); i >= index; i--) _card(i, reduced),
+                        for (var i = (index + 2).clamp(0, count - 1);
+                            i >= index;
+                            i--)
+                          _card(i, reduced),
                       ],
                     ),
                   ),
@@ -184,13 +198,26 @@ class RecapDeckViewState extends ConsumerState<RecapDeckView> with SingleTickerP
     if (reduced) {
       final o = d == 0 ? 1 - t : (d == 1 ? t : 0.0);
       final faded = Opacity(opacity: o.clamp(0.0, 1.0), child: card);
-      return d == 0 ? faded : Positioned(left: 0, right: 0, top: 0, child: faded);
+      return d == 0
+          ? faded
+          : Positioned(left: 0, right: 0, top: 0, child: faded);
     }
     if (d == 0) {
-      return Opacity(opacity: (1 - t).clamp(0.0, 1.0), child: Transform.translate(offset: Offset(0, -40 * t), child: Transform.scale(scale: 1 + 0.06 * t, child: card)));
+      return Opacity(
+          opacity: (1 - t).clamp(0.0, 1.0),
+          child: Transform.translate(
+              offset: Offset(0, -40 * t),
+              child: Transform.scale(scale: 1 + 0.06 * t, child: card),),);
     }
     final pos = d - t;
-    return Positioned(left: 0, right: 0, top: -8.0 * pos, child: Transform.scale(scale: deckScale(pos), alignment: Alignment.topCenter, child: card));
+    return Positioned(
+        left: 0,
+        right: 0,
+        top: -8.0 * pos,
+        child: Transform.scale(
+            scale: deckScale(pos),
+            alignment: Alignment.topCenter,
+            child: card,),);
   }
 }
 
@@ -205,7 +232,15 @@ class _Progress extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             for (var i = 0; i < count; i++)
-              Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: AnimatedContainer(duration: const Duration(milliseconds: 180), width: 28, height: 4, decoration: BoxDecoration(color: i <= index ? gt.colorMachine : gt.colorLabel4, borderRadius: BorderRadius.circular(2)))),
+              Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      width: 28,
+                      height: 4,
+                      decoration: BoxDecoration(
+                          color: i <= index ? gt.colorMachine : gt.colorLabel4,
+                          borderRadius: BorderRadius.circular(2),),),),
           ],
         ),
       );
