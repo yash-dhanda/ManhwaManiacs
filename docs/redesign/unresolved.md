@@ -114,3 +114,8 @@ Each item: fix attempted, not re-checked.
 - Acceptance: paged mode (Cut, Slide finger-tracked, Fade turns, three tap-zone presets, re-paginate on Type change keeping the paragraph); the 'p. 7 of 22' folio
 - Acceptance: speaker semantics prefix, drop cap semantics, long-press name popover, end matter Letter set, rating card, stale-anchor toast copy, progress saved at the 38% line, Contents narrated and saved marks, Type sheet half detent
 - Proof deliverables
+
+## mobile/22 (cinematic circle)
+
+- (fix attempted, not re-checked) Acceptance: 18+ and isolation widget test
+- (fix attempted, not re-checked) Acceptance: hit-target test covers every tappable widget on the Circle screen, member page, stamps, sheets and settings section

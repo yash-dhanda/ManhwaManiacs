@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
@@ -96,6 +97,7 @@ class _IndexScreenState extends ConsumerState<IndexScreen> {
     final stats = ref.watch(statisticsProvider);
     final asks = ref.watch(suggestAvailabilityProvider);
     final unread = ref.watch(unreadNotificationCountProvider);
+    final newLetters = ref.watch(newLetterCountProvider);
     final collections = ref.watch(collectionsProvider);
     final bookmarks = ref.watch(bookmarksProvider);
     final bytes = ref.watch(totalDeviceDownloadBytesProvider);
@@ -132,7 +134,7 @@ class _IndexScreenState extends ConsumerState<IndexScreen> {
           ),
         ),
         row('The Annual', value: '$year', onTap: () => unawaited(context.push<void>(Routes.annual(year), extra: const <String, String>{'transition': 'dip'}))),
-        row('Circle', onTap: push(Routes.circle())),
+        row('Circle', value: newLetters > 0 ? '$newLetters NEW' : null, onTap: push(Routes.circle())),
         row(
           'Picks',
           value: (asks.valueOrNull?.available ?? false) ? '${asks.value!.remainingToday} ASKS LEFT' : null,

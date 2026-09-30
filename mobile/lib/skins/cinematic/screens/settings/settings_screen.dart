@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/server_capabilities_provider.dart';
 import 'package:manhwamaniacs/features/settings/utils/settings_search.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
@@ -100,6 +101,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       clientDownloads: caps.clientDownloads,
       tablet: MediaQuery.sizeOf(context).shortestSide >= 600,
       android: Theme.of(context).platform == TargetPlatform.android,
+      mature: ref.watch(matureGateOpenProvider),
     );
   }
 

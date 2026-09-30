@@ -83,6 +83,7 @@ Future<TonightRig> pumpTonight(
   Future<void>? hold,
   List<Override> extra = const [],
   Map<String, Object> prefs = const {},
+  Key? boundaryKey,
 }) async {
   ReaderPrefetch.reset();
   final rig = TonightRig(Recorder());
@@ -123,12 +124,15 @@ Future<TonightRig> pumpTonight(
             ]),
         ...extra,
       ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        theme: featureTheme(platform),
-        routerConfig: router,
-        builder: (context, c) => featureMediaWrap(context, c, textScale: textScale, reduced: reduced),
-      ),
+      child: () {
+        final app = MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          theme: featureTheme(platform),
+          routerConfig: router,
+          builder: (context, c) => featureMediaWrap(context, c, textScale: textScale, reduced: reduced),
+        );
+        return boundaryKey == null ? app : RepaintBoundary(key: boundaryKey, child: app);
+      }(),
     ),
   );
   await tester.pump();

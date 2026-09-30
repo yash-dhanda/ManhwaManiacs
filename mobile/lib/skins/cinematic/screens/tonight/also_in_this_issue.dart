@@ -76,7 +76,7 @@ class _AlsoState extends ConsumerState<AlsoInThisIssue> {
 
   void _open(HomeAlso a) {
     if (a.kind == HomeAlsoKind.letter) {
-      context.go(Routes.circle());
+      context.go(Routes.circle({'tab': 'letters'}));
     } else if (a.sourceId != null && a.seriesKey != null) {
       openSeries(context, a.sourceId!, a.seriesKey!);
     }

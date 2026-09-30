@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
@@ -16,6 +17,7 @@ import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/react_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_lightbox.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_text_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
@@ -173,6 +175,14 @@ class _PageActionsBodyState extends ConsumerState<PageActionsBody> {
           item('Show dialogue on this page', () {
             widget.close();
             t.onShowDialogue();
+          }),
+        if (!(ref.watch(circleMembersProvider).hasError && ref.watch(circleMembersProvider).valueOrNull == null))
+          item('React to this chapter', () {
+            final nav = Navigator.of(context);
+            widget.close();
+            unawaited(Future<void>.delayed(Duration.zero, () {
+              if (nav.mounted) openReactSheet(nav.context, sourceId: t.sourceId, seriesKey: t.seriesKey, chapterKey: t.chapter.id, chapterNumber: t.chapterNumber);
+            }),);
           }),
         item('Retry this page', () {
           widget.close();

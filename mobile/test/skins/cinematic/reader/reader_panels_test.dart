@@ -269,7 +269,7 @@ void main() {
             (ref, k) async => const CircleSeriesData(
               readers: [CircleReader(member: CircleMemberRef(profileId: 1, name: 'Asha'), chapterKey: 'c2', chapterNumber: 2)],
               chapters: [
-                CircleChapterReactions(chapterKey: 'c2', chapterNumber: 2, by: [(member: CircleMemberRef(profileId: 1, name: 'Asha'), kind: 'chefs_kiss')]),
+                CircleChapterReactions(chapterKey: 'c2', chapterNumber: 2, by: [ReactionBy(profileId: 1, name: 'Asha', kind: ReactionKind.chefsKiss)]),
               ],
             ),
           ),

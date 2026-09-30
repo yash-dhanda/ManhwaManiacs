@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/downloads/utils/auto_download.dart';
 import 'package:manhwamaniacs/features/downloads/utils/pending_removals.dart';
@@ -176,6 +177,8 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
     final mood = ref.watch(activeProfileProvider.select((p) => p?.mood.wire));
     final grade = const {0, 1, 2, 4}.contains(shell.currentIndex) ? cineMoodColor(mood) : null;
     final unread = ref.watch(unreadNotificationCountProvider);
+    // The Index tab carries the Circle's new letters (cinematic 7.14, 8.28).
+    final newLetters = ref.watch(newLetterCountProvider);
     final downloads = ref.watch(activeDownloadCountProvider);
     final back = cineBranchBack(info);
 
@@ -225,7 +228,7 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
             Expanded(child: body),
             CineThumbIndex(
               active: shell.currentIndex,
-              badges: [0, unread, 0, downloads, 0],
+              badges: [0, unread, 0, downloads, newLetters],
               onSelect: _select,
               onLongPress: _longPress,
             ),

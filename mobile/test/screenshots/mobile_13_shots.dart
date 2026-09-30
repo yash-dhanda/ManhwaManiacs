@@ -254,8 +254,8 @@ void mobile13Shots() {
           CircleReader(member: CircleMemberRef(profileId: 3, name: 'Dev', avatarKey: 'slate'), chapterKey: 'c2', chapterNumber: 2),
         ],
         chapters: [
-          CircleChapterReactions(chapterKey: 'c2', chapterNumber: 2, by: [(member: CircleMemberRef(profileId: 1, name: 'Asha'), kind: 'chefs_kiss')]),
-          CircleChapterReactions(chapterKey: 'c3', chapterNumber: 3, by: [(member: CircleMemberRef(profileId: 2, name: 'Riya'), kind: 'tears')]),
+          CircleChapterReactions(chapterKey: 'c2', chapterNumber: 2, by: [ReactionBy(profileId: 1, name: 'Asha', kind: ReactionKind.chefsKiss)]),
+          CircleChapterReactions(chapterKey: 'c3', chapterNumber: 3, by: [ReactionBy(profileId: 2, name: 'Riya', kind: ReactionKind.tears)]),
         ],
       ),
     );

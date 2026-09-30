@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/core/time/server_instant.dart';
+import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/library/models/ambient.dart';
 import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
@@ -354,6 +355,19 @@ class HomeSourceItem {
   final List<String> latestCovers;
 }
 
+/// A `circle` or `circle_top` row: who read it (`member`), what (`series`) and, ranked, its `rank`.
+class HomeCircleItem {
+  const HomeCircleItem({required this.member, required this.series, this.rank, this.members = const []});
+  final ProfileRef member;
+  final CircleSeries series;
+  final int? rank;
+
+  /// Every member behind the row when the payload names them (the avatar stack); else just [member].
+  final List<ProfileRef> members;
+
+  List<ProfileRef> get stack => members.isEmpty ? [member] : members;
+}
+
 class HomeGenreItem {
   const HomeGenreItem({required this.genre, this.weight = 0});
   final String genre;
@@ -472,6 +486,13 @@ class HomeSection {
                 for (final c in j['latest_covers'] as List<dynamic>)
                   if (_str(c) != null) _str(c)!,
             ],
+          ),
+        HomeSectionType.sentToYou => Letter.fromJson(j),
+        HomeSectionType.circle || HomeSectionType.circleTop => HomeCircleItem(
+            member: ProfileRef.fromJson(_map(j['member']) ?? const {}),
+            series: CircleSeries.fromJson(_map(j['series']) ?? const {}),
+            rank: _int(j['rank']),
+            members: [for (final m in _maps(j['members'])) ProfileRef.fromJson(m)],
           ),
         HomeSectionType.genres => HomeGenreItem(genre: _str(j['genre'])!, weight: (j['weight'] as num?)?.toDouble() ?? 0),
         HomeSectionType.numbers => HomeNumbersItem(

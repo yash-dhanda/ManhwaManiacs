@@ -16,6 +16,17 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 /// appear in `matureScopedInvalidators`, so a new gated endpoint cannot be
 /// added without deciding what it invalidates on the client.
 const Map<String, List<String>> _providersByService = {
+  'circle_service': [
+    'circleMembersProvider',
+    'circleMemberProvider',
+    'recipientsProvider',
+    'circleFeedProvider',
+    'circleSeriesProvider',
+    'chapterReactionsProvider',
+    'lettersProvider',
+    'sharedCollectionsProvider',
+    'sharedShelfDetailProvider',
+  ],
   'bookmark_service': ['bookmarksProvider'],
   'browse_service': [
     'sourceBrowseProvider',
@@ -141,10 +152,7 @@ void main() {
       // Gated on the server but no client cache to drop yet: the Wrapped payload
       // (annual_service) is fetched fresh per open, and no client reads
       // the taste catalogue (taste_service) yet.
-      // circle_service (backend/08) has no client cache until mobile/22 builds the
-      // Circle screens; that step must add its providers to the invalidators and
-      // remove this entry.
-      const noClientCache = {'annual_service', 'taste_service', 'circle_service'};
+      const noClientCache = {'annual_service', 'taste_service'};
       expect(
         gated.difference(noClientCache),
         kMatureGatedBackendServices,

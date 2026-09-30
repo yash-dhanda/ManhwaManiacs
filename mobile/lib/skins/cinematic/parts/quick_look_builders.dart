@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
 import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
@@ -26,6 +27,7 @@ import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/add_to_shelf_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/pass_it_on_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/source_picker_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/quick_look.dart';
@@ -52,6 +54,9 @@ String? continueChapterKey(FollowedSeries s) => s.readState?.chapterKey ?? (s.kn
 /// The reader target of [chapterKey] for a source of [kind] (manga reader or novel reader).
 ReaderTarget readerTargetFor(String sourceId, String seriesKey, String chapterKey, {required bool novel}) =>
     novel ? ReaderTarget.novel(sourceId, seriesKey, chapterKey) : ReaderTarget.manifest(sourceId, seriesKey, chapterKey);
+
+/// Whether the Circle has members to recommend to (`Recommend to…` renders only then).
+bool _hasCircle(WidgetRef ref) => (ref.read(circleMembersProvider).valueOrNull ?? const []).isNotEmpty;
 
 bool _novel(WidgetRef ref, String sourceId) => isNovelSource(ref.read(contentModeScopeProvider), sourceId) ?? false;
 
@@ -123,6 +128,7 @@ Future<void> openCuttingQuickLook(BuildContext context, WidgetRef ref, HomeConti
     cover: _cover(ref, r.coverUrl, title),
     actions: quickLookActions({
       QuickLookId.open: () => openSeries(context, r.sourceId, r.seriesKey),
+      if (_hasCircle(ref)) QuickLookId.recommend: () => unawaited(showPassItOnSheet(context, sourceId: r.sourceId, seriesKey: r.seriesKey, title: title, coverUrl: r.coverUrl)),
       QuickLookId.continueReading: () => unawaited(continueTo(context, ref, sourceId: r.sourceId, seriesKey: r.seriesKey, chapterKey: r.chapterKey, title: title, lastReadAt: r.lastReadAt, recap: item.recap, origin: _origin(entry))),
       if (item.recap?.available ?? false) QuickLookId.previouslyOn: () => openRecap(context, r.sourceId, r.seriesKey, r.chapterKey, origin: _origin(entry)),
       if (!offline) QuickLookId.markRead: () => unawaited(_markRead(context, ref, item)),
@@ -170,6 +176,7 @@ Future<void> openFollowedQuickLook(BuildContext context, WidgetRef ref, HomeSeri
     if (chapter != null) QuickLookId.continueReading: () => unawaited(continueTo(context, ref, sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKey: chapter, title: s.title, lastReadAt: item.lastReadAt ?? s.readState?.lastReadAt, recap: item.recap, origin: _origin(entry))),
     if (canRecap) QuickLookId.previouslyOn: () => openRecap(context, s.sourceId, s.seriesKey, chapter, origin: _origin(entry)),
     QuickLookId.addToCollection: () => unawaited(showAddToShelfSheet(context, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title)),
+    if (_hasCircle(ref)) QuickLookId.recommend: () => unawaited(showPassItOnSheet(context, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, coverUrl: s.coverUrl)),
     QuickLookId.favourite: () async {
       final err = await ref.read(librarySeriesActionsProvider).setFavorite(s, favorite: !s.isFavorite);
       if (err != null) {
@@ -213,6 +220,7 @@ Future<void> openPickQuickLook(BuildContext context, WidgetRef ref, HomePickItem
   final site = w?.readElsewhere;
   final actions = quickLookActions({
     if (!info) QuickLookId.open: () => openPick(context, item),
+    if (!info && _hasCircle(ref)) QuickLookId.recommend: () => unawaited(showPassItOnSheet(context, sourceId: w?.available.first.sourceId ?? item.source!.sourceId, seriesKey: w?.available.first.seriesKey ?? item.source!.id, title: title, coverUrl: w?.coverUrl ?? item.source?.coverUrl)),
     // More like this: the feature page's tab (an item on the reader's sources only).
     if (!info) QuickLookId.moreLikeThis: () => context.push(featureMoreLikeThis(w?.available.first.sourceId ?? item.source!.sourceId, w?.available.first.seriesKey ?? item.source!.id)),
     QuickLookId.notForMe: () async {
@@ -289,6 +297,7 @@ Future<void> openWorldQuickLook(BuildContext context, WidgetRef ref, WorldItem w
     actions: [
       ...quickLookActions({
         if (!info) QuickLookId.open: () => openWorldItem(context, w),
+        if (!info && _hasCircle(ref)) QuickLookId.recommend: () => unawaited(showPassItOnSheet(context, sourceId: w.available.first.sourceId, seriesKey: w.available.first.seriesKey, title: w.title, coverUrl: w.coverUrl)),
         if (onMoreLikeThis != null) QuickLookId.moreLikeThis: onMoreLikeThis,
         if (onNotForMe != null) QuickLookId.notForMe: onNotForMe,
       }),

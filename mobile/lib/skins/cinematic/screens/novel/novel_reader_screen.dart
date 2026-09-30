@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
 import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
@@ -39,6 +40,7 @@ import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/circle_reactions_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_rating_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_text_field.dart';
@@ -1078,6 +1080,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
                     offline: chapter.isOffline,
                     onBackToDownloads: () => context.go(Routes.downloads()),
                     theEnd: _theEnd(series, chapter),
+                    reactions: _reactions(series, chapter, number, stock),
                   ),),
                 );
               }
@@ -1108,6 +1111,16 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
       ),
     );
   }
+
+  /// Reactions and `Pass it on` at the chapter's end, in the stock's colours (cinematic 8.15.2).
+  Widget _reactions(ReaderSeries? series, NovelChapter chapter, String? number, CineStockColors stock) => CircleReactionsBlock(
+        sourceId: widget.sourceId,
+        seriesKey: widget.seriesKey,
+        chapterKey: chapter.chapterKey,
+        chapterNumber: double.tryParse(number ?? ''),
+        seriesTitle: series?.title ?? '',
+        stock: stock,
+      );
 
   /// The Completed book's end block: `THE END`, "You finished {title}.", the Up next rail.
   Widget? _theEnd(ReaderSeries? series, NovelChapter chapter) {
@@ -1204,6 +1217,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
         offline: chapter.isOffline,
         onBackToDownloads: () => context.go(Routes.downloads()),
         theEnd: _theEnd(series, chapter),
+        reactions: _reactions(series, chapter, number, stock),
       ),),
       onPage: (i) {
         if (!_programmaticPage) _follower.userMoved();
@@ -1211,6 +1225,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
         _bucket.value = ref.read(novelReaderControllerProvider(_args)).readingBucket;
         if (i >= pages.length) {
           _ctl.markComplete();
+          ref.read(completedThisSessionProvider.notifier).markCompleted(widget.sourceId, widget.seriesKey, chapter.chapterKey);
           cineFeedback(context, HapticEvent.chapterComplete, sound: SoundEvent.chapterComplete);
         }
       },

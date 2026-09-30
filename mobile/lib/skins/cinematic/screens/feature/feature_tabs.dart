@@ -9,11 +9,18 @@ class FeatureTab {
     required this.label,
     required this.panelBuilder,
     this.count,
+    this.disabledReason,
   });
 
   final String id;
   final String label;
   final int? count;
+
+  /// Set while the tab cannot be opened (`04 CIRCLE` for a profile that does not share): the tab is
+  /// `ink.30`, exposes `enabled: false` and this text as its tooltip and hint.
+  final String? disabledReason;
+
+  bool get disabled => disabledReason != null;
   final Widget Function(BuildContext context) panelBuilder;
 
   String folio(int index) => (index + 1).toString().padLeft(2, '0');

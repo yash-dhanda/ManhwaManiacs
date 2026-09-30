@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
@@ -29,12 +30,15 @@ import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/chapter_reaction_folio.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/pass_it_on_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_contents.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_front_matter.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/contents_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/contents_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/circle_panel.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_summary_line.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/selection_bar.dart';
@@ -480,6 +484,13 @@ class _BookViewState extends ConsumerState<BookView> {
                       icon: const Icon(PhosphorRegular.headphones, semanticLabel: 'Audiobook'),
                       onPressed: _openAudiobook,
                     ),
+                  if ((ref.watch(circleMembersProvider).valueOrNull ?? const []).isNotEmpty)
+                    IconButton(
+                      tooltip: 'Recommend to…',
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                      icon: const Icon(PhosphorRegular.paperPlaneTilt),
+                      onPressed: () => unawaited(showPassItOnSheet(context, sourceId: d.sourceId, seriesKey: d.seriesKey, title: d.series.title, coverUrl: d.series.coverUrl)),
+                    ),
                   IconButton(
                     tooltip: 'More',
                     constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
@@ -649,6 +660,7 @@ class _BookViewState extends ConsumerState<BookView> {
                                 ? (pr!.page * 100 / pr.pageCount).round()
                                 : null,
                             narrated: narrated.contains(c.id),
+                            reactionSlot: ChapterReactionFolio(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number),
                             downloadState: st?.state,
                             current: c.id == _focus,
                             selecting: _selection.isActive,
@@ -670,6 +682,12 @@ class _BookViewState extends ConsumerState<BookView> {
                           );
                         },
                       ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: BookCircleSection(sourceId: d.sourceId, seriesKey: d.seriesKey, title: d.series.title, coverUrl: d.series.coverUrl),
                     ),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 96)),
