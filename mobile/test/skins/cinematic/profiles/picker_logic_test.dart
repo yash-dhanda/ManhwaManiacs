@@ -32,6 +32,13 @@ void main() {
     expect(d(_p(step: 'done'), onboarding: true).kind, PickerOutcomeKind.home);
   });
 
+  test('a profile that stopped at a step resumes there; a finished save waiting counts as done', () {
+    expect(d(_p(step: '4'), onboarding: true).route, contains('step=4'));
+    expect(d(_p(step: '1'), onboarding: true).route, contains('step=2'), reason: 'step 1 is not shown without Glass');
+    expect(d(_p(step: '6'), onboarding: true).route, contains('step=5'));
+    expect(decidePickerOutcome(profile: _p(step: '3'), runningSkin: 'cinematic', glassAvailable: false, onboardingBuilt: true, pendingDone: true).kind, PickerOutcomeKind.home);
+  });
+
   test('a saved skin that differs restarts only when glass is available', () {
     expect(d(_p(skin: 'glass')).kind, PickerOutcomeKind.home);
     expect(d(_p(skin: 'glass'), glass: true).kind, PickerOutcomeKind.restartSkin);

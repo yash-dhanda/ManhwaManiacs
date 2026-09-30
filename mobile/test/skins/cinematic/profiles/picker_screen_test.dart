@@ -50,7 +50,7 @@ void main() {
     await t.pump(const Duration(milliseconds: 100));
     expect(rig.at, '/profiles', reason: 'the ring is still drawing');
     await settle(t, 2500);
-    expect(rig.at, '/');
+    expect(rig.at, '/welcome?step=2', reason: 'Guest has not begun onboarding: the iris opens it (mobile/20)');
     expect(rig.haptics, contains(HapticEvent.profileSelect));
     expect(rig.container.read(activeProfileProvider)?.name, 'Guest');
   });

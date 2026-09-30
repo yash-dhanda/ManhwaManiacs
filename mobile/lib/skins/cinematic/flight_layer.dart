@@ -26,13 +26,20 @@ class FlightLayer extends ConsumerStatefulWidget {
 }
 
 class _FlightLayerState extends ConsumerState<FlightLayer> with TickerProviderStateMixin {
-  late final AnimationController _fly = AnimationController(vsync: this);
-  late final AnimationController _fade = AnimationController(vsync: this, duration: const Duration(milliseconds: 240));
+  late final AnimationController _fly;
+  late final AnimationController _fade;
   Timer? _failSafe;
   List<FlightItem> _held = const [];
   Map<String, Rect> _targets = const {};
   Set<String> _landed = {};
   bool _fading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fly = AnimationController(vsync: this);
+    _fade = AnimationController(vsync: this, duration: const Duration(milliseconds: 240));
+  }
 
   @override
   void dispose() {

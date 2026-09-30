@@ -43,6 +43,21 @@ const _headlines = {
 };
 const _names = {2: 'Formats', 3: 'Genres', 4: 'Art style', 5: 'Seeds'};
 
+Future<ui.Image?> _resolveImage(String url) {
+  final done = Completer<ui.Image?>();
+  final stream = CachedNetworkImageProvider(url).resolve(ImageConfiguration.empty);
+  late ImageStreamListener l;
+  l = ImageStreamListener((info, _) {
+    if (!done.isCompleted) done.complete(info.image.clone());
+    stream.removeListener(l);
+  }, onError: (Object _, StackTrace? __) {
+    if (!done.isCompleted) done.complete(null);
+    stream.removeListener(l);
+  },);
+  stream.addListener(l);
+  return done.future.timeout(const Duration(milliseconds: 800), onTimeout: () => null);
+}
+
 /// How a step's catalog stands: what the page shows.
 enum _Mode { normal, offline, unreachable }
 
@@ -51,6 +66,10 @@ enum _Mode { normal, offline, unreachable }
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key, this.requestedStep});
   final int? requestedStep;
+
+  /// Resolves a cover to a decoded image for the flight (tests swap it for a preloaded one).
+  @visibleForTesting
+  static Future<ui.Image?> Function(String url) imageLoader = _resolveImage;
 
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -161,21 +180,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   // --- print and Cut to home ---------------------------------------------------------------
 
-  Future<ui.Image?> _load(String url) {
-    final done = Completer<ui.Image?>();
-    final stream = CachedNetworkImageProvider(url).resolve(ImageConfiguration.empty);
-    late ImageStreamListener l;
-    l = ImageStreamListener((info, _) {
-      if (!done.isCompleted) done.complete(info.image.clone());
-      stream.removeListener(l);
-    }, onError: (Object _, StackTrace? __) {
-      if (!done.isCompleted) done.complete(null);
-      stream.removeListener(l);
-    },);
-    stream.addListener(l);
-    return done.future.timeout(const Duration(milliseconds: 800), onTimeout: () => null);
-  }
-
   Future<bool> _armFlight(List<WorldItem> flying) async {
     final flow = ref.read(onboardingFlowProvider.notifier);
     final items = <FlightItem>[];
@@ -184,7 +188,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       final url = it.coverUrl;
       final a = it.available.firstOrNull;
       if (box == null || !box.hasSize || url == null || a == null) continue;
-      final image = await _load(url);
+      final image = await OnboardingScreen.imageLoader(url);
       if (image == null) continue;
       items.add(FlightItem(key: '${a.sourceId}:${a.seriesKey}', image: image, rect: box.localToGlobal(Offset.zero) & box.size));
     }
