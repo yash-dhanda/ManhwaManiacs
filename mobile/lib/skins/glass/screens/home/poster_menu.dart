@@ -7,11 +7,11 @@ import 'package:manhwamaniacs/features/collections/providers/collections_provide
 import 'package:manhwamaniacs/features/library/models/collection.dart' show Collection;
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/context_menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
-import 'package:manhwamaniacs/skins/glass/screens/home/continue_with_recap.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_actions.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -70,7 +70,7 @@ List<GlassMenuEntry> seriesMenuEntries(BuildContext context, WidgetRef ref, Seri
   return [
     ...first,
     if (s.showContinue && s.target != null)
-      GlassMenuEntry(label: 'Continue', onSelected: () => unawaited(continueWithRecap(context, ref, s.target!, from))),
+      GlassMenuEntry(label: 'Continue', onSelected: () => unawaited(continueSeries(context, ref, s.target!, from))),
     GlassMenuEntry(label: 'Details', onSelected: () => unawaited(openSeries(ref, s.sourceId, s.seriesKey, from: from))),
     GlassMenuEntry(label: 'Add to collection', onSelected: () => unawaited(_collectionsMenu(context, ref, s, from))),
     if (s.showMarkRead) GlassMenuEntry(label: 'Mark read', onSelected: () => unawaited(markSeriesRead(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, upTo: s.readNumber))),

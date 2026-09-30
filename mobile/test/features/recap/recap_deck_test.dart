@@ -37,7 +37,7 @@ void main() {
   });
 
   test('events split across chunks through the parser', () async {
-    final raw = 'event: section\ndata: {"kind":"threads","title":"Open threads"}\n\nevent: delta\ndata: {"kind":"threads","text":"Who? Why?"}\n\n';
+    const raw = 'event: section\ndata: {"kind":"threads","title":"Open threads"}\n\nevent: delta\ndata: {"kind":"threads","text":"Who? Why?"}\n\n';
     final bytes = utf8.encode(raw);
     final c = StreamController<List<int>>();
     final out = <SseEvent>[];

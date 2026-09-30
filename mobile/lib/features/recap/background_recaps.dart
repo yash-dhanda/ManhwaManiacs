@@ -10,16 +10,23 @@ import 'package:manhwamaniacs/features/recap/sse.dart';
 const Duration kRecapKeepAlive = Duration(seconds: 60);
 
 class RecapReady {
-  const RecapReady(this.key, this.title, {this.sourceId = '', this.seriesKey = '', this.to = '', this.scope = 'series'});
+  const RecapReady(this.key, this.title,
+      {this.sourceId = '',
+      this.seriesKey = '',
+      this.to = '',
+      this.scope = 'series'});
   final String key, title, sourceId, seriesKey, to, scope;
 }
 
 class BackgroundRecapEntry {
-  BackgroundRecapEntry._(this.key, this.title, this.sourceId, this.seriesKey, this.mature, this.startedAt);
+  BackgroundRecapEntry._(this.key, this.title, this.sourceId, this.seriesKey,
+      this.mature, this.startedAt);
   final String key, title, sourceId, seriesKey;
   final bool mature;
   final DateTime startedAt;
-  StreamSubscription<SseEvent>? _sub;
+  // ignore: cancel_subscriptions
+  StreamSubscription<SseEvent>?
+      _sub; // cancelled in BackgroundRecaps._drop and on done
   Timer? _timer;
   CancelToken? _cancel;
   DeckState deck = const DeckState();
@@ -28,17 +35,21 @@ class BackgroundRecapEntry {
 /// Streams of closed recap sheets, kept running until 60 s after their request started (glass 9.1.3). When `done` arrives the deck is
 /// saved through [RecapCache] and a [RecapReady] is emitted on [readyStream]; past 60 s, or on a profile switch or the 18+ purge, the
 /// request is cancelled and nothing is emitted.
-final backgroundRecapsProvider = Provider<BackgroundRecaps>((ref) {
-  final b = BackgroundRecaps(ref);
-  ref.onDispose(b.dispose);
-  return b;
-}, name: 'backgroundRecaps');
+final backgroundRecapsProvider = Provider<BackgroundRecaps>(
+  (ref) {
+    final b = BackgroundRecaps(ref);
+    ref.onDispose(b.dispose);
+    return b;
+  },
+  name: 'backgroundRecaps',
+);
 
 class BackgroundRecaps {
   BackgroundRecaps(this._ref);
   final Ref _ref;
   final Map<String, BackgroundRecapEntry> _entries = {};
-  final StreamController<RecapReady> _ready = StreamController<RecapReady>.broadcast();
+  final StreamController<RecapReady> _ready =
+      StreamController<RecapReady>.broadcast();
 
   Stream<RecapReady> get readyStream => _ready.stream;
   int get length => _entries.length;
@@ -60,10 +71,13 @@ class BackgroundRecaps {
     DeckState deckSoFar = const DeckState(),
   }) {
     _drop(key);
-    final e = BackgroundRecapEntry._(key, title, sourceId, seriesKey, mature, startedAt).._cancel = cancel;
+    final e = BackgroundRecapEntry._(
+        key, title, sourceId, seriesKey, mature, startedAt)
+      .._cancel = cancel;
     e.deck = deckSoFar;
     _entries[key] = e;
-    final left = kRecapKeepAlive - _ref.read(clockProvider)().difference(startedAt);
+    final left =
+        kRecapKeepAlive - _ref.read(clockProvider)().difference(startedAt);
     if (left <= Duration.zero) {
       _drop(key);
       return;
@@ -78,7 +92,12 @@ class BackgroundRecaps {
           e._timer?.cancel();
           unawaited(e._sub?.cancel());
           unawaited(_ref.read(recapCacheProvider).save(key, deck));
-          if (!_ready.isClosed) _ready.add(RecapReady(key, title, sourceId: sourceId, seriesKey: seriesKey, to: to, scope: scope));
+          if (!_ready.isClosed)
+            _ready.add(RecapReady(key, title,
+                sourceId: sourceId,
+                seriesKey: seriesKey,
+                to: to,
+                scope: scope));
         } else if (e.deck.error != null) {
           _drop(key);
         }
@@ -97,7 +116,10 @@ class BackgroundRecaps {
   }
 
   void cancelWhere(bool Function(BackgroundRecapEntry entry) test) {
-    for (final k in [for (final e in _entries.values) if (test(e)) e.key]) {
+    for (final k in [
+      for (final e in _entries.values)
+        if (test(e)) e.key
+    ]) {
       _drop(k);
     }
   }

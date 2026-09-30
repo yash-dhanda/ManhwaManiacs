@@ -8,9 +8,9 @@ import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
 import 'package:manhwamaniacs/features/home/utils/offline_edition.dart' show clearLastFeeds;
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
-import 'package:manhwamaniacs/skins/glass/screens/home/continue_with_recap.dart';
 import 'package:manhwamaniacs/skins/glass/shell/dock_menus.dart';
 import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show registerPurgeHolder;
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
@@ -44,7 +44,7 @@ VoidCallback registerHomeDockMenu() => registerDockMenu(GlassTab.home, (ref) {
               final ctx = ref.read(glassNavigatorsProvider)?.root.currentContext;
               if (ctx == null) return;
               final size = MediaQuery.sizeOf(ctx);
-              unawaited(continueWithRecap(ctx, ref, HomeContinueTarget.fromContinue(item), Rect.fromCenter(center: Offset(size.width / 2, size.height - 120), width: 88, height: 132)));
+              unawaited(continueSeries(ctx, ref, HomeContinueTarget.fromContinue(item), Rect.fromCenter(center: Offset(size.width / 2, size.height - 120), width: 88, height: 132)));
             },
           ),
       ];

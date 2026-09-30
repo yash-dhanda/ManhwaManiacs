@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/continue_stack.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/rail.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
-import 'package:manhwamaniacs/skins/glass/screens/home/continue_with_recap.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/hero_claim.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_actions.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart';
@@ -84,7 +84,7 @@ class ContinueCard extends ConsumerWidget {
         page: row.lastPage,
         pageCount: row.pageCount,
         onOpen: () => unawaited(openSeries(ref, row.sourceId, row.seriesKey, from: rectOf())),
-        onContinue: () => unawaited(continueWithRecap(context, ref, target, rectOf())),
+        onContinue: () => unawaited(continueSeries(context, ref, target, rectOf())),
         onMore: menu,
         onPreviouslyOn: () => unawaited(openRecap(ref, row.sourceId, row.seriesKey, item.recap?.toKey ?? row.chapterKey, from: rectOf())),
       ),

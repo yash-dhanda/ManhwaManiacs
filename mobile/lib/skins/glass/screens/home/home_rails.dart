@@ -10,7 +10,7 @@ import 'package:manhwamaniacs/features/home/utils/rerank.dart';
 import 'package:manhwamaniacs/features/library/models/ambient.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/glass/screens/home/continue_with_recap.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 
 /// How a rail is drawn.
 enum HomeRailKind { continueStack, posters, ai, circle, chips, sources, numbers }

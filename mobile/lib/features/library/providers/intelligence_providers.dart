@@ -151,4 +151,4 @@ final worldRecommendationsProvider = FutureProvider.autoDispose.family<WorldReco
   final result = await ref.watch(askRepositoryProvider).worldRecommendations(genre: genre);
   if (result.isErr) throw result.error;
   return result.value;
-}, name: 'worldRecommendations');
+}, name: 'worldRecommendations',);
