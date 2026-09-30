@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart' show CupertinoRouteTransitionMixin;
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart' show MaterialRouteTransitionMixin;
 import 'package:flutter/physics.dart' show SpringSimulation;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,10 +29,14 @@ class GlassSwipePage<T> extends Page<T> {
     this.canSwipe = true,
     this.edgeOnly,
     this.maintainState = true,
+    this.instantEnter = false,
   });
 
   final WidgetBuilder builder;
   final bool canSwipe;
+
+  /// Readers: the Dive carries the entrance, so the push itself is instant; the pop still runs the 615 ms transition.
+  final bool instantEnter;
 
   /// Reader pages pass 20: only a drag starting inside that strip pops.
   final double? edgeOnly;
@@ -44,11 +49,14 @@ class GlassSwipePage<T> extends Page<T> {
         canSwipe: canSwipe,
         edgeOnly: edgeOnly,
         maintainState: maintainState,
+        instantEnter: instantEnter,
       );
 }
 
 class GlassSwipePageRoute<T> extends PageRoute<T> with CupertinoRouteTransitionMixin<T> {
-  GlassSwipePageRoute({required this.builder, super.settings, this.canSwipe = true, this.edgeOnly, this.maintainState = true});
+  GlassSwipePageRoute({required this.builder, super.settings, this.canSwipe = true, this.edgeOnly, this.maintainState = true, this.instantEnter = false});
+
+  final bool instantEnter;
 
   final WidgetBuilder builder;
   bool canSwipe;
@@ -64,7 +72,7 @@ class GlassSwipePageRoute<T> extends PageRoute<T> with CupertinoRouteTransitionM
   String? get title => null;
 
   @override
-  Duration get transitionDuration => glassPageDuration();
+  Duration get transitionDuration => instantEnter ? Duration.zero : glassPageDuration();
 
   @override
   Duration get reverseTransitionDuration => glassPageDuration();
@@ -235,4 +243,34 @@ class _GlassBackGestureController<T> {
       navigator.didStopUserGesture();
     }
   }
+}
+
+
+/// The Android page: a Material route whose transition theme is the Glass push and predictive-back card (glass 8.0.5).
+class GlassMaterialPage<T> extends Page<T> {
+  const GlassMaterialPage({super.key, super.name, super.arguments, super.restorationId, required this.builder, this.instantEnter = false, this.maintainState = true});
+  final WidgetBuilder builder;
+  final bool instantEnter;
+  final bool maintainState;
+
+  @override
+  Route<T> createRoute(BuildContext context) => _GlassMaterialRoute<T>(this);
+}
+
+class _GlassMaterialRoute<T> extends PageRoute<T> with MaterialRouteTransitionMixin<T> {
+  _GlassMaterialRoute(GlassMaterialPage<T> page) : super(settings: page);
+
+  GlassMaterialPage<T> get _page => settings as GlassMaterialPage<T>;
+
+  @override
+  Widget buildContent(BuildContext context) => _page.builder(context);
+
+  @override
+  bool get maintainState => _page.maintainState;
+
+  @override
+  Duration get transitionDuration => _page.instantEnter ? Duration.zero : glassPageDuration();
+
+  @override
+  Duration get reverseTransitionDuration => glassPageDuration();
 }

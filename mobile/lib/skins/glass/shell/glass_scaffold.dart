@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
@@ -160,7 +161,9 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
     final bottom = GlassInsets.bottomPlateau(
         frame: frame, safeBottom: safe.bottom, accessory: accessory,);
 
-    return Stack(
+    return Material(
+      type: MaterialType.transparency,
+      child: Stack(
       fit: StackFit.expand,
       children: [
         Center(
@@ -217,7 +220,7 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
             ),
           ),
       ],
-    );
+    ));
   }
 }
 

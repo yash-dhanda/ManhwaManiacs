@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -84,7 +85,9 @@ class _GlassSearchPageState extends ConsumerState<GlassSearchPage> {
     final safeBottom = MediaQuery.paddingOf(context).bottom;
     final fieldRect = Rect.fromLTWH(kFieldInset, size.height - (keyboard > 0 ? keyboard + 12 : safeBottom + kFieldInset) - 50, size.width - 2 * kFieldInset, 50);
     final orb = origin ?? Rect.fromLTWH(size.width - kFieldInset - 50, fieldRect.top, 50, 50);
-    return Stack(
+    return Material(
+      type: MaterialType.transparency,
+      child: Stack(
       fit: StackFit.expand,
       children: [
         FadeTransition(
@@ -99,6 +102,7 @@ class _GlassSearchPageState extends ConsumerState<GlassSearchPage> {
           },
           child: GlassSearchField(
             variant: GlassSearchVariant.bottom,
+            ridesKeyboard: false,
             controller: _q,
             focusNode: _focus,
             onQuery: (q) {
@@ -111,6 +115,7 @@ class _GlassSearchPageState extends ConsumerState<GlassSearchPage> {
           ),
         ),
       ],
+    ),
     );
   }
 }

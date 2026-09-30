@@ -18,8 +18,8 @@ class GlassArrivalReveal extends ConsumerStatefulWidget {
 
 class _GlassArrivalRevealState extends ConsumerState<GlassArrivalReveal>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, value: 1);
+  AnimationController? _ctl;
+  AnimationController get _c => _ctl ??= AnimationController(vsync: this, value: 1);
   Offset? _from;
 
   @override
@@ -39,7 +39,7 @@ class _GlassArrivalRevealState extends ConsumerState<GlassArrivalReveal>
 
   @override
   void dispose() {
-    _c.dispose();
+    _ctl?.dispose();
     super.dispose();
   }
 

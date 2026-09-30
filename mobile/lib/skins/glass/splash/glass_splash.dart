@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/semantics.dart';
@@ -14,7 +13,6 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/brand_mark.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -28,7 +26,6 @@ import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/splash/glass_mark.dart';
 import 'package:manhwamaniacs/skins/glass/splash/splash_targets.dart';
 import 'package:manhwamaniacs/skins/glass/splash/splash_timeline.dart';
-import 'package:manhwamaniacs/skins/glass/type.dart';
 import 'package:manhwamaniacs/skins/skin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -84,6 +81,10 @@ class _GlassLastSeenWriterState extends ConsumerState<GlassLastSeenWriter> with 
 class GlassSplash extends ConsumerStatefulWidget {
   const GlassSplash({super.key, this.kind, this.now});
 
+  /// Set by `GlassSkin.prepare()` (once per boot and per restart) and consumed by the first splash, so the Droplet plays once per
+  /// process; a widget test that pumps `GlassRoot` without a boot sees none.
+  static bool pending = false;
+
   /// Tests force a kind; null decides from the reduced flag, the last-seen time and the switch arrival.
   final SplashKind? kind;
   final DateTime Function()? now;
@@ -93,7 +94,8 @@ class GlassSplash extends ConsumerStatefulWidget {
 }
 
 class _GlassSplashState extends ConsumerState<GlassSplash> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1));
+  AnimationController? _ctl;
+  AnimationController get _c => _ctl ??= AnimationController(vsync: this, duration: const Duration(milliseconds: 1));
   late SplashKind _kind;
   bool _done = false;
   bool _switchArrival = false;
@@ -106,6 +108,11 @@ class _GlassSplashState extends ConsumerState<GlassSplash> with SingleTickerProv
   @override
   void initState() {
     super.initState();
+    if (!GlassSplash.pending && widget.kind == null) {
+      _done = true;
+      return;
+    }
+    GlassSplash.pending = false;
     final prefs = ref.read(sharedPrefsProvider);
     _switchArrival = prefs.containsKey(kSkinT0Key);
     final reduced = ref.read(glassMotionPrefsProvider).reduced;
@@ -195,7 +202,7 @@ class _GlassSplashState extends ConsumerState<GlassSplash> with SingleTickerProv
 
   @override
   void dispose() {
-    _c.dispose();
+    _ctl?.dispose();
     super.dispose();
   }
 

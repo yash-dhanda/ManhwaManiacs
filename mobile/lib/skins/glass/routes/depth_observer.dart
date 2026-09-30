@@ -24,12 +24,21 @@ class GlassDepth {
   final Ref ref;
   final GlassDepthStack stack = GlassDepthStack();
 
+  bool _queued = false;
+
+  /// Publishes the depths after the current frame's build (observers fire while navigators mount; a provider must not change then).
   void _publish() {
-    ref.read(glassDepthProvider.notifier).state = {
-      for (final t in GlassTab.values) t: stack.depthOf(t),
-    };
+    if (_queued) return;
+    _queued = true;
+    Future.microtask(() {
+      _queued = false;
+      try {
+        ref.read(glassDepthProvider.notifier).state = {for (final t in GlassTab.values) t: stack.depthOf(t)};
+      } catch (_) {}
+    });
   }
 
+  /// Clears every branch's levels; the published depths follow after the current build (a provider must not write while building).
   void reset() {
     stack.clear();
     _publish();
@@ -89,7 +98,11 @@ class GlassDepthObserver extends NavigatorObserver {
     final t = _owner.remove(key);
     if (t == null) return;
     depth.stack.pop(t, key);
-    depth.ref.read(glassSnapshotStoreProvider.notifier).drop(key);
+    Future.microtask(() {
+      try {
+        depth.ref.read(glassSnapshotStoreProvider.notifier).drop(key);
+      } catch (_) {}
+    });
     depth._publish();
   }
 

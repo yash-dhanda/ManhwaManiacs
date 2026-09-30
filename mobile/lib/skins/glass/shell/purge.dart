@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:flutter/painting.dart' show PaintingBinding;
-import 'package:flutter/widgets.dart' show VoidCallback;
+import 'package:flutter/widgets.dart' show Route, VoidCallback;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/utils/recent_searches.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
@@ -11,6 +11,8 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/stack/snapshot_store.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/routes/depth_observer.dart';
+import 'package:manhwamaniacs/skins/glass/routes/route_frame.dart';
+import 'package:manhwamaniacs/skins/glass/routes/route_meta.dart';
 import 'package:manhwamaniacs/skins/glass/shell/accessory_controller.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/shell/stack_overview_host.dart';
@@ -102,20 +104,15 @@ class _RealSteps implements PurgeSteps {
   void popMatureLevels() {
     final nav = ref.read(glassNavigatorsProvider);
     if (nav == null) return;
-    final mature = {
-      for (final s in ref.read(glassSnapshotStoreProvider).values)
-        if (s.mature) s.routeKey,
-    };
-    if (mature.isEmpty) return;
-    for (final n in [
-      nav.root.currentState,
-      for (final t in GlassTab.values) nav.branch(t).currentState,
-    ]) {
+    bool mature(Route<dynamic> r) {
+      final k = glassRouteKeyOf(r);
+      final frame = k == null ? null : GlassRouteFrame.captureKeyOf(k);
+      return frame != null && (GlassRouteMetaRegistry.of(frame)?.mature ?? false);
+    }
+
+    for (final n in [nav.root.currentState, for (final t in GlassTab.values) nav.branch(t).currentState]) {
       if (n == null) continue;
-      n.popUntil((r) {
-        final k = glassRouteKeyOf(r);
-        return r.isFirst || k == null || !mature.contains(k);
-      });
+      n.popUntil((r) => r.isFirst || !mature(r));
     }
   }
 

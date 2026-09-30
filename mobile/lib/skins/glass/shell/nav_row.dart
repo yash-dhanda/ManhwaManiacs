@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/widgets.dart';
@@ -106,6 +107,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
   Widget build(BuildContext context) {
     final w =
         MediaQuery.sizeOf(context).width - 2 * GlassFrame.screenMargin(context);
+    final side = math.max(44.0, GlassFrame.hitMin(context));
     final actions = barActions(widget.actions, widget.overflow, context);
     final shapes = <SkinGlassShape>[];
     final aligns = <Alignment>[];
@@ -114,7 +116,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
     switch (widget.leading) {
       case GlassLeading.back:
         shapes.add(SkinGlassShape(
-            size: const Size(44, 44),
+            size: Size(side, side),
             shape: const GlassShape.circle(),
             child: GlassBackButton(
                 inGroup: true,
@@ -124,7 +126,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
       case GlassLeading.profile:
         shapes.add(
           SkinGlassShape(
-            size: const Size(44, 44),
+            size: Size(side, side),
             shape: const GlassShape.circle(),
             child: Center(
                 child: _ProfileLeading(
@@ -171,7 +173,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
       final n = actions.length;
       shapes.add(
         SkinGlassShape(
-          size: Size(n * 44.0 + (n - 1) * 8, 44),
+          size: Size(n * side + (n - 1) * 8, side),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

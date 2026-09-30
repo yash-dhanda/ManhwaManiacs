@@ -56,16 +56,17 @@ class _GlassEffectsLayerState extends ConsumerState<GlassEffectsLayer>
       vsync: this, duration: const Duration(milliseconds: 615),);
   final List<_Flight> _flights = [];
 
+  late final GlassEffectsController _controller = ref.read(glassEffectsProvider);
+
   @override
   void initState() {
     super.initState();
-    ref.read(glassEffectsProvider)._layer = this;
+    _controller._layer = this;
   }
 
   @override
   void dispose() {
-    final c = ref.read(glassEffectsProvider);
-    if (c._layer == this) c._layer = null;
+    if (_controller._layer == this) _controller._layer = null;
     for (final f in _flights) {
       f.controller.dispose();
     }

@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
@@ -127,7 +129,7 @@ class _GlassToolbarState extends ConsumerState<GlassToolbar> {
     }
     children.add(
       SkinGlassShape(
-        size: Size(n * 48.0 + (n - 1) * 8, 48),
+        size: Size(n * math.max(48.0, GlassFrame.hitMin(context)) + (n - 1) * 8, 48),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
