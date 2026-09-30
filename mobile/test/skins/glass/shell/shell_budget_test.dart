@@ -42,7 +42,7 @@ void main() {
   });
 
   testWidgets('§15.7 phone search open: at most 3 layers and 3 shapes', (t) async {
-    final rig = await pumpGlassShell(t);
+    final rig = await pumpGlassShell(t, start: '/library');
     await t.tap(find.byType(GlassSearchOrbBody));
     await _settle(t, 1000);
     final c = _counts(rig);

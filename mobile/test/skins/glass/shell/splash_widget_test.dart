@@ -64,7 +64,7 @@ void main() {
 
   testWidgets('with no boot pending nothing plays (a widget test that pumps the root sees no splash)', (t) async {
     final handle = t.ensureSemantics();
-    await pumpGlassShell(t, settle: false);
+    await pumpGlassShell(t, settle: false, start: '/dev/glass/shell');
     expect(_splashUp(t), isFalse);
     handle.dispose();
   });

@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
+import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/home/repositories/home_repository.dart';
 import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
@@ -64,6 +65,7 @@ class _QuietLib implements LibraryRepository {
 
 /// The overrides a Home screen test needs on top of the shell's: the home repository and a quiet library.
 List<Override> homeOverrides(FakeHomeRepo repo, {DateTime? now, int unread = 0, bool libraryDown = false}) => [
+      homeFeedProvider.overrideWith(HomeFeedController.new),
       homeRepositoryProvider.overrideWithValue(repo),
       libraryRepositoryProvider.overrideWithValue(_QuietLib(down: libraryDown)),
       clockProvider.overrideWithValue(() => now ?? DateTime(2026, 9, 30, 15)),
