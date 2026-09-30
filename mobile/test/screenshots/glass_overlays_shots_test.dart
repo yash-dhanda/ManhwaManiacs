@@ -4,9 +4,9 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/core/platform/gravity.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_gallery.dart';
 import 'package:manhwamaniacs/skins/glass/dev/overlay_sections.dart';
-import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/glass_skin.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/reveal_slots.dart';
@@ -28,7 +28,7 @@ class _Fixed extends GlassInAppPrefsController {
 }
 
 final Override noSensor =
-    glassAccelerometerProvider.overrideWithValue(() => const Stream.empty());
+    gravitySensorProvider.overrideWithValue(() => const Stream.empty());
 
 Override prefs(GlassInAppPrefs p) =>
     glassInAppPrefsProvider.overrideWith(() => _Fixed(p));

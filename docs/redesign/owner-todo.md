@@ -151,3 +151,8 @@ Items only the owner can do, by step.
 - mobile/24: run docs/redesign/proof/mobile-24/device-pass.md on the iPhone (Build iOS IPA through SideStore) and the Android flagship (signed release APK built where the signing key lives). It includes the Audio session (iOS) row in Settings, Diagnostics.
 ## mobile/29
 - Device checks: docs/redesign/proof/mobile-29/device-check.md
+
+## mobile/30
+- Device checks: docs/redesign/proof/mobile-30/device-check.md and 18plus-checklist.md (iPhone through SideStore, the Android flagship with an APK signed where the key lives).
+- The nine Glass art-style crops (`mobile/assets/onboarding/styles/glass/{01..09}-{id}.webp`, each under 40,000 bytes, brief in glass/DESIGN.md 12.7) are still to be supplied through `shared/05`'s intake. Fallback in place: typographic tiles (`kGlassStyleArtBundled` is false).
+- The Glass preview frames (`mobile/assets/skin_previews/glass/000.png` to `035.png`) are captured by `mobile/39`. Fallback in place: the neutral mark on the brand aurora (`kGlassPreviewFramesBundled` is false).

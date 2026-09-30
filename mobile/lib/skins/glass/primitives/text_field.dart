@@ -139,6 +139,12 @@ class GlassTextField extends ConsumerStatefulWidget {
     this.onSheet = false,
     this.forceStates = GlassWidgetStates.none,
     this.semanticsLabel,
+    this.textInputAction,
+    this.autofocus = false,
+    this.textCapitalization = TextCapitalization.none,
+    this.inputFormatters,
+    this.keyboardType,
+    this.counter,
   });
 
   final TextEditingController? controller;
@@ -168,6 +174,18 @@ class GlassTextField extends ConsumerStatefulWidget {
   final bool onSheet;
   final GlassWidgetStates forceStates;
   final String? semanticsLabel;
+
+  /// Overrides the kind's IME action (Login's username moves on with `next`).
+  final TextInputAction? textInputAction;
+  final bool autofocus;
+  final TextCapitalization textCapitalization;
+  final List<TextInputFormatter>? inputFormatters;
+
+  /// Overrides the kind's keyboard (an email field).
+  final TextInputType? keyboardType;
+
+  /// A `mono` counter under the field's trailing edge ("24/30"); null draws none.
+  final String? counter;
 
   @override
   ConsumerState<GlassTextField> createState() => _GlassTextFieldState();
@@ -259,13 +277,16 @@ class _GlassTextFieldState extends ConsumerState<GlassTextField> {
         focusNode: _node,
         enabled: !disabled,
         obscureText: kind == GlassFieldKind.password && _obscure,
-        keyboardType: switch (kind) {
+        autofocus: widget.autofocus,
+        textCapitalization: widget.textCapitalization,
+        inputFormatters: widget.inputFormatters,
+        keyboardType: widget.keyboardType ?? switch (kind) {
           GlassFieldKind.password => TextInputType.visiblePassword,
           GlassFieldKind.url => TextInputType.url,
           GlassFieldKind.number => const TextInputType.numberWithOptions(decimal: true),
           GlassFieldKind.text => TextInputType.text,
         },
-        textInputAction: kind == GlassFieldKind.url || number ? TextInputAction.go : TextInputAction.done,
+        textInputAction: widget.textInputAction ?? (kind == GlassFieldKind.url || number ? TextInputAction.go : TextInputAction.done),
         textAlign: number ? TextAlign.center : TextAlign.start,
         autofillHints: _hints,
         autocorrect: !(widget.username || kind == GlassFieldKind.url || kind == GlassFieldKind.password),
@@ -329,6 +350,7 @@ class _GlassTextFieldState extends ConsumerState<GlassTextField> {
           if (widget.label != null) Padding(padding: const EdgeInsets.only(bottom: 6), child: GlassLabel(widget.label!, role: gt.typeFootnote, wght: 600, color: labelColor)),
           well,
           GlassFieldMessage(text: hasError ? (widget.error ?? "That doesn't look right") : widget.helper, error: hasError),
+          if (widget.counter != null) Padding(padding: const EdgeInsets.only(top: 4), child: Align(alignment: Alignment.centerRight, child: GlassLabel(widget.counter!, role: gt.typeMono, color: gt.colorLabel2))),
         ],
       ),
     );

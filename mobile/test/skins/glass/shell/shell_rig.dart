@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/core/platform/gravity.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
@@ -14,7 +15,6 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
-import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/glass_skin.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -61,7 +61,7 @@ List<Override> shellTestOverrides({int unread = 0, int downloads = 0}) => [
       serverCapabilitiesProvider.overrideWith((ref) async => const ServerCapabilities()),
       appUpdateProvider.overrideWith((ref) async => null),
       packageInfoProvider.overrideWith((ref) async => PackageInfo(appName: 'ManhwaManiacs', packageName: 'app.test', version: '3.5.0', buildNumber: '57')),
-      glassAccelerometerProvider.overrideWithValue(() => const Stream.empty()),
+      gravitySensorProvider.overrideWithValue(() => const Stream.empty()),
     ];
 
 class ShellRig {

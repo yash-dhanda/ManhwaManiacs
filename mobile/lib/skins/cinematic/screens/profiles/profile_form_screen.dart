@@ -11,7 +11,7 @@ import 'package:manhwamaniacs/features/downloads/providers/active_download_queue
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
-import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
+import 'package:manhwamaniacs/features/settings/utils/mature_gate_effects.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/avatar_presets.dart';
@@ -136,8 +136,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     if (existing != null && isActive && existing.matureContentEnabled != _mature) {
       // The gate changed on the active profile: the server value, every gated cache and the device
       // stores (through `matureGateOpenProvider`) follow.
-      ref.invalidate(matureContentProvider);
-      ref.read(matureOverrideChangedProvider)();
+      applyMatureGateChanged(ref);
       if (!_mature) ref.read(cineToastsProvider.notifier).info(matureHiddenToast(name));
     }
     ref.read(cineToastsProvider.notifier).success(savedToast(name));

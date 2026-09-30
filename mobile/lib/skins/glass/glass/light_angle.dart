@@ -3,9 +3,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/platform/gravity.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
-import 'package:sensors_plus/sensors_plus.dart';
 
 /// The pinned light: 135 degrees, down-right (glass 2.4.2 rule 5), in radians.
 const double kLightAngleRest = 135 * math.pi / 180;
@@ -13,18 +13,12 @@ const double _range = 25 * math.pi / 180;
 
 /// Tilt of 30 degrees sweeps the whole 25 degree range.
 const double _tiltFull = 30 * math.pi / 180;
-const double _alpha = 0.15;
 
 /// 135 degrees + 25 degrees x clamp(roll / 30 degrees, -1, 1).
 double lightAngleForRoll(double rollRad) => kLightAngleRest + _range * (rollRad / _tiltFull).clamp(-1.0, 1.0);
 
 /// Hover in a desktop-frame window: 135 degrees + 25 degrees x (x / width - 0.5) x 2.
 double lightAngleForHover(double xFraction) => kLightAngleRest + _range * (xFraction - 0.5) * 2;
-
-/// Test seam for the accelerometer.
-final glassAccelerometerProvider = Provider<Stream<AccelerometerEvent> Function()>(
-  (ref) => () => accelerometerEventStream(samplingPeriod: const Duration(milliseconds: 33)),
-);
 
 /// Pointer x as a fraction of the window width, or null when nothing hovers.
 final glassHoverLightProvider = StateProvider<double?>((ref) => null);
@@ -39,38 +33,22 @@ final glassLightAngleProvider = StreamProvider.autoDispose<double>((ref) {
   if (reduced || !follows) return Stream.value(kLightAngleRest);
   if (hover != null) return Stream.value(lightAngleForHover(hover));
 
-  final source = ref.watch(glassAccelerometerProvider);
+  // One shared accelerometer subscription (core/platform/gravity.dart) feeds the light and the genre field.
+  final gravity = ref.watch(gravityProvider);
   final out = StreamController<double>();
-  StreamSubscription<AccelerometerEvent>? sub;
-  double? smoothed;
-  double? pose;
   double last = kLightAngleRest;
-
-  void start() {
-    sub ??= source().listen((e) {
-      final roll = math.atan2(e.x, math.sqrt(e.y * e.y + e.z * e.z));
-      smoothed = smoothed == null ? roll : smoothed! + _alpha * (roll - smoothed!);
-      pose ??= smoothed;
-      // Quantised to a quarter degree so a resting hand does not rebuild every surface at 30 Hz.
-      final a = (lightAngleForRoll(smoothed! - pose!) * 720 / math.pi).roundToDouble() * math.pi / 720;
-      if (a != last) {
-        last = a;
-        out.add(a);
-      }
-    }, onError: (_) {},);
-  }
-
-  void stop() {
-    sub?.cancel();
-    sub = null;
-  }
-
   out.add(kLightAngleRest);
-  final lifecycle = AppLifecycleListener(onStateChange: (s) => s == AppLifecycleState.resumed ? start() : stop());
-  start();
+  final sub = gravity.stream.listen((g) {
+    final roll = math.asin(g.dx.clamp(-1.0, 1.0));
+    // Quantised to a quarter degree so a resting hand does not rebuild every surface at 30 Hz.
+    final a = (lightAngleForRoll(roll) * 720 / math.pi).roundToDouble() * math.pi / 720;
+    if (a != last) {
+      last = a;
+      out.add(a);
+    }
+  }, onError: (_) {},);
   ref.onDispose(() {
-    lifecycle.dispose();
-    stop();
+    sub.cancel();
     out.close();
   });
   return out.stream;
