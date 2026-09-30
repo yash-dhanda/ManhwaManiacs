@@ -453,11 +453,18 @@ class _FormGalley extends StatelessWidget {
     final c = context.cine;
     return Padding(
       padding: EdgeInsets.all(c.space4),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const CineGalleyHeadline(lineHeight: 48),
-        SizedBox(height: c.space6),
-        for (var i = 0; i < 4; i++) ...[CineGalleyLine(lineHeight: 48, index: i), SizedBox(height: c.space4)],
-      ],),
+      // The skeleton is clipped, never an overflow, on a screen shorter than its lines.
+      child: ClipRect(
+        child: OverflowBox(
+          alignment: Alignment.topCenter,
+          maxHeight: double.infinity,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            const CineGalleyHeadline(lineHeight: 48),
+            SizedBox(height: c.space6),
+            for (var i = 0; i < 4; i++) ...[CineGalleyLine(lineHeight: 48, index: i), SizedBox(height: c.space4)],
+          ],),
+        ),
+      ),
     );
   }
 }

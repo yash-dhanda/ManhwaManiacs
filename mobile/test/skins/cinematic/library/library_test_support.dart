@@ -248,6 +248,7 @@ Future<LibRig> pumpShelf(
   List<Override> extra = const [],
   bool settle = true,
   Key? boundaryKey,
+  Widget Function(Widget child)? frame,
 }) async {
   SharedPreferences.setMockInitialValues(testPrefsDefaults(prefs));
   final p = await SharedPreferences.getInstance();
@@ -285,11 +286,12 @@ Future<LibRig> pumpShelf(
   final router = c.read(skinRouterProvider);
   if (start != '/') router.go(start);
   final app = MaterialApp.router(
+    debugShowCheckedModeBanner: false,
     theme: CinematicSkin.baseTheme.copyWith(platform: platform),
     routerConfig: router,
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale), disableAnimations: reduced),
-      child: CineAppFrame(splash: false, child: child!),
+      child: frame != null ? frame(child!) : CineAppFrame(splash: false, child: child!),
     ),
   );
   await t.pumpWidget(UncontrolledProviderScope(container: c, child: boundaryKey == null ? app : RepaintBoundary(key: boundaryKey, child: app)),);

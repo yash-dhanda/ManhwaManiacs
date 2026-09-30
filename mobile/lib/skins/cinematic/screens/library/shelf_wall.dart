@@ -117,7 +117,7 @@ class ShelfGeometry {
     final content = width - grid.left - grid.right - 16;
     final cell = (content - gap * (perRow - 1)) / perRow;
     final lines = CineReflow.of(context).railCompact ? 2 : 1;
-    final caption = density == ShelfDensity.compact ? 0.0 : 8 + lines * roleLineHeight(context, c.typeTitle) + 2 + roleLineHeight(context, c.typeFolio) + 8;
+    final caption = density == ShelfDensity.compact ? 0.0 : 8 + lines * roleLineHeight(context, c.typeTitle) + 2 + roleLineHeight(context, c.typeFolio) + 9; // 1 px over the measured lines: a scaled line can round up 0.2
     return ShelfGeometry(perRow: perRow, gap: gap, rowGap: wide ? 24 : 16, cellWidth: cell, posterHeight: cell * 1.5, captionHeight: caption);
   }
 }

@@ -24,6 +24,7 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/overlays/whats_new_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_content_mode.dart';
@@ -271,5 +272,5 @@ class _IndexScreenState extends ConsumerState<IndexScreen> {
 
 /// Programmatic scrolls jump under reduced motion.
 abstract final class CineMotionSafe {
-  static Duration of(BuildContext context) => MediaQuery.disableAnimationsOf(context) ? Duration.zero : context.cine.durColumn;
+  static Duration of(BuildContext context) => CineMotion.reduced(context) ? Duration.zero : context.cine.durColumn;
 }

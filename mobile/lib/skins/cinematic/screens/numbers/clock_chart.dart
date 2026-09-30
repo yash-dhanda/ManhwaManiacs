@@ -24,7 +24,7 @@ class ClockChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final folio = CineText.style(context, context.cine.typeFolio)
-        .copyWith(color: CineColors.ink45);
+        .copyWith(color: context.cine.colorInk45);
     const pad = 24.0;
     final side = diameter + pad * 2;
     return Semantics(

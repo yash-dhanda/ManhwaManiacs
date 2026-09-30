@@ -369,10 +369,7 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                   const Kicker('No. 04 — Discover / Sources'),
                   const SizedBox(height: CineSpace.s2),
                   HeadingFocus(
-                    child: Semantics(
-                      header: true,
-                      headingLevel: 1,
-                      child: SetHeading(
+                    child: SetHeading(
                         'Sources',
                         id: 'sources',
                         style: cineText(context, t.typeMasthead),
@@ -380,7 +377,6 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                         level: 1,
                         trigger: SetTrigger.mount,
                       ),
-                    ),
                   ),
                   Text(
                     deck,

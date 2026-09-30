@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/ocr_overlay.dart';
@@ -72,7 +73,7 @@ class DialogueTab extends ConsumerWidget {
         ],),
       );
     }
-    final reduced = MediaQuery.disableAnimationsOf(context);
+    final reduced = CineMotion.reduced(context);
     return ListView(
       padding: EdgeInsets.all(c.space4),
       children: [

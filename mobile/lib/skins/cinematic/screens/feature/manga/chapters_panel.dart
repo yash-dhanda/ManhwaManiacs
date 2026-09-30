@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +24,7 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/chapter_reaction_folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.dart';
@@ -235,7 +237,10 @@ class ChaptersPanel extends ConsumerStatefulWidget {
 }
 
 class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
-  static const double rowExtent = 56;
+  static const double _baseExtent = 56;
+
+  /// A row is 56 at text scale 1.0 and grows with the scale (every height is a minimum, 7 intro).
+  double get rowExtent => _baseExtent * math.max(1.0, MediaQuery.textScalerOf(context).scale(16) / 16 * 0.75);
   final _goToFocus = FocusNode();
   String? _order;
   String? _highlight;
@@ -305,7 +310,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
     if (c != null && c.hasClients) {
       unawaited(c.animateTo(
         (i * rowExtent).clamp(0, c.position.maxScrollExtent),
-        duration: MediaQuery.disableAnimationsOf(context)
+        duration: CineMotion.reduced(context)
             ? const Duration(milliseconds: 150)
             : CineDur.column,
         curve: CineCurves.settle,

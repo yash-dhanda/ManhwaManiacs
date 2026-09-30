@@ -90,7 +90,7 @@ class WeekDots extends StatelessWidget {
                         maxHeight: 14,
                         child: ExcludeSemantics(
                             child: CineRoleText(initials[i], micro,
-                                color: CineColors.ink45,
+                                color: context.cine.colorInk45,
                                 textAlign: TextAlign.center,),),),),
               ],
             ),

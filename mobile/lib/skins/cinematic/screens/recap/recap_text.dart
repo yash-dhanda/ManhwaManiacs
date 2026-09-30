@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:manhwamaniacs/features/recap/providers/recap_providers.dart' show kRecapParagraphToken;
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/recap/drop_cap_paragraph.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -72,7 +73,7 @@ class _RecapTextState extends State<RecapText> with SingleTickerProviderStateMix
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _reduced = MediaQuery.disableAnimationsOf(context);
+    _reduced = CineMotion.reduced(context);
   }
 
   @override

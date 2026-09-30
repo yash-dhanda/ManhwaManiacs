@@ -41,7 +41,7 @@ class CinePlate extends StatelessWidget {
         Positioned(
           right: 8,
           bottom: 8,
-          child: Semantics(label: errorLabel, image: true, child: CineGlyphIcon(CineGlyph.imageBroken, size: 16, color: c.colorInk45)),
+          child: Semantics(label: errorLabel, image: true, child: CineGlyphIcon(CineGlyph.imageBroken, size: 16, color: c.colorInk60)),
         ),
     ],);
   }

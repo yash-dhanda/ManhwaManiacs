@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/edition_p
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
+import 'package:manhwamaniacs/skins/skin_audio.dart' show AudioSessionProbe, audioSessionProbeProvider;
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// Diagnostics (cinematic 8.30.7): rendering numbers, display, device, image cache, the developer
@@ -137,6 +138,7 @@ class _DiagnosticsSectionState extends ConsumerState<DiagnosticsSection> {
         (i) => unawaited(debugSwitchSkin(context, ref, i == 0 ? SkinId.legacy : SkinId.cinematic)),
         description: "A device override for this phone. It never changes the profile's edition. Showing ${running.name}${override == null ? '' : ', override $override'}.",
       ),
+      if (defaultTargetPlatform == TargetPlatform.iOS) _audioSessionRow(ref),
       if (override != null) quietAction('Clear override', () => unawaited(debugSwitchSkin(context, ref, null))),
       if (kDebugMode) ...[
         const SettingsKicker('PROOF (DEBUG BUILDS)'),
@@ -149,3 +151,16 @@ class _DiagnosticsSectionState extends ConsumerState<DiagnosticsSection> {
   }
 }
 
+
+/// One row: the iPhone audio-session category after sound init and after a Hear sample.
+Widget _audioSessionRow(WidgetRef ref) => ValueListenableBuilder<AudioSessionProbe>(
+      valueListenable: ref.watch(audioSessionProbeProvider),
+      builder: (context, p, _) {
+        final ok = p.afterInit == 'ambient' && p.afterHear == 'ambient';
+        return CineCreditsRow(
+          label: 'Audio session (iOS)',
+          value: 'After sound init: ${p.afterInit ?? '–'} · After a sample: ${p.afterHear ?? '–'}',
+          valueColor: ok ? context.cine.colorSet : context.cine.colorProof,
+        );
+      },
+    );

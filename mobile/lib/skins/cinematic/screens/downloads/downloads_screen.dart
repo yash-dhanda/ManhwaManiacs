@@ -204,7 +204,7 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen> with SingleTi
             children: [
               const CineLeaderDial(size: 24),
               SizedBox(width: c.space3),
-              CineRoleText("Checking what's stored…", c.typeCaption, color: c.colorInk60),
+              Flexible(child: CineRoleText("Checking what's stored…", c.typeCaption, color: c.colorInk60)),
             ],
           ),
         );

@@ -29,6 +29,7 @@ import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/chapter_reaction_folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/pass_it_on_sheet.dart';
@@ -195,7 +196,7 @@ class _BookViewState extends ConsumerState<BookView> {
     final target = top + (i - win.start) * kContentsRowExtent - view / 2 + kContentsRowExtent / 2;
     unawaited(_scroll.animateTo(
       target.clamp(0.0, _scroll.position.maxScrollExtent),
-      duration: MediaQuery.disableAnimationsOf(context)
+      duration: CineMotion.reduced(context)
           ? const Duration(milliseconds: 150)
           : CineDur.column,
       curve: CineCurves.settle,

@@ -15,13 +15,7 @@ import 'package:manhwamaniacs/skins/cinematic/shell.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/hub_shell_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/transitions.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/pending_routes.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
-
-// Every id is pending except the series page; finishing a screen deletes its line. mobile/24
-// deletes the set.
-// ignore: constant_identifier_names
-const Set<ScreenId> PENDING = {};
 
 /// The one root navigator key of the Cinematic router.
 final GlobalKey<NavigatorState> cineRootKey = GlobalKey<NavigatorState>(debugLabel: 'cine-root');
@@ -37,18 +31,15 @@ Page<void> _page(_Move move, BuildContext context, GoRouterState state, Widget c
       _Move.reader => cineReaderPage(context, state, child, pageKey: novelPageKeyFor(state)),
     };
 
-String _nameOf(ScreenId id) => PENDING.contains(id) ? '$kPendingRoutePrefix${id.id}' : id.id;
-
-/// A route for [id] at [path] (the pattern by default). Only the pattern carries the name, so the
-/// completeness test finds every pending id exactly once.
+/// A route for [id] at [path] (the pattern by default). Only the pattern carries the name.
 GoRoute _route(ScreenId id, _Move move, {String? path, GlobalKey<NavigatorState>? parent}) {
   final isPattern = path == null || path == id.path;
   return GoRoute(
     path: path ?? id.path,
-    name: isPattern ? _nameOf(id) : null,
+    name: isPattern ? id.id : null,
     parentNavigatorKey: parent,
     pageBuilder: (context, state) =>
-        _page(move, context, state, cineScreenFor(context, id, state, pending: PENDING.contains(id))),
+        _page(move, context, state, cineScreenFor(context, id, state)),
   );
 }
 
@@ -195,9 +186,3 @@ GoRouter buildCinematicRouter(Ref ref) {
   ref.onDispose(router.dispose);
   return router;
 }
-
-@visibleForTesting
-Set<ScreenId> get cinePendingIds => PENDING;
-
-/// Whether [id] still shows the pending screen (screens that branch on another screen existing).
-bool cineIsPending(ScreenId id) => PENDING.contains(id);

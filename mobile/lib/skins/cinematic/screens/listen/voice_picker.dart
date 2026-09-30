@@ -7,8 +7,11 @@ import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
 import 'package:manhwamaniacs/features/novels/services/voice_sample_player.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_dialog.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_search_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/dialog_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/listen/listen_common.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/listen/voice_row.dart';
@@ -215,11 +218,11 @@ class _VoicePickerState extends ConsumerState<VoicePicker> {
 
   void _details(BuildContext context, NovelVoice v) {
     final c = context.cine;
-    unawaited(showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: c.colorPaper2,
-        title: CineRoleText(v.name, c.typeTitle),
+    unawaited(showCineDialog<void>(
+      context,
+      builder: (dialogContext) => CineDialog(
+        title: v.name,
+        onCancel: () => Navigator.of(dialogContext).pop(),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,7 +234,7 @@ class _VoicePickerState extends ConsumerState<VoicePicker> {
             CineRoleText(v.attribution.isEmpty ? 'Not stated' : v.attribution, c.typeUi),
           ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Close'))],
+        actions: [CineButton(label: 'Close', variant: CineButtonVariant.quiet, onPressed: () => Navigator.of(dialogContext).pop())],
       ),
     ),);
   }

@@ -10,8 +10,8 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_date.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/ambient_scope.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
@@ -76,7 +76,7 @@ class _FeatureCoverState extends State<FeatureCover> with SingleTickerProviderSt
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_started && widget.drift && !MediaQuery.disableAnimationsOf(context)) {
+    if (!_started && widget.drift && !CineMotion.reduced(context)) {
       _started = true;
       _c.repeat(reverse: true);
     }
@@ -91,7 +91,7 @@ class _FeatureCoverState extends State<FeatureCover> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final t = cineOf(context);
-    final reduced = MediaQuery.disableAnimationsOf(context);
+    final reduced = CineMotion.reduced(context);
     final image = widget.url == null
         ? ColoredBox(color: t.colorPaper2)
         : Image.network(
@@ -148,7 +148,7 @@ class _CreditsBlockState extends State<CreditsBlock> with SingleTickerProviderSt
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (CineMotion.reduced(context)) {
       _c.value = 1;
       return;
     }
@@ -293,11 +293,10 @@ class FeatureHero extends ConsumerWidget {
       cap: t.typeCover.cap,
       level: 1,
       trigger: SetTrigger.signal,
-      style: TextStyle(
+      style: CineType.style(context, t.typeCover).copyWith(
         fontSize: setHeadingSize(s.title, headline),
         height: wide ? 48 / 44 : 36 / 32,
         color: t.colorInk100,
-        fontWeight: FontWeight.w700,
       ),
     );
     final deckText = s.description == null || s.description!.trim().isEmpty
@@ -311,7 +310,7 @@ class FeatureHero extends ConsumerWidget {
           : Text(deckText,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: t.colorInk60),),
+              style: CineType.style(context, t.typeDeck).copyWith(color: t.colorInk60),),
       credits: credits,
       actions: FeatureActions(
         data: d,

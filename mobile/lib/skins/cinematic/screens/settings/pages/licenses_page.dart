@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -69,7 +70,7 @@ class _LicensesPageState extends State<LicensesPage> {
 
   void _open(String pkg, List<String> paras) {
     unawaited(Navigator.of(context).push(PageRouteBuilder<void>(
-      transitionDuration: MediaQuery.disableAnimationsOf(context) ? context.cine.durReduced : context.cine.durColumn,
+      transitionDuration: CineMotion.reduced(context) ? context.cine.durReduced : context.cine.durColumn,
       pageBuilder: (_, __, ___) => LicenseDetailPage(package: pkg, paragraphs: paras),
       transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
     ),),);

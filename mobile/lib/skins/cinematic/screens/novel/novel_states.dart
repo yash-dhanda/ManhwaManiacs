@@ -12,7 +12,8 @@ const List<int> _ragged = [92, 78, 96, 64, 88];
 /// `galley` bars at the 7.17 ragged widths, Flickering at half strength (opacity 0.775 to 1 over a
 /// 1400 ms half-period; static at 0.8 under reduced motion).
 class NovelLoadingPage extends StatefulWidget {
-  const NovelLoadingPage({super.key, required this.lineHeight, required this.width});
+  const NovelLoadingPage(
+      {super.key, required this.lineHeight, required this.width,});
 
   final double lineHeight, width;
 
@@ -20,8 +21,10 @@ class NovelLoadingPage extends StatefulWidget {
   State<NovelLoadingPage> createState() => _NovelLoadingPageState();
 }
 
-class _NovelLoadingPageState extends State<NovelLoadingPage> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
+class _NovelLoadingPageState extends State<NovelLoadingPage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 1400),);
 
   @override
   void didChangeDependencies() {
@@ -53,18 +56,33 @@ class _NovelLoadingPageState extends State<NovelLoadingPage> with SingleTickerPr
             child: AnimatedBuilder(
               animation: _c,
               builder: (context, _) => Opacity(
-                opacity: reduced ? 0.8 : 0.775 + 0.225 * Curves.easeInOut.transform(_c.value),
-                child: Column(
-                  children: [
-                    for (var i = 0; i < 12; i++)
-                      SizedBox(
-                        height: widget.lineHeight,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: FractionallySizedBox(widthFactor: _ragged[i % _ragged.length] / 100, heightFactor: 0.5, child: ColoredBox(key: const Key('novel-galley-bar'), color: galley)),
-                        ),
-                      ),
-                  ],
+                opacity: reduced
+                    ? 0.8
+                    : 0.775 + 0.225 * Curves.easeInOut.transform(_c.value),
+                // Clipped, never an overflow, on a screen shorter than the 12 lines.
+                child: ClipRect(
+                  child: OverflowBox(
+                    alignment: Alignment.topCenter,
+                    maxHeight: double.infinity,
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < 12; i++)
+                          SizedBox(
+                            height: widget.lineHeight,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: FractionallySizedBox(
+                                  widthFactor:
+                                      _ragged[i % _ragged.length] / 100,
+                                  heightFactor: 0.5,
+                                  child: ColoredBox(
+                                      key: const Key('novel-galley-bar'),
+                                      color: galley,),),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -79,7 +97,11 @@ class _NovelLoadingPageState extends State<NovelLoadingPage> with SingleTickerPr
 /// for a removed or gated book (worded identically for both), the `SLOW DOWN` band with the live
 /// countdown, or "Couldn't load this chapter." with `Back to the book`.
 class NovelFailureView extends StatelessWidget {
-  const NovelFailureView({super.key, required this.error, required this.onRetry, required this.onBack});
+  const NovelFailureView(
+      {super.key,
+      required this.error,
+      required this.onRetry,
+      required this.onBack,});
 
   final AppError error;
   final VoidCallback onRetry, onBack;
@@ -87,7 +109,8 @@ class NovelFailureView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final api = error is ApiError ? error as ApiError : null;
-    final kind = notAvailableKind(error) ?? (api != null && api.isNotFound ? NotAvailableKind.series : null);
+    final kind = notAvailableKind(error) ??
+        (api != null && api.isNotFound ? NotAvailableKind.series : null);
     if (kind != null) return CineNotAvailableNotice(kind: kind);
     if (api != null && api.statusCode == 429) {
       return _Pad(
@@ -135,5 +158,6 @@ class _Pad extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(padding: const EdgeInsets.symmetric(horizontal: 24), child: child);
+  Widget build(BuildContext context) => SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24), child: child,);
 }

@@ -56,13 +56,14 @@ class SourceRow extends ConsumerWidget {
       excludeSemantics: true,
       onTap: onOpen,
       onLongPress: onMenu,
-      child: ChildFocusRing(child: CineLongPress(
+      child: ChildFocusRing(
+        child: CineLongPress(
           onLongPress: onMenu,
           child: InkWell(
             focusNode: focusNode,
             onTap: onOpen,
-            child: SizedBox(
-              height: 64,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 64),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
                 child: Row(

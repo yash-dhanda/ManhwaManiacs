@@ -87,6 +87,7 @@ class CineContrastScope extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!MediaQuery.highContrastOf(context)) return child;
-    return _rescope(child, (c) => c.copyWith(colorInk45: c.colorInk80, colorRule1: c.colorRule2));
+    // `ruleHair` is a built border side: it follows `rule.1` by hand.
+    return _rescope(child, (c) => c.copyWith(colorInk45: c.colorInk80, colorRule1: c.colorRule2, ruleHair: c.ruleStrong));
   }
 }

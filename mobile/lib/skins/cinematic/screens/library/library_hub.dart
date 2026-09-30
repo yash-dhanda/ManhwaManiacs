@@ -464,7 +464,7 @@ class _HubTabRowState extends ConsumerState<HubTabRow> with SingleTickerProvider
                     offset: Offset(0, -0.35 * size),
                     child: Padding(
                       padding: const EdgeInsets.only(left: 2),
-                      child: CineLit(count, CineFace.plexMono, size * 0.72, 12, color: widget.updatesError ? c.colorProof : c.colorInk45),
+                      child: CineLit(count, CineFace.plexMono, 10, 12, color: widget.updatesError ? c.colorProof : c.colorInk45),
                     ),
                   ),
               ],),

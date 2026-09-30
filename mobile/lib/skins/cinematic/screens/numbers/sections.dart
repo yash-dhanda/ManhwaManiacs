@@ -151,7 +151,7 @@ class MostRead extends ConsumerWidget {
                       child: Text('${i + 1}',
                           style: CineText.style(context, t.typeNumeral)
                               .copyWith(
-                                  color: CineColors.ink45,
+                                  color: context.cine.colorInk45,
                                   fontSize: 24,
                                   height: 1,
                                   fontFeatures: const [
@@ -248,7 +248,7 @@ class RecentSessionsSliver extends ConsumerWidget {
                     child: s.startedAt == null
                         ? null
                         : CineRoleText(sessionTime(s.startedAt!), t.typeFolio,
-                            color: CineColors.ink45,),),
+                            color: context.cine.colorInk45,),),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

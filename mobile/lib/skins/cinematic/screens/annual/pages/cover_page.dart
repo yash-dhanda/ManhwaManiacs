@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/models/shareable.dart';
 import 'package:manhwamaniacs/features/library/utils/numbers_rules.dart';
@@ -48,6 +49,10 @@ class AnnualCoverPage extends ConsumerWidget {
     final a = env.annual;
     final covers = mosaicCovers(env);
     final issue = issueNumber(a.year, a.availableYears);
+    final coverTitle =
+        env.annual.topSeries.isEmpty ? '' : env.annual.topSeries.first.title;
+    void openCover() =>
+        _openLightbox(context, ref, covers.first.url, coverTitle);
     final mosaic = LayoutBuilder(
       builder: (context, box) {
         final side = box.maxWidth;
@@ -55,42 +60,51 @@ class AnnualCoverPage extends ConsumerWidget {
           alignment: Alignment.topCenter,
           child: Padding(
             padding: EdgeInsets.only(
-                top: MediaQuery.viewPaddingOf(context).top + 56,),
-            child: RawGestureDetector(
-              gestures: {
-                LongPressGestureRecognizer:
-                    GestureRecognizerFactoryWithHandlers<
-                        LongPressGestureRecognizer>(
-                  () => LongPressGestureRecognizer(
-                      duration: const Duration(milliseconds: 450),),
-                  (r) => r.onLongPress = covers.isEmpty
-                      ? null
-                      : () => _openLightbox(
-                          context,
-                          ref,
-                          covers.first.url,
-                          env.annual.topSeries.isEmpty
-                              ? ''
-                              : env.annual.topSeries.first.title,),
-                ),
-              },
-              child: SizedBox(
-                width: side,
-                height: side,
-                child: GridView.count(
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 3,
-                  padding: EdgeInsets.zero,
-                  children: [
-                    for (var i = 0; i < 9; i++)
-                      i < covers.length
-                          ? Hero(
-                              tag: i == 0 ? 'annual-cover' : 'annual-cover-$i',
-                              child: AnnualArt(
+              top: MediaQuery.viewPaddingOf(context).top + 56,
+            ),
+            child: Semantics(
+              label: covers.isEmpty ? null : 'Cover of $coverTitle',
+              customSemanticsActions: covers.isEmpty
+                  ? null
+                  : {
+                      const CustomSemanticsAction(label: 'View cover'):
+                          openCover,
+                    },
+              child: RawGestureDetector(
+                // The long press has a labelled alternative (cinematic 14.8): a `View cover` action on
+                // the mosaic's own node.
+                excludeFromSemantics: true,
+                gestures: {
+                  LongPressGestureRecognizer:
+                      GestureRecognizerFactoryWithHandlers<
+                          LongPressGestureRecognizer>(
+                    () => LongPressGestureRecognizer(
+                      duration: const Duration(milliseconds: 450),
+                    ),
+                    (r) => r.onLongPress = covers.isEmpty ? null : openCover,
+                  ),
+                },
+                child: SizedBox(
+                  width: side,
+                  height: side,
+                  child: GridView.count(
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 3,
+                    padding: EdgeInsets.zero,
+                    children: [
+                      for (var i = 0; i < 9; i++)
+                        i < covers.length
+                            ? Hero(
+                                tag:
+                                    i == 0 ? 'annual-cover' : 'annual-cover-$i',
+                                child: AnnualArt(
                                   url: covers[i].url,
-                                  duo: parseAmbientHex(covers[i].duo),),)
-                          : const ColoredBox(color: CineColors.paper1),
-                  ],
+                                  duo: parseAmbientHex(covers[i].duo),
+                                ),
+                              )
+                            : const ColoredBox(color: CineColors.paper1),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -106,29 +120,45 @@ class AnnualCoverPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (a.partial)
-            CineRoleText('YOUR YEAR SO FAR', t.typeKicker,
-                color: CineColors.ink60,),
-          AnnualTitle('The Annual', italicOf(t.typeCover),
-              id: 'cover', level: 1,),
+            CineRoleText(
+              'YOUR YEAR SO FAR',
+              t.typeKicker,
+              color: CineColors.ink60,
+            ),
+          AnnualTitle(
+            'The Annual',
+            italicOf(t.typeCover),
+            id: 'cover',
+            level: 1,
+          ),
           const SizedBox(height: 4),
           Semantics(
             label: '${a.year}',
             excludeSemantics: true,
-            child: TypedHeadline('${a.year}',
-                style: CineText.style(context, t.typeNumeral).copyWith(
-                    color: CineColors.ink100,
-                    fontFeatures: const [
-                      FontFeature.liningFigures(),
-                      FontFeature.tabularFigures(),
-                    ],),
-                cap: t.typeNumeral.cap,),
+            child: TypedHeadline(
+              '${a.year}',
+              style: CineText.style(context, t.typeNumeral).copyWith(
+                color: CineColors.ink100,
+                fontFeatures: const [
+                  FontFeature.liningFigures(),
+                  FontFeature.tabularFigures(),
+                ],
+              ),
+              cap: t.typeNumeral.cap,
+            ),
           ),
           const SizedBox(height: 8),
-          CineRoleText(coverDeck(env.profileName), t.typeDeck,
-              color: CineColors.ink80,),
+          CineRoleText(
+            coverDeck(env.profileName),
+            t.typeDeck,
+            color: CineColors.ink80,
+          ),
           const SizedBox(height: 8),
-          CineRoleText(issueLine(issue, a.until ?? env.now), t.typeFolio,
-              color: CineColors.ink60,),
+          CineRoleText(
+            issueLine(issue, a.until ?? env.now),
+            t.typeFolio,
+            color: CineColors.ink60,
+          ),
         ],
       ),
     );
@@ -137,7 +167,11 @@ class AnnualCoverPage extends ConsumerWidget {
 
 /// A 450 ms long press on the art opens the Lightbox (cinematic 7.30) on the top cover.
 void _openLightbox(
-    BuildContext context, WidgetRef ref, String url, String title,) {
+  BuildContext context,
+  WidgetRef ref,
+  String url,
+  String title,
+) {
   unawaited(
     openCineLightbox(
       context,

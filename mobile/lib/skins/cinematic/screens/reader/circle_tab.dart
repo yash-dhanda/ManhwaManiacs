@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/circle/utils/reaction_kinds.dart';
 import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/circle_poll_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/pass_it_on_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/reaction_stamps.dart' show reactionGlyph;
@@ -80,7 +81,7 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
-    final reduced = MediaQuery.disableAnimationsOf(context);
+    final reduced = CineMotion.reduced(context);
     final m = row.member;
     Widget detail() => switch (row.kind) {
           CircleRowKind.label => _FadeIn(

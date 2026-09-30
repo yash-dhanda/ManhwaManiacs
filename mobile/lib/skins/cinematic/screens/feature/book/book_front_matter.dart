@@ -3,9 +3,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/ambient_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/drop_cap_paragraph.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -103,7 +103,7 @@ class _BookFrontMatterState extends State<BookFrontMatter> with SingleTickerProv
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (CineMotion.reduced(context)) {
       _c.value = 1;
     } else {
       _timer = Timer(const Duration(milliseconds: 600), () {

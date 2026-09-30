@@ -190,4 +190,22 @@ void main() {
     expect(digit('1'), findsOneWidget);
     expect(t.getSemantics(find.byType(SetHeading)).label, text);
   });
+
+  // mobile/24 F2 (cinematic 10.1): 120 ms rule lead + at most 560 ms of stagger + the 640 ms letter
+  // move + 100 ms of slack: every letter is at opacity 1 within 1,420 ms.
+  testWidgets('an inView heading scrolled in is fully set within 1,420 ms; a second pump shows it at rest', (t) async {
+    final ctl = ScrollController();
+    await t.pumpWidget(_host(c, SingleChildScrollView(controller: ctl, child: Column(children: [const SizedBox(height: 3000), _h(text: 'Recently read'), const SizedBox(height: 3000)]))));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
+    expect(_letters(t).every((v) => v == 0), isTrue);
+    ctl.jumpTo(2800);
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 1420));
+    expect(_letters(t).every((v) => v == 1), isTrue);
+    await t.pumpWidget(_host(c, const SizedBox()));
+    await t.pumpWidget(_host(c, ListView(children: [_h(text: 'Recently read')])));
+    await t.pump();
+    expect(find.byType(Opacity), findsNothing);
+  });
 }

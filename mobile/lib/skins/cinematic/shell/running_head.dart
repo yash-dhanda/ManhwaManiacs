@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_icon.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/scrim_head.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -85,7 +86,7 @@ class CineRunningHead extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: AnimatedOpacity(
             opacity: titleVisible ? 1 : 0,
-            duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : fade,
+            duration: CineMotion.reduced(context) ? Duration.zero : fade,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               Focus(
                 focusNode: titleFocusNode,

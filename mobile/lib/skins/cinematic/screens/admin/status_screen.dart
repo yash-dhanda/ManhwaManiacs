@@ -27,7 +27,9 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
-String _message(Object e) => e is AppError ? (e is ApiError ? e.message : e.userMessage) : 'Something went wrong.';
+String _message(Object e) => e is AppError
+    ? (e is ApiError ? e.message : e.userMessage)
+    : 'Something went wrong.';
 
 /// System status (`/admin/status`, cinematic 8.31): backend health, the update checker, recent
 /// checks and per-source failures, all read from endpoints the server already exposes.
@@ -51,7 +53,8 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
-    _sources = Timer.periodic(kSourcesPollEvery, (_) => ref.invalidate(sourcesHealthProvider));
+    _sources = Timer.periodic(
+        kSourcesPollEvery, (_) => ref.invalidate(sourcesHealthProvider),);
   }
 
   @override
@@ -65,12 +68,15 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
     super.dispose();
   }
 
-  FocusNode _node(String id) => _nodes.putIfAbsent(id, () => FocusNode(debugLabel: 'source-$id'));
+  FocusNode _node(String id) =>
+      _nodes.putIfAbsent(id, () => FocusNode(debugLabel: 'source-$id'));
 
   void _walk(int delta) {
     if (_order.isEmpty) return;
     final at = _order.indexWhere((k) => _nodes[k]?.hasFocus ?? false);
-    final next = at < 0 ? (delta > 0 ? 0 : _order.length - 1) : (at + delta).clamp(0, _order.length - 1);
+    final next = at < 0
+        ? (delta > 0 ? 0 : _order.length - 1)
+        : (at + delta).clamp(0, _order.length - 1);
     _nodes[_order[next]]?.requestFocus();
   }
 
@@ -108,7 +114,8 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
               const CineMasthead(
                 kicker: 'ADMINISTRATION',
                 title: 'System status',
-                deck: 'Backend health, the update checker, per-source failures and update runs.',
+                deck:
+                    'Backend health, the update checker, per-source failures and update runs.',
                 id: 'status',
               ),
               if (actions != null) actions,
@@ -116,16 +123,20 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
           ),
         );
 
-    Widget frame(Widget Function(double top) body, {Widget Function(Widget scaffold)? keys}) {
+    Widget frame(Widget Function(double top) body,
+        {Widget Function(Widget scaffold)? keys,}) {
       final scaffold = CineScaffold(
         tabletLayout: true,
         firstRunNote: false,
-        body: Builder(builder: (context) => body(CineScaffoldScope.topExtentOf(context))),
+        body: Builder(
+            builder: (context) => body(CineScaffoldScope.topExtentOf(context)),),
       );
       return keys == null ? scaffold : keys(scaffold);
     }
 
-    if (resolving) return frame((top) => SingleChildScrollView(child: masthead(top)));
+    if (resolving) {
+      return frame((top) => SingleChildScrollView(child: masthead(top)));
+    }
 
     if (!admin) {
       return frame(
@@ -141,7 +152,8 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
                   kicker: 'ADMINISTRATORS ONLY',
                   headline: 'System status is instance-wide.',
                   deck: 'Ask the owner to check it.',
-                  primary: CineNoticeAction('Back to Tonight', () => context.go(Routes.tonight())),
+                  primary: CineNoticeAction(
+                      'Back to Tonight', () => context.go(Routes.tonight()),),
                 ),
               ),
             ],
@@ -157,7 +169,8 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
     final sources = ref.watch(sourcesHealthProvider);
     final checking = ref.watch(manualCheckProvider);
 
-    final backend = poll.valueOrNull?.health ?? deriveBackendHealth(loading: true);
+    final backend =
+        poll.valueOrNull?.health ?? deriveBackendHealth(loading: true);
     final summary = summarise(
       backend: backend,
       checkerSettings: settings.valueOrNull,
@@ -167,15 +180,23 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
       now: now,
     );
     _order = [for (final r in summary.sources) r.id];
-    final refetching = poll.isLoading || settings.isLoading || runs.isLoading || sources.isLoading;
+    final refetching = poll.isLoading ||
+        settings.isLoading ||
+        runs.isLoading ||
+        sources.isLoading;
     final nextPoll = poll.valueOrNull?.nextPollAt;
     final left = nextPoll == null
         ? kBackendPollEvery.inSeconds
-        : ((nextPoll.difference(now).inMilliseconds + 999) ~/ 1000).clamp(0, kBackendPollEvery.inSeconds);
+        : ((nextPoll.difference(now).inMilliseconds + 999) ~/ 1000)
+            .clamp(0, kBackendPollEvery.inSeconds);
 
     final actions = Padding(
       padding: EdgeInsets.only(top: c.space2),
-      child: Row(
+      // A Wrap, not a Row: at large text the live label drops under the button.
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        runSpacing: c.space1,
         children: [
           CineButton(
             label: 'Refresh all',
@@ -184,12 +205,16 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
             onPressed: () => unawaited(_refreshAll()),
             leadingGlyph: refetching ? null : 0xE036,
           ),
-          if (refetching) Padding(padding: EdgeInsets.only(left: c.space1), child: const CineLeaderDial(size: 16, showAfter: Duration.zero, semanticLabel: 'Refreshing')),
-          const Spacer(),
+          if (refetching)
+            const CineLeaderDial(
+                size: 16,
+                showAfter: Duration.zero,
+                semanticLabel: 'Refreshing',),
           Semantics(
             label: 'Live, refreshes in $left seconds',
             excludeSemantics: true,
-            child: CineRoleText('LIVE · $left S', c.typeFolio, color: c.colorInk60),
+            child: CineRoleText('LIVE · $left S', c.typeFolio,
+                color: c.colorInk60,),
           ),
         ],
       ),
@@ -205,58 +230,66 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
         child: scaffold,
       ),
       (top) => CinePullToReprint(
-          onRefresh: _refreshAll,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                masthead(top, actions: actions),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(side, 0, side, c.space12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SummaryBanner(summary: summary),
-                      BackendCard(health: backend, loading: poll.isLoading && !poll.hasValue),
-                      CheckerCard(
-                        health: summary.checker,
-                        now: now,
-                        loading: settings.isLoading && !settings.hasValue,
-                        checking: checking,
-                        checkNowFocus: _checkNow,
-                        onCheckNow: () => unawaited(_checkNowRun()),
-                        error: settings.hasError && !settings.hasValue ? _message(settings.error!) : null,
-                        onRetry: () => ref.invalidate(updateSettingsProvider),
-                      ),
-                      RecentChecks(
-                        runs: runs.valueOrNull ?? const [],
-                        now: now,
-                        loading: runs.isLoading && !runs.hasValue,
-                        error: runs.hasError && !runs.hasValue ? _message(runs.error!) : null,
-                        onRetry: () => ref.invalidate(updateRunsProvider),
-                      ),
-                      SourceHealthList(
-                        rows: summary.sources,
-                        now: now,
-                        loading: sources.isLoading && !sources.hasValue,
-                        nodeFor: _node,
-                        error: sources.hasError && !sources.hasValue ? _message(sources.error!) : null,
-                        onRetry: () => ref.invalidate(sourcesHealthProvider),
-                      ),
-                      SizedBox(height: c.space8),
-                      CineRoleText(
-                        'Everything on this page is read from endpoints the server already exposes; nothing here changes a setting except Check now.',
-                        c.typeCaption,
-                        color: c.colorInk60,
-                      ),
-                    ],
-                  ),
+        onRefresh: _refreshAll,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              masthead(top, actions: actions),
+              Padding(
+                padding: EdgeInsets.fromLTRB(side, 0, side, c.space12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SummaryBanner(summary: summary),
+                    BackendCard(
+                        health: backend,
+                        loading: poll.isLoading && !poll.hasValue,),
+                    CheckerCard(
+                      health: summary.checker,
+                      now: now,
+                      loading: settings.isLoading && !settings.hasValue,
+                      checking: checking,
+                      checkNowFocus: _checkNow,
+                      onCheckNow: () => unawaited(_checkNowRun()),
+                      error: settings.hasError && !settings.hasValue
+                          ? _message(settings.error!)
+                          : null,
+                      onRetry: () => ref.invalidate(updateSettingsProvider),
+                    ),
+                    RecentChecks(
+                      runs: runs.valueOrNull ?? const [],
+                      now: now,
+                      loading: runs.isLoading && !runs.hasValue,
+                      error: runs.hasError && !runs.hasValue
+                          ? _message(runs.error!)
+                          : null,
+                      onRetry: () => ref.invalidate(updateRunsProvider),
+                    ),
+                    SourceHealthList(
+                      rows: summary.sources,
+                      now: now,
+                      loading: sources.isLoading && !sources.hasValue,
+                      nodeFor: _node,
+                      error: sources.hasError && !sources.hasValue
+                          ? _message(sources.error!)
+                          : null,
+                      onRetry: () => ref.invalidate(sourcesHealthProvider),
+                    ),
+                    SizedBox(height: c.space8),
+                    CineRoleText(
+                      'Everything on this page is read from endpoints the server already exposes; nothing here changes a setting except Check now.',
+                      c.typeCaption,
+                      color: c.colorInk60,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
+      ),
     );
   }
 }

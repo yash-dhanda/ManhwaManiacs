@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/settings/utils/settings_search.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_search_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_registry.dart';
@@ -131,7 +132,7 @@ class _SettingsSearchPageState extends State<SettingsSearchPage> {
 Future<SettingsRowRef?> openSettingsSearch(BuildContext context, List<SettingsRowRef> rows, List<SettingsSectionDef> sections) {
   return Navigator.of(context).push<SettingsRowRef>(
     PageRouteBuilder<SettingsRowRef>(
-      transitionDuration: MediaQuery.disableAnimationsOf(context) ? const Duration(milliseconds: 150) : context.cine.durLine,
+      transitionDuration: CineMotion.reduced(context) ? const Duration(milliseconds: 150) : context.cine.durLine,
       reverseTransitionDuration: const Duration(milliseconds: 150),
       pageBuilder: (_, __, ___) => SettingsSearchPage(rows: rows, sections: sections),
       transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
