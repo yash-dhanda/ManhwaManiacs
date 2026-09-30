@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,6 +26,8 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/press_run.dart';
+import 'package:manhwamaniacs/skins/cinematic/share/share_card_capture.dart';
+import 'package:manhwamaniacs/skins/cinematic/share/share_card_model.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/skin_haptics.dart';
@@ -169,6 +171,10 @@ class CineTestEnv {
       clockProvider.overrideWithValue(() => now ?? DateTime(2026, 9, 29, 10)),
       skinHapticsProvider.overrideWithValue(haptics),
       shareDelegateProvider.overrideWithValue(share),
+      cardRendererProvider.overrideWithValue((context, t, f) async {
+        renders++;
+        return cardBytes ?? kTinyPng;
+      }),
       mediaStoreProvider.overrideWithValue(media),
       authedCoverProvider
           .overrideWithValue((url, {width}) => MemoryImage(kTinyPng)),
@@ -332,7 +338,21 @@ List<String> allSemanticsLabels(WidgetTester tester) {
     });
   }
 
-  final root = tester.binding.rootPipelineOwner.semanticsOwner?.rootSemanticsNode;
+  final root = RendererBinding.instance.renderViews.first.owner?.semanticsOwner?.rootSemanticsNode;
   if (root != null) walk(root);
   return out;
+}
+
+/// [renderShareCard] under test: the capture needs frames and real engine time, so pump while
+/// it runs.
+Future<Uint8List> captureCard(WidgetTester tester, BuildContext ctx, ShareTemplate t, ShareFormat f) async {
+  Uint8List? out;
+  Object? err;
+  unawaited(renderShareCard(ctx, t, f).then((b) => out = b, onError: (Object e) => err = e));
+  for (var i = 0; i < 400 && out == null && err == null; i++) {
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 5)));
+  }
+  if (err != null) throw err!;
+  return out!;
 }

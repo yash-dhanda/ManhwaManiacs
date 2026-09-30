@@ -15,7 +15,6 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/authed_cover.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/streak_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/press_run.dart';
-import 'package:manhwamaniacs/skins/cinematic/share/share_card_capture.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card_model.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -210,10 +209,10 @@ Future<void> writeCards(WidgetTester tester, {required String dir}) async {
   final templates = shareTemplates(ShareInput.annual(annualFixture(), 'Yash'));
   for (final t in templates) {
     for (final f in ShareFormat.values) {
-      final bytes = await tester.runAsync(() => renderShareCard(ctx, t, f));
+      final bytes = await captureCard(tester, ctx, t, f);
       final file = File('$dir/card-${t.id.fileKey}-${f.name}.png');
       file.parent.createSync(recursive: true);
-      file.writeAsBytesSync(bytes!);
+      file.writeAsBytesSync(bytes);
     }
   }
 }

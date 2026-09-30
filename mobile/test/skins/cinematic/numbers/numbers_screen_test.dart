@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
-import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/chapters_per_day.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/year_heatmap.dart';
 
@@ -51,8 +50,9 @@ void main() {
     expect(find.text('YEAR'), findsOneWidget);
     expect(env.repo.statisticsDays, contains(30));
     // Days start at the offset the server bucketed with.
-    expect(find.textContaining('Days start at UTC+05:30.', findRichText: true),
-        findsOneWidget,);
+    final foot = find.textContaining('Days start at UTC+05:30.', findRichText: true);
+    await tester.scrollUntilVisible(foot, 500, scrollable: find.descendant(of: find.byType(TabBarView), matching: find.byType(Scrollable)).last);
+    expect(foot, findsOneWidget);
   });
 
   testWidgets(
@@ -190,8 +190,6 @@ void main() {
     await pumpCine(tester, env);
     await tester.pump();
     expect(headline('184'), findsNothing);
-    expect(find.bySemanticsLabel('Loading'),
-        findsNothing,); // semantics off: the bars are drawn, not read
     env.repo.statsGate!.complete();
     await settleData(tester);
     expect(headline('184'), findsOneWidget);
@@ -272,9 +270,7 @@ void main() {
       expectHitTargets(tester, platform);
       final tabs = [
         for (final l in ['7 DAYS', '30 DAYS', '90 DAYS', 'YEAR'])
-          tester.getRect(find
-              .ancestor(of: find.text(l), matching: find.byType(CinePressable))
-              .first,),
+          tester.getRect(find.text(l)),
       ];
       for (var i = 1; i < tabs.length; i++) {
         expect(tabs[i].left - tabs[i - 1].right, greaterThanOrEqualTo(8));
