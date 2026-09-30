@@ -19,9 +19,10 @@ import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/progress.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/status_capsule.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/arrival_toast.dart';
 import 'package:manhwamaniacs/skins/glass/shell/dock_geometry.dart';
-import 'package:manhwamaniacs/skins/glass/shell/melt.dart';
 import 'package:manhwamaniacs/skins/glass/shell/sidebar_geometry.dart';
+import 'package:manhwamaniacs/skins/glass/shell/skin_switch_flow.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/splash/glass_mark.dart';
 import 'package:manhwamaniacs/skins/glass/splash/splash_targets.dart';
@@ -191,17 +192,13 @@ class _GlassSplashState extends ConsumerState<GlassSplash> with SingleTickerProv
 
   /// "Switched to Glass" with a 10 s draining rim and Undo (which switches back with no alert).
   void _arrivalToast(SharedPreferences prefs) {
+    final t0 = prefs.getInt(kSkinT0Key);
     final from = takeSkinArrival(prefs);
-    if (from == null) return;
+    if (from == null || !glassArrivalToastDue(from, t0, DateTime.now())) return;
     final back = skinIdFromName(from);
     if (back == null) return;
-    showGlassToast(
-      ref,
-      GlassToastSpec(
-        'Switched to Glass',
-        undo: () => unawaited(switchSkinFrom(context, ref, to: back, undoable: false, outgoing: () => playMelt(ref))),
-      ),
-    );
+    // Undo is an explicit choice, so the icon rule applies (glass 12.2); no alert.
+    showGlassToast(ref, GlassToastSpec('Switched to Glass', undo: () => unawaited(runSkinSwitch(context, ref, back))));
   }
 
   @override
