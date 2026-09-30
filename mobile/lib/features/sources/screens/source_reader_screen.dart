@@ -12,9 +12,11 @@ import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provi
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/library/providers/library_read_state.dart';
 import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_controller.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_series_navigation.dart';
@@ -129,8 +131,12 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
   Future<ReaderChapter?> _loadChapter(String chapterId) async {
     try {
       return await _readAlive(sourceReaderChapterProvider(_keyFor(chapterId)));
-    } catch (_) {
+    } catch (e) {
       // A seam that cannot be crossed leaves the edge prompt as the way over.
+      final wait = rateLimitWait(e);
+      if (wait != null && mounted) {
+        ref.read(readerRateLimitedUntilProvider.notifier).state = DateTime.now().add(wait);
+      }
       return null;
     }
   }
@@ -318,6 +324,9 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
       ref.invalidate(sourceReaderChapterProvider(key));
     }
 
+    final frames = ref.watch(readerFramesProvider);
+    void back() => context.go(RoutePaths.sourceSeriesDetail(widget.sourceId, widget.seriesId));
+
     return chapterAsync.when(
       // Only the FIRST resolution may show the skeleton or the error state.
       // A change to one of the provider's dependencies (the downloads scope,
@@ -329,11 +338,15 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
       // door. What is on screen stays on screen until the new value lands.
       skipLoadingOnReload: true,
       skipError: true,
-      loading: () => const ReaderSkeleton(),
+      loading: () => frames.loading?.call(context) ?? const ReaderSkeleton(),
       error: (error, _) {
         final appError = error is AppError
             ? error
             : UnknownError(message: error.toString(), cause: error);
+        final skinFailure = frames.failure;
+        if (skinFailure != null) {
+          return skinFailure(context, ReaderFailure(error: appError, noPages: false, retry: retry, back: back));
+        }
         return ReaderErrorState(
           error: appError,
           onRetry: retry,
@@ -344,6 +357,10 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
       },
       data: (chapter) {
         if (chapter.pages.isEmpty) {
+          final skinFailure = frames.failure;
+          if (skinFailure != null) {
+            return skinFailure(context, ReaderFailure(error: null, noPages: true, retry: retry, back: back));
+          }
           return ReaderErrorState(
             error: const UnknownError(
               message: 'This chapter has no pages.',
@@ -403,6 +420,12 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
           child: ReaderContent(
             key: ValueKey(
               '${widget.sourceId}:${widget.seriesId}:${widget.chapterId}',
+            ),
+            identity: (
+              sourceId: widget.sourceId,
+              seriesKey: widget.seriesId,
+              chapterKey: widget.chapterId,
+              origin: ReaderOrigin.source,
             ),
             feed: feedController.feed,
             scrollStorageKey:

@@ -15,6 +15,12 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 ///
 /// One instance per reader screen; fires at most once per route chapter.
 class NextChapterAutoQueue {
+  /// [saveNextEnabled] is the per-profile "Save the next chapter while I read" switch (default
+  /// on); null reads `saveNextProvider`, which is what `mobile/17` wired.
+  NextChapterAutoQueue({this.saveNextEnabled});
+
+  final bool Function()? saveNextEnabled;
+
   /// Guards the eager next-chapter queue so it fires once per chapter shown,
   /// not on every unrelated rebuild of the screen.
   String? _prefetchedFor;
@@ -57,8 +63,7 @@ class NextChapterAutoQueue {
   }) async {
     if (ref.read(activeDownloadsScopeIdProvider) == null) return;
     // The per-profile "Save the next chapter while I read" switch (default on).
-    // TODO(mobile/12): the engine's `saveNextEnabled` input replaces this provider read.
-    if (!ref.read(saveNextProvider)) return;
+    if (!(saveNextEnabled?.call() ?? ref.read(saveNextProvider))) return;
 
     if (ref.read(preferencesProvider).wifiOnlyDownloads) {
       final onWifi = await ref.read(networkConnectivityProvider).isOnWifi();

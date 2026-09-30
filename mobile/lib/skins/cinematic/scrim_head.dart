@@ -38,3 +38,40 @@ Widget scrimHeadLayer({required double fade, Color? tint}) => Positioned(
       bottom: -fade,
       child: LayoutBuilder(builder: (context, c) => scrimHead(c.maxHeight - fade, fade, tint: tint)),
     );
+
+/// `scrim.sole` (cinematic 2.8.3): the head scrim turned over. Black at .88 flat over the bar's
+/// laid-out height at the bottom edge, then the 13 eased stops rising from .88 to 0 over [fade].
+Widget scrimSole(double bar, double fade, {Color? tint}) {
+  final base = tint == null ? const Color(0xFF000000) : Color.lerp(const Color(0xFF000000), tint, 0.25)!;
+  final total = bar + fade;
+  final b = total <= 0 ? 0.0 : bar / total;
+  final f = total <= 0 ? 1.0 : fade / total;
+  const stops = CineScrim.kScrimStops;
+  const alpha = CineScrim.kScrimAlpha;
+  return IgnorePointer(
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          stops: [0, b, for (var i = 12; i >= 0; i--) b + (1 - stops[i]) * f],
+          colors: [
+            base.withValues(alpha: 0.88),
+            base.withValues(alpha: 0.88),
+            for (var i = 12; i >= 0; i--) base.withValues(alpha: 0.88 * alpha[i]),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// The bar paints its scrim behind its content: `Positioned(top: -fade, left: 0, right: 0, bottom: 0)`
+/// in a `Stack(clipBehavior: Clip.none)`.
+Widget scrimSoleLayer({required double fade, Color? tint}) => Positioned(
+      top: -fade,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: LayoutBuilder(builder: (context, c) => scrimSole(c.maxHeight - fade, fade, tint: tint)),
+    );

@@ -5,6 +5,9 @@ import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
 /// across a tablet.
 const double maxContentWidth = 768;
 
+/// The cap of a tablet strip column (mobile/12 E2); the legacy path never sets one.
+const double kTabletStripMax = 860;
+
 /// Ratio a page is laid out at until its real size is known. Chosen to look
 /// like a print page rather than a webtoon strip, because guessing tall would
 /// leave a screenful of empty backdrop under every short page.

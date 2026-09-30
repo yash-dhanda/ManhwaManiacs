@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -11,15 +12,20 @@ import 'package:manhwamaniacs/core/platform/system_ui.dart';
 import 'package:manhwamaniacs/core/utils/haptics.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_provider.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_page_image.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_surface_slots.dart';
+import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
+import 'package:manhwamaniacs/features/reader/engine/zoom_math.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_filter_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
+import 'package:manhwamaniacs/features/reader/utils/auto_scroll_speed.dart';
 import 'package:manhwamaniacs/features/reader/utils/page_extents.dart';
 import 'package:manhwamaniacs/features/reader/utils/page_layout.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
@@ -108,7 +114,11 @@ class ReaderEngineView extends ConsumerStatefulWidget {
     this.onReachedFeedEnd,
     this.onReachedFeedStart,
     this.pageExtents,
+    this.options = const ReaderEngineOptions(),
   });
+
+  /// Presentation and input parameters of the skin; the defaults are the legacy reader.
+  final ReaderEngineOptions options;
 
   /// Publishes the state and receives the commands; owned by the caller.
   final ReaderEngine controller;
@@ -200,6 +210,7 @@ class ReaderEngineView extends ConsumerStatefulWidget {
 }
 
 class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
+    with TickerProviderStateMixin, WidgetsBindingObserver
     implements ReaderEngineHost {
   late final ReaderScrollController _scrollController;
   late final ReaderPageExtents _pageExtents;
@@ -271,9 +282,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   /// The chapter this reader was opened at. Scroll offsets are persisted
   /// relative to it and only while it is the one on screen; everything else
   /// resumes through per-chapter reading progress.
-  late final String _anchorChapterId = widget.feed.chapters.isEmpty
-      ? ''
-      : widget.feed.chapters.first.id;
+  late final String _anchorChapterId =
+      widget.feed.chapters.isEmpty ? '' : widget.feed.chapters.first.id;
 
   /// One adjacent-chapter request in flight per direction. A failed request
   /// simply lets the next scroll event try again, which cannot spin: every
@@ -300,6 +310,27 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   var _lockInitialized = false;
   var _prefetchedThrough = 0;
   var _volumeKeyNavEnabled = false;
+
+  // Skin options: taps, pinch, pan, auto-hide, completion.
+  late TapClassifier _tapClassifier = _newClassifier();
+  final DateTime _openedAt = DateTime.now();
+  final ValueNotifier<double> _panX = ValueNotifier<double>(0);
+  final ValueNotifier<bool> _pinching = ValueNotifier<bool>(false);
+  final Map<int, Offset> _pointers = {};
+  ({double distance, double zoom})? _pinchStart;
+  Offset _pinchFocal = Offset.zero;
+  ({Offset position, DateTime at})? _tapDown;
+  AnimationController? _zoomController;
+  double _downAccum = 0;
+  double _upAccum = 0;
+  DateTime _suppressAutoHideUntil = DateTime.fromMillisecondsSinceEpoch(0);
+  final Set<String> _completedNotified = {};
+  FurtherElsewhere? _furtherElsewhere;
+
+  TapClassifier _newClassifier() => TapClassifier(
+        doubleTapWindow: widget.options.doubleTapWindow,
+        doubleTapSlop: widget.options.doubleTapSlop,
+      );
 
   // Tap-detection state
   bool _isScrolling = false;
@@ -330,6 +361,9 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   void initState() {
     super.initState();
     widget.controller.attach(this);
+    if (widget.options.lifecycleVolumeKeys) {
+      WidgetsBinding.instance.addObserver(this);
+    }
     _position = _positionAt(
       widget.feed.flatIndexOf(
             chapterId: _anchorChapterId,
@@ -375,10 +409,23 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       oldWidget.controller.detach(this);
       widget.controller.attach(this);
     }
+    if (oldWidget.options.doubleTapWindow != widget.options.doubleTapWindow ||
+        oldWidget.options.doubleTapSlop != widget.options.doubleTapSlop) {
+      _tapClassifier = _newClassifier();
+    }
     if (!identical(oldWidget.feed, widget.feed)) {
       _reconcileFeed(oldWidget.feed, widget.feed);
     }
     _publish();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!widget.options.lifecycleVolumeKeys) return;
+    unawaited(
+      _syncVolumeKeyNav(
+          state == AppLifecycleState.resumed && _defaults.volumeKeyNavigation,),
+    );
   }
 
   /// Fold a grown or trimmed feed into the geometry **without moving what the
@@ -521,6 +568,10 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _zoomController?.dispose();
+    _panX.dispose();
+    _pinching.dispose();
     _stopAutoScroll();
     _flushProgress();
     _scrollSaveTimer?.cancel();
@@ -613,12 +664,32 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   /// still ask what the OUTGOING feed's dividers were — by the time it runs,
   /// [widget.feed] is already the new one.
   Map<int, double> _seamInsetsFor(ReaderFeed feed) {
-    if (feed.isSingleChapter) return const {};
+    final options = widget.options;
+    final top = options.topBandExtent > 0 &&
+        widget.onPreviousChapter != null &&
+        !feed.isEmpty;
+    if (feed.isSingleChapter && !top) return const {};
     return {
+      if (top) 0: options.topBandExtent,
       for (var c = 1; c < feed.chapters.length; c++)
-        feed.startOfChapter(c): kChapterSeamExtent,
+        feed.startOfChapter(c): options.seamExtent,
     };
   }
+
+  /// The width the strip column takes on a screen [screenWidth] wide: the screen, narrowed to
+  /// the tablet column and the side margins, and never past the geometry's 768 px cap.
+  double _columnWidth(double screenWidth) {
+    final o = widget.options;
+    var w = screenWidth;
+    if (o.columnWidth != null) w = math.min(w, o.columnWidth!);
+    w = w * (1 - 2 * o.sideMarginPct / 100);
+    return o.columnWidth == null && o.sideMarginPct == 0
+        ? screenWidth
+        : math.min(w, _maxWidth);
+  }
+
+  /// The strip column's cap: 768 for the legacy path, 860 once a tablet column width is set.
+  double get _maxWidth => widget.options.columnWidth != null ? kTabletStripMax : maxContentWidth;
 
   ReaderDefaults get _defaults => ref.read(readerDefaultsProvider);
 
@@ -644,6 +715,12 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   /// native interception on dispose so leaving the reader restores normal
   /// volume behaviour everywhere else in the app.
   Future<void> _syncVolumeKeyNav(bool enabled) async {
+    // The skin's reader turns pages with the volume keys on Android only (K08).
+    if (enabled &&
+        widget.options.lifecycleVolumeKeys &&
+        (!mounted || Theme.of(context).platform != TargetPlatform.android)) {
+      return;
+    }
     if (enabled == _volumeKeyNavEnabled) return;
     _volumeKeyNavEnabled = enabled;
 
@@ -651,7 +728,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (bridge == null) return;
 
     if (enabled) {
-      _volumeKeySubscription ??= bridge.volumeKeyEvents.listen(_handleVolumeKey);
+      _volumeKeySubscription ??=
+          bridge.volumeKeyEvents.listen(_handleVolumeKey);
       await bridge.setVolumeKeyNavEnabled(true);
     } else {
       await bridge.setVolumeKeyNavEnabled(false);
@@ -662,7 +740,17 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   void _handleVolumeKey(VolumeKeyDirection direction) {
     if (!mounted) return;
-    _pageBy(forward: direction == VolumeKeyDirection.down);
+    final forward = direction == VolumeKeyDirection.down;
+    if (widget.options.lifecycleVolumeKeys) {
+      // The skin's rule: one page, glided, page.turn.
+      _haptics.selection();
+      _jumpToPage(
+          (_position.page + (forward ? 1 : -1))
+              .clamp(1, math.max(1, _position.pageCount)),
+          glide: true,);
+      return;
+    }
+    _pageBy(forward: forward);
   }
 
   Future<void> _releaseWakelock() async {
@@ -687,7 +775,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     return _metricsFor(
       direction: defaults.direction,
       fitMode: defaults.fitMode,
-      viewportWidth: _containerWidth ?? MediaQuery.sizeOf(context).width,
+      viewportWidth:
+          _columnWidth(_containerWidth ?? MediaQuery.sizeOf(context).width),
       viewportHeight: _containerHeight ?? MediaQuery.sizeOf(context).height,
       zoom: ref.read(readerUiProvider).zoomLevel,
     );
@@ -705,10 +794,12 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       _pageExtents,
       direction: defaults.direction,
       fitMode: defaults.fitMode,
-      viewportWidth: _containerWidth ?? MediaQuery.sizeOf(context).width,
+      viewportWidth:
+          _columnWidth(_containerWidth ?? MediaQuery.sizeOf(context).width),
       viewportHeight: _containerHeight ?? MediaQuery.sizeOf(context).height,
       zoom: ref.read(readerUiProvider).zoomLevel,
       leadingInsets: _seamInsetsFor(feed),
+      maxWidth: _maxWidth,
     );
   }
 
@@ -733,7 +824,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         cached.fitMode == fitMode &&
         cached.viewportWidth == viewportWidth &&
         cached.viewportHeight == viewportHeight &&
-        cached.zoom == zoom) {
+        cached.zoom == zoom &&
+        cached.maxWidth == _maxWidth) {
       return cached;
     }
     return _cachedMetrics = ReaderPageMetrics.of(
@@ -744,6 +836,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       viewportHeight: viewportHeight,
       zoom: zoom,
       leadingInsets: _seamInsets,
+      maxWidth: _maxWidth,
     );
   }
 
@@ -911,8 +1004,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     final pending = Map<int, double>.of(_pageExtents.pendingRatios);
     final metrics = _metrics;
     final hasClients = _scrollController.hasClients;
-    final scrollOffset =
-        hasClients ? _scrollController.position.pixels : 0.0;
+    final scrollOffset = hasClients ? _scrollController.position.pixels : 0.0;
 
     var correction = 0.0;
     if (hasClients) {
@@ -978,6 +1070,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _pageFraction = _readingFraction(scrollOffset, feedPosition);
 
     _finishChaptersPassed(feedPosition);
+    _notifyCompleted(feedPosition, scrollOffset, viewport);
     _scheduleProgressSave(feedPosition);
     _scheduleScrollSave(scrollOffset, feedPosition);
     _maybeAutoNextChapter(atEnd);
@@ -985,6 +1078,41 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _prefetchUpcoming(flatPage);
     // Last, so the state carries what this pass started (a feed extension).
     _publish();
+  }
+
+  /// Fires [ReaderEngine.chapterCompleted] once per chapter per open, when the chapter's last
+  /// page has scrolled up past 60 % of the viewport (cinematic 8.14.6): the page's end is above
+  /// the line 60 % of the way down the screen. Looks at the reading chapter and the one above
+  /// it, which is all a scroll callback can have crossed.
+  void _notifyCompleted(
+      ReaderFeedPosition position, double scrollOffset, double viewport,) {
+    if (!_initialScrollApplied || widget.feed.isEmpty) return;
+    final feed = widget.feed;
+    final metrics = _metrics;
+    for (final c in [position.chapterIndex, position.chapterIndex - 1]) {
+      if (c < 0 || c >= feed.chapters.length) continue;
+      final chapter = feed.chapters[c];
+      if (chapter.pages.isEmpty || _completedNotified.contains(chapter.id)) {
+        continue;
+      }
+      final lastFlat = feed.startOfChapter(c) + chapter.pages.length;
+      final end =
+          metrics.offsetToPage(lastFlat) + metrics.extentAt(lastFlat - 1);
+      // The very end of the strip counts too: a chapter with no footer below it can never lift
+      // its last page past the line, however far the reader scrolls.
+      final atEnd = c == feed.chapters.length - 1 &&
+          isAtScrollEnd(scrollOffset: scrollOffset, maxScroll: _scrollController.position.maxScrollExtent);
+      if (end - scrollOffset <= viewport * 0.6 || atEnd) _emitCompleted(chapter);
+    }
+  }
+
+  void _emitCompleted(ReaderChapter chapter) {
+    if (!_completedNotified.add(chapter.id)) return;
+    widget.controller.emitChapterCompleted((
+      sourceId: chapter.sourceId ?? '',
+      seriesKey: chapter.seriesId,
+      chapterKey: chapter.id,
+    ),);
   }
 
   /// The 1-based flat page being read with the top of the viewport at
@@ -1318,9 +1446,32 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _tapDownPosition = details.localPosition;
   }
 
+  /// A tap for the skin's [ReaderEngineOptions.tapHandler], after the same scroll cooldown the
+  /// built-in rules use. The classifier tells single from double with the skin's window and slop.
+  void _dispatchSkinTap(Offset pos) {
+    final handler = widget.options.tapHandler;
+    if (handler == null) return;
+    final sinceLastScroll =
+        DateTime.now().difference(_lastScrollEnd).inMilliseconds;
+    if (_isScrolling || sinceLastScroll < _postScrollCooldownMs) return;
+    final kind = _tapClassifier.classify(pos, DateTime.now());
+    handler(
+      ReaderTapInfo(
+        position: pos,
+        size: Size(_containerWidth ?? 400, _containerHeight ?? 800),
+        kind: kind,
+      ),
+    );
+  }
+
   void _handleTap() {
     final pos = _tapDownPosition;
     if (pos == null) return;
+    if (widget.options.tapHandler != null) {
+      // Slop-based taps arrive from the pointer tracker instead.
+      if (widget.options.tapSlop == null) _dispatchSkinTap(pos);
+      return;
+    }
 
     // Ignore if we're scrolling or within the cooldown after a scroll ends
     final sinceLastScroll =
@@ -1415,7 +1566,14 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         page -
         1;
     final target = _metrics.offsetToPage(flat + 1);
+    _suppressAutoHideUntil =
+        DateTime.now().add(const Duration(milliseconds: 600));
     _scrollController.jumpTo(target.clamp(0.0, position.maxScrollExtent));
+    // The ruler dragged to the end completes the chapter.
+    if (widget.options.autoHide != null && !widget.feed.isEmpty) {
+      final chapter = widget.feed.chapters[_position.chapterIndex];
+      if (page >= chapter.pages.length) _emitCompleted(chapter);
+    }
     // Scrubbing is deliberate interaction with the controls, so keep them up
     // instead of letting the auto-hide close the bar mid-drag.
     _scheduleHideControls();
@@ -1437,21 +1595,233 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
+    final autoHide = widget.options.autoHide;
     if (notification is ScrollStartNotification &&
         notification.dragDetails != null) {
       _isScrolling = true;
       // The reader has taken over. Abandon a restore that is still homing in
       // rather than yanking them back to the saved offset mid-drag.
       _abandonPendingRestore();
-      // Hide controls when the user starts dragging
-      if (ref.read(readerUiProvider).controlsVisible) {
+      // Hide controls when the user starts dragging. The skin's thresholds
+      // replace this: it hides after a cumulative 24 px down, shows after 56 px up.
+      if (autoHide == null && ref.read(readerUiProvider).controlsVisible) {
         _hideControls();
       }
     } else if (notification is ScrollEndNotification) {
       _isScrolling = false;
       _lastScrollEnd = DateTime.now();
+      widget.controller.topPull.value = 0;
+      widget.controller.endPull.value = 0;
+    } else if (notification is ScrollUpdateNotification) {
+      if (autoHide != null) {
+        _trackAutoHide(notification.scrollDelta ?? 0, autoHide);
+      }
+      if (notification.dragDetails != null) {
+        final m = notification.metrics;
+        final over = m.pixels > m.maxScrollExtent
+            ? m.pixels - m.maxScrollExtent
+            : m.pixels < m.minScrollExtent
+                ? m.pixels - m.minScrollExtent
+                : 0.0;
+        widget.controller.endPull.value = over > 0 ? over : 0;
+        widget.controller.topPull.value = over < 0 ? -over : 0;
+      }
+    } else if (notification is OverscrollNotification &&
+        notification.dragDetails != null) {
+      final o = notification.overscroll;
+      if (o > 0) {
+        widget.controller.endPull.value += o;
+      } else if (o < 0) {
+        widget.controller.topPull.value += -o;
+      }
     }
     return false;
+  }
+
+  /// Cumulative scroll since the last direction change: hide after [ReaderAutoHide.hidePx]
+  /// forward, show after [ReaderAutoHide.showPx] back; never inside the grace of a chapter's
+  /// first moments, and never after a programmatic jump the reader asked for.
+  void _trackAutoHide(double delta, ReaderAutoHide autoHide) {
+    if (delta == 0 || !autoHide.onScroll) return;
+    if (DateTime.now().isBefore(_suppressAutoHideUntil)) return;
+    final visible = ref.read(readerUiProvider).controlsVisible;
+    if (delta > 0) {
+      _upAccum = 0;
+      _downAccum += delta;
+      if (visible &&
+          _downAccum >= autoHide.hidePx &&
+          DateTime.now().difference(_openedAt) >= autoHide.grace) {
+        _downAccum = 0;
+        _hideControls();
+      }
+    } else {
+      _downAccum = 0;
+      _upAccum += -delta;
+      if (!visible && _upAccum >= autoHide.showPx) {
+        _upAccum = 0;
+        _showControls();
+      }
+    }
+  }
+
+  // ── Zoom, pinch and pan ───────────────────────────────────────────────────
+
+  /// Sets the zoom to [target] keeping the content point under [focal] fixed: the vertical offset
+  /// is corrected in the same frame the new zoom lays out in, and the pan follows the same rule.
+  void _applyZoom(double target, Offset focal) {
+    final ui = ref.read(readerUiProvider);
+    final old = ui.zoomLevel;
+    if ((target - old).abs() < 1e-6) return;
+    final hasClients = _scrollController.hasClients;
+    final offset = hasClients ? _scrollController.offset : 0.0;
+    final width =
+        _columnWidth(_containerWidth ?? MediaQuery.sizeOf(context).width);
+    final center = (_containerWidth ?? width) / 2;
+    ref.read(readerUiProvider.notifier).setZoom(target, clamp: false);
+    if (hasClients) {
+      _scrollController.applyExtentCorrection(
+          focalOffset(offset, focal.dy, old, target) - offset,);
+    }
+    if (target > 1) {
+      final u = (focal.dx - center - _panX.value) / old;
+      final pan = focal.dx - center - u * target;
+      final limit = (target - 1) * width / 2;
+      _panX.value = pan.clamp(-limit, limit);
+    } else {
+      _panX.value = 0;
+    }
+  }
+
+  void _animateZoom(double to, Offset focal, Duration duration, Curve curve) {
+    _zoomController?.dispose();
+    final from = ref.read(readerUiProvider).zoomLevel;
+    if (duration == Duration.zero || (to - from).abs() < 1e-6) {
+      _zoomController = null;
+      _applyZoom(to, focal);
+      return;
+    }
+    final controller = AnimationController(vsync: this, duration: duration);
+    _zoomController = controller;
+    controller.addListener(() {
+      if (!mounted) return;
+      _applyZoom(from + (to - from) * curve.transform(controller.value), focal);
+    });
+    unawaited(controller.forward());
+  }
+
+  @override
+  void pinchZoom(
+    Offset focal,
+    double scale,
+    double velocity, {
+    required double min,
+    required double max,
+    double? snapStep,
+    bool rubberBand = true,
+    bool released = false,
+  }) {
+    _zoomController?.dispose();
+    _zoomController = null;
+    if (!released) {
+      _applyZoom(
+          rubberBand
+              ? rubberScale(scale, min: min, max: max)
+              : clampZoom(scale, min: min, max: max),
+          focal,);
+      return;
+    }
+    final settled =
+        snapZoom(clampZoom(scale, min: min, max: max), snapStep ?? 0.1);
+    _animateZoom(
+        settled, focal, const Duration(milliseconds: 160), Curves.easeOut,);
+  }
+
+  @override
+  void zoomAt(Offset point, double scale,
+      {required Duration duration,
+      required Curve curve,
+      SpringDescription? spring,}) {
+    final target = clampZoom(scale);
+    // ponytail: a spring (Glass) runs as a critically damped curve of its settle time; exact
+    // spring integration when Glass needs the overshoot.
+    final d = spring != null ? const Duration(milliseconds: 380) : duration;
+    _animateZoom(
+        target, point, d, spring != null ? Curves.easeOutCubic : curve,);
+  }
+
+  void _onPointerDown(PointerDownEvent e) {
+    _pointers[e.pointer] = e.localPosition;
+    _tapDown = _pointers.length == 1
+        ? (position: e.localPosition, at: DateTime.now())
+        : null;
+    if (widget.options.pinch && _pointers.length == 2) {
+      final pts = _pointers.values.toList();
+      _pinchStart = (
+        distance: (pts[0] - pts[1]).distance,
+        zoom: ref.read(readerUiProvider).zoomLevel,
+      );
+      _pinchFocal = (pts[0] + pts[1]) / 2;
+      _pinching.value = true;
+    }
+  }
+
+  void _onPointerMove(PointerMoveEvent e) {
+    if (!_pointers.containsKey(e.pointer)) return;
+    _pointers[e.pointer] = e.localPosition;
+    final down = _tapDown;
+    final slop = widget.options.tapSlop;
+    if (down != null &&
+        slop != null &&
+        (e.localPosition - down.position).distance > slop) {
+      _tapDown = null;
+    }
+    final start = _pinchStart;
+    if (start != null && _pointers.length >= 2) {
+      final pts = _pointers.values.take(2).toList();
+      final dist = (pts[0] - pts[1]).distance;
+      _pinchFocal = (pts[0] + pts[1]) / 2;
+      if (start.distance > 0) {
+        pinchZoom(_pinchFocal, start.zoom * dist / start.distance, 0,
+            min: kZoomMin, max: kZoomMax,);
+      }
+    } else if (widget.options.pinch && _pointers.length == 1) {
+      final ui = ref.read(readerUiProvider);
+      if (ui.zoomLevel > 1) {
+        final limit =
+            (ui.zoomLevel - 1) * _columnWidth(_containerWidth ?? 0) / 2;
+        _panX.value = (_panX.value + e.delta.dx).clamp(-limit, limit);
+      }
+    }
+  }
+
+  void _onPointerUp(PointerUpEvent e) {
+    final wasTap = _pointers.length == 1 ? _tapDown : null;
+    _pointers.remove(e.pointer);
+    _endPinchIfDone();
+    final slop = widget.options.tapSlop;
+    if (wasTap != null &&
+        slop != null &&
+        DateTime.now().difference(wasTap.at) <
+            const Duration(milliseconds: 350)) {
+      _dispatchSkinTap(e.localPosition);
+    }
+    _tapDown = null;
+  }
+
+  void _onPointerCancel(PointerCancelEvent e) {
+    _pointers.remove(e.pointer);
+    _tapDown = null;
+    _endPinchIfDone();
+  }
+
+  void _endPinchIfDone() {
+    if (_pinchStart != null && _pointers.length < 2) {
+      final zoom = ref.read(readerUiProvider).zoomLevel;
+      _pinchStart = null;
+      pinchZoom(_pinchFocal, zoom, 0,
+          min: kZoomMin, max: kZoomMax, released: true,);
+      _pinching.value = false;
+    }
   }
 
   // ── Bookmark ──────────────────────────────────────────────────────────────
@@ -1521,17 +1891,21 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   ReaderNextState _nextState() {
     final feed = widget.feed;
-    if (feed.chapters.length - 1 > _position.chapterIndex ||
-        widget.onNextChapter != null) {
+    // Stitched below already: nothing to wait for.
+    if (feed.chapters.length - 1 > _position.chapterIndex) {
       return ReaderNextState.ready;
     }
     if (_loadingNext) return ReaderNextState.loading;
-    if (_extendCompleted &&
+    final hasNext = widget.onNextChapter != null;
+    // A next chapter exists but would not stitch in (the band offers Try again), as opposed to
+    // the last chapter of a series, which has nothing to fail to load.
+    if (hasNext &&
+        _extendCompleted &&
         feed.chapters.isNotEmpty &&
         feed.chapters.last.id == _extendFromLastId) {
       return ReaderNextState.failed;
     }
-    return ReaderNextState.none;
+    return hasNext ? ReaderNextState.ready : ReaderNextState.none;
   }
 
   List<ReaderAnchor> _bookmarksFor(String chapterId) {
@@ -1571,6 +1945,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       autoScrollSpeed: ui.autoScrollSpeed,
       chromeVisible: ui.controlsVisible,
       locked: ui.isLocked,
+      furtherElsewhere: _furtherElsewhere,
     );
   }
 
@@ -1578,6 +1953,89 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   @override
   void seekToPage(int page) => _seekToPage(page);
+
+  @override
+  void jumpToPage(int page, {bool glide = false}) =>
+      _jumpToPage(page, glide: glide);
+
+  void _jumpToPage(int page, {required bool glide}) {
+    if (!glide) {
+      _seekToPage(page);
+      return;
+    }
+    if (!_scrollController.hasClients) return;
+    _abandonPendingRestore();
+    _suppressAutoHideUntil =
+        DateTime.now().add(const Duration(milliseconds: 600));
+    final flat = widget.feed.startOfChapter(_position.chapterIndex) + page - 1;
+    final target = _metrics
+        .offsetToPage(flat + 1)
+        .clamp(0.0, _scrollController.position.maxScrollExtent);
+    unawaited(
+      _scrollController.animateTo(
+        target,
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 240),
+        curve: Curves.easeOutCubic,
+      ),
+    );
+  }
+
+  @override
+  void scrollByViewport(double fraction,
+      {required Duration duration, required Curve curve,}) {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    final target = (position.pixels + position.viewportDimension * fraction)
+        .clamp(0.0, position.maxScrollExtent);
+    if (duration == Duration.zero) {
+      _scrollController.jumpTo(target);
+    } else {
+      unawaited(_scrollController.animateTo(target,
+          duration: duration, curve: curve,),);
+    }
+  }
+
+  @override
+  void seekToChapter(int chapterIndex) {
+    if (!_scrollController.hasClients ||
+        chapterIndex < 0 ||
+        chapterIndex >= widget.feed.chapters.length) {
+      return;
+    }
+    _abandonPendingRestore();
+    _suppressAutoHideUntil =
+        DateTime.now().add(const Duration(milliseconds: 600));
+    final target =
+        _metrics.offsetToPage(widget.feed.startOfChapter(chapterIndex) + 1);
+    _scrollController
+        .jumpTo(target.clamp(0.0, _scrollController.position.maxScrollExtent));
+  }
+
+  @override
+  void setAutoScrollSpeedX(double speedX) => ref
+      .read(readerUiProvider.notifier)
+      .setAutoScrollSpeed(autoScrollPxPerSecondX(
+          speedX, _containerHeight ?? MediaQuery.sizeOf(context).height,),);
+
+  @override
+  void reportServerProgress({
+    required String chapterKey,
+    required double? chapterNumber,
+    required int lastPage,
+    required bool advanced,
+  }) {
+    final next = advanced
+        ? null
+        : FurtherElsewhere(
+            chapterKey: chapterKey,
+            chapterNumber: chapterNumber,
+            lastPage: lastPage,);
+    if (next == _furtherElsewhere) return;
+    _furtherElsewhere = next;
+    _publish();
+  }
 
   @override
   void pageBy({required bool forward}) => _pageBy(forward: forward);
@@ -1657,8 +2115,9 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     final direction = defaults.direction;
     final fitMode = defaults.fitMode;
     final contentWidthFactor = zoom == 1 ? 1.0 : zoom;
-    final maxWidth = zoom <= 1 ? maxContentWidth : double.infinity;
+    final maxWidth = zoom <= 1 ? _maxWidth : double.infinity;
 
+    final options = widget.options;
     final pageImage = ReaderPageImage(
       imageUrl: page.imageUrl,
       localFile: page.localFile,
@@ -1666,7 +2125,14 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       aspectRatio: metrics.ratioAt(index),
       fitMode: fitMode,
       backgroundColor: backgroundColor,
-      brokenBuilder: widget.slots.brokenPage,
+      brokenBuilder: options.pageStateBuilder == null
+          ? widget.slots.brokenPage
+          : (context, retry) => options.pageStateBuilder!(
+              context, pageNumber, PageStatus.broken, null, retry,),
+      loadingBuilder: options.pageStateBuilder == null
+          ? null
+          : (context) => options.pageStateBuilder!(
+              context, pageNumber, PageStatus.placeholder, null, () {},),
       cornerRadius: widget.slots.pagedCornerRadius,
       layoutAxis: direction.scrollAxis,
       viewportWidth: viewportWidth,
@@ -1736,7 +2202,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     // pages; letterboxing now uses the backdrop colour inside the page itself.
     // Top-aligned, so a page that turns out taller than reserved grows
     // downward instead of creeping out of both ends of its slot.
-    final pageSlot = Align(
+    Widget pageSlot = Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
@@ -1747,8 +2213,42 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         ),
       ),
     );
+    if (options.pinch && zoom > 1) {
+      // The horizontal pan of a zoomed page: the overflow slides inside the item's clip.
+      pageSlot = ValueListenableBuilder<double>(
+        valueListenable: _panX,
+        builder: (context, x, child) =>
+            Transform.translate(offset: Offset(x, 0), child: child),
+        child: pageSlot,
+      );
+    }
+    if (options.gapPx > 0) {
+      // 8 px of ground between pages, drawn over the foot of the page so the extents stay exact.
+      pageSlot = Stack(
+        children: [
+          pageSlot,
+          Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: options.gapPx,
+              child: ColoredBox(color: backgroundColor),),
+        ],
+      );
+    }
+    Widget bandFor(BandKind kind) => options.bandBuilder!(
+          context,
+          kind,
+          from: kind == BandKind.seam && index > 0
+              ? feed.chapterAt(index - 1).title
+              : chapter.title,
+          to: kind == BandKind.seam ? chapter.title : chapter.previousChapterId,
+        );
+    final isTopBand = index == 0 &&
+        options.topBandExtent > 0 &&
+        widget.onPreviousChapter != null;
 
-    return RepaintBoundary(
+    final item = RepaintBoundary(
       child: ClipRect(
         // The seam rides on the page it precedes rather than being a list item
         // of its own: the geometry already reserved exactly [seamExtent] above
@@ -1761,15 +2261,56 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
                 children: [
                   SizedBox(
                     height: seamExtent,
-                    child: widget.slots.chapterSeam(
-                      context,
-                      chapter,
-                      Axis.vertical,
-                    ),
+                    child: options.bandBuilder != null
+                        ? bandFor(isTopBand
+                            ? (_loadingPrevious
+                                ? BandKind.topLoading
+                                : BandKind.top)
+                            : BandKind.seam,)
+                        : widget.slots.chapterSeam(
+                            context,
+                            chapter,
+                            Axis.vertical,
+                          ),
                   ),
                   pageSlot,
                 ],
               ),
+      ),
+    );
+    return options.pageSemantics?.call(context, chapter, pageNumber, item) ??
+        item;
+  }
+
+  /// The credits and the next-chapter band after the feed's last page.
+  Widget _buildFooter(BuildContext context) {
+    final options = widget.options;
+    final feed = widget.feed;
+    if (feed.isEmpty) return const SizedBox.shrink();
+    final chapter = feed.chapters.last;
+    final limitedUntil = ref.watch(readerRateLimitedUntilProvider);
+    final limitedFor = limitedUntil?.difference(DateTime.now());
+    final rateLimited = limitedFor != null && limitedFor > Duration.zero;
+    final band = switch (_nextState()) {
+      ReaderNextState.loading => BandKind.nextLoading,
+      ReaderNextState.failed when rateLimited => BandKind.rateLimited,
+      ReaderNextState.failed => BandKind.nextFailed,
+      ReaderNextState.none when options.offline => BandKind.offlineEnd,
+      _ => null,
+    };
+    return OverflowBox(
+      alignment: Alignment.topCenter,
+      minHeight: 0,
+      maxHeight: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (options.creditsBuilder != null)
+            options.creditsBuilder!(
+                context, chapter, chapter.nextChapterId, options.creditsMode,),
+          if (band != null && options.bandBuilder != null)
+            options.bandBuilder!(context, band, from: chapter.title, retryIn: band == BandKind.rateLimited ? limitedFor : null),
+        ],
       ),
     );
   }
@@ -1814,13 +2355,24 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
     // Watch only zoom level.
     final zoomLevel = ref.watch(readerUiProvider.select((s) => s.zoomLevel));
-    final readerBackground =
+    final options = widget.options;
+    final legacyBackground =
         ref.watch(readerFilterProvider.select((f) => f.background));
+    final readerBackground = (color: options.ground ?? legacyBackground.color);
     // Sepia/grayscale tone. ``null`` for Normal so the default path adds no
     // ColorFiltered layer (and therefore no saveLayer) around the page list.
-    final toneFilter =
+    final legacyTone =
         ref.watch(readerFilterProvider.select((f) => f.colorMode.colorFilter));
+    final toneFilter = switch (options.colourFilter) {
+      null => legacyTone,
+      ReaderColourFilter.none => null,
+      ReaderColourFilter.sepia => ReaderColorMode.sepia.colorFilter,
+      ReaderColourFilter.grey => ReaderColorMode.grayscale.colorFilter,
+    };
     final mediaSize = MediaQuery.sizeOf(context);
+    final columnWidth = _columnWidth(mediaSize.width);
+    final hasFooter = options.footerExtent > 0 &&
+        (options.creditsBuilder != null || options.bandBuilder != null);
 
     _containerWidth = mediaSize.width;
     _containerHeight = mediaSize.height;
@@ -1849,7 +2401,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     final metrics = _metricsFor(
       direction: direction,
       fitMode: defaults.fitMode,
-      viewportWidth: mediaSize.width,
+      viewportWidth: columnWidth,
       viewportHeight: mediaSize.height,
       zoom: zoomLevel,
     );
@@ -1865,43 +2417,88 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     // occupies exactly the space it will occupy once it has, and the offsets a
     // page jump resolves to are the offsets the list actually uses.
     Widget pageList = RepaintBoundary(
-      child: ListView.custom(
-        key: ValueKey(
-          'reader-list-${direction.name}-${defaults.fitMode.name}',
-        ),
-        controller: _scrollController,
-        scrollDirection: direction.scrollAxis,
-        reverse: direction.reverseScroll,
-        padding: listPadding,
-        // Large pre-build window so pages are laid out and decoded well before
-        // they scroll into view — smoother fast scrolls, lower latency (we
-        // prioritise this over memory footprint).
-        scrollCacheExtent: const ScrollCacheExtent.pixels(6000),
-        // ListView.builder derives this from its item count; the .custom
-        // constructor does not, and without it a screen reader loses the
-        // "page N of M" framing for the list.
-        semanticChildCount: pageCount,
-        itemExtentBuilder: (index, _) =>
-            index < 0 || index >= pageCount ? null : metrics.extentAt(index),
-        childrenDelegate: _ReaderPageDelegate(
-          childCount: pageCount,
-          totalExtent: metrics.totalPagesExtent,
-          metrics: metrics,
-          backgroundColor: readerBackground.color,
-          builder: (context, index) => _buildPageItem(
-            index: index,
+      child: _PinchPhysics(
+        pinching: _pinching,
+        enabled: options.pinch,
+        builder: (physics) => ListView.custom(
+          physics: physics,
+          key: ValueKey(
+            'reader-list-${direction.name}-${defaults.fitMode.name}',
+          ),
+          controller: _scrollController,
+          scrollDirection: direction.scrollAxis,
+          reverse: direction.reverseScroll,
+          padding: listPadding,
+          // Large pre-build window so pages are laid out and decoded well before
+          // they scroll into view — smoother fast scrolls, lower latency (we
+          // prioritise this over memory footprint).
+          scrollCacheExtent: const ScrollCacheExtent.pixels(6000),
+          // ListView.builder derives this from its item count; the .custom
+          // constructor does not, and without it a screen reader loses the
+          // "page N of M" framing for the list.
+          semanticChildCount: pageCount,
+          itemExtentBuilder: (index, _) => index < 0
+              ? null
+              : index >= pageCount
+                  ? (hasFooter && index == pageCount
+                      ? options.footerExtent
+                      : null)
+                  : metrics.extentAt(index),
+          childrenDelegate: _ReaderPageDelegate(
+            childCount: pageCount + (hasFooter ? 1 : 0),
+            totalExtent: metrics.totalPagesExtent +
+                (hasFooter ? options.footerExtent : 0),
             metrics: metrics,
-            defaults: defaults,
-            zoom: zoomLevel,
-            viewportWidth: mediaSize.width,
-            viewportHeight: mediaSize.height,
             backgroundColor: readerBackground.color,
+            signature: (
+              options.footerExtent,
+              options.creditsMode,
+              options.offline,
+              options.gapPx,
+              options.topBandExtent,
+              options.seamExtent,
+              options.pageStateBuilder != null,
+              _nextState(),
+              _loadingPrevious,
+              options.slotSignature,
+            ),
+            builder: (context, index) => hasFooter && index == pageCount
+                ? _buildFooter(context)
+                : _buildPageItem(
+                    index: index,
+                    metrics: metrics,
+                    defaults: defaults,
+                    zoom: zoomLevel,
+                    viewportWidth: columnWidth,
+                    viewportHeight: mediaSize.height,
+                    backgroundColor: readerBackground.color,
+                  ),
           ),
         ),
       ),
     );
     if (toneFilter != null) {
       pageList = ColorFiltered(colorFilter: toneFilter, child: pageList);
+    }
+    if (options.pageLayerBuilder != null) {
+      pageList = options.pageLayerBuilder!(context, pageList);
+    }
+    if (columnWidth < mediaSize.width) {
+      // The tablet column and the side margins: the strip is centred, the ground shows either side.
+      pageList = Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(width: columnWidth, child: pageList),
+      );
+    }
+    if (options.pinch || options.tapSlop != null) {
+      pageList = Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: _onPointerDown,
+        onPointerMove: _onPointerMove,
+        onPointerUp: _onPointerUp,
+        onPointerCancel: _onPointerCancel,
+        child: pageList,
+      );
     }
 
     return ProviderScope(
@@ -1944,6 +2541,27 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   }
 }
 
+/// Lets a skin turn one-finger scrolling off while two fingers are down (the pinch), without
+/// rebuilding anything but the list wrapper.
+class _PinchPhysics extends StatelessWidget {
+  const _PinchPhysics(
+      {required this.pinching, required this.enabled, required this.builder,});
+
+  final ValueNotifier<bool> pinching;
+  final bool enabled;
+  final Widget Function(ScrollPhysics? physics) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!enabled) return builder(null);
+    return ValueListenableBuilder<bool>(
+      valueListenable: pinching,
+      builder: (context, on, _) =>
+          builder(on ? const NeverScrollableScrollPhysics() : null),
+    );
+  }
+}
+
 /// Page delegate that reports the chapter's exact total extent.
 ///
 /// Left to itself a lazy list extrapolates its scrollable range from the average
@@ -1958,6 +2576,7 @@ class _ReaderPageDelegate extends SliverChildBuilderDelegate {
     required this.totalExtent,
     required this.metrics,
     required this.backgroundColor,
+    this.signature,
   }) : super(
           builder,
           childCount: childCount,
@@ -1975,6 +2594,9 @@ class _ReaderPageDelegate extends SliverChildBuilderDelegate {
   /// previous delegate — see [shouldRebuild].
   final ReaderPageMetrics metrics;
   final Color backgroundColor;
+
+  /// Everything else the builder reads (the skin's footer, bands and gap), compared by value.
+  final Object? signature;
 
   @override
   double? estimateMaxScrollOffset(
@@ -2001,6 +2623,7 @@ class _ReaderPageDelegate extends SliverChildBuilderDelegate {
     if (oldDelegate is! _ReaderPageDelegate) return true;
     return childCount != oldDelegate.childCount ||
         !identical(metrics, oldDelegate.metrics) ||
-        backgroundColor != oldDelegate.backgroundColor;
+        backgroundColor != oldDelegate.backgroundColor ||
+        signature != oldDelegate.signature;
   }
 }
