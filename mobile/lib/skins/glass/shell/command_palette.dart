@@ -198,8 +198,8 @@ class _GlassCommandPaletteState extends ConsumerState<GlassCommandPalette> with 
     navigator.pop();
     final run = r.item.run;
     if (run != null) {
-      final ctx = navigator.context;
-      Future.microtask(() => run(ctx, widget.ref));
+      // ignore: use_build_context_synchronously
+      Future.microtask(() => run(navigator.context, widget.ref));
     }
   }
 

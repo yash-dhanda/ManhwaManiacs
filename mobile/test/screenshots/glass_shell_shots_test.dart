@@ -2,7 +2,6 @@
 library;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -64,7 +63,7 @@ void main() {
     await s.settle(900);
     // A drag across the dock, caught mid-way.
     final r = t.getRect(find.bySemanticsLabel('Main'));
-    var g = await t.startGesture(Offset(r.left + 30, r.center.dy));
+    final g = await t.startGesture(Offset(r.left + 30, r.center.dy));
     for (var i = 0; i < 8; i++) {
       await g.moveBy(const Offset(18, 0));
       await t.pump(const Duration(milliseconds: 16));
@@ -86,17 +85,17 @@ void main() {
     await s.settle(600);
     final acc = s.container.read(glassAccessoryProvider.notifier);
     acc.setNarration(GlassNarrationAccessory(title: 'Chapter 12 · Aurora', playing: true, progress: 0.42, onPlayPause: () {}, openPlayer: (_) {}));
-    await s.settle(700);
+    await s.settle();
     await s.snap('accessory-narrating', size);
     acc
       ..setNarration(null)
       ..setDownloading(GlassDownloadingAccessory(chapters: 3, progress: 0.42, paused: false, onToggle: () {}));
-    await s.settle(700);
+    await s.settle();
     await s.snap('accessory-downloading', size);
     acc
       ..setDownloading(null)
       ..setContinue(GlassContinueAccessory(title: 'Continue Solo Leveling', subtitle: 'Ch 143', coverUrl: null, onOpen: (_) {}));
-    await s.settle(700);
+    await s.settle();
     await s.snap('accessory-continue', size);
     await t.dragFrom(const Offset(200, 640), const Offset(0, -200));
     await s.settle(900);
@@ -144,7 +143,7 @@ void main() {
       await s.settle(500);
     }
     await t.longPress(find.byType(GlassBackButton));
-    await s.settle(700);
+    await s.settle();
     await s.snap('stack-flat', size);
     sem.dispose();
   });
@@ -164,14 +163,14 @@ void main() {
       appChangelogProvider.overrideWith((ref) async => const [
             ChangelogRelease(version: '3.5.1', build: 58, date: '2026-09-28', highlights: ['Glass edition behind the debug switch', 'Faster chapter start']),
             ChangelogRelease(version: '3.5.0', build: 57, date: '2026-09-20', highlights: ['Narration rebuilt']),
-          ]),
-    ]);
+          ],),
+    ],);
     await s.settle(1300);
     await s.snap('whats-new', kSkinShotSizes[0]);
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     s = await openShell(t, kSkinShotSizes[0], start: '/?sheet=app-update', extra: [
       appUpdateProvider.overrideWith((ref) async => const AppVersionInfo(localVersion: '3.5.0', localBuild: 57, remoteVersion: '3.5.1', remoteBuild: 58, downloadUrl: 'https://example.invalid/app.apk', channel: AppUpdateChannel.apk)),
-    ]);
+    ],);
     await s.settle(1300);
     await s.snap('app-update-sheet', kSkinShotSizes[0]);
     debugDefaultTargetPlatformOverride = null;

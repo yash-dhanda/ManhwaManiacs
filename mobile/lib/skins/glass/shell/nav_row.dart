@@ -213,7 +213,7 @@ class _ProfileLeading extends ConsumerWidget {
           behavior: HitTestBehavior.opaque,
           onTap: () => context.go(Routes.indexHub()),
           onLongPress: () => onLongPressRect(globalRectOf(context)),
-          child: SizedBox.square(dimension: math.max(44.0, GlassFrame.hitMin(context)), child: const Center(child: GlassMyOrb(size: 44))),
+          child: SizedBox.square(dimension: math.max(44.0, GlassFrame.hitMin(context)), child: const Center(child: GlassMyOrb())),
         ),
       );
 }

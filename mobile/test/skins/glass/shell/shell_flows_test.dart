@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
@@ -9,8 +8,8 @@ import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/stack/snapshot_store.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_back_button.dart';
 import 'package:manhwamaniacs/skins/glass/shell/purge.dart';
-import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell.dart';
+import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 import '../../../screenshots/support/shot_harness.dart';

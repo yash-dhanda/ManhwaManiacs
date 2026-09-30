@@ -1,22 +1,21 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
 import 'package:manhwamaniacs/skins/glass/shell/accessory_controller.dart';
 import 'package:manhwamaniacs/skins/glass/shell/dock_state.dart';
+import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
+import 'package:manhwamaniacs/skins/glass/shell/sidebar.dart';
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 import '../../../screenshots/support/shot_harness.dart';
 import 'shell_rig.dart';
-import 'package:manhwamaniacs/skins/glass/shell/sidebar.dart';
-import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
-import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
 
 const _demo = '/dev/glass/shell';
 

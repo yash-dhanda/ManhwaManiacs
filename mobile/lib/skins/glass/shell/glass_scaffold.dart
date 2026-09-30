@@ -219,7 +219,7 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
             ),
           ),
       ],
-    ));
+    ),);
   }
 }
 
