@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_models.dart' show RecapKey;
 import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/add_to_shelf_sheet.dart';
@@ -39,12 +40,18 @@ Future<void> openShelfQuickLook(
   int? moveIndex,
   int moveCount = 0,
   void Function(int from, int to)? onMove,
-}) {
+}) async {
   final chapter = continueChapterKey(s);
+  // A shelf row carries no `recap` field: ask the endpoint as Quick look opens and add the row only
+  // on an `available` answer within 300 ms, so the other rows are never held up.
+  final recap = chapter == null || offline ? false : await recapAvailableWithin(ref, RecapKey(s.sourceId, s.seriesKey, chapter));
+  if (!context.mounted) return;
   final list = <QuickLookAction>[
     QuickLookAction(QuickLookId.open, 'Open', CineIconRole.external, onSelected: () => openFollowed(context, s)),
     if (chapter != null)
       QuickLookAction(QuickLookId.continueReading, 'Continue', CineIconRole.play, onSelected: () => unawaited(continueTo(context, ref, sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKey: chapter, title: s.title, lastReadAt: s.readState?.lastReadAt, origin: RecapEntry.dip))),
+    if (recap)
+      QuickLookAction(QuickLookId.previouslyOn, 'Previously on', CineIconRole.history, onSelected: () => openRecap(context, s.sourceId, s.seriesKey, chapter, origin: RecapEntry.dip)),
     if (!offline) ...[
       QuickLookAction(QuickLookId.favourite, s.isFavorite ? 'Unfavourite' : 'Favourite', CineIconRole.favourite, onSelected: () => unawaited(actions.favourite(s))),
       QuickLookAction('status', 'Status', CineIconRole.edit, onSelected: () => unawaited(showStatusSheet(context, title: s.title, current: s.readingStatus, onPick: (v) => unawaited(actions.setStatus(s, v))))),
@@ -60,7 +67,7 @@ Future<void> openShelfQuickLook(
       QuickLookAction('remove', 'Remove from library', CineIconRole.delete, destructive: true, onSelected: () => unawaited(actions.remove(s))),
     ],
   ];
-  return openQuickLook(
+  await openQuickLook(
     context,
     title: s.title,
     kicker: 'QUICK LOOK',

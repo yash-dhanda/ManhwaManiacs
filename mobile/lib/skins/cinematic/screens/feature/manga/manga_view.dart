@@ -306,6 +306,9 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
                             rule: t.colorRule1,
                             bar: TabBar(
                               controller: _tabController,
+                              // Three tabs do not fit a phone; they scroll from the start rather than truncate.
+                              isScrollable: MediaQuery.sizeOf(context).width < 600,
+                              tabAlignment: MediaQuery.sizeOf(context).width < 600 ? TabAlignment.start : null,
                               indicatorColor: t.colorSpot,
                               labelColor: t.colorInk100,
                               unselectedLabelColor: t.colorInk60,

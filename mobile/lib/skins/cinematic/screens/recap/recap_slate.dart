@@ -17,6 +17,7 @@ class RecapSlate extends StatelessWidget {
     required this.headline,
     required this.primary,
     this.quiet,
+    this.primaryFolio,
     this.deck,
     this.retryAfter,
     this.error = false,
@@ -24,7 +25,7 @@ class RecapSlate extends StatelessWidget {
   });
 
   final String kicker, headline;
-  final String? deck;
+  final String? deck, primaryFolio;
   final CineNoticeAction primary;
   final CineNoticeAction? quiet;
   final Duration? retryAfter;
@@ -52,7 +53,7 @@ class RecapSlate extends StatelessWidget {
         if (deck != null) ...[SizedBox(height: c.space3), CineRoleText(deck!, c.typeDeck, color: c.colorInk60)],
         SizedBox(height: c.space5),
         Wrap(spacing: c.space4, runSpacing: c.space2, crossAxisAlignment: WrapCrossAlignment.center, children: [
-          CineButton(label: primary.label, onPressed: primary.onPressed),
+          CineButton(label: primary.label, variant: primaryFolio == null ? CineButtonVariant.primary : CineButtonVariant.split, folio: primaryFolio, onPressed: primary.onPressed),
           if (quiet != null) CineButton(label: quiet!.label, variant: CineButtonVariant.quiet, onPressed: quiet!.onPressed),
         ],),
         for (final w in extra) ...[SizedBox(height: c.space4), w],

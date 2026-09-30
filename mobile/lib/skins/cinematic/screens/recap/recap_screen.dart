@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/error/not_available.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/ai/utils/ai_state.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
@@ -20,6 +21,7 @@ import 'package:manhwamaniacs/features/recap/providers/recap_providers.dart';
 import 'package:manhwamaniacs/features/recap/recap_setting.dart';
 import 'package:manhwamaniacs/features/recap/utils/recap_countdown.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
+import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
@@ -339,7 +341,7 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
               trigger: SetTrigger.signal,
               focusNode: _heading,
             ),
-            if (_deck(range).isNotEmpty) ...[SizedBox(height: c.space2), CineRoleText(_deck(range), c.typeDeck, color: c.colorInk60)],
+            if (_deck(range).isNotEmpty && st.phase != RecapPhase.none && st.phase != RecapPhase.error) ...[SizedBox(height: c.space2), CineRoleText(_deck(range), c.typeDeck, color: c.colorInk60)],
             SizedBox(height: c.space5),
             body(),
             if (showActions && wide) ...[SizedBox(height: c.space6), actions],
@@ -398,7 +400,8 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
   /// The static slates of D11: no dialogue, unavailable, rate limited, offline.
   Widget _slate(RecapStreamState st, String title, String chLabel, RecapRange range) {
     final reason = st.reason ?? 'unknown';
-    final cont = CineNoticeAction(chLabel.isEmpty ? 'Continue' : 'Continue  │  $chLabel', _exit);
+    final cont = CineNoticeAction('Continue', _exit);
+    final folio = chLabel.isEmpty ? null : chLabel;
     final quiet = CineNoticeAction('Close', _close);
     final pickUp = 'Pick up where you left off${chLabel.isEmpty ? '.' : ': chapter ${chLabel.substring(3)}.'}';
     switch (reason) {
@@ -408,6 +411,7 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
           kicker: 'NO RECAP FOR THIS ONE',
           headline: "The dialogue in these chapters hasn't been read yet, so there's nothing to recap.",
           primary: cont,
+          primaryFolio: folio,
           quiet: quiet,
           extra: extra,
         );
@@ -417,19 +421,21 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
           headline: pickUp,
           retryAfter: Duration(seconds: st.retryAfter ?? 12),
           primary: cont,
+          primaryFolio: folio,
           quiet: quiet,
         );
       case 'offline':
-        return RecapSlate( kicker: 'OFFLINE EDITION', headline: pickUp, primary: cont, quiet: quiet);
+        return RecapSlate( kicker: 'OFFLINE EDITION', headline: pickUp, primary: cont, primaryFolio: folio, quiet: quiet);
       default:
-        return RecapSlate( kicker: 'RECAP UNAVAILABLE', headline: pickUp, primary: cont, quiet: quiet);
+        return RecapSlate( kicker: 'RECAP UNAVAILABLE', headline: pickUp, primary: cont, primaryFolio: folio, quiet: quiet);
     }
   }
 
   /// `Scan saved chapters` for the saved manga chapters of the range, when on-device OCR runs, then
   /// the scan block inline and, once it is done, `Try the recap again`.
   List<Widget> _scanExtra(RecapRange range) {
-    if (!ref.watch(ocrFeatureVisibleProvider)) return const [];
+    // Dialogue OCR reads manga pages: a novel has none to scan.
+    if (!ref.watch(ocrFeatureVisibleProvider) || (isNovelSource(ref.watch(contentModeScopeProvider), widget.sourceId) ?? false)) return const [];
     final detail = ref.watch(sourceSeriesDetailProvider((sourceId: widget.sourceId, seriesId: widget.seriesKey))).valueOrNull;
     final status = ref.watch(seriesChapterDownloadStatusProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey))).valueOrNull ?? const {};
     if (detail == null) return const [];

@@ -111,4 +111,13 @@ void main() {
     expect(find.textContaining('Because you read'), findsWidgets);
     expect(find.text('Tower Tale'), findsWidgets);
   });
+
+  testWidgets('the tab meets the tap target, label and contrast guidelines', (tester) async {
+    final h = tester.ensureSemantics();
+    await _open(tester, similar: SimilarResult(items: [_w('Night Ward', why: 'Slow and political.')]));
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+    h.dispose();
+  });
 }

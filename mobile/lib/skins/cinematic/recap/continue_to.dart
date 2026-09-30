@@ -66,3 +66,13 @@ void closeRecap(BuildContext context) {
   final router = GoRouter.of(context);
   if (router.canPop()) router.pop();
 }
+
+/// Whether a recap is available for [k], asked now and given up on after [limit]: Quick look adds its
+/// `Previously on` row only on a yes in time.
+Future<bool> recapAvailableWithin(WidgetRef ref, RecapKey k, {Duration limit = const Duration(milliseconds: 300)}) async {
+  try {
+    return (await ref.read(recapAvailabilityProvider(k).future).timeout(limit)).available;
+  } catch (_) {
+    return false;
+  }
+}
