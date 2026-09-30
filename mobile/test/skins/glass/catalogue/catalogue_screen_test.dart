@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
@@ -9,7 +8,6 @@ import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/catalogue_screen.dart';
-import 'package:manhwamaniacs/skins/glass/screens/sources/genre_chip.dart';
 
 import '../shell/shell_rig.dart';
 

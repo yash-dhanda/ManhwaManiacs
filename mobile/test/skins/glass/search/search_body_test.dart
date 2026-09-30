@@ -76,7 +76,7 @@ void main() {
   });
 
   testWidgets('no results shows the lens', (t) async {
-    await pumpGlassShell(t, start: '/search?q=zzzz', extra: ov(const GroupedSearchResult(groups: [], sourcesQueried: 0)));
+    await pumpGlassShell(t, start: '/search?q=zzzz', extra: ov(const GroupedSearchResult()));
     await t.pump(const Duration(milliseconds: 600));
     expect(find.text('No results for “zzzz”'), findsOneWidget);
   });
