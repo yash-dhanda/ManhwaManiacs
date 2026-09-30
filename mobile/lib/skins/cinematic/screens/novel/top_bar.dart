@@ -73,6 +73,7 @@ class NovelTopBar extends StatelessWidget {
         children: [
           CineIconButton(label: 'Back to the book', role: CineIconRole.back, onPressed: onBack),
           Expanded(
+            flex: 2,
             child: CineRoleText(runningTitle, c.typeNav, color: stock.muted, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
           if (offline)
@@ -81,9 +82,14 @@ class NovelTopBar extends StatelessWidget {
               child: _OfflineMark(),
             ),
           if (savedCopyAgo != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: CineTooltip(message: 'The source is down; this is the last copy we saved.', child: CineBadge.stale(savedCopyAgo!)),
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: CineTooltip(message: 'The source is down; this is the last copy we saved.', child: CineBadge.stale(savedCopyAgo!)),
+                ),
+              ),
             ),
           ...actions,
         ],

@@ -9,6 +9,8 @@ import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provider.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
@@ -59,10 +61,25 @@ NovelChapter novelChapterFor(String key, {String? title, bool offline = false, b
 }
 
 class NovelRig {
-  NovelRig({required this.feature, required this.router});
+  NovelRig({required this.feature, required this.router, required this.tester});
   final FeatureRig feature;
   final GoRouter router;
+  final WidgetTester tester;
   Recorder get rec => feature.rec;
+
+  ProviderContainer get container => ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
+
+  /// Writes the profile's `mm.novel-settings` record (stock, layout, margins, ...).
+  Future<void> settings(Map<String, dynamic> patch) async {
+    await container.read(novelSettingsProvider.notifier).put(patch);
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+
+  /// Writes this book's K25 preferences (face, size, ...).
+  Future<void> book(Future<void> Function(NovelPreferencesController c) write) async {
+    await write(container.read(novelPreferencesControllerProvider('$kNovelSource:$kNovelSeries').notifier));
+    await tester.pump(const Duration(milliseconds: 50));
+  }
 }
 
 /// Mounts the Cinematic novel reader at `/novels/demo/k/1` on top of `/` over the feature fakes
@@ -87,11 +104,17 @@ Future<NovelRig> pumpNovel(
   String query = '',
   bool pushed = true,
   FeatureRig? rig,
+  EdgeInsets padding = EdgeInsets.zero,
+  Key? boundaryKey,
+  SourceSeriesSummary? series,
 }) async {
   final r = rig ?? FeatureRig();
   SharedPreferences.setMockInitialValues(prefsValues);
   final prefs = await SharedPreferences.getInstance();
   sizeView(tester, size: size, wide: wide);
+  if (padding != EdgeInsets.zero) {
+    tester.view.padding = FakeViewPadding(left: padding.left, top: padding.top, right: padding.right, bottom: padding.bottom);
+  }
   final fixture = loadSeriesFixture('manga-ongoing');
   final router = GoRouter(
     initialLocation: pushed ? '/' : '/novels/$kNovelSource/$kNovelSeries/$chapterKey$query',
@@ -109,7 +132,7 @@ Future<NovelRig> pumpNovel(
         ...featureOverrides(r, prefs, novel: true),
         readerWakelockProvider.overrideWithValue(_NoWakelock()),
         sourceSeriesDetailProvider.overrideWith(
-          (ref, k) async => SourceSeriesDetailData(series: fixture.series, chapters: novelChapters()),
+          (ref, k) async => SourceSeriesDetailData(series: series ?? fixture.series, chapters: novelChapters()),
         ),
         resolvedNovelChapterProvider.overrideWith((ref, key) async {
           final hold = holds[key.chapterKey];
@@ -125,7 +148,9 @@ Future<NovelRig> pumpNovel(
         novelAttributionProvider.overrideWith((ref, key) async => attribution ?? NovelAttribution.none),
         ...extra,
       ],
-      child: MaterialApp.router(
+      child: RepaintBoundary(
+        key: boundaryKey,
+        child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
         routerConfig: router,
         theme: featureTheme(platform),
@@ -138,6 +163,7 @@ Future<NovelRig> pumpNovel(
           child: c!,
         ),
       ),
+      ),
     ),
   );
   await tester.pump();
@@ -147,7 +173,7 @@ Future<NovelRig> pumpNovel(
   }
   await tester.pump(const Duration(milliseconds: 100));
   await tester.pump(const Duration(milliseconds: 100));
-  return NovelRig(feature: r, router: router);
+  return NovelRig(feature: r, router: router, tester: tester);
 }
 
 Future<void> settleNovel(WidgetTester tester, {int ms = 1000}) async {

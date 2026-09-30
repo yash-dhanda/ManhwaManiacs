@@ -57,7 +57,7 @@ class NovelInPageHead extends StatelessWidget {
       animation: scroll,
       child: row,
       builder: (context, child) {
-        final offset = scroll.hasClients ? scroll.offset : 0.0;
+        final offset = scroll.hasClients && scroll.positions.length == 1 ? scroll.offset : 0.0;
         return Opacity(opacity: (1 - offset / 120).clamp(0.0, 1.0), child: child);
       },
     );

@@ -155,6 +155,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
   @override
   void initState() {
     super.initState();
+    _chromeAnim.value = 0;
     Future.microtask(() {
       try {
         _toastOwner.state = true;
@@ -239,7 +240,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
       _keys = const [];
       _pageKey = null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scroll.hasClients) _scroll.jumpTo(0);
+        if (_scrollOk) _scroll.jumpTo(0);
       });
     }
     if (prev?.chapter == null && next.chapter != null) _announce(next);
@@ -290,7 +291,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
 
   void _onScroll() {
     _ctl.onScrolled();
-    if (!_scroll.hasClients) return;
+    if (!_scrollOk) return;
     final p = _scroll.position.pixels;
     final delta = p - _lastPixels;
     _lastPixels = p;
@@ -307,6 +308,8 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
   }
 
   // ── NovelReadingSurface (scroll layout) ───────────────────────────────────
+
+  bool get _scrollOk => _scroll.hasClients && _scroll.positions.length == 1;
 
   bool get _isPaged => ref.read(novelSettingsProvider).novelLayout == 'paged';
 
@@ -329,16 +332,16 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
       final s = _paged.currentState;
       return s != null && s.page >= _ctl.pages.length;
     }
-    if (!_scroll.hasClients) return false;
+    if (!_scrollOk) return false;
     return _scroll.position.pixels >= _scroll.position.maxScrollExtent - 8;
   }
 
   @override
-  double get maxExtent => _scroll.hasClients ? _scroll.position.maxScrollExtent : 0;
+  double get maxExtent => _scrollOk ? _scroll.position.maxScrollExtent : 0;
 
   @override
   void jumpEstimate(double fraction) {
-    if (!_scroll.hasClients) return;
+    if (!_scrollOk) return;
     final max = _scroll.position.maxScrollExtent;
     _scroll.jumpTo((max * fraction).clamp(0.0, max));
   }
@@ -351,7 +354,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
       paged.jumpTo(pageOfParagraph(_ctl.pages, index));
       return true;
     }
-    if (!mounted || !_scroll.hasClients) return true;
+    if (!mounted || !_scrollOk) return true;
     final box = _boxFor(index);
     if (box == null) return false;
     final anchor = box.localToGlobal(Offset.zero).dy + fraction * box.size.height;
@@ -362,7 +365,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
 
   @override
   ({int index, double fraction})? anchorAtReadingLine() {
-    if (!mounted || !_scroll.hasClients) return null;
+    if (!mounted || !_scrollOk) return null;
     final line = _line();
     final attached = <int>[];
     final offsets = <double>[];
@@ -511,7 +514,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
       _paged.currentState?.turnBy(forward ? 1 : -1);
       return;
     }
-    if (!_scroll.hasClients) return;
+    if (!_scrollOk) return;
     final v = _scroll.position.viewportDimension * (small ? 0.4 : 0.9);
     final to = (_scroll.position.pixels + (forward ? v : -v)).clamp(0.0, _scroll.position.maxScrollExtent);
     unawaited(_scroll.animateTo(to, duration: _reduced ? Duration.zero : context.cine.durLine, curve: CineCurves.settle));
@@ -520,7 +523,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
   void _edge({required bool end}) {
     if (_isPaged) {
       _paged.currentState?.jumpTo(end ? _ctl.pages.length : 0);
-    } else if (_scroll.hasClients) {
+    } else if (_scrollOk) {
       _scroll.jumpTo(end ? _scroll.position.maxScrollExtent : 0);
     }
   }
@@ -719,7 +722,6 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
             forward ? _next() : _previous();
           },
           child: ListView.builder(
-            key: ValueKey('novel-scroll-$_revision'),
             controller: _scroll,
             physics: const ClampingScrollPhysics(),
             padding: EdgeInsets.zero,
