@@ -37,7 +37,7 @@ class FakeRecapRepository extends RecapRepository {
     events.add(const RecapMeta(
       range: RecapRange(fromNumber: 131, toNumber: 142),
       cast: [RecapCast('Kim Dokja', 'the reader')],
-    ));
+    ),);
     for (final chunk in text.split(' ')) {
       events.add(RecapDelta('$chunk '));
     }
@@ -47,9 +47,9 @@ class FakeRecapRepository extends RecapRepository {
 
 const kSeries = SourceSeriesSummary(id: 'k', sourceId: 's', title: 'Omniscient Reader', chapterCount: 143, genres: [], coverUrl: '');
 
-SourceSeriesDetailData detailData() => SourceSeriesDetailData(
+SourceSeriesDetailData detailData() => const SourceSeriesDetailData(
       series: kSeries,
-      chapters: const [SourceChapterSummary(id: 'c143', sourceId: 's', seriesId: 'k', title: 'Chapter 143', number: 143, pageCount: 20)],
+      chapters: [SourceChapterSummary(id: 'c143', sourceId: 's', seriesId: 'k', title: 'Chapter 143', number: 143, pageCount: 20)],
     );
 
 List<Override> recapOverrides(FakeRecapRepository repo) => [

@@ -27,7 +27,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.collection,
   ScreenId.history,
   ScreenId.bookmarks,
-  ScreenId.picks,
   ScreenId.numbers,
   ScreenId.annual,
   ScreenId.circle,

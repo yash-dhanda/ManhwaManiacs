@@ -43,9 +43,10 @@ class AiFeedback {
     return r is Ok;
   }
 
-  /// Hides [i] for the session and tells the server.
-  Future<bool> notInterested(WorldItem i) {
-    _ref.read(dismissedPicksProvider.notifier).add(pickId(i));
+  /// Tells the server [i] is not for this reader and, unless [hide] is false (the card is still
+  /// fading out), hides it for the session.
+  Future<bool> notInterested(WorldItem i, {bool hide = true}) {
+    if (hide) _ref.read(dismissedPicksProvider.notifier).add(pickId(i));
     final a = i.available.firstOrNull;
     return i.anilistId > 0 ? _send('not_interested', anilistId: i.anilistId) : _send('not_interested', sourceId: a?.sourceId, seriesKey: a?.seriesKey);
   }

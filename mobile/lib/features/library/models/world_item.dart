@@ -183,14 +183,20 @@ class WorldPlatform {
 
 /// One "Because you read …" row.
 class WorldSection {
-  const WorldSection({required this.becauseTitle, this.items = const []});
+  const WorldSection({required this.becauseTitle, this.items = const [], this.becauseSourceId, this.becauseSeriesKey});
 
   final String becauseTitle;
+
+  /// The series the row is seeded from, when it is one of the reader's own.
+  final String? becauseSourceId, becauseSeriesKey;
   final List<WorldItem> items;
 
   factory WorldSection.fromJson(Map<String, dynamic> json) {
     final because = json['because'];
+    final seed = because is Map<String, dynamic> ? because : null;
     return WorldSection(
+      becauseSourceId: _text(seed?['source_id']),
+      becauseSeriesKey: _text(seed?['series_key']),
       becauseTitle:
           (because is Map<String, dynamic> ? _text(because['title']) : null) ??
               'your library',
@@ -205,6 +211,7 @@ class WorldRecommendations {
     this.forYou = const [],
     this.sections = const [],
     this.unavailableReason,
+    this.generatedAt,
   });
 
   final List<WorldItem> forYou;
@@ -213,6 +220,9 @@ class WorldRecommendations {
   /// Set when the external catalog could not be reached. Shown as a quiet
   /// notice, never as an error: whatever did load still renders.
   final String? unavailableReason;
+
+  /// When the payload was composed, where the server says (`generated_at`); null never reads as stale.
+  final DateTime? generatedAt;
 
   bool get isEmpty =>
       forYou.isEmpty && sections.every((section) => section.items.isEmpty);
@@ -225,6 +235,7 @@ class WorldRecommendations {
             WorldSection.fromJson(raw),
         ],
         unavailableReason: _text(json['unavailable_reason']),
+        generatedAt: DateTime.tryParse(_text(json['generated_at']) ?? ''),
       );
 }
 

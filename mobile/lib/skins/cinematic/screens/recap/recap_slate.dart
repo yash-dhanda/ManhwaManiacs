@@ -54,9 +54,9 @@ class RecapSlate extends StatelessWidget {
         Wrap(spacing: c.space4, runSpacing: c.space2, crossAxisAlignment: WrapCrossAlignment.center, children: [
           CineButton(label: primary.label, onPressed: primary.onPressed),
           if (quiet != null) CineButton(label: quiet!.label, variant: CineButtonVariant.quiet, onPressed: quiet!.onPressed),
-        ]),
+        ],),
         for (final w in extra) ...[SizedBox(height: c.space4), w],
-      ]),
+      ],),
     );
   }
 }

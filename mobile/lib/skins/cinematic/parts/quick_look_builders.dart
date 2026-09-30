@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
@@ -251,3 +252,45 @@ Future<void> openSourceQuickLook(BuildContext context, WidgetRef ref, HomeSource
       cover: _cover(ref, item.latestCovers.isEmpty ? null : item.latestCovers.first, item.name),
       actions: quickLookActions({QuickLookId.open: () => context.go(Routes.source(item.sourceId))}),
     );
+
+/// A world item on any AI surface (Picks, More like this): the feature page when the reader's
+/// sources carry it, a source picker when several do, else Discover with `?q={title}`.
+void openWorldItem(BuildContext context, WorldItem w) {
+  if (w.available.length > 1) {
+    unawaited(showSourcePickerSheet(context, title: w.title, sources: w.available, onOpen: (s) => openSeries(context, s.sourceId, s.seriesKey)));
+  } else if (w.available.length == 1) {
+    openSeries(context, w.available.first.sourceId, w.available.first.seriesKey);
+  } else {
+    context.go(Routes.discover({'q': w.title}));
+  }
+}
+
+/// Quick look of a world item: Open (or Search my sources and Read on for information-only
+/// titles), More like this and Not for me. The `why` shows as the credits line.
+Future<void> openWorldQuickLook(BuildContext context, WidgetRef ref, WorldItem w, {VoidCallback? onNotForMe, VoidCallback? onMoreLikeThis, Object? heroTag}) {
+  final info = w.available.isEmpty;
+  final site = w.readElsewhere;
+  return openQuickLook(
+    context,
+    title: w.title,
+    heroTag: heroTag,
+    kicker: w.why == null ? 'QUICK LOOK' : 'WHY THIS ONE',
+    credits: w.why ?? w.badgeLine,
+    cover: _cover(ref, w.coverUrl, w.title),
+    actions: [
+      ...quickLookActions({
+        if (!info) QuickLookId.open: () => openWorldItem(context, w),
+        if (onMoreLikeThis != null) QuickLookId.moreLikeThis: onMoreLikeThis,
+        if (onNotForMe != null) QuickLookId.notForMe: onNotForMe,
+      }),
+      if (info) ...[
+        QuickLookAction('search-my-sources', 'Search my sources', CineIconRole.search, onSelected: () => context.go(Routes.discover({'q': w.title}))),
+        if (site != null)
+          QuickLookAction('read-on', 'Read on ${site.site} ↗', CineIconRole.external, onSelected: () async {
+            final ok = await launchUrl(Uri.parse(site.url), mode: LaunchMode.externalApplication).catchError((Object _) => false);
+            if (!ok) ref.read(cineToastsProvider.notifier).error("Couldn't open ${site.url}");
+          },),
+      ],
+    ],
+  );
+}
