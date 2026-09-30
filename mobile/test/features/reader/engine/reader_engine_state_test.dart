@@ -56,6 +56,7 @@ Future<void> _pump(
   SharedPreferences prefs,
   ReaderFeed feed, {
   Future<void> Function()? onReachedFeedEnd,
+  VoidCallback? onNextChapter,
 }) =>
     tester.pumpWidget(
       ProviderScope(
@@ -67,6 +68,7 @@ Future<void> _pump(
             onBack: () {},
             onOpenSeries: () {},
             onReachedFeedEnd: onReachedFeedEnd,
+            onNextChapter: onNextChapter,
           ),
         ),
       ),
@@ -138,7 +140,18 @@ void main() {
       expect(_engine(tester).value.nextState, ReaderNextState.none);
     });
 
-    testWidgets('loading, then failed, then ready', (tester) async {
+    testWidgets('the last chapter of a series: the fetch finding nothing is none, not failed', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final request = Completer<void>();
+      await _pump(tester, prefs, ReaderFeed.single(_chapter('1')), onReachedFeedEnd: () => request.future);
+      await tester.pump();
+      request.complete();
+      await tester.pump();
+      expect(_engine(tester).value.nextState, ReaderNextState.none);
+    });
+
+    testWidgets('a next chapter exists: loading while it is fetched, failed when it does not stitch in, then ready', (tester) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final feed = ReaderFeed.single(_chapter('1'));
@@ -149,7 +162,7 @@ void main() {
         return request.future;
       }
 
-      await _pump(tester, prefs, feed, onReachedFeedEnd: extend);
+      await _pump(tester, prefs, feed, onReachedFeedEnd: extend, onNextChapter: () {});
       await tester.pump();
       expect(calls, 1);
       expect(_engine(tester).value.nextState, ReaderNextState.loading);
@@ -166,6 +179,7 @@ void main() {
         prefs,
         feed.withAppended(_chapter('2')),
         onReachedFeedEnd: extend,
+        onNextChapter: () {},
       );
       await tester.pump();
       expect(_engine(tester).value.nextState, ReaderNextState.ready);

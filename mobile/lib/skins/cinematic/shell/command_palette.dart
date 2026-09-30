@@ -192,7 +192,7 @@ class _CinePaletteState extends ConsumerState<CinePalette> {
             final i = cont.first;
             final ctx = _navContext();
             if (ctx != null) {
-              enterReader(ctx, ReaderTarget.manifest(i.sourceId, i.seriesKey, i.chapterKey), entry: ReaderEntry.wipe);
+              enterReader(ctx, ReaderTarget.manifest(i.sourceId, i.seriesKey, i.chapterKey), entry: ReaderEntry.dip);
             }
           },
         ),

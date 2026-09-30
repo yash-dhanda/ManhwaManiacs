@@ -12,10 +12,12 @@ import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart'
 import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/library_read_state.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_controller.dart';
@@ -71,6 +73,7 @@ class ReaderScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final frames = ref.watch(readerFramesProvider);
     final resolvedAsync = ref.watch(resolvedReaderChapterProvider(_key));
     // Watched, never awaited (spec R3). A chapter rendered from disk knows its
     // own pages but not its neighbours; this fills them in whenever the
@@ -117,11 +120,15 @@ class ReaderScreen extends ConsumerWidget {
       // is already on screen stays on screen until the new one replaces it.
       skipLoadingOnReload: true,
       skipError: true,
-      loading: () => const ReaderSkeleton(),
+      loading: () => frames.loading?.call(context) ?? const ReaderSkeleton(),
       error: (error, _) {
         final appError = error is AppError
             ? error
             : UnknownError(message: error.toString(), cause: error);
+        final skinFailure = frames.failure;
+        if (skinFailure != null) {
+          return skinFailure(context, ReaderFailure(error: appError, noPages: false, retry: retry, back: back));
+        }
         return ReaderErrorState(
           error: appError,
           onRetry: retry,
@@ -130,6 +137,10 @@ class ReaderScreen extends ConsumerWidget {
       },
       data: (resolved) {
         if (resolved.chapter.pages.isEmpty) {
+          final skinFailure = frames.failure;
+          if (skinFailure != null) {
+            return skinFailure(context, ReaderFailure(error: null, noPages: true, retry: retry, back: back));
+          }
           return ReaderErrorState(
             error: const UnknownError(message: 'This chapter has no pages.'),
             onRetry: retry,
@@ -349,8 +360,12 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
       );
       _numbers[chapterKey] = resolved.chapterNumber;
       return resolved.chapter;
-    } catch (_) {
+    } catch (e) {
       // A seam that cannot be crossed leaves the edge prompt as the way over.
+      final wait = rateLimitWait(e);
+      if (wait != null && mounted) {
+        ref.read(readerRateLimitedUntilProvider.notifier).state = DateTime.now().add(wait);
+      }
       return null;
     }
   }
@@ -398,6 +413,7 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
       ],
       child: ReaderContent(
         key: ValueKey('$sourceId:$seriesKey:${widget.chapterKey}'),
+        identity: (sourceId: sourceId, seriesKey: seriesKey, chapterKey: widget.chapterKey, origin: ReaderOrigin.manifest),
         feed: _controller.feed,
         scrollStorageKey: '$sourceId:$seriesKey:${widget.chapterKey}',
         initialPage: widget.initialPage,

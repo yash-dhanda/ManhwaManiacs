@@ -25,10 +25,8 @@ const Set<ScreenId> PENDING = {
   ScreenId.annual,
   ScreenId.circle,
   ScreenId.circleMember,
-  ScreenId.reader,
   ScreenId.readAll,
   ScreenId.novel,
-  ScreenId.readerLanding,
 };
 
 /// The one root navigator key of the Cinematic router.
@@ -136,7 +134,7 @@ List<RouteBase> _rootRoutes() => [
       _route(ScreenId.readAll, _Move.reader),
       _route(ScreenId.novel, _Move.reader),
       for (final a in Routes.novelAliases) _route(ScreenId.novel, _Move.reader, path: a),
-      _route(ScreenId.readerLanding, _Move.page),
+      GoRoute(path: ScreenId.readerLanding.path, name: ScreenId.readerLanding.id, redirect: (context, state) => Routes.readerLandingRedirect),
       _route(ScreenId.feature, _Move.match),
       // `/library/:followedId` after every static `/library/...` path (the shell above and the
       // annual and read-alias routes here).

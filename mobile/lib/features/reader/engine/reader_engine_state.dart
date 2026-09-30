@@ -4,6 +4,29 @@ import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 /// Whether there is somewhere to go past the chapter being read.
 enum ReaderNextState { loading, ready, failed, none }
 
+/// The server's row when it holds a later position than the one just saved
+/// (`POST /reader/progress` answered `advanced: false`): the skin offers the jump.
+@immutable
+class FurtherElsewhere {
+  const FurtherElsewhere(
+      {required this.chapterKey,
+      required this.chapterNumber,
+      required this.lastPage,});
+  final String chapterKey;
+  final double? chapterNumber;
+  final int lastPage;
+
+  @override
+  bool operator ==(Object other) =>
+      other is FurtherElsewhere &&
+      other.chapterKey == chapterKey &&
+      other.chapterNumber == chapterNumber &&
+      other.lastPage == lastPage;
+
+  @override
+  int get hashCode => Object.hash(chapterKey, chapterNumber, lastPage);
+}
+
 /// Everything a reader chrome may draw, as one immutable value.
 ///
 /// Published by [ReaderEngine] (a [ValueNotifier]) and handed to the chrome
@@ -31,6 +54,8 @@ class ReaderEngineState {
     required this.autoScrollSpeed,
     required this.chromeVisible,
     required this.locked,
+    this.furtherElsewhere,
+    this.guidedActive = false,
   });
 
   /// The chapter under the reading line — an id, never a feed index.
@@ -71,6 +96,12 @@ class ReaderEngineState {
   final double autoScrollSpeed;
   final bool chromeVisible;
   final bool locked;
+
+  /// The server's later position, until the next advancing save clears it (cinematic 8.14.11).
+  final FurtherElsewhere? furtherElsewhere;
+
+  /// Guided view is on (mobile/23 sets it; false until then).
+  final bool guidedActive;
 
   static const ReaderEngineState initial = ReaderEngineState(
     chapterId: '',
@@ -116,6 +147,9 @@ class ReaderEngineState {
     double? autoScrollSpeed,
     bool? chromeVisible,
     bool? locked,
+    FurtherElsewhere? furtherElsewhere,
+    bool clearFurtherElsewhere = false,
+    bool? guidedActive,
   }) =>
       ReaderEngineState(
         chapterId: chapterId ?? this.chapterId,
@@ -136,6 +170,10 @@ class ReaderEngineState {
         autoScrollSpeed: autoScrollSpeed ?? this.autoScrollSpeed,
         chromeVisible: chromeVisible ?? this.chromeVisible,
         locked: locked ?? this.locked,
+        furtherElsewhere: clearFurtherElsewhere
+            ? null
+            : (furtherElsewhere ?? this.furtherElsewhere),
+        guidedActive: guidedActive ?? this.guidedActive,
       );
 
   @override
@@ -159,7 +197,9 @@ class ReaderEngineState {
           other.autoScrolling == autoScrolling &&
           other.autoScrollSpeed == autoScrollSpeed &&
           other.chromeVisible == chromeVisible &&
-          other.locked == locked;
+          other.locked == locked &&
+          other.furtherElsewhere == furtherElsewhere &&
+          other.guidedActive == guidedActive;
 
   @override
   int get hashCode => Object.hash(
@@ -181,6 +221,8 @@ class ReaderEngineState {
         autoScrollSpeed,
         chromeVisible,
         locked,
+        furtherElsewhere,
+        guidedActive,
       );
 
   @override

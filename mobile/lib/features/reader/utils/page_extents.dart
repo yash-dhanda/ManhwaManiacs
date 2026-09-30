@@ -233,11 +233,12 @@ class ReaderPageMetrics {
     required this.viewportHeight,
     this.zoom = 1,
     this.leadingInsets = const {},
+    this.maxWidth = maxContentWidth,
   }) : _pageStarts = _pageStartsFor(
           ratios: ratios,
           direction: direction,
           fitMode: fitMode,
-          contentWidth: _contentWidthFor(viewportWidth, zoom),
+          contentWidth: _contentWidthFor(viewportWidth, zoom, maxWidth),
           viewportHeight: viewportHeight,
           zoom: zoom,
           leadingInsets: leadingInsets,
@@ -251,6 +252,7 @@ class ReaderPageMetrics {
     required double viewportHeight,
     double zoom = 1,
     Map<int, double> leadingInsets = const {},
+    double maxWidth = maxContentWidth,
   }) =>
       ReaderPageMetrics(
         ratios: extents.layoutRatios,
@@ -260,8 +262,11 @@ class ReaderPageMetrics {
         viewportHeight: viewportHeight,
         zoom: zoom,
         leadingInsets: leadingInsets,
+        maxWidth: maxWidth,
       );
 
+  /// The cap on the painted page width up to 1x zoom (768, or the tablet strip column's 860).
+  final double maxWidth;
   final List<double> ratios;
   final ReadingDirection direction;
   final ReaderFitMode fitMode;
@@ -299,7 +304,7 @@ class ReaderPageMetrics {
   /// [maxContentWidth] so a tablet does not stretch a phone-sized strip across
   /// the screen; past 1x the cap is lifted and the page deliberately overflows
   /// the viewport, which is what zooming in means here.
-  double get contentWidth => _contentWidthFor(viewportWidth, zoom);
+  double get contentWidth => _contentWidthFor(viewportWidth, zoom, maxWidth);
 
   double ratioAt(int index) =>
       (index >= 0 && index < ratios.length) ? ratios[index] : defaultAspectRatio;
@@ -357,8 +362,8 @@ class ReaderPageMetrics {
   double get totalPagesExtent =>
       _pageStarts[pageCount] - readerListLeadingPadding;
 
-  static double _contentWidthFor(double viewportWidth, double zoom) =>
-      (zoom > 1 ? viewportWidth : math.min(viewportWidth, maxContentWidth)) *
+  static double _contentWidthFor(double viewportWidth, double zoom, double maxWidth) =>
+      (zoom > 1 ? viewportWidth : math.min(viewportWidth, maxWidth)) *
       zoom;
 
   /// Static so the prefix sum can be built in the initializer list, before

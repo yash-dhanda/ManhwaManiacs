@@ -1,8 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/storage/json_record.dart';
 
-// TODO(mobile/12): the reader steps own this record (`mm.reader-settings.u{user}p{profile}`); this
-// file holds the fields Settings (mobile/18) edits, under the names mobile/12, 13 and 23 use.
+// The per-profile record `mm.reader-settings.u{user}p{profile}`: the fields Settings (mobile/18)
+// edits, read by the reader through `ReaderPrefs` (`models/reader_prefs.dart`) with the per-series
+// map `mm.reader-prefs.*` layered over it.
 
 const kReaderSettingsPrefix = 'mm.reader-settings.';
 const kReaderPrefsPrefix = 'mm.reader-prefs.';
@@ -111,7 +112,7 @@ final readerSettingsProvider = NotifierProvider<ReaderSettingsNotifier, JsonReco
 
 /// Per-device values (the Reading: manga app rows share these with the reader).
 final stripWidthProvider = NotifierProvider<DeviceValueNotifier<int>, int>(
-  () => DeviceValueNotifier<int>('mm.reader.device.stripWidth', 680),
+  () => DeviceValueNotifier<int>('mm.reader.device.stripWidthPx', 680),
   name: 'stripWidth',
 );
 
