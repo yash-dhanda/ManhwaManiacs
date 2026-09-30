@@ -145,6 +145,7 @@ class SkinGlass extends ConsumerStatefulWidget {
   })  : groupShapes = null,
         groupAxis = Axis.horizontal,
         groupGap = 8,
+        groupAligns = null,
         groupOffsets = null;
 
   const SkinGlass._group({
@@ -162,6 +163,7 @@ class SkinGlass extends ConsumerStatefulWidget {
     required this.groupGap,
     required this.rimTint,
     this.groupOffsets,
+    this.groupAligns,
   })  : groupShapes = shapes,
         child = const SizedBox.shrink(),
         twin = null,
@@ -203,6 +205,10 @@ class SkinGlass extends ConsumerStatefulWidget {
   /// Per-shape paint offsets of a group (the reaction picker's arc); the group is still one layer.
   final List<Offset>? groupOffsets;
 
+  /// Bar groups that span their host (the nav row): one horizontal alignment (-1 start, 0 centre, 1 end) per shape. The group then
+  /// fills the width it is given and stays one layer.
+  final List<double>? groupAligns;
+
   /// The device-corner radius on iOS phones (glass 2.3), `radiusSheet` 36 elsewhere.
   static double deviceCornerRadius(BuildContext context) {
     final phone = MediaQuery.sizeOf(context).shortestSide < 600;
@@ -235,10 +241,12 @@ class SkinGlassGroup extends SkinGlass {
     double gap = 8,
     super.rimTint,
     List<Offset>? offsets,
+    List<double>? aligns,
   }) : super._group(
           groupAxis: axis,
           groupGap: gap,
           groupOffsets: offsets,
+          groupAligns: aligns,
         );
 }
 
@@ -254,6 +262,9 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   late final GlassRegistryController _registry = ref.read(glassRegistryProvider.notifier);
   late final int _id = _registry.newId();
 
+  /// Every mounted surface, so the skin melt can dematerialise them all at once.
+  static final Set<SkinGlassState> _mounted = {};
+
   bool _registered = false;
   bool _disposed = false;
   Offset _glowAt = Offset.zero;
@@ -266,6 +277,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   @override
   void initState() {
     super.initState();
+    _mounted.add(this);
     widget.glow?.addListener(_onGlow);
     if (widget.materialize) {
       final reduced = ref.read(glassMotionPrefsProvider).reduced;
@@ -290,6 +302,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   @override
   void dispose() {
     _disposed = true;
+    _mounted.remove(this);
     widget.glow?.removeListener(_onGlow);
     if (_registered) {
       final id = _id, registry = _registry;
@@ -446,7 +459,19 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
       final off = widget.groupOffsets;
       children.add(off != null && i < off.length ? Transform.translate(offset: off[i], child: shape) : shape);
     }
-    final flex = Flex(direction: widget.groupAxis, mainAxisSize: MainAxisSize.min, children: children);
+    final aligns = widget.groupAligns;
+    final Widget flex;
+    if (aligns != null) {
+      final shapes = [for (var i = 0; i < specs.length; i++) _buildShape(context, specs[i], specs[i].size, env, grouped: true)];
+      final h = specs.map((s) => s.size.height).reduce((a, b) => a > b ? a : b);
+      flex = SizedBox(
+        width: double.infinity,
+        height: h,
+        child: Stack(children: [for (var i = 0; i < shapes.length; i++) Align(alignment: Alignment(aligns[i], 0), child: shapes[i])]),
+      );
+    } else {
+      flex = Flex(direction: widget.groupAxis, mainAxisSize: MainAxisSize.min, children: children);
+    }
     final live = env.live && specs.every((s) => s.twin == null);
     if (live && env.renderer == GlassRenderer.liquid) {
       // One layer for the whole group; its settings come from the first shape's tier.
@@ -736,3 +761,7 @@ class SkinGlassRoot extends ConsumerWidget {
     );
   }
 }
+
+
+/// Dematerialises every mounted glass surface at once (350 ms; the skin melt, glass 4.10). Completes when they are all gone.
+Future<void> dematerializeAllGlass() => Future.wait([for (final s in SkinGlassState._mounted.toList()) s.dematerialize()]);
