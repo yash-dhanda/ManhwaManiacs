@@ -1,0 +1,3 @@
+# mobile/18 plan
+
+One task per scope item; groups A to G ran in order. A1 switch orchestration (`switchSkin`, `takeSkinArrival`), A2 recap setting, A3 settings search, A4 reading/novel/listen/ambient records (stand-ins, see report), A5 accessibility prefs (already present), A6 notify master + cache lifetime, A7 server switch + server-scoped downloads, A8 backup download, A9 diagnostics snapshot, A10 `SkinId.displayFamily`; B structure (registry, contents, search, two panes, jump); C sections; D edition picker + Stop the press + arrival toast; E pushed pages; F reduced motion, focus, hit targets; tests and proof.

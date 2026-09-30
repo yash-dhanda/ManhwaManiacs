@@ -32,7 +32,7 @@ String settingsFooter({bool glassAvailable = Flags.glassAvailable}) =>
 /// Settings (`/settings`, `/settings/:section`, cinematic 8.30): a credits-list contents and a
 /// pushed page per section below 900 dp; two panes from 900 dp.
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key, this.slug, this.jumpRow, this.licenses = false});
+  const SettingsScreen({super.key, this.slug, this.jumpRow, this.licenses = false, this.location});
 
   /// The section or pushed page; null is the table of contents.
   final String? slug;
@@ -40,6 +40,9 @@ class SettingsScreen extends ConsumerStatefulWidget {
   /// A row the search picked: the pane jumps to it once built.
   final String? jumpRow;
   final bool licenses;
+
+  /// Overrides the router location (proof harness).
+  final String? location;
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -188,6 +191,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: SettingsJumpScope(
         jump: _jump,
         child: CineScaffold(
+          location: widget.location,
           tabletLayout: true,
           firstRunNote: false,
           mastheadFocusNode: _head,

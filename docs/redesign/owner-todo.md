@@ -110,3 +110,7 @@ Items only the owner can do, by step.
 
 ## mobile/09 (Cinematic Library shelf)
 - Device checks: see docs/redesign/proof/mobile-09/device-checklist.md (hub swipe at 120 Hz, back order, haptics, VoiceOver/TalkBack Move actions). Shipped with widget-test coverage as the fallback.
+
+## mobile/18
+- Run the device checks in `docs/redesign/proof/mobile-18/device-checklist.md`.
+- Owner-only: optionally re-run `pngquant` on the 36 preview frames if a smaller bundle is wanted.
