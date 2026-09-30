@@ -110,3 +110,30 @@ Rect anchorRect(BuildContext context) {
   if (box is! RenderBox || !box.hasSize) return const Rect.fromLTWH(0, 0, 1, 1);
   return box.localToGlobal(Offset.zero) & box.size;
 }
+
+/// The reader's Listen state that the screen, its keys and its back handling share: whether the
+/// reading room is open, and how to ask it to collapse (the layer wires [collapse]).
+class ListenUi extends ChangeNotifier {
+  bool _roomOpen = false;
+
+  /// The post-play card is waiting: the reader's 900 ms auto-next stays off.
+  bool cardShowing = false;
+
+  bool get roomOpen => _roomOpen;
+
+  /// Set by the layer: runs the reverse match cut, then calls [setRoomOpen]`(false)`.
+  VoidCallback? collapse;
+
+  void setRoomOpen(bool open) {
+    if (open == _roomOpen) return;
+    _roomOpen = open;
+    notifyListeners();
+  }
+
+  /// Esc or Android back while the room is open: true when it handled the press.
+  bool handleBack() {
+    if (!_roomOpen) return false;
+    (collapse ?? () => setRoomOpen(false)).call();
+    return true;
+  }
+}

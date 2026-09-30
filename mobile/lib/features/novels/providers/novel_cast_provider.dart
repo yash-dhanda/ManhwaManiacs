@@ -97,12 +97,17 @@ class NovelCastingWriter {
   final Ref _ref;
 
   void _refresh(NovelChapterKey key) {
-    _ref
-      ..invalidate(novelAttributionProvider(key))
-      ..invalidate(seriesAudioProvider((sourceId: key.sourceId, seriesKey: key.seriesKey)))
-      ..invalidate(seriesAudioDetailProvider((sourceId: key.sourceId, seriesKey: key.seriesKey)))
-      ..invalidate(novelAudioJobsProvider((sourceId: key.sourceId, seriesKey: key.seriesKey)))
-      ..invalidate(activeAudioJobsProvider);
+    final series = (sourceId: key.sourceId, seriesKey: key.seriesKey);
+    _ref.invalidate(novelAttributionProvider(key));
+    // Only what somebody is watching: invalidating a provider nobody read would build it for nothing.
+    void refresh(ProviderBase<Object?> p) {
+      if (_ref.exists(p)) _ref.invalidate(p);
+    }
+
+    refresh(seriesAudioProvider(series));
+    refresh(seriesAudioDetailProvider(series));
+    refresh(novelAudioJobsProvider(series));
+    refresh(activeAudioJobsProvider);
   }
 
   /// `male`, `female` or `unknown`.

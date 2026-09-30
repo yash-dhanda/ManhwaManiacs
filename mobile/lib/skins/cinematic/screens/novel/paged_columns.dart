@@ -37,6 +37,8 @@ class NovelPagedColumns extends StatefulWidget {
     required this.onPage,
     required this.onMenu,
     this.decorations = const {},
+    this.decorationsBuilder,
+    this.decorationsRepaint,
     this.onSpeakerPress,
   });
 
@@ -58,6 +60,11 @@ class NovelPagedColumns extends StatefulWidget {
 
   /// Tints by paragraph index, in paragraph offsets.
   final Map<int, List<NovelDecoration>> decorations;
+
+  /// Listen (`mobile/15`): the tints with the band and the spoken word laid over them, asked for on
+  /// every [decorationsRepaint] change instead of the fixed [decorations].
+  final List<NovelDecoration> Function(int paragraph, List<NovelDecoration> tints)? decorationsBuilder;
+  final Listenable? decorationsRepaint;
   final void Function(String speaker, Offset globalPosition)? onSpeakerPress;
 
   @override
@@ -140,18 +147,23 @@ class NovelPagedColumnsState extends State<NovelPagedColumns> with SingleTickerP
     }
   }
 
-  List<NovelDecoration> _clip(int paragraph, int start, int end) => [
-        for (final d in widget.decorations[paragraph] ?? const <NovelDecoration>[])
-          if (d.end > start && d.start < end)
-            NovelDecoration(
-              start: (d.start - start).clamp(0, end - start),
-              end: (d.end - start).clamp(0, end - start),
-              fill: d.fill,
-              underline: d.underline,
-              dotted: d.dotted,
-              speaker: d.speaker,
-            ),
-      ];
+  List<NovelDecoration> _clip(int paragraph, int start, int end) {
+    final tints = widget.decorations[paragraph] ?? const <NovelDecoration>[];
+    final all = widget.decorationsBuilder?.call(paragraph, tints) ?? tints;
+    return [
+      for (final d in all)
+        if (d.end > start && d.start < end)
+          NovelDecoration(
+            start: (d.start - start).clamp(0, end - start),
+            end: (d.end - start).clamp(0, end - start),
+            fill: d.fill,
+            underline: d.underline,
+            dotted: d.dotted,
+            speaker: d.speaker,
+            sweep: d.sweep,
+          ),
+    ];
+  }
 
   Widget _textPage(BuildContext context, int index) {
     final slices = widget.pages[index];
@@ -224,7 +236,9 @@ class NovelPagedColumnsState extends State<NovelPagedColumns> with SingleTickerP
                 return Stack(
                   fit: StackFit.expand,
                   children: [
-                    _textPage(context, i),
+                    widget.decorationsRepaint == null
+                        ? _textPage(context, i)
+                        : ListenableBuilder(listenable: widget.decorationsRepaint!, builder: (context, _) => _textPage(context, i)),
                     Positioned(
                       left: 0,
                       right: 0,

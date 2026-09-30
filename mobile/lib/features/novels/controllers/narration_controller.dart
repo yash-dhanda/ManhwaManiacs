@@ -451,6 +451,9 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
 
   bool get isPlaying => state.isPlaying;
 
+  /// The state, readable from outside the notifier (listeners that hold the controller).
+  NarrationState get current => state;
+
   /// `p`, the mini player's button and the lock screen's play.
   @override
   Future<void> play() async {

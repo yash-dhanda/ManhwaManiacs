@@ -27,6 +27,48 @@ String? audioSaveCaption(SavedAudioState s) => switch (s) {
       SavedAudioState.unplayable => "The saved audio can't play on this device. Tap to save it again.",
     };
 
+/// What a tap on a chapter's save state does: save, remove (asks first, with the 1000 ms arm),
+/// retry, or replace an unplayable copy; null while saving or preparing.
+VoidCallback? audioSaveTap(
+  BuildContext context,
+  WidgetRef ref,
+  NovelChapterKey chapter,
+  SavedAudioState state, {
+  double? chapterNumber,
+  String? title,
+  String? seriesTitle,
+}) {
+  final ChapterIdentity id = chapter;
+  final queue = ref.read(downloadQueueControllerProvider.notifier);
+  void save() => unawaited(queue.enqueueChapters(narrationDownloadRequests(chapter: id, chapterNumber: chapterNumber, title: title, seriesTitle: seriesTitle)));
+  return switch (state) {
+    SavedAudioState.none || SavedAudioState.failed => save,
+    SavedAudioState.saving || SavedAudioState.preparing => null,
+    SavedAudioState.saved => () => unawaited(_confirmRemove(context, queue, id)),
+    SavedAudioState.unplayable => () => unawaited(_resave(queue, id, save)),
+  };
+}
+
+Future<void> _confirmRemove(BuildContext context, DownloadQueueController queue, ChapterIdentity id) async {
+  final ok = await showCineConfirm(
+    context,
+    title: 'Remove saved audio?',
+    body: 'The chapter stays on this device to read.',
+    confirmLabel: 'Remove',
+    destructive: true,
+  );
+  if (!ok) return;
+  if (context.mounted) cineFeedback(context, HapticEvent.deleteConfirm);
+  await queue.cancelChapter(audioIdentity(id));
+}
+
+/// The old row has to go first: saving onto a complete row keeps the bytes it has, which are the
+/// ones that do not play.
+Future<void> _resave(DownloadQueueController queue, ChapterIdentity id, VoidCallback save) async {
+  await queue.cancelChapter(audioIdentity(id));
+  save();
+}
+
 /// The row that carries a chapter's audio save state, in the mini player's overflow and the
 /// opener: `Save audio to this device` -> saving (leader dial) -> `Audio saved` (check) -> a tap
 /// asks `Remove saved audio? The chapter stays on this device to read.` (destructive, the 1000 ms
@@ -41,27 +83,6 @@ class AudioSaveRow extends ConsumerWidget {
   /// A caption in `typeFolio` (the opener) rather than a full row.
   final bool compact;
 
-  ChapterIdentity get _id => chapter;
-
-  void _save(WidgetRef ref) => unawaited(
-        ref.read(downloadQueueControllerProvider.notifier).enqueueChapters(
-              narrationDownloadRequests(chapter: _id, chapterNumber: chapterNumber, title: title, seriesTitle: seriesTitle),
-            ),
-      );
-
-  Future<void> _remove(BuildContext context, WidgetRef ref) async {
-    final ok = await showCineConfirm(
-      context,
-      title: 'Remove saved audio?',
-      body: 'The chapter stays on this device to read.',
-      confirmLabel: 'Remove',
-      destructive: true,
-    );
-    if (!ok) return;
-    if (context.mounted) cineFeedback(context, HapticEvent.deleteConfirm);
-    await ref.read(downloadQueueControllerProvider.notifier).cancelChapter(audioIdentity(_id));
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (ref.watch(downloadsStoreProvider) == null) return const SizedBox.shrink();
@@ -69,13 +90,7 @@ class AudioSaveRow extends ConsumerWidget {
     final state = ref.watch(savedAudioStateProvider(chapter));
     final busy = state == SavedAudioState.saving || state == SavedAudioState.preparing;
     final caption = audioSaveCaption(state) ?? 'Save audio to this device';
-    final VoidCallback? tap = switch (state) {
-      SavedAudioState.none => () => _save(ref),
-      SavedAudioState.saving || SavedAudioState.preparing => null,
-      SavedAudioState.saved => () => unawaited(_remove(context, ref)),
-      SavedAudioState.failed => () => _save(ref),
-      SavedAudioState.unplayable => () => unawaited(_resave(ref)),
-    };
+    final tap = audioSaveTap(context, ref, chapter, state, chapterNumber: chapterNumber, title: title, seriesTitle: seriesTitle);
     return Semantics(
       button: tap != null,
       label: caption,
@@ -98,12 +113,5 @@ class AudioSaveRow extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  /// The old row has to go first: saving onto a complete row keeps the bytes it has, which are the
-  /// ones that do not play.
-  Future<void> _resave(WidgetRef ref) async {
-    await ref.read(downloadQueueControllerProvider.notifier).cancelChapter(audioIdentity(_id));
-    _save(ref);
   }
 }
