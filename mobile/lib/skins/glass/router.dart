@@ -39,10 +39,12 @@ import 'package:manhwamaniacs/skins/glass/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/recap/recap_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/catalogue_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/sources_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
+import 'package:manhwamaniacs/skins/glass/shell/glass_migration.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
 import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell.dart';
@@ -73,7 +75,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.novel,
   ScreenId.downloads,
   ScreenId.indexHub,
-  ScreenId.settings,
   ScreenId.status,
 };
 
@@ -254,7 +255,8 @@ GoRouter buildGlassRouter(Ref ref) {
     ..listen<bool>(glassSignedOutPendingProvider, (_, __) => bridge.poke())
     ..listen<bool>(glassRedirectHoldProvider, (_, __) => bridge.poke())
     ..listen(profilesProvider, (_, __) => bridge.poke())
-    ..listen(profileHeaderSyncProvider, (_, __) {});
+    ..listen(profileHeaderSyncProvider, (_, __) {})
+    ..listen(glassPrefsMigrationProvider, (_, __) {});
 
   final rootKey = GlobalKey<NavigatorState>(debugLabel: 'glass root');
   final branchKeys = {for (final t in GlassTab.values) t: GlobalKey<NavigatorState>(debugLabel: 'glass ${t.name}')};
@@ -333,8 +335,8 @@ GoRouter buildGlassRouter(Ref ref) {
               pageBuilder: (context, state) => glassPage(state, GlassShellDemo(level: int.tryParse(state.uri.queryParameters['level'] ?? '') ?? 0)),
             ),
             _route(ScreenId.indexHub),
-            _route(ScreenId.settings),
-            _route(ScreenId.settings, path: Routes.settingsAliases.first),
+            _screen(ScreenId.settings, (s) => GlassSettingsScreen(row: s.uri.queryParameters['row'])),
+            _screen(ScreenId.settings, (s) => GlassSettingsScreen(section: s.pathParameters['section'], row: s.uri.queryParameters['row']), path: Routes.settingsAliases.first),
             _route(ScreenId.circle),
             _route(ScreenId.numbers),
             _route(ScreenId.status),

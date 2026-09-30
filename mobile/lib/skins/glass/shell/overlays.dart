@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/skins/glass/parts/recap/recap_ready_listener.dart'
 import 'package:manhwamaniacs/skins/glass/primitives/new_chapters_capsule.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/settings_screen.dart' show SettingsPendingBody;
 import 'package:manhwamaniacs/skins/glass/shell/app_update_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shortcuts_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/whats_new_sheet.dart';
@@ -24,11 +25,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 void registerGlassGlobalSheets() {
   registerGlobalSheet('shortcuts', const GlassSheetSpec(title: 'Keyboard shortcuts', builder: _shortcuts));
   registerGlobalSheet('whats-new', const GlassSheetSpec(title: "What's new", builder: _whatsNew));
+  // `licenses` renders the pending body until mobile/40 replaces this registration (glass 8.25.14).
+  registerGlobalSheet('licenses', const GlassSheetSpec(title: 'Open-source licences', builder: _licencesPending));
   registerGlobalSheet('app-update', const GlassSheetSpec(title: 'Update available', builder: _appUpdate, detents: [GlassDetent.medium], opening: GlassDetent.medium));
   registerOfferSheet();
   registerHowItWorksSheet();
 }
 
+Widget _licencesPending(BuildContext _) => const SettingsPendingBody();
 Widget _shortcuts(BuildContext _) => const GlassShortcutsBody();
 Widget _whatsNew(BuildContext _) => const GlassWhatsNewBody();
 Widget _appUpdate(BuildContext _) => const GlassAppUpdateBody();

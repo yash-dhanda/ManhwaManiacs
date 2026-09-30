@@ -68,6 +68,8 @@ class AiFeedback {
 
   /// `signal: clear`: forget every Not interested of this profile.
   Future<bool> clearAll() => _send('clear');
+  /// Settings -> AI and recaps -> Clear "Not interested": `POST /ai/feedback {signal: clear}`.
+  Future<bool> clear() => _send('clear');
 
   Future<bool> tagRejected(String sourceId, String seriesKey, String tag) => _send('tag_rejected', sourceId: sourceId, seriesKey: seriesKey, tag: tag);
 }
