@@ -74,7 +74,11 @@ class _GlassSearchPageState extends ConsumerState<GlassSearchPage> {
     super.dispose();
   }
 
-  void _write(String q) => GoRouter.of(context).replace<void>(q.isEmpty ? '/search' : '/search?q=${Uri.encodeQueryComponent(q)}');
+  void _write(String q) {
+    final scope = GoRouter.of(context).state.uri.queryParameters['scope'];
+    final qp = <String, String>{if (q.isNotEmpty) 'q': q, if (scope != null) 'scope': scope};
+    GoRouter.of(context).replace<void>(Uri(path: '/search', queryParameters: qp.isEmpty ? null : qp).toString());
+  }
 
   @override
   Widget build(BuildContext context) {
