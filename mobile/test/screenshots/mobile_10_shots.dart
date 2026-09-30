@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
@@ -30,11 +31,13 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/library_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cards/cine_collection_plate.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/bookmarks/bookmarks_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/collection_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/collections_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/history/history_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/updates/updates_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/transitions.dart';
 import 'package:manhwamaniacs/skins/skin_haptics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -164,6 +167,7 @@ void mobile10Shots() {
     WidgetTester t,
     String name,
     Widget home, {
+    GoRouter? router,
     HubLibrary? lib,
     FakeUpdates? updates,
     List<Bookmark>? marks,
@@ -221,7 +225,9 @@ void mobile10Shots() {
           if (offline) sessionOfflineProvider.overrideWith(_Offline.new),
           if (noticesOff) profilesProvider.overrideWith(_ProfilesOff.new),
         ],
-        child: MaterialApp(debugShowCheckedModeBanner: false, theme: featureTheme(TargetPlatform.android), home: home),
+        child: router == null
+            ? MaterialApp(debugShowCheckedModeBanner: false, theme: featureTheme(TargetPlatform.android), home: home, builder: (context, child) => Material(type: MaterialType.transparency, child: child))
+            : MaterialApp.router(debugShowCheckedModeBanner: false, theme: featureTheme(TargetPlatform.android), routerConfig: router, builder: (context, child) => Material(type: MaterialType.transparency, child: child)),
         settle: (t) async {
           await wait(t, settle.inMilliseconds);
           await pumpUntilCoversLoad(t, rounds: 8);
@@ -266,7 +272,7 @@ void mobile10Shots() {
   testWidgets('mobile-10 collections new shelf smart', (t) async => shot(t, 'collections-new-shelf-smart', collections, drive: (t, w) async {
         await t.tap(find.text('New shelf'));
         await wait(t, 900);
-        await t.tap(find.byType(Switch).first, warnIfMissed: false);
+        await t.tap(find.byType(CineSwitch).first);
         await wait(t, 200);
       }));
   testWidgets('mobile-10 collections loading', (t) async => shot(t, 'collections-loading', collections, settle: const Duration(milliseconds: 40)));
@@ -299,7 +305,12 @@ void mobile10Shots() {
   testWidgets('mobile-10 collection notfound', (t) async => shot(t, 'collection-notfound', shelf(99), tablet: false));
   testWidgets('mobile-10 collection match cut mid', (t) async {
     // The plate on the Collections page and the header it becomes: the route animation at 240 ms.
-    await shot(t, 'collection-match-cut-mid', collections, tablet: false, drive: (t, w) async {
+    final router = GoRouter(routes: [
+      GoRoute(path: '/', pageBuilder: (context, state) => cineCutPage(state, const CollectionsScreen())),
+      GoRoute(path: '/library/collections/:id', pageBuilder: (context, state) => cineMatchCutPage(state, CollectionScreen(collectionId: int.parse(state.pathParameters['id']!)))),
+    ]);
+    addTearDown(router.dispose);
+    await shot(t, 'collection-match-cut-mid', collections, router: router, tablet: false, drive: (t, w) async {
       await t.tap(find.byType(CineCollectionPlate).first);
       await t.pump(const Duration(milliseconds: 240));
     });
