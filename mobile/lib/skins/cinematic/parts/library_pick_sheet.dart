@@ -29,7 +29,7 @@ Future<LibraryPick?> showLibraryPickSheet(BuildContext context, {String kicker =
       context,
       kicker: kicker,
       title: title,
-      builder: (ctx) => LibraryPickList(exclude: exclude),
+      builder: (ctx) => Material(type: MaterialType.transparency, child: LibraryPickList(exclude: exclude)),
     );
 
 class LibraryPickList extends ConsumerStatefulWidget {

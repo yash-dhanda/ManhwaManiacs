@@ -16,7 +16,18 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
-double _rowHeight(double w) => w * 3 / 2 + 44;
+/// The height of a poster row `w` wide: the art at 2:3, the two-line title and folio captions and
+/// the rail's own padding (what `CineRail` reserves).
+double _rowHeight(BuildContext context, double w) {
+  final c = context.cine;
+  double lineH(CineTextRole r) {
+    final s = CineText.style(context, r);
+    return (s.fontSize ?? 16) * (s.height ?? 1.3) * CineText.scaler(context, r).scale(1);
+  }
+
+  final lines = CineReflow.of(context).railCompact ? 2 : 1;
+  return 1.5 * w + 8 + lines * lineH(c.typeTitle) + 2 + lineH(c.typeFolio) + 16 + 6;
+}
 
 /// Up to three 20 px avatars overlapping by 6 px, at the bottom-left of a poster's art.
 class _AvatarStack extends StatelessWidget {
@@ -65,7 +76,7 @@ class SentToYouSection extends ConsumerWidget {
       captionWidget: line == null
           ? null
           : TypedText.plain(line.length > 140 ? line.substring(0, 140) : line, key: ValueKey('sent-note-$line'), style: CineText.style(context, c.typeBodyItalic).copyWith(color: c.colorInk60), maxLines: 2, overflow: TextOverflow.ellipsis),
-      itemHeight: _rowHeight,
+      itemHeight: (w) => _rowHeight(context, w),
       itemBuilder: (context, i, w) {
         final l = items[i];
         return _withAvatars(
@@ -103,7 +114,7 @@ class FromTheCircleSection extends ConsumerWidget {
         visiblePhone: 2.3,
         visibleTablet: 4.3,
         onSeeAll: () => context.go(Routes.circle()),
-        itemHeight: _rowHeight,
+        itemHeight: (w) => _rowHeight(context, w),
         itemBuilder: (context, i, w) {
           final it = items[i];
           return _withAvatars(
@@ -140,7 +151,7 @@ class MostReadInCircleSection extends ConsumerWidget {
       itemCount: items.length,
       visiblePhone: 2.3,
       visibleTablet: 4.3,
-      itemHeight: _rowHeight,
+      itemHeight: (w) => _rowHeight(context, w),
       itemBuilder: (context, i, w) {
         final it = items[i];
         return Padding(
