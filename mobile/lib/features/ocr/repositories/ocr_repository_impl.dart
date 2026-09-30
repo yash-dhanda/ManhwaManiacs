@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_coverage.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
+import 'package:manhwamaniacs/features/ocr/utils/ocr_boxes.dart';
 import 'package:manhwamaniacs/features/ocr/repositories/ocr_repository.dart';
 import 'package:manhwamaniacs/features/ocr/services/ocr_upload_payload.dart';
 
@@ -108,6 +109,11 @@ class OcrRepositoryImpl implements OcrRepository {
               PageText(
                 page: (p['page'] as num?)?.toInt() ?? 0,
                 text: p['text'] is String ? p['text'] as String : '',
+                boxes: [
+                  if (p['boxes'] is List)
+                    for (final b in p['boxes'] as List)
+                      if (b is Map) ?parseApiBox(b),
+                ],
               ),
       ]);
     } on DioException catch (e) {
