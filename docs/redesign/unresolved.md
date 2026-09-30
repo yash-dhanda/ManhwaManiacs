@@ -58,3 +58,8 @@ No unresolved items.
 - (fix attempted, not re-checked) Acceptance: iOSTapTargetGuideline, androidTapTargetGuideline and labeledTapTargetGuideline pass on the three screens AND the What's new sheet
 - (fix attempted, not re-checked) Acceptance: Save to Files 'CI's APK build and iOS dry run are green for the native commit'
 - (fix attempted, not re-checked) Dependency stand-ins (informational, not code defects): StreakFlame (mobile/08) and NarratingIndicator plus activeNarrationJobsProvider (mobile/15)
+
+## mobile/18 (L09, cinematic settings and edition restart)
+
+- (fix attempted, not re-checked) Acceptance: every baseline-passing test still passes; flutter test 0 failed
+- (fix attempted, not re-checked) C3 Ambient row: guided auto-advance 'fixed-hold stepper 2-10 s step 0.5'
