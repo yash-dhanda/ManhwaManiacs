@@ -115,7 +115,7 @@ class _GlassToolbarState extends ConsumerState<GlassToolbar> {
           ];
 
     final children = <SkinGlassShape>[];
-    final aligns = <double>[];
+    final aligns = <Alignment>[];
     // The chevron is plain (no glass), so the group holds only the trailing actions and the status capsule.
     final n = actions.length;
     if (widget.offline) {
@@ -123,7 +123,7 @@ class _GlassToolbarState extends ConsumerState<GlassToolbar> {
           size: Size(statusCapsuleWidth(context, 'Offline'), 36),
           child: const GlassStatusCapsule(
               kind: GlassStatusKind.offline, inGroup: true,),),);
-      aligns.add(-0.2);
+      aligns.add(const Alignment(-0.2, 0));
     }
     children.add(
       SkinGlassShape(
@@ -143,7 +143,7 @@ class _GlassToolbarState extends ConsumerState<GlassToolbar> {
         ),
       ),
     );
-    aligns.add(1);
+    aligns.add(Alignment.centerRight);
 
     return Stack(
       fit: StackFit.expand,

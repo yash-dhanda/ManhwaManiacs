@@ -146,6 +146,7 @@ class SkinGlass extends ConsumerStatefulWidget {
         groupAxis = Axis.horizontal,
         groupGap = 8,
         groupAligns = null,
+        groupHeight = null,
         groupOffsets = null;
 
   const SkinGlass._group({
@@ -164,6 +165,7 @@ class SkinGlass extends ConsumerStatefulWidget {
     required this.rimTint,
     this.groupOffsets,
     this.groupAligns,
+    this.groupHeight,
   })  : groupShapes = shapes,
         child = const SizedBox.shrink(),
         twin = null,
@@ -205,9 +207,12 @@ class SkinGlass extends ConsumerStatefulWidget {
   /// Per-shape paint offsets of a group (the reaction picker's arc); the group is still one layer.
   final List<Offset>? groupOffsets;
 
-  /// Bar groups that span their host (the nav row): one horizontal alignment (-1 start, 0 centre, 1 end) per shape. The group then
+  /// Bar groups that span their host (the nav row, the dock with its orb and accessory): one alignment per shape. The group then
   /// fills the width it is given and stays one layer.
-  final List<double>? groupAligns;
+  final List<Alignment>? groupAligns;
+
+  /// The height of an aligned group (default: its tallest shape).
+  final double? groupHeight;
 
   /// The device-corner radius on iOS phones (glass 2.3), `radiusSheet` 36 elsewhere.
   static double deviceCornerRadius(BuildContext context) {
@@ -241,12 +246,14 @@ class SkinGlassGroup extends SkinGlass {
     double gap = 8,
     super.rimTint,
     List<Offset>? offsets,
-    List<double>? aligns,
+    List<Alignment>? aligns,
+    double? height,
   }) : super._group(
           groupAxis: axis,
           groupGap: gap,
           groupOffsets: offsets,
           groupAligns: aligns,
+          groupHeight: height,
         );
 }
 
@@ -463,11 +470,10 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
     final Widget flex;
     if (aligns != null) {
       final shapes = [for (var i = 0; i < specs.length; i++) _buildShape(context, specs[i], specs[i].size, env, grouped: true)];
-      final h = specs.map((s) => s.size.height).reduce((a, b) => a > b ? a : b);
       flex = SizedBox(
         width: double.infinity,
-        height: h,
-        child: Stack(children: [for (var i = 0; i < shapes.length; i++) Align(alignment: Alignment(aligns[i], 0), child: shapes[i])]),
+        height: widget.groupHeight ?? specs.map((s) => s.size.height).reduce((a, b) => a > b ? a : b),
+        child: Stack(children: [for (var i = 0; i < shapes.length; i++) Align(alignment: aligns[i], child: shapes[i])]),
       );
     } else {
       flex = Flex(direction: widget.groupAxis, mainAxisSize: MainAxisSize.min, children: children);

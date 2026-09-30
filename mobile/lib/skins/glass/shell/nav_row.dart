@@ -108,7 +108,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
         MediaQuery.sizeOf(context).width - 2 * GlassFrame.screenMargin(context);
     final actions = barActions(widget.actions, widget.overflow, context);
     final shapes = <SkinGlassShape>[];
-    final aligns = <double>[];
+    final aligns = <Alignment>[];
 
     // Leading.
     switch (widget.leading) {
@@ -120,7 +120,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
                 inGroup: true,
                 showDepth: widget.showDepth,
                 currentKey: widget.currentKey,),),);
-        aligns.add(-1);
+        aligns.add(Alignment.centerLeft);
       case GlassLeading.profile:
         shapes.add(
           SkinGlassShape(
@@ -132,7 +132,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
                         showProfileSwitcher(context, ref, r),),),
           ),
         );
-        aligns.add(-1);
+        aligns.add(Alignment.centerLeft);
       case GlassLeading.none:
         break;
     }
@@ -147,7 +147,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
               kind: GlassStatusKind.offline, inGroup: true,),
         ),
       );
-      aligns.add(0);
+      aligns.add(Alignment.center);
     } else if (_showTitle) {
       final style =
           roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600);
@@ -156,7 +156,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
       shapes.add(SkinGlassShape(
           size: Size(tw, 36),
           child: _TitleCapsule(title: widget.title, width: tw),),);
-      aligns.add(0);
+      aligns.add(Alignment.center);
     }
 
     // Trailing: mode switch and up to three icons.
@@ -165,7 +165,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
           size: Size(88, 36),
           child:
               GlassContentModeSwitch(variant: GlassContentModeVariant.navRow),),);
-      aligns.add(1);
+      aligns.add(Alignment.centerRight);
     }
     if (actions.isNotEmpty) {
       final n = actions.length;
@@ -187,7 +187,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
           ),
         ),
       );
-      aligns.add(1);
+      aligns.add(Alignment.centerRight);
     }
     if (shapes.isEmpty) return const SizedBox.shrink();
     // A trailing group after a mode switch: keep both at the end with the gap between them.
