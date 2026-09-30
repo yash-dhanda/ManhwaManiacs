@@ -97,7 +97,7 @@ void main() {
     expect(dots, findsAtLeastNWidgets(3));
     expect(find.bySemanticsLabel(RegExp(r'^1 of \d: The Lantern Courier')), findsOneWidget);
     // Increase pages to the second card.
-    t.semantics.performAction(find.bySemanticsLabel(RegExp("^Spotlight")), SemanticsAction.increase);
+    t.semantics.performAction(find.semantics.byLabel(RegExp('^Spotlight')), SemanticsAction.increase);
     await pumpFor(t, 600);
     final d2 = t.getSemantics(find.bySemanticsLabel(RegExp('^Spotlight'))).getSemanticsData();
     expect(d2.value, matches(RegExp(r'^2 of \d$')));
