@@ -54,7 +54,7 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
       if (mounted) setState(() {});
     });
     _sources = Timer.periodic(
-        kSourcesPollEvery, (_) => ref.invalidate(sourcesHealthProvider));
+        kSourcesPollEvery, (_) => ref.invalidate(sourcesHealthProvider),);
   }
 
   @override
@@ -124,18 +124,19 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
         );
 
     Widget frame(Widget Function(double top) body,
-        {Widget Function(Widget scaffold)? keys}) {
+        {Widget Function(Widget scaffold)? keys,}) {
       final scaffold = CineScaffold(
         tabletLayout: true,
         firstRunNote: false,
         body: Builder(
-            builder: (context) => body(CineScaffoldScope.topExtentOf(context))),
+            builder: (context) => body(CineScaffoldScope.topExtentOf(context)),),
       );
       return keys == null ? scaffold : keys(scaffold);
     }
 
-    if (resolving)
+    if (resolving) {
       return frame((top) => SingleChildScrollView(child: masthead(top)));
+    }
 
     if (!admin) {
       return frame(
@@ -152,7 +153,7 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
                   headline: 'System status is instance-wide.',
                   deck: 'Ask the owner to check it.',
                   primary: CineNoticeAction(
-                      'Back to Tonight', () => context.go(Routes.tonight())),
+                      'Back to Tonight', () => context.go(Routes.tonight()),),
                 ),
               ),
             ],
@@ -208,12 +209,12 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
             const CineLeaderDial(
                 size: 16,
                 showAfter: Duration.zero,
-                semanticLabel: 'Refreshing'),
+                semanticLabel: 'Refreshing',),
           Semantics(
             label: 'Live, refreshes in $left seconds',
             excludeSemantics: true,
             child: CineRoleText('LIVE · $left S', c.typeFolio,
-                color: c.colorInk60),
+                color: c.colorInk60,),
           ),
         ],
       ),
@@ -244,7 +245,7 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
                     SummaryBanner(summary: summary),
                     BackendCard(
                         health: backend,
-                        loading: poll.isLoading && !poll.hasValue),
+                        loading: poll.isLoading && !poll.hasValue,),
                     CheckerCard(
                       health: summary.checker,
                       now: now,

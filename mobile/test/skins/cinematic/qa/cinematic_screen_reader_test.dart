@@ -23,9 +23,9 @@ void main() {
 
   testWidgets('SetHeading and TypedHeadline expose their full text 100 ms in, mid-animation', (t) async {
     final h = t.ensureSemantics();
-    await t.pumpWidget(host(Column(children: [
-      SetHeading('Recently read', id: 'sr-1', style: const TextStyle(fontSize: 40), cap: 1.3, level: 1, trigger: SetTrigger.mount),
-      const TypedHeadline('Tonight, chapter 143 of The Return.', style: TextStyle(fontSize: 28), level: 2),
+    await t.pumpWidget(host(Column(children: const [
+      SetHeading('Recently read', id: 'sr-1', style: TextStyle(fontSize: 40), cap: 1.3, level: 1, trigger: SetTrigger.mount),
+      TypedHeadline('Tonight, chapter 143 of The Return.', style: TextStyle(fontSize: 28), level: 2),
     ],),),);
     await t.pump();
     await t.pump(const Duration(milliseconds: 100));

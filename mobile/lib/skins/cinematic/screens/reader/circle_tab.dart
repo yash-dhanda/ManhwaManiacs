@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/circle/utils/reaction_kinds.dart';
 import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/circle_poll_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/pass_it_on_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/reaction_stamps.dart' show reactionGlyph;
@@ -16,7 +17,6 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/circle_rows.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// CIRCLE (cinematic 8.14.12, 9.3.3): who in the circle read this chapter and how they took it,
 /// behind the spoiler guard. When [completedOpen] turns true the guarded rows unseal, each label

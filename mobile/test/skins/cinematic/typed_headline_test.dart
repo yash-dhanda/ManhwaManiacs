@@ -128,7 +128,7 @@ void main() {
   testWidgets('every grapheme is revealed and the caret is gone after n x 50 + 3,180 + 160 + 200 ms', (t) async {
     await t.pumpWidget(_host(TypedHeadline(_text, style: _style)));
     await t.pump();
-    await t.pump(Duration(milliseconds: 40 * 50 + 3180 + 160 + 200));
+    await t.pump(const Duration(milliseconds: 40 * 50 + 3180 + 160 + 200));
     expect(_revealed(t), 40);
     // The caret has faded out: gone from the tree or fully transparent.
     if (_caret.evaluate().isNotEmpty) expect(_caretOpacity(t), 0);

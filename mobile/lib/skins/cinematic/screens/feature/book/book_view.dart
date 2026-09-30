@@ -29,6 +29,7 @@ import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/chapter_reaction_folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/pass_it_on_sheet.dart';
@@ -57,7 +58,6 @@ import 'package:manhwamaniacs/skins/cinematic/screens/listen/audiobook_sheet.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/listen/listen_common.dart' show isOwnerProvider;
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// The novel Book page: typographic front matter, actions, windowed contents.
 class BookView extends ConsumerStatefulWidget {

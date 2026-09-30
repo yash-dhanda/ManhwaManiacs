@@ -4,10 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// `TYPE`, `ICONS` or `SOFTWARE` for a package name.
 String licenseGroupOf(String package) {

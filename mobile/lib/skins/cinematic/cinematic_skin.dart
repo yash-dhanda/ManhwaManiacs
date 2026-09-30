@@ -31,9 +31,7 @@ class CinematicSkin implements Skin {
     colorScheme: ColorScheme.dark(
       surface: const Color(0xFF000000),
       primary: cinematicTokens.colorSpot,
-      onPrimary: const Color(0xFF000000),
       secondary: cinematicTokens.colorSpot,
-      onSecondary: const Color(0xFF000000),
       outline: cinematicTokens.colorInk60,
       outlineVariant: cinematicTokens.colorRule2,
     ),

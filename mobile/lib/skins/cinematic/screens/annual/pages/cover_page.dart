@@ -68,7 +68,7 @@ class AnnualCoverPage extends ConsumerWidget {
                   ? null
                   : {
                       const CustomSemanticsAction(label: 'View cover'):
-                          openCover
+                          openCover,
                     },
               child: RawGestureDetector(
                 // The long press has a labelled alternative (cinematic 14.8): a `View cover` action on

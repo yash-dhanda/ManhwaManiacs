@@ -286,6 +286,7 @@ Future<LibRig> pumpShelf(
   final router = c.read(skinRouterProvider);
   if (start != '/') router.go(start);
   final app = MaterialApp.router(
+    debugShowCheckedModeBanner: false,
     theme: CinematicSkin.baseTheme.copyWith(platform: platform),
     routerConfig: router,
     builder: (context, child) => MediaQuery(

@@ -55,7 +55,7 @@ class FeatureSpread extends StatelessWidget {
                                   parts.title,
                                   if (parts.deck != null) ...[
                                     const SizedBox(height: 8),
-                                    parts.deck!
+                                    parts.deck!,
                                   ],
                                   const SizedBox(height: 16),
                                   parts.credits,
@@ -82,7 +82,7 @@ class FeatureSpread extends StatelessWidget {
                           widthFactor: 0.5,
                           child: DecoratedBox(
                               decoration:
-                                  BoxDecoration(gradient: CineScrim.gutter)),
+                                  BoxDecoration(gradient: CineScrim.gutter),),
                         ),
                       ),
                       Positioned(

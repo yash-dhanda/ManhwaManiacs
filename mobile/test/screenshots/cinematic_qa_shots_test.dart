@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // ignore_for_file: directives_ordering, require_trailing_commas, prefer_const_constructors, avoid_redundant_argument_values, unnecessary_lambdas, unnecessary_await_in_return
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/diagnostics/debug_overlays.dart';
@@ -49,7 +51,7 @@ void main() {
     // states need the network (feature, reader, novel) keep their own proof in mobile-1x/2x.
     final states = <String, Map<ScreenId, ShelfLibrary Function()>>{
       'loading': {
-        ScreenId.library: () => ShelfLibrary(all: [shelfSeries(1)], listGate: null)..listDelay = const Duration(days: 1),
+        ScreenId.library: () => ShelfLibrary(all: [shelfSeries(1)], listGate: Completer<void>()),
       },
       'empty': {
         ScreenId.library: () => ShelfLibrary(all: const []),

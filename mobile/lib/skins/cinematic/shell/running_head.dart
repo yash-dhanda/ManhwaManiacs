@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_icon.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/scrim_head.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// The leading control of a pushed screen (a `bare` `arrow-left`, "Back").
 class CineBack {

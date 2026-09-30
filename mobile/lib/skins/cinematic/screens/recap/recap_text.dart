@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:manhwamaniacs/features/recap/providers/recap_providers.dart' show kRecapParagraphToken;
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/recap/drop_cap_paragraph.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// The recap prose (cinematic 9.1.5): Newsreader 18/28 (20/32 from 600 dp), at most 58 ch wide,
 /// every word fading in over 160 ms as it is revealed (no fade under reduced motion), a

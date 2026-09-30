@@ -1,5 +1,5 @@
-import 'dart:math' as math;
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +24,7 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/chapter_reaction_folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.dart';
@@ -37,7 +38,6 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/schedule_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 const kNeedsConnection = 'Needs a connection.';
 

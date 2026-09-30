@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/pending_screen.dart';
@@ -46,8 +45,9 @@ void main() {
             }
             await disposeQa(t, rig);
             if (report) {
-              // ignore: avoid_print
-              for (final v in open) print('QAV $name $v');
+              for (final v in open) {
+                debugPrint('QAV $name $v');
+              }
             } else {
               expect(open, isEmpty, reason: open.join('\n'));
             }

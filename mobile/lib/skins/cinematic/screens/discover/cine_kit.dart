@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_health.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart'
     as real;
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 // TODO(mobile/04): stand-ins still local: slug tabs, notice, typed text, quiet
 // button, flicker plate. Their real counterparts (primitives/cine_slug_lines,

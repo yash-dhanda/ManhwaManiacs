@@ -8,12 +8,12 @@ import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/ocr_overlay.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// DIALOGUE (cinematic 8.14.12): the chapter's transcript as subtitle lines per page. A tap on a
 /// line scrolls there and pulses that bubble twice through the page overlay. No text, a 404 or an

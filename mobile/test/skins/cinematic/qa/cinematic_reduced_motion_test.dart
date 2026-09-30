@@ -1,7 +1,5 @@
 // ignore_for_file: directives_ordering, require_trailing_commas, prefer_const_constructors, avoid_redundant_argument_values, unnecessary_lambdas, unnecessary_await_in_return
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/diagnostics/motion_recorder.dart';
@@ -9,8 +7,6 @@ import 'package:manhwamaniacs/features/settings/providers/a11y_prefs_provider.da
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 import '../library/library_test_support.dart' show pumpShelf;
@@ -96,9 +92,9 @@ void main() {
       builder: (context, app) => MediaQuery(data: MediaQuery.of(context).copyWith(disableAnimations: true), child: app!),
       home: Scaffold(
         body: ProviderScope(
-          child: Column(children: [
-            SetHeading('Library', id: 'h', style: const TextStyle(fontSize: 40), cap: 1.3, level: 1, trigger: SetTrigger.mount),
-            const TypedHeadline('Tonight, chapter 12.', style: TextStyle(fontSize: 32)),
+          child: Column(children: const [
+            SetHeading('Library', id: 'h', style: TextStyle(fontSize: 40), cap: 1.3, level: 1, trigger: SetTrigger.mount),
+            TypedHeadline('Tonight, chapter 12.', style: TextStyle(fontSize: 32)),
           ]),
         ),
       ),

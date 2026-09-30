@@ -5,9 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/providers/dialogue_jump_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// Where a dialogue hit lands in the reader, and what to tell the reader.
 class DialogueLanding {

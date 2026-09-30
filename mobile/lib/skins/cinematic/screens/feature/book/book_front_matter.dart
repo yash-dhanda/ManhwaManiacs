@@ -3,12 +3,11 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/ambient_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/drop_cap_paragraph.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// Newsreader Italic 22 for the byline (`CineType.literal`).
 TextStyle bookLiteral(Color color, {double size = 22}) => TextStyle(

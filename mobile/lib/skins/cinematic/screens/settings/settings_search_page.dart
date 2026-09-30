@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/settings/utils/settings_search.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_search_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_registry.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 String _titleOf(List<SettingsSectionDef> sections, String slug) => sections.where((s) => s.slug == slug).firstOrNull?.title ?? slug;
 

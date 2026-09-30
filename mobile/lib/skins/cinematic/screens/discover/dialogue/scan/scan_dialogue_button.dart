@@ -4,9 +4,9 @@ import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_confirm_dialog.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_confirm_dialog.dart';
 
 /// The chapter-row action `Scan dialogue` for a saved manga chapter when OCR
 /// is available. Busy: a leader dial; indexed: the `TEXT` badge and a

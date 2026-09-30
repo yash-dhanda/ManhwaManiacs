@@ -13,7 +13,7 @@ const List<int> _ragged = [92, 78, 96, 64, 88];
 /// 1400 ms half-period; static at 0.8 under reduced motion).
 class NovelLoadingPage extends StatefulWidget {
   const NovelLoadingPage(
-      {super.key, required this.lineHeight, required this.width});
+      {super.key, required this.lineHeight, required this.width,});
 
   final double lineHeight, width;
 
@@ -24,7 +24,7 @@ class NovelLoadingPage extends StatefulWidget {
 class _NovelLoadingPageState extends State<NovelLoadingPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 1400));
+      vsync: this, duration: const Duration(milliseconds: 1400),);
 
   @override
   void didChangeDependencies() {
@@ -77,7 +77,7 @@ class _NovelLoadingPageState extends State<NovelLoadingPage>
                                   heightFactor: 0.5,
                                   child: ColoredBox(
                                       key: const Key('novel-galley-bar'),
-                                      color: galley)),
+                                      color: galley,),),
                             ),
                           ),
                       ],
@@ -101,7 +101,7 @@ class NovelFailureView extends StatelessWidget {
       {super.key,
       required this.error,
       required this.onRetry,
-      required this.onBack});
+      required this.onBack,});
 
   final AppError error;
   final VoidCallback onRetry, onBack;
@@ -159,5 +159,5 @@ class _Pad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24), child: child);
+      padding: const EdgeInsets.symmetric(horizontal: 24), child: child,);
 }
