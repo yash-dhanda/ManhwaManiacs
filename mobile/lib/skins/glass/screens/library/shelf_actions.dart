@@ -10,7 +10,9 @@ import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller
 import 'package:manhwamaniacs/features/library/models/collection.dart' show Collection;
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/known_chapter.dart';
+import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
 import 'package:manhwamaniacs/features/library/models/series_detail.dart';
+import 'package:manhwamaniacs/features/library/providers/history_pages_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
 import 'package:manhwamaniacs/features/library/providers/shelf_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/shelf_query_provider.dart';
@@ -332,6 +334,19 @@ class GlassShelfActions {
     _fire(HapticEvent.undo);
     _c.invalidate(shelfProvider);
     _counts();
+  }
+
+  /// Mark read of one history chapter (`POST /reader/progress/batch`, `manual: true`): no streak, goal or Statistics effect.
+  Future<void> markChapterRead(ReadingHistoryItem i) async {
+    final rows = manualReadRows([(sourceId: i.sourceId, seriesKey: i.seriesKey, chapterKey: i.chapterKey, chapterNumber: i.chapterNumber, pageCount: i.pageCount, completed: false)]);
+    final r = await _c.read(readerRepositoryProvider).saveProgressBatch(rows);
+    if (r.isErr) {
+      _toast(const GlassToastSpec("Couldn't mark that chapter", kind: GlassToastKind.error));
+      throw r.error;
+    }
+    _c
+      ..invalidate(historyPagesProvider(true))
+      ..invalidate(historyPagesProvider(false));
   }
 }
 

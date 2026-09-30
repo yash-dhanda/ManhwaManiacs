@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/recede.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/glass/routes/route_table.dart';
+import 'package:manhwamaniacs/skins/glass/screens/downloads/downloads_feed.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_dock_menu.dart';
 import 'package:manhwamaniacs/skins/glass/shell/accessory.dart';
 import 'package:manhwamaniacs/skins/glass/shell/accessory_controller.dart';
@@ -174,7 +175,7 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
       onNotification: _onScroll,
       child: FadeTransition(opacity: _fade, child: widget.navigationShell),
     );
-    content = GlassRecede(child: GlassDiveScope(child: Padding(padding: EdgeInsets.only(left: leftPad), child: content)));
+    content = GlassDownloadsFeed(child: GlassRecede(child: GlassDiveScope(child: Padding(padding: EdgeInsets.only(left: leftPad), child: content))));
 
     final hidden = hidesDock(path) || sheetLarge || keyboard;
     final children = <Widget>[

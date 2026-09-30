@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
-import 'package:manhwamaniacs/features/reader/models/chapter_manifest_window.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/retention_policy.dart';
 import 'package:manhwamaniacs/features/downloads/models/storage_cap.dart';
@@ -15,6 +14,7 @@ import 'package:manhwamaniacs/features/downloads/services/chapter_page_fetcher.d
 import 'package:manhwamaniacs/features/downloads/services/device_storage_info.dart';
 import 'package:manhwamaniacs/features/downloads/services/retention_maintenance.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
+import 'package:manhwamaniacs/features/reader/models/chapter_manifest_window.dart';
 import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -37,8 +37,8 @@ class _Reader implements ReaderRepository {
       pageCount: 1,
       prev: null,
       next: null,
-      pages: [ManifestPage(number: 1, url: '/p/1')],
-    ));
+      pages: [const ManifestPage(number: 1, url: '/p/1')],
+    ),);
   }
 
   // The window is an optimisation: refusing it makes the loop fetch each manifest on its own, in queue order.
@@ -94,7 +94,7 @@ void main() {
       retentionIntervalProvider.overrideWith(_Retention.new),
       matureGateOpenProvider.overrideWithValue(true),
       downloadConcurrencyOverride(),
-    ]);
+    ],);
     addTearDown(c.dispose);
     return (c: c, reader: reader, prefs: prefs);
   }

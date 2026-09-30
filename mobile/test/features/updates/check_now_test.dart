@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
-import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/updates/repositories/updates_repository.dart';
 import 'package:manhwamaniacs/features/updates/repositories/updates_repository_impl.dart';
 
@@ -17,7 +16,7 @@ class _Adapter implements HttpClientAdapter {
     final (status, data) = respond(options);
     return ResponseBody.fromString(jsonEncode(data), status, headers: {
       Headers.contentTypeHeader: ['application/json'],
-    });
+    },);
   }
 
   @override
@@ -34,7 +33,7 @@ UpdatesRepositoryImpl _repo(_Adapter a) {
     } else {
       h.next(e);
     }
-  }));
+  },),);
   return UpdatesRepositoryImpl(dio);
 }
 
@@ -65,7 +64,7 @@ void main() {
     final a = _Adapter((o) => switch (o.path) {
           '/updates/sources' => (200, [{'id': 'asura'}, {'id': 'mangadex'}]),
           _ => (200, _run),
-        });
+        },);
     final repo = _repo(a);
     expect((await repo.listUpdateSources()).value, ['asura', 'mangadex']);
     expect((await repo.getRun(4)).value.id, 4);

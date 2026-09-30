@@ -24,7 +24,7 @@ Future<ProviderContainer> _open(Map<String, Object> prefs, {int profile = 1}) as
     sharedPrefsProvider.overrideWithValue(p),
     authenticatedAuthOverride(),
     activeProfileProvider.overrideWith(() => _Profile(profile)),
-  ]);
+  ],);
   addTearDown(c.dispose);
   return c;
 }

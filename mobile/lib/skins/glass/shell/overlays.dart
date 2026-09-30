@@ -11,6 +11,8 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/new_chapters_capsule.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
+import 'package:manhwamaniacs/skins/glass/screens/downloads/save_to_files_sheet.dart' show registerSaveToFilesSheet;
+import 'package:manhwamaniacs/skins/glass/screens/library/library_sheets.dart' show registerLibrarySheets;
 import 'package:manhwamaniacs/skins/glass/shell/app_update_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shortcuts_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/whats_new_sheet.dart';
@@ -22,6 +24,8 @@ void registerGlassGlobalSheets() {
   registerGlobalSheet('shortcuts', const GlassSheetSpec(title: 'Keyboard shortcuts', builder: _shortcuts));
   registerGlobalSheet('whats-new', const GlassSheetSpec(title: "What's new", builder: _whatsNew));
   registerGlobalSheet('app-update', const GlassSheetSpec(title: 'Update available', builder: _appUpdate, detents: [GlassDetent.medium], opening: GlassDetent.medium));
+  registerLibrarySheets();
+  registerSaveToFilesSheet();
 }
 
 Widget _shortcuts(BuildContext _) => const GlassShortcutsBody();

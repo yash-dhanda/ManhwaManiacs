@@ -38,7 +38,7 @@ class _Repo implements LibraryRepository {
 
   @override
   Future<Result<FollowedSeries>> patchSeries(int followedId,
-      {bool? isFavorite, String? readingStatus, bool? notify, bool? matureOverride, bool clearMatureOverride = false, int? sortOrder}) async {
+      {bool? isFavorite, String? readingStatus, bool? notify, bool? matureOverride, bool clearMatureOverride = false, int? sortOrder,}) async {
     log.add('PATCH /library/series/$followedId fav=$isFavorite status=$readingStatus notify=$notify mature=$matureOverride');
     return Ok(_s(followedId, fav: isFavorite ?? false, status: readingStatus ?? 'reading', notify: notify ?? false, mature: matureOverride));
   }

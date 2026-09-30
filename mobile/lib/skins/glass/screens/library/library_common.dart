@@ -1,11 +1,15 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
+import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart' show GlassAmbientSpec;
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/badge.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/common.dart' show gt;
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart' show GlassButtonIcon;
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart' show Glyph;
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
+import 'package:manhwamaniacs/skins/glass/type.dart' show GlassTypeStyle;
 
 /// The status tag of a followed row's `reading_status` (glass 7.20), null for `all` or an unknown value.
 GlassStatus? glassStatusOf(String? readingStatus) => switch (readingStatus) {
@@ -74,4 +78,25 @@ String shelfCaption(FollowedSeries s) {
   final of = r.latestNumber ?? r.total.toDouble();
   if (ch == null) return '${r.total} chapters';
   return of <= 0 ? 'Ch ${n(ch)}' : 'Ch ${n(ch)} of ${n(of)}';
+}
+
+/// The Library hub's ambient field (glass 2.1.8): the cover palette of the first visible item, set by the active section once the list
+/// has been still for 600 ms; null falls back to the aurora.
+final libraryAmbientProvider = StateProvider<GlassAmbientSpec?>((ref) => null, name: 'libraryAmbient');
+
+/// A novel's title: Literata at the `headline` role.
+class BookTitle extends StatelessWidget {
+  const BookTitle(this.text, {super.key, this.maxLines = 2, this.italic = false, this.size});
+  final String text;
+  final int maxLines;
+  final bool italic;
+  final double? size;
+
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+        style: GlassTypeStyle.style(context, gt.typeHeadline, size: size).copyWith(fontFamily: 'Literata', color: gt.colorLabel1, fontStyle: italic ? FontStyle.italic : null),
+      );
 }
