@@ -117,6 +117,8 @@ class ReaderEngineOptions {
     this.pageOverlayBuilder,
     this.onPageLongPress,
     this.readAllKeys,
+    this.pageHeroTag,
+    this.pageEpoch,
   });
 
   /// The colour behind and between pages; null follows the legacy backdrop setting.
@@ -180,6 +182,12 @@ class ReaderEngineOptions {
 
   /// Read-all: every chapter key of the series in order, so the engine can publish `readAll`.
   final List<String>? readAllKeys;
+
+  /// A `Hero` tag for the page the Lightbox is about to open from, null for every other page.
+  final Object? Function(String chapterId, int page)? pageHeroTag;
+
+  /// Bumped by `Retry this page`: the page's image is built again (evicted from the cache first).
+  final int Function(String chapterId, int page)? pageEpoch;
 }
 
 /// See [ReaderEngineOptions.pageOverlayBuilder].

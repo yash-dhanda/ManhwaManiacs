@@ -720,10 +720,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
   }
 
   @override
-  void pageBy({required bool forward}) {
-    _haptics.selection();
-    _step(forward: forward, kind: widget.turn);
-  }
+  void pageBy({required bool forward}) => _step(forward: forward, kind: widget.turn);
 
   @override
   void scrollByViewport(double fraction, {required Duration duration, required Curve curve}) =>
@@ -814,7 +811,10 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
   Widget _page(ReaderPage p, Size slot, int viewIndex) {
     final box = _boxFor(p, slot);
     final options = widget.options;
-    final image = ReaderPageImage(
+    final heroTag = options.pageHeroTag?.call(_chapter.id, p.number);
+    final epoch = options.pageEpoch?.call(_chapter.id, p.number) ?? 0;
+    final imageCore = ReaderPageImage(
+      key: epoch == 0 ? null : ValueKey('page-epoch-$epoch'),
       imageUrl: p.imageUrl,
       localFile: p.localFile,
       alt: '${_chapter.title} page ${p.number}',
@@ -847,6 +847,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
               }
             },
     );
+    final Widget image = heroTag == null ? imageCore : Hero(tag: heroTag, child: imageCore);
     final overlay = options.pageOverlayBuilder;
     Widget child = SizedBox(width: box.width, height: box.height, child: image);
     if (overlay != null) {

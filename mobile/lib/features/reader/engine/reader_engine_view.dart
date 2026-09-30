@@ -2186,7 +2186,10 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     final maxWidth = zoom <= 1 ? _maxWidth : double.infinity;
 
     final options = widget.options;
-    final pageImage = ReaderPageImage(
+    final heroTag = options.pageHeroTag?.call(chapter.id, pageNumber);
+    final epoch = options.pageEpoch?.call(chapter.id, pageNumber) ?? 0;
+    final pageImageCore = ReaderPageImage(
+      key: epoch == 0 ? null : ValueKey('page-epoch-$epoch'),
       imageUrl: page.imageUrl,
       localFile: page.localFile,
       alt: '${chapter.title} page $pageNumber',
@@ -2228,6 +2231,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
               ),
     );
 
+    final Widget pageImage = heroTag == null ? pageImageCore : Hero(tag: heroTag, child: pageImageCore);
     final overlay = options.pageOverlayBuilder;
     final Widget shownImage = overlay == null
         ? pageImage

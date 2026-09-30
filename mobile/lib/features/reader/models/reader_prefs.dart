@@ -83,7 +83,7 @@ class ReaderPrefs {
   factory ReaderPrefs.resolve(JsonRecord profile, JsonRecord? series) {
     final s = resolveSeriesReaderPrefs(series, profile.seriesDefaults);
     final zones = [profile.tapZone('left'), profile.tapZone('center'), profile.tapZone('right')];
-    final hasZones = ['left', 'center', 'right'].any((k) => profile.data.containsKey('tapZone.$k'));
+    final hasZones = ['left', 'center', 'right'].any((k) => profile.data['tapZone.$k'] is String);
     return ReaderPrefs(
       layout: s.layout,
       direction: s.direction,
