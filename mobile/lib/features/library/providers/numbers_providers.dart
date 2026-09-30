@@ -39,9 +39,12 @@ final numbersSnapshotProvider = Provider<NumbersSnapshot>((ref) {
 
 /// A payload plus whether it came from the offline snapshot.
 class NumbersLoad<T> {
-  const NumbersLoad(this.data, {this.offline = false});
+  const NumbersLoad(this.data, {this.offline = false, this.savedAt});
   final T data;
   final bool offline;
+
+  /// When the offline snapshot was taken (null online, or for a snapshot of the older shape).
+  final DateTime? savedAt;
 }
 
 bool _isOffline(Object e) => e is NetworkError;
@@ -58,7 +61,7 @@ final numbersStatisticsProvider = FutureProvider.autoDispose
   }
   final saved = _isOffline(result.error) ? snap.readNumbers(days) : null;
   if (saved != null) {
-    return NumbersLoad(LibraryStatistics.fromJson(saved), offline: true);
+    return NumbersLoad(LibraryStatistics.fromJson(saved), offline: true, savedAt: snap.numbersSavedAt(days));
   }
   throw result.error;
 });
@@ -73,7 +76,7 @@ final annualProvider = FutureProvider.autoDispose
     return NumbersLoad(result.value);
   }
   final saved = _isOffline(result.error) ? snap.readAnnual(year) : null;
-  if (saved != null) return NumbersLoad(Annual.fromJson(saved), offline: true);
+  if (saved != null) return NumbersLoad(Annual.fromJson(saved), offline: true, savedAt: snap.annualSavedAt(year));
   throw result.error;
 });
 
