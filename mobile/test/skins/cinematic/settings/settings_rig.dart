@@ -122,6 +122,7 @@ List<Override> settingsOverrides(SettingsRig r, SharedPreferences prefs, SkinAud
       if (r.admin) authenticatedAuthOverride() else authControllerProvider.overrideWith(_Member.new),
       if (r.profile) activeProfileOverride(),
       ...contentModeOverrides(novelsEnabled: r.novels),
+      ...noDownloadsStoreOverrides(),
       profilesProvider.overrideWith(_Profiles.new),
       serverCapabilitiesProvider.overrideWith((ref) async => ServerCapabilities(clientDownloads: r.clientDownloads)),
       settingsApiUrlProvider.overrideWith((ref) async => 'https://manhwamaniacs.xyz'),
