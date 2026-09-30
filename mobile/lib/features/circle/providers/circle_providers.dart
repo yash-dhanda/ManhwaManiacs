@@ -233,7 +233,12 @@ class LettersNotifier extends AsyncNotifier<List<Letter>> {
   /// Optimistic; the card is restored (and false returned) when the server refuses.
   Future<bool> patch(int id, LetterState to) async {
     final before = state.valueOrNull;
-    if (before == null) return false;
+    if (before == null) {
+      // Not loaded yet (a poster on Tonight): send it and let the next fetch show the result.
+      final sent = await ref.read(circleRepositoryProvider).patchLetter(id, to);
+      if (sent.isOk) ref.invalidateSelf();
+      return sent.isOk;
+    }
     state = AsyncData([for (final l in before) if (l.id != id) l else if (to != LetterState.dismissed) l.copyWith(state: to)]);
     final r = await ref.read(circleRepositoryProvider).patchLetter(id, to);
     if (r.isErr) {

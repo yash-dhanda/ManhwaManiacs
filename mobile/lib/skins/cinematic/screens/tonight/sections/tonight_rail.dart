@@ -23,6 +23,7 @@ class TonightRail extends StatefulWidget {
     required this.itemBuilder,
     this.onSeeAll,
     this.caption,
+    this.captionWidget,
     this.error = false,
     this.onRetry,
   });
@@ -38,6 +39,9 @@ class TonightRail extends StatefulWidget {
 
   /// A kicker line under the header (`SUGGESTED SOURCES`).
   final String? caption;
+
+  /// A widget under the header instead of a kicker line (`Sent to you`'s typed note).
+  final Widget? captionWidget;
   final bool error;
   final VoidCallback? onRetry;
 
@@ -76,6 +80,7 @@ class _TonightRailState extends State<TonightRail> {
         CineSectionHeader(headingId: widget.headingId, heading: widget.heading, folio: widget.folio, onSeeAll: widget.onSeeAll),
         SizedBox(height: c.space3),
         if (widget.caption != null) ...[CineRoleText(widget.caption!, c.typeKicker, color: c.colorInk45), SizedBox(height: c.space2)],
+        if (widget.captionWidget != null) ...[widget.captionWidget!, SizedBox(height: c.space2)],
         if (widget.error)
           Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: c.space3, children: [
             CineRoleText("This row didn't load.", c.typeCaption, color: c.colorProof),
