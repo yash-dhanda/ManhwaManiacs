@@ -149,14 +149,15 @@ class VoicesLine extends ConsumerWidget {
     final label = 'VOICES IN THIS CHAPTER ($count)';
     return Align(
       alignment: Alignment.centerRight,
-      child: Semantics(
-        button: true,
-        label: 'Voices in this chapter, $count',
-        excludeSemantics: true,
+      child: CinePressable(
         onTap: onOpen,
-        child: CinePressable(
+        builder: (context, st) => Semantics(
+          container: true,
+          button: true,
+          label: 'Voices in this chapter, $count',
+          excludeSemantics: true,
           onTap: onOpen,
-          builder: (context, st) => Padding(
+          child: Padding(
             padding: EdgeInsets.symmetric(vertical: c.space2),
             child: CineRoleText(label, c.typeKicker, color: muted),
           ),

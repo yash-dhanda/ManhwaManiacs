@@ -96,34 +96,33 @@ class ListenDecorator extends ChangeNotifier {
     return audio == null || i < 0 || i >= audio.segments.length ? -1 : i;
   }
 
-  void _onSegment() {
+  void _onSegment() => _refresh();
+
+  void _onPosition() => _refresh();
+
+  /// Recomputes the active sentence and the spoken word; notifies only when either changed (or
+  /// a sentence just became active, which also restarts the sweep).
+  void _refresh() {
     final now = _mine();
-    if (now == _segment) return;
-    _segment = now;
-    _word = null;
-    if (now >= 0) {
-      if (reduced()) {
-        _sweep.value = 1;
-      } else {
-        unawaited(_sweep.forward(from: 0));
+    var changed = false;
+    if (now != _segment) {
+      _segment = now;
+      changed = true;
+      if (now >= 0) {
+        if (reduced()) {
+          _sweep.value = 1;
+        } else {
+          unawaited(_sweep.forward(from: 0));
+        }
       }
     }
-    notifyListeners();
-  }
-
-  void _onPosition() {
-    if (_segment < 0) {
-      // A state change (play or pause of a chapter that just began) can arrive before a segment.
-      _onSegment();
-      return;
-    }
     final t = narration.current.target;
-    if (t == null) return;
-    final w = spokenWord(t.audio.segments[_segment], t.paragraphs, narration.position.value);
+    final w = now < 0 || t == null ? null : spokenWord(t.audio.segments[now], t.paragraphs, narration.position.value);
     if (w != _word) {
       _word = w;
-      notifyListeners();
+      changed = true;
     }
+    if (changed) notifyListeners();
   }
 
   /// [speaker] with the band and the word laid over it, for paragraph [paragraph].

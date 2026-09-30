@@ -36,6 +36,7 @@ class FeatureView extends ConsumerWidget {
     this.followed,
     this.focusChapter,
     this.tab,
+    this.sheet,
   });
 
   final String sourceId;
@@ -45,6 +46,9 @@ class FeatureView extends ConsumerWidget {
 
   /// `?tab=more-like-this`.
   final String? tab;
+
+  /// `?sheet=audiobook`.
+  final String? sheet;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,7 +72,7 @@ class FeatureView extends ConsumerWidget {
               followed: followed,
             );
             return novel ?? false
-                ? BookView(data: data, focusChapter: focusChapter)
+                ? BookView(data: data, focusChapter: focusChapter, openAudiobook: sheet == 'audiobook')
                 : MangaFeatureView(data: data, offlineEdition: true, initialTab: tab);
           }
           if (novel ?? false) return BookOfflineNotice(sourceId: sourceId);
@@ -94,7 +98,7 @@ class FeatureView extends ConsumerWidget {
         );
         final fetched = v.series.cacheFetchedAt;
         return (novel ?? false)
-            ? BookView(data: data, focusChapter: focusChapter)
+            ? BookView(data: data, focusChapter: focusChapter, openAudiobook: sheet == 'audiobook')
             : MangaFeatureView(
                 data: data,
                 initialTab: tab,

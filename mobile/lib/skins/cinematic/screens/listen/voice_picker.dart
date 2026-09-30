@@ -169,8 +169,10 @@ class _VoicePickerState extends ConsumerState<VoicePicker> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              CineRoleText(_kicker, c.typeKicker, color: c.colorInk60),
-              SizedBox(height: c.space2),
+              if (widget.mode != VoicePickerMode.browse) ...[
+                CineRoleText(_kicker, c.typeKicker, color: c.colorInk60),
+                SizedBox(height: c.space2),
+              ],
               CineSlugLines(
                 items: [
                   CineSlug('all', 'ALL', count: all.length),

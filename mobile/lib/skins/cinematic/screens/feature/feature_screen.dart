@@ -13,12 +13,15 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 /// `/sources/:sourceId/series/:seriesKey`. Finds the follow row by series
 /// identity and renders the shared [FeatureView].
 class FeatureScreen extends ConsumerWidget {
-  const FeatureScreen({super.key, required this.sourceId, required this.seriesKey, this.chapter, this.tab});
+  const FeatureScreen({super.key, required this.sourceId, required this.seriesKey, this.chapter, this.tab, this.sheet});
 
   final String sourceId;
   final String seriesKey;
   final String? chapter;
   final String? tab;
+
+  /// `?sheet=audiobook`: opens the owner's Audiobook sheet on the Book page.
+  final String? sheet;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,7 +32,7 @@ class FeatureScreen extends ConsumerWidget {
       if (f.sourceId == sourceId && followIdentity(f) == id) row = f;
     }
     return FeatureView(
-        sourceId: sourceId, seriesKey: seriesKey, followed: row, focusChapter: chapter, tab: tab,);
+        sourceId: sourceId, seriesKey: seriesKey, followed: row, focusChapter: chapter, tab: tab, sheet: sheet,);
   }
 }
 

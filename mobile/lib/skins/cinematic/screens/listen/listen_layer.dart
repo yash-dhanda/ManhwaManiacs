@@ -87,13 +87,14 @@ class ListenLayer extends ConsumerStatefulWidget {
 class _ListenLayerState extends ConsumerState<ListenLayer> {
   final FocusScopeNode _miniScope = FocusScopeNode(debugLabel: 'mini-player');
   final FocusNode _playFocus = FocusNode(debugLabel: 'mini-play');
-  final GlobalKey _miniKey = GlobalKey();
+  BuildContext? _miniContext;
   StreamSubscription<NarrationEnded>? _endedSub;
   Timer? _linger;
   bool _lingering = false;
   bool _card = false;
   Rect? _source;
-  late final NarrationController _n = ref.read(narrationControllerProvider.notifier);
+  late final NarrationController _n =
+      ref.read(narrationControllerProvider.notifier);
 
   @override
   void initState() {
@@ -104,7 +105,15 @@ class _ListenLayerState extends ConsumerState<ListenLayer> {
     _endedSub = _n.ended.listen(_onEnded);
     ref.listenManual<NarrationState>(narrationControllerProvider, (prev, next) {
       // A new chapter's session or a manual play hides a card left from the last one.
-      if (_card && (next.revision != prev?.revision || next.isPlaying)) setState(() => _card = false);
+      if (_card && (next.revision != prev?.revision || next.isPlaying)) {
+        setState(() => _card = false);
+      }
+      // A session that just began shows the player for the linger, chrome or not.
+      if (next.revision != prev?.revision &&
+          next.target != null &&
+          !widget.chromeVisible) {
+        _startLinger();
+      }
     });
   }
 
@@ -146,6 +155,7 @@ class _ListenLayerState extends ConsumerState<ListenLayer> {
     _linger?.cancel();
     _lingering = true;
     _linger = Timer(widget.lingerFor, _lingerDone);
+    if (mounted) setState(() {});
   }
 
   void _lingerDone() {
@@ -164,7 +174,7 @@ class _ListenLayerState extends ConsumerState<ListenLayer> {
   }
 
   Rect? _miniRect() {
-    final box = _miniKey.currentContext?.findRenderObject();
+    final box = _miniContext?.findRenderObject();
     final mine = context.findRenderObject();
     if (box is! RenderBox || mine is! RenderBox || !box.hasSize) return null;
     return mine.globalToLocal(box.localToGlobal(Offset.zero)) & box.size;
@@ -197,27 +207,36 @@ class _ListenLayerState extends ConsumerState<ListenLayer> {
 
   Future<void> _togglePinned() async {
     final s = ref.read(listenSettingsValueProvider);
-    await ref.read(listenSettingsProvider.notifier).put({'keepPlayerVisible': !s.keepPlayerVisible});
+    await ref
+        .read(listenSettingsProvider.notifier)
+        .put({'keepPlayerVisible': !s.keepPlayerVisible});
     if (!mounted) return;
     // ignore: deprecated_member_use
-    unawaited(SemanticsService.announce(!s.keepPlayerVisible ? 'Player kept visible' : 'Player hides with the chrome', Directionality.of(context)));
+    unawaited(SemanticsService.announce(
+        !s.keepPlayerVisible
+            ? 'Player kept visible'
+            : 'Player hides with the chrome',
+        Directionality.of(context),),);
   }
 
   void _sheetSpeed() => unawaited(showSpeedSheet(context, stock: widget.stock));
   void _sheetSleep() => unawaited(showSleepSheet(context, stock: widget.stock));
-  void _sheetVoices() => unawaited(showCastSheet(context, chapter: widget.chapter, stock: widget.stock, onReNarrate: _reNarrate));
+  void _sheetVoices() => unawaited(showCastSheet(context,
+      chapter: widget.chapter, stock: widget.stock, onReNarrate: _reNarrate,),);
 
   void _reNarrate() {
     Navigator.of(context).maybePop();
-    unawaited(showAudiobookSheet(
-      context,
-      sourceId: widget.chapter.sourceId,
-      seriesKey: widget.chapter.seriesKey,
-      seriesTitle: widget.seriesTitle,
-      currentChapterKey: widget.chapter.chapterKey,
-      initialQuickPick: 'revoice',
-      stock: widget.stock,
-    ),);
+    unawaited(
+      showAudiobookSheet(
+        context,
+        sourceId: widget.chapter.sourceId,
+        seriesKey: widget.chapter.seriesKey,
+        seriesTitle: widget.seriesTitle,
+        currentChapterKey: widget.chapter.chapterKey,
+        initialQuickPick: 'revoice',
+        stock: widget.stock,
+      ),
+    );
   }
 
   @override
@@ -226,12 +245,22 @@ class _ListenLayerState extends ConsumerState<ListenLayer> {
     final settings = ref.watch(listenSettingsValueProvider);
     final mine = s.key == widget.chapter && s.target != null;
     if (!mine) return const SizedBox.shrink();
-    final attr = ref.watch(novelAttributionProvider(widget.chapter)).valueOrNull ?? NovelAttribution.none;
-    final voices = ref.watch(novelVoicesProvider).valueOrNull ?? const <NovelVoice>[];
-    final narrator = attr.narratorVoiceId == null ? null : voices.where((v) => v.voiceId == attr.narratorVoiceId).firstOrNull?.name;
+    final attr =
+        ref.watch(novelAttributionProvider(widget.chapter)).valueOrNull ??
+            NovelAttribution.none;
+    final voices =
+        ref.watch(novelVoicesProvider).valueOrNull ?? const <NovelVoice>[];
+    final narrator = attr.narratorVoiceId == null
+        ? null
+        : voices
+            .where((v) => v.voiceId == attr.narratorVoiceId)
+            .firstOrNull
+            ?.name;
     final pinned = settings.keepPlayerVisible;
-    final showMini = !widget.ui.roomOpen && (widget.chromeVisible || pinned || _lingering);
-    final miniBottom = widget.chromeVisible ? widget.barBottom : widget.safeBottom;
+    final showMini =
+        !widget.ui.roomOpen && (widget.chromeVisible || pinned || _lingering);
+    final miniBottom =
+        widget.chromeVisible ? widget.barBottom : widget.safeBottom;
     widget.ui.cardShowing = _card && widget.hasNext;
     final card = _card && widget.hasNext
         ? PostPlayCard(
@@ -239,7 +268,8 @@ class _ListenLayerState extends ConsumerState<ListenLayer> {
             countdown: settings.autoPlayNext,
             onPlayNow: () {
               setState(() => _card = false);
-              cineFeedback(context, HapticEvent.chapterNext, sound: SoundEvent.chapterNext);
+              cineFeedback(context, HapticEvent.chapterNext,
+                  sound: SoundEvent.chapterNext,);
               widget.onAdvance();
             },
             onCancel: () => setState(() => _card = false),
@@ -251,35 +281,41 @@ class _ListenLayerState extends ConsumerState<ListenLayer> {
       children: [
         if (showMini)
           Positioned(
+            key: const ValueKey('listen-mini'),
             left: 0,
             right: 0,
             bottom: miniBottom,
             child: FocusScope(
               node: _miniScope,
-              child: KeyedSubtree(
-                key: _miniKey,
-                child: CineMiniPlayer(
-                  stock: widget.stock,
-                  chapterKey: widget.chapter,
-                  chapterLabel: widget.chapterLabel,
-                  chapterNumber: widget.chapterNumber,
-                  chapterTitle: widget.chapterTitle,
-                  seriesTitle: widget.seriesTitle,
-                  narratorName: narrator,
-                  pinned: pinned,
-                  playFocus: _playFocus,
-                  onOpen: _openRoom,
-                  onTogglePinned: () => unawaited(_togglePinned()),
-                  onNextChapter: () => widget.hasNext ? widget.onNext() : null,
-                  onPreviousChapter: () => widget.hasPrevious ? widget.onPrevious() : null,
-                  onSleep: _sheetSleep,
-                  onVoices: _sheetVoices,
-                ),
+              child: Builder(
+                builder: (miniContext) {
+                  _miniContext = miniContext;
+                  return CineMiniPlayer(
+                    stock: widget.stock,
+                    chapterKey: widget.chapter,
+                    chapterLabel: widget.chapterLabel,
+                    chapterNumber: widget.chapterNumber,
+                    chapterTitle: widget.chapterTitle,
+                    seriesTitle: widget.seriesTitle,
+                    narratorName: narrator,
+                    pinned: pinned,
+                    playFocus: _playFocus,
+                    onOpen: _openRoom,
+                    onTogglePinned: () => unawaited(_togglePinned()),
+                    onNextChapter: () =>
+                        widget.hasNext ? widget.onNext() : null,
+                    onPreviousChapter: () =>
+                        widget.hasPrevious ? widget.onPrevious() : null,
+                    onSleep: _sheetSleep,
+                    onVoices: _sheetVoices,
+                  );
+                },
               ),
             ),
           ),
         if (showMini && card != null)
           Positioned(
+            key: const ValueKey('listen-card'),
             left: 16,
             right: 16,
             bottom: miniBottom + kMiniPlayerHeight + 8,
@@ -287,16 +323,23 @@ class _ListenLayerState extends ConsumerState<ListenLayer> {
           ),
         if (showMini)
           Positioned(
+            key: const ValueKey('listen-back-to-voice'),
             left: 0,
             right: 0,
-            bottom: miniBottom + kMiniPlayerHeight + (card == null ? 12 : 12 + 140),
+            bottom:
+                miniBottom + kMiniPlayerHeight + (card == null ? 12 : 12 + 140),
             child: ValueListenableBuilder<bool>(
               valueListenable: widget.followDecoupled,
               builder: (context, off, _) => off && s.highlightSafe
                   ? Center(
                       child: ColoredBox(
                         color: widget.stock.page,
-                        child: CineButton(key: const Key('back-to-the-voice-page'), label: 'Back to the voice ↓', variant: CineButtonVariant.quiet, size: CineButtonSize.sm, onPressed: widget.onBackToVoice),
+                        child: CineButton(
+                            key: const Key('back-to-the-voice-page'),
+                            label: 'Back to the voice ↓',
+                            variant: CineButtonVariant.quiet,
+                            size: CineButtonSize.sm,
+                            onPressed: widget.onBackToVoice,),
                       ),
                     )
                   : const SizedBox.shrink(),
@@ -304,6 +347,7 @@ class _ListenLayerState extends ConsumerState<ListenLayer> {
           ),
         if (widget.ui.roomOpen)
           Positioned.fill(
+            key: const ValueKey('listen-room'),
             child: ReadingRoom(
               key: _roomKey,
               chapter: widget.chapter,

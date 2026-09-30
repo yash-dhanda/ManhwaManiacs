@@ -146,7 +146,7 @@ class _CineMiniPlayerState extends ConsumerState<CineMiniPlayer> {
 
     return Semantics(
       container: true,
-      label: 'Now reading aloud, ${widget.chapterLabel.toLowerCase()}${widget.narratorName == null ? '' : ', read by ${widget.narratorName}'}',
+      explicitChildNodes: true,
       child: Listener(
         behavior: HitTestBehavior.translucent,
         onPointerDown: (e) {
@@ -176,7 +176,7 @@ class _CineMiniPlayerState extends ConsumerState<CineMiniPlayer> {
                   },
                   builder: (context, st) => Semantics(
                     button: true,
-                    label: 'Open the reading room',
+                    label: 'Open the reading room. Now reading aloud, ${widget.chapterLabel.toLowerCase()}${widget.narratorName == null ? '' : ', read by ${widget.narratorName}'}',
                     excludeSemantics: true,
                     onTap: widget.onOpen,
                     child: Column(

@@ -2,17 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
-import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
-import 'package:manhwamaniacs/features/settings/utils/settings_search.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_radio.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_search_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/listen/voice_picker.dart' show showVoiceBrowser;
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 const _sleepLabels = {
   'off': 'Off',
@@ -52,7 +48,7 @@ class ListenSection extends ConsumerWidget {
     }
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      SettingsLinkRow(id: 'voices', label: 'Voices', value: 'BROWSE', onTap: () => unawaited(showCineSheet<void>(context, kicker: 'THE VOICES', title: 'Voices', builder: (_) => const VoiceBrowseList()))),
+      SettingsLinkRow(id: 'voices', label: 'Voices', value: 'BROWSE', onTap: () => unawaited(showVoiceBrowser(context))),
       sliderRow('speed', 'Default speed', speed, (v) => n.put({'speed': (v * 20).round() / 20}), min: 0.5, max: 3.0, divisions: 50, flag: x, description: profile),
       SettingsBlock(
         id: 'speed-presets',
@@ -85,63 +81,6 @@ class _SleepList extends StatelessWidget {
         for (final e in _sleepLabels.entries)
           CineRadio<String>(value: e.key, groupValue: current, label: e.value, onChanged: (v) => Navigator.of(context).pop(v)),
       ],),
-    );
-  }
-}
-
-/// The voice list in browse mode (kicker `THE VOICES`, filters, search; no casting).
-// TODO(mobile/15): replace with the Listen step's voice picker in browse mode (with `Hear`).
-class VoiceBrowseList extends ConsumerStatefulWidget {
-  const VoiceBrowseList({super.key});
-
-  @override
-  ConsumerState<VoiceBrowseList> createState() => _VoiceBrowseListState();
-}
-
-class _VoiceBrowseListState extends ConsumerState<VoiceBrowseList> {
-  String _filter = 'all', _q = '';
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.cine;
-    final voices = ref.watch(novelVoicesProvider);
-    return voices.when(
-      loading: () => Padding(padding: EdgeInsets.all(c.space6), child: CineRoleText('LOADING', c.typeKicker, color: c.colorInk60)),
-      error: (_, __) => Padding(padding: EdgeInsets.all(c.space6), child: CineRoleText("The voices didn't load.", c.typeUi)),
-      data: (all) {
-        int count(String g) => all.where((v) => g == 'all' || v.gender.toLowerCase().startsWith(g[0])).length;
-        final shown = [
-          for (final v in all)
-            if ((_filter == 'all' || v.gender.toLowerCase().startsWith(_filter[0])) &&
-                (_q.isEmpty || matchSettings(_q, [SettingsRowRef(id: v.voiceId, section: '', label: v.name, keywords: [v.character])]).isNotEmpty))
-              v,
-        ];
-        return Material(
-          type: MaterialType.transparency,
-          child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: c.space4),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            CineSlugLines(
-              items: [CineSlug('all', 'ALL', count: count('all')), CineSlug('female', 'FEMALE', count: count('female')), CineSlug('male', 'MALE', count: count('male'))],
-              selected: {_filter},
-              onChanged: (v) => setState(() => _filter = v),
-            ),
-            SizedBox(height: c.space2),
-            CineSearchField(semanticLabel: 'Search voices', placeholder: 'Search voices', variant: CineSearchVariant.compact, onChanged: (v) => setState(() => _q = v)),
-            SizedBox(height: c.space2),
-            for (final NovelVoice v in shown)
-              Container(
-                constraints: const BoxConstraints(minHeight: 56),
-                decoration: BoxDecoration(border: Border(bottom: c.ruleHair)),
-                alignment: Alignment.centerLeft,
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  CineRoleText(v.name, c.typeUi),
-                  if (v.character.isNotEmpty) CineRoleText(v.character, c.typeCaption, color: c.colorInk60),
-                ],),
-              ),
-          ],),
-        ),);
-      },
     );
   }
 }
