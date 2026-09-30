@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
 import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
+import 'package:manhwamaniacs/features/novels/controllers/novel_auto_scroll.dart';
 import 'package:manhwamaniacs/features/novels/controllers/novel_reader_controller.dart';
 import 'package:manhwamaniacs/features/novels/engine/novel_paginator.dart' as pg show pageOfParagraph;
 import 'package:manhwamaniacs/features/novels/engine/novel_paginator.dart';
@@ -29,7 +30,9 @@ import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provid
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
 import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
+import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
+import 'package:manhwamaniacs/features/reader/engine/auto_scroll_model.dart' show novelPxPerSecond;
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/settings/providers/a11y_prefs_provider.dart';
@@ -67,25 +70,21 @@ import 'package:manhwamaniacs/skins/cinematic/screens/novel/paged_columns.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/progress_folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/stocks.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/top_bar.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/novel/type_rows.dart' show kNovelTypeRows;
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/type_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/auto_scroll_chip.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/auto_scroll_speed_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart' show cineReaderOwnsToastsProvider;
-import 'package:manhwamaniacs/skins/cinematic/screens/reader/running_head.dart' show HouseSoundWaveform;
-import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/ambient_section.dart' show kSoundscapeLoops;
-import 'package:manhwamaniacs/skins/cinematic/soundscape/house_sound.dart';
-import 'package:manhwamaniacs/skins/cinematic/soundscape/house_sound_binding.dart';
-import 'package:manhwamaniacs/features/novels/controllers/novel_auto_scroll.dart';
-import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
-import 'package:manhwamaniacs/features/reader/engine/auto_scroll_model.dart' show novelPxPerSecond;
-import 'package:manhwamaniacs/skins/cinematic/screens/novel/type_rows.dart' show kNovelTypeRows;
-import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provider.dart' show novelPaceStoreProvider, snapAutoScrollSpeed;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/edge_hud.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/end_states.dart' show ReaderEndNotice;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_entry.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_system_ui.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/running_head.dart' show HouseSoundWaveform;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/side_panel_layout.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/ambient_section.dart' show kSoundscapeLoops;
+import 'package:manhwamaniacs/skins/cinematic/soundscape/house_sound.dart';
+import 'package:manhwamaniacs/skins/cinematic/soundscape/house_sound_binding.dart';
 import 'package:manhwamaniacs/skins/cinematic/tint.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -591,7 +590,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     if (persist) {
       unawaited(ref.read(novelPreferencesControllerProvider(_prefsKey).notifier).setAutoScrollSpeedX(v).whenComplete(() {
         if (mounted) setState(() => _autoSpeedDraft = null);
-      }));
+      }),);
     }
   }
 

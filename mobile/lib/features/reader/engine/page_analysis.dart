@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -66,7 +65,7 @@ Future<(Uint8List, int, int)?> _decode(ImageProvider provider) async {
   ui.Image? image;
   try {
     image = await done.future;
-    final data = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    final data = await image.toByteData();
     if (data == null) return null;
     return (data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes), image.width, image.height);
   } catch (_) {
@@ -83,7 +82,7 @@ Future<(Uint8List, int, int)?> _decode(ImageProvider provider) async {
 
 /// The two ResizeImage providers analysis decodes, exposed so a test can check their eviction.
 ImageProvider tintProviderOf(ImageProvider page) =>
-    ResizeImage(page, width: 16, height: 16, policy: ResizeImagePolicy.exact);
+    ResizeImage(page, width: 16, height: 16);
 ImageProvider panelProviderOf(ImageProvider page) => ResizeImage(page, width: 360);
 
 /// Decodes the tint sample of one page (16 x 16) and the panel sample of the next (360 px wide),

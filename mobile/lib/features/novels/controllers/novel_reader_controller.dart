@@ -14,14 +14,14 @@ import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provider.dart';
+import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_snippet.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/utils/reading_clock.dart';
-import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provider.dart';
-import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 

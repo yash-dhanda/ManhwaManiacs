@@ -6,8 +6,8 @@ import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_palette.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
-import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
+import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 

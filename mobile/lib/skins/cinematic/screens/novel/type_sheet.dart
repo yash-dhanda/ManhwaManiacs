@@ -89,7 +89,7 @@ class NovelTypeBody extends ConsumerWidget {
     if (scrollToKey != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = scrollToKey!.currentContext;
-        if (ctx != null && ctx.mounted) unawaited(Scrollable.ensureVisible(ctx, duration: Duration.zero));
+        if (ctx != null && ctx.mounted) unawaited(Scrollable.ensureVisible(ctx));
       });
     }
     return Column(

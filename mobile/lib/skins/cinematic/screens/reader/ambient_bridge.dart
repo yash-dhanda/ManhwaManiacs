@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui' show Rect;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
@@ -182,7 +181,7 @@ class CineAmbientBridge {
         seriesKey: seriesKey,
         chapterKey: chapterId,
         tints: [for (final e in report.tints.entries) (page: e.key, hex: e.value)],
-      ));
+      ),);
     }
     if (report.panels.isNotEmpty) {
       unawaited(reports.postPanels(
@@ -190,7 +189,7 @@ class CineAmbientBridge {
         seriesKey: seriesKey,
         chapterKey: chapterId,
         pages: [for (final e in report.panels.entries) (page: e.key, panels: e.value)],
-      ));
+      ),);
     }
   }
 }

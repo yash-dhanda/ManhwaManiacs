@@ -1,4 +1,3 @@
-import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/novels/controllers/novel_auto_scroll.dart';
@@ -43,7 +42,7 @@ void main() {
     await tester.pumpWidget(_Host(onReady: (a, s) {
       auto = a;
       sc = s;
-    }));
+    },),);
     // 250 wpm, 30 px lines, 10 words a line: 12.5 px/s at 1.00x.
     auto.speedX = 2.0;
     auto.start();

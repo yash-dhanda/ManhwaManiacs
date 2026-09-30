@@ -248,4 +248,4 @@ final houseSoundProvider = ChangeNotifierProvider<HouseSound>((ref) {
   unawaited(h.setVolume(ref.read(soundscapeVolumeProvider)));
   ref.listen<double>(soundscapeVolumeProvider, (_, v) => unawaited(h.setVolume(v)));
   return h;
-}, name: 'houseSound');
+}, name: 'houseSound',);

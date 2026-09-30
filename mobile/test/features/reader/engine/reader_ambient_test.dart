@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'dart:ui';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/painting.dart';
@@ -45,7 +43,7 @@ void main() {
       final a = ReaderAmbient(analyse: ({tintPage, panelPage, required direction}) async {
         calls.add((tintPage != null, panelPage != null));
         return const AnalysisResult(seed: '#112233', panels: [Rect.fromLTWH(0, 0, 1, 0.5)]);
-      })
+      },)
         ..resolver = ((c, p) => _Img(p))
         ..panelsWanted = true
         ..pageCount = 400;

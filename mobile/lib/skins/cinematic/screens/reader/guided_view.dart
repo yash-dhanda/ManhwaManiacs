@@ -18,7 +18,6 @@ import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/guided_matte.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -183,7 +182,7 @@ class _CineGuidedViewState extends ConsumerState<CineGuidedView> with TickerProv
         out.add(_Stop(
           i,
           CameraTarget(_page, Rect.fromLTWH((s.left - r.left) / r.width, (s.top - r.top) / r.height, s.width / r.width, s.height / r.height)),
-        ));
+        ),);
       }
     }
     return out;
@@ -389,7 +388,7 @@ class _CineGuidedViewState extends ConsumerState<CineGuidedView> with TickerProv
     _hold.duration = Duration(milliseconds: ms);
     unawaited(_hold.forward(from: 0).orCancel.then((_) {
       if (mounted && _autoRunning && !_engine.autoScroll.userPaused) _next(byUser: false);
-    }, onError: (_) {}));
+    }, onError: (_) {},),);
   }
 
   // ── Save and publish ─────────────────────────────────────────────────────
@@ -785,5 +784,5 @@ class _PageImageState extends State<_PageImage> {
   @override
   Widget build(BuildContext context) => _image == null
       ? const SizedBox.expand()
-      : RawImage(image: _image, fit: BoxFit.fill, filterQuality: FilterQuality.medium);
+      : RawImage(image: _image, fit: BoxFit.fill);
 }

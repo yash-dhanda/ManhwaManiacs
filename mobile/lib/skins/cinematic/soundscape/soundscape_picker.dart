@@ -22,7 +22,7 @@ final soundscapeHearableProvider = FutureProvider.autoDispose.family<bool, Strin
   } catch (_) {
     return true;
   }
-}, name: 'soundscapeHearable');
+}, name: 'soundscapeHearable',);
 
 /// The house-sound choice (cinematic 9.4.2): `OFF`, `MATCH THE MOOD` and the eight loops as a radio
 /// group, each loop with its line and a `Hear` button, then the device volume. Shared by Reading
@@ -91,6 +91,6 @@ class SoundscapePicker extends ConsumerWidget {
       ),
       sliderRow('soundscape-volume', 'Soundscape volume', vol * 100, (v) => ref.read(soundscapeVolumeProvider.notifier).set(v.round() / 100),
           min: 0, max: 100, divisions: 100, flag: (v) => '${v.round()} %', description: 'Saved on this device.',),
-    ]);
+    ],);
   }
 }
