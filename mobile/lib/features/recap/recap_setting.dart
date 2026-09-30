@@ -86,6 +86,9 @@ class RecapSettingNotifier extends Notifier<RecapSetting> {
         ),
       );
 
+  /// Glass Settings: the three-segment control (Off, Ask, Always).
+  Future<void> setMode(RecapMode m) => _write(state.copyWith(mode: m));
+
   Future<void> skip(String seriesId) =>
       state.skipSeries.contains(seriesId) ? Future<void>.value() : _write(state.copyWith(skipSeries: [...state.skipSeries, seriesId]));
 
