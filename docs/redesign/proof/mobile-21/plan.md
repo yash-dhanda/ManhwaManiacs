@@ -1,12 +1,14 @@
 # mobile/21 plan: The Numbers, the streak flame and The Annual (Cinematic)
 
-Lane L12, branch `redesign/L12`. Cinematic only; Glass statistics and Wrapped are `mobile/42`.
+Lane M21 (restart of L12), branch `redesign/M21`. Cinematic only; Glass statistics and Wrapped are `mobile/42`.
 
 ## Parallel-plan preconditions
 
-The lane's waitFor list held `backend/03` and `mobile/03` only. mobile/04 to 08, 13, 17 and 20 are not integrated, so
-everything this step needs from them is a small local stand-in under `lib/skins/cinematic/kit/` and `parts/`, each marked
-`TODO(mobile/NN)`. The stand-ins are listed in `report.md`.
+The first attempt (lane L12) ran before mobile/04 to 08, 17 and 20 were integrated and used local stand-ins; this restart
+(M21) merged that work and replaced every stand-in with the shared primitives (SetHeading with the new `typedRange`,
+TypedHeadline with a `delay`, CineStatBlock with footnote and signature options, StreakFlame, CineContentsTabs, CineNotice,
+CineSheetRoute, toasts, the shortcut registry, Dip, the Lightbox). Still local: `CinePagePhysics` (mobile/13 is not
+integrated; `_StoryPhysics` in annual_story.dart, marked `TODO(mobile/13)`).
 
 ## Order of work (each step one commit, tests first for the pure modules)
 
