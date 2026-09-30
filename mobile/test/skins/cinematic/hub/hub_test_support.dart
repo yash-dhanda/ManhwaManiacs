@@ -1,16 +1,23 @@
 // ignore_for_file: require_trailing_commas, directives_ordering
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_user.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
+import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart';
+import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
+import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
+import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
 import 'package:manhwamaniacs/features/library/models/collection_detail.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
 import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
+import 'package:manhwamaniacs/features/sources/models/source_series.dart';
+import 'package:manhwamaniacs/features/sources/repositories/sources_repository.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
@@ -263,3 +270,130 @@ class HubLibrary extends ShelfLibrary {
 
 /// A collection with [count] members recorded in [HubLibrary.members] by the caller.
 Collection shelfOf(int id, String name, {int order = 0, ShelfRules? rules, DateTime? at, String? description}) => Collection(id: id, name: name, description: description, seriesCount: 0, sortOrder: order, rules: rules, createdAt: at);
+
+/// The chapter list of a series, for Continue on a finished chapter.
+class FakeSources implements SourcesRepository {
+  FakeSources(this.chapters);
+  List<SourceChapterSummary> chapters;
+  int calls = 0;
+
+  @override
+  Future<Result<List<SourceChapterSummary>>> getChapters(String sourceId, String seriesKey) async {
+    calls++;
+    return Ok(chapters);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
+}
+
+SourceChapterSummary chapterOf(int n) => SourceChapterSummary(id: 'c$n', sourceId: 'shelf', seriesId: 'k', title: 'Chapter $n', number: n.toDouble(), pageCount: 30);
+
+/// A log row for `shelfSeries(series)`.
+ReadingHistoryItem logRow(int id, int series, {double chapter = 142, int page = 12, int pages = 40, bool done = false, DateTime? at, String? title, String? cover}) => ReadingHistoryItem(
+      id: id,
+      sourceId: 'shelf',
+      seriesKey: 'series-$series',
+      chapterKey: 'c${chapter.round()}',
+      chapterNumber: chapter,
+      lastPage: page,
+      pageCount: pages,
+      isCompleted: done,
+      lastReadAt: at ?? kShelfNow.subtract(Duration(minutes: id * 7)),
+      seriesTitle: title ?? 'Series $series',
+      coverUrl: cover,
+    );
+
+/// The location including the query of the topmost route, pushed or not.
+String fullLocation(LibRig rig) {
+  final m = rig.router.routerDelegate.currentConfiguration.last;
+  return m is ImperativeRouteMatch ? m.matches.uri.toString() : m.matchedLocation;
+}
+
+class _Reader implements ReaderRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
+}
+
+/// A bookmark outbox that keeps [items] as its store and records what it was asked.
+class FakeOutbox extends BookmarkOutboxController {
+  FakeOutbox(this.items) : super(store: null, repository: _Reader(), activeScopeId: _none);
+
+  static String? _none() => null;
+  final List<Bookmark> items;
+  int pending = 0, flushes = 0;
+  bool deletedElsewhere = false;
+  final List<(String, String)> notes = [];
+  final List<String> removed = [];
+  final List<Bookmark> restored = [];
+
+  @override
+  Future<int> pendingCount() async => pending;
+
+  @override
+  Future<bool> flush() async {
+    flushes++;
+    pending = 0;
+    return false;
+  }
+
+  @override
+  Future<Bookmark?> setNote(Bookmark bookmark, String note) async {
+    if (deletedElsewhere) {
+      items.removeWhere((b) => b.clientId == bookmark.clientId);
+      throw BookmarkDeletedElsewhere(bookmark.clientId);
+    }
+    notes.add((bookmark.clientId, note));
+    final i = items.indexWhere((b) => b.clientId == bookmark.clientId);
+    items[i] = bookmark.copyWith(note: note);
+    return items[i];
+  }
+
+  @override
+  Future<bool> remove(String clientId) async {
+    removed.add(clientId);
+    items.removeWhere((b) => b.clientId == clientId);
+    return true;
+  }
+
+  @override
+  Future<Bookmark?> restore(Bookmark bookmark) async {
+    restored.add(bookmark);
+    items.add(bookmark);
+    return bookmark;
+  }
+}
+
+class FakeBookmarks extends BookmarksNotifier {
+  FakeBookmarks(this.items, {this.error});
+  final List<Bookmark> items;
+  final AppError? error;
+
+  @override
+  Future<BookmarksState> build() async {
+    if (error != null) throw error!;
+    return BookmarksState(bookmarks: [...items]);
+  }
+
+  @override
+  Future<void> refresh() async {}
+}
+
+Bookmark mark(String id, {int series = 1, double chapter = 14, int index = 7, double fraction = 0.5, int total = 11, bool novel = false, String? snippet, String? note, bool stale = false, DateTime? at}) => Bookmark(
+      clientId: id,
+      sourceId: 'shelf',
+      seriesKey: 'series-$series',
+      chapterKey: 'c${chapter.round()}',
+      seriesTitle: 'Series $series',
+      chapterNumber: chapter,
+      mediaType: novel ? BookmarkMedia.novel : BookmarkMedia.manga,
+      anchorIndex: index,
+      anchorFraction: fraction,
+      anchorTotal: total,
+      snippet: snippet,
+      note: note,
+      anchorStale: stale,
+      createdAt: at ?? DateTime.utc(2026, 9, 28, 10),
+      updatedAt: at ?? DateTime.utc(2026, 9, 28, 10),
+    );
+

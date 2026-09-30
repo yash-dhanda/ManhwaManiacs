@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
+import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_swipe_row.dart';
@@ -169,5 +170,23 @@ void main() {
     await t.sendKeyEvent(LogicalKeyboardKey.keyC);
     await settle(t, 800);
     expect(u.triggers, greaterThan(0));
+  });
+
+  testWidgets('the stop-press banner is hidden on Updates; Read updates goes there from Tonight and from inside the hub', (t) async {
+    final banner = newChaptersBannerProvider.overrideWith((ref) async => (chapters: 5, series: 2, maxId: 9));
+    var rig = await pumpShelf(t, start: '/', extra: [...updatesOverrides(_updates()), banner]);
+    expect(rig.at, '/');
+    expect(find.text('Read updates'), findsOneWidget);
+    await t.tap(find.text('Read updates'));
+    await settle(t, 1400);
+    expect(rig.at, '/updates');
+    expect(find.text('Read updates'), findsNothing);
+    await t.pumpWidget(const SizedBox());
+    rig = await pumpShelf(t, extra: [...updatesOverrides(_updates()), banner]);
+    expect(find.text('Read updates'), findsOneWidget);
+    await t.tap(find.text('Read updates'));
+    await settle(t, 1400);
+    expect(rig.at, '/updates');
+    expect(find.text('Read updates'), findsNothing);
   });
 }

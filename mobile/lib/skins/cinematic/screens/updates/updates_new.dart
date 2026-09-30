@@ -103,7 +103,7 @@ class _UpdateGroupRowState extends State<UpdateGroupRow> {
       child: Hero(tag: tag, child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: c.colorRule2)), child: CineImage(url: widget.coverUrl, title: g.title))),
     );
     Widget body = Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      GestureDetector(behavior: HitTestBehavior.opaque, onTap: widget.onOpenSeries, child: cover),
+      Semantics(button: true, label: 'Open ${g.title}', excludeSemantics: true, onTap: widget.onOpenSeries, child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: widget.onOpenSeries, child: cover)),
       SizedBox(width: c.space4),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

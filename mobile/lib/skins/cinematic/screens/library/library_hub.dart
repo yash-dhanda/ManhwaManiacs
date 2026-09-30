@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.d
 import 'package:manhwamaniacs/skins/cinematic/a11y/folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_pull_to_reprint.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
@@ -271,7 +272,7 @@ class _Masthead extends StatelessWidget {
               label: masthead.deck,
               excludeSemantics: true,
               onTap: onDeckTap,
-              child: CinePressable(hit: false, onTap: onDeckTap, builder: (_, __) => ConstrainedBox(constraints: const BoxConstraints(minHeight: 44), child: Align(alignment: Alignment.centerLeft, child: deck))),
+              child: CinePressable(hit: false, onTap: onDeckTap, builder: (_, __) => ConstrainedBox(constraints: BoxConstraints(minHeight: cineHitMin(b)), child: Align(alignment: Alignment.centerLeft, child: deck))),
             );
           },),),
         ],
