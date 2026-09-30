@@ -14,7 +14,7 @@ void main() {
   test('the arc lands exactly on the slot at T under gravity 2,400 px/s^2', () {
     const from = Offset(300, 700), to = Offset(60, 520);
     final v = flightVelocity(from, to);
-    expect(v.t, closeTo((to - from).distance / 1400, 1e-9));
+    expect(v.t, 0.28, reason: '300 px / 1400 is under the floor');
     expect(v.vx, closeTo(-240 / v.t, 1e-9));
     expect(v.vy, closeTo((-180 - 0.5 * 2400 * v.t * v.t) / v.t, 1e-9));
     final end = flightAt(from, to, v.t);

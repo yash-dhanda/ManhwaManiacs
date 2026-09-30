@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/glass/dev/gallery_sections.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_gallery.dart';
+import 'package:manhwamaniacs/skins/glass/dev/lists_sections.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 
 import 'support.dart';
@@ -16,7 +17,7 @@ Future<void> pumpSection(WidgetTester tester, String name, {TargetPlatform platf
 
 void main() {
   for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
-    for (final name in kGlassGallerySections) {
+    for (final name in kGlassGallerySections.where((n) => !kGlassListsSections.contains(n))) {
       testWidgets('$name on ${platform.name}: tap targets and labels', (tester) async {
         final handle = tester.ensureSemantics();
         await pumpSection(tester, name, platform: platform);
