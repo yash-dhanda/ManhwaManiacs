@@ -158,3 +158,7 @@ Items only the owner can do, by step.
 - The Glass preview frames (`mobile/assets/skin_previews/glass/000.png` to `035.png`) are captured by `mobile/39`. Fallback in place: the neutral mark on the brand aurora (`kGlassPreviewFramesBundled` is false).
 - mobile/31: device checks in docs/redesign/proof/mobile-31/device-check.md
 - mobile/39: run docs/redesign/proof/mobile-39/device-checklist.md on iPhone and Android; recapture assets/skin_previews/glass once the series sheet and reader exist (MM_WRITE_PREVIEWS=1).
+
+## mobile/34 (reader engine, Glass commands)
+
+- Device check on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-34/device-check.md` (120 Hz, 0 dropped frames on the long strip and on a real 120-page chapter; `mode=single` pull readout; sample turns `decode`).

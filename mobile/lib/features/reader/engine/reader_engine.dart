@@ -6,11 +6,18 @@ import 'package:flutter/widgets.dart' show Curve, Offset, Rect, ScrollPhysics;
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/reader/engine/auto_scroll_controller.dart';
 import 'package:manhwamaniacs/features/reader/engine/camera.dart';
+import 'package:manhwamaniacs/features/reader/engine/cruise_engage.dart';
+import 'package:manhwamaniacs/features/reader/engine/engine_live.dart';
+import 'package:manhwamaniacs/features/reader/engine/lens_layout.dart';
+import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_sampler.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_tint.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_layout.dart';
+import 'package:manhwamaniacs/features/reader/engine/seam.dart';
+import 'package:manhwamaniacs/features/reader/engine/swipe_neighbour.dart' as swipe;
 
 /// The chapter a [ReaderEngine.chapterCompleted] event names.
 typedef ChapterRef = ChapterIdentity;
@@ -114,6 +121,19 @@ abstract interface class ReaderEngineHost implements ReaderEngineCommands {
   });
 }
 
+/// The Glass commands (glass 15.4) only the strip host answers; the paged view and guided view do not,
+/// so every call is a no-op for them. Kept apart from [ReaderEngineHost] so Cinematic's hosts
+/// need no change.
+abstract interface class ReaderEngineExtrasHost {
+  Future<NeighbourInfo> armNeighbour(NeighbourDirection direction);
+  void commitNeighbour(NeighbourDirection direction, double velocity);
+  void continueFling(double velocity);
+  void engageFromVelocity();
+  void startAutoScroll(double pxPerSecond, Duration ramp);
+  void setAutoScrollPxPerSecond(double pxPerSecond);
+  void pageLayerTransform(LensTransform? t, LensClip? clip);
+}
+
 /// Geometry a host can answer: page fractions to viewport px (the strip's scroll offset and page
 /// extents, current every frame). Implemented by the strip view.
 abstract interface class ReaderGeometryHost {
@@ -170,9 +190,94 @@ final class ReaderPageSwiped extends ReaderEngineEvent {
 /// Owned — created and disposed — by whoever builds the view.
 class ReaderEngine extends ValueNotifier<ReaderEngineState>
     implements ReaderEngineCommands {
-  ReaderEngine() : super(ReaderEngineState.initial);
+  ReaderEngine({SampleDecoder? sampleDecoder}) : super(ReaderEngineState.initial) {
+    sampler = PageSampler(decoder: sampleDecoder, onSample: (s) {
+      if (value.currentPageSample != s) value = value.copyWith(currentPageSample: s);
+    },);
+  }
 
   ReaderEngineHost? _host;
+  ReaderEngineExtrasHost? get _extras {
+    final h = _host;
+    return h is ReaderEngineExtrasHost ? h as ReaderEngineExtrasHost : null;
+  }
+
+  /// The per-frame values (glass 15.4): listen here, never to the state, for anything animated.
+  final EngineLive live = EngineLive();
+
+  /// The page-sample duty, fed by the strip view.
+  late final PageSampler sampler;
+
+  final StreamController<SeamEvent> _seam = StreamController<SeamEvent>.broadcast();
+  final StreamController<NeighbourEvent> _neighbour = StreamController<NeighbourEvent>.broadcast();
+  final StreamController<CruiseEngaged> _cruise = StreamController<CruiseEngaged>.broadcast();
+
+  /// A seam crossed the reading line (38 %) or left through the top.
+  Stream<SeamEvent> get seamEvents => _seam.stream;
+
+  /// A chapter-end pull changed phase (idle, armed at 48, locked at 72), by touch or wheel.
+  Stream<NeighbourEvent> get neighbourEvents => _neighbour.stream;
+
+  /// Cruise took over a slowing fling.
+  Stream<CruiseEngaged> get cruiseEngagedEvents => _cruise.stream;
+
+  /// Called by the view.
+  void emitSeam(SeamEvent e) {
+    if (!_seam.isClosed) _seam.add(e);
+  }
+
+  void emitNeighbour(NeighbourEvent e) {
+    if (!_neighbour.isClosed) _neighbour.add(e);
+  }
+
+  void emitCruiseEngaged(CruiseEngaged e) {
+    if (!_cruise.isClosed) _cruise.add(e);
+  }
+
+  /// Makes sure the neighbour chapter in [direction] is ready (manifest loaded, first page warmed)
+  /// and says how long it is: "42 pages - about 6 min". Idempotent. Fails with [StateError] when no
+  /// view is attached or the view has no neighbour loader.
+  Future<NeighbourInfo> armNeighbour(NeighbourDirection direction) =>
+      _extras?.armNeighbour(direction) ?? Future<NeighbourInfo>.error(StateError('no reader attached'));
+
+  /// Switches to the neighbour in place: resets the overscroll, keeps [velocity] for
+  /// [continueFling] and calls the view's `onReplaceChapter`. Reduced motion commits with 0.
+  void commitNeighbour(NeighbourDirection direction, {double velocity = 0}) =>
+      _extras?.commitNeighbour(direction, velocity);
+
+  /// After the new chapter's first layout: a friction fling of [velocity] px/s (0.998 per ms).
+  /// Never starts from 0.
+  void continueFling(double velocity) {
+    if (velocity != 0) _extras?.continueFling(velocity);
+  }
+
+  /// While cruise is on and the strip coasts, takes over when the speed first enters 15-240 px/s.
+  void engageFromVelocity() => _extras?.engageFromVelocity();
+
+  /// Auto-scroll at an exact [pxPerSecond] (positive), ramping linearly over [ramp].
+  void startAutoScroll(double pxPerSecond, {Duration ramp = Duration.zero}) =>
+      _extras?.startAutoScroll(pxPerSecond, ramp);
+
+  void setAutoScrollPxPerSecond(double pxPerSecond) => _extras?.setAutoScrollPxPerSecond(pxPerSecond);
+
+  /// The lens layer of glass 8.14.9: copies of the pages under [clip] scaled by [t]; null removes it.
+  void pageLayerTransform(LensTransform? t, LensClip? clip) => _extras?.pageLayerTransform(t, clip);
+
+  /// The sideways chapter swipe as shown (the 0.35 band).
+  swipe.SwipeNeighbourState swipeNeighbour(double dx,
+          {required double viewportWidth, required swipe.ReadingDirection direction,}) =>
+      swipe.swipeNeighbour(dx, viewportWidth: viewportWidth, direction: direction);
+
+  /// Ends a sideways swipe: commits (with velocity 0) when the projected travel passes 96 px and a
+  /// neighbour exists.
+  swipe.SwipeRelease releaseSwipeNeighbour(double dx, double vx,
+      {required double viewportWidth, required swipe.ReadingDirection direction, required bool hasNeighbour,}) {
+    final r = swipe.releaseSwipeNeighbour(dx, vx, viewportWidth: viewportWidth, hasNeighbour: hasNeighbour);
+    if (r == swipe.SwipeRelease.committed) {
+      commitNeighbour(swipe.swipeNeighbour(dx, viewportWidth: viewportWidth, direction: direction).direction);
+    }
+    return r;
+  }
 
   final StreamController<ChapterRef> _completed =
       StreamController<ChapterRef>.broadcast();
@@ -257,6 +362,11 @@ class ReaderEngine extends ValueNotifier<ReaderEngineState>
 
   @override
   void dispose() {
+    sampler.dispose();
+    live.dispose();
+    unawaited(_seam.close());
+    unawaited(_neighbour.close());
+    unawaited(_cruise.close());
     ambient.dispose();
     autoScroll.dispose();
     camera.dispose();

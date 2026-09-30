@@ -60,6 +60,7 @@ class GlassDevIndex extends ConsumerWidget {
             DevButton(label: 'Primitives gallery', onTap: () => context.push('/dev/glass/primitives')),
             DevButton(label: 'Shell', onTap: () => context.push('/dev/glass/shell')),
             DevButton(label: 'Auth, profiles and onboarding', onTap: () => context.push('/dev/glass/auth')),
+            DevButton(label: 'Reader engine probe', onTap: () => context.push('/dev/glass/reader-engine?fixture=long-strip')),
             const SizedBox(height: 8),
             row(
               'Glass layers on screen',
