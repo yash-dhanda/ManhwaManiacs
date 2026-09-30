@@ -1,0 +1,522 @@
+{
+ "version": 1,
+ "width": 360,
+ "rule": "L=(0.2126R+0.7152G+0.0722B)/255. A row (or column within a band) is a gutter line when >=98% of pixels have L>0.92 or >=98% have L<0.06; a gutter is a run of >=12 gutter lines; shorter runs stay content. Bands between gutters take full band height; each band splits once at its vertical gutters except on a strip page (height/width>2) where a band is one full-width rect. Rects under 48px on either side are dropped. Order top-to-bottom then left-to-right (right-to-left for rtl).",
+ "cases": [
+  {
+   "id": "single-full",
+   "file": "panel-vectors/01-single-full.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 328,
+     "h": 508
+    }
+   ]
+  },
+  {
+   "id": "three-rows",
+   "file": "panel-vectors/02-three-rows.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 328,
+     "h": 160
+    },
+    {
+     "x": 16,
+     "y": 192,
+     "w": 328,
+     "h": 160
+    },
+    {
+     "x": 16,
+     "y": 368,
+     "w": 328,
+     "h": 156
+    }
+   ]
+  },
+  {
+   "id": "grid-2x2",
+   "file": "panel-vectors/03-grid-2x2.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 156,
+     "h": 248
+    },
+    {
+     "x": 188,
+     "y": 16,
+     "w": 156,
+     "h": 248
+    },
+    {
+     "x": 16,
+     "y": 280,
+     "w": 156,
+     "h": 244
+    },
+    {
+     "x": 188,
+     "y": 280,
+     "w": 156,
+     "h": 244
+    }
+   ]
+  },
+  {
+   "id": "grid-2x2-rtl",
+   "file": "panel-vectors/04-grid-2x2-rtl.png",
+   "height": 540,
+   "direction": "rtl",
+   "expected": [
+    {
+     "x": 188,
+     "y": 16,
+     "w": 156,
+     "h": 248
+    },
+    {
+     "x": 16,
+     "y": 16,
+     "w": 156,
+     "h": 248
+    },
+    {
+     "x": 188,
+     "y": 280,
+     "w": 156,
+     "h": 244
+    },
+    {
+     "x": 16,
+     "y": 280,
+     "w": 156,
+     "h": 244
+    }
+   ]
+  },
+  {
+   "id": "mixed-rows",
+   "file": "panel-vectors/05-mixed-rows.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 328,
+     "h": 200
+    },
+    {
+     "x": 16,
+     "y": 232,
+     "w": 96,
+     "h": 292
+    },
+    {
+     "x": 128,
+     "y": 232,
+     "w": 104,
+     "h": 292
+    },
+    {
+     "x": 248,
+     "y": 232,
+     "w": 96,
+     "h": 292
+    }
+   ]
+  },
+  {
+   "id": "black-gutters",
+   "file": "panel-vectors/06-black-gutters.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 156,
+     "h": 248
+    },
+    {
+     "x": 188,
+     "y": 16,
+     "w": 156,
+     "h": 248
+    },
+    {
+     "x": 16,
+     "y": 280,
+     "w": 156,
+     "h": 244
+    },
+    {
+     "x": 188,
+     "y": 280,
+     "w": 156,
+     "h": 244
+    }
+   ]
+  },
+  {
+   "id": "gutter-12",
+   "file": "panel-vectors/07-gutter-12.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 328,
+     "h": 250
+    },
+    {
+     "x": 16,
+     "y": 278,
+     "w": 328,
+     "h": 246
+    }
+   ]
+  },
+  {
+   "id": "gutter-11",
+   "file": "panel-vectors/08-gutter-11.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 328,
+     "h": 508
+    }
+   ]
+  },
+  {
+   "id": "near-white-240",
+   "file": "panel-vectors/09-near-white-240.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 328,
+     "h": 160
+    },
+    {
+     "x": 16,
+     "y": 192,
+     "w": 328,
+     "h": 160
+    },
+    {
+     "x": 16,
+     "y": 368,
+     "w": 328,
+     "h": 156
+    }
+   ]
+  },
+  {
+   "id": "near-white-230",
+   "file": "panel-vectors/10-near-white-230.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 360,
+     "h": 540
+    }
+   ]
+  },
+  {
+   "id": "noise-5px",
+   "file": "panel-vectors/11-noise-5px.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 328,
+     "h": 160
+    },
+    {
+     "x": 16,
+     "y": 192,
+     "w": 328,
+     "h": 160
+    },
+    {
+     "x": 16,
+     "y": 368,
+     "w": 328,
+     "h": 156
+    }
+   ]
+  },
+  {
+   "id": "noise-11px",
+   "file": "panel-vectors/12-noise-11px.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 0,
+     "w": 328,
+     "h": 540
+    }
+   ]
+  },
+  {
+   "id": "small-dropped-h",
+   "file": "panel-vectors/13-small-dropped-h.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 328,
+     "h": 200
+    },
+    {
+     "x": 16,
+     "y": 288,
+     "w": 328,
+     "h": 236
+    }
+   ]
+  },
+  {
+   "id": "narrow-47",
+   "file": "panel-vectors/14-narrow-47.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 79,
+     "y": 16,
+     "w": 265,
+     "h": 508
+    }
+   ]
+  },
+  {
+   "id": "narrow-48",
+   "file": "panel-vectors/15-narrow-48.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 48,
+     "h": 508
+    },
+    {
+     "x": 80,
+     "y": 16,
+     "w": 264,
+     "h": 508
+    }
+   ]
+  },
+  {
+   "id": "strip-tall",
+   "file": "panel-vectors/16-strip-tall.png",
+   "height": 1080,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 0,
+     "y": 16,
+     "w": 360,
+     "h": 300
+    },
+    {
+     "x": 0,
+     "y": 340,
+     "w": 360,
+     "h": 400
+    },
+    {
+     "x": 0,
+     "y": 764,
+     "w": 360,
+     "h": 300
+    }
+   ]
+  },
+  {
+   "id": "strip-no-gutters",
+   "file": "panel-vectors/17-strip-no-gutters.png",
+   "height": 900,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 360,
+     "h": 900
+    }
+   ]
+  },
+  {
+   "id": "strip-white-gaps",
+   "file": "panel-vectors/18-strip-white-gaps.png",
+   "height": 1200,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 360,
+     "h": 380
+    },
+    {
+     "x": 0,
+     "y": 420,
+     "w": 360,
+     "h": 380
+    },
+    {
+     "x": 0,
+     "y": 840,
+     "w": 360,
+     "h": 360
+    }
+   ]
+  },
+  {
+   "id": "splash-black",
+   "file": "panel-vectors/19-splash-black.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 40,
+     "y": 100,
+     "w": 280,
+     "h": 300
+    }
+   ]
+  },
+  {
+   "id": "all-white",
+   "file": "panel-vectors/20-all-white.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": []
+  },
+  {
+   "id": "all-grey",
+   "file": "panel-vectors/21-all-grey.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 360,
+     "h": 540
+    }
+   ]
+  },
+  {
+   "id": "bubble-inside",
+   "file": "panel-vectors/22-bubble-inside.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 328,
+     "h": 160
+    },
+    {
+     "x": 16,
+     "y": 192,
+     "w": 328,
+     "h": 160
+    },
+    {
+     "x": 16,
+     "y": 368,
+     "w": 328,
+     "h": 156
+    }
+   ]
+  },
+  {
+   "id": "three-cols-rtl",
+   "file": "panel-vectors/23-three-cols-rtl.png",
+   "height": 540,
+   "direction": "rtl",
+   "expected": [
+    {
+     "x": 248,
+     "y": 16,
+     "w": 96,
+     "h": 508
+    },
+    {
+     "x": 128,
+     "y": 16,
+     "w": 104,
+     "h": 508
+    },
+    {
+     "x": 16,
+     "y": 16,
+     "w": 96,
+     "h": 508
+    }
+   ]
+  },
+  {
+   "id": "uneven-band",
+   "file": "panel-vectors/24-uneven-band.png",
+   "height": 540,
+   "direction": "ltr",
+   "expected": [
+    {
+     "x": 16,
+     "y": 16,
+     "w": 156,
+     "h": 300
+    },
+    {
+     "x": 188,
+     "y": 16,
+     "w": 156,
+     "h": 300
+    },
+    {
+     "x": 16,
+     "y": 332,
+     "w": 328,
+     "h": 192
+    }
+   ]
+  }
+ ]
+}
