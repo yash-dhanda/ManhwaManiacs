@@ -54,7 +54,10 @@ void main() {
       // Static /library/... paths win over /library/:followedId.
       final hist =
           router.configuration.findMatch(Uri.parse('/library/history'));
-      expect((hist.routes.last as GoRoute).name, ScreenId.history.id);
+      expect((hist.routes.last as GoRoute).name,
+          pending.contains(ScreenId.history)
+              ? '$kPendingRoutePrefix${ScreenId.history.id}'
+              : ScreenId.history.id,);
       final byFollow = router.configuration.findMatch(Uri.parse('/library/42'));
       expect((byFollow.routes.last as GoRoute).name,
           pending.contains(ScreenId.featureByFollow)

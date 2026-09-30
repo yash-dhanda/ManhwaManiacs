@@ -19,8 +19,8 @@ Measured with `git log --date=short --format='%ad %h %s' --grep='mobile-0[4589]:
 | mobile/04 + mobile/05, primitives (29 commits on the primitives paths, 2026-09-29 and 2026-09-30) | 2 | 7.0 | 3.5 | under by 1.5 |
 | mobile/08, Tonight and the home feed (2026-09-30) | 1 | 1.3 | 3.0 shared with mobile/09 | under |
 | mobile/09, Library shelf and hub (2026-09-30) | 1 | 1.7 | (with mobile/08) | under |
-| mobile/10, Updates, Collections, History, Bookmarks (2026-09-30) | 1 | H10 | 0.6 for Updates, the rest in the 3.0 above | under |
-| **Flutter total** | **5** | **H_TOTAL** | **7.1** | **under by 2.1** |
+| mobile/10, Updates, Collections, History, Bookmarks (2026-09-30) | 1 | 0.9 | 0.6 for Updates, the rest in the 3.0 above | under |
+| **Flutter total** | **5** | **10.9** | **7.1** | **under by 2.1** |
 
 Recommendation rule: the Flutter actual (5 CCD) is at most 9.94, so **PROCEED** for the Flutter half.
 
