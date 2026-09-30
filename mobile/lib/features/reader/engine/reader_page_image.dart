@@ -56,7 +56,8 @@ class ReaderLoadedPageImage extends StatelessWidget {
           }
         case ReaderFitMode.screen:
           if (width != null && height != null) {
-            loadedImage = SizedBox(width: width, height: height, child: loadedImage);
+            loadedImage =
+                SizedBox(width: width, height: height, child: loadedImage);
           }
       }
     } else {
@@ -71,7 +72,8 @@ class ReaderLoadedPageImage extends StatelessWidget {
           }
         case ReaderFitMode.screen:
           if (width != null && height != null) {
-            loadedImage = SizedBox(width: width, height: height, child: loadedImage);
+            loadedImage =
+                SizedBox(width: width, height: height, child: loadedImage);
           }
       }
     }
@@ -89,6 +91,7 @@ class ReaderPageImage extends ConsumerStatefulWidget {
     required this.fitMode,
     required this.backgroundColor,
     required this.brokenBuilder,
+    this.loadingBuilder,
     required this.cornerRadius,
     this.layoutAxis = Axis.vertical,
     this.viewportWidth,
@@ -122,8 +125,10 @@ class ReaderPageImage extends ConsumerStatefulWidget {
 
   /// What a page that failed to load shows inside its reserved,
   /// backdrop-coloured box; [retry] reloads it.
-  final Widget Function(BuildContext context, VoidCallback retry)
-      brokenBuilder;
+  final Widget Function(BuildContext context, VoidCallback retry) brokenBuilder;
+
+  /// What the page's reserved box holds while it loads; null is the plain backdrop.
+  final Widget Function(BuildContext context)? loadingBuilder;
 
   /// Corner radius of the page card in paged (horizontal) reading.
   final double cornerRadius;
@@ -279,7 +284,10 @@ class _ReaderPageImageState extends ConsumerState<ReaderPageImage> {
   /// 30 Hz" is made of. A backdrop-coloured box is also what reads best
   /// between two pages of artwork.
   Widget _loadingBox() => _placeholderBox(
-        child: ColoredBox(color: widget.backgroundColor),
+        child: ColoredBox(
+          color: widget.backgroundColor,
+          child: widget.loadingBuilder?.call(context),
+        ),
       );
 
   /// Shared by both the network and on-device sources — the reader must not
@@ -406,8 +414,9 @@ class _ReaderPageImageState extends ConsumerState<ReaderPageImage> {
     // flush with no rounded corners or drop shadow, or every page join reads
     // as a dark seam. Only the paged horizontal reader keeps the card look.
     final seamless = widget.layoutAxis == Axis.vertical;
-    final borderRadius =
-        seamless ? BorderRadius.zero : BorderRadius.circular(widget.cornerRadius);
+    final borderRadius = seamless
+        ? BorderRadius.zero
+        : BorderRadius.circular(widget.cornerRadius);
 
     // On-device store first, network second (spec §3) — and the reader does
     // not know or care which it got beyond this one branch.

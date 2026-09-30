@@ -59,14 +59,18 @@ class ReaderUiController extends Notifier<ReaderUiState> {
   void setControlsVisible(bool visible) =>
       state = state.copyWith(controlsVisible: visible);
 
-  void setLocked(bool locked) =>
-      state = state.copyWith(isLocked: locked);
+  void setLocked(bool locked) => state = state.copyWith(isLocked: locked);
 
-  void zoomIn() =>
-      state = state.copyWith(zoomLevel: _clampZoom(state.zoomLevel + readerZoomStep));
+  /// Sets the zoom to [zoom]: clamped and rounded to two decimals, or verbatim with
+  /// [clamp] false (a pinch rubber-banding past a limit).
+  void setZoom(double zoom, {bool clamp = true}) =>
+      state = state.copyWith(zoomLevel: clamp ? _clampZoom(zoom) : zoom);
 
-  void zoomOut() =>
-      state = state.copyWith(zoomLevel: _clampZoom(state.zoomLevel - readerZoomStep));
+  void zoomIn() => state =
+      state.copyWith(zoomLevel: _clampZoom(state.zoomLevel + readerZoomStep));
+
+  void zoomOut() => state =
+      state.copyWith(zoomLevel: _clampZoom(state.zoomLevel - readerZoomStep));
 
   void resetZoom() => state = state.copyWith(zoomLevel: 1);
 
@@ -78,8 +82,7 @@ class ReaderUiController extends Notifier<ReaderUiState> {
   void toggleAutoScroll() =>
       state = state.copyWith(autoScrollEnabled: !state.autoScrollEnabled);
 
-  void stopAutoScroll() =>
-      state = state.copyWith(autoScrollEnabled: false);
+  void stopAutoScroll() => state = state.copyWith(autoScrollEnabled: false);
 
   void setAutoScrollSpeed(double speed) =>
       state = state.copyWith(autoScrollSpeed: speed);
