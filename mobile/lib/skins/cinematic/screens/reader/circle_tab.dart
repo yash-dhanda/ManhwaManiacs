@@ -1,11 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
+import 'package:manhwamaniacs/features/circle/utils/reaction_kinds.dart';
+import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/circle_poll_scope.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/pass_it_on_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/reaction_stamps.dart' show reactionGlyph;
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_avatar.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/circle_rows.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
@@ -20,11 +28,14 @@ class CircleTab extends ConsumerWidget {
   final bool completedOpen;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) => CirclePollScope(child: _build(context, ref));
+
+  Widget _build(BuildContext context, WidgetRef ref) {
     final c = context.cine;
     final key = (sourceId: sourceId, seriesKey: seriesKey);
     final data = ref.watch(circleSeriesProvider(key));
     final d = data.valueOrNull;
+    final done = completedOpen || ref.watch(completedThisSessionProvider.select((s) => s.contains(chapterId(sourceId, seriesKey, chapterKey))));
     if (data.isLoading && d == null) return const Center(child: CineLeaderDial(size: 24));
     if (data.hasError) {
       return Padding(
@@ -36,14 +47,23 @@ class CircleTab extends ConsumerWidget {
         ],),
       );
     }
-    final rows = d == null ? const <CircleRow>[] : circleRows(d, openKey: chapterKey, openNumber: chapterNumber, completedOpen: completedOpen);
+    final rows = d == null ? const <CircleRow>[] : circleRows(d, openKey: chapterKey, openNumber: chapterNumber, completedOpen: done);
     if (rows.isEmpty) {
       return Padding(padding: EdgeInsets.all(c.space4), child: CineRoleText('Nobody in your circle has read this yet.', c.typeCaption, color: c.colorInk60));
     }
+    final title = ref.watch(readerSeriesProvider(key))?.title ?? '';
     return ListView(
       padding: EdgeInsets.all(c.space4),
       children: [
         for (var i = 0; i < rows.length; i++) _Row(row: rows[i], index: i, avatarKey: _avatarOf(d!, rows[i].member)),
+        if ((ref.watch(circleMembersProvider).valueOrNull ?? const []).isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(top: c.space3),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: CineButton(label: 'Recommend this series…', variant: CineButtonVariant.quiet, size: CineButtonSize.sm, onPressed: () => unawaited(showPassItOnSheet(context, sourceId: sourceId, seriesKey: seriesKey, title: title))),
+            ),
+          ),
       ],
     );
   }
@@ -67,7 +87,10 @@ class _Row extends StatelessWidget {
               key: ValueKey('circle-label-${m.profileId}'),
               delay: reduced ? Duration.zero : Duration(milliseconds: 40 * index),
               duration: reduced ? Duration.zero : const Duration(milliseconds: 160),
-              child: CineRoleText(row.label ?? '', c.typeKicker, color: c.colorSpot),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                if (row.reaction != null && reactionSpec(row.reaction!).stampText == null) ...[reactionGlyph(row.reaction!, size: 16, color: c.colorSpot), SizedBox(width: c.space1)],
+                CineRoleText(row.label ?? '', c.typeKicker, color: c.colorSpot),
+              ],),
             ),
           CircleRowKind.guarded => CineRoleText('reacted to ${chapterShort(row.chapterNumber)}', c.typeCaption, color: c.colorInk45),
           CircleRowKind.further => CineRoleText('${m.name} is on ${chapterShort(row.chapterNumber)}', c.typeCaption, color: c.colorInk45),

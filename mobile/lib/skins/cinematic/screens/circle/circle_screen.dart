@@ -35,8 +35,8 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 /// readers strip, then the activity, letters and shared shelves as a swipeable contents-tab pager.
 /// `?tab=all|reading|reactions|letters|shelves` opens a tab.
 class CircleScreen extends ConsumerStatefulWidget {
-  const CircleScreen({super.key, this.initialTab = CircleTab.all});
-  final CircleTab initialTab;
+  const CircleScreen({super.key, this.initialTab = CircleTabId.all});
+  final CircleTabId initialTab;
 
   @override
   ConsumerState<CircleScreen> createState() => _CircleScreenState();
@@ -51,10 +51,10 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: CircleTab.values.length, vsync: this, initialIndex: widget.initialTab.index)..addListener(_onTab);
+    _tabs = TabController(length: CircleTabId.values.length, vsync: this, initialIndex: widget.initialTab.index)..addListener(_onTab);
   }
 
-  CircleTab get _tab => CircleTab.values[_tabs.index];
+  CircleTabId get _tab => CircleTabId.values[_tabs.index];
 
   void _onTab() {
     if (!_tabs.indexIsChanging) setState(() {});
@@ -75,7 +75,7 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
     super.dispose();
   }
 
-  void _goto(CircleTab t) => _tabs.animateTo(t.index, duration: CineMotion.reduced(context) ? CineDur.reduced : CineDur.column, curve: CineCurves.settle);
+  void _goto(CircleTabId t) => _tabs.animateTo(t.index, duration: CineMotion.reduced(context) ? CineDur.reduced : CineDur.column, curve: CineCurves.settle);
 
   List<FocusNode> get _list => _nodes[feedKindOf(_tab)] ?? const [];
 
@@ -94,10 +94,10 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
 
   void _lettersKey() {
     if (MediaQuery.sizeOf(context).width >= 900) {
-      _goto(CircleTab.all);
+      _goto(CircleTabId.all);
       _asideFirstLetter.requestFocus();
     } else {
-      _goto(CircleTab.letters);
+      _goto(CircleTabId.letters);
     }
   }
 
@@ -215,7 +215,7 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
         body: Builder(builder: (context) {
           final handle = NestedScrollView.sliverOverlapAbsorberHandleFor(context);
           final inject = [SliverOverlapInjector(handle: handle)];
-          Widget activity(CircleTab tab, {({String headline, String? deck})? empty}) {
+          Widget activity(CircleTabId tab, {({String headline, String? deck})? empty}) {
             final kind = feedKindOf(tab);
             return CinePullToReprint(
               onRefresh: _reprint,
@@ -232,9 +232,9 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
 
           final lettersPanel = CinePullToReprint(onRefresh: _reprint, child: LettersList(letters: letters, duplicateNames: dup, leadingSlivers: inject));
           Widget allPanel() {
-            if (!wide) return activity(CircleTab.all);
+            if (!wide) return activity(CircleTabId.all);
             return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Expanded(flex: 5, child: activity(CircleTab.all)),
+              Expanded(flex: 5, child: activity(CircleTabId.all)),
               Expanded(
                 flex: 3,
                 child: SingleChildScrollView(
@@ -247,8 +247,8 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
 
           return CineTabPanels(controller: _tabs, children: [
             allPanel(),
-            activity(CircleTab.reading, empty: CircleCopy.emptyReading),
-            activity(CircleTab.reactions, empty: CircleCopy.emptyReactions),
+            activity(CircleTabId.reading, empty: CircleCopy.emptyReading),
+            activity(CircleTabId.reactions, empty: CircleCopy.emptyReactions),
             lettersPanel,
             CinePullToReprint(onRefresh: _reprint, child: ShelvesTab(leadingSlivers: inject)),
           ],);
@@ -267,8 +267,8 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
           entries: [
             key(LogicalKeyboardKey.keyJ, 'Next dispatch', () => _step(1)),
             key(LogicalKeyboardKey.keyK, 'Previous dispatch', () => _step(-1)),
-            for (var i = 0; i < CircleTab.values.length; i++)
-              key([LogicalKeyboardKey.digit1, LogicalKeyboardKey.digit2, LogicalKeyboardKey.digit3, LogicalKeyboardKey.digit4, LogicalKeyboardKey.digit5][i], 'Tab ${CircleTab.values[i].name}', () => _goto(CircleTab.values[i])),
+            for (var i = 0; i < CircleTabId.values.length; i++)
+              key([LogicalKeyboardKey.digit1, LogicalKeyboardKey.digit2, LogicalKeyboardKey.digit3, LogicalKeyboardKey.digit4, LogicalKeyboardKey.digit5][i], 'Tab ${CircleTabId.values[i].name}', () => _goto(CircleTabId.values[i])),
             key(LogicalKeyboardKey.keyL, 'Letters', _lettersKey),
             key(LogicalKeyboardKey.keyR, 'Reprint', () => unawaited(_reprint())),
           ],

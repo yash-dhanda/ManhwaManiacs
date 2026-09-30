@@ -17,13 +17,16 @@ enum CircleRowKind {
 }
 
 class CircleRow {
-  const CircleRow({required this.member, required this.kind, this.label, this.chapterNumber});
+  const CircleRow({required this.member, required this.kind, this.label, this.chapterNumber, this.reaction});
   final CircleMemberRef member;
   final CircleRowKind kind;
 
   /// `LOVED`, `CHEF'S KISS`... for [CircleRowKind.label].
   final String? label;
   final double? chapterNumber;
+
+  /// The reaction of a [CircleRowKind.label] row.
+  final ReactionKind? reaction;
 }
 
 /// The kicker of a reaction kind.
@@ -57,7 +60,7 @@ List<CircleRow> circleRows(CircleSeriesData data, {required String openKey, requ
     if (onOpen != null) {
       final earned = completedOpen || !onOpen.chapter.sealed;
       rows.add(earned
-          ? CircleRow(member: m, kind: CircleRowKind.label, label: reactionLabel(onOpen.kind), chapterNumber: onOpen.chapter.chapterNumber)
+          ? CircleRow(member: m, kind: CircleRowKind.label, label: reactionLabel(onOpen.kind), reaction: onOpen.kind, chapterNumber: onOpen.chapter.chapterNumber)
           : CircleRow(member: m, kind: CircleRowKind.guarded, chapterNumber: openNumber),);
       continue;
     }

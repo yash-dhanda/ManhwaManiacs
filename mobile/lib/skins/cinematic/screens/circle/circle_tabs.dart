@@ -1,20 +1,20 @@
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_contents_tabs.dart';
 
 /// The Circle's five tabs (cinematic 9.3.2), in order.
-enum CircleTab { all, reading, reactions, letters, shelves }
+enum CircleTabId { all, reading, reactions, letters, shelves }
 
 /// `?tab=all|reading|reactions|letters|shelves`; anything else opens ALL.
-CircleTab circleTabFromQuery(String? q) {
-  for (final t in CircleTab.values) {
+CircleTabId circleTabFromQuery(String? q) {
+  for (final t in CircleTabId.values) {
     if (t.name == q) return t;
   }
-  return CircleTab.all;
+  return CircleTabId.all;
 }
 
 /// The feed kind a tab reads: `null` all, `reading`, `reaction`; letters and shelves read their own.
-String? feedKindOf(CircleTab t) => switch (t) {
-      CircleTab.reading => 'reading',
-      CircleTab.reactions => 'reaction',
+String? feedKindOf(CircleTabId t) => switch (t) {
+      CircleTabId.reading => 'reading',
+      CircleTabId.reactions => 'reaction',
       _ => null,
     };
 
