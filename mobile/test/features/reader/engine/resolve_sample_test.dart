@@ -19,7 +19,7 @@ void main() {
     expect(nextGreyRun(3, s(red)), 0);
   });
   test('manifest sample', () {
-    final m = PageSample.manifest(red);
+    const m = PageSample.manifest(red);
     expect(m.source, PageSampleSource.manifest);
     expect(m.pTop, 1.0);
     expect(m.top, red);

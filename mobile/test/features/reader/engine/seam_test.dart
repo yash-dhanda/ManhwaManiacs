@@ -5,9 +5,9 @@ void main() {
   test('progress', () {
     expect(seamProgress(844, 96, 844), isNull);
     expect(seamProgress(-96, 96, 844), isNull);
-    expect(seamProgress(843, 96, 844)!, closeTo(1 / 940, 1e-9));
-    expect(seamProgress(-95, 96, 844)!, closeTo(939 / 940, 1e-9));
-    expect(seamProgress(374, 96, 844)!, closeTo(0.5, 1e-9));
+    expect(seamProgress(843, 96, 844), closeTo(1 / 940, 1e-9));
+    expect(seamProgress(-95, 96, 844), closeTo(939 / 940, 1e-9));
+    expect(seamProgress(374, 96, 844), closeTo(0.5, 1e-9));
   });
   test('reading line crossing forward and back, once under wobble', () {
     final w = SeamWatcher();

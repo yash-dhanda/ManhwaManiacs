@@ -27,7 +27,7 @@ NeighbourDirection _dirOf(double dx, ReadingDirection d) {
 
 /// The sideways drag [dx] as shown on the 0.35 band.
 SwipeNeighbourState swipeNeighbour(double dx, {required double viewportWidth, required ReadingDirection direction}) =>
-    SwipeNeighbourState(dx.sign * rubberBand(dx.abs(), viewportWidth, 0.35), _dirOf(dx, direction));
+    SwipeNeighbourState(dx.sign * rubberBand(dx.abs(), viewportWidth), _dirOf(dx, direction));
 
 enum SwipeRelease { committed, cancelled }
 

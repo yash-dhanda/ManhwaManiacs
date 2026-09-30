@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' show Color;
 
 import 'package:flutter/foundation.dart';
@@ -25,7 +24,7 @@ class PageSample {
   });
 
   /// A manifest `pages[].tint` painted before the decode lands: luminance unknown (1.0).
-  PageSample.manifest(Color t)
+  const PageSample.manifest(Color t)
       : tint = t,
         top = t,
         bottom = t,
@@ -48,11 +47,11 @@ class PageSample {
         pTop: pTop, pMid: pMid, pBottom: pBottom, source: source,);
 
   @override
-  bool operator ==(Object o) =>
-      o is PageSample &&
-      o.tint == tint && o.top == top && o.bottom == bottom &&
-      o.lTop == lTop && o.lMid == lMid && o.lBottom == lBottom &&
-      o.pTop == pTop && o.pMid == pMid && o.pBottom == pBottom && o.source == source;
+  bool operator ==(Object other) =>
+      other is PageSample &&
+      other.tint == tint && other.top == top && other.bottom == bottom &&
+      other.lTop == lTop && other.lMid == lMid && other.lBottom == lBottom &&
+      other.pTop == pTop && other.pMid == pMid && other.pBottom == pBottom && other.source == source;
 
   @override
   int get hashCode => Object.hash(tint, top, bottom, lTop, lMid, lBottom, pTop, pMid, pBottom, source);

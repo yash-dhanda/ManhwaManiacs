@@ -16,7 +16,7 @@ void main() {
   });
   test('wheel accumulator resets after 400 ms', () {
     final w = WheelAccumulator();
-    expect(w.add(100, const Duration(milliseconds: 0)), 100);
+    expect(w.add(100, Duration.zero), 100);
     expect(w.add(50, const Duration(milliseconds: 300)), 150);
     expect(w.add(50, const Duration(milliseconds: 701)), 50);
   });

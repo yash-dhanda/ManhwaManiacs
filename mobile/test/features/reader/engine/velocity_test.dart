@@ -19,7 +19,7 @@ void main() {
   });
   test('stop reads 0 after 100 ms', () {
     final t = VelocityTracker100();
-    t.add(const Duration(milliseconds: 0), 0);
+    t.add(Duration.zero, 0);
     t.add(const Duration(milliseconds: 10), 10);
     expect(t.velocity(const Duration(milliseconds: 50)), isNot(0));
     expect(t.velocity(const Duration(milliseconds: 110)), 0);

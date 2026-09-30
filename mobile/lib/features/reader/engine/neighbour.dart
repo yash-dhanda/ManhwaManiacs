@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/reader/engine/zoom_math.dart' show rubberBand;
 
 const double armPx = 48.0;
@@ -23,7 +24,7 @@ class NeighbourEvent {
 /// What `armNeighbour` resolves: the skin shows "42 pages - about 6 min".
 class NeighbourInfo {
   const NeighbourInfo({required this.chapter, required this.pageCount, required this.firstPageUrl, required this.minutes});
-  final Object chapter; // a ChapterRef
+  final ChapterIdentity chapter; // a ChapterRef
   final int pageCount;
   final String firstPageUrl;
   final int minutes;
@@ -73,3 +74,7 @@ double flingDistance(double v0) => v0 / (-1000 * math.log(0.998));
 
 /// One [dtMs] step of the fling's decay.
 double flingStep(double v, double dtMs) => v * math.pow(0.998, dtMs);
+
+/// Whether a chapter ends the strip (`continuous`, today's reader) or the strip holds one chapter and
+/// the neighbour is reached by a pull or a swipe (`single`).
+enum ReaderChapterMode { continuous, single }

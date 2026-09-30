@@ -2,16 +2,26 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart' show PointerScrollEvent, PointerPanZoomUpdateEvent;
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/scheduler.dart' show SchedulerBinding;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/core/platform/native_bridge.dart';
 import 'package:manhwamaniacs/core/platform/system_ui.dart';
 import 'package:manhwamaniacs/core/utils/haptics.dart';
+import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/reader/engine/chapter_end_physics.dart';
+import 'package:manhwamaniacs/features/reader/engine/cruise_engage.dart';
+import 'package:manhwamaniacs/features/reader/engine/engine_live.dart';
+import 'package:manhwamaniacs/features/reader/engine/lens_layout.dart';
+import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
+import 'package:manhwamaniacs/features/reader/engine/panel_boxes.dart';
 import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
@@ -20,11 +30,14 @@ import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_long_press.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_page_image.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_surface_slots.dart';
+import 'package:manhwamaniacs/features/reader/engine/seam.dart';
 import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
+import 'package:manhwamaniacs/features/reader/engine/velocity.dart';
 import 'package:manhwamaniacs/features/reader/engine/zoom_math.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_filter_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
@@ -118,7 +131,29 @@ class ReaderEngineView extends ConsumerStatefulWidget {
     this.onReachedFeedStart,
     this.pageExtents,
     this.options = const ReaderEngineOptions(),
+    this.chapterMode = ReaderChapterMode.continuous,
+    this.coverPalette,
+    this.overscrollReturn = kOverscrollReturn,
+    this.onReplaceChapter,
+    this.loadNeighbour,
   });
+
+  /// `continuous` (default, unchanged) or `single`: the strip holds one chapter, never appends a
+  /// neighbour, and a pull past either end arms and commits the neighbour (glass 8.14.4).
+  final ReaderChapterMode chapterMode;
+
+  /// The series cover's palette: the page tint after six greyscale pages in a row.
+  final List<Color>? coverPalette;
+
+  /// The spring a chapter-end overscroll below 72 px returns on (`single` mode).
+  final SpringDescription overscrollReturn;
+
+  /// Called by `commitNeighbour` with the neighbour, after the overscroll is reset: the skin swaps
+  /// the route for it (a replace under a constant page key) and the new feed arrives in this view.
+  final void Function(ChapterIdentity chapter)? onReplaceChapter;
+
+  /// Loads the neighbour chapter in a direction for `armNeighbour` (its manifest); null when there is none.
+  final Future<ReaderChapter?> Function(NeighbourDirection direction)? loadNeighbour;
 
   /// Presentation and input parameters of the skin; the defaults are the legacy reader.
   final ReaderEngineOptions options;
@@ -214,7 +249,7 @@ class ReaderEngineView extends ConsumerStatefulWidget {
 
 class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     with TickerProviderStateMixin, WidgetsBindingObserver
-    implements ReaderEngineHost, ReaderGeometryHost {
+    implements ReaderEngineHost, ReaderGeometryHost, ReaderEngineExtrasHost {
   late final ReaderScrollController _scrollController;
   late final ReaderPageExtents _pageExtents;
   late final bool _ownsPageExtents;
@@ -379,6 +414,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _pageExtents = widget.pageExtents ?? ReaderPageExtents(widget.feed.pages);
     _pageExtents.addListener(_handleExtentSubmission);
     _scrollController = ReaderScrollController()..addListener(_handleScroll);
+    widget.controller.sampler.coverPalette = widget.coverPalette;
+    widget.controller.ambient.panels.addListener(_publish);
     _publish();
     unawaited(tuneReaderImageCache(ref.read(nativeBridgeProvider)));
     unawaited(applyReadingSystemUiMode());
@@ -417,8 +454,10 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         oldWidget.options.doubleTapSlop != widget.options.doubleTapSlop) {
       _tapClassifier = _newClassifier();
     }
+    widget.controller.sampler.coverPalette = widget.coverPalette;
     if (!identical(oldWidget.feed, widget.feed)) {
       _reconcileFeed(oldWidget.feed, widget.feed);
+      _afterNeighbourSwap(oldWidget.feed);
     }
     _publish();
   }
@@ -577,6 +616,10 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _panX.dispose();
     _pinching.dispose();
     _disposing = true;
+    widget.controller.ambient.panels.removeListener(_publish);
+    _velocityIdle?.cancel();
+    _wheelReset?.cancel();
+    _lens.dispose();
     _stopAutoScroll();
     _flushProgress();
     _scrollSaveTimer?.cancel();
@@ -1079,7 +1122,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _scheduleProgressSave(feedPosition);
     _scheduleScrollSave(scrollOffset, feedPosition);
     _maybeAutoNextChapter(atEnd);
-    _maybeExtendFeed(feedPosition);
+    if (widget.chapterMode == ReaderChapterMode.continuous) _maybeExtendFeed(feedPosition);
+    _trackEngine();
     _prefetchUpcoming(flatPage);
     // Last, so the state carries what this pass started (a feed extension).
     _publish();
@@ -1375,6 +1419,331 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     });
   }
 
+
+  // ── Glass engine duties (glass 15.4) ───────────────────────────────────────
+
+  final VelocityTracker100 _velocity = VelocityTracker100();
+  Timer? _velocityIdle;
+  final Map<String, SeamWatcher> _seamWatchers = {};
+  final WheelAccumulator _wheel = WheelAccumulator();
+  Timer? _wheelReset;
+  NeighbourPhase _neighbourPhase = NeighbourPhase.idle;
+  final Map<NeighbourDirection, Future<NeighbourInfo>> _armed = {};
+  final Map<NeighbourDirection, ReaderChapter> _armedChapter = {};
+  double _pendingFling = 0;
+  NeighbourDirection? _pendingDir;
+  bool _cruiseWatch = false;
+  double? _autoPx;
+  String? _samplerKey;
+  ImageProvider? _samplerProvider;
+  final ValueNotifier<({LensTransform t, LensClip clip})?> _lens = ValueNotifier(null);
+
+  bool get _single => widget.chapterMode == ReaderChapterMode.single;
+
+  void _patchState({double? velocity, double? seam, bool clearSeam = false, double? overscroll}) {
+    final c = widget.controller;
+    final next = c.value.copyWith(
+        scrollVelocity: velocity, seamProgress: seam, clearSeamProgress: clearSeam, overscrollExtent: overscroll,);
+    if (next != c.value) c.value = next;
+  }
+
+  void _setVelocity(double v) {
+    final c = widget.controller;
+    c.live.scrollVelocity.value = v;
+    c.sampler.setVelocity(v);
+    final sv = stateVelocity(c.value.scrollVelocity, v);
+    if (sv != c.value.scrollVelocity) _patchState(velocity: sv);
+  }
+
+  /// Runs on every scroll callback: velocity, seams, the chapter-end pull, the page sample, cruise.
+  void _trackEngine() {
+    if (!_scrollController.hasClients || widget.feed.isEmpty) return;
+    final pos = _scrollController.position;
+    _velocity.add(SchedulerBinding.instance.currentSystemFrameTimeStamp, pos.pixels);
+    final v = _velocity.velocity();
+    _setVelocity(v);
+    _velocityIdle?.cancel();
+    _velocityIdle = Timer(const Duration(milliseconds: 120), () {
+      _velocity.reset();
+      if (mounted) _setVelocity(0);
+    });
+    _trackSeams(pos);
+    if (_single && _wheelReset == null) {
+      final over = pos.pixels > pos.maxScrollExtent
+          ? pos.pixels - pos.maxScrollExtent
+          : pos.pixels < pos.minScrollExtent
+              ? pos.pixels - pos.minScrollExtent
+              : 0.0;
+      _setOverscroll(over, NeighbourVia.touch);
+    }
+    _feedSampler(pos, v);
+    _checkCruise(pos, v);
+  }
+
+  void _trackSeams(ScrollPosition pos) {
+    final feed = widget.feed;
+    final c = widget.controller;
+    double? progress;
+    if (_defaults.direction == ReadingDirection.vertical) {
+      final m = _metrics;
+      final vp = pos.viewportDimension;
+      for (var i = 1; i < feed.chapters.length; i++) {
+        final flat = feed.startOfChapter(i);
+        final h = m.leadingInsetAt(flat);
+        if (h <= 0) continue;
+        final top = m.offsetToPage(flat + 1) - pos.pixels;
+        progress ??= seamProgress(top, h, vp);
+        for (final e in (_seamWatchers[feed.chapters[i].id] ??= SeamWatcher())
+            .update(feed.chapters[i].id, top, h, vp * 0.38)) {
+          c.emitSeam(e);
+        }
+      }
+    }
+    c.live.seamProgress.value = progress;
+    final ss = stateSeam(c.value.seamProgress, progress);
+    if (ss != c.value.seamProgress) _patchState(seam: ss, clearSeam: ss == null);
+  }
+
+  void _setOverscroll(double over, NeighbourVia via) {
+    final c = widget.controller;
+    c.live.overscrollExtent.value = over;
+    final so = stateOverscroll(c.value.overscrollExtent, over);
+    if (so != c.value.overscrollExtent) _patchState(overscroll: so);
+    final phase = neighbourPhase(over);
+    if (phase != _neighbourPhase) {
+      _neighbourPhase = phase;
+      c.emitNeighbour(NeighbourEvent(
+          phase, over >= 0 ? NeighbourDirection.next : NeighbourDirection.previous, via,),);
+    }
+  }
+
+  ImageProvider _providerFor(ReaderPage page) {
+    final file = page.localFile;
+    if (file != null) return FileImage(file);
+    return CachedNetworkImageProvider(
+      page.imageUrl,
+      headers: apiImageHttpHeaders(ref.read(authTokenStoreProvider).token, profileId: ref.read(activeProfileProvider)?.id),
+    );
+  }
+
+  void _feedSampler(ScrollPosition pos, double v) {
+    final feed = widget.feed;
+    final flat = _metrics.pageAtOffset(pos.pixels + pos.viewportDimension * 0.38) - 1;
+    if (flat < 0 || flat >= feed.length) return;
+    final page = feed.pages[flat];
+    final key = page.localFile?.path ?? page.imageUrl;
+    if (key.isEmpty) return;
+    if (key != _samplerKey) {
+      _samplerKey = key;
+      _samplerProvider = _providerFor(page);
+    }
+    widget.controller.sampler.onScroll(key, _samplerProvider!, page.tint, v);
+  }
+
+  void _checkCruise(ScrollPosition pos, double v) {
+    if (!_cruiseWatch) return;
+    final coasting = pos.isScrollingNotifier.value && pos.userScrollDirection == ScrollDirection.idle;
+    if (!coasting) return;
+    final x = engageSpeed(v);
+    if (x == null) return;
+    _cruiseWatch = false;
+    final px = x * 60;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.position.jumpTo(_scrollController.position.pixels);
+      startAutoScroll(px, Duration.zero);
+      widget.controller.emitCruiseEngaged(CruiseEngaged(x, px));
+    });
+  }
+
+  Widget _wheelListener(Widget child) => !_single
+      ? child
+      : Listener(
+          behavior: HitTestBehavior.translucent,
+          onPointerSignal: (e) {
+            if (e is PointerScrollEvent) _onWheel(e.scrollDelta.dy);
+          },
+          onPointerPanZoomUpdate: (PointerPanZoomUpdateEvent e) => _onWheel(-e.panDelta.dy),
+          child: child,
+        );
+
+  /// A wheel or trackpad scroll by [dy] (positive = forward) at a chapter edge drives the pull on
+  /// the 140 / 210 px wheel mapping (mice and trackpads), with a 400 ms reset.
+  void _onWheel(double dy) {
+    if (!_scrollController.hasClients || dy == 0) return;
+    final pos = _scrollController.position;
+    final atEnd = pos.pixels >= pos.maxScrollExtent - 0.5 && dy > 0;
+    final atStart = pos.pixels <= pos.minScrollExtent + 0.5 && dy < 0;
+    if (!atEnd && !atStart) return;
+    final sign = atEnd ? 1.0 : -1.0;
+    final acc = _wheel.add(dy.abs(), Duration.zero);
+    _setOverscroll(sign * wheelDisplayed(acc), NeighbourVia.wheel);
+    _wheelReset?.cancel();
+    _wheelReset = Timer(const Duration(milliseconds: 400), () {
+      _wheelReset = null;
+      _wheel.reset();
+      if (mounted && _neighbourPhase != NeighbourPhase.locked) _setOverscroll(0, NeighbourVia.wheel);
+    });
+  }
+
+  @override
+  Future<NeighbourInfo> armNeighbour(NeighbourDirection direction) => _armed[direction] ??= _loadNeighbour(direction);
+
+  Future<NeighbourInfo> _loadNeighbour(NeighbourDirection direction) async {
+    try {
+      final load = widget.loadNeighbour;
+      if (load == null) throw StateError('no loadNeighbour');
+      final ch = await load(direction);
+      if (ch == null || ch.pages.isEmpty) throw StateError('no ${direction.name} chapter');
+      _armedChapter[direction] = ch;
+      final first = ch.pages.first;
+      if (mounted) {
+        try {
+          await precacheImage(_providerFor(first), context, onError: (_, __) {}).timeout(const Duration(seconds: 2));
+        } catch (_) {}
+      }
+      return NeighbourInfo(
+        chapter: (sourceId: ch.sourceId ?? '', seriesKey: ch.seriesId, chapterKey: ch.id),
+        pageCount: ch.pages.length,
+        firstPageUrl: first.imageUrl,
+        minutes: neighbourMinutes(ch.pages.length),
+      );
+    } catch (_) {
+      unawaited(_armed.remove(direction));
+      rethrow;
+    }
+  }
+
+  @override
+  void commitNeighbour(NeighbourDirection direction, double velocity) {
+    final ch = _armedChapter[direction];
+    final cb = widget.onReplaceChapter;
+    if (ch == null || cb == null) return;
+    _pendingFling = velocity;
+    _pendingDir = direction;
+    _armed.clear();
+    _armedChapter.clear();
+    _wheelReset?.cancel();
+    _wheelReset = null;
+    _wheel.reset();
+    if (_scrollController.hasClients) {
+      final p = _scrollController.position;
+      if (p.outOfRange) p.jumpTo(p.pixels.clamp(p.minScrollExtent, p.maxScrollExtent));
+    }
+    _setOverscroll(0, NeighbourVia.touch);
+    cb((sourceId: ch.sourceId ?? '', seriesKey: ch.seriesId, chapterKey: ch.id));
+  }
+
+  /// The new chapter arrived: start it at its top (next) or bottom (previous) and carry the momentum.
+  void _afterNeighbourSwap(ReaderFeed before) {
+    final dir = _pendingDir;
+    if (dir == null) return;
+    final v = _pendingFling;
+    _pendingDir = null;
+    _pendingFling = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final p = _scrollController.position;
+      p.jumpTo(dir == NeighbourDirection.next ? p.minScrollExtent : p.maxScrollExtent);
+      if (v != 0) continueFling(v);
+    });
+  }
+
+  @override
+  void continueFling(double velocity) {
+    if (velocity == 0 || !_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    final sim = _ClampedFriction(pos.pixels, velocity, pos.minScrollExtent, pos.maxScrollExtent);
+    if (pos is ScrollPositionWithSingleContext) {
+      // ignore: invalid_use_of_protected_member
+      pos.beginActivity(BallisticScrollActivity(pos, sim, this, false));
+    }
+  }
+
+  @override
+  void engageFromVelocity() => _cruiseWatch = true;
+
+  @override
+  void startAutoScroll(double pxPerSecond, Duration ramp) {
+    if (pxPerSecond <= 0) return;
+    _autoPx = pxPerSecond;
+    widget.controller.autoScroll.configure(ramp: ramp);
+    if (!ref.read(readerUiProvider).autoScrollEnabled) {
+      ref.read(readerUiProvider.notifier).toggleAutoScroll();
+    }
+  }
+
+  @override
+  void setAutoScrollPxPerSecond(double pxPerSecond) {
+    if (pxPerSecond > 0) _autoPx = pxPerSecond;
+  }
+
+  @override
+  void pageLayerTransform(LensTransform? t, LensClip? clip) {
+    _lens.value = (t == null || clip == null) ? null : (t: t, clip: clip);
+  }
+
+  Widget _buildLens() => ValueListenableBuilder<({LensTransform t, LensClip clip})?>(
+        valueListenable: _lens,
+        builder: (context, lens, _) => lens == null
+            ? const SizedBox.shrink()
+            : AnimatedBuilder(animation: _scrollController, builder: (context, _) => _lensLayer(context, lens.t, lens.clip)),
+      );
+
+  Widget _lensLayer(BuildContext context, LensTransform t, LensClip clip) {
+    if (!_scrollController.hasClients || widget.feed.isEmpty) return const SizedBox.shrink();
+    final feed = widget.feed;
+    final m = _metrics;
+    final px = _scrollController.position.pixels;
+    final first = math.max(0, m.pageAtOffset(px + clip.rect.top) - 3);
+    final rects = <Rect>[];
+    final width = m.contentWidth;
+    final left = ((_containerWidth ?? width) - width) / 2;
+    for (var i = first; i < feed.length; i++) {
+      final inset = m.leadingInsetAt(i);
+      final top = m.offsetToPage(i + 1) + inset - px;
+      if (top > clip.rect.bottom) break;
+      rects.add(Rect.fromLTWH(left, top, width, m.extentForRatio(m.ratioAt(i))));
+    }
+    final copies = lensLayout(rects, clip, t);
+    final defaults = _defaults;
+    final media = MediaQuery.sizeOf(context);
+    return IgnorePointer(
+      child: Positioned.fromRect(
+        rect: clip.rect,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(clip.radius),
+          child: Transform.scale(
+            scale: t.scale,
+            origin: t.origin - clip.rect.topLeft,
+            child: SizedBox.fromSize(
+              size: clip.rect.size,
+              child: Stack(clipBehavior: Clip.none, children: [
+                for (final c in copies)
+                  Positioned.fromRect(
+                    rect: c.rect,
+                    child: ReaderPageImage(
+                      imageUrl: feed.pages[first + c.index].imageUrl,
+                      localFile: feed.pages[first + c.index].localFile,
+                      alt: '',
+                      aspectRatio: m.ratioAt(first + c.index),
+                      fitMode: defaults.fitMode,
+                      backgroundColor: Colors.transparent,
+                      brokenBuilder: widget.slots.brokenPage,
+                      cornerRadius: widget.slots.pagedCornerRadius,
+                      layoutAxis: defaults.direction.scrollAxis,
+                      viewportWidth: _columnWidth(media.width),
+                      viewportHeight: media.height,
+                    ),
+                  ),
+              ],),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── Auto-scroll ───────────────────────────────────────────────────────────
 
   void _startAutoScroll() {
@@ -1387,6 +1756,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   void _stopAutoScroll() {
     _autoScrollActive = false;
+    _autoPx = null;
     _lastAutoScrollFrame = null;
     widget.controller.autoScroll.reset(notify: !_disposing);
   }
@@ -1405,7 +1775,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         _scheduleAutoScrollFrame();
         return;
       }
-      final speed = ref.read(readerUiProvider).autoScrollSpeed;
+      final speed = _autoPx ?? ref.read(readerUiProvider).autoScrollSpeed;
       final pos = _scrollController.position;
       // The controller owns the 400 ms ramp, pace by dialogue and the touch / drag pauses; long
       // frames are clamped inside it so dropped frames never change the pace.
@@ -1607,6 +1977,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (notification is ScrollStartNotification &&
         notification.dragDetails != null) {
       _isScrolling = true;
+      _cruiseWatch = false;
       // A manual drag pauses auto-scroll and it stays paused.
       if (_autoScrollActive) widget.controller.autoScroll.manualDrag();
       // The reader has taken over. Abandon a restore that is still homing in
@@ -1946,6 +2317,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     final position = _position;
     final chapter = feed.isEmpty ? null : feed.chapters[position.chapterIndex];
     final pageCount = position.pageCount <= 0 ? 1 : position.pageCount;
+    final old = widget.controller.value;
     widget.controller.value = ReaderEngineState(
       chapterId: chapter?.id ?? '',
       chapterTitle: position.chapterTitle,
@@ -1969,6 +2341,11 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       locked: ui.isLocked,
       furtherElsewhere: _furtherElsewhere,
       readAll: _readAllState(),
+      currentPageSample: old.currentPageSample,
+      scrollVelocity: old.scrollVelocity,
+      seamProgress: old.seamProgress,
+      overscrollExtent: old.overscrollExtent,
+      panelBoxes: panelBoxesOf(widget.controller.ambient.panels.value[position.page]),
     );
     _feedAmbient();
   }
@@ -2528,7 +2905,9 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         pinching: _pinching,
         enabled: options.pinch,
         builder: (physics) => ListView.custom(
-          physics: physics,
+          physics: widget.chapterMode == ReaderChapterMode.single
+              ? ChapterEndPhysics(parent: physics ?? const BouncingScrollPhysics(), spring: widget.overscrollReturn)
+              : physics,
           key: ValueKey(
             'reader-list-${direction.name}-${defaults.fitMode.name}',
           ),
@@ -2628,7 +3007,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
           behavior: HitTestBehavior.opaque,
           onTapDown: _handleTapDown,
           onTap: _handleTap,
-          child: Stack(
+          child: _wheelListener(Stack(
             children: [
               // Animated page backdrop — cross-fades when the reader
               // background (Dark / AMOLED / Paper) changes, so it never
@@ -2643,6 +3022,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
                 ),
               ),
               pageList,
+              _buildLens(),
               // Everything over the pages is the chrome's, rebuilt only when
               // the published state changes — never the page list.
               Positioned.fill(
@@ -2653,7 +3033,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
                 ),
               ),
             ],
-          ),
+          ),),
         ),
       ),
     );
@@ -2745,4 +3125,17 @@ class _ReaderPageDelegate extends SliverChildBuilderDelegate {
         backgroundColor != oldDelegate.backgroundColor ||
         signature != oldDelegate.signature;
   }
+}
+
+/// A friction fling (`v <- v 0.998^ms`) that stops below 20 px/s or at the chapter's edge.
+class _ClampedFriction extends FrictionSimulation {
+  _ClampedFriction(double x, double v, this.lo, this.hi)
+      : super(math.pow(0.998, 1000).toDouble(), x, v, tolerance: const Tolerance(velocity: 20));
+  final double lo, hi;
+
+  @override
+  double x(double time) => super.x(time).clamp(lo, hi);
+
+  @override
+  bool isDone(double time) => super.isDone(time) || x(time) <= lo || x(time) >= hi;
 }
