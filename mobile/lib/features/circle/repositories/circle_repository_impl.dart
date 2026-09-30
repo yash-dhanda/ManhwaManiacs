@@ -50,7 +50,7 @@ class CircleRepositoryImpl implements CircleRepository {
         final r = await _dio.get<List<dynamic>>('/circle/members', queryParameters: {
           'tz_offset_minutes': DateTime.now().timeZoneOffset.inMinutes,
           if (sourceId != null && seriesKey != null) ...{'source_id': sourceId, 'series_key': seriesKey},
-        });
+        },);
         return [for (final e in _maps(r.data)) CircleMember.fromJson(e)];
       });
 
@@ -67,7 +67,7 @@ class CircleRepositoryImpl implements CircleRepository {
           if (cursor != null) 'cursor': cursor,
           if (kind != null) 'kind': kind,
           if (profileId != null) 'profile_id': profileId,
-        });
+        },);
         return FeedPage(items: [for (final e in _maps(r.data?['items'])) FeedItem.fromJson(e)], nextCursor: r.data?['next_cursor'] as String?);
       });
 

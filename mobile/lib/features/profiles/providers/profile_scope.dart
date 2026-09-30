@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
+import 'package:manhwamaniacs/features/collections/providers/shared_collections_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
@@ -74,6 +76,17 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   (ref) => ref.invalidate(collectionDetailProvider),
   // Per-profile mature-content preference.
   (ref) => ref.invalidate(matureContentProvider),
+  // The Circle: members, feed, reactions, letters, sharing, shared shelves (per profile).
+  (ref) => ref.invalidate(circleMembersProvider),
+  (ref) => ref.invalidate(circleMemberProvider),
+  (ref) => ref.invalidate(recipientsProvider),
+  (ref) => ref.invalidate(circleFeedProvider),
+  (ref) => ref.invalidate(circleSeriesProvider),
+  (ref) => ref.invalidate(chapterReactionsProvider),
+  (ref) => ref.invalidate(lettersProvider),
+  (ref) => ref.invalidate(sharingProvider),
+  (ref) => ref.invalidate(sharedCollectionsProvider),
+  (ref) => ref.invalidate(sharedShelfDetailProvider),
   // NOTE: the Downloads queue is intentionally NOT here. Downloads are an
   // account-level (per-user) queue on the backend — the Download model is keyed
   // by user_id only, has no profile_id column, and the profile-scoping migration

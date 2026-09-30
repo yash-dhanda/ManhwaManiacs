@@ -60,7 +60,7 @@ void main() {
           ],
           'mine': 'loved',
           'sealed': false,
-        }));
+        }),);
     final r = await _repo(a).react(sourceId: 's', seriesKey: 'k', chapterKey: 'c1', kind: ReactionKind.chefsKiss);
     expect((a.calls.single.body! as Map)['kind'], 'chefs_kiss');
     expect(r.value.countOf(ReactionKind.chefsKiss), 2);
@@ -87,7 +87,7 @@ void main() {
   test('members with a series asks for can_receive', () async {
     final a = FakeAdapter((_) => (200, [
           {'profile_id': 2, 'name': 'Riya', 'shares': {'activity': true}, 'can_receive': true, 'now': null},
-        ]));
+        ]),);
     final r = await _repo(a).members(sourceId: 's', seriesKey: 'k');
     expect(a.calls.single.query['source_id'], 's');
     expect(r.value.single.canReceive, isTrue);
@@ -102,7 +102,7 @@ void main() {
           'shared_with_me': [
             {'id': 2, 'name': 'Hers', 'role': 'can_add', 'owner': {'profile_id': 2, 'name': 'Riya'}},
           ],
-        }));
+        }),);
     final r = (await _repo(a).collectionsWithShared()).value;
     expect(a.calls.single.query['include_shared'], true);
     expect(r.collections.single.role, 'owner');

@@ -1,6 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/utils/dispatch.dart';
@@ -35,7 +35,7 @@ void main() {
     bool g({bool own = false, bool? sealed, bool local = false, bool session = false}) => isGuarded(isOwn: own, sealed: sealed, completedLocally: local, completedThisSession: session);
     test('unread and half-read chapters are sealed by the server', () => expect(g(sealed: true), isTrue));
     test('a finished chapter is open', () => expect(g(sealed: false), isFalse));
-    test('unknown hides', () => expect(g(sealed: null), isTrue));
+    test('unknown hides', () => expect(g(), isTrue));
     test('own reactions are never guarded', () => expect(g(own: true, sealed: true), isFalse));
     test('completed locally or this session unseals', () {
       expect(g(sealed: true, local: true), isFalse);
