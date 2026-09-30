@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/milestone_card_host.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/authed_cover.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/streak_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/press_run.dart';
@@ -68,6 +69,8 @@ Future<void> mobile21Shot(
   final dir = proofDir;
   if (dir == null) return;
   await loadMobile21Covers(tester);
+  CineImage.providerBuilder = (url, headers) => shotCover(url);
+  CineImage.cacheProbe = (url) async => true;
   final key = GlobalKey(debugLabel: 'm21');
   await pumpCine(
     tester,
@@ -111,6 +114,7 @@ class _GridOverlay extends StatelessWidget {
           const gutter = 16.0;
           final colW = (box.maxWidth - 2 * margin - gutter * (cols - 1)) / cols;
           return Stack(
+            textDirection: TextDirection.ltr,
             children: [
               for (var i = 0; i < cols; i++)
                 Positioned(
@@ -246,6 +250,9 @@ void mobile21Group() {
         size: size,
         after: (t) async {
           await pumpMs(t, 2500);
+          await scrollTo(t, headline('Chapters per day'));
+          await t.drag(find.byType(TabBarView), const Offset(0, -260));
+          await pumpMs(t, 600);
           final box = t.getRect(find
               .byType(CustomPaint)
               .evaluate()
@@ -262,7 +269,7 @@ void mobile21Group() {
         size: size,
         after: (t) async {
           await pumpMs(t, 2500);
-          await scrollTo(t, find.text('When you read'));
+          await scrollTo(t, headline('When you read'));
           await t.drag(find.byType(Scrollable).last, const Offset(0, -140));
           await pumpMs(t, 3000);
         },
@@ -273,7 +280,7 @@ void mobile21Group() {
         size: size,
         after: (t) async {
           await pumpMs(t, 2500);
-          await scrollTo(t, find.text('Where you read'));
+          await scrollTo(t, headline('Where you read'));
           await t.drag(find.byType(Scrollable).last, const Offset(0, -260));
           await pumpMs(t, 1500);
         },
