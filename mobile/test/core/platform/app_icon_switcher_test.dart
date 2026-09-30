@@ -92,7 +92,6 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final fake = _Fake();
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await t.pumpWidget(ProviderScope(
       overrides: [
         sharedPrefsProvider.overrideWithValue(prefs),
@@ -105,5 +104,6 @@ void main() {
     t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     await t.pump();
     expect(fake.calls, ['android:com.manhwamaniacs.reader.GlassIcon']);
+    debugDefaultTargetPlatformOverride = null;
   });
 }

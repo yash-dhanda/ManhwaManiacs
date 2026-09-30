@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens.dart' show cinematicScreens;
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/router.dart' as glass;
 import 'package:manhwamaniacs/skins/pending_routes.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Cinematic is strict (mobile/24); mobile/45 makes glass strict too.
 const mustBeComplete = {SkinId.cinematic: true, SkinId.glass: false};
@@ -26,9 +28,11 @@ String _fill(String path) => path.replaceAllMapped(RegExp(r':\w+'), (_) => 'x');
 
 void main() {
   for (final id in [SkinId.cinematic, SkinId.glass]) {
-    test('${id.name} router covers every ScreenId', () {
+    test('${id.name} router covers every ScreenId', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
       final c =
-          ProviderContainer(overrides: [skinIdProvider.overrideWithValue(id)]);
+          ProviderContainer(overrides: [skinIdProvider.overrideWithValue(id), sharedPrefsProvider.overrideWithValue(prefs)]);
       addTearDown(c.dispose);
       final router = c.read(skinRouterProvider);
       final pending = _pendingOf(id);

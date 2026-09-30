@@ -16,7 +16,8 @@ const String kGlassIosIconName = 'AppIcon-Glass';
 
 /// Android: the fully qualified `activity-alias` class names (the plugin compares class names, so short names would fail).
 const String kAndroidGlassIconAlias = 'com.manhwamaniacs.reader.GlassIcon';
-const String kAndroidCinematicIconAlias = 'com.manhwamaniacs.reader.CinematicIcon';
+const String kAndroidCinematicIconAlias =
+    'com.manhwamaniacs.reader.CinematicIcon';
 
 /// Per device: "App icon follows the skin" (default off).
 const String kIconFollowKey = 'mm.icon.follow';
@@ -34,7 +35,8 @@ class DynamicIconPlugin implements AppIconPlugin {
   const DynamicIconPlugin();
 
   @override
-  Future<void> setIos(String? name) => FlutterDynamicIconPlus.setAlternateIconName(iconName: name);
+  Future<void> setIos(String? name) =>
+      FlutterDynamicIconPlus.setAlternateIconName(iconName: name);
 
   @override
   Future<void> setAndroid(String name) =>
@@ -83,7 +85,11 @@ class AppIconSwitcher {
           appLogger.w('icon: iOS switch failed', e, st);
         }
       case TargetPlatform.android:
-        await _prefs.setString(kIconPendingKey, skin == SkinId.glass ? kAndroidGlassIconAlias : kAndroidCinematicIconAlias);
+        await _prefs.setString(
+            kIconPendingKey,
+            skin == SkinId.glass
+                ? kAndroidGlassIconAlias
+                : kAndroidCinematicIconAlias);
       default:
         break;
     }
@@ -93,16 +99,18 @@ class AppIconSwitcher {
   Future<void> applyPending() async {
     final name = pending;
     if (name == null || _target != TargetPlatform.android) return;
-    await _prefs.remove(kIconPendingKey);
     try {
       await _plugin.setAndroid(name);
     } catch (e, st) {
       appLogger.w('icon: Android switch failed', e, st);
     }
+    await _prefs.remove(kIconPendingKey);
   }
 }
 
-final appIconSwitcherProvider = Provider<AppIconSwitcher>((ref) => AppIconSwitcher(prefs: ref.watch(sharedPrefsProvider)), name: 'appIconSwitcher');
+final appIconSwitcherProvider = Provider<AppIconSwitcher>(
+    (ref) => AppIconSwitcher(prefs: ref.watch(sharedPrefsProvider)),
+    name: 'appIconSwitcher');
 
 /// Skin-neutral, registered once at app start: applies the queued Android alias when the app goes to the background.
 class AppIconPauseListener extends ConsumerStatefulWidget {
@@ -110,11 +118,20 @@ class AppIconPauseListener extends ConsumerStatefulWidget {
   final Widget child;
 
   @override
-  ConsumerState<AppIconPauseListener> createState() => _AppIconPauseListenerState();
+  ConsumerState<AppIconPauseListener> createState() =>
+      _AppIconPauseListenerState();
 }
 
 class _AppIconPauseListenerState extends ConsumerState<AppIconPauseListener> {
-  late final AppLifecycleListener _listener = AppLifecycleListener(onPause: () => unawaited(ref.read(appIconSwitcherProvider).applyPending()));
+  late final AppLifecycleListener _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = AppLifecycleListener(
+        onPause: () =>
+            unawaited(ref.read(appIconSwitcherProvider).applyPending()));
+  }
 
   @override
   void dispose() {
