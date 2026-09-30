@@ -119,3 +119,11 @@ Each item: fix attempted, not re-checked.
 
 - (fix attempted, not re-checked) Acceptance: 18+ and isolation widget test
 - (fix attempted, not re-checked) Acceptance: hit-target test covers every tappable widget on the Circle screen, member page, stamps, sheets and settings section
+
+## Step mobile/15 (cinematic listen mode)
+
+Fix attempted, not re-checked:
+- E. Speed ruler sheet: "CineSheetRoute with the single detent [0.5]"
+- Git: "the extraction first as its own no-pixel commit"
+- Report and proof gaps
+- A1: one just_audio AudioPlayer that the audio_service handler wraps
