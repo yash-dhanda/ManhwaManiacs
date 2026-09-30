@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/core/time/server_instant.dart';
+import 'package:manhwamaniacs/features/onboarding/models/taste.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 
 /// A per-user reading persona (Netflix-style). Mirrors the backend
@@ -26,6 +27,9 @@ class Profile {
 
   /// The onboarding step the profile stopped at; `"done"` once finished, null before it began.
   final String? onboardingStep;
+
+  /// [onboardingStep] parsed (1 to 7, done, or null).
+  OnboardingStep? get onboarding => OnboardingStep.parse(onboardingStep);
   final bool notifyEnabled;
   final int? dailyGoalMinutes;
 
@@ -52,7 +56,8 @@ class Profile {
           final String s when s == 'cinematic' || s == 'glass' => s,
           _ => null,
         },
-        onboardingStep: json['onboarding_step'] as String?,
+        // The server sends 3, or "done", or null.
+        onboardingStep: json['onboarding_step']?.toString(),
         notifyEnabled: json['notify_enabled'] as bool? ?? true,
         dailyGoalMinutes: (json['daily_goal_minutes'] as num?)?.toInt(),
       );

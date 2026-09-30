@@ -13,7 +13,7 @@ import 'package:swipeable_page_route/swipeable_page_route.dart';
 // readers own their route (screens/reader/reader_route_page.dart).
 
 /// Which named move a route plays.
-enum CineTransitionKind { page, match, dip, cut }
+enum CineTransitionKind { page, match, dip, cut, crossfade }
 
 const kPageIn = Duration(milliseconds: 320);
 const kPageOut = Duration(milliseconds: 224);
@@ -23,6 +23,9 @@ const kDipTotal = Duration(milliseconds: 440);
 const kPredictiveCommit = Duration(milliseconds: 240);
 const kPredictiveCancel = Duration(milliseconds: 160);
 const kReducedPage = Duration(milliseconds: 150);
+
+/// Cut to home under reduced motion (`durClip`): a plain cross-fade into Tonight.
+const kCrossfade = Duration(milliseconds: 200);
 const kReducedMatch = Duration(milliseconds: 200);
 
 /// Whether route durations should be the reduced ones. Routes read it when they are built
@@ -36,6 +39,7 @@ abstract final class CineRouteMotion {
 
   static Duration forward(CineTransitionKind k) => switch (k) {
         CineTransitionKind.cut => Duration.zero,
+        CineTransitionKind.crossfade => kCrossfade,
         CineTransitionKind.page => reduced ? kReducedPage : kPageIn,
         CineTransitionKind.match => reduced ? kReducedMatch : kMatchCutIn,
         CineTransitionKind.dip => reduced ? kReducedPage : kDipTotal,
@@ -43,6 +47,7 @@ abstract final class CineRouteMotion {
 
   static Duration reverse(CineTransitionKind k) => switch (k) {
         CineTransitionKind.cut => Duration.zero,
+        CineTransitionKind.crossfade => kCrossfade,
         CineTransitionKind.page => reduced ? kReducedPage : kPageOut,
         CineTransitionKind.match => reduced ? kReducedMatch : kMatchCutOut,
         CineTransitionKind.dip => reduced ? kReducedPage : kDipTotal,
@@ -251,6 +256,7 @@ Widget _transitionFor(CineTransitionKind kind, BuildContext context, Animation<d
       CineTransitionKind.page => cinePageTransition(context: context, animation: a, secondaryAnimation: s, child: child),
       CineTransitionKind.match => cineMatchCutTransition(context: context, animation: a, child: child),
       CineTransitionKind.dip => cineDipTransition(context: context, animation: a, child: child),
+      CineTransitionKind.crossfade => FadeTransition(opacity: a, child: child),
     };
 
 /// iOS finger-tracked slide (8.0.5 "Back"): on a linear curve the top page's x follows the finger
@@ -297,13 +303,13 @@ class CineSwipeSlide extends StatelessWidget {
 // ---------------------------------------------------------------------------------------------
 // iOS: SwipeablePage
 
-Page<void> _swipeablePage(GoRouterState state, Widget child, CineTransitionKind kind) {
+Page<void> _swipeablePage(GoRouterState state, Widget child, CineTransitionKind kind, {bool canSwipe = true}) {
   return SwipeablePage<void>(
     key: state.pageKey,
     name: state.name,
     // A Cut page (a branch root or a shell) has nothing to swipe back to, but it stays a
     // Cupertino-family route so the page beneath a push still plays its own outgoing move.
-    canSwipe: kind != CineTransitionKind.cut,
+    canSwipe: canSwipe && kind != CineTransitionKind.cut && kind != CineTransitionKind.crossfade,
     canOnlySwipeFromEdge: true,
     backGestureDetectionWidth: 20,
     transitionDuration: CineRouteMotion.forward(kind),
@@ -562,6 +568,8 @@ CineTransitionKind? cineKindFromName(String? name) => switch (name) {
       'page' => CineTransitionKind.page,
       'match' => CineTransitionKind.match,
       'dip' => CineTransitionKind.dip,
+      'cut' || 'none' => CineTransitionKind.cut,
+      'crossfade' => CineTransitionKind.crossfade,
       _ => null,
     };
 
@@ -597,9 +605,16 @@ Page<void> cineDipPage(GoRouterState state, Widget child) => cinePage(state, chi
 /// A branch root or a shell: **Cut**, the new branch shows at once and its lists run Set. Still a
 /// Material or Cupertino family route (zero duration), so the page beneath a push paints its own
 /// outgoing move: Flutter's delegated transition only defers to a route of the same family.
-Page<void> cineCutPage(GoRouterState state, Widget child) => defaultTargetPlatform == TargetPlatform.iOS
-    ? _swipeablePage(state, child, CineTransitionKind.cut)
-    : CineAndroidPage<void>(key: state.pageKey, name: state.name, kind: CineTransitionKind.cut, child: child);
+///
+/// `extra['transition']` of `dip` or `crossfade` (onboarding's Skip and Print, mobile/20) overrides
+/// the cut for that one arrival.
+Page<void> cineCutPage(GoRouterState state, Widget child) {
+  final kind = cineKindFromExtra(state.extra, fallback: CineTransitionKind.cut);
+  final k = kind == CineTransitionKind.dip || kind == CineTransitionKind.crossfade ? kind : CineTransitionKind.cut;
+  return defaultTargetPlatform == TargetPlatform.iOS
+      ? _swipeablePage(state, child, k, canSwipe: false)
+      : CineAndroidPage<void>(key: state.pageKey, name: state.name, kind: k, child: child);
+}
 
 /// A cover that flies from a poster into its series page. [tag] is the `(sourceId, seriesKey)`
 /// record. iOS reverses the match cut with the finger; Android's predictive back fades through.

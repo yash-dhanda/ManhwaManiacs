@@ -159,6 +159,7 @@ class _CineButtonState extends State<CineButton> with SingleTickerProviderStateM
       enabled: enabled,
       round: v == CineButtonVariant.play,
       focusNode: widget.focusNode,
+      expand: widget.fullWidth,
       onTap: _tap,
       onHover: _hover,
       builder: (context, st) => _visual(context, c, st, label, disabled: disabled, error: error, stack: reflow.stackSplit),

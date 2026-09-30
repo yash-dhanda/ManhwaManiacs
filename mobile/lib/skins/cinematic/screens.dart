@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/history/history_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/index/index_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/library_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/onboarding_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/picks_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
@@ -48,6 +49,7 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.login: (context, state) => const LoginScreen(),
   ScreenId.register: (context, state) => const RegisterScreen(),
   ScreenId.profiles: (context, state) => ProfilePickerScreen(switchMode: state.extra is Map && (state.extra! as Map)['mode'] == 'switch'),
+  ScreenId.onboarding: (context, state) => OnboardingScreen(requestedStep: int.tryParse(state.uri.queryParameters['step'] ?? '')),
   ScreenId.profileNew: (context, state) => const ProfileFormScreen(),
   ScreenId.profileEdit: (context, state) => ProfileFormScreen(profileId: int.tryParse(state.pathParameters['id'] ?? '')),
   ScreenId.profilesManage: (context, state) => const ProfilesManageScreen(),
