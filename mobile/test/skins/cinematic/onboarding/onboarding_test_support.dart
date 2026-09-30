@@ -1,4 +1,4 @@
-// ignore_for_file: require_trailing_commas, directives_ordering
+// ignore_for_file: require_trailing_commas, directives_ordering, avoid_redundant_argument_values, unnecessary_import
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -101,6 +101,9 @@ class _Followed implements FollowedSeries {
 class FakeLib implements LibraryRepository {
   final List<String> calls = [];
   final Set<String> failing = {};
+
+  /// When set, every follow waits for it (the Printing state).
+  Completer<void>? hold;
   int inFlight = 0, peak = 0;
 
   @override
@@ -109,6 +112,7 @@ class FakeLib implements LibraryRepository {
     inFlight++;
     if (inFlight > peak) peak = inFlight;
     await Future<void>.delayed(const Duration(milliseconds: 30));
+    if (hold != null) await hold!.future;
     inFlight--;
     return failing.contains(seriesKey) ? const Err(NetworkError(message: 'x')) : Ok(_Followed());
   }
@@ -127,20 +131,23 @@ class OnboardingRig {
   String get at => cineLocationOf(router);
 }
 
-/// Pumps the Cinematic onboarding at `/welcome?step=[step]`, with Tonight (the real screen fed by
-/// the `onboarded` fixture) at `/` and a stub at `/profiles`.
-Future<OnboardingRig> pumpOnboarding(
-  WidgetTester t, {
+/// The providers and router of one onboarding run: [pumpOnboarding] mounts them in a container,
+/// the screenshot suite hands [overrides] to the harness.
+class OnboardingParts {
+  OnboardingParts(this.overrides, this.router, this.repo, this.lib, this.haptics);
+  final List<Override> overrides;
+  final GoRouter router;
+  final FakeOnboardingRepo repo;
+  final FakeLib lib;
+  final List<HapticEvent> haptics;
+}
+
+Future<OnboardingParts> onboardingParts({
   int? step = 2,
   Object? profileStep,
   FakeOnboardingRepo? repo,
   FakeLib? lib,
-  bool reduced = false,
   bool novels = true,
-  bool online = true,
-  TargetPlatform platform = TargetPlatform.android,
-  Size size = const Size(390, 844),
-  double scale = 1,
   Map<int, SimilarResult>? similar,
   Map<String, Object> prefs = const {},
   bool tonight = false,
@@ -151,7 +158,7 @@ Future<OnboardingRig> pumpOnboarding(
   final fakeRepo = repo ?? FakeOnboardingRepo();
   final fakeLib = lib ?? FakeLib();
   final haptics = <HapticEvent>[];
-  final c = ProviderContainer(overrides: [
+  final overrides = <Override>[
     sharedPrefsProvider.overrideWithValue(sp),
     apiBaseUrlOverride('http://example.test'),
     ...noDownloadsStoreOverrides(),
@@ -171,19 +178,7 @@ Future<OnboardingRig> pumpOnboarding(
       sourcesListProvider.overrideWith((ref) async => const [SourceSummary(id: 'shelf', name: 'Shelf Scans', description: '', browsable: true, supportsImport: false)]),
     ],
     ...extra,
-  ],);
-  addTearDown(c.dispose);
-  await c.read(profilesProvider.future);
-  final prevProvider = CineImage.providerBuilder, prevProbe = CineImage.cacheProbe;
-  CineImage.cacheProbe = (_) async => false;
-  CineImage.providerBuilder = (url, headers) => MemoryImage(Uint8List.fromList(base64Decode(_png)));
-  addTearDown(() {
-    CineImage.providerBuilder = prevProvider;
-    CineImage.cacheProbe = prevProbe;
-  });
-  t.view.physicalSize = size;
-  t.view.devicePixelRatio = 1;
-  addTearDown(t.view.reset);
+  ];
   final router = GoRouter(
     initialLocation: step == null ? '/welcome' : '/welcome?step=$step',
     routes: [
@@ -192,18 +187,58 @@ Future<OnboardingRig> pumpOnboarding(
       GoRoute(path: '/profiles', builder: (_, __) => const Scaffold(body: Text('PICKER'))),
     ],
   );
-  addTearDown(router.dispose);
+  return OnboardingParts(overrides, router, fakeRepo, fakeLib, haptics);
+}
+
+/// Covers resolve to a 1 x 1 picture unless a test swaps the builder.
+void stubCovers() {
+  final prevProvider = CineImage.providerBuilder, prevProbe = CineImage.cacheProbe;
+  CineImage.cacheProbe = (_) async => false;
+  CineImage.providerBuilder = (url, headers) => MemoryImage(Uint8List.fromList(base64Decode(_png)));
+  addTearDown(() {
+    CineImage.providerBuilder = prevProvider;
+    CineImage.cacheProbe = prevProbe;
+  });
+}
+
+/// Pumps the Cinematic onboarding at `/welcome?step=[step]`, with Tonight (the real screen fed by
+/// the `onboarded` fixture) at `/` and a stub at `/profiles`.
+Future<OnboardingRig> pumpOnboarding(
+  WidgetTester t, {
+  int? step = 2,
+  Object? profileStep,
+  FakeOnboardingRepo? repo,
+  FakeLib? lib,
+  bool reduced = false,
+  bool novels = true,
+  TargetPlatform platform = TargetPlatform.android,
+  Size size = const Size(390, 844),
+  double scale = 1,
+  Map<int, SimilarResult>? similar,
+  Map<String, Object> prefs = const {},
+  bool tonight = false,
+  List<Override> extra = const [],
+}) async {
+  final parts = await onboardingParts(step: step, profileStep: profileStep, repo: repo, lib: lib, novels: novels, similar: similar, prefs: prefs, tonight: tonight, extra: extra);
+  final c = ProviderContainer(overrides: parts.overrides);
+  addTearDown(c.dispose);
+  await c.read(profilesProvider.future);
+  stubCovers();
+  t.view.physicalSize = size;
+  t.view.devicePixelRatio = 1;
+  addTearDown(t.view.reset);
+  addTearDown(parts.router.dispose);
   await t.pumpWidget(UncontrolledProviderScope(
     container: c,
     child: MaterialApp.router(
       theme: featureTheme(platform),
-      routerConfig: router,
+      routerConfig: parts.router,
       builder: (context, child) => featureMediaWrap(context, CineShutterLayer(child: CineToastHost(child: FlightLayer(child: child!))), textScale: scale, reduced: reduced),
     ),
   ),);
   await t.pump();
   await t.pump(const Duration(milliseconds: 50));
-  return OnboardingRig(router, c, fakeRepo, fakeLib, haptics);
+  return OnboardingRig(parts.router, c, parts.repo, parts.lib, parts.haptics);
 }
 
 Future<void> settleFor(WidgetTester t, [int ms = 1000]) async {

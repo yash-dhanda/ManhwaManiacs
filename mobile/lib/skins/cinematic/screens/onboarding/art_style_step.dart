@@ -38,6 +38,7 @@ class _ArtStyleStepState extends ConsumerState<ArtStyleStep> {
         child: FocusScope(
           node: _scope,
           child: GridView.count(
+            padding: EdgeInsets.zero,
             crossAxisCount: 3,
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,

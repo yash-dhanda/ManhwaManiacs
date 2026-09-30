@@ -158,6 +158,7 @@ class _SeedsGalley extends StatelessWidget {
     final c = context.cine;
     return ExcludeSemantics(
       child: GridView.count(
+        padding: EdgeInsets.zero,
         crossAxisCount: _cols(context),
         mainAxisSpacing: _gap(context),
         crossAxisSpacing: _gap(context),
@@ -193,6 +194,7 @@ class _Wall extends ConsumerWidget {
     return FocusScope(
       node: scope,
       child: GridView.builder(
+        padding: EdgeInsets.zero,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: cols, mainAxisSpacing: _gap(context), crossAxisSpacing: _gap(context), childAspectRatio: 2 / 3),

@@ -346,6 +346,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         }
         return false;
       },
+      // TODO(mobile/13): CinePagePhysics (the CineSprings.release settle) once mobile/13 lands; the
+      // stock page physics stand in until then.
       child: PageView.builder(
         controller: _page,
         itemCount: _stack.length,
@@ -386,7 +388,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               color: const Color(0xFF000000),
               child: Padding(
                 padding: EdgeInsets.fromLTRB(grid.left, 16, grid.right, 16 + MediaQuery.viewPaddingOf(context).bottom),
-                child: CineButton(label: label, onPressed: onPressed, fullWidth: true, disabledReason: onPressed == null ? why : null),
+                child: SizedBox(width: double.infinity, child: CineButton(label: label, onPressed: onPressed, fullWidth: true, disabledReason: onPressed == null ? why : null)),
               ),
             ),
           ],),

@@ -48,7 +48,7 @@ class CineFocusRingPainter extends CustomPainter {
 
 /// Focus target that paints the ring only on hardware-keyboard focus, never on touch.
 class CineFocusRing extends StatefulWidget {
-  const CineFocusRing({super.key, required this.child, this.round = false, this.focusNode, this.onActivate, this.canRequestFocus = true, this.onHighlight, this.hit});
+  const CineFocusRing({super.key, required this.child, this.round = false, this.focusNode, this.onActivate, this.canRequestFocus = true, this.onHighlight, this.hit, this.expand = false});
 
   final Widget child;
   final bool round;
@@ -61,6 +61,9 @@ class CineFocusRing extends StatefulWidget {
 
   /// A minimum touch target around the child (the ring still hugs the child).
   final double? hit;
+
+  /// The child takes the width it is given (a full-width button) instead of hugging its content.
+  final bool expand;
 
   @override
   State<CineFocusRing> createState() => _CineFocusRingState();
@@ -113,7 +116,7 @@ class _CineFocusRingState extends State<CineFocusRing> {
     if (h == null) return child;
     return ConstrainedBox(
       constraints: BoxConstraints(minWidth: h, minHeight: h),
-      child: Center(widthFactor: 1, heightFactor: 1, child: child),
+      child: Center(widthFactor: widget.expand ? null : 1, heightFactor: 1, child: child),
     );
   }
 }
@@ -138,6 +141,7 @@ class CinePressable extends StatefulWidget {
     this.onFocusHighlight,
     this.onHover,
     this.hit = true,
+    this.expand = false,
   });
 
   final Widget Function(BuildContext context, CinePressState state) builder;
@@ -151,6 +155,9 @@ class CinePressable extends StatefulWidget {
 
   /// Grow the touch target to 44/48 around the visual.
   final bool hit;
+
+  /// A full-width visual: the target takes the width it is given.
+  final bool expand;
 
   @override
   State<CinePressable> createState() => _CinePressableState();
@@ -204,6 +211,7 @@ class _CinePressableState extends State<CinePressable> {
           focusNode: widget.focusNode,
           canRequestFocus: on,
           hit: widget.hit ? cineHitMin(context) : null,
+          expand: widget.expand,
           onActivate: on ? widget.onTap : null,
           onHighlight: (v) {
             _set(focus: v);

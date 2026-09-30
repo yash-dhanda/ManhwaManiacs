@@ -1,4 +1,4 @@
-// ignore_for_file: require_trailing_commas, directives_ordering
+// ignore_for_file: require_trailing_commas, directives_ordering, avoid_redundant_argument_values, unnecessary_import
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

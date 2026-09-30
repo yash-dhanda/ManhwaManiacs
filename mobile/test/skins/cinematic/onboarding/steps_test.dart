@@ -1,4 +1,4 @@
-// ignore_for_file: require_trailing_commas, directives_ordering
+// ignore_for_file: require_trailing_commas, directives_ordering, avoid_redundant_argument_values, unnecessary_import
 import 'dart:async';
 import 'dart:ui' as ui;
 
@@ -10,13 +10,11 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/ai/models/similar_result.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/onboarding/models/onboarding_catalog.dart';
-import 'package:manhwamaniacs/features/onboarding/models/taste.dart';
 import 'package:manhwamaniacs/skins/cinematic/flight.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/genre_word.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/onboarding_screen.dart';
-import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 import 'onboarding_test_support.dart';
 

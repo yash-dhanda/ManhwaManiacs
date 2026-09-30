@@ -1,3 +1,4 @@
+// ignore_for_file: require_trailing_commas, avoid_redundant_argument_values, prefer_const_constructors
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -31,7 +32,7 @@ void main() {
   test('catalog query omits empty values; PUT carries touched fields only; 404 reads as null', () async {
     final a = _Adapter((o) {
       if (o.method == 'GET' && o.path.endsWith('/taste')) return _json({}, 404);
-      return _json({'formats': [], 'genres': [], 'seeds': []});
+      return _json({'formats': <Object>[], 'genres': <Object>[], 'seeds': <Object>[]});
     });
     final repo = OnboardingRepositoryImpl(Dio()..httpClientAdapter = a);
     await repo.catalog(formats: ['manga', 'novel'], genres: const [], styles: ['noir']);
