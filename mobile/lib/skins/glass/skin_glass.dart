@@ -144,7 +144,8 @@ class SkinGlass extends ConsumerStatefulWidget {
     this.rimTint,
   })  : groupShapes = null,
         groupAxis = Axis.horizontal,
-        groupGap = 8;
+        groupGap = 8,
+        groupOffsets = null;
 
   const SkinGlass._group({
     super.key,
@@ -160,6 +161,7 @@ class SkinGlass extends ConsumerStatefulWidget {
     required this.groupAxis,
     required this.groupGap,
     required this.rimTint,
+    this.groupOffsets,
   })  : groupShapes = shapes,
         child = const SizedBox.shrink(),
         twin = null,
@@ -198,6 +200,9 @@ class SkinGlass extends ConsumerStatefulWidget {
   final Axis groupAxis;
   final double groupGap;
 
+  /// Per-shape paint offsets of a group (the reaction picker's arc); the group is still one layer.
+  final List<Offset>? groupOffsets;
+
   /// The device-corner radius on iOS phones (glass 2.3), `radiusSheet` 36 elsewhere.
   static double deviceCornerRadius(BuildContext context) {
     final phone = MediaQuery.sizeOf(context).shortestSide < 600;
@@ -229,9 +234,11 @@ class SkinGlassGroup extends SkinGlass {
     Axis axis = Axis.horizontal,
     double gap = 8,
     super.rimTint,
+    List<Offset>? offsets,
   }) : super._group(
           groupAxis: axis,
           groupGap: gap,
+          groupOffsets: offsets,
         );
 }
 
@@ -435,7 +442,9 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
     final children = <Widget>[];
     for (var i = 0; i < specs.length; i++) {
       if (i > 0) children.add(SizedBox(width: widget.groupAxis == Axis.horizontal ? widget.groupGap : 0, height: widget.groupAxis == Axis.vertical ? widget.groupGap : 0));
-      children.add(_buildShape(context, specs[i], specs[i].size, env, grouped: true));
+      final shape = _buildShape(context, specs[i], specs[i].size, env, grouped: true);
+      final off = widget.groupOffsets;
+      children.add(off != null && i < off.length ? Transform.translate(offset: off[i], child: shape) : shape);
     }
     final flex = Flex(direction: widget.groupAxis, mainAxisSize: MainAxisSize.min, children: children);
     final live = env.live && specs.every((s) => s.twin == null);

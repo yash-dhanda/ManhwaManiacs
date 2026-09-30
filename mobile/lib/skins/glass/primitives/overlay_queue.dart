@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Things that share the top band (glass 7.12, 7.30, 15.7), highest priority first.
 enum OverlayKind { alert, toast, newChapters, appUpdate }
 
-/// True while the bulk-selection toolbar or the "Unsaved changes" bar shows (set by `mobile/28`).
-final glassBottomBarProvider = StateProvider<bool>((ref) => false);
+/// Which bottom bar shows: the bulk-selection toolbar or the "Unsaved changes" bar (set by `mobile/28`'s floating bar).
+enum GlassBottomBar { none, bulk, unsaved }
+
+final glassBottomBarProvider = StateProvider<GlassBottomBar>((ref) => GlassBottomBar.none);
 
 /// True while a toast shows, so the shell's top edge plateau extends to safe-top + 104 (`mobile/29`).
 final glassToastShowingProvider = StateProvider<bool>((ref) => false);
@@ -69,8 +71,8 @@ class OverlayQueueState {
 class OverlayQueue extends Notifier<OverlayQueueState> {
   @override
   OverlayQueueState build() {
-    ref.listen(glassBottomBarProvider, (_, v) => state = state.copyWith(bottomBar: v));
-    return OverlayQueueState(bottomBar: ref.read(glassBottomBarProvider));
+    ref.listen(glassBottomBarProvider, (_, v) => state = state.copyWith(bottomBar: v != GlassBottomBar.none));
+    return OverlayQueueState(bottomBar: ref.read(glassBottomBarProvider) != GlassBottomBar.none);
   }
 
   /// The host sets the frame kind (phone or not).

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/dev/dev_controls.dart';
 import 'package:manhwamaniacs/skins/glass/dev/gallery_sections.dart';
+import 'package:manhwamaniacs/skins/glass/dev/lists_sections.dart';
 import 'package:manhwamaniacs/skins/glass/dev/overlay_sections.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
@@ -30,6 +31,7 @@ const List<String> kGlassGallerySections = [
   'tooltips',
   'reveals',
   ...kGlassOverlaySections,
+  ...kGlassListsSections,
 ];
 
 /// `/dev/glass/primitives` (glass 15.8, `mobile/26`): one section per family of the first half of the

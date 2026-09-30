@@ -1,0 +1,3 @@
+# mobile-28 report
+Captures map to acceptance items by name: `<section>-{phone,tablet,solid-phone,contrast-phone}.png` prove each family in the gallery; swipe-tray-open, swipe-full-commit (swipe), reorder-lift (reorder), select-toolbar/select-running (selection + floating bar), lens-offline-full (lens), gate-alert/gate-alert-holding (18+ gate), download-states, depth-1-to-4, stack-fan/stack-flat, ai-thinking/ai-unavailable, charts/charts-table, reaction-bloom/reaction-guarded.
+Notes: `charts-phone.png` is the named capture (same name as the section's). Web twin captures were not present to compare.

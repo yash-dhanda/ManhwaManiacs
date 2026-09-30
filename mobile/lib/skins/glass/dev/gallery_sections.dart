@@ -2,6 +2,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/dev/calibration_covers.dart';
+import 'package:manhwamaniacs/skins/glass/dev/lists_sections.dart';
 import 'package:manhwamaniacs/skins/glass/dev/overlay_sections.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/icons/phosphor.g.dart';
@@ -94,7 +95,7 @@ class GlassGallerySection extends StatelessWidget {
         'avatars' => _avatars(context, g),
         'tooltips' => _tooltips(context, g),
         'reveals' => _reveals(context, g),
-        _ => glassOverlaySection(context, name, g) ?? GlassLabel('Unknown section $name', role: gt.typeBody),
+        _ => glassOverlaySection(context, name, g) ?? glassListsSection(context, name, g) ?? GlassLabel('Unknown section $name', role: gt.typeBody),
       };
 }
 
@@ -535,7 +536,7 @@ Widget _cards(BuildContext context, GalleryGround g) => Column(
         ]),
         _title(context, 'world'),
         _wrap([
-          _Cell('available', GlassWorldCard.available(cover: const GalleryCover(6), title: 'Moonlit Bakery', kind: 'Manhwa · Ongoing', stats: '120 ch · ★ 8.4', why: 'Because you read Solo Leveling', source: 'MangaSource', extraSources: 2, tags: const ['Fantasy', 'Action'], onOpen: () {})),
+          _Cell('available', GlassWorldCard.available(cover: const GalleryCover(6), title: 'Moonlit Bakery', kind: 'Manhwa · Ongoing', stats: '120 ch · ★ 8.4', why: 'Because you read Solo Leveling', source: 'MangaSource', extraSources: 2, tags: const ['Fantasy', 'Action'], onOpen: () {}, ai: true)),
           _Cell('info only', GlassWorldCard.infoOnly(cover: const GalleryCover(7), title: 'Glass Tide', kind: 'Manhwa · Ongoing', stats: '88 ch · ★ 8.1', why: 'Matches your taste', site: 'Webtoon', siteUrl: 'https://example.com', tags: const ['Drama'], onSearchMySources: () {})),
         ]),
         _title(context, 'result, stat, history'),

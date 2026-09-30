@@ -24,3 +24,10 @@ final networkConnectivityProvider = Provider<NetworkConnectivity>(
   (_) => PlatformNetworkConnectivity(),
   name: 'networkConnectivity',
 );
+
+/// Whether the device has any connection, emitted on every change. The Glass offline lens retries by itself when this turns
+/// true. A platform without the plugin (the test host) simply never emits.
+final networkOnlineChangesProvider = StreamProvider<bool>(
+  (ref) => Connectivity().onConnectivityChanged.map((r) => r.any((e) => e != ConnectivityResult.none)).handleError((Object _) {}),
+  name: 'networkOnlineChanges',
+);

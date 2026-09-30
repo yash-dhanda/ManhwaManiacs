@@ -73,16 +73,18 @@ Future<T?> showGlassAlert<T>(
   GlassAlertNote? note,
   required List<GlassAlertAction<T>> actions,
   Rect? sourceRect,
+  Widget? leading,
+  Widget? extra,
 }) =>
     Navigator.of(context, rootNavigator: true).push<T>(
       GlassAlertRoute<T>(
-        builder: (context) => GlassAlert<T>(title: title, body: body, notes: notes, note: note, actions: actions, sourceRect: sourceRect),
+        builder: (context) => GlassAlert<T>(title: title, body: body, notes: notes, note: note, actions: actions, sourceRect: sourceRect, leading: leading, extra: extra),
       ),
     );
 
 /// The alert surface: T4 on the `interruptions` layer, width 300 (420 on tablet and desktop frames), radius 26.
 class GlassAlert<T> extends ConsumerStatefulWidget {
-  const GlassAlert({super.key, required this.title, required this.actions, this.body, this.notes = const [], this.note, this.sourceRect});
+  const GlassAlert({super.key, required this.title, required this.actions, this.body, this.notes = const [], this.note, this.sourceRect, this.leading, this.extra});
 
   final String title;
   final String? body;
@@ -90,6 +92,13 @@ class GlassAlert<T> extends ConsumerStatefulWidget {
   final GlassAlertNote? note;
   final List<GlassAlertAction<T>> actions;
   final Rect? sourceRect;
+
+  /// A glyph on its backing disc above the title (the 18+ gate's `age-gate`).
+  final Widget? leading;
+
+  /// Extra content between the body and the buttons (the gate's hold button and its always-visible fallback). When set,
+  /// initial focus goes to the cancel button.
+  final Widget? extra;
 
   @override
   ConsumerState<GlassAlert<T>> createState() => _GlassAlertState<T>();
@@ -121,7 +130,10 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
       _queue?.setPhone(mounted ? _phone : true);
       _queue?.requestSlot(OverlayKind.alert);
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) => _startBloom());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startBloom();
+      if (widget.extra != null && mounted) _cancelFocus.requestFocus();
+    });
   }
 
   @override
@@ -263,6 +275,7 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (widget.leading != null) Padding(padding: const EdgeInsets.only(bottom: 12), child: Align(alignment: Alignment.centerLeft, child: widget.leading)),
           GlassText(widget.title, role: gt.typeTitle3, wght: 700, onGlass: true, maxScale: 1.5),
           if (widget.body != null) ...[const SizedBox(height: 8), GlassText(widget.body!, role: gt.typeCallout, onGlass: true, maxScale: 1.5)],
           for (final n in widget.notes) ...[const SizedBox(height: 8), GlassText(n, role: gt.typeFootnote, onGlass: true, maxScale: 1.5)],
@@ -287,6 +300,7 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
               ),
             ),
           ],
+          if (widget.extra != null) ...[const SizedBox(height: 16), widget.extra!],
           if (_error != null) ...[
             const SizedBox(height: 12),
             Semantics(

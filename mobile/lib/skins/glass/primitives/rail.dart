@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/drag_owner.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/letter_reveal.dart';
@@ -111,6 +112,7 @@ class _GlassRailState extends ConsumerState<GlassRail> {
   int _remembered = 0;
   int _focused = 0;
   bool _showArrows = false;
+  final ValueNotifier<bool> _atStart = ValueNotifier(true);
   Timer? _arrowTimer;
   double _itemW = 124;
   double _gap = 12;
@@ -125,6 +127,17 @@ class _GlassRailState extends ConsumerState<GlassRail> {
   double get top {
     final ro = context.findRenderObject();
     return ro is RenderBox && ro.attached ? ro.localToGlobal(Offset.zero).dy : 0;
+  }
+
+  void _syncStart() {
+    final at = !_c.hasClients || _c.offset <= 0.5;
+    if (at != _atStart.value) _atStart.value = at;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _c.addListener(_syncStart);
   }
 
   @override
@@ -142,6 +155,8 @@ class _GlassRailState extends ConsumerState<GlassRail> {
   void dispose() {
     _group?.rails.remove(this);
     _arrowTimer?.cancel();
+    _c.removeListener(_syncStart);
+    _atStart.dispose();
     if (widget.controller == null) _c.dispose();
     for (final n in _nodes.values) {
       n.dispose();
@@ -358,7 +373,7 @@ class _GlassRailState extends ConsumerState<GlassRail> {
         ),
       );
     }
-    return body;
+    return GlassDragOwner(kind: GlassDragOwnerKind.rail, atLeadingEdge: _atStart, child: body);
   }
 
   Widget _skeletonItem(int i) => SizedBox(

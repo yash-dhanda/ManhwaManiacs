@@ -165,11 +165,11 @@ void main() {
     testWidgets('tablet: bottom-centre of the content column, waiting while a bottom bar shows', (tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       await _host(tester, size: const Size(834, 1194));
-      _c(tester).read(glassBottomBarProvider.notifier).state = true;
+      _c(tester).read(glassBottomBarProvider.notifier).state = GlassBottomBar.bulk;
       _c(tester).read(glassAppUpdateProvider.notifier).state = GlassAppUpdateSpec(onUpdate: () {});
       await pumpFor(tester, 800);
       expect(find.text('A new version is ready').hitTestable(), findsNothing);
-      _c(tester).read(glassBottomBarProvider.notifier).state = false;
+      _c(tester).read(glassBottomBarProvider.notifier).state = GlassBottomBar.none;
       await pumpFor(tester, 800);
       final r = tester.getRect(find.byType(GlassAppUpdateCapsule));
       expect(r.center.dx, closeTo(834 / 2, 4));
