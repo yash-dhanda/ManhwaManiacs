@@ -24,7 +24,7 @@ sealed class ReaderTarget {
   const factory ReaderTarget.readAll(String sourceId, String seriesKey, {String? from}) = ReadAllTarget;
 
   /// The novel reader: `/novels/:sourceId/:seriesKey/:chapterKey`.
-  const factory ReaderTarget.novel(String sourceId, String seriesKey, String chapterKey, {int? page, int? para, bool listen}) =
+  const factory ReaderTarget.novel(String sourceId, String seriesKey, String chapterKey, {int? page, int? para, String? at, bool listen}) =
       NovelTarget;
 
   /// The typed location, percent-encoded by the generated builders.
@@ -79,15 +79,18 @@ class ReadAllTarget extends ReaderTarget {
 }
 
 class NovelTarget extends ReaderTarget {
-  const NovelTarget(this.sourceId, this.seriesKey, this.chapterKey, {this.page, this.para, this.listen = false});
+  const NovelTarget(this.sourceId, this.seriesKey, this.chapterKey, {this.page, this.para, this.at, this.listen = false});
   final String sourceId, seriesKey, chapterKey;
   final int? page, para;
+
+  /// The fraction within the paragraph a bookmark opens at.
+  final String? at;
 
   /// Opens the novel with the narrator playing (`listen=1`).
   final bool listen;
 
   @override
-  String get location => Routes.novel(sourceId, seriesKey, chapterKey, {'page': page, 'para': para, if (listen) 'listen': '1'});
+  String get location => Routes.novel(sourceId, seriesKey, chapterKey, {'page': page, 'para': para, 'at': at, if (listen) 'listen': '1'});
 
   /// Novels have no page manifest to warm.
   @override
