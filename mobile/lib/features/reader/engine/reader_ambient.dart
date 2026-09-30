@@ -196,7 +196,7 @@ class ReaderAmbient {
       if (!done.isCompleted) done.complete(v);
     }, onError: (Object e, StackTrace st) {
       if (!done.isCompleted) done.completeError(e, st);
-    }).whenComplete(() {
+    },).whenComplete(() {
       t.cancel();
       _guards.remove(t);
     });

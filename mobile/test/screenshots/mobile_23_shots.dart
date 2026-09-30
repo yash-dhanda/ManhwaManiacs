@@ -255,7 +255,7 @@ void mobile23Shots() {
           ]),
     ], act: (t) async {
       await start(t);
-      await settleReader(t, ms: 1500);
+      await settleReader(t);
     });
     await reader(tester, 'autoscroll-ruler', sizes: [phone], chrome: false, act: (t) async {
       await start(t);
@@ -312,7 +312,7 @@ void mobile23Shots() {
         return house;
       }),
     ], act: (t) async {
-      await settleReader(t, ms: 1500);
+      await settleReader(t);
     });
     await reader(tester, 'house-sound-offline-row', sizes: [phone], chrome: false, act: (t) async {
       await key(t, LogicalKeyboardKey.comma, ms: 900);

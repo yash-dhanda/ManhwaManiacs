@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -97,12 +96,12 @@ void main() {
 
   testWidgets('the manifest tint and panels seed the engine before any sampling', (tester) async {
     final r = await _pump(tester, online: true);
-    final chapter = ReaderChapter(
+    const chapter = ReaderChapter(
       id: 'c9',
       seriesId: 'k',
       title: 'Chapter 9',
       pageCount: 2,
-      pages: const [
+      pages: [
         ReaderPage(id: 'a', number: 1, imageUrl: 'http://x.test/1', tint: '#C82828', panels: [Rect.fromLTWH(0, 0, 1, 1)]),
         ReaderPage(id: 'b', number: 2, imageUrl: 'http://x.test/2', panels: <Rect>[]),
       ],

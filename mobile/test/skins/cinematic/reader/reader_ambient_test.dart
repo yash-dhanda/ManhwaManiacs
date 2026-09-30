@@ -1,12 +1,9 @@
 import 'dart:convert';
-import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
-import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_prefs_migration.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/auto_scroll_chip.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/guided_view.dart';
@@ -77,7 +74,7 @@ void main() {
     final view = tester.widget<CineGuidedView>(find.byType(CineGuidedView));
     expect(view.engine.value.guidedActive, isTrue, reason: 'iOS canSwipe reads this');
     expect(_folio('PANEL 1 / 3 · PAGE 1'), findsOneWidget);
-    await _key(tester, LogicalKeyboardKey.keyJ, ms: 700);
+    await _key(tester, LogicalKeyboardKey.keyJ);
     expect(_folio('PANEL 2 / 3 · PAGE 1'), findsOneWidget);
     await _key(tester, LogicalKeyboardKey.keyJ);
     await _key(tester, LogicalKeyboardKey.keyJ);
