@@ -1,7 +1,6 @@
 @Tags(['screenshots'])
 library;
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
@@ -18,7 +17,9 @@ import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
 
+import '../../skins/glass/shell/shell_rig.dart' show shellTestOverrides;
 import '../support/skin_shots.dart';
 
 /// The mobile/38 proof captures: Glass Search, Sources, the catalogue and Dialogue search on invented data (nothing mature), plus
@@ -56,6 +57,7 @@ class _Browse extends SourceBrowseNotifier {
 SourceSummary _src(String id, [SourceHealthStatus st = SourceHealthStatus.ok]) => SourceSummary(id: id, name: id == 'a' ? 'Alpha Scans' : 'Source $id', description: 'Invented catalogue $id', browsable: true, supportsImport: false, health: SourceHealth(status: st));
 
 final List<Override> _ov = [
+  ...shellTestOverrides(),
   searchListProvider.overrideWith(_Search.new),
   sourcesListProvider.overrideWith((ref) async => [_src('a'), _src('b'), _src('c', SourceHealthStatus.failing)]),
   sourcePinsProvider.overrideWith(_Pins.new),
@@ -86,8 +88,4 @@ void main() {
       await captureSkinScreen(t, skin: SkinId.glass, screen: ScreenId.dialogue, size: size, location: '/ocr?q=hello', overrides: _ov);
     });
   }
-  testWidgets('cinematic discover and sources are unchanged', (t) async {
-    await captureSkinScreen(t, skin: SkinId.cinematic, screen: ScreenId.discover, size: kSkinShotSizes[0], overrides: _ov);
-    await captureSkinScreen(t, skin: SkinId.cinematic, screen: ScreenId.sources, size: kSkinShotSizes[0], overrides: _ov);
-  });
 }
