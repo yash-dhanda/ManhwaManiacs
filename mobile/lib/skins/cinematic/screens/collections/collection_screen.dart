@@ -644,7 +644,9 @@ class CollectionHeader extends StatelessWidget {
       builder: (context, box) {
         final h = box.maxWidth * 9 / 16;
         final nameStyle = CineText.style(context, c.typeMasthead);
-        final block = 12 + 16 + (nameStyle.fontSize ?? 40) * (nameStyle.height ?? 1.1) + (desc.isEmpty ? 0 : 60) + (smart ? 20 : 0) + (credits == null ? 0 : 20);
+        // Every line grows with the text scale, and so does the box that holds them.
+        final ts = MediaQuery.textScalerOf(context).scale(16) / 16;
+        final block = (12 + 16 + (nameStyle.fontSize ?? 40) * (nameStyle.height ?? 1.1) + (desc.isEmpty ? 0 : 60) + (smart ? 20 : 0) + (credits == null ? 0 : 20)) * (ts > 1 ? ts : 1.0) + (ts > 1 ? 8 : 0);
         final textOverlay = Padding(
           padding: EdgeInsets.fromLTRB(grid.left, 0, grid.right, c.space4),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [

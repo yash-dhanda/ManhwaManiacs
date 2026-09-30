@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -236,7 +237,10 @@ class ChaptersPanel extends ConsumerStatefulWidget {
 }
 
 class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
-  static const double rowExtent = 56;
+  static const double _baseExtent = 56;
+
+  /// A row is 56 at text scale 1.0 and grows with the scale (every height is a minimum, 7 intro).
+  double get rowExtent => _baseExtent * math.max(1.0, MediaQuery.textScalerOf(context).scale(16) / 16 * 0.75);
   final _goToFocus = FocusNode();
   String? _order;
   String? _highlight;

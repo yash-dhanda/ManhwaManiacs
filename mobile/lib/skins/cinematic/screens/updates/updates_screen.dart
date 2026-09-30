@@ -342,7 +342,7 @@ class _UpdatesScreenState extends ConsumerState<UpdatesScreen> with SingleTicker
         padding: EdgeInsets.fromLTRB(grid.left, 0, grid.right, c.space4),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (wide)
-            Row(children: [checkBtn, SizedBox(width: c.space3), markBtn])
+            Wrap(spacing: c.space3, runSpacing: c.space2, children: [checkBtn, markBtn])
           else ...[checkBtn, SizedBox(height: c.space2), markBtn],
           if (_conflict)
             Padding(

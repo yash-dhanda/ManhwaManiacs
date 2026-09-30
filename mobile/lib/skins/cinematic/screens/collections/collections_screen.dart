@@ -419,6 +419,17 @@ class _CollectionsScreenState extends ConsumerState<CollectionsScreen> {
         onPressed: () => wide ? _sortMenu(ctx) : unawaited(_sortSheet()),
       ),
     );
+    if (wide && MediaQuery.textScalerOf(context).scale(16) / 16 >= 1.5) {
+      // Large text: the search field takes a row, the buttons wrap under it.
+      return Padding(
+        padding: EdgeInsets.fromLTRB(grid.left, 0, grid.right, c.space3),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          searchField,
+          SizedBox(height: c.space2),
+          Wrap(spacing: c.space3, runSpacing: c.space2, children: [sortBtn, CineButton(label: 'New shelf', onPressed: _newShelf)]),
+        ],),
+      );
+    }
     if (wide) {
       return Padding(
         padding: EdgeInsets.fromLTRB(grid.left, 0, grid.right, c.space3),
