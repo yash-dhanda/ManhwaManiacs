@@ -127,7 +127,7 @@ void main() {
     await settleReader(tester, ms: 500);
     await key(tester, LogicalKeyboardKey.f10, shift: true, ms: 1000);
     await tester.tap(find.text('Open page image', findRichText: true));
-    await settleReader(tester, ms: 1500);
+    await settleReader(tester);
     expect(find.byType(CineSheet), findsNothing);
     expect(texts(tester).any((s) => s.contains('PAGE 1 · 800 × 2400')), isTrue);
     expect(texts(tester), contains('Chapter 2 · page 1'), reason: 'the Lightbox title');
@@ -266,10 +266,10 @@ void main() {
         size: tablet,
         extra: [
           circleSeriesProvider.overrideWith(
-            (ref, k) async => CircleSeriesData(
-              readers: [CircleReader(member: const CircleMemberRef(profileId: 1, name: 'Asha'), chapterKey: 'c2', chapterNumber: 2)],
+            (ref, k) async => const CircleSeriesData(
+              readers: [CircleReader(member: CircleMemberRef(profileId: 1, name: 'Asha'), chapterKey: 'c2', chapterNumber: 2)],
               chapters: [
-                CircleChapterReactions(chapterKey: 'c2', chapterNumber: 2, by: [(member: const CircleMemberRef(profileId: 1, name: 'Asha'), kind: 'chefs_kiss')]),
+                CircleChapterReactions(chapterKey: 'c2', chapterNumber: 2, by: [(member: CircleMemberRef(profileId: 1, name: 'Asha'), kind: 'chefs_kiss')]),
               ],
             ),
           ),

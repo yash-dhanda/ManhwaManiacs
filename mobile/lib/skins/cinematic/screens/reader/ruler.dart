@@ -46,6 +46,13 @@ class _ReaderRulerState extends State<ReaderRuler> with SingleTickerProviderStat
   double? _dragX;
   int? _dragPage;
   double _width = 1;
+  bool _reduced = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduced = CineMotion.reduced(context);
+  }
 
   bool get _enabled => widget.pageCount > 1;
   bool get _dragging => _dragPage != null;
@@ -89,7 +96,7 @@ class _ReaderRulerState extends State<ReaderRuler> with SingleTickerProviderStat
       _dragPage = null;
       _dragX = null;
     });
-    if (CineMotion.reduced(context)) return;
+    if (_reduced) return;
     // The thumb settles from where the finger let go to its page.
     _settle
       ..value = from

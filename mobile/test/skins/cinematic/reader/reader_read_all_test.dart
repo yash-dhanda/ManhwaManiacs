@@ -43,7 +43,7 @@ class BatchReader extends FakeReader {
       maxChapters: 20,
       manifests: {for (final k in chapterKeys) if (!failKeys.contains(k)) k: m(k)},
       errors: {for (final k in chapterKeys) if (failKeys.contains(k)) k: 'no'},
-    ));
+    ),);
   }
 }
 
@@ -77,7 +77,7 @@ void main() {
   testWidgets('a failed batch item is a notice in its place and reading continues past it', (tester) async {
     final batch = BatchReader(Recorder(), failKeys: {'c3'});
     await pumpReader(tester, chapterKey: 'c1', origin: ReaderRigOrigin.readAll, extra: [readerRepositoryProvider.overrideWithValue(batch)]);
-    await settleReader(tester, ms: 1500);
+    await settleReader(tester);
     final feed = tester.widget<ReaderEngineView>(find.byType(ReaderEngineView)).feed;
     expect(feed.chapters.map((c) => c.id), ['c1', 'c2', 'c3', 'cx'], reason: 'the failed one is in the feed and the chapter after it too');
     // Scroll to the failed chapter.

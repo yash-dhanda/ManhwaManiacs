@@ -103,7 +103,7 @@ void main() {
   testWidgets('Reset reader settings arms for 1000 ms, then restores every default', (tester) async {
     await pumpReader(tester, prefsValues: {
       ...seedLayout('single', more: {'brightness': -40, 'gap': true}),
-    });
+    },);
     await settleReader(tester, ms: 500);
     final ref = container(tester);
     await ref.read(readerSeriesPrefsProvider.notifier).setFor('demo:k', {'layout': 'double'});

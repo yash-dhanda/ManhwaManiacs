@@ -1192,7 +1192,13 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         ? (to == null ? '' : to.toUpperCase())
         : (toCh.title.toLowerCase().startsWith('chapter') ? chapterFolio(toCh.number) : '${chapterFolio(toCh.number)} · ${toCh.title.toUpperCase()}');
     if (_isReadAll && kind == BandKind.seam) {
-      return ReadAllDivider(from: chapterNumberText(fromCh?.number), to: chapterNumberText(toCh?.number));
+      // The feed's own titles rarely equal the series list's: find the chapters by id through the feed.
+      double? numberOf(String? title) {
+        final c = _body.feed.chapters.where((c) => c.title == title).firstOrNull;
+        return (c == null ? null : series?.chapterOf(c.id)?.number) ?? series?.chapterTitled(title ?? '')?.number;
+      }
+
+      return ReadAllDivider(from: chapterNumberText(numberOf(from)), to: chapterNumberText(numberOf(to)));
     }
     return cineBand(
       context,
