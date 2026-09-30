@@ -84,3 +84,7 @@ None reported by the verifier.
 - (fix attempted, not re-checked) Acceptance: hardware keyboard, arrows move focus inside roving groups, and the 'Onboarding' group is listed in the ? sheet
 - (fix attempted, not re-checked) E2.2: the wall hides the flying posters in the same frame the flight layer paints copies (Visibility maintainSize/State/Animation)
 - (fix attempted, not re-checked) E2.6: Tonight holds its whole Front page moment (kicker, cover rack, headline, deck) until `landed`
+
+## mobile/12 (cinematic manga reader strip, merged from redesign/L01)
+
+- A10: fetchChapterText must return the page texts and boxes, with a repository test on a fake Dio adapter (null on 404)
