@@ -139,3 +139,7 @@ None reported by the verifier.
 ## mobile/29
 
 None reported by the verifier.
+
+## mobile/24
+
+None reported by the verifier.
