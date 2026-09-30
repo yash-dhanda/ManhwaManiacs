@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_chrome.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../feature/feature_test_support.dart';
@@ -120,4 +121,24 @@ Future<void> settleReader(WidgetTester tester, {int ms = 1500}) async {
   for (var t = 0; t < ms; t += 100) {
     await tester.pump(const Duration(milliseconds: 100));
   }
+}
+
+/// Whether the reader's chrome is on (hidden chrome is `Offstage`).
+bool chromeVisible(WidgetTester tester) {
+  final motions = find.byType(ReaderChromeMotion).evaluate();
+  return motions.isNotEmpty && motions.every((e) => (e.widget as ReaderChromeMotion).visible);
+}
+
+/// A single tap at [at]: the engine's tap classifier reads the wall clock, so a real 350 ms gap
+/// keeps two taps from being read as a double tap.
+Future<void> tapSingle(WidgetTester tester, [Offset at = const Offset(195, 422)]) async {
+  await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
+  await tester.tapAt(at);
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
+/// Tears the reader down and lets its timers (retry back-off, toasts, idle hide) run out.
+Future<void> disposeReader(WidgetTester tester) async {
+  await tester.pumpWidget(const SizedBox());
+  await tester.pump(const Duration(seconds: 11));
 }
