@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/core/platform/native_bridge.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_view.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_prefs_migration.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -14,7 +18,9 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/tap_zone_bands.dart
 import '../../../screenshots/support/shot_network.dart';
 import 'reader_test_support.dart';
 
+/// Profile defaults as the migration would have left them (and the migration marked done, so it does not rewrite them).
 Map<String, Object> seedLayout(String layout, {String direction = 'ltr', Map<String, Object> more = const {}}) => {
+      kReaderPrefsMigratedKey: true,
       kReaderPrefsSeedKey: jsonEncode({
         'seriesDefaults': {'layout': layout, 'direction': direction},
         ...more,
@@ -141,4 +147,123 @@ void main() {
     expect(find.byIcon(Icons.pause), findsNothing);
     await disposeReader(tester);
   });
+
+  testWidgets('volume keys turn pages in a paged layout (Android, K08)', (tester) async {
+    final bridge = _Bridge();
+    await pumpReader(tester, prefsValues: {...seedLayout('single'), 'settings_volume_key_navigation': true}, extra: [nativeBridgeProvider.overrideWithValue(bridge)]);
+    await settleReader(tester, ms: 500);
+    bridge.events.add(VolumeKeyDirection.down);
+    await settleReader(tester, ms: 700);
+    expect(pageOf(tester), 2);
+    bridge.events.add(VolumeKeyDirection.up);
+    await settleReader(tester, ms: 700);
+    expect(pageOf(tester), 1);
+    await disposeReader(tester);
+  });
+
+  testWidgets('a double tap zooms to 2x at the tap point; a drag then pans and never turns the page', (tester) async {
+    await pumpReader(tester, prefsValues: seedLayout('single'));
+    await settleReader(tester, ms: 500);
+    ReaderEngineState state() => tester.widget<PagedReaderView>(find.byType(PagedReaderView)).controller.value;
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
+    await tester.tapAt(const Offset(195, 300));
+    await tester.pump(const Duration(milliseconds: 60));
+    await tester.tapAt(const Offset(195, 300));
+    await settleReader(tester, ms: 500);
+    expect(state().zoom, 2.0);
+    await tester.flingFrom(const Offset(200, 500), const Offset(-250, 0), 1500);
+    await settleReader(tester, ms: 800);
+    expect(pageOf(tester), 1);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
+    await tester.tapAt(const Offset(195, 300));
+    await tester.pump(const Duration(milliseconds: 60));
+    await tester.tapAt(const Offset(195, 300));
+    await settleReader(tester, ms: 500);
+    expect(state().zoom, 1.0, reason: 'the second double tap goes back');
+    await disposeReader(tester);
+  });
+
+  testWidgets('a finger release commits past 72 px and returns short of it', (tester) async {
+    await pumpReader(tester, prefsValues: seedLayout('single'));
+    await settleReader(tester, ms: 500);
+    // The touch slop is not part of the travel: 40 px of finger returns, 200 px commits (the exact
+    // 71 / 72 px cut is pinned on the physics itself).
+    await tester.drag(find.byType(PageView), const Offset(-40, 0));
+    await settleReader(tester, ms: 900);
+    expect(pageOf(tester), 1);
+    await tester.drag(find.byType(PageView), const Offset(-200, 0));
+    await settleReader(tester, ms: 900);
+    expect(pageOf(tester), 2);
+    await disposeReader(tester);
+  });
+
+  testWidgets('Slide takes 280 ms; Cut is instant; Fade dips through the ground', (tester) async {
+    await pumpReader(tester, prefsValues: seedLayout('single', more: {'pageTurn': 'slide'}));
+    await settleReader(tester, ms: 500);
+    final engine = tester.widget<PagedReaderView>(find.byType(PagedReaderView)).controller;
+    engine.pageBy(forward: true);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
+    final position = tester.state<ScrollableState>(find.descendant(of: find.byType(PageView), matching: find.byType(Scrollable)).first).position.pixels;
+    expect(position, inExclusiveRange(0, 390), reason: 'mid-slide');
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(pageOf(tester), 2);
+    await disposeReader(tester);
+
+    await pumpReader(tester, prefsValues: seedLayout('single', more: {'pageTurn': 'fade'}));
+    await settleReader(tester, ms: 500);
+    final e2 = tester.widget<PagedReaderView>(find.byType(PagedReaderView)).controller;
+    e2.pageBy(forward: true);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 40));
+    final fading = tester.widget<Opacity>(find.descendant(of: find.byType(PagedReaderView), matching: find.byType(Opacity)).first).opacity;
+    expect(fading, lessThan(1));
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(pageOf(tester), 2);
+    await disposeReader(tester);
+  });
+
+  testWidgets('reduced motion: a turn is a 150 ms fade, not a slide', (tester) async {
+    await pumpReader(tester, reduced: true, prefsValues: seedLayout('single', more: {'pageTurn': 'slide'}));
+    await settleReader(tester, ms: 500);
+    final engine = tester.widget<PagedReaderView>(find.byType(PagedReaderView)).controller;
+    engine.pageBy(forward: true);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 40));
+    final dip = tester.widget<Opacity>(find.descendant(of: find.byType(PagedReaderView), matching: find.byType(Opacity)).first).opacity;
+    expect(dip, lessThan(1));
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(pageOf(tester), 2);
+    final px = tester.state<ScrollableState>(find.descendant(of: find.byType(PageView), matching: find.byType(Scrollable)).first).position.pixels;
+    expect(px, 390, reason: 'landed by a jump, never mid-slide');
+    await disposeReader(tester);
+  });
+
+  testWidgets('Esc closes the Margins panel first, then leaves the reader', (tester) async {
+    await pumpReader(tester, size: const Size(834, 1194), prefsValues: seedLayout('single'));
+    await settleReader(tester, ms: 600);
+    await key(tester, LogicalKeyboardKey.bracketRight, ms: 900);
+    final ref = ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
+    expect(ref.read(readerPrefsProvider('demo:k')).panels.right, isTrue);
+    await key(tester, LogicalKeyboardKey.escape, ms: 700);
+    expect(ref.read(readerPrefsProvider('demo:k')).panels.right, isFalse);
+    expect(find.byType(PagedReaderView), findsOneWidget, reason: 'still reading');
+    await key(tester, LogicalKeyboardKey.escape, ms: 1500);
+    expect(find.byType(PagedReaderView), findsNothing, reason: 'the second Esc leaves');
+    await disposeReader(tester);
+  });
+}
+
+class _Bridge implements NativeBridge {
+  // ignore: close_sinks
+  final events = StreamController<VolumeKeyDirection>.broadcast();
+
+  @override
+  Future<void> setVolumeKeyNavEnabled(bool enabled) async {}
+  @override
+  Stream<VolumeKeyDirection> get volumeKeyEvents => events.stream;
+  @override
+  Future<DeviceMemoryInfo?> getDeviceMemoryInfo() async => null;
+  @override
+  Future<void> setHighRefreshRateEnabled(bool enabled) async {}
 }

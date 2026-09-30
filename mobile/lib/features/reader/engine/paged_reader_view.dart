@@ -970,13 +970,16 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
       key: ValueKey('paged-${_spec.layout.name}'),
       controller: _pc,
       reverse: _rtl,
+      // The skin's physics does its own snapping; the stock snap would sit above it and win.
+      pageSnapping: _spec.pagePhysics == null,
       physics: physics,
       itemCount: count,
       onPageChanged: _onPageChanged,
       itemBuilder: (context, i) => RepaintBoundary(child: _screen(i)),
     );
     final fade = _fadeOpacity;
-    if (fade < 1) pages = Opacity(opacity: fade.clamp(0.0, 1.0), child: pages);
+    // Always wrapped, so the page view keeps its place in the tree when a fade starts and ends.
+    pages = Opacity(opacity: fade.clamp(0.0, 1.0), child: pages);
     final tone = switch (widget.options.colourFilter) {
       ReaderColourFilter.sepia => ReaderColorMode.sepia.colorFilter,
       ReaderColourFilter.grey => ReaderColorMode.grayscale.colorFilter,
