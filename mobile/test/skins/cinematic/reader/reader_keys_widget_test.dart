@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/shell/keyboard_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/micro_progress.dart';
 
 import '../../../screenshots/support/shot_network.dart';
@@ -116,11 +118,115 @@ void main() {
     await pumpReader(tester);
     await settleReader(tester, ms: 500);
     await _key(tester, LogicalKeyboardKey.keyP, ms: 500);
+    final speed = ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
+    double x() => speed.read(readerPrefsProvider('demo:k')).autoScrollSpeedX;
+    final before = x();
+    // Plain , and . are reserved (Reading setup, mobile/13): only Shift+, and Shift+. change the speed.
     await _key(tester, LogicalKeyboardKey.period, ms: 300);
     await _key(tester, LogicalKeyboardKey.comma, ms: 300);
+    expect(find.text('${(before + 0.25).toStringAsFixed(1)}×'), findsNothing);
+    await _key(tester, LogicalKeyboardKey.period, ms: 300, shift: true);
+    expect(find.text('${(before + 0.25).toStringAsFixed(1)}×'), findsWidgets, reason: '> is faster');
+    await _key(tester, LogicalKeyboardKey.comma, ms: 300, shift: true);
+    await _key(tester, LogicalKeyboardKey.comma, ms: 300, shift: true);
+    expect(find.text('${(before - 0.25).toStringAsFixed(1)}×'), findsWidgets, reason: '< is slower');
     await _key(tester, LogicalKeyboardKey.keyP, ms: 300);
     await _key(tester, LogicalKeyboardKey.keyB, ms: 500);
     expect(tester.takeException(), isNull);
+    await disposeReader(tester);
+  });
+
+  testWidgets('→ d step forward, ← a step back, in LTR', (tester) async {
+    await pumpReader(tester);
+    await settleReader(tester, ms: 500);
+    await _key(tester, LogicalKeyboardKey.arrowRight, ms: 300);
+    expect(find.text('2 / 6'), findsOneWidget);
+    await _key(tester, LogicalKeyboardKey.keyD, ms: 300);
+    expect(find.text('3 / 6'), findsOneWidget);
+    await _key(tester, LogicalKeyboardKey.arrowLeft, ms: 300);
+    expect(find.text('2 / 6'), findsOneWidget);
+    await _key(tester, LogicalKeyboardKey.keyA, ms: 300);
+    expect(find.text('1 / 6'), findsOneWidget);
+    await disposeReader(tester);
+  });
+
+  testWidgets('in RTL the arrows and d a run the other way', (tester) async {
+    await pumpReader(tester);
+    await settleReader(tester, ms: 500);
+    final c = ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
+    await c.read(readerSeriesPrefsProvider.notifier).setFor('demo:k', {'direction': 'rtl'});
+    await settleReader(tester, ms: 300);
+    await _key(tester, LogicalKeyboardKey.keyJ, ms: 300);
+    await _key(tester, LogicalKeyboardKey.keyJ, ms: 300);
+    expect(find.text('3 / 6'), findsOneWidget);
+    await _key(tester, LogicalKeyboardKey.arrowRight, ms: 300);
+    expect(find.text('2 / 6'), findsOneWidget, reason: '→ is back in RTL');
+    await _key(tester, LogicalKeyboardKey.keyD, ms: 300);
+    expect(find.text('1 / 6'), findsOneWidget);
+    await _key(tester, LogicalKeyboardKey.arrowLeft, ms: 300);
+    expect(find.text('2 / 6'), findsOneWidget, reason: '← is forward in RTL');
+    await _key(tester, LogicalKeyboardKey.keyA, ms: 300);
+    expect(find.text('3 / 6'), findsOneWidget);
+    await disposeReader(tester);
+  });
+
+  testWidgets('Space scrolls a screen forward and Shift+Space back', (tester) async {
+    await pumpReader(tester);
+    await settleReader(tester, ms: 500);
+    final scroll = find.byType(Scrollable).first;
+    double at() => tester.state<ScrollableState>(scroll).position.pixels;
+    final start = at();
+    await _key(tester, LogicalKeyboardKey.space, ms: 1200);
+    final forward = at();
+    expect(forward, greaterThan(start));
+    await _key(tester, LogicalKeyboardKey.space, ms: 1200, shift: true);
+    expect(at(), lessThan(forward));
+    await disposeReader(tester);
+  });
+
+  testWidgets('Ctrl+Shift+→ and ← step chapters', (tester) async {
+    final rig = await pumpReader(tester);
+    await settleReader(tester, ms: 500);
+    await _key(tester, LogicalKeyboardKey.arrowRight, ms: 1000, shift: true, ctrl: true);
+    expect(rig.router.state.uri.path, contains('/library/read/demo/k/c3'));
+    await disposeReader(tester);
+    final rig2 = await pumpReader(tester);
+    await settleReader(tester, ms: 500);
+    await _key(tester, LogicalKeyboardKey.arrowLeft, ms: 1000, shift: true, ctrl: true);
+    // The previous chapter is prepended to the feed or opened by the route; either way c1 is now the one read.
+    expect(rig2.router.state.uri.path.contains('/c1') || find.text('CH 1').evaluate().isNotEmpty, isTrue);
+    await disposeReader(tester);
+  });
+
+  testWidgets('the ? sheet lists every Reader binding with its keycaps', (tester) async {
+    await pumpReader(tester);
+    await settleReader(tester, ms: 300);
+    final groups = ProviderScope.containerOf(tester.element(find.byType(MaterialApp))).read(shortcutRegistryProvider.notifier).registeredGroups();
+    final reader = orderedShortcutGroups(groups).singleWhere((g) => g.name == 'Reader');
+    final caps = {for (final e in reader.entries) e.description: keycapsOf(e, TargetPlatform.android)};
+    expect(caps['Slower'], ['<']);
+    expect(caps['Faster'], ['>']);
+    expect(caps['Next page'], isNotEmpty);
+    expect(caps['One screen back']!.single.toLowerCase(), contains('shift'));
+    expect(caps['Next chapter']!.any((k) => k.toLowerCase().contains('ctrl')) || reader.entries.any((e) => e.description == 'Next chapter' && (e.activator as SingleActivator).control), isTrue);
+    await disposeReader(tester);
+  });
+
+  testWidgets('with Single-key shortcuts off only modified bindings work', (tester) async {
+    await pumpReader(tester);
+    await settleReader(tester, ms: 500);
+    final c = ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
+    await c.read(singleKeyShortcutsProvider.notifier).set(false);
+    await settleReader(tester, ms: 300);
+    await _key(tester, LogicalKeyboardKey.keyJ, ms: 300);
+    await _key(tester, LogicalKeyboardKey.arrowRight, ms: 300);
+    await _key(tester, LogicalKeyboardKey.keyD, ms: 300);
+    expect(find.text('1 / 6'), findsOneWidget, reason: 'no single-key binding fires');
+    await _key(tester, LogicalKeyboardKey.keyC, ms: 600);
+    expect(chromeVisible(tester), isTrue);
+    // Modified and Escape bindings stay live.
+    await _key(tester, LogicalKeyboardKey.arrowRight, ms: 1000, shift: true, ctrl: true);
+    expect(find.text('1 / 6'), findsNothing);
     await disposeReader(tester);
   });
 }

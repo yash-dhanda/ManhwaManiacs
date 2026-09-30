@@ -685,8 +685,11 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     w = w * (1 - 2 * o.sideMarginPct / 100);
     return o.columnWidth == null && o.sideMarginPct == 0
         ? screenWidth
-        : math.min(w, maxContentWidth);
+        : math.min(w, _maxWidth);
   }
+
+  /// The strip column's cap: 768 for the legacy path, 860 once a tablet column width is set.
+  double get _maxWidth => widget.options.columnWidth != null ? kTabletStripMax : maxContentWidth;
 
   ReaderDefaults get _defaults => ref.read(readerDefaultsProvider);
 
@@ -712,6 +715,12 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   /// native interception on dispose so leaving the reader restores normal
   /// volume behaviour everywhere else in the app.
   Future<void> _syncVolumeKeyNav(bool enabled) async {
+    // The skin's reader turns pages with the volume keys on Android only (K08).
+    if (enabled &&
+        widget.options.lifecycleVolumeKeys &&
+        (!mounted || Theme.of(context).platform != TargetPlatform.android)) {
+      return;
+    }
     if (enabled == _volumeKeyNavEnabled) return;
     _volumeKeyNavEnabled = enabled;
 
@@ -790,6 +799,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       viewportHeight: _containerHeight ?? MediaQuery.sizeOf(context).height,
       zoom: ref.read(readerUiProvider).zoomLevel,
       leadingInsets: _seamInsetsFor(feed),
+      maxWidth: _maxWidth,
     );
   }
 
@@ -814,7 +824,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         cached.fitMode == fitMode &&
         cached.viewportWidth == viewportWidth &&
         cached.viewportHeight == viewportHeight &&
-        cached.zoom == zoom) {
+        cached.zoom == zoom &&
+        cached.maxWidth == _maxWidth) {
       return cached;
     }
     return _cachedMetrics = ReaderPageMetrics.of(
@@ -825,6 +836,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       viewportHeight: viewportHeight,
       zoom: zoom,
       leadingInsets: _seamInsets,
+      maxWidth: _maxWidth,
     );
   }
 
@@ -2103,7 +2115,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     final direction = defaults.direction;
     final fitMode = defaults.fitMode;
     final contentWidthFactor = zoom == 1 ? 1.0 : zoom;
-    final maxWidth = zoom <= 1 ? maxContentWidth : double.infinity;
+    final maxWidth = zoom <= 1 ? _maxWidth : double.infinity;
 
     final options = widget.options;
     final pageImage = ReaderPageImage(

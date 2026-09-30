@@ -112,7 +112,7 @@ final readerSettingsProvider = NotifierProvider<ReaderSettingsNotifier, JsonReco
 
 /// Per-device values (the Reading: manga app rows share these with the reader).
 final stripWidthProvider = NotifierProvider<DeviceValueNotifier<int>, int>(
-  () => DeviceValueNotifier<int>('mm.reader.device.stripWidth', 680),
+  () => DeviceValueNotifier<int>('mm.reader.device.stripWidthPx', 680),
   name: 'stripWidth',
 );
 

@@ -119,6 +119,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   ReaderSystemUi? _appliedUi;
   String? _caption;
   bool _ratingShown = false;
+  bool _fadeBlack = false;
 
   ReaderFrameBody get _body => widget.body;
   ({String sourceId, String seriesKey, String chapterKey, ReaderOrigin origin}) get _id => _body.identity!;
@@ -556,7 +557,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     final reduced = CineMotion.reduced(context);
     final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
     final ground = readerGround(context, prefs.ground);
-    final userStrip = ref.watch(sharedPrefsProvider).getInt('mm.reader.device.stripWidth');
+    final userStrip = ref.watch(sharedPrefsProvider).getInt('mm.reader.device.stripWidthPx');
     final feedLast = body.feed.chapters.isEmpty ? null : body.feed.chapters.last;
     final lastChapterSummary = feedLast == null ? null : series?.chapterOf(feedLast.id);
     final nextSummary = feedLast == null ? null : series?.nextOf(feedLast.id);
@@ -809,6 +810,14 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     final nextKey = nextId ?? next?.id;
     final minutes = math.max(1, DateTime.now().difference(_openedAt).inMinutes);
     final number = chapterNumberText(summary?.number);
+    void goNext() {
+      if (nextKey == null) return;
+      cineFeedback(context, HapticEvent.chapterNext, sound: SoundEvent.chapterNext);
+      final n = next?.number;
+      ref.read(pendingChapterCaptionProvider.notifier).state = n == null ? null : 'CH ${chapterNumberText(n)} — ${next!.title}';
+      _goToChapter(nextKey);
+    }
+
     final credits = ReaderCredits(
       engine: _engine,
       sourceId: _id.sourceId,
@@ -821,12 +830,14 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       nextChapterKey: nextKey,
       nextNumber: next?.number,
       nextTitle: next?.title,
-      onContinue: () {
+      onContinue: goNext,
+      // K5: a committed pull fades through black for durFadeCut, then opens the chapter.
+      onPull: () {
         if (nextKey == null) return;
-        cineFeedback(context, HapticEvent.chapterNext, sound: SoundEvent.chapterNext);
-        final n = next?.number;
-        ref.read(pendingChapterCaptionProvider.notifier).state = n == null ? null : 'CH ${chapterNumberText(n)} — ${next!.title}';
-        _goToChapter(nextKey);
+        setState(() => _fadeBlack = true);
+        Timer(_reduced ? Duration.zero : context.cine.durFadeCut, () {
+          if (mounted) goNext();
+        });
       },
     );
     if (nextKey != null || series == null) return credits;
@@ -974,6 +985,16 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         ),
         EdgeHud(left: false, visible: _speedHud.visible, fill: (speedX - 0.5) / 2.5, label: '${speedX.toStringAsFixed(1)}×'),
         if (_caption != null) _CaptionTyped(text: _caption!),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: AnimatedOpacity(
+              key: const ValueKey('pull-fade'),
+              opacity: _fadeBlack ? 1 : 0,
+              duration: _reduced ? Duration.zero : context.cine.durFadeCut,
+              child: const ColoredBox(color: Colors.black),
+            ),
+          ),
+        ),
         if (!_ratingShown && series != null) _RatingOnce(series: series, sourceId: _id.sourceId, onShown: () => _ratingShown = true),
       ],
     );
@@ -1014,8 +1035,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       e(LogicalKeyboardKey.keyC, 'Cinema mode', _toggleCinema),
       e(LogicalKeyboardKey.keyM, 'Show or hide the controls', _toggleChrome),
       e(LogicalKeyboardKey.keyP, 'Auto-scroll', _toggleAutoScroll),
-      e(LogicalKeyboardKey.comma, 'Slower', () => _stepSpeed(-0.25), keys: const ['<']),
-      e(LogicalKeyboardKey.period, 'Faster', () => _stepSpeed(0.25), keys: const ['>']),
+      e(LogicalKeyboardKey.comma, 'Slower', () => _stepSpeed(-0.25), shift: true, single: false, keys: const ['<']),
+      e(LogicalKeyboardKey.period, 'Faster', () => _stepSpeed(0.25), shift: true, single: false, keys: const ['>']),
       e(LogicalKeyboardKey.keyB, 'Bookmark this page', () => unawaited(_bookmark())),
       e(LogicalKeyboardKey.keyS, 'Back to the series', _leave),
       e(LogicalKeyboardKey.bracketLeft, 'Contents', () {

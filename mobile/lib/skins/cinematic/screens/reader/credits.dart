@@ -36,6 +36,7 @@ class ReaderCredits extends ConsumerWidget {
     required this.mode,
     required this.readMinutes,
     required this.onContinue,
+    this.onPull,
     this.nextChapterKey,
     this.nextNumber,
     this.nextTitle,
@@ -57,6 +58,9 @@ class ReaderCredits extends ConsumerWidget {
 
   /// Opens the next chapter (the primary button and a committed pull).
   final VoidCallback onContinue;
+
+  /// A committed pull (K5): the reader fades through black first; falls back to [onContinue].
+  final VoidCallback? onPull;
 
   /// The reactions block between the credits and the card; `mobile/22` fills it.
   final Widget? reactions;
@@ -112,7 +116,7 @@ class ReaderCredits extends ConsumerWidget {
               onRead: onContinue,
             ),
             SizedBox(height: c.space4),
-            PullToContinue(engine: engine, onCommit: onContinue),
+            PullToContinue(engine: engine, onCommit: onPull ?? onContinue),
           ],
         ],
       ),
