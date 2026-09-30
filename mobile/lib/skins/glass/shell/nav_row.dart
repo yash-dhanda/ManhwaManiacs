@@ -203,16 +203,18 @@ class _ProfileLeading extends ConsumerWidget {
   final void Function(Rect) onLongPressRect;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => GestureDetector(
-        behavior: HitTestBehavior.opaque,
+  Widget build(BuildContext context, WidgetRef ref) => Semantics(
+        button: true,
+        label: 'Profile and settings',
+        excludeSemantics: true,
         onTap: () => context.go(Routes.indexHub()),
         onLongPress: () => onLongPressRect(globalRectOf(context)),
-        child: Semantics(
-            button: true,
-            label: 'Profile and settings',
-            excludeSemantics: true,
-            onTap: () => context.go(Routes.indexHub()),
-            child: const GlassMyOrb(),),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => context.go(Routes.indexHub()),
+          onLongPress: () => onLongPressRect(globalRectOf(context)),
+          child: SizedBox.square(dimension: math.max(44.0, GlassFrame.hitMin(context)), child: const Center(child: GlassMyOrb(size: 44))),
+        ),
       );
 }
 

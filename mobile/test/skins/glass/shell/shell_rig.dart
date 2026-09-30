@@ -99,7 +99,7 @@ Future<ShellRig> pumpGlassShell(
       child: Consumer(
         builder: (context, ref, _) => MaterialApp.router(
           debugShowCheckedModeBanner: false,
-          theme: GlassSkin.baseTheme,
+          theme: GlassSkin.baseTheme.copyWith(platform: defaultTargetPlatform),
           routerConfig: ref.watch(skinRouterProvider),
           builder: (context, child) => const GlassSkin().wrap(context, child ?? const SizedBox.shrink()),
         ),

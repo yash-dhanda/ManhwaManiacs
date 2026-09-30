@@ -41,18 +41,18 @@ class GlassShellDemo extends ConsumerWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              GlassButton(variant: GlassButtonVariant.plain, label: 'Push a level', onPressed: () => unawaited(context.push<void>('/dev/glass/shell?level=${level + 1}'))),
+              GlassButton(variant: GlassButtonVariant.plain, size: GlassButtonSize.large, label: 'Push a level', onPressed: () => unawaited(context.push<void>('/dev/glass/shell?level=${level + 1}'))),
               GlassButton(
-                variant: GlassButtonVariant.plain,
+                variant: GlassButtonVariant.plain, size: GlassButtonSize.large,
                 label: 'Narrating',
                 onPressed: () => acc.setNarration(
                   GlassNarrationAccessory(title: 'Chapter 12 · Aurora', playing: true, progress: 0.4, onPlayPause: () {}, openPlayer: (_) {}),
                 ),
               ),
-              GlassButton(variant: GlassButtonVariant.plain, label: 'Downloading', onPressed: () => acc.setDownloading(GlassDownloadingAccessory(chapters: 3, progress: 0.42, paused: false, onToggle: () {}))),
-              GlassButton(variant: GlassButtonVariant.plain, label: 'Continue', onPressed: () => acc.setContinue(GlassContinueAccessory(title: 'Continue Solo Leveling', subtitle: 'Ch 143', coverUrl: null, onOpen: (_) {}))),
+              GlassButton(variant: GlassButtonVariant.plain, size: GlassButtonSize.large, label: 'Downloading', onPressed: () => acc.setDownloading(GlassDownloadingAccessory(chapters: 3, progress: 0.42, paused: false, onToggle: () {}))),
+              GlassButton(variant: GlassButtonVariant.plain, size: GlassButtonSize.large, label: 'Continue', onPressed: () => acc.setContinue(GlassContinueAccessory(title: 'Continue Solo Leveling', subtitle: 'Ch 143', coverUrl: null, onOpen: (_) {}))),
               GlassButton(
-                variant: GlassButtonVariant.plain,
+                variant: GlassButtonVariant.plain, size: GlassButtonSize.large,
                 label: 'Clear accessory',
                 onPressed: () {
                   acc
@@ -62,7 +62,7 @@ class GlassShellDemo extends ConsumerWidget {
                 },
               ),
               Builder(
-                builder: (c) => GlassButton(variant: GlassButtonVariant.plain, label: 'Dive into a chapter', onPressed: () => unawaited(enterReader(c, ref, '/reader/demo/demo/1', fromRect: globalRectOf(c)))),
+                builder: (c) => GlassButton(variant: GlassButtonVariant.plain, size: GlassButtonSize.large, label: 'Dive into a chapter', onPressed: () => unawaited(enterReader(c, ref, '/reader/demo/demo/1', fromRect: globalRectOf(c)))),
               ),
             ],
           ),

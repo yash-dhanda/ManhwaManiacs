@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
@@ -188,7 +189,7 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
             top: safe.top + 8,
             left: margin,
             right: margin,
-            height: 44,
+            height: math.max(44.0, GlassFrame.hitMin(context)),
             child: GlassNavRow(
               title: widget.title,
               leading: widget.leading,
