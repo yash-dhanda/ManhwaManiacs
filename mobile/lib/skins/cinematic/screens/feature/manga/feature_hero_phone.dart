@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/ambient_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_hero.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 

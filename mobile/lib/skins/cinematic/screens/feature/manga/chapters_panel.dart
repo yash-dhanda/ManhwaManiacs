@@ -24,7 +24,7 @@ import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_summary_line.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/series_download_card.dart';
@@ -473,11 +473,11 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
                       children: [
                         SizedBox(
                           width: 200,
-                          child: CineSegmented<String>(
+                          child: CineSegmentedControl(
                             key: const Key('chapter-order'),
-                            options: const [('newest', 'NEWEST'), ('oldest', 'OLDEST')],
-                            value: order,
-                            onChanged: _setOrder,
+                            labels: const ['NEWEST', 'OLDEST'],
+                            index: order == 'newest' ? 0 : 1,
+                            onChanged: (i) => _setOrder(i == 0 ? 'newest' : 'oldest'),
                           ),
                         ),
                         TextButton(

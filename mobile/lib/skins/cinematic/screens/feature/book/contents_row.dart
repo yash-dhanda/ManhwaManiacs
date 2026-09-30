@@ -3,9 +3,9 @@ import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.d
 import 'package:manhwamaniacs/features/downloads/utils/download_mark.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
+import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_download_mark.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/schedule_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';

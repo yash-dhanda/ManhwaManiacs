@@ -6,7 +6,7 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 /// The per-chapter download mark (DESIGN §7.18): a 16 px square, seven states,
 /// a `Tooltip` from [downloadMarkTooltip], the [downloadMarkLabel] semantics
 /// name and a 44 x 48 hit box. `onTap` retries a failed one and starts a
-/// download from `none` / `stale`. TODO(mobile/04): moves to `cine_progress.dart`.
+/// download from `none` / `stale`. The shared CineDownloadMark (cine_progress.dart) has a different state set, so this one takes the model's DownloadMarkState.
 class CineDownloadMark extends StatelessWidget {
   const CineDownloadMark({
     super.key,
