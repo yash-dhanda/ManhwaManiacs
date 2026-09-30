@@ -38,7 +38,7 @@ void main() {
       expect(leaf('/library/history').name, 'pending.history');
       expect(leaf('/library/bookmarks').name, 'pending.bookmarks');
       expect(leaf('/library/statistics').name, 'pending.numbers');
-      expect(leaf('/library/recommendations').name, 'pending.picks');
+      expect(leaf('/library/recommendations').name, 'picks');
       expect(leaf('/library/statistics/annual/2026').name, 'pending.annual');
       expect(leaf('/library/42').name, ScreenId.featureByFollow.id);
     });

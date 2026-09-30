@@ -372,9 +372,14 @@ class _TabsDelegate extends SliverPersistentHeaderDelegate {
         child: Column(
           children: [
             SizedBox(height: clearance),
-            DecoratedBox(
-              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: rule))),
-              child: SizedBox(height: 47, child: bar),
+            // 48 tall so each tab is a 48 dp target; the rule paints over the bottom pixel.
+            SizedBox(
+              height: 48,
+              child: DecoratedBox(
+                position: DecorationPosition.foreground,
+                decoration: BoxDecoration(border: Border(bottom: BorderSide(color: rule))),
+                child: bar,
+              ),
             ),
           ],
         ),
