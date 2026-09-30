@@ -56,9 +56,15 @@ class CollectionPlate extends StatelessWidget {
     this.semanticActions,
     this.focusNode,
     this.menuOnLongPress = true,
+    this.sharedWith = const [],
+    this.badges = const [],
   });
 
   final Collection collection;
+
+  /// The members' avatar keys, bottom-right, and the badges, top-left (shared shelves).
+  final List<String> sharedWith;
+  final List<Widget> badges;
   final PlateArt art;
   final VoidCallback? onTap;
   final bool selected, menuOnLongPress;
@@ -83,5 +89,7 @@ class CollectionPlate extends StatelessWidget {
         semanticActions: semanticActions,
         focusNode: focusNode,
         menuOnLongPress: menuOnLongPress,
+        sharedWith: sharedWith,
+        badges: badges,
       );
 }

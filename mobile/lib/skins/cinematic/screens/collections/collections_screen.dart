@@ -6,10 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_order.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_sort_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
+import 'package:manhwamaniacs/features/collections/providers/shared_collections_provider.dart';
 import 'package:manhwamaniacs/features/collections/utils/collection_sorting.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart';
@@ -18,6 +20,7 @@ import 'package:manhwamaniacs/features/library/utils/manual_order.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_galley.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
@@ -30,18 +33,24 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_reorderable_l
 import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_reorderable_wall.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/circle/shelves_tab.dart' show SharedShelfPlate;
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/collection_plate.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/shelf_form.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/hub/hub_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/library_hub.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// Collections, "Shelves" (cinematic 8.11, ScreenId `collections`): the owner's shelves as 16:9
 /// plates, New shelf, search, the four sorts and Custom order. Sharing is `mobile/22`'s.
 class CollectionsScreen extends ConsumerStatefulWidget {
-  const CollectionsScreen({super.key});
+  const CollectionsScreen({super.key, this.openNew = false, this.shareOnNew = false});
+
+  /// `?sheet=collection-new`: opens the New shelf form on arrival (the Circle's SHELVES tab), with
+  /// `Share with the circle` on when [shareOnNew] (`view=shared`).
+  final bool openNew, shareOnNew;
 
   @override
   ConsumerState<CollectionsScreen> createState() => _CollectionsScreenState();
@@ -57,6 +66,16 @@ class _CollectionsScreenState extends ConsumerState<CollectionsScreen> {
   List<Collection> _shown = const [];
   List<Collection> _all = const [];
   int _perRow = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.openNew) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(showShelfForm(context, shareWithCircle: widget.shareOnNew));
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -115,6 +134,7 @@ class _CollectionsScreenState extends ConsumerState<CollectionsScreen> {
 
   void _newShelf() => unawaited(showShelfForm(context));
 
+
   Future<void> _sortSheet() async {
     final now = ref.read(collectionSortProvider);
     final picked = await showCineSheet<CollectionSort>(
@@ -162,13 +182,19 @@ class _CollectionsScreenState extends ConsumerState<CollectionsScreen> {
     final nodes = _nodesFor(shown.length);
     final reorderable = _canReorder;
     final kindOf = _kindOf;
+    final sharedData = ref.watch(sharedCollectionsProvider).valueOrNull;
+    final sharedById = {for (final x in sharedData?.collections ?? const <SharedShelf>[]) if (x.shared != null) x.id: x};
+    final withMe = query.trim().isEmpty ? sharedData?.sharedWithMe ?? const <SharedShelf>[] : [for (final x in sharedData?.sharedWithMe ?? const <SharedShelf>[]) if (x.name.toLowerCase().contains(query.trim().toLowerCase())) x];
 
     Widget plate(Collection col, int i, {Widget? handle, List<CineMenuEntry<Object?>>? entries, Map<CustomSemanticsAction, VoidCallback>? actions}) {
       final art = plateArt(col, followed, apiBase, contentKindOf: kindOf);
+      final share = sharedById[col.id];
       return CollectionPlate(
         key: ValueKey('plate-${col.id}'),
         collection: col,
         art: art,
+        sharedWith: [for (final m in share?.shared?.members ?? const <ProfileRef>[]) if (m.avatarKey != null) m.avatarKey!],
+        badges: share?.shared == null ? const [] : const [CineBadge('SHARED', variant: CineBadgeVariant.shared)],
         focusNode: nodes[i],
         onTap: () => unawaited(context.push(Routes.collection(col.id))),
         dragHandle: handle == null ? null : Padding(padding: const EdgeInsets.all(4), child: handle),
@@ -279,7 +305,36 @@ class _CollectionsScreenState extends ConsumerState<CollectionsScreen> {
       slivers.add(SliverPadding(padding: EdgeInsets.fromLTRB(grid.left, c.space2, grid.right, c.space6), sliver: list()));
     }
 
-    final deck = _all.isEmpty ? '' : '${_all.length} ${_all.length == 1 ? 'shelf' : 'shelves'}';
+    if (withMe.isNotEmpty) {
+      slivers.add(SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(grid.left, c.space4, grid.right, c.space2),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Semantics(header: true, child: CineRoleText('SHARED WITH YOU', c.typeKicker, color: c.colorInk45)),
+            SizedBox(height: c.space2),
+            DecoratedBox(decoration: BoxDecoration(border: Border(top: c.ruleHair)), child: const SizedBox(width: double.infinity)),
+          ],),
+        ),
+      ),);
+      slivers.add(SliverPadding(
+        padding: EdgeInsets.fromLTRB(grid.left, c.space2, grid.right, c.space6),
+        sliver: SliverGrid.count(
+          crossAxisCount: _perRow,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 16 / 9,
+          children: [for (final x in withMe) SharedShelfPlate(key: ValueKey('shared-${x.id}'), shelf: x)],
+        ),
+      ),);
+    }
+    final nShared = sharedById.length;
+    final deck = _all.isEmpty && withMe.isEmpty
+        ? ''
+        : [
+            '${_all.length} ${_all.length == 1 ? 'shelf' : 'shelves'}',
+            if (nShared > 0) '$nShared shared',
+            if ((sharedData?.sharedWithMe.length ?? 0) > 0) '${sharedData!.sharedWithMe.length} shared with you',
+          ].join(' · ');
     return CineScaffold(
       runningTitle: 'Collections',
       contentModeChip: true,

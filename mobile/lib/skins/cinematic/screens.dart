@@ -48,7 +48,10 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.tonight: (context, state) => const TonightScreen(),
   ScreenId.library: (context, state) => LibraryScreen(params: state.uri.queryParameters, browse: state.uri.path == '/library/browse'),
   ScreenId.updates: (context, state) => const UpdatesScreen(),
-  ScreenId.collections: (context, state) => const CollectionsScreen(),
+  ScreenId.collections: (context, state) => CollectionsScreen(
+        openNew: state.uri.queryParameters['sheet'] == SheetIds.collectionNew,
+        shareOnNew: state.uri.queryParameters['view'] == 'shared',
+      ),
   ScreenId.collection: (context, state) => CollectionScreen(collectionId: int.tryParse(state.pathParameters['id'] ?? '') ?? -1),
   ScreenId.history: (context, state) => const HistoryScreen(),
   ScreenId.bookmarks: (context, state) => const BookmarksScreen(),

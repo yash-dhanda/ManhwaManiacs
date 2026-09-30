@@ -7,8 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_order.dart';
+import 'package:manhwamaniacs/features/collections/providers/shared_collections_provider.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
@@ -18,6 +21,7 @@ import 'package:manhwamaniacs/features/library/models/shelf_query.dart';
 import 'package:manhwamaniacs/features/library/utils/bulk_runner.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/back_order.dart';
@@ -25,7 +29,9 @@ import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/library_poster.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/share_shelf_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cards/cine_collection_plate.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_avatar.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_confirm_dialog.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_galley.dart';
@@ -41,6 +47,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_reorderable_w
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/add_series_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/collection_plate.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/collections/shared_shelf_view.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/shelf_form.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/hub/hub_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/shelf_wall.dart';
@@ -82,6 +89,9 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
   List<_Member> _members = const [];
   List<_Member> _fullOrder = const [];
   int _perRow = 3;
+
+  /// Who added each member (another profile, on a shelf shared with `can_add`), by member key.
+  Map<String, ProfileRef> _adders = const {};
 
   @override
   void dispose() {
@@ -253,6 +263,16 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
     final width = MediaQuery.sizeOf(context).width;
     _perRow = width >= 600 ? 5 : 3;
 
+    final sd = ref.watch(sharedShelfDetailProvider(_id)).valueOrNull;
+    // A shelf someone else owns renders from its own snapshot, with the role's actions only.
+    if (sd != null && sd.shelf.role != 'owner') return SharedShelfView(detail: sd);
+    final mine = sd?.shelf.shared;
+    final sharedCredits = mine == null || mine.members.isEmpty ? null : 'SHARED WITH: ${mine.members.map((m) => m.name.toUpperCase()).join(', ')}';
+    _adders = {
+      for (final r in sd?.series ?? const <ShelfSeriesRow>[])
+        if (r.addedBy != null && r.addedByProfileId != sd?.shelf.owner?.profileId) '${r.sourceId}\u0000${r.seriesKey}': r.addedBy!,
+    };
+
     final d = async.valueOrNull;
     final followed = followedAsync.valueOrNull ?? const <FollowedSeries>[];
     final smart = d?.rules != null;
@@ -311,7 +331,7 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
     } else {
       final art = plateArt(d.toCollection(), followed, apiBase, contentKindOf: (s) => scope.novelsEnabled ? scope.modeOf(s.sourceId).name : null);
       final covers = smart ? [for (final m in visible.take(4)) if (m.series != null && followedSeriesCoverUrl(apiBase, m.series!) != null) followedSeriesCoverUrl(apiBase, m.series!)!] : art.covers;
-      header = _Header(detail: d, covers: covers, duo: art.duo, tint: art.tint, count: visible.length, focus: _headerFocus);
+      header = CollectionHeader(detail: d, covers: covers, duo: art.duo, tint: art.tint, count: visible.length, focus: _headerFocus, credits: sharedCredits);
       body = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _actions(context, d, smart),
         if (mismatch)
@@ -452,13 +472,30 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
 
   Future<void> _add(CollectionDetail d) => showAddSeriesSheet(context, collectionId: _id, memberKeys: {for (final m in d.series) '${m.sourceId}\u0000${m.seriesKey}'});
 
+  Future<void> _share(CollectionDetail d) async {
+    final sd = ref.read(sharedShelfDetailProvider(_id)).valueOrNull;
+    await showShareShelfSheet(context, collectionId: _id, name: d.name, current: sd?.shelf.shared);
+    if (mounted) ref.invalidate(sharedShelfDetailProvider(_id));
+  }
+
   Widget _actions(BuildContext context, CollectionDetail d, bool smart) {
     final c = context.cine;
+    final pid = ref.watch(activeProfileProvider)?.id;
+    final sharingOn = pid == null || (ref.watch(sharingProvider(pid)).valueOrNull?.activity ?? false);
     return Padding(
       padding: EdgeInsets.only(bottom: c.space4),
       child: Wrap(spacing: c.space2, runSpacing: c.space2, crossAxisAlignment: WrapCrossAlignment.center, children: [
         if (!smart) CineButton(key: const Key('collection-add'), label: 'Add series', variant: CineButtonVariant.secondary, onPressed: () => unawaited(_add(d))),
         CineButton(key: const Key('collection-edit'), label: 'Edit', variant: CineButtonVariant.quiet, icon: CineIconRole.edit, onPressed: () => unawaited(_edit(d))),
+        if (sharingOn)
+          CineButton(
+            key: const Key('collection-share'),
+            label: 'Share',
+            variant: CineButtonVariant.quiet,
+            icon: CineIconRole.share,
+            onPressed: smart ? null : () => unawaited(_share(d)),
+            disabledReason: smart ? "Smart shelves follow your own library, so they can't be shared." : null,
+          ),
         if (!smart)
           CineButton(
             key: const Key('collection-reorder'),
@@ -490,6 +527,8 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
             label: 'More',
             variant: CineButtonVariant.quiet,
             onPressed: () => unawaited(showCineMenu<Object?>(ctx, anchor: cineAnchorRect(ctx), entries: [
+              if (!sharingOn)
+                const CineMenuEntry<Object?>(label: 'Share…', disabled: true, disabledReason: 'Turn on sharing in Settings → Circle & privacy to share shelves.'),
               CineMenuEntry<Object?>(label: 'Delete shelf', destructive: true, onSelected: () => unawaited(_delete(d))),
             ],),),
           ),
@@ -499,6 +538,16 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
   }
 
   Widget _tile(BuildContext context, _Member m, int i, CollectionDetail? d, String apiBase, bool gate, FocusNode node, {Widget? handle}) {
+    final tile = _tileBody(context, m, i, d, apiBase, gate, node, handle: handle);
+    final adder = _adders[m.key];
+    if (adder == null) return tile;
+    return Stack(clipBehavior: Clip.none, children: [
+      tile,
+      Positioned(left: 4, bottom: 44, child: IgnorePointer(child: CineAvatar(avatarKey: adder.avatarKey, size: 20, semanticName: 'Added by ${adder.name}'))),
+    ],);
+  }
+
+  Widget _tileBody(BuildContext context, _Member m, int i, CollectionDetail? d, String apiBase, bool gate, FocusNode node, {Widget? handle}) {
     final s = m.series;
     if (s == null) {
       return CinePoster(
@@ -573,13 +622,16 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
 /// The header (cinematic 8.11): the duotone mosaic across the width at 16:9 (the `Hero` target of
 /// the plate's match cut) with `scrim.foot`, and on its solid end the kicker, the name set as a
 /// masthead, the description and the smart rules as credits.
-class _Header extends StatelessWidget {
-  const _Header({required this.detail, required this.covers, required this.duo, required this.tint, required this.count, required this.focus});
+class CollectionHeader extends StatelessWidget {
+  const CollectionHeader({super.key, required this.detail, required this.covers, required this.duo, required this.tint, required this.count, required this.focus, this.credits});
   final CollectionDetail detail;
   final List<String> covers;
   final Color? duo, tint;
   final int count;
   final FocusNode focus;
+
+  /// `SHARED WITH: RIYA, ARJUN` (cinematic 9.3.5).
+  final String? credits;
 
   @override
   Widget build(BuildContext context) {
@@ -592,7 +644,7 @@ class _Header extends StatelessWidget {
       builder: (context, box) {
         final h = box.maxWidth * 9 / 16;
         final nameStyle = CineText.style(context, c.typeMasthead);
-        final block = 12 + 16 + (nameStyle.fontSize ?? 40) * (nameStyle.height ?? 1.1) + (desc.isEmpty ? 0 : 60) + (smart ? 20 : 0);
+        final block = 12 + 16 + (nameStyle.fontSize ?? 40) * (nameStyle.height ?? 1.1) + (desc.isEmpty ? 0 : 60) + (smart ? 20 : 0) + (credits == null ? 0 : 20);
         final textOverlay = Padding(
           padding: EdgeInsets.fromLTRB(grid.left, 0, grid.right, c.space4),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -614,6 +666,10 @@ class _Header extends StatelessWidget {
             if (smart) ...[
               SizedBox(height: c.space2),
               CineStock.raised(Builder(builder: (b) => CineRoleText('SMART RULES: ${describeRules(detail.rules!)}', b.cine.typeCredit, color: b.cine.colorInk60))),
+            ],
+            if (credits != null) ...[
+              SizedBox(height: c.space2),
+              CineStock.raised(Builder(builder: (b) => CineRoleText(credits!, b.cine.typeCredit, color: b.cine.colorInk60, maxLines: 2, overflow: TextOverflow.ellipsis))),
             ],
           ],),
         );

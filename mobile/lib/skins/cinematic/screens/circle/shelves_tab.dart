@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/features/collections/providers/shared_collections_
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cards/cine_collection_plate.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/circle/circle_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -33,6 +34,7 @@ class SharedShelfPlate extends ConsumerWidget {
       credit: credit,
       coverUrls: [for (final u in shelf.previewCovers) if (historyCoverUrl(base, u) case final r?) r],
       sharedWith: avatars,
+      badges: const [CineBadge('SHARED', variant: CineBadgeVariant.shared)],
       focusNode: focusNode,
       menuOnLongPress: false,
       onTap: () => unawaited(context.push(Routes.collection(shelf.id))),
