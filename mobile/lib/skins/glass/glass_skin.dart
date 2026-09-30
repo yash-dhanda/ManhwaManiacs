@@ -6,12 +6,16 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
 import 'package:manhwamaniacs/skins/glass/glass/liquid.dart';
 import 'package:manhwamaniacs/skins/glass/glass_motion_recorder.dart';
+import 'package:manhwamaniacs/skins/glass/glass_scroll_behavior.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/orientation.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/router.dart';
+import 'package:manhwamaniacs/skins/glass/shell/focus_policy.dart';
+import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
+import 'package:manhwamaniacs/skins/glass/transitions/glass_page_transitions.dart';
 import 'package:manhwamaniacs/skins/skin.dart';
 import 'package:manhwamaniacs/skins/token_types.g.dart';
 
@@ -24,6 +28,13 @@ class GlassSkin implements Skin {
     scaffoldBackgroundColor: const Color(0xFF000000),
     canvasColor: const Color(0xFF000000),
     colorScheme: const ColorScheme.dark(surface: Color(0xFF000000)),
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: GlassPageTransitionsBuilder(),
+        TargetPlatform.iOS: GlassPageTransitionsBuilder(),
+      },
+    ),
+    textSelectionTheme: TextSelectionThemeData(selectionColor: const Color(0x667563F2), cursorColor: glassTokens.colorIris400),
     extensions: const [glassTokens],
   );
 
@@ -78,6 +89,10 @@ class GlassRoot extends ConsumerStatefulWidget {
 }
 
 class _GlassRootState extends ConsumerState<GlassRoot> {
+  late final GlassFocusTraversalPolicy _focusPolicy = GlassFocusTraversalPolicy(
+    bands: (context) => glassFocusBands(context, accessory: ref.read(glassAccessoryVisibleProvider)),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -96,7 +111,12 @@ class _GlassRootState extends ConsumerState<GlassRoot> {
             children: [
               const Positioned.fill(child: ColoredBox(color: Color(0xFF000000))),
               const Positioned.fill(child: GlassAmbientField()),
-              Positioned.fill(child: widget.child),
+              Positioned.fill(
+                child: ScrollConfiguration(
+                  behavior: const GlassScrollBehavior(),
+                  child: FocusTraversalGroup(policy: _focusPolicy, child: widget.child),
+                ),
+              ),
               if (showTimings) const GlassMotionTimingsOverlay(),
             ],
           ),

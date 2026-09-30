@@ -1,8 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// The four tabs of the Glass shell (glass 7.15).
-enum GlassTab { home, library, sources, you }
+export 'package:manhwamaniacs/skins/glass/primitives/stack/route_snapshot.dart' show GlassTab;
 
 /// Today's reading goal; `mobile/42` feeds [glassGoalRingProvider]. `null` draws no ring.
 @immutable
