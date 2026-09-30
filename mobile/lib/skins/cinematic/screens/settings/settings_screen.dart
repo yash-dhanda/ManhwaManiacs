@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
@@ -223,26 +222,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final results = matchSettings(_query.text, rows);
     final top = CineScaffoldScope.topExtentOf(context) + c.space6;
 
-    final toc = Focus(
-      canRequestFocus: false,
-      onKeyEvent: (node, e) {
-        if (e is! KeyDownEvent || results.isEmpty) return KeyEventResult.ignored;
-        if (e.logicalKey == LogicalKeyboardKey.arrowDown) {
-          setState(() => _sel = (_sel + 1).clamp(0, results.length - 1));
-          return KeyEventResult.handled;
-        }
-        if (e.logicalKey == LogicalKeyboardKey.arrowUp) {
-          setState(() => _sel = (_sel - 1).clamp(0, results.length - 1));
-          return KeyEventResult.handled;
-        }
-        if (e.logicalKey == LogicalKeyboardKey.enter && _sel >= 0) {
-          final r = results[_sel];
-          _open(r.section, row: r.id, two: true);
-          return KeyEventResult.handled;
-        }
-        return KeyEventResult.ignored;
-      },
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    final toc = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
         Padding(
           padding: EdgeInsets.only(bottom: c.space3),
           child: CineSearchField(
@@ -252,6 +234,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             controller: _query,
             focusNode: _searchFocus,
             onChanged: (_) => setState(() => _sel = -1),
+            onArrowDown: () => setState(() => _sel = results.isEmpty ? -1 : (_sel + 1).clamp(0, results.length - 1)),
+            onArrowUp: () => setState(() => _sel = results.isEmpty ? -1 : (_sel - 1).clamp(0, results.length - 1)),
+            onSubmitNow: (_) {
+              if (results.isEmpty) return;
+              final r = results[_sel < 0 ? 0 : _sel];
+              _open(r.section, row: r.id, two: true);
+            },
           ),
         ),
         if (_query.text.trim().isNotEmpty)
@@ -272,7 +261,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               focusNode: _nodeFor(s.slug),
               onTap: () => _open(s.slug, two: true),
             ),
-      ],),
+      ],
     );
 
     final parentLink = page == null

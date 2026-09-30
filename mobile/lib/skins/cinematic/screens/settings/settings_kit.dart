@@ -45,11 +45,16 @@ class SettingsJump {
     flash.value = id;
     final target = _nodes[id]?.descendants.where((n) => n.canRequestFocus && !n.skipTraversal).firstOrNull;
     target?.requestFocus();
-    await Future<void>.delayed(CineDur.clip + CineDur.holdFlash);
-    if (flash.value == id) flash.value = null;
+    _timer?.cancel();
+    _timer = Timer(CineDur.clip + CineDur.holdFlash, () {
+      if (flash.value == id) flash.value = null;
+    });
   }
 
+  Timer? _timer;
+
   void dispose() {
+    _timer?.cancel();
     flash.dispose();
     for (final n in _nodes.values) {
       n.dispose();
