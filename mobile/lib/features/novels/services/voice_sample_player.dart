@@ -136,12 +136,17 @@ class VoiceSamplePlayer extends Notifier<SampleState> {
   Future<void> Function()? _resume;
   int _token = 0;
   final VoicePulse _pulse = VoicePulse();
+  late SampleEngine _engine;
+  late ({Future<void> Function() begin, Future<void> Function() end}) _session;
 
   /// The smoothed loudness 0-1: listen to it, never `setState` per frame from a provider.
   final ValueNotifier<double> pulse = ValueNotifier<double>(0);
 
   @override
   SampleState build() {
+    // Held here: `ref` cannot be read while the container is being torn down.
+    _engine = ref.read(sampleEngineProvider);
+    _session = ref.read(voiceSampleSessionProvider);
     ref.onDispose(() {
       unawaited(stop());
       _ticker?.dispose();
@@ -173,10 +178,10 @@ class VoiceSamplePlayer extends Notifier<SampleState> {
     while (_cache.length > cacheSize) {
       _cache.remove(_cache.keys.first);
     }
-    final engine = ref.read(sampleEngineProvider);
+    final engine = _engine;
     try {
       _resume = await ref.read(narrationControllerProvider.notifier).pauseForSample();
-      await ref.read(voiceSampleSessionProvider).begin();
+      await _session.begin();
       await engine.init();
       if (token != _token) {
         await _finish();
@@ -199,7 +204,7 @@ class VoiceSamplePlayer extends Notifier<SampleState> {
   void _onTick(Duration elapsed) {
     final handle = _handle;
     if (handle == null) return;
-    final engine = ref.read(sampleEngineProvider);
+    final engine = _engine;
     if (!engine.isPlaying(handle)) {
       unawaited(stop());
       return;
@@ -222,7 +227,7 @@ class VoiceSamplePlayer extends Notifier<SampleState> {
     _ticker?.stop();
     final handle = _handle;
     _handle = null;
-    if (handle != null) await ref.read(sampleEngineProvider).stop(handle);
+    if (handle != null) await _engine.stop(handle);
     await _finish();
     pulse.value = 0;
     if (state.status != SampleStatus.idle) state = SampleState(voiceId: state.voiceId);
@@ -232,7 +237,7 @@ class VoiceSamplePlayer extends Notifier<SampleState> {
     final resume = _resume;
     _resume = null;
     if (resume == null) return;
-    await ref.read(voiceSampleSessionProvider).end();
+    await _session.end();
     await resume();
   }
 }

@@ -68,7 +68,8 @@ Duration nextJobsPoll({required Duration base, required List<NovelAudioJob> jobs
 }
 
 /// Every render still queued or running, polled. Stops when a SUCCESSFUL answer says nothing is
-/// active and no Audiobook sheet is open; a failed poll keeps the last answer and backs off.
+/// active and no Audiobook sheet is open; a failed poll keeps the last answer and backs off while
+/// jobs were in flight, and ends the poll when none were.
 /// Restarted by [audiobookSheetOpenProvider] opening, or by a new render being queued (which
 /// invalidates this provider).
 final activeAudioJobsProvider = StreamProvider<List<NovelAudioJob>>((ref) async* {
@@ -92,10 +93,15 @@ final activeAudioJobsProvider = StreamProvider<List<NovelAudioJob>>((ref) async*
       if (!jobs.any((j) => j.isActive) && !ref.read(audiobookSheetOpenProvider)) return;
     } else {
       failures++;
+      final watching = jobs?.any((j) => j.isActive) ?? false;
       if (jobs == null) {
         jobs = const <NovelAudioJob>[];
         yield jobs;
       }
+      // Nothing was in flight the last time we heard, so there is nothing to keep watching for:
+      // a failed first look ends the poll instead of retrying an idle server forever. Opening the
+      // Audiobook sheet (or queueing a render) starts it again.
+      if (!watching && !ref.read(audiobookSheetOpenProvider)) return;
     }
     await Future<void>.delayed(nextJobsPoll(base: base, jobs: jobs, failures: failures));
   }
