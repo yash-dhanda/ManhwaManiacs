@@ -75,3 +75,40 @@ class NovelChapterOpener extends StatelessWidget {
     );
   }
 }
+
+/// The height [NovelChapterOpener] takes in a column [width] wide: what the paginator reserves
+/// on the first page of the paged layout.
+double novelOpenerHeight(
+  BuildContext context, {
+  required bool hasNumber,
+  required String title,
+  required int wordCount,
+  required NovelType type,
+  required double width,
+}) {
+  final c = context.cine;
+  double lineOf(CineTextRole role, String text, double w) {
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: CineText.style(context, role)),
+      textDirection: TextDirection.ltr,
+      textScaler: CineText.scaler(context, role),
+    )..layout(maxWidth: w);
+    final h = tp.height;
+    tp.dispose();
+    return h;
+  }
+
+  final size = type.fontSize * 1.9;
+  final titlePainter = TextPainter(
+    text: TextSpan(text: title, style: TextStyle(fontFamily: 'BodoniModa', fontSize: size, height: 1.15)),
+    textDirection: TextDirection.ltr,
+    textScaler: TextScaler.noScaling,
+  )..layout(maxWidth: width);
+  final titleHeight = titlePainter.height;
+  titlePainter.dispose();
+  final facts = novelFactsLine(wordCount);
+  var h = 56.0 + titleHeight + 20 + 1 + 40;
+  if (hasNumber) h += lineOf(c.typeKicker, 'CHAPTER 1', width) + 12;
+  if (facts.isNotEmpty) h += 16 + lineOf(c.typeFolio, facts, width);
+  return h;
+}
