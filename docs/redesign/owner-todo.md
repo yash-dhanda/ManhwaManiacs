@@ -158,4 +158,10 @@ Items only the owner can do, by step.
 - The Glass preview frames (`mobile/assets/skin_previews/glass/000.png` to `035.png`) are captured by `mobile/39`. Fallback in place: the neutral mark on the brand aurora (`kGlassPreviewFramesBundled` is false).
 - mobile/31: device checks in docs/redesign/proof/mobile-31/device-check.md
 
+<<<<<<< HEAD
 - mobile/41: run the eight device checks in `docs/redesign/proof/mobile-41/device-check.md` (Deal frame timing, throw and Undo, offer bloom, deck swipe and word fade against a real AI key, ready toast and haptic, chapter pill in both readers, VoiceOver and TalkBack, Reduce Motion). The step shipped with fixture-driven captures.
+=======
+## mobile/34 (reader engine, Glass commands)
+
+- Device check on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-34/device-check.md` (120 Hz, 0 dropped frames on the long strip and on a real 120-page chapter; `mode=single` pull readout; sample turns `decode`).
+>>>>>>> feat/vps-slim-source-native

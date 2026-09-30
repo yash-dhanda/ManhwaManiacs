@@ -1,0 +1,14 @@
+{
+  "pages": 120,
+  "pageSize": "720x2880",
+  "viewport": "390x844",
+  "maxScrollExtent": 186492.0,
+  "frames": 3732,
+  "frameMs": 8.33,
+  "maxMountedPageImages": 2,
+  "velocityMin": 5999.999999999803,
+  "velocityMax": 6000.000000000385,
+  "sampleRequests": 53,
+  "scrollMs": 31088,
+  "sampleRequestsBound": 53
+}
