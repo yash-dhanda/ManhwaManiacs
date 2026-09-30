@@ -6,7 +6,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_registry
 import 'settings_rig.dart';
 
 const _slugs = [
-  'profile', 'appearance', 'reading-manga', 'reading-novels', 'listen', 'ambient', 'storage', 'content', 'feedback', 'notifications', 'server', 'admin', 'diagnostics', 'about',
+  'profile', 'appearance', 'reading-manga', 'reading-novels', 'listen', 'ambient', 'storage', 'content', 'circle', 'feedback', 'notifications', 'server', 'admin', 'diagnostics', 'about',
   'security', 'members', 'backup',
 ];
 

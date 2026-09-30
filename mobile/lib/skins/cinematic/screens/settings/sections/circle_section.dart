@@ -163,11 +163,11 @@ class _Body extends ConsumerWidget {
       SizedBox(height: c.space4),
       JumpRow(
         id: 'clear-activity',
-        child: CineSettingsRow(
-          label: 'Clear my shared activity',
-          description: "Removes everything you've shared so far.",
-          control: CineButton(label: 'Clear my shared activity', variant: CineButtonVariant.destructive, size: CineButtonSize.sm, onPressed: () => unawaited(_clear(context, ref))),
-        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const CineSettingsRow(label: 'Clear my shared activity', description: "Removes everything you've shared so far."),
+          SizedBox(height: c.space2),
+          Align(alignment: Alignment.centerLeft, child: CineButton(label: 'Clear my shared activity', variant: CineButtonVariant.destructive, size: CineButtonSize.sm, onPressed: () => unawaited(_clear(context, ref)))),
+        ],),
       ),
     ],);
   }

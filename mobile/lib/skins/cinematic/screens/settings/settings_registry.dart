@@ -25,7 +25,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/server_s
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/storage_section.dart';
 
 /// Where a row exists (a row that is not rendered must not be searchable).
-enum RowGate { always, android, admin, novels, tablet }
+enum RowGate { always, android, admin, novels, tablet, mature }
 
 class SettingsRowSpec {
   const SettingsRowSpec(this.id, this.label, {this.keywords = const [], this.gate = RowGate.always});
@@ -168,7 +168,7 @@ final List<SettingsSectionDef> allSettingsSections = [
     SettingsRowSpec('share-reactions', 'Show my reactions', keywords: ['stamps', 'circle']),
     SettingsRowSpec('share-shelves', 'Let others add me to shared shelves', keywords: ['collections', 'invite']),
     SettingsRowSpec('share-recommendations', 'Receive recommendations', keywords: ['letters', 'pass it on']),
-    SettingsRowSpec('share-mature', 'Include 18+ titles in my activity', keywords: ['adult', 'mature']),
+    SettingsRowSpec('share-mature', 'Include 18+ titles in my activity', keywords: ['adult', 'mature'], gate: RowGate.mature),
     SettingsRowSpec('hide-series', 'Hide this series from my activity', keywords: ['exclude', 'private']),
     SettingsRowSpec('clear-activity', 'Clear my shared activity', keywords: ['delete', 'reset', 'circle']),
   ], perProfile: true,),
@@ -217,8 +217,11 @@ SettingsSectionDef? settingsSectionOf(String slug) => allSettingsSections.where(
 
 /// What decides which sections and rows exist.
 class SettingsEnv {
-  const SettingsEnv({required this.admin, required this.novels, required this.clientDownloads, required this.tablet, required this.android});
+  const SettingsEnv({required this.admin, required this.novels, required this.clientDownloads, required this.tablet, required this.android, this.mature = false});
   final bool admin, novels, clientDownloads, tablet, android;
+
+  /// This profile's 18+ gate is open (the Circle's `Include 18+ titles` row).
+  final bool mature;
 
   bool allows(RowGate g) => switch (g) {
         RowGate.always => true,
@@ -226,6 +229,7 @@ class SettingsEnv {
         RowGate.admin => admin,
         RowGate.novels => novels,
         RowGate.tablet => tablet,
+        RowGate.mature => mature,
       };
 }
 

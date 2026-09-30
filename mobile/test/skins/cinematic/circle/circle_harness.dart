@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
+import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/circle/circle_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/circle/circle_tabs.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/circle_member/circle_member_screen.dart';
@@ -55,3 +56,6 @@ Future<void> settle(WidgetTester tester, [int ms = 1500]) async {
   await tester.pump(const Duration(milliseconds: 200));
   await pumpMs(tester, ms);
 }
+
+/// The device's connectivity, fixed.
+Override deviceOnlineOverride(bool online) => deviceOnlineProvider.overrideWith((ref) => Stream.value(online));
