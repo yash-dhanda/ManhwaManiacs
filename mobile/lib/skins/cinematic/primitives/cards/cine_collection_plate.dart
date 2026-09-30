@@ -59,6 +59,7 @@ class CineCollectionPlate extends StatelessWidget {
     this.coverUrls = const [],
     this.duo,
     this.sharedWith = const [],
+    this.badges = const [],
     this.selected = false,
     this.onTap,
     this.tint,
@@ -80,6 +81,9 @@ class CineCollectionPlate extends StatelessWidget {
 
   /// Avatar keys, 20 px, bottom-right.
   final List<String> sharedWith;
+
+  /// Badges at the top-left (`SHARED`), 8 px in.
+  final List<Widget> badges;
 
   /// Reorder mode: a 2 px `spot` inset frame.
   final bool selected;
@@ -173,6 +177,7 @@ class CineCollectionPlate extends StatelessWidget {
                       for (final a in sharedWith.take(4)) Padding(padding: const EdgeInsets.only(left: 4), child: CineAvatar(avatarKey: a, size: 20)),
                     ],),
                   ),
+                  if (badges.isNotEmpty) Positioned(left: 8, top: 8, child: Wrap(spacing: 4, children: badges)),
                   if (dragHandle != null) Positioned(left: 0, bottom: 0, child: dragHandle!),
                   if (moveEntries != null && moveEntries!.isNotEmpty)
                     Positioned(

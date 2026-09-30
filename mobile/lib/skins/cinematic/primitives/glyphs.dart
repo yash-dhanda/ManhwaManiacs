@@ -39,6 +39,11 @@ abstract final class CineGlyph {
   static const sparkle = 0xe6a2;
   static const arrowLineUp = 0xe066;
   static const arrowLineDown = 0xe05c;
+  static const lightning = 0xe2de;
+  static const smiley = 0xe436;
+  static const drop = 0xe210;
+  static const usersThree = 0xe68e;
+  static const paperPlaneTilt = 0xe398;
 
   // Custom-font glyphs are not tree-shaken, so a non-const codepoint is fine.
   static IconData data(int cp, CineIconWeight w) => IconData(

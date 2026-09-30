@@ -7,6 +7,9 @@ import 'package:manhwamaniacs/skins/cinematic/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/setup_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/bookmarks/bookmarks_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/circle/circle_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/circle/circle_tabs.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/circle_member/circle_member_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/collection_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/collections_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
@@ -45,11 +48,16 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.tonight: (context, state) => const TonightScreen(),
   ScreenId.library: (context, state) => LibraryScreen(params: state.uri.queryParameters, browse: state.uri.path == '/library/browse'),
   ScreenId.updates: (context, state) => const UpdatesScreen(),
-  ScreenId.collections: (context, state) => const CollectionsScreen(),
+  ScreenId.collections: (context, state) => CollectionsScreen(
+        openNew: state.uri.queryParameters['sheet'] == SheetIds.collectionNew,
+        shareOnNew: state.uri.queryParameters['view'] == 'shared',
+      ),
   ScreenId.collection: (context, state) => CollectionScreen(collectionId: int.tryParse(state.pathParameters['id'] ?? '') ?? -1),
   ScreenId.history: (context, state) => const HistoryScreen(),
   ScreenId.bookmarks: (context, state) => const BookmarksScreen(),
   ScreenId.numbers: (context, state) => const NumbersScreen(),
+  ScreenId.circle: (context, state) => CircleScreen(initialTab: circleTabFromQuery(state.uri.queryParameters['tab'])),
+  ScreenId.circleMember: (context, state) => CircleMemberScreen(profileId: int.tryParse(state.pathParameters['profileId'] ?? '') ?? -1),
   ScreenId.annual: (context, state) => AnnualScreen(key: ValueKey(state.pathParameters['year']), yearParam: state.pathParameters['year'] ?? ''),
   ScreenId.setup: (context, state) => const SetupScreen(),
   ScreenId.login: (context, state) => const LoginScreen(),

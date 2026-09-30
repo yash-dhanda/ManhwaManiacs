@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
@@ -298,6 +299,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   void _onCompleted(ChapterRef done) {
     if (!mounted) return;
     if (done.chapterKey == _engine.value.chapterId || _engine.value.chapterId.isEmpty) setState(() => _completedOpen = true);
+    // Unseals every guarded Circle row for this chapter without a refetch (cinematic 9.3.3).
+    ref.read(completedThisSessionProvider.notifier).markCompleted(done.sourceId, done.seriesKey, done.chapterKey);
     cineFeedback(context, HapticEvent.chapterComplete, sound: SoundEvent.chapterComplete);
     Future<void>.delayed(const Duration(milliseconds: 120), () {
       if (mounted) cineFeedback(context, HapticEvent.tapSecondary);

@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/home/utils/rerank.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/numbers_teaser.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/tonight/sections/circle_sections.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/sections/continue_cuttings.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/sections/genres_line.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/sections/posters.dart';
@@ -34,8 +35,8 @@ class PlannedSection {
   final String folio;
 }
 
-/// The section types Tonight renders here. `Sent to you`, `From the Circle` and `Most read in the
-/// circle` are mobile/22's and are skipped without consuming a folio.
+/// The section types Tonight renders (`Sent to you`, `From the Circle` and `Most read in the circle`
+/// are the Circle's).
 const Set<HomeSectionType> kRenderedSections = {
   HomeSectionType.firstPicks,
   HomeSectionType.continueReading,
@@ -49,6 +50,9 @@ const Set<HomeSectionType> kRenderedSections = {
   HomeSectionType.numbers,
   HomeSectionType.popular,
   HomeSectionType.saved,
+  HomeSectionType.sentToYou,
+  HomeSectionType.circle,
+  HomeSectionType.circleTop,
 };
 
 /// AI-written sections: they never show a `SAVED COPY` badge (they show `PICKED ... AGO`).
@@ -97,6 +101,8 @@ VoidCallback? seeAllFor(BuildContext context, HomeSectionType t) => switch (t) {
       HomeSectionType.newThisWeek => () => context.go(Routes.updates()),
       HomeSectionType.picked || HomeSectionType.because => () => context.go(Routes.picks()),
       HomeSectionType.sources => () => context.go(Routes.sources()),
+      HomeSectionType.sentToYou => () => context.go(Routes.circle({'tab': 'letters'})),
+      HomeSectionType.circle => () => context.go(Routes.circle()),
       HomeSectionType.numbers => () => context.go(Routes.numbers()),
       _ => null,
     };
@@ -107,5 +113,8 @@ Widget buildSection(PlannedSection plan, TonightEnv env) => switch (plan.section
       HomeSectionType.sources => SourceTilesSection(plan: plan, env: env),
       HomeSectionType.genres => GenresLineSection(plan: plan),
       HomeSectionType.numbers => NumbersTeaser(plan: plan, env: env),
+      HomeSectionType.sentToYou => SentToYouSection(plan: plan),
+      HomeSectionType.circle => FromTheCircleSection(plan: plan),
+      HomeSectionType.circleTop => MostReadInCircleSection(plan: plan),
       _ => PostersSection(plan: plan, env: env),
     };

@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
+import 'package:manhwamaniacs/features/circle/utils/reaction_kinds.dart';
 
 /// What a row of the reader's CIRCLE tab says about a member (cinematic 9.3.3, the spoiler guard).
 enum CircleRowKind {
@@ -16,20 +17,20 @@ enum CircleRowKind {
 }
 
 class CircleRow {
-  const CircleRow({required this.member, required this.kind, this.label, this.chapterNumber});
+  const CircleRow({required this.member, required this.kind, this.label, this.chapterNumber, this.reaction});
   final CircleMemberRef member;
   final CircleRowKind kind;
 
   /// `LOVED`, `CHEF'S KISS`... for [CircleRowKind.label].
   final String? label;
   final double? chapterNumber;
+
+  /// The reaction of a [CircleRowKind.label] row.
+  final ReactionKind? reaction;
 }
 
 /// The kicker of a reaction kind.
-String reactionLabel(String kind) => switch (kind) {
-      'chefs_kiss' => "CHEF'S KISS",
-      final k => k.toUpperCase(),
-    };
+String reactionLabel(ReactionKind? kind) => kind == null ? '' : reactionSpec(kind).label.toUpperCase();
 
 String _num(double? n) => n == null ? '' : (n == n.roundToDouble() ? n.toStringAsFixed(0) : n.toString());
 
@@ -59,7 +60,7 @@ List<CircleRow> circleRows(CircleSeriesData data, {required String openKey, requ
     if (onOpen != null) {
       final earned = completedOpen || !onOpen.chapter.sealed;
       rows.add(earned
-          ? CircleRow(member: m, kind: CircleRowKind.label, label: reactionLabel(onOpen.kind), chapterNumber: onOpen.chapter.chapterNumber)
+          ? CircleRow(member: m, kind: CircleRowKind.label, label: reactionLabel(onOpen.kind), reaction: onOpen.kind, chapterNumber: onOpen.chapter.chapterNumber)
           : CircleRow(member: m, kind: CircleRowKind.guarded, chapterNumber: openNumber),);
       continue;
     }

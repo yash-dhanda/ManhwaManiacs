@@ -10,6 +10,8 @@ import 'package:manhwamaniacs/features/admin/models/account.dart';
 import 'package:manhwamaniacs/features/admin/providers/status_providers.dart';
 import 'package:manhwamaniacs/features/admin/providers/members_provider.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
+import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_user.dart';
 import 'package:manhwamaniacs/features/auth/models/user_session.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
@@ -38,6 +40,7 @@ import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../features/circle/fakes.dart' show FakeCircleRepository;
 import '../../../support/test_overrides.dart';
 import '../downloads/downloads_rig.dart' show HapticLog, rigTheme, settle;
 
@@ -118,6 +121,7 @@ const kFixtureSessions = [];
 List<Override> settingsOverrides(SettingsRig r, SharedPreferences prefs, SkinAudio audio) => [
       sharedPrefsProvider.overrideWithValue(prefs),
       apiBaseUrlOverride('https://manhwamaniacs.xyz'),
+      circleRepositoryProvider.overrideWithValue(FakeCircleRepository(sharingValue: const Sharing(activity: true))),
       skinIdProvider.overrideWithValue(SkinId.cinematic),
       if (r.admin) authenticatedAuthOverride() else authControllerProvider.overrideWith(_Member.new),
       if (r.profile) activeProfileOverride(),
@@ -184,6 +188,7 @@ Future<ProviderContainer> pumpSettings(
   Object? extra,
   List<Override> more = const [],
   double textScale = 1,
+  Key? boundaryKey,
 }) async {
   final r = rig ?? SettingsRig();
   tester.view.devicePixelRatio = 1;
@@ -214,20 +219,17 @@ Future<ProviderContainer> pumpSettings(
       GoRoute(path: '/:rest(.*)', builder: (context, state) => Scaffold(body: Text('at ${state.uri}'))),
     ],
   );
-  await tester.pumpWidget(
-    UncontrolledProviderScope(
-      container: container,
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        routerConfig: router,
-        theme: rigTheme(platform),
-        builder: (context, c) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(disableAnimations: reduced, textScaler: TextScaler.linear(textScale)),
-          child: c!,
-        ),
-      ),
+  Widget app = MaterialApp.router(
+    debugShowCheckedModeBanner: false,
+    routerConfig: router,
+    theme: rigTheme(platform),
+    builder: (context, c) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(disableAnimations: reduced, textScaler: TextScaler.linear(textScale)),
+      child: c!,
     ),
   );
+  if (boundaryKey != null) app = RepaintBoundary(key: boundaryKey, child: app);
+  await tester.pumpWidget(UncontrolledProviderScope(container: container, child: app));
   await settle(tester);
   return container;
 }

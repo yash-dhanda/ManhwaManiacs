@@ -4,8 +4,10 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/network/base_url.dart';
 import 'package:manhwamaniacs/core/network/dio_client.dart';
 import 'package:manhwamaniacs/core/utils/haptics.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
+import 'package:manhwamaniacs/features/collections/providers/shared_collections_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloaded_series_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
@@ -100,6 +102,7 @@ class MatureContentController extends AutoDisposeAsyncNotifier<bool> {
 const Set<String> kMatureGatedBackendServices = {
   'bookmark_service',
   'browse_service',
+  'circle_service',
   'followed_series_service',
   // `GET /home`: Tonight's feed, composed per (profile, gate, content kind).
   'home_service',
@@ -172,6 +175,17 @@ final List<void Function(Ref ref)> matureScopedInvalidators = [
   // rows come from the same followed-series read.
   (ref) => ref.invalidate(collectionsProvider),
   (ref) => ref.invalidate(collectionDetailProvider),
+  // The Circle serves through the same 18+ rule (circle_service): members' now, the feed,
+  // reactions, letters, recipients and shared shelves all drop on a gate change.
+  (ref) => ref.invalidate(circleMembersProvider),
+  (ref) => ref.invalidate(circleMemberProvider),
+  (ref) => ref.invalidate(recipientsProvider),
+  (ref) => ref.invalidate(circleFeedProvider),
+  (ref) => ref.invalidate(circleSeriesProvider),
+  (ref) => ref.invalidate(chapterReactionsProvider),
+  (ref) => ref.invalidate(lettersProvider),
+  (ref) => ref.invalidate(sharedCollectionsProvider),
+  (ref) => ref.invalidate(sharedShelfDetailProvider),
   // The last AI suggestion answer (suggestion_service). It was chosen from a
   // shelf filtered by the gate that was open when it was asked for, so closing
   // the gate leaves adult titles on screen until the next submit — and the

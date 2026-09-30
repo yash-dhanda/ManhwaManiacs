@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/duotone.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/circle_reactions_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart';
@@ -69,6 +70,8 @@ class ReaderCredits extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.cine;
     final end = 'End of chapter $chapterNumber';
+    final reactions = this.reactions ??
+        CircleReactionsBlock(sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapter.id, chapterNumber: double.tryParse(chapterNumber), seriesTitle: seriesTitle);
     if (mode == CreditsMode.compact) {
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: c.space4, vertical: c.space6),
@@ -76,7 +79,7 @@ class ReaderCredits extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Semantics(header: true, child: CineLit(end, CineFace.bodoni, 22, 28, italic: true, color: c.colorInk100, textAlign: TextAlign.center)),
-            if (reactions != null) ...[SizedBox(height: c.space4), reactions!],
+            ...[SizedBox(height: c.space4), reactions],
           ],
         ),
       );
@@ -104,7 +107,7 @@ class ReaderCredits extends ConsumerWidget {
             ('READ IN', '${readMinutes < 1 ? 1 : readMinutes} MIN'),
             ('PAGES', '${chapter.pages.length}'),
           ],),
-          if (reactions != null) ...[SizedBox(height: c.space6), reactions!],
+          ...[SizedBox(height: c.space6), reactions],
           if (nextChapterKey != null) ...[
             SizedBox(height: c.space8),
             ComingUpCard(

@@ -64,6 +64,7 @@ class ContentsRow extends StatelessWidget {
     this.onSwipeRead,
     this.onMarkTap,
     this.minutes,
+    this.reactionSlot,
   });
 
   final SourceChapterSummary chapter;
@@ -80,6 +81,9 @@ class ContentsRow extends StatelessWidget {
   final VoidCallback? onMenu;
   final VoidCallback? onSwipeRead;
   final VoidCallback? onMarkTap;
+
+  /// The circle's reaction count folio, when the chapter has any.
+  final Widget? reactionSlot;
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +123,7 @@ class ContentsRow extends StatelessWidget {
             ),
           ),
           Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: DotLeader(color: t.colorInk30))),
+          if (reactionSlot != null) Padding(padding: const EdgeInsets.only(left: 6), child: reactionSlot),
           if (minutes != null) Text('$minutes MIN', style: folio.copyWith(color: t.colorInk60)),
           if (percent != null)
             Padding(

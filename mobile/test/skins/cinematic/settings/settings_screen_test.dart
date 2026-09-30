@@ -26,13 +26,12 @@ void main() {
     testWidgets('the contents lists the visible sections with gapless folios and current values', (tester) async {
       await pumpSettings(tester);
       expect(heading('Settings'), findsOneWidget);
-      for (final s in ['profile', 'appearance', 'reading-manga', 'reading-novels', 'listen', 'ambient', 'storage', 'content', 'feedback', 'notifications', 'server', 'admin', 'diagnostics', 'about']) {
+      for (final s in ['profile', 'appearance', 'reading-manga', 'reading-novels', 'listen', 'ambient', 'storage', 'content', 'circle', 'feedback', 'notifications', 'server', 'admin', 'diagnostics', 'about']) {
         expect(toc(s), findsOneWidget, reason: s);
       }
       expect(toc('keyboard'), findsNothing, reason: 'phones have no keyboard section');
-      expect(toc('circle'), findsNothing, reason: 'circle is mobile/22');
-      // 14 visible sections: 01 ... 14, no gaps.
-      for (var i = 1; i <= 14; i++) {
+      // 15 visible sections: 01 ... 15, no gaps.
+      for (var i = 1; i <= 15; i++) {
         expect(find.text(i.toString().padLeft(2, '0')), findsOneWidget, reason: '$i');
       }
       expect(find.text('CINEMATIC'), findsOneWidget);
@@ -49,15 +48,15 @@ void main() {
       for (final s in ['reading-novels', 'listen', 'storage', 'admin', 'keyboard']) {
         expect(toc(s), findsNothing, reason: s);
       }
-      // profile, appearance, reading-manga, ambient, content, feedback, notifications, server, diagnostics, about
-      expect(find.text('10'), findsOneWidget);
-      expect(find.text('11'), findsNothing);
+      // profile, appearance, reading-manga, ambient, content, circle, feedback, notifications, server, diagnostics, about
+      expect(find.text('11'), findsOneWidget);
+      expect(find.text('12'), findsNothing);
     });
 
     testWidgets('a tablet in portrait below 900 dp is one pane and adds the Keyboard section', (tester) async {
       await pumpSettings(tester, size: _tablet);
       expect(toc('keyboard'), findsOneWidget);
-      expect(find.text('15'), findsOneWidget);
+      expect(find.text('16'), findsOneWidget);
       expect(find.byType(SettingsPaneTocRow), findsNothing);
     });
 
@@ -75,7 +74,7 @@ void main() {
     });
 
     testWidgets('every section renders every registered row', (tester) async {
-      for (final slug in ['profile', 'appearance', 'reading-manga', 'reading-novels', 'listen', 'ambient', 'storage', 'content', 'feedback', 'notifications', 'server', 'admin', 'diagnostics', 'about']) {
+      for (final slug in ['profile', 'appearance', 'reading-manga', 'reading-novels', 'listen', 'ambient', 'storage', 'content', 'circle', 'feedback', 'notifications', 'server', 'admin', 'diagnostics', 'about']) {
         await pumpSettings(tester, path: '/settings/$slug');
         final def = settingsSectionOf(slug)!;
         const env = SettingsEnv(admin: true, novels: true, clientDownloads: true, tablet: false, android: true);
