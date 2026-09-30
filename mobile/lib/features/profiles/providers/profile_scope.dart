@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
@@ -45,6 +46,8 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   (ref) => ref.invalidate(recommendationsProvider),
   (ref) => ref.invalidate(readingHistoryProvider),
   (ref) => ref.invalidate(genreWeightsProvider),
+  // Cards dismissed with Not for me live for the app session, per profile.
+  (ref) => ref.invalidate(dismissedPicksProvider),
   // Bookmarks.
   (ref) => ref.invalidate(bookmarksProvider),
   // Per-series detail (progress/bookmark state, and the `is_followed` /

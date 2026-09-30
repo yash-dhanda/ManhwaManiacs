@@ -26,6 +26,8 @@ class WorldItem {
     this.available = const [],
     this.why,
     this.ambient,
+    this.shelf = false,
+    this.author,
   });
 
   final int anilistId;
@@ -62,6 +64,24 @@ class WorldItem {
 
   /// The cover's issue colours where the payload carried them, else null.
   final Ambient? ambient;
+
+  /// A row of a source's own shelf (`POST /library/suggest`): opens the series, no catalogue data.
+  final bool shelf;
+  final String? author;
+
+  /// `kind: source` rows of `POST /library/suggest`, as a Shelf card.
+  factory WorldItem.fromShelfJson(Map<String, dynamic> json) {
+    final source = _text(json['source']) ?? '';
+    final key = _text(json['series_id']) ?? '';
+    return WorldItem(
+      title: _text(json['title']) ?? 'Untitled',
+      coverUrl: _text(json['cover_url']),
+      why: _text(json['why']),
+      author: _text(json['author']),
+      shelf: true,
+      available: source.isEmpty || key.isEmpty ? const [] : [WorldAvailability(sourceId: source, sourceName: source, seriesKey: key)],
+    );
+  }
 
   factory WorldItem.fromJson(Map<String, dynamic> json) => WorldItem(
         anilistId: (json['anilist_id'] as num?)?.toInt() ?? 0,

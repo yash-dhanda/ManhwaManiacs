@@ -27,6 +27,9 @@ import '../../support/test_overrides.dart';
 /// Answers `worldRecommendations` from a queue, one entry per call, so a test
 /// can script "fails, then works". The last entry repeats.
 class _WorldRepository implements LibraryRepository {
+  @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);

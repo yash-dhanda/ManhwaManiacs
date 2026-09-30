@@ -8,6 +8,9 @@ import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 class _Repo implements LibraryRepository {
+  @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
   _Repo(this.result);
 
   final Result<List<GenreWeight>> result;

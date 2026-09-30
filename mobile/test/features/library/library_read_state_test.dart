@@ -51,6 +51,9 @@ const _onChapterOne = ReadState(
 
 /// Only what the shelves call; anything else fails loudly.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);

@@ -189,6 +189,24 @@ class LibraryRepositoryImpl implements LibraryRepository {
       );
 
   @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => _request(
+        () => _dio.post<Map<String, dynamic>>(
+          '/library/suggest',
+          data: {'prompt': prompt, 'limit': limit},
+          options: Options(receiveTimeout: const Duration(seconds: 210)),
+        ),
+        (data) => WorldSuggestResponse(
+          items: [
+            for (final raw in (data['items'] as List<dynamic>? ?? const []))
+              if (raw is Map<String, dynamic>) WorldItem.fromShelfJson(raw),
+          ],
+          dropped: (data['dropped'] as num?)?.toInt() ?? 0,
+          model: (data['model'] as String?) ?? '',
+          remainingToday: (data['remaining_today'] as num?)?.toInt() ?? 0,
+        ),
+      );
+
+  @override
   Future<Result<SuggestionAvailability>> suggestAvailability() => _request(
         () => _dio.get<Map<String, dynamic>>('/library/suggest/availability'),
         SuggestionAvailability.fromJson,

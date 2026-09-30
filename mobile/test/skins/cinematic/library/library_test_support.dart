@@ -46,6 +46,9 @@ export '../feature/feature_test_support.dart' show Recorder;
 /// A server-shaped fake of `GET /library/series`: it filters, sorts and pages what it holds and
 /// records every call, so the tests can assert the parameters the shelf sends.
 class ShelfLibrary implements LibraryRepository {
+  @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
   ShelfLibrary({
     required this.all,
     this.failList = false,

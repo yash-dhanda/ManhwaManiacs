@@ -171,6 +171,9 @@ class _FakeUpdatesRepository implements UpdatesRepository {
 /// Only the followed-series read is exercised (the Follow button's cache);
 /// everything else throws so a stray call is loud rather than silently empty.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);

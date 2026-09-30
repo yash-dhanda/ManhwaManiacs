@@ -165,6 +165,9 @@ class FakeSources implements SourcesRepository {
 }
 
 class FakeLibrary implements LibraryRepository {
+  @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
   FakeLibrary({this.ai = true});
 
   final bool ai;

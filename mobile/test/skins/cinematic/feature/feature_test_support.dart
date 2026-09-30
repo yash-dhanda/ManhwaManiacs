@@ -215,6 +215,9 @@ class PausedQueue extends RecordingQueue {
 }
 
 class FakeLibrary implements LibraryRepository {
+  @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
   FakeLibrary(this.rec, {this.followed, this.tags = const [], this.shelves = const []});
   final Recorder rec;
   FollowedSeries? followed;
