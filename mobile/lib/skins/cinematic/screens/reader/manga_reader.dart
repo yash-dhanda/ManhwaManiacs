@@ -722,12 +722,14 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   }
 
   /// Page actions for [page] of [chapterId] (default: the page at the reading line).
-  void _openPageActions({String? chapterId, int? page}) {
+  Future<void> _openPageActions({String? chapterId, int? page}) async {
     final chapter = _chapterById(chapterId ?? _engine.value.chapterId);
     if (chapter == null) return;
     final n = (page ?? _engine.pageAtReadingLine()).clamp(1, math.max(1, chapter.pages.length)).toInt();
     final id = (sourceId: _id.sourceId, seriesKey: _id.seriesKey, chapterKey: chapter.id);
-    final text = ref.read(ocrChapterTextProvider(id)).valueOrNull;
+    // The transcript decides whether `Show dialogue on this page` is offered: ask for it, briefly.
+    final text = await ref.read(ocrChapterTextProvider(id).future).timeout(const Duration(milliseconds: 400), onTimeout: () => null).catchError((Object _) => null);
+    if (!mounted) return;
     final hasText = text?.any((t) => t.page == n && !t.isEmpty) ?? false;
     final summary = ref.read(readerSeriesProvider(_seriesKey))?.chapterOf(chapter.id);
     _engine.holdChrome();
@@ -955,7 +957,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       onPageLongPress: (chapterId, page) {
         if (_locked) return;
         cineFeedback(context, HapticEvent.longpressOpen);
-        _openPageActions(chapterId: chapterId, page: page);
+        unawaited(_openPageActions(chapterId: chapterId, page: page));
       },
       pageHeroTag: (chapterId, page) => _heroFor?.chapter == chapterId && _heroFor?.page == page ? 'reader-page-$chapterId-$page' : null,
       pageEpoch: (chapterId, page) => _retryEpoch['$chapterId:$page'] ?? 0,
