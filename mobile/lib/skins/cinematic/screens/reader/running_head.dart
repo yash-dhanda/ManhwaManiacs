@@ -128,7 +128,7 @@ class _Title extends StatelessWidget {
             flex: 3,
             child: _FolioButton(folioText: folioText, folio: folio, onOpenContents: onOpenContents),
           ),
-        if (houseSoundLabel != null && onOpenHouseSound != null) _WaveformButton(label: houseSoundLabel!, onTap: onOpenHouseSound!),
+        if (houseSoundLabel != null && onOpenHouseSound != null) HouseSoundWaveform(label: houseSoundLabel!, onTap: onOpenHouseSound!),
         if (offline) ...[
           const SizedBox(width: 8),
           // Scales down on a narrow head rather than overflowing beside the trailing buttons.
@@ -192,8 +192,8 @@ class _FolioButton extends StatelessWidget {
 
 /// The 16 px `waveform` after the folio's caret while a house-sound loop plays, with its own 44 / 48
 /// hit: it opens Reading setup at AMBIENT.
-class _WaveformButton extends StatelessWidget {
-  const _WaveformButton({required this.label, required this.onTap});
+class HouseSoundWaveform extends StatelessWidget {
+  const HouseSoundWaveform({super.key, required this.label, required this.onTap});
   final String label;
   final VoidCallback onTap;
 

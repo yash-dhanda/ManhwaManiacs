@@ -107,9 +107,9 @@ class CineAutoScrollChip extends StatelessWidget {
 
 /// Where the chip sits: bottom-right, 16 px from the right edge (plus the safe inset) and 16 px
 /// above the folio bar, or above the bottom inset when the chrome is hidden.
-Widget positionAutoScrollChip(BuildContext context, {required bool chromeVisible, required Widget child}) {
+Widget positionAutoScrollChip(BuildContext context, {required bool chromeVisible, required Widget child, double barHeight = 64}) {
   final pad = MediaQuery.viewPaddingOf(context);
   final hit = cineHitMin(context);
-  final bar = chromeVisible ? 64.0 : 0.0;
+  final bar = chromeVisible ? barHeight : 0.0;
   return Positioned(right: 16 + pad.right, bottom: 16 + pad.bottom + bar, child: ConstrainedBox(constraints: BoxConstraints(minHeight: hit), child: child));
 }

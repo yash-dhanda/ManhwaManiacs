@@ -274,7 +274,7 @@ Future<void> _migrate(Database db, int oldVersion) async {
   await _createListenSessionTable(db);
   // v5 → v6: page tint and panels per saved page. Nullable, each skipped when already present.
   for (final col in const [DownloadsSchema.colTint, DownloadsSchema.colPanels]) {
-    if (!await _hasColumn(db, DownloadsSchema.savedPages, col)) {
+    if (await _hasTable(db, DownloadsSchema.savedPages) && !await _hasColumn(db, DownloadsSchema.savedPages, col)) {
       await db.execute('ALTER TABLE ${DownloadsSchema.savedPages} ADD COLUMN $col TEXT');
     }
   }

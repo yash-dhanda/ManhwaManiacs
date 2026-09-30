@@ -56,6 +56,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/novel/bottom_bar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/chapter_opener.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/end_matter.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/in_page_head.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/novel/novel_ambient_rows.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/novel_contents.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/novel_keys.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/novel_margins_panel.dart';
@@ -67,7 +68,18 @@ import 'package:manhwamaniacs/skins/cinematic/screens/novel/progress_folio.dart'
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/stocks.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/top_bar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/type_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/auto_scroll_chip.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/auto_scroll_speed_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart' show cineReaderOwnsToastsProvider;
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/running_head.dart' show HouseSoundWaveform;
+import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/ambient_section.dart' show kSoundscapeLoops;
+import 'package:manhwamaniacs/skins/cinematic/soundscape/house_sound.dart';
+import 'package:manhwamaniacs/skins/cinematic/soundscape/house_sound_binding.dart';
+import 'package:manhwamaniacs/features/novels/controllers/novel_auto_scroll.dart';
+import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
+import 'package:manhwamaniacs/features/reader/engine/auto_scroll_model.dart' show novelPxPerSecond;
+import 'package:manhwamaniacs/skins/cinematic/screens/novel/type_rows.dart' show kNovelTypeRows;
+import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provider.dart' show novelPaceStoreProvider, snapAutoScrollSpeed;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/edge_hud.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/end_states.dart' show ReaderEndNotice;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_entry.dart';
@@ -140,6 +152,9 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
   final ValueNotifier<int> _bucket = ValueNotifier<int>(1);
   final ValueNotifier<({String name, Offset at})?> _speaker = ValueNotifier(null);
   late final HudHold _hud = HudHold(_repaint);
+  late final NovelAutoScroll _auto = NovelAutoScroll(scroll: _scroll, vsync: this, basePxPerSecond: _autoBase, onEnd: _autoEnded);
+  double? _autoSpeedDraft;
+  NovelType? _lastType;
   late final NarrationController _narr = ref.read(narrationControllerProvider.notifier);
   final ListenUi _listenUi = ListenUi();
   late final ListenFollower _follower = ListenFollower(surface: this, narration: _narr, reduced: () => _reduced);
@@ -200,6 +215,8 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     _pendingListen = widget.listen;
     _listenUi.addListener(_repaint);
     _scroll.addListener(_onScroll);
+    _auto.addListener(_repaint);
+    _auto.controller.addListener(_repaint);
     _chromeScope.addListener(() {
       if (!_chromeScope.hasFocus && _chrome) _maybeAutoHide();
     });
@@ -242,6 +259,9 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     _ctl
       ..detach(this)
       ..locationReplacer = null;
+    _auto.removeListener(_repaint);
+    _auto.controller.removeListener(_repaint);
+    _auto.dispose();
     _scroll.dispose();
     _chromeAnim.dispose();
     _chromeScope.dispose();
@@ -281,6 +301,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     if (next.revision != prev?.revision) {
       // A different chapter swapped in at the top: a fresh list at offset 0.
       _revision = next.revision;
+      _auto.stop();
       _restored = true;
       _keys = const [];
       _pageKey = null;
@@ -497,20 +518,114 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     }
   }
 
-  Future<Object?> _typeSheet() async {
+  Future<Object?> _typeSheet({bool toAmbient = false}) async {
     _setChromeHold();
     final stock = _stock();
     final series = ref.read(readerSeriesProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)));
     final a = series?.summary.ambient;
+    _auto.speedX = _autoSpeed;
     await showNovelTypeSheet(
       context,
       prefsKey: _prefsKey,
       stock: stock,
       ambient: a == null ? null : AmbientRoles(duo: a.duo, tint: a.tint, ink: a.ink),
+      rows: [...kNovelTypeRows, ...novelAmbientRows(_autoHandle(ref.read(novelSettingsProvider).novelLayout == 'paged'))],
+      toAmbient: toAmbient,
     );
     if (mounted) _setChrome(false);
     return null;
   }
+
+  // ── Auto-scroll (cinematic 9.4.1) ─────────────────────────────────────────
+
+  /// px/s at 1.00x: the chapter's laid-out extent traversed at the profile's measured pace, that is
+  /// `novelPxPerSecond(pace, 1, lineHeight, wordsPerLine)` with the words per line measured from
+  /// the laid-out extent.
+  double _autoBase() {
+    final chapter = ref.read(novelReaderControllerProvider(_args)).chapter;
+    final type = _lastType;
+    if (chapter == null || type == null || !_scrollOk) return 0;
+    final lineH = type.fontSize * type.lineHeight;
+    final lines = (_scroll.position.maxScrollExtent / lineH).round();
+    return novelPxPerSecond(ref.read(novelPaceStoreProvider).paceWpm, 1, lineH, avgWordsPerLine(chapter.wordCount, lines));
+  }
+
+  void _autoEnded() {
+    _setChrome(true);
+    cineFeedback(context, HapticEvent.autoscrollEnd);
+  }
+
+  double get _autoSpeed {
+    final book = ref.read(novelPreferencesControllerProvider(_prefsKey)).autoScrollSpeedX;
+    return _autoSpeedDraft ?? book ?? ref.read(readerSettingsProvider).seriesDefaults.autoScrollSpeed;
+  }
+
+  /// `a` and the bottom bar's button: starts auto-scroll (pausing narration) or stops it.
+  void _toggleAuto() {
+    if (ref.read(novelSettingsProvider).novelLayout == 'paged') {
+      ref.read(cineToastsProvider.notifier).info('Auto-scroll needs the scroll layout.');
+      return;
+    }
+    cineFeedback(context, HapticEvent.autoscrollToggle, sound: SoundEvent.autoscrollToggle);
+    if (_auto.running) {
+      _auto.stop();
+      return;
+    }
+    if (ref.read(narrationActiveProvider)) unawaited(_narr.pause());
+    _auto.speedX = _autoSpeed;
+    if (_chrome) _setChrome(false);
+    _auto.start();
+  }
+
+  void _chipToggle() {
+    cineFeedback(context, HapticEvent.autoscrollToggle, sound: SoundEvent.autoscrollToggle);
+    if (ref.read(narrationActiveProvider)) unawaited(_narr.pause());
+    _auto.controller.togglePause();
+  }
+
+  void _setAutoSpeed(double x, {required bool persist}) {
+    final v = snapAutoScrollSpeed(x);
+    setState(() => _autoSpeedDraft = v);
+    _auto.speedX = v;
+    _auto.refresh();
+    if (persist) {
+      unawaited(ref.read(novelPreferencesControllerProvider(_prefsKey).notifier).setAutoScrollSpeedX(v).whenComplete(() {
+        if (mounted) setState(() => _autoSpeedDraft = null);
+      }));
+    }
+  }
+
+  void _stepAutoSpeed(double delta) {
+    cineFeedback(context, HapticEvent.autoscrollStep);
+    _setAutoSpeed(_auto.speedX + delta, persist: true);
+  }
+
+  void _openAutoSpeed() {
+    cineFeedback(context, HapticEvent.longpressOpen);
+    unawaited(
+      showAutoScrollSpeedSheet(
+        context,
+        value: _auto.speedX,
+        onChanged: (x) => _setAutoSpeed(x, persist: false),
+        onCommit: (x) => _setAutoSpeed(x, persist: true),
+        equivalent: (x) => '≈ ${(ref.read(novelPaceStoreProvider).paceWpm * x).round()} WPM',
+      ),
+    );
+  }
+
+  String? _houseLabel() {
+    final h = ref.read(houseSoundProvider);
+    if (!h.playing || h.loopId == null) return null;
+    return kSoundscapeLoops.where((l) => l.$1 == h.loopId).firstOrNull?.$2;
+  }
+
+  NovelAutoHandle _autoHandle(bool paged) => NovelAutoHandle(
+        auto: _auto,
+        paceWpm: () => ref.read(novelPaceStoreProvider).paceWpm,
+        paged: paged,
+        onToggle: _toggleAuto,
+        onSpeed: _setAutoSpeed,
+      );
 
   void _setChromeHold() {
     if (!_chrome) _setChrome(true);
@@ -902,8 +1017,9 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
       e(LogicalKeyboardKey.bracketRight, 'Next sentence', () => _listenKey(NovelListenKey.nextSentence)),
       e(LogicalKeyboardKey.bracketLeft, 'Back 15 seconds', () => _listenKey(NovelListenKey.back15), shift: true, single: false, keys: const ['Shift', '[']),
       e(LogicalKeyboardKey.bracketRight, 'Forward 15 seconds', () => _listenKey(NovelListenKey.forward15), shift: true, single: false, keys: const ['Shift', ']']),
-      e(LogicalKeyboardKey.comma, 'Listen slower', () => _listenKey(NovelListenKey.slower), shift: true, single: false, keys: const ['<']),
-      e(LogicalKeyboardKey.period, 'Listen faster', () => _listenKey(NovelListenKey.faster), shift: true, single: false, keys: const ['>']),
+      e(LogicalKeyboardKey.keyA, 'Auto-scroll', _toggleAuto),
+      e(LogicalKeyboardKey.comma, 'Slower', () => _auto.running ? _stepAutoSpeed(-0.25) : _listenKey(NovelListenKey.slower), shift: true, single: false, keys: const ['<']),
+      e(LogicalKeyboardKey.period, 'Faster', () => _auto.running ? _stepAutoSpeed(0.25) : _listenKey(NovelListenKey.faster), shift: true, single: false, keys: const ['>']),
       e(LogicalKeyboardKey.escape, 'Close, then back to the book', _escape, single: false),
     ];
   }
@@ -926,7 +1042,16 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     final margin = switch (settings.novelMargins) { 'narrow' => 16.0, 'wide' => 48.0, _ => 24.0 };
     final width = tablet || landscape ? novelColumnWidthCh(type, viewportWidth: size.width, margin: 24) : size.width - 2 * margin;
     final brightness = _brightnessDraft ?? settings.novelBrightness;
-    _ctl.autoNext = ref.watch(readerSettingsProvider).autoNextChapter;
+    final rs = ref.watch(readerSettingsProvider);
+    _ctl.autoNext = rs.autoNextChapter;
+    _lastType = type;
+    _auto.controller.configure(ramp: context.cine.durGlide, curve: CineCurves.settle.transform, resumeAfterRelease: rs.resumeAfterRelease);
+    if (!_auto.running && _autoSpeedDraft == null) _auto.speedX = _autoSpeed;
+    if (paged && _auto.running) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _auto.stop() : null);
+    ref.listen<bool>(narrationActiveProvider, (_, active) {
+      // Starting narration pauses auto-scroll; the chip says why.
+      if (active && _auto.running && !_auto.controller.userPaused) _auto.controller.togglePause();
+    });
     _syncSwipeable(paged);
 
     final chapter = s.chapter;
@@ -988,6 +1113,8 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
                       Positioned.fill(child: body),
                       if (showBars) ..._chromeLayers(context, s, chapter, series, stock, tablet, paged),
                       if (showBars) _gestureZones(context, brightness),
+                      HouseSoundBinding(genres: series?.summary.genres ?? const <String>[]),
+                      if (showBars && !paged && _auto.running) _autoChip(stock),
                       if (showBars) _listenLayer(context, s, chapter, series, stock),
                       if (showBars && tablet) _panels(context, s, chapter, stock),
                       _speakerPopover(stock),
@@ -1031,9 +1158,14 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     }
     return NotificationListener<ScrollNotification>(
       onNotification: _onScrollNotification,
-      child: GestureDetector(
+      child: Listener(
         behavior: HitTestBehavior.translucent,
-        onTap: _toggleChrome,
+        onPointerDown: (_) => _auto.running ? _auto.controller.touchDown() : null,
+        onPointerUp: (_) => _auto.running ? _auto.controller.touchUp() : null,
+        onPointerCancel: (_) => _auto.running ? _auto.controller.touchUp() : null,
+        child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => _auto.running ? null : _toggleChrome(),
         child: _SwipeChapter(
           enabled: ref.watch(novelSettingsProvider).novelSwipeChapter,
           onSwipe: (forward) {
@@ -1109,6 +1241,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -1148,6 +1281,8 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
 
   bool _onScrollNotification(ScrollNotification n) {
     if (n.depth != 0) return false;
+    // A manual drag pauses auto-scroll and it stays paused.
+    if (n is ScrollStartNotification && n.dragDetails != null && _auto.running) _auto.controller.manualDrag();
     // A manual scroll stops the page following the voice.
     if (!_programmatic && n is ScrollUpdateNotification && n.dragDetails != null) _follower.userMoved();
     if (n is OverscrollNotification && n.overscroll > 0 && n.dragDetails != null && _ctl.nextKey != null) {
@@ -1292,6 +1427,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
               onBack: _leave,
               offline: chapter.isOffline,
               savedCopyAgo: chapter.cacheStale ? cacheAge : null,
+              titleTrailing: _houseLabel() == null ? null : HouseSoundWaveform(label: _houseLabel()!, onTap: () => unawaited(_typeSheet(toAmbient: true))),
               actions: novelTopActions(
                 onContents: _openContents,
                 onBookmark: () => unawaited(_bookmark()),
@@ -1320,6 +1456,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
             progress: fraction,
             onPrevious: _ctl.previousKey == null ? null : _previous,
             onNext: _ctl.nextKey == null ? null : _next,
+            trailing: [if (!paged) _autoButton(stock)],
             folio: novelFolio(
               key: _folio,
               stock: stock,
@@ -1333,6 +1470,41 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
         ),
       ),
     ];
+  }
+
+  /// The bottom bar's auto-scroll button: `play` with the `strip-scroll` glyph, Fill with the
+  /// stock-ink rule and the speed folio while it runs. Absent in the paged layout.
+  Widget _autoButton(CineStockColors stock) {
+    final on = _auto.running;
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        CineIconButton(label: on ? 'Stop auto-scroll' : 'Auto-scroll', role: CineIconRole.autoScroll, selected: on, onPressed: _toggleAuto),
+        if (on)
+          Positioned(top: -2, child: IgnorePointer(child: CineRoleText(speedFolio(_auto.speedX), context.cine.typeFolio, color: stock.ink))),
+      ],
+    );
+  }
+
+  /// The floating chip in the stock's colours; `PAUSED FOR LISTEN` while narration plays.
+  Widget _autoChip(CineStockColors stock) {
+    final listen = ref.read(narrationActiveProvider);
+    final fraction = (ref.read(novelReaderControllerProvider(_args)).chapterPercent) / 100;
+    return positionAutoScrollChip(
+      context,
+      chromeVisible: _chrome,
+      barHeight: kNovelBarHeight,
+      child: CineAutoScrollChip(
+        stock: stock,
+        speedX: _auto.speedX,
+        running: _auto.controller.moving && !listen,
+        pausedForListen: listen && _auto.controller.userPaused,
+        progress: fraction,
+        onToggle: _chipToggle,
+        onOpenRuler: _openAutoSpeed,
+      ),
+    );
   }
 
   String _ago(String? iso) {
