@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/painting.dart' show HSLColor;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/contrast.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_tint.dart';
 import 'package:manhwamaniacs/skins/cinematic/tint.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -150,5 +153,14 @@ void main() {
   test('compositeOver', () {
     expect(compositeOver(const Color(0x80FFFFFF), _black).r, closeTo(0.5, 0.01));
     expect(compositeOver(_white, _black), _white);
+  });
+
+  group('page seed parity (design/tint-vectors.json)', () {
+    final spec = jsonDecode(File('../design/tint-vectors.json').readAsStringSync()) as Map<String, dynamic>;
+    for (final e in spec['samples'] as List) {
+      test('seed ${e['id']}', () {
+        expect(pickPageSeed(base64Decode(e['rgba'] as String)), e['expected']);
+      });
+    }
   });
 }
