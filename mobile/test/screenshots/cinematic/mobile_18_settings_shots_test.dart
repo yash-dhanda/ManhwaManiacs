@@ -16,7 +16,6 @@ import 'package:manhwamaniacs/features/auth/providers/sessions_provider.dart';
 import 'package:manhwamaniacs/features/settings/models/backup_status.dart';
 import 'package:manhwamaniacs/features/settings/services/server_switch.dart';
 import 'package:manhwamaniacs/features/setup/utils/server_check.dart';
-import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/overlays/stop_the_press.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_switch.dart';
@@ -89,7 +88,7 @@ class _Switch implements ServerSwitch {
 }
 
 Future<void> _reveal(WidgetTester t, Finder f) async {
-  Scrollable.ensureVisible(t.element(f.first), alignment: 0.4, duration: Duration.zero);
+  Scrollable.ensureVisible(t.element(f.first), alignment: 0.4);
   await t.pump();
   await t.pump(const Duration(milliseconds: 60));
 }
@@ -165,31 +164,31 @@ void main() {
       await _tap(t, find.bySemanticsLabel('Search settings').first, ms: 500);
       await t.enterText(find.byType(EditableText), 'haptic');
       await t.pump(const Duration(milliseconds: 300));
-    });
+    },);
     await shot(t, 'settings-search-empty', _phone, _app(_screen(null)), drive: (t) async {
       await _tap(t, find.bySemanticsLabel('Search settings').first, ms: 500);
       await t.enterText(find.byType(EditableText), 'zzzz');
       await t.pump(const Duration(milliseconds: 300));
-    });
+    },);
     await shot(t, 'settings-search-jump', _phone, _app(_screen(null)), drive: (t) async {
       await _tap(t, find.bySemanticsLabel('Search settings').first, ms: 500);
       await t.enterText(find.byType(EditableText), 'haptic');
       await t.pump(const Duration(milliseconds: 300));
       await _tap(t, find.byKey(const Key('settings-result-haptics')), ms: 1200);
-    });
+    },);
     await shot(t, 'settings-search-dropdown', _wide, _app(_screen(null)), drive: (t) async {
       await t.enterText(find.byType(EditableText), 'read');
       await t.pump(const Duration(milliseconds: 300));
-    });
+    },);
     await shot(t, 'settings-search-ios', _phone, _app(_screen(null), platform: TargetPlatform.iOS), platform: TargetPlatform.iOS, drive: (t) async {
       await _tap(t, find.bySemanticsLabel('Search settings').first, ms: 500);
-    });
+    },);
   });
 
   const slugs = ['profile', 'appearance', 'reading-manga', 'reading-novels', 'listen', 'ambient', 'storage', 'content', 'feedback', 'notifications', 'server', 'admin', 'diagnostics', 'about'];
   for (final slug in slugs) {
     testWidgets('section $slug', (t) async {
-      await everySize(t, 'settings-$slug', () => _app(_screen(slug), path: '/'));
+      await everySize(t, 'settings-$slug', () => _app(_screen(slug)));
     });
   }
 
@@ -204,7 +203,7 @@ void main() {
       ('BodoniModa', ['Copyright 2020 The Bodoni Moda Project Authors.', 'This Font Software is licensed under the SIL Open Font License, Version 1.1.']),
       ('phosphor_flutter', ['MIT License', 'Permission is hereby granted, free of charge, to any person obtaining a copy of this software.']),
       ('flutter_riverpod', ['MIT License']),
-    ])));
+    ],),),);
   });
 
   testWidgets('states: no profile, loading, error, offline, reduced motion', (t) async {
@@ -219,20 +218,20 @@ void main() {
   testWidgets('the 18+ certificate dialog', (t) async {
     await shot(t, 'settings-certificate', _phone, _app(_screen('content')), drive: (t) async {
       await _tap(t, find.byType(CineSwitch).first, ms: 900);
-    });
+    },);
   });
 
   testWidgets('the edition picker: flag off, flag on, the sheet and the dialog', (t) async {
     await shot(t, 'settings-edition-off', _phone, _app(_screen('appearance')));
-    Widget picker() => _app(Scaffold(backgroundColor: Colors.black, body: SafeArea(child: SingleChildScrollView(padding: const EdgeInsets.all(16), child: const EditionPicker(glassAvailable: true, dryRun: true)))));
+    Widget picker() => _app(const Scaffold(backgroundColor: Colors.black, body: SafeArea(child: SingleChildScrollView(padding: EdgeInsets.all(16), child: EditionPicker(glassAvailable: true, dryRun: true)))));
     await shot(t, 'settings-edition-on', _phone, picker());
     await shot(t, 'settings-edition-on', _tablet, picker());
     await shot(t, 'settings-edition-confirm-sheet', _phone, picker(), drive: (t) async {
       await _tap(t, find.text('Switch to Glass'), ms: 800);
-    });
+    },);
     await shot(t, 'settings-edition-confirm-dialog', _tablet, picker(), drive: (t) async {
       await _tap(t, find.text('Switch to Glass'), ms: 800);
-    });
+    },);
   });
 
   testWidgets('Stop the press frozen at 100, 300 and 470 ms, the reduced fade and the failure toast', (t) async {
@@ -244,11 +243,11 @@ void main() {
     await shot(t, 'stop-the-press-failure-toast', _phone, _app(_screen('appearance')), drive: (t) async {
       _container(t).read(cineToastsProvider.notifier).error("Couldn't switch editions. Try again.");
       await t.pump(const Duration(milliseconds: 600));
-    });
+    },);
     await shot(t, 'settings-arrival-undo-toast', _phone, _app(_screen(null)), drive: (t) async {
       _container(t).read(cineToastsProvider.notifier).undo('Now in the Cinematic edition.', hold: CineDur.holdToastUndo, onUndo: () {});
       await t.pump(const Duration(milliseconds: 600));
-    });
+    },);
   });
 
   testWidgets('security with rate_limited, the members delete dialog, the backup dialogs and progress', (t) async {
@@ -258,10 +257,10 @@ void main() {
       await t.enterText(fields.at(1), 'new-password');
       await t.enterText(fields.at(2), 'new-password');
       await _tap(t, find.widgetWithText(CineButton, 'Change password'), ms: 500);
-    });
+    },);
     await shot(t, 'settings-members-delete', _phone, _app(_screen('members')), drive: (t) async {
       await _tap(t, find.widgetWithText(CineButton, 'Delete').last, ms: 900);
-    });
+    },);
     await shot(t, 'settings-backup-staged', _phone, _app(_screen('backup')), rig: SettingsRig(backup: BackupStatus(restorePending: true, nightly: NightlyBackup(ok: true, finishedAt: DateTime(2026, 9, 28, 3), bytes: 412 * 1024 * 1024))));
     await shot(t, 'settings-backup-failed', _phone, _app(_screen('backup')), rig: SettingsRig(backup: BackupStatus(restorePending: false, nightly: NightlyBackup(ok: false, finishedAt: DateTime(2026, 9, 28, 3), phase: 'dump'))));
   });
@@ -270,11 +269,11 @@ void main() {
     await shot(t, 'settings-server-switch', _phone, _app(_screen('server')), more: [serverSwitchProvider.overrideWithValue(_Switch())], drive: (t) async {
       await t.enterText(find.byType(EditableText), 'https://other.example');
       await _tap(t, find.widgetWithText(CineButton, 'Save'), ms: 1000);
-    });
+    },);
     await shot(t, 'settings-server-error', _phone, _app(_screen('server')), drive: (t) async {
       await t.enterText(find.byType(EditableText), '');
       await _tap(t, find.widgetWithText(CineButton, 'Save'), ms: 400);
-    });
+    },);
     await shot(t, 'settings-about-android', _phone, _app(_screen('about')));
     await shot(t, 'settings-about-ios', _phone, _app(_screen('about'), platform: TargetPlatform.iOS), platform: TargetPlatform.iOS);
   });
