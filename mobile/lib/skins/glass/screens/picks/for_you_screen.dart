@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/pending_ask_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/copy/ai.dart' show glassAiPartialLine;
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/ai_notice.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -253,9 +254,10 @@ class _ForYouScreenState extends ConsumerState<ForYouScreen> {
                               ref.read(askControllerProvider.notifier).cancel,),
                     if (failure != null) failure,
                     if (f?.code == 'rate_limited')
-                      AskFailureNote(
-                          text:
-                              'Too many requests in a row. Trying again in ${ask.retryIn ?? 0} s.',),
+                      AiNotice(
+                          reason: 'rate_limited',
+                          long: true,
+                          retrySeconds: ask.retryIn ?? 0,),
                     if (ask.phase == AskPhase.results)
                       Padding(
                         padding: const EdgeInsets.only(top: 12),
@@ -273,7 +275,7 @@ class _ForYouScreenState extends ConsumerState<ForYouScreen> {
                       const Padding(
                           padding: EdgeInsets.only(top: 4),
                           child: AskFailureNote(
-                              text: "Some picks didn't come through.",),),
+                              text: glassAiPartialLine,),),
                   ],
                 ],
               ),
@@ -302,7 +304,7 @@ class _ForYouScreenState extends ConsumerState<ForYouScreen> {
             _example(2),
       },
       child: Focus(
-        canRequestFocus: false,
+        autofocus: true,
         skipTraversal: true,
         onKeyEvent: _key,
         child: GlassScaffold(

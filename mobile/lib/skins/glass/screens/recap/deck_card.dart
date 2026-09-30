@@ -29,15 +29,16 @@ class StreamingWords extends ConsumerStatefulWidget {
 class _StreamingWordsState extends ConsumerState<StreamingWords> with SingleTickerProviderStateMixin {
   final List<Duration> _born = [];
   Duration _now = Duration.zero;
-  late final Ticker _ticker = createTicker((d) {
-    _now = d;
-    if (_born.isNotEmpty && _now - _born.last >= kWordFade) _ticker.stop();
-    if (mounted) setState(() {});
-  });
+  late final Ticker _ticker;
 
   @override
   void initState() {
     super.initState();
+    _ticker = createTicker((d) {
+      _now = d;
+      if (_born.isNotEmpty && _now - _born.last >= kWordFade) _ticker.stop();
+      if (mounted) setState(() {});
+    });
     _stamp();
   }
 

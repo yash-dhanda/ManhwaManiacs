@@ -7,14 +7,16 @@ import 'package:manhwamaniacs/features/recap/recap_deck.dart' show gapWords;
 import 'package:manhwamaniacs/features/recap/recap_setting.dart';
 import 'package:manhwamaniacs/features/recap/utils/should_open_recap.dart'
     show localDaysBetween;
+import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
+import 'package:manhwamaniacs/skins/glass/routes/nav_extra.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
-import 'package:manhwamaniacs/skins/glass/transitions/dive.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
 
 /// Registers the `?sheet=offer` sheet (glass 8.0.3): `medium` on phones, the 420 px popover on wide frames.
 void registerOfferSheet() => registerGlobalSheet(
@@ -40,36 +42,27 @@ class RecapOfferBody extends ConsumerStatefulWidget {
 class _RecapOfferBodyState extends ConsumerState<RecapOfferBody> {
   bool _skip = false;
 
-  Future<void> _skipSave() async {
-    final t = ref.read(offerTargetProvider);
+  Future<void> _skipSave(HomeContinueTarget? t) async {
     if (t == null || !_skip) return;
     await ref.read(recapSettingProvider.notifier).skip(t.seriesId);
   }
 
   Future<void> _show() async {
     final t = ref.read(offerTargetProvider);
-    final nav = Navigator.of(context);
-    nav.pop();
-    await _skipSave();
-    if (t != null) unawaited(openRecapFor(ref, t));
+    final router = ref.read(skinRouterProvider);
+    final skip = _skipSave(t);
+    Navigator.of(context).pop();
+    await skip;
+    if (t != null) unawaited(router.push<void>(Routes.recap(t.sourceId, t.seriesKey, {'to': t.recap?.toKey ?? t.chapterKey}), extra: const GlassNavExtra()));
   }
 
   Future<void> _justContinue() async {
     final t = ref.read(offerTargetProvider);
-    final nav = Navigator.of(context);
-    final overlayCtx = nav.context;
-    final rect = _centre(context);
-    nav.pop();
-    await _skipSave();
-    if (t != null && overlayCtx.mounted) {
-      unawaited(enterReader(overlayCtx, ref, t.readerLocation, fromRect: rect));
-    }
-  }
-
-  Rect _centre(BuildContext c) {
-    final s = MediaQuery.sizeOf(c);
-    return Rect.fromCenter(
-        center: Offset(s.width / 2, s.height - 120), width: 88, height: 132,);
+    final go = ref.read(offerContinueProvider);
+    final skip = _skipSave(t);
+    Navigator.of(context).pop();
+    await skip;
+    go?.call();
   }
 
   @override

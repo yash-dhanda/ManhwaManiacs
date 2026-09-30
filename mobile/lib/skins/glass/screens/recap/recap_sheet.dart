@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
@@ -51,7 +52,6 @@ class RecapSheet extends ConsumerStatefulWidget {
 
 class _RecapSheetState extends ConsumerState<RecapSheet> {
   final GlobalKey<RecapDeckViewState> _deckKey = GlobalKey();
-  final FocusNode _focus = FocusNode(debugLabel: 'RecapSheet');
   DeckState _deck = const DeckState();
   RecapPhaseG _phase = RecapPhaseG.opening;
   RecapProblem _problem = RecapProblem.error;
@@ -64,17 +64,22 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
   StreamSubscription<SseEvent>? _sub;
   DateTime? _startedAt;
   bool _ocrTried = false;
+  bool _offline = false;
+  String? _title;
 
   String get _to => widget.to ?? '';
   bool get _compact => widget.scope == 'chapter';
   RecapKey get _key => RecapKey(widget.sourceId, widget.seriesKey, _to);
   String get _cacheKey => recapCacheKey(widget.sourceId, widget.seriesKey, _to, widget.scope);
-  late final BackgroundRecaps _bg = ref.read(backgroundRecapsProvider);
-  late final RecapCache _cache = ref.read(recapCacheProvider);
+  late final BackgroundRecaps _bg;
+  late final RecapCache _cache;
 
   @override
   void initState() {
     super.initState();
+    _bg = ref.read(backgroundRecapsProvider);
+    _cache = ref.read(recapCacheProvider);
+    HardwareKeyboard.instance.addHandler(_onKey);
     unawaited(_start());
   }
 
@@ -83,12 +88,11 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     final running = _phase == RecapPhaseG.writing && _bridge != null && !_deck.finished && _cancel != null && _startedAt != null;
     unawaited(_sub?.cancel());
     if (running) {
-      final d = ref.read(sourceSeriesDetailProvider((sourceId: widget.sourceId, seriesId: widget.seriesKey))).valueOrNull;
       _bg.keepAlive(
         _cacheKey,
         events: _bridge!.stream,
         cancel: _cancel!,
-        title: d?.series.title ?? widget.seriesKey,
+        title: _title ?? widget.seriesKey,
         sourceId: widget.sourceId,
         seriesKey: widget.seriesKey,
         to: _to,
@@ -100,7 +104,7 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     } else {
       _cancel?.cancel();
     }
-    _focus.dispose();
+    HardwareKeyboard.instance.removeHandler(_onKey);
     super.dispose();
   }
 
@@ -108,6 +112,7 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     final cached = await _cache.readCachedRecap(_cacheKey);
     if (!mounted) return;
     if (cached != null) {
+      unawaited(_checkOffline());
       setState(() {
         _deck = cached.deck;
         _savedAt = cached.savedAt;
@@ -116,6 +121,14 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
       return;
     }
     await _open();
+  }
+
+  Future<void> _checkOffline() async {
+    var online = true;
+    try {
+      online = await ref.read(networkConnectivityProvider).isOnline();
+    } catch (_) {}
+    if (mounted && !online) setState(() => _offline = true);
   }
 
   Future<void> _open() async {
@@ -181,6 +194,22 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     }
   }
 
+  /// Space, arrows, Enter, `s` and Esc while this sheet is the top route (glass 8.0.6, group "Recap").
+  bool _onKey(KeyEvent e) {
+    if (e is! KeyDownEvent || !mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return false;
+    if (FocusManager.instance.primaryFocus?.context?.findAncestorWidgetOfExactType<EditableText>() != null) return false;
+    final k = e.logicalKey;
+    if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.keyS) {
+      unawaited(_continue());
+      return true;
+    }
+    if (k == LogicalKeyboardKey.escape) {
+      _close();
+      return true;
+    }
+    return !_compact && (_deckKey.currentState?.handleKey(k) ?? false);
+  }
+
   void _close() {
     if (mounted) Navigator.of(context).maybePop();
   }
@@ -213,6 +242,7 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
   Widget build(BuildContext context) {
     final detail = ref.watch(sourceSeriesDetailProvider((sourceId: widget.sourceId, seriesId: widget.seriesKey))).valueOrNull;
     final title = detail?.series.title ?? widget.seriesKey;
+    _title = title;
     final now = ref.read(clockProvider)();
     final chNo = _n(_chapter(detail, _to)?.number);
     final wide = GlassFrame.of(context) != GlassFrameKind.phone;
@@ -231,26 +261,8 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     }
 
     final writing = _phase == RecapPhaseG.writing || _phase == RecapPhaseG.opening;
-    return Focus(
-      focusNode: _focus,
-      autofocus: true,
-      onKeyEvent: (n, e) {
-        if (e is! KeyDownEvent) return KeyEventResult.ignored;
-        final k = e.logicalKey;
-        if (k == LogicalKeyboardKey.enter) {
-          unawaited(_continue());
-          return KeyEventResult.handled;
-        }
-        if (k == LogicalKeyboardKey.keyS) {
-          unawaited(_continue());
-          return KeyEventResult.handled;
-        }
-        if (k == LogicalKeyboardKey.escape) {
-          _close();
-          return KeyEventResult.handled;
-        }
-        return _deckKey.currentState?.key(n, e) ?? KeyEventResult.ignored;
-      },
+    return Semantics(
+      explicitChildNodes: true,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
         child: Column(
@@ -263,7 +275,7 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
             if (writing && _phase == RecapPhaseG.writing) Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const ThinkingOrbit(), const SizedBox(width: 8), GlassText('Writing your recap', role: gt.typeFootnote, color: gt.colorLabel2)])),
             const SizedBox(height: 12),
             Flexible(child: SingleChildScrollView(child: body)),
-            if (_deck.done != null) Padding(padding: const EdgeInsets.only(top: 12), child: RecapFooter(done: _deck.done!, savedAt: _savedAt, now: now, onGlass: wide)),
+            if (_deck.done != null) Padding(padding: const EdgeInsets.only(top: 12), child: RecapFooter(done: _deck.done!, savedAt: _savedAt, now: now, onGlass: wide, offline: _offline)),
             if (_phase != RecapPhaseG.problem) ...[
               const SizedBox(height: 12),
               GlassButton(label: chNo.isEmpty ? 'Continue' : 'Continue · Ch $chNo', variant: GlassButtonVariant.primary, size: GlassButtonSize.large, fullWidth: true, onPressed: () => unawaited(_continue())),

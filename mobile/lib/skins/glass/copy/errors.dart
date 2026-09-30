@@ -78,9 +78,9 @@ const Map<String, GlassErrorEntry> glassErrors = {
   'suggest_shelf_empty': GlassErrorEntry(GlassErrorSurface.inline, ''),
   'ai_no_matches': GlassErrorEntry(GlassErrorSurface.inline, ''),
   // The AI long lines (copy/ai.dart); never auto-retried.
-  'ai_budget_exhausted': GlassErrorEntry(GlassErrorSurface.inline, "You've used today's AI asks. They reset at midnight UTC."),
-  'ai_not_configured': GlassErrorEntry(GlassErrorSurface.inline, "AI isn't set up on this server. Everything else works as usual."),
-  'ai_failed': GlassErrorEntry(GlassErrorSurface.inline, "The AI service didn't answer. Try again in a moment."),
+  'ai_budget_exhausted': GlassErrorEntry(GlassErrorSurface.inline, kAiBudgetLong),
+  'ai_not_configured': GlassErrorEntry(GlassErrorSurface.inline, kAiNotConfiguredLong),
+  'ai_failed': GlassErrorEntry(GlassErrorSurface.inline, kAiUpstreamLong),
   'recipient_unavailable': GlassErrorEntry(GlassErrorSurface.toast, "{name} isn't taking recommendations any more.", haptic: HapticEvent.warning),
   'circle_member_not_sharing': GlassErrorEntry(GlassErrorSurface.inline, "{name} isn't sharing right now."),
 };

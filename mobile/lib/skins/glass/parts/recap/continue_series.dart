@@ -53,6 +53,9 @@ class HomeContinueTarget {
 /// The Continue the offer sheet is open for (set by [continueSeries], read by the `offer` sheet).
 final offerTargetProvider = StateProvider<HomeContinueTarget?>((ref) => null);
 
+/// What "Just continue" does: the Dive, run with the caller's own context and ref (the sheet's are gone by then).
+final offerContinueProvider = StateProvider<VoidCallback?>((ref) => null);
+
 /// Every Glass Continue goes through here (glass 9.1.3): the recap setting decides between the offer sheet (`ask`), the recap deck
 /// (`always`) and the Dive into the reader.
 Future<void> continueSeries(BuildContext context, WidgetRef ref,
@@ -70,6 +73,9 @@ Future<void> continueSeries(BuildContext context, WidgetRef ref,
       await openRecapFor(ref, item, originRect: originRect);
     case RecapEntryDecision.offer:
       ref.read(offerTargetProvider.notifier).state = item;
+      ref.read(offerContinueProvider.notifier).state = () {
+        if (context.mounted) unawaited(enterReader(context, ref, item.readerLocation, fromRect: originRect));
+      };
       await router.push<void>(Routes.tonight({'sheet': 'offer'}),
           extra: GlassNavExtra(originRect: originRect),);
     case RecapEntryDecision.none:

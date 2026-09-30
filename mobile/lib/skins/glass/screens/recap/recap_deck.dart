@@ -86,18 +86,17 @@ class RecapDeckViewState extends ConsumerState<RecapDeckView> with SingleTickerP
     if (_t.isAnimating) _t.stop();
   }
 
-  KeyEventResult key(FocusNode n, KeyEvent e) {
-    if (e is! KeyDownEvent) return KeyEventResult.ignored;
-    final k = e.logicalKey;
+  /// Space and Right advance, Left goes back; true when the key was the deck's.
+  bool handleKey(LogicalKeyboardKey k) {
     if (k == LogicalKeyboardKey.arrowRight || k == LogicalKeyboardKey.space) {
       unawaited(next());
-      return KeyEventResult.handled;
+      return true;
     }
     if (k == LogicalKeyboardKey.arrowLeft) {
       unawaited(previous());
-      return KeyEventResult.handled;
+      return true;
     }
-    return KeyEventResult.ignored;
+    return false;
   }
 
   @override

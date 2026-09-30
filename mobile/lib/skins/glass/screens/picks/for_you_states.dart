@@ -23,7 +23,7 @@ String clockOf(Duration d) {
   return '${two(d.inHours)}:${two(d.inMinutes % 60)}:${two(d.inSeconds % 60)}';
 }
 
-/// "You've used today's AI asks..." with a live countdown to 00:00 UTC.
+/// The budget notice with a live countdown to 00:00 UTC.
 class BudgetNotice extends ConsumerStatefulWidget {
   const BudgetNotice({super.key});
 

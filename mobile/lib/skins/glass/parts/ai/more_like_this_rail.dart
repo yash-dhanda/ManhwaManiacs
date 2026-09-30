@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/skins/glass/parts/ai/world_card_for.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/machine_badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/thinking_orbit.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/rail.dart';
+import 'package:manhwamaniacs/skins/glass/screens/home/home_rail_common.dart' show posterCardHeight;
 
 /// At least this many genre-fallback items, or the rail is omitted.
 const int kGenresMin = 3;
@@ -29,7 +30,7 @@ class MoreLikeThisRail extends ConsumerWidget {
     return ai.when(
       loading: () => KeyedSubtree(
         key: key,
-        child: GlassRail(title: 'More like $title', revealKey: 'mlt:$sourceId:$seriesKey', screenId: 'series', itemCount: 0, itemBuilder: (_, __) => const SizedBox.shrink(), itemHeight: 200, state: GlassRailState.loading, aiSkeleton: true, skeletonCount: 3, titleLeading: const ThinkingOrbit()),
+        child: GlassRail(title: 'More like $title', revealKey: 'mlt:$sourceId:$seriesKey', screenId: 'series', itemCount: 0, itemBuilder: (_, __) => const SizedBox.shrink(), itemHeight: posterCardHeight(context), state: GlassRailState.loading, aiSkeleton: true, skeletonCount: 3, titleLeading: const ThinkingOrbit()),
       ),
       error: (_, __) => _genres(context, ref, key),
       data: (r) {

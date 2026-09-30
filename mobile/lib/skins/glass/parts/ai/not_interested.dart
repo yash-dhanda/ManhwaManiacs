@@ -42,10 +42,15 @@ class AiCardActions extends ConsumerStatefulWidget {
 
 class AiCardActionsState extends ConsumerState<AiCardActions>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _x =
-      AnimationController.unbounded(vsync: this);
+  late final AnimationController _x;
   final GlobalKey _box = GlobalKey();
   bool _removing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _x = AnimationController.unbounded(vsync: this);
+  }
 
   @override
   void dispose() {

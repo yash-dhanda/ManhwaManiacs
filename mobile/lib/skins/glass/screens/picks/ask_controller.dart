@@ -100,7 +100,7 @@ class AskController extends AutoDisposeNotifier<AskState> {
     _last = a;
     final id = ++_id;
     final token = _token = CancelToken();
-    final clock = Stopwatch()..start();
+    var elapsed = Duration.zero;
     state = state.copy(
         phase: AskPhase.asking,
         prompt: a.prompt,
@@ -110,8 +110,9 @@ class AskController extends AutoDisposeNotifier<AskState> {
     _tick?.cancel();
     _tick = Timer.periodic(const Duration(milliseconds: 250), (_) {
       if (id != _id) return;
-      state = state.copy(elapsed: clock.elapsed);
-      if (abandoned(clock.elapsed)) {
+      elapsed += const Duration(milliseconds: 250);
+      state = state.copy(elapsed: elapsed);
+      if (abandoned(elapsed)) {
         token.cancel();
         _finish(id, failure: const AskFailure('timeout'));
       }
