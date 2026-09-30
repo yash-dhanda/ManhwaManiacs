@@ -400,10 +400,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                           ),
                           const Kicker('No. 04 — Discover / Catalogue'),
                           HeadingFocus(
-                            child: Semantics(
-                              header: true,
-                              headingLevel: 1,
-                              child: SetHeading(
+                            child: SetHeading(
                                 name,
                                 key: ValueKey('h-$name'),
                                 id: 'catalogue-$name',
@@ -412,7 +409,6 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                                 level: 1,
                                 trigger: SetTrigger.mount,
                               ),
-                            ),
                           ),
                           if (!(browse.isLoading && state == null))
                             _retrySeconds(err) != null
