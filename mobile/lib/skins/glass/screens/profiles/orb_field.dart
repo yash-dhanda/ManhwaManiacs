@@ -194,6 +194,7 @@ class _OrbFieldState extends ConsumerState<OrbField> with SingleTickerProviderSt
         active = true;
       }
     }
+    if (_arrive.isNotEmpty || _hopT.isNotEmpty) active = true;
     if (mounted) setState(() {});
     if (!active) _ticker.stop();
   }

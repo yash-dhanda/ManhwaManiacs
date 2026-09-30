@@ -173,4 +173,16 @@ void main() {
     await settleFor(t);
     expect(rig.at, '/profiles');
   });
+
+  testWidgets('the mobile alias /profiles/create resolves to /profiles/new', (t) async {
+    final rig = await pumpAuth(t, '/profiles/create', _fx());
+    await settleFor(t, 800);
+    expect(rig.at, '/profiles/new');
+  });
+
+  testWidgets('the mobile alias /profiles/edit/2 resolves to /profiles/2/edit', (t) async {
+    final rig = await pumpAuth(t, '/profiles/edit/2', _fx());
+    await settleFor(t, 800);
+    expect(rig.at, '/profiles/2/edit');
+  });
 }
