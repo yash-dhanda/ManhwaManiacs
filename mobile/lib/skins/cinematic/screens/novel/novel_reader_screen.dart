@@ -11,16 +11,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
 import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
+import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
+import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
 import 'package:manhwamaniacs/features/novels/controllers/novel_reader_controller.dart';
+import 'package:manhwamaniacs/features/novels/engine/novel_paginator.dart' as pg show pageOfParagraph;
 import 'package:manhwamaniacs/features/novels/engine/novel_paginator.dart';
 import 'package:manhwamaniacs/features/novels/engine/novel_paragraph_layout.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_audio_provider.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
+import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
@@ -28,14 +35,23 @@ import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/settings/providers/a11y_prefs_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/circle_reactions_block.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_rating_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_text_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/listen/audiobook_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/listen/cast_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/listen/follow_along.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/listen/listen_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/listen/listen_common.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/listen/listen_layer.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/bottom_bar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/chapter_opener.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/end_matter.dart';
@@ -77,9 +93,13 @@ class CineNovelReader extends ConsumerStatefulWidget {
     this.paragraph,
     this.fraction,
     this.nonce = '',
+    this.listen = false,
   });
 
   final String sourceId, seriesKey, chapterKey;
+
+  /// `?listen=1`: start the narrator when the first frame is laid out.
+  final bool listen;
 
   /// `?page=` (a progress bucket), `?para=` and `?at=` (a bookmark's paragraph and fraction).
   final int bucket;
@@ -93,7 +113,7 @@ class CineNovelReader extends ConsumerStatefulWidget {
   ConsumerState<CineNovelReader> createState() => _CineNovelReaderState();
 }
 
-class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTickerProviderStateMixin implements NovelReadingSurface {
+class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerProviderStateMixin implements NovelReadingSurface, FollowSurface {
   /// The Cinematic reading line: 38 % from the top.
   static const double _readingLine = 0.38;
 
@@ -120,6 +140,12 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
   final ValueNotifier<int> _bucket = ValueNotifier<int>(1);
   final ValueNotifier<({String name, Offset at})?> _speaker = ValueNotifier(null);
   late final HudHold _hud = HudHold(_repaint);
+  late final NarrationController _narr = ref.read(narrationControllerProvider.notifier);
+  final ListenUi _listenUi = ListenUi();
+  late final ListenFollower _follower = ListenFollower(surface: this, narration: _narr, reduced: () => _reduced);
+  ListenDecorator? _decorator;
+  bool _programmatic = false, _programmaticPage = false;
+  bool _pendingListen = false, _resumeAfterSwap = false;
 
   List<GlobalKey> _keys = const [];
   bool _chrome = false;
@@ -167,7 +193,12 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
       ..attach(this)
       ..seamless = true
       ..locationReplacer = _replaceLocation
-      ..narrationBusy = (() => false);
+      ..narrationBusy = _narrationBusy;
+    _narr
+      ..onSkipNext = _skipNext
+      ..onFeedback = _narrationFeedback;
+    _pendingListen = widget.listen;
+    _listenUi.addListener(_repaint);
     _scroll.addListener(_onScroll);
     _chromeScope.addListener(() {
       if (!_chromeScope.hasFocus && _chrome) _maybeAutoHide();
@@ -196,6 +227,18 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
   void dispose() {
     _sub?.close();
     _speakerTimer?.cancel();
+    // Leaving the reader stops the narration and removes the notification.
+    _narr
+      ..onSkipNext = null
+      ..onFeedback = null;
+    Future<void>.microtask(() async {
+      try {
+        await _narr.stop();
+      } catch (_) {}
+    });
+    _follower.dispose();
+    _decorator?.dispose();
+    _listenUi.dispose();
     _ctl
       ..detach(this)
       ..locationReplacer = null;
@@ -244,8 +287,18 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollOk) _scroll.jumpTo(0);
       });
+      _afterSwap();
     }
-    if (prev?.chapter == null && next.chapter != null) _announce(next);
+    if (prev?.chapter == null && next.chapter != null) {
+      _announce(next);
+      if (_pendingListen) {
+        _pendingListen = false;
+        // `?listen=1`: the narrator starts once the first frame is laid out.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_startListen(fromReadingLine: false));
+        });
+      }
+    }
   }
 
   void _announce(NovelReaderState s) {
@@ -353,7 +406,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
     if (_isPaged) {
       final paged = _paged.currentState;
       if (paged == null) return false;
-      paged.jumpTo(pageOfParagraph(_ctl.pages, index));
+      paged.jumpTo(pg.pageOfParagraph(_ctl.pages, index));
       return true;
     }
     if (!mounted || !_scrollOk) return true;
@@ -408,12 +461,14 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
 
   void _next() {
     cineFeedback(context, HapticEvent.chapterNext, sound: SoundEvent.chapterNext);
+    _resumeAfterSwap = _narr.current.active;
     _ctl.next();
     _announceSoon();
   }
 
   void _previous() {
     cineFeedback(context, HapticEvent.chapterNext, sound: SoundEvent.chapterNext);
+    _resumeAfterSwap = _narr.current.active;
     _ctl.previous();
     _announceSoon();
   }
@@ -499,11 +554,13 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
 
   void _escape() {
     final tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
-    switch (novelEscapeStep(progressFieldOpen: _folio.currentState?.editing ?? false, sheetOpen: false, panelOpen: tablet && (_leftPanel || _rightPanel))) {
+    switch (novelEscapeStep(progressFieldOpen: _folio.currentState?.editing ?? false, sheetOpen: false, panelOpen: tablet && (_leftPanel || _rightPanel), playerOpen: _listenUi.roomOpen)) {
       case NovelEscape.cancelProgressField:
         _folio.currentState?.cancelEdit();
       case NovelEscape.closeSheet:
         break;
+      case NovelEscape.collapsePlayer:
+        _listenUi.handleBack();
       case NovelEscape.closePanel:
         setState(() => _leftPanel = _rightPanel = false);
       case NovelEscape.exitReader:
@@ -561,6 +618,255 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
     _speakerTimer = Timer(const Duration(milliseconds: 2500), () => _speaker.value = null);
   }
 
+
+  // ── Listen ────────────────────────────────────────────────────────────────
+
+  NovelChapterKey get _chapterKey => (
+        sourceId: widget.sourceId,
+        seriesKey: widget.seriesKey,
+        chapterKey: ref.read(novelReaderControllerProvider(_args)).chapter?.chapterKey ?? widget.chapterKey,
+      );
+
+  /// Narration keeps the 900 ms auto-next off while it plays, is paused mid-chapter, or its
+  /// post-play card is waiting.
+  bool _narrationBusy() {
+    final n = _narr.current;
+    return (n.active && n.key == _chapterKey) || _listenUi.cardShowing;
+  }
+
+  void _skipNext() {
+    if (_ctl.nextKey != null) _next();
+  }
+
+  void _narrationFeedback(NarrationFeedback f) {
+    if (!mounted) return;
+    switch (f) {
+      case NarrationFeedback.sleepFade:
+        cineFeedback(context, HapticEvent.sleepFade);
+      case NarrationFeedback.shakeExtended:
+        cineFeedback(context, HapticEvent.select);
+        ref.read(cineToastsProvider.notifier).info('Sleep timer +5 min');
+    }
+  }
+
+  /// Reads the chapter aloud from the reading line (or the start), when it has audio.
+  Future<void> _startListen({bool fromReadingLine = true}) async {
+    final s = ref.read(novelReaderControllerProvider(_args));
+    final chapter = s.chapter;
+    if (chapter == null) return;
+    final key = _chapterKey;
+    final playable = await ref.read(playableNovelAudioProvider(key).future);
+    if (playable == null || !mounted) return;
+    final series = ref.read(readerSeriesProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)));
+    String? narrator;
+    try {
+      final attr = await ref.read(novelAttributionProvider(key).future).timeout(const Duration(milliseconds: 400));
+      final voices = await ref.read(novelVoicesProvider.future).timeout(const Duration(milliseconds: 400));
+      narrator = attr.narratorVoiceId == null ? null : voices.where((v) => v.voiceId == attr.narratorVoiceId).firstOrNull?.name;
+    } catch (_) {
+      narrator = null;
+    }
+    final base = ref.read(apiBaseUrlProvider);
+    final target = NarrationTarget(
+      key: key,
+      audio: playable.audio,
+      file: playable.file?.path,
+      paragraphs: chapter.paragraphs,
+      bookTitle: series?.title ?? '',
+      chapterNumber: chapter.chapterNumber,
+      chapterTitle: chapter.title,
+      narratorName: narrator,
+      coverUrl: coverUrlAtWidth(sourceSeriesCoverUrl(base, widget.sourceId, widget.seriesKey), 512),
+    );
+    if (!mounted) return;
+    var startMs = 0;
+    final paragraph = fromReadingLine ? anchorAtReadingLine()?.index : null;
+    if (paragraph != null && paragraph > 0) {
+      final seg = playable.audio.segments.where((x) => x.paragraph >= paragraph).firstOrNull;
+      startMs = seg?.startMs ?? 0;
+    }
+    cineFeedback(context, HapticEvent.listenToggle);
+    _follower.refollow();
+    await _narr.start(target, startMs: startMs);
+  }
+
+  /// `p`: play or pause this chapter's narration, starting it when nothing is playing here.
+  Future<void> _listenToggle() async {
+    final n = _narr.current;
+    if (n.key == _chapterKey && n.target != null && n.status != NarrationStatus.failed) {
+      cineFeedback(context, HapticEvent.listenToggle);
+      await _narr.toggle();
+    } else {
+      await _startListen();
+    }
+  }
+
+  void _listenKey(NovelListenKey k) {
+    final n = _narr.current;
+    final mine = n.key == _chapterKey && n.target != null;
+    switch (k) {
+      case NovelListenKey.toggle:
+        unawaited(_listenToggle());
+      case NovelListenKey.previousSentence:
+        if (mine) unawaited(_narr.stepSentence(-1));
+      case NovelListenKey.nextSentence:
+        if (mine) unawaited(_narr.stepSentence(1));
+      case NovelListenKey.back15:
+        if (mine) unawaited(_narr.seekBy(const Duration(seconds: -15)));
+      case NovelListenKey.forward15:
+        if (mine) unawaited(_narr.seekBy(const Duration(seconds: 15)));
+      case NovelListenKey.slower:
+        if (mine) {
+          cineFeedback(context, HapticEvent.select);
+          unawaited(_narr.setSpeed(n.speed - 0.05));
+        }
+      case NovelListenKey.faster:
+        if (mine) {
+          cineFeedback(context, HapticEvent.select);
+          unawaited(_narr.setSpeed(n.speed + 0.05));
+        }
+    }
+  }
+
+  /// The voices button, the voices line and the Margins VOICES tab.
+  void _openVoices() {
+    _setChromeHold();
+    unawaited(showCastSheet(context, chapter: _chapterKey, stock: _stock(), onReNarrate: _reNarrate));
+  }
+
+  void _reNarrate() {
+    Navigator.of(context).maybePop();
+    unawaited(showAudiobookSheet(context, sourceId: widget.sourceId, seriesKey: widget.seriesKey, seriesTitle: ref.read(readerSeriesProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)))?.title, currentChapterKey: _chapterKey.chapterKey, initialQuickPick: 'revoice', chapters: ref.read(readerSeriesProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)))?.chapters, stock: _stock()));
+  }
+
+  /// The post-play card finished: the chapter swaps in place and the narration goes on.
+  void _advanceListening() {
+    if (_ctl.nextKey == null) return;
+    _resumeAfterSwap = true;
+    _ctl.next();
+    _announceSoon();
+  }
+
+  /// A chapter swapped in: when the narrator was reading (or the card advanced), read the new one.
+  void _afterSwap() {
+    if (!_resumeAfterSwap) return;
+    _resumeAfterSwap = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final key = _chapterKey;
+      final playable = await ref.read(playableNovelAudioProvider(key).future);
+      if (!mounted) return;
+      if (playable == null) {
+        await _narr.stop();
+        return;
+      }
+      await _startListen(fromReadingLine: false);
+    });
+  }
+
+
+  /// Whether the paged first page reserves room for the Listen row: the owner always (the
+  /// `NOT NARRATED` row), everyone else once the book has any narrated chapter. Part of the page
+  /// key, so a flip repaginates once instead of clipping a line.
+  bool _reserveListen() =>
+      ref.watch(isOwnerProvider) || (ref.watch(seriesAudioProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey))).valueOrNull?.rendered.isNotEmpty ?? false);
+
+  /// The Listen row under the opener's facts line.
+  Widget? _listenOpener(NovelChapter chapter, ReaderSeries? series) => ListenOpener(
+        chapter: _chapterKey,
+        chapterNumber: chapter.chapterNumber,
+        title: chapter.title,
+        seriesTitle: series?.title,
+        fixedHeight: _isPaged ? (_reserveListen() ? kListenOpenerReserve - 20 : 0) : null,
+        onListen: () => unawaited(_startListen()),
+      );
+
+  /// The voices line under the text, over the end matter.
+  Widget _withVoicesLine(CineStockColors stock, Widget endMatter) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          VoicesLine(chapter: _chapterKey, muted: stock.muted, onOpen: _openVoices),
+          endMatter,
+        ],
+      );
+
+  // FollowSurface ------------------------------------------------------------
+
+  @override
+  bool get isPaged => _isPaged;
+
+  @override
+  double? paragraphTop(int index) {
+    final box = _boxFor(index);
+    return box == null ? null : box.localToGlobal(Offset.zero).dy - _viewportTop();
+  }
+
+  @override
+  double get viewportHeight {
+    final box = context.findRenderObject();
+    return box is RenderBox && box.hasSize ? box.size.height : MediaQuery.sizeOf(context).height;
+  }
+
+  @override
+  void scrollBy(double delta, {required bool animate}) {
+    if (!_scrollOk) return;
+    final to = (_scroll.position.pixels + delta).clamp(0.0, _scroll.position.maxScrollExtent);
+    _programmatic = true;
+    if (animate) {
+      unawaited(_scroll.animateTo(to, duration: context.cine.durGlide, curve: CineCurves.settle).whenComplete(() => _programmatic = false));
+    } else {
+      _scroll.jumpTo(to);
+      _programmatic = false;
+    }
+  }
+
+  @override
+  void jumpToParagraph(int index) {
+    _programmatic = true;
+    if (!landOn(index, 0, toReadingLine: true)) {
+      final n = ref.read(novelReaderControllerProvider(_args)).paragraphs.length;
+      if (n > 0) jumpEstimate(index / n);
+    }
+    _programmatic = false;
+  }
+
+  @override
+  int? pageOfParagraph(int index) => _ctl.pages.isEmpty ? null : pg.pageOfParagraph(_ctl.pages, index);
+
+  @override
+  int get currentPage => _paged.currentState?.page ?? 0;
+
+  @override
+  void showPage(int page) {
+    final paged = _paged.currentState;
+    if (paged == null) return;
+    _programmaticPage = true;
+    final delta = page - paged.page;
+    if (delta.abs() == 1) {
+      paged.turnBy(delta);
+    } else {
+      paged.jumpTo(page);
+    }
+    Future<void>.delayed(const Duration(milliseconds: 600), () => _programmaticPage = false);
+  }
+
+  ListenDecorator _decoratorFor(BuildContext context, CineStockColors stock) {
+    final c = context.cine;
+    final d = _decorator ??= ListenDecorator(
+      narration: _narr,
+      chapterOf: () => _chapterKey,
+      vsync: this,
+      reduced: () => _reduced,
+      wash: c.colorSpotWash,
+      ink: stock.ink,
+    );
+    d
+      ..wash = c.colorSpotWash
+      ..ink = stock.ink;
+    return d;
+  }
+
   // ── Keys ──────────────────────────────────────────────────────────────────
 
   List<ShortcutEntry> _entries() {
@@ -591,6 +897,13 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
       e(LogicalKeyboardKey.keyB, 'Bookmark this spot', () => unawaited(_bookmark())),
       e(LogicalKeyboardKey.keyM, 'Margins', _openMargins),
       e(LogicalKeyboardKey.keyG, 'Go to a percent', _goToPercent),
+      e(LogicalKeyboardKey.keyP, 'Play or pause the narrator', () => _listenKey(NovelListenKey.toggle)),
+      e(LogicalKeyboardKey.bracketLeft, 'Previous sentence', () => _listenKey(NovelListenKey.previousSentence)),
+      e(LogicalKeyboardKey.bracketRight, 'Next sentence', () => _listenKey(NovelListenKey.nextSentence)),
+      e(LogicalKeyboardKey.bracketLeft, 'Back 15 seconds', () => _listenKey(NovelListenKey.back15), shift: true, single: false, keys: const ['Shift', '[']),
+      e(LogicalKeyboardKey.bracketRight, 'Forward 15 seconds', () => _listenKey(NovelListenKey.forward15), shift: true, single: false, keys: const ['Shift', ']']),
+      e(LogicalKeyboardKey.comma, 'Listen slower', () => _listenKey(NovelListenKey.slower), shift: true, single: false, keys: const ['<']),
+      e(LogicalKeyboardKey.period, 'Listen faster', () => _listenKey(NovelListenKey.faster), shift: true, single: false, keys: const ['>']),
       e(LogicalKeyboardKey.escape, 'Close, then back to the book', _escape, single: false),
     ];
   }
@@ -637,11 +950,12 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
     }
 
     final showBars = chapter != null && chapter.paragraphs.isNotEmpty;
-    final canPop = GoRouter.of(context).canPop() && !_leftPanel && !_rightPanel && !_editingProgress;
+    final canPop = GoRouter.of(context).canPop() && !_leftPanel && !_rightPanel && !_editingProgress && !_listenUi.roomOpen;
     return PopScope(
       canPop: canPop,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        if (_listenUi.handleBack()) return;
         if (_folio.currentState?.editing ?? false) {
           _folio.currentState?.cancelEdit();
         } else if (_leftPanel || _rightPanel) {
@@ -674,6 +988,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
                       Positioned.fill(child: body),
                       if (showBars) ..._chromeLayers(context, s, chapter, series, stock, tablet, paged),
                       if (showBars) _gestureZones(context, brightness),
+                      if (showBars) _listenLayer(context, s, chapter, series, stock),
                       if (showBars && tablet) _panels(context, s, chapter, stock),
                       _speakerPopover(stock),
                       if (_noteOpen) _noteField(stock),
@@ -705,6 +1020,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
     final paragraphs = chapter.paragraphs;
     if (_keys.length != paragraphs.length) _keys = List.generate(paragraphs.length, (_) => GlobalKey());
     final c = context.cine;
+    final decorator = _decoratorFor(context, stock);
     final number = chapter.chapterNumber == null ? null : chapterNumberText(chapter.chapterNumber);
     final next = _nextInfo(series, chapter, s);
     if (!_restored && paragraphs.isNotEmpty) {
@@ -744,7 +1060,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
                           stock: stock,
                           scroll: _scroll,
                         ),
-                        NovelChapterOpener(chapterNumberText: number, title: chapter.title, wordCount: chapter.wordCount, type: type, stock: stock),
+                        NovelChapterOpener(chapterNumberText: number, title: chapter.title, wordCount: chapter.wordCount, type: type, stock: stock, trailing: _listenOpener(chapter, series)),
                       ],
                     ),
                   ),
@@ -752,7 +1068,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
               }
               if (i == paragraphs.length + 1) {
                 return column(
-                  NovelEndMatter(
+                  _withVoicesLine(stock, NovelEndMatter(
                     chapterKey: chapter.chapterKey,
                     chapterNumberText: number,
                     wordCount: chapter.wordCount,
@@ -765,7 +1081,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
                     onBackToDownloads: () => context.go(Routes.downloads()),
                     theEnd: _theEnd(series, chapter),
                     reactions: _reactions(series, chapter, number, stock),
-                  ),
+                  ),),
                 );
               }
               final p = i - 1;
@@ -774,15 +1090,18 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
               return column(
                 KeyedSubtree(
                   key: _keys[p],
-                  child: NovelParagraph(
-                    text: text,
-                    type: type,
-                    width: width,
-                    stock: stock,
-                    indent: novelParagraphIndents(paragraphs, p),
-                    dropCap: p == 0,
-                    decorations: speakerDecorations(c, s.speakerRuns[p] ?? const []),
-                    onSpeakerPress: _showSpeaker,
+                  child: ListenableBuilder(
+                    listenable: decorator,
+                    builder: (context, _) => NovelParagraph(
+                      text: text,
+                      type: type,
+                      width: width,
+                      stock: stock,
+                      indent: novelParagraphIndents(paragraphs, p),
+                      dropCap: p == 0,
+                      decorations: decorator.decorate(p, speakerDecorations(c, s.speakerRuns[p] ?? const [])),
+                      onSpeakerPress: _showSpeaker,
+                    ),
                   ),
                 ),
               );
@@ -829,6 +1148,8 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
 
   bool _onScrollNotification(ScrollNotification n) {
     if (n.depth != 0) return false;
+    // A manual scroll stops the page following the voice.
+    if (!_programmatic && n is ScrollUpdateNotification && n.dragDetails != null) _follower.userMoved();
     if (n is OverscrollNotification && n.overscroll > 0 && n.dragDetails != null && _ctl.nextKey != null) {
       _overscroll += n.overscroll;
       if (_overArmed && _overscroll >= kNovelOverscrollNextPx) {
@@ -849,10 +1170,11 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
     final c = context.cine;
     final number = chapter.chapterNumber == null ? null : chapterNumberText(chapter.chapterNumber);
     final series = ref.read(readerSeriesProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)));
-    final key = Object.hash(size, type, chapter.chapterKey, _revision, width);
+    final reserve = _reserveListen();
+    final key = Object.hash(size, type, chapter.chapterKey, _revision, width, reserve);
     if (_pageKey != key) {
       _pageKey = key;
-      final opener = novelOpenerHeight(context, hasNumber: number != null, title: chapter.title, wordCount: chapter.wordCount, type: type, width: width);
+      final opener = novelOpenerHeight(context, hasNumber: number != null, title: chapter.title, wordCount: chapter.wordCount, type: type, width: width) + (reserve ? kListenOpenerReserve : 0);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _ctl.setViewport(size, margin: margin, bandTop: kNovelPageTopPad, openerHeight: opener);
@@ -879,9 +1201,11 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
       tapZones: ref.watch(novelSettingsProvider).novelTapZones,
       initialPage: s.pageIndex,
       decorations: decorations,
+      decorationsBuilder: _decoratorFor(context, stock).decorate,
+      decorationsRepaint: _decorator,
       onSpeakerPress: _showSpeaker,
-      opener: NovelChapterOpener(chapterNumberText: number, title: chapter.title, wordCount: chapter.wordCount, type: type, stock: stock),
-      endMatter: NovelEndMatter(
+      opener: NovelChapterOpener(chapterNumberText: number, title: chapter.title, wordCount: chapter.wordCount, type: type, stock: stock, trailing: _listenOpener(chapter, series)),
+      endMatter: _withVoicesLine(stock, NovelEndMatter(
         chapterKey: chapter.chapterKey,
         chapterNumberText: number,
         wordCount: chapter.wordCount,
@@ -894,8 +1218,9 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
         onBackToDownloads: () => context.go(Routes.downloads()),
         theEnd: _theEnd(series, chapter),
         reactions: _reactions(series, chapter, number, stock),
-      ),
+      ),),
       onPage: (i) {
+        if (!_programmaticPage) _follower.userMoved();
         _ctl.onPaged(i);
         _bucket.value = ref.read(novelReaderControllerProvider(_args)).readingBucket;
         if (i >= pages.length) {
@@ -905,6 +1230,37 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
         }
       },
       onMenu: _toggleChrome,
+    );
+  }
+
+  Widget _listenLayer(BuildContext context, NovelReaderState s, NovelChapter chapter, ReaderSeries? series, CineStockColors stock) {
+    final number = chapter.chapterNumber == null ? null : chapterNumberText(chapter.chapterNumber);
+    final next = _nextInfo(series, chapter, s);
+    final base = ref.read(apiBaseUrlProvider);
+    final insets = MediaQuery.viewPaddingOf(context);
+    return Positioned.fill(
+      child: ListenLayer(
+        ui: _listenUi,
+        chapter: _chapterKey,
+        stock: stock,
+        chromeVisible: _chrome,
+        barBottom: kNovelBarHeight + insets.bottom,
+        safeBottom: insets.bottom,
+        seriesTitle: series?.title ?? '',
+        chapterLabel: number == null ? 'CHAPTER' : 'CHAPTER $number',
+        chapterNumber: chapter.chapterNumber,
+        chapterTitle: chapter.title,
+        coverUrl: coverUrlAtWidth(sourceSeriesCoverUrl(base, widget.sourceId, widget.seriesKey), 720),
+        duo: series?.summary.ambient?.duo ?? CineColors.ambientFallbackDuo,
+        hasNext: _ctl.nextKey != null,
+        hasPrevious: _ctl.previousKey != null,
+        nextLabel: next?.number == null ? null : 'Chapter ${next!.number}',
+        onNext: _next,
+        onPrevious: _previous,
+        onAdvance: _advanceListening,
+        followDecoupled: _follower.decoupled,
+        onBackToVoice: _follower.refollow,
+      ),
     );
   }
 
@@ -943,6 +1299,10 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
                 onType: () => unawaited(_typeSheet()),
                 onMargins: tablet ? _openMargins : null,
                 marginsOpen: _rightPanel,
+                afterBookmark: [
+                  if (s.attribution.attributed || (ref.watch(seriesAudioProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey))).valueOrNull?.rendered.contains(chapter.chapterKey) ?? false))
+                    CineIconButton(label: 'Voices', role: CineIconRole.voiceCast, onPressed: _openVoices),
+                ],
               ),
             ),
           ),
@@ -1026,6 +1386,9 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
               return r == NovelBookmarkResult.saved ? _ctl.lastBookmark : null;
             },
             onJumpToParagraph: (p) => _ctl.jumpToParagraph(p - 1, toReadingLine: false),
+            extraTabs: [
+              NovelMarginsTab('VOICES', (context) => CastList(chapter: _chapterKey, stock: stock, onReNarrate: _reNarrate)),
+            ],
           ),
         ),
       );

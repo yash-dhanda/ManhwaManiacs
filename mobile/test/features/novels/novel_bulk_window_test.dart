@@ -83,10 +83,31 @@ class _WindowingNovelsRepository implements NovelsRepository {
   );
 
   @override
+  Future<Result<NovelSeriesAudioDetail>> seriesAudioDetail({required String sourceId, required String seriesKey}) async =>
+      const Ok((renderedAt: <String, DateTime?>{}, narratable: <String>{}, canRender: false, castChangedAt: null));
+
+  @override
+  Future<Result<List<NovelAudioJob>>> activeAudioJobs() async => const Ok(<NovelAudioJob>[]);
+
+  @override
+  Future<Result<void>> setCastGender({required String sourceId, required String seriesKey, required String name, required String gender}) async => const Ok(null);
+
+  @override
+  Future<Result<void>> mergeCastAlias({required String sourceId, required String seriesKey, required String alias, required String canonical}) async => const Ok(null);
+
+  @override
+  Future<Result<List<int>>> voiceSample(String voiceId) async => const Ok(<int>[]);
+
+  @override
+  Future<Result<void>> saveListenSessions(List<Map<String, Object?>> sessions) async => const Ok(null);
+
+  @override
   Future<Result<NovelAudioRequest>> requestAudio({
     required String sourceId,
     required String seriesKey,
     required List<String> chapterKeys,
+    int priority = 0,
+    bool force = false,
   }) async => const Ok(
     NovelAudioRequest(queued: <String>[], skipped: <String, String>{}),
   );

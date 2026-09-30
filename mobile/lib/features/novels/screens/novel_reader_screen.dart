@@ -1,6 +1,6 @@
 
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,8 +9,8 @@ import 'package:manhwamaniacs/app/theme/app_colors.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/platform/system_ui.dart';
 import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
+import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
 import 'package:manhwamaniacs/features/novels/controllers/novel_reader_controller.dart';
-import 'package:manhwamaniacs/features/novels/models/novel_audio_format.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_palette.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
@@ -31,7 +31,6 @@ import 'package:manhwamaniacs/features/reader/utils/reader_series_navigation.dar
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_error_state.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
-import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 
 /// The novel reader.
 ///
@@ -484,29 +483,15 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody>
         final playable = ref.watch(playableNovelAudioProvider(key)).valueOrNull;
         if (playable == null) return const SizedBox.shrink();
         final audio = playable.audio;
-        final file = playable.file;
-
-        String? url;
-        var headers = const <String, String>{};
-        if (file == null) {
-          final token = ref.read(authTokenStoreProvider).token;
-          if (token == null || token.isEmpty) return const SizedBox.shrink();
-          final base = ref.read(apiBaseUrlProvider);
-          final trimmed =
-              base.endsWith('/') ? base.substring(0, base.length - 1) : base;
-          // In the container this phone's player reads: an iPhone's cannot
-          // open Ogg at all, so it asks for MP4.
-          final query = Uri(
-            queryParameters: novelAudioFileQuery(
-              sourceId: chapter.sourceId,
-              seriesKey: chapter.seriesKey,
-              chapterKey: chapter.chapterKey,
-              format: novelAudioFormatFor(defaultTargetPlatform),
-            ),
-          ).query;
-          url = '$trimmed/novels/audio/file?$query';
-          headers = {'Authorization': 'Bearer $token'};
-        }
+        final target = NarrationTarget(
+          key: key,
+          audio: audio,
+          file: playable.file?.path,
+          paragraphs: chapter.paragraphs,
+          bookTitle: chapter.title,
+          chapterNumber: chapter.chapterNumber,
+          chapterTitle: chapter.title,
+        );
         return ColoredBox(
           // Opaque for the same reason the chrome's own bars are: prose has to
           // stop showing through a control for it to read as one.
@@ -517,10 +502,7 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody>
               children: [
                 Expanded(
                   child: NovelAudioPlayerBar(
-                    url: url,
-                    headers: headers,
-                    filePath: file?.path,
-                    audio: audio,
+                    target: target,
                     muted: surface.muted,
                     rule: surface.rule,
                     onPosition: (ms) => _follower.onPosition(ms, audio),

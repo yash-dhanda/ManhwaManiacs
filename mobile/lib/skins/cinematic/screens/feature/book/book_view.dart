@@ -53,6 +53,8 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_acti
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_overflow.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/previously_on_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/series_ambient.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/listen/audiobook_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/listen/listen_common.dart' show isOwnerProvider;
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
@@ -64,8 +66,12 @@ class BookView extends ConsumerStatefulWidget {
     this.focusChapter,
     this.sourceIsDown = false,
     this.contentsNotice,
+    this.openAudiobook = false,
   });
   final FeatureData data;
+
+  /// `?sheet=audiobook`: the owner's Audiobook sheet opens with the page.
+  final bool openAudiobook;
 
   /// `?chapter=`: the row to centre with the current band.
   final String? focusChapter;
@@ -115,7 +121,22 @@ class _BookViewState extends ConsumerState<BookView> {
         pf.onDwell(ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id));
       }
       if (_focus != null) _centerFocus();
+      if (widget.openAudiobook && ref.read(isOwnerProvider)) _openAudiobook();
     });
+  }
+
+  /// The owner's Audiobook sheet, Rising over the page (cinematic 8.18).
+  void _openAudiobook() {
+    final progress = ref.read(sourceSeriesProgressProvider((sourceId: d.sourceId, seriesId: d.seriesKey)));
+    String? lastKey;
+    DateTime? at;
+    for (final e in progress.entries) {
+      if (at == null || e.value.updatedAt.isAfter(at)) {
+        lastKey = e.key;
+        at = e.value.updatedAt;
+      }
+    }
+    unawaited(showAudiobookSheet(context, sourceId: d.sourceId, seriesKey: d.seriesKey, seriesTitle: d.title, currentChapterKey: lastKey, chapters: d.chapters));
   }
 
   @override
@@ -455,6 +476,14 @@ class _BookViewState extends ConsumerState<BookView> {
                   onPressed: () => featureBack(context),
                 ),
                 actions: [
+                  if (ref.watch(isOwnerProvider))
+                    IconButton(
+                      key: const Key('audiobook-button'),
+                      tooltip: "Narrate or save this book's audio",
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                      icon: const Icon(PhosphorRegular.headphones, semanticLabel: 'Audiobook'),
+                      onPressed: _openAudiobook,
+                    ),
                   if ((ref.watch(circleMembersProvider).valueOrNull ?? const []).isNotEmpty)
                     IconButton(
                       tooltip: 'Recommend to…',

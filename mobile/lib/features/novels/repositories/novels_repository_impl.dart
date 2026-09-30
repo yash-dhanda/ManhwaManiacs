@@ -147,10 +147,135 @@ class NovelsRepositoryImpl implements NovelsRepository {
   }
 
   @override
+  Future<Result<NovelSeriesAudioDetail>> seriesAudioDetail({
+    required String sourceId,
+    required String seriesKey,
+  }) async {
+    try {
+      final r = await _dio.get<Map<String, dynamic>>(
+        '/novels/audio/series',
+        queryParameters: {'source': sourceId, 'series': seriesKey},
+      );
+      final data = r.data ?? const {};
+      final raw = data['chapters'];
+      final cached = data['narratable'];
+      return Ok((
+        renderedAt: raw is List
+            ? {
+                for (final e in raw.whereType<Map<String, dynamic>>())
+                  if ((e['chapter_key'] as String?)?.isNotEmpty ?? false)
+                    e['chapter_key'] as String:
+                        DateTime.tryParse((e['rendered_at'] as String?) ?? ''),
+              }
+            : <String, DateTime?>{},
+        narratable: cached is List ? cached.whereType<String>().toSet() : <String>{},
+        canRender: data['can_render'] == true,
+        castChangedAt: DateTime.tryParse((data['cast_changed_at'] as String?) ?? ''),
+      ),);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<List<NovelAudioJob>>> activeAudioJobs() async {
+    try {
+      final r = await _dio.get<Map<String, dynamic>>('/novels/audio/jobs/active');
+      final raw = (r.data ?? const {})['jobs'];
+      return Ok(
+        raw is List
+            ? raw
+                .whereType<Map<String, dynamic>>()
+                .map(NovelAudioJob.fromJson)
+                .where((j) => j.jobId.isNotEmpty)
+                .toList(growable: false)
+            : const <NovelAudioJob>[],
+      );
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> setCastGender({
+    required String sourceId,
+    required String seriesKey,
+    required String name,
+    required String gender,
+  }) async {
+    try {
+      // No `voice_id` key at all: sent, even as null, it would clear the pin.
+      await _dio.post<Map<String, dynamic>>(
+        '/novels/cast',
+        data: {'source_id': sourceId, 'series_key': seriesKey, 'name': name, 'gender': gender},
+      );
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> mergeCastAlias({
+    required String sourceId,
+    required String seriesKey,
+    required String alias,
+    required String canonical,
+  }) async {
+    try {
+      await _dio.post<Map<String, dynamic>>(
+        '/novels/cast/alias',
+        data: {'source_id': sourceId, 'series_key': seriesKey, 'alias': alias, 'canonical': canonical},
+      );
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<List<int>>> voiceSample(String voiceId) async {
+    try {
+      final r = await _dio.get<List<int>>(
+        '/novels/voices/sample',
+        queryParameters: novelVoiceSampleQuery(voiceId: voiceId, format: NovelAudioFormat.ogg),
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return Ok(r.data ?? const <int>[]);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> saveListenSessions(List<Map<String, Object?>> sessions) async {
+    try {
+      await _dio.post<Map<String, dynamic>>('/novels/listen-sessions', data: sessions);
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
   Future<Result<NovelAudioRequest>> requestAudio({
     required String sourceId,
     required String seriesKey,
     required List<String> chapterKeys,
+    int priority = 0,
+    bool force = false,
   }) async {
     try {
       final r = await _dio.post<Map<String, dynamic>>(
@@ -159,6 +284,8 @@ class NovelsRepositoryImpl implements NovelsRepository {
           'source_id': sourceId,
           'series_key': seriesKey,
           'chapter_keys': chapterKeys,
+          'priority': priority,
+          'force': force,
         },
       );
       return Ok(NovelAudioRequest.fromJson(r.data ?? const {}));

@@ -63,15 +63,17 @@ Future<void> main() async {
 
   // Once per engine, before runApp and never inside the restart builder (it
   // asserts a single init; a skin switch restarts inside the same engine).
-  // Idle until mobile/15 attaches narration, so no notification ever shows.
+  // The narration controller attaches to this handler when a chapter is read aloud; until then
+  // its playback state stays idle and no notification shows.
   final handler = await AudioService.init<NarrationAudioHandler>(
     builder: NarrationAudioHandler.new,
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.manhwamaniacs.reader.listen',
       androidNotificationChannelName: 'Listen',
-      // Default icon is mipmap/ic_launcher; mobile/15 switches to
-      // drawable/ic_stat_mm (shared/04).
+      androidNotificationIcon: 'drawable/ic_stat_mm',
       notificationColor: Color(0xFFF4D03F),
+      fastForwardInterval: Duration(seconds: 15),
+      rewindInterval: Duration(seconds: 15),
     ),
   );
 

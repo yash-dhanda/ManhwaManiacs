@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/painting.dart' show HSLColor;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/contrast.dart';
 import 'package:manhwamaniacs/skins/cinematic/tint.dart';
@@ -9,8 +10,13 @@ const _black = Color(0xFF000000);
 const _white = Color(0xFFFFFFFF);
 const _yellow = Color(0xFFF5F547);
 
-/// Filled by mobile/15 (cinematic 8.16.5): the Listen voice field rows.
-const List<(String, Color, Color)> voiceFieldRows = [];
+/// mobile/15 (cinematic 8.16.5): `ink.100` on the voice monogram field at the ends of the pitch scale
+/// and at the 60 degree worst case (pitch 265.26 Hz maps to hue 60).
+final List<(String, Color, Color)> voiceFieldRows = [
+  ('voice field at 80 Hz', CineColors.ink100, voiceMonogramField(80)),
+  ('voice field at 300 Hz', CineColors.ink100, voiceMonogramField(300)),
+  ('voice field at the 60 degree worst case', CineColors.ink100, voiceMonogramField(80 + (220 - 60) / 190 * 220)),
+];
 
 /// (component, ink, alpha): a black scrim of [alpha] over the art with [ink] text on top
 /// (cinematic 2.1.4). Later steps append rows (mobile/08 adds the Tonight rows).
@@ -116,7 +122,21 @@ void main() {
     for (final f in avatars) {
       expect(contrastRatio(CineColors.ink100, f), greaterThanOrEqualTo(4.5), reason: 'ink.100 on avatar $f');
     }
-    expect(voiceFieldRows, isEmpty); // mobile/15 fills it
+    for (final (name, ink, field) in voiceFieldRows) {
+      expect(contrastRatio(ink, field), greaterThanOrEqualTo(4.5), reason: name);
+    }
+    expect(contrastRatio(CineColors.ink100, voiceFieldRows.last.$3), closeTo(5.13, 0.05));
+  });
+
+  test('voiceMonogramField follows the pitch scale, clamped', () {
+    expect(voiceMonogramHue(80), 220);
+    expect(voiceMonogramHue(300), 30);
+    expect(voiceMonogramHue(10), 220);
+    expect(voiceMonogramHue(999), 30);
+    expect(voiceMonogramHue(190), closeTo(125, 1e-9));
+    final deep = HSLColor.fromColor(voiceMonogramField(80));
+    expect(deep.lightness, closeTo(0.28, 0.01));
+    expect(deep.saturation, closeTo(0.45, 0.01));
   });
 
   test('over-art table (2.1.4): every row reaches 4.5:1 over white and over #F5F547', () {

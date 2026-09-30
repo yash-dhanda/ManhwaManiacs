@@ -137,5 +137,9 @@ Items only the owner can do, by step.
 ## mobile/14
 - Device checks: see `docs/redesign/proof/mobile-14/device-checklist.md` (faces from the bundle, pagination time, 120 Hz Slide, status bar, back gestures, drop cap sizes, screen readers, text scale, Bold Text).
 
+## mobile/15 (M15, Listen)
+
+- **Run the device checklist** in `docs/redesign/proof/mobile-15/device-checklist.md` on the iPhone (SideStore build) and the Android flagship: 5 minutes of narration with the screen locked and in the background, the lock-screen and notification controls (title, chapter, cover, play/pause, back 15 s, forward 15 s, next chapter), the `ic_stat_mm` icon with the `#F4D03F` accent in the `Listen` channel, the iOS audio-session log (§15.8), a `Hear` sample with the silent switch on, shake to extend only in the last minute, the 8 s sleep fade, a listen session reaching the server after a flight-mode round trip, VoiceOver and TalkBack on the transcript and the `-18:40` folio. Fallback meanwhile: the widget tests with a fake player and the proof screenshots; only the native audio behaviour needs a device.
+- **After the integrator pushes, read CI**: the APK build and the iOS dry run must pass (`AudioServiceConfig` now names `drawable/ic_stat_mm`; no native file changed).
 ## mobile/22
 - Run docs/redesign/proof/mobile-22/device-checklist.md on two devices/profiles.

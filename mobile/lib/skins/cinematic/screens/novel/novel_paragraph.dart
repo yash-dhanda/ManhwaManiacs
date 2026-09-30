@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/novels/engine/novel_paragraph_layout.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/listen/follow_along.dart' show sweepRects;
 import 'package:manhwamaniacs/skins/cinematic/stock.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -20,9 +21,14 @@ class NovelDecoration {
     this.underline,
     this.dotted = false,
     this.speaker,
+    this.sweep = 1,
   });
 
   final int start, end;
+
+  /// How much of the [fill] is drawn, 0-1, in reading order along the run's line boxes: the
+  /// Listen band sweeps in left to right, line after line (cinematic 4.5, Highlight sweep).
+  final double sweep;
 
   /// Behind the text, over the run's boxes.
   final Color? fill;
@@ -197,7 +203,8 @@ class NovelParagraphPainter extends CustomPainter {
       final fill = d.fill;
       if (fill == null) continue;
       final paint = Paint()..color = fill;
-      for (final box in layout.boxesFor(d.start, d.end)) {
+      final boxes = layout.boxesFor(d.start, d.end);
+      for (final box in d.sweep >= 1 ? boxes : sweepRects(boxes, d.sweep)) {
         canvas.drawRect(box, paint);
       }
     }

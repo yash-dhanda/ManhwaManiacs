@@ -32,6 +32,16 @@ final seriesAudioProvider = FutureProvider.autoDispose
           : result.value;
     });
 
+/// [seriesAudioProvider] with the dates RE-VOICE compares (`rendered_at` per chapter and the
+/// book's `cast_changed_at`); null when the request failed, never a guess.
+final seriesAudioDetailProvider = FutureProvider.autoDispose
+    .family<NovelSeriesAudioDetail?, NovelSeriesKey>((ref, key) async {
+      final result = await ref
+          .watch(novelsRepositoryProvider)
+          .seriesAudioDetail(sourceId: key.sourceId, seriesKey: key.seriesKey);
+      return result.isErr ? null : result.value;
+    });
+
 /// The pace of [novelAudioJobsProvider] while a render is running. A seam so
 /// tests can poll in milliseconds rather than wait out real seconds.
 final novelAudioJobsPollIntervalProvider = Provider<Duration>(

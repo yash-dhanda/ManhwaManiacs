@@ -34,6 +34,34 @@ class FakeNovelsRepository implements NovelsRepository {
 
   Result<void> setCastVoiceResult = const Ok(null);
 
+  Result<NovelSeriesAudioDetail> seriesAudioDetailResult = const Ok(
+    (renderedAt: <String, DateTime?>{}, narratable: <String>{}, canRender: true, castChangedAt: null),
+  );
+  Result<List<NovelAudioJob>> activeJobsResult = const Ok(<NovelAudioJob>[]);
+  int activeJobsCalls = 0;
+  Result<List<NovelVoice>> voicesResult = const Ok(<NovelVoice>[]);
+  Result<NovelAttribution> attributionResult = const Ok(NovelAttribution.none);
+  Result<void> castGenderResult = const Ok(null);
+  Result<void> aliasResult = const Ok(null);
+  Result<void> narratorResult = const Ok(null);
+  Result<void> cancelJobResult = const Ok(null);
+  Result<List<int>> voiceSampleResult = const Ok(<int>[1, 2, 3]);
+  Result<void> listenSessionsResult = const Ok(null);
+
+  /// `(keys, priority, force)` for every `POST /novels/audio/render`.
+  final List<({List<String> keys, int priority, bool force})> renderCalls = [];
+  final List<({String name, String gender})> genderWrites = [];
+  final List<({String alias, String canonical})> aliasWrites = [];
+  final List<String?> narratorWrites = [];
+  final List<String> cancelledJobs = [];
+  final List<String> voiceSampleRequests = [];
+
+  /// Every `POST /novels/listen-sessions` body, in order.
+  final List<List<Map<String, Object?>>> listenBatches = [];
+
+  /// Errors `GET /novels/audio/file` answers first, one per call (e.g. `503 audio_preparing`).
+  final List<AppError> audioBytesFailures = [];
+
   final List<String> audioRequests = [];
   final List<String> audioBytesRequests = [];
 
@@ -63,6 +91,7 @@ class FakeNovelsRepository implements NovelsRepository {
   }) async {
     audioBytesRequests.add(chapterKey);
     audioBytesFormats.add(format);
+    if (audioBytesFailures.isNotEmpty) return Err(audioBytesFailures.removeAt(0));
     return Ok(audioBytesByChapter[chapterKey] ?? const <int>[]);
   }
 
@@ -80,9 +109,59 @@ class FakeNovelsRepository implements NovelsRepository {
     required String sourceId,
     required String seriesKey,
     required List<String> chapterKeys,
+    int priority = 0,
+    bool force = false,
   }) async {
     renderRequests.add(chapterKeys);
+    renderCalls.add((keys: chapterKeys, priority: priority, force: force));
     return requestAudioResult;
+  }
+
+  @override
+  Future<Result<NovelSeriesAudioDetail>> seriesAudioDetail({
+    required String sourceId,
+    required String seriesKey,
+  }) async =>
+      seriesAudioDetailResult;
+
+  @override
+  Future<Result<List<NovelAudioJob>>> activeAudioJobs() async {
+    activeJobsCalls++;
+    return activeJobsResult;
+  }
+
+  @override
+  Future<Result<void>> setCastGender({
+    required String sourceId,
+    required String seriesKey,
+    required String name,
+    required String gender,
+  }) async {
+    genderWrites.add((name: name, gender: gender));
+    return castGenderResult;
+  }
+
+  @override
+  Future<Result<void>> mergeCastAlias({
+    required String sourceId,
+    required String seriesKey,
+    required String alias,
+    required String canonical,
+  }) async {
+    aliasWrites.add((alias: alias, canonical: canonical));
+    return aliasResult;
+  }
+
+  @override
+  Future<Result<List<int>>> voiceSample(String voiceId) async {
+    voiceSampleRequests.add(voiceId);
+    return voiceSampleResult;
+  }
+
+  @override
+  Future<Result<void>> saveListenSessions(List<Map<String, Object?>> sessions) async {
+    listenBatches.add(sessions);
+    return listenSessionsResult;
   }
 
   @override
@@ -98,7 +177,10 @@ class FakeNovelsRepository implements NovelsRepository {
   }
 
   @override
-  Future<Result<void>> cancelAudioJob(String jobId) async => const Ok(null);
+  Future<Result<void>> cancelAudioJob(String jobId) async {
+    cancelledJobs.add(jobId);
+    return cancelJobResult;
+  }
 
   @override
   Future<Result<NovelAttribution>> attribution({
@@ -106,10 +188,10 @@ class FakeNovelsRepository implements NovelsRepository {
     required String seriesKey,
     required String chapterKey,
   }) async =>
-      const Ok(NovelAttribution.none);
+      attributionResult;
 
   @override
-  Future<Result<List<NovelVoice>>> voices() async => const Ok(<NovelVoice>[]);
+  Future<Result<List<NovelVoice>>> voices() async => voicesResult;
 
   @override
   Future<Result<void>> setCastVoice({
@@ -127,8 +209,10 @@ class FakeNovelsRepository implements NovelsRepository {
     required String sourceId,
     required String seriesKey,
     required String? voiceId,
-  }) async =>
-      const Ok(null);
+  }) async {
+    narratorWrites.add(voiceId);
+    return narratorResult;
+  }
 
   @override
   Future<Result<NovelChapter>> chapter({

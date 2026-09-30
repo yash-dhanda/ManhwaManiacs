@@ -20,7 +20,7 @@ LocalKey? novelPageKeyFor(GoRouterState state) {
 
 /// `/novels/:sourceId/:seriesKey/:chapterKey?page&para&at&listen` and its `/novels/read/...`
 /// alias: each segment decoded once by go_router, the query read as the bucket, the bookmark
-/// paragraph and its fraction. `listen=1` is read by `mobile/15`.
+/// paragraph and its fraction. `listen=1` starts the narrator when the first frame is laid out (Listen, `mobile/15`).
 Widget novelScreenFor(GoRouterState state) {
   final p = state.pathParameters;
   final q = state.uri.queryParameters;
@@ -34,5 +34,6 @@ Widget novelScreenFor(GoRouterState state) {
     paragraph: int.tryParse(q['para'] ?? ''),
     fraction: at == null || at.isNaN ? null : at.clamp(0.0, 1.0),
     nonce: _nonce(state),
+    listen: q['listen'] == '1',
   );
 }

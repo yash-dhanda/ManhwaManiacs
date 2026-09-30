@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/storage/json_record.dart';
 
+// The Listen record moved to listen_settings_provider.dart (mobile/15); re-exported so Settings'
+// imports keep working.
+export 'package:manhwamaniacs/features/novels/providers/listen_settings_provider.dart';
+
 // TODO(mobile/14): the Type sheet owns this record (`mm.novel-settings.u{user}p{profile}`); this
 // file holds the fields Settings (mobile/18) edits, under the names mobile/14 and 23 use.
 
@@ -92,23 +96,3 @@ class NovelSettingsNotifier extends ProfileRecordNotifier {
 
 /// `mm.novel-settings.u{user}p{profile}`.
 final novelSettingsProvider = NotifierProvider<NovelSettingsNotifier, JsonRecord>(NovelSettingsNotifier.new, name: 'novelSettings');
-
-// TODO(mobile/15): the Listen step owns `mm.listen-settings.u{user}p{profile}`; Settings adds
-// only the fields below (its `speed` is read and written under the same name).
-const kListenSettingsPrefix = 'mm.listen-settings.';
-const kSleepDefaults = ['off', '5', '10', '15', '30', '45', '60', 'chapter', 'nextChapter'];
-
-extension ListenSettingsView on JsonRecord {
-  double get speed => doubleOf('speed', 1.0).clamp(0.5, 3.0);
-  String get sleepDefault => choice('sleepDefault', kSleepDefaults, 'off');
-  bool get autoPlayNext => boolOf('autoPlayNext', true);
-  bool get keepPlayerVisible => boolOf('keepPlayerVisible', false);
-  bool get shakeToExtend => boolOf('shakeToExtend', true);
-}
-
-class ListenSettingsNotifier extends ProfileRecordNotifier {
-  @override
-  String get prefix => kListenSettingsPrefix;
-}
-
-final listenSettingsProvider = NotifierProvider<ListenSettingsNotifier, JsonRecord>(ListenSettingsNotifier.new, name: 'listenSettings');

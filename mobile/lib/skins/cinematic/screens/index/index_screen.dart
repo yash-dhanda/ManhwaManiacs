@@ -240,7 +240,7 @@ class _IndexScreenState extends ConsumerState<IndexScreen> {
                     child: IndexRow(
                       label: 'Narrating',
                       value: '${jobs.length} ${jobs.length == 1 ? 'BOOK' : 'BOOKS'}',
-                      onTap: () => unawaited(context.push<void>(Routes.feature(jobs.first.sourceId, jobs.first.seriesKey, const {'sheet': 'audiobook'}))),
+                      onTap: jobs.first.hasBook ? () => unawaited(context.push<void>(Routes.feature(jobs.first.sourceId, jobs.first.seriesKey, const {'sheet': 'audiobook'}))) : null,
                     ),
                   ),
                 if (two)

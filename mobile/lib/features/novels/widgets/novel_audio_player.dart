@@ -1,49 +1,32 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio.dart';
-import 'package:manhwamaniacs/skins/skin_audio.dart';
 
-/// Playback for a rendered chapter, and the clock the highlight follows.
+/// The legacy skin's bar over the app's [NarrationController], the clock the highlight follows.
 ///
-/// The URL is STREAMED rather than downloaded, because this client holds a
-/// bearer token and can set its own headers. The server answers Range with a
-/// 206, so playback starts on the first bytes and a seek pulls only what it
-/// needs. The web player cannot do this — `mm_session` is httpOnly and
-/// SameSite=lax, so a browser-managed media request to another origin never
-/// carries it, and that player has to fetch the whole file through the JSON
-/// client first.
+/// Playback itself (streaming with the bearer token, the saved copy, speed, the audio session, the
+/// lock screen) lives in the controller, which both skins share. This widget only draws it and
+/// reports the playhead: [onPosition] fires on every tick as a raw millisecond count and the
+/// reader does its own lookup, so nothing here decides how a chapter is drawn.
 ///
-/// A narration saved on the phone plays from [filePath] instead, with no
-/// network and no token: that is what makes a chapter listenable on a plane.
-///
-/// [onPosition] fires on every tick. The reader takes it as a raw millisecond
-/// count and does its own lookup rather than being handed a widget, so nothing
-/// here decides how a chapter is drawn.
-class NovelAudioPlayerBar extends StatefulWidget {
+/// A narration saved on the phone plays from [NarrationTarget.file] with no network and no token:
+/// that is what makes a chapter listenable on a plane.
+class NovelAudioPlayerBar extends ConsumerStatefulWidget {
   const NovelAudioPlayerBar({
-    required this.audio,
+    required this.target,
     required this.onPosition,
     required this.muted,
     required this.rule,
-    this.url,
-    this.headers = const {},
-    this.filePath,
     super.key,
-  }) : assert(
-         url != null || filePath != null,
-         'a player needs something to play',
-       );
+  });
 
-  /// Where to stream from when nothing is saved on the phone.
-  final String? url;
-  final Map<String, String> headers;
+  /// The chapter to read aloud.
+  final NarrationTarget target;
 
-  /// The saved narration, when there is one. Wins over [url].
-  final String? filePath;
-
-  final NovelAudio audio;
+  NovelAudio get audio => target.audio;
 
   /// Playhead position, or null when nothing is playing.
   final ValueChanged<int?> onPosition;
@@ -52,107 +35,77 @@ class NovelAudioPlayerBar extends StatefulWidget {
   final Color rule;
 
   @override
-  State<NovelAudioPlayerBar> createState() => _NovelAudioPlayerBarState();
+  ConsumerState<NovelAudioPlayerBar> createState() => _NovelAudioPlayerBarState();
 }
 
-class _NovelAudioPlayerBarState extends State<NovelAudioPlayerBar> {
-  AudioPlayer? _player;
-  bool _loading = false;
-  bool _failed = false;
-  Duration _position = Duration.zero;
-  double _speed = 1;
+class _NovelAudioPlayerBarState extends ConsumerState<NovelAudioPlayerBar> {
+  late final NarrationController _ctl = ref.read(narrationControllerProvider.notifier);
+  bool _reported = false;
+
+  static const _speeds = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+
+  @override
+  void initState() {
+    super.initState();
+    _ctl.position.addListener(_onPosition);
+    ref.listenManual<NarrationState>(narrationControllerProvider, (prev, next) {
+      _onPosition();
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   void dispose() {
-    // Releases the platform player. Left undisposed, the audio keeps playing
-    // after the reader is gone — which on iOS also keeps the audio session
-    // active and silences everything else on the phone.
-    _player?.dispose();
-    // State B holds while narration plays or is paused inside the reader.
-    unawaited(SkinAudio.instance.request(AudioSessionState.idle));
+    _ctl.position.removeListener(_onPosition);
+    final mine = _isMine(_ctl.current);
+    // Releases the platform player. Left playing, the audio would outlive the reader, and on iOS
+    // keep the audio session active and silence everything else on the phone.
+    if (mine) {
+      Future<void>.microtask(() async {
+        try {
+          await _ctl.stop();
+        } catch (_) {}
+      });
+    }
     widget.onPosition(null);
     super.dispose();
   }
 
-  Future<void> _toggle() async {
-    final existing = _player;
-    if (existing != null) {
-      if (existing.playing) {
-        await existing.pause();
-      } else {
-        await SkinAudio.instance.request(AudioSessionState.narration);
-        unawaited(existing.play());
-      }
-      return;
-    }
+  bool _isMine(NarrationState s) => s.key == widget.target.key && s.target != null;
 
-    setState(() {
-      _loading = true;
-      _failed = false;
-    });
-    final player = AudioPlayer();
-    try {
-      // Nothing is fetched until here, so a reader who never presses play
-      // never spends the bytes.
-      final file = widget.filePath;
-      if (file != null) {
-        await player.setFilePath(file);
-      } else {
-        await player.setUrl(widget.url!, headers: widget.headers);
-      }
-    } catch (_) {
-      // Audio is an addition to the page. A failure leaves the chapter
-      // readable and says so, rather than breaking the reader.
-      await player.dispose();
-      if (mounted) {
-        setState(() {
-          _loading = false;
-          _failed = true;
-        });
-      }
-      return;
-    }
-
-    player.positionStream.listen((position) {
-      if (!mounted) return;
-      setState(() => _position = position);
-      // The finish is reported as a position too, and it can land after the
-      // null the state listener below sends for it. A finished player is
-      // not reading, whatever its playhead says — and a file a few
-      // milliseconds shorter than the map's total would otherwise look like
-      // a voice with one breath left, holding auto-next off for good.
-      widget.onPosition(
-        player.processingState == ProcessingState.completed
-            ? null
-            : position.inMilliseconds,
-      );
-    });
-    player.playerStateStream.listen((state) {
-      if (!mounted) return;
-      setState(() {});
-      if (state.processingState == ProcessingState.completed) {
-        // One sentence left lit after the voice stops reads as a bug.
+  /// The finish is reported as a position too, and it can land after the null the state listener
+  /// sends for it. A finished player is not reading, whatever its playhead says.
+  void _onPosition() {
+    final s = ref.read(narrationControllerProvider);
+    if (!_isMine(s) || s.status == NarrationStatus.completed || s.status == NarrationStatus.idle || s.status == NarrationStatus.failed) {
+      if (_reported) {
+        _reported = false;
         widget.onPosition(null);
       }
-    });
-
-    await player.setSpeed(_speed);
-    if (!mounted) {
-      await player.dispose();
       return;
     }
-    setState(() {
-      _player = player;
-      _loading = false;
-    });
-    await SkinAudio.instance.request(AudioSessionState.narration);
-    unawaited(player.play());
+    _reported = true;
+    widget.onPosition(_ctl.position.value);
+  }
+
+  Future<void> _toggle() async {
+    final s = ref.read(narrationControllerProvider);
+    if (_isMine(s) && s.status != NarrationStatus.failed) {
+      await _ctl.toggle();
+    } else {
+      await _ctl.start(widget.target);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final s = ref.watch(narrationControllerProvider);
+    final mine = _isMine(s);
     final total = Duration(milliseconds: widget.audio.totalMs);
-    final playing = _player?.playing ?? false;
+    final playing = mine && s.isPlaying;
+    final loading = mine && (s.status == NarrationStatus.loading || s.status == NarrationStatus.preparing);
+    final failed = mine && s.status == NarrationStatus.failed;
+    final speed = mine ? s.speed : ref.watch(narrationControllerProvider.select((x) => x.speed));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -163,14 +116,14 @@ class _NovelAudioPlayerBarState extends State<NovelAudioPlayerBar> {
       child: Row(
         children: [
           IconButton(
-            onPressed: _loading ? null : _toggle,
-            tooltip: _failed
+            onPressed: loading ? null : _toggle,
+            tooltip: failed
                 ? 'Audio could not be loaded'
                 : playing
                     ? 'Pause'
                     : 'Listen to this chapter',
             icon: Icon(
-              _failed
+              failed
                   ? Icons.error_outline
                   : playing
                       ? Icons.pause
@@ -179,35 +132,40 @@ class _NovelAudioPlayerBarState extends State<NovelAudioPlayerBar> {
             ),
           ),
           Expanded(
-            child: Slider(
-              value: _position.inMilliseconds
-                  .clamp(0, widget.audio.totalMs)
-                  .toDouble(),
-              max: (widget.audio.totalMs <= 0 ? 1 : widget.audio.totalMs)
-                  .toDouble(),
-              onChanged: (value) {
-                final target = Duration(milliseconds: value.round());
-                setState(() => _position = target);
-                _player?.seek(target);
-                widget.onPosition(target.inMilliseconds);
+            child: ValueListenableBuilder<int>(
+              valueListenable: _ctl.position,
+              builder: (context, ms, _) {
+                final at = mine ? ms : 0;
+                return Slider(
+                  value: at.clamp(0, widget.audio.totalMs).toDouble(),
+                  max: (widget.audio.totalMs <= 0 ? 1 : widget.audio.totalMs).toDouble(),
+                  onChanged: (value) {
+                    final target = Duration(milliseconds: value.round());
+                    if (mine) unawaited(_ctl.seek(target));
+                    widget.onPosition(target.inMilliseconds);
+                  },
+                );
               },
             ),
           ),
-          Text(
-            '${_clock(_position)} / ${_clock(total)}',
-            style: TextStyle(
-              color: widget.muted,
-              fontSize: 11,
-              fontFeatures: const [FontFeature.tabularFigures()],
+          ValueListenableBuilder<int>(
+            valueListenable: _ctl.position,
+            builder: (context, ms, _) => Text(
+              '${_clock(Duration(milliseconds: mine ? ms : 0))} / ${_clock(total)}',
+              style: TextStyle(
+                color: widget.muted,
+                fontSize: 11,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
           const SizedBox(width: 8),
           DropdownButton<double>(
-            value: _speed,
+            value: _speeds.contains(speed) ? speed : 1.0,
             underline: const SizedBox.shrink(),
             isDense: true,
             style: TextStyle(color: widget.muted, fontSize: 12),
-            items: const [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+            items: _speeds
                 .map(
                   (v) => DropdownMenuItem(
                     value: v,
@@ -217,8 +175,7 @@ class _NovelAudioPlayerBarState extends State<NovelAudioPlayerBar> {
                 .toList(growable: false),
             onChanged: (value) {
               if (value == null) return;
-              setState(() => _speed = value);
-              _player?.setSpeed(value);
+              unawaited(_ctl.setSpeed(value));
             },
           ),
         ],

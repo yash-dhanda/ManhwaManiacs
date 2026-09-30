@@ -123,3 +123,14 @@ LinearGradient cineScrimFoot({required double solidAtPx, required double height,
     colors: [for (final a in CineScrim.kScrimAlpha) tint.withValues(alpha: a), if (end < 1.0) tint],
   );
 }
+
+/// The hue of a voice's monogram circle: linear from 220 degrees at 80 Hz to 30 degrees at 300 Hz,
+/// clamped (cinematic 2.1.1, the voice-monogram field). Deep voices read cool, bright ones warm.
+double voiceMonogramHue(double pitchHz) {
+  final t = ((pitchHz - 80) / (300 - 80)).clamp(0.0, 1.0);
+  return 220 + (30 - 220) * t;
+}
+
+/// The field a voice's monogram is drawn on: HLS lightness 0.28, saturation 0.45 at
+/// [voiceMonogramHue]. `ink.100` on it is at least 4.5:1 across the whole hue range.
+Color voiceMonogramField(double pitchHz) => _hls(voiceMonogramHue(pitchHz), 0.28, 0.45);

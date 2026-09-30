@@ -29,6 +29,26 @@ typedef NovelSeriesAudio = ({
   bool? canRender,
 });
 
+/// [NovelSeriesAudio] with the two dates RE-VOICE compares: when each chapter was rendered
+/// (`rendered_at`) and when the owner last changed the cast, an alias or the narrator
+/// (`cast_changed_at`, null when never).
+typedef NovelSeriesAudioDetail = ({
+  Map<String, DateTime?> renderedAt,
+  Set<String> narratable,
+  bool? canRender,
+  DateTime? castChangedAt,
+});
+
+/// The narrated chapters whose audio predates the last cast change: what `RE-VOICE` selects.
+List<String> chaptersToRevoice(NovelSeriesAudioDetail audio) {
+  final changed = audio.castChangedAt;
+  if (changed == null) return const [];
+  return [
+    for (final e in audio.renderedAt.entries)
+      if (e.value != null && e.value!.isBefore(changed)) e.key,
+  ];
+}
+
 abstract class NovelsRepository {
   /// One chapter as sanitized plain-text paragraphs.
   ///
@@ -105,11 +125,47 @@ abstract class NovelsRepository {
   /// Answers for EVERY chapter — queued, or skipped with a reason. Partial
   /// success is the ordinary outcome when somebody asks for a whole book, and
   /// showing it as a failure would be wrong.
+  ///
+  /// [priority] 0-9 (the opener's `Narrate this chapter` sends 9), [force] queues chapters that
+  /// already have audio (RE-VOICE).
   Future<Result<NovelAudioRequest>> requestAudio({
     required String sourceId,
     required String seriesKey,
     required List<String> chapterKeys,
+    int priority = 0,
+    bool force = false,
   });
+
+  /// [seriesAudio] with `rendered_at` per chapter and the book's `cast_changed_at`.
+  Future<Result<NovelSeriesAudioDetail>> seriesAudioDetail({
+    required String sourceId,
+    required String seriesKey,
+  });
+
+  /// Every render still queued or running, across every book (`GET /novels/audio/jobs/active`).
+  Future<Result<List<NovelAudioJob>>> activeAudioJobs();
+
+  /// Set a character's gender (`male`, `female`, `unknown`); locks the row.
+  Future<Result<void>> setCastGender({
+    required String sourceId,
+    required String seriesKey,
+    required String name,
+    required String gender,
+  });
+
+  /// Declare [alias] the same character as [canonical] (`POST /novels/cast/alias`).
+  Future<Result<void>> mergeCastAlias({
+    required String sourceId,
+    required String seriesKey,
+    required String alias,
+    required String canonical,
+  });
+
+  /// The bytes of one voice's sample clip (always Ogg Opus: SoLoud decodes it itself).
+  Future<Result<List<int>>> voiceSample(String voiceId);
+
+  /// Flush closed listening sessions (`POST /novels/listen-sessions`, at most 200 per batch).
+  Future<Result<void>> saveListenSessions(List<Map<String, Object?>> sessions);
 
   /// What has been asked for on this book, and where each one got to.
   Future<Result<List<NovelAudioJob>>> audioJobs({
