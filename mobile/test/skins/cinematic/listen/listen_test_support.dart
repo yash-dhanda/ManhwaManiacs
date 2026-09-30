@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
 import 'package:manhwamaniacs/features/novels/providers/narration_audio_handler_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_audio_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
+import 'package:manhwamaniacs/features/novels/repositories/novels_repository.dart';
 import 'package:manhwamaniacs/features/novels/services/narration_audio_handler.dart';
 import 'package:manhwamaniacs/features/novels/services/narration_player.dart';
 import 'package:manhwamaniacs/features/novels/services/voice_sample_player.dart';
@@ -177,3 +178,16 @@ Future<void> leaveListen(ListenRig l) async {
 
 /// A 1 x 1 PNG.
 const _kPng = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+/// No voices installed on the server.
+Override emptyVoicesOverride() => novelVoicesProvider.overrideWith((ref) async => const <NovelVoice>[]);
+
+/// Three narrated chapters, two of them rendered before the owner's last cast change.
+NovelSeriesAudioDetail seriesDetailWithStale() => (
+      renderedAt: {'1': DateTime.utc(2026, 9), '2': DateTime.utc(2026, 9, 10), '3': DateTime.utc(2026, 9, 25)},
+      narratable: {for (var i = 1; i <= 12; i++) '$i'},
+      canRender: true,
+      castChangedAt: DateTime.utc(2026, 9, 20),
+    );
+
+NovelAudioJob renderingJob() => const NovelAudioJob(jobId: 'j1', chapterKey: '4', status: 'rendering', progress: 0.4, errorCode: null);

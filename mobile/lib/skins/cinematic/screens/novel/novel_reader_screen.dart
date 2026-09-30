@@ -734,7 +734,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
 
   void _reNarrate() {
     Navigator.of(context).maybePop();
-    unawaited(showAudiobookSheet(context, sourceId: widget.sourceId, seriesKey: widget.seriesKey, seriesTitle: ref.read(readerSeriesProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)))?.title, currentChapterKey: _chapterKey.chapterKey, initialQuickPick: 'revoice', stock: _stock()));
+    unawaited(showAudiobookSheet(context, sourceId: widget.sourceId, seriesKey: widget.seriesKey, seriesTitle: ref.read(readerSeriesProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)))?.title, currentChapterKey: _chapterKey.chapterKey, initialQuickPick: 'revoice', chapters: ref.read(readerSeriesProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)))?.chapters, stock: _stock()));
   }
 
   /// The post-play card finished: the chapter swaps in place and the narration goes on.

@@ -132,7 +132,7 @@ class _BookViewState extends ConsumerState<BookView> {
         at = e.value.updatedAt;
       }
     }
-    unawaited(showAudiobookSheet(context, sourceId: d.sourceId, seriesKey: d.seriesKey, seriesTitle: d.title, currentChapterKey: lastKey));
+    unawaited(showAudiobookSheet(context, sourceId: d.sourceId, seriesKey: d.seriesKey, seriesTitle: d.title, currentChapterKey: lastKey, chapters: d.chapters));
   }
 
   @override

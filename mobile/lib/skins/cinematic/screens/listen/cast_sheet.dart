@@ -131,7 +131,7 @@ class _CastListState extends ConsumerState<CastList> {
     final activeJobs = ref.watch(activeAudioJobsProvider).valueOrNull?.where((j) => j.isActive).toList() ?? const <NovelAudioJob>[];
     final stale = detail == null ? 0 : chaptersToRevoice(detail).length;
 
-    if (attr.isLoading) {
+    if (attr.valueOrNull == null && attr.isLoading) {
       return Padding(padding: EdgeInsets.all(c.space6), child: CineRoleText('Looking up who speaks here…', c.typeUi, color: c.colorInk60));
     }
     final a = attr.valueOrNull ?? NovelAttribution.none;

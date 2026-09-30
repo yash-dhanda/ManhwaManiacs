@@ -43,6 +43,7 @@ Future<void> showAudiobookSheet(
   String? seriesTitle,
   String? currentChapterKey,
   String? initialQuickPick,
+  List<SourceChapterSummary>? chapters,
   CineStockColors? stock,
 }) =>
     showListenSheet<void>(
@@ -56,14 +57,18 @@ Future<void> showAudiobookSheet(
         seriesTitle: seriesTitle,
         currentChapterKey: currentChapterKey,
         initialQuickPick: initialQuickPick,
+        chapters: chapters,
       ),
     );
 
 class AudiobookBody extends ConsumerStatefulWidget {
-  const AudiobookBody({super.key, required this.sourceId, required this.seriesKey, this.seriesTitle, this.currentChapterKey, this.initialQuickPick});
+  const AudiobookBody({super.key, required this.sourceId, required this.seriesKey, this.seriesTitle, this.currentChapterKey, this.initialQuickPick, this.chapters});
 
   final String sourceId, seriesKey;
   final String? seriesTitle, currentChapterKey, initialQuickPick;
+
+  /// The book's chapters when the caller already holds them; otherwise the series detail is read.
+  final List<SourceChapterSummary>? chapters;
 
   @override
   ConsumerState<AudiobookBody> createState() => _AudiobookBodyState();
@@ -201,11 +206,12 @@ class _AudiobookBodyState extends ConsumerState<AudiobookBody> {
   Widget build(BuildContext context) {
     final c = context.cine;
     final owner = ref.watch(isOwnerProvider);
-    final chaptersAsync = ref.watch(sourceSeriesDetailProvider((sourceId: widget.sourceId, seriesId: widget.seriesKey)));
+    final given = widget.chapters;
+    final chaptersAsync = given != null ? null : ref.watch(sourceSeriesDetailProvider((sourceId: widget.sourceId, seriesId: widget.seriesKey)));
     final detail = ref.watch(seriesAudioDetailProvider(_series)).valueOrNull;
     final hasScope = ref.watch(downloadsStoreProvider) != null;
     final jobs = ref.watch(novelAudioJobsProvider(_series)).valueOrNull ?? const <NovelAudioJob>[];
-    final chapters = chaptersAsync.valueOrNull?.chapters ?? const <SourceChapterSummary>[];
+    final chapters = given ?? chaptersAsync?.valueOrNull?.chapters ?? const <SourceChapterSummary>[];
     final plan = _plan(chapters, detail);
     if (!_seeded && detail != null) {
       _seeded = true;
@@ -249,7 +255,7 @@ class _AudiobookBodyState extends ConsumerState<AudiobookBody> {
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 320),
             child: plan.chapters.isEmpty
-                ? Padding(padding: EdgeInsets.all(c.space4), child: CineRoleText(chaptersAsync.isLoading ? 'LOADING' : 'No chapters yet.', c.typeKicker, color: c.colorInk60))
+                ? Padding(padding: EdgeInsets.all(c.space4), child: CineRoleText((chaptersAsync?.isLoading ?? false) ? 'LOADING' : 'No chapters yet.', c.typeKicker, color: c.colorInk60))
                 : ListView.builder(
                     key: const Key('audiobook-chapters'),
                     itemCount: plan.chapters.length,
