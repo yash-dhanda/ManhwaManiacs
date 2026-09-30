@@ -21,8 +21,6 @@ import 'package:manhwamaniacs/skins/skins.dart';
 // deletes the set.
 // ignore: constant_identifier_names
 const Set<ScreenId> PENDING = {
-  ScreenId.numbers,
-  ScreenId.annual,
   ScreenId.circle,
   ScreenId.circleMember,
   ScreenId.reader,

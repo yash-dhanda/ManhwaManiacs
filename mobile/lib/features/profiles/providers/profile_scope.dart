@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.
 import 'package:manhwamaniacs/features/library/providers/history_pages_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/tags_provider.dart';
 import 'package:manhwamaniacs/features/onboarding/providers/onboarding_providers.dart';
@@ -45,6 +46,11 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   (ref) => ref.invalidate(tagsProvider),
   // Reading intelligence surfaces.
   (ref) => ref.invalidate(statisticsProvider),
+  // The Numbers, The Annual and their per-profile range (cinematic 9.2).
+  (ref) => ref.invalidate(numbersStatisticsProvider),
+  (ref) => ref.invalidate(annualProvider),
+  (ref) => ref.invalidate(annualIndexProvider),
+  (ref) => ref.invalidate(statsRangeProvider),
   (ref) => ref.invalidate(recommendationsProvider),
   (ref) => ref.invalidate(readingHistoryProvider),
   (ref) => ref.invalidate(historyPagesProvider),
