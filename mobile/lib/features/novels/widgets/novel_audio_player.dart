@@ -57,7 +57,7 @@ class _NovelAudioPlayerBarState extends ConsumerState<NovelAudioPlayerBar> {
   @override
   void dispose() {
     _ctl.position.removeListener(_onPosition);
-    final mine = _isMine(ref.read(narrationControllerProvider));
+    final mine = _isMine(_ctl.current);
     // Releases the platform player. Left playing, the audio would outlive the reader, and on iOS
     // keep the audio session active and silence everything else on the phone.
     if (mine) {

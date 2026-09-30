@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/features/novels/repositories/novels_repository.dar
 import 'package:manhwamaniacs/features/novels/services/narration_audio_handler.dart';
 import 'package:manhwamaniacs/features/novels/services/narration_player.dart';
 import 'package:manhwamaniacs/features/novels/services/voice_sample_player.dart';
+import 'package:manhwamaniacs/features/novels/utils/shake_detector.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/skin_audio.dart';
@@ -96,6 +97,7 @@ class ListenRig {
 Future<ListenRig> pumpListen(
   WidgetTester tester, {
   bool owner = true,
+  bool online = true,
   bool stale = false,
   Set<String> narrated = const {'1', '2', '3'},
   bool audio = true,
@@ -140,7 +142,7 @@ Future<ListenRig> pumpListen(
     boundaryKey: boundaryKey,
     attribution: listenAttribution(),
     legacy: legacy,
-    rig: FeatureRig(narrated: narrated),
+    rig: FeatureRig(narrated: narrated, online: online),
     extra: [
       if (owner) authenticatedAuthOverride(),
       // The open-chapter scope releases its claim in a microtask that outlives the container.
@@ -154,6 +156,7 @@ Future<ListenRig> pumpListen(
       }),
       narrationProbeProvider.overrideWithValue((url, headers) async => (status: 206, retryAfter: null)),
       narrationSessionProvider.overrideWithValue((s) async => sessions.add(s)),
+      accelerometerSourceProvider.overrideWithValue(() => const Stream<AccelSample>.empty()),
       voiceSampleSessionProvider.overrideWithValue((begin: () async {}, end: () async {})),
       sampleEngineProvider.overrideWithValue(_StubSampleEngine()),
       playableNovelAudioProvider.overrideWith((ref, key) async {

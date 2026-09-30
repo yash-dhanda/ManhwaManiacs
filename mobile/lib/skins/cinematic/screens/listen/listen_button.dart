@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_audio_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
@@ -78,6 +79,11 @@ class ListenOpener extends ConsumerWidget {
       );
     }
     if (playable.isLoading) return const SizedBox.shrink();
+    // Offline, a chapter that is narrated on the server but not saved here cannot be heard.
+    final narrated = ref.watch(seriesAudioProvider((sourceId: chapter.sourceId, seriesKey: chapter.seriesKey))).valueOrNull?.rendered.contains(chapter.chapterKey) ?? false;
+    if (narrated && !isOnline(ref)) {
+      return CineRoleText("This chapter's audio isn't saved on this device.", context.cine.typeCaption, color: context.cine.colorInk60, key: const Key('opener-offline-no-audio'));
+    }
     return _NotNarrated(chapter: chapter);
   }
 }
