@@ -1,5 +1,6 @@
 import 'package:manhwamaniacs/features/downloads/services/blob_store.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_db.dart';
+import 'package:manhwamaniacs/features/novels/novel_text/novel_text_index.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// Deletes one chapter's on-device bytes: decrements/removes its blob
@@ -44,6 +45,13 @@ Future<int> deleteChapterAndBlobs({
       where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colChapterRowId} = ?',
       whereArgs: [scopeId, chapterRowId],
     );
+    // The novel-text index keeps a chapter only while some scope still holds it (mobile/38).
+    final gone = await txn.query(
+      DownloadsSchema.savedChapters,
+      columns: [DownloadsSchema.colSourceId, DownloadsSchema.colSeriesKey, DownloadsSchema.colChapterKey, DownloadsSchema.colKind],
+      where: '${DownloadsSchema.colId} = ? AND ${DownloadsSchema.colScopeId} = ?',
+      whereArgs: [chapterRowId, scopeId],
+    );
     // Scoped like every other statement here: a row id is not proof of
     // ownership, and the two callers pass one in from different places (a
     // user tap, a cross-scope sweep). Without the predicate a wrong scope
@@ -54,6 +62,14 @@ Future<int> deleteChapterAndBlobs({
       where: '${DownloadsSchema.colId} = ? AND ${DownloadsSchema.colScopeId} = ?',
       whereArgs: [chapterRowId, scopeId],
     );
+    if (gone.isNotEmpty && gone.first[DownloadsSchema.colKind] == kNovelDownloadKind) {
+      await NovelTextIndex.dropChapterIfUnreferenced(
+        txn,
+        sourceId: gone.first[DownloadsSchema.colSourceId]! as String,
+        seriesKey: gone.first[DownloadsSchema.colSeriesKey]! as String,
+        chapterKey: gone.first[DownloadsSchema.colChapterKey]! as String,
+      );
+    }
   });
 
   // File deletion happens after the transaction commits — an orphaned file
