@@ -6,7 +6,6 @@ import 'package:flutter/gestures.dart' show PointerScrollEvent, PointerPanZoomUp
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
-import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/scheduler.dart' show SchedulerBinding;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
@@ -1433,6 +1432,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   double _pendingFling = 0;
   NeighbourDirection? _pendingDir;
   bool _cruiseWatch = false;
+  bool _dragging = false;
   double? _autoPx;
   String? _samplerKey;
   ImageProvider? _samplerProvider;
@@ -1542,7 +1542,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   void _checkCruise(ScrollPosition pos, double v) {
     if (!_cruiseWatch) return;
-    final coasting = pos.isScrollingNotifier.value && pos.userScrollDirection == ScrollDirection.idle;
+    final coasting = pos.isScrollingNotifier.value && !_dragging;
     if (!coasting) return;
     final x = engageSpeed(v);
     if (x == null) return;
@@ -1708,9 +1708,9 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     final copies = lensLayout(rects, clip, t);
     final defaults = _defaults;
     final media = MediaQuery.sizeOf(context);
-    return IgnorePointer(
-      child: Positioned.fromRect(
-        rect: clip.rect,
+    return Positioned.fromRect(
+      rect: clip.rect,
+      child: IgnorePointer(
         child: ClipRRect(
           borderRadius: BorderRadius.circular(clip.radius),
           child: Transform.scale(
@@ -1977,6 +1977,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (notification is ScrollStartNotification &&
         notification.dragDetails != null) {
       _isScrolling = true;
+      _dragging = true;
       _cruiseWatch = false;
       // A manual drag pauses auto-scroll and it stays paused.
       if (_autoScrollActive) widget.controller.autoScroll.manualDrag();
@@ -1990,10 +1991,12 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       }
     } else if (notification is ScrollEndNotification) {
       _isScrolling = false;
+      _dragging = false;
       _lastScrollEnd = DateTime.now();
       widget.controller.topPull.value = 0;
       widget.controller.endPull.value = 0;
     } else if (notification is ScrollUpdateNotification) {
+      _dragging = notification.dragDetails != null;
       if (autoHide != null) {
         _trackAutoHide(notification.scrollDelta ?? 0, autoHide);
       }
