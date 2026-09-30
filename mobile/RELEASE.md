@@ -33,6 +33,17 @@ Output: `mobile/build/app/outputs/flutter-apk/app-release.apk`
 - The release build is **debug-signed** (no `android/key.properties`). Add a keystore + `key.properties` for a Play-store-signed build.
 - Benign warnings during build: KGP-migration notice (package_info_plus, wakelock_plus) and a `cupertino_icons` font tree-shaking message — neither fails the build.
 
+## Edition preview frames
+
+Whenever Cinematic Tonight changes, regenerate the 36 edition-picker preview frames and commit them (about 1.1 MB):
+
+```bash
+MM_WRITE_PREVIEWS=1 flutter test test/screenshots/skin_previews/cinematic_preview_frames_test.dart
+cd assets/skin_previews/cinematic && for f in *.png; do ffmpeg -loglevel error -y -i $f -vf "split[a][b];[a]palettegen=max_colors=256[p];[b][p]paletteuse=dither=sierra2_4a" /tmp/$f && mv /tmp/$f $f; done
+```
+
+The second line quantises the frames to 256 colours (the raw frames are about 3.3 MB, the quantised ones about 1.6 MB).
+
 ## App identity
 
 - Version: `pubspec.yaml` (`version: 1.0.0+1`)

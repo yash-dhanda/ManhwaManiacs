@@ -158,6 +158,7 @@ flutter:
     - assets/sounds/glass/
     - assets/licenses/
     - assets/gallery/covers/
+    - assets/skin_previews/cinematic/
   shaders:
     - lib/skins/cinematic/shaders/grain.frag
   fonts:
