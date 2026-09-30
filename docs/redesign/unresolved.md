@@ -100,3 +100,17 @@ None reported by the verifier.
 ## mobile/13
 
 None reported by the verifier.
+
+## Step mobile/14 (cinematic novel reader)
+
+Each item: fix attempted, not re-checked.
+
+- Acceptance: hardware keyboard, every key of K works in a widget test, and the escape order is exact
+- Acceptance: seamless next, auto next 900 ms, over-scroll 140 px, live-region announcement
+- Acceptance: chrome auto-hide 24/56 px, focus and screen-reader guards, no slide, 240/160 ms fade
+- Acceptance: hit targets in bars, sheets AND panels
+- Acceptance: reduced motion (page turns 150 ms fades, Letter set 200 ms fade, panels fade in place, in-page head scrolls away without fading)
+- Acceptance: per-skin difference, Edition LEGACY legacy reader still reads and writes K25 and K26
+- Acceptance: paged mode (Cut, Slide finger-tracked, Fade turns, three tap-zone presets, re-paginate on Type change keeping the paragraph); the 'p. 7 of 22' folio
+- Acceptance: speaker semantics prefix, drop cap semantics, long-press name popover, end matter Letter set, rating card, stale-anchor toast copy, progress saved at the 38% line, Contents narrated and saved marks, Type sheet half detent
+- Proof deliverables
