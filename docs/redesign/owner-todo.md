@@ -147,3 +147,6 @@ Items only the owner can do, by step.
 - mobile/23: built (engine duties, auto-scroll, house sound, guided view, tinted chrome, novel extras). Device checks in docs/redesign/proof/mobile-23/device-checklist.md. The guided-panel proof shot shows a blank page (image not painted in the harness); verify on device.
 - mobile/23: M23 is only partly built (engine pure modules + parity vectors); UI, house sound, guided view and engine integration remain. See the M23 report.
 - mobile/28: run docs/redesign/proof/mobile-28/device-check.md on an iPhone (SideStore) and the Android flagship.
+
+## mobile/29
+- Device checks: docs/redesign/proof/mobile-29/device-check.md

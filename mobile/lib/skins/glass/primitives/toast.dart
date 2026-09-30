@@ -26,7 +26,7 @@ enum GlassToastKind { info, success, warning, error }
 
 /// One toast (glass 7.12): a message, an optional plain action and an optional Undo.
 class GlassToastSpec {
-  const GlassToastSpec(this.message, {this.kind = GlassToastKind.info, this.actionLabel, this.onAction, this.undo, this.duration});
+  const GlassToastSpec(this.message, {this.kind = GlassToastKind.info, this.actionLabel, this.onAction, this.undo, this.duration, this.tag});
   final String message;
   final GlassToastKind kind;
   final String? actionLabel;
@@ -35,6 +35,9 @@ class GlassToastSpec {
   /// Registers the action `undoLast()` runs (and shows Undo, with the draining rim and 10 s).
   final VoidCallback? undo;
   final Duration? duration;
+
+  /// A label the shell can dismiss by prefix ("mature:{source}:{series}": the 18+ purge removes those).
+  final String? tag;
 
   Duration get effectiveDuration => duration ?? (undo != null ? const Duration(seconds: 10) : const Duration(seconds: 4));
 }
@@ -71,6 +74,16 @@ class GlassToastController extends Notifier<List<GlassToastEntry>> {
       _undoExpiry?.cancel();
     }
     state = list;
+  }
+
+  /// Removes every toast whose tag starts with [prefix] at once (no animation): the 18+ purge.
+  void removeTagged(String prefix) {
+    final gone = [for (final e in state) if (e.spec.tag?.startsWith(prefix) ?? false) e];
+    if (gone.isEmpty) return;
+    for (final e in gone) {
+      _left(e);
+    }
+    state = [for (final e in state) if (!gone.contains(e)) e];
   }
 
   /// A toast starts leaving (the view animates out, then calls [remove]).

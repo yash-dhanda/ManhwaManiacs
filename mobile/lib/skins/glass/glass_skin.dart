@@ -6,24 +6,40 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
 import 'package:manhwamaniacs/skins/glass/glass/liquid.dart';
 import 'package:manhwamaniacs/skins/glass/glass_motion_recorder.dart';
+import 'package:manhwamaniacs/skins/glass/glass_scroll_behavior.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/orientation.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/recede.dart';
 import 'package:manhwamaniacs/skins/glass/router.dart';
+import 'package:manhwamaniacs/skins/glass/shell/focus_policy.dart';
+import 'package:manhwamaniacs/skins/glass/shell/global_keys.dart';
+import 'package:manhwamaniacs/skins/glass/shell/handoff_layer.dart';
+import 'package:manhwamaniacs/skins/glass/shell/session_loss.dart';
+import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
+import 'package:manhwamaniacs/skins/glass/splash/glass_splash.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
+import 'package:manhwamaniacs/skins/glass/transitions/glass_page_transitions.dart';
 import 'package:manhwamaniacs/skins/skin.dart';
 import 'package:manhwamaniacs/skins/token_types.g.dart';
 
 class GlassSkin implements Skin {
   const GlassSkin();
 
-  static final ThemeData _theme = ThemeData(
+  static final ThemeData baseTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
     scaffoldBackgroundColor: const Color(0xFF000000),
     canvasColor: const Color(0xFF000000),
     colorScheme: const ColorScheme.dark(surface: Color(0xFF000000)),
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: GlassPageTransitionsBuilder(),
+        TargetPlatform.iOS: GlassPageTransitionsBuilder(),
+      },
+    ),
+    textSelectionTheme: TextSelectionThemeData(selectionColor: const Color(0x667563F2), cursorColor: glassTokens.colorIris400),
     extensions: const [glassTokens],
   );
 
@@ -31,7 +47,7 @@ class GlassSkin implements Skin {
   SkinId get id => SkinId.glass;
 
   @override
-  ThemeData theme(WidgetRef ref) => _theme;
+  ThemeData theme(WidgetRef ref) => baseTheme;
 
   @override
   SystemUiOverlayStyle overlayStyle(WidgetRef ref) => const SystemUiOverlayStyle(
@@ -51,7 +67,7 @@ class GlassSkin implements Skin {
 
   // The splash is built later.
   @override
-  Widget splash(BuildContext context) => const ColoredBox(color: Color(0xFF000000));
+  Widget splash(BuildContext context) => const GlassSplash();
 
   @override
   Map<HapticEvent, List<HapticStep>> get haptics => glassHaptics;
@@ -63,7 +79,10 @@ class GlassSkin implements Skin {
   Map<String, String> get soundCues => glassSoundCues;
 
   @override
-  Future<void> prepare() => ensureLiquidGlassReady();
+  Future<void> prepare() {
+    GlassSplash.pending = true;
+    return ensureLiquidGlassReady();
+  }
 }
 
 /// The Glass root under `MaterialApp.builder`: true black, the ambient field (z 0.5) behind the routes,
@@ -78,6 +97,10 @@ class GlassRoot extends ConsumerStatefulWidget {
 }
 
 class _GlassRootState extends ConsumerState<GlassRoot> {
+  late final GlassFocusTraversalPolicy _focusPolicy = GlassFocusTraversalPolicy(
+    bands: (context) => glassFocusBands(context, accessory: ref.read(glassAccessoryVisibleProvider)),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -96,7 +119,22 @@ class _GlassRootState extends ConsumerState<GlassRoot> {
             children: [
               const Positioned.fill(child: ColoredBox(color: Color(0xFF000000))),
               const Positioned.fill(child: GlassAmbientField()),
-              Positioned.fill(child: widget.child),
+              Positioned.fill(
+                child: ScrollConfiguration(
+                  behavior: const GlassScrollBehavior(),
+                  child: FocusTraversalGroup(
+                    policy: _focusPolicy,
+                    child: GlassRecedeScope(
+                      child: GlassLastSeenWriter(
+                        child: GlassEffectsLayer(
+                          child: GlassSessionLoss(child: GlassGlobalKeys(child: widget.child)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const Positioned.fill(child: GlassSplash()),
               if (showTimings) const GlassMotionTimingsOverlay(),
             ],
           ),

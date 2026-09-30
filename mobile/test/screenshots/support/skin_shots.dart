@@ -32,6 +32,8 @@ const kSkinShotSizes = [
 
 // Not in the default loop; a step asks for them by name when its layout needs them.
 const kSkinShotTabletWide = SkinShotSize('tablet-wide', Size(1024, 1366), 2.0, EdgeInsets.only(top: 24, bottom: 20)); // the >= 900 px rows of 8.0.9
+/// The Glass desktop frame's proof size (glass 8.0.1 gives it the 280 px sidebar from 1180 px wide; no mobile/03 size reaches it).
+const kSkinShotDesktop = SkinShotSize('desktop', Size(1366, 1024), 2.0, EdgeInsets.only(top: 24, bottom: 20));
 const kSkinShotLandscape = SkinShotSize('landscape', Size(844, 390), 3.0, EdgeInsets.only(left: 47, right: 47, bottom: 21)); // landscape phone, 8.0.9
 
 /// The RepaintBoundary every capture rasterises.
@@ -77,6 +79,12 @@ void _mockPlatformChannels(WidgetTester tester) {
     messenger.setMockMethodCallHandler(check, null);
   });
 }
+
+/// [captureSkinScreen]'s view setup for a step that drives the app itself (mobile/29's shell shots).
+void setSkinShotView(WidgetTester tester, SkinShotSize size) => _setView(tester, size);
+
+/// The root overrides [captureSkinScreen] pumps with: prefs, auth, profile, no downloads store.
+Future<List<Override>> skinShotRootOverrides() => _rootOverrides();
 
 void _setView(WidgetTester tester, SkinShotSize size) {
   _mockPlatformChannels(tester);
