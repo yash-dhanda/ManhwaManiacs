@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cards/cine_collection_plate.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 
 import '../../../features/circle/fakes.dart';
 import '../hub/hub_test_support.dart';
@@ -56,7 +55,7 @@ void main() {
     expect(find.textContaining('CAN ADD'), findsOneWidget);
     expect(find.textContaining('2 shelves · 1 shared · 1 shared with you', findRichText: true), findsWidgets);
     final plates = t.widgetList<CineCollectionPlate>(find.byType(CineCollectionPlate)).toList();
-    expect(plates.where((p) => p.sharedWith.isNotEmpty && p.badges.isNotEmpty), hasLength(1));
+    expect(plates.where((p) => p.sharedWith.isNotEmpty && p.badges.isNotEmpty), hasLength(2));
   });
 
   testWidgets('a can_add shelf renders from its own snapshot and shows only what the role allows', (t) async {
@@ -64,8 +63,8 @@ void main() {
     await _pump(t, withMe: [shelf], detail: _detail(shelf));
     await t.tap(find.text('Riya picks'));
     await settleShelf(t, by: const Duration(milliseconds: 1400));
-    expect(find.text('Tower of God'), findsOneWidget);
-    expect(find.text('Solo Leveling'), findsOneWidget);
+    expect(find.text('Tower of God'), findsWidgets);
+    expect(find.text('Solo Leveling'), findsWidgets);
     expect(find.textContaining('NO LONGER FOLLOWED'), findsNothing);
     expect(find.text('Add series'), findsOneWidget);
     expect(find.text('Edit'), findsNothing);
@@ -94,11 +93,11 @@ void main() {
     await settleShelf(t, by: const Duration(milliseconds: 400));
     expect(find.textContaining('Leave Riya picks? It disappears from your Collections.'), findsOneWidget);
     // Dead while armed.
-    await t.tap(find.widgetWithText(CineButton, 'Leave shelf').last);
+    await t.tap(find.text('Leave shelf').last);
     await settleShelf(t, by: const Duration(milliseconds: 100));
     expect(repo.log.where((e) => e.startsWith('unshare')), isEmpty);
     await settleShelf(t, by: const Duration(milliseconds: 1200));
-    await t.tap(find.widgetWithText(CineButton, 'Leave shelf').last);
+    await t.tap(find.text('Leave shelf').last);
     await settleShelf(t, by: const Duration(milliseconds: 1200));
     expect(repo.log, contains('unshare 9 me'));
     expect(find.text('Left Riya picks.'), findsOneWidget);

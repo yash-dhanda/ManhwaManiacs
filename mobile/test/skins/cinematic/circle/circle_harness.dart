@@ -4,11 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
+import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/circle/circle_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/circle/circle_tabs.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/circle_member/circle_member_screen.dart';
 
 import '../../../features/circle/fakes.dart';
+import '../library/library_test_support.dart' show ShelfLibrary, shelfSeries;
 import '../support/cine_harness.dart';
 
 export '../../../features/circle/fakes.dart';
@@ -29,6 +31,9 @@ GoRouter circleRouter({String initial = '/circle', Widget? screen}) => GoRouter(
       ],
     );
 
+/// A library that follows anything, and remembers what it followed.
+final ShelfLibrary kFollowLibrary = ShelfLibrary(all: [shelfSeries(1)]);
+
 Future<void> pumpCircle(
   WidgetTester tester,
   FakeCircleRepository repo, {
@@ -48,7 +53,7 @@ Future<void> pumpCircle(
       platform: platform,
       reduced: reduced,
       textScale: textScale,
-      extra: [circleRepositoryProvider.overrideWithValue(repo), ...extra],
+      extra: [circleRepositoryProvider.overrideWithValue(repo), libraryRepositoryProvider.overrideWithValue(kFollowLibrary), ...extra],
     );
 
 Future<void> settle(WidgetTester tester, [int ms = 1500]) async {

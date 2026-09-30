@@ -35,7 +35,7 @@ class TypedText extends StatefulWidget {
 }
 
 class _TypedTextState extends State<TypedText> with SingleTickerProviderStateMixin {
-  late final Ticker _ticker = createTicker(_tick);
+  Ticker? _ticker;
   late final String _full = widget.runs.map((r) => r.text).join();
   late final int _len = _full.characters.length;
   int _n = 0;
@@ -52,7 +52,7 @@ class _TypedTextState extends State<TypedText> with SingleTickerProviderStateMix
         if (mounted) widget.onDone?.call();
       });
     } else {
-      _ticker.start();
+      _ticker = createTicker(_tick)..start();
     }
   }
 
@@ -61,14 +61,14 @@ class _TypedTextState extends State<TypedText> with SingleTickerProviderStateMix
     final n = ms < 0 ? 0 : typedCount(ms, _len);
     if (n != _n) setState(() => _n = n);
     if (n >= _len) {
-      _ticker.stop();
+      _ticker?.stop();
       widget.onDone?.call();
     }
   }
 
   @override
   void dispose() {
-    _ticker.dispose();
+    _ticker?.dispose();
     super.dispose();
   }
 

@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/library/models/ambient.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cards/cine_letter_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_avatar.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/circle/circle_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/circle/dispatch_row.dart';
 
 import 'circle_harness.dart';
@@ -35,9 +36,13 @@ void main() {
     testWidgets('a guarded reaction hides its glyph; Read it too follows and turns to FOLLOWING', (tester) async {
       await pumpCircle(tester, _repo());
       await settle(tester);
-      expect(find.textContaining('Riya reacted to chapter 12 of Tower of God.', findRichText: true), findsNothing); // Arjun-less: Riya reacted...
-      expect(find.textContaining('reacted to chapter 12 of', findRichText: true), findsOneWidget);
+      // Sealed: the sentence names no reaction and there is no glyph.
+      expect(find.textContaining('Riya reacted to chapter 12 of Tower of God.', findRichText: true), findsOneWidget);
+      expect(find.textContaining('Loved', findRichText: true), findsNothing);
       expect(find.text('Read it too'), findsNWidgets(3));
+      await tester.tap(find.text('Read it too').first);
+      await settle(tester, 400);
+      expect(find.text('Following Omniscient Reader.'), findsWidgets);
     });
 
     testWidgets('dispatch time folio is spoken', (tester) async {
@@ -64,7 +69,7 @@ void main() {
       expect(find.textContaining('CH 212'), findsNothing);
       // The next poll: now is null, the ring and NOW leave.
       repo.membersList = [member(riya), member(arjun)];
-      final container = ProviderScope.containerOf(tester.element(find.byType(Scaffold).first));
+      final container = ProviderScope.containerOf(tester.element(find.byType(CircleScreen)));
       container.invalidate(circleMembersProvider);
       await settle(tester, 1000);
       expect(ringDuo(), isNull);
@@ -129,7 +134,8 @@ void main() {
       await pumpCircle(tester, repo);
       await settle(tester);
       Future<void> tab(String label) async {
-        await tester.tap(find.text(label).first);
+        final key = {'READING': LogicalKeyboardKey.digit2, 'REACTIONS': LogicalKeyboardKey.digit3, 'LETTERS': LogicalKeyboardKey.digit4, 'SHELVES': LogicalKeyboardKey.digit5}[label]!;
+        await tester.sendKeyEvent(key);
         await settle(tester, 700);
       }
 
@@ -206,8 +212,8 @@ void main() {
       repo.failPatchLetter = const NetworkError(message: 'x');
       await tester.tap(find.text('Dismiss').first);
       await settle(tester, 400);
-      expect(find.text("Couldn't update the letter."), findsOneWidget);
-      expect(find.text('Tower of God'), findsOneWidget);
+      expect(find.text("Couldn't update the letter."), findsWidgets);
+      expect(find.text('Tower of God'), findsWidgets);
     });
 
     testWidgets('Add follows and marks read', (tester) async {

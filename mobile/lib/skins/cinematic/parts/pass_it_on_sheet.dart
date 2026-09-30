@@ -37,7 +37,7 @@ Future<bool> showPassItOnSheet(
       context,
       kicker: 'PASS IT ON',
       title: 'Recommend',
-      builder: (ctx) => PassItOnBody(sourceId: sourceId, seriesKey: seriesKey, title: title, coverUrl: coverUrl, preselectProfileId: preselectProfileId),
+      builder: (ctx) => Material(type: MaterialType.transparency, child: PassItOnBody(sourceId: sourceId, seriesKey: seriesKey, title: title, coverUrl: coverUrl, preselectProfileId: preselectProfileId)),
     ) ??
     false;
 

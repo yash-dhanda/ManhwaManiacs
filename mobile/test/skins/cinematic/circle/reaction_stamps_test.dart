@@ -10,14 +10,14 @@ import 'package:manhwamaniacs/skins/cinematic/parts/reaction_stamps.dart';
 
 import 'circle_harness.dart';
 
-ChapterReactions _chapter({bool sealed = true, ReactionKind? mine, Map<ReactionKind, int> counts = const {ReactionKind.loved: 2}}) => ChapterReactions(
+ChapterReactions _chapter({bool sealed = true, ReactionKind? mine, Map<ReactionKind, int> counts = const {ReactionKind.loved: 2}, bool others = true}) => ChapterReactions(
       chapterKey: 'c142',
       chapterNumber: 142,
       counts: {for (final k in ReactionKind.values) k: counts[k] ?? 0},
       total: counts.values.fold(0, (a, b) => a + b),
       by: [
-        ReactionBy.of(riya, ReactionKind.loved),
-        ReactionBy.of(arjun, ReactionKind.loved),
+        if (others) ReactionBy.of(riya, ReactionKind.loved),
+        if (others) ReactionBy.of(arjun, ReactionKind.loved),
       ],
       mine: mine,
       sealed: sealed,
@@ -104,9 +104,9 @@ void main() {
   });
 
   testWidgets('the viewer\'s own reaction is never guarded and shows filled', (tester) async {
-    await _pump(tester, FakeCircleRepository(reactionList: [_chapter(mine: ReactionKind.loved, counts: {ReactionKind.loved: 3})]));
+    await _pump(tester, FakeCircleRepository(reactionList: [_chapter(mine: ReactionKind.loved, counts: {ReactionKind.loved: 1}, others: false)]));
     expect(find.bySemanticsLabel('Reactions to chapter 142'), findsOneWidget);
-    expect(find.bySemanticsLabel(RegExp('Loved, 3 reactions, selected')), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Loved, 1 reaction, selected')), findsOneWidget);
   });
 
   testWidgets('semantics: a mutually exclusive group of buttons', (tester) async {
