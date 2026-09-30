@@ -139,6 +139,17 @@ class Changelog(BaseModel):
 # consume the exact same source of truth.
 _RELEASE_NOTES: list[ChangelogEntry] = [
     ChangelogEntry(
+        version="3.5.0",
+        build=57,
+        date="October 2026",
+        highlights=[
+            "A new look on iPhone and Android: the Cinematic edition, "
+            "black-on-black with editorial type, new motion between screens "
+            "and a redesigned reader",
+            "Your library, downloads and settings carry over unchanged",
+        ],
+    ),
+    ChangelogEntry(
         version="3.4.3",
         build=56,
         date="September 2026",

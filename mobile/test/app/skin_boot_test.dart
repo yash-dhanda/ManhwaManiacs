@@ -11,11 +11,11 @@ Future<SharedPreferences> _prefs(Map<String, Object> v) async {
 
 void main() {
   group('resolveSkin', () {
-    test('debug beats active, glass allowed through debug', () async {
+    test('debug glass is forced to cinematic while glass is unavailable', () async {
       expect(
           SkinBoot.resolveSkin(await _prefs(
               {kSkinDebugKey: 'glass', kSkinActiveKey: 'cinematic'},),),
-          SkinId.glass,);
+          SkinId.cinematic,);
     });
     test('glass active with the flag off becomes cinematic', () async {
       expect(SkinBoot.resolveSkin(await _prefs({kSkinActiveKey: 'glass'})),

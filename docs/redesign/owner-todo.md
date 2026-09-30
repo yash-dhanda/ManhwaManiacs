@@ -159,6 +159,8 @@ Items only the owner can do, by step.
 - mobile/31: device checks in docs/redesign/proof/mobile-31/device-check.md
 - mobile/32: run the device checks in docs/redesign/proof/mobile-32/device-check.md (pinch density 120 Hz, pager vs back swipe, dock badge, Save to Files, VoiceOver/TalkBack, gate).
 
+## mobile/38 (Glass search, sources, catalogue, dialogue)
+- Device checks: see `docs/redesign/proof/mobile-38/device-checklist.md` (orb morph on both OSs, 120 Hz late groups, jump-bar ticks, pin fly haptics, FTS4 tokenizer log line on the Android flagship, VoiceOver and TalkBack).
 ## mobile/34 (reader engine, Glass commands)
 
 - Device check on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-34/device-check.md` (120 Hz, 0 dropped frames on the long strip and on a real 120-page chapter; `mode=single` pull readout; sample turns `decode`).

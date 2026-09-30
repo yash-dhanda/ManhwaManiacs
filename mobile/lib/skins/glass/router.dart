@@ -30,6 +30,7 @@ import 'package:manhwamaniacs/skins/glass/routes/sheet_param_host.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/setup_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/dialogue/dialogue_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/collection_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_hub.dart';
@@ -39,6 +40,8 @@ import 'package:manhwamaniacs/skins/glass/screens/onboarding/onboarding_screen.d
 import 'package:manhwamaniacs/skins/glass/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/sources/catalogue_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/sources/sources_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
 import 'package:manhwamaniacs/skins/glass/screens/updates/updates_screen.dart';
@@ -63,13 +66,9 @@ const Set<ScreenId> PENDING = {
   ScreenId.recap,
   ScreenId.circle,
   ScreenId.circleMember,
-  ScreenId.discover,
-  ScreenId.sources,
-  ScreenId.source,
   ScreenId.reader,
   ScreenId.readAll,
   ScreenId.novel,
-  ScreenId.dialogue,
   ScreenId.indexHub,
   ScreenId.settings,
   ScreenId.status,
@@ -336,9 +335,9 @@ GoRouter buildGlassRouter(Ref ref) {
             _screen(ScreenId.downloads, (s) => _hub(s, LibrarySection.downloads), pageKey: kGlassLibraryHubKey),
           ]),
           branch(GlassTab.sources, [
-            _route(ScreenId.sources),
-            _route(ScreenId.source),
-            _route(ScreenId.dialogue),
+            _screen(ScreenId.sources, (s) => const GlassSourcesScreen()),
+            _screen(ScreenId.source, (s) => GlassCatalogueScreen(sourceId: s.pathParameters['sourceId'] ?? '', mode: s.uri.queryParameters['mode'], genre: s.uri.queryParameters['genre'], q: s.uri.queryParameters['q'])),
+            _screen(ScreenId.dialogue, (s) => GlassDialogueScreen(q: s.uri.queryParameters['q'])),
           ]),
           branch(GlassTab.you, [
             GoRoute(
