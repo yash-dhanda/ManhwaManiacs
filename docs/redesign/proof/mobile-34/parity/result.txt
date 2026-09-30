@@ -1,0 +1,1 @@
+PARITY pairs=62 different=0 (cmp of parity/before vs parity/after, mobile-12 and mobile-13 groups)
