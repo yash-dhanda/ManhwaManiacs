@@ -15,6 +15,7 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/dev/auth_fixtures.dart';
 import 'package:manhwamaniacs/skins/glass/dev/calibration_page.dart';
 import 'package:manhwamaniacs/skins/glass/dev/dev_controls.dart';
+import 'package:manhwamaniacs/skins/glass/dev/engine_probe_page.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_dev_index.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_gallery.dart';
 import 'package:manhwamaniacs/skins/glass/dev/overlay_sections.dart';
@@ -89,6 +90,9 @@ const String kGlassAuthDemoPath = '/dev/glass/auth';
 
 /// The route error screen on its own (its captures and its tests).
 const String kGlassRouteErrorDemoPath = '/dev/glass/route-error';
+
+/// The reader engine probe (`mobile/34`): `?fixture=long-strip` or `?source=&series=&chapter=`, `&mode=continuous|single`.
+const String kGlassReaderEngineProbePath = '/dev/glass/reader-engine';
 
 class _PendingWithDev extends StatelessWidget {
   const _PendingWithDev({required this.child});
@@ -299,6 +303,10 @@ GoRouter buildGlassRouter(Ref ref) {
       _devRoute(kGlassDevPath, () => const GlassDevIndex()),
       _devRoute(kGlassCalibrationPath, () => const GlassCalibrationPage()),
       _devRoute(kGlassAuthDemoPath, () => const GlassAuthDevPage()),
+      GoRoute(
+        path: kGlassReaderEngineProbePath,
+        builder: (context, state) => _DevScaffold(child: EngineProbePage(params: state.uri.queryParameters)),
+      ),
       _devRoute(kGlassRouteErrorDemoPath, () => GlassRouteError(error: StateError('demo'))),
       GoRoute(
         path: kGlassPrimitivesPath,
