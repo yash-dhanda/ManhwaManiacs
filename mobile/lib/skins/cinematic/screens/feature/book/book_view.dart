@@ -57,6 +57,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/listen/audiobook_sheet.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/listen/listen_common.dart' show isOwnerProvider;
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// The novel Book page: typographic front matter, actions, windowed contents.
 class BookView extends ConsumerStatefulWidget {
@@ -195,7 +196,7 @@ class _BookViewState extends ConsumerState<BookView> {
     final target = top + (i - win.start) * kContentsRowExtent - view / 2 + kContentsRowExtent / 2;
     unawaited(_scroll.animateTo(
       target.clamp(0.0, _scroll.position.maxScrollExtent),
-      duration: MediaQuery.disableAnimationsOf(context)
+      duration: CineMotion.reduced(context)
           ? const Duration(milliseconds: 150)
           : CineDur.column,
       curve: CineCurves.settle,

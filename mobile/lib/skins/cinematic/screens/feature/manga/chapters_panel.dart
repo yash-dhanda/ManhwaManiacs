@@ -36,6 +36,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/schedule_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 const kNeedsConnection = 'Needs a connection.';
 
@@ -305,7 +306,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
     if (c != null && c.hasClients) {
       unawaited(c.animateTo(
         (i * rowExtent).clamp(0, c.position.maxScrollExtent),
-        duration: MediaQuery.disableAnimationsOf(context)
+        duration: CineMotion.reduced(context)
             ? const Duration(milliseconds: 150)
             : CineDur.column,
         curve: CineCurves.settle,

@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart'
     as real;
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 // TODO(mobile/04): stand-ins still local: slug tabs, notice, typed text, quiet
 // button, flicker plate. Their real counterparts (primitives/cine_slug_lines,
@@ -17,7 +18,7 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 // poster, toast, Quick look, pull to reprint and SetHeading.
 
 bool cineReduced(BuildContext context) =>
-    MediaQuery.disableAnimationsOf(context);
+    CineMotion.reduced(context);
 
 TextStyle cineText(BuildContext c, CineTextRole role, {Color? color}) =>
     CineType.style(c, role).copyWith(color: color ?? c.cine.colorInk100);

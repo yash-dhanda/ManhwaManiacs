@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/providers/dialogue_jump_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// Where a dialogue hit lands in the reader, and what to tell the reader.
 class DialogueLanding {
@@ -69,7 +70,7 @@ class _BubblePulseState extends State<BubblePulse>
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    _reduced = MediaQuery.disableAnimationsOf(context);
+    _reduced = CineMotion.reduced(context);
     if (_reduced) {
       _hold = Timer(const Duration(milliseconds: 960), () {
         if (mounted) setState(() => _reduced = false);

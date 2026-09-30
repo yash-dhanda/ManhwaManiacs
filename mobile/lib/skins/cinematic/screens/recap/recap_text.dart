@@ -4,6 +4,7 @@ import 'package:manhwamaniacs/features/recap/providers/recap_providers.dart' sho
 import 'package:manhwamaniacs/skins/cinematic/screens/recap/drop_cap_paragraph.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// The recap prose (cinematic 9.1.5): Newsreader 18/28 (20/32 from 600 dp), at most 58 ch wide,
 /// every word fading in over 160 ms as it is revealed (no fade under reduced motion), a
@@ -72,7 +73,7 @@ class _RecapTextState extends State<RecapText> with SingleTickerProviderStateMix
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _reduced = MediaQuery.disableAnimationsOf(context);
+    _reduced = CineMotion.reduced(context);
   }
 
   @override

@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/circle_rows.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// CIRCLE (cinematic 8.14.12, 9.3.3): who in the circle read this chapter and how they took it,
 /// behind the spoiler guard. When [completedOpen] turns true the guarded rows unseal, each label
@@ -80,7 +81,7 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
-    final reduced = MediaQuery.disableAnimationsOf(context);
+    final reduced = CineMotion.reduced(context);
     final m = row.member;
     Widget detail() => switch (row.kind) {
           CircleRowKind.label => _FadeIn(

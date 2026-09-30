@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/ocr_overlay.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// DIALOGUE (cinematic 8.14.12): the chapter's transcript as subtitle lines per page. A tap on a
 /// line scrolls there and pulses that bubble twice through the page overlay. No text, a 404 or an
@@ -72,7 +73,7 @@ class DialogueTab extends ConsumerWidget {
         ],),
       );
     }
-    final reduced = MediaQuery.disableAnimationsOf(context);
+    final reduced = CineMotion.reduced(context);
     return ListView(
       padding: EdgeInsets.all(c.space4),
       children: [

@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_acti
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_hero_phone.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_spread.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 export 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_actions.dart' show ResumePoint;
 
@@ -76,7 +77,7 @@ class _FeatureCoverState extends State<FeatureCover> with SingleTickerProviderSt
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_started && widget.drift && !MediaQuery.disableAnimationsOf(context)) {
+    if (!_started && widget.drift && !CineMotion.reduced(context)) {
       _started = true;
       _c.repeat(reverse: true);
     }
@@ -91,7 +92,7 @@ class _FeatureCoverState extends State<FeatureCover> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final t = cineOf(context);
-    final reduced = MediaQuery.disableAnimationsOf(context);
+    final reduced = CineMotion.reduced(context);
     final image = widget.url == null
         ? ColoredBox(color: t.colorPaper2)
         : Image.network(
@@ -148,7 +149,7 @@ class _CreditsBlockState extends State<CreditsBlock> with SingleTickerProviderSt
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (CineMotion.reduced(context)) {
       _c.value = 1;
       return;
     }

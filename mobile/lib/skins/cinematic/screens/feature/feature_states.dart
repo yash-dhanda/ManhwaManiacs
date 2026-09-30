@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// A count on a label (` 201`). The bundled Archivo has no superscript zero, so the
 /// count is set as plain figures after a space rather than as tofu.
@@ -168,7 +169,7 @@ class _TypedHeadlineState extends State<TypedHeadline> {
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (CineMotion.reduced(context)) {
       _n = widget.text.length;
       return;
     }

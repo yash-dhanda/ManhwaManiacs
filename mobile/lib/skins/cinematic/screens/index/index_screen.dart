@@ -36,6 +36,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/index/update_banner.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// Whether the leaders have drawn themselves this app session (a restart resets it).
 final indexLeadersDrawnProvider = StateProvider<bool>((ref) => false, name: 'indexLeadersDrawn');
@@ -271,5 +272,5 @@ class _IndexScreenState extends ConsumerState<IndexScreen> {
 
 /// Programmatic scrolls jump under reduced motion.
 abstract final class CineMotionSafe {
-  static Duration of(BuildContext context) => MediaQuery.disableAnimationsOf(context) ? Duration.zero : context.cine.durColumn;
+  static Duration of(BuildContext context) => CineMotion.reduced(context) ? Duration.zero : context.cine.durColumn;
 }

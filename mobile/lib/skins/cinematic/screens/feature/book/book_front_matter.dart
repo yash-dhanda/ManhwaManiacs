@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/drop_cap_paragraph.dart
 import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 /// Newsreader Italic 22 for the byline (`CineType.literal`).
 TextStyle bookLiteral(Color color, {double size = 22}) => TextStyle(
@@ -103,7 +104,7 @@ class _BookFrontMatterState extends State<BookFrontMatter> with SingleTickerProv
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (CineMotion.reduced(context)) {
       _c.value = 1;
     } else {
       _timer = Timer(const Duration(milliseconds: 600), () {

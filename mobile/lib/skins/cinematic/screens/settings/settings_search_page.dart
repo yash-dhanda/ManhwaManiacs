@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_search_field.dart'
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_registry.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
 String _titleOf(List<SettingsSectionDef> sections, String slug) => sections.where((s) => s.slug == slug).firstOrNull?.title ?? slug;
 
@@ -131,7 +132,7 @@ class _SettingsSearchPageState extends State<SettingsSearchPage> {
 Future<SettingsRowRef?> openSettingsSearch(BuildContext context, List<SettingsRowRef> rows, List<SettingsSectionDef> sections) {
   return Navigator.of(context).push<SettingsRowRef>(
     PageRouteBuilder<SettingsRowRef>(
-      transitionDuration: MediaQuery.disableAnimationsOf(context) ? const Duration(milliseconds: 150) : context.cine.durLine,
+      transitionDuration: CineMotion.reduced(context) ? const Duration(milliseconds: 150) : context.cine.durLine,
       reverseTransitionDuration: const Duration(milliseconds: 150),
       pageBuilder: (_, __, ___) => SettingsSearchPage(rows: rows, sections: sections),
       transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
