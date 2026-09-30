@@ -116,7 +116,9 @@ class _VoiceBrowseListState extends ConsumerState<VoiceBrowseList> {
                 (_q.isEmpty || matchSettings(_q, [SettingsRowRef(id: v.voiceId, section: '', label: v.name, keywords: [v.character])]).isNotEmpty))
               v,
         ];
-        return Padding(
+        return Material(
+          type: MaterialType.transparency,
+          child: Padding(
           padding: EdgeInsets.symmetric(horizontal: c.space4),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             CineSlugLines(
@@ -138,7 +140,7 @@ class _VoiceBrowseListState extends ConsumerState<VoiceBrowseList> {
                 ],),
               ),
           ],),
-        );
+        ),);
       },
     );
   }

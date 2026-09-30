@@ -141,7 +141,7 @@ List<Override> settingsOverrides(SettingsRig r, SharedPreferences prefs, SkinAud
       seriesStorageBreakdownProvider.overrideWith((ref) async => const []),
       deviceOnlineProvider.overrideWith((ref) => Stream.value(r.online)),
       updateSettingsProvider.overrideWith(
-        (ref) async => UpdateSettings(enabled: true, checkIntervalMinutes: 30, notifyEnabled: true, checkOnStartup: false, lastRunAt: DateTime.now().subtract(const Duration(minutes: 12))),
+        (ref) async => UpdateSettings(enabled: true, checkIntervalMinutes: 30, notifyEnabled: true, checkOnStartup: false, lastRunAt: DateTime.now().subtract(const Duration(minutes: 45))),
       ),
       updateRunsProvider.overrideWith((ref) async => const []),
       sourceCacheTtlProvider.overrideWith(_Ttl.new),
@@ -231,3 +231,37 @@ Future<ProviderContainer> pumpSettings(
   return container;
 }
 
+
+/// Pumps [page] alone in a scrollable, under the same fakes as [pumpSettings].
+Future<ProviderContainer> pumpPage(
+  WidgetTester tester,
+  Widget page, {
+  SettingsRig? rig,
+  Size size = const Size(390, 844),
+  TargetPlatform platform = TargetPlatform.android,
+  bool reduced = false,
+  List<Override> more = const [],
+}) async {
+  final r = rig ?? SettingsRig();
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = size;
+  addTearDown(tester.view.reset);
+  SharedPreferences.setMockInitialValues(r.prefs);
+  final prefs = await SharedPreferences.getInstance();
+  final audio = SkinAudio.forTest(_Configurator(), r.engine)..bind(skin: SkinId.cinematic, userId: 1, profileId: 1, prefs: prefs);
+  final container = ProviderContainer(overrides: [...settingsOverrides(r, prefs, audio), ...more]);
+  addTearDown(container.dispose);
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: rigTheme(platform),
+        builder: (context, c) => MediaQuery(data: MediaQuery.of(context).copyWith(disableAnimations: reduced), child: c!),
+        home: Scaffold(backgroundColor: Colors.black, body: SafeArea(child: SingleChildScrollView(padding: const EdgeInsets.all(16), child: page))),
+      ),
+    ),
+  );
+  await settle(tester);
+  return container;
+}

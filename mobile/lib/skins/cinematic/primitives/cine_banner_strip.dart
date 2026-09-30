@@ -40,7 +40,8 @@ class CineBannerStrip extends StatelessWidget {
             CineRoleText(line, c.typeUi),
           ],);
           final buttons = Wrap(spacing: c.space2, children: [for (final a in actions) CineButton(label: a.label, variant: CineButtonVariant.quiet, onPressed: a.onPressed)]);
-          if (CineReflow.of(context).stackSplit) {
+          // A long action (`Cancel staged restore`) would squeeze the line to nothing beside it.
+          if (CineReflow.of(context).stackSplit || actions.any((a) => a.label.length > 18)) {
             return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [text, if (actions.isNotEmpty) Padding(padding: EdgeInsets.only(top: c.space2), child: buttons)]);
           }
           return Row(children: [Expanded(child: text), buttons]);

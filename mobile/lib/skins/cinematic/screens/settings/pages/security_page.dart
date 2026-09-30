@@ -167,7 +167,14 @@ class _ChangePasswordFormState extends ConsumerState<ChangePasswordForm> {
       if (_rate.active)
         Padding(
           padding: EdgeInsets.only(top: c.space2),
-          child: Semantics(liveRegion: true, child: CineRoleText('SLOW DOWN · ${rateLimitLine(_rate.seconds)}', c.typeKicker, color: c.colorProof)),
+          child: Semantics(
+            liveRegion: true,
+            child: Row(children: [
+              CineRoleText('SLOW DOWN', c.typeKicker, color: c.colorProof),
+              SizedBox(width: c.space2),
+              CineRoleText(rateLimitLine(_rate.seconds), c.typeCaption, color: c.colorProof),
+            ],),
+          ),
         ),
       SizedBox(height: c.space3),
       Align(alignment: Alignment.centerLeft, child: CineButton(label: 'Change password', loading: _busy, onPressed: _rate.active ? null : () => unawaited(_submit()))),
