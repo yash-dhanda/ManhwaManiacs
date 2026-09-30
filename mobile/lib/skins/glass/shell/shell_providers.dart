@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show singleKeyShortcutsProvider;
 import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/core/network/request_failures.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
@@ -45,8 +46,8 @@ final glassArrivalProvider = StateProvider<GlassArrival?>((ref) => null);
 /// Centre of the tapped tab, so the destination's wave radiates from it.
 final glassWaveOriginProvider = StateProvider<Offset?>((ref) => null);
 
-/// Per-device "Single-key shortcuts" switch (default on; its Settings row is `mobile/39`).
-final glassSingleKeyProvider = StateProvider<bool>((ref) => true);
+/// Per-device "Single-key shortcuts" switch (default on; its Settings row is `mobile/39`), the shared skin-neutral preference.
+final glassSingleKeyProvider = Provider<bool>((ref) => ref.watch(singleKeyShortcutsProvider));
 
 /// Whether the device OCR engine exists (read once per launch).
 final glassOcrAvailableProvider = StateProvider<bool>((ref) => false);
@@ -74,3 +75,6 @@ final glassOfflineProvider = Provider<bool>((ref) {
       ref.watch(sessionOfflineProvider) ||
       ref.watch(requestFailuresProvider);
 });
+
+/// The shell registers what `mod+B` and the expand button call.
+final glassSidebarToggleProvider = StateProvider<void Function()?>((ref) => null);
