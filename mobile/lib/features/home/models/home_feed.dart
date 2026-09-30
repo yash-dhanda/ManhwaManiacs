@@ -1,3 +1,4 @@
+import 'package:manhwamaniacs/core/color/cover_palette.dart';
 import 'package:manhwamaniacs/core/time/server_instant.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/library/models/ambient.dart';
@@ -152,6 +153,7 @@ class HomeCover {
     this.pausedDays = 0,
     this.why,
     this.author,
+    this.palette,
   });
 
   final String sourceId, seriesKey;
@@ -167,6 +169,9 @@ class HomeCover {
   final double? chapterNumber;
   final int lastPage, pageCount, newCount, pausedDays;
   final String? why, author;
+
+  /// The cover's palette where the payload carried one (backend/01), else null.
+  final CoverPalette? palette;
 
   bool get isNovel => contentKind == 'novel';
 
@@ -201,6 +206,7 @@ class HomeCover {
       pausedDays: _int(j['paused_days']) ?? 0,
       why: _str(j['why']),
       author: _str(j['author']),
+      palette: CoverPalette.tryParse(j['palette']),
     );
   }
 }
@@ -309,8 +315,9 @@ enum ContinueNudge {
 
 /// A `continue` row: the continue-reading row plus the section's extras.
 class HomeContinueItem {
-  const HomeContinueItem({required this.row, this.nudge, this.newCount = 0, this.pausedDays = 0, this.recap, this.mature = false});
+  const HomeContinueItem({required this.row, this.nudge, this.newCount = 0, this.pausedDays = 0, this.recap, this.mature = false, this.palette});
   final ContinueReadingItem row;
+  final CoverPalette? palette;
   final ContinueNudge? nudge;
   final int newCount, pausedDays;
   final RecapAvailability? recap;
@@ -323,8 +330,9 @@ class HomeContinueItem {
 
 /// A `new_this_week`, `almost_there` or `where_were_we` row: the library row plus the extras.
 class HomeSeriesItem {
-  const HomeSeriesItem({required this.series, this.chaptersLeft, this.recap, this.mature = false, this.lastReadAt});
+  const HomeSeriesItem({required this.series, this.chaptersLeft, this.recap, this.mature = false, this.lastReadAt, this.palette});
   final FollowedSeries series;
+  final CoverPalette? palette;
   final int? chaptersLeft;
   final RecapAvailability? recap;
   final bool mature;
@@ -337,7 +345,8 @@ class HomeSeriesItem {
 
 /// `picked`, `because`, `first_picks`, `popular`: a world title or a source series, with its `why`.
 class HomePickItem {
-  const HomePickItem({this.world, this.source, this.why, this.mature = false}) : assert(world != null || source != null);
+  const HomePickItem({this.world, this.source, this.why, this.mature = false, this.palette}) : assert(world != null || source != null);
+  final CoverPalette? palette;
   final WorldItem? world;
   final SourceSeriesSummary? source;
   final String? why;
@@ -466,12 +475,14 @@ class HomeSection {
             newCount: _int(j['new_count']) ?? 0,
             pausedDays: _int(j['paused_days']) ?? 0,
             recap: RecapAvailability.tryParse(j['recap']),
+            palette: CoverPalette.tryParse(j['palette']),
           ),
         HomeSectionType.newThisWeek || HomeSectionType.almostThere || HomeSectionType.whereWereWe => HomeSeriesItem(
             series: FollowedSeries.fromJson(j),
             chaptersLeft: _int(j['chapters_left']),
             recap: RecapAvailability.tryParse(j['recap']),
             lastReadAt: serverInstant(j['last_read_at']),
+            palette: CoverPalette.tryParse(j['palette']),
           ),
         HomeSectionType.picked || HomeSectionType.because || HomeSectionType.firstPicks || HomeSectionType.popular => _pick(j),
         HomeSectionType.sources => HomeSourceItem(
@@ -507,8 +518,9 @@ class HomeSection {
     final item = _map(j['item']);
     if (item == null) return null;
     final why = _str(j['why']);
-    if (j['kind'] == 'world') return HomePickItem(world: WorldItem.fromJson(item), why: why);
-    return HomePickItem(source: SourceSeriesSummary.fromJson(item, ''), why: why);
+    final palette = CoverPalette.tryParse(j['palette'] ?? item['palette']);
+    if (j['kind'] == 'world') return HomePickItem(world: WorldItem.fromJson(item), why: why, palette: palette);
+    return HomePickItem(source: SourceSeriesSummary.fromJson(item, ''), why: why, palette: palette);
   }
 }
 

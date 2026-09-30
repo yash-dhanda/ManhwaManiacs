@@ -27,6 +27,43 @@ enum HomeFeedOrigin { server, local, offline }
 /// [retryAfter] is the server's `Retry-After` when `GET /home` answered 429.
 typedef HomeFeedView = ({HomeFeedState state, HomeFeed? feed, HomeFeedOrigin origin, bool offline, Duration? retryAfter});
 
+/// What [HomeFeedController.refreshFromServer] reports.
+typedef HomeRefreshOutcome = ({bool changed, AppError? error});
+
+/// The identities of every item of [f], per section (`sourceId:seriesKey`, or `anilistId` for world items).
+List<String> homeFeedIdentities(HomeFeed? f) => [
+      if (f != null) ...[
+        'at:${f.generatedAt?.toIso8601String()}',
+        if (f.cover != null) 'cover:${f.cover!.sourceId}:${f.cover!.seriesKey}',
+        for (final s in f.sections) ...[
+          'sec:${s.type.wire}:${s.state.name}',
+          for (final i in s.items) _identity(i),
+        ],
+      ],
+    ];
+
+String _identity(Object i) => switch (i) {
+      HomeContinueItem() => '${i.row.sourceId}:${i.row.seriesKey}',
+      HomeSeriesItem() => '${i.series.sourceId}:${i.series.seriesKey}',
+      HomePickItem(:final world?) when world.anilistId > 0 => 'a${world.anilistId}',
+      HomePickItem(:final world?) => 'w${world.title}',
+      HomePickItem(:final source?) => '${source.sourceId}:${source.id}',
+      HomeSourceItem() => 'src:${i.sourceId}',
+      HomeGenreItem() => 'g:${i.genre}',
+      _ => i.runtimeType.toString(),
+    };
+
+/// True when [a] and [b] differ in `generatedAt` or in any section's item identities.
+bool homeFeedChanged(HomeFeed? a, HomeFeed? b) => !_listEq(homeFeedIdentities(a), homeFeedIdentities(b));
+
+bool _listEq(List<String> a, List<String> b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
 /// The skin-neutral Tonight / Home feed (both skins read it). Rebuilds on a profile switch, a gate
 /// change or a mode change (the web key `["home", profileId, matureEnabled, contentKind]`), and
 /// stays alive for 10 minutes after the last listener to match the server's cache.
@@ -47,6 +84,24 @@ class HomeFeedController extends AutoDisposeAsyncNotifier<HomeFeedView> {
   /// Refetches (skipping the server's composed cache); the previous feed stays until it settles.
   Future<void> refresh() async {
     state = await AsyncValue.guard(() => _load(refresh: true));
+  }
+
+  /// A pull to refresh (glass 8.8): refetches with `refresh=1`, writes the new view and reports whether
+  /// anything changed (`generatedAt` or any section's item identities). `refresh()` stays as it is.
+  Future<HomeRefreshOutcome> refreshFromServer() async {
+    final before = state.valueOrNull?.feed;
+    try {
+      final view = await _load(refresh: true);
+      state = AsyncData(view);
+      final AppError? error = switch (view.state) {
+        HomeFeedState.unavailable => const NetworkError(message: 'home unavailable'),
+        _ when view.offline => const NetworkError(message: 'offline'),
+        _ => null,
+      };
+      return (changed: error == null && homeFeedChanged(before, view.feed), error: error);
+    } catch (e) {
+      return (changed: false, error: e is AppError ? e : UnknownError(message: e.toString(), cause: e));
+    }
   }
 
   bool _sourceMature(String sourceId) {
