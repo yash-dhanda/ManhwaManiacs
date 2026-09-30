@@ -139,10 +139,16 @@ class _Title extends StatelessWidget {
           ),
         if (offline) ...[
           const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            decoration: BoxDecoration(color: const Color(0xFF000000), border: Border.all(color: c.colorInk45)),
-            child: CineRoleText('OFFLINE EDITION', c.typeMicro, color: c.colorInk60, maxLines: 1),
+          // Scales down on a narrow head rather than overflowing beside the trailing buttons.
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(color: const Color(0xFF000000), border: Border.all(color: c.colorInk45)),
+                child: CineRoleText('OFFLINE EDITION', c.typeMicro, color: c.colorInk60, maxLines: 1),
+              ),
+            ),
           ),
         ],
       ],

@@ -879,7 +879,9 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     final loadingChapter = s.chapterId.isEmpty;
     final brightness = _brightnessDraft ?? prefs.brightness;
     final speedX = _speedDraft ?? prefs.autoScrollSpeedX;
-    final offline = _body.feed.pages.isNotEmpty && _body.feed.pages.first.localFile != null;
+    // The chapter being read, not the first stitched one: a saved chapter between two remote ones is still an offline edition.
+    final current = _body.feed.chapters.where((ch) => ch.id == s.chapterId).firstOrNull;
+    final offline = current != null && current.pages.isNotEmpty && current.pages.first.localFile != null;
     final bookmarked = s.bookmarks.any((a) => a.page == s.page);
     final minutes = minutesLeft(page: s.page, pageCount: s.pageCount, pagesPerMinute: _pace.pagesPerMinute);
     final showChrome = s.chromeVisible && !s.locked;

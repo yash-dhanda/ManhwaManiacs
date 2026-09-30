@@ -94,7 +94,9 @@ class _ChapterDownloadControlState extends ConsumerState<ChapterDownloadControl>
       children: [
         if (busy && total > 0) CineRoleText('$done/$total · ${(fraction * 100).round()}%', c.typeFolio, color: c.colorInk60),
         if (mark is MarkSaved) CineRoleText('SAVED', c.typeMicro, color: c.colorInk45),
-        if (mark is MarkFailed || mark is MarkStale) CineRoleText('Save again', c.typeCaption, color: c.colorProof),
+        if (mark is MarkStale || (mark is MarkFailed && done == 0)) CineRoleText('Save again', c.typeCaption, color: c.colorProof),
+        // An interrupted save that got part-way reads Resume with how far it got (8.14.3).
+        if (mark is MarkFailed && done > 0) CineRoleText('Resume $done/$total', c.typeCaption, color: c.colorProof),
         CineDownloadMark(
           state: mark,
           page: isActive ? done : null,
