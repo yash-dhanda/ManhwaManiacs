@@ -22,7 +22,7 @@ cd mobile
 flutter pub get
 flutter analyze
 flutter test
-flutter build apk --release --dart-define=FLAVOR=prod
+flutter build apk --release --no-tree-shake-icons --dart-define=FLAVOR=prod
 ```
 
 Output: `mobile/build/app/outputs/flutter-apk/app-release.apk`
@@ -85,7 +85,7 @@ phone browser: open **https://app.manhwamaniacs.xyz** → **Download the app**.
   `docker-compose.yml` mounts `./apk` into the backend read-only and mounts
   `mobile/pubspec.yaml` so the version label is live.
 - **Build on deploy.** `ops/deploy.sh` (`build_apk`) runs
-  `flutter build apk --release --dart-define=FLAVOR=prod --dart-define=API_URL=https://app.<host>`
+  `flutter build apk --release --no-tree-shake-icons --dart-define=FLAVOR=prod --dart-define=API_URL=https://app.<host>`
   after syncing the source, then copies the result into `<env-dir>/apk/`. It is
   best-effort — if the Flutter/Android toolchain is missing it warns, falls back to
   a prebuilt APK carried in the source tree, and never fails the deploy. Production

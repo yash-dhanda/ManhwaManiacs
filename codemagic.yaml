@@ -30,7 +30,7 @@ workflows:
       - name: Build unsigned iOS app
         # `flutter build ios` runs `pod install` for us; --no-codesign skips
         # the Apple signing step entirely.
-        script: flutter build ios --release --no-codesign
+        script: flutter build ios --release --no-codesign --no-tree-shake-icons
       - name: Package unsigned .ipa
         # An .ipa is just a zip with the .app under a Payload/ folder.
         script: |

@@ -190,7 +190,7 @@ build_apk(){
   [ -x "$flutter_bin" ] || { echo "!! no flutter at $flutter_bin (set MM_FLUTTER)" >&2; exit 1; }
   [ -d "$APK_JAVA_HOME" ] || { echo "!! no JDK 17 at $APK_JAVA_HOME (set MM_APK_JAVA_HOME)" >&2; exit 1; }
   say "building the release APK (FLAVOR=prod, API_URL=$APK_API_URL)"
-  ( cd "$REPO/mobile" && JAVA_HOME="$APK_JAVA_HOME" "$flutter_bin" build apk --release \
+  ( cd "$REPO/mobile" && JAVA_HOME="$APK_JAVA_HOME" "$flutter_bin" build apk --release --no-tree-shake-icons \
       --dart-define=FLAVOR=prod \
       --dart-define=API_URL="$APK_API_URL" ) \
     || { echo "!! flutter build apk failed" >&2; exit 1; }
