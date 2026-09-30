@@ -47,6 +47,8 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   // Reading intelligence surfaces.
   (ref) => ref.invalidate(statisticsProvider),
   // The Numbers, The Annual and their per-profile range (cinematic 9.2).
+  (ref) => ref.invalidate(numbersScopeProvider),
+  (ref) => ref.invalidate(numbersSnapshotProvider),
   (ref) => ref.invalidate(numbersStatisticsProvider),
   (ref) => ref.invalidate(annualProvider),
   (ref) => ref.invalidate(annualIndexProvider),

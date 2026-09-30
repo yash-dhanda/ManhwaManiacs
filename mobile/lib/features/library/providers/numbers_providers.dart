@@ -17,21 +17,23 @@ final numbersRepositoryProvider = Provider<NumbersRepository>(
 
 /// `u{user}p{profile}`: the suffix of every per-profile key of this feature.
 String numbersScopeOf(Ref ref) {
-  final auth = ref.watch(authControllerProvider);
+  final auth = ref.read(authControllerProvider);
   final user = auth is AuthAuthenticated ? auth.user.id : 0;
-  return 'u${user}p${ref.watch(activeProfileProvider)?.id ?? 0}';
+  return 'u${user}p${ref.read(activeProfileProvider)?.id ?? 0}';
 }
 
-/// [numbersScopeOf] for widgets: unique per user and profile.
+/// [numbersScopeOf] for widgets: unique per user and profile. Read, not watched, and listed in
+/// `profileScopedInvalidators` like every other per-profile cache (a watch on the active profile
+/// would make invalidating it from the profile notifier a circular dependency).
 final numbersScopeProvider =
     Provider<String>(numbersScopeOf, name: 'numbersScope');
 
 final numbersSnapshotProvider = Provider<NumbersSnapshot>((ref) {
-  final auth = ref.watch(authControllerProvider);
+  final auth = ref.read(authControllerProvider);
   return NumbersSnapshot(
     ref.watch(sharedPrefsProvider),
     userId: auth is AuthAuthenticated ? auth.user.id : 0,
-    profileId: ref.watch(activeProfileProvider)?.id ?? 0,
+    profileId: ref.read(activeProfileProvider)?.id ?? 0,
   );
 });
 

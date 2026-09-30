@@ -37,9 +37,9 @@ void main() {
       expect(leaf('/library/collections/7').name, 'collection');
       expect(leaf('/library/history').name, 'history');
       expect(leaf('/library/bookmarks').name, 'bookmarks');
-      expect(leaf('/library/statistics').name, 'pending.numbers');
+      expect(leaf('/library/statistics').name, 'numbers');
       expect(leaf('/library/recommendations').name, 'picks');
-      expect(leaf('/library/statistics/annual/2026').name, 'pending.annual');
+      expect(leaf('/library/statistics/annual/2026').name, 'annual');
       expect(leaf('/library/42').name, ScreenId.featureByFollow.id);
     });
   });
