@@ -79,6 +79,9 @@ class ReaderAmbient {
   Timer? _trailing;
   ({String chapter, int page})? _pending;
   int analysisCalls = 0;
+
+  /// A decode that never comes back (a hung fetch) is a failure: the cover colour, a whole page.
+  Duration analysisTimeout = const Duration(seconds: 12);
   DateTime Function() clock = DateTime.now;
   bool _disposed = false;
 
@@ -145,10 +148,12 @@ class ReaderAmbient {
     analysisCalls++;
     if (wantPanels) _setPanels(chapter, page + 1, const PanelsFinding());
     try {
-      final result = await _analyse(
-        tintPage: wantTint ? r(chapter, page) : null,
-        panelPage: wantPanels ? r(chapter, page + 1) : null,
-        direction: direction,
+      final result = await _guarded(
+        _analyse(
+          tintPage: wantTint ? r(chapter, page) : null,
+          panelPage: wantPanels ? r(chapter, page + 1) : null,
+          direction: direction,
+        ),
       );
       if (_disposed) return;
       if (wantTint) {
@@ -173,6 +178,29 @@ class ReaderAmbient {
     } finally {
       _inFlight.remove(key);
     }
+  }
+
+  final Set<Timer> _guards = {};
+
+  /// [f] or a timeout after [analysisTimeout]; the timer is cancelled on completion and on dispose,
+  /// so a finished or abandoned analysis leaves nothing pending.
+  Future<AnalysisResult> _guarded(Future<AnalysisResult> f) {
+    final done = Completer<AnalysisResult>();
+    late final Timer t;
+    t = Timer(analysisTimeout, () {
+      _guards.remove(t);
+      if (!done.isCompleted) done.completeError(TimeoutException('page analysis', analysisTimeout));
+    });
+    _guards.add(t);
+    f.then((v) {
+      if (!done.isCompleted) done.complete(v);
+    }, onError: (Object e, StackTrace st) {
+      if (!done.isCompleted) done.completeError(e, st);
+    }).whenComplete(() {
+      t.cancel();
+      _guards.remove(t);
+    });
+    return done.future;
   }
 
   void _feed(String? seed) {
@@ -201,7 +229,7 @@ class ReaderAmbient {
     _setPanels(chapterId, page, const PanelsFinding());
     analysisCalls++;
     try {
-      final result = await _analyse(panelPage: r(chapterId, page), direction: direction);
+      final result = await _guarded(_analyse(panelPage: r(chapterId, page), direction: direction));
       if (_disposed) return;
       if (result.panelsFailed || result.panels == null) {
         _setPanels(chapterId, page, const PanelsNone());
@@ -272,6 +300,10 @@ class ReaderAmbient {
     _disposed = true;
     _trailing?.cancel();
     _wordsTimer?.cancel();
+    for (final t in _guards.toList()) {
+      t.cancel();
+    }
+    _guards.clear();
     pageTint.dispose();
     panels.dispose();
     wordsOnScreen.dispose();

@@ -99,9 +99,20 @@ class _Title extends StatelessWidget {
     final c = context.cine;
     final hit = cineHitMin(context);
     final folioText = loading ? 'LOADING $folio' : folio;
+    return LayoutBuilder(
+      builder: (context, box) {
+        // A narrow title group (four trailing buttons on a phone) drops the series name: every
+        // target keeps its 44 / 48 hit area, so the folio is what stays.
+        final roomForSeries = box.maxWidth >= hit * 2 + 16 + (houseSoundLabel != null ? hit : 0);
+        return _row(context, c, hit, folioText, showSeries: roomForSeries);
+      },
+    );
+  }
+
+  Widget _row(BuildContext context, CineTokens c, double hit, String folioText, {required bool showSeries}) {
     return Row(
       children: [
-        Flexible(
+        if (showSeries) Flexible(
           child: CinePressable(
             onTap: onOpenSeries,
             builder: (context, st) => ConstrainedBox(
@@ -120,9 +131,9 @@ class _Title extends StatelessWidget {
             ),
           ),
         ),
-        ExcludeSemantics(child: CineRoleText(' · ', c.typeNav, color: c.colorInk45)),
+        if (showSeries) ExcludeSemantics(child: CineRoleText(' · ', c.typeNav, color: c.colorInk45)),
         if (loading)
-          CineRoleText(folioText, c.typeFolio, color: c.colorSpot)
+          Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: AlignmentDirectional.centerStart, child: CineRoleText(folioText, c.typeFolio, color: c.colorSpot)))
         else
           Flexible(
             flex: 3,
