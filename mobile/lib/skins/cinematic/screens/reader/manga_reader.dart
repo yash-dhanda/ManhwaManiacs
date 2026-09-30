@@ -72,6 +72,9 @@ import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:swipeable_page_route/swipeable_page_route.dart';
 
+/// The over-scroll at the top of the strip that loads the previous chapter (J3).
+const double kTopPullLoadPx = 140;
+
 /// A chapter title typed at the top-left after a committed pull to continue, carried across the
 /// route change (`CH 143 — The Return`).
 final pendingChapterCaptionProvider = StateProvider<String?>((ref) => null, name: 'pendingChapterCaption');
@@ -152,6 +155,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       } catch (_) {}
     });
     _engine.addListener(_onEngine);
+    _engine.topPull.addListener(_onTopPull);
     _progressSub = ref.read(progressOutboxControllerProvider).notAdvanced.listen((k) => unawaited(_checkFurther(k)));
     _engine.chapterCompleted.listen(_onCompleted);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -194,6 +198,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     _chromeScope.dispose();
     _surface.dispose();
     _engine.removeListener(_onEngine);
+    _engine.topPull.removeListener(_onTopPull);
     _engine.dispose();
     Future.microtask(() {
       try {
@@ -327,6 +332,22 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       label: 'Jump',
       onAction: () => _goToChapter(f.chapterKey, page: f.lastPage),
     );
+  }
+
+  bool _topArmed = true;
+
+  /// J3: over-scrolling up 140 px at the top of the strip loads the previous chapter the feed
+  /// could not absorb itself (`scrub.boundary`), once per pull.
+  void _onTopPull() {
+    final pull = _engine.topPull.value;
+    if (pull <= 0) {
+      _topArmed = true;
+      return;
+    }
+    if (!_topArmed || pull < kTopPullLoadPx || _body.onPreviousChapter == null) return;
+    _topArmed = false;
+    cineFeedback(context, HapticEvent.scrubBoundary, sound: SoundEvent.scrubBoundary);
+    _body.onPreviousChapter!();
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────
@@ -750,7 +771,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
                   _swipeDx.value = x.sign * rubberBand(x.abs(), 160);
                 }
                 ..onEnd = (d) {
-                  final verdict = classifySwipe(dx: _swipeDx.value / 0.35, vx: d.primaryVelocity ?? 0, zoom: _engine.value.zoom, rtl: prefs.rtl);
+                  final verdict = classifySwipe(dx: r.totalDx, vx: d.primaryVelocity ?? 0, zoom: _engine.value.zoom, rtl: prefs.rtl);
                   _swipeDx.value = 0;
                   if (verdict != SwipeVerdict.none) _stepChapter(forward: verdict == SwipeVerdict.toward);
                 }
@@ -983,7 +1004,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
           left: true,
           visible: _brightnessHud.visible,
           fill: (brightness + 75) / 75,
-          label: brightness < 0 ? 'NIGHT $brightness' : '0',
+          label: brightness < 0 ? 'NIGHT \u2212${-brightness}' : '0',
         ),
         EdgeHud(left: false, visible: _speedHud.visible, fill: (speedX - 0.5) / 2.5, label: '${speedX.toStringAsFixed(1)}×'),
         if (_caption != null) _CaptionTyped(text: _caption!),

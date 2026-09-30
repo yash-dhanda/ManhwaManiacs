@@ -53,6 +53,10 @@ class ChapterSwipeRecognizer extends HorizontalDragGestureRecognizer {
   /// The strip's zoom: above 1.0 the swipe is not live.
   double zoom;
 
+  /// How far the finger travelled along x from where it landed, kept after the pointer lifts so
+  /// the end callback can classify the whole drag (the slop the drag was accepted at included).
+  double totalDx = 0;
+
   final Map<int, Offset> _starts = {};
   final Map<int, Offset> _lasts = {};
 
@@ -66,12 +70,17 @@ class ChapterSwipeRecognizer extends HorizontalDragGestureRecognizer {
   void addAllowedPointer(PointerDownEvent event) {
     _starts[event.pointer] = event.position;
     _lasts[event.pointer] = event.position;
+    totalDx = 0;
     super.addAllowedPointer(event);
   }
 
   @override
   void handleEvent(PointerEvent event) {
-    if (event is PointerMoveEvent) _lasts[event.pointer] = event.position;
+    if (event is PointerMoveEvent) {
+      _lasts[event.pointer] = event.position;
+      final start = _starts[event.pointer];
+      if (start != null) totalDx = event.position.dx - start.dx;
+    }
     if (event is PointerUpEvent || event is PointerCancelEvent) {
       _starts.remove(event.pointer);
       _lasts.remove(event.pointer);

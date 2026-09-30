@@ -17,13 +17,15 @@ class ReaderDimmer extends StatelessWidget {
   }
 }
 
+/// The tint of the warmth layer: `color.warmth` at `v / 100 * 0.36`.
+Color readerWarmthColor(BuildContext context, int warmthPct) => context.cine.colorWarmth.withValues(alpha: warmthPct / 100 * 0.36);
+
 /// The warmth wrap of the page layer: `color.warmth` at `v / 100 * 0.36` multiplied over the pages
 /// only, so blacks stay black.
 Widget readerWarmth(BuildContext context, Widget pages, int warmthPct) {
   if (warmthPct <= 0) return pages;
-  final alpha = warmthPct / 100 * 0.36;
   return ColorFiltered(
-    colorFilter: ColorFilter.mode(context.cine.colorWarmth.withValues(alpha: alpha), BlendMode.multiply),
+    colorFilter: ColorFilter.mode(readerWarmthColor(context, warmthPct), BlendMode.multiply),
     child: pages,
   );
 }
