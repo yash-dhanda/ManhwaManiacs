@@ -16,7 +16,7 @@ void main() {
   testWidgets('circle and circleMember left the PENDING set and the routes serve the real screens', (t) async {
     expect(cinePendingIds, isEmpty);
     expect(cineIsPending(ScreenId.circle), isFalse);
-    final repo = FakeCircleRepository(membersList: [member(riya)], memberPage: MemberPage(profile: riya));
+    final repo = FakeCircleRepository(membersList: [member(riya)], memberPage: const MemberPage(profile: riya));
     final rig = await _pump(t, repo, start: '/circle');
     expect(rig.at, '/circle');
     expect(find.text('NO. 11 — THE CIRCLE'), findsOneWidget);

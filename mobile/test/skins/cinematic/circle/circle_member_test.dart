@@ -18,7 +18,7 @@ MemberPage _page({CircleNow? now, CircleShares shares = const CircleShares(activ
         MemberSeries(sourceId: 's', seriesKey: 'or', chapterKey: 'c212', title: 'Omniscient Reader', chapterNumber: 212, reaction: ReactionKind.loved, sealed: true),
         MemberSeries(sourceId: 's', seriesKey: 'sl', chapterKey: 'c1', title: 'Solo Leveling', chapterNumber: 1, reaction: ReactionKind.tears, sealed: false),
       ],
-      shelves: const [SharedShelf(id: 4, name: 'Riya picks', seriesCount: 2, owner: riya, role: 'view_only')],
+      shelves: const [SharedShelf(id: 4, name: 'Riya picks', seriesCount: 2, owner: riya)],
     );
 
 Future<void> _pump(WidgetTester t, FakeCircleRepository repo, {Size size = const Size(390, 1800)}) async {

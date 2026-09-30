@@ -247,6 +247,7 @@ Future<LibRig> pumpShelf(
   Map<String, Object> prefs = const {},
   List<Override> extra = const [],
   bool settle = true,
+  Key? boundaryKey,
 }) async {
   SharedPreferences.setMockInitialValues(testPrefsDefaults(prefs));
   final p = await SharedPreferences.getInstance();
@@ -283,17 +284,15 @@ Future<LibRig> pumpShelf(
   addTearDown(t.view.reset);
   final router = c.read(skinRouterProvider);
   if (start != '/') router.go(start);
-  await t.pumpWidget(UncontrolledProviderScope(
-    container: c,
-    child: MaterialApp.router(
-      theme: CinematicSkin.baseTheme.copyWith(platform: platform),
-      routerConfig: router,
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale), disableAnimations: reduced),
-        child: CineAppFrame(splash: false, child: child!),
-      ),
+  final app = MaterialApp.router(
+    theme: CinematicSkin.baseTheme.copyWith(platform: platform),
+    routerConfig: router,
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale), disableAnimations: reduced),
+      child: CineAppFrame(splash: false, child: child!),
     ),
-  ),);
+  );
+  await t.pumpWidget(UncontrolledProviderScope(container: c, child: boundaryKey == null ? app : RepaintBoundary(key: boundaryKey, child: app)),);
   if (settle) await settleShelf(t);
   addTearDown(() async => t.pumpWidget(const SizedBox()));
   return LibRig(router, c, fake, rec);

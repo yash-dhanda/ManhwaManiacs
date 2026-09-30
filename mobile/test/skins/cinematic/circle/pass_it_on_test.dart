@@ -8,7 +8,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 
 import 'circle_harness.dart';
 
-Future<void> _open(WidgetTester tester, FakeCircleRepository repo, {CineTestEnv? env, int? preselect, List<Override> extra = const []}) async {
+Future<void> _open(WidgetTester tester, FakeCircleRepository repo, {CineTestEnv? env, int? preselect, List<Override> extra = const [], TargetPlatform platform = TargetPlatform.iOS}) async {
   await pumpCine(
     tester,
     env ?? CineTestEnv(),
@@ -22,6 +22,7 @@ Future<void> _open(WidgetTester tester, FakeCircleRepository repo, {CineTestEnv?
         ),
       ),
     ),
+    platform: platform,
     extra: [circleRepositoryProvider.overrideWithValue(repo), ...extra],
   );
   await tester.tap(find.text('OPEN'));
@@ -97,5 +98,19 @@ void main() {
     await settle(tester, 600);
     expect(find.text("Couldn't send to Riya. Try again."), findsOneWidget);
     expect(find.byKey(const Key('pass-send')), findsOneWidget);
+  });
+
+  testWidgets('hit targets: the toggles and Send are at least 44 on iOS and 48 on Android', (tester) async {
+    for (final p in [TargetPlatform.iOS, TargetPlatform.android]) {
+      await _open(tester, FakeCircleRepository(membersList: [member(riya, canReceive: true), member(arjun, canReceive: true)]), platform: p);
+      final min = p == TargetPlatform.iOS ? 44.0 : 48.0;
+      for (final id in [2, 3]) {
+        final r = tester.getRect(find.byKey(ValueKey('recipient-$id')));
+        expect(r.width, greaterThanOrEqualTo(min));
+        expect(r.height, greaterThanOrEqualTo(min));
+      }
+      expect(tester.getSize(find.byKey(const Key('pass-send'))).height, greaterThanOrEqualTo(min - 0.01));
+      await tester.pumpWidget(const SizedBox());
+    }
   });
 }

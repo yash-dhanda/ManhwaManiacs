@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/features/library/models/reading_history_item.dart'
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart' show TypedRun;
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/circle_section.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_kit.dart' show JumpRow;
 
@@ -104,7 +105,7 @@ void main() {
 
   group('the preview line', () {
     test('three forms', () {
-      String text(List<dynamic> runs) => runs.map((r) => r.text as String).join();
+      String text(List<TypedRun> runs) => runs.map((r) => r.text).join();
       expect(text(circlePreviewRuns(sharing: true, name: 'Yash', latest: _row())), 'Others see: Yash finished chapter 142 of Omniscient Reader.');
       expect(text(circlePreviewRuns(sharing: true, name: 'Yash', latest: _row(done: false))), 'Others see: Yash started Omniscient Reader.');
       expect(text(circlePreviewRuns(sharing: false, name: 'Yash', latest: _row())), "Others see nothing. You're reading privately.");

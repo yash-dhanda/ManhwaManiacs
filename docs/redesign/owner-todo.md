@@ -136,3 +136,6 @@ Items only the owner can do, by step.
 
 ## mobile/14
 - Device checks: see `docs/redesign/proof/mobile-14/device-checklist.md` (faces from the bundle, pagination time, 120 Hz Slide, status bar, back gestures, drop cap sizes, screen readers, text scale, Bold Text).
+
+## mobile/22
+- Run docs/redesign/proof/mobile-22/device-checklist.md on two devices/profiles.
