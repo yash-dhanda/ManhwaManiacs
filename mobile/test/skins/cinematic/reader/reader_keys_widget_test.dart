@@ -85,7 +85,7 @@ void main() {
     await _key(tester, LogicalKeyboardKey.equal, ms: 100);
     await _key(tester, LogicalKeyboardKey.digit0, ms: 300);
     expect(find.text('100%'), findsOneWidget);
-    await settleReader(tester, ms: 1500);
+    await settleReader(tester);
     await _key(tester, LogicalKeyboardKey.keyS, ms: 1200);
     expect(find.text('series page'), findsOneWidget);
     await disposeReader(tester);

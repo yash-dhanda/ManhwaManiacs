@@ -1,11 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
-import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 import '../../../screenshots/support/shot_network.dart';
@@ -46,7 +44,7 @@ void main() {
     return pumpReader(tester, rig: rig, extra: [
       readerRepositoryProvider.overrideWithValue(_Repo(rig.rec, rows)),
       progressOutboxControllerProvider.overrideWith((ref) => _Outbox(ref, events.stream)),
-    ]);
+    ],);
   }
 
   testWidgets('a save the server did not advance offers the jump to the further chapter', (tester) async {

@@ -45,7 +45,7 @@ void main() {
       // Up 40 px: not enough.
       await tester.dragFrom(const Offset(195, 422), const Offset(0, 30));
       await _wait(tester, 400);
-      expect(chromeVisible(tester), isFalse, reason: "under 56 px up");
+      expect(chromeVisible(tester), isFalse, reason: 'under 56 px up');
       await tester.dragFrom(const Offset(195, 300), const Offset(0, 130));
       await _wait(tester, 400);
       expect(chromeVisible(tester), isTrue, reason: '56 px up shows');
@@ -139,7 +139,7 @@ void main() {
       final chrome = find.byType(ReaderChromeMotion);
       final tappables = find.descendant(
         of: chrome,
-        matching: find.byWidgetPredicate((w) => w is Semantics && w.properties.onTap != null && w.properties.enabled != false),
+        matching: find.byWidgetPredicate((w) => w is Semantics && w.properties.onTap != null && (w.properties.enabled ?? true)),
       );
       var n = 0;
       for (final e in tappables.evaluate()) {

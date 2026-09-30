@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,7 +50,7 @@ void main() {
         await settleReader(tester, ms: 600);
         await _toEnd(tester);
         hold.complete();
-        await settleReader(tester, ms: 1500);
+        await settleReader(tester);
         final set = rec.entries.skip(before).where((e) => e.label.contains('LETTER'));
         expect(set, isNotEmpty);
         if (reduced) {
@@ -146,7 +145,7 @@ void main() {
       await settleReader(tester, ms: 300);
       await _toEnd(tester);
       hold.complete();
-      await settleReader(tester, ms: 1500);
+      await settleReader(tester);
       expect(_c(tester).read(readerUiProvider).autoScrollEnabled, isFalse, reason: 'the band paused it and reduced motion leaves it paused');
       await disposeReader(tester);
     });
@@ -159,7 +158,7 @@ void main() {
       addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
       await pumpReader(tester, extra: [
         ocrChapterTextProvider.overrideWith((ref, id) async => const [PageText(page: 1, text: 'Hello from page one')]),
-      ]);
+      ],);
       await pumpUntilCoversLoad(tester, rounds: 3);
       await settleReader(tester, ms: 800);
       expect(find.bySemanticsLabel(RegExp(r'^Chapter 2, page \d+ of 6')), findsOneWidget);

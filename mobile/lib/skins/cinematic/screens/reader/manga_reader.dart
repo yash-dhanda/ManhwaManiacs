@@ -564,7 +564,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     final autoNext = prefs.autoNextChapter;
     final offline = body.feed.chapters.isNotEmpty && body.feed.pages.isNotEmpty && body.feed.pages.first.localFile != null;
     final footerMode = nextExists && !autoNext ? CreditsMode.full : (nextExists ? CreditsMode.compact : CreditsMode.full);
-    final footerExtent = (nextExists ? (autoNext ? 260.0 : 980.0) : 1300.0) * math.max(1.0, scale);
+    final footerExtent = (nextExists ? (autoNext ? 260.0 : 980.0) : 920.0) * math.max(1.0, scale);
 
     // The engine also owns the next-chapter auto-queue for the manifest reader (the source
     // reader screen already queues its own).
