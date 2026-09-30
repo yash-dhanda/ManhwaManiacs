@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_confirm_dialog.dart';
 
 /// The chapter-row action `Scan dialogue` for a saved manga chapter when OCR
 /// is available. Busy: a leader dial; indexed: the `TEXT` badge and a
@@ -35,26 +36,8 @@ class ScanDialogueButton extends ConsumerWidget {
 
     Future<void> scan() async {
       if (indexed) {
-        final again = await showDialog<bool>(
-          context: context,
-          barrierColor: CineScrim.modal,
-          builder: (context) => AlertDialog(
-            backgroundColor: t.colorPaper2,
-            shape: const RoundedRectangleBorder(),
-            title: Text('Scan this chapter again?',
-                style: cineText(context, t.typeSubhead),),
-            actions: [
-              QuietButton('Cancel',
-                  onPressed: () => Navigator.of(context).pop(false),),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text('Scan again',
-                    style: cineText(context, t.typeUi, color: t.colorSpot),),
-              ),
-            ],
-          ),
-        );
-        if (again != true) return;
+        final again = await showCineConfirm(context, title: 'Scan this chapter again?', confirmLabel: 'Scan again');
+        if (!again) return;
       }
       await ref
           .read(ocrRunControllerProvider.notifier)
