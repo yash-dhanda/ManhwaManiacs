@@ -44,7 +44,10 @@ class CineStatBlock extends StatelessWidget {
         SizedBox(height: c.space2),
         CineRoleText(kicker, c.typeKicker, color: c.colorInk45),
         SizedBox(height: c.space1),
-        AnimatedSwitcher(
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: AnimatedSwitcher(
           duration: reduced ? Duration.zero : c.durBeat,
           child: loading
               ? CineGalleyNumeral(key: const ValueKey('loading'), size: numeralH)
@@ -56,7 +59,8 @@ class CineStatBlock extends StatelessWidget {
                       cap: c.typeNumeral.cap,
                       delay: ruleDelay + const Duration(milliseconds: 120),
                     )
-                  : CineRoleText(value, c.typeNumeral, key: ValueKey(value)),
+                  : CineRoleText(value, c.typeNumeral, key: ValueKey(value), maxLines: 1),
+          ),
         ),
         if (caption != null) ...[
           SizedBox(height: c.space1),

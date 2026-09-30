@@ -3,7 +3,11 @@ import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/chart_math.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/clock_copy.dart';
 
-DailyActivity day(int d, int ch, {int s = 0}) => DailyActivity(date: DateTime(2026, 9, d), chaptersRead: ch, secondsRead: s, sessions: ch > 0 ? 1 : 0);
+DailyActivity day(int d, int ch, {int s = 0}) => DailyActivity(
+    date: DateTime(2026, 9, d),
+    chaptersRead: ch,
+    secondsRead: s,
+    sessions: ch > 0 ? 1 : 0,);
 
 void main() {
   group('nice maxima', () {
@@ -67,14 +71,17 @@ void main() {
 
     test('summary line', () {
       final daily = [day(1, 3), day(2, 0), day(3, 9)];
-      expect(rangeSummary('30 days', daily, daily[2]), '30 days: 12 chapters over 2 active days. Best day 3 Sep, 9 chapters.');
-      expect(rangeSummary('7 days', [day(1, 0)], null), '7 days: 0 chapters over 0 active days.');
+      expect(rangeSummary('30 days', daily, daily[2]),
+          '30 days: 12 chapters over 2 active days. Best day 3 Sep, 9 chapters.',);
+      expect(rangeSummary('7 days', [day(1, 0)], null),
+          '7 days: 0 chapters over 0 active days.',);
     });
   });
 
   group('heatmap', () {
     test('levels by chapters', () {
-      expect([0, 1, 2, 3, 5, 6, 10, 11, 40].map(heatLevel), [0, 1, 1, 2, 2, 3, 3, 4, 4]);
+      expect([0, 1, 2, 3, 5, 6, 10, 11, 40].map(heatLevel),
+          [0, 1, 1, 2, 2, 3, 3, 4, 4],);
       expect(kHeatSides, [10, 3, 5, 7, 10]);
     });
 
@@ -101,31 +108,49 @@ void main() {
     });
 
     test('year summary', () {
-      expect(heatSummary([day(1, 3), day(2, 0)]), 'Last year: read on 1 of 365 days.');
+      expect(heatSummary([day(1, 3), day(2, 0)]),
+          'Last year: read on 1 of 365 days.',);
     });
   });
 
   group('clock copy', () {
-    List<int> hours(Map<int, int> m) => [for (var h = 0; h < 24; h++) m[h] ?? 0];
+    List<int> hours(Map<int, int> m) =>
+        [for (var h = 0; h < 24; h++) m[h] ?? 0];
 
     test('bands', () {
-      expect([21, 22, 4, 5, 11, 12, 16, 17].map(bandOfHour), [ClockBand.evening, ClockBand.night, ClockBand.night, ClockBand.morning, ClockBand.morning, ClockBand.afternoon, ClockBand.afternoon, ClockBand.evening]);
+      expect([21, 22, 4, 5, 11, 12, 16, 17].map(bandOfHour), [
+        ClockBand.evening,
+        ClockBand.night,
+        ClockBand.night,
+        ClockBand.morning,
+        ClockBand.morning,
+        ClockBand.afternoon,
+        ClockBand.afternoon,
+        ClockBand.evening,
+      ]);
     });
 
     test('night reader', () {
       final r = readClock(hours({23: 700, 0: 100, 10: 100, 15: 100}));
       expect(r.band, ClockBand.night);
-      expect(numbersClockSentence(r), 'A night reader: most of it after 22:00.');
+      expect(
+          numbersClockSentence(r), 'A night reader: most of it after 22:00.',);
       expect(annualClockLine(r), 'A night owl: 80 % after 22:00.');
     });
 
     test('the other three bands', () {
-      expect(numbersClockSentence(readClock(hours({8: 900, 20: 100}))), 'An early reader: most of it before noon.');
-      expect(numbersClockSentence(readClock(hours({13: 900, 20: 100}))), 'An afternoon reader: most of it between 12:00 and 17:00.');
-      expect(numbersClockSentence(readClock(hours({19: 900, 8: 100}))), 'An evening reader: most of it between 17:00 and 22:00.');
-      expect(annualClockLine(readClock(hours({8: 640, 20: 360}))), 'An early bird: 64 % before noon.');
-      expect(annualClockLine(readClock(hours({13: 520, 8: 480}))), 'An afternoon reader: 52 % between 12:00 and 17:00.');
-      expect(annualClockLine(readClock(hours({19: 580, 8: 420}))), 'An evening reader: 58 % between 17:00 and 22:00.');
+      expect(numbersClockSentence(readClock(hours({8: 900, 20: 100}))),
+          'An early reader: most of it before noon.',);
+      expect(numbersClockSentence(readClock(hours({13: 900, 20: 100}))),
+          'An afternoon reader: most of it between 12:00 and 17:00.',);
+      expect(numbersClockSentence(readClock(hours({19: 900, 8: 100}))),
+          'An evening reader: most of it between 17:00 and 22:00.',);
+      expect(annualClockLine(readClock(hours({8: 640, 20: 360}))),
+          'An early bird: 64 % before noon.',);
+      expect(annualClockLine(readClock(hours({13: 520, 8: 480}))),
+          'An afternoon reader: 52 % between 12:00 and 17:00.',);
+      expect(annualClockLine(readClock(hours({19: 580, 8: 420}))),
+          'An evening reader: 58 % between 17:00 and 22:00.',);
     });
 
     test('below 40 % or empty is "at all hours"', () {

@@ -29,7 +29,12 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 /// close button; a full-screen takeover on phones, a centred 9:16 column at full
 /// height on tablets and landscape phones.
 class AnnualStory extends ConsumerStatefulWidget {
-  const AnnualStory({super.key, required this.annual, required this.profileName, required this.onClose, required this.onReadNumbers});
+  const AnnualStory(
+      {super.key,
+      required this.annual,
+      required this.profileName,
+      required this.onClose,
+      required this.onReadNumbers,});
 
   final Annual annual;
   final String profileName;
@@ -40,11 +45,13 @@ class AnnualStory extends ConsumerStatefulWidget {
   ConsumerState<AnnualStory> createState() => _AnnualStoryState();
 }
 
-class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderStateMixin, WidgetsBindingObserver {
+class _AnnualStoryState extends ConsumerState<AnnualStory>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late final List<AnnualPageSpec> _pages = annualPages(widget.annual);
   final PageController _pager = PageController();
   late final AnnualPlayer _player;
-  late final AnimationController _spring = AnimationController.unbounded(vsync: this);
+  late final AnimationController _spring =
+      AnimationController.unbounded(vsync: this);
   double _drag = 0;
   bool _programmatic = false;
 
@@ -52,7 +59,8 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _player = AnnualPlayer(vsync: this, pages: _pages, onAdvance: (i) => _goTo(i, user: false));
+    _player = AnnualPlayer(
+        vsync: this, pages: _pages, onAdvance: (i) => _goTo(i, user: false),);
     _spring.addListener(() => setState(() => _drag = _spring.value));
     WidgetsBinding.instance.addPostFrameCallback((_) => _announce(0));
   }
@@ -60,11 +68,13 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _player.autoAdvance = !(CineMotion.reduced(context) || MediaQuery.accessibleNavigationOf(context));
+    _player.autoAdvance = !(CineMotion.reduced(context) ||
+        MediaQuery.accessibleNavigationOf(context));
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) => _player.inactive = state != AppLifecycleState.resumed;
+  void didChangeAppLifecycleState(AppLifecycleState state) =>
+      _player.inactive = state != AppLifecycleState.resumed;
 
   @override
   void dispose() {
@@ -76,19 +86,26 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
   }
 
   void _announce(int i) {
-    cineAnnounce(context, 'Page ${i + 1} of ${_pages.length}: ${_pages[i].title}');
+    cineAnnounce(
+        context, 'Page ${i + 1} of ${_pages.length}: ${_pages[i].title}',);
   }
 
   Future<void> _goTo(int i, {required bool user}) async {
-    if (i < 0 || i >= _pages.length || i == _player.index || !_pager.hasClients) return;
-    if (user) cineFeedback(context, HapticEvent.annualPage, sound: SoundEvent.annualPage);
+    if (i < 0 || i >= _pages.length || i == _player.index || !_pager.hasClients) {
+      return;
+    }
+    if (user) {
+      cineFeedback(context, HapticEvent.annualPage,
+          sound: SoundEvent.annualPage,);
+    }
     _programmatic = true;
     _player.showPage(i);
     _announce(i);
     if (CineMotion.reduced(context)) {
       _pager.jumpToPage(i);
     } else {
-      await _pager.animateToPage(i, duration: CineDur.pageturn, curve: CineCurves.turn);
+      await _pager.animateToPage(i,
+          duration: CineDur.pageturn, curve: CineCurves.turn,);
     }
     _programmatic = false;
   }
@@ -102,22 +119,31 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
       return;
     }
     _spring.value = _drag;
-    _spring.animateWith(SpringSimulation(CineSprings.release.description, _drag, 0, v / 3));
+    _spring.animateWith(
+        SpringSimulation(CineSprings.release.description, _drag, 0, v / 3),);
   }
 
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
-    return LayoutBuilder(builder: (context, box) {
-      final columnMode = box.maxWidth >= 600 || box.maxHeight < 500;
-      final colH = box.maxHeight;
-      final colW = columnMode ? colH * 9 / 16 : box.maxWidth;
-      final story = _story(context, Size(colW, colH), media);
-      return ColoredBox(
-        color: const Color(0xFF000000),
-        child: Center(child: SizedBox(width: colW, height: colH, child: MediaQuery(data: media.copyWith(size: Size(colW, colH)), child: story))),
-      );
-    },);
+    return LayoutBuilder(
+      builder: (context, box) {
+        final columnMode = box.maxWidth >= 600 || box.maxHeight < 500;
+        final colH = box.maxHeight;
+        final colW = columnMode ? colH * 9 / 16 : box.maxWidth;
+        final story = _story(context, Size(colW, colH), media);
+        return ColoredBox(
+          color: const Color(0xFF000000),
+          child: Center(
+              child: SizedBox(
+                  width: colW,
+                  height: colH,
+                  child: MediaQuery(
+                      data: media.copyWith(size: Size(colW, colH)),
+                      child: story,),),),
+        );
+      },
+    );
   }
 
   Widget _story(BuildContext context, Size size, MediaQueryData media) {
@@ -146,8 +172,14 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
           AnnualPageKind.colophon => AnnualColophonPage(env: env, index: i),
           AnnualPageKind.pressRun => AnnualPressRunPage(env: env),
         };
-    ShortcutEntry key(LogicalKeyboardKey k, String description, VoidCallback f, {bool single = true}) =>
-        ShortcutEntry(group: 'The Annual', activator: SingleActivator(k), description: description, singleKey: single, onInvoke: f);
+    ShortcutEntry key(LogicalKeyboardKey k, String description, VoidCallback f,
+            {bool single = true,}) =>
+        ShortcutEntry(
+            group: 'The Annual',
+            activator: SingleActivator(k),
+            description: description,
+            singleKey: single,
+            onInvoke: f,);
     return RegisteredShortcuts(
       group: 'The Annual',
       entries: [
@@ -159,70 +191,104 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
       child: Focus(
         autofocus: true,
         child: RawGestureDetector(
-        behavior: HitTestBehavior.opaque,
-        gestures: {
-          TapGestureRecognizer: GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(TapGestureRecognizer.new, (r) {
-            r.onTapUp = (d) {
-              final p = d.localPosition;
-              if (p.dy < pad.top + 64 || p.dy > size.height - pad.bottom - 48) return;
-              if (p.dx > size.width * 2 / 3) {
-                _next();
-              } else if (p.dx < size.width / 3) {
-                _previous();
-              }
-            };
-          }),
-          LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(() => LongPressGestureRecognizer(duration: const Duration(milliseconds: 450)), (r) {
-            r.onLongPressStart = (_) => _player.held = true;
-            r.onLongPressEnd = (_) => _player.held = false;
-            r.onLongPressCancel = () => _player.held = false;
-          }),
-          VerticalDragGestureRecognizer: GestureRecognizerFactoryWithHandlers<VerticalDragGestureRecognizer>(VerticalDragGestureRecognizer.new, (r) {
-            r.onStart = (_) => _spring.stop();
-            r.onUpdate = (d) => setState(() => _drag = (_drag + d.delta.dy).clamp(0.0, 2000.0));
-            r.onEnd = (d) => _dragEnd(d.primaryVelocity ?? 0);
-          }),
-        },
-        child: Transform.translate(
-          offset: Offset(0, _drag),
-          child: Stack(fit: StackFit.expand, children: [
-            ListenableBuilder(
-              listenable: _player,
-              builder: (context, _) => Semantics(
-                container: true,
-                label: 'The Annual ${widget.annual.year}, page ${_player.index + 1} of ${_pages.length}',
-                customSemanticsActions: {
-                  const CustomSemanticsAction(label: 'Next page'): _next,
-                  const CustomSemanticsAction(label: 'Previous page'): _previous,
-                  const CustomSemanticsAction(label: 'Pause'): _player.togglePause,
-                },
-                child: PageView.builder(
-                  controller: _pager,
-                  physics: const _StoryPhysics(),
-                  itemCount: _pages.length,
-                  onPageChanged: (i) {
-                    if (_programmatic) return;
-                    // A swipe: the player follows the finger.
-                    cineFeedback(context, HapticEvent.annualPage, sound: SoundEvent.annualPage);
-                    _player.showPage(i);
-                    _announce(i);
-                  },
-                  itemBuilder: (context, i) => pageFor(i),
+          behavior: HitTestBehavior.opaque,
+          gestures: {
+            TapGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+                    TapGestureRecognizer.new, (r) {
+              r.onTapUp = (d) {
+                final p = d.localPosition;
+                if (p.dy < pad.top + 64 || p.dy > size.height - pad.bottom - 48) {
+                  return;
+                }
+                if (p.dx > size.width * 2 / 3) {
+                  _next();
+                } else if (p.dx < size.width / 3) {
+                  _previous();
+                }
+              };
+            }),
+            LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<
+                    LongPressGestureRecognizer>(
+                () => LongPressGestureRecognizer(
+                    duration: const Duration(milliseconds: 450),), (r) {
+              r.onLongPressStart = (_) => _player.held = true;
+              r.onLongPressEnd = (_) => _player.held = false;
+              r.onLongPressCancel = () => _player.held = false;
+            }),
+            VerticalDragGestureRecognizer: GestureRecognizerFactoryWithHandlers<
+                    VerticalDragGestureRecognizer>(
+                VerticalDragGestureRecognizer.new, (r) {
+              r.onStart = (_) => _spring.stop();
+              r.onUpdate = (d) => setState(
+                  () => _drag = (_drag + d.delta.dy).clamp(0.0, 2000.0),);
+              r.onEnd = (d) => _dragEnd(d.primaryVelocity ?? 0);
+            }),
+          },
+          child: Transform.translate(
+            offset: Offset(0, _drag),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ListenableBuilder(
+                  listenable: _player,
+                  builder: (context, _) => Semantics(
+                    container: true,
+                    label:
+                        'The Annual ${widget.annual.year}, page ${_player.index + 1} of ${_pages.length}',
+                    customSemanticsActions: {
+                      const CustomSemanticsAction(label: 'Next page'): _next,
+                      const CustomSemanticsAction(label: 'Previous page'):
+                          _previous,
+                      const CustomSemanticsAction(label: 'Pause'):
+                          _player.togglePause,
+                    },
+                    child: PageView.builder(
+                      controller: _pager,
+                      physics: const _StoryPhysics(),
+                      itemCount: _pages.length,
+                      onPageChanged: (i) {
+                        if (_programmatic) return;
+                        // A swipe: the player follows the finger.
+                        cineFeedback(context, HapticEvent.annualPage,
+                            sound: SoundEvent.annualPage,);
+                        _player.showPage(i);
+                        _announce(i);
+                      },
+                      itemBuilder: (context, i) => pageFor(i),
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                    left: 16,
+                    right: 16,
+                    top: pad.top + 8,
+                    child: AnnualSegments(player: _player),),
+                Positioned(
+                    right: 16 - (hit - 40) / 2,
+                    top: pad.top + 8 + 2 + 8 - (hit - 40) / 2,
+                    child: CineIconButton(
+                        role: CineIconRole.close,
+                        label: 'Close',
+                        variant: CineIconButtonVariant.onArt,
+                        onPressed: widget.onClose,),),
+                if (accessible)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: pad.bottom + 12,
+                    child: ListenableBuilder(
+                        listenable: _player,
+                        builder: (context, _) => ScreenReaderControls(
+                            onPrevious: _previous,
+                            onNext: _next,
+                            onPause: _player.togglePause,
+                            paused: _player.userPaused,),),
+                  ),
+              ],
             ),
-            Positioned(left: 16, right: 16, top: pad.top + 8, child: AnnualSegments(player: _player)),
-            Positioned(right: 16 - (hit - 40) / 2, top: pad.top + 8 + 2 + 8 - (hit - 40) / 2, child: CineIconButton(role: CineIconRole.close, label: 'Close', variant: CineIconButtonVariant.onArt, onPressed: widget.onClose)),
-            if (accessible)
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: pad.bottom + 12,
-                child: ListenableBuilder(listenable: _player, builder: (context, _) => ScreenReaderControls(onPrevious: _previous, onNext: _next, onPause: _player.togglePause, paused: _player.userPaused)),
-              ),
-          ],),
+          ),
         ),
-      ),
       ),
     );
   }
@@ -234,7 +300,8 @@ class _StoryPhysics extends PageScrollPhysics {
   const _StoryPhysics({super.parent});
 
   @override
-  _StoryPhysics applyTo(ScrollPhysics? ancestor) => _StoryPhysics(parent: buildParent(ancestor));
+  _StoryPhysics applyTo(ScrollPhysics? ancestor) =>
+      _StoryPhysics(parent: buildParent(ancestor));
 
   @override
   SpringDescription get spring => CineSprings.release.description;

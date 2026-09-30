@@ -28,10 +28,12 @@ double niceMaxMinutes(num minutes) {
 }
 
 /// Bar width `(plotWidth - 2 * (n - 1)) / n` with 2 px gaps.
-double barWidth(double plotWidth, int n) => n <= 0 ? 0 : (plotWidth - 2 * (n - 1)) / n;
+double barWidth(double plotWidth, int n) =>
+    n <= 0 ? 0 : (plotWidth - 2 * (n - 1)) / n;
 
 /// Left edge of bar [i].
-double barLeft(double plotWidth, int n, int i) => i * (barWidth(plotWidth, n) + 2);
+double barLeft(double plotWidth, int n, int i) =>
+    i * (barWidth(plotWidth, n) + 2);
 
 /// Which bars carry a date label: every 2nd for 7 days, every 6th for 30 and
 /// every 18th for 90, counted from the first day, plus the final day.
@@ -105,19 +107,24 @@ String spokenDate(DateTime d) => _spokenDate.format(d);
 String bestDate(DateTime d) => _bestDate.format(d);
 
 /// "Mon 21 Sep · 12 chapters · 1 h 40 m".
-String dayReadout(DailyActivity d) => '${readoutDate(d.date)} · ${d.chaptersRead} ${_plural(d.chaptersRead, 'chapter', 'chapters')} · ${readoutTime(d.secondsRead)}';
+String dayReadout(DailyActivity d) =>
+    '${readoutDate(d.date)} · ${d.chaptersRead} ${_plural(d.chaptersRead, 'chapter', 'chapters')} · ${readoutTime(d.secondsRead)}';
 
 /// "21 September, 12 chapters, 1 hour 40 minutes".
-String daySemantics(DailyActivity d) => '${spokenDate(d.date)}, ${d.chaptersRead} ${_plural(d.chaptersRead, 'chapter', 'chapters')}, ${spokenTime(d.secondsRead)}';
+String daySemantics(DailyActivity d) =>
+    '${spokenDate(d.date)}, ${d.chaptersRead} ${_plural(d.chaptersRead, 'chapter', 'chapters')}, ${spokenTime(d.secondsRead)}';
 
 /// The lead of the summary line: `7 days`, `30 days`, `90 days`, `Last year`.
 String rangeSentenceLabel(int days) => days >= 365 ? 'Last year' : '$days days';
 
 /// "30 days: 184 chapters over 22 active days. Best day 14 Sep, 31 chapters."
-String rangeSummary(String rangeLabel, List<DailyActivity> daily, DailyActivity? best) {
+String rangeSummary(
+    String rangeLabel, List<DailyActivity> daily, DailyActivity? best,) {
   final chapters = daily.fold<int>(0, (a, d) => a + d.chaptersRead);
-  final active = daily.where((d) => d.chaptersRead > 0 || d.sessions > 0).length;
-  final head = '$rangeLabel: $chapters ${_plural(chapters, 'chapter', 'chapters')} over $active active ${_plural(active, 'day', 'days')}.';
+  final active =
+      daily.where((d) => d.chaptersRead > 0 || d.sessions > 0).length;
+  final head =
+      '$rangeLabel: $chapters ${_plural(chapters, 'chapter', 'chapters')} over $active active ${_plural(active, 'day', 'days')}.';
   if (best == null) return head;
   return '$head Best day ${bestDate(best.date)}, ${best.chaptersRead} ${_plural(best.chaptersRead, 'chapter', 'chapters')}.';
 }
@@ -139,7 +146,8 @@ int heatLevel(int chapters) => chapters <= 0
 const List<double> kHeatSides = [10, 3, 5, 7, 10];
 
 class HeatCell {
-  const HeatCell({required this.date, required this.chapters, required this.seconds});
+  const HeatCell(
+      {required this.date, required this.chapters, required this.seconds,});
   final DateTime date;
   final int chapters;
   final int seconds;
@@ -150,19 +158,25 @@ class HeatCell {
 /// null cell is a day outside the range.
 List<List<HeatCell?>> heatGrid(List<DailyActivity> daily, DateTime today) {
   final t = DateTime(today.year, today.month, today.day);
-  final byDay = {for (final d in daily) DateTime(d.date.year, d.date.month, d.date.day): d};
+  final byDay = {
+    for (final d in daily) DateTime(d.date.year, d.date.month, d.date.day): d,
+  };
   final start = t.subtract(const Duration(days: 364));
   final firstMonday = start.subtract(Duration(days: start.weekday - 1));
   final columns = <List<HeatCell?>>[];
   for (var w = 0; w < 53; w++) {
     final col = <HeatCell?>[];
     for (var r = 0; r < 7; r++) {
-      final day = DateTime(firstMonday.year, firstMonday.month, firstMonday.day + w * 7 + r);
+      final day = DateTime(
+          firstMonday.year, firstMonday.month, firstMonday.day + w * 7 + r,);
       if (day.isBefore(start) || day.isAfter(t)) {
         col.add(null);
       } else {
         final a = byDay[day];
-        col.add(HeatCell(date: day, chapters: a?.chaptersRead ?? 0, seconds: a?.secondsRead ?? 0));
+        col.add(HeatCell(
+            date: day,
+            chapters: a?.chaptersRead ?? 0,
+            seconds: a?.secondsRead ?? 0,),);
       }
     }
     columns.add(col);
@@ -176,7 +190,9 @@ Map<int, String> monthLabelColumns(List<List<HeatCell?>> grid) {
   final seen = <int>{};
   for (var c = 0; c < grid.length; c++) {
     for (final cell in grid[c]) {
-      if (cell != null && cell.date.day <= 7 && seen.add(cell.date.month * 100 + cell.date.year)) {
+      if (cell != null &&
+          cell.date.day <= 7 &&
+          seen.add(cell.date.month * 100 + cell.date.year)) {
         out[c] = DateFormat('MMM', 'en_US').format(cell.date).toUpperCase();
         break;
       }
@@ -187,6 +203,7 @@ Map<int, String> monthLabelColumns(List<List<HeatCell?>> grid) {
 
 /// "Last year: read on 212 of 365 days."
 String heatSummary(List<DailyActivity> daily) {
-  final active = daily.where((d) => d.chaptersRead > 0 || d.sessions > 0).length;
+  final active =
+      daily.where((d) => d.chaptersRead > 0 || d.sessions > 0).length;
   return 'Last year: read on $active of 365 days.';
 }

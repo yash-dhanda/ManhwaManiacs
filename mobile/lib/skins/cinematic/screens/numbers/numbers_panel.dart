@@ -8,7 +8,8 @@ import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dart';
-import 'package:manhwamaniacs/features/sources/models/source_genre.dart' show GenreWeight;
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart'
+    show GenreWeight;
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cards/cine_stat_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_galley.dart';
@@ -30,7 +31,8 @@ import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// What a range panel tells its screen once its data is on screen.
-typedef PanelReport = void Function(int days, LibraryStatistics stats, {required bool offline});
+typedef PanelReport = void Function(int days, LibraryStatistics stats,
+    {required bool offline,});
 
 /// One range's scroll view (cinematic 9.2.1): the lead, the charts and the lists,
 /// with the states of 9.2.1 (galley proof, nothing recorded, followed but never
@@ -83,7 +85,11 @@ class _RangePanelState extends ConsumerState<RangePanel> {
           ),
         );
     return async.when(
-      loading: () => body([SliverPadding(padding: EdgeInsets.fromLTRB(pad, 24, pad, 0), sliver: SliverToBoxAdapter(child: _Galley(wide: wide)))]),
+      loading: () => body([
+        SliverPadding(
+            padding: EdgeInsets.fromLTRB(pad, 24, pad, 0),
+            sliver: SliverToBoxAdapter(child: _Galley(wide: wide)),),
+      ]),
       error: (e, _) => body([
         SliverToBoxAdapter(
           child: CineNotice(
@@ -91,7 +97,8 @@ class _RangePanelState extends ConsumerState<RangePanel> {
             kicker: 'CORRECTION',
             headline: "The numbers didn't load.",
             deck: e is AppError ? e.userMessage : null,
-            primary: CineNoticeAction('Try again', () => ref.invalidate(numbersStatisticsProvider(widget.days))),
+            primary: CineNoticeAction('Try again',
+                () => ref.invalidate(numbersStatisticsProvider(widget.days)),),
           ),
         ),
       ]),
@@ -106,12 +113,20 @@ class _RangePanelState extends ConsumerState<RangePanel> {
     );
   }
 
-  List<Widget> _content(BuildContext context, LibraryStatistics stats, double pad, bool wide) {
+  List<Widget> _content(
+      BuildContext context, LibraryStatistics stats, double pad, bool wide,) {
     final scope = ref.watch(contentModeScopeProvider);
     final novels = ref.watch(novelsEnabledProvider);
     final now = ref.watch(clockProvider)();
     final sig = _signature ?? false;
-    Widget padded(Widget w) => SliverPadding(padding: EdgeInsets.symmetric(horizontal: pad), sliver: SliverToBoxAdapter(child: Align(alignment: Alignment.topLeft, child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 960), child: w))));
+    Widget padded(Widget w) => SliverPadding(
+        padding: EdgeInsets.symmetric(horizontal: pad),
+        sliver: SliverToBoxAdapter(
+            child: Align(
+                alignment: Alignment.topLeft,
+                child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 960),
+                    child: w,),),),);
 
     if (!stats.hasReadingHistory) {
       if (stats.followedTotal == 0) {
@@ -121,7 +136,8 @@ class _RangePanelState extends ConsumerState<RangePanel> {
               tone: CineNoticeTone.empty,
               kicker: 'NOTHING RECORDED YET',
               headline: 'Read a chapter and your numbers start here.',
-              primary: CineNoticeAction('Go to library', () => context.go(Routes.library())),
+              primary: CineNoticeAction(
+                  'Go to library', () => context.go(Routes.library()),),
             ),
           ),
         ];
@@ -132,7 +148,8 @@ class _RangePanelState extends ConsumerState<RangePanel> {
             tone: CineNoticeTone.empty,
             kicker: 'NOTHING RECORDED YET',
             headline: 'Read a chapter and your numbers start here.',
-            primary: CineNoticeAction('Go to library', () => context.go(Routes.library())),
+            primary: CineNoticeAction(
+                'Go to library', () => context.go(Routes.library()),),
           ),
         ),
         padded(const SectionHead('Your library')),
@@ -142,61 +159,147 @@ class _RangePanelState extends ConsumerState<RangePanel> {
 
     final w = stats.window;
     final stat = <Widget>[
-      CineStatBlock(kicker: 'CHAPTERS', value: fmt(w.chaptersRead), caption: '${fmt(stats.totals.chaptersRead)} all time', footnote: 3, signature: sig),
-      CineStatBlock(kicker: 'TIME', value: hoursValue(w.secondsRead), caption: '${hoursLower(stats.totals.secondsRead)} all time', footnote: 2, signature: sig, ruleDelay: const Duration(milliseconds: 32)),
-      CineStatBlock(kicker: 'PAGES', value: fmt(w.pagesRead), caption: '${fmt(stats.totals.pagesRead)} all time', signature: sig, ruleDelay: const Duration(milliseconds: 64)),
-      CineStatBlock(kicker: 'SERIES', value: fmt(w.seriesRead), caption: '${fmt(stats.followedTotal)} followed', signature: sig, ruleDelay: const Duration(milliseconds: 96)),
+      CineStatBlock(
+          kicker: 'CHAPTERS',
+          value: fmt(w.chaptersRead),
+          caption: '${fmt(stats.totals.chaptersRead)} all time',
+          footnote: 3,
+          signature: sig,),
+      CineStatBlock(
+          kicker: 'TIME',
+          value: hoursValue(w.secondsRead),
+          caption: '${hoursLower(stats.totals.secondsRead)} all time',
+          footnote: 2,
+          signature: sig,
+          ruleDelay: const Duration(milliseconds: 32),),
+      CineStatBlock(
+          kicker: 'PAGES',
+          value: fmt(w.pagesRead),
+          caption: '${fmt(stats.totals.pagesRead)} all time',
+          signature: sig,
+          ruleDelay: const Duration(milliseconds: 64),),
+      CineStatBlock(
+          kicker: 'SERIES',
+          value: fmt(w.seriesRead),
+          caption: '${fmt(stats.followedTotal)} followed',
+          signature: sig,
+          ruleDelay: const Duration(milliseconds: 96),),
     ];
     final selection = widget.selection;
     final daily = stats.daily;
-    final byHour = [for (var h = 0; h < 24; h++) stats.byHour.where((x) => x.hour == h).fold<int>(0, (a, x) => a + x.secondsRead)];
+    final byHour = [
+      for (var h = 0; h < 24; h++)
+        stats.byHour
+            .where((x) => x.hour == h)
+            .fold<int>(0, (a, x) => a + x.secondsRead),
+    ];
     final clock = readClock(byHour);
-    final genres = ref.watch(genreWeightsProvider(8)).valueOrNull ?? const <GenreWeight>[];
+    final genres =
+        ref.watch(genreWeightsProvider(8)).valueOrNull ?? const <GenreWeight>[];
     final sources = scope.filter(stats.bySource, (s) => s.sourceId);
     final series = scope.filter(stats.bySeries, (s) => s.sourceId);
     final sessions = scope.filter(stats.recentSessions, (s) => s.sourceId);
 
-    final clockBlock = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      ClockChart(byHour: byHour),
-      const SizedBox(height: 12),
-      if (byHour.any((s) => s > 0)) TypedSentence(numbersClockSentence(clock)),
-    ],);
-    final radarBlock = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      if (genres.isEmpty) CineRoleText('Genres appear once a few series are read.', context.cine.typeCaption, color: CineColors.ink60) else GenreRadar(genres: genres),
-      if (genres.length >= 3) ...[const SizedBox(height: 8), CineRoleText(genreSummary(genres), context.cine.typeCaption, color: CineColors.ink60)],
-    ],);
+    final clockBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClockChart(byHour: byHour),
+        const SizedBox(height: 12),
+        if (byHour.any((s) => s > 0))
+          TypedSentence(numbersClockSentence(clock)),
+      ],
+    );
+    final radarBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (genres.isEmpty)
+          CineRoleText('Genres appear once a few series are read.',
+              context.cine.typeCaption,
+              color: CineColors.ink60,)
+        else
+          GenreRadar(genres: genres),
+        if (genres.length >= 3) ...[
+          const SizedBox(height: 8),
+          CineRoleText(genreSummary(genres), context.cine.typeCaption,
+              color: CineColors.ink60,),
+        ],
+      ],
+    );
 
     return [
-      padded(Padding(padding: const EdgeInsets.only(top: 8), child: StreakBlock(streak: stats.streak, daily: daily, signature: sig, wide: wide))),
-      padded(Padding(padding: const EdgeInsets.only(top: 32), child: StatGrid(blocks: stat, wide: wide))),
+      padded(Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: StreakBlock(
+              streak: stats.streak, daily: daily, signature: sig, wide: wide,),),),
+      padded(Padding(
+          padding: const EdgeInsets.only(top: 32),
+          child: StatGrid(blocks: stat, wide: wide),),),
       padded(const SectionHead('Chapters per day', footnote: 1)),
-      padded(ValueListenableBuilder<int?>(
-        valueListenable: selection,
-        builder: (context, sel, _) => widget.days >= 365
-            ? YearHeatmap(daily: daily, today: now, selected: sel, onSelect: (i) => selection.value = i)
-            : ChaptersPerDay(daily: daily, days: widget.days, selected: sel, onSelect: (i) => selection.value = i, tablet: wide),
-      ),),
+      padded(
+        ValueListenableBuilder<int?>(
+          valueListenable: selection,
+          builder: (context, sel, _) => widget.days >= 365
+              ? YearHeatmap(
+                  daily: daily,
+                  today: now,
+                  selected: sel,
+                  onSelect: (i) => selection.value = i,)
+              : ChaptersPerDay(
+                  daily: daily,
+                  days: widget.days,
+                  selected: sel,
+                  onSelect: (i) => selection.value = i,
+                  tablet: wide,),
+        ),
+      ),
       if (wide)
-        padded(Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const SectionHead('When you read'), clockBlock])),
-          const SizedBox(width: 24),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const SectionHead('Your genres'), radarBlock])),
-        ],),)
+        padded(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    const SectionHead('When you read'),
+                    clockBlock,
+                  ],),),
+              const SizedBox(width: 24),
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    const SectionHead('Your genres'),
+                    radarBlock,
+                  ],),),
+            ],
+          ),
+        )
       else ...[
         padded(const SectionHead('When you read')),
         padded(clockBlock),
         padded(const SectionHead('Your genres')),
         padded(radarBlock),
       ],
-      if (sources.isNotEmpty) ...[padded(const SectionHead('Where you read')), padded(WhereYouRead(sources: sources))],
-      if (series.isNotEmpty) ...[padded(const SectionHead('Most read')), padded(MostRead(series: series, now: now))],
+      if (sources.isNotEmpty) ...[
+        padded(const SectionHead('Where you read')),
+        padded(WhereYouRead(sources: sources)),
+      ],
+      if (series.isNotEmpty) ...[
+        padded(const SectionHead('Most read')),
+        padded(MostRead(series: series, now: now)),
+      ],
       if (sessions.isNotEmpty) ...[
         padded(const SectionHead('Recent sessions')),
-        SliverPadding(padding: EdgeInsets.symmetric(horizontal: pad), sliver: RecentSessionsSliver(sessions: sessions)),
+        SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: pad),
+            sliver: RecentSessionsSliver(sessions: sessions),),
       ],
       padded(const SectionHead('Your library')),
       padded(YourLibrary(stats: stats)),
-      padded(Padding(padding: const EdgeInsets.only(top: 32), child: Footnotes(stats: stats, novels: novels))),
+      padded(Padding(
+          padding: const EdgeInsets.only(top: 32),
+          child: Footnotes(stats: stats, novels: novels),),),
     ];
   }
 }
@@ -209,7 +312,9 @@ class TypedSentence extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final role = context.cine.typeSubhead;
-    return TypedHeadline(text, style: CineText.style(context, role).copyWith(color: CineColors.ink100), cap: role.cap);
+    return TypedHeadline(text,
+        style: CineText.style(context, role).copyWith(color: CineColors.ink100),
+        cap: role.cap,);
   }
 }
 
@@ -226,13 +331,23 @@ class _Galley extends StatelessWidget {
       label: 'Loading',
       liveRegion: true,
       child: CineDelayed(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          for (var i = 0; i < 4; i++)
-            Padding(padding: const EdgeInsets.only(bottom: 24), child: Align(alignment: Alignment.centerLeft, child: CineGalleyNumeral(size: numeralH, index: i))),
-          const SizedBox(height: 160, child: CineGalleyPlate(index: 4)),
-          const SizedBox(height: 24),
-          for (var i = 0; i < 4; i++) Padding(padding: const EdgeInsets.only(bottom: 12), child: CineGalleyLine(lineHeight: 20, index: 5 + i)),
-        ],),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < 4; i++)
+              Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: CineGalleyNumeral(size: numeralH, index: i),),),
+            const SizedBox(height: 160, child: CineGalleyPlate(index: 4)),
+            const SizedBox(height: 24),
+            for (var i = 0; i < 4; i++)
+              Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: CineGalleyLine(lineHeight: 20, index: 5 + i),),
+          ],
+        ),
       ),
     );
   }

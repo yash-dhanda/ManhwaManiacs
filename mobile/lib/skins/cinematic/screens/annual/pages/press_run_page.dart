@@ -17,10 +17,20 @@ class AnnualPressRunPage extends StatelessWidget {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Padding(padding: const EdgeInsets.only(top: 48), child: CineRoleText('PRESS RUN', context.cine.typeKicker, color: CineColors.ink60)),
-                Flexible(child: PressRunBody(input: ShareInput.annual(env.annual, env.profileName), inline: true, onReadNumbers: env.readNumbers)),
-              ],),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                      padding: const EdgeInsets.only(top: 48),
+                      child: CineRoleText('PRESS RUN', context.cine.typeKicker,
+                          color: CineColors.ink60,),),
+                  Flexible(
+                      child: PressRunBody(
+                          input: ShareInput.annual(env.annual, env.profileName),
+                          inline: true,
+                          onReadNumbers: env.readNumbers,),),
+                ],
+              ),
             ),
           ),
         ),

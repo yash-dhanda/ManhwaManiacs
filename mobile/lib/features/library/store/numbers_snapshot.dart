@@ -7,7 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// `mm.annual.last.{year}.u{user}p{profile}`. Raw JSON, so the models stay
 /// parse-only.
 class NumbersSnapshot {
-  const NumbersSnapshot(this._prefs, {required this.userId, required this.profileId});
+  const NumbersSnapshot(this._prefs,
+      {required this.userId, required this.profileId,});
 
   final SharedPreferences _prefs;
   final int userId;
@@ -18,8 +19,10 @@ class NumbersSnapshot {
   String numbersKey(int days) => 'mm.numbers.last.$days.$_scope';
   String annualKey(int year) => 'mm.annual.last.$year.$_scope';
 
-  Future<void> writeNumbers(int days, Map<String, dynamic> json) => _prefs.setString(numbersKey(days), jsonEncode(json));
-  Future<void> writeAnnual(int year, Map<String, dynamic> json) => _prefs.setString(annualKey(year), jsonEncode(json));
+  Future<void> writeNumbers(int days, Map<String, dynamic> json) =>
+      _prefs.setString(numbersKey(days), jsonEncode(json));
+  Future<void> writeAnnual(int year, Map<String, dynamic> json) =>
+      _prefs.setString(annualKey(year), jsonEncode(json));
 
   Map<String, dynamic>? readNumbers(int days) => _read(numbersKey(days));
   Map<String, dynamic>? readAnnual(int year) => _read(annualKey(year));

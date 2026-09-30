@@ -1,4 +1,5 @@
-import 'package:manhwamaniacs/features/home/models/home_feed.dart' show HomeStreak;
+import 'package:manhwamaniacs/features/home/models/home_feed.dart'
+    show HomeStreak;
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 
 const List<int> kMilestones = [7, 30, 100, 365];
@@ -17,7 +18,8 @@ int? pendingMilestone(ReadingStreak s) {
 /// the card marks them all, so an older one never queues behind a newer one.
 List<int> milestonesToMark(ReadingStreak s, int shown) => [
       for (final m in kMilestones)
-        if (m <= shown && m <= s.currentDays && !s.milestonesSeen.contains(m)) m,
+        if (m <= shown && m <= s.currentDays && !s.milestonesSeen.contains(m))
+          m,
     ];
 
 /// The `/home` streak in the statistics shape the milestone rules take.

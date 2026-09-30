@@ -38,7 +38,13 @@ class AnnualEnv {
 /// scrim ending on the top series' `ambient.tint` (fallback `#0E0D0B`), and a
 /// centred 9:16 safe box the content is bottom-anchored in.
 class AnnualPageFrame extends ConsumerWidget {
-  const AnnualPageFrame({super.key, required this.annual, required this.child, this.artOverride, this.showArt = true, this.alignment = Alignment.bottomCenter});
+  const AnnualPageFrame(
+      {super.key,
+      required this.annual,
+      required this.child,
+      this.artOverride,
+      this.showArt = true,
+      this.alignment = Alignment.bottomCenter,});
 
   final Annual annual;
   final Widget child;
@@ -48,7 +54,9 @@ class AnnualPageFrame extends ConsumerWidget {
   final bool showArt;
   final Alignment alignment;
 
-  static Color tintOf(Annual a) => parseAmbientHex(a.topSeries.isEmpty ? null : a.topSeries.first.ambient?.tint, fallback: CineColors.ambientFallbackTint);
+  static Color tintOf(Annual a) => parseAmbientHex(
+      a.topSeries.isEmpty ? null : a.topSeries.first.ambient?.tint,
+      fallback: CineColors.ambientFallbackTint,);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,37 +66,59 @@ class AnnualPageFrame extends ConsumerWidget {
     if (artOverride != null) {
       art = artOverride!;
     } else if (showArt && top?.coverUrl != null) {
-      art = AnnualArt(url: top!.coverUrl!, duo: parseAmbientHex(top.ambient?.duo));
+      art = AnnualArt(
+          url: top!.coverUrl!, duo: parseAmbientHex(top.ambient?.duo),);
     } else {
       art = const CineGrain(child: ColoredBox(color: CineColors.paper1));
     }
-    return LayoutBuilder(builder: (context, box) {
-      final safeW = math.min(box.maxWidth, box.maxHeight * 9 / 16);
-      final safeH = math.min(box.maxHeight, box.maxWidth * 16 / 9);
-      return Stack(fit: StackFit.expand, children: [
-        art,
-        const DecoratedBox(decoration: BoxDecoration(gradient: CineScrim.vignette)),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(begin: const Alignment(0, -0.2), end: Alignment.bottomCenter, stops: CineScrim.kScrimStops, colors: [for (final a in CineScrim.kScrimAlpha) tint.withValues(alpha: a)]),
-          ),
-        ),
-        Center(child: SizedBox(width: safeW, height: safeH, child: Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 28), child: Align(alignment: alignment, child: child)))),
-      ],);
-    },);
+    return LayoutBuilder(
+      builder: (context, box) {
+        final safeW = math.min(box.maxWidth, box.maxHeight * 9 / 16);
+        final safeH = math.min(box.maxHeight, box.maxWidth * 16 / 9);
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            art,
+            const DecoratedBox(
+                decoration: BoxDecoration(gradient: CineScrim.vignette),),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    begin: const Alignment(0, -0.2),
+                    end: Alignment.bottomCenter,
+                    stops: CineScrim.kScrimStops,
+                    colors: [
+                      for (final a in CineScrim.kScrimAlpha)
+                        tint.withValues(alpha: a),
+                    ],),
+              ),
+            ),
+            Center(
+                child: SizedBox(
+                    width: safeW,
+                    height: safeH,
+                    child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                        child: Align(alignment: alignment, child: child),),),),
+          ],
+        );
+      },
+    );
   }
 }
 
 /// A cover in duotone to its `ambient.duo` with grain at 0.06 (cinematic 2.1.5, 9.2.4).
 class AnnualArt extends StatelessWidget {
-  const AnnualArt({super.key, required this.url, required this.duo, this.opacity = 1});
+  const AnnualArt(
+      {super.key, required this.url, required this.duo, this.opacity = 1,});
   final String url;
   final Color duo;
   final double opacity;
 
   @override
   Widget build(BuildContext context) {
-    Widget art = CineGrain(child: CineDuotone(duo: duo, child: CineImage(url: url)));
+    Widget art =
+        CineGrain(child: CineDuotone(duo: duo, child: CineImage(url: url)));
     if (opacity < 1) art = Opacity(opacity: opacity, child: art);
     return ExcludeSemantics(child: art);
   }
@@ -97,7 +127,12 @@ class AnnualArt extends StatelessWidget {
 /// A page title: the letter reveal on `signal` (it plays when the page is built, i.e. shown), with
 /// an optional grapheme range typed at 50 ms per grapheme (the figure).
 class AnnualTitle extends StatelessWidget {
-  const AnnualTitle(this.text, this.role, {super.key, required this.id, this.typedRange, this.level = 2, this.color});
+  const AnnualTitle(this.text, this.role,
+      {super.key,
+      required this.id,
+      this.typedRange,
+      this.level = 2,
+      this.color,});
   final String text, id;
   final CineTextRole role;
   final ({int start, int end})? typedRange;
@@ -108,7 +143,8 @@ class AnnualTitle extends StatelessWidget {
   Widget build(BuildContext context) => SetHeading(
         text,
         id: 'annual-$id',
-        style: CineText.style(context, role).copyWith(color: color ?? CineColors.ink100),
+        style: CineText.style(context, role)
+            .copyWith(color: color ?? CineColors.ink100),
         cap: role.cap,
         level: level,
         trigger: SetTrigger.signal,

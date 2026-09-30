@@ -12,18 +12,30 @@ class _StatePage extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => ColoredBox(color: CineColors.paper0, child: SafeArea(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 480), child: SingleChildScrollView(child: child)))));
+  Widget build(BuildContext context) => ColoredBox(
+      color: CineColors.paper0,
+      child: SafeArea(
+          child: Center(
+              child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: SingleChildScrollView(child: child),),),),);
 }
 
 /// `recordedDays < 7`: a single page and `Close`.
 class AnnualNotEnough extends StatelessWidget {
-  const AnnualNotEnough({super.key, required this.recordedDays, required this.onClose});
+  const AnnualNotEnough(
+      {super.key, required this.recordedDays, required this.onClose,});
   final int recordedDays;
   final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) => _StatePage(
-        child: CineNotice(tone: CineNoticeTone.empty, kicker: 'THE ANNUAL', headline: notEnoughLine(recordedDays), primary: CineNoticeAction('Close', onClose)),
+        child: CineNotice(
+            tone: CineNoticeTone.empty,
+            kicker: 'THE ANNUAL',
+            headline: notEnoughParts(recordedDays).$1,
+            deck: notEnoughParts(recordedDays).$2,
+            primary: CineNoticeAction('Close', onClose),),
       );
 }
 
@@ -37,14 +49,22 @@ class AnnualLoading extends StatelessWidget {
     return _StatePage(
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Semantics(
-            liveRegion: true,
-            child: TypedHeadline('Setting the pages…', style: CineText.style(context, role).copyWith(color: CineColors.ink100), cap: role.cap, level: 1),
-          ),
-          const SizedBox(height: 20),
-          const CineIndeterminateRule(),
-        ],),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Semantics(
+              liveRegion: true,
+              child: TypedHeadline('Setting the pages…',
+                  style: CineText.style(context, role)
+                      .copyWith(color: CineColors.ink100),
+                  cap: role.cap,
+                  level: 1,),
+            ),
+            const SizedBox(height: 20),
+            const CineIndeterminateRule(),
+          ],
+        ),
       ),
     );
   }
@@ -57,7 +77,11 @@ class AnnualOffline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _StatePage(
-        child: CineNotice(tone: CineNoticeTone.offline, kicker: 'OFFLINE EDITION', headline: 'The Annual needs a connection the first time.', primary: CineNoticeAction('Close', onClose)),
+        child: CineNotice(
+            tone: CineNoticeTone.offline,
+            kicker: 'OFFLINE EDITION',
+            headline: 'The Annual needs a connection the first time.',
+            primary: CineNoticeAction('Close', onClose),),
       );
 }
 
@@ -78,4 +102,3 @@ class AnnualError extends StatelessWidget {
         ),
       );
 }
-

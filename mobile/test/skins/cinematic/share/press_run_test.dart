@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +11,8 @@ import '../../../screenshots/support/shot_harness.dart';
 import '../../../support/numbers_fixtures.dart';
 import '../support/cine_harness.dart';
 
-int _u32(Uint8List b, int o) => (b[o] << 24) | (b[o + 1] << 16) | (b[o + 2] << 8) | b[o + 3];
+int _u32(Uint8List b, int o) =>
+    (b[o] << 24) | (b[o + 1] << 16) | (b[o + 2] << 8) | b[o + 3];
 
 ({int w, int h}) pngSize(Uint8List b) {
   expect(b.sublist(0, 8), [137, 80, 78, 71, 13, 10, 26, 10]);
@@ -23,41 +23,70 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppFonts);
 
-  Widget host(WidgetBuilder builder) => Scaffold(body: Builder(builder: builder));
+  Widget host(WidgetBuilder builder) =>
+      Scaffold(body: Builder(builder: builder));
 
-  testWidgets('every template captures to a PNG of 1080 x 1920 (Story) and 1080 x 1350 (Post)', (tester) async {
+  testWidgets(
+      'every template captures to a PNG of 1080 x 1920 (Story) and 1080 x 1350 (Post)',
+      (tester) async {
     final env = CineTestEnv();
     late BuildContext ctx;
-    await pumpCine(tester, env, router: cineRouter(initial: '/', home: host((c) {
-      ctx = c;
-      return const SizedBox();
-    }),),);
-    final templates = shareTemplates(ShareInput.annual(annualFixture(), 'Yash'));
+    await pumpCine(
+      tester,
+      env,
+      router: cineRouter(
+        initial: '/',
+        home: host((c) {
+          ctx = c;
+          return const SizedBox();
+        }),
+      ),
+    );
+    final templates =
+        shareTemplates(ShareInput.annual(annualFixture(), 'Yash'));
     expect(templates, hasLength(6));
     for (final t in templates) {
       for (final f in ShareFormat.values) {
         final bytes = await tester.runAsync(() => renderShareCard(ctx, t, f));
         final s = pngSize(bytes!);
         expect(s.w, 1080, reason: '${t.id} ${f.name}');
-        expect(s.h, f == ShareFormat.story ? 1920 : 1350, reason: '${t.id} ${f.name}');
+        expect(s.h, f == ShareFormat.story ? 1920 : 1350,
+            reason: '${t.id} ${f.name}',);
       }
     }
   });
 
-  testWidgets('a card draws only shareable fields: the mature title never appears', (tester) async {
+  testWidgets(
+      'a card draws only shareable fields: the mature title never appears',
+      (tester) async {
     final env = CineTestEnv();
     late BuildContext ctx;
-    await pumpCine(tester, env, router: cineRouter(initial: '/', home: host((c) {
-      ctx = c;
-      return const SizedBox();
-    }),),);
+    await pumpCine(
+      tester,
+      env,
+      router: cineRouter(
+        initial: '/',
+        home: host((c) {
+          ctx = c;
+          return const SizedBox();
+        }),
+      ),
+    );
     final j = annualJson();
-    (j['top_series'] as List).insert(0, {'source_id': 'x', 'series_key': 'm', 'title': 'MATURE SECRET', 'cover_url': '/c', 'seconds_read': 99999, 'chapters_read': 999});
+    (j['top_series'] as List).insert(0, {
+      'source_id': 'x',
+      'series_key': 'm',
+      'title': 'MATURE SECRET',
+      'cover_url': '/c',
+      'seconds_read': 99999,
+      'chapters_read': 999,
+    });
     final input = ShareInput.annual(annualFromJson(j), 'Yash');
     for (final t in shareTemplates(input)) {
       await tester.runAsync(() => renderShareCard(ctx, t, ShareFormat.story));
       expect(kDebugMode, isTrue);
-      expect(debugShareCardTexts.join('|'), isNot(contains('MATURE SECRET')), reason: '${t.id}');
+      expect(debugShareCardTexts.join('|'), isNot(contains('MATURE SECRET')),
+          reason: '${t.id}',);
       expect(debugShareCardTexts, contains('Yash'));
       expect(debugShareCardTexts, contains('manhwamaniacs'));
     }
@@ -66,20 +95,35 @@ void main() {
     expect(debugShareCardTexts.join('|'), contains('Solo Leveling'));
   });
 
-  testWidgets('a failing cover leaves the dark band and the card still renders', (tester) async {
+  testWidgets('a failing cover leaves the dark band and the card still renders',
+      (tester) async {
     final env = CineTestEnv();
     late BuildContext ctx;
-    await pumpCine(tester, env, router: cineRouter(initial: '/', home: host((c) {
-      ctx = c;
-      return const SizedBox();
-    }),),);
-    final t = shareTemplates(ShareInput.annual(annualFixture(withShareable: false), 'Yash')).first;
-    final bytes = await tester.runAsync(() => renderShareCard(ctx, t, ShareFormat.story));
+    await pumpCine(
+      tester,
+      env,
+      router: cineRouter(
+        initial: '/',
+        home: host((c) {
+          ctx = c;
+          return const SizedBox();
+        }),
+      ),
+    );
+    final t = shareTemplates(
+            ShareInput.annual(annualFixture(withShareable: false), 'Yash'),)
+        .first;
+    final bytes =
+        await tester.runAsync(() => renderShareCard(ctx, t, ShareFormat.story));
     expect(pngSize(bytes!).h, 1920);
   });
 
   group('press run sheet', () {
-    Future<CineTestEnv> open(WidgetTester tester, {bool canSave = true, TargetPlatform platform = TargetPlatform.android, ShareInput? input, FakeNumbersRepo? repo}) async {
+    Future<CineTestEnv> open(WidgetTester tester,
+        {bool canSave = true,
+        TargetPlatform platform = TargetPlatform.android,
+        ShareInput? input,
+        FakeNumbersRepo? repo,}) async {
       final env = CineTestEnv(repo: repo)..media.can = canSave;
       debugDefaultTargetPlatformOverride = platform;
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -87,8 +131,17 @@ void main() {
         tester,
         env,
         platform: platform,
-        extra: [cardRendererProvider.overrideWithValue((context, t, f) async => kTinyPng)],
-        router: cineRouter(initial: '/', home: host((c) => Center(child: TextButton(onPressed: () => showPressRun(c, input ?? ShareInput.annual(annualFixture(), 'Yash')), child: const Text('OPEN'))))),
+        extra: [
+          cardRendererProvider
+              .overrideWithValue((context, t, f) async => kTinyPng),
+        ],
+        router: cineRouter(
+            initial: '/',
+            home: host((c) => Center(
+                child: TextButton(
+                    onPressed: () => showPressRun(
+                        c, input ?? ShareInput.annual(annualFixture(), 'Yash'),),
+                    child: const Text('OPEN'),),),),),
       );
       await tester.tap(find.text('OPEN'));
       await tester.pump();
@@ -96,16 +149,30 @@ void main() {
       return env;
     }
 
-    testWidgets('the slug line lists the available templates; the format control and actions show', (tester) async {
+    testWidgets(
+        'the slug line lists the available templates; the format control and actions show',
+        (tester) async {
       await open(tester);
-      for (final l in ['TIME', 'CHAPTERS', 'NO. 1', 'GENRES', 'STREAK', 'CLOCK', 'STORY', 'POST', 'Share', 'Save image']) {
+      for (final l in [
+        'TIME',
+        'CHAPTERS',
+        'NO. 1',
+        'GENRES',
+        'STREAK',
+        'CLOCK',
+        'STORY',
+        'POST',
+        'Share',
+        'Save image',
+      ]) {
         expect(find.text(l), findsOneWidget, reason: l);
       }
       expect(find.text('PRESS RUN'), findsOneWidget);
       expect(find.byType(Image), findsWidgets);
     });
 
-    testWidgets('a fixture with an empty shareable.topSeries has no No. 1', (tester) async {
+    testWidgets('a fixture with an empty shareable.topSeries has no No. 1',
+        (tester) async {
       final j = annualJson();
       (j['shareable'] as Map)['top_series'] = <Object?>[];
       await open(tester, input: ShareInput.annual(annualFromJson(j), 'Yash'));
@@ -113,7 +180,9 @@ void main() {
       expect(find.text('TIME'), findsOneWidget);
     });
 
-    testWidgets('Share hands the PNG to share_plus with the spec file name and fires the press-run haptic', (tester) async {
+    testWidgets(
+        'Share hands the PNG to share_plus with the spec file name and fires the press-run haptic',
+        (tester) async {
       final env = await open(tester);
       await tester.tap(find.text('Share'));
       await pumpMs(tester, 300);
@@ -128,7 +197,8 @@ void main() {
       await pumpMs(tester, 300);
       await tester.tap(find.text('Share'));
       await pumpMs(tester, 300);
-      expect(env.share.shared.last.files!.single.name, 'manhwamaniacs-no1-post.png');
+      expect(env.share.shared.last.files!.single.name,
+          'manhwamaniacs-no1-post.png',);
     });
 
     testWidgets('a dismissed share is silent', (tester) async {
@@ -142,7 +212,8 @@ void main() {
       expect(find.text('Share'), findsOneWidget); // the sheet stays open
     });
 
-    testWidgets('an unavailable share (or an exception) saves the card instead', (tester) async {
+    testWidgets('an unavailable share (or an exception) saves the card instead',
+        (tester) async {
       final env = await open(tester);
       env.share.status = ShareResultStatus.unavailable;
       await tester.tap(find.text('Share'));
@@ -157,22 +228,27 @@ void main() {
       expect(env.media.saved, hasLength(2));
     });
 
-    testWidgets('Android 10+: Save image writes to Pictures and says so', (tester) async {
+    testWidgets('Android 10+: Save image writes to Pictures and says so',
+        (tester) async {
       final env = await open(tester);
       await tester.tap(find.text('Save image'));
       await pumpMs(tester, 300);
       expect(env.media.saved, ['manhwamaniacs-time-story.png']);
-      expect(find.text('Card saved to Pictures › ManhwaManiacs.'), findsOneWidget);
+      expect(
+          find.text('Card saved to Pictures › ManhwaManiacs.'), findsOneWidget,);
       expect(env.share.shared, isEmpty);
     });
 
-    testWidgets('Save image is absent when canSaveImage is false (Android 7-9)', (tester) async {
+    testWidgets('Save image is absent when canSaveImage is false (Android 7-9)',
+        (tester) async {
       await open(tester, canSave: false);
       expect(find.text('Save image'), findsNothing);
       expect(find.text('Share'), findsOneWidget);
     });
 
-    testWidgets('iOS: Save image opens the share sheet and confirms only on SaveToCameraRoll', (tester) async {
+    testWidgets(
+        'iOS: Save image opens the share sheet and confirms only on SaveToCameraRoll',
+        (tester) async {
       final env = await open(tester, platform: TargetPlatform.iOS);
       env.share.raw = 'com.apple.UIKit.activity.SaveToCameraRoll';
       await tester.tap(find.text('Save image'));
@@ -181,7 +257,8 @@ void main() {
       expect(find.text('Card saved.'), findsOneWidget);
     });
 
-    testWidgets('a render failure keeps the last good card and toasts', (tester) async {
+    testWidgets('a render failure keeps the last good card and toasts',
+        (tester) async {
       final env = CineTestEnv();
       var calls = 0;
       await pumpCine(
@@ -194,7 +271,13 @@ void main() {
             return kTinyPng;
           }),
         ],
-        router: cineRouter(initial: '/', home: host((c) => Center(child: TextButton(onPressed: () => showPressRun(c, ShareInput.annual(annualFixture(), 'Yash')), child: const Text('OPEN'))))),
+        router: cineRouter(
+            initial: '/',
+            home: host((c) => Center(
+                child: TextButton(
+                    onPressed: () => showPressRun(
+                        c, ShareInput.annual(annualFixture(), 'Yash'),),
+                    child: const Text('OPEN'),),),),),
       );
       await tester.tap(find.text('OPEN'));
       await pumpMs(tester, 700);

@@ -9,19 +9,33 @@ class StatGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (wide) {
-      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        for (var i = 0; i < blocks.length; i++) ...[if (i > 0) const SizedBox(width: 24), Expanded(child: blocks[i])],
-      ],);
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < blocks.length; i++) ...[
+            if (i > 0) const SizedBox(width: 24),
+            Expanded(child: blocks[i]),
+          ],
+        ],
+      );
     }
-    return Column(children: [
-      for (var r = 0; r < blocks.length; r += 2) ...[
-        if (r > 0) const SizedBox(height: 24),
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Expanded(child: blocks[r]),
-          const SizedBox(width: 24),
-          Expanded(child: r + 1 < blocks.length ? blocks[r + 1] : const SizedBox.shrink()),
-        ],),
+    return Column(
+      children: [
+        for (var r = 0; r < blocks.length; r += 2) ...[
+          if (r > 0) const SizedBox(height: 24),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: blocks[r]),
+              const SizedBox(width: 24),
+              Expanded(
+                  child: r + 1 < blocks.length
+                      ? blocks[r + 1]
+                      : const SizedBox.shrink(),),
+            ],
+          ),
+        ],
       ],
-    ],);
+    );
   }
 }

@@ -19,14 +19,22 @@ String milestoneHeadline(int days) => switch (days) {
     };
 
 /// "Your longest yet." when the streak is the longest, else "Your longest is 41.".
-String milestoneDeck(ReadingStreak s) => s.currentDays >= s.longestDays ? 'Your longest yet.' : 'Your longest is ${s.longestDays}.';
+String milestoneDeck(ReadingStreak s) => s.currentDays >= s.longestDays
+    ? 'Your longest yet.'
+    : 'Your longest is ${s.longestDays}.';
 
 /// The milestone title card (cinematic 9.2.2): a takeover on `#000000`, the
 /// tier flame at 96 px with its bloom, `STREAK`, the typed numeral at 1.5x, the
 /// headline, the deck, `Share` (primary) and `Close` (quiet). A tap outside the
 /// column, a swipe down (past 120 px or 800 px/s), Android back and `Esc` close it.
 class MilestoneCard extends StatefulWidget {
-  const MilestoneCard({super.key, required this.days, required this.streak, required this.now, required this.onShare, required this.onClose});
+  const MilestoneCard(
+      {super.key,
+      required this.days,
+      required this.streak,
+      required this.now,
+      required this.onShare,
+      required this.onClose,});
 
   final int days;
   final ReadingStreak streak;
@@ -40,8 +48,10 @@ class MilestoneCard extends StatefulWidget {
   State<MilestoneCard> createState() => _MilestoneCardState();
 }
 
-class _MilestoneCardState extends State<MilestoneCard> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController.unbounded(vsync: this);
+class _MilestoneCardState extends State<MilestoneCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController.unbounded(vsync: this);
   double _drag = 0;
 
   @override
@@ -62,7 +72,8 @@ class _MilestoneCardState extends State<MilestoneCard> with SingleTickerProvider
       return;
     }
     _c.value = _drag;
-    _c.animateWith(SpringSimulation(CineSprings.release.description, _drag, 0, velocity / 3));
+    _c.animateWith(SpringSimulation(
+        CineSprings.release.description, _drag, 0, velocity / 3,),);
   }
 
   @override
@@ -71,7 +82,12 @@ class _MilestoneCardState extends State<MilestoneCard> with SingleTickerProvider
     final wide = MediaQuery.sizeOf(context).width >= 600;
     final headline = milestoneHeadline(widget.days);
     final today = DateTime(widget.now.year, widget.now.month, widget.now.day);
-    final numeral = CineText.style(context, t.typeNumeral).copyWith(color: CineColors.ink100, fontFeatures: const [FontFeature.liningFigures(), FontFeature.tabularFigures()]);
+    final numeral = CineText.style(context, t.typeNumeral).copyWith(
+        color: CineColors.ink100,
+        fontFeatures: const [
+          FontFeature.liningFigures(),
+          FontFeature.tabularFigures(),
+        ],);
     return Focus(
       autofocus: true,
       onKeyEvent: (_, e) {
@@ -84,6 +100,7 @@ class _MilestoneCardState extends State<MilestoneCard> with SingleTickerProvider
       child: Semantics(
         scopesRoute: true,
         namesRoute: true,
+        explicitChildNodes: true,
         label: 'Streak milestone: $headline',
         child: ColoredBox(
           color: CineColors.paper0,
@@ -106,35 +123,66 @@ class _MilestoneCardState extends State<MilestoneCard> with SingleTickerProvider
                       constraints: BoxConstraints(maxWidth: wide ? 520 : 360),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          StreakFlame(
-                            streak: HomeStreak(currentDays: widget.days, longestDays: widget.streak.longestDays < widget.days ? widget.days : widget.streak.longestDays, lastActiveDate: today),
-                            size: 96,
-                            now: today,
-                            ignite: false,
-                          ),
-                          SetHeading('STREAK', id: 'milestone-kicker', style: CineText.style(context, t.typeKicker).copyWith(color: CineColors.ink60), cap: t.typeKicker.cap, level: null, trigger: SetTrigger.signal),
-                          const SizedBox(height: 8),
-                          Semantics(
-                            label: '${widget.days} days',
-                            excludeSemantics: true,
-                            child: TypedHeadline(
-                              '${widget.days}',
-                              style: numeral.copyWith(fontSize: numeral.fontSize! * 1.5),
-                              cap: t.typeNumeral.cap,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            StreakFlame(
+                              streak: HomeStreak(
+                                  currentDays: widget.days,
+                                  longestDays:
+                                      widget.streak.longestDays < widget.days
+                                          ? widget.days
+                                          : widget.streak.longestDays,
+                                  lastActiveDate: today,),
+                              size: 96,
+                              now: today,
+                              ignite: false,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          SetHeading(headline, id: 'milestone-${widget.days}', style: CineText.style(context, t.typeHeadline).copyWith(color: CineColors.ink100), cap: t.typeHeadline.cap, level: 1, trigger: SetTrigger.signal),
-                          const SizedBox(height: 12),
-                          CineRoleText(milestoneDeck(widget.streak), t.typeDeck, color: CineColors.ink60),
-                          const SizedBox(height: 24),
-                          Row(children: [
-                            CineButton(label: 'Share', onPressed: widget.onShare),
-                            const SizedBox(width: 8),
-                            CineButton(label: 'Close', variant: CineButtonVariant.quiet, onPressed: widget.onClose),
-                          ],),
-                        ],),
+                            SetHeading('STREAK',
+                                id: 'milestone-kicker',
+                                style: CineText.style(context, t.typeKicker)
+                                    .copyWith(color: CineColors.ink60),
+                                cap: t.typeKicker.cap,
+                                level: null,
+                                trigger: SetTrigger.signal,),
+                            const SizedBox(height: 8),
+                            Semantics(
+                              label: '${widget.days} days',
+                              excludeSemantics: true,
+                              child: TypedHeadline(
+                                '${widget.days}',
+                                style: numeral.copyWith(
+                                    fontSize: numeral.fontSize! * 1.5,),
+                                cap: t.typeNumeral.cap,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            SetHeading(headline,
+                                id: 'milestone-${widget.days}',
+                                style: CineText.style(context, t.typeHeadline)
+                                    .copyWith(color: CineColors.ink100),
+                                cap: t.typeHeadline.cap,
+                                level: 1,
+                                trigger: SetTrigger.signal,),
+                            const SizedBox(height: 12),
+                            CineRoleText(
+                                milestoneDeck(widget.streak), t.typeDeck,
+                                color: CineColors.ink60,),
+                            const SizedBox(height: 24),
+                            Row(
+                              children: [
+                                CineButton(
+                                    label: 'Share', onPressed: widget.onShare,),
+                                const SizedBox(width: 8),
+                                CineButton(
+                                    label: 'Close',
+                                    variant: CineButtonVariant.quiet,
+                                    onPressed: widget.onClose,),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

@@ -11,7 +11,8 @@ import 'package:manhwamaniacs/skins/cinematic/type.dart';
 /// `max(0.12, value / max)` for hours with reading, `rule.1` for empty hours;
 /// labels 0, 6, 12, 18 just outside.
 class ClockChart extends StatelessWidget {
-  const ClockChart({super.key, required this.byHour, this.diameter = 240, this.summary});
+  const ClockChart(
+      {super.key, required this.byHour, this.diameter = 240, this.summary,});
 
   /// 24 values of seconds.
   final List<int> byHour;
@@ -22,7 +23,8 @@ class ClockChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final folio = CineText.style(context, context.cine.typeFolio).copyWith(color: CineColors.ink45);
+    final folio = CineText.style(context, context.cine.typeFolio)
+        .copyWith(color: CineColors.ink45);
     const pad = 24.0;
     final side = diameter + pad * 2;
     return Semantics(
@@ -55,15 +57,24 @@ class _ClockPainter extends CustomPainter {
     final max = byHour.fold<int>(0, math.max);
     for (var h = 0; h < 24; h++) {
       final v = h < byHour.length ? byHour[h] : 0;
-      final color = v > 0 ? CineColors.ink100.withValues(alpha: math.max(0.12, v / max)) : CineColors.rule1;
+      final color = v > 0
+          ? CineColors.ink100.withValues(alpha: math.max(0.12, v / max))
+          : CineColors.rule1;
       final d = _dir(h);
-      canvas.drawLine(c + d * 60, c + d * 120, Paint()
-        ..color = color
-        ..strokeWidth = 4
-        ..strokeCap = StrokeCap.butt,);
+      canvas.drawLine(
+        c + d * 60,
+        c + d * 120,
+        Paint()
+          ..color = color
+          ..strokeWidth = 4
+          ..strokeCap = StrokeCap.butt,
+      );
     }
     for (final h in [0, 6, 12, 18]) {
-      final tp = TextPainter(text: TextSpan(text: '$h', style: folio), textDirection: TextDirection.ltr)..layout();
+      final tp = TextPainter(
+          text: TextSpan(text: '$h', style: folio),
+          textDirection: TextDirection.ltr,)
+        ..layout();
       final p = c + _dir(h) * 134;
       tp.paint(canvas, p - Offset(tp.width / 2, tp.height / 2));
     }
@@ -75,8 +86,11 @@ class _ClockPainter extends CustomPainter {
         return [
           for (var h = 0; h < 24; h++)
             CustomPainterSemantics(
-              rect: Rect.fromCenter(center: c + _dir(h) * 90, width: 24, height: 24),
-              properties: SemanticsProperties(label: hourSemantics(h, h < byHour.length ? byHour[h] : 0)),
+              rect: Rect.fromCenter(
+                  center: c + _dir(h) * 90, width: 24, height: 24,),
+              properties: SemanticsProperties(
+                  textDirection: TextDirection.ltr,
+                  label: hourSemantics(h, h < byHour.length ? byHour[h] : 0),),
             ),
         ];
       };

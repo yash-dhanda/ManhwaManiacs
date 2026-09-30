@@ -13,24 +13,33 @@ class AnnualSegments extends StatelessWidget {
   Widget build(BuildContext context) => ExcludeSemantics(
         child: ListenableBuilder(
           listenable: player,
-          builder: (context, _) => Row(children: [
-            for (var i = 0; i < player.pages.length; i++) ...[
-              if (i > 0) const SizedBox(width: 4),
-              Expanded(
-                child: SizedBox(
-                  height: 2,
-                  child: Stack(fit: StackFit.expand, children: [
-                    const ColoredBox(color: CineColors.rule2),
-                    FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: i < player.index ? 1 : (i == player.index ? player.progress : 0),
-                      child: const ColoredBox(key: ValueKey('segment-fill'), color: CineColors.spot),
+          builder: (context, _) => Row(
+            children: [
+              for (var i = 0; i < player.pages.length; i++) ...[
+                if (i > 0) const SizedBox(width: 4),
+                Expanded(
+                  child: SizedBox(
+                    height: 2,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        const ColoredBox(color: CineColors.rule2),
+                        FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: i < player.index
+                              ? 1
+                              : (i == player.index ? player.progress : 0),
+                          child: const ColoredBox(
+                              key: ValueKey('segment-fill'),
+                              color: CineColors.spot,),
+                        ),
+                      ],
                     ),
-                  ],),
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],),
+          ),
         ),
       );
 }

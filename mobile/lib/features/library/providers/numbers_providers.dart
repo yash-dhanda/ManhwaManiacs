@@ -23,7 +23,8 @@ String numbersScopeOf(Ref ref) {
 }
 
 /// [numbersScopeOf] for widgets: unique per user and profile.
-final numbersScopeProvider = Provider<String>(numbersScopeOf, name: 'numbersScope');
+final numbersScopeProvider =
+    Provider<String>(numbersScopeOf, name: 'numbersScope');
 
 final numbersSnapshotProvider = Provider<NumbersSnapshot>((ref) {
   final auth = ref.watch(authControllerProvider);
@@ -43,9 +44,10 @@ class NumbersLoad<T> {
 
 bool _isOffline(Object e) => e is NetworkError;
 
-final numbersStatisticsProvider =
-    FutureProvider.autoDispose.family<NumbersLoad<LibraryStatistics>, int>((ref, days) async {
-  final result = await ref.watch(numbersRepositoryProvider).statistics(days: days);
+final numbersStatisticsProvider = FutureProvider.autoDispose
+    .family<NumbersLoad<LibraryStatistics>, int>((ref, days) async {
+  final result =
+      await ref.watch(numbersRepositoryProvider).statistics(days: days);
   final snap = ref.watch(numbersSnapshotProvider);
   if (result.isOk) {
     final raw = result.value.raw;
@@ -53,11 +55,14 @@ final numbersStatisticsProvider =
     return NumbersLoad(result.value);
   }
   final saved = _isOffline(result.error) ? snap.readNumbers(days) : null;
-  if (saved != null) return NumbersLoad(LibraryStatistics.fromJson(saved), offline: true);
+  if (saved != null) {
+    return NumbersLoad(LibraryStatistics.fromJson(saved), offline: true);
+  }
   throw result.error;
 });
 
-final annualProvider = FutureProvider.autoDispose.family<NumbersLoad<Annual>, int>((ref, year) async {
+final annualProvider = FutureProvider.autoDispose
+    .family<NumbersLoad<Annual>, int>((ref, year) async {
   final result = await ref.watch(numbersRepositoryProvider).annual(year);
   final snap = ref.watch(numbersSnapshotProvider);
   if (result.isOk) {
@@ -97,5 +102,6 @@ class StatsRangeNotifier extends Notifier<int> {
   }
 }
 
-final statsRangeProvider = NotifierProvider<StatsRangeNotifier, int>(StatsRangeNotifier.new, name: 'statsRange');
-
+final statsRangeProvider = NotifierProvider<StatsRangeNotifier, int>(
+    StatsRangeNotifier.new,
+    name: 'statsRange',);

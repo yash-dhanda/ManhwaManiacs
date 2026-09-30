@@ -91,13 +91,18 @@ class ShareInput {
       streakIsCurrent: current > 0,
       tier: streakTier(n),
       byHour: [
-        for (var h = 0; h < 24; h++) s.byHour.where((x) => x.hour == h).fold<int>(0, (a, x) => a + x.secondsRead),
+        for (var h = 0; h < 24; h++)
+          s.byHour
+              .where((x) => x.hour == h)
+              .fold<int>(0, (a, x) => a + x.secondsRead),
       ],
     );
   }
 
   /// The streak milestone card's Share: the Streak template only, prefilled.
-  factory ShareInput.milestone(int days, StreakTier tier, String profileName, {int year = 0, Shareable? art}) => ShareInput._(
+  factory ShareInput.milestone(int days, StreakTier tier, String profileName,
+          {int year = 0, Shareable? art,}) =>
+      ShareInput._(
         source: ShareSource.milestone,
         profileName: profileName,
         kicker: 'THE ANNUAL ${year == 0 ? DateTime.now().year : year}',
@@ -109,7 +114,14 @@ class ShareInput {
 }
 
 class ShareTemplate {
-  const ShareTemplate({required this.id, required this.figure, required this.caption, required this.kicker, required this.profileName, this.art, this.tier});
+  const ShareTemplate(
+      {required this.id,
+      required this.figure,
+      required this.caption,
+      required this.kicker,
+      required this.profileName,
+      this.art,
+      this.tier,});
 
   final ShareId id;
   final String figure;
@@ -122,15 +134,28 @@ class ShareTemplate {
   final StreakTier? tier;
 }
 
-ShareArt? _art0(Shareable? s) => s == null || s.artSeries.isEmpty ? null : ShareArt(coverUrl: s.artSeries.first.coverUrl, ambient: s.artSeries.first.ambient);
+ShareArt? _art0(Shareable? s) => s == null || s.artSeries.isEmpty
+    ? null
+    : ShareArt(
+        coverUrl: s.artSeries.first.coverUrl,
+        ambient: s.artSeries.first.ambient,);
 
-String _hoursOrMinutes(int seconds) => seconds >= 3600 ? fmt(seconds ~/ 3600) : '${(seconds / 60).round()}';
+String _hoursOrMinutes(int seconds) =>
+    seconds >= 3600 ? fmt(seconds ~/ 3600) : '${(seconds / 60).round()}';
 
 /// The templates with data, in the order Time, Chapters, No. 1, Genres,
 /// Streak, Clock.
 List<ShareTemplate> shareTemplates(ShareInput input) {
-  ShareTemplate t(ShareId id, String figure, String caption, {ShareArt? art, StreakTier? tier}) =>
-      ShareTemplate(id: id, figure: figure, caption: caption, kicker: input.kicker, profileName: input.profileName, art: art ?? _art0(input.shareable), tier: tier);
+  ShareTemplate t(ShareId id, String figure, String caption,
+          {ShareArt? art, StreakTier? tier,}) =>
+      ShareTemplate(
+          id: id,
+          figure: figure,
+          caption: caption,
+          kicker: input.kicker,
+          profileName: input.profileName,
+          art: art ?? _art0(input.shareable),
+          tier: tier,);
   final out = <ShareTemplate>[];
   final sh = input.shareable;
   final phrase = input.periodPhrase;
@@ -138,18 +163,27 @@ List<ShareTemplate> shareTemplates(ShareInput input) {
   if (input.source != ShareSource.milestone) {
     if (input.secondsRead > 0) {
       final unit = input.secondsRead >= 3600 ? 'hours' : 'minutes';
-      out.add(t(ShareId.time, _hoursOrMinutes(input.secondsRead), '$unit of reading $phrase.'));
+      out.add(t(ShareId.time, _hoursOrMinutes(input.secondsRead),
+          '$unit of reading $phrase.',),);
     }
     if (input.chaptersRead > 0) {
-      out.add(t(ShareId.chapters, fmt(input.chaptersRead), 'chapters $phrase.'));
+      out.add(
+          t(ShareId.chapters, fmt(input.chaptersRead), 'chapters $phrase.'),);
     }
     if (sh != null && sh.topSeries.isNotEmpty) {
       final s = sh.topSeries.first;
-      final time = s.secondsRead >= 3600 ? '${fmt(s.secondsRead ~/ 3600)} ${s.secondsRead ~/ 3600 == 1 ? 'hour' : 'hours'}' : '${(s.secondsRead / 60).round()} minutes';
-      out.add(t(ShareId.no1, 'No. 1', '${s.title}: ${s.chaptersRead} ${s.chaptersRead == 1 ? 'chapter' : 'chapters'}, $time.', art: s.coverUrl == null ? null : ShareArt(coverUrl: s.coverUrl!, ambient: s.ambient)));
+      final time = s.secondsRead >= 3600
+          ? '${fmt(s.secondsRead ~/ 3600)} ${s.secondsRead ~/ 3600 == 1 ? 'hour' : 'hours'}'
+          : '${(s.secondsRead / 60).round()} minutes';
+      out.add(t(ShareId.no1, 'No. 1',
+          '${s.title}: ${s.chaptersRead} ${s.chaptersRead == 1 ? 'chapter' : 'chapters'}, $time.',
+          art: s.coverUrl == null
+              ? null
+              : ShareArt(coverUrl: s.coverUrl!, ambient: s.ambient),),);
     }
     if (sh != null && sh.genreWeights.isNotEmpty) {
-      final g = [...sh.genreWeights]..sort((a, b) => b.weight.compareTo(a.weight));
+      final g = [...sh.genreWeights]
+        ..sort((a, b) => b.weight.compareTo(a.weight));
       final p = '${(g.first.weight * 100).round()} %';
       final caption = switch (g.length) {
         1 => '$p of my reading.',
@@ -163,21 +197,27 @@ List<ShareTemplate> shareTemplates(ShareInput input) {
     final caption = switch (input.source) {
       ShareSource.milestone => 'days in a row.',
       ShareSource.annual => 'days in a row, my longest ${input.periodPhrase}.',
-      ShareSource.range => input.streakIsCurrent ? 'days in a row, and counting.' : 'days in a row, my longest.',
+      ShareSource.range => input.streakIsCurrent
+          ? 'days in a row, and counting.'
+          : 'days in a row, my longest.',
     };
-    out.add(t(ShareId.streak, '${input.streakDays}', caption, tier: input.tier));
+    out.add(
+        t(ShareId.streak, '${input.streakDays}', caption, tier: input.tier),);
   }
   if (input.source != ShareSource.milestone) {
     final r = readClock(input.byHour);
     if (r.band != null && !r.allHours) {
-      out.add(t(ShareId.clock, '${(r.share * 100).round()} %', clockCardCaption(r.band!)));
+      out.add(t(ShareId.clock, '${(r.share * 100).round()} %',
+          clockCardCaption(r.band!),),);
     }
   }
   return out;
 }
 
 /// `manhwamaniacs-{time|chapters|no1|genres|streak|clock}-{story|post}.png`.
-String shareFileName(ShareId id, ShareFormat format) => 'manhwamaniacs-${id.fileKey}-${format.name}.png';
+String shareFileName(ShareId id, ShareFormat format) =>
+    'manhwamaniacs-${id.fileKey}-${format.name}.png';
 
 /// 1080 x 1920 (Story) or 1080 x 1350 (Post).
-({double width, double height}) shareSize(ShareFormat f) => (width: 1080, height: f == ShareFormat.story ? 1920 : 1350);
+({double width, double height}) shareSize(ShareFormat f) =>
+    (width: 1080, height: f == ShareFormat.story ? 1920 : 1350);

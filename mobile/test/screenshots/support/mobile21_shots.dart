@@ -39,7 +39,9 @@ Future<void> loadMobile21Covers(WidgetTester tester) async {
   if (_covers.isNotEmpty) return;
   await tester.runAsync(() async {
     for (var i = 0; i < 9; i++) {
-      _covers['series-$i'] = await ShotCoverArt(title: 'Series $i', seed: i * 3 + 1).toPng(width: 300, height: 450);
+      _covers['series-$i'] =
+          await ShotCoverArt(title: 'Series $i', seed: i * 3 + 1)
+              .toPng(width: 300, height: 450);
     }
   });
 }
@@ -79,7 +81,12 @@ Future<void> mobile21Shot(
     textScale: textScale,
     boundaryKey: key,
     extra: [authedCoverProvider.overrideWithValue(shotCover)],
-    wrap: grid ? (app) => Stack(textDirection: TextDirection.ltr, children: [app, const Positioned.fill(child: IgnorePointer(child: _GridOverlay()))]) : null,
+    wrap: grid
+        ? (app) => Stack(textDirection: TextDirection.ltr, children: [
+              app,
+              const Positioned.fill(child: IgnorePointer(child: _GridOverlay())),
+            ],)
+        : null,
   );
   await tester.pump();
   if (after != null) {
@@ -87,7 +94,9 @@ Future<void> mobile21Shot(
   } else {
     await pumpMs(tester, 3000);
   }
-  await writeShot(tester, find.byKey(key), '$dir/$name${suffix ?? ''}-${size.name}.png', pixelRatio: size.pixelRatio);
+  await writeShot(
+      tester, find.byKey(key), '$dir/$name${suffix ?? ''}-${size.name}.png',
+      pixelRatio: size.pixelRatio,);
 }
 
 /// The 4-column (phone) or 12-column (tablet) grid at 20 / 40 px margins.
@@ -95,20 +104,32 @@ class _GridOverlay extends StatelessWidget {
   const _GridOverlay();
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
-        final wide = box.maxWidth >= 600;
-        final cols = wide ? 12 : 4;
-        final margin = wide ? 40.0 : 20.0;
-        const gutter = 16.0;
-        final colW = (box.maxWidth - 2 * margin - gutter * (cols - 1)) / cols;
-        return Stack(children: [
-          for (var i = 0; i < cols; i++) Positioned(left: margin + i * (colW + gutter), top: 0, bottom: 0, width: colW, child: ColoredBox(color: CineColors.spot.withValues(alpha: 0.10))),
-        ],);
-      },);
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, box) {
+          final wide = box.maxWidth >= 600;
+          final cols = wide ? 12 : 4;
+          final margin = wide ? 40.0 : 20.0;
+          const gutter = 16.0;
+          final colW = (box.maxWidth - 2 * margin - gutter * (cols - 1)) / cols;
+          return Stack(
+            children: [
+              for (var i = 0; i < cols; i++)
+                Positioned(
+                    left: margin + i * (colW + gutter),
+                    top: 0,
+                    bottom: 0,
+                    width: colW,
+                    child: ColoredBox(
+                        color: CineColors.spot.withValues(alpha: 0.10),),),
+            ],
+          );
+        },
+      );
 }
 
 Future<void> scrollTo(WidgetTester tester, Finder f) async {
-  await tester.scrollUntilVisible(f, 300, scrollable: find.byType(Scrollable).last);
+  await tester.scrollUntilVisible(f, 300,
+      scrollable: find.byType(Scrollable).last,);
   await pumpMs(tester, 800);
 }
 
@@ -118,23 +139,51 @@ Widget streakTiersRow() => Scaffold(
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Wrap(spacing: 8, runSpacing: 24, children: [
-            for (final d in [0, 3, 12, 45, 120])
-              SizedBox(
-                width: 110,
-                child: Column(children: [
-                  StreakFlame(streak: HomeStreak(currentDays: d, longestDays: 200, lastActiveDate: d == 0 ? null : DateTime(2026, 9, 29)), size: 56, now: DateTime(2026, 9, 29, 10), ignite: false),
-                  Text('$d DAYS', style: const TextStyle(fontFamily: 'IBMPlexMono', fontSize: 11, color: CineColors.ink60)),
-                ],),
-              ),
-          ],),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 24,
+            children: [
+              for (final d in [0, 3, 12, 45, 120])
+                SizedBox(
+                  width: 110,
+                  child: Column(
+                    children: [
+                      StreakFlame(
+                          streak: HomeStreak(
+                              currentDays: d,
+                              longestDays: 200,
+                              lastActiveDate:
+                                  d == 0 ? null : DateTime(2026, 9, 29),),
+                          size: 56,
+                          now: DateTime(2026, 9, 29, 10),
+                          ignite: false,),
+                      Text('$d DAYS',
+                          style: const TextStyle(
+                              fontFamily: 'IBMPlexMono',
+                              fontSize: 11,
+                              color: CineColors.ink60,),),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
 
 Widget streakAtRisk(DateTime now) => Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(child: Padding(padding: const EdgeInsets.all(20), child: StreakBlock(streak: ReadingStreak(currentDays: 12, longestDays: 31, lastActiveDate: DateTime(now.year, now.month, now.day - 1), atRisk: true), daily: const []))),
+      body: SafeArea(
+          child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: StreakBlock(
+                  streak: ReadingStreak(
+                      currentDays: 12,
+                      longestDays: 31,
+                      lastActiveDate:
+                          DateTime(now.year, now.month, now.day - 1),
+                      atRisk: true,),
+                  daily: const [],),),),
     );
 
 /// Writes the six templates in both formats as the real captured PNGs.
@@ -148,10 +197,12 @@ Future<void> writeCards(WidgetTester tester, {required String dir}) async {
     router: cineRouter(
       initial: '/',
       home: Scaffold(
-        body: Builder(builder: (c) {
-          ctx = c;
-          return const SizedBox.shrink();
-        },),
+        body: Builder(
+          builder: (c) {
+            ctx = c;
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     ),
     extra: [authedCoverProvider.overrideWithValue(shotCover)],
@@ -167,14 +218,17 @@ Future<void> writeCards(WidgetTester tester, {required String dir}) async {
   }
 }
 
-
 class _TonightStandIn extends ConsumerWidget {
   const _TonightStandIn();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(numbersStatisticsProvider(30)).valueOrNull?.data;
-    return Scaffold(body: MilestoneCardHost(streak: s?.streak, shareable: s?.shareable, child: const SizedBox.expand()));
+    return Scaffold(
+        body: MilestoneCardHost(
+            streak: s?.streak,
+            shareable: s?.shareable,
+            child: const SizedBox.expand(),),);
   }
 }
 
@@ -185,69 +239,185 @@ void mobile21Group() {
     testWidgets('mobile-21 numbers $tag', (tester) async {
       await mobile21Shot(tester, 'numbers-30', size: size);
       await mobile21Shot(tester, 'numbers-grid', size: size, grid: true);
-      await mobile21Shot(tester, 'numbers-year-heatmap', size: size, env: CineTestEnv(prefs: {'mm.stats.range.u1p1': 365}));
-      await mobile21Shot(tester, 'numbers-selected-day', size: size, after: (t) async {
-        await pumpMs(t, 2500);
-        final box = t.getRect(find.byType(CustomPaint).evaluate().map((e) => find.byWidget(e.widget)).firstWhere((f) => t.getSize(f).height > 150 && t.getSize(f).width > 300));
-        await t.tapAt(Offset(box.left + box.width * 0.62, box.top + 60));
-        await pumpMs(t, 500);
-      },);
-      await mobile21Shot(tester, 'numbers-clock-radar', size: size, after: (t) async {
-        await pumpMs(t, 2500);
-        await scrollTo(t, find.text('When you read'));
-        await t.drag(find.byType(Scrollable).last, const Offset(0, -140));
-        await pumpMs(t, 3000);
-      },);
-      await mobile21Shot(tester, 'numbers-lists', size: size, after: (t) async {
-        await pumpMs(t, 2500);
-        await scrollTo(t, find.text('Where you read'));
-        await t.drag(find.byType(Scrollable).last, const Offset(0, -260));
-        await pumpMs(t, 1500);
-      },);
+      await mobile21Shot(tester, 'numbers-year-heatmap',
+          size: size, env: CineTestEnv(prefs: {'mm.stats.range.u1p1': 365}),);
+      await mobile21Shot(
+        tester,
+        'numbers-selected-day',
+        size: size,
+        after: (t) async {
+          await pumpMs(t, 2500);
+          final box = t.getRect(find
+              .byType(CustomPaint)
+              .evaluate()
+              .map((e) => find.byWidget(e.widget))
+              .firstWhere((f) =>
+                  t.getSize(f).height > 150 && t.getSize(f).width > 300,),);
+          await t.tapAt(Offset(box.left + box.width * 0.62, box.top + 60));
+          await pumpMs(t, 500);
+        },
+      );
+      await mobile21Shot(
+        tester,
+        'numbers-clock-radar',
+        size: size,
+        after: (t) async {
+          await pumpMs(t, 2500);
+          await scrollTo(t, find.text('When you read'));
+          await t.drag(find.byType(Scrollable).last, const Offset(0, -140));
+          await pumpMs(t, 3000);
+        },
+      );
+      await mobile21Shot(
+        tester,
+        'numbers-lists',
+        size: size,
+        after: (t) async {
+          await pumpMs(t, 2500);
+          await scrollTo(t, find.text('Where you read'));
+          await t.drag(find.byType(Scrollable).last, const Offset(0, -260));
+          await pumpMs(t, 1500);
+        },
+      );
     });
 
     testWidgets('mobile-21 milestone and press run $tag', (tester) async {
-      final env = CineTestEnv(repo: FakeNumbersRepo(stats: {30: statisticsFixture(currentDays: 30)}));
-      await mobile21Shot(tester, 'milestone-card', size: size, env: env, router: GoRouter(routes: [GoRoute(path: '/', builder: (_, __) => const _TonightStandIn())]), after: (t) => pumpMs(t, 3200));
-      await mobile21Shot(tester, 'press-run-sheet', size: size, router: cineRouter(initial: '/', home: Scaffold(body: Builder(builder: (c) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => showPressRun(c, ShareInput.annual(annualFixture(), 'Yash')));
-        return const SizedBox.expand();
-      },),),), after: (t) => pumpMs(t, 2500),);
+      final env = CineTestEnv(
+          repo:
+              FakeNumbersRepo(stats: {30: statisticsFixture(currentDays: 30)}),);
+      await mobile21Shot(tester, 'milestone-card',
+          size: size,
+          env: env,
+          router: GoRouter(routes: [
+            GoRoute(path: '/', builder: (_, __) => const _TonightStandIn()),
+          ],),
+          after: (t) => pumpMs(t, 3200),);
+      await mobile21Shot(
+        tester,
+        'press-run-sheet',
+        size: size,
+        router: cineRouter(
+          initial: '/',
+          home: Scaffold(
+            body: Builder(
+              builder: (c) {
+                WidgetsBinding.instance.addPostFrameCallback((_) =>
+                    showPressRun(
+                        c, ShareInput.annual(annualFixture(), 'Yash'),),);
+                return const SizedBox.expand();
+              },
+            ),
+          ),
+        ),
+        after: (t) => pumpMs(t, 2500),
+      );
     });
 
     testWidgets('mobile-21 annual pages $tag', (tester) async {
-      final pages = ['cover', 'time', 'chapters', 'no1', 'genres', 'clock', 'streak', 'sources', 'circle', 'colophon-mid', 'press-run'];
+      final pages = [
+        'cover',
+        'time',
+        'chapters',
+        'no1',
+        'genres',
+        'clock',
+        'streak',
+        'sources',
+        'circle',
+        'colophon-mid',
+        'press-run',
+      ];
       for (var i = 0; i < pages.length; i++) {
-        final env = CineTestEnv(repo: FakeNumbersRepo(annuals: {2026: annualFixture(circle: true)}));
-        await mobile21Shot(tester, 'annual-${pages[i]}', size: size, env: env, router: cineRouter(initial: '/library/statistics/annual/2026'), after: (t) async {
-          await pumpMs(t, 300);
-          for (var k = 0; k < i; k++) {
-            await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-            await pumpMs(t, 350);
-          }
-          await pumpMs(t, i == 9 ? 5000 : 3500);
-        },);
+        final env = CineTestEnv(
+            repo:
+                FakeNumbersRepo(annuals: {2026: annualFixture(circle: true)}),);
+        await mobile21Shot(
+          tester,
+          'annual-${pages[i]}',
+          size: size,
+          env: env,
+          router: cineRouter(initial: '/library/statistics/annual/2026'),
+          after: (t) async {
+            await pumpMs(t, 300);
+            for (var k = 0; k < i; k++) {
+              await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+              await pumpMs(t, 350);
+            }
+            await pumpMs(t, i == 9 ? 5000 : 3500);
+          },
+        );
       }
     });
   }
 
   testWidgets('mobile-21 phone-only states', (tester) async {
     final phone = kShotPhone;
-    CineTestEnv stats(LibraryStatistics Function(int d) f, {AppError? fail, Map<String, Object> prefs = const {}}) => CineTestEnv(repo: FakeNumbersRepo(stats: {for (final d in [7, 30, 90, 365]) d: f(d)}, failWith: fail), prefs: prefs);
-    await mobile21Shot(tester, 'numbers-loading', size: phone, after: (t) => pumpMs(t, 250));
-    await mobile21Shot(tester, 'numbers-empty', size: phone, env: stats((d) => statisticsFixture(days: d, empty: true)));
-    await mobile21Shot(tester, 'numbers-never-read', size: phone, env: stats((d) => statisticsFixture(days: d, neverRead: true)));
-    await mobile21Shot(tester, 'numbers-offline', size: phone, env: CineTestEnv(repo: FakeNumbersRepo(failWith: const NetworkError(message: 'down')), prefs: {'mm.numbers.last.30.u1p1': jsonEncode(statisticsJson())}));
-    await mobile21Shot(tester, 'numbers-error', size: phone, env: CineTestEnv(repo: FakeNumbersRepo(failWith: const UnknownError(message: 'x'))));
-    await mobile21Shot(tester, 'streak-tiers', size: phone, router: cineRouter(initial: '/', home: streakTiersRow()), after: (t) => pumpMs(t, 1200));
-    await mobile21Shot(tester, 'streak-at-risk', size: phone, env: CineTestEnv(now: DateTime(2026, 9, 29, 21)), router: cineRouter(initial: '/', home: streakAtRisk(DateTime(2026, 9, 29, 21))), after: (t) => pumpMs(t, 1200));
-    await mobile21Shot(tester, 'annual-thin', size: phone, env: CineTestEnv(repo: FakeNumbersRepo(annuals: {2026: annualFixture(recordedDays: 5)})), router: cineRouter(initial: '/library/statistics/annual/2026'), after: (t) => pumpMs(t, 1500));
-    await mobile21Shot(tester, 'annual-loading', size: phone, router: cineRouter(initial: '/library/statistics/annual/2026'), after: (t) => pumpMs(t, 300));
-    await mobile21Shot(tester, 'annual-offline', size: phone, env: CineTestEnv(repo: FakeNumbersRepo(failWith: const NetworkError(message: 'down'))), router: cineRouter(initial: '/library/statistics/annual/2026'), after: (t) => pumpMs(t, 1500));
-    await mobile21Shot(tester, 'annual-screen-reader', size: phone, accessible: true, router: cineRouter(initial: '/library/statistics/annual/2026'), after: (t) => pumpMs(t, 3000));
-    await mobile21Shot(tester, 'reduced-motion-numbers', size: phone, reduced: true, after: (t) => pumpMs(t, 500));
-    await mobile21Shot(tester, 'text-scale-2-numbers', size: phone, textScale: 2.0);
-    await mobile21Shot(tester, 'annual-landscape', size: kSkinShotLandscape, router: cineRouter(initial: '/library/statistics/annual/2026'), after: (t) => pumpMs(t, 3000));
+    CineTestEnv stats(LibraryStatistics Function(int d) f,
+            {AppError? fail, Map<String, Object> prefs = const {},}) =>
+        CineTestEnv(
+            repo: FakeNumbersRepo(stats: {
+              for (final d in [7, 30, 90, 365]) d: f(d),
+            }, failWith: fail,),
+            prefs: prefs,);
+    await mobile21Shot(tester, 'numbers-loading',
+        size: phone, after: (t) => pumpMs(t, 250),);
+    await mobile21Shot(tester, 'numbers-empty',
+        size: phone,
+        env: stats((d) => statisticsFixture(days: d, empty: true)),);
+    await mobile21Shot(tester, 'numbers-never-read',
+        size: phone,
+        env: stats((d) => statisticsFixture(days: d, neverRead: true)),);
+    await mobile21Shot(tester, 'numbers-offline',
+        size: phone,
+        env: CineTestEnv(
+            repo:
+                FakeNumbersRepo(failWith: const NetworkError(message: 'down')),
+            prefs: {'mm.numbers.last.30.u1p1': jsonEncode(statisticsJson())},),);
+    await mobile21Shot(tester, 'numbers-error',
+        size: phone,
+        env: CineTestEnv(
+            repo: FakeNumbersRepo(failWith: const UnknownError(message: 'x')),),);
+    await mobile21Shot(tester, 'streak-tiers',
+        size: phone,
+        router: cineRouter(initial: '/', home: streakTiersRow()),
+        after: (t) => pumpMs(t, 1200),);
+    await mobile21Shot(tester, 'streak-at-risk',
+        size: phone,
+        env: CineTestEnv(now: DateTime(2026, 9, 29, 21)),
+        router: cineRouter(
+            initial: '/', home: streakAtRisk(DateTime(2026, 9, 29, 21)),),
+        after: (t) => pumpMs(t, 1200),);
+    await mobile21Shot(tester, 'annual-thin',
+        size: phone,
+        env: CineTestEnv(
+            repo: FakeNumbersRepo(
+                annuals: {2026: annualFixture(recordedDays: 5)},),),
+        router: cineRouter(initial: '/library/statistics/annual/2026'),
+        after: (t) => pumpMs(t, 1500),);
+    await mobile21Shot(tester, 'annual-loading',
+        size: phone,
+        router: cineRouter(initial: '/library/statistics/annual/2026'),
+        after: (t) => pumpMs(t, 300),);
+    await mobile21Shot(tester, 'annual-offline',
+        size: phone,
+        env: CineTestEnv(
+            repo:
+                FakeNumbersRepo(failWith: const NetworkError(message: 'down')),),
+        router: cineRouter(initial: '/library/statistics/annual/2026'),
+        after: (t) => pumpMs(t, 1500),);
+    await mobile21Shot(tester, 'annual-screen-reader',
+        size: phone,
+        accessible: true,
+        router: cineRouter(initial: '/library/statistics/annual/2026'),
+        after: (t) => pumpMs(t, 3000),);
+    await mobile21Shot(tester, 'reduced-motion-numbers',
+        size: phone, reduced: true, after: (t) => pumpMs(t, 500),);
+    await mobile21Shot(tester, 'text-scale-2-numbers',
+        size: phone, textScale: 2.0,);
+    await mobile21Shot(tester, 'annual-landscape',
+        size: kSkinShotLandscape,
+        router: cineRouter(initial: '/library/statistics/annual/2026'),
+        after: (t) => pumpMs(t, 3000),);
   });
 
   testWidgets('mobile-21 share cards', (tester) async {

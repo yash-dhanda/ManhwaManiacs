@@ -20,7 +20,8 @@ class AnnualScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    void close() => context.canPop() ? context.pop() : context.go(Routes.numbers());
+    void close() =>
+        context.canPop() ? context.pop() : context.go(Routes.numbers());
     final year = int.tryParse(yearParam);
     Widget body;
     if (year == null) {
@@ -29,10 +30,17 @@ class AnnualScreen extends ConsumerWidget {
       final async = ref.watch(annualProvider(year));
       body = async.when(
         loading: () => const AnnualLoading(),
-        error: (e, _) => e is NetworkError ? AnnualOffline(onClose: close) : AnnualError(onRetry: () => ref.invalidate(annualProvider(year)), onClose: close),
+        error: (e, _) => e is NetworkError
+            ? AnnualOffline(onClose: close)
+            : AnnualError(
+                onRetry: () => ref.invalidate(annualProvider(year)),
+                onClose: close,),
         data: (load) {
           final a = load.data;
-          if (a.recordedDays < 7) return AnnualNotEnough(recordedDays: a.recordedDays, onClose: close);
+          if (a.recordedDays < 7) {
+            return AnnualNotEnough(
+                recordedDays: a.recordedDays, onClose: close,);
+          }
           return AnnualStory(
             key: ValueKey('annual-$year'),
             annual: a,

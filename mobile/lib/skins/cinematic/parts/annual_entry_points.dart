@@ -13,10 +13,12 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// True in December, once per profile per year: the value stored under
 /// `mm.annual.toast.u{user}p{profile}` is the year it last showed.
-bool shouldShowAnnualToast(DateTime now, String? storedYear) => now.month == 12 && storedYear != '${now.year}';
+bool shouldShowAnnualToast(DateTime now, String? storedYear) =>
+    now.month == 12 && storedYear != '${now.year}';
 
 /// The per-profile key of the once-a-year toast.
-final annualToastKeyProvider = Provider<String>((ref) => 'mm.annual.toast.${numbersScopeOf(ref)}');
+final annualToastKeyProvider =
+    Provider<String>((ref) => 'mm.annual.toast.${numbersScopeOf(ref)}');
 
 /// A one-time toast on the first authenticated app open in December,
 /// "The Annual 2026 is out." with `Open` (8000 ms `durHoldToastAction`), once per
@@ -26,10 +28,12 @@ class AnnualDecemberToastHost extends ConsumerStatefulWidget {
   final Widget child;
 
   @override
-  ConsumerState<AnnualDecemberToastHost> createState() => _AnnualDecemberToastHostState();
+  ConsumerState<AnnualDecemberToastHost> createState() =>
+      _AnnualDecemberToastHostState();
 }
 
-class _AnnualDecemberToastHostState extends ConsumerState<AnnualDecemberToastHost> {
+class _AnnualDecemberToastHostState
+    extends ConsumerState<AnnualDecemberToastHost> {
   @override
   void initState() {
     super.initState();
@@ -47,7 +51,8 @@ class _AnnualDecemberToastHostState extends ConsumerState<AnnualDecemberToastHos
     ref.read(cineToastsProvider.notifier).action(
           'The Annual ${now.year} is out.',
           label: 'Open',
-          onAction: () => context.push<void>(Routes.annual(now.year), extra: const <String, String>{'transition': 'dip'}),
+          onAction: () => context.push<void>(Routes.annual(now.year),
+              extra: const <String, String>{'transition': 'dip'},),
         );
   }
 
@@ -66,9 +71,8 @@ class AnnualOutLink extends ConsumerWidget {
     return CineButton(
       label: 'The Annual is out →',
       variant: CineButtonVariant.quiet,
-      onPressed: () => context.push<void>(Routes.annual(now.year), extra: const <String, String>{'transition': 'dip'}),
+      onPressed: () => context.push<void>(Routes.annual(now.year),
+          extra: const <String, String>{'transition': 'dip'},),
     );
   }
 }
-
-

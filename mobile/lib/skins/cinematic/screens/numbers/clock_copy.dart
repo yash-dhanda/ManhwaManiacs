@@ -45,8 +45,10 @@ String numbersClockSentence(ClockReading r) {
   return switch (r.band!) {
     ClockBand.night => 'A night reader: most of it after 22:00.',
     ClockBand.morning => 'An early reader: most of it before noon.',
-    ClockBand.afternoon => 'An afternoon reader: most of it between 12:00 and 17:00.',
-    ClockBand.evening => 'An evening reader: most of it between 17:00 and 22:00.',
+    ClockBand.afternoon =>
+      'An afternoon reader: most of it between 12:00 and 17:00.',
+    ClockBand.evening =>
+      'An evening reader: most of it between 17:00 and 22:00.',
   };
 }
 

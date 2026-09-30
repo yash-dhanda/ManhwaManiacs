@@ -1,5 +1,6 @@
 import 'package:manhwamaniacs/features/library/models/shareable.dart';
-import 'package:manhwamaniacs/features/sources/models/source_genre.dart' show GenreWeight;
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart'
+    show GenreWeight;
 
 /// `GET /library/annual` (cinematic 9.2.7), by field name. Glass's additive
 /// fields (`pagesRead`, `longestStreak.start/end`, `busiestDay`, `firstsLasts`)
@@ -62,7 +63,9 @@ class Annual {
     final byHour = List<int>.filled(24, 0);
     for (final h in _maps(json['by_hour'])) {
       final i = (h['hour'] as num?)?.toInt() ?? -1;
-      if (i >= 0 && i < 24) byHour[i] = (h['seconds_read'] as num?)?.toInt() ?? 0;
+      if (i >= 0 && i < 24) {
+        byHour[i] = (h['seconds_read'] as num?)?.toInt() ?? 0;
+      }
     }
     final circleRaw = json['circle'];
     return Annual(
@@ -74,17 +77,39 @@ class Annual {
       secondsRead: (json['seconds_read'] as num?)?.toInt() ?? 0,
       chaptersRead: (json['chapters_read'] as num?)?.toInt() ?? 0,
       pagesRead: (json['pages_read'] as num?)?.toInt() ?? 0,
-      chaptersByMonth: [for (var i = 0; i < 12; i++) i < months.length ? months[i] : 0],
-      topSeries: _maps(json['top_series']).map(ShareSeries.fromJson).where((s) => s.title.isNotEmpty).toList(growable: false),
-      genres: _maps(json['genres']).map(GenreWeight.fromJson).where((g) => g.genre.isNotEmpty).toList(growable: false),
+      chaptersByMonth: [
+        for (var i = 0; i < 12; i++) i < months.length ? months[i] : 0,
+      ],
+      topSeries: _maps(json['top_series'])
+          .map(ShareSeries.fromJson)
+          .where((s) => s.title.isNotEmpty)
+          .toList(growable: false),
+      genres: _maps(json['genres'])
+          .map(GenreWeight.fromJson)
+          .where((g) => g.genre.isNotEmpty)
+          .toList(growable: false),
       byHour: byHour,
-      longestStreak: AnnualStreak.fromJson(json['longest_streak'] is Map<String, dynamic> ? json['longest_streak'] as Map<String, dynamic> : const {}),
-      topSources: _maps(json['top_sources']).map(AnnualSource.fromJson).toList(growable: false),
-      circle: circleRaw is List ? _maps(circleRaw).map(CircleMember.fromJson).toList(growable: false) : null,
-      topVoices: _maps(json['top_voices']).map(AnnualVoice.fromJson).where((v) => v.name.isNotEmpty).toList(growable: false),
+      longestStreak: AnnualStreak.fromJson(
+          json['longest_streak'] is Map<String, dynamic>
+              ? json['longest_streak'] as Map<String, dynamic>
+              : const {},),
+      topSources: _maps(json['top_sources'])
+          .map(AnnualSource.fromJson)
+          .toList(growable: false),
+      circle: circleRaw is List
+          ? _maps(circleRaw).map(CircleMember.fromJson).toList(growable: false)
+          : null,
+      topVoices: _maps(json['top_voices'])
+          .map(AnnualVoice.fromJson)
+          .where((v) => v.name.isNotEmpty)
+          .toList(growable: false),
       availableYears: _ints(json['available_years']),
-      busiestDay: json['busiest_day'] is Map<String, dynamic> ? json['busiest_day'] as Map<String, dynamic> : null,
-      firstsLasts: json['firsts_lasts'] is Map<String, dynamic> ? json['firsts_lasts'] as Map<String, dynamic> : null,
+      busiestDay: json['busiest_day'] is Map<String, dynamic>
+          ? json['busiest_day'] as Map<String, dynamic>
+          : null,
+      firstsLasts: json['firsts_lasts'] is Map<String, dynamic>
+          ? json['firsts_lasts'] as Map<String, dynamic>
+          : null,
       shareable: Shareable.tryParse(json['shareable']),
       raw: json,
     );
@@ -109,7 +134,8 @@ class AnnualStreak {
 }
 
 class AnnualSource {
-  const AnnualSource({required this.sourceId, required this.name, required this.share});
+  const AnnualSource(
+      {required this.sourceId, required this.name, required this.share,});
   final String sourceId;
   final String name;
 
@@ -124,7 +150,11 @@ class AnnualSource {
 }
 
 class CircleMember {
-  const CircleMember({required this.profileId, required this.name, this.avatarKey, this.finishedTogether = const []});
+  const CircleMember(
+      {required this.profileId,
+      required this.name,
+      this.avatarKey,
+      this.finishedTogether = const [],});
   final int profileId;
   final String name;
   final String? avatarKey;
@@ -138,13 +168,18 @@ class CircleMember {
         avatarKey: json['avatar_key'] as String?,
         finishedTogether: [
           for (final t in (json['finished_together'] as List? ?? const []))
-            if (t is String && t.trim().isNotEmpty) t.trim() else if (t is Map && (t['title'] as String? ?? '').trim().isNotEmpty) (t['title'] as String).trim(),
+            if (t is String && t.trim().isNotEmpty)
+              t.trim()
+            else if (t is Map &&
+                (t['title'] as String? ?? '').trim().isNotEmpty)
+              (t['title'] as String).trim(),
         ],
       );
 }
 
 class AnnualVoice {
-  const AnnualVoice({required this.voiceId, required this.name, required this.seconds});
+  const AnnualVoice(
+      {required this.voiceId, required this.name, required this.seconds,});
   final String voiceId;
   final String name;
   final int seconds;
@@ -156,6 +191,12 @@ class AnnualVoice {
       );
 }
 
-Iterable<Map<String, dynamic>> _maps(Object? raw) => raw is List ? raw.whereType<Map<String, dynamic>>() : const [];
+Iterable<Map<String, dynamic>> _maps(Object? raw) =>
+    raw is List ? raw.whereType<Map<String, dynamic>>() : const [];
 
-List<int> _ints(Object? raw) => raw is List ? [for (final v in raw) if (v is num) v.toInt()] : const [];
+List<int> _ints(Object? raw) => raw is List
+    ? [
+        for (final v in raw)
+          if (v is num) v.toInt(),
+      ]
+    : const [];

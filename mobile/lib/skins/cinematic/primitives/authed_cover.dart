@@ -9,12 +9,15 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 /// [ImageProvider], for the places that need a provider rather than `CineImage`'s widget: the
 /// Lightbox and the share cards, which precache the art before capturing. Tests and the screenshot
 /// harness swap in in-repo art.
-final authedCoverProvider = Provider<ImageProvider Function(String url, {double? width})>((ref) {
+final authedCoverProvider =
+    Provider<ImageProvider Function(String url, {double? width})>((ref) {
   final base = ref.watch(apiBaseUrlProvider);
   final token = ref.watch(authTokenStoreProvider).token;
   final profileId = ref.watch(activeProfileProvider)?.id;
   return (url, {width}) {
-    final resolved = coverUrlAtWidth(resolveApiResourceUrl(base, url), width == null ? null : coverRequestWidth(width, 3));
-    return CachedNetworkImageProvider(resolved, headers: apiImageHttpHeaders(token, profileId: profileId));
+    final resolved = coverUrlAtWidth(resolveApiResourceUrl(base, url),
+        width == null ? null : coverRequestWidth(width, 3),);
+    return CachedNetworkImageProvider(resolved,
+        headers: apiImageHttpHeaders(token, profileId: profileId),);
   };
 });

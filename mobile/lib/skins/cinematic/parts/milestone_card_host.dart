@@ -18,7 +18,8 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// The profiles that already saw a milestone card this app session (once per
 /// profile per session; the server's `milestones_seen` covers other devices).
-final milestoneSessionProvider = StateProvider<Set<String>>((_) => {}, name: 'milestoneSession');
+final milestoneSessionProvider =
+    StateProvider<Set<String>>((_) => {}, name: 'milestoneSession');
 
 /// Pushes the milestone title card as an overlay route on the root navigator
 /// (no path, `opaque: false`) on the first visit to Tonight or The Numbers after
@@ -27,7 +28,8 @@ final milestoneSessionProvider = StateProvider<Set<String>>((_) => {}, name: 'mi
 ///
 /// Tonight mounts this with the `/home` streak, The Numbers with the statistics streak.
 class MilestoneCardHost extends ConsumerStatefulWidget {
-  const MilestoneCardHost({super.key, required this.streak, required this.child, this.shareable});
+  const MilestoneCardHost(
+      {super.key, required this.streak, required this.child, this.shareable,});
 
   final ReadingStreak? streak;
   final Shareable? shareable;
@@ -73,7 +75,8 @@ class _MilestoneCardHostState extends ConsumerState<MilestoneCardHost> {
     for (final m in milestonesToMark(s, days)) {
       repo.markMilestoneSeen(m);
     }
-    cineFeedback(context, HapticEvent.streakMilestone, sound: SoundEvent.streakMilestone);
+    cineFeedback(context, HapticEvent.streakMilestone,
+        sound: SoundEvent.streakMilestone,);
     final profile = ref.read(activeProfileProvider);
     nav.push<void>(
       MilestoneRoute(
@@ -83,7 +86,10 @@ class _MilestoneCardHostState extends ConsumerState<MilestoneCardHost> {
           streak: s,
           now: ref.read(clockProvider)(),
           onClose: nav.maybePop,
-          onShare: () => showPressRun(context, ShareInput.milestone(days, streakTier(days), profile?.name ?? '', year: ref.read(clockProvider)().year, art: widget.shareable)),
+          onShare: () => showPressRun(
+              context,
+              ShareInput.milestone(days, streakTier(days), profile?.name ?? '',
+                  year: ref.read(clockProvider)().year, art: widget.shareable,),),
         ),
       ),
     );
@@ -117,11 +123,15 @@ class MilestoneRoute extends PageRoute<void> {
   Duration get reverseTransitionDuration => transitionDuration;
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) => builder(context);
+  Widget buildPage(BuildContext context, Animation<double> animation,
+          Animation<double> secondaryAnimation,) =>
+      builder(context);
 
   @override
-  Widget buildTransitions(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+  Widget buildTransitions(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation, Widget child,) {
     if (reduced) return FadeTransition(opacity: animation, child: child);
-    return cineDipTransition(context: context, animation: animation, child: child);
+    return cineDipTransition(
+        context: context, animation: animation, child: child,);
   }
 }

@@ -156,7 +156,7 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
       if (r == null || r.isCompleted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          _signalTimer = Timer(const Duration(milliseconds: 160), () {
+          _signalTimer = Timer(_reduced ? Duration.zero : const Duration(milliseconds: 160), () {
             if (mounted) _start();
           });
         });

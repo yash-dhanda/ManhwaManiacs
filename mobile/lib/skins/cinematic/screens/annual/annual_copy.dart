@@ -1,13 +1,26 @@
 import 'package:intl/intl.dart';
 import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/library/models/shareable.dart';
-import 'package:manhwamaniacs/features/sources/models/source_genre.dart' show GenreWeight;
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart'
+    show GenreWeight;
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_format.dart';
 
 /// Every copy rule of The Annual (cinematic 9.2.4) in one place, tested in
 /// `annual_copy_test.dart`.
 
-enum AnnualPageKind { cover, time, chapters, no1, genres, clock, streak, sources, circle, colophon, pressRun }
+enum AnnualPageKind {
+  cover,
+  time,
+  chapters,
+  no1,
+  genres,
+  clock,
+  streak,
+  sources,
+  circle,
+  colophon,
+  pressRun
+}
 
 class AnnualPageSpec {
   const AnnualPageSpec(this.kind, this.hold, this.title);
@@ -30,13 +43,20 @@ List<AnnualPageSpec> annualPages(Annual a) => [
       const AnnualPageSpec(AnnualPageKind.cover, _holdShort, 'Cover'),
       const AnnualPageSpec(AnnualPageKind.time, _holdShort, 'Time'),
       const AnnualPageSpec(AnnualPageKind.chapters, _holdShort, 'Chapters'),
-      if (a.topSeries.isNotEmpty) const AnnualPageSpec(AnnualPageKind.no1, _holdList, 'Your No. 1'),
-      if (a.genres.isNotEmpty) const AnnualPageSpec(AnnualPageKind.genres, _holdShort, 'Genres'),
-      if (a.byHour.any((s) => s > 0)) const AnnualPageSpec(AnnualPageKind.clock, _holdShort, 'The clock'),
-      if (a.longestStreak.days > 0) const AnnualPageSpec(AnnualPageKind.streak, _holdShort, 'The streak'),
-      if (a.topSources.isNotEmpty) const AnnualPageSpec(AnnualPageKind.sources, _holdList, 'Sources'),
-      if (circleShared(a).isNotEmpty) const AnnualPageSpec(AnnualPageKind.circle, _holdShort, 'The circle'),
-      const AnnualPageSpec(AnnualPageKind.colophon, _holdColophon, 'End credits'),
+      if (a.topSeries.isNotEmpty)
+        const AnnualPageSpec(AnnualPageKind.no1, _holdList, 'Your No. 1'),
+      if (a.genres.isNotEmpty)
+        const AnnualPageSpec(AnnualPageKind.genres, _holdShort, 'Genres'),
+      if (a.byHour.any((s) => s > 0))
+        const AnnualPageSpec(AnnualPageKind.clock, _holdShort, 'The clock'),
+      if (a.longestStreak.days > 0)
+        const AnnualPageSpec(AnnualPageKind.streak, _holdShort, 'The streak'),
+      if (a.topSources.isNotEmpty)
+        const AnnualPageSpec(AnnualPageKind.sources, _holdList, 'Sources'),
+      if (circleShared(a).isNotEmpty)
+        const AnnualPageSpec(AnnualPageKind.circle, _holdShort, 'The circle'),
+      const AnnualPageSpec(
+          AnnualPageKind.colophon, _holdColophon, 'End credits',),
       const AnnualPageSpec(AnnualPageKind.pressRun, null, 'Press run'),
     ];
 
@@ -46,7 +66,18 @@ List<CircleMember> circleShared(Annual a) => [
         if (m.finishedTogether.isNotEmpty) m,
     ];
 
-const _digits = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+const _digits = [
+  'zero',
+  'one',
+  'two',
+  'three',
+  'four',
+  'five',
+  'six',
+  'seven',
+  'eight',
+  'nine',
+];
 
 /// One to nine spelled; numerals from 10.
 String spellSmall(int n) => n >= 0 && n <= 9 ? _digits[n] : fmt(n);
@@ -79,18 +110,23 @@ String? timeDeck(int seconds) {
 }
 
 /// "4,812 chapters."
-String chaptersHeadline(int n) => '${fmt(n)} ${n == 1 ? 'chapter' : 'chapters'}.';
+String chaptersHeadline(int n) =>
+    '${fmt(n)} ${n == 1 ? 'chapter' : 'chapters'}.';
 
 /// "Your most-read: {title}."
 String no1Headline(String title) => 'Your most-read: $title.';
 
 /// "38 CHAPTERS · 12 H" (credit line under the No. 1 cover).
-String no1Credit(ShareSeries s) => '${s.chaptersRead} ${s.chaptersRead == 1 ? 'CHAPTER' : 'CHAPTERS'} · ${_hoursCaps(s.secondsRead)}';
+String no1Credit(ShareSeries s) =>
+    '${s.chaptersRead} ${s.chaptersRead == 1 ? 'CHAPTER' : 'CHAPTERS'} · ${_hoursCaps(s.secondsRead)}';
 
 /// "38 CH · 12 H" for the ranked rows.
-String rankFolio(ShareSeries s) => '${s.chaptersRead} CH · ${_hoursCaps(s.secondsRead)}';
+String rankFolio(ShareSeries s) =>
+    '${s.chaptersRead} CH · ${_hoursCaps(s.secondsRead)}';
 
-String _hoursCaps(int seconds) => seconds >= 3600 ? '${fmt(seconds ~/ 3600)} H' : '${(seconds / 60).round()} M';
+String _hoursCaps(int seconds) => seconds >= 3600
+    ? '${fmt(seconds ~/ 3600)} H'
+    : '${(seconds / 60).round()} M';
 
 bool _vowel(String s) => s.isNotEmpty && 'aeiou'.contains(s[0].toLowerCase());
 
@@ -109,7 +145,9 @@ String genresLine(List<GenreWeight> genres) {
 String streakLine(AnnualStreak s) {
   final days = '${s.days} ${s.days == 1 ? 'day' : 'days'}';
   final m = s.month;
-  return m == null || m < 1 || m > 12 ? 'Longest streak: $days.' : 'Longest streak: $days, in ${DateFormat('MMMM', 'en_US').format(DateTime(2000, m))}.';
+  return m == null || m < 1 || m > 12
+      ? 'Longest streak: $days.'
+      : 'Longest streak: $days, in ${DateFormat('MMMM', 'en_US').format(DateTime(2000, m))}.';
 }
 
 /// "MangaDex did the heavy lifting."
@@ -123,21 +161,32 @@ String? circleLine(Annual a) {
 }
 
 /// "Your Annual needs a few more weeks of reading. 5 days recorded so far."
-String notEnoughLine(int recordedDays) => 'Your Annual needs a few more weeks of reading. $recordedDays ${recordedDays == 1 ? 'day' : 'days'} recorded so far.';
+String notEnoughLine(int recordedDays) =>
+    'Your Annual needs a few more weeks of reading. $recordedDays ${recordedDays == 1 ? 'day' : 'days'} recorded so far.';
+
+/// The two sentences of [notEnoughLine]: the notice's headline (at most 60 graphemes) and deck.
+(String, String) notEnoughParts(int recordedDays) => (
+      'Your Annual needs a few more weeks of reading.',
+      '$recordedDays ${recordedDays == 1 ? 'day' : 'days'} recorded so far.',
+    );
 
 /// "An issue about Yash's year in reading".
 String coverDeck(String profile) => "An issue about $profile's year in reading";
 
 /// `No. 1 · 29 SEPTEMBER 2026`.
-String issueLine(int issue, DateTime date) => 'No. $issue · ${DateFormat('d MMMM y', 'en_US').format(date).toUpperCase()}';
+String issueLine(int issue, DateTime date) =>
+    'No. $issue · ${DateFormat('d MMMM y', 'en_US').format(date).toUpperCase()}';
 
 /// The credit lines of the colophon, label first; the NARRATED BY line is
 /// omitted when no voice is recorded and WITH only when the circle shared a series.
 List<(String, String)> colophonLines(Annual a) => [
       ('STARRING', a.topSeries.take(5).map((s) => s.title).join('\n')),
-      if (a.topSources.isNotEmpty) ('SHOT ON', a.topSources.map((s) => s.name).join(', ')),
-      if (a.topVoices.isNotEmpty) ('NARRATED BY', a.topVoices.take(3).map((v) => v.name).join(', ')),
-      if (circleShared(a).isNotEmpty) ('WITH', circleShared(a).map((m) => m.name).join(', ')),
+      if (a.topSources.isNotEmpty)
+        ('SHOT ON', a.topSources.map((s) => s.name).join(', ')),
+      if (a.topVoices.isNotEmpty)
+        ('NARRATED BY', a.topVoices.take(3).map((v) => v.name).join(', ')),
+      if (circleShared(a).isNotEmpty)
+        ('WITH', circleShared(a).map((m) => m.name).join(', ')),
       ('SET IN', 'Bodoni Moda, Archivo, Newsreader and IBM Plex Mono'),
       ('PRINTED ON', 'ManhwaManiacs'),
     ];

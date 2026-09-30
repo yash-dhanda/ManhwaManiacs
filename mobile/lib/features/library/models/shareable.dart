@@ -1,9 +1,12 @@
-import 'package:manhwamaniacs/features/sources/models/source_genre.dart' show GenreWeight;
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart'
+    show GenreWeight;
+
 /// The `shareable` block of `GET /library/statistics` and `GET /library/annual`
 /// (cinematic 9.2.5): only non-mature series, whatever the 18+ gate says. A
 /// share card may draw nothing else.
 class SeriesAmbient {
-  const SeriesAmbient({required this.duo, required this.tint, required this.ink});
+  const SeriesAmbient(
+      {required this.duo, required this.tint, required this.ink,});
 
   /// Duotone highlight, `#RRGGBB`.
   final String duo;
@@ -16,7 +19,8 @@ class SeriesAmbient {
     final tint = raw['tint'];
     final ink = raw['ink'];
     if (duo is! String || tint is! String) return null;
-    return SeriesAmbient(duo: duo, tint: tint, ink: ink is String ? ink : '#F3F0E8');
+    return SeriesAmbient(
+        duo: duo, tint: tint, ink: ink is String ? ink : '#F3F0E8',);
   }
 }
 
@@ -87,14 +91,26 @@ class Shareable {
   final List<ArtSeries> artSeries;
 
   factory Shareable.fromJson(Map<String, dynamic> json) => Shareable(
-        genreWeights: _maps(json['genre_weights']).map(GenreWeight.fromJson).where((g) => g.genre.isNotEmpty).toList(growable: false),
-        topSeries: _maps(json['top_series']).map(ShareSeries.fromJson).where((s) => s.title.isNotEmpty).toList(growable: false),
-        artSeries: _maps(json['art_series']).map(ArtSeries.tryParse).whereType<ArtSeries>().toList(growable: false),
+        genreWeights: _maps(json['genre_weights'])
+            .map(GenreWeight.fromJson)
+            .where((g) => g.genre.isNotEmpty)
+            .toList(growable: false),
+        topSeries: _maps(json['top_series'])
+            .map(ShareSeries.fromJson)
+            .where((s) => s.title.isNotEmpty)
+            .toList(growable: false),
+        artSeries: _maps(json['art_series'])
+            .map(ArtSeries.tryParse)
+            .whereType<ArtSeries>()
+            .toList(growable: false),
       );
 
-  static Shareable? tryParse(Object? raw) => raw is Map<String, dynamic> ? Shareable.fromJson(raw) : null;
+  static Shareable? tryParse(Object? raw) =>
+      raw is Map<String, dynamic> ? Shareable.fromJson(raw) : null;
 }
 
-String? _nonEmpty(Object? v) => v is String && v.trim().isNotEmpty ? v.trim() : null;
+String? _nonEmpty(Object? v) =>
+    v is String && v.trim().isNotEmpty ? v.trim() : null;
 
-Iterable<Map<String, dynamic>> _maps(Object? raw) => raw is List ? raw.whereType<Map<String, dynamic>>() : const [];
+Iterable<Map<String, dynamic>> _maps(Object? raw) =>
+    raw is List ? raw.whereType<Map<String, dynamic>>() : const [];

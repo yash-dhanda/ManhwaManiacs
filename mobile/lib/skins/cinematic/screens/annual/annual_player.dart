@@ -6,11 +6,16 @@ import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_copy.dart';
 /// keyboard focus is inside the story's controls, and it never runs under
 /// reduced motion or while a screen reader runs.
 class AnnualPlayer extends ChangeNotifier {
-  AnnualPlayer({required TickerProvider vsync, required this.pages, required this.onAdvance})
+  AnnualPlayer(
+      {required TickerProvider vsync,
+      required this.pages,
+      required this.onAdvance,})
       : _c = AnimationController(vsync: vsync) {
     _c.addListener(notifyListeners);
     _c.addStatusListener((s) {
-      if (s == AnimationStatus.completed && _autoAdvance && index < pages.length - 1) {
+      if (s == AnimationStatus.completed &&
+          _autoAdvance &&
+          index < pages.length - 1) {
         onAdvance(index + 1);
       }
     });
@@ -33,7 +38,13 @@ class AnnualPlayer extends ChangeNotifier {
   /// 0..1 fill of the current segment.
   double get progress => pages[index].hold == null ? 1 : _c.value;
 
-  bool get running => _autoAdvance && !_held && !_userPaused && !_inactive && !_focusInside && pages[index].hold != null;
+  bool get running =>
+      _autoAdvance &&
+      !_held &&
+      !_userPaused &&
+      !_inactive &&
+      !_focusInside &&
+      pages[index].hold != null;
   bool get paused => !running;
   bool get userPaused => _userPaused;
 

@@ -62,7 +62,8 @@ class NumbersRepositoryImpl implements NumbersRepository {
     T Function(Map<String, dynamic>) fromJson,
   ) async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>(path, queryParameters: query);
+      final response =
+          await _dio.get<Map<String, dynamic>>(path, queryParameters: query);
       return Ok(fromJson(response.data ?? const {}));
     } on DioException catch (e) {
       return Err(_error(e));
