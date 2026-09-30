@@ -42,7 +42,7 @@ final class PageTintPage extends PageTintSource {
   const PageTintPage(this.seed);
   final String seed;
   @override
-  bool operator ==(Object o) => o is PageTintPage && o.seed == seed;
+  bool operator ==(Object other) => other is PageTintPage && other.seed == seed;
   @override
   int get hashCode => seed.hashCode;
 }
@@ -50,7 +50,7 @@ final class PageTintPage extends PageTintSource {
 final class PageTintCover extends PageTintSource {
   const PageTintCover();
   @override
-  bool operator ==(Object o) => o is PageTintCover;
+  bool operator ==(Object other) => other is PageTintCover;
   @override
   int get hashCode => 1;
 }
