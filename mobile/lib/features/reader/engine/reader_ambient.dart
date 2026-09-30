@@ -289,6 +289,13 @@ class ReaderAmbient {
 
   // ── Exit reports ─────────────────────────────────────────────────────────
 
+  /// Test hook: marks samples as new, the way a finished analysis does.
+  @visibleForTesting
+  void debugAddSamples(String chapterId, {Map<int, String> tints = const {}, Map<int, List<PanelRect>> panels = const {}}) {
+    (_dirtyTints[chapterId] ??= {}).addAll(tints);
+    (_dirtyPanels[chapterId] ??= {}).addAll(panels);
+  }
+
   /// The chapter's new samples since the last call, or an empty report.
   AmbientReport takeReport(String chapterId) {
     final t = _dirtyTints.remove(chapterId) ?? const <int, String>{};

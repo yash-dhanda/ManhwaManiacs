@@ -55,12 +55,11 @@ class ReaderTintHost extends StatefulWidget {
 
 class _ReaderTintHostState extends State<ReaderTintHost> {
   ReaderTint? _applied;
-  DateTime? _appliedAt;
-  Timer? _later;
+  Timer? _cool;
 
   @override
   void dispose() {
-    _later?.cancel();
+    _cool?.cancel();
     super.dispose();
   }
 
@@ -68,18 +67,14 @@ class _ReaderTintHostState extends State<ReaderTintHost> {
     if (!widget.enabled || src == null) return ReaderTint.none;
     final target = readerTintFor(src, widget.coverDuo);
     if (!reduced) return _applied = target;
-    final last = _appliedAt;
-    final now = DateTime.now();
-    if (_applied == null || last == null || now.difference(last) >= const Duration(seconds: 2)) {
-      _appliedAt = now;
-      return _applied = target;
-    }
-    // Too soon: keep the colour on screen and look again when the 2 s are up.
-    _later?.cancel();
-    _later = Timer(const Duration(seconds: 2) - now.difference(last), () {
+    // Reduced motion: at most one swap every 2 s. While cooling, the colour on screen stays and the
+    // newest target is applied when the timer runs out.
+    if (_cool != null && _applied != null) return _applied!;
+    _cool = Timer(const Duration(seconds: 2), () {
+      _cool = null;
       if (mounted) setState(() {});
     });
-    return _applied!;
+    return _applied = target;
   }
 
   @override
@@ -93,12 +88,13 @@ class _ReaderTintHostState extends State<ReaderTintHost> {
         final t = _resolve(src, reduced);
         if (t.tint == null) return ReaderTintScope(value: ReaderTint.none, child: child!);
         final duration = reduced ? Duration.zero : cine.durDissolve;
+        // The first tint dissolves in from the untinted colours: black scrims and `ink.100`.
         return TweenAnimationBuilder<Color?>(
-          tween: ColorTween(end: t.tint),
+          tween: ColorTween(begin: const Color(0xFF000000), end: t.tint),
           duration: duration,
           curve: CineCurves.turn,
           builder: (context, tint, _) => TweenAnimationBuilder<Color?>(
-            tween: ColorTween(end: t.light),
+            tween: ColorTween(begin: cine.colorInk100, end: t.light),
             duration: duration,
             curve: CineCurves.turn,
             builder: (context, light, _) => ReaderTintScope(value: ReaderTint(tint: tint, light: light), child: child!),
