@@ -65,6 +65,9 @@ typedef CreditsBuilder = Widget Function(
   CreditsMode mode,
 );
 
+/// Wraps one page's item in semantics (the skin's "Page 18 of 40" and its recognised text).
+typedef PageSemanticsBuilder = Widget Function(BuildContext context, ReaderChapter chapter, int pageNumber, Widget page);
+
 /// Wraps the page list (the skin's warmth layer).
 typedef PageLayerBuilder = Widget Function(BuildContext context, Widget pages);
 
@@ -108,6 +111,7 @@ class ReaderEngineOptions {
     this.footerExtent = 0,
     this.offline = false,
     this.pageLayerBuilder,
+    this.pageSemantics,
     this.lifecycleVolumeKeys = false,
   });
 
@@ -154,6 +158,7 @@ class ReaderEngineOptions {
   /// The chapter is read from disk: the footer says the next one is not saved here.
   final bool offline;
   final PageLayerBuilder? pageLayerBuilder;
+  final PageSemanticsBuilder? pageSemantics;
 
   /// Stops volume-key interception while the app is not resumed (Cinematic).
   final bool lifecycleVolumeKeys;

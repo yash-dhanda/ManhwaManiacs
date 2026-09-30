@@ -2231,7 +2231,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         options.topBandExtent > 0 &&
         widget.onPreviousChapter != null;
 
-    return RepaintBoundary(
+    final item = RepaintBoundary(
       child: ClipRect(
         // The seam rides on the page it precedes rather than being a list item
         // of its own: the geometry already reserved exactly [seamExtent] above
@@ -2261,6 +2261,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
               ),
       ),
     );
+    return options.pageSemantics?.call(context, chapter, pageNumber, item) ??
+        item;
   }
 
   /// The credits and the next-chapter band after the feed's last page.
