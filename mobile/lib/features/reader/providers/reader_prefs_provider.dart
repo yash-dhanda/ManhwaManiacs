@@ -56,4 +56,5 @@ final readerPrefsMigrationProvider = FutureProvider<void>((ref) async {
   final keys = userId == null ? const <String>[] : [for (final id in ids) '${kReaderSettingsPrefix}u${userId}p$id'];
   await migrateReaderPrefs(prefs, profileKeys: keys);
   ref.invalidate(readerSettingsProvider);
-}, name: 'readerPrefsMigration');
+},
+    name: 'readerPrefsMigration',);
