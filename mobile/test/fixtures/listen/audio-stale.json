@@ -1,0 +1,74 @@
+{
+ "available": true,
+ "total_ms": 60000,
+ "bytes": 480000,
+ "highlight_safe": false,
+ "segments": [
+  {
+   "i": 0,
+   "start_ms": 0,
+   "end_ms": 10000,
+   "p": 0,
+   "s": 0,
+   "e": 32,
+   "voice": "voice-20",
+   "speaker": null,
+   "speech": false
+  },
+  {
+   "i": 1,
+   "start_ms": 10000,
+   "end_ms": 20000,
+   "p": 0,
+   "s": 33,
+   "e": 82,
+   "voice": "voice-20",
+   "speaker": null,
+   "speech": false
+  },
+  {
+   "i": 2,
+   "start_ms": 20000,
+   "end_ms": 30000,
+   "p": 1,
+   "s": 0,
+   "e": 17,
+   "voice": "voice-21",
+   "speaker": "Iris",
+   "speech": true
+  },
+  {
+   "i": 3,
+   "start_ms": 30000,
+   "end_ms": 40000,
+   "p": 2,
+   "s": 0,
+   "e": 64,
+   "voice": "voice-20",
+   "speaker": null,
+   "speech": false
+  },
+  {
+   "i": 4,
+   "start_ms": 40000,
+   "end_ms": 50000,
+   "p": 3,
+   "s": 0,
+   "e": 26,
+   "voice": "voice-03",
+   "speaker": "Dokja",
+   "speech": true
+  },
+  {
+   "i": 5,
+   "start_ms": 50000,
+   "end_ms": 60000,
+   "p": 3,
+   "s": 27,
+   "e": 43,
+   "voice": "voice-03",
+   "speaker": "Dokja",
+   "speech": true
+  }
+ ]
+}

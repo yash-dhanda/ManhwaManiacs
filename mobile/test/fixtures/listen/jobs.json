@@ -1,0 +1,34 @@
+{
+ "jobs": [
+  {
+   "job_id": "j1",
+   "chapter_key": "c4",
+   "chapter_number": 4,
+   "status": "queued",
+   "progress": 0,
+   "attempts": 0,
+   "error_code": null,
+   "error_detail": null
+  },
+  {
+   "job_id": "j2",
+   "chapter_key": "c5",
+   "chapter_number": 5,
+   "status": "rendering",
+   "progress": 0.4,
+   "attempts": 1,
+   "error_code": null,
+   "error_detail": null
+  },
+  {
+   "job_id": "j3",
+   "chapter_key": "c6",
+   "chapter_number": 6,
+   "status": "failed",
+   "progress": 0.1,
+   "attempts": 3,
+   "error_code": "render_failed",
+   "error_detail": "The render box dropped the job."
+  }
+ ]
+}

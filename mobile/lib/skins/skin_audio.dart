@@ -9,6 +9,7 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
+import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_audio_session.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -283,10 +284,20 @@ class SkinAudio {
   }
 }
 
-final skinAudioProvider = Provider<SkinAudio>((ref) => SkinAudio.instance
-  ..bind(
-    skin: ref.watch(skinIdProvider),
-    userId: ref.watch(authControllerProvider.select((a) => a is AuthAuthenticated ? a.user.id : null)),
-    profileId: ref.watch(activeProfileProvider.select((p) => p?.id)),
-    prefs: ref.watch(sharedPrefsProvider),
-  ),);
+final skinAudioProvider = Provider<SkinAudio>((ref) {
+  // Narration owns State B for exactly the span it is active (playing, or paused inside the
+  // reader). When it ends without an explicit stop (a failure, a finished chapter with nothing
+  // after it), State A comes back here, so cues are audible again and other apps can mix.
+  ref.listen<bool>(narrationActiveProvider, (was, active) {
+    if ((was ?? false) && !active && SkinAudio.instance.state == AudioSessionState.narration) {
+      unawaited(SkinAudio.instance.request(AudioSessionState.idle));
+    }
+  });
+  return SkinAudio.instance
+    ..bind(
+      skin: ref.watch(skinIdProvider),
+      userId: ref.watch(authControllerProvider.select((a) => a is AuthAuthenticated ? a.user.id : null)),
+      profileId: ref.watch(activeProfileProvider.select((p) => p?.id)),
+      prefs: ref.watch(sharedPrefsProvider),
+    );
+});
