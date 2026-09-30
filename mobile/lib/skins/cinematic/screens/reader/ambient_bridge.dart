@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart' show DownloadsStore;
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/ocr/utils/ocr_boxes.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
@@ -15,7 +16,7 @@ import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/words.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
-import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart' show ReaderAnalysisReports;
+import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart' show ReaderAnalysisReports, ReaderRepository;
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -31,6 +32,11 @@ class CineAmbientBridge {
   final String sourceId, seriesKey;
 
   final Set<String> _seeded = {};
+
+  // Resolved in the build: `flush` also runs from `dispose`, where a widget ref cannot be read.
+  ReaderRepository? _repo;
+  NetworkConnectivity? _net;
+  DownloadsStore? _store;
   String? _ocrFor;
   List<ReaderChapter> _chapters = const [];
 
@@ -55,6 +61,9 @@ class CineAmbientBridge {
     required bool panelsWanted,
   }) {
     _chapters = chapters;
+    _repo = ref.read(readerRepositoryProvider);
+    _net = ref.read(networkConnectivityProvider);
+    _store = ref.read(downloadsStoreProvider);
     final cine = context.cine;
     engine.ambient
       ..resolver = _resolve
@@ -155,7 +164,7 @@ class CineAmbientBridge {
     final saved = ch != null && ch.pages.isNotEmpty && ch.pages.first.localFile != null;
     final id = (sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterId);
     if (saved) {
-      final store = ref.read(downloadsStoreProvider);
+      final store = _store;
       try {
         await store?.saveChapterAnalysis(
           id,
@@ -169,10 +178,10 @@ class CineAmbientBridge {
     }
     var online = true;
     try {
-      online = await ref.read(networkConnectivityProvider).isOnline();
+      online = await (_net?.isOnline() ?? Future.value(true));
     } catch (_) {}
     if (!online) return;
-    final repo = ref.read(readerRepositoryProvider);
+    final repo = _repo;
     if (repo is! ReaderAnalysisReports) return;
     final reports = repo as ReaderAnalysisReports;
     if (report.tints.isNotEmpty) {
