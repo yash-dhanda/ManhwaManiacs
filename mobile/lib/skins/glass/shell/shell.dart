@@ -13,6 +13,8 @@ import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/recede.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/glass/routes/route_table.dart';
+import 'package:manhwamaniacs/skins/glass/shell/accessory.dart';
+import 'package:manhwamaniacs/skins/glass/shell/accessory_controller.dart';
 import 'package:manhwamaniacs/skins/glass/shell/arrival.dart';
 import 'package:manhwamaniacs/skins/glass/shell/dock.dart';
 import 'package:manhwamaniacs/skins/glass/shell/dock_state.dart';
@@ -22,6 +24,7 @@ import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/shell/sidebar.dart';
 import 'package:manhwamaniacs/skins/glass/shell/sidebar_geometry.dart';
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/transitions/dive.dart';
 
 /// The width from which the desktop frame starts with the sidebar expanded and docked.
@@ -119,6 +122,26 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
     }
   }
 
+  /// The tablet frame's accessory (glass 8.0.1): a floating 48 px capsule bottom-centre of the content column, 480 wide at most.
+  Widget _floatingAccessory(Size size, double leftPad, double margin) {
+    final acc = ref.watch(glassAccessoryProvider);
+    final bar = ref.watch(glassBottomBarProvider.select((b) => b != GlassBottomBar.none));
+    final show = acc.visible && !bar;
+    Future.microtask(() {
+      if (mounted && ref.read(glassAccessoryVisibleProvider) != show) ref.read(glassAccessoryVisibleProvider.notifier).state = show;
+    });
+    if (!show) return const SizedBox.shrink();
+    final column = size.width - leftPad - margin * 2;
+    final w = column < 480 ? column : 480.0;
+    return Positioned(
+      left: leftPad + margin + (column - w) / 2,
+      bottom: 24,
+      width: w,
+      height: 48,
+      child: SkinGlass(size: Size(w, 48), tier: GlassTierId.t3, debugLabel: 'GlassFloatingAccessory', child: GlassAccessoryBody(state: acc, minimised: false)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -168,6 +191,7 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
             ),
           ),
         ),
+      if (frame == GlassFrameKind.tablet) _floatingAccessory(size, leftPad, margin),
       if (plan.hasSidebar) ...[
         if (plan.overlayOpen)
           Positioned.fill(
