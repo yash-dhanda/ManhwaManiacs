@@ -8,8 +8,15 @@ import 'package:manhwamaniacs/core/network/retry_after.dart';
 /// Centralises error mapping so repositories never handle raw DioExceptions.
 class ErrorInterceptor extends Interceptor {
   @override
+  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
+    reportNetworkSuccess();
+    handler.next(response);
+  }
+
+  @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final appError = _mapDioError(err);
+    if (err.type == DioExceptionType.badResponse) reportNetworkSuccess();
     if (appError is NetworkError || appError is TimeoutError) reportNetworkFailure(appError);
     handler.reject(
       DioException(
