@@ -45,6 +45,7 @@ class GlassChart extends ConsumerStatefulWidget {
     this.valueHeader = 'Value',
     this.secondHeader,
     this.today,
+    this.heatLevelOf,
   });
 
   final GlassChartKind kind;
@@ -66,6 +67,9 @@ class GlassChart extends ConsumerStatefulWidget {
 
   /// For the heatmap's outlined day; defaults to now.
   final DateTime? today;
+
+  /// A fixed heat scale for the heatmap (default: relative to the busiest day).
+  final int Function(double value)? heatLevelOf;
 
   @override
   ConsumerState<GlassChart> createState() => _GlassChartState();
@@ -287,7 +291,7 @@ class _GlassChartState extends ConsumerState<GlassChart> with TickerProviderStat
                 child: AnimatedBuilder(
                   animation: _rise,
                   builder: (context, _) => Stack(children: [
-                    Positioned.fill(child: CustomPaint(painter: HeatmapPainter(data: data, label: label, selected: selected, today: today, fade: reduced ? _rise.value.clamp(0.0, 1.0) : 1))),
+                    Positioned.fill(child: CustomPaint(painter: HeatmapPainter(data: data, label: label, selected: selected, today: today, levelOf: widget.heatLevelOf, fade: reduced ? _rise.value.clamp(0.0, 1.0) : 1))),
                     if (selected != null) _ring(HeatmapPainter.cellRect(data, selected).center),
                   ],),
                 ),

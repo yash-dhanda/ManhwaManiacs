@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
+import 'package:manhwamaniacs/skins/glass/parts/streak/streak_ui.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart' show GlassMenuBack;
 import 'package:manhwamaniacs/skins/glass/primitives/new_chapters_capsule.dart' show GlassCapsuleHost;
@@ -249,7 +250,7 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
           bare: hidesDock(path),
           child: GlassToastHost(
             child: GlassCapsuleHost(
-              child: Stack(fit: StackFit.expand, children: children),
+              child: GlassStreakEventsListener(child: Stack(fit: StackFit.expand, children: children)),
             ),
           ),
         ),

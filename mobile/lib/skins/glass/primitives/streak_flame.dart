@@ -65,7 +65,7 @@ class _Spark {
   final double delay;
 }
 
-class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProviderStateMixin {
+class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final Ticker _ticker = createTicker(_onTick);
   final _repaint = ValueNotifier<int>(0);
   final _tip = FlameTip();
@@ -77,6 +77,7 @@ class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProv
   Duration _last = Duration.zero;
   double _t = 0;
   bool _visible = true;
+  bool _resumed = true;
   double _flareT = 2; // seconds since the flare; >= 0.643 is over
   double _sparkT = 2;
   List<Ember> _embers = [];
@@ -86,6 +87,21 @@ class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProv
 
   bool get _reduced => ref.read(glassReducedProvider);
   bool get _animated => widget.state != FlameState.none && !_reduced;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final r = state == AppLifecycleState.resumed;
+    if (r != _resumed) {
+      _resumed = r;
+      _sync();
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -109,6 +125,7 @@ class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProv
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scroll?.removeListener(_onScroll);
     _grav?.cancel();
     _ticker.dispose();
@@ -152,7 +169,7 @@ class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProv
   }
 
   void _sync() {
-    final run = _animated && _visible && TickerMode.valuesOf(context).enabled;
+    final run = _animated && _visible && _resumed && TickerMode.valuesOf(context).enabled;
     if (run && !_ticker.isActive) {
       _last = Duration.zero;
       _ticker.start();
@@ -208,6 +225,9 @@ class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    ref
+      ..listen(glassReducedProvider, (_, __) => _sync())
+      ..listen(glassInAppPrefsProvider.select((p) => p.lightFollowsDevice), (_, __) => _sync());
     final s = widget.size;
     final box = SizedBox(
       width: s,
@@ -215,7 +235,6 @@ class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProv
       child: RepaintBoundary(
         child: CustomPaint(
           painter: _FlamePainter(this, widget.state),
-          isComplex: false,
         ),
       ),
     );
@@ -283,4 +302,34 @@ class _FlamePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FlamePainter old) => old.state != state;
+}
+
+/// The lit flame at rest, with no ticker or sensors: the share card's flame (card 7) and gallery stills.
+class StreakFlamePicture extends StatelessWidget {
+  const StreakFlamePicture({super.key, required this.size, this.dim = 1, this.core = true});
+  final double size;
+  final double dim;
+  final bool core;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(width: size, height: size, child: CustomPaint(painter: _StillPainter(dim, core)));
+}
+
+class _StillPainter extends CustomPainter {
+  const _StillPainter(this.dim, this.core);
+  final double dim;
+  final bool core;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final h = size.height;
+    final tip = Offset(size.width / 2, 0);
+    Paint p(Color c) => Paint()..color = c.withValues(alpha: c.a * dim);
+    canvas.drawPath(teardrop(size, tip, 0), p(gt.colorStreak));
+    canvas.drawPath(teardrop(size, tip + Offset(0, h * 0.14), h * 0.14), p(const Color(0xFFFFB547)));
+    if (core) canvas.drawPath(teardrop(size, tip + Offset(0, h * 0.34), h * 0.26), p(gt.colorStreakCore));
+  }
+
+  @override
+  bool shouldRepaint(_StillPainter old) => old.dim != dim || old.core != core;
 }

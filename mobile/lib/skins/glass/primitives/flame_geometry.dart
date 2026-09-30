@@ -29,7 +29,7 @@ Path teardrop(Size size, Offset tip, double inset) {
   return Path()
     ..moveTo(tx, top)
     ..cubicTo(tx + (cx - tx) * 0.2 + w * 0.05, top + h * 0.3, right, belly - h * 0.12, right, belly)
-    ..arcToPoint(Offset(left, belly), radius: Radius.circular((right - left) / 2), clockwise: true)
+    ..arcToPoint(Offset(left, belly), radius: Radius.circular((right - left) / 2))
     ..cubicTo(left, belly - h * 0.12, tx - (cx - tx) * 0.2 - w * 0.05, top + h * 0.3, tx, top)
     ..close();
 }
