@@ -28,10 +28,9 @@ class GlassSkinCard extends StatelessWidget {
       child: SizedBox(width: w, height: h, child: ExcludeSemantics(child: GlassSkinPreviewLoop(skin: skin.name, height: h))),
     );
     final text = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-      Row(mainAxisSize: MainAxisSize.min, children: [
+      Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, children: [
         GlassText(name, role: gt.typeTitle2),
-        if (current) ...[
-          const SizedBox(width: 8),
+        if (current)
           Container(
             height: 20,
             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -39,7 +38,6 @@ class GlassSkinCard extends StatelessWidget {
             decoration: BoxDecoration(color: gt.colorFill2, borderRadius: BorderRadius.circular(10)),
             child: GlassText('Current', role: gt.typeCaption1, wght: 600),
           ),
-        ],
       ],),
       const SizedBox(height: 4),
       GlassText(character, role: gt.typeFootnote, color: gt.colorLabel2),

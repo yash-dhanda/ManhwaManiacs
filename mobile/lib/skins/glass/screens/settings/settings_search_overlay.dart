@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Material;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/copy/settings_index.dart';
@@ -65,7 +66,7 @@ class _GlassSettingsSearchOverlayState extends State<GlassSettingsSearchOverlay>
           }
           return KeyEventResult.ignored;
         },
-        child: ColoredBox(
+        child: Material(
           color: const Color(0xFF000000),
           child: SafeArea(
             child: Column(children: [
