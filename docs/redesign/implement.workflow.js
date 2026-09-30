@@ -36,7 +36,7 @@ const OVERRIDES = (extra) => `LANE OVERRIDES (these win over anything the prompt
 8. Production: never touch Docker, production containers, systemd units, /srv/manhwamaniacs/{app,data} or backend/connectors/. No deploys, no releases (release/* steps are the only exception and say so explicitly).
 9. Owner-only items (device checks, art or audio only the owner can supply): append them to ${WT}/docs/redesign/owner-todo.md with the step id and continue with the prompt's stated fallback.
 10. Pushes, CI polling and "Report back" instructions in the prompt file: skip the push (the integrator pushes); put the report-back content in your returned summary.
-11. TOKEN SAVER (owner order: use as few agents and tokens as possible). Do the work yourself, inline. Spawn at most 2 subagents in total for the whole step, only for large parts with clearly disjoint files, model sonnet effort low; never spawn subagents for reading, planning, or checks. Read only the prompt sections and files you need. Run each verification command once.`
+11. HELPERS (owner: finish as fast as possible, no cap). After reading the prompt and planning, split the scope into as many independent parts as it has, each touching DISJOINT files, and give every part to its own parallel subagent (one Agent tool call per part, all in one message, model sonnet, effort low, no limit on their number), each told its exact files, its part of the scope with the DESIGN.md values and these lane overrides. Keep only integration and glue for yourself. Never use subagents for verification: run each verification command once yourself.`
 
 const IMPL = { type: 'object', properties: {
   status: { type: 'string', enum: ['done', 'blocked', 'partial'] },

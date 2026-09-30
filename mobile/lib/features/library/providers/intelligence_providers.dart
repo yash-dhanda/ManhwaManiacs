@@ -100,3 +100,43 @@ class SuggestionsNotifier extends AutoDisposeAsyncNotifier<WorldSuggestResponse?
     state = const AsyncValue<WorldSuggestResponse?>.data(null);
   }
 }
+
+/// The same box answered from the reader's own sources (`POST /library/suggest`): shelf rows for
+/// the last description submitted. Shaped like [suggestionsProvider]: only an explicit
+/// [LocalSuggestionsNotifier.submit] spends a request.
+final localSuggestionsProvider =
+    AsyncNotifierProvider.autoDispose<LocalSuggestionsNotifier, WorldSuggestResponse?>(
+  LocalSuggestionsNotifier.new,
+);
+
+class LocalSuggestionsNotifier extends AutoDisposeAsyncNotifier<WorldSuggestResponse?> {
+  int _requestId = 0;
+  bool _disposed = false;
+
+  @override
+  Future<WorldSuggestResponse?> build() async {
+    ref.onDispose(() => _disposed = true);
+    return null;
+  }
+
+  /// A newer submit supersedes an older one: its answer is dropped when it lands.
+  Future<void> submit(String prompt) async {
+    final trimmed = prompt.trim();
+    if (trimmed.length < 3) return;
+    final id = ++_requestId;
+    state = const AsyncValue<WorldSuggestResponse?>.loading();
+    final result = await ref.read(libraryRepositoryProvider).localSuggest(trimmed);
+    if (_disposed || id != _requestId) return;
+    if (result.isErr) {
+      state = AsyncValue<WorldSuggestResponse?>.error(result.error, StackTrace.current);
+      return;
+    }
+    state = AsyncValue<WorldSuggestResponse?>.data(result.value);
+    ref.invalidate(suggestAvailabilityProvider);
+  }
+
+  void clear() {
+    _requestId++;
+    state = const AsyncValue<WorldSuggestResponse?>.data(null);
+  }
+}

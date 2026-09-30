@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/ai/models/similar_result.dart';
 import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart';
 import 'package:manhwamaniacs/features/ai/repositories/ai_repository.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
@@ -17,9 +18,9 @@ class _Ai extends AiRepository {
   final List<WorldItem> similarItems, genreItems;
   final bool available;
   @override
-  Future<SimilarResult> similar({required String sourceId, required String seriesKey, bool fallbackGenres = false}) async {
-    final list = fallbackGenres ? genreItems : similarItems;
-    return (items: list, available: available, reason: available ? null : 'not_configured', raw: [for (final w in list) {'title': w.title}]);
+  Future<SimilarResult> similar(SimilarQuery q) async {
+    final list = q.fallbackGenres ? genreItems : similarItems;
+    return SimilarResult(items: list, available: available, reason: available ? 'ok' : 'not_configured', basis: q.fallbackGenres ? 'genres' : 'ai');
   }
 }
 

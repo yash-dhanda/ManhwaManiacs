@@ -32,6 +32,9 @@ Collection _sampleCollection({required int id, required String name}) {
 
 class _FakeCollectionsRepository implements LibraryRepository {
   @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
 

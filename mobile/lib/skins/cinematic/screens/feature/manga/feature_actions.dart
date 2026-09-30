@@ -6,16 +6,19 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/chapters_panel.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/previously_on_button.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// Where `Read` / `Continue` goes, and what the split button says.
@@ -65,9 +68,7 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
   void _continue() {
     final ch = widget.resume.chapter;
     if (ch == null) return;
-    final target = ReaderTarget.manifest(d.sourceId, d.seriesKey, ch);
-    readerPrefetchOf(ref).onPress(target);
-    enterReader(context, target, entry: ReaderEntry.wipe);
+    unawaited(continueTo(context, ref, sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: ch, title: d.title, lastReadAt: d.followed?.readState?.lastReadAt, origin: RecapEntry.wipe));
   }
 
   void _readAll() {
@@ -166,6 +167,8 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
           )
         : null;
 
+    final previouslyOn = resume.chapter == null ? null : PreviouslyOnButton(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: resume.chapter, commands: widget.commands, wide: wide);
+
     Widget cell(
       IconData icon,
       String label,
@@ -239,10 +242,11 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (wide)
-          Wrap(spacing: 8, runSpacing: 8, children: [primary, if (readAll != null) readAll])
+          Wrap(spacing: 8, runSpacing: 8, children: [primary, if (readAll != null) readAll, if (previouslyOn != null) previouslyOn])
         else ...[
           primary,
           if (readAll != null) ...[const SizedBox(height: 8), readAll],
+          if (previouslyOn != null) Padding(padding: const EdgeInsets.only(top: 8), child: previouslyOn),
         ],
         const SizedBox(height: 8),
         row,

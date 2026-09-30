@@ -39,6 +39,9 @@ class _FakeHome implements HomeRepository {
 }
 
 class _FakeLib implements LibraryRepository {
+  @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
   _FakeLib({this.cont, this.recent, this.followed, this.fail = false});
   final List<ContinueReadingItem>? cont;
   final List<FollowedSeries>? recent, followed;

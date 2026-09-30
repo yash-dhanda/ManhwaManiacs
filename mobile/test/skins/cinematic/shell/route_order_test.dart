@@ -27,7 +27,7 @@ void main() {
     expect(name('/library/bookmarks'), 'bookmarks');
     expect(name('/library/collections'), 'collections');
     expect(name('/library/collections/7'), 'collection');
-    expect(name('/library/recommendations'), 'pending.picks');
+    expect(name('/library/recommendations'), 'picks');
     expect(name('/library/statistics'), 'pending.numbers');
     expect(name('/library/statistics/annual/2026'), 'pending.annual');
     expect(leaf('/library/browse').path, '/library/browse');

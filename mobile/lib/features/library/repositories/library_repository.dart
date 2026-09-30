@@ -88,6 +88,10 @@ abstract interface class LibraryRepository {
     int limit = 12,
   });
 
+  /// `POST /library/suggest`: the same box answered from the reader's own sources. Items are
+  /// shelf rows ([WorldItem.shelf]); `remainingToday` is the allowance left.
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6});
+
   /// Whether [worldSuggest] can run. Free and local on the server; call it on
   /// mount.
   Future<Result<SuggestionAvailability>> suggestAvailability();

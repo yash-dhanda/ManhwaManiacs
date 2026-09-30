@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/read_state.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/library_read_state.dart';
@@ -52,6 +53,9 @@ const _onChapterOne = ReadState(
 
 /// Only what the shelves call; anything else fails loudly.
 class _FakeLibraryRepository implements LibraryRepository {
+  @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
 
   @override
   Future<Result<List<GenreWeight>>> genreWeights({int limit = 40}) async => const Ok([]);

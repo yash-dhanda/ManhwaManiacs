@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/ai/models/similar_result.dart';
 import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/utils/all_followed.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
-import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 /// Which end state asks: the caught-up notice (only `More like this`) or the end of a completed
@@ -28,7 +28,12 @@ typedef UpNextKey = ({String sourceId, String seriesKey, UpNextMode mode});
 /// at most 12). A 404 from `/ai/similar` is unavailable, silently.
 final upNextProvider = FutureProvider.autoDispose.family<UpNext, UpNextKey>((ref, k) async {
   final ai = ref.watch(aiRepositoryProvider);
-  final similar = await ai.similar(sourceId: k.sourceId, seriesKey: k.seriesKey);
+  SimilarResult similar;
+  try {
+    similar = await ai.similar(SimilarQuery.series(k.sourceId, k.seriesKey));
+  } catch (_) {
+    similar = const SimilarResult(available: false, reason: 'failed');
+  }
   if (similar.items.isNotEmpty) {
     return (
       items: [for (final w in similar.items) HomePickItem(world: w, why: w.why)],
@@ -36,16 +41,14 @@ final upNextProvider = FutureProvider.autoDispose.family<UpNext, UpNextKey>((ref
       reason: null,
     );
   }
-  final reason = similar.available ? null : (similar.reason ?? 'not_configured');
-  final genres = await ai.similar(sourceId: k.sourceId, seriesKey: k.seriesKey, fallbackGenres: true);
-  final base = ref.read(apiBaseUrlProvider);
-  final fromGenres = <HomePickItem>[
-    for (final m in genres.raw)
-      if (m['id'] is String && m['source_id'] is String && m['title'] is String)
-        HomePickItem(source: SourceSeriesSummary.fromJson(m, base))
-      else if (m['title'] is String)
-        HomePickItem(world: genres.items.firstWhere((w) => w.title == m['title'])),
-  ];
+  final reason = similar.available ? null : (similar.reason == 'ok' ? 'not_configured' : similar.reason);
+  SimilarResult genres;
+  try {
+    genres = await ai.similar(SimilarQuery.series(k.sourceId, k.seriesKey, fallbackGenres: true));
+  } catch (_) {
+    genres = const SimilarResult(available: false, reason: 'failed', basis: 'genres');
+  }
+  final fromGenres = <HomePickItem>[for (final w in genres.items) HomePickItem(world: w)];
   if (fromGenres.isNotEmpty) return (items: fromGenres, source: UpNextSource.sameGenres, reason: reason);
   if (k.mode == UpNextMode.caughtUp) return (items: const <HomePickItem>[], source: UpNextSource.none, reason: reason);
 

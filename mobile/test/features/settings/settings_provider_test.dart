@@ -37,6 +37,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// top-level metadata providers resolve without a network call.
 class _EmptyLibraryRepository implements LibraryRepository {
   @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
 

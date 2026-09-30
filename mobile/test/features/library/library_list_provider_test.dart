@@ -40,6 +40,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// unexpected call fails loudly instead of silently returning empty data.
 class _FakeLibraryRepository implements LibraryRepository {
   @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
 

@@ -99,8 +99,17 @@ class NovelTarget extends ReaderTarget {
 
 /// Pushes the typed reader route with `extra: {'entry': ...}`. `wipe` from Tonight, feature and
 /// book pages and recaps opened from them; `dip` from everywhere else (8.0.4).
-void enterReader(BuildContext context, ReaderTarget target, {required ReaderEntry entry}) {
-  GoRouter.of(context).push<void>(target.location, extra: <String, String>{'entry': entry.name});
+///
+/// [replace] swaps the current route for the reader (a recap that continues), so Back from the
+/// reader lands where the recap was opened.
+void enterReader(BuildContext context, ReaderTarget target, {required ReaderEntry entry, bool replace = false}) {
+  final extra = <String, String>{'entry': entry.name};
+  final router = GoRouter.of(context);
+  if (replace) {
+    router.pushReplacement<void>(target.location, extra: extra);
+  } else {
+    router.push<void>(target.location, extra: extra);
+  }
 }
 
 /// Warms a chapter start before the reader asks for it: on press at P1, after a 150 ms dwell

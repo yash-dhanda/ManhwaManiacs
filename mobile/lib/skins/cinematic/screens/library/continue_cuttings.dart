@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/shelf_provider.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
@@ -17,6 +18,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_section_header.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/quick_look.dart';
+import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/sections/tonight_rail.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_layout.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -92,7 +94,7 @@ class _ShelfContinueState extends ConsumerState<ShelfContinue> {
       imageUrl: _abs(r.coverUrl),
       progress: r.pageCount > 0 ? r.progressPct.clamp(0.0, 1.0) : null,
       nudge: cuttingNudge(it, widget.follows[(r.sourceId, r.seriesKey)], widget.now),
-      onTap: () => continueTo(context, ref, r.sourceId, r.seriesKey, r.chapterKey, entry: ReaderEntry.dip),
+      onTap: () => unawaited(continueTo(context, ref, sourceId: r.sourceId, seriesKey: r.seriesKey, chapterKey: r.chapterKey, title: r.title, lastReadAt: r.lastReadAt, recap: it.recap, origin: RecapEntry.dip)),
     );
     return CineQuickLookTarget(
       onOpen: () => unawaited(openCuttingQuickLook(context, ref, it, entry: ReaderEntry.dip)),

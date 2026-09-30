@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
-import 'package:manhwamaniacs/features/library/models/world_item.dart';
+import 'package:manhwamaniacs/features/ai/models/similar_result.dart';
 
 /// The AI desk's suggested-tags line. Any failure (a 404 before backend/05
 /// exists, offline, the desk closed) reads as "nothing suggested": the UI
@@ -9,12 +9,6 @@ import 'package:manhwamaniacs/features/library/models/world_item.dart';
 typedef SuggestedTags = ({List<String> tags, bool available, String? reason});
 
 const SuggestedTags kNoSuggestedTags = (tags: <String>[], available: false, reason: null);
-
-/// `GET /ai/similar`: World cards with `why` lines, whether the AI desk is open and, when it is
-/// not, its reason. Anything that fails reads as unavailable (a 404 included), silently.
-typedef SimilarResult = ({List<WorldItem> items, bool available, String? reason, List<Map<String, dynamic>> raw});
-
-const SimilarResult kNoSimilar = (items: <WorldItem>[], available: false, reason: null, raw: <Map<String, dynamic>>[]);
 
 class AiRepository {
   AiRepository(this._dio);
@@ -41,28 +35,10 @@ class AiRepository {
     }
   }
 
-  /// `GET /ai/similar?source&series` (`&fallback=genres` for the shared-genre list). [raw] keeps
-  /// the item objects for the genre fallback, whose rows are series on the profile's sources.
-  Future<SimilarResult> similar({required String sourceId, required String seriesKey, bool fallbackGenres = false}) async {
-    try {
-      final r = await _dio.get<Map<String, dynamic>>(
-        '/ai/similar',
-        queryParameters: {'source': sourceId, 'series': seriesKey, if (fallbackGenres) 'fallback': 'genres'},
-      );
-      final d = r.data ?? const {};
-      final raw = [
-        for (final i in (d['items'] as List<dynamic>? ?? const []))
-          if (i is Map) Map<String, dynamic>.from(i),
-      ];
-      return (
-        items: [for (final m in raw) if (m['title'] is String) WorldItem.fromJson(m)],
-        available: d['available'] as bool? ?? raw.isNotEmpty,
-        reason: d['reason'] as String?,
-        raw: raw,
-      );
-    } catch (_) {
-      return kNoSimilar;
-    }
+  /// `GET /ai/similar`. Failures throw (the caller shows the §9.1.8 unavailable state).
+  Future<SimilarResult> similar(SimilarQuery q) async {
+    final r = await _dio.get<Map<String, dynamic>>('/ai/similar', queryParameters: q.params);
+    return SimilarResult.fromJson(r.data ?? const {});
   }
 
   /// `POST /ai/feedback` with `signal: tag_rejected`; best effort.

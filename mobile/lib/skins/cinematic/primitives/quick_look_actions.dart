@@ -12,6 +12,7 @@ abstract final class QuickLookId {
   static const markRead = 'mark-read';
   static const downloadNext = 'download-next-5';
   static const recommend = 'recommend';
+  static const moreLikeThis = 'more-like-this';
   static const notForMe = 'not-for-me';
   static const removeFromRow = 'remove-from-row';
   static const unfollow = 'unfollow';
@@ -37,6 +38,7 @@ const _catalogue = <(String, String, CineIconRole, bool)>[
   (QuickLookId.markRead, 'Mark read', CineIconRole.select, false),
   (QuickLookId.downloadNext, 'Download next 5', CineIconRole.download, false),
   (QuickLookId.recommend, 'Recommend to…', CineIconRole.recommend, false),
+  (QuickLookId.moreLikeThis, 'More like this', CineIconRole.picks, false),
   (QuickLookId.notForMe, 'Not for me', CineIconRole.close, false),
   (QuickLookId.removeFromRow, 'Remove from row', CineIconRole.delete, false),
   (QuickLookId.unfollow, 'Unfollow', CineIconRole.following, true),
