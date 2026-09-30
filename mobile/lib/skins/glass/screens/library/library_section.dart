@@ -6,6 +6,9 @@ import 'package:manhwamaniacs/skins/glass/glass_scroll_behavior.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
 import 'package:manhwamaniacs/skins/glass/shell/insets.dart';
+import 'package:manhwamaniacs/skins/glass/shell/large_title.dart';
+import 'package:manhwamaniacs/skins/glass/type.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 
 /// The five sections of the Library hub (glass 8.0.3). On phones they are in-page tabs of one pager; on wider frames each is a page.
 enum LibrarySection {
@@ -59,6 +62,8 @@ class LibrarySectionFrame extends ConsumerStatefulWidget {
     this.contentModeSwitch = true,
     this.scrollController,
     this.physics,
+    this.countLine,
+    this.overlay,
   });
 
   final LibrarySection section;
@@ -72,6 +77,12 @@ class LibrarySectionFrame extends ConsumerStatefulWidget {
   final bool contentModeSwitch;
   final ScrollController? scrollController;
   final ScrollPhysics? physics;
+
+  /// The line under the large title ("142 series followed").
+  final String? countLine;
+
+  /// Drawn over the scroll view in a screen-filling `Stack` (the bulk toolbar's floating bar).
+  final Widget? overlay;
 
   @override
   ConsumerState<LibrarySectionFrame> createState() => _LibrarySectionFrameState();
@@ -124,30 +135,40 @@ class _LibrarySectionFrameState extends ConsumerState<LibrarySectionFrame> {
     super.dispose();
   }
 
+  Widget get _count => SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Semantics(liveRegion: true, child: GlassText(widget.countLine!, role: gt.typeSubhead, color: gt.colorLabel2)),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
+    final Widget body;
     if (_chrome == null) {
-      return GlassScaffold(
+      body = GlassScaffold(
         title: widget.title ?? widget.section.label,
         trailing: widget.trailing,
         overflow: widget.overflow,
         contentModeSwitch: widget.contentModeSwitch,
         refreshSliver: widget.refreshSliver,
-        slivers: widget.slivers,
+        slivers: [if (widget.countLine != null) _count, ...widget.slivers],
+      );
+    } else {
+      final insets = GlassInsets.watch(context, ref);
+      final margin = GlassFrame.screenMargin(context);
+      body = CustomScrollView(
+        controller: _scroll,
+        physics: widget.physics ?? glassScrollPhysics,
+        keyboardDismissBehavior: glassKeyboardDismiss,
+        slivers: [
+          if (widget.refreshSliver != null) widget.refreshSliver!,
+          SliverToBoxAdapter(child: Padding(padding: EdgeInsets.symmetric(horizontal: margin), child: GlassLargeTitle(title: 'Library', margin: margin, offset: _chrome!.offset))),
+          SliverPadding(padding: EdgeInsets.symmetric(horizontal: margin), sliver: SliverMainAxisGroup(slivers: [if (widget.countLine != null) _count, ...widget.slivers])),
+          SliverPadding(padding: EdgeInsets.only(bottom: insets.bottom)),
+        ],
       );
     }
-    final insets = GlassInsets.watch(context, ref);
-    final margin = GlassFrame.screenMargin(context);
-    return CustomScrollView(
-      controller: _scroll,
-      physics: widget.physics ?? glassScrollPhysics,
-      keyboardDismissBehavior: glassKeyboardDismiss,
-      slivers: [
-        if (widget.refreshSliver != null) widget.refreshSliver!,
-        const SliverPadding(padding: EdgeInsets.only(top: 8)),
-        SliverPadding(padding: EdgeInsets.symmetric(horizontal: margin), sliver: SliverMainAxisGroup(slivers: widget.slivers)),
-        SliverPadding(padding: EdgeInsets.only(bottom: insets.bottom)),
-      ],
-    );
+    return widget.overlay == null ? body : Stack(fit: StackFit.expand, children: [body, widget.overlay!]);
   }
 }

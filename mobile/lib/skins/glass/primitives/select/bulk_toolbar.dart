@@ -75,16 +75,19 @@ Future<BulkResult> runBulkBatched<K>(BulkAction<K> a, Set<K> ids, CancelToken ca
 /// The bulk toolbar on the floating bar (glass 7.35): "{n} selected", the actions as `fill2` icon buttons (labels on tablet and
 /// desktop frames, tooltips on phones) and a plain Done. While a batch runs the capsule fills with liquid progress and a Stop.
 class GlassBulkToolbar<K> extends ConsumerStatefulWidget {
-  const GlassBulkToolbar({super.key, required this.controller, required this.actions});
+  const GlassBulkToolbar({super.key, required this.controller, required this.actions, this.chunk});
   final GlassSelectModeController<K> controller;
   final List<BulkAction<K>> actions;
+
+  /// Items per call of [BulkAction.run]; the running fill moves once per chunk (the Library uses 4, its bulk concurrency).
+  final int? chunk;
 
   @override
   ConsumerState<GlassBulkToolbar<K>> createState() => _GlassBulkToolbarState<K>();
 }
 
 class _GlassBulkToolbarState<K> extends ConsumerState<GlassBulkToolbar<K>> {
-  final BulkBatchSizer _sizer = BulkBatchSizer();
+  late final BulkBatchSizer _sizer = BulkBatchSizer()..size = widget.chunk ?? (1 << 30);
   CancelToken? _cancel;
   int _done = 0;
   int _total = 0;
@@ -130,7 +133,7 @@ class _GlassBulkToolbarState<K> extends ConsumerState<GlassBulkToolbar<K>> {
         kind: r.failed.isEmpty ? GlassToastKind.success : GlassToastKind.warning,
         actionLabel: copy.action,
         onAction: failedIds.isEmpty ? null : () => unawaited(_run(a, failedIds)),
-        undo: a.destructive && a.undo != null && r.ok > 0 ? () => unawaited(a.undo!(ids.difference(failedIds))) : null,
+        undo: a.undo != null && r.ok > 0 ? () => unawaited(a.undo!(ids.difference(failedIds))) : null,
       ),
     );
     if (failedIds.isEmpty) {
