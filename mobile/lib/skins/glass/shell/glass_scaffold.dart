@@ -64,6 +64,7 @@ class GlassScaffold extends ConsumerStatefulWidget {
     this.routeKey,
     this.largeTitleOverride,
     this.refreshSliver,
+    this.bodyBuilder,
   });
 
   final String title;
@@ -86,6 +87,10 @@ class GlassScaffold extends ConsumerStatefulWidget {
 
   /// A sliver placed first in the scroll view (a `GlassPullToRefresh`).
   final Widget? refreshSliver;
+
+  /// Replaces the scroll view (mobile/32: the Library hub's pager owns its own scrollers). It receives the insets and the offset
+  /// notifier the active scroller should drive so the title capsule still collapses.
+  final Widget Function(BuildContext context, GlassInsets insets, ValueNotifier<double> offset)? bodyBuilder;
 
   @override
   ConsumerState<GlassScaffold> createState() => _GlassScaffoldState();
@@ -148,7 +153,7 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
     final offline = ref.watch(glassOfflineProvider);
     final actions = _actions(phone);
 
-    Widget content = CustomScrollView(
+    Widget content = widget.bodyBuilder != null ? widget.bodyBuilder!(context, insets, _offset) : CustomScrollView(
       controller: _scroll,
       physics: glassScrollPhysics,
       keyboardDismissBehavior: glassKeyboardDismiss,
