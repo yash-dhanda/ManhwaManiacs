@@ -35,6 +35,7 @@ import 'package:manhwamaniacs/skins/glass/screens/onboarding/onboarding_screen.d
 import 'package:manhwamaniacs/skins/glass/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/stats/statistics_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
@@ -57,7 +58,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.history,
   ScreenId.bookmarks,
   ScreenId.picks,
-  ScreenId.numbers,
   ScreenId.annual,
   ScreenId.featureByFollow,
   ScreenId.feature,
@@ -329,7 +329,7 @@ GoRouter buildGlassRouter(Ref ref) {
             _route(ScreenId.settings),
             _route(ScreenId.settings, path: Routes.settingsAliases.first),
             _route(ScreenId.circle),
-            _route(ScreenId.numbers),
+            _screen(ScreenId.numbers, (s) => GlassStatisticsScreen(range: s.uri.queryParameters['range'], year: s.uri.queryParameters['year'])),
             _route(ScreenId.status),
             _screen(ScreenId.profilesManage, (s) => const GlassProfilesManageScreen()),
           ]),
