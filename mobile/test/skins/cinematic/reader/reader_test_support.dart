@@ -90,6 +90,7 @@ Future<ReaderRig> pumpReader(
         path: '/read',
         builder: (context, state) => CineReaderRoute.manifest(sourceId: kReaderSource, seriesKey: kReaderSeries, chapterKey: chapterKey),
       ),
+      GoRoute(path: '/reader/:sourceId/:seriesKey/:chapterKey', builder: (context, state) => const Scaffold(body: Text('another chapter'))),
       GoRoute(path: '/library/read/:sourceId/:seriesKey/:chapterKey', builder: (context, state) => const Scaffold(body: Text('another chapter'))),
     ],
   );

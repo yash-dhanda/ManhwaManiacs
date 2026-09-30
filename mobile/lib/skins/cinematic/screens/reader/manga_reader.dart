@@ -109,7 +109,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   int _retryStep = 0;
   int? _brightnessDraft;
   double? _speedDraft;
-  String? _lastChapterId;
+  String? _lastChapterId, _announcedChapter;
   double _lastZoom = 1;
   bool _lastChrome = true;
   bool _lastAuto = false;
@@ -272,18 +272,21 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       _engine.toggleAutoScroll();
     } else if (_resumeAuto && s.nextState != ReaderNextState.loading) {
       _resumeAuto = false;
-      _engine.toggleAutoScroll();
+      // Reduced motion: auto-scroll never starts by itself.
+      if (!_reduced) _engine.toggleAutoScroll();
     }
   }
 
   void _announce(ReaderEngineState s) {
-    if (s.chapterId.isEmpty) return;
+    if (s.chapterId.isEmpty || s.chapterId == _announcedChapter) return;
+    _announcedChapter = s.chapterId;
     final series = ref.read(readerSeriesProvider(_seriesKey));
-    final chapter = series?.chapterOf(s.chapterId);
-    final number = chapter?.number;
-    final head = number == null ? 'Chapter' : 'Chapter ${chapterNumberText(number)}';
+    final number = series?.chapterOf(s.chapterId)?.number;
+    // The series may not have resolved yet: the engine's own chapter title carries the number.
+    final head = number != null ? 'Chapter ${chapterNumberText(number)}' : (s.chapterTitle.toLowerCase().startsWith('chapter') ? s.chapterTitle : 'Chapter');
     final title = s.chapterTitle.isNotEmpty && !s.chapterTitle.toLowerCase().startsWith('chapter') ? ', ${s.chapterTitle}' : '';
-    final tail = series == null ? '' : ' · ${series.title}';
+    final seriesTitle = series?.title ?? _body.feed.chapters.firstOrNull?.seriesTitle ?? '';
+    final tail = seriesTitle.isEmpty ? '' : ' · $seriesTitle';
     // ignore: deprecated_member_use
     unawaited(SemanticsService.announce('$head$title$tail', Directionality.of(context)));
   }
