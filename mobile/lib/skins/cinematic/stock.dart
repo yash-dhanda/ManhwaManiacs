@@ -43,8 +43,29 @@ abstract final class CineStock {
 
   /// A novel page stock (cinematic 2.1.6): everything below paints from [colors], and every
   /// `ink.45` role renders the stock's muted ink (2.1.1).
-  static Widget stock(CineStockColors colors, Widget child) =>
-      _StockScope(colors: colors, child: _rescope(child, (c) => c.copyWith(colorInk45: colors.muted)));
+  ///
+  /// The surface and ink tokens are re-provided from the stock (paper.0-4 read as the page, ink.100
+  /// as the ink, ink.60 and ink.45 as the muted ink, rules as the muted ink at 30 % / 50 %), so a
+  /// sheet, a panel or a toast built from tokens paints in the stock with no per-widget colour.
+  static Widget stock(CineStockColors colors, Widget child) => _StockScope(
+        colors: colors,
+        child: _rescope(
+          child,
+          (c) => c.copyWith(
+            colorPaper0: colors.page,
+            colorPaper1: colors.page,
+            colorPaper2: colors.page,
+            colorPaper3: Color.lerp(colors.page, colors.muted, 0.18),
+            colorPaper4: Color.lerp(colors.page, colors.muted, 0.28),
+            colorInk100: colors.ink,
+            colorInk80: Color.lerp(colors.ink, colors.muted, 0.4),
+            colorInk60: colors.muted,
+            colorInk45: colors.muted,
+            colorRule1: colors.muted.withValues(alpha: 0.3),
+            colorRule2: colors.muted.withValues(alpha: 0.5),
+          ),
+        ),
+      );
 
   /// The stock in effect, or null outside a novel page.
   static CineStockColors? maybeOf(BuildContext context) => context.dependOnInheritedWidgetOfExactType<_StockScope>()?.colors;
