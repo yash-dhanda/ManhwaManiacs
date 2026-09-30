@@ -62,7 +62,10 @@ Future<({CineAmbientBridge bridge, ReaderEngine engine, _Repo repo})> _pump(Widg
   );
   final engine = ReaderEngine();
   addTearDown(engine.dispose);
-  return (bridge: CineAmbientBridge(ref: captured, engine: engine, sourceId: 'demo', seriesKey: 'k'), engine: engine, repo: repo);
+  final bridge = CineAmbientBridge(ref: captured, engine: engine, sourceId: 'demo', seriesKey: 'k');
+  // The build resolves the handles the exit report uses.
+  bridge.sync(tester.element(find.byType(Consumer)), chapters: const [], tintOn: true, paceByDialogue: false, resumeAfterRelease: true, rtl: false, panelsWanted: false);
+  return (bridge: bridge, engine: engine, repo: repo);
 }
 
 void main() {
