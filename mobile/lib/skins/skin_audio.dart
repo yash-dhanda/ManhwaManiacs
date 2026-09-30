@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:audio_session/audio_session.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
@@ -18,6 +19,36 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart' as gls;
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// The iPhone audio-session category read back right after SoLoud init and after a Hear sample
+/// (mobile/24 device pass): both must be `ambient` (cinematic 6, State A).
+class AudioSessionProbe {
+  const AudioSessionProbe({this.afterInit, this.afterHear, this.initAt, this.hearAt});
+  final String? afterInit;
+  final String? afterHear;
+  final DateTime? initAt;
+  final DateTime? hearAt;
+}
+
+/// Written by [SkinAudio]; shown in Settings, Diagnostics on the iPhone.
+final ValueNotifier<AudioSessionProbe> audioSessionProbe = ValueNotifier(const AudioSessionProbe());
+
+final audioSessionProbeProvider = Provider<ValueNotifier<AudioSessionProbe>>((ref) => audioSessionProbe);
+
+Future<void> _probeCategory({required bool afterInit}) async {
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
+  try {
+    final c = (await AVAudioSession().category)?.name ?? 'none';
+    final now = DateTime.now();
+    final p = audioSessionProbe.value;
+    audioSessionProbe.value = afterInit
+        ? AudioSessionProbe(afterInit: c, afterHear: p.afterHear, initAt: now, hearAt: p.hearAt)
+        : AudioSessionProbe(afterInit: p.afterInit, afterHear: c, initAt: p.initAt, hearAt: now);
+    debugPrint('audio session ${afterInit ? 'after init' : 'after hear'}: $c');
+  } catch (e) {
+    debugPrint('audio session probe failed: $e');
+  }
+}
 
 /// The process-wide audio session states (cinematic §6, glass §6).
 enum AudioSessionState { idle, narration, voiceSample, soundscape }
@@ -166,6 +197,7 @@ class SkinAudio {
       await _configurator.setActive(false);
     } catch (_) {}
     await _apply(_beforeVoiceSample);
+    await _probeCategory(afterInit: false);
   }
 
   /// Cinematic's soundscape plays in State A, so it only suppresses cues.
@@ -236,6 +268,7 @@ class SkinAudio {
       _engineReady = true;
       // SoLoud's init sets no category; put State A (or the current state) back.
       await _apply(_state);
+      await _probeCategory(afterInit: true);
     }
     if (_cuesFor != _skin) {
       _sources.clear();

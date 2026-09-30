@@ -8,10 +8,11 @@ import 'package:manhwamaniacs/skins/cinematic/type.dart';
 /// The credits row (cinematic 7.16): label, dot leaders, value on one baseline. Minimum 40; the
 /// hit target grows to 44 / 48 only when [onTap] is set.
 class CineCreditsRow extends StatelessWidget {
-  const CineCreditsRow({super.key, required this.label, required this.value, this.onTap});
+  const CineCreditsRow({super.key, required this.label, required this.value, this.onTap, this.valueColor});
 
   final String label, value;
   final VoidCallback? onTap;
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +22,7 @@ class CineCreditsRow extends StatelessWidget {
       SizedBox(width: c.space2),
       const Expanded(child: Padding(padding: EdgeInsets.only(bottom: 2), child: CineDotLeader())),
       SizedBox(width: c.space2),
-      Flexible(child: CineRoleText(value, c.typeUi, textAlign: TextAlign.right)),
+      Flexible(child: CineRoleText(value, c.typeUi, color: valueColor, textAlign: TextAlign.right)),
     ],);
     Widget box(CinePressState? st) => ConstrainedBox(
           constraints: BoxConstraints(minHeight: onTap != null ? cineHitMin(context) : 40),
