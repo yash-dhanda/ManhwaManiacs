@@ -137,6 +137,7 @@ class GlassPoster extends ConsumerStatefulWidget {
     this.forceHoverButtons = false,
     this.radius = 14,
     this.onLiftPhase,
+    this.onMagnetChanged,
   });
 
   final Widget cover;
@@ -146,6 +147,9 @@ class GlassPoster extends ConsumerStatefulWidget {
 
   /// Reports the lift: `growing` at 150 ms, `lifted` at 450 ms, `ended` on release or cancel.
   final ValueChanged<GlassLiftPhase>? onLiftPhase;
+
+  /// The id of the friend orb the poster is captured by (null when it lets go): the orb swells while it holds.
+  final ValueChanged<Object?>? onMagnetChanged;
 
   /// The semantics label's title; the badges add their fragments.
   final String title;
@@ -198,8 +202,14 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
   final GlobalKey _box = GlobalKey();
   final VelocityTracker _velocity = VelocityTracker.withKind(PointerDeviceKind.touch);
   late final Magnet _magnet = Magnet(
-    onCapture: (_) => glassFire(ref, HapticEvent.magnetCapture),
-    onRelease: (_) => glassFire(ref, HapticEvent.magnetDrop),
+    onCapture: (t) {
+      glassFire(ref, HapticEvent.magnetCapture);
+      widget.onMagnetChanged?.call(t.id);
+    },
+    onRelease: (_) {
+      glassFire(ref, HapticEvent.magnetDrop);
+      widget.onMagnetChanged?.call(null);
+    },
   );
 
   bool _lifting = false;
