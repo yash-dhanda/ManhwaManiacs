@@ -111,7 +111,7 @@ final List<SetupRow> layoutRows = [
       : () {
           unawaited(c.series.setFor(c.seriesRef, {'zoom': 100}));
           if (!c.paged) c.ref.read(readerUiProvider.notifier).setZoom(1);
-        }),
+        },),
   (c) => switchRow('setup-gap', 'Gap between pages', c.prefs.gap, (v) => c.profile.put({'gap': v}),
       description: c.paged ? 'The strip only. ${SavedScope.profile}.' : SavedScope.profile, disabled: c.paged,),
   (c) => segmentedRow('setup-page-turn', 'Page turn', const ['CUT', 'SLIDE', 'FADE'], const ['cut', 'slide', 'fade'].indexOf(c.prefs.pageTurn),

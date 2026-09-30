@@ -5,9 +5,9 @@ import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_coverage.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
-import 'package:manhwamaniacs/features/ocr/utils/ocr_boxes.dart';
 import 'package:manhwamaniacs/features/ocr/repositories/ocr_repository.dart';
 import 'package:manhwamaniacs/features/ocr/services/ocr_upload_payload.dart';
+import 'package:manhwamaniacs/features/ocr/utils/ocr_boxes.dart';
 
 class OcrRepositoryImpl implements OcrRepository {
   const OcrRepositoryImpl(this._dio);

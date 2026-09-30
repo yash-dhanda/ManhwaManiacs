@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -13,11 +14,15 @@ import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provi
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
+import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
+import 'package:manhwamaniacs/features/reader/engine/paged_zoom.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_view.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_layout.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_surface_slots.dart';
 import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/engine/zoom_math.dart';
@@ -29,6 +34,7 @@ import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.
 import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/auto_scroll_speed.dart';
+import 'package:manhwamaniacs/features/reader/utils/reader_prefs_migration.dart' show LegacyReaderKeys;
 import 'package:manhwamaniacs/features/reader/utils/time_left.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
@@ -44,6 +50,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_rating_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/chapter_download_control.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_page_physics.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart' show cineReaderOwnsToastsProvider;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/contents_list.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/contents_panel.dart';
@@ -54,18 +61,25 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/end_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/folio_bar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/image_layers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/jump_to_page_field.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/margins_panel.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/micro_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/ocr_overlay.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/page_actions_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/page_states.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/paged_rules.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_chrome.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_entry.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_gestures.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_glyphs.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_keys.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_system_ui.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_taps.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/reading_setup_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/running_head.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/side_panel_layout.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/strip_bands.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/tap_zone_bands.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/zoom_chip.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -124,6 +138,18 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   bool _ratingShown = false;
   bool _fadeBlack = false;
 
+  // Paged layouts, panels and page actions (mobile/13).
+  final OcrOverlayController _ocr = OcrOverlayController();
+  final Map<String, int> _retryEpoch = {};
+  ({String chapter, int page})? _heroFor;
+  ReaderLayout _lastLayout = ReaderLayout.strip;
+  String? _carryChapterId;
+  int? _carryPage;
+  int _zonesReplay = 0;
+  bool _bandsOn = false;
+  String? _lastZonesKey;
+  bool _completedOpen = false;
+
   ReaderFrameBody get _body => widget.body;
   ({String sourceId, String seriesKey, String chapterKey, ReaderOrigin origin}) get _id => _body.identity!;
   String get _seriesRef => '${_id.sourceId}:${_id.seriesKey}';
@@ -154,14 +180,17 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         _toastOwner.state = true;
       } catch (_) {}
     });
+    _lastLayout = _layoutOf(ref.read(readerPrefsProvider(_seriesRef)));
     _engine.addListener(_onEngine);
     _engine.topPull.addListener(_onTopPull);
     _progressSub = ref.read(progressOutboxControllerProvider).notAdvanced.listen((k) => unawaited(_checkFurther(k)));
     _engine.chapterCompleted.listen(_onCompleted);
+    _ocr.addListener(_repaint);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final prefs = ref.read(readerPrefsProvider(_seriesRef));
       _cinema = prefs.cinema;
+      _maybeK01Toast();
       ref.read(readerUiProvider.notifier).setZoom(prefs.zoom);
       if (_reduced) ref.read(readerUiProvider.notifier).stopAutoScroll();
       unawaited(ref.read(readerPrefsMigrationProvider.future));
@@ -194,6 +223,9 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     unawaited(_progressSub?.cancel());
     _brightnessHud.dispose();
     _speedHud.dispose();
+    _ocr
+      ..removeListener(_repaint)
+      ..dispose();
     _swipeDx.dispose();
     _chromeScope.dispose();
     _surface.dispose();
@@ -222,6 +254,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     final s = _engine.value;
     if (s.chapterId.isNotEmpty && s.chapterId != _lastChapterId) {
       _lastChapterId = s.chapterId;
+      _completedOpen = false;
       _announce(s);
     }
     if (s.chromeVisible != _lastChrome) {
@@ -253,6 +286,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
 
   void _onCompleted(ChapterRef done) {
     if (!mounted) return;
+    if (done.chapterKey == _engine.value.chapterId || _engine.value.chapterId.isEmpty) setState(() => _completedOpen = true);
     cineFeedback(context, HapticEvent.chapterComplete, sound: SoundEvent.chapterComplete);
     Future<void>.delayed(const Duration(milliseconds: 120), () {
       if (mounted) cineFeedback(context, HapticEvent.tapSecondary);
@@ -393,6 +427,89 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     }
   }
 
+  // ── Paged layouts ─────────────────────────────────────────────────────────
+
+  ReaderLayout _layoutOf(ReaderPrefs p) => switch (p.layout) {
+        'single' => ReaderLayout.single,
+        'double' => ReaderLayout.double,
+        _ => ReaderLayout.strip,
+      };
+
+  bool get _isReadAll => false;
+
+  bool get _locked => _engine.value.locked;
+
+  bool get _paged => _lastLayout != ReaderLayout.strip;
+
+  /// The one-time K01 toast: a sideways strip of the old reader is a page layout now.
+  void _maybeK01Toast() {
+    final sp = ref.read(sharedPrefsProvider);
+    final show = shouldShowK01Toast(legacyDirection: sp.getString(LegacyReaderKeys.direction), seen: sp.getBool(kK01ToastSeenKey) ?? false);
+    if (!show) return;
+    unawaited(sp.setBool(kK01ToastSeenKey, true));
+    ref.read(cineToastsProvider.notifier).info(kK01ToastText);
+  }
+
+  /// The tap-zone bands: the first time this layout of zones is used on the device, and again
+  /// whenever the layout of zones changes.
+  void _syncBands(ReaderPrefs prefs, ReaderLayout layout) {
+    if (layout == ReaderLayout.strip) return;
+    final zones = resolveZones(prefs.tapZones, rtl: prefs.rtl);
+    final key = zoneLayoutKey(layout.name, zones);
+    if (key == _lastZonesKey) return;
+    final firstBuild = _lastZonesKey == null;
+    _lastZonesKey = key;
+    final sp = ref.read(sharedPrefsProvider);
+    final seen = sp.getStringList(kZonesSeenKey) ?? const <String>[];
+    if (!shouldShowBands(seen, layout.name, zones)) {
+      if (!firstBuild) _showZones();
+      return;
+    }
+    unawaited(sp.setStringList(kZonesSeenKey, markZonesSeen(seen, layout.name, zones)));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _showZones();
+    });
+  }
+
+  void _showZones() => setState(() {
+        _bandsOn = true;
+        _zonesReplay++;
+      });
+
+  void _onPagedTap(ReaderTapInfo info, ReaderPrefs prefs) {
+    final s = _engine.value;
+    if (_ocr.active) {
+      _ocr.hideOutlines();
+      return;
+    }
+    if (info.kind == TapKind.double) {
+      cineFeedback(context, HapticEvent.zoomSnap);
+      _engine.zoomAt(info.position, pagedDoubleTapTarget(s.zoom), duration: _reduced ? Duration.zero : context.cine.durLine, curve: CineCurves.settle);
+      return;
+    }
+    final zones = resolveZones(prefs.tapZones, rtl: prefs.rtl);
+    final step = zoneStep(zoneAction(info.position.dx, info.size.width, zones));
+    if (step == null) {
+      s.chromeVisible ? _engine.hideChrome() : _engine.showChrome();
+      return;
+    }
+    if (s.chromeVisible) _engine.hideChrome();
+    _pagedStep(forward: step > 0);
+  }
+
+  void _pagedStep({required bool forward}) {
+    cineFeedback(context, HapticEvent.pageTurn, sound: SoundEvent.pageTurn);
+    _engine.pageBy(forward: forward);
+  }
+
+  void _setLayoutByKey(String key) {
+    if (_isReadAll) return;
+    final l = layoutForKey(key);
+    if (l == null) return;
+    cineFeedback(context, HapticEvent.select);
+    unawaited(ref.read(readerSeriesPrefsProvider.notifier).setFor(_seriesRef, {'layout': l.layout, if (l.direction != null) 'direction': l.direction}));
+  }
+
   // ── Taps ──────────────────────────────────────────────────────────────────
 
   void _onTap(ReaderTapInfo info) {
@@ -404,6 +521,10 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         cineFeedback(context, HapticEvent.readerUnlock, sound: SoundEvent.toggleOn);
         ref.read(cineToastsProvider.notifier).info('Controls unlocked');
       }
+      return;
+    }
+    if (_paged) {
+      _onPagedTap(info, prefs);
       return;
     }
     if (info.kind == TapKind.double) {
@@ -436,6 +557,10 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   // ── Keys and commands ─────────────────────────────────────────────────────
 
   void _pageStep({required bool forward}) {
+    if (_paged) {
+      _pagedStep(forward: forward);
+      return;
+    }
     final s = _engine.value;
     cineFeedback(context, HapticEvent.pageTurn);
     _engine.jumpToPage((s.page + (forward ? 1 : -1)).clamp(1, math.max(1, s.pageCount)), glide: !_reduced);
@@ -464,6 +589,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   }
 
   void _toggleAutoScroll() {
+    if (_paged) return;
     final prefs = ref.read(readerPrefsProvider(_seriesRef));
     if (!_engine.value.autoScrolling) _engine.setAutoScrollSpeedX(_speedDraft ?? prefs.autoScrollSpeedX);
     cineFeedback(context, HapticEvent.autoscrollToggle);
@@ -502,16 +628,120 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   void _escape() {
     final tablet = MediaQuery.sizeOf(context).width >= 600;
     final panels = ref.read(readerPrefsProvider(_seriesRef)).panels;
-    switch (escapeStep(sheetOpen: false, panelOpen: tablet && panels.left, cinema: _cinema)) {
+    if (_ocr.active) {
+      _ocr.hideOutlines();
+      return;
+    }
+    switch (escapeStep(sheetOpen: false, panelOpen: tablet && (panels.left || panels.right), cinema: _cinema)) {
       case ReaderEscape.closeSheet:
         break;
       case ReaderEscape.closePanel:
-        _setLeftPanel(false);
+        if (panels.right) {
+          _setRightPanel(false);
+        } else {
+          _setLeftPanel(false);
+        }
       case ReaderEscape.leaveCinema:
         _toggleCinema();
       case ReaderEscape.exitReader:
         _leave();
     }
+  }
+
+  void _setRightPanel(bool open) {
+    final p = ref.read(readerPrefsProvider(_seriesRef)).panels;
+    unawaited(
+      ref.read(readerSettingsProvider.notifier).put({
+        'panels': ReaderPanels(left: open ? false : p.left, right: open, lastOpened: open ? 'right' : p.lastOpened).toJson(),
+      }),
+    );
+  }
+
+  /// `note-pencil` and `]`: the Margins panel on tablets (one side panel at a time, the last
+  /// opened wins). Phones have no panel: their path is the page actions.
+  void _openMargins() {
+    _engine.showChrome();
+    if (MediaQuery.sizeOf(context).width < 600) return;
+    _setRightPanel(!ref.read(readerPrefsProvider(_seriesRef)).panels.right);
+  }
+
+  String get _seriesTitle => ref.read(readerSeriesProvider(_seriesKey))?.title ?? _body.feed.chapters.firstOrNull?.seriesTitle ?? '';
+
+  /// The comma key and the running head's sliders button: Reading setup over the live page.
+  void _openSetup() {
+    _engine
+      ..showChrome()
+      ..holdChrome();
+    final page = _engine.pageAtReadingLine();
+    unawaited(
+      showReadingSetup(
+        context,
+        seriesRef: _seriesRef,
+        seriesTitle: _seriesTitle,
+        engine: _engine,
+        readAll: _isReadAll,
+        onShowZones: _showZones,
+        pageActionsLabel: 'Page actions for p. $page',
+        onPageActions: _openPageActions,
+      ).whenComplete(() {
+        // Closing the sheet also hides the chrome.
+        if (mounted) _engine.hideChrome();
+      }),
+    );
+  }
+
+  ReaderChapter? _chapterById(String? id) {
+    final chapters = _body.feed.chapters;
+    return chapters.where((c) => c.id == id).firstOrNull ?? chapters.firstOrNull;
+  }
+
+  /// Page actions for [page] of [chapterId] (default: the page at the reading line).
+  void _openPageActions({String? chapterId, int? page}) {
+    final chapter = _chapterById(chapterId ?? _engine.value.chapterId);
+    if (chapter == null) return;
+    final n = (page ?? _engine.pageAtReadingLine()).clamp(1, math.max(1, chapter.pages.length)).toInt();
+    final id = (sourceId: _id.sourceId, seriesKey: _id.seriesKey, chapterKey: chapter.id);
+    final text = ref.read(ocrChapterTextProvider(id)).valueOrNull;
+    final hasText = text?.any((t) => t.page == n && !t.isEmpty) ?? false;
+    final summary = ref.read(readerSeriesProvider(_seriesKey))?.chapterOf(chapter.id);
+    _engine.holdChrome();
+    unawaited(
+      showPageActions(
+        context,
+        PageActionsTarget(
+          sourceId: _id.sourceId,
+          seriesKey: _id.seriesKey,
+          chapter: chapter,
+          page: n,
+          chapterNumber: summary?.number,
+          saved: chapter.pages.isNotEmpty && chapter.pages.first.localFile != null,
+          hasDialogue: hasText,
+          onShowDialogue: () => _ocr.showOutlines(chapter.id, n),
+          onRetry: () => _retryPage(chapter, n),
+          onOpenImage: () => _openImage(chapter, n),
+        ),
+      ).whenComplete(() {
+        if (mounted) _engine.scheduleHideChrome();
+      }),
+    );
+  }
+
+  void _retryPage(ReaderChapter chapter, int n) {
+    final p = chapter.pages[n - 1];
+    if (p.imageUrl.isNotEmpty) unawaited(CachedNetworkImage.evictFromCache(p.imageUrl));
+    setState(() => _retryEpoch['${chapter.id}:$n'] = (_retryEpoch['${chapter.id}:$n'] ?? 0) + 1);
+  }
+
+  void _openImage(ReaderChapter chapter, int n) {
+    setState(() => _heroFor = (chapter: chapter.id, page: n));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(
+        openPageImage(context, ref, chapter: chapter, page: chapter.pages[n - 1], heroTag: 'reader-page-${chapter.id}-$n').whenComplete(() {
+          if (mounted) setState(() => _heroFor = null);
+        }),
+      );
+    });
   }
 
   void _setLeftPanel(bool open) {
@@ -601,6 +831,25 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     }
     _syncSwipeable(prefs);
 
+    final layout = _isReadAll ? ReaderLayout.strip : _layoutOf(prefs);
+    if (layout != _lastLayout) {
+      // Switching layout keeps the page: the view being replaced still holds the state.
+      final s = _engine.value;
+      _carryChapterId = s.chapterId.isEmpty ? null : s.chapterId;
+      _carryPage = s.page;
+      _lastLayout = layout;
+      _lastZonesKey = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _carryPage = null;
+        _carryChapterId = null;
+      });
+    }
+    final paged = layout != ReaderLayout.strip;
+    _syncBands(prefs, layout);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _engine.setLayout(layout, rtl: prefs.rtl, pagePhysics: paged ? const CinePagePhysics() : null);
+    });
+
     final options = ReaderEngineOptions(
       ground: ground,
       gapPx: prefs.gap ? 8 : 0,
@@ -624,41 +873,89 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       topBandExtent: 96,
       footerExtent: footerExtent,
       offline: offline,
-      pageLayerBuilder: (context, pages) => _pageLayer(context, pages, prefs),
+      pageLayerBuilder: (context, pages) => paged ? readerWarmth(context, pages, prefs.warmthPct) : _pageLayer(context, pages, prefs),
       pageSemantics: accessible ? _pageSemantics : (context, chapter, n, page) => Semantics(label: 'Page $n of ${chapter.pages.length}', child: page),
-      slotSignature: (series?.chapters.length, prefs.autoNextChapter),
+      slotSignature: (series?.chapters.length, prefs.autoNextChapter, _heroFor, Object.hashAll(_retryEpoch.values)),
+      pageOverlayBuilder: (context, page, chapterKey, box) =>
+          OcrPageOverlay(controller: _ocr, sourceId: _id.sourceId, seriesKey: _id.seriesKey, chapterKey: chapterKey, page: page, size: box),
+      onPageLongPress: (chapterId, page) {
+        if (_locked) return;
+        cineFeedback(context, HapticEvent.longpressOpen);
+        _openPageActions(chapterId: chapterId, page: page);
+      },
+      pageHeroTag: (chapterId, page) => _heroFor?.chapter == chapterId && _heroFor?.page == page ? 'reader-page-$chapterId-$page' : null,
+      pageEpoch: (chapterId, page) => _retryEpoch['$chapterId:$page'] ?? 0,
       lifecycleVolumeKeys: true,
     );
 
-    final view = ReaderEngineView(
-      controller: _engine,
-      slots: ReaderSurfaceSlots(
-        chapterSeam: (context, chapter, axis) => const SizedBox.shrink(),
-        brokenPage: (context, retry) => const SizedBox.shrink(),
-        pagedCornerRadius: 0,
-      ),
-      autoHideAfter: accessible ? const Duration(days: 1) : const Duration(milliseconds: 3000),
-      chromeBuilder: (context, state) => _chrome(context, state, prefs, series, tablet: tablet, landscape: landscape, reduced: reduced),
-      onEvent: _onEvent,
-      feed: body.feed,
-      scrollStorageKey: body.scrollStorageKey,
-      onBack: _leave,
-      onOpenSeries: _openSeries,
-      initialPage: body.initialPage,
-      initialAnchor: body.initialAnchor,
-      showBookmark: body.showBookmark,
-      onSaveProgress: body.onSaveProgress,
-      onAddBookmark: body.onAddBookmark,
-      onPreviousChapter: body.onPreviousChapter,
-      onNextChapter: body.onNextChapter,
-      onReachedFeedEnd: body.onReachedFeedEnd,
-      onReachedFeedStart: body.onReachedFeedStart,
-      pageExtents: body.pageExtents,
-      bookmarkAnchors: body.bookmarkAnchors,
-      options: options,
-    );
+    Widget chrome(BuildContext context, ReaderEngineState state) =>
+        _chrome(context, state, prefs, series, tablet: tablet, landscape: landscape, reduced: reduced, paged: paged);
+    final autoHideAfter = accessible ? const Duration(days: 1) : const Duration(milliseconds: 3000);
+    final Widget view;
+    if (paged) {
+      final chapter = _chapterById(_carryChapterId ?? _id.chapterKey) ?? body.feed.chapters.first;
+      view = PagedReaderView(
+        key: const ValueKey('paged'),
+        controller: _engine,
+        chapter: chapter,
+        spec: ReaderLayoutSpec(layout: layout, rtl: prefs.rtl, pagePhysics: const CinePagePhysics()),
+        chromeBuilder: chrome,
+        autoHideAfter: autoHideAfter,
+        fit: switch (prefs.fit) {
+          'width' => ReaderPageFit.width,
+          'original' => ReaderPageFit.original,
+          _ => ReaderPageFit.height,
+        },
+        ground: ground,
+        turn: PageTurn.values.firstWhere((t) => t.name == prefs.pageTurn, orElse: () => PageTurn.cut),
+        slideDuration: context.cine.durPageturn,
+        slideCurve: CineCurves.settle,
+        fadeDuration: context.cine.durBeat,
+        reducedMotion: reduced,
+        reducedDuration: context.cine.durReduced,
+        initialPage: _carryPage ?? body.initialPage,
+        onEvent: _onEvent,
+        bookmarkAnchors: body.bookmarkAnchors,
+        onSaveProgress: body.onSaveProgress,
+        onAddBookmark: body.onAddBookmark,
+        onPreviousChapter: body.onPreviousChapter,
+        onNextChapter: body.onNextChapter,
+        options: options,
+        style: PagedStageStyle(centreLine: context.cine.colorRule1),
+      );
+    } else {
+      view = ReaderEngineView(
+        key: const ValueKey('strip'),
+        controller: _engine,
+        slots: ReaderSurfaceSlots(
+          chapterSeam: (context, chapter, axis) => const SizedBox.shrink(),
+          brokenPage: (context, retry) => const SizedBox.shrink(),
+          pagedCornerRadius: 0,
+        ),
+        autoHideAfter: autoHideAfter,
+        chromeBuilder: chrome,
+        onEvent: _onEvent,
+        feed: body.feed,
+        scrollStorageKey: body.scrollStorageKey,
+        onBack: _leave,
+        onOpenSeries: _openSeries,
+        initialPage: _carryPage ?? body.initialPage,
+        initialAnchor: _carryPage != null ? (page: _carryPage!, fraction: 0.0) : body.initialAnchor,
+        showBookmark: body.showBookmark,
+        onSaveProgress: body.onSaveProgress,
+        onAddBookmark: body.onAddBookmark,
+        onPreviousChapter: body.onPreviousChapter,
+        onNextChapter: body.onNextChapter,
+        onReachedFeedEnd: body.onReachedFeedEnd,
+        onReachedFeedStart: body.onReachedFeedStart,
+        pageExtents: body.pageExtents,
+        bookmarkAnchors: body.bookmarkAnchors,
+        options: options,
+      );
+    }
 
     final leftPanel = tablet && prefs.panels.left;
+    final rightPanel = tablet && prefs.panels.right;
     final canPop = GoRouter.of(context).canPop();
     return PopScope(
       canPop: canPop,
@@ -686,10 +983,22 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
                       Positioned.fill(
                         child: SidePanelLayout(
                           leftOpen: leftPanel,
-                          rightOpen: false,
+                          rightOpen: rightPanel,
                           left: ContentsPanel(
                             list: _contentsListPanel(),
                             onClose: () => _setLeftPanel(false),
+                          ),
+                          right: MarginsPanel(
+                            engine: _engine,
+                            overlay: _ocr,
+                            sourceId: _id.sourceId,
+                            seriesKey: _id.seriesKey,
+                            chapterKey: _engine.value.chapterId.isEmpty ? _id.chapterKey : _engine.value.chapterId,
+                            chapterNumber: series?.chapterOf(_engine.value.chapterId.isEmpty ? _id.chapterKey : _engine.value.chapterId)?.number,
+                            chapterSaved: offline,
+                            completedOpen: _completedOpen,
+                            seriesTitle: series?.title,
+                            onClose: () => _setRightPanel(false),
                           ),
                         ),
                       ),
@@ -895,6 +1204,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     required bool tablet,
     required bool landscape,
     required bool reduced,
+    required bool paged,
   }) {
     final chapter = series?.chapterOf(s.chapterId);
     final prev = series?.previousOf(s.chapterId);
@@ -917,9 +1227,22 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         onPressed: _body.onAddBookmark == null ? null : _bookmark,
       ),
       if (tablet) CineIconButton(label: 'Contents', role: CineIconRole.contents, selected: prefs.panels.left, onPressed: _openContents),
+      if (tablet) CineIconButton(label: 'Margins', codepoint: ReaderCp.notePencil, selected: prefs.panels.right, onPressed: _openMargins),
+      CineIconButton(label: 'Reading setup', role: CineIconRole.readerSettings, onPressed: _openSetup),
+      if (tablet) CineIconButton(label: 'Page actions', role: CineIconRole.overflow, onPressed: _openPageActions),
     ];
     return Stack(
       children: [
+        if (paged && _bandsOn)
+          Positioned.fill(
+            child: TapZoneBands(
+              labels: bandLabels(resolveZones(prefs.tapZones, rtl: prefs.rtl)),
+              replay: _zonesReplay,
+              onDone: () {
+                if (mounted) setState(() => _bandsOn = false);
+              },
+            ),
+          ),
         ReaderDimmer(brightness: brightness),
         Positioned.fill(
           child: FocusScope(
@@ -965,6 +1288,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
                       onJump: _engine.jumpToPage,
                       counterKey: _counter,
                       autoScrolling: s.autoScrolling,
+                      showAutoScroll: !paged,
                       speedLabel: '${speedX.toStringAsFixed(1)}×',
                       onToggleAutoScroll: _toggleAutoScroll,
                       minutesLeft: minutes,
@@ -1068,6 +1392,13 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         _engine.showChrome();
         _openContents();
       }),
+      e(LogicalKeyboardKey.comma, 'Reading setup', _openSetup),
+      e(LogicalKeyboardKey.bracketRight, 'Margins', _openMargins),
+      e(LogicalKeyboardKey.keyW, 'Strip', () => _setLayoutByKey('w')),
+      e(LogicalKeyboardKey.keyV, 'Single page', () => _setLayoutByKey('v')),
+      e(LogicalKeyboardKey.keyR, 'Right-to-left single page', () => _setLayoutByKey('r')),
+      e(LogicalKeyboardKey.contextMenu, 'Page actions', _openPageActions, single: false),
+      e(LogicalKeyboardKey.f10, 'Page actions', _openPageActions, shift: true, single: false),
       e(LogicalKeyboardKey.equal, 'Zoom in', () => _zoomBy(0.1)),
       e(LogicalKeyboardKey.add, 'Zoom in', () => _zoomBy(0.1)),
       e(LogicalKeyboardKey.minus, 'Zoom out', () => _zoomBy(-0.1)),

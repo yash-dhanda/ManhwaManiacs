@@ -40,7 +40,7 @@ void main() {
   test('the server seal counts too; labels and short chapter names', () {
     final d = CircleSeriesData(chapters: [
       CircleChapterReactions(chapterKey: 'c142', chapterNumber: 142, sealed: false, by: [(member: m(1, 'Asha'), kind: 'loved')]),
-    ]);
+    ],);
     expect(circleRows(d, openKey: 'c142', openNumber: 142, completedOpen: false).single.label, 'LOVED');
     expect(chapterShort(142), 'Ch. 142');
     expect(chapterShort(142.5), 'Ch. 142.5');

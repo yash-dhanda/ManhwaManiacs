@@ -149,7 +149,7 @@ void main() {
   });
 
   testWidgets('double: a wide page is alone', (tester) async {
-    final r = await pump(tester, spec: const ReaderLayoutSpec(layout: ReaderLayout.double), ch: chapter(pages: 6, wide: {3}));
+    final r = await pump(tester, spec: const ReaderLayoutSpec(layout: ReaderLayout.double), ch: chapter(wide: {3}));
     // views: [1] [2] [3] [4,5] [6]
     r.engine.pageBy(forward: true);
     await tester.pump();

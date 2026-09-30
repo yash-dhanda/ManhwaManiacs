@@ -13,4 +13,5 @@ abstract final class ReaderCp {
   static const x = 0xe4f6;
   static const arrowUp = 0xe08e;
   static const lock = 0xe308;
+  static const notePencil = 0xe34c;
 }

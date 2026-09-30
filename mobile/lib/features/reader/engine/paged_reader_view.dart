@@ -20,6 +20,7 @@ import 'package:manhwamaniacs/features/reader/engine/spread.dart';
 import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_filter_provider.dart' show ReaderColorMode;
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
@@ -826,7 +827,6 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
           : options.pageStateBuilder!(context, p.number, PageStatus.broken, null, retry),
       loadingBuilder: options.pageStateBuilder == null ? null : (context) => options.pageStateBuilder!(context, p.number, PageStatus.placeholder, null, () {}),
       cornerRadius: 0,
-      layoutAxis: Axis.vertical,
       viewportWidth: box.width,
       viewportHeight: box.height,
       priority: (viewIndex - _view).abs() <= 1,
@@ -857,7 +857,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
         child: Stack(children: [
           Positioned.fill(child: image),
           Positioned.fill(child: overlay(context, p.number, _chapter.id, box)),
-        ]),
+        ],),
       );
     }
     if (options.pageSemantics != null) child = options.pageSemantics!(context, _chapter, p.number, child);
@@ -900,13 +900,13 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
           width: style.gutter,
           height: avail.height,
           child: Center(child: SizedBox(width: 1, height: avail.height, child: ColoredBox(color: style.centreLine))),
-        ));
+        ),);
       }
       children.add(_page(pages[i], Size(slotW, avail.height), index));
     }
     Widget row = Padding(
       padding: EdgeInsets.all(inset),
-      child: Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.max, children: children),
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: children),
     );
     if (index == _view && _zoom > 1) {
       row = Transform.translate(offset: _pan, child: Transform.scale(scale: _zoom, child: row));
@@ -944,6 +944,12 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     );
     final fade = _fadeOpacity;
     if (fade < 1) pages = Opacity(opacity: fade.clamp(0.0, 1.0), child: pages);
+    final tone = switch (widget.options.colourFilter) {
+      ReaderColourFilter.sepia => ReaderColorMode.sepia.colorFilter,
+      ReaderColourFilter.grey => ReaderColorMode.grayscale.colorFilter,
+      _ => null,
+    };
+    if (tone != null) pages = ColorFiltered(colorFilter: tone, child: pages);
     if (widget.options.pageLayerBuilder != null) pages = widget.options.pageLayerBuilder!(context, pages);
     Widget stack = Stack(
       children: [

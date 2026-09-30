@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
@@ -109,7 +108,7 @@ class OcrPageOverlay extends ConsumerWidget {
                   onTap: () => controller.openPopover(chapterKey, page, b),
                   child: DecoratedBox(key: const ValueKey('ocr-outline'), decoration: BoxDecoration(border: Border.all(color: c.colorSpot))),
                 ),
-              ));
+              ),);
             }
           }
           if (showPulse) {
@@ -121,7 +120,7 @@ class OcrPageOverlay extends ConsumerWidget {
                   box: OcrBox(x: f.left, y: f.top, w: f.width, h: f.height),
                   onDone: controller.endPulse,
                 ),
-              ));
+              ),);
             }
           }
           if (showPop) {
@@ -142,7 +141,7 @@ class OcrPageOverlay extends ConsumerWidget {
                     child: CineRoleText(pop.box.text, c.typeBody, color: c.colorInk100),
                   ),
                 ),
-              ));
+              ),);
             }
           }
           return Stack(clipBehavior: Clip.none, children: children);

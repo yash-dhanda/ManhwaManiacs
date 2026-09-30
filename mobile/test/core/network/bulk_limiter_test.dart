@@ -10,7 +10,7 @@ void main() {
     final l = BulkLimiter(now: () => t, createTimer: (d, f) {
       wakes.add(f);
       return _FakeTimer();
-    });
+    },);
     var granted = 0;
     for (var i = 0; i < 7; i++) {
       // ignore: unawaited_futures
@@ -38,7 +38,7 @@ void main() {
     final l = BulkLimiter(now: () => t, createTimer: (d, f) {
       wakes.add(f);
       return _FakeTimer();
-    });
+    },);
     l.pause(const Duration(seconds: 30));
     expect(l.pausedUntil, isNotNull);
     var granted = false;
