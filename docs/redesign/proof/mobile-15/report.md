@@ -1,6 +1,6 @@
 # mobile/15 report: Cinematic Listen mode, "The reading"
 
-Branch `redesign/M15`, not pushed. Scope A-L implemented; see device-checklist.md for what only a phone can prove.
+Branch `redesign/M15`, not pushed. Final: flutter analyze clean; full flutter test 5772 passed, 0 failed. Scope A-L implemented; see device-checklist.md for what only a phone can prove.
 
 ## Scope status
 - A Skin-neutral extraction: `NarrationController` (Notifier singleton `narrationControllerProvider`), `NarrationPlayer` seam over just_audio, `NarrationAudioHandler` behind `NarrationCommands`. Legacy `novel_audio_player.dart` runs on it.
