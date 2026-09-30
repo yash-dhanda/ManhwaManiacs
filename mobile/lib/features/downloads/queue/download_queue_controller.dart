@@ -429,8 +429,12 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   // The user's queue priority (glass 8.22 Queue tab, drag to prioritise): an ordered list of chapter keys persisted per
   // `(user, profile)` scope. Chapters named in it start first, in that order; the rest keep the store's order.
   String? _orderKeyPrefs() {
-    final scope = ref.read(activeDownloadsScopeIdProvider);
-    return scope == null ? null : 'mm.downloads.queue-order.$scope';
+    try {
+      final scope = ref.read(activeDownloadsScopeIdProvider);
+      return scope == null ? null : 'mm.downloads.queue-order.$scope';
+    } catch (_) {
+      return null; // a container disposed mid-loop has no stored priority
+    }
   }
 
   static String _orderKey(ChapterIdentity id) => '${id.sourceId}|${id.seriesKey}|${id.chapterKey}';
