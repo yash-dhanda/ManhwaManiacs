@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs_more.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/list/swipe_row.dart' show GlassSwipeSemantics;
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/selection_check.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
@@ -87,7 +88,7 @@ class GlassRowShell extends ConsumerWidget {
           semanticsLabel: semanticsLabel,
           semanticsHint: semanticsHint,
           checked: selectMode ? selected : null,
-          customActions: customActions,
+          customActions: {...GlassSwipeSemantics.of(context), ...customActions},
           focusNode: focusNode,
           hoverGlow: false,
           builder: (context, info) {
