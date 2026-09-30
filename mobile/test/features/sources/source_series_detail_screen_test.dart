@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
+import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
@@ -267,6 +268,7 @@ class _FakeLibraryRepository implements LibraryRepository {
   Future<Result<Collection>> createCollection({
     required String name,
     String? description,
+    ShelfRules? rules,
   }) =>
       throw UnimplementedError();
 
@@ -276,6 +278,8 @@ class _FakeLibraryRepository implements LibraryRepository {
     String? name,
     String? description,
     int? sortOrder,
+    ShelfRules? rules,
+    bool clearRules = false,
   }) =>
       throw UnimplementedError();
 
@@ -349,6 +353,12 @@ class _FakeLibraryRepository implements LibraryRepository {
 /// followed-series refresh loop reads both); follow/unfollow live on
 /// [LibraryRepository] now, see [_FakeLibraryRepository].
 class _FakeUpdatesRepository implements UpdatesRepository {
+
+  @override
+  Future<Result<UpdateRun>> getRun(int runId) => throw UnimplementedError();
+
+  @override
+  Future<Result<List<String>>> listUpdateSources() async => const Ok(<String>[]);
   @override
   Future<Result<List<UpdateNotification>>> listNotifications({
     bool unreadOnly = false,

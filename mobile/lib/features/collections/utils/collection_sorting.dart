@@ -1,11 +1,13 @@
 import 'package:manhwamaniacs/features/library/models/collection.dart';
 
-enum CollectionSort { name, series, custom }
+enum CollectionSort { name, series, recentlyCreated, custom }
 
 String collectionSortLabel(CollectionSort sort) {
   switch (sort) {
     case CollectionSort.series:
       return 'Most series';
+    case CollectionSort.recentlyCreated:
+      return 'Recently created';
     case CollectionSort.custom:
       return 'Custom order';
     case CollectionSort.name:
@@ -41,6 +43,13 @@ List<Collection> sortCollections(List<Collection> items, CollectionSort sort) {
             ? b.seriesCount.compareTo(a.seriesCount)
             : a.name.compareTo(b.name),
       );
+    case CollectionSort.recentlyCreated:
+      // Newest first; a collection without a date sorts by id, descending (ids only grow).
+      next.sort((a, b) {
+        final x = a.createdAt, y = b.createdAt;
+        if (x != null && y != null) return y.compareTo(x) != 0 ? y.compareTo(x) : b.id.compareTo(a.id);
+        return b.id.compareTo(a.id);
+      });
     case CollectionSort.custom:
       next.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     case CollectionSort.name:

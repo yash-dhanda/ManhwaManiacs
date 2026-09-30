@@ -36,6 +36,12 @@ abstract interface class UpdatesRepository {
   Future<Result<UpdateCheckOutcome>> triggerCheck({List<int>? followedIds});
 
   Future<Result<UpdateRun>> checkFollowed(int followedId);
+
+  /// `GET /updates/runs/{id}` (admin): one run, polled while a check runs.
+  Future<Result<UpdateRun>> getRun(int runId);
+
+  /// `GET /updates/sources`: the ids of the browsable sources, through the caller's 18+ gate.
+  Future<Result<List<String>>> listUpdateSources();
 }
 
 class UpdateCheckOutcome {

@@ -46,6 +46,7 @@ const Map<String, List<String>> _providersByService = {
     'recommendationsProvider',
     'genreWeightsProvider',
     'readingHistoryProvider',
+    'historyPagesProvider',
   ],
   'source_cache_service': ['sourcesListProvider'],
   'source_pin_service': ['sourcePinsProvider'],

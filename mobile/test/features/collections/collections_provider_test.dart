@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
+import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
@@ -43,6 +44,7 @@ class _CollectionsRepo implements LibraryRepository {
   Future<Result<Collection>> createCollection({
     required String name,
     String? description,
+    ShelfRules? rules,
   }) async {
     final created = Collection(
       id: items.length + 1,
@@ -65,6 +67,8 @@ class _CollectionsRepo implements LibraryRepository {
     String? name,
     String? description,
     int? sortOrder,
+    ShelfRules? rules,
+    bool clearRules = false,
   }) =>
       throw UnimplementedError();
 

@@ -114,3 +114,6 @@ Items only the owner can do, by step.
 ## mobile/18
 - Run the device checks in `docs/redesign/proof/mobile-18/device-checklist.md`.
 - Owner-only: optionally re-run `pngquant` on the 36 preview frames if a smaller bundle is wanted.
+
+## mobile/10 (Cinematic Updates, Collections, History, Bookmarks)
+- Device checks: see docs/redesign/proof/mobile-10/device-checklist.md (plate to header match cut and its iOS edge-swipe reversal, Android predictive back from a shelf, swipe rows against the hub swipe, the Updates check haptics, arm dialogs with a double tap, VoiceOver and TalkBack on marginal notes, text scale 1.3 and 2.0). Shipped with widget-test coverage as the fallback.

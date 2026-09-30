@@ -1,0 +1,6 @@
+Floor recorded from docs/redesign/proof/mobile-09/report.md: flutter test 4273 passed, 0 failed.
+The before-run of this step (started from the merged tree) was contaminated by this session's own edits
+landing while it compiled (the audited-invalidators test read the new historyPagesProvider before its
+map was updated), so the mobile/09 floor is the reference. Final run: see report.md.
+               total        used        free      shared  buff/cache   available
+Mem:           31686       16160        9835        1961        8408       15526

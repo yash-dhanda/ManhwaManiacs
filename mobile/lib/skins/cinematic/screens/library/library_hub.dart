@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.d
 import 'package:manhwamaniacs/skins/cinematic/a11y/folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_pull_to_reprint.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
@@ -66,6 +67,7 @@ class LibraryHub extends ConsumerStatefulWidget {
     this.mastheadFocus,
     this.overlay,
     this.onSwitch,
+    this.onDeckTap,
   });
 
   final HubTab tab;
@@ -84,6 +86,9 @@ class LibraryHub extends ConsumerStatefulWidget {
 
   /// Switches to another tab; defaults to the nested shell's `goBranch`.
   final ValueChanged<HubTab>? onSwitch;
+
+  /// Makes the masthead's deck a button (Updates: the schedule).
+  final VoidCallback? onDeckTap;
 
   @override
   ConsumerState<LibraryHub> createState() => _LibraryHubState();
@@ -173,7 +178,7 @@ class _LibraryHubState extends ConsumerState<LibraryHub> with TickerProviderStat
         SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.fromLTRB(grid.left, c.space4, grid.right, 0),
-            child: _Masthead(masthead: widget.masthead, tab: widget.tab, focus: widget.mastheadFocus, wide: wide),
+            child: _Masthead(masthead: widget.masthead, tab: widget.tab, focus: widget.mastheadFocus, wide: wide, onDeckTap: widget.onDeckTap),
           ),
         ),
         SliverPersistentHeader(pinned: true, delegate: _TabsDelegate(tab: widget.tab, dx: _dx, extent: hubTabsExtent(context), onSelect: _select)),
@@ -231,11 +236,12 @@ class _HubScrollBehavior extends MaterialScrollBehavior {
 /// The masthead (cinematic 7.27): kicker, level-1 heading revealed on mount, deck and the rule
 /// drawn after the letters land. Kicker and deck sit in raised stock over the mood grade.
 class _Masthead extends StatelessWidget {
-  const _Masthead({required this.masthead, required this.tab, required this.focus, required this.wide});
+  const _Masthead({required this.masthead, required this.tab, required this.focus, required this.wide, this.onDeckTap});
   final HubMasthead masthead;
   final HubTab tab;
   final FocusNode? focus;
   final bool wide;
+  final VoidCallback? onDeckTap;
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +264,17 @@ class _Masthead extends StatelessWidget {
         ),
         if (masthead.deck.isNotEmpty) ...[
           SizedBox(height: c.space2),
-          CineStock.raised(Builder(builder: (b) => CineRoleText(masthead.deck, b.cine.typeDeck, color: b.cine.colorInk60, maxLines: 1, overflow: TextOverflow.ellipsis))),
+          CineStock.raised(Builder(builder: (b) {
+            final deck = CineRoleText(masthead.deck, b.cine.typeDeck, color: b.cine.colorInk60, maxLines: 1, overflow: TextOverflow.ellipsis);
+            if (onDeckTap == null) return deck;
+            return Semantics(
+              button: true,
+              label: masthead.deck,
+              excludeSemantics: true,
+              onTap: onDeckTap,
+              child: CinePressable(hit: false, onTap: onDeckTap, builder: (_, __) => ConstrainedBox(constraints: BoxConstraints(minHeight: cineHitMin(b)), child: Align(alignment: Alignment.centerLeft, child: deck))),
+            );
+          },),),
         ],
         SizedBox(height: c.space4),
         CineRuleDraw(kind: CineRuleKind.heavy, oxford: wide, delay: Duration(milliseconds: landed.round())),

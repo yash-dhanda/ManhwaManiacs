@@ -13,10 +13,9 @@ import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart
 import 'package:manhwamaniacs/features/content_mode/widgets/content_mode_chip.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
+import 'package:manhwamaniacs/features/library/utils/history_continue.dart';
 import 'package:manhwamaniacs/features/library/utils/resume_location.dart';
 import 'package:manhwamaniacs/features/library/widgets/history/history_series_card.dart';
-import 'package:manhwamaniacs/features/sources/models/source_series.dart';
-import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/shared/widgets/empty_state.dart';
 import 'package:manhwamaniacs/shared/widgets/premium/hero_heading.dart';
 import 'package:manhwamaniacs/shared/widgets/skeleton_box.dart';
@@ -201,26 +200,14 @@ class ReadingHistoryScreen extends ConsumerWidget {
     ReadingHistoryItem item, {
     required bool isNovel,
   }) async {
-    var chapters = const <SourceChapterSummary>[];
-    if (item.isCompleted) {
-      final result = await ref
-          .read(sourcesRepositoryProvider)
-          .getChapters(item.sourceId, item.seriesKey);
-      if (result.isOk) chapters = result.value;
-    }
+    final r = await ref.read(historyContinueProvider)(item);
     if (!context.mounted) return;
-    final point = resumePointFor(
-      chapterKey: item.chapterKey,
-      lastPage: item.lastPage,
-      isCompleted: item.isCompleted,
-      chapters: chapters,
-    );
-    final target = point == null
+    final target = r.toSeriesPage
         ? RoutePaths.sourceSeriesDetail(item.sourceId, item.seriesKey)
         : resumeLocation(
             sourceId: item.sourceId,
             seriesKey: item.seriesKey,
-            point: point,
+            point: (chapterKey: r.chapterKey!, page: r.page!),
             isNovel: isNovel,
           );
     unawaited(context.push(target));
