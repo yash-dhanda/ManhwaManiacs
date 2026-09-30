@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../skins/glass/library/library_rig.dart';
 import '../../features/library/shelf_fixtures.dart';
+import '../../skins/glass/library/library_rig.dart';
 import '../support/shot_harness.dart';
 import '../support/skin_shots.dart';
 
