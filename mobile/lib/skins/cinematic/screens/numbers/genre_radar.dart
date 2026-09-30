@@ -45,7 +45,7 @@ class GenreRadar extends StatelessWidget {
       );
     }
     final kicker = CineText.style(context, t.typeKicker)
-        .copyWith(color: CineColors.ink45)
+        .copyWith(color: context.cine.colorInk45)
         .copyWith(fontSize: 10);
     final summary = genreSummary(list);
     final full = size + 96;

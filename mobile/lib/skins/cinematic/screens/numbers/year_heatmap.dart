@@ -63,7 +63,7 @@ class _YearHeatmapState extends State<YearHeatmap> {
     const w = 53 * (_kCell + _kGap) - _kGap;
     const h = _kTop + 7 * (_kCell + _kGap) - _kGap;
     final folio =
-        CineText.style(context, t.typeFolio).copyWith(color: CineColors.ink45);
+        CineText.style(context, t.typeFolio).copyWith(color: context.cine.colorInk45);
     final selDay =
         widget.selected != null && widget.selected! < widget.daily.length
             ? widget.daily[widget.selected!]
@@ -230,7 +230,7 @@ class _Legend extends StatelessWidget {
                       size: const Size(_kCell, _kCell),
                       painter: _FormPainter(i),),
                   const SizedBox(width: 4),
-                  CineRoleText(labels[i], t.typeFolio, color: CineColors.ink45),
+                  CineRoleText(labels[i], t.typeFolio, color: context.cine.colorInk45),
                 ],
               ),
           ],

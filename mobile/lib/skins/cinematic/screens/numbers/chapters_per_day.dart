@@ -44,7 +44,7 @@ class ChaptersPerDay extends StatelessWidget {
         : daily[(selected ?? daily.length - 1).clamp(0, daily.length - 1)];
     final plotH = tablet ? 240.0 : 160.0;
     final folio =
-        CineText.style(context, t.typeFolio).copyWith(color: CineColors.ink45);
+        CineText.style(context, t.typeFolio).copyWith(color: context.cine.colorInk45);
     return Semantics(
       container: true,
       explicitChildNodes: true,

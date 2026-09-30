@@ -189,7 +189,7 @@ class _NumbersScreenState extends ConsumerState<NumbersScreen>
                                   Flexible(
                                       child: CineRoleText(
                                           'No. 10 — THE NUMBERS', t.typeKicker,
-                                          color: CineColors.ink45,
+                                          color: context.cine.colorInk45,
                                           maxLines: 2,),),
                                   if (current?.offline ?? false) ...[
                                     const SizedBox(width: 8),
