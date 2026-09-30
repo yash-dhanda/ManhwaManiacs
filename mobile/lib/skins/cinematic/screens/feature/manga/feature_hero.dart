@@ -10,7 +10,7 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_date.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/ambient_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.dart';

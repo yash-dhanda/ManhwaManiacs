@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
+import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 
 class LibraryRepositoryImpl implements LibraryRepository {
@@ -281,6 +282,7 @@ class LibraryRepositoryImpl implements LibraryRepository {
   Future<Result<Collection>> createCollection({
     required String name,
     String? description,
+    ShelfRules? rules,
   }) =>
       _request(
         () => _dio.post<Map<String, dynamic>>(
@@ -289,6 +291,7 @@ class LibraryRepositoryImpl implements LibraryRepository {
             'name': name,
             if (description != null && description.isNotEmpty)
               'description': description,
+            if (rules != null) 'rules': rules.toJson(),
           },
         ),
         Collection.fromJson,
@@ -300,6 +303,8 @@ class LibraryRepositoryImpl implements LibraryRepository {
     String? name,
     String? description,
     int? sortOrder,
+    ShelfRules? rules,
+    bool clearRules = false,
   }) =>
       _request(
         () => _dio.patch<Map<String, dynamic>>(
@@ -308,10 +313,31 @@ class LibraryRepositoryImpl implements LibraryRepository {
             if (name != null) 'name': name,
             if (description != null) 'description': description,
             if (sortOrder != null) 'sort_order': sortOrder,
+            if (rules != null) 'rules': rules.toJson() else if (clearRules) 'rules': null,
           },
         ),
         Collection.fromJson,
       );
+
+  @override
+  Future<Result<void>> reorderCollectionMembers(
+    int collectionId,
+    List<({String sourceId, String seriesKey})> items,
+  ) async {
+    try {
+      await _dio.put<void>(
+        '/library/collections/$collectionId/series/order',
+        data: {
+          'items': [for (final i in items) {'source_id': i.sourceId, 'series_key': i.seriesKey}],
+        },
+      );
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(_extractError(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
 
   @override
   Future<Result<void>> deleteCollection(int collectionId) async {

@@ -29,7 +29,6 @@ import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
 import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_contents.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_front_matter.dart';
@@ -49,6 +48,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/chapters_pan
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_actions.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_overflow.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/previously_on_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/series_ambient.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
@@ -426,8 +426,8 @@ class _BookViewState extends ConsumerState<BookView> {
                 : (s.chapterCount > 0 ? ContentsNoticeKind.unavailable : ContentsNoticeKind.empty))
             : (shown.isEmpty && _narratedOnly ? ContentsNoticeKind.empty : null));
 
-    return CineAmbient(
-      target: CineAmbientColors.forSeries('${d.sourceId}/${d.seriesKey}'),
+    return SeriesAmbient(
+      seriesKey: '${d.sourceId}/${d.seriesKey}',
       builder: (context, amb) => ListenableBuilder(
         listenable: _selection,
         builder: (context, _) => PopScope(

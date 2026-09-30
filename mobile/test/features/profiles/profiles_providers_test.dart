@@ -70,7 +70,7 @@ class _FakeProfilesRepository implements ProfilesRepository {
     Mood? mood,
     int? sortOrder,
     bool? matureContentEnabled,
-    String? skin,
+    String? skin, bool? notifyEnabled,
   }) async {
     calls.add('update');
     final updated = _profile(

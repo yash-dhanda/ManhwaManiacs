@@ -23,10 +23,10 @@ void main() {
   String name(String loc) => leaf(loc).name ?? leaf(loc).path;
 
   test('static /library/... paths win over /library/:followedId', () {
-    expect(name('/library/history'), 'pending.history');
-    expect(name('/library/bookmarks'), 'pending.bookmarks');
-    expect(name('/library/collections'), 'pending.collections');
-    expect(name('/library/collections/7'), 'pending.collection');
+    expect(name('/library/history'), 'history');
+    expect(name('/library/bookmarks'), 'bookmarks');
+    expect(name('/library/collections'), 'collections');
+    expect(name('/library/collections/7'), 'collection');
     expect(name('/library/recommendations'), 'picks');
     expect(name('/library/statistics'), 'pending.numbers');
     expect(name('/library/statistics/annual/2026'), 'pending.annual');

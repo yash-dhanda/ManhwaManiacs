@@ -20,6 +20,7 @@ import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/utils/library_preferences.dart';
+import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/sources/models/series_enrichment.dart';
@@ -155,6 +156,7 @@ class _FakeLibraryRepository implements LibraryRepository {
   Future<Result<Collection>> createCollection({
     required String name,
     String? description,
+    ShelfRules? rules,
   }) =>
       throw UnimplementedError();
 
@@ -164,6 +166,8 @@ class _FakeLibraryRepository implements LibraryRepository {
     String? name,
     String? description,
     int? sortOrder,
+    ShelfRules? rules,
+    bool clearRules = false,
   }) =>
       throw UnimplementedError();
 

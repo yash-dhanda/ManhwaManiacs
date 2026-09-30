@@ -162,6 +162,30 @@ class UpdatesRepositoryImpl implements UpdatesRepository {
     }
   }
 
+  @override
+  Future<Result<UpdateRun>> getRun(int runId) async {
+    try {
+      final r = await _dio.get<Map<String, dynamic>>('/updates/runs/$runId');
+      return Ok(UpdateRun.fromJson(r.data!));
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<List<String>>> listUpdateSources() async {
+    try {
+      final r = await _dio.get<List<dynamic>>('/updates/sources');
+      return Ok([for (final e in r.data ?? const []) if (e is Map && e['id'] is String) e['id'] as String]);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
   AppError _err(DioException e) {
     if (e.error is AppError) return e.error! as AppError;
     return UnknownError(message: e.message ?? 'Dio error', cause: e);

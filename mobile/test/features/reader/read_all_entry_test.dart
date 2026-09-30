@@ -127,6 +127,12 @@ class _FakeSourcesRepository implements SourcesRepository {
 }
 
 class _FakeUpdatesRepository implements UpdatesRepository {
+
+  @override
+  Future<Result<UpdateRun>> getRun(int runId) => throw UnimplementedError();
+
+  @override
+  Future<Result<List<String>>> listUpdateSources() async => const Ok(<String>[]);
   @override
   Future<Result<List<UpdateNotification>>> listNotifications({
     bool unreadOnly = false,

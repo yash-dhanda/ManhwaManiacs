@@ -258,11 +258,15 @@ class _CineAppFrameState extends ConsumerState<CineAppFrame> {
                           onHeight: (h) {
                             if ((h - _bannerHeight).abs() > 0.5) setState(() => _bannerHeight = h);
                           },
-                          child: CineStopPressBanner(
-                            chapters: banner.chapters,
-                            series: banner.series,
-                            onRead: () => router.go('/updates'),
-                            onDismiss: () => ref.read(stopPressDismissedProvider.notifier).state = banner.maxId,
+                          // The banner sits above the router's Navigator, so its Dismiss tooltip needs an
+                          // Overlay of its own; `Overlay.wrap` takes the size of its child.
+                          child: Overlay.wrap(
+                            child: CineStopPressBanner(
+                              chapters: banner.chapters,
+                              series: banner.series,
+                              onRead: () => router.go('/updates'),
+                              onDismiss: () => ref.read(stopPressDismissedProvider.notifier).state = banner.maxId,
+                            ),
                           ),
                         ),
                       ),

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/store/bookmarks_dao.dart';
@@ -11,6 +12,18 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 /// (`BOOKMARK_BATCH_MAX_ITEMS`). A flush with more than this to say sends
 /// several batches rather than taking one 413 for the lot.
 const int kBookmarkBatchMaxItems = 200;
+
+/// The server refused an edit because the bookmark was deleted on another device
+/// (`409 bookmark_deleted`, or a batch item it rejected against a tombstone).
+class BookmarkDeletedElsewhere implements Exception {
+  const BookmarkDeletedElsewhere(this.clientId);
+  final String clientId;
+  @override
+  String toString() => 'BookmarkDeletedElsewhere($clientId)';
+}
+
+/// Whether [error] is the server's `409 bookmark_deleted`.
+bool isBookmarkDeleted(AppError error) => error is ApiError && error.code == 'bookmark_deleted';
 
 /// Bookmarks, offline-first — the bookmark half of what
 /// [ProgressOutboxController] does for reading positions, and deliberately
@@ -104,6 +117,56 @@ class BookmarkOutboxController {
       updatedAt: now,
     );
     final saved = await store.saveBookmark(bookmark);
+    if (await flush()) await _reconcile();
+    return saved;
+  }
+
+  /// Sets (or, with an empty [note], clears) the note of [bookmark]: written to the device and
+  /// queued as one upsert (`POST /reader/bookmarks/batch`) at once, pushed best-effort.
+  ///
+  /// Throws [BookmarkDeletedElsewhere] when the push was refused and the server's own answer
+  /// shows the bookmark gone (a tombstone from another device); the device row is then dropped.
+  Future<Bookmark?> setNote(Bookmark bookmark, String note) async {
+    final store = this.store;
+    if (store == null) return null;
+    final saved = await store.saveBookmark(
+      bookmark.copyWith(note: note.trim(), updatedAt: DateTime.now().toUtc()),
+    );
+    if (saved == null) throw BookmarkDeletedElsewhere(bookmark.clientId);
+    if (await flush()) {
+      await _reconcile();
+      final live = await store.listBookmarks();
+      if (!live.any((b) => b.clientId == bookmark.clientId)) {
+        throw BookmarkDeletedElsewhere(bookmark.clientId);
+      }
+    }
+    return saved;
+  }
+
+  /// Undo for a remove: the same bookmark, every field, as a fresh upsert. A tombstone is
+  /// terminal on both sides, so it comes back under a new client id.
+  Future<Bookmark?> restore(Bookmark bookmark) async {
+    final store = this.store;
+    if (store == null) return null;
+    final now = DateTime.now().toUtc();
+    final fresh = Bookmark(
+      clientId: Bookmark.mintClientId(),
+      sourceId: bookmark.sourceId,
+      seriesKey: bookmark.seriesKey,
+      chapterKey: bookmark.chapterKey,
+      seriesTitle: bookmark.seriesTitle,
+      chapterNumber: bookmark.chapterNumber,
+      mediaType: bookmark.mediaType,
+      anchorIndex: bookmark.anchorIndex,
+      anchorFraction: bookmark.anchorFraction,
+      anchorTotal: bookmark.anchorTotal,
+      snippet: bookmark.snippet,
+      anchorStale: bookmark.anchorStale,
+      note: bookmark.note,
+      createdAt: bookmark.createdAt,
+      updatedAt: now,
+    );
+    final saved = await store.saveBookmark(fresh);
     if (await flush()) await _reconcile();
     return saved;
   }

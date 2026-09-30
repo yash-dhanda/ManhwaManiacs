@@ -29,7 +29,7 @@ Whole suite after the fix pass and the merge of the integration branch: 2317 pas
 
 ## 6. Open issues and choices
 
-- mobile/04-10 are not integrated: the primitives above are local stand-ins marked `TODO(mobile/NN)` (`CineDownloadMark`, `CineFocusRing`, `SetHeading`, `CineAmbient`, `CineMatchCutPage`, `ReaderPrefetch`, `enterReader`, `CineSegmented`, sheets as modal bottom sheets, `TagsController`, `manualReadRows`, `deleteProgress`). Predictive back paints only the fade-through function, not the platform gesture.
+- Restart pass: mobile/04-10 are integrated; the local `CineFocusRing`, `CineSegmented` and `CineAmbient` stand-ins are deleted for the shared `focus_ring.dart`, `CineSegmentedControl` and `ambient_scope.dart` (`SeriesAmbient` mounts on the fallback and takes the series colours one frame later for the 800 ms wash). `CineDownloadMark` here stays: it takes the model's `DownloadMarkState` and tooltip, the shared one has another state set. Whole suite 4814 passed, 0 failed. Predictive back paints only the fade-through function, not the platform gesture.
 - Series payload carries no `ambient`, source URL or health: the ambient colours derive from a hash of the series key, `Open the source's page` and the 6 px health mark are absent.
 - Long-press outside select mode opens the row menu (DESIGN §11 wins over §8.19); in select mode it selects the range.
 - Counts on labels are plain figures (` 201`): the bundled Archivo has no superscript zero.

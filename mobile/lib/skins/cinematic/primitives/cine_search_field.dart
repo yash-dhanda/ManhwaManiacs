@@ -148,7 +148,16 @@ class _CineSearchFieldState extends State<CineSearchField> with SingleTickerProv
           cursorRadius: Radius.zero,
           onChanged: widget.onChanged,
           onSubmitted: widget.onSubmitNow,
-          decoration: InputDecoration.collapsed(hintText: widget.placeholder, hintStyle: hintStyle),
+          // The compact field's text node is as tall as its hit box (44 pt / 48 dp).
+          decoration: index
+              ? InputDecoration.collapsed(hintText: widget.placeholder, hintStyle: hintStyle)
+              : InputDecoration(
+                  border: InputBorder.none,
+                  isCollapsed: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: (cineHitMin(context) - 20) / 2),
+                  hintText: widget.placeholder,
+                  hintStyle: hintStyle,
+                ),
         ),
       ),
       if (index && empty && !_focused)

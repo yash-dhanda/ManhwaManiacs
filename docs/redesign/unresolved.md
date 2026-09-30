@@ -63,3 +63,8 @@ No unresolved items.
 
 - (fix attempted, not re-checked) Acceptance: every baseline-passing test still passes; flutter test 0 failed
 - (fix attempted, not re-checked) C3 Ambient row: guided auto-advance 'fixed-hold stepper 2-10 s step 0.5'
+- mobile/22 MUST add its Circle providers to the mature-gate invalidators and delete 'circle_service' from noClientCache in mobile/test/features/settings/mature_invalidators_test.dart
+
+## mobile/11
+
+None reported by the verifier.

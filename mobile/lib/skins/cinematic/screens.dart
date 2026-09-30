@@ -5,12 +5,16 @@ import 'package:manhwamaniacs/skins/cinematic/screens/admin/status_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/setup_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/bookmarks/bookmarks_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/collections/collection_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/collections/collections_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/dialogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/sources_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/downloads/downloads_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/history/history_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/index/index_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/library_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/picks_screen.dart';
@@ -20,6 +24,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_manage_s
 import 'package:manhwamaniacs/skins/cinematic/screens/recap/recap_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/updates/updates_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/pending_screen.dart';
@@ -33,6 +38,11 @@ import 'package:manhwamaniacs/skins/pending_screen.dart';
 final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.tonight: (context, state) => const TonightScreen(),
   ScreenId.library: (context, state) => LibraryScreen(params: state.uri.queryParameters, browse: state.uri.path == '/library/browse'),
+  ScreenId.updates: (context, state) => const UpdatesScreen(),
+  ScreenId.collections: (context, state) => const CollectionsScreen(),
+  ScreenId.collection: (context, state) => CollectionScreen(collectionId: int.tryParse(state.pathParameters['id'] ?? '') ?? -1),
+  ScreenId.history: (context, state) => const HistoryScreen(),
+  ScreenId.bookmarks: (context, state) => const BookmarksScreen(),
   ScreenId.setup: (context, state) => const SetupScreen(),
   ScreenId.login: (context, state) => const LoginScreen(),
   ScreenId.register: (context, state) => const RegisterScreen(),

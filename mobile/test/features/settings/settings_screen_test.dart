@@ -26,6 +26,7 @@ import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dar
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
+import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest_window.dart';
@@ -209,6 +210,7 @@ class _EmptyLibraryRepository implements LibraryRepository {
   Future<Result<Collection>> createCollection({
     required String name,
     String? description,
+    ShelfRules? rules,
   }) =>
       throw UnimplementedError();
 
@@ -218,6 +220,8 @@ class _EmptyLibraryRepository implements LibraryRepository {
     String? name,
     String? description,
     int? sortOrder,
+    ShelfRules? rules,
+    bool clearRules = false,
   }) =>
       throw UnimplementedError();
 
@@ -340,6 +344,12 @@ class _EmptyReaderRepository implements ReaderRepository {
 }
 
 class _EmptyUpdatesRepository implements UpdatesRepository {
+
+  @override
+  Future<Result<UpdateRun>> getRun(int runId) => throw UnimplementedError();
+
+  @override
+  Future<Result<List<String>>> listUpdateSources() async => const Ok(<String>[]);
   @override
   Future<Result<List<UpdateNotification>>> listNotifications({
     bool unreadOnly = false,

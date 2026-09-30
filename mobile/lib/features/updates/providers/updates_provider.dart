@@ -4,6 +4,7 @@ import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/utils/all_followed.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
+import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 class UpdatesState {
@@ -64,6 +65,26 @@ final updateCheckPollDelaysProvider = Provider<List<Duration>>(
   ],
   name: 'updateCheckPollDelays',
 );
+
+/// The global update-check settings (interval, last run, notices on), read once per visit.
+final updateSettingsProvider = FutureProvider.autoDispose<UpdateSettings>((ref) async {
+  final r = await ref.watch(updatesRepositoryProvider).getSettings();
+  if (r.isErr) throw r.error;
+  return r.value;
+}, name: 'updateSettings',);
+
+/// The ids of the browsable sources the Updates source filter offers.
+final updateSourcesProvider = FutureProvider.autoDispose<List<String>>((ref) async {
+  final r = await ref.watch(updatesRepositoryProvider).listUpdateSources();
+  if (r.isErr) throw r.error;
+  return r.value;
+}, name: 'updateSources',);
+
+/// Notification ids whose folios have already typed themselves this session (not persisted).
+final seenUpdateIdsProvider = StateProvider<Set<int>>((ref) => const {}, name: 'seenUpdateIds');
+
+/// How often an admin's running check is polled (`GET /updates/runs/{id}`). An override point for tests.
+final updateRunPollIntervalProvider = Provider<Duration>((ref) => const Duration(seconds: 2), name: 'updateRunPollInterval');
 
 class UpdatesNotifier extends AutoDisposeAsyncNotifier<UpdatesState> {
   /// Riverpod 2.6 has no `ref.mounted`, and a queued check's follow-up looks

@@ -22,11 +22,6 @@ import 'package:manhwamaniacs/skins/skins.dart';
 // ignore: constant_identifier_names
 const Set<ScreenId> PENDING = {
   ScreenId.onboarding,
-  ScreenId.updates,
-  ScreenId.collections,
-  ScreenId.collection,
-  ScreenId.history,
-  ScreenId.bookmarks,
   ScreenId.numbers,
   ScreenId.annual,
   ScreenId.circle,
@@ -89,7 +84,7 @@ List<RouteBase> _shellRoutes() => [
                   for (final a in Routes.libraryAliases) _route(ScreenId.library, _Move.cut, path: a),
                 ]),
                 _branch([_route(ScreenId.updates, _Move.cut)]),
-                _branch([_route(ScreenId.collections, _Move.cut), _route(ScreenId.collection, _Move.page)]),
+                _branch([_route(ScreenId.collections, _Move.cut), _route(ScreenId.collection, _Move.match)]),
                 _branch([_route(ScreenId.history, _Move.cut)]),
                 _branch([_route(ScreenId.bookmarks, _Move.cut)]),
               ],
