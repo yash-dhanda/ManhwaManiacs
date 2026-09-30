@@ -31,13 +31,17 @@ class GlassBarAction {
       required this.glyph,
       required this.onPress,
       this.badge,
-      this.foldable = false,});
+      this.foldable = false,
+      this.iconBuilder,});
   final String id;
   final String label;
   final Glyph glyph;
   final VoidCallback onPress;
   final int? badge;
   final bool foldable;
+
+  /// Replaces the glyph with a widget (an animated bell); [glyph] stays the label's twin for menus.
+  final WidgetBuilder? iconBuilder;
 
   GlassButtonIcon get icon => GlassButtonIcon.glyph(glyph);
 }
@@ -58,6 +62,8 @@ class GlassScaffold extends ConsumerStatefulWidget {
     this.ambient,
     this.mature = false,
     this.routeKey,
+    this.largeTitleOverride,
+    this.refreshSliver,
   });
 
   final String title;
@@ -73,6 +79,13 @@ class GlassScaffold extends ConsumerStatefulWidget {
 
   /// The page key of the route this scaffold is the page of (the stack overview captures it).
   final String? routeKey;
+
+  /// A custom first sliver that stands in for the large title (Home's typed greeting); it collapses into the title capsule as it
+  /// scrolls under the nav row like the stock large title.
+  final Widget? largeTitleOverride;
+
+  /// A sliver placed first in the scroll view (a `GlassPullToRefresh`).
+  final Widget? refreshSliver;
 
   @override
   ConsumerState<GlassScaffold> createState() => _GlassScaffoldState();
@@ -140,10 +153,13 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
       physics: glassScrollPhysics,
       keyboardDismissBehavior: glassKeyboardDismiss,
       slivers: [
+        if (widget.refreshSliver != null) widget.refreshSliver!,
         SliverPadding(
             padding:
                 EdgeInsets.only(top: insets.top - (widget.largeTitle ? 0 : 0)),),
-        if (widget.largeTitle)
+        if (widget.largeTitle && widget.largeTitleOverride != null)
+          SliverToBoxAdapter(child: Padding(padding: EdgeInsets.symmetric(horizontal: margin), child: widget.largeTitleOverride))
+        else if (widget.largeTitle)
           SliverToBoxAdapter(child: Padding(padding: EdgeInsets.symmetric(horizontal: margin), child: GlassLargeTitle(title: widget.title, margin: margin, offset: _offset))),
         SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: margin),
