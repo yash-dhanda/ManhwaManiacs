@@ -38,7 +38,7 @@ final audioSessionProbeProvider = Provider<ValueNotifier<AudioSessionProbe>>((re
 Future<void> _probeCategory({required bool afterInit}) async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
   try {
-    final c = (await AVAudioSession().category)?.name ?? 'none';
+    final c = (await AVAudioSession().category).name;
     final now = DateTime.now();
     final p = audioSessionProbe.value;
     audioSessionProbe.value = afterInit
