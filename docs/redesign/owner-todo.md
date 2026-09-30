@@ -139,3 +139,4 @@ Items only the owner can do, by step.
 
 ## mobile/22
 - Run docs/redesign/proof/mobile-22/device-checklist.md on two devices/profiles.
+- mobile/28: run docs/redesign/proof/mobile-28/device-check.md on an iPhone (SideStore) and the Android flagship.
