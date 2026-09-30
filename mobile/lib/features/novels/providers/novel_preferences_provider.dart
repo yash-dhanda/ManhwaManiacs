@@ -51,6 +51,8 @@ class NovelPreferences {
   double? get storedLeading => hasLineHeight ? clampCineLeading((raw['lineHeight'] as num).toDouble()) : null;
   double? get storedMeasure => hasMeasure ? clampCineMeasure((raw['measure'] as num).toDouble()) : null;
   double get paragraphSpacing => raw['paragraphSpacing'] is num ? clampParagraphSpacing((raw['paragraphSpacing'] as num).toDouble()) : 0;
+  /// Auto-scroll speed for this book (0.50-3.00x); null falls back to the Settings default.
+  double? get autoScrollSpeedX => raw['autoScrollSpeedX'] is num ? ((raw['autoScrollSpeedX'] as num).toDouble()).clamp(0.5, 3.0) : null;
   double get letterSpacing => raw['letterSpacing'] is num ? clampLetterSpacing((raw['letterSpacing'] as num).toDouble()) : 0;
 
   NovelPreferences copyWith({
