@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/library/providers/intelligence_providers.
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/tags_provider.dart';
+import 'package:manhwamaniacs/features/onboarding/providers/onboarding_providers.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
@@ -50,6 +51,9 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   (ref) => ref.invalidate(genreWeightsProvider),
   // Cards dismissed with Not for me live for the app session, per profile.
   (ref) => ref.invalidate(dismissedPicksProvider),
+  // The onboarding catalog and its similar-seed answers (per profile and gate).
+  (ref) => ref.invalidate(onboardingCatalogProvider),
+  (ref) => ref.invalidate(similarSeedsProvider),
   // Bookmarks.
   (ref) => ref.invalidate(bookmarksProvider),
   // Per-series detail (progress/bookmark state, and the `is_followed` /

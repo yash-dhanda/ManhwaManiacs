@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/utils/rerank.dart';
+import 'package:manhwamaniacs/skins/cinematic/flight.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_poster.dart';
@@ -36,6 +37,9 @@ class PostersSection extends ConsumerStatefulWidget {
 
 class _PostersSectionState extends ConsumerState<PostersSection> {
   final Set<int> _fading = {}, _gone = {};
+  final GlobalKey _railKey = GlobalKey();
+  bool _landed = false;
+  int _landTries = 0;
 
   HomeSection get _s => widget.plan.section;
 
@@ -104,7 +108,41 @@ class _PostersSectionState extends ConsumerState<PostersSection> {
       roman: _roman(),
       itemBuilder: (context, i, w, node) => _poster(context, items[i].$1, items[i].$2, node: node),
     );
-    return Padding(padding: EdgeInsets.only(bottom: tonightWide(context) ? 64 : 40), child: rail);
+    if (s.type == HomeSectionType.firstPicks) _watchFlight();
+    return Padding(padding: EdgeInsets.only(bottom: tonightWide(context) ? 64 : 40), child: KeyedSubtree(key: _railKey, child: rail));
+  }
+
+  /// Cut to home: once this rail has laid out with the flying posters' slots, tell the flight where
+  /// they are. A slot the rail has not built (past its right edge) lands at the rail's right edge.
+  void _watchFlight() {
+    final f = ref.watch(cineFlightProvider);
+    if (f.status != FlightStatus.armed || _landed) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _landed || ref.read(cineFlightProvider).status != FlightStatus.armed) return;
+      final rail = _railKey.currentContext?.findRenderObject() as RenderBox?;
+      if (rail == null || !rail.hasSize) return;
+      final railRect = rail.localToGlobal(Offset.zero) & rail.size;
+      final targets = <String, Rect>{};
+      Rect? first;
+      for (final it in f.items) {
+        final box = flightSlotKey(it.key).currentContext?.findRenderObject() as RenderBox?;
+        if (box != null && box.hasSize) {
+          final r = box.localToGlobal(Offset.zero) & box.size;
+          targets[it.key] = r;
+          first ??= r;
+        }
+      }
+      if (first == null) {
+        // The rail has not built the slots yet: look again shortly (the flight's fail-safe ends it).
+        if (_landTries++ < 40) Future<void>.delayed(const Duration(milliseconds: 50), () => mounted ? setState(() {}) : null);
+        return;
+      }
+      for (final it in f.items) {
+        targets.putIfAbsent(it.key, () => Rect.fromLTWH(railRect.right, first!.top, first.width, first.height));
+      }
+      _landed = true;
+      ref.read(cineFlightProvider.notifier).land(targets);
+    });
   }
 
   Widget _poster(BuildContext context, int index, Object item, {FocusNode? node}) {
@@ -178,7 +216,10 @@ class _PostersSectionState extends ConsumerState<PostersSection> {
     } else if (type == HomeSectionType.firstPicks) {
       folio = 'NOT STARTED';
     }
-    return CineQuickLookTarget(
+    final slotKey = type == HomeSectionType.firstPicks ? _slotId(item) : null;
+    final hidden = slotKey != null && ref.watch(cineFlightProvider).hides(slotKey);
+    Widget slot(Widget child) => slotKey == null ? child : KeyedSubtree(key: flightSlotKey(slotKey), child: Opacity(opacity: hidden ? 0 : 1, child: child));
+    return slot(CineQuickLookTarget(
       onOpen: () => unawaited(openPickQuickLook(context, ref, item, entry: widget.env.entry, heroTag: tag, onNotForMe: () => _notForMe(index))),
       child: CinePoster(
         title: item.title,
@@ -196,7 +237,15 @@ class _PostersSectionState extends ConsumerState<PostersSection> {
           openPick(context, item);
         },
       ),
-    );
+    ),);
+  }
+
+  /// `'{source_id}:{series_key}'`, the flight's key for a pick that can be followed.
+  String? _slotId(HomePickItem item) {
+    final a = item.world?.available.firstOrNull;
+    if (a != null) return '${a.sourceId}:${a.seriesKey}';
+    final s = item.source;
+    return s == null ? null : '${s.sourceId}:${s.id}';
   }
 }
 

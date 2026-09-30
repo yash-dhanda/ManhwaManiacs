@@ -10,6 +10,8 @@ import 'package:manhwamaniacs/app/switch_skin.dart' show restartInto;
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
+import 'package:manhwamaniacs/features/onboarding/providers/onboarding_providers.dart';
+import 'package:manhwamaniacs/features/onboarding/store/onboarding_draft.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
@@ -122,21 +124,27 @@ class _ProfilePickerScreenState extends ConsumerState<ProfilePickerScreen> with 
     await shutter?.irisClose(center, size / 2);
     if (!mounted) return;
     cineFeedback(context, HapticEvent.profileSelect);
+    await ref.read(activeProfileProvider.notifier).select(p);
+    if (!mounted) return;
+    // A finished save that never reached the server counts as done: send it now (mobile/20).
+    final store = ref.read(onboardingStoreProvider);
+    final pendingDone = store.readPending() != null;
+    if (pendingDone) unawaited(store.flushPending(p.id, ref.read(onboardingRepositoryProvider)));
     final outcome = decidePickerOutcome(
       profile: p,
       runningSkin: ref.read(skinIdProvider).name,
       glassAvailable: Flags.glassAvailable,
       onboardingBuilt: ref.read(onboardingBuiltProvider),
+      pendingDone: pendingDone,
     );
-    await ref.read(activeProfileProvider.notifier).select(p);
-    if (!mounted) return;
     if (outcome.kind == PickerOutcomeKind.restartSkin) {
       // Inside the black: mirror + return route '/' through mobile/01's restart path, no confirm.
       await restartInto(context, ref, skin: SkinId.values.byName(p.skin!), returnRoute: '/');
       return;
     }
     ref.read(profileSessionReadyProvider.notifier).enter();
-    context.go(outcome.kind == PickerOutcomeKind.onboarding ? outcome.route : Routes.tonight());
+    // The iris out opens onboarding itself: no Dip under it.
+    context.go(outcome.kind == PickerOutcomeKind.onboarding ? outcome.route : Routes.tonight(), extra: const {'transition': 'cut'});
     unawaited(shutter?.irisOut(center, duration: _skipped ? const Duration(milliseconds: 120) : null));
   }
 

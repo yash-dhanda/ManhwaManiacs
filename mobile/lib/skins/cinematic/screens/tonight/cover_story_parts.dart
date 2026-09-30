@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/skins/cinematic/cine_grain.dart';
+import 'package:manhwamaniacs/skins/cinematic/flight.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
@@ -135,17 +137,21 @@ class CoverKicker extends StatelessWidget {
 
 /// The main headline: typed once a day (with the caret), else set at rest. Always a level-1
 /// heading whose label holds the whole string from the first frame.
-class TonightHeadline extends StatelessWidget {
+class TonightHeadline extends ConsumerWidget {
   const TonightHeadline({super.key, required this.data, required this.role});
   final CoverStoryData data;
   final CineTextRole role;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.cine;
     final style = CineText.style(context, role).copyWith(color: c.colorInk100);
     final text = data.feed.headline;
-    final Widget body = data.animateHeadline
+    // Cut to home (mobile/20): the headline waits, invisible but laid out, until the posters land.
+    final hold = ref.watch(cineFlightProvider.select((s) => s.active));
+    final Widget body = hold
+        ? Semantics(header: true, headingLevel: 1, label: text, excludeSemantics: true, child: Opacity(opacity: 0, child: Text(text, style: style, textScaler: CineText.scaler(context, role))))
+        : data.animateHeadline
         ? TypedHeadline(text, style: style, cap: role.cap, level: 1, controller: data.typed, onDone: data.onTyped)
         : Semantics(
             header: true,

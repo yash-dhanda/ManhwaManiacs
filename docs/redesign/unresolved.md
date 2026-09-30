@@ -77,3 +77,10 @@ None reported by the verifier.
 - (fix attempted, not re-checked) B9 World card widget at mobile/lib/skins/cinematic/primitives/world_card.dart, and B6 rails using it
 - (fix attempted, not re-checked) C5 suggested tags: reject token fades over 160 ms
 - (fix attempted, not re-checked) B1 / G stale badge from world recommendations
+
+## mobile/20 (cinematic onboarding, merged from redesign/M20)
+
+- (fix attempted, not re-checked) B7: backward swipe release settles with CinePagePhysics / CineSprings.release (504 ms)
+- (fix attempted, not re-checked) Acceptance: hardware keyboard, arrows move focus inside roving groups, and the 'Onboarding' group is listed in the ? sheet
+- (fix attempted, not re-checked) E2.2: the wall hides the flying posters in the same frame the flight layer paints copies (Visibility maintainSize/State/Animation)
+- (fix attempted, not re-checked) E2.6: Tonight holds its whole Front page moment (kicker, cover rack, headline, deck) until `landed`

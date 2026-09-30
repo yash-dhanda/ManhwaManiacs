@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/flight.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart';
@@ -283,7 +284,9 @@ class _TonightFeedState extends ConsumerState<TonightFeed> {
     return Focus(
       focusNode: widget.headlineFocus,
       skipTraversal: true,
-      child: widget.animateHeadline
+      child: ref.watch(cineFlightProvider.select((s) => s.active))
+          ? Semantics(header: true, headingLevel: 1, label: feed.headline, excludeSemantics: true, child: Opacity(opacity: 0, child: Text(feed.headline, style: style, textScaler: CineText.scaler(context, role))))
+          : widget.animateHeadline
           ? TypedHeadline(feed.headline, style: style, cap: role.cap, level: 1, controller: _typed, onDone: widget.onTyped)
           : Semantics(header: true, headingLevel: 1, label: feed.headline, excludeSemantics: true, child: Text(feed.headline, style: style, textScaler: CineText.scaler(context, role))),
     );

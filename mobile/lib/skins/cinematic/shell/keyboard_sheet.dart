@@ -30,6 +30,7 @@ const List<String> cinematicShortcutGroupOrder = [
   'Circle',
   'Picks',
   'Profiles',
+  'Onboarding',
   'Settings',
   'System status',
   'Series page',
