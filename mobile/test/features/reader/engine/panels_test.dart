@@ -31,13 +31,14 @@ import 'package:manhwamaniacs/features/reader/engine/panels.dart';
 
 void main() {
   final spec = jsonDecode(File('../design/panel-vectors.json').readAsStringSync()) as Map<String, dynamic>;
-  for (final c in spec['cases'] as List) {
+  for (final c in (spec['cases'] as List).cast<Map<String, dynamic>>()) {
     test('panel vector ${c['id']}', () {
       final (w, h, g) = _decode(File('../design/${c['file']}').readAsBytesSync());
       final dir = c['direction'] == 'rtl' ? PanelDirection.rtl : PanelDirection.ltr;
       final got = detectPanels(g, w, h, dir).map((r) => [r.left, r.top, r.width, r.height]).toList();
       final want = [
-        for (final e in c['expected'] as List) [e['x'].toDouble(), e['y'].toDouble(), e['w'].toDouble(), e['h'].toDouble()],
+        for (final e in (c['expected'] as List).cast<Map<String, dynamic>>())
+          [(e['x'] as num).toDouble(), (e['y'] as num).toDouble(), (e['w'] as num).toDouble(), (e['h'] as num).toDouble()],
       ];
       expect(got, want);
     });

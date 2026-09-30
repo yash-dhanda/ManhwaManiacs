@@ -157,7 +157,7 @@ void main() {
 
   group('page seed parity (design/tint-vectors.json)', () {
     final spec = jsonDecode(File('../design/tint-vectors.json').readAsStringSync()) as Map<String, dynamic>;
-    for (final e in spec['samples'] as List) {
+    for (final e in (spec['samples'] as List).cast<Map<String, dynamic>>()) {
       test('seed ${e['id']}', () {
         expect(pickPageSeed(base64Decode(e['rgba'] as String)), e['expected']);
       });

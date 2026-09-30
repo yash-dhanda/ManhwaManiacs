@@ -426,7 +426,7 @@ void main() {
       );
       addTearDown(fresh.close);
 
-      expect(await upgraded.getVersion(), 5);
+      expect(await upgraded.getVersion(), 6);
 
       Future<List<String>> columns(Database db, String table) async => [
             for (final row in await db.rawQuery('PRAGMA table_info($table)'))
@@ -504,7 +504,7 @@ void main() {
         () async {
       final path = '${harness.tempDir.path}/roundtrip.db';
       final current = await openDownloadsDatabase(overridePath: path);
-      expect(await current.getVersion(), 5);
+      expect(await current.getVersion(), 6);
       await current.close();
 
       // An older sideloaded build: same tables it knows, version 1, and no

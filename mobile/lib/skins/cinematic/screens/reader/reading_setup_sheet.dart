@@ -31,15 +31,19 @@ Future<void> showReadingSetup(
   required VoidCallback onShowZones,
   String? pageActionsLabel,
   VoidCallback? onPageActions,
+  int initialTab = 0,
+  Color? topRule,
 }) =>
     showCineSheet<void>(
       context,
+      topRule: topRule,
       kicker: 'READING SETUP',
       title: seriesTitle,
       livePreview: true,
       builder: (sheetContext) => Material(
         type: MaterialType.transparency,
         child: ReadingSetupBody(
+          initialTab: initialTab,
           seriesRef: seriesRef,
           engine: engine,
           readAll: readAll,

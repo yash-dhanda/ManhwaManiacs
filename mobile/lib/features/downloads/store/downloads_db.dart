@@ -58,6 +58,11 @@ abstract final class DownloadsSchema {
   static const colBlobHash = 'blob_hash';
   static const colSize = 'size';
 
+  /// Per-page analysis the reader stores for a saved copy (schema v6): the page tint seed as
+  /// `#RRGGBB` and the panel rects as JSON `[[l,t,w,h],...]` in page fractions. NULL = not analysed.
+  static const colTint = 'tint';
+  static const colPanels = 'panels';
+
   static const colHash = 'hash';
   static const colRefcount = 'refcount';
 
@@ -101,7 +106,7 @@ abstract final class DownloadsSchema {
   static const colDeletedAt = 'deleted_at';
 }
 
-const _dbVersion = 5;
+const _dbVersion = 6;
 
 /// The `kind` column's two values. A row's own kind, not a lookup through the
 /// sources listing — the offline path has no listing, and a downloaded
@@ -181,6 +186,8 @@ Future<Database> openDownloadsDatabase({String? overridePath}) async {
           ${DownloadsSchema.colPageNumber} INTEGER NOT NULL,
           ${DownloadsSchema.colBlobHash} TEXT NOT NULL,
           ${DownloadsSchema.colSize} INTEGER NOT NULL,
+          ${DownloadsSchema.colTint} TEXT,
+          ${DownloadsSchema.colPanels} TEXT,
           PRIMARY KEY (
             ${DownloadsSchema.colScopeId},
             ${DownloadsSchema.colChapterRowId},
@@ -265,6 +272,12 @@ Future<void> _migrate(Database db, int oldVersion) async {
   // v4 → v5: the Listen sessions outbox. A new table and its index, nothing rewritten; `IF NOT
   // EXISTS` keeps it idempotent for the downgrade-reopen path.
   await _createListenSessionTable(db);
+  // v5 → v6: page tint and panels per saved page. Nullable, each skipped when already present.
+  for (final col in const [DownloadsSchema.colTint, DownloadsSchema.colPanels]) {
+    if (await _hasTable(db, DownloadsSchema.savedPages) && !await _hasColumn(db, DownloadsSchema.savedPages, col)) {
+      await db.execute('ALTER TABLE ${DownloadsSchema.savedPages} ADD COLUMN $col TEXT');
+    }
+  }
 }
 
 Future<void> _createListenSessionTable(Database db) async {

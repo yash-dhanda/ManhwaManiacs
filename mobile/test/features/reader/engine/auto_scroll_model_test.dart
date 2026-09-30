@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/animation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/reader/engine/auto_scroll_model.dart';
@@ -38,7 +37,7 @@ void main() {
     expect(panelHoldMs(null, GuidedHoldMode.paceByWords, 3500), 3500);
   });
   test('words counting', () {
-    final boxes = [OcrWordBox(const Rect.fromLTWH(0.1, 0.1, 0.2, 0.1), 'a b  c'), OcrWordBox(const Rect.fromLTWH(0.7, 0.7, 0.2, 0.1), 'x y')];
+    final boxes = [const OcrWordBox(Rect.fromLTWH(0.1, 0.1, 0.2, 0.1), 'a b  c'), const OcrWordBox(Rect.fromLTWH(0.7, 0.7, 0.2, 0.1), 'x y')];
     expect(wordsInRect(boxes, const Rect.fromLTWH(0, 0, 0.5, 0.5)), 3);
     expect(wordsInViewport({1: boxes}, (p, f) => Offset(f.dx * 100, f.dy * 100), const Rect.fromLTWH(0, 0, 50, 50)), 3);
   });

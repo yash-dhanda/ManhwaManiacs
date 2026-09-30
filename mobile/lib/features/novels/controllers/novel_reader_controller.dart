@@ -14,6 +14,8 @@ import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provider.dart';
+import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_snippet.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
@@ -220,6 +222,7 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
   late NovelChapterKey _current;
   late final ProgressOutboxController _progressOutbox;
   late final BookmarkOutboxController _bookmarkOutbox;
+  late final NovelPaceStore _pace;
   DownloadsStore? _downloadsStore;
   late final SourceProgressNotifier _localProgress;
   final ReadingClock _clock = ReadingClock(DateTime.now());
@@ -270,6 +273,7 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
     _progressOutbox = ref.read(progressOutboxControllerProvider);
     _bookmarkOutbox = ref.read(bookmarkOutboxControllerProvider);
     _downloadsStore = ref.read(downloadsStoreProvider);
+    _pace = ref.read(novelPaceStoreProvider);
     _localProgress = ref.read(sourceProgressProvider.notifier);
     ref.onDispose(_onDispose);
     _notAdvancedSub = _progressOutbox.notAdvanced.listen((k) => unawaited(_checkFurther(k)));
@@ -524,6 +528,11 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
     final chapter = state.chapter;
     if (chapter == null) return;
     final store = _downloadsStore;
+    final spent = _clock.elapsed(DateTime.now());
+    // A finished chapter feeds the profile's reading pace (auto-scroll's measured wpm).
+    if (position.completed) {
+      unawaited(_pace.recordCompletion(chapterKey: chapter.chapterKey, wordCount: chapter.wordCount, timeSpentSeconds: spent));
+    }
     await _progressOutbox.save(
       ProgressPush(
         sourceId: chapter.sourceId,
@@ -533,7 +542,7 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
         lastPage: position.bucket,
         pageCount: position.buckets,
         isCompleted: position.completed,
-        timeSpentSeconds: _clock.elapsed(DateTime.now()),
+        timeSpentSeconds: spent,
       ),
     );
     if (position.completed) {

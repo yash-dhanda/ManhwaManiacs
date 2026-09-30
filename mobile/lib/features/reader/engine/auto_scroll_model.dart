@@ -24,6 +24,13 @@ class RateRamp {
   double get rate => _from + (_to - _from) * curve(_t);
   double get target => _to;
 
+  /// Jumps to [to] with no ramp (a touch pauses at once).
+  void retargetImmediate(double to) {
+    _from = to;
+    _to = to;
+    _t = 1;
+  }
+
   void retarget(double to) {
     if (to == _to) return;
     _from = rate;

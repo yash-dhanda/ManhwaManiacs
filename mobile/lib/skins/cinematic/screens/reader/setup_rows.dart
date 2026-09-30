@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_settings_row.
 import 'package:manhwamaniacs/skins/cinematic/primitives/speed_ruler.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/paged_rules.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_kit.dart';
+import 'package:manhwamaniacs/skins/cinematic/soundscape/soundscape_picker.dart';
 
 /// Where a control is saved, as the caption under it (cinematic 8.14.8).
 abstract final class SavedScope {
@@ -47,6 +48,7 @@ class SetupCtx {
   final VoidCallback onShowZones;
 
   bool get paged => !readAll && (prefs.layout == 'single' || prefs.layout == 'double');
+  bool get guided => !readAll && prefs.layout == 'guided';
   bool get android => Theme.of(context).platform == TargetPlatform.android;
   bool get tablet => MediaQuery.sizeOf(context).width >= 600;
   ReaderSettingsNotifier get profile => ref.read(readerSettingsProvider.notifier);
@@ -67,7 +69,7 @@ class SetupTab {
   final List<SetupRow> rows;
 }
 
-const _layouts = ['strip', 'single', 'double'];
+const _layouts = ['strip', 'single', 'double', 'guided'];
 const _directions = ['ltr', 'rtl'];
 const _fits = ['width', 'height', 'original'];
 const _zoneValues = ['previous', 'menu', 'next'];
@@ -77,7 +79,7 @@ const _margins = [0, 5, 10, 15, 20, 25];
 final List<SetupRow> layoutRows = [
   (c) => c.readAll
       ? const SizedBox.shrink()
-      : segmentedRow('setup-layout', 'Layout', const ['STRIP', 'SINGLE', 'DOUBLE'], _layouts.contains(c.prefs.layout) ? _layouts.indexOf(c.prefs.layout) : 0,
+      : segmentedRow('setup-layout', 'Layout', const ['STRIP', 'SINGLE', 'DOUBLE', 'GUIDED'], _layouts.contains(c.prefs.layout) ? _layouts.indexOf(c.prefs.layout) : 0,
           (i) => unawaited(c.series.setFor(c.seriesRef, {'layout': _layouts[i]})),
           description: SavedScope.series,),
   (c) => segmentedRow('setup-direction', 'Direction', const ['LEFT TO RIGHT', 'RIGHT TO LEFT'], _directions.indexOf(c.prefs.direction),
@@ -176,14 +178,14 @@ final List<SetupRow> ambientRows = [
           id: 'setup-autoscroll',
           child: CineSettingsRow(
             label: 'Auto-scroll',
-            description: c.paged ? 'Auto-scroll needs the strip.' : SavedScope.session,
-            disabled: c.paged,
+            description: c.paged && !c.guided ? 'Auto-scroll needs the strip.' : SavedScope.session,
+            disabled: c.paged && !c.guided,
             control: CineButton(
               label: s.autoScrolling ? 'Pause' : 'Play',
               variant: CineButtonVariant.quiet,
               size: CineButtonSize.sm,
-              disabledReason: c.paged ? 'Auto-scroll needs the strip.' : null,
-              onPressed: c.paged ? null : c.engine.toggleAutoScroll,
+              disabledReason: c.paged && !c.guided ? 'Auto-scroll needs the strip.' : null,
+              onPressed: c.paged && !c.guided ? null : c.engine.toggleAutoScroll,
             ),
           ),
         ),
@@ -204,6 +206,30 @@ final List<SetupRow> ambientRows = [
         pxCaption: (x) => '≈ ${autoScrollPxPerSecondX(x, h).round()} PX/S',
       ),
     );
+  },
+  (c) => switchRow('setup-resume-after', 'Resume after I let go', c.ref.watch(readerSettingsProvider).resumeAfterRelease,
+      (v) => c.profile.put({'resumeAfterRelease': v}), description: 'Resumes 0.8 s after you lift your finger. ${SavedScope.profile}.',),
+  (c) {
+    final has = c.engine.ambient.hasDialogueText;
+    return switchRow('setup-pace-dialogue', 'Pace by dialogue', c.ref.watch(readerSettingsProvider).paceByDialogue, (v) => c.profile.put({'paceByDialogue': v}),
+        description: has ? 'Slows down on pages with more dialogue. ${SavedScope.profile}.' : "Needs this chapter's dialogue. Scan it from Downloads.",);
+  },
+  (c) => switchRow('setup-page-tint', 'Page-tinted chrome', c.ref.watch(readerSettingsProvider).pageTint, (v) => c.profile.put({'pageTint': v}),
+      description: SavedScope.profile,),
+  (c) => const SoundscapePicker(),
+  (c) => switchRow('setup-pause-narration', 'Pause the soundscape during narration', c.ref.watch(readerSettingsProvider).pauseSoundscapeForNarration,
+      (v) => c.profile.put({'pauseSoundscapeForNarration': v}), description: 'Otherwise it drops to 30 % while a chapter is read aloud.',),
+  (c) => switchRow('setup-guided-advance', 'Guided view auto-advance', c.ref.watch(readerSettingsProvider).guidedAutoAdvance.on,
+      (v) => c.profile.setGuided(on: v), description: SavedScope.profile,),
+  (c) {
+    final g = c.ref.watch(readerSettingsProvider).guidedAutoAdvance;
+    return segmentedRow('setup-guided-mode', 'Advance', const ['PACE BY WORDS', 'FIXED'], g.mode == 'FIXED' ? 1 : 0,
+        (i) => unawaited(c.profile.setGuided(mode: i == 1 ? 'FIXED' : 'PACE_BY_WORDS')), description: SavedScope.profile,);
+  },
+  (c) {
+    final g = c.ref.watch(readerSettingsProvider).guidedAutoAdvance;
+    return sliderRow('setup-guided-fixed', 'Fixed hold', g.fixedMs / 1000, (v) => unawaited(c.profile.setGuided(fixedMs: (v * 2).round() * 500)),
+        min: 2, max: 10, divisions: 16, flag: (v) => '${v.toStringAsFixed(1)} s', description: SavedScope.profile,);
   },
 ];
 

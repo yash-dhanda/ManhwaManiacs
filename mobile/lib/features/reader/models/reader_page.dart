@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show Rect;
 
 import 'package:manhwamaniacs/core/network/api_image.dart';
 
@@ -10,6 +11,8 @@ class ReaderPage {
     this.width,
     this.height,
     this.localFile,
+    this.tint,
+    this.panels,
   });
 
   final String id;
@@ -26,6 +29,12 @@ class ReaderPage {
   /// pages) or as the sole source when the chapter was rebuilt entirely from
   /// the store because the network fetch failed.
   final File? localFile;
+
+  /// The manifest's stored page tint (`#RRGGBB`), when a client reported one (mobile/23).
+  final String? tint;
+
+  /// The manifest's stored panels in page fractions; null = not analysed yet, empty = none.
+  final List<Rect>? panels;
 
   double? get aspectRatio {
     final w = width;
@@ -50,11 +59,14 @@ class ReaderPage {
           other.imageUrl == imageUrl &&
           other.width == width &&
           other.height == height &&
-          other.localFile?.path == localFile?.path;
+          other.localFile?.path == localFile?.path &&
+          other.tint == tint &&
+          (other.panels == null) == (panels == null) &&
+          (panels == null || other.panels!.length == panels!.length);
 
   @override
   int get hashCode =>
-      Object.hash(id, number, imageUrl, width, height, localFile?.path);
+      Object.hash(id, number, imageUrl, width, height, localFile?.path, tint, panels?.length);
 
   ReaderPage withLocalFile(File file) => ReaderPage(
         id: id,
@@ -63,6 +75,8 @@ class ReaderPage {
         width: width,
         height: height,
         localFile: file,
+        tint: tint,
+        panels: panels,
       );
 
   factory ReaderPage.fromJson(Map<String, dynamic> json, String apiBaseUrl) {
