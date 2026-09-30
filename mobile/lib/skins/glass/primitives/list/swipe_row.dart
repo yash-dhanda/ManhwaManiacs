@@ -49,8 +49,17 @@ class GlassSwipeSemantics extends InheritedWidget {
   const GlassSwipeSemantics({super.key, required this.actions, required super.child});
   final Map<CustomSemanticsAction, VoidCallback> actions;
 
-  static Map<CustomSemanticsAction, VoidCallback> of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<GlassSwipeSemantics>()?.actions ?? const {};
+  /// Every ancestor's actions, nearest last (a reorder list and a swipe row can wrap the same row).
+  static Map<CustomSemanticsAction, VoidCallback> of(BuildContext context) {
+    final out = <CustomSemanticsAction, VoidCallback>{};
+    context.dependOnInheritedWidgetOfExactType<GlassSwipeSemantics>();
+    context.visitAncestorElements((e) {
+      final w = e.widget;
+      if (w is GlassSwipeSemantics) out.addAll(w.actions);
+      return true;
+    });
+    return out;
+  }
 
   @override
   bool updateShouldNotify(GlassSwipeSemantics old) => old.actions.length != actions.length;

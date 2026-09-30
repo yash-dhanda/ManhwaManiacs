@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/list_row.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/list/reorder_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/swipe_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 
@@ -110,6 +111,74 @@ void main() {
       await pumpFor(tester, 600);
       expect(ran.last, 'undo-remove');
       h.dispose();
+    });
+  });
+
+  group('reorder', () {
+    Widget list(List<String> order, void Function(int, int) onReorder) => StatefulBuilder(
+          builder: (context, set) => SizedBox(
+            width: 390,
+            child: GlassReorderList<String>(
+              items: order,
+              nameOf: (s) => s,
+              onReorder: (a, b) {
+                onReorder(a, b);
+                set(() => order.insert(b, order.removeAt(a)));
+              },
+              itemBuilder: (context, item, i, info) => GlassListRow(title: item, onTap: () {}),
+            ),
+          ),
+        );
+
+    testWidgets('Alt+Down moves the focused row and announces it assertively', (tester) async {
+      final said = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockDecodedMessageHandler<dynamic>(SystemChannels.accessibility, (m) async {
+        if (m is Map && m['type'] == 'announce') said.add((m['data'] as Map)['message'] as String);
+        return null;
+      });
+      addTearDown(() => tester.binding.defaultBinaryMessenger.setMockDecodedMessageHandler<dynamic>(SystemChannels.accessibility, null));
+      final order = ['Solo Leveling', 'Tower of God', 'Omniscient', 'Lookism'];
+      final moves = <(int, int)>[];
+      await tester.pumpWidget(primHost(list(order, (a, b) => moves.add((a, b)))));
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.altLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.altLeft);
+      await pumpFor(tester, 300);
+      expect(moves, [(0, 1)]);
+      expect(order.first, 'Tower of God');
+      expect(said, ['Solo Leveling moved to position 2 of 4']);
+      // the moved row keeps focus, so the next Alt+Shift+Down goes to the bottom
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.altLeft);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.altLeft);
+      await pumpFor(tester, 300);
+      expect(order.last, 'Solo Leveling');
+      expect(said.last, 'Solo Leveling moved to position 4 of 4');
+    });
+
+    testWidgets('a 450 ms press opens the preview; a drag of 12 px lifts the row and a release drops it', (tester) async {
+      final order = ['A row', 'B row', 'C row', 'D row'];
+      final moves = <(int, int)>[];
+      await tester.pumpWidget(primHost(list(order, (a, b) => moves.add((a, b)))));
+      final g = await tester.startGesture(tester.getCenter(find.text('A row')));
+      await pumpFor(tester, 520);
+      expect(find.byKey(const ValueKey('glass-context-preview')), findsOneWidget);
+      await g.moveBy(const Offset(0, 12));
+      await pumpFor(tester, 100);
+      expect(find.byKey(const ValueKey('glass-reorder-lifted')), findsOneWidget);
+      expect(GlassHaptics.debugLog.map((e) => e.event), contains(HapticEvent.reorderLift));
+      await g.moveTo(tester.getCenter(find.text('C row')) + const Offset(0, 20));
+      await pumpFor(tester, 200);
+      expect(GlassHaptics.debugLog.map((e) => e.event), contains(HapticEvent.reorderPass));
+      await g.up();
+      await pumpFor(tester, 900);
+      expect(moves, [(0, 2)]);
+      expect(find.byKey(const ValueKey('glass-reorder-lifted')), findsNothing);
+      expect(order, ['B row', 'C row', 'A row', 'D row']);
     });
   });
 }

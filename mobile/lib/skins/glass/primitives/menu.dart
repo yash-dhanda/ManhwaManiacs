@@ -353,6 +353,7 @@ class GlassMenuSpec {
     this.previewRect,
     this.previewScale = 1,
     this.onPreviewDrag,
+    this.closeSignal,
   });
 
   final Rect anchor;
@@ -375,6 +376,9 @@ class GlassMenuSpec {
   final Rect? previewRect;
   final double previewScale;
   final ValueChanged<DragUpdateDetails>? onPreviewDrag;
+
+  /// Closes the menu when notified (a reorder lift takes the row over while the finger is still down).
+  final ChangeNotifier? closeSignal;
 }
 
 class _MenuOverlay extends ConsumerStatefulWidget {
@@ -402,6 +406,7 @@ class _MenuOverlayState extends ConsumerState<_MenuOverlay> with SingleTickerPro
   void initState() {
     super.initState();
     _prevFocus = FocusManager.instance.primaryFocus;
+    spec.closeSignal?.addListener(_close);
     final reduced = ref.read(glassMotionPrefsProvider).reduced;
     _t = reduced ? CurvedAnimation(parent: _c, curve: Curves.linear) : CurvedAnimation(parent: _c, curve: SpringCurve(gt.springMorph, settleMs: 434), reverseCurve: gt.curveDematerialize.curve);
     if (reduced) _c.duration = const Duration(milliseconds: 150);
@@ -418,6 +423,7 @@ class _MenuOverlayState extends ConsumerState<_MenuOverlay> with SingleTickerPro
 
   @override
   void dispose() {
+    spec.closeSignal?.removeListener(_close);
     final unblock = _unblock;
     scheduleMicrotask(() => unblock?.call()); // a provider cannot change while the tree is finalising
     _c.dispose();
@@ -611,6 +617,7 @@ Future<void> presentGlassMenu(BuildContext context, GlassMenuSpec spec) {
         previewRect: spec.previewRect,
         previewScale: spec.previewScale,
         onPreviewDrag: spec.onPreviewDrag,
+        closeSignal: spec.closeSignal,
       ),
       remove: () => entry.remove(),
     ),
