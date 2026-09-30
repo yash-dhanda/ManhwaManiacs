@@ -72,7 +72,7 @@ class GlassShareSideState extends ConsumerState<GlassShareSide> {
       previous = png ?? previous;
     });
     try {
-      final bytes = await renderShareCard(context, ref, widget.spec, format, profileName: _name);
+      final bytes = await renderShareCard(context, widget.spec, format, profileName: _name);
       if (!mounted || token != _token) return bytes;
       setState(() {
         png = bytes;

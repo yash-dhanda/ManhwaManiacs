@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/library/utils/progress_streak.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show registerPurgeHolder;
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// What the streak events changed on screen: the flare and spark counters every `StreakFlame` watches, the "+1" for Home's chip and the
@@ -38,6 +39,16 @@ class StreakUiNotifier extends Notifier<StreakUiState> {
 
 final streakUiProvider = NotifierProvider<StreakUiNotifier, StreakUiState>(StreakUiNotifier.new, name: 'streakUi');
 
+/// Deletes the active profile's `mm.numbers.last.*` and `mm.annual.last.*` snapshots and invalidates every statistics and Wrapped payload
+/// outright, so the screens show their offline states offline.
+void purgeNumbers(Ref ref) {
+  unawaited(ref.read(numbersSnapshotProvider).purge());
+  ref
+    ..invalidate(numbersStatisticsProvider)
+    ..invalidate(annualProvider)
+    ..invalidate(annualIndexProvider);
+}
+
 /// Set to `streak` just before pushing Statistics from the milestone toast: the hero then lifts and flips to the Streak share side.
 /// (`share=streak` is not a query key of `numbers` in `contract.g.dart`, so the intent travels here.)
 final statsShareIntentProvider = StateProvider<String?>((ref) => null);
@@ -54,10 +65,13 @@ class GlassStreakEventsListener extends ConsumerStatefulWidget {
 
 class _GlassStreakEventsListenerState extends ConsumerState<GlassStreakEventsListener> {
   StreamSubscription<StreakEvent>? _sub;
+  VoidCallback? _offPurge;
 
   @override
   void initState() {
     super.initState();
+    // The 18+ purge deletes this profile's statistics and Wrapped snapshots and drops the payloads (glass 8.0.8 step 5).
+    _offPurge = registerPurgeHolder('mobile-42.numbers', purgeNumbers);
     _sub = ref.read(streakEventsProvider).stream.listen((e) {
       switch (e) {
         case StreakFlare(:final currentDays):
@@ -73,6 +87,7 @@ class _GlassStreakEventsListenerState extends ConsumerState<GlassStreakEventsLis
 
   @override
   void dispose() {
+    _offPurge?.call();
     _sub?.cancel();
     super.dispose();
   }

@@ -61,7 +61,7 @@ void main() {
     await t.tapAt(const Offset(300, 420));
     await settle(t, 5);
     await t.tap(find.text('Export'));
-    await settle(t, 6);
+    await settle(t);
     expect(find.text('Story'), findsOneWidget);
     expect(find.text('Post'), findsOneWidget);
     expect(find.text('Show my profile name'), findsWidgets);

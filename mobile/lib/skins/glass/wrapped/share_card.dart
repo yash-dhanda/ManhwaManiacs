@@ -302,13 +302,13 @@ class _BarsPainter extends CustomPainter {
 /// Renders [spec] as a PNG: the share card laid out at 360 logical px in an offstage `RepaintBoundary` on the root overlay, every cover
 /// precached, then `toImage(pixelRatio: 3)` (1080 x 1920 Story, 1080 x 1350 Post). Text scale and bold text are pinned so the PNG
 /// never depends on the phone's settings.
-Future<Uint8List> renderShareCard(BuildContext context, WidgetRef ref, ShareSpec spec, ShareFormat format, {String? profileName}) async {
+Future<Uint8List> renderShareCard(BuildContext context, ShareSpec spec, ShareFormat format, {String? profileName}) async {
   final overlay = Overlay.of(context, rootOverlay: true);
   if (kDebugMode) {
     debugGlassShareTexts.clear();
     debugGlassShareImages.clear();
   }
-  final provider = ref.read(glassShareImageProvider);
+  final provider = ProviderScope.containerOf(context, listen: false).read(glassShareImageProvider);
   final images = <String, ImageProvider>{};
   await Future.wait([
     for (final u in shareImageUrls(spec).toSet())
