@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
-import 'package:manhwamaniacs/skins/cinematic/router.dart';
-import 'package:manhwamaniacs/skins/contract.g.dart';
 
 import '../../../features/circle/fakes.dart';
 import '../library/library_test_support.dart';
@@ -14,8 +12,6 @@ Future<LibRig> _pump(WidgetTester t, FakeCircleRepository repo, {String start = 
 
 void main() {
   testWidgets('circle and circleMember left the PENDING set and the routes serve the real screens', (t) async {
-    expect(cinePendingIds, isEmpty);
-    expect(cineIsPending(ScreenId.circle), isFalse);
     final repo = FakeCircleRepository(membersList: [member(riya)], memberPage: const MemberPage(profile: riya));
     final rig = await _pump(t, repo, start: '/circle');
     expect(rig.at, '/circle');

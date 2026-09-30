@@ -1,17 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:manhwamaniacs/skins/cinematic/router.dart' as cine;
+import 'package:manhwamaniacs/skins/cinematic/screens.dart' show cinematicScreens;
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/router.dart' as glass;
 import 'package:manhwamaniacs/skins/pending_routes.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
-// mobile/24 sets cinematic to true, mobile/45 sets glass to true (release gates).
-const mustBeComplete = {SkinId.cinematic: false, SkinId.glass: false};
+// Cinematic is strict (mobile/24); mobile/45 makes glass strict too.
+const mustBeComplete = {SkinId.cinematic: true, SkinId.glass: false};
 
 Set<ScreenId> _pendingOf(SkinId id) =>
-    id == SkinId.cinematic ? cine.PENDING : glass.PENDING;
+    id == SkinId.cinematic ? const {} : glass.PENDING;
 
 Set<String> _namedPending(GoRouter r) => {
       for (final route in RouteBase.routesRecursively(r.configuration.routes))
@@ -72,4 +74,18 @@ void main() {
           '${id.name} pending: ${pending.length} / ${ScreenId.values.length}',);
     });
   }
+
+  test('cinematic: no PENDING identifier on disk, a builder for every ScreenId, readerLanding redirects', () {
+    for (final f in Directory('lib/skins/cinematic').listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.dart'))) {
+      expect(f.readAsStringSync().contains(RegExp(r'\bPENDING\b|pending_screen\.dart|pending_routes\.dart')), isFalse, reason: f.path);
+    }
+    for (final s in ScreenId.values.where((s) => s != ScreenId.readerLanding)) {
+      expect(cinematicScreens.containsKey(s), isTrue, reason: 'no builder for ${s.id}');
+    }
+    final c = ProviderContainer(overrides: [skinIdProvider.overrideWithValue(SkinId.cinematic)]);
+    addTearDown(c.dispose);
+    final m = c.read(skinRouterProvider).configuration.findMatch(Uri.parse(ScreenId.readerLanding.path));
+    expect((m.routes.last as GoRoute).redirect, isNotNull);
+    expect(Routes.readerLandingRedirect, '/library');
+  });
 }

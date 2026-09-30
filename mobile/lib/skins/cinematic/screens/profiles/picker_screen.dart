@@ -27,7 +27,6 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_menu.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
-import 'package:manhwamaniacs/skins/cinematic/router.dart' show cineIsPending;
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/auth_copy.dart' show kProfileGoneToast;
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_logic.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_copy.dart';
@@ -39,8 +38,8 @@ import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
-/// Whether Onboarding has left the `PENDING` set (mobile/20).
-final onboardingBuiltProvider = Provider<bool>((ref) => !cineIsPending(ScreenId.onboarding), name: 'onboardingBuilt');
+/// Whether Onboarding has is built (mobile/20).
+final onboardingBuiltProvider = Provider<bool>((ref) => true, name: 'onboardingBuilt');
 
 /// One avatar cell's data: a server profile, or the cached snapshot when the server is silent.
 class _Face {

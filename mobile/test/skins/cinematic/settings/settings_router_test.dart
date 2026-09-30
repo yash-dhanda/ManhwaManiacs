@@ -13,7 +13,6 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/app_frame.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
-import 'package:manhwamaniacs/skins/cinematic/router.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/splash/cine_splash.dart';
 import 'package:manhwamaniacs/skins/skin_audio.dart';
@@ -86,10 +85,6 @@ Future<(ProviderContainer, GoRouter, int Function())> pumpApp(WidgetTester t, {S
 }
 
 void main() {
-  test('settings has left the Cinematic PENDING set', () {
-    expect(cinePendingIds.map((e) => e.id), isNot(contains('settings')));
-  });
-
   for (final path in ['/settings', '/settings/storage', '/settings/backup', '/settings/diagnostics', '/settings/reading-manga', '/settings/about?licenses=1']) {
     testWidgets('$path resolves to the settings screen, not the pending stand-in', (t) async {
       final (_, router, _) = await pumpApp(t, start: path);
