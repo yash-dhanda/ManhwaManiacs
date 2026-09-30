@@ -89,7 +89,7 @@ class AppIconSwitcher {
             kIconPendingKey,
             skin == SkinId.glass
                 ? kAndroidGlassIconAlias
-                : kAndroidCinematicIconAlias);
+                : kAndroidCinematicIconAlias,);
       default:
         break;
     }
@@ -110,7 +110,7 @@ class AppIconSwitcher {
 
 final appIconSwitcherProvider = Provider<AppIconSwitcher>(
     (ref) => AppIconSwitcher(prefs: ref.watch(sharedPrefsProvider)),
-    name: 'appIconSwitcher');
+    name: 'appIconSwitcher',);
 
 /// Skin-neutral, registered once at app start: applies the queued Android alias when the app goes to the background.
 class AppIconPauseListener extends ConsumerStatefulWidget {
@@ -130,7 +130,7 @@ class _AppIconPauseListenerState extends ConsumerState<AppIconPauseListener> {
     super.initState();
     _listener = AppLifecycleListener(
         onPause: () =>
-            unawaited(ref.read(appIconSwitcherProvider).applyPending()));
+            unawaited(ref.read(appIconSwitcherProvider).applyPending()),);
   }
 
   @override
