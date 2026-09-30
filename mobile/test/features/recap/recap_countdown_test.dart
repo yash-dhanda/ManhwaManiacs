@@ -24,7 +24,7 @@ void main() {
     }
   });
   test('reset returns to 12,000 ms', () {
-    var s = R.tick(R.start(const CountdownState()), 4000);
+    final s = R.tick(R.start(const CountdownState()), 4000);
     expect(R.reset(s).remainingMs, 12000);
   });
   test('key stays until Space; space toggles', () {

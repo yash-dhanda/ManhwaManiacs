@@ -30,7 +30,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.picks,
   ScreenId.numbers,
   ScreenId.annual,
-  ScreenId.recap,
   ScreenId.circle,
   ScreenId.circleMember,
   ScreenId.reader,

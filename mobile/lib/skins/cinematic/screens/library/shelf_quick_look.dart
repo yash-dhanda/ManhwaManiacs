@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/add_to_shelf_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
@@ -15,6 +15,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/quick_look.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/quick_look_actions.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/reorder_announce.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
+import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/shelf_actions.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -43,7 +44,7 @@ Future<void> openShelfQuickLook(
   final list = <QuickLookAction>[
     QuickLookAction(QuickLookId.open, 'Open', CineIconRole.external, onSelected: () => openFollowed(context, s)),
     if (chapter != null)
-      QuickLookAction(QuickLookId.continueReading, 'Continue', CineIconRole.play, onSelected: () => continueTo(context, ref, s.sourceId, s.seriesKey, chapter, entry: ReaderEntry.dip)),
+      QuickLookAction(QuickLookId.continueReading, 'Continue', CineIconRole.play, onSelected: () => unawaited(continueTo(context, ref, sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKey: chapter, title: s.title, lastReadAt: s.readState?.lastReadAt, origin: RecapEntry.dip))),
     if (!offline) ...[
       QuickLookAction(QuickLookId.favourite, s.isFavorite ? 'Unfavourite' : 'Favourite', CineIconRole.favourite, onSelected: () => unawaited(actions.favourite(s))),
       QuickLookAction('status', 'Status', CineIconRole.edit, onSelected: () => unawaited(showStatusSheet(context, title: s.title, current: s.readingStatus, onPick: (v) => unawaited(actions.setStatus(s, v))))),

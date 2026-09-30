@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
@@ -28,6 +29,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/quick_look.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/quick_look_actions.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -51,15 +53,21 @@ ReaderTarget readerTargetFor(String sourceId, String seriesKey, String chapterKe
 
 bool _novel(WidgetRef ref, String sourceId) => isNovelSource(ref.read(contentModeScopeProvider), sourceId) ?? false;
 
-/// Open the reader on [chapterKey] with [entry], warming the chapter first.
-void continueTo(BuildContext context, WidgetRef ref, String sourceId, String seriesKey, String chapterKey, {required ReaderEntry entry}) {
+/// Open the reader on [chapterKey] with [entry], warming the chapter first. Screens call
+/// `continueTo` (`recap/continue_to.dart`), which opens a recap first when the setting asks.
+void openReaderAt(BuildContext context, WidgetRef ref, String sourceId, String seriesKey, String chapterKey, {required ReaderEntry entry, bool replace = false}) {
   final target = readerTargetFor(sourceId, seriesKey, chapterKey, novel: _novel(ref, sourceId));
   readerPrefetchOf(ref).onPress(target);
-  enterReader(context, target, entry: entry);
+  enterReader(context, target, entry: entry, replace: replace);
 }
 
-void openRecap(BuildContext context, String sourceId, String seriesKey, String chapterKey) =>
-    unawaited(context.push<void>(Routes.recap(sourceId, seriesKey, {'to': chapterKey})));
+/// The recap takeover for `to`; [origin] says how it leaves (Column wipe, Dip, or back to the page).
+void openRecap(BuildContext context, String sourceId, String seriesKey, String chapterKey, {RecapEntry origin = RecapEntry.wipe}) {
+  final router = GoRouter.of(context);
+  unawaited(router.push<void>(Routes.recap(sourceId, seriesKey, {'to': chapterKey}), extra: RecapOrigin(origin, returnTo: cineLocationOf(router))));
+}
+
+RecapEntry _origin(ReaderEntry e) => e == ReaderEntry.wipe ? RecapEntry.wipe : RecapEntry.dip;
 
 /// The feature page by the match cut.
 void openSeries(BuildContext context, String sourceId, String seriesKey) => unawaited(context.push<void>(Routes.feature(sourceId, seriesKey)));
@@ -113,8 +121,8 @@ Future<void> openCuttingQuickLook(BuildContext context, WidgetRef ref, HomeConti
     cover: _cover(ref, r.coverUrl, title),
     actions: quickLookActions({
       QuickLookId.open: () => openSeries(context, r.sourceId, r.seriesKey),
-      QuickLookId.continueReading: () => continueTo(context, ref, r.sourceId, r.seriesKey, r.chapterKey, entry: entry),
-      if (item.recap?.available ?? false) QuickLookId.previouslyOn: () => openRecap(context, r.sourceId, r.seriesKey, r.chapterKey),
+      QuickLookId.continueReading: () => unawaited(continueTo(context, ref, sourceId: r.sourceId, seriesKey: r.seriesKey, chapterKey: r.chapterKey, title: title, lastReadAt: r.lastReadAt, recap: item.recap, origin: _origin(entry))),
+      if (item.recap?.available ?? false) QuickLookId.previouslyOn: () => openRecap(context, r.sourceId, r.seriesKey, r.chapterKey, origin: _origin(entry)),
       if (!offline) QuickLookId.markRead: () => unawaited(_markRead(context, ref, item)),
       QuickLookId.removeFromRow: () {
         hideContinue(ref.read, r);
@@ -157,8 +165,8 @@ Future<void> openFollowedQuickLook(BuildContext context, WidgetRef ref, HomeSeri
   final canRecap = (item.recap?.available ?? false) && chapter != null;
   final actions = quickLookActions({
     QuickLookId.open: () => openSeries(context, s.sourceId, s.seriesKey),
-    if (chapter != null) QuickLookId.continueReading: () => continueTo(context, ref, s.sourceId, s.seriesKey, chapter, entry: entry),
-    if (canRecap) QuickLookId.previouslyOn: () => openRecap(context, s.sourceId, s.seriesKey, chapter),
+    if (chapter != null) QuickLookId.continueReading: () => unawaited(continueTo(context, ref, sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKey: chapter, title: s.title, lastReadAt: item.lastReadAt ?? s.readState?.lastReadAt, recap: item.recap, origin: _origin(entry))),
+    if (canRecap) QuickLookId.previouslyOn: () => openRecap(context, s.sourceId, s.seriesKey, chapter, origin: _origin(entry)),
     QuickLookId.addToCollection: () => unawaited(showAddToShelfSheet(context, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title)),
     QuickLookId.favourite: () async {
       final err = await ref.read(librarySeriesActionsProvider).setFavorite(s, favorite: !s.isFavorite);

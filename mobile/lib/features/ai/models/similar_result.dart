@@ -39,7 +39,7 @@ class SimilarQuery {
       };
 
   @override
-  bool operator ==(Object o) => o is SimilarQuery && o.source == source && o.series == series && o.anilistId == anilistId && o.fallbackGenres == fallbackGenres;
+  bool operator ==(Object other) => other is SimilarQuery && other.source == source && other.series == series && other.anilistId == anilistId && other.fallbackGenres == fallbackGenres;
   @override
   int get hashCode => Object.hash(source, series, anilistId, fallbackGenres);
 }

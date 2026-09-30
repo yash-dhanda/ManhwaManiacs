@@ -7,8 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_models.dart';
 import 'package:manhwamaniacs/features/recap/repositories/recap_repository.dart';
 
-class _Adapter implements HttpClientAdapter {
-  _Adapter(this.type, this.body, {this.headers = const {}});
+class FakeSseAdapter implements HttpClientAdapter {
+  FakeSseAdapter(this.type, this.body, {this.headers = const {}});
   final String type, body;
   final Map<String, String> headers;
   RequestOptions? last;
@@ -27,12 +27,12 @@ class _Adapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-RecapRepository repo(_Adapter a) => RecapRepository(Dio()..httpClientAdapter = a);
+RecapRepository repo(FakeSseAdapter a) => RecapRepository(Dio()..httpClientAdapter = a);
 const key = RecapKey('s', 'k', 'c2');
 
 void main() {
   test('availability parses the range', () async {
-    final a = _Adapter('application/json', '{"available":true,"reason":"ok","range":{"from_key":"c1","to_key":"c2","from_number":131,"to_number":142},"est_seconds":90,"cached":true}');
+    final a = FakeSseAdapter('application/json', '{"available":true,"reason":"ok","range":{"from_key":"c1","to_key":"c2","from_number":131,"to_number":142},"est_seconds":90,"cached":true}');
     final r = await repo(a).availability(key);
     expect(r.available, isTrue);
     expect(r.estSeconds, 90);
@@ -42,7 +42,7 @@ void main() {
   });
 
   test('a stream maps to meta, deltas and done', () async {
-    final a = _Adapter('text/event-stream; charset=utf-8',
+    final a = FakeSseAdapter('text/event-stream; charset=utf-8',
         'event: meta\ndata: {"range":{"from_number":1,"to_number":3},"cast":[{"name":"Kim","note":"the reader"}],"sourced_from":"text"}\n\n'
         'event: delta\ndata: {"text":"Hello "}\n\nevent: delta\ndata: {"text":"world"}\n\n'
         'event: done\ndata: {"generated_at":"2026-09-01T00:00:00Z"}\n\n');
@@ -59,14 +59,14 @@ void main() {
   });
 
   test('a JSON body maps to a reason and Retry-After', () async {
-    final a = _Adapter('application/json', '{"available":false,"reason":"rate_limited"}', headers: {'retry-after': '12'});
+    final a = FakeSseAdapter('application/json', '{"available":false,"reason":"rate_limited"}', headers: {'retry-after': '12'});
     final open = await repo(a).open(key) as RecapNone;
     expect(open.reason, 'rate_limited');
     expect(open.retryAfter, 12);
   });
 
   test('a mid-stream error event', () async {
-    final a = _Adapter('text/event-stream', 'event: delta\ndata: {"text":"x"}\n\nevent: error\ndata: {"code":"rate_limited","message":"m","retry_after":30}\n\n');
+    final a = FakeSseAdapter('text/event-stream', 'event: delta\ndata: {"text":"x"}\n\nevent: error\ndata: {"code":"rate_limited","message":"m","retry_after":30}\n\n');
     final ev = await ((await repo(a).open(key)) as RecapStream).events.toList();
     final err = ev.last as RecapError;
     expect(err.code, 'rate_limited');

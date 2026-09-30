@@ -50,7 +50,7 @@ class RecapMeta extends RecapEvent {
         range: RecapRange.tryParse(j['range']),
         cast: [
           for (final c in (j['cast'] as List? ?? const []))
-            if (c is Map && (c['name'] as String?)?.isNotEmpty == true) RecapCast(c['name'] as String, (c['note'] ?? c['role'] ?? '') as String),
+            if (c is Map && ((c['name'] as String?)?.isNotEmpty ?? false)) RecapCast(c['name'] as String, (c['note'] ?? c['role'] ?? '') as String),
         ],
         sourcedFrom: j['sourced_from'] as String? ?? 'ocr',
         generatedAt: DateTime.tryParse((j['generated_at'] as String?) ?? ''),
@@ -100,7 +100,7 @@ class RecapKey {
   final String source, series, to;
 
   @override
-  bool operator ==(Object o) => o is RecapKey && o.source == source && o.series == series && o.to == to;
+  bool operator ==(Object other) => other is RecapKey && other.source == source && other.series == series && other.to == to;
   @override
   int get hashCode => Object.hash(source, series, to);
 }

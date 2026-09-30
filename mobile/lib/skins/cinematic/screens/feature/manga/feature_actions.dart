@@ -6,11 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.dart';
@@ -65,9 +67,7 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
   void _continue() {
     final ch = widget.resume.chapter;
     if (ch == null) return;
-    final target = ReaderTarget.manifest(d.sourceId, d.seriesKey, ch);
-    readerPrefetchOf(ref).onPress(target);
-    enterReader(context, target, entry: ReaderEntry.wipe);
+    unawaited(continueTo(context, ref, sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: ch, title: d.title, lastReadAt: d.followed?.readState?.lastReadAt, origin: RecapEntry.wipe));
   }
 
   void _readAll() {

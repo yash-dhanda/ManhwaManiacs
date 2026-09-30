@@ -29,6 +29,7 @@ class RecapRepository {
       );
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
+      if (e.response?.statusCode == 404 || e.response?.statusCode == 403) return const RecapOpen.none('not_found');
       final offline = e.type == DioExceptionType.connectionError || e.type == DioExceptionType.connectionTimeout;
       return RecapOpen.none(offline ? 'offline' : 'error');
     }

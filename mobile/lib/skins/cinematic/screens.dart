@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/admin/status_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/register_screen.dart';
@@ -15,6 +16,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/library/library_screen.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_manage_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/recap/recap_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
@@ -63,6 +65,13 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.dialogue: (context, state) => DialogueScreen(q: state.uri.queryParameters['q'] ?? ''),
   ScreenId.featureByFollow: (context, state) => FeatureByFollowScreen(
         followedId: int.tryParse(state.pathParameters['followedId'] ?? '') ?? -1,
+      ),
+  ScreenId.recap: (context, state) => RecapScreen(
+        key: ValueKey('${state.pathParameters['sourceId']}/${state.pathParameters['seriesKey']}/${state.uri.queryParameters['to']}'),
+        sourceId: state.pathParameters['sourceId']!,
+        seriesKey: state.pathParameters['seriesKey']!,
+        to: state.uri.queryParameters['to'] ?? '',
+        origin: readRecapOrigin(state.extra),
       ),
   ScreenId.feature: (context, state) => FeatureScreen(
         sourceId: state.pathParameters['sourceId']!,

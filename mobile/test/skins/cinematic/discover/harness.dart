@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';

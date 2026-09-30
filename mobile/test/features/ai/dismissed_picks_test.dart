@@ -28,7 +28,7 @@ void main() {
   test('similar result parses genre fallback and stale time', () {
     final r = SimilarResult.fromJson({
       'items': [
-        {'title': 'X', 'anilist_id': null, 'why': null}
+        {'title': 'X', 'anilist_id': null, 'why': null},
       ],
       'available': false,
       'reason': 'not_configured',
