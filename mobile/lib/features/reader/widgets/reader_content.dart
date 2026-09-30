@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/app/theme/app_presets.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_view.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_surface_slots.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart';
@@ -57,7 +58,11 @@ class ReaderContent extends ConsumerStatefulWidget {
     this.onReachedFeedStart,
     this.pageExtents,
     this.bookmarkAnchors = const {},
+    this.identity,
   });
+
+  /// Which chapter and which way in, for a skin's frame; the legacy frame ignores it.
+  final ({String sourceId, String seriesKey, String chapterKey, ReaderOrigin origin})? identity;
 
   /// The chapters being read, as one page list. [ReaderFeed.single] is the
   /// ordinary case.
@@ -250,6 +255,9 @@ class _ReaderContentState extends ConsumerState<ReaderContent> {
 
   @override
   Widget build(BuildContext context) {
+    // A skin that ships its own frame takes the whole body; this legacy frame keeps every other path.
+    final skinFrame = ref.watch(readerFramesProvider).content;
+    if (skinFrame != null) return skinFrame(context, widget);
     final direction =
         ref.watch(readerDefaultsProvider.select((d) => d.direction));
     final readerBackground =
