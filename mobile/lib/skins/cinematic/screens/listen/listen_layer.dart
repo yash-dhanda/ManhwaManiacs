@@ -257,8 +257,12 @@ class _ListenLayerState extends ConsumerState<ListenLayer> {
             .firstOrNull
             ?.name;
     final pinned = settings.keepPlayerVisible;
-    final showMini =
-        !widget.ui.roomOpen && (widget.chromeVisible || pinned || _lingering);
+    // The post-play card keeps the player on screen for as long as it waits.
+    final showMini = !widget.ui.roomOpen &&
+        (widget.chromeVisible ||
+            pinned ||
+            _lingering ||
+            (_card && widget.hasNext));
     final miniBottom =
         widget.chromeVisible ? widget.barBottom : widget.safeBottom;
     widget.ui.cardShowing = _card && widget.hasNext;

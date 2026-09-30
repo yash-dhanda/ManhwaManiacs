@@ -136,7 +136,11 @@ class ReadingRoomState extends ConsumerState<ReadingRoom> with TickerProviderSta
       } else {
         final sim = SpringSimulation(CineSprings.sheet.description, _dy, h, v);
         _drag.value = _dy;
-        _drag.addListener(() => setState(() => _dy = _drag.value));
+        _drag.addListener(() {
+          setState(() => _dy = _drag.value);
+          // Off the screen is done: the spring's own tail to its tolerance is invisible.
+          if (_drag.value >= h * 0.98) _drag.stop(canceled: false);
+        });
         await _drag.animateWith(sim);
       }
       if (mounted) widget.onCollapsed();

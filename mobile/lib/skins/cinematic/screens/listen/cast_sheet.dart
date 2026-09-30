@@ -223,7 +223,7 @@ class _CastListState extends ConsumerState<CastList> {
                     child: GestureDetector(
                       onTap: () => unawaited(_rowMenu(a, r.member)),
                       behavior: HitTestBehavior.opaque,
-                      child: SizedBox(width: 44, height: 44, child: Icon(Icons.more_horiz, size: 18, color: c.colorInk60)),
+                      child: SizedBox(width: cineHitMinFor(context), height: cineHitMinFor(context), child: Icon(Icons.more_horiz, size: 18, color: c.colorInk60)),
                     ),
                   ),
               ],),

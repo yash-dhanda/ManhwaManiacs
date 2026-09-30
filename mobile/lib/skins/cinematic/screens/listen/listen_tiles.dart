@@ -54,15 +54,17 @@ class ListenTiles extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(child: speed),
-        SizedBox(width: c.space2),
-        Expanded(child: voices),
-        SizedBox(width: c.space2),
-        Expanded(child: sleep),
-      ],
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: speed),
+          SizedBox(width: c.space2),
+          Expanded(child: voices),
+          SizedBox(width: c.space2),
+          Expanded(child: sleep),
+        ],
+      ),
     );
   }
 }

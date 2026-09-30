@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -10,6 +11,7 @@ import 'package:manhwamaniacs/features/novels/utils/narration_timing.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/listen/follow_along.dart';
@@ -216,7 +218,7 @@ class _SentenceView extends StatefulWidget {
 }
 
 class _SentenceViewState extends State<_SentenceView> with SingleTickerProviderStateMixin {
-  late final AnimationController _sweep = AnimationController(vsync: this, duration: const Duration(milliseconds: 200), value: 1);
+  late final AnimationController _sweep;
   bool _active = false;
   bool _listeningPosition = false;
 
@@ -225,6 +227,7 @@ class _SentenceViewState extends State<_SentenceView> with SingleTickerProviderS
   @override
   void initState() {
     super.initState();
+    _sweep = AnimationController(vsync: this, duration: const Duration(milliseconds: 200), value: 1);
     _n.segment.addListener(_onSegment);
     _active = _isActive();
   }
@@ -309,7 +312,7 @@ class _SentenceViewState extends State<_SentenceView> with SingleTickerProviderS
         hit: false,
         expand: true,
         builder: (context, st) => ConstrainedBox(
-          constraints: BoxConstraints(minHeight: widget.line),
+          constraints: BoxConstraints(minHeight: math.max(widget.line, cineHitMin(context))),
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: c.space1),
             child: Column(

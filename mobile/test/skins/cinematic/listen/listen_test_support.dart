@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/features/novels/services/narration_audio_handler.d
 import 'package:manhwamaniacs/features/novels/services/narration_player.dart';
 import 'package:manhwamaniacs/features/novels/services/voice_sample_player.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/skin_audio.dart';
 
 import '../../../features/novels/support/fake_novels_repository.dart';
@@ -110,6 +111,14 @@ Future<ListenRig> pumpListen(
   Key? boundaryKey,
   bool legacy = false,
 }) async {
+  // No network and no cache directory for the cover behind the reading room.
+  final probe = CineImage.cacheProbe, builder = CineImage.providerBuilder;
+  CineImage.cacheProbe = (_) async => true;
+  CineImage.providerBuilder = (url, headers) => MemoryImage(base64Decode(_kPng));
+  addTearDown(() {
+    CineImage.cacheProbe = probe;
+    CineImage.providerBuilder = builder;
+  });
   final players = <FakeNarrationPlayer>[];
   final sessions = <AudioSessionState>[];
   final repo = FakeNovelsRepository()
@@ -160,8 +169,11 @@ Future<ListenRig> pumpListen(
 /// Leaves the reader the way a person does (the back arrow), so its progress save runs while the
 /// container is alive, then tears the tree down.
 Future<void> leaveListen(ListenRig l) async {
-  l.rig.router.pop();
+  if (l.rig.router.canPop()) l.rig.router.pop();
   await settleNovel(l.tester, ms: 600);
   await l.tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
   await disposeNovel(l.tester);
 }
+
+/// A 1 x 1 PNG.
+const _kPng = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
