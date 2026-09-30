@@ -11,6 +11,8 @@ import 'package:manhwamaniacs/core/platform/native_bridge.dart';
 import 'package:manhwamaniacs/core/platform/system_ui.dart';
 import 'package:manhwamaniacs/core/utils/haptics.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
+import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_provider.dart';
@@ -568,6 +570,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   @override
   void dispose() {
+    _cancelLongPress();
     WidgetsBinding.instance.removeObserver(this);
     _zoomController?.dispose();
     _panX.dispose();
@@ -1749,7 +1752,35 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         target, point, d, spring != null ? Curves.easeOutCubic : curve,);
   }
 
+  Timer? _longPressTimer;
+  Offset? _longPressStart;
+
+  void _cancelLongPress() {
+    _longPressTimer?.cancel();
+    _longPressTimer = null;
+    _longPressStart = null;
+  }
+
+  void _armLongPress(Offset at) {
+    final cb = widget.options.onPageLongPress;
+    if (cb == null || widget.feed.isEmpty) return;
+    _cancelLongPress();
+    _longPressStart = at;
+    _longPressTimer = Timer(const Duration(milliseconds: 450), () {
+      _longPressTimer = null;
+      if (!mounted || !_scrollController.hasClients) return;
+      final flat = _metrics.pageAtOffset(_scrollController.offset + at.dy);
+      final pos = _positionAt(flat - 1);
+      cb(widget.feed.chapters[pos.chapterIndex].id, pos.page);
+    });
+  }
+
   void _onPointerDown(PointerDownEvent e) {
+    if (_pointers.isEmpty) {
+      _armLongPress(e.localPosition);
+    } else {
+      _cancelLongPress();
+    }
     _pointers[e.pointer] = e.localPosition;
     _tapDown = _pointers.length == 1
         ? (position: e.localPosition, at: DateTime.now())
@@ -1768,6 +1799,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   void _onPointerMove(PointerMoveEvent e) {
     if (!_pointers.containsKey(e.pointer)) return;
     _pointers[e.pointer] = e.localPosition;
+    final lp = _longPressStart;
+    if (lp != null && (e.localPosition - lp).distance > 8) _cancelLongPress();
     final down = _tapDown;
     final slop = widget.options.tapSlop;
     if (down != null &&
@@ -1796,6 +1829,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   void _onPointerUp(PointerUpEvent e) {
     final wasTap = _pointers.length == 1 ? _tapDown : null;
+    _cancelLongPress();
     _pointers.remove(e.pointer);
     _endPinchIfDone();
     final slop = widget.options.tapSlop;
@@ -1809,6 +1843,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   }
 
   void _onPointerCancel(PointerCancelEvent e) {
+    _cancelLongPress();
     _pointers.remove(e.pointer);
     _tapDown = null;
     _endPinchIfDone();
@@ -1946,6 +1981,19 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       chromeVisible: ui.controlsVisible,
       locked: ui.isLocked,
       furtherElsewhere: _furtherElsewhere,
+      readAll: _readAllState(),
+    );
+  }
+
+  ReadAllState? _readAllState() {
+    final keys = widget.options.readAllKeys;
+    if (keys == null || widget.feed.isEmpty) return null;
+    final id = widget.feed.chapters[_position.chapterIndex].id;
+    final at = keys.indexOf(id);
+    return ReadAllState(
+      index: at < 0 ? _position.chapterIndex + 1 : at + 1,
+      total: keys.length,
+      boundaries: [for (var c = 1; c < widget.feed.chapters.length; c++) widget.feed.startOfChapter(c)],
     );
   }
 
@@ -2083,6 +2131,26 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   Future<bool> bookmark() => _handleBookmark();
 
   @override
+  void turnTo(
+    int page, {
+    PageTurn kind = PageTurn.cut,
+    required Duration slideDuration,
+    required Curve slideCurve,
+    required Duration fadeDuration,
+  }) =>
+      // The strip has no page turn: every kind is a jump to the page.
+      _jumpToPage(page, glide: false);
+
+  @override
+  int pageAtReadingLine() {
+    if (!_scrollController.hasClients || widget.feed.isEmpty) return _position.page;
+    final p = _scrollController.position;
+    final flat = _metrics.pageAtOffset(p.pixels + p.viewportDimension * 0.38);
+    final pos = _positionAt(flat - 1);
+    return pos.chapterIndex == _position.chapterIndex ? pos.page : _position.page;
+  }
+
+  @override
   void showChrome() => _showControls();
 
   @override
@@ -2160,6 +2228,20 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
               ),
     );
 
+    final overlay = options.pageOverlayBuilder;
+    final Widget shownImage = overlay == null
+        ? pageImage
+        : Stack(
+            children: [
+              pageImage,
+              Positioned.fill(
+                child: LayoutBuilder(
+                  builder: (context, box) => overlay(context, pageNumber, chapter.id, box.biggest),
+                ),
+              ),
+            ],
+          );
+
     // The list forces each item to the extent [metrics] reserved for it, so the
     // clip only ever matters in the single frame between a page decoding at a
     // size nobody predicted and that size being folded into the layout.
@@ -2167,7 +2249,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       final pageSlot = SizedBox(
         height: viewportHeight,
         width: metrics.extentAt(index) - readerPagedGap - seamExtent,
-        child: pageImage,
+        child: shownImage,
       );
       return RepaintBoundary(
         child: ClipRect(
@@ -2209,7 +2291,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         child: FractionallySizedBox(
           alignment: Alignment.topCenter,
           widthFactor: contentWidthFactor,
-          child: pageImage,
+          child: shownImage,
         ),
       ),
     );
@@ -2490,7 +2572,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         child: SizedBox(width: columnWidth, child: pageList),
       );
     }
-    if (options.pinch || options.tapSlop != null) {
+    if (options.pinch || options.tapSlop != null || options.onPageLongPress != null) {
       pageList = Listener(
         behavior: HitTestBehavior.translucent,
         onPointerDown: _onPointerDown,

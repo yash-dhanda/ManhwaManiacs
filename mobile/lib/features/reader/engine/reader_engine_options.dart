@@ -114,6 +114,9 @@ class ReaderEngineOptions {
     this.pageSemantics,
     this.slotSignature,
     this.lifecycleVolumeKeys = false,
+    this.pageOverlayBuilder,
+    this.onPageLongPress,
+    this.readAllKeys,
   });
 
   /// The colour behind and between pages; null follows the legacy backdrop setting.
@@ -167,4 +170,17 @@ class ReaderEngineOptions {
 
   /// Stops volume-key interception while the app is not resumed (Cinematic).
   final bool lifecycleVolumeKeys;
+
+  /// Drawn inside each page's own box, children placed in fractions of [box], so overlays follow
+  /// scroll and zoom (OCR outlines).
+  final PageOverlayBuilder? pageOverlayBuilder;
+
+  /// A 450 ms press that stayed within 8 px, on [page] (chapter-local) of [chapterId].
+  final void Function(String chapterId, int page)? onPageLongPress;
+
+  /// Read-all: every chapter key of the series in order, so the engine can publish `readAll`.
+  final List<String>? readAllKeys;
 }
+
+/// See [ReaderEngineOptions.pageOverlayBuilder].
+typedef PageOverlayBuilder = Widget Function(BuildContext context, int page, String chapterKey, Size box);

@@ -740,6 +740,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         toasts.info(percent == null ? 'Marked page $page.' : 'Marked page $page — $percent% of the chapter.');
       case ReaderStaleAnchor():
         toasts.info('That page moved. Opened at the nearest one.');
+      case ReaderPageSwiped():
+        cineFeedback(context, HapticEvent.pageTurn, sound: SoundEvent.pageTurn);
     }
   }
 

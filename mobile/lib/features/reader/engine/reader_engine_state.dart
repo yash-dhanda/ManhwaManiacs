@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 
 /// Whether there is somewhere to go past the chapter being read.
@@ -56,6 +57,7 @@ class ReaderEngineState {
     required this.locked,
     this.furtherElsewhere,
     this.guidedActive = false,
+    this.readAll,
   });
 
   /// The chapter under the reading line — an id, never a feed index.
@@ -102,6 +104,10 @@ class ReaderEngineState {
 
   /// Guided view is on (mobile/23 sets it; false until then).
   final bool guidedActive;
+
+  /// The chapter's position in the series and the chapter boundaries of the loaded window, in a
+  /// read-all feed; null elsewhere.
+  final ReadAllState? readAll;
 
   static const ReaderEngineState initial = ReaderEngineState(
     chapterId: '',
@@ -150,6 +156,7 @@ class ReaderEngineState {
     FurtherElsewhere? furtherElsewhere,
     bool clearFurtherElsewhere = false,
     bool? guidedActive,
+    ReadAllState? readAll,
   }) =>
       ReaderEngineState(
         chapterId: chapterId ?? this.chapterId,
@@ -174,6 +181,7 @@ class ReaderEngineState {
             ? null
             : (furtherElsewhere ?? this.furtherElsewhere),
         guidedActive: guidedActive ?? this.guidedActive,
+        readAll: readAll ?? this.readAll,
       );
 
   @override
@@ -199,10 +207,11 @@ class ReaderEngineState {
           other.chromeVisible == chromeVisible &&
           other.locked == locked &&
           other.furtherElsewhere == furtherElsewhere &&
-          other.guidedActive == guidedActive;
+          other.guidedActive == guidedActive &&
+          other.readAll == readAll;
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
         chapterId,
         chapterTitle,
         chapterIndex,
@@ -223,7 +232,8 @@ class ReaderEngineState {
         locked,
         furtherElsewhere,
         guidedActive,
-      );
+        readAll,
+      ]);
 
   @override
   String toString() =>

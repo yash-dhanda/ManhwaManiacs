@@ -112,7 +112,8 @@ class OcrRepositoryImpl implements OcrRepository {
                 boxes: [
                   if (p['boxes'] is List)
                     for (final b in p['boxes'] as List)
-                      if (b is Map) ?parseApiBox(b),
+                      if (b is Map)
+                        if (parseApiBox(b) case final box?) box,
                 ],
               ),
       ]);

@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest_window.dart';
 
 /// The batch window the read-all feed asks for: one request carries at most this many keys.
