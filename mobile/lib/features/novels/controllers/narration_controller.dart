@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/novels/providers/listen_session_outbox_pr
 import 'package:manhwamaniacs/features/novels/providers/listen_settings_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/narration_audio_handler_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
+import 'package:manhwamaniacs/features/novels/providers/saved_audio_provider.dart' show kNarrationPrepareRetries;
 import 'package:manhwamaniacs/features/novels/services/narration_audio_handler.dart';
 import 'package:manhwamaniacs/features/novels/services/narration_player.dart';
 import 'package:manhwamaniacs/features/novels/utils/listen_sessions.dart';
@@ -155,9 +156,6 @@ final narrationProbeProvider = Provider<NarrationProbe>((ref) {
   };
 },
     name: 'narrationProbe',);
-
-/// How many times a `503 audio_preparing` is retried before it counts as a failure.
-const int kNarrationPrepareRetries = 40;
 
 /// The app's narration: one `just_audio` player (the one the lock-screen handler wraps), the
 /// chapter it plays, the highlight's clock, the sleep timer, the shake to extend and the listen

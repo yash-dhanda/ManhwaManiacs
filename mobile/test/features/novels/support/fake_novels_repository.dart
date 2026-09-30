@@ -59,6 +59,9 @@ class FakeNovelsRepository implements NovelsRepository {
   /// Every `POST /novels/listen-sessions` body, in order.
   final List<List<Map<String, Object?>>> listenBatches = [];
 
+  /// Errors `GET /novels/audio/file` answers first, one per call (e.g. `503 audio_preparing`).
+  final List<AppError> audioBytesFailures = [];
+
   final List<String> audioRequests = [];
   final List<String> audioBytesRequests = [];
 
@@ -88,6 +91,7 @@ class FakeNovelsRepository implements NovelsRepository {
   }) async {
     audioBytesRequests.add(chapterKey);
     audioBytesFormats.add(format);
+    if (audioBytesFailures.isNotEmpty) return Err(audioBytesFailures.removeAt(0));
     return Ok(audioBytesByChapter[chapterKey] ?? const <int>[]);
   }
 

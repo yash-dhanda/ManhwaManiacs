@@ -281,6 +281,10 @@ class NovelAudioJob {
   /// time, and calling that progress is how a label ends up lying for days.
   bool get isWaiting => status == 'queued';
 
+  bool get isDone => status == 'done' || status == 'complete' || status == 'completed';
+  bool get isFailed => status == 'failed';
+  bool get isCancelled => status == 'cancelled' || status == 'canceled';
+
   /// A render box has it and is working on it.
   bool get isRunning => status == 'planning' || status == 'rendering';
 }

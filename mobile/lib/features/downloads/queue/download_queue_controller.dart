@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/models/storage_cap.dart';
@@ -18,6 +19,7 @@ import 'package:manhwamaniacs/features/downloads/services/device_storage_info.da
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio_format.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
+import 'package:manhwamaniacs/features/novels/providers/saved_audio_provider.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
@@ -710,6 +712,17 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     );
   }
 
+  String _preparingId(ChapterIdentity text) => preparingId(text.sourceId, text.seriesKey, text.chapterKey);
+
+  void _setPreparing(String id, bool on) {
+    try {
+      final notifier = ref.read(narrationPreparingProvider.notifier);
+      final next = {...notifier.state};
+      on ? next.add(id) : next.remove(id);
+      notifier.state = next;
+    } catch (_) {}
+  }
+
   /// Fetches one novel chapter's text and stores it as a single blob.
   ///
   /// Deliberately the same *shape* as the manga path rather than a parallel
@@ -778,14 +791,29 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     }
 
     final platform = defaultTargetPlatform;
-    final result = await _gate.run(
-      () => ref.read(novelsRepositoryProvider).audioBytes(
-            sourceId: text.sourceId,
-            seriesKey: text.seriesKey,
-            chapterKey: text.chapterKey,
-            format: novelAudioFormatFor(platform),
-          ),
-    );
+    // A first request for a format the server has not converted yet answers `503 audio_preparing`
+    // with a `Retry-After`: wait it out and ask again instead of failing the save. The chapter reads
+    // "Preparing the audio…" meanwhile.
+    final preparingId = _preparingId(text);
+    var attempts = 0;
+    late Result<List<int>> result;
+    while (true) {
+      result = await _gate.run(
+        () => ref.read(novelsRepositoryProvider).audioBytes(
+              sourceId: text.sourceId,
+              seriesKey: text.seriesKey,
+              chapterKey: text.chapterKey,
+              format: novelAudioFormatFor(platform),
+            ),
+      );
+      final error = result.isErr ? result.error : null;
+      final preparing = error is ApiError && error.statusCode == 503 && error.code == 'audio_preparing';
+      if (!preparing || attempts >= kNarrationPrepareRetries || _cancelledRowIds.contains(chapter.rowId)) break;
+      attempts++;
+      _setPreparing(preparingId, true);
+      await Future<void>.delayed(ref.read(narrationPrepareDelayProvider)(error.retryAfter));
+    }
+    if (attempts > 0) _setPreparing(preparingId, false);
     if (result.isErr) {
       return _recordChapterFailure(store, chapter, result.error.userMessage);
     }

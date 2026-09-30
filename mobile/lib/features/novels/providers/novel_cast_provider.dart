@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
+import 'package:manhwamaniacs/features/novels/providers/narration_jobs_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
+import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 /// Who speaks in this chapter, and in whose voice.
@@ -67,7 +70,7 @@ class NovelVoiceWriter {
           voiceId: voiceId,
         );
     if (result.isErr) return result.error;
-    _ref.invalidate(novelAttributionProvider(key));
+    _ref.read(novelCastingWriterProvider)._refresh(key);
     return null;
   }
 
@@ -80,10 +83,84 @@ class NovelVoiceWriter {
           voiceId: voiceId,
         );
     if (result.isErr) return result.error;
-    _ref.invalidate(novelAttributionProvider(key));
+    _ref.read(novelCastingWriterProvider)._refresh(key);
     return null;
   }
 }
+
+/// The owner's other casting and rendering writes (cinematic 8.16.5, 8.16.8). Each answers null
+/// when it stuck or the error, and each refreshes what depends on it: the attribution, the book's
+/// audio coverage and the jobs.
+class NovelCastingWriter {
+  const NovelCastingWriter(this._ref);
+
+  final Ref _ref;
+
+  void _refresh(NovelChapterKey key) {
+    _ref
+      ..invalidate(novelAttributionProvider(key))
+      ..invalidate(seriesAudioProvider((sourceId: key.sourceId, seriesKey: key.seriesKey)))
+      ..invalidate(seriesAudioDetailProvider((sourceId: key.sourceId, seriesKey: key.seriesKey)))
+      ..invalidate(novelAudioJobsProvider((sourceId: key.sourceId, seriesKey: key.seriesKey)))
+      ..invalidate(activeAudioJobsProvider);
+  }
+
+  /// `male`, `female` or `unknown`.
+  Future<AppError?> setGender(NovelChapterKey key, String name, String gender) async {
+    final r = await _ref.read(novelsRepositoryProvider).setCastGender(
+          sourceId: key.sourceId,
+          seriesKey: key.seriesKey,
+          name: name,
+          gender: gender,
+        );
+    if (r.isErr) return r.error;
+    _refresh(key);
+    return null;
+  }
+
+  /// [alias] is the same character as [canonical].
+  Future<AppError?> mergeAlias(NovelChapterKey key, String alias, String canonical) async {
+    final r = await _ref.read(novelsRepositoryProvider).mergeCastAlias(
+          sourceId: key.sourceId,
+          seriesKey: key.seriesKey,
+          alias: alias,
+          canonical: canonical,
+        );
+    if (r.isErr) return r.error;
+    _refresh(key);
+    return null;
+  }
+
+  /// Queues [chapterKeys] for narration. [force] re-renders chapters that already have audio.
+  /// Answers the queued and skipped chapters, or the error (503 `narration_unavailable` among
+  /// them).
+  Future<Result<NovelAudioRequest>> requestRender(
+    NovelChapterKey key,
+    List<String> chapterKeys, {
+    int priority = 0,
+    bool force = false,
+  }) async {
+    final r = await _ref.read(novelsRepositoryProvider).requestAudio(
+          sourceId: key.sourceId,
+          seriesKey: key.seriesKey,
+          chapterKeys: chapterKeys,
+          priority: priority,
+          force: force,
+        );
+    if (r.isOk) _refresh(key);
+    return r;
+  }
+
+  /// Stops a render; it stops shortly (the render box learns on its next heartbeat).
+  Future<AppError?> cancelJob(NovelChapterKey key, String jobId) async {
+    final r = await _ref.read(novelsRepositoryProvider).cancelAudioJob(jobId);
+    if (r.isErr) return r.error;
+    _refresh(key);
+    return null;
+  }
+}
+
+final novelCastingWriterProvider = Provider<NovelCastingWriter>(NovelCastingWriter.new);
 
 final novelVoiceWriterProvider = Provider<NovelVoiceWriter>(
   NovelVoiceWriter.new,
