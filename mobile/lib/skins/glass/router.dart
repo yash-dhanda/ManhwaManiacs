@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/auth/utils/route_guard.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart' show setupCompletedProvider;
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/dev/auth_fixtures.dart';
 import 'package:manhwamaniacs/skins/glass/dev/calibration_page.dart';
 import 'package:manhwamaniacs/skins/glass/dev/dev_controls.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_dev_index.dart';
@@ -19,10 +20,19 @@ import 'package:manhwamaniacs/skins/glass/routes/depth_observer.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_swipe_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/nav_extra.dart';
+import 'package:manhwamaniacs/skins/glass/routes/redirect_hold.dart';
 import 'package:manhwamaniacs/skins/glass/routes/route_frame.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_param_host.dart';
+import 'package:manhwamaniacs/skins/glass/screens/auth/login_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/auth/register_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/auth/setup_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/onboarding/onboarding_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/profiles/picker_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
+import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
+import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
 import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
@@ -35,14 +45,6 @@ import 'package:manhwamaniacs/skins/skins.dart';
 // `readerLanding` is built here: it redirects to the library (glass 8.0.3).
 // ignore: constant_identifier_names
 const Set<ScreenId> PENDING = {
-  ScreenId.setup,
-  ScreenId.login,
-  ScreenId.register,
-  ScreenId.profiles,
-  ScreenId.profileNew,
-  ScreenId.profileEdit,
-  ScreenId.profilesManage,
-  ScreenId.onboarding,
   ScreenId.tonight,
   ScreenId.library,
   ScreenId.updates,
@@ -80,6 +82,9 @@ const String kGlassPrimitivesPath = '/dev/glass/primitives';
 
 /// The shell demo (`mobile/29`): the frame with a scaffold, lists, a poster rail, accessories, the Dive and depth pushes.
 const String kGlassShellDemoPath = '/dev/glass/shell';
+
+/// The auth, profiles and onboarding fixtures (`mobile/30`).
+const String kGlassAuthDemoPath = '/dev/glass/auth';
 
 /// The route error screen on its own (its captures and its tests).
 const String kGlassRouteErrorDemoPath = '/dev/glass/route-error';
@@ -169,6 +174,32 @@ GoRoute _sheetRoute(ScreenId id, GlobalKey<NavigatorState> root, {required Strin
       },
     );
 
+/// A finished screen (mobile/30 onwards): the route carries the plain id as its name and builds [build].
+GoRoute _screen(ScreenId id, Widget Function(GoRouterState state) build, {String? path, GlobalKey<NavigatorState>? parent, bool takeover = false, bool reader = false}) {
+  final isPattern = path == null || path == id.path;
+  return GoRoute(
+    path: path ?? id.path,
+    name: isPattern ? _nameOf(id) : null,
+    parentNavigatorKey: parent,
+    pageBuilder: (context, state) => glassPage(state, build(state), reader: reader, takeover: takeover),
+  );
+}
+
+/// The profile form: a sheet (a 560 px window on wide frames) over the picker when opened with a `GlassNavExtra`, else the page.
+GoRoute _formSheetRoute(ScreenId id, GlobalKey<NavigatorState> root, {required String title, bool edit = false}) => GoRoute(
+      path: id.path,
+      name: _nameOf(id),
+      parentNavigatorKey: root,
+      pageBuilder: (context, state) {
+        final pid = edit ? int.tryParse(state.pathParameters['id'] ?? '') : null;
+        if (edit && pid == null) return glassPage(state, GlassNotFound(location: state.uri.toString()));
+        void close(BuildContext c) => c.canPop() ? c.pop() : c.go(Routes.profiles());
+        Widget form({bool embedded = false}) => Builder(builder: (c) => GlassProfileForm(profileId: pid, embedded: embedded, onClose: () => close(c)));
+        final page = GlassScaffold(title: title, leading: GlassLeading.back, slivers: [SliverToBoxAdapter(child: form(embedded: true))]);
+        return glassSheetOrPage(context, state, form(), title: title, detents: const [GlassDetent.large], screen: page);
+      },
+    );
+
 GoRoute _redirect(String path, String Function(GoRouterState state) to) => GoRoute(path: path, redirect: (context, state) => to(state));
 
 GoRoute _devRoute(String path, Widget Function() page) => GoRoute(path: path, builder: (context, state) => _DevScaffold(child: page()));
@@ -203,6 +234,7 @@ GoRouter buildGlassRouter(Ref ref) {
     ..listen(activeProfileProvider, (_, __) => bridge.poke())
     ..listen<bool>(profileSessionReadyProvider, (_, __) => bridge.poke())
     ..listen<bool>(glassSignedOutPendingProvider, (_, __) => bridge.poke())
+    ..listen<bool>(glassRedirectHoldProvider, (_, __) => bridge.poke())
     ..listen(profileHeaderSyncProvider, (_, __) {});
 
   final rootKey = GlobalKey<NavigatorState>(debugLabel: 'glass root');
@@ -224,6 +256,8 @@ GoRouter buildGlassRouter(Ref ref) {
     redirect: (context, state) {
       // While the signed-out alert is pending the guard does not redirect (glass 8.0.9).
       if (ref.read(glassSignedOutPendingProvider)) return null;
+      // A success choreography on Setup, Login or Register runs before the guard moves the screen (mobile/30).
+      if (ref.read(glassRedirectHoldProvider)) return null;
       final gate = _gate(ref);
       if (gate.auth == GateAuth.authenticated && gate.hasActiveProfile && !ref.read(profileSessionReadyProvider)) {
         Future.microtask(() {
@@ -235,6 +269,7 @@ GoRouter buildGlassRouter(Ref ref) {
     routes: [
       _devRoute(kGlassDevPath, () => const GlassDevIndex()),
       _devRoute(kGlassCalibrationPath, () => const GlassCalibrationPage()),
+      _devRoute(kGlassAuthDemoPath, () => const GlassAuthDevPage()),
       _devRoute(kGlassRouteErrorDemoPath, () => GlassRouteError(error: StateError('demo'))),
       GoRoute(
         path: kGlassPrimitivesPath,
@@ -277,16 +312,16 @@ GoRouter buildGlassRouter(Ref ref) {
             _route(ScreenId.circle),
             _route(ScreenId.numbers),
             _route(ScreenId.status),
-            _route(ScreenId.profilesManage),
+            _screen(ScreenId.profilesManage, (s) => const GlassProfilesManageScreen()),
           ]),
         ],
       ),
       // Root navigator: takeovers, readers, search and the sheet routes.
-      _route(ScreenId.setup, parent: rootKey, takeover: true),
-      _route(ScreenId.login, parent: rootKey, takeover: true),
-      _route(ScreenId.register, parent: rootKey, takeover: true),
-      _route(ScreenId.profiles, parent: rootKey, takeover: true),
-      _route(ScreenId.onboarding, parent: rootKey, takeover: true),
+      _screen(ScreenId.setup, (s) => const GlassSetupScreen(), parent: rootKey, takeover: true),
+      _screen(ScreenId.login, (s) => GlassLoginScreen(user: s.uri.queryParameters['user']), parent: rootKey, takeover: true),
+      _screen(ScreenId.register, (s) => const GlassRegisterScreen(), parent: rootKey, takeover: true),
+      _screen(ScreenId.profiles, (s) => const GlassProfilePicker(), parent: rootKey, takeover: true),
+      _screen(ScreenId.onboarding, (s) => GlassOnboardingScreen(step: int.tryParse(s.uri.queryParameters['step'] ?? '')), parent: rootKey, takeover: true),
       _route(ScreenId.annual, parent: rootKey, takeover: true),
       _route(ScreenId.reader, parent: rootKey, reader: true),
       _route(ScreenId.readAll, parent: rootKey, reader: true),
@@ -306,8 +341,8 @@ GoRouter buildGlassRouter(Ref ref) {
       _sheetRoute(ScreenId.feature, rootKey, title: 'Series', form: GlassWideForm.detailWindow),
       _sheetRoute(ScreenId.recap, rootKey, title: 'Recap'),
       _sheetRoute(ScreenId.circleMember, rootKey, title: 'Circle', detents: const [GlassDetent.large]),
-      _sheetRoute(ScreenId.profileNew, rootKey, title: 'New profile', detents: const [GlassDetent.large]),
-      _sheetRoute(ScreenId.profileEdit, rootKey, title: 'Edit profile', detents: const [GlassDetent.large]),
+      _formSheetRoute(ScreenId.profileNew, rootKey, title: 'Add profile'),
+      _formSheetRoute(ScreenId.profileEdit, rootKey, title: 'Edit profile', edit: true),
       // `/library/:followedId` after every static /library path (the shell's branches are matched first).
       _sheetRoute(ScreenId.featureByFollow, rootKey, title: 'Series', form: GlassWideForm.detailWindow, numericOnly: true),
       // readerLanding: /reader goes to the library.
