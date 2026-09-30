@@ -26,7 +26,7 @@ Status: done. Every acceptance item has a widget test, a screenshot or both. Own
 | reader-contents-sheet-phone, reader-contents-panel-tablet | Contents: sheet on phones, left column panel on tablets |
 | reader-jump-field-phone | `07 / 40` becomes a number field |
 | reader-zoom-chip-phone | zoom chip (`200%`) |
-| reader-brightness-hud-phone | brightness HUD (`NIGHT -38`) |
+| reader-brightness-hud-phone | brightness HUD (`NIGHT −38`, the value at the captured frame; the drag test pins `NIGHT −40`) |
 | reader-seam-phone, reader-top-band-phone | seam, top band |
 | reader-credits-compact-phone, reader-credits-full-{phone,tablet} | compact and full credits, Coming up card, pull to continue |
 | reader-caught-up-phone, reader-the-end-phone | caught up (Notify me), the end (Mark as done) |
@@ -52,11 +52,18 @@ reader_route_test (616 / 744 / 440 / 200 / 150 ms, tap within 120 ms, `COLUMN WI
 
 ## Followed cinematic/DESIGN.md over the prompt
 - Compact credits live inside the 96 px seam band (8.14.5) rather than a separate row.
-- The 250 ms pull fade is the reader route's 440 ms Dip (8.14.1 says a pop is always the Dip).
-- The strip column keeps the shared geometry's 768 px cap (stripWidth 769-860 is clamped) so the legacy reader stays byte-identical.
-- Rate limited draws at the end of the loaded strip (where the next chapter would stitch), not over unloaded pages, because the strip reserves those boxes at exact size.
+- The pull commit fades through black for `durFadeCut` (250 ms) as K5 says, then the chapter opens by the usual Dip (`AnimatedOpacity` key `pull-fade`, pinned by test).
+- The tablet strip column caps at 860 (`kTabletStripMax`, only when the skin passes `columnWidth`; the legacy path keeps 768 and stays byte-identical). The device key is `mm.reader.device.stripWidthPx`.
+- Rate limited is read as 8.14.11's "top of the unloaded pages": the band sits at the top of the next chapter's not-yet-loaded pages, which is the stitch point after the loaded strip's credits. The strip has no sizes for pages it has not loaded, so there is no other place to draw it.
 - Pinch reads raw pointers (recorded in the prompt); no `ScaleGestureRecognizer`.
 
 ## Open issues
 - Guided view, paged layouts, read-all and the Reading setup sheet are mobile/13 and mobile/23.
 - Device checks (wipe timings on hardware, VoiceOver and TalkBack, volume keys) are owner-only: `device-checklist.md`.
+
+## Fix pass 2
+- Speed keys are `<` and `>` (Shift+comma, Shift+period); plain `,` is left for mobile/13. Hardware-key widget tests cover arrows, d/a, Space, Shift+Space, Ctrl+Shift+arrows, RTL, the `?` sheet contents and single-key shortcuts off.
+- Volume keys: Android only (engine guard under `lifecycleVolumeKeys`), only while resumed and K08 on; tested with a fake bridge on Android, K08 off and iOS.
+- Widget-tested: download mark states, OFFLINE EDITION, ruler semantics, zoom chip, brightness HUD, warmth and colour layers, chapter swipe (71 and 72 px), 140 px over-scroll, pull to continue, NOT IN THIS ISSUE, no pages, the offline seam, the 860 tablet column.
+- Real bugs the new tests found: the OFFLINE EDITION badge overflowed a 390 px head; the badge looked at the first stitched chapter instead of the one being read; the chapter swipe classified the rubber-banded offset (it committed at about 85 px, not 72); the 140 px over-scroll was never wired to anything; the command palette opened Continue by Wipe.
+- `Resume 12/40` shows on an interrupted save with progress; `Save again` for stale or failed with none.
