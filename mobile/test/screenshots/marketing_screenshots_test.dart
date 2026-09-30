@@ -37,6 +37,7 @@ import 'mobile_10_shots.dart';
 import 'mobile_11_shots.dart';
 import 'mobile_12_shots.dart';
 import 'mobile_13_shots.dart';
+import 'support/mobile21_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
 import 'support/shot_harness.dart';
@@ -84,6 +85,8 @@ void main() {
   group('mobile-10', mobile10Shots);
   // Both skins at every proof size (mobile/03). Default: Tonight only, so the
   // plain suite stays fast; a proof run sets MM_PROOF_SCREENS and MM_PROOF_DIR.
+  group('mobile-21', mobile21Group);
+
   group('skins', () {
     for (final skin in [SkinId.cinematic, SkinId.glass]) {
       for (final size in kSkinShotSizes) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +26,7 @@ class TypedHeadline extends StatefulWidget {
     this.level,
     this.onDone,
     this.controller,
+    this.delay = Duration.zero,
   });
 
   final String text;
@@ -34,6 +37,9 @@ class TypedHeadline extends StatefulWidget {
   final int? level;
   final VoidCallback? onDone;
   final TypedHeadlineController? controller;
+
+  /// Wait this long before the first grapheme (a stat block's numeral starts 120 ms after its rule).
+  final Duration delay;
 
   @override
   State<TypedHeadline> createState() => _TypedHeadlineState();
@@ -47,6 +53,8 @@ class _TypedHeadlineState extends State<TypedHeadline> with TickerProviderStateM
   late final AnimationController _blink;
   MotionHandle? _handle;
   int _n = 0;
+  Timer? _delayTimer;
+  bool _began = false;
   bool _typing = false, _skipped = false, _done = false, _reduced = false, _started = false;
 
   @override
@@ -76,9 +84,20 @@ class _TypedHeadlineState extends State<TypedHeadline> with TickerProviderStateM
       });
     } else {
       _typing = true;
-      _handle = CineMotion.track(MotionName.type, 50 * _len);
-      _ticker.start();
+      if (widget.delay == Duration.zero) {
+        _begin();
+      } else {
+        _delayTimer = Timer(widget.delay, () {
+          if (mounted && !_skipped) _begin();
+        });
+      }
     }
+  }
+
+  void _begin() {
+    setState(() => _began = true);
+    _handle = CineMotion.track(MotionName.type, 50 * _len);
+    _ticker.start();
   }
 
   void _tick(Duration elapsed) {
@@ -114,6 +133,7 @@ class _TypedHeadlineState extends State<TypedHeadline> with TickerProviderStateM
   @override
   void dispose() {
     if (widget.controller?._state == this) widget.controller?._state = null;
+    _delayTimer?.cancel();
     _handle?.end(interrupted: true);
     _ticker.dispose();
     _blink.dispose();
@@ -138,7 +158,7 @@ class _TypedHeadlineState extends State<TypedHeadline> with TickerProviderStateM
     final chars = widget.text.characters;
     final revealed = chars.take(_n).toString();
     final rest = chars.skip(_n).toString();
-    final caret = WidgetSpan(
+    final caret = (!_began && !_done) ? const TextSpan() : WidgetSpan(
       alignment: PlaceholderAlignment.middle,
       child: AnimatedBuilder(
         animation: _blink,

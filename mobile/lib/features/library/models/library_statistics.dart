@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/core/time/server_instant.dart';
+import 'package:manhwamaniacs/features/library/models/shareable.dart';
 
 /// `GET /library/statistics` — library shape plus everything
 /// `reading_sessions` recorded (`FollowedSeriesService.statistics`, which
@@ -23,7 +24,23 @@ class LibraryStatistics {
     this.bySource = const [],
     this.bySeries = const [],
     this.recentSessions = const [],
+    this.timezoneOffsetMinutes = 0,
+    this.sessionCapSeconds = 1800,
+    this.shareable,
+    this.raw,
   });
+
+  /// The payload as parsed, kept for the offline snapshot (A6).
+  final Map<String, dynamic>? raw;
+
+  /// The offset the day buckets were cut at (`range.timezone_offset_minutes`).
+  final int timezoneOffsetMinutes;
+
+  /// The per-session cap in seconds (`range.session_cap_seconds`).
+  final int sessionCapSeconds;
+
+  /// What a share card may draw (non-mature only); null on an older backend.
+  final Shareable? shareable;
 
   /// Series this profile follows.
   final int followedTotal;
@@ -80,6 +97,10 @@ class LibraryStatistics {
         bySource: _list(json['by_source'], SourceActivity.fromJson),
         bySeries: _list(json['by_series'], SeriesActivity.fromJson),
         recentSessions: _list(json['recent_sessions'], RecentSession.fromJson),
+        timezoneOffsetMinutes: (_object(json['range'])['timezone_offset_minutes'] as num?)?.toInt() ?? 0,
+        sessionCapSeconds: (_object(json['range'])['session_cap_seconds'] as num?)?.toInt() ?? 1800,
+        shareable: Shareable.tryParse(json['shareable']),
+        raw: json,
       );
 }
 
@@ -126,10 +147,18 @@ class ReadingStreak {
     this.currentDays = 0,
     this.longestDays = 0,
     this.lastActiveDate,
+    this.atRisk = false,
+    this.milestonesSeen = const [],
   });
 
   final int currentDays;
   final int longestDays;
+
+  /// A live streak whose last day was yesterday, after 20:00 local.
+  final bool atRisk;
+
+  /// Milestones (7, 30, 100, 365) whose title card this profile has seen.
+  final List<int> milestonesSeen;
 
   /// A local calendar day (`YYYY-MM-DD`) bucketed at the offset the client
   /// sent, so it is a date and never an instant — parsed at local midnight.
@@ -139,6 +168,11 @@ class ReadingStreak {
         currentDays: (json['current_days'] as num?)?.toInt() ?? 0,
         longestDays: (json['longest_days'] as num?)?.toInt() ?? 0,
         lastActiveDate: _localDate(json['last_active_date']),
+        atRisk: json['at_risk'] == true,
+        milestonesSeen: [
+          for (final v in (json['milestones_seen'] as List? ?? const []))
+            if (v is num) v.toInt(),
+        ],
       );
 }
 
@@ -226,6 +260,7 @@ class SeriesActivity {
     required this.sourceId,
     required this.seriesKey,
     this.title,
+    this.coverUrl,
     this.lastReadAt,
     this.sessions = 0,
     this.pagesRead = 0,
@@ -234,6 +269,9 @@ class SeriesActivity {
   });
 
   final String sourceId;
+
+  /// The series cover (a backend-relative proxy path or an absolute URL).
+  final String? coverUrl;
 
   /// Opaque connector key — passed through raw, never parsed.
   final String seriesKey;
@@ -251,6 +289,7 @@ class SeriesActivity {
         sourceId: json['source_id'] as String? ?? '',
         seriesKey: json['series_key'] as String? ?? '',
         title: (json['title'] as String?)?.trim(),
+        coverUrl: (json['cover_url'] as String?)?.trim(),
         lastReadAt: serverInstant(json['last_read_at']),
         sessions: (json['sessions'] as num?)?.toInt() ?? 0,
         pagesRead: (json['pages_read'] as num?)?.toInt() ?? 0,

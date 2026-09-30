@@ -124,6 +124,7 @@ dev_dependencies:
   # Linting
   flutter_lints: ^4.0.0
 
+  fake_async: any
 flutter:
   # ── Darwin dependency management: CocoaPods only ───────────────────────────
   # Swift Package Manager is ON BY DEFAULT on the stable channel

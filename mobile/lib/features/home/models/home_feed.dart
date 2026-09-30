@@ -2,6 +2,7 @@ import 'package:manhwamaniacs/core/time/server_instant.dart';
 import 'package:manhwamaniacs/features/library/models/ambient.dart';
 import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/library/models/library_statistics.dart' show ReadingStreak;
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 
@@ -48,6 +49,15 @@ class HomeStreak {
   /// A local calendar date, `DateTime` at midnight.
   final DateTime? lastActiveDate;
   final List<int> milestonesSeen;
+
+  /// The same numbers from `GET /library/statistics` (The Numbers, the milestone card).
+  factory HomeStreak.fromReadingStreak(ReadingStreak s) => HomeStreak(
+        currentDays: s.currentDays,
+        longestDays: s.longestDays,
+        atRisk: s.atRisk,
+        lastActiveDate: s.lastActiveDate,
+        milestonesSeen: s.milestonesSeen,
+      );
 
   HomeStreak copyWith({bool? atRisk}) => HomeStreak(
         currentDays: currentDays,
