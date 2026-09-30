@@ -167,7 +167,8 @@ class GlassPressRecognizer extends OneSequenceGestureRecognizer {
   void handleEvent(PointerEvent event) {
     if (event.pointer != _pointer) return;
     if (event is PointerMoveEvent) {
-      if ((event.position - _down).distance > cancelDistance) {
+      // Once the claim timer has fired (a lifted poster) the finger may travel: the distance only cancels an unclaimed press.
+      if (!_claimFired && (event.position - _down).distance > cancelDistance) {
         if (!_accepted) resolve(GestureDisposition.rejected);
         stopTrackingPointer(event.pointer);
         _finish(cancelled: true);

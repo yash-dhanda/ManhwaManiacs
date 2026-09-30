@@ -149,7 +149,8 @@ class _WaveItemState extends State<_WaveItem> with TickerProviderStateMixin {
         animation: Listenable.merge([_c, _f]),
         child: widget.child,
         builder: (context, child) {
-          final v = _c.value;
+          // A spring rests a hair short of 1: the settled item is exactly untransformed (hit areas stay at their full size).
+          final v = _c.value > 0.9995 ? 1.0 : _c.value;
           return Opacity(
             opacity: _f.value.clamp(0.0, 1.0),
             child: Transform.translate(offset: _from * (1 - v), child: Transform.scale(scale: 0.98 + 0.02 * v, child: child)),

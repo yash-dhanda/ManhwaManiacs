@@ -127,20 +127,20 @@ class _GlassProfileOrbState extends ConsumerState<GlassProfileOrb> with SingleTi
     super.didChangeDependencies();
     final r = widget.targetId == null ? null : GlassMagnetScope.maybeOf(context);
     if (r != _reg) {
-      if (widget.targetId != null) _reg?.unregister(widget.targetId!);
+      if (widget.targetId != null) _reg?.unregister(widget.targetId!, owner: this);
       _reg = r;
       if (widget.targetId != null) {
         r?.register(widget.targetId!, () {
           final ro = _key.currentContext?.findRenderObject();
           return ro is RenderBox && ro.attached ? ro.localToGlobal(ro.size.center(Offset.zero)) : null;
-        });
+        }, owner: this,);
       }
     }
   }
 
   @override
   void dispose() {
-    if (widget.targetId != null) _reg?.unregister(widget.targetId!);
+    if (widget.targetId != null) _reg?.unregister(widget.targetId!, owner: this);
     _drift.dispose();
     super.dispose();
   }

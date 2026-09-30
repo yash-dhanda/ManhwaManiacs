@@ -4,27 +4,11 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import 'package:manhwamaniacs/core/color/cover_palette.dart';
 import 'package:manhwamaniacs/core/color/oklch.dart';
 import 'package:material_color_utilities/material_color_utilities.dart' show QuantizerCelebi;
 
-/// A cover's colours and luminances (glass 2.1.8): up to three ranked colours, the mean relative
-/// luminance `l` (the blurred field reads it) and the 95th percentile `lMax` (surfaces over the art read it).
-@immutable
-class CoverPalette {
-  const CoverPalette({required this.a, required this.l, required this.lMax});
-
-  final List<Color> a;
-  final double l;
-  final double lMax;
-
-  factory CoverPalette.fromServer(Map<String, dynamic> json) => CoverPalette(
-        a: [for (final h in (json['a'] as List)) _hex(h as String)],
-        l: (json['l'] as num).toDouble(),
-        lMax: (json['lMax'] as num).toDouble(),
-      );
-
-  static Color _hex(String s) => Color(0xFF000000 | int.parse(s.replaceFirst('#', ''), radix: 16));
-}
+export 'package:manhwamaniacs/core/color/cover_palette.dart' show CoverPalette;
 
 /// One ranked candidate colour with its OKLCH and population.
 class _Candidate {
@@ -83,8 +67,10 @@ void clearCoverPaletteCache() => _cache.clear();
 Future<CoverPalette> coverPalette({
   required String cacheKey,
   Map<String, dynamic>? server,
+  CoverPalette? known,
   ImageProvider Function()? image,
 }) {
+  if (known != null) return Future.value(known);
   if (server != null) return Future.value(CoverPalette.fromServer(server));
   return _cache[cacheKey] ??= _decode(image!());
 }
@@ -154,3 +140,4 @@ Color rimTint(CoverPalette? palette, {Color fallback = const Color(0xFFBCB0FF)})
   final o = oklchFromColor(palette.a.first);
   return colorFromOklch(Oklch(0.86, o.c.clamp(0.0, 0.08), o.h));
 }
+

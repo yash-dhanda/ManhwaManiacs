@@ -93,6 +93,14 @@ void saveLastFeed(Ref ref, String contentKind, HomeFeed feed, {required bool Fun
       );
 }
 
+/// Deletes the cached feeds of the active profile for both content kinds (a closing 18+ gate, glass 8.0.8 step 5).
+void clearLastFeeds(Ref ref) {
+  final prefs = ref.read(sharedPrefsProvider);
+  for (final kind in const ['manga', 'novel']) {
+    prefs.remove(_key(ref, kind, watch: false));
+  }
+}
+
 HomeFeed? readLastFeed(Ref ref, String contentKind) => decodeLastFeed(ref.read(sharedPrefsProvider).getString(_key(ref, contentKind, watch: false)));
 
 bool _groupMature(DownloadedSeriesGroup g) => g.chapters.any((c) => c.mature ?? false);

@@ -55,7 +55,8 @@ class GlassContinueStack extends StatelessWidget {
   Widget build(BuildContext context) {
     final wide = GlassFrame.of(context).index >= GlassFrameKind.desktop.index;
     final w = wide ? 320.0 : 280.0;
-    final h = wide ? 148.0 : 132.0;
+    // The text grows to 1.5 x: the card grows with it so nothing is clipped at the largest text sizes.
+    final h = (wide ? 148.0 : 132.0) * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.5);
     const coverW = 88.0;
     final ratio = unopened ? 0.0 : (page / pageCount).clamp(0.0, 1.0);
     final meta = unopened ? 'Up next · Ch $chapter' : 'Ch $chapter · p. $page of $pageCount';

@@ -149,3 +149,7 @@ No unresolved items reported by the verifier.
 ## mobile/24b
 
 No unresolved items reported by the verifier.
+
+## mobile/31
+
+None reported by the verifier.

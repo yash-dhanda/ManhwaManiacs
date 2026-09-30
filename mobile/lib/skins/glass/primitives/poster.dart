@@ -97,7 +97,10 @@ class _Arrival extends ConsumerWidget {
   }
 }
 
-/// A poster (glass 7.8): 2:3, radius 14, a 1 px top highlight, no outer border. Touch: a tap is a release
+/// Where a lifted poster is (glass 7.8): [growing] from 150 ms, [lifted] at 450 ms (a physical object), [ended] on release.
+enum GlassLiftPhase { growing, lifted, ended }
+
+/// A poster (glass 7.8): 2:3, radius 14 (or [GlassPoster.radius]), a 1 px top highlight, no outer border. Touch: a tap is a release
 /// before 450 ms within the slop; at 150 ms it grows toward 1.06 (`press.lift`), at 450 ms it calls
 /// [onContextPreview] and becomes a physical object: drag moves it 1:1, a release throws it up (open),
 /// sideways (away, on AI cards), onto a friend orb, or back on `springZoom`; a touch during the return
@@ -132,9 +135,21 @@ class GlassPoster extends ConsumerStatefulWidget {
     this.disabledReason,
     this.forceStates = GlassWidgetStates.none,
     this.forceHoverButtons = false,
+    this.radius = 14,
+    this.onLiftPhase,
+    this.onMagnetChanged,
   });
 
   final Widget cover;
+
+  /// The corner radius (14 on rails; the Home spotlight card uses 26).
+  final double radius;
+
+  /// Reports the lift: `growing` at 150 ms, `lifted` at 450 ms, `ended` on release or cancel.
+  final ValueChanged<GlassLiftPhase>? onLiftPhase;
+
+  /// The id of the friend orb the poster is captured by (null when it lets go): the orb swells while it holds.
+  final ValueChanged<Object?>? onMagnetChanged;
 
   /// The semantics label's title; the badges add their fragments.
   final String title;
@@ -187,8 +202,14 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
   final GlobalKey _box = GlobalKey();
   final VelocityTracker _velocity = VelocityTracker.withKind(PointerDeviceKind.touch);
   late final Magnet _magnet = Magnet(
-    onCapture: (_) => glassFire(ref, HapticEvent.magnetCapture),
-    onRelease: (_) => glassFire(ref, HapticEvent.magnetDrop),
+    onCapture: (t) {
+      glassFire(ref, HapticEvent.magnetCapture);
+      widget.onMagnetChanged?.call(t.id);
+    },
+    onRelease: (_) {
+      glassFire(ref, HapticEvent.magnetDrop);
+      widget.onMagnetChanged?.call(null);
+    },
   );
 
   bool _lifting = false;
@@ -252,6 +273,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
       if (!_haptic150) {
         _haptic150 = true;
         glassFire(ref, HapticEvent.pressLift);
+        widget.onLiftPhase?.call(GlassLiftPhase.growing);
       }
       _scale.stop();
       _scale.value = liftScale(ms);
@@ -297,6 +319,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
       widget.onContextPreview?.call();
     }
     _lifted = true;
+    widget.onLiftPhase?.call(GlassLiftPhase.lifted);
     _px.stop();
     _py.stop();
     _grab = _lastPos - Offset(_px.value, _py.value);
@@ -324,6 +347,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
     final moved = (e.position - _downGlobal).distance;
     _lifting = false;
     _ticker.stop();
+    if (_haptic150) widget.onLiftPhase?.call(GlassLiftPhase.ended);
     if (!_lifted) {
       _settleScale();
       if (ms < GlassThresholds.tapMax && moved <= _slop) widget.onTap?.call();
@@ -361,6 +385,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
   double get _slop => Scrollable.maybeOf(context) != null ? GlassThresholds.dragSlopTouchScroll : GlassThresholds.dragSlopTouch;
 
   void _cancel() {
+    if (_haptic150) widget.onLiftPhase?.call(GlassLiftPhase.ended);
     _lifting = false;
     _lifted = false;
     _ticker.stop();
@@ -510,7 +535,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
               alignment: Alignment.center,
               transform: m4,
               child: DecoratedBox(
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), boxShadow: shadow),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(widget.radius), boxShadow: shadow),
                 child: child,
               ),
             ),
@@ -525,7 +550,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
     poster = GlassPressable(
       material: GlassMaterial.content,
       sink: 1,
-      shape: const GlassShape.superellipse(14),
+      shape: GlassShape.superellipse(widget.radius),
       minHit: false,
       onTap: disabled ? null : widget.onTap,
       enabled: !disabled,
@@ -602,7 +627,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
         );
 
     final cover = ClipRSuperellipse(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(widget.radius),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -641,7 +666,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
       clipBehavior: Clip.none,
       children: [
         Positioned.fill(child: cover),
-        if (sel) Positioned.fill(child: IgnorePointer(child: DecoratedBox(decoration: ShapeDecoration(shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: gt.colorIris500, width: 2)))))),
+        if (sel) Positioned.fill(child: IgnorePointer(child: DecoratedBox(decoration: ShapeDecoration(shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(widget.radius), side: BorderSide(color: gt.colorIris500, width: 2)))))),
         // Top-left: the status tag, or the favourite star on hover and focus.
         Positioned(
           left: 8,

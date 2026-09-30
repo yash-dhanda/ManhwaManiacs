@@ -72,6 +72,10 @@ class GlassRail extends ConsumerStatefulWidget {
     this.skeletonCount = 6,
     this.controller,
     this.forceArrows = false,
+    this.titleLeading,
+    this.titleTrailing,
+    this.aiSkeleton = false,
+    this.belowHeader,
   });
 
   final String title;
@@ -99,6 +103,18 @@ class GlassRail extends ConsumerStatefulWidget {
 
   /// For captures: show the page arrows.
   final bool forceArrows;
+
+  /// Before the title (an AI rail's `MachineBadge`, or the 28 px `ThinkingOrbit` while it thinks).
+  final Widget? titleLeading;
+
+  /// After the title (the `AiStamp`).
+  final Widget? titleTrailing;
+
+  /// The loading skeletons run at the AI half speed (2,800 ms).
+  final bool aiSkeleton;
+
+  /// Between the header and the scroller (an unavailable AI rail's `AiNotice`).
+  final Widget? belowHeader;
 
   @override
   ConsumerState<GlassRail> createState() => _GlassRailState();
@@ -266,7 +282,13 @@ class _GlassRailState extends ConsumerState<GlassRail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                LetterReveal(widget.title, role: gt.typeTitle2, revealKey: widget.revealKey ?? widget.title, screenId: widget.screenId, headingLevel: 2),
+                Row(
+                  children: [
+                    if (widget.titleLeading != null) Padding(padding: const EdgeInsets.only(right: 8), child: widget.titleLeading),
+                    Flexible(child: LetterReveal(widget.title, role: gt.typeTitle2, revealKey: widget.revealKey ?? widget.title, screenId: widget.screenId, headingLevel: 2)),
+                    if (widget.titleTrailing != null) Padding(padding: const EdgeInsets.only(left: 8), child: widget.titleTrailing),
+                  ],
+                ),
                 if (widget.subtitle != null) Padding(padding: const EdgeInsets.only(top: 2), child: GlassLabel(widget.subtitle!, role: gt.typeFootnote, color: gt.colorLabel2)),
               ],
             ),
@@ -284,6 +306,7 @@ class _GlassRailState extends ConsumerState<GlassRail> {
         scroller = SizedBox(
           height: h,
           child: GlassSkeletonGroup(
+            ai: widget.aiSkeleton,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               physics: const NeverScrollableScrollPhysics(),
@@ -358,7 +381,7 @@ class _GlassRailState extends ConsumerState<GlassRail> {
     Widget body = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [header, const SizedBox(height: 12), scroller],
+      children: [header, if (widget.belowHeader != null) Padding(padding: EdgeInsets.fromLTRB(_margin, 8, _margin, 0), child: widget.belowHeader), const SizedBox(height: 12), scroller],
     );
     if (canArrow && (widget.state == GlassRailState.ready || widget.state == GlassRailState.partial)) {
       body = MouseRegion(

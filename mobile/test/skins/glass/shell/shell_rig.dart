@@ -7,6 +7,8 @@ import 'package:manhwamaniacs/core/platform/gravity.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
+import 'package:manhwamaniacs/features/home/models/home_feed.dart';
+import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/app_update_provider.dart';
@@ -28,6 +30,12 @@ class _Unread extends UnreadCountNotifier {
   final int n;
   @override
   int build() => n;
+}
+
+/// Home on a quiet feed: the real controller keeps a ten-minute keep-alive timer, which no test that merely lands on Home should outlive.
+class _QuietHome extends HomeFeedController {
+  @override
+  Future<HomeFeedView> build() async => (state: HomeFeedState.empty, feed: const HomeFeed(headline: '', deck: ''), origin: HomeFeedOrigin.local, offline: false, retryAfter: null);
 }
 
 class _NoLetters extends LettersNotifier {
@@ -55,6 +63,7 @@ List<Override> shellTestOverrides({int unread = 0, int downloads = 0}) => [
       setupCompletedProvider.overrideWithValue(true),
       ...noDownloadsStoreOverrides(),
       ...contentModeOverrides(),
+      homeFeedProvider.overrideWith(_QuietHome.new),
       lettersProvider.overrideWith(_NoLetters.new),
       profilesProvider.overrideWith(_NoProfiles.new),
       sourcePinsProvider.overrideWith(_NoPins.new),

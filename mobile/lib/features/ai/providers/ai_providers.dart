@@ -31,6 +31,9 @@ class DismissedPicks extends Notifier<Set<String>> {
 
   void add(String id) => state = {...state, id};
   void remove(String id) => state = {...state}..remove(id);
+
+  /// Undo: the card may show again.
+  void restore(String id) => remove(id);
 }
 
 /// `POST /ai/feedback` behind Not for me, More like this and rejected tags.
@@ -54,6 +57,13 @@ class AiFeedback {
   Future<bool> likedPick(WorldItem i) {
     final a = i.available.firstOrNull;
     return i.anilistId > 0 ? _send('liked_pick', anilistId: i.anilistId) : _send('liked_pick', sourceId: a?.sourceId, seriesKey: a?.seriesKey);
+  }
+
+  /// Takes back a `not_interested` (the Undo of the toast) and shows the card again.
+  Future<bool> undoNotInterested(WorldItem i) {
+    _ref.read(dismissedPicksProvider.notifier).restore(pickId(i));
+    final a = i.available.firstOrNull;
+    return i.anilistId > 0 ? _send('undo', anilistId: i.anilistId) : _send('undo', sourceId: a?.sourceId, seriesKey: a?.seriesKey);
   }
 
   Future<bool> tagRejected(String sourceId, String seriesKey, String tag) => _send('tag_rejected', sourceId: sourceId, seriesKey: seriesKey, tag: tag);

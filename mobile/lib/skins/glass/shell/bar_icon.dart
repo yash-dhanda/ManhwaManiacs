@@ -17,13 +17,17 @@ class GlassBarIcon extends StatelessWidget {
       required this.onPressed,
       this.onLongPress,
       this.badge,
-      this.toggled,});
+      this.toggled,
+      this.iconBuilder,});
   final GlassButtonIcon icon;
   final String label;
   final VoidCallback? onPressed;
   final VoidCallback? onLongPress;
   final int? badge;
   final bool? toggled;
+
+  /// Replaces the glyph (the Home bell swings on a new count); the press state is the builder's business.
+  final WidgetBuilder? iconBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +51,7 @@ class GlassBarIcon extends StatelessWidget {
         builder: (context, info) => GlassBadged(
           badge: badge != null && badge! > 0 ? GlassBadge.count(badge!) : null,
           child: Center(
-              child: Icon(
+              child: iconBuilder?.call(context) ?? Icon(
                   info.states.pressed || (toggled ?? false)
                       ? icon.fill
                       : icon.regular,
