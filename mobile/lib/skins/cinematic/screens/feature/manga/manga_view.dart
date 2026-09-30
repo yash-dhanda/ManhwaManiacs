@@ -13,7 +13,6 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/selection_bar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.dart';
@@ -28,6 +27,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_hero
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_overflow.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/rating_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/repoint_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/series_ambient.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// The manga Feature page: hero or spread, then pinned contents tabs over
@@ -232,8 +232,8 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
       ),
     );
 
-    return CineAmbient(
-      target: CineAmbientColors.forSeries('${d.sourceId}/${d.seriesKey}'),
+    return SeriesAmbient(
+      seriesKey: '${d.sourceId}/${d.seriesKey}',
       builder: (context, amb) => ListenableBuilder(
         listenable: _selection,
         builder: (context, _) => PopScope(

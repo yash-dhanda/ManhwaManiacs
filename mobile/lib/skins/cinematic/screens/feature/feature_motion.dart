@@ -15,7 +15,7 @@ class FeatureMotionRow {
   String toString() => '${move.label} · $where · $plannedMs ms';
 }
 
-/// TODO(mobile/03): fed to the shared `MotionRecorder` when it lands.
+/// The shared transitions feed the MotionRecorder; this list is the plan the overlay is checked against.
 final List<FeatureMotionRow> featureMotionRows = [
   FeatureMotionRow(MotionName.matchCut, 'poster to series page, in', kMatchCutIn.inMilliseconds),
   FeatureMotionRow(MotionName.matchCut, 'series page to poster, out', kMatchCutOut.inMilliseconds),

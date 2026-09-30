@@ -8,10 +8,10 @@ import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.da
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_date.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_label.dart';
+import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/ambient_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_download_mark.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_focus_ring.dart';
+import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_view.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/manga_view.dart';
@@ -126,6 +126,10 @@ void main() {
   });
 
   testWidgets('CineFocusRing paints for keyboard focus only', (tester) async {
+    bool ringShown() => tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .any((c) => c.foregroundPainter is CineFocusRingPainter && (c.foregroundPainter! as CineFocusRingPainter).visible);
+
     Future<void> pumpRing() async {
       await tester.pumpWidget(MaterialApp(
         theme: featureTheme(TargetPlatform.android),
@@ -137,14 +141,14 @@ void main() {
     await pumpRing();
     Focus.of(tester.element(find.text('go'))).requestFocus();
     await tester.pump();
-    expect(find.byKey(const Key('cine-focus-ring')), findsNothing);
+    expect(ringShown(), isFalse);
 
     FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
     await tester.pumpWidget(const SizedBox());
     await pumpRing();
     Focus.of(tester.element(find.text('go'))).requestFocus();
     await tester.pump();
-    expect(find.byKey(const Key('cine-focus-ring')), findsOneWidget);
+    expect(ringShown(), isTrue);
     FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
   });
 }

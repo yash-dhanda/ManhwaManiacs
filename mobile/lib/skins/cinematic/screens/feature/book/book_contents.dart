@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/contents_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
@@ -61,11 +61,11 @@ class BookContentsToolbar extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: SizedBox(
                   width: 300,
-                  child: CineSegmented<String>(
+                  child: CineSegmentedControl(
                     key: const Key('book-order'),
-                    options: const [('oldest', 'FIRST → LAST'), ('newest', 'LAST → FIRST')],
-                    value: order,
-                    onChanged: onOrder,
+                    labels: const ['FIRST → LAST', 'LAST → FIRST'],
+                    index: order == 'oldest' ? 0 : 1,
+                    onChanged: (i) => onOrder(i == 0 ? 'oldest' : 'newest'),
                   ),
                 ),
               ),

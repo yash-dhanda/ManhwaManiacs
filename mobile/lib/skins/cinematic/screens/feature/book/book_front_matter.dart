@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/ambient_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/drop_cap_paragraph.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';

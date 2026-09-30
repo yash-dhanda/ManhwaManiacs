@@ -1,7 +1,7 @@
 // ignore_for_file: require_trailing_commas, directives_ordering
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_ambient.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/ambient_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_view.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/manga_view.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/repoint_sheet.dart';

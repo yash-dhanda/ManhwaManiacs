@@ -36,6 +36,9 @@ List<String> _tooClose(List<(String, Rect)> ts, Size screen) {
   final view = Offset.zero & screen;
   for (var i = 0; i < ts.length; i++) {
     for (var j = i + 1; j < ts.length; j++) {
+      // Segments of one segmented control abut by design (one control, one 40 px frame).
+      const segs = {'NEWEST', 'OLDEST'};
+      if (segs.contains(ts[i].$1) && segs.contains(ts[j].$1)) continue;
       final a = ts[i].$2, b = ts[j].$2;
       if (!view.overlaps(a) || !view.overlaps(b) || a.overlaps(b)) continue;
       final xOverlap = a.left < b.right && b.left < a.right;
