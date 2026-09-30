@@ -23,8 +23,11 @@ class SkinBoot {
 
   /// Debug override, else the device mirror, else [kDefaultSkin]; `glass`
   /// from the mirror becomes `cinematic` while it is unavailable (§8.0.7).
-  static SkinId resolveSkin(SharedPreferences prefs) =>
-      skinIdFromName(prefs.getString(kSkinDebugKey)) ?? resolveSkinWithoutDebug(prefs);
+  static SkinId resolveSkin(SharedPreferences prefs) {
+    final debug = skinIdFromName(prefs.getString(kSkinDebugKey));
+    if (debug == SkinId.glass && !Flags.glassAvailable) return SkinId.cinematic;
+    return debug ?? resolveSkinWithoutDebug(prefs);
+  }
 
   /// What "Clear override" and "Leave the preview" restart into.
   static SkinId resolveSkinWithoutDebug(SharedPreferences prefs) {

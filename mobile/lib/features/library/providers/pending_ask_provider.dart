@@ -1,18 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// A one-shot Ask draft: Search's Ask card and `?scope=ask` write it, For you reads it once and clears it.
-final pendingAskProvider = NotifierProvider<PendingAsk, String?>(PendingAsk.new, name: 'pendingAsk');
+/// A one-shot hand-off of the Ask query from Search to For you (`mobile/41` takes it on arrival).
+final pendingAskProvider = NotifierProvider<PendingAskNotifier, String?>(PendingAskNotifier.new);
 
-class PendingAsk extends Notifier<String?> {
+class PendingAskNotifier extends Notifier<String?> {
   @override
   String? build() => null;
 
-  void set(String draft) => state = draft;
+  void set(String q) => state = q;
 
-  /// The draft, cleared by reading it.
+  /// Returns the query and clears it.
   String? take() {
-    final d = state;
+    final v = state;
     state = null;
-    return d;
+    return v;
   }
 }
