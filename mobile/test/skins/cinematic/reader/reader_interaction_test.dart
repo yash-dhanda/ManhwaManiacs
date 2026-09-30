@@ -133,12 +133,11 @@ void main() {
     final rig = await pumpReader(
       tester,
       pages: 2,
-      prefsValues: const {},
       failing: {'c3': 'later'},
       neighbours: {'c2': (prev: 'c1', next: 'c3')},
     );
     await _c(tester).read(readerSettingsProvider.notifier).put({'autoNextChapter': false});
-    await settleReader(tester, ms: 1500);
+    await settleReader(tester);
     final scroll = tester.state<ScrollableState>(find.byType(Scrollable).first);
     scroll.position.jumpTo(scroll.position.maxScrollExtent);
     await settleReader(tester, ms: 600);

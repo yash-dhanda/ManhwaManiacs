@@ -34,7 +34,7 @@ void main() {
     expect(node.decreasedValue, 'Page 17');
     // ignore: deprecated_member_use
     expect(node.hasFlag(SemanticsFlag.isSlider), isTrue);
-    final owner = tester.binding.pipelineOwner.semanticsOwner!;
+    final owner = node.owner!;
     owner.performAction(node.id, SemanticsAction.increase);
     owner.performAction(node.id, SemanticsAction.decrease);
     expect(seeks, [19, 17]);

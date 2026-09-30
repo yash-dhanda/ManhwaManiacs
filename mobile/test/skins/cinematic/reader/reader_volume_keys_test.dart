@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/platform/native_bridge.dart';
 
@@ -9,6 +8,7 @@ import '../../../screenshots/support/shot_network.dart';
 import 'reader_test_support.dart';
 
 class _Bridge implements NativeBridge {
+  // ignore: close_sinks
   final events = StreamController<VolumeKeyDirection>.broadcast();
   final calls = <bool>[];
 
