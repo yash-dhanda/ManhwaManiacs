@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/gate/mature_gate_switch.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/list_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/reorder_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/swipe_row.dart';
@@ -14,6 +15,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/bulk_toolbar.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/select_mode.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/selectable_group.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 
 import 'overlay_support.dart';
@@ -273,6 +275,81 @@ void main() {
       expect(data.flagsCollection.isButton, isTrue);
       expect(tester.getSemantics(find.text('item 2')).getSemanticsData().flagsCollection.isChecked, CheckedState.isFalse);
       h.dispose();
+    });
+  });
+
+  group('18+ gate', () {
+    testWidgets('the switch never flips on tap; the alert shows the enable button at once; a 1,300 ms hold confirms; off is immediate', (tester) async {
+      var value = false;
+      final writes = <bool>[];
+      final host = OverlayHost(tester);
+      await host.pump(
+        page: Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 390,
+            child: StatefulBuilder(
+              builder: (context, set) => GlassMatureGate(mode: MatureGateMode.form, value: value, onChanged: (v) => set(() {
+                    value = v;
+                    writes.add(v);
+                  }),),
+            ),
+          ),
+        ),
+      );
+      bool switchOn() => tester.widget<GlassSwitch>(find.byType(GlassSwitch)).value;
+      await tester.tap(find.byType(GlassSwitch));
+      await pumpFor(tester, 700);
+      expect(find.text('Show mature content?'), findsOneWidget);
+      expect(find.text('I am 18 or older, enable'), findsOneWidget, reason: 'the fallback is visible without any interaction');
+      expect(find.text('Hold: I am 18 or older'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(switchOn(), isFalse);
+      expect(writes, isEmpty);
+      // a plain activation of the hold button moves focus to the enable button and never opens a second alert
+      await tester.tap(find.text('Hold: I am 18 or older'));
+      await pumpFor(tester, 300);
+      expect(find.text('Hold, or use the button below'), findsOneWidget);
+      expect(find.text('Show mature content?'), findsOneWidget);
+      // the hold
+      final g = await tester.startGesture(tester.getCenter(find.text('Hold: I am 18 or older')));
+      await pumpFor(tester, 1300);
+      await g.up();
+      await pumpFor(tester, 900);
+      expect(find.text('Show mature content?'), findsNothing);
+      expect(writes, [true]);
+      expect(switchOn(), isTrue);
+      expect(GlassHaptics.debugLog.map((e) => e.event), contains(HapticEvent.gateConfirm));
+      // off is immediate, with no alert
+      await tester.tap(find.byType(GlassSwitch));
+      await pumpFor(tester, 500);
+      expect(find.text('Show mature content?'), findsNothing);
+      expect(writes, [true, false]);
+      expect(switchOn(), isFalse);
+    });
+
+    testWidgets('the enable button confirms, Cancel leaves the switch off', (tester) async {
+      var value = false;
+      final host = OverlayHost(tester);
+      await host.pump(
+        page: Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 390,
+            child: StatefulBuilder(builder: (context, set) => GlassMatureGate(mode: MatureGateMode.form, value: value, onChanged: (v) => set(() => value = v))),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(GlassSwitch));
+      await pumpFor(tester, 700);
+      await tester.tap(find.text('Cancel'));
+      await pumpFor(tester, 700);
+      expect(value, isFalse);
+      await tester.tap(find.byType(GlassSwitch));
+      await pumpFor(tester, 700);
+      await tester.tap(find.text('I am 18 or older, enable'));
+      await pumpFor(tester, 900);
+      expect(value, isTrue);
     });
   });
 }

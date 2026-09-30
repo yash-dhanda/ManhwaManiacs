@@ -214,14 +214,16 @@ class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProvid
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) => _build(context, c.maxWidth.isFinite ? c.maxWidth : double.infinity));
+
+  Widget _build(BuildContext context, double avail) {
     final legible = ref.watch(glassA11yProvider.select((a) => a.legible));
     final reduced = ref.watch(glassReducedProvider);
     final states = widget.forceStates;
     final label = _filling && !_flash ? 'Keep holding…' : widget.label;
     final st = roleStyle(context, gt.typeHeadline, onGlass: true, legible: legible, maxScale: 1.5);
     final w = [widget.label, 'Keep holding…'].map((t) => measureText(context, t, st).width).reduce((a, b) => a > b ? a : b);
-    final size = Size((w + 24 * 2 + (widget.icon != null ? 28 : 0)).ceilToDouble(), 50);
+    final natural = (w + 24 * 2 + (widget.icon != null ? 28 : 0)).ceilToDouble();
     final helper = widget.forceHelper ?? _helper;
 
     final button = GlassPressable(
@@ -243,7 +245,7 @@ class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProvid
       semanticsLabel: widget.label,
       semanticsHint: widget.mode == HoldMode.standalone ? 'Opens a confirmation' : 'Activate to hold, or use the button below',
       builder: (context, info) => SkinGlass(
-        size: size,
+        size: Size(natural.clamp(0.0, avail), 50),
         tier: GlassTierId.t2,
         finish: _flash ? GlassFinishKind.tinted : GlassFinishKind.regular,
         twin: widget.twin,
@@ -267,7 +269,7 @@ class _HoldToConfirmState extends ConsumerState<HoldToConfirm> with TickerProvid
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (widget.icon != null) ...[Icon(widget.icon!.regular, size: 20, color: gt.colorOnGlass), const SizedBox(width: 8)],
-                GlassText(label, role: gt.typeHeadline, onGlass: true, maxScale: 1.5, maxLines: 1),
+                Flexible(child: GlassText(label, role: gt.typeHeadline, onGlass: true, maxScale: 1.5, maxLines: 1, overflow: TextOverflow.ellipsis)),
               ],
             ),
           ],

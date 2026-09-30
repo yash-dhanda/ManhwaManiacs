@@ -234,7 +234,8 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (leading != null) ...[leading, const SizedBox(width: 8)],
-                TweenAnimationBuilder<Color?>(
+                Flexible(
+                  child: TweenAnimationBuilder<Color?>(
                   tween: ColorTween(end: hovered && !onTint && !isPlain ? const Color(0xFFFFFFFF) : labelColor),
                   duration: info.reduced ? Duration.zero : gt.curveColorShift.duration,
                   curve: gt.curveColorShift.curve,
@@ -248,6 +249,7 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                ),
                 ),
               ],
             ),

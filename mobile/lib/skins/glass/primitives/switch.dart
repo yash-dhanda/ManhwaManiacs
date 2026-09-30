@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/progress.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
+import 'package:manhwamaniacs/skins/token_types.g.dart' show SpringToken;
 
 /// The switch (glass 7.22): a 51 x 31 track (off `fill1`, on `iris600`), a 27 px white knob. A tap moves the knob
 /// on `springTick` (its 4.6 % overshoot is the click) and the track colour shifts over `curveColorShift`.
@@ -24,6 +25,8 @@ class GlassSwitch extends ConsumerStatefulWidget {
     this.loading = false,
     this.errorTrigger = 0,
     this.forceStates = GlassWidgetStates.none,
+    this.deferOn = false,
+    this.spring,
   });
 
   final bool value;
@@ -34,6 +37,13 @@ class GlassSwitch extends ConsumerStatefulWidget {
   /// Every increase springs the knob back to [value]'s side, shakes and fires `error`.
   final int errorTrigger;
   final GlassWidgetStates forceStates;
+
+  /// Turning on only asks: the knob stays off and [onChanged] gets `true` without a toggle haptic, so the caller can put a
+  /// confirmation in between (the 18+ gate). The caller then sets [value].
+  final bool deferOn;
+
+  /// The knob's spring; `springTick` by default (the gate travels on `springCelebrate`).
+  final SpringToken? spring;
 
   @override
   ConsumerState<GlassSwitch> createState() => _GlassSwitchState();
@@ -69,10 +79,15 @@ class _GlassSwitchState extends ConsumerState<GlassSwitch> with SingleTickerProv
       _p.value = target;
       return;
     }
-    _p.animateWith(SpringSimulation(springOf(gt.springTick), _p.value, target, velocity));
+    _p.animateWith(SpringSimulation(springOf(widget.spring ?? gt.springTick), _p.value, target, velocity));
   }
 
   void _toggleTo(bool v) {
+    if (widget.deferOn && v && !widget.value) {
+      _to(0);
+      widget.onChanged?.call(true);
+      return;
+    }
     glassFire(ref, v ? HapticEvent.toggleOn : HapticEvent.toggleOff);
     glassSound(ref, v ? SoundEvent.toggleOn : SoundEvent.toggleOff);
     _to(v ? 1 : 0);
