@@ -53,7 +53,7 @@ Future<ReaderEngine> _pump(WidgetTester tester, {ReaderChapterMode mode = Reader
         onReplaceChapter: onReplace,
       ),
     ),
-  ));
+  ),);
   await tester.pump();
   await tester.pump();
   return engine;
