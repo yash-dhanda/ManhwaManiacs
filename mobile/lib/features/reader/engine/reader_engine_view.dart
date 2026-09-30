@@ -2439,6 +2439,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
               options.pageStateBuilder != null,
               _nextState(),
               _loadingPrevious,
+              options.slotSignature,
             ),
             builder: (context, index) => hasFooter && index == pageCount
                 ? _buildFooter(context)

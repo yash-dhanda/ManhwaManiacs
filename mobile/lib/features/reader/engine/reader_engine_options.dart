@@ -112,6 +112,7 @@ class ReaderEngineOptions {
     this.offline = false,
     this.pageLayerBuilder,
     this.pageSemantics,
+    this.slotSignature,
     this.lifecycleVolumeKeys = false,
   });
 
@@ -159,6 +160,10 @@ class ReaderEngineOptions {
   final bool offline;
   final PageLayerBuilder? pageLayerBuilder;
   final PageSemanticsBuilder? pageSemantics;
+
+  /// Whatever the slot builders read that is not a parameter here (the skin's series data): when it
+  /// changes the pages, bands and footer are built again.
+  final Object? slotSignature;
 
   /// Stops volume-key interception while the app is not resumed (Cinematic).
   final bool lifecycleVolumeKeys;

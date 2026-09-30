@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -123,8 +124,17 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   TargetPlatform get _platform => Theme.of(context).platform;
   bool get _reduced => CineMotion.reduced(context);
 
+  /// A rebuild the engine asked for: never inside the frame's own build (the engine publishes from
+  /// its `initState`).
   void _repaint() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    } else {
+      setState(() {});
+    }
   }
 
   late final StateController<bool> _toastOwner = ref.read(cineReaderOwnsToastsProvider.notifier);
@@ -132,7 +142,11 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => _toastOwner.state = true);
+    Future.microtask(() {
+      try {
+        _toastOwner.state = true;
+      } catch (_) {}
+    });
     _engine.addListener(_onEngine);
     _engine.chapterCompleted.listen(_onCompleted);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -175,7 +189,11 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     _surface.dispose();
     _engine.removeListener(_onEngine);
     _engine.dispose();
-    Future.microtask(() => _toastOwner.state = false);
+    Future.microtask(() {
+      try {
+        _toastOwner.state = false;
+      } catch (_) {}
+    });
     unawaited(applyReaderSystemUi(readerSystemUi(defaultTargetPlatform, ReaderUiPhase.exit)));
     super.dispose();
   }
@@ -558,6 +576,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       offline: offline,
       pageLayerBuilder: (context, pages) => _pageLayer(context, pages, prefs),
       pageSemantics: accessible ? _pageSemantics : (context, chapter, n, page) => Semantics(label: 'Page $n of ${chapter.pages.length}', child: page),
+      slotSignature: (series?.chapters.length, prefs.autoNextChapter),
       lifecycleVolumeKeys: true,
     );
 
