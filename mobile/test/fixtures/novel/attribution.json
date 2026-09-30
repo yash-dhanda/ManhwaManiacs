@@ -1,0 +1,69 @@
+{
+ "attributed": true,
+ "text_fingerprint": "41926bafca8904148c4c19e6b4a19726b4173c143f96a3e467419cebc6b1d80f",
+ "narrator": null,
+ "spans": [
+  {
+   "p": 0,
+   "s": 219,
+   "e": 251,
+   "head": "“and w",
+   "speaker": "Alice"
+  },
+  {
+   "p": 0,
+   "s": 266,
+   "e": 302,
+   "head": "“witho",
+   "speaker": "Alice"
+  },
+  {
+   "p": 2,
+   "s": 131,
+   "e": 167,
+   "head": "“Oh de",
+   "speaker": "White Rabbit"
+  },
+  {
+   "p": 6,
+   "s": 0,
+   "e": 7,
+   "head": "“Well!",
+   "speaker": "Alice"
+  },
+  {
+   "p": 6,
+   "s": 34,
+   "e": 229,
+   "head": "“after",
+   "speaker": "Alice"
+  },
+  {
+   "p": 7,
+   "s": 55,
+   "e": 106,
+   "head": "“I won",
+   "speaker": "Alice"
+  },
+  {
+   "p": 11,
+   "s": 126,
+   "e": 175,
+   "head": "“Oh my",
+   "speaker": "White Rabbit"
+  }
+ ],
+ "cast": [
+  {
+   "name": "Alice",
+   "gender": "female",
+   "voice_id": null
+  },
+  {
+   "name": "White Rabbit",
+   "gender": "male",
+   "voice_id": null
+  }
+ ],
+ "narrator_voice_id": null
+}
