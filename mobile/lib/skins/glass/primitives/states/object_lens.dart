@@ -194,6 +194,7 @@ class _GlassObjectLensState extends ConsumerState<GlassObjectLens> with TickerPr
       ),
     );
     if (widget.placement == GlassLensPlacement.inline) return body;
-    return GlassAmbientScope(spec: GlassAmbientSpec.mood(mood, opacity: opacity), child: body);
+    // A full lens is the screen; if the screen is too short for it (a landscape phone, a huge text size) it scrolls.
+    return GlassAmbientScope(spec: GlassAmbientSpec.mood(mood, opacity: opacity), child: Center(child: SingleChildScrollView(child: body)));
   }
 }

@@ -107,11 +107,10 @@ class GlassRowShell extends ConsumerWidget {
                         ClipRect(
                           child: SizedBox(
                             width: 36 * v.clamp(0.0, 1.0),
-                            child: OverflowBox(
+                            child: UnconstrainedBox(
                               alignment: Alignment.centerLeft,
-                              minWidth: 36,
-                              maxWidth: 36,
-                              child: Padding(padding: const EdgeInsets.only(left: 12), child: GlassSelectionCheck(selected: selected)),
+                              clipBehavior: Clip.hardEdge,
+                              child: SizedBox(width: 36, child: Padding(padding: const EdgeInsets.only(left: 12), child: GlassSelectionCheck(selected: selected))),
                             ),
                           ),
                         ),
