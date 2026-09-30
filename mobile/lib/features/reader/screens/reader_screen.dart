@@ -21,6 +21,7 @@ import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_controller.dart';
+import 'package:manhwamaniacs/features/reader/utils/reader_feed_factory.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_series_navigation.dart';
 import 'package:manhwamaniacs/features/reader/utils/reading_clock.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_content.dart';
@@ -296,14 +297,27 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
   ) =>
       (chapter, page) => _lastSave = save(chapter, page);
 
-  ReaderFeedController _buildController() => ReaderFeedController(
-        anchor: widget.resolved.chapter,
-        prev: _prev,
-        next: _next,
-        order: widget.readAllOrder,
-        neighboursOf: _neighboursOf,
-        loadChapter: _loadChapter,
-      )..addListener(_onFeedChanged);
+  ReaderFeedController _buildController() {
+    final factory = ref.read(readerFeedFactoryProvider);
+    final controller = factory != null && widget.readAllOrder != null
+        ? factory(ReaderFeedArgs(
+            anchor: widget.resolved.chapter,
+            prev: _prev,
+            next: _next,
+            order: widget.readAllOrder,
+            neighboursOf: _neighboursOf,
+            loadChapter: _loadChapter,
+          ),)
+        : ReaderFeedController(
+            anchor: widget.resolved.chapter,
+            prev: _prev,
+            next: _next,
+            order: widget.readAllOrder,
+            neighboursOf: _neighboursOf,
+            loadChapter: _loadChapter,
+          );
+    return controller..addListener(_onFeedChanged);
+  }
 
   void _onFeedChanged() {
     if (mounted) setState(() {});

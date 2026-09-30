@@ -121,9 +121,8 @@ void main() {
     final speed = ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
     double x() => speed.read(readerPrefsProvider('demo:k')).autoScrollSpeedX;
     final before = x();
-    // Plain , and . are reserved (Reading setup, mobile/13): only Shift+, and Shift+. change the speed.
+    // Plain . is nothing (plain , opens Reading setup, mobile/13): only Shift+, and Shift+. change the speed.
     await _key(tester, LogicalKeyboardKey.period, ms: 300);
-    await _key(tester, LogicalKeyboardKey.comma, ms: 300);
     expect(find.text('${(before + 0.25).toStringAsFixed(1)}×'), findsNothing);
     await _key(tester, LogicalKeyboardKey.period, ms: 300, shift: true);
     expect(find.text('${(before + 0.25).toStringAsFixed(1)}×'), findsWidgets, reason: '> is faster');

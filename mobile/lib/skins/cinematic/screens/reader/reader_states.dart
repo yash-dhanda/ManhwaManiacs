@@ -132,3 +132,36 @@ class ReaderFailureView extends StatelessWidget {
     );
   }
 }
+
+/// The read-all list failure (cinematic 8.14.11): the series' chapter list did not come through, so
+/// there is nothing to read through.
+class ReadAllListFailureView extends StatelessWidget {
+  const ReadAllListFailureView({super.key, required this.onRetry, required this.onBack});
+
+  /// The copy, exactly. The typed headline holds 60 graphemes, so the sentence is the deck.
+  static const String deck = "This series' chapter list didn't come through, so there's nothing to read through.";
+  final VoidCallback onRetry, onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.cine;
+    return _ground(
+      context,
+      SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: c.space4),
+          child: SingleChildScrollView(
+            child: CineNotice(
+              tone: CineNoticeTone.error,
+              headline: "The list didn't load.",
+              deck: deck,
+              wholeScreen: true,
+              primary: CineNoticeAction('Try again', onRetry),
+              quiet: CineNoticeAction('Go to the series', onBack),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

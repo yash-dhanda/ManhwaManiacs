@@ -127,6 +127,8 @@ Items only the owner can do, by step.
 
 - Device checks for the onboarding: see `docs/redesign/proof/mobile-20/device-checklist.md` (iris out into step 2, typing at 50 ms, the 450 ms hold, backward swipe only, Android back 4 to 3 to 2 to picker, no iOS edge swipe, Cut to home at 120 Hz, VoiceOver and TalkBack actions, text scale 2.0). Shipped with widget-test coverage as the fallback.
 - Art: the nine commissioned CC0 art-style crops (600 x 600 WebP, <= 60 KB, `mobile/assets/onboarding/styles/01-painted.webp` ... `09-chibi.webp`). Until they land the step ships typographic plates; the commit that adds them declares the folder under `flutter: assets:` and flips `kStyleArtBundled` in `mobile/lib/features/onboarding/utils/art_styles.dart`.
+
+- mobile/13: device checks in `docs/redesign/proof/mobile-13/device-checklist.md` (120 Hz slide, haptics, volume keys, refresh rate, OCR scan on a saved chapter).
 ## mobile/21 (The Numbers, the streak flame and The Annual)
 
 - **Run the device checklist** in `docs/redesign/proof/mobile-21/device-checklist.md` on the iPhone (SideStore build) and the Android flagship: numerals and rules at 120 Hz, flame tiers, Ignite and milestone haptics, the Annual's gestures and colophon, Share to Messages and Instagram Stories, `Save image` into Photos and into Pictures > ManhwaManiacs. Fallback meanwhile: the widget tests and the proof screenshots cover layout and behaviour; only feel and the share-sheet targets need a device.

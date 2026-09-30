@@ -186,6 +186,8 @@ class _ReaderContentState extends ConsumerState<ReaderContent> {
             behavior: SnackBarBehavior.floating,
           ),
         );
+      case ReaderPageSwiped():
+        break;
       case ReaderStaleAnchor(:final openedPage, :final requestedPage):
         messenger.showSnackBar(
           SnackBar(

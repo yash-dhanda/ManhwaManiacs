@@ -15,6 +15,8 @@ String _spoken(String v) {
   if (m != null) return 'Chapter ${m[1]}, ${m[2]} percent read';
   m = RegExp(r'^CH\s*(\d+)\s*·\s*p\.?\s*(\d+)$', caseSensitive: false).firstMatch(v);
   if (m != null) return 'Chapter ${m[1]}, page ${m[2]}';
+  m = RegExp(r'^CH\s*[\d.]+\s*·\s*(\d+)\s*OF\s*(\d+)$', caseSensitive: false).firstMatch(v);
+  if (m != null) return 'Chapter ${m[1]} of ${m[2]}';
   m = RegExp(r'^CH\s*(\d+)\s*OF\s*(\d+)$', caseSensitive: false).firstMatch(v);
   if (m != null) return 'Chapter ${m[1]} of ${m[2]}';
   m = RegExp(r'^NEXT\s*·\s*CH\s*(\d+)$', caseSensitive: false).firstMatch(v);

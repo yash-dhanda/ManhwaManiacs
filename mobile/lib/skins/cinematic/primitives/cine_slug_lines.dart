@@ -124,7 +124,7 @@ class _CineSlugLinesState extends State<CineSlugLines> {
         );
       }
       Widget box = Padding(padding: EdgeInsets.symmetric(horizontal: s.removable ? 0 : 12), child: line);
-      box = ConstrainedBox(constraints: BoxConstraints(minWidth: 44, minHeight: hit), child: Center(widthFactor: 1, child: box));
+      box = ConstrainedBox(constraints: BoxConstraints(minWidth: hit, minHeight: hit), child: Center(widthFactor: 1, child: box));
       if (multi && selected && !s.removable) {
         box = Stack(clipBehavior: Clip.none, children: [
           box,

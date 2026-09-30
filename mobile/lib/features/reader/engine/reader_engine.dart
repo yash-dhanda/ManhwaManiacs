@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/physics.dart' show SpringDescription;
-import 'package:flutter/widgets.dart' show Curve, Offset;
+import 'package:flutter/widgets.dart' show Curve, Offset, ScrollPhysics;
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_layout.dart';
 
 /// The chapter a [ReaderEngine.chapterCompleted] event names.
 typedef ChapterRef = ChapterIdentity;
@@ -73,6 +75,19 @@ abstract interface class ReaderEngineCommands {
   /// Scroll to the start of the loaded chapter at [chapterIndex] of the feed.
   void seekToChapter(int chapterIndex);
 
+  /// Turn to [page] of the chapter (paged layouts): Cut jumps, Slide animates over [slideDuration]
+  /// along [slideCurve], Fade cross-fades over [fadeDuration]. The strip jumps.
+  void turnTo(
+    int page, {
+    PageTurn kind = PageTurn.cut,
+    required Duration slideDuration,
+    required Curve slideCurve,
+    required Duration fadeDuration,
+  });
+
+  /// The page under 38 % of the viewport in the strip, the current page in paged layouts.
+  int pageAtReadingLine();
+
   /// Cancel the chrome's auto-hide (a sheet is open over the reader).
   void holdChrome();
 
@@ -125,6 +140,13 @@ final class ReaderStaleAnchor extends ReaderEngineEvent {
   final int requestedPage;
 }
 
+/// A page was turned by a finger in a paged layout (taps, keys and the ruler go through
+/// [ReaderEngine.turnTo] and are the skin's own feedback): the skin plays its `page.turn` cue.
+final class ReaderPageSwiped extends ReaderEngineEvent {
+  const ReaderPageSwiped({required this.page});
+  final int page;
+}
+
 /// The reader's controller: publishes [ReaderEngineState] and forwards every
 /// command to the `ReaderEngineView` it is attached to, the way a
 /// `ScrollController` forwards to its `ScrollPosition`. With no view attached
@@ -160,13 +182,25 @@ class ReaderEngine extends ValueNotifier<ReaderEngineState>
     unawaited(_completed.close());
     topPull.dispose();
     endPull.dispose();
+    layoutSpec.dispose();
     super.dispose();
   }
 
   bool get isAttached => _host != null;
 
+  /// The layout the skin asked for (glass 15.4 `setLayout`): the strip until told otherwise. A
+  /// skin's reader frame builds the strip view or the paged view from it.
+  final ValueNotifier<ReaderLayoutSpec> layoutSpec = ValueNotifier<ReaderLayoutSpec>(const ReaderLayoutSpec());
+
+  /// Switch between the strip and the paged layouts, keeping the current page. [pagePhysics] is the
+  /// skin's finger physics for a paged layout.
+  void setLayout(ReaderLayout layout, {bool rtl = false, ScrollPhysics? pagePhysics}) {
+    layoutSpec.value = ReaderLayoutSpec(layout: layout, rtl: rtl, pagePhysics: pagePhysics);
+  }
+
+  /// A view replacing another (a layout switch) attaches before the old one is disposed: the newest
+  /// host wins and the old one's detach is then a no-op.
   void attach(ReaderEngineHost host) {
-    assert(_host == null, 'A ReaderEngine drives one ReaderEngineView.');
     _host = host;
   }
 
@@ -265,6 +299,19 @@ class ReaderEngine extends ValueNotifier<ReaderEngineState>
 
   @override
   void seekToChapter(int chapterIndex) => _host?.seekToChapter(chapterIndex);
+
+  @override
+  void turnTo(
+    int page, {
+    PageTurn kind = PageTurn.cut,
+    required Duration slideDuration,
+    required Curve slideCurve,
+    required Duration fadeDuration,
+  }) =>
+      _host?.turnTo(page, kind: kind, slideDuration: slideDuration, slideCurve: slideCurve, fadeDuration: fadeDuration);
+
+  @override
+  int pageAtReadingLine() => _host?.pageAtReadingLine() ?? value.page;
 
   @override
   void showChrome() => _host?.showChrome();

@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_reader_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/read_all_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_route_page.dart';
 import 'package:manhwamaniacs/skins/reader_entries.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_chrome.dart';
@@ -41,7 +42,7 @@ ReaderChapter readerChapter(String id, {int pages = 6, String? title, String? pr
       ],
     );
 
-enum ReaderRigOrigin { manifest, source, legacy }
+enum ReaderRigOrigin { manifest, source, legacy, readAll }
 
 /// What a reader test can steer.
 class ReaderRig {
@@ -97,6 +98,7 @@ Future<ReaderRig> pumpReader(
         ReaderRigOrigin.manifest => CineReaderRoute.manifest(sourceId: kReaderSource, seriesKey: kReaderSeries, chapterKey: chapterKey),
         ReaderRigOrigin.source => CineReaderRoute.source(sourceId: kReaderSource, seriesKey: kReaderSeries, chapterKey: chapterKey),
         ReaderRigOrigin.legacy => manifestReaderEntry(sourceId: kReaderSource, seriesKey: kReaderSeries, chapterKey: chapterKey),
+        ReaderRigOrigin.readAll => ReadAllScreen(sourceId: kReaderSource, seriesKey: kReaderSeries, from: chapterKey == 'c1' ? null : chapterKey),
       };
   final router = GoRouter(
     initialLocation: pushed ? '/' : '/read',

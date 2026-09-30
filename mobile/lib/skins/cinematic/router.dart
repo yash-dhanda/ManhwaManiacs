@@ -23,7 +23,6 @@ import 'package:manhwamaniacs/skins/skins.dart';
 const Set<ScreenId> PENDING = {
   ScreenId.circle,
   ScreenId.circleMember,
-  ScreenId.readAll,
   ScreenId.novel,
 };
 

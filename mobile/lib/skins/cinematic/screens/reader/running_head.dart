@@ -112,30 +112,9 @@ class _Title extends StatelessWidget {
         if (loading)
           CineRoleText(folioText, c.typeFolio, color: c.colorSpot)
         else
-          CinePressable(
-            onTap: onOpenContents,
-            builder: (context, st) => Tooltip(
-              message: 'Contents',
-              excludeFromSemantics: true,
-              child: Semantics(
-                button: true,
-                label: folioLabel(folio),
-                hint: 'Contents',
-                excludeSemantics: true,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: hit, minWidth: hit),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CineRoleText(folioText, c.typeFolio, color: c.colorSpot),
-                      const SizedBox(width: 4),
-                      CineGlyphIcon(ReaderCp.caretDown, size: 12, color: c.colorSpot),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          Flexible(
+            flex: 3,
+            child: _FolioButton(folioText: folioText, folio: folio, onOpenContents: onOpenContents),
           ),
         if (offline) ...[
           const SizedBox(width: 8),
@@ -152,6 +131,48 @@ class _Title extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// The chapter folio (`CH 142`, or `CH 142 · 12 OF 201` in read-all) as its own target: it opens
+/// Contents. On a narrow head it scales down rather than overflow.
+class _FolioButton extends StatelessWidget {
+  const _FolioButton({required this.folioText, required this.folio, required this.onOpenContents});
+  final String folioText, folio;
+  final VoidCallback onOpenContents;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.cine;
+    final hit = cineHitMin(context);
+    return CinePressable(
+      onTap: onOpenContents,
+      builder: (context, st) => Tooltip(
+        message: 'Contents',
+        excludeFromSemantics: true,
+        child: Semantics(
+          button: true,
+          label: folioLabel(folio),
+          hint: 'Contents',
+          excludeSemantics: true,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: hit, minWidth: hit),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CineRoleText(folioText, c.typeFolio, color: c.colorSpot),
+                  const SizedBox(width: 4),
+                  CineGlyphIcon(ReaderCp.caretDown, size: 12, color: c.colorSpot),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
