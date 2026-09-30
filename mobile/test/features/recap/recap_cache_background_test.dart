@@ -20,7 +20,7 @@ import '../../support/test_overrides.dart';
 class _Profiles extends ActiveProfileNotifier {
   @override
   ActiveProfile? build() => const ActiveProfile(
-      id: 1, name: 'One', avatarKey: null, mood: Mood.neutral);
+      id: 1, name: 'One', avatarKey: null, mood: Mood.neutral,);
   void to(int id) => state =
       ActiveProfile(id: id, name: 'P$id', avatarKey: null, mood: Mood.neutral);
 }
@@ -31,19 +31,19 @@ Future<ProviderContainer> _c() async {
   final c = ProviderContainer(overrides: [
     sharedPrefsProvider.overrideWithValue(prefs),
     authenticatedAuthOverride(),
-    activeProfileProvider.overrideWith(_Profiles.new)
-  ]);
+    activeProfileProvider.overrideWith(_Profiles.new),
+  ],);
   addTearDown(c.dispose);
   return c;
 }
 
 DeckState _deck(String t) => DeckState(
-    sections: [const DeckSection(kind: 'left_off', title: 'T').append(t)]);
+    sections: [const DeckSection(kind: 'left_off', title: 'T').append(t)],);
 SseEvent _done() => SseEvent(
     'done',
     jsonEncode({
-      'range': [1, 2]
-    }));
+      'range': [1, 2],
+    }),);
 
 void main() {
   test('cache: round trip, LRU of 20, profile isolation, clear', () async {
@@ -56,7 +56,7 @@ void main() {
       await cache.save('k$i', _deck('x'));
     }
     expect(await cache.readCachedRecap('a'), isNull,
-        reason: 'the oldest is evicted at 21');
+        reason: 'the oldest is evicted at 21',);
     expect(await cache.readCachedRecap('k19'), isNotNull);
     (c.read(activeProfileProvider.notifier) as _Profiles).to(2);
     expect(await c.read(recapCacheProvider).readCachedRecap('k19'), isNull);
@@ -79,13 +79,13 @@ void main() {
         sourceId: 's',
         seriesKey: 'k',
         mature: false,
-        startedAt: DateTime.now());
+        startedAt: DateTime.now(),);
     ctl.add(_done());
     await Future<void>.delayed(Duration.zero);
     expect(got.map((e) => e.title), ['Solo']);
     expect(bg.length, 0);
     expect(await c.read(recapCacheProvider).readCachedRecap('s:k:c:series'),
-        isNotNull);
+        isNotNull,);
   });
 
   test('keep-alive: cancelled after 60 s; cancelWhere drops mature only', () {
@@ -93,8 +93,8 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final c = ProviderContainer(overrides: [
         authenticatedAuthOverride(),
-        activeProfileProvider.overrideWith(_Profiles.new)
-      ]);
+        activeProfileProvider.overrideWith(_Profiles.new),
+      ],);
       final bg = c.read(backgroundRecapsProvider);
       final t1 = CancelToken(), t2 = CancelToken(), t3 = CancelToken();
       // ignore: close_sinks
@@ -107,7 +107,7 @@ void main() {
           sourceId: 's',
           seriesKey: 'a',
           mature: false,
-          startedAt: start);
+          startedAt: start,);
       bg.keepAlive('b',
           events: ctl.stream,
           cancel: t2,
@@ -115,7 +115,7 @@ void main() {
           sourceId: 's',
           seriesKey: 'b',
           mature: true,
-          startedAt: start);
+          startedAt: start,);
       bg.keepAlive('c',
           events: ctl.stream,
           cancel: t3,
@@ -123,7 +123,7 @@ void main() {
           sourceId: 's',
           seriesKey: 'c',
           mature: false,
-          startedAt: start);
+          startedAt: start,);
       bg.cancelWhere((e) => e.mature);
       expect(t2.isCancelled, isTrue);
       expect(t1.isCancelled, isFalse);

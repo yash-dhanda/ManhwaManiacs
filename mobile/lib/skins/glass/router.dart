@@ -32,9 +32,11 @@ import 'package:manhwamaniacs/skins/glass/screens/auth/setup_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/glass_steps.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/onboarding_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/picks/for_you_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/recap/recap_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
@@ -56,12 +58,10 @@ const Set<ScreenId> PENDING = {
   ScreenId.collection,
   ScreenId.history,
   ScreenId.bookmarks,
-  ScreenId.picks,
   ScreenId.numbers,
   ScreenId.annual,
   ScreenId.featureByFollow,
   ScreenId.feature,
-  ScreenId.recap,
   ScreenId.circle,
   ScreenId.circleMember,
   ScreenId.discover,
@@ -304,7 +304,7 @@ GoRouter buildGlassRouter(Ref ref) {
           branch(GlassTab.home, [
             _screen(ScreenId.tonight, (s) => const GlassHomeScreen()),
             _route(ScreenId.updates),
-            _route(ScreenId.picks),
+            _screen(ScreenId.picks, (s) => ForYouScreen(genre: s.uri.queryParameters['genre'])),
           ]),
           branch(GlassTab.library, [
             _route(ScreenId.library),
@@ -358,7 +358,17 @@ GoRouter buildGlassRouter(Ref ref) {
         ),
       ),
       _sheetRoute(ScreenId.feature, rootKey, title: 'Series', form: GlassWideForm.detailWindow),
-      _sheetRoute(ScreenId.recap, rootKey, title: 'Recap'),
+      GoRoute(
+        path: ScreenId.recap.path,
+        name: _nameOf(ScreenId.recap),
+        parentNavigatorKey: rootKey,
+        pageBuilder: (context, state) => glassSheetOrPage(
+          context,
+          state,
+          RecapSheet(sourceId: state.pathParameters['sourceId']!, seriesKey: state.pathParameters['seriesKey']!, to: state.uri.queryParameters['to'], scope: state.uri.queryParameters['scope'] == 'chapter' ? 'chapter' : 'series'),
+          title: 'Recap',
+        ),
+      ),
       _sheetRoute(ScreenId.circleMember, rootKey, title: 'Circle', detents: const [GlassDetent.large]),
       _formSheetRoute(ScreenId.profileNew, rootKey, title: 'Add profile'),
       _formSheetRoute(ScreenId.profileEdit, rootKey, title: 'Edit profile', edit: true),

@@ -14,19 +14,19 @@ class RecapReady {
       {this.sourceId = '',
       this.seriesKey = '',
       this.to = '',
-      this.scope = 'series'});
+      this.scope = 'series',});
   final String key, title, sourceId, seriesKey, to, scope;
 }
 
 class BackgroundRecapEntry {
   BackgroundRecapEntry._(this.key, this.title, this.sourceId, this.seriesKey,
-      this.mature, this.startedAt);
+      this.mature, this.startedAt,);
   final String key, title, sourceId, seriesKey;
   final bool mature;
   final DateTime startedAt;
+  // Cancelled in BackgroundRecaps._drop and on done.
   // ignore: cancel_subscriptions
-  StreamSubscription<SseEvent>?
-      _sub; // cancelled in BackgroundRecaps._drop and on done
+  StreamSubscription<SseEvent>? _sub;
   Timer? _timer;
   CancelToken? _cancel;
   DeckState deck = const DeckState();
@@ -72,7 +72,7 @@ class BackgroundRecaps {
   }) {
     _drop(key);
     final e = BackgroundRecapEntry._(
-        key, title, sourceId, seriesKey, mature, startedAt)
+        key, title, sourceId, seriesKey, mature, startedAt,)
       .._cancel = cancel;
     e.deck = deckSoFar;
     _entries[key] = e;
@@ -92,12 +92,13 @@ class BackgroundRecaps {
           e._timer?.cancel();
           unawaited(e._sub?.cancel());
           unawaited(_ref.read(recapCacheProvider).save(key, deck));
-          if (!_ready.isClosed)
+          if (!_ready.isClosed) {
             _ready.add(RecapReady(key, title,
                 sourceId: sourceId,
                 seriesKey: seriesKey,
                 to: to,
-                scope: scope));
+                scope: scope,),);
+          }
         } else if (e.deck.error != null) {
           _drop(key);
         }
@@ -118,7 +119,7 @@ class BackgroundRecaps {
   void cancelWhere(bool Function(BackgroundRecapEntry entry) test) {
     for (final k in [
       for (final e in _entries.values)
-        if (test(e)) e.key
+        if (test(e)) e.key,
     ]) {
       _drop(k);
     }
