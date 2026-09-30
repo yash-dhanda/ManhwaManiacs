@@ -24,6 +24,7 @@ class CineSearchField extends StatefulWidget {
     this.onChanged,
     this.onSubmitNow,
     this.onArrowDown,
+    this.onArrowUp,
     this.autofocus = false,
   });
 
@@ -37,7 +38,7 @@ class CineSearchField extends StatefulWidget {
 
   /// Enter: submit now, skipping the caller's 300 ms debounce.
   final ValueChanged<String>? onSubmitNow;
-  final VoidCallback? onArrowDown;
+  final VoidCallback? onArrowDown, onArrowUp;
   final bool autofocus;
 
   @override
@@ -109,6 +110,10 @@ class _CineSearchFieldState extends State<CineSearchField> with SingleTickerProv
     }
     if (e.logicalKey == LogicalKeyboardKey.arrowDown && widget.onArrowDown != null) {
       widget.onArrowDown!();
+      return KeyEventResult.handled;
+    }
+    if (e.logicalKey == LogicalKeyboardKey.arrowUp && widget.onArrowUp != null) {
+      widget.onArrowUp!();
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;

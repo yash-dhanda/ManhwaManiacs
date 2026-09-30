@@ -78,7 +78,7 @@ void main() {
     final log = <String>[];
     late int Function() builds;
     (prefs, _, builds) = await _host(tester, (context, ref) async {
-      await switchSkin(context, ref, to: SkinId.cinematic, outgoing: () async {
+      await switchSkinFrom(context, ref, to: SkinId.cinematic, outgoing: () async {
         log.add(
             'outgoing t0=${prefs.containsKey(kSkinT0Key)} outbox=${prefs.getString(kSkinOutboxKey) != null} '
             'mirror=${prefs.containsKey(kSkinActiveKey)} return=${prefs.containsKey(kSkinReturnKey)}');
@@ -91,7 +91,57 @@ void main() {
     expect(log, ['outgoing t0=true outbox=true mirror=false return=false']);
     expect(prefs.getString(kSkinActiveKey), 'cinematic');
     expect(prefs.getString(kSkinReturnKey), isNotNull);
+    expect(prefs.getString(kSkinFromKey), isNotNull);
     expect(builds(), 2);
+  });
+
+  group('switchSkin (injected)', () {
+    late SharedPreferences prefs;
+    late List<String> log;
+
+    Future<void> run({required bool undoable}) => switchSkin(
+          to: SkinId.glass,
+          from: SkinId.cinematic,
+          undoable: undoable,
+          currentLocation: '/settings/appearance',
+          prefs: prefs,
+          outbox: _NoFlushOutbox(prefs),
+          profileId: 7,
+          prepare: () async {},
+          restart: () => log.add('restart'),
+          clock: () => DateTime.fromMillisecondsSinceEpoch(4242),
+          outgoing: () async {
+            log.add('outgoing t0=${prefs.getInt(kSkinT0Key)} outbox=${prefs.getString(kSkinOutboxKey) != null} '
+                'active=${prefs.getString(kSkinActiveKey)}');
+          },
+        );
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      log = [];
+    });
+
+    test('t0 and the outbox come before outgoing, the mirror and restart after', () async {
+      await run(undoable: true);
+      expect(log, ['outgoing t0=4242 outbox=true active=null', 'restart']);
+      expect(prefs.getString(kSkinActiveKey), 'glass');
+      expect(prefs.getString(kSkinReturnKey), '/settings/appearance');
+      expect(prefs.getString(kSkinFromKey), 'cinematic');
+    });
+
+    test('undoable: false writes no mm.skin.from', () async {
+      await run(undoable: false);
+      expect(prefs.containsKey(kSkinFromKey), isFalse);
+      expect(prefs.getString(kSkinActiveKey), 'glass');
+    });
+
+    test('takeSkinArrival is one-shot', () async {
+      await run(undoable: true);
+      expect(takeSkinArrival(prefs), 'cinematic');
+      expect(takeSkinArrival(prefs), isNull);
+      expect(prefs.containsKey(kSkinFromKey), isFalse);
+    });
   });
 
   testWidgets(

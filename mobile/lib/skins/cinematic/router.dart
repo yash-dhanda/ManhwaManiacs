@@ -36,7 +36,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.reader,
   ScreenId.readAll,
   ScreenId.novel,
-  ScreenId.settings,
   ScreenId.readerLanding,
 };
 

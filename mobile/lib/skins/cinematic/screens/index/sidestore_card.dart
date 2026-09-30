@@ -31,7 +31,12 @@ class SideStoreCard extends ConsumerWidget {
             c.typeUi,
           ),
           SizedBox(height: c.space3),
-          SelectableText(url, key: const Key('sidestore-url'), style: CineText.style(context, c.typeFolio).copyWith(color: c.colorInk80)),
+          Semantics(
+            container: true,
+            excludeSemantics: true,
+            label: url,
+            child: SelectableText(url, key: const Key('sidestore-url'), style: CineText.style(context, c.typeFolio).copyWith(color: c.colorInk80)),
+          ),
           SizedBox(height: c.space2),
           CineButton(
             label: 'Copy source URL',

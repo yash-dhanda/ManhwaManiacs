@@ -15,6 +15,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/library/library_screen.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_manage_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -42,6 +43,12 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
         genre: state.uri.queryParameters['genre'],
       ),
   ScreenId.sources: (context, state) => const SourcesScreen(),
+  ScreenId.settings: (context, state) => SettingsScreen(
+        key: ValueKey(state.pathParameters['section'] ?? ''),
+        slug: state.pathParameters['section'],
+        jumpRow: state.extra is Map ? (state.extra! as Map)['jump'] as String? : null,
+        licenses: state.uri.queryParameters['licenses'] == '1',
+      ),
   ScreenId.status: (context, state) => const StatusScreen(),
   ScreenId.indexHub: (context, state) => const IndexScreen(),
   ScreenId.downloads: (context, state) =>

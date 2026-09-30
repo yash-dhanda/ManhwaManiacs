@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +7,7 @@ import 'package:manhwamaniacs/app/switch_skin.dart';
 import 'package:manhwamaniacs/app/theme/app_colors.dart';
 import 'package:manhwamaniacs/app/theme/app_presets.dart';
 import 'package:manhwamaniacs/core/diagnostics/debug_overlays.dart';
+import 'package:manhwamaniacs/core/diagnostics/diagnostics_snapshot.dart';
 import 'package:manhwamaniacs/core/diagnostics/performance_monitor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
@@ -279,52 +277,22 @@ class _DeviceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final infoAsync = ref.watch(packageInfoProvider);
     final mq = MediaQuery.of(context);
+    final facts = DeviceFacts.read();
     return GlassCard(
       child: Column(
         children: [
-          _InfoRow(
-            label: 'Platform',
-            value: '${_platformName()} (${_osVersion()})',
-          ),
-          _InfoRow(label: 'CPU cores', value: '${Platform.numberOfProcessors}'),
-          _InfoRow(
-            label: 'Screen',
-            value:
-                '${mq.size.width.toStringAsFixed(0)} × ${mq.size.height.toStringAsFixed(0)} @ ${mq.devicePixelRatio.toStringAsFixed(1)}x',
-          ),
+          _InfoRow(label: 'Platform', value: '${facts.platform} (${facts.osVersion})'),
+          _InfoRow(label: 'CPU cores', value: '${facts.cores}'),
+          _InfoRow(label: 'Screen', value: screenLabel(mq.size, mq.devicePixelRatio)),
           infoAsync.when(
             loading: () => const _InfoRow(label: 'App version', value: '…'),
-            error: (_, __) =>
-                const _InfoRow(label: 'App version', value: 'unknown'),
-            data: (i) => _InfoRow(
-              label: 'App version',
-              value: 'v${i.version} (${i.buildNumber})',
-            ),
+            error: (_, __) => const _InfoRow(label: 'App version', value: 'unknown'),
+            data: (i) => _InfoRow(label: 'App version', value: 'v${i.version} (${i.buildNumber})'),
           ),
-          _InfoRow(label: 'Build mode', value: _buildMode()),
+          _InfoRow(label: 'Build mode', value: facts.buildMode),
         ],
       ),
     );
-  }
-
-  String _platformName() {
-    if (kIsWeb) return 'Web';
-    if (Platform.isAndroid) return 'Android';
-    if (Platform.isIOS) return 'iOS';
-    return Platform.operatingSystem;
-  }
-
-  String _osVersion() {
-    if (kIsWeb) return 'browser';
-    // operatingSystemVersion can be verbose; keep the first segment only.
-    final raw = Platform.operatingSystemVersion;
-    return raw.length > 40 ? '${raw.substring(0, 40)}…' : raw;
-  }
-
-  String _buildMode() {
-    if (kDebugMode) return 'debug';
-    if (kProfileMode) return 'profile';
-    return 'release';
   }
 }
 
@@ -333,29 +301,17 @@ class _ImageCacheCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cache = PaintingBinding.instance.imageCache;
+    final cache = ImageCacheFigures.read();
     return GlassCard(
       child: Column(
         children: [
-          _InfoRow(
-            label: 'Live images',
-            value: '${cache.liveImageCount}',
-          ),
-          _InfoRow(
-            label: 'Cached images',
-            value: '${cache.currentSize} / ${cache.maximumSize}',
-          ),
-          _InfoRow(
-            label: 'Memory used',
-            value:
-                '${_mb(cache.currentSizeBytes)} / ${_mb(cache.maximumSizeBytes)}',
-          ),
+          _InfoRow(label: 'Live images', value: '${cache.live}'),
+          _InfoRow(label: 'Cached images', value: '${cache.cached} / ${cache.maxCached}'),
+          _InfoRow(label: 'Memory used', value: cache.memoryLabel),
         ],
       ),
     );
   }
-
-  String _mb(int bytes) => '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
 }
 
 class _Metric extends StatelessWidget {

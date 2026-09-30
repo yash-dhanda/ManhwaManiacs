@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/app/switch_skin.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/downloads/utils/auto_download.dart';
 import 'package:manhwamaniacs/features/downloads/utils/pending_removals.dart';
@@ -10,17 +11,22 @@ import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dar
 import 'package:manhwamaniacs/features/settings/providers/app_update_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/back_order.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/nav_map.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/overlays/stop_the_press.dart';
 import 'package:manhwamaniacs/skins/cinematic/overlays/whats_new_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_mood_grade.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/thumb_index.dart';
+import 'package:manhwamaniacs/skins/cinematic/splash/cine_splash.dart';
+import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/skin.dart';
 
 /// What Android back does on a shell route (cinematic 8.0.5): from a Library hub tab other than
 /// SHELF to SHELF, from any other branch root to Tonight, and from Tonight the system takes over.
@@ -49,7 +55,7 @@ class CineShell extends ConsumerStatefulWidget {
 
 class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserver {
   int _taps = 0;
-  bool _whatsNewChecked = false;
+  bool _whatsNewChecked = false, _arrivalChecked = false;
   int? _previousFolio;
   String? _lastFolio;
 
@@ -58,6 +64,28 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_maybeWhatsNew()));
+    // The edition arrival toast waits for the splash (cinematic 8.30.3).
+    ref.listenManual<bool>(splashDoneProvider, (_, done) {
+      if (done) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _arrival() : null);
+    }, fireImmediately: true,);
+  }
+
+  /// After a switch from Glass, once: "Now in the Cinematic edition." with `Undo` for 10 s. A
+  /// boot-time mismatch restart and the debug row never write `mm.skin.from`, so they show none.
+  void _arrival() {
+    if (_arrivalChecked) return;
+    _arrivalChecked = true;
+    final from = takeSkinArrival(ref.read(sharedPrefsProvider));
+    if (from != SkinId.glass.name) return;
+    ref.read(cineToastsProvider.notifier).undo(
+      'Now in the Cinematic edition.',
+      hold: CineDur.holdToastUndo,
+      onUndo: () {
+        if (!mounted) return;
+        cineFeedback(context, HapticEvent.undo);
+        unawaited(switchSkinFrom(context, ref, to: SkinId.glass, undoable: false, outgoing: () => StopThePress.outgoing(context)));
+      },
+    );
   }
 
   @override

@@ -205,6 +205,9 @@ class _CineTextFieldState extends State<CineTextField> {
     if (!widget.numeric && widget.size == CineFieldSize.ui) text = text.copyWith(fontSize: 16);
     final reduced = CineMotion.reduced(context);
     final fade = reduced ? Duration.zero : c.durSnap;
+    // A one-line field carries its 12 / 16 px of air inside the TextField, so its semantics node
+    // is the full 48 px tap target rather than the 20 px of text.
+    final tall = !widget.ruled && (widget.maxLines == 1 || widget.obscureText);
 
     Widget field = MediaQuery.withClampedTextScaling(
       maxScaleFactor: role.cap,
@@ -228,7 +231,15 @@ class _CineTextFieldState extends State<CineTextField> {
         cursorRadius: Radius.zero,
         onChanged: widget.onChanged,
         onSubmitted: widget.onSubmitted,
-        decoration: InputDecoration.collapsed(hintText: widget.hint, hintStyle: text.copyWith(color: c.colorInk45)),
+        decoration: tall
+            ? InputDecoration(
+                isCollapsed: true,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.only(top: 12, bottom: 16),
+                hintText: widget.hint,
+                hintStyle: text.copyWith(color: c.colorInk45),
+              )
+            : InputDecoration.collapsed(hintText: widget.hint, hintStyle: text.copyWith(color: c.colorInk45)),
       ),
     );
     if (widget.ruled) {
@@ -270,7 +281,7 @@ class _CineTextFieldState extends State<CineTextField> {
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 48),
               child: Padding(
-                padding: const EdgeInsets.only(top: 12, bottom: 16),
+                padding: tall ? EdgeInsets.zero : const EdgeInsets.only(top: 12, bottom: 16),
                 child: Row(children: [Expanded(child: field), ...trailing]),
               ),
             ),
