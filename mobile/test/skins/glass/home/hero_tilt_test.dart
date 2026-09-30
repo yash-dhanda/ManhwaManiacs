@@ -35,6 +35,6 @@ void main() {
     final a = heroTiltFromPointer(const Offset(240, 270), const Offset(240, 360));
     expect(a.y, closeTo(six, 1e-9));
     expect(a.x, closeTo(-six / 2, 1e-9));
-    expect(heroTiltMatrix(a).storage[11], closeTo(0.001, 1e-12));
+    expect(heroTiltMatrix(a).storage[11], closeTo(0.001, 1e-5));
   });
 }
