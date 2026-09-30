@@ -90,7 +90,7 @@ class _GlassToastHostState extends ConsumerState<GlassToastHost> {
     final list = ref.watch(glassToastProvider);
     final visible = ref.watch(overlaySlotVisibleProvider(OverlayKind.toast));
     final reader = ref.watch(glassReaderActiveProvider);
-    final bottomBar = ref.watch(glassBottomBarProvider);
+    final bottomBar = ref.watch(glassBottomBarProvider) != GlassBottomBar.none;
     final sidebar = ref.watch(glassSidebarEdgeProvider);
     final phone = GlassFrame.of(context) == GlassFrameKind.phone;
     final top = MediaQuery.paddingOf(context).top;

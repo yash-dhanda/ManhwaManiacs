@@ -1,3 +1,4 @@
+import 'dart:ui' show CheckedState;
 
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -9,8 +10,13 @@ import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/list_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/reorder_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/swipe_row.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/select/bulk_toolbar.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/select/select_mode.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/select/selectable_group.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 
+import 'overlay_support.dart';
 import 'support.dart';
 
 List<String> ran = [];
@@ -38,6 +44,14 @@ Widget _row() => GlassSwipeGroup(
     );
 
 double _left(WidgetTester t) => t.getTopLeft(find.text('Solo Leveling')).dx;
+
+class _PopObserver with WidgetsBindingObserver {
+  _PopObserver(this.nav);
+  final GlobalKey<NavigatorState> nav;
+
+  @override
+  Future<bool> didPopRoute() async => nav.currentState!.maybePop();
+}
 
 void main() {
   setUp(() {
@@ -179,6 +193,86 @@ void main() {
       expect(moves, [(0, 2)]);
       expect(find.byKey(const ValueKey('glass-reorder-lifted')), findsNothing);
       expect(order, ['B row', 'C row', 'A row', 'D row']);
+    });
+  });
+
+  group('select mode', () {
+    Future<GlassSelectModeController<int>> grid(WidgetTester tester, {List<BulkAction<int>> actions = const []}) async {
+      final c = GlassSelectModeController<int>();
+      addTearDown(c.dispose);
+      final host = OverlayHost(tester);
+      final pop = _PopObserver(host.nav);
+      WidgetsBinding.instance.addObserver(pop);
+      addTearDown(() => WidgetsBinding.instance.removeObserver(pop));
+      await host.pump(
+        page: Stack(children: [
+          GlassSelectableGroup<int>(
+            controller: c,
+            ids: [for (var i = 0; i < 8; i++) i],
+            label: 'Select series',
+            child: Column(children: [
+              for (var i = 0; i < 8; i++)
+                GlassSelectableItem<int>(id: i, child: Focus(child: SizedBox(width: 390, height: 56, child: Text('item $i')))),
+            ],),
+          ),
+          GlassBulkToolbar<int>(controller: c, actions: actions),
+        ],),
+      );
+      return c;
+    }
+
+    testWidgets('x enters with the row picked, Space toggles, Shift+Space ranges, Esc clears then exits', (tester) async {
+      final c = await grid(tester);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyX);
+      await pumpFor(tester, 300);
+      expect(c.active, isTrue);
+      expect(c.selected, {0});
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.space); // the row that entered keeps the keyboard
+      expect(c.selected, isEmpty);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter); // Enter toggles too, it never opens
+      expect(c.selected, {0});
+      c.exit();
+      c.enter(1);
+      c.toggle(1);
+      c.toggle(2);
+      c.extendTo(5);
+      expect(c.selected, {2, 3, 4, 5});
+      await pumpFor(tester, 100);
+      final container = ProviderScope.containerOf(tester.element(find.byType(GlassSelectableGroup<int>)));
+      expect(container.read(glassBottomBarProvider), GlassBottomBar.bulk);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      expect(c.selected, isEmpty);
+      expect(c.active, isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      expect(c.active, isFalse);
+      await pumpFor(tester, 600);
+      expect(container.read(glassBottomBarProvider), GlassBottomBar.none);
+    });
+
+    testWidgets('Android back exits select mode and clears the selection', (tester) async {
+      final c = await grid(tester);
+      c.enter(3);
+      await pumpFor(tester, 100);
+      expect(c.selected, {3});
+      await tester.binding.handlePopRoute();
+      await pumpFor(tester, 100);
+      expect(c.active, isFalse);
+      expect(c.selected, isEmpty);
+    });
+
+    testWidgets('items read as checked buttons in a labelled container with a Select semantics label', (tester) async {
+      final h = tester.ensureSemantics();
+      final c = await grid(tester);
+      c.enter(1);
+      await pumpFor(tester, 100);
+      final node = tester.getSemantics(find.text('item 1'));
+      final data = node.getSemanticsData();
+      expect(data.flagsCollection.isChecked, CheckedState.isTrue);
+      expect(data.flagsCollection.isButton, isTrue);
+      expect(tester.getSemantics(find.text('item 2')).getSemanticsData().flagsCollection.isChecked, CheckedState.isFalse);
+      h.dispose();
     });
   });
 }
