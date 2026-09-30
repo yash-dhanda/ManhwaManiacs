@@ -34,6 +34,8 @@ class GlassSlab extends ConsumerWidget {
     this.customActions = const {},
     this.onKey,
     this.sink = 0.97,
+    this.borderColor = const Color(0x0FFFFFFF),
+    this.borderWidth = 1,
   });
 
   final Widget child;
@@ -55,6 +57,10 @@ class GlassSlab extends ConsumerWidget {
   final Map<CustomSemanticsAction, VoidCallback> customActions;
   final KeyEventResult Function(FocusNode, KeyEvent)? onKey;
   final double sink;
+
+  /// The rim: `slabBorder` by default; an AI card carries a 0.5 px `machineRim` instead (glass 2.1.9).
+  final Color borderColor;
+  final double borderWidth;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -90,7 +96,7 @@ class GlassSlab extends ConsumerWidget {
               child: DecoratedBox(
                 decoration: ShapeDecoration(
                   color: gt.colorSurface1,
-                  shape: dashed ? _DashedBorder(radius) : RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(radius), side: const BorderSide(color: Color(0x0FFFFFFF))),
+                  shape: dashed ? _DashedBorder(radius) : RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(radius), side: BorderSide(color: borderColor, width: borderWidth)),
                   shadows: h > 0 ? [BoxShadow(color: const Color(0x80000000).withValues(alpha: 0.5 * h), blurRadius: 32, offset: Offset(0, 12 * h))] : null,
                 ),
                 child: Stack(

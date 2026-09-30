@@ -535,7 +535,7 @@ Widget _cards(BuildContext context, GalleryGround g) => Column(
         ]),
         _title(context, 'world'),
         _wrap([
-          _Cell('available', GlassWorldCard.available(cover: const GalleryCover(6), title: 'Moonlit Bakery', kind: 'Manhwa · Ongoing', stats: '120 ch · ★ 8.4', why: 'Because you read Solo Leveling', source: 'MangaSource', extraSources: 2, tags: const ['Fantasy', 'Action'], onOpen: () {})),
+          _Cell('available', GlassWorldCard.available(cover: const GalleryCover(6), title: 'Moonlit Bakery', kind: 'Manhwa · Ongoing', stats: '120 ch · ★ 8.4', why: 'Because you read Solo Leveling', source: 'MangaSource', extraSources: 2, tags: const ['Fantasy', 'Action'], onOpen: () {}, ai: true)),
           _Cell('info only', GlassWorldCard.infoOnly(cover: const GalleryCover(7), title: 'Glass Tide', kind: 'Manhwa · Ongoing', stats: '88 ch · ★ 8.1', why: 'Matches your taste', site: 'Webtoon', siteUrl: 'https://example.com', tags: const ['Drama'], onSearchMySources: () {})),
         ]),
         _title(context, 'result, stat, history'),
