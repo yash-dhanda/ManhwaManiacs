@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 // ignore_for_file: require_trailing_commas, directives_ordering
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
+import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_chrome.dart';
@@ -58,15 +61,27 @@ Future<ReaderRig> pumpReader(
   Map<String, ({String? prev, String? next})> neighbours = const {},
   bool pushed = true,
   bool wide = false,
+  String? status,
+  Map<String, Object> failing = const {},
+  Map<String, Future<void>> holds = const {},
 }) async {
   final r = rig ?? FeatureRig();
   SharedPreferences.setMockInitialValues(prefsValues);
   final prefs = await SharedPreferences.getInstance();
   sizeView(tester, size: size, wide: wide);
   final fixture = loadSeriesFixture('manga-ongoing');
+  final series = status == null
+      ? fixture.series
+      : SourceSeriesSummary.fromJson(
+          {
+            ...(jsonDecode(File('test/fixtures/series/manga-ongoing.json').readAsStringSync()) as Map<String, dynamic>)['series'] as Map<String, dynamic>,
+            'status': status,
+          },
+          'http://example.test',
+        );
   ReaderChapter chapterFor(String k) => chapters[k] ?? readerChapter(k, pages: pages);
   ({String? prev, String? next}) neighboursFor(String k) =>
-      neighbours[k] ?? (k == 'c1' ? (prev: null, next: 'c2') : k == 'c2' ? (prev: 'c1', next: 'c3') : (prev: 'c2', next: null));
+      neighbours[k] ?? (k == 'c1' ? (prev: null, next: 'c2') : k == 'c2' ? (prev: 'c1', next: 'c3') : k == 'c3' ? (prev: 'c2', next: 'cx') : (prev: 'c3', next: null));
   final router = GoRouter(
     initialLocation: pushed ? '/' : '/read',
     routes: [
@@ -83,9 +98,13 @@ Future<ReaderRig> pumpReader(
       overrides: [
         ...featureOverrides(r, prefs, novel: false),
         sourceSeriesDetailProvider.overrideWith(
-          (ref, k) async => SourceSeriesDetailData(series: fixture.series, chapters: fixture.chapters),
+          (ref, k) async => SourceSeriesDetailData(series: series, chapters: fixture.chapters),
         ),
         resolvedReaderChapterProvider.overrideWith((ref, key) async {
+          final hold = holds[key.chapterKey];
+          if (hold != null) await hold;
+          final fail = failing[key.chapterKey];
+          if (fail != null) throw fail;
           final n = neighboursFor(key.chapterKey);
           return (chapter: chapterFor(key.chapterKey), chapterNumber: 1.0, prev: n.prev, next: n.next, isOffline: false);
         }),

@@ -1879,17 +1879,21 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   ReaderNextState _nextState() {
     final feed = widget.feed;
-    if (feed.chapters.length - 1 > _position.chapterIndex ||
-        widget.onNextChapter != null) {
+    // Stitched below already: nothing to wait for.
+    if (feed.chapters.length - 1 > _position.chapterIndex) {
       return ReaderNextState.ready;
     }
     if (_loadingNext) return ReaderNextState.loading;
-    if (_extendCompleted &&
+    final hasNext = widget.onNextChapter != null;
+    // A next chapter exists but would not stitch in (the band offers Try again), as opposed to
+    // the last chapter of a series, which has nothing to fail to load.
+    if (hasNext &&
+        _extendCompleted &&
         feed.chapters.isNotEmpty &&
         feed.chapters.last.id == _extendFromLastId) {
       return ReaderNextState.failed;
     }
-    return ReaderNextState.none;
+    return hasNext ? ReaderNextState.ready : ReaderNextState.none;
   }
 
   List<ReaderAnchor> _bookmarksFor(String chapterId) {
