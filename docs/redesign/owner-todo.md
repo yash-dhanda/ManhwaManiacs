@@ -143,3 +143,5 @@ Items only the owner can do, by step.
 - **After the integrator pushes, read CI**: the APK build and the iOS dry run must pass (`AudioServiceConfig` now names `drawable/ic_stat_mm`; no native file changed).
 ## mobile/22
 - Run docs/redesign/proof/mobile-22/device-checklist.md on two devices/profiles.
+
+- mobile/23: M23 is only partly built (engine pure modules + parity vectors); UI, house sound, guided view and engine integration remain. See the M23 report.
