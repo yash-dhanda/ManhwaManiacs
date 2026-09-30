@@ -153,7 +153,7 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
   }
 
   final prev = previous();
-  final because0 = because == null ? null : because.items.whereType<HomePickItem>().firstOrNull;
+  final because0 = because?.items.whereType<HomePickItem>().firstOrNull;
   final aiSpec = because0 == null ? null : _fromPick(because0, SpotlightKind.because, meta: _worldMeta(because0), why: because0.why);
 
   if (caughtUp || (!cont.any((c) => c.newCount >= 1) && fresh.isEmpty && !(cover != null && (cover.reason == HomeCoverReason.inProgress || cover.reason == HomeCoverReason.newChapters)))) {
@@ -166,7 +166,6 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
         meta: 'Nothing new on your shelf',
         primaryLabel: prev != null ? 'Previously on' : 'Start reading',
         primary: prev != null ? SpotlightAction.previouslyOn : base.primary,
-        secondaryLabel: 'Details',
         sourceId: base.sourceId,
         seriesKey: base.seriesKey,
         coverUrl: base.coverUrl,
@@ -177,7 +176,7 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
         recap: base.recap,
         why: base.why,
         aiWhy: base.aiWhy,
-      ));
+      ),);
     }
   }
 
@@ -202,7 +201,7 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
         ambient: n.ambient,
         recap: n.recap,
         target: HomeContinueTarget.fromContinue(n),
-      ));
+      ),);
     } else if (cover != null && (cover.reason == HomeCoverReason.newChapters || cover.reason == HomeCoverReason.inProgress)) {
       add(_fromCover(cover, SpotlightKind.nextUp, meta: _coverMeta(cover)));
     }
@@ -223,7 +222,7 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
       coverUrl: l.coverUrl,
       ambient: l.ambient,
       from: l.from,
-    ));
+    ),);
   }
   // 4. Newest update.
   if (!caughtUp) {
@@ -247,7 +246,7 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
         target: rs?.chapterKey == null
             ? null
             : HomeContinueTarget(sourceId: u.series.sourceId, seriesKey: u.series.seriesKey, chapterKey: rs!.chapterKey!, chapterNumber: next, recap: u.recap, lastReadAt: rs.lastReadAt),
-      ));
+      ),);
     }
   }
   // 5. Previously on candidate.
@@ -262,7 +261,7 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
       primary: SpotlightAction.openWrapped,
       secondaryLabel: null,
       year: now.year,
-    ));
+    ),);
   }
   return out;
 }

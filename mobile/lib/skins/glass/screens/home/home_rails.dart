@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/core/color/cover_palette.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
+import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/downloaded_series_group.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
@@ -9,6 +10,7 @@ import 'package:manhwamaniacs/features/home/utils/rerank.dart';
 import 'package:manhwamaniacs/features/library/models/ambient.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/screens/home/continue_with_recap.dart';
 
 /// How a rail is drawn.
 enum HomeRailKind { continueStack, posters, ai, circle, chips, sources, numbers }
@@ -16,7 +18,7 @@ enum HomeRailKind { continueStack, posters, ai, circle, chips, sources, numbers 
 /// A poster in a Glass rail (an item of a [HomeRailKind.posters] rail, or a friend's read).
 @immutable
 class HomePoster {
-  const HomePoster({required this.sourceId, required this.seriesKey, required this.title, this.coverUrl, this.palette, this.ambient, this.badge, this.caption, this.friend, this.mature = false, this.hasProgress = false, this.continueTarget});
+  const HomePoster({required this.sourceId, required this.seriesKey, required this.title, this.coverUrl, this.palette, this.ambient, this.badge, this.caption, this.friend, this.mature = false, this.hasProgress = false, this.target, this.readNumber});
 
   final String sourceId, seriesKey, title;
   final String? coverUrl, badge, caption;
@@ -26,7 +28,10 @@ class HomePoster {
   /// "{name} is reading": the friend's 18 px orb sits at the bottom left.
   final ProfileRef? friend;
   final bool mature, hasProgress;
-  final Object? continueTarget;
+
+  /// What Continue and Previously on act on, for a series the reader has progress in.
+  final HomeContinueTarget? target;
+  final double? readNumber;
 
   String get key => '$sourceId:$seriesKey';
 }
@@ -48,7 +53,7 @@ class HomeCircleCard {
 /// [HomeSourceItem] or [HomeNumbersItem] by [kind].
 @immutable
 class HomeRailSpec {
-  const HomeRailSpec({required this.id, required this.kind, required this.title, required this.items, this.subtitle, this.state = HomeSectionState.ready, this.ai = false, this.seeAll, this.generatedAt, this.fallbackNote, this.seedTitle});
+  const HomeRailSpec({required this.id, required this.kind, required this.title, required this.items, this.subtitle, this.state = HomeSectionState.ready, this.ai = false, this.seeAll, this.generatedAt, this.fallbackNote, this.seedTitle, this.thinking = false});
 
   final String id;
   final HomeRailKind kind;
@@ -64,6 +69,11 @@ class HomeRailSpec {
   final String? fallbackNote;
   final String? seedTitle;
 
+  /// An AI rail whose answer is still being computed: the header with the orbit and four skeleton cards.
+  final bool thinking;
+
+  HomeRailSpec copyWith({List<Object>? items, bool? thinking}) => HomeRailSpec(id: id, kind: kind, title: title, items: items ?? this.items, subtitle: subtitle, state: state, ai: ai, seeAll: seeAll, generatedAt: generatedAt, fallbackNote: fallbackNote, seedTitle: seedTitle, thinking: thinking ?? this.thinking);
+
   bool get unavailable => state == HomeSectionState.unavailable;
 }
 
@@ -77,6 +87,10 @@ HomePoster _fromSeries(HomeSeriesItem i, {String? badge, String? caption}) => Ho
       badge: badge,
       caption: caption,
       hasProgress: i.series.readState?.started ?? false,
+      readNumber: i.series.readState?.chapterNumber,
+      target: i.series.readState?.chapterKey == null || !(i.series.readState?.started ?? false)
+          ? null
+          : HomeContinueTarget(sourceId: i.series.sourceId, seriesKey: i.series.seriesKey, chapterKey: i.series.readState!.chapterKey!, chapterNumber: i.series.readState!.chapterNumber, recap: i.recap, lastReadAt: i.series.readState!.lastReadAt),
     );
 
 String? _topGenre(HomeRailSpec r) {
@@ -96,6 +110,7 @@ List<HomeRailSpec> composeHomeRails(
   List<FollowedSeries> followed = const [],
   bool Function(FollowedSeries s)? inMode,
   List<String> noted = const [],
+  bool aiThinking = false,
 }) {
   final feed = view.feed;
   if (feed == null) return const [];
@@ -117,7 +132,7 @@ List<HomeRailSpec> composeHomeRails(
       }
     } else {
       DateTime at(DownloadedSeriesGroup g) => g.chapters.map((c) => c.createdAt).fold(DateTime(0), (a, b) => a.isAfter(b) ? a : b);
-      final gs = [...downloaded]..sort((a, b) => at(b).compareTo(at(a)));
+      final gs = [for (final g in downloaded) if (g.chapters.any((c) => c.state == DownloadChapterState.complete)) g]..sort((a, b) => at(b).compareTo(at(a)));
       for (final g in gs.take(12)) {
         posters.add(HomePoster(sourceId: g.sourceId, seriesKey: g.seriesKey, title: g.seriesTitle ?? g.seriesKey, coverUrl: coverOf['${g.sourceId}:${g.seriesKey}'], caption: g.chapters.length == 1 ? '1 chapter' : '${g.chapters.length} chapters'));
       }
@@ -149,7 +164,7 @@ List<HomeRailSpec> composeHomeRails(
 
   // 1
   final first = items(HomeSectionType.firstPicks).whereType<HomePickItem>().toList();
-  if (first.isNotEmpty) add(HomeRailSpec(id: 'first-picks', kind: HomeRailKind.ai, title: 'Start here', items: first, ai: false));
+  if (first.isNotEmpty) add(HomeRailSpec(id: 'first-picks', kind: HomeRailKind.ai, title: 'Start here', items: first));
   // 2
   add(continueRail());
   // 3
@@ -165,7 +180,7 @@ List<HomeRailSpec> composeHomeRails(
       ],
       seeAll: Routes.updates(),
       state: st(HomeSectionType.newThisWeek),
-    ));
+    ),);
   }
   // 4
   var n = 0;
@@ -195,7 +210,7 @@ List<HomeRailSpec> composeHomeRails(
           _fromSeries(a, caption: a.chaptersLeft == null ? null : (a.chaptersLeft == 1 ? '1 chapter left' : '${a.chaptersLeft} chapters left')),
       ],
       seeAll: Routes.library({'reading_status': 'reading'}),
-    ));
+    ),);
   }
   // 7
   final letters = items(HomeSectionType.sentToYou).whereType<Letter>().toList();
@@ -216,7 +231,7 @@ List<HomeRailSpec> composeHomeRails(
   if (genres.isNotEmpty) add(HomeRailSpec(id: 'genres', kind: HomeRailKind.chips, title: 'Your genres', items: genres));
   // 9
   final popular = items(HomeSectionType.popular).whereType<HomePickItem>().toList();
-  if (popular.isNotEmpty) add(HomeRailSpec(id: 'popular', kind: HomeRailKind.ai, title: 'Popular on your pinned sources', items: popular, ai: false));
+  if (popular.isNotEmpty) add(HomeRailSpec(id: 'popular', kind: HomeRailKind.ai, title: 'Popular on your pinned sources', items: popular));
   // 10
   final sources = items(HomeSectionType.sources).whereType<HomeSourceItem>().toList();
   if (sources.isNotEmpty) {
@@ -226,7 +241,7 @@ List<HomeRailSpec> composeHomeRails(
       title: 'New in your pinned sources',
       items: sources,
       seeAll: Routes.sources(),
-    ));
+    ),);
   }
   // 11
   add(readyOffline());
@@ -242,7 +257,7 @@ List<HomeRailSpec> composeHomeRails(
       title: 'Recently added to your library',
       items: [for (final f in mine.take(12)) HomePoster(sourceId: f.sourceId, seriesKey: f.seriesKey, title: f.title, coverUrl: f.coverUrl, ambient: f.ambient, hasProgress: f.readState?.started ?? false)],
       seeAll: Routes.library({'sort': 'added'}),
-    ));
+    ),);
   }
   // 13
   final numbers = items(HomeSectionType.numbers).whereType<HomeNumbersItem>().toList();
@@ -250,5 +265,18 @@ List<HomeRailSpec> composeHomeRails(
 
   // The in-session re-rank moves rails up one place at most and never above Continue.
   final ci = out.indexWhere((r) => r.id == 'continue');
-  return rerankRails<HomeRailSpec>(out, noted, _topGenre, floor: ci < 0 ? 0 : ci + 1);
+  final ranked = rerankRails<HomeRailSpec>(out, noted, _topGenre, floor: ci < 0 ? 0 : ci + 1);
+  return aiThinking ? [for (final r in ranked) r.ai && !r.unavailable ? r.copyWith(thinking: true) : r] : ranked;
+}
+
+/// The order Home shows after a re-rank (glass 8.8): rails move only when the rails that change place are outside the viewport, so nothing
+/// moves under the finger. A different set of rails (new data) is adopted at once.
+List<String> gatedRailOrder(List<String> shown, List<String> wanted, bool Function(String id) inViewport) {
+  if (shown.length != wanted.length || !shown.toSet().containsAll(wanted)) return wanted;
+  var moving = <String>[];
+  for (var i = 0; i < shown.length; i++) {
+    if (shown[i] != wanted[i]) moving = [...moving, shown[i], wanted[i]];
+  }
+  if (moving.isEmpty) return wanted;
+  return moving.any(inViewport) ? shown : wanted;
 }

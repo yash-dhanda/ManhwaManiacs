@@ -76,6 +76,6 @@ LetterHandle scheduleLetter(
     } else if (seen) {
       unawaited(send());
     }
-  }, fireImmediately: true);
+  }, fireImmediately: true,);
   return handle;
 }

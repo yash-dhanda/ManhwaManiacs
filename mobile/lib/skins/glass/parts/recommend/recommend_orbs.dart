@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
-import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recommend/lift_provider.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/common.dart' show gt;
 import 'package:manhwamaniacs/skins/glass/primitives/magnet_targets.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart' show GlassLiftPhase;
 import 'package:manhwamaniacs/skins/glass/primitives/profile_orb.dart';
@@ -12,7 +12,6 @@ import 'package:manhwamaniacs/skins/glass/primitives/spring_value.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/avatar_map.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart' show glassOfflineProvider;
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/common.dart' show gt;
 
 /// The friend orbs of the recommend gesture (glass 9.3.4), mounted by the screen that owns posters (Home now; `mobile/43` moves the
 /// mount into the shell). While a poster is lifted and this profile shares activity and someone can receive it, their 56 px orbs

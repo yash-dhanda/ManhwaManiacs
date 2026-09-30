@@ -1,4 +1,3 @@
-import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
@@ -8,7 +7,7 @@ double spotlightOverscrollCap(double width) => width * 0.25;
 
 /// The rubber-banded overscroll for a raw pull of [x] px past an end: `rubberband(x, width, 0.55)` capped at 25 % of [width].
 double spotlightRubber(double x, double width) {
-  final r = rubberband(x, width, 0.55);
+  final r = rubberband(x, width);
   final cap = spotlightOverscrollCap(width);
   return r.abs() > cap ? cap * r.sign : r;
 }
