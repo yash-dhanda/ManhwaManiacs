@@ -1,0 +1,13 @@
+# mobile/23 plan (continuation pass)
+
+Done earlier (commits 1774b8c7..e1471591): page_tint.dart (hls, pickPageSeed, TintTracker), panels.dart, words.dart, guided.dart panelHoldMs, auto_scroll_model.dart, parity tests.
+Remaining is split into disjoint parts P1..P7. Shared API contract (all under mobile/lib/features/reader/ unless noted; skin-neutral):
+
+- engine/page_analysis.dart (P1): `Future<AnalysisResult> analysePage({ImageProvider? tintPage, ImageProvider? panelPage, required PanelDirection direction})`; `AnalysisResult{String? seed; bool tintFailed; List<PanelRect>? panels (px at analysis width, already page fractions via toPageFractions => use List<PanelRect> fractions); bool panelsFailed}`.
+- engine/camera.dart (P1): `Matrix4 fitRect(Rect rectPx, Size viewport, {double margin=24, double maxScale=3})`, `List<Rect> tallPanelSteps(Rect rectPx, Size viewport)`, `class CameraTarget{int page; Rect fraction}`.
+- ReaderEngine (P2) adds: `ValueListenable`-free state fields on ReaderEngineState: `PageTintSource? pageTint`, `Map<int,PanelsState> panels`, `int? wordsOnScreen`, `CameraTarget? cameraRect`, `AutoScrollState autoScrollState`, `bool autoScrollPaced`, `bool autoScrollEnded`(event), plus commands `setCamera(CameraTarget rect,{Duration? duration, Curve? curve, SpringDescription? spring, Offset? velocity})`, `Offset pageToViewport(int page,double x,double y)`, `(int,Offset) viewportToPage(Offset)`, `int wordsInPanel(int page,int panelIndex)`, `void configureAmbient(AmbientConfig)` (sampleInterval, ramp, rampCurve, paceByDialogue, resumeAfterRelease, pageTintEnabled, direction), `setLayout(ReaderLayout.guided)`, `Stream<void> autoScrollEnded`.
+  `enum PageTintKind{page,cover}; class PageTintSource{PageTintKind kind; String? seed}`; `sealed PanelsState: PanelsFound(List<PanelRect> fractions)|PanelsFinding|PanelsNone`.
+- reader_repository (P3): `Future<void> postPageTints({sourceId, seriesKey, chapterKey, List<({int page,String hex})> tints})`, `Future<void> postPanels({sourceId, seriesKey, chapterKey, List<({int page,List<PanelRect> panels})> pages})`.
+- services/soundscape_files.dart (P3): `Future<File> soundscapeFile(String id)`, `Future<bool> isCached(String id)`, `const soundscapeIds`.
+- skins/cinematic/soundscape/house_sound.dart (P5): `houseSoundProvider` Notifier<HouseSoundState{String? loopId; bool playing; bool ducked}> with `setLoop(String? id)`, `setVolume`, `duck(bool)`, `pause()`, `resume()`, `hear(String id)`, `fadeOutForExit()`; `soundscape_match.dart`: `String matchTheMood(List<String> genres, String mood)`; `soundscape_picker.dart` widget `SoundscapePicker`.
+- features/novels/utils/novel_pace.dart (P4): `double novelPaceWpm(List<NovelPaceSample>)`, store helpers.
