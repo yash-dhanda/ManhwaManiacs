@@ -62,7 +62,7 @@ class ShelvesTab extends ConsumerWidget {
       return CustomScrollView(slivers: [
         ...leadingSlivers,
         SliverToBoxAdapter(
-          child: CircleTabEmpty(text: CircleCopy.emptyShelves, action: CircleCopy.newShelf, onAction: () => unawaited(context.push(Routes.collections({'sheet': SheetIds.collectionNew, 'view': 'shared'})))),
+          child: CircleTabEmpty(copy: CircleCopy.emptyShelves, action: CircleCopy.newShelf, onAction: () => unawaited(context.push(Routes.collections({'sheet': SheetIds.collectionNew, 'view': 'shared'})))),
         ),
       ],);
     }

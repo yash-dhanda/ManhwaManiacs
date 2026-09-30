@@ -161,8 +161,8 @@ class _LettersListState extends ConsumerState<LettersList> {
     }
     if (shown.isEmpty) {
       return widget.scrollable
-          ? CustomScrollView(slivers: [...widget.leadingSlivers, const SliverToBoxAdapter(child: CircleTabEmpty(text: CircleCopy.emptyLetters))])
-          : const CircleTabEmpty(text: CircleCopy.emptyLetters);
+          ? CustomScrollView(slivers: [...widget.leadingSlivers, const SliverToBoxAdapter(child: CircleTabEmpty(copy: CircleCopy.emptyLetters))])
+          : const CircleTabEmpty(copy: CircleCopy.emptyLetters);
     }
     final pad = EdgeInsets.fromLTRB(grid.left, c.space4, grid.right, 96);
     if (!widget.scrollable) return Padding(padding: EdgeInsets.only(top: c.space4), child: Column(key: _viewport, crossAxisAlignment: CrossAxisAlignment.stretch, children: cards));

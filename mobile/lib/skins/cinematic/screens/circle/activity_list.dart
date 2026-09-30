@@ -38,12 +38,13 @@ class CircleDayRule extends StatelessWidget {
 /// first page runs Set (24 ms per row, capped at 360 ms); appended pages fade in as one block over
 /// 160 ms. [focusNodes] lets the screen step through the rows by key.
 class ActivityList extends ConsumerStatefulWidget {
-  const ActivityList({super.key, required this.kind, required this.scrollController, required this.focusNodes, this.emptyText, this.emptyAction, this.onEmptyAction, this.leading = const [], this.trailing = const [], this.duplicateNames = const {}});
+  const ActivityList({super.key, required this.kind, required this.scrollController, required this.focusNodes, this.emptyCopy, this.emptyAction, this.onEmptyAction, this.leading = const [], this.trailing = const [], this.duplicateNames = const {}});
 
   final String? kind;
   final ScrollController? scrollController;
   final List<FocusNode> focusNodes;
-  final String? emptyText, emptyAction;
+  final ({String headline, String? deck})? emptyCopy;
+  final String? emptyAction;
   final VoidCallback? onEmptyAction;
 
   /// Slivers before and after the rows (the private banner, the trailing gap).
@@ -95,7 +96,7 @@ class _ActivityListState extends ConsumerState<ActivityList> {
         slivers: [
           ...widget.leading,
           if (state.items.isEmpty)
-            SliverToBoxAdapter(child: CircleTabEmpty(text: widget.emptyText ?? CircleCopy.emptyAll, action: widget.emptyAction, onAction: widget.onEmptyAction))
+            SliverToBoxAdapter(child: CircleTabEmpty(copy: widget.emptyCopy ?? CircleCopy.emptyAll, action: widget.emptyAction, onAction: widget.onEmptyAction))
           else
             SliverPadding(
               padding: EdgeInsets.only(left: grid.left, right: grid.right),

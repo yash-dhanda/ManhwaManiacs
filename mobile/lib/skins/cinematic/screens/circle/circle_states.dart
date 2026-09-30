@@ -8,17 +8,17 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 /// Exact copy of the Circle's states (cinematic 9.3.2).
 abstract final class CircleCopy {
   static const quietKicker = 'THE CIRCLE IS QUIET';
-  static const quietHeadline = 'Nobody has shared their reading yet. Turn on sharing to be the first.';
+  static const quiet = (headline: 'Nobody has shared their reading yet.', deck: 'Turn on sharing to be the first.');
   static const sharingSettings = 'Sharing settings';
   static const privateLine = "You're reading privately. Others can't see your activity.";
   static const share = 'Share';
   static const sharingOn = 'Sharing is on.';
   static const onlyMe = "You're the only reader sharing so far.";
-  static const emptyReading = 'Nobody is reading right now.';
-  static const emptyReactions = 'No reactions yet. They appear here when someone stamps a chapter.';
-  static const emptyLetters = 'No letters yet. When someone passes a series to you, it lands here.';
-  static const emptyShelves = 'No shared shelves yet.';
-  static const emptyAll = 'Nothing yet. What the others read shows up here.';
+  static const emptyReading = (headline: 'Nobody is reading right now.', deck: null as String?);
+  static const emptyReactions = (headline: 'No reactions yet.', deck: 'They appear here when someone stamps a chapter.');
+  static const emptyLetters = (headline: 'No letters yet.', deck: 'When someone passes a series to you, it lands here.');
+  static const emptyShelves = (headline: 'No shared shelves yet.', deck: null as String?);
+  static const emptyAll = (headline: 'Nothing yet.', deck: 'What the others read shows up here.');
   static const newShelf = 'New shelf';
   static const errorKicker = 'CORRECTION';
   static const errorHeadline = "The circle didn't load.";
@@ -44,8 +44,8 @@ class CircleNoticeBox extends StatelessWidget {
 
 /// A tab's empty line, at subhead size and left-aligned (the notice tone), with an optional action.
 class CircleTabEmpty extends StatelessWidget {
-  const CircleTabEmpty({super.key, required this.text, this.action, this.onAction});
-  final String text;
+  const CircleTabEmpty({super.key, required this.copy, this.action, this.onAction});
+  final ({String headline, String? deck}) copy;
   final String? action;
   final VoidCallback? onAction;
 
@@ -55,7 +55,8 @@ class CircleTabEmpty extends StatelessWidget {
       notice: CineNotice(
         tone: CineNoticeTone.empty,
         kicker: 'NOTHING HERE YET',
-        headline: text,
+        headline: copy.headline,
+        deck: copy.deck,
         primary: action == null ? null : CineNoticeAction(action!, onAction ?? () {}),
       ),
     );

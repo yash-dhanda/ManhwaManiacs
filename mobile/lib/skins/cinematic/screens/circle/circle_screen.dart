@@ -43,10 +43,16 @@ class CircleScreen extends ConsumerStatefulWidget {
 }
 
 class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: CircleTab.values.length, vsync: this, initialIndex: widget.initialTab.index)..addListener(_onTab);
+  late final TabController _tabs;
   final _mastheadFocus = FocusNode(debugLabel: 'circle-masthead');
   final _asideFirstLetter = FocusNode(debugLabel: 'circle-aside-letter');
   final Map<String?, List<FocusNode>> _nodes = {null: [], 'reading': [], 'reaction': []};
+
+  @override
+  void initState() {
+    super.initState();
+    _tabs = TabController(length: CircleTab.values.length, vsync: this, initialIndex: widget.initialTab.index)..addListener(_onTab);
+  }
 
   CircleTab get _tab => CircleTab.values[_tabs.index];
 
@@ -187,7 +193,8 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
                 key: const Key('circle-quiet'),
                 tone: CineNoticeTone.empty,
                 kicker: CircleCopy.quietKicker,
-                headline: CircleCopy.quietHeadline,
+                headline: CircleCopy.quiet.headline,
+                deck: CircleCopy.quiet.deck,
                 primary: CineNoticeAction(CircleCopy.sharingSettings, () => unawaited(context.push(Routes.settings(SettingsSection.circle)))),
               ),
             ),
@@ -208,7 +215,7 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
         body: Builder(builder: (context) {
           final handle = NestedScrollView.sliverOverlapAbsorberHandleFor(context);
           final inject = [SliverOverlapInjector(handle: handle)];
-          Widget activity(CircleTab tab, {String? empty}) {
+          Widget activity(CircleTab tab, {({String headline, String? deck})? empty}) {
             final kind = feedKindOf(tab);
             return CinePullToReprint(
               onRefresh: _reprint,
@@ -216,7 +223,7 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
                 kind: kind,
                 scrollController: null,
                 focusNodes: _nodes[kind]!,
-                emptyText: empty,
+                emptyCopy: empty,
                 leading: inject,
                 duplicateNames: dup,
               ),
