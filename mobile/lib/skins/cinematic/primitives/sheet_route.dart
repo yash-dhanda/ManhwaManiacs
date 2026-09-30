@@ -26,8 +26,12 @@ class CineSheetRoute<T> extends PageRoute<T> {
     this.reduced = false,
     this.restoreFocus,
     this.themes,
+    this.topRule,
     super.settings,
   });
+
+  /// A tinted top edge for the sheet (the reader's `page.light`), or null for `rule.2`.
+  final Color? topRule;
 
   final WidgetBuilder builder;
   final String kicker, title;
@@ -94,6 +98,7 @@ class CineSheetRoute<T> extends PageRoute<T> {
         errorDeck: errorDeck,
         onRetry: onRetry,
         reduced: reduced,
+        topRule: topRule,
         onClose: () => Navigator.of(context).maybePop(),
         child: Builder(builder: builder),
       ),);
@@ -123,6 +128,7 @@ Future<T?> showCineSheet<T>(
   String errorHeadline = 'This didn’t load.',
   String? errorDeck,
   VoidCallback? onRetry,
+  Color? topRule,
 }) {
   final trigger = FocusManager.instance.primaryFocus;
   final navigator = Navigator.of(context);
@@ -138,5 +144,6 @@ Future<T?> showCineSheet<T>(
     onRetry: onRetry,
     reduced: CineMotion.reduced(context),
     restoreFocus: trigger,
+    topRule: topRule,
   ),);
 }

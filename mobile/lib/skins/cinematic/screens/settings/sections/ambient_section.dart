@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/cine_radio.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_kit.dart';
-import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/type.dart';
+import 'package:manhwamaniacs/skins/cinematic/soundscape/soundscape_picker.dart';
 
 /// The eight soundscape loops and their lines (cinematic 9.4.2).
 const kSoundscapeLoops = <(String, String, String)>[
@@ -19,56 +16,21 @@ const kSoundscapeLoops = <(String, String, String)>[
   ('temple-bells', 'Temple bells', 'Slow bells over a quiet courtyard.'),
 ];
 
-/// Ambient (cinematic 8.30.2 row 6). No sound plays here: the loops, the player and `Hear` are
-/// mobile/23's (it fills the trailing slot of each loop row).
+/// Ambient (cinematic 8.30.2 row 6). The picker (`Hear` included) is the shared
+/// `SoundscapePicker`; a choice here plays only through `Hear`, the readers start the loop.
 class AmbientSection extends ConsumerWidget {
   const AmbientSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.cine;
     final r = ref.watch(readerSettingsProvider);
     final n = ref.read(readerSettingsProvider.notifier);
-    final novels = ref.read(novelSettingsProvider.notifier);
-    final vol = ref.watch(soundscapeVolumeProvider);
     final d = r.seriesDefaults;
     final g = r.guidedAutoAdvance;
     const profile = 'Saved for this profile';
-    final sc = r.soundscape;
-
-    Future<void> choose(String v) async {
-      await n.put({'soundscape': v});
-      await novels.put({'soundscape': v});
-    }
-
-    Widget option(String id, String label, {String? line}) => Padding(
-          padding: EdgeInsets.symmetric(vertical: c.space1),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CineRadio<String>(value: id, groupValue: sc, label: label, onChanged: choose),
-                if (line != null) Padding(padding: const EdgeInsets.only(left: 36), child: CineRoleText(line, c.typeCaption, color: c.colorInk60)),
-              ],),
-            ),
-            // mobile/23 puts `Hear` (secondary sm) here.
-            SizedBox(key: Key('hear-slot-$id'), width: 0),
-          ],),
-        );
-
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       const SettingsKicker('SOUNDSCAPE'),
-      SettingsBlock(
-        id: 'soundscape',
-        label: 'Soundscape default',
-        description: 'Used by manga and novels. $profile.',
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          option('off', 'OFF'),
-          option('match', 'MATCH THE MOOD'),
-          for (final (id, label, line) in kSoundscapeLoops) option(id, label, line: line),
-        ],),
-      ),
-      sliderRow('soundscape-volume', 'Soundscape volume', vol * 100, (v) => ref.read(soundscapeVolumeProvider.notifier).set(v.round() / 100),
-          min: 0, max: 100, divisions: 100, flag: (v) => '${v.round()} %', description: 'Saved on this device.',),
+      const SoundscapePicker(),
       switchRow('pause-narration', 'Pause the soundscape during narration', r.pauseSoundscapeForNarration, (v) => n.put({'pauseSoundscapeForNarration': v}),
           description: 'Otherwise it drops to 30 % while a chapter is read aloud.',),
       const SettingsKicker('THE PAGE'),

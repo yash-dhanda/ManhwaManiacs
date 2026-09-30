@@ -185,7 +185,7 @@ void main() {
         expect(find.text(line), findsOneWidget, reason: line);
       }
       expect(find.text('MATCH THE MOOD'), findsOneWidget);
-      expect(find.byKey(const Key('hear-slot-rain-on-glass')), findsOneWidget, reason: 'mobile/23 fills this slot');
+      expect(find.byKey(const Key('hear-rain-on-glass')), findsOneWidget, reason: 'each loop row has Hear');
       await tapText(tester, 'Rain on glass');
       final prefs = c.read(sharedPrefsProvider);
       expect(jsonDecode(prefs.getString('mm.reader-settings.u1p1')!)['soundscape'], 'rain-on-glass');

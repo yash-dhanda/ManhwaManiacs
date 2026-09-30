@@ -9,7 +9,7 @@ import 'package:manhwamaniacs/features/reader/models/chapter_manifest_window.dar
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
 
-class ReaderRepositoryImpl implements ReaderRepository {
+class ReaderRepositoryImpl implements ReaderRepository, ReaderAnalysisReports {
   const ReaderRepositoryImpl(this._dio);
 
   final Dio _dio;

@@ -107,14 +107,15 @@ class AutoScrollController extends ChangeNotifier {
   }
 
   /// Back to a clean state (auto-scroll turned off / restarted).
-  void reset() {
+  void reset({bool notify = true}) {
     _resume?.cancel();
+    final changed = _held || _dragged || _userPaused || _words != null;
     _touching = false;
     _held = false;
     _dragged = false;
     _userPaused = false;
     _ramp.retargetImmediate(0);
-    _notify();
+    if (notify && changed) _notify();
   }
 
   /// A fresh start: clears pauses and drags.

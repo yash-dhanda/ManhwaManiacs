@@ -6,7 +6,6 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_analysis.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_tint.dart';
-import 'package:manhwamaniacs/features/reader/engine/panels.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart';
 import 'package:manhwamaniacs/features/reader/engine/words.dart';
 

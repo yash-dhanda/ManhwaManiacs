@@ -81,7 +81,12 @@ abstract interface class ReaderRepository {
   });
 
   Future<Result<void>> deleteBookmark(int bookmarkId);
+}
 
+/// The exit reports of the reader's ambient duties (mobile/23): sampled page tints and detected
+/// panels, posted fire and forget. Kept apart from [ReaderRepository] so the reader's fakes need
+/// not implement them; the real repository does.
+abstract interface class ReaderAnalysisReports {
   /// `POST /reader/page-tints`: the chapter's sampled page tints (greyscale pages omitted).
   Future<Result<void>> postPageTints({
     required String sourceId,
@@ -90,7 +95,7 @@ abstract interface class ReaderRepository {
     required List<({int page, String hex})> tints,
   });
 
-  /// `POST /reader/panels`: detected panels per page in page fractions page fractions
+  /// `POST /reader/panels`: detected panels per page in page fractions
   /// (an empty list for a page with none); sent as `{x, y, w, h}`.
   Future<Result<void>> postPanels({
     required String sourceId,

@@ -103,11 +103,15 @@ class HouseSound extends ChangeNotifier {
   bool _playing = false;
   bool _paused = false;
   bool _previewing = false;
+  String? _fetching;
   int _gen = 0;
 
   String? get loopId => _loop;
   bool get playing => _playing;
   bool get previewing => _previewing;
+
+  /// The loop a `Hear` is still downloading (the row shows a leader dial after 400 ms).
+  String? get fetchingId => _fetching;
   bool get ducked => _duckRamp.value < 1;
 
   Future<void> _apply() async {
@@ -168,6 +172,7 @@ class HouseSound extends ChangeNotifier {
     _paused = true;
     await _fade.to(0, kFadeOut, _step);
     await _player?.pause();
+    _audio.setSoundscapeActive(false);
     notifyListeners();
   }
 
@@ -176,6 +181,7 @@ class HouseSound extends ChangeNotifier {
     if (!_paused || _loop == null) return;
     _paused = false;
     _playing = true;
+    _audio.setSoundscapeActive(true);
     await _player?.play();
     notifyListeners();
     await _fade.to(1, kFadeIn, _step);
@@ -194,7 +200,15 @@ class HouseSound extends ChangeNotifier {
     LoopPlayer? p;
     try {
       if (wasPlaying) await pause();
-      final file = await files.soundscapeFile(id);
+      _fetching = id;
+      notifyListeners();
+      final File file;
+      try {
+        file = await files.soundscapeFile(id);
+      } finally {
+        _fetching = null;
+        notifyListeners();
+      }
       await _audio.beginVoiceSample();
       p = _factory();
       await p.load(file);
@@ -233,6 +247,5 @@ final houseSoundProvider = ChangeNotifierProvider<HouseSound>((ref) {
   final h = HouseSound(files: ref.watch(soundscapeFilesProvider));
   unawaited(h.setVolume(ref.read(soundscapeVolumeProvider)));
   ref.listen<double>(soundscapeVolumeProvider, (_, v) => unawaited(h.setVolume(v)));
-  ref.onDispose(h.dispose);
   return h;
 }, name: 'houseSound');

@@ -263,6 +263,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   // Auto-scroll state
   bool _autoScrollActive = false;
+  bool _disposing = false;
   Duration? _lastAutoScrollFrame;
 
   /// The last progress actually handed to [ReaderEngineView.onSaveProgress], and
@@ -575,6 +576,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _zoomController?.dispose();
     _panX.dispose();
     _pinching.dispose();
+    _disposing = true;
     _stopAutoScroll();
     _flushProgress();
     _scrollSaveTimer?.cancel();
@@ -1386,7 +1388,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   void _stopAutoScroll() {
     _autoScrollActive = false;
     _lastAutoScrollFrame = null;
-    widget.controller.autoScroll.reset();
+    widget.controller.autoScroll.reset(notify: !_disposing);
   }
 
   void _scheduleAutoScrollFrame() {

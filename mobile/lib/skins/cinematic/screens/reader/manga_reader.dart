@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_zoom.dart';
 import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart' show locateGlobalPage, chapterStarts, readAllFlag;
+import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart' show PanelsFound;
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
@@ -55,6 +56,9 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_rating_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/ambient_bridge.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/auto_scroll_chip.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/auto_scroll_speed_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/chapter_download_control.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_page_physics.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart' show cineReaderOwnsToastsProvider;
@@ -65,6 +69,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/credits.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/edge_hud.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/end_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/folio_bar.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/guided_view.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/image_layers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/jump_to_page_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/margins_panel.dart';
@@ -79,6 +84,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_entry.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_gestures.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_glyphs.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_keys.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_tint.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_system_ui.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_taps.dart';
@@ -87,6 +93,9 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/running_head.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/side_panel_layout.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/strip_bands.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/tap_zone_bands.dart';
+import 'package:manhwamaniacs/skins/cinematic/soundscape/house_sound.dart';
+import 'package:manhwamaniacs/skins/cinematic/soundscape/house_sound_binding.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/ambient_section.dart' show kSoundscapeLoops;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/zoom_chip.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -116,8 +125,9 @@ class CineMangaReader extends ConsumerStatefulWidget {
   ConsumerState<CineMangaReader> createState() => _CineMangaReaderState();
 }
 
-class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
+class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsBindingObserver {
   final ReaderEngine _engine = ReaderEngine();
+  late final CineAmbientBridge _ambient = CineAmbientBridge(ref: ref, engine: _engine, sourceId: _id.sourceId, seriesKey: _id.seriesKey);
   final FocusScopeNode _chromeScope = FocusScopeNode(debugLabel: 'reader chrome');
   final FocusNode _surface = FocusNode(debugLabel: 'reader surface');
   final GlobalKey<PageCounterFieldState> _counter = GlobalKey();
@@ -191,6 +201,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       } catch (_) {}
     });
     _lastLayout = _layoutOf(ref.read(readerPrefsProvider(_seriesRef)));
+    WidgetsBinding.instance.addObserver(this);
     _engine.addListener(_onEngine);
     _engine.topPull.addListener(_onTopPull);
     _progressSub = ref.read(progressOutboxControllerProvider).notAdvanced.listen((k) => unawaited(_checkFurther(k)));
@@ -227,7 +238,15 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // The exit reports also go out when the app is backgrounded.
+    if (state == AppLifecycleState.paused) unawaited(_ambient.flush(_engine.value.chapterId));
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_ambient.flush(_engine.value.chapterId));
     _chipTimer?.cancel();
     _retryTimer?.cancel();
     unawaited(_progressSub?.cancel());
@@ -264,7 +283,10 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     final s = _engine.value;
     if (s.chapterId.isNotEmpty && s.chapterId != _lastChapterId) {
       final crossed = _lastChapterId != null && _isReadAll;
+      // Leaving a chapter inside the reader posts its new tint and panel samples once.
+      if (_lastChapterId != null) unawaited(_ambient.flush(_lastChapterId!));
       _lastChapterId = s.chapterId;
+      unawaited(_ambient.loadOcr(s.chapterId, wanted: true));
       _completedOpen = false;
       if (crossed) cineFeedback(context, HapticEvent.scrubBoundary, sound: SoundEvent.scrubBoundary);
       _announce(s);
@@ -292,6 +314,9 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     if (_lastAuto && !s.autoScrolling && s.atEnd && s.nextState != ReaderNextState.loading) {
       _engine.showChrome();
       cineFeedback(context, HapticEvent.autoscrollEnd);
+    }
+    if (_lastAuto != s.autoScrolling) {
+      _ambient.syncWords(running: s.autoScrolling, paceByDialogue: ref.read(readerSettingsProvider).paceByDialogue);
     }
     _lastAuto = s.autoScrolling;
   }
@@ -461,6 +486,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   ReaderLayout _layoutOf(ReaderPrefs p) => switch (p.layout) {
         'single' => ReaderLayout.single,
         'double' => ReaderLayout.double,
+        'guided' => ReaderLayout.guided,
         _ => ReaderLayout.strip,
       };
 
@@ -469,6 +495,11 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   bool get _locked => _engine.value.locked;
 
   bool get _paged => _lastLayout != ReaderLayout.strip;
+
+  bool get _guided => _lastLayout == ReaderLayout.guided;
+
+  /// The layout `u` returns to when guided view is switched off.
+  String _layoutBeforeGuided = 'strip';
 
   /// The one-time K01 toast: a sideways strip of the old reader is a page layout now.
   void _maybeK01Toast() {
@@ -482,7 +513,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   /// The tap-zone bands: the first time this layout of zones is used on the device, and again
   /// whenever the layout of zones changes.
   void _syncBands(ReaderPrefs prefs, ReaderLayout layout) {
-    if (layout == ReaderLayout.strip) return;
+    if (layout == ReaderLayout.strip || layout == ReaderLayout.guided) return;
     final zones = resolveZones(prefs.tapZones, rtl: prefs.rtl);
     final key = zoneLayoutKey(layout.name, zones);
     if (key == _lastZonesKey) return;
@@ -527,7 +558,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   }
 
   void _pagedStep({required bool forward}) {
-    cineFeedback(context, HapticEvent.pageTurn, sound: SoundEvent.pageTurn);
+    // Guided view gives its own page-turn feedback per move.
+    if (!_guided) cineFeedback(context, HapticEvent.pageTurn, sound: SoundEvent.pageTurn);
     _engine.pageBy(forward: forward);
   }
 
@@ -566,7 +598,9 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       );
       return;
     }
-    if (s.autoScrolling) _engine.toggleAutoScroll();
+    // Auto-scroll keeps running through a tap: the touch pauses it and the release resumes it
+    // (the chrome stays hidden).
+    if (s.autoScrolling) return;
     switch (stripTap(info.position, info.size, tapToScroll: prefs.stripTaps == 'scroll', rtl: prefs.rtl)) {
       case StripTap.toggleChrome:
         s.chromeVisible ? _engine.hideChrome() : _engine.showChrome();
@@ -618,7 +652,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   }
 
   void _toggleAutoScroll() {
-    if (_paged) return;
+    if (_paged && !_guided) return;
     final prefs = ref.read(readerPrefsProvider(_seriesRef));
     if (!_engine.value.autoScrolling) _engine.setAutoScrollSpeedX(_speedDraft ?? prefs.autoScrollSpeedX);
     cineFeedback(context, HapticEvent.autoscrollToggle);
@@ -641,6 +675,80 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       _speedHud.releaseSoon();
     }
   }
+
+  /// `u` and the `panel-focus` button: guided view on, or back to the layout it came from.
+  void _toggleGuided() {
+    if (_isReadAll) return;
+    final prefs = ref.read(readerPrefsProvider(_seriesRef));
+    final next = prefs.layout == 'guided' ? _layoutBeforeGuided : 'guided';
+    if (prefs.layout != 'guided') _layoutBeforeGuided = prefs.layout;
+    cineFeedback(context, HapticEvent.select);
+    unawaited(ref.read(readerSeriesPrefsProvider.notifier).setFor(_seriesRef, {'layout': next}));
+  }
+
+  String? _houseLabel() {
+    final h = ref.read(houseSoundProvider);
+    if (!h.playing || h.loopId == null) return null;
+    return kSoundscapeLoops.where((l) => l.$1 == h.loopId).firstOrNull?.$2;
+  }
+
+  String _guidedChipLabel() {
+    final g = ref.read(readerSettingsProvider).guidedAutoAdvance;
+    final paced = g.mode != 'FIXED' && _engine.ambient.hasDialogueText;
+    return paced ? 'AUTO · PACED' : 'AUTO · ${(g.fixedMs / 1000).toStringAsFixed(1)} S';
+  }
+
+  /// The chip's tap: running <-> paused (from off the folio bar button starts it).
+  void _chipToggle() {
+    cineFeedback(context, HapticEvent.autoscrollToggle, sound: SoundEvent.autoscrollToggle);
+    if (!_engine.value.autoScrolling) {
+      _toggleAutoScroll();
+      return;
+    }
+    _engine.autoScroll.togglePause();
+  }
+
+  /// The chip's long-press: the projection-speed sheet.
+  void _openSpeedSheet() {
+    cineFeedback(context, HapticEvent.longpressOpen);
+    final prefs = ref.read(readerPrefsProvider(_seriesRef));
+    final h = MediaQuery.sizeOf(context).height;
+    _engine.holdChrome();
+    unawaited(
+      showAutoScrollSpeedSheet(
+        context,
+        value: _speedDraft ?? prefs.autoScrollSpeedX,
+        onChanged: (x) => _setSpeed(x, persist: false),
+        onCommit: (x) => _setSpeed(x, persist: true),
+        equivalent: (x) => '≈ ${autoScrollPxPerSecondX(x, h).round()} PX/S',
+      ).whenComplete(() {
+        if (mounted) _engine.scheduleHideChrome();
+      }),
+    );
+  }
+
+  /// The running head's `waveform`: Reading setup at AMBIENT.
+  void _openHouseSound() {
+    _engine
+      ..showChrome()
+      ..holdChrome();
+    unawaited(
+      showReadingSetup(
+        context,
+        seriesRef: _seriesRef,
+        seriesTitle: _seriesTitle,
+        engine: _engine,
+        readAll: _isReadAll,
+        onShowZones: _showZones,
+        initialTab: 3,
+        topRule: _tintLight,
+      ).whenComplete(() {
+        if (mounted) _engine.hideChrome();
+      }),
+    );
+  }
+
+  Color? _tintLight;
 
   void _zoomBy(double delta, {double? to}) {
     final size = MediaQuery.sizeOf(context);
@@ -712,6 +820,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         onShowZones: _showZones,
         pageActionsLabel: 'Page actions for p. $page',
         onPageActions: _openPageActions,
+        topRule: _tintLight,
       ).whenComplete(() {
         // Closing the sheet also hides the chrome.
         if (mounted) _engine.hideChrome();
@@ -907,6 +1016,16 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       );
     }
     _syncSwipeable(prefs);
+    final settings = ref.watch(readerSettingsProvider);
+    _ambient.sync(
+      context,
+      chapters: body.feed.chapters,
+      tintOn: settings.pageTint,
+      paceByDialogue: settings.paceByDialogue,
+      resumeAfterRelease: prefs.resumeAfterRelease,
+      rtl: prefs.rtl,
+      panelsWanted: true,
+    );
 
     final readAllKeys = _isReadAll ? ref.watch(seriesReadingOrderProvider((sourceId: _id.sourceId, seriesId: _id.seriesKey))).valueOrNull : null;
     final layout = _isReadAll ? ReaderLayout.strip : _layoutOf(prefs);
@@ -971,7 +1090,24 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         _chrome(context, state, prefs, series, tablet: tablet, landscape: landscape, reduced: reduced, paged: paged);
     final autoHideAfter = accessible ? const Duration(days: 1) : const Duration(milliseconds: 3000);
     final Widget view;
-    if (paged) {
+    if (layout == ReaderLayout.guided) {
+      final chapter = _chapterById(_carryChapterId ?? _id.chapterKey) ?? body.feed.chapters.first;
+      view = CineGuidedView(
+        key: const ValueKey('guided'),
+        engine: _engine,
+        chapter: chapter,
+        rtl: prefs.rtl,
+        ground: ground,
+        chromeBuilder: chrome,
+        initialPage: _carryPage ?? body.initialPage,
+        autoAdvance: settings.guidedAutoAdvance,
+        autoHideAfter: autoHideAfter,
+        onSaveProgress: body.onSaveProgress,
+        onPreviousChapter: body.onPreviousChapter,
+        onNextChapter: body.onNextChapter,
+        creditsBuilder: (context) => ColoredBox(color: ground, child: SingleChildScrollView(child: _credits(context, chapter, null, CreditsMode.compact))),
+      );
+    } else if (paged) {
       final chapter = _chapterById(_carryChapterId ?? _id.chapterKey) ?? body.feed.chapters.first;
       view = PagedReaderView(
         key: const ValueKey('paged'),
@@ -1284,7 +1420,36 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
 
   // ── Chrome ────────────────────────────────────────────────────────────────
 
+  /// The chrome root: the page-tint colour animation around the chrome, rebuilt when the panels,
+  /// the auto-scroll behaviour or the house sound change.
   Widget _chrome(
+    BuildContext context,
+    ReaderEngineState s,
+    ReaderPrefs prefs,
+    ReaderSeries? series, {
+    required bool tablet,
+    required bool landscape,
+    required bool reduced,
+    required bool paged,
+  }) {
+    final house = ref.read(houseSoundProvider);
+    return ReaderTintHost(
+      source: _engine.pageTint,
+      enabled: ref.read(readerSettingsProvider).pageTint,
+      coverDuo: series?.summary.ambient?.duo ?? const Color(0xFFB8B2A4),
+      child: Builder(
+        builder: (context) {
+          _tintLight = ReaderTintScope.of(context).light;
+          return ListenableBuilder(
+            listenable: Listenable.merge([_engine.panels, _engine.autoScroll, _engine.wordsOnScreen, house]),
+            builder: (context, _) => _chromeBody(context, s, prefs, series, tablet: tablet, landscape: landscape, reduced: reduced, paged: paged),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _chromeBody(
     BuildContext context,
     ReaderEngineState s,
     ReaderPrefs prefs,
@@ -1315,6 +1480,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         selected: bookmarked,
         onPressed: _body.onAddBookmark == null ? null : _bookmark,
       ),
+      if (!_isReadAll && (_guided || _engine.panels.value[s.page] is PanelsFound))
+        CineIconButton(label: 'Guided view', role: CineIconRole.guidedView, selected: _guided, onPressed: _toggleGuided),
       if (tablet) CineIconButton(label: 'Contents', role: CineIconRole.contents, selected: prefs.panels.left, onPressed: _openContents),
       if (tablet) CineIconButton(label: 'Margins', codepoint: ReaderCp.notePencil, selected: prefs.panels.right, onPressed: _openMargins),
       CineIconButton(label: 'Reading setup', role: CineIconRole.readerSettings, onPressed: _openSetup),
@@ -1354,6 +1521,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
                       onOpenSeries: _openSeries,
                       onOpenContents: _openContents,
                       trailing: trailing,
+                      houseSoundLabel: _houseLabel(),
+                      onOpenHouseSound: _openHouseSound,
                     ),
                   ),
                 ),
@@ -1377,7 +1546,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
                       onJump: _engine.jumpToPage,
                       counterKey: _counter,
                       autoScrolling: s.autoScrolling,
-                      showAutoScroll: !paged,
+                      showAutoScroll: !paged || _guided,
                       rulerPage: raGlobal?.page,
                       rulerCount: raGlobal?.count,
                       rulerBoundaries: s.readAll?.boundaries ?? const [],
@@ -1394,6 +1563,21 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
             ),
           ),
         ),
+        HouseSoundBinding(genres: series?.summary.genres ?? const <String>[]),
+        if (s.autoScrolling && !s.locked)
+          positionAutoScrollChip(
+            context,
+            chromeVisible: showChrome,
+            child: CineAutoScrollChip(
+              speedX: speedX,
+              running: _engine.autoScroll.moving,
+              paced: _engine.autoScroll.paced,
+              autoLabel: _guided ? _guidedChipLabel() : null,
+              progress: s.progress,
+              onToggle: _chipToggle,
+              onOpenRuler: _openSpeedSheet,
+            ),
+          ),
         ReaderMicroProgress(progress: s.progress, rtl: prefs.rtl, visible: !s.chromeVisible && !_cinema),
         ReaderZoomChip(zoom: s.zoom, visible: _chipVisible),
         EdgeDragZone(
@@ -1477,6 +1661,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       }),
       e(LogicalKeyboardKey.keyC, 'Cinema mode', _toggleCinema),
       e(LogicalKeyboardKey.keyM, 'Show or hide the controls', _toggleChrome),
+      e(LogicalKeyboardKey.keyU, 'Guided view', _toggleGuided),
       e(LogicalKeyboardKey.keyP, 'Auto-scroll', _toggleAutoScroll),
       e(LogicalKeyboardKey.comma, 'Slower', () => _stepSpeed(-0.25), shift: true, single: false, keys: const ['<']),
       e(LogicalKeyboardKey.period, 'Faster', () => _stepSpeed(0.25), shift: true, single: false, keys: const ['>']),
