@@ -13,7 +13,7 @@ const REPO = '/srv/manhwamaniacs/dev/ManhwaManiacs'
 const BASE = 'feat/vps-slim-source-native'
 const LOCKDIR = '/srv/manhwamaniacs/dev'
 const LEDGER = '/srv/manhwamaniacs/dev/redesign-integrated.txt'
-const M = { model: 'sonnet', effort: 'medium' } // Sonnet 5.5 (owner 2026-09-29: pick effort per work, make it fast); explicit model because subagents keep the session's original one
+const M = { model: 'sonnet', effort: 'low' } // Sonnet 5.5 (owner 2026-09-29: pick effort per work, make it fast); explicit model because subagents keep the session's original one
 const ML = { model: 'sonnet', effort: 'low' } // waiting + merging: mechanical
 
 const A = args
@@ -36,7 +36,7 @@ const OVERRIDES = (extra) => `LANE OVERRIDES (these win over anything the prompt
 8. Production: never touch Docker, production containers, systemd units, /srv/manhwamaniacs/{app,data} or backend/connectors/. No deploys, no releases (release/* steps are the only exception and say so explicitly).
 9. Owner-only items (device checks, art or audio only the owner can supply): append them to ${WT}/docs/redesign/owner-todo.md with the step id and continue with the prompt's stated fallback.
 10. Pushes, CI polling and "Report back" instructions in the prompt file: skip the push (the integrator pushes); put the report-back content in your returned summary.
-11. HELPERS (owner: finish as fast as possible, no cap). After reading the prompt and planning, split the scope into as many independent parts as it has, each touching DISJOINT files, and give every part to its own parallel subagent (one Agent tool call per part, all in one message, model sonnet, effort low, no limit on their number), each told its exact files, its part of the scope with the DESIGN.md values and these lane overrides. Keep only integration and glue for yourself. Never use subagents for verification: run each verification command once yourself.`
+11. HELPERS (owner: finish as fast as possible, no cap). After reading the prompt and planning, split the scope into as many independent parts as it has, each touching DISJOINT files, and give every part to its own parallel subagent (one Agent tool call per part, all in one message, model sonnet, effort low, no limit on their number; use model haiku for purely mechanical parts such as proof screenshots, docs, device checklists and test boilerplate), each told its exact files, its part of the scope with the DESIGN.md values and these lane overrides. Keep only integration and glue for yourself. Never use subagents for verification: run each verification command once yourself.`
 
 const IMPL = { type: 'object', properties: {
   status: { type: 'string', enum: ['done', 'blocked', 'partial'] },
