@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/color/cover_palette.dart';
+import 'package:manhwamaniacs/core/color/oklch.dart' show relativeLuminance;
 import 'package:manhwamaniacs/core/network/api_image.dart' show resolveApiResourceUrl;
 import 'package:manhwamaniacs/features/library/models/ambient.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -28,7 +29,8 @@ class HomeCoverImage extends ConsumerWidget {
 CoverPalette? paletteOf(CoverPalette? palette, Ambient? ambient) {
   if (palette != null) return palette;
   if (ambient == null) return null;
-  return CoverPalette(a: [ambient.duo, ambient.tint, ambient.ink], l: 0.3, lMax: 0.6);
+  // The payload names no luminances: the issue colours stand in (the mean from the duo tone, the brightest from the ink).
+  return CoverPalette(a: [ambient.duo, ambient.tint, ambient.ink], l: relativeLuminance(ambient.duo) * 0.6, lMax: relativeLuminance(ambient.ink));
 }
 
 /// "Ch 143" for a chapter number.

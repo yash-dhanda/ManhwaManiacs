@@ -46,6 +46,9 @@ class SpotlightState extends ConsumerState<Spotlight> {
 
   int get index => _index;
 
+  /// Puts keyboard focus on the spotlight (the arrow keys page it while it has focus).
+  void requestFocus() => _focus.requestFocus();
+
   @override
   void initState() {
     super.initState();

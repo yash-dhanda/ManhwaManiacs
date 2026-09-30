@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/recede.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/glass/routes/route_table.dart';
+import 'package:manhwamaniacs/skins/glass/screens/home/home_dock_menu.dart';
 import 'package:manhwamaniacs/skins/glass/shell/accessory.dart';
 import 'package:manhwamaniacs/skins/glass/shell/accessory_controller.dart';
 import 'package:manhwamaniacs/skins/glass/shell/arrival.dart';
@@ -56,10 +57,12 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
   late final FocusNode _overlayFocus = FocusNode(debugLabel: 'sidebar overlay');
   final FocusNode _expandReturn = FocusNode(debugLabel: 'sidebar return');
   int _index = 0;
+  VoidCallback? _homeHooks;
 
   @override
   void initState() {
     super.initState();
+    _homeHooks = registerHomeShellHooks();
     _index = widget.navigationShell.currentIndex;
     Future.microtask(() {
       if (!mounted) return;
@@ -85,6 +88,7 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
 
   @override
   void dispose() {
+    _homeHooks?.call();
     _fade.dispose();
     _overlayFocus.dispose();
     _expandReturn.dispose();

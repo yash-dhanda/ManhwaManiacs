@@ -6,11 +6,13 @@ import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
+import 'package:manhwamaniacs/features/home/utils/offline_edition.dart' show clearLastFeeds;
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/continue_with_recap.dart';
 import 'package:manhwamaniacs/skins/glass/shell/dock_menus.dart';
+import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show registerPurgeHolder;
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/shell/stack_overview_host.dart';
 
@@ -47,3 +49,14 @@ VoidCallback registerHomeDockMenu() => registerDockMenu(GlassTab.home, (ref) {
           ),
       ];
     });
+
+/// What Home needs from the shell, registered once by `GlassShell.initState`: its dock menu rows and its purge holder (a closing 18+ gate
+/// deletes the cached home payload outright, glass 8.0.8 step 5). Returns the disposer.
+VoidCallback registerHomeShellHooks() {
+  final dock = registerHomeDockMenu();
+  final purge = registerPurgeHolder('home', clearLastFeeds);
+  return () {
+    dock();
+    purge();
+  };
+}

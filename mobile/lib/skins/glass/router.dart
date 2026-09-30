@@ -3,11 +3,14 @@ import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/app/skin_boot.dart' show kSkinDebugKey;
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/auth/utils/route_guard.dart';
+import 'package:manhwamaniacs/features/onboarding/store/onboarding_draft.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart' show setupCompletedProvider;
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/dev/auth_fixtures.dart';
 import 'package:manhwamaniacs/skins/glass/dev/calibration_page.dart';
@@ -26,6 +29,8 @@ import 'package:manhwamaniacs/skins/glass/routes/sheet_param_host.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/setup_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/home/home_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/onboarding/glass_steps.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/onboarding_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
@@ -45,7 +50,6 @@ import 'package:manhwamaniacs/skins/skins.dart';
 // `readerLanding` is built here: it redirects to the library (glass 8.0.3).
 // ignore: constant_identifier_names
 const Set<ScreenId> PENDING = {
-  ScreenId.tonight,
   ScreenId.library,
   ScreenId.updates,
   ScreenId.collections,
@@ -221,6 +225,17 @@ GateState _gate(Ref ref) {
   );
 }
 
+/// `/welcome?step=n` while the active profile has not finished onboarding; null when it has, or the profile list has not loaded yet.
+String? _onboardingRedirect(Ref ref) {
+  final active = ref.read(activeProfileProvider);
+  final profiles = ref.read(profilesProvider).valueOrNull;
+  if (active == null || profiles == null) return null;
+  final p = profiles.where((x) => x.id == active.id).firstOrNull;
+  if (p == null || !needsOnboarding(p, ref.read(onboardingStoreProvider).readPending())) return null;
+  final lookShown = Flags.glassAvailable || ref.read(sharedPrefsProvider).getString(kSkinDebugKey) == 'glass';
+  return Routes.onboarding({'step': resumeGlassStep(p.onboarding, lookShown: lookShown) ?? 1});
+}
+
 /// The Glass router (glass 8.0.3): a `StatefulShellRoute.indexedStack` with the four branches, sheet routes and readers on the root
 /// navigator, and the shared route guard. A profile switch increments `glassRouterEpochProvider`, which rebuilds it at a destination so
 /// every branch stack, observer and snapshot resets at once.
@@ -235,6 +250,7 @@ GoRouter buildGlassRouter(Ref ref) {
     ..listen<bool>(profileSessionReadyProvider, (_, __) => bridge.poke())
     ..listen<bool>(glassSignedOutPendingProvider, (_, __) => bridge.poke())
     ..listen<bool>(glassRedirectHoldProvider, (_, __) => bridge.poke())
+    ..listen(profilesProvider, (_, __) => bridge.poke())
     ..listen(profileHeaderSyncProvider, (_, __) {});
 
   final rootKey = GlobalKey<NavigatorState>(debugLabel: 'glass root');
@@ -264,7 +280,10 @@ GoRouter buildGlassRouter(Ref ref) {
           if (!ref.read(profileSessionReadyProvider)) ref.read(profileSessionReadyProvider.notifier).enter();
         });
       }
-      return gateRedirect(gate, state.uri);
+      final to = gateRedirect(gate, state.uri);
+      if (to != null) return to;
+      // A profile still in onboarding never sees Home (mobile/31): the redirect runs before any rail paints.
+      return state.uri.path == Routes.tonightPattern ? _onboardingRedirect(ref) : null;
     },
     routes: [
       _devRoute(kGlassDevPath, () => const GlassDevIndex()),
@@ -283,7 +302,7 @@ GoRouter buildGlassRouter(Ref ref) {
         builder: (context, state, shell) => GlassShell(navigationShell: shell, location: glassShellLocation(GoRouter.of(context))),
         branches: [
           branch(GlassTab.home, [
-            _route(ScreenId.tonight),
+            _screen(ScreenId.tonight, (s) => const GlassHomeScreen()),
             _route(ScreenId.updates),
             _route(ScreenId.picks),
           ]),

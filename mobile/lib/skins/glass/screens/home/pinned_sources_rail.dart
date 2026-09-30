@@ -47,7 +47,10 @@ class HomePinnedSourcesRail extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Row(
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  child: Row(
                   children: [
                     for (final url in s.latestCovers.take(3))
                       Padding(
@@ -60,6 +63,7 @@ class HomePinnedSourcesRail extends ConsumerWidget {
                         ),
                       ),
                   ],
+                ),
                 ),
               ],
             ),

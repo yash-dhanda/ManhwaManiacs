@@ -106,30 +106,55 @@ mixin GlassLitState<T extends StatefulWidget> on State<T> {
   }
 }
 
-/// The caustic behind a lit object that fades out over 180 ms while lit is suppressed.
-class GlassLitCaustic extends StatelessWidget {
+/// The caustic behind a lit object that fades out over 180 ms while lit is suppressed. It listens to the suppression count itself and
+/// defers its rebuild when the change comes from a build (a sheet's `initState` calls [suppressLit]).
+class GlassLitCaustic extends StatefulWidget {
   const GlassLitCaustic({super.key, required this.child, this.pressed = false});
   final Widget child;
   final bool pressed;
 
   @override
-  Widget build(BuildContext context) => ValueListenableBuilder<int>(
-        valueListenable: GlassLit.suppression,
-        builder: (context, n, child) => Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              child: IgnorePointer(
-                child: AnimatedOpacity(
-                  opacity: n > 0 ? 0 : 1,
-                  duration: const Duration(milliseconds: 180),
-                  child: GlassCaustic(pressed: pressed, child: const SizedBox.expand()),
-                ),
+  State<GlassLitCaustic> createState() => _GlassLitCausticState();
+}
+
+class _GlassLitCausticState extends State<GlassLitCaustic> {
+  @override
+  void initState() {
+    super.initState();
+    GlassLit.suppression.addListener(_changed);
+  }
+
+  @override
+  void dispose() {
+    GlassLit.suppression.removeListener(_changed);
+    super.dispose();
+  }
+
+  void _changed() {
+    if (!mounted) return;
+    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    } else {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: GlassLit.suppressed ? 0 : 1,
+                duration: const Duration(milliseconds: 180),
+                child: GlassCaustic(pressed: widget.pressed, child: const SizedBox.expand()),
               ),
             ),
-            child!,
-          ],
-        ),
-        child: child,
+          ),
+          widget.child,
+        ],
       );
 }
