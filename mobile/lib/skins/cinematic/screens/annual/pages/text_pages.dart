@@ -101,7 +101,7 @@ class AnnualChaptersPage extends StatelessWidget {
                           const SizedBox(height: 4),
                           ExcludeSemantics(
                               child: CineRoleText(initials[i], t.typeMicro,
-                                  color: CineColors.ink45,),),
+                                  color: CineColors.ink60,),),
                         ],
                       ),
                     ),
@@ -169,7 +169,7 @@ class AnnualNumberOnePage extends StatelessWidget {
                         child: Text('${i + 1}',
                             style: CineText.style(context, t.typeNumeral)
                                 .copyWith(
-                                    color: CineColors.ink45,
+                                    color: CineColors.ink60,
                                     fontSize: 24,
                                     height: 1,
                                     fontFeatures: const [
