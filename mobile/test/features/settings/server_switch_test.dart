@@ -9,7 +9,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(downloadsServerPrefix(prefs, 'https://manhwamaniacs.xyz/'), '');
     expect(prefs.getString(kDownloadsHomeServerKey), 'https://manhwamaniacs.xyz');
-    expect(downloadsScopeId(userId: 1, profileId: 2, serverPrefix: ''), 'u1p2');
+    expect(downloadsScopeId(userId: 1, profileId: 2), 'u1p2');
   });
 
   test('another server gets an h{8 hex} prefix that never matches the home ids', () async {

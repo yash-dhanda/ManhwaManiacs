@@ -11,7 +11,7 @@ class _Dio implements Dio {
   @override
   Future<Response<dynamic>> download(String urlPath, dynamic savePath,
       {ProgressCallback? onReceiveProgress, Map<String, dynamic>? queryParameters, CancelToken? cancelToken, bool deleteOnError = true,
-      String lengthHeader = Headers.contentLengthHeader, Object? data, Options? options, FileAccessMode fileAccessMode = FileAccessMode.write}) async {
+      String lengthHeader = Headers.contentLengthHeader, Object? data, Options? options, FileAccessMode fileAccessMode = FileAccessMode.write,}) async {
     path = urlPath;
     this.savePath = savePath as String;
     query = queryParameters;
@@ -39,7 +39,7 @@ void main() {
     final dir = Directory.systemTemp.createTempSync('bk');
     addTearDown(() => dir.deleteSync(recursive: true));
     final got = <(int, int)>[];
-    final path = await BackupDownloader(dio, tempDir: () async => dir, clock: () => DateTime(2026, 9, 28, 3, 0))
+    final path = await BackupDownloader(dio, tempDir: () async => dir, clock: () => DateTime(2026, 9, 28, 3))
         .download(includeCaches: true, onProgress: (r, t) => got.add((r, t)));
     expect(dio.path, '/backup/export');
     expect(dio.query, {'include_cache': true});
