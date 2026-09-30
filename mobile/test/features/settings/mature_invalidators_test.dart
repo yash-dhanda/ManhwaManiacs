@@ -136,7 +136,10 @@ void main() {
       // Gated on the server but no client cache to drop yet: the Wrapped payload
       // (annual_service) is fetched fresh per open, and no client reads
       // the taste catalogue (taste_service) yet.
-      const noClientCache = {'annual_service', 'taste_service'};
+      // circle_service (backend/08) has no client cache until mobile/22 builds the
+      // Circle screens; that step must add its providers to the invalidators and
+      // remove this entry.
+      const noClientCache = {'annual_service', 'taste_service', 'circle_service'};
       expect(
         gated.difference(noClientCache),
         kMatureGatedBackendServices,
