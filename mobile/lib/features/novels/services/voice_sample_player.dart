@@ -137,6 +137,7 @@ class VoiceSamplePlayer extends Notifier<SampleState> {
   int _token = 0;
   final VoicePulse _pulse = VoicePulse();
   late SampleEngine _engine;
+  bool _gone = false;
   late ({Future<void> Function() begin, Future<void> Function() end}) _session;
 
   /// The smoothed loudness 0-1: listen to it, never `setState` per frame from a provider.
@@ -148,6 +149,7 @@ class VoiceSamplePlayer extends Notifier<SampleState> {
     _engine = ref.read(sampleEngineProvider);
     _session = ref.read(voiceSampleSessionProvider);
     ref.onDispose(() {
+      _gone = true;
       unawaited(stop());
       _ticker?.dispose();
       pulse.dispose();
@@ -229,6 +231,7 @@ class VoiceSamplePlayer extends Notifier<SampleState> {
     _handle = null;
     if (handle != null) await _engine.stop(handle);
     await _finish();
+    if (_gone) return;
     pulse.value = 0;
     if (state.status != SampleStatus.idle) state = SampleState(voiceId: state.voiceId);
   }

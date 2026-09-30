@@ -349,10 +349,8 @@ void mobile15Shots() {
   });
 
   testWidgets('mobile-15 audio save states', (tester) async {
-    final harness = (await tester.runAsync(TestDownloadsHarness.create))!;
     Widget row(SavedAudioState s, String title) => ProviderScope(
           overrides: [
-            downloadsStoreProvider.overrideWithValue(harness.storeFor('u1p1')),
             savedAudioStateProvider.overrideWith((ref, key) => s),
             downloadQueueControllerProvider.overrideWith(() => RecordingQueue(Recorder())),
           ],
@@ -373,7 +371,11 @@ void mobile15Shots() {
         ]),
       ),),),
       overrides: [matureGateOpenProvider.overrideWithValue(true)],
+      settle: (t) async {
+        for (var i = 0; i < 12; i++) {
+          await t.pump(const Duration(milliseconds: 100));
+        }
+      },
     );
-    await tester.runAsync(harness.dispose);
   });
 }
