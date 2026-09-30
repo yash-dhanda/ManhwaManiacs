@@ -99,7 +99,17 @@ class AnnualPageFrame extends ConsumerWidget {
                     height: safeH,
                     child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-                        child: Align(alignment: alignment, child: child),),),),
+                        // A landscape phone is shorter than the 9:16 box's content: the page scrolls
+                        // (from its foot) instead of overflowing.
+                        child: LayoutBuilder(
+                          builder: (context, inner) => SingleChildScrollView(
+                            reverse: true,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(minHeight: inner.maxHeight),
+                              child: Align(alignment: alignment, child: child),
+                            ),
+                          ),
+                        ),),),),
           ],
         );
       },
