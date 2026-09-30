@@ -21,6 +21,7 @@ class NovelAudioSegment {
     required this.end,
     required this.isSpeech,
     this.speaker,
+    this.voice,
   });
 
   factory NovelAudioSegment.fromJson(Map<String, dynamic> json) {
@@ -33,6 +34,7 @@ class NovelAudioSegment {
       end: (json['e'] as num?)?.toInt() ?? 0,
       isSpeech: json['speech'] == true,
       speaker: json['speaker'] as String?,
+      voice: json['voice'] as String?,
     );
   }
 
@@ -47,6 +49,7 @@ class NovelAudioSegment {
         'e': end,
         'speech': isSpeech,
         if (speaker != null) 'speaker': speaker,
+        if (voice != null) 'voice': voice,
       };
 
   final int index;
@@ -61,6 +64,9 @@ class NovelAudioSegment {
 
   final bool isSpeech;
   final String? speaker;
+
+  /// The voice that read this sentence (a `voice_id`), when the render recorded it.
+  final String? voice;
 }
 
 class NovelAudio {

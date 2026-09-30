@@ -14,6 +14,8 @@ class NovelCastMember {
     required this.name,
     required this.gender,
     required this.voiceId,
+    this.locked = false,
+    this.lineCount,
   });
 
   factory NovelCastMember.fromJson(Map<String, dynamic> json) {
@@ -21,8 +23,18 @@ class NovelCastMember {
       name: (json['name'] as String?) ?? '',
       gender: (json['gender'] as String?) ?? 'unknown',
       voiceId: json['voice_id'] as String?,
+      locked: json['locked'] == true,
+      lineCount: (json['line_count'] as num?)?.toInt(),
     );
   }
+
+  /// Set by hand (the owner's correction). Absent on a server that does not say, which reads as
+  /// "not locked".
+  final bool locked;
+
+  /// Spoken lines in the series when the server reports them; the sheet falls back to counting
+  /// the chapter's own spans.
+  final int? lineCount;
 
   final String name;
 
@@ -46,6 +58,10 @@ class NovelVoice {
     required this.gender,
     required this.pitchHz,
     required this.seconds,
+    this.expressiveness = 0,
+    this.license = '',
+    this.attribution = '',
+    this.transcript = '',
   });
 
   factory NovelVoice.fromJson(Map<String, dynamic> json) {
@@ -62,6 +78,10 @@ class NovelVoice {
       gender: (json['gender'] as String?) ?? 'unknown',
       pitchHz: (json['pitch_hz'] as num?)?.toDouble() ?? 0,
       seconds: (json['seconds'] as num?)?.toDouble() ?? 0,
+      expressiveness: (json['expressiveness'] as num?)?.toDouble() ?? 0,
+      license: (json['license'] as String?) ?? '',
+      attribution: (json['attribution'] as String?) ?? '',
+      transcript: (json['transcript'] as String?) ?? '',
     );
   }
 
@@ -79,6 +99,13 @@ class NovelVoice {
 
   /// How long the introduction runs.
   final double seconds;
+
+  /// A raw pitch spread with no fixed range: rank it among the loaded voices.
+  final double expressiveness;
+  final String license, attribution;
+
+  /// What the sample says (shown under the row while it plays).
+  final String transcript;
 }
 
 /// A chapter's attribution: who speaks, and the voices in play.
@@ -213,6 +240,9 @@ class NovelAudioJob {
     required this.status,
     required this.progress,
     required this.errorCode,
+    this.chapterNumber,
+    this.errorDetail,
+    this.createdAt,
   });
 
   factory NovelAudioJob.fromJson(Map<String, dynamic> json) {
@@ -222,8 +252,17 @@ class NovelAudioJob {
       status: (json['status'] as String?) ?? 'queued',
       progress: (json['progress'] as num?)?.toDouble() ?? 0,
       errorCode: json['error_code'] as String?,
+      chapterNumber: (json['chapter_number'] as num?)?.toDouble(),
+      errorDetail: json['error_detail'] as String?,
+      createdAt: DateTime.tryParse((json['created_at'] as String?) ?? ''),
     );
   }
+
+  final double? chapterNumber;
+  final String? errorDetail;
+
+  /// When the job was created, when the server says (`RE-VOICING` compares it to a cast change).
+  final DateTime? createdAt;
 
   final String jobId;
   final String chapterKey;
