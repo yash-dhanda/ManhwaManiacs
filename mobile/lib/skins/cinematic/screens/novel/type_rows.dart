@@ -8,12 +8,12 @@ import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provid
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_stepper.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_settings_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/stocks.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_kit.dart';
-import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tint.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -347,7 +347,7 @@ Widget stockRow(NovelTypeCtx c) => Builder(
                       ),
                     ),
                   );
-                }),
+                },),
             ],
           ),
         );

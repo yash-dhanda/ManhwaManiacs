@@ -18,13 +18,13 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/history/history_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/index/index_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/library_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/novel/novel_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/onboarding_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/picks_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_manage_screen.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/novel/novel_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/read_all_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/recap/recap_screen.dart';

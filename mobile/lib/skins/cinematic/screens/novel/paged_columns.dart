@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/novels/engine/novel_paginator.dart';
-import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
 import 'package:manhwamaniacs/features/novels/engine/novel_paragraph_layout.dart' show novelParagraphIndents;
+import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_tap_zones.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
@@ -65,7 +65,7 @@ class NovelPagedColumns extends StatefulWidget {
 }
 
 class NovelPagedColumnsState extends State<NovelPagedColumns> with SingleTickerProviderStateMixin {
-  late PageController _pages = PageController(initialPage: widget.initialPage.clamp(0, widget.pages.length));
+  late final PageController _pages = PageController(initialPage: widget.initialPage.clamp(0, widget.pages.length));
   late final AnimationController _fade = AnimationController(vsync: this, value: 1);
   int _page = 0;
 
@@ -79,9 +79,9 @@ class NovelPagedColumnsState extends State<NovelPagedColumns> with SingleTickerP
   }
 
   @override
-  void didUpdateWidget(NovelPagedColumns old) {
-    super.didUpdateWidget(old);
-    if (old.pages != widget.pages) {
+  void didUpdateWidget(NovelPagedColumns oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.pages != widget.pages) {
       // Re-pagination (size, Type change): keep the current page's paragraph on screen.
       final target = widget.initialPage.clamp(0, widget.pages.length);
       if (target != _page) {

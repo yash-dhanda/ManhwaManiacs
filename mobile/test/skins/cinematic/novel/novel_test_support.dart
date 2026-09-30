@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
+import 'package:manhwamaniacs/features/novels/screens/novel_reader_screen.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
@@ -107,6 +108,7 @@ Future<NovelRig> pumpNovel(
   EdgeInsets padding = EdgeInsets.zero,
   Key? boundaryKey,
   SourceSeriesSummary? series,
+  bool legacy = false,
 }) async {
   final r = rig ?? FeatureRig();
   SharedPreferences.setMockInitialValues(prefsValues);
@@ -122,7 +124,9 @@ Future<NovelRig> pumpNovel(
       GoRoute(path: '/', builder: (context, state) => const Scaffold(body: Text('book page'))),
       GoRoute(
         path: '/novels/:sourceId/:seriesKey/:chapterKey',
-        pageBuilder: (context, state) => cineReaderPage(context, state, novelScreenFor(state), pageKey: novelPageKeyFor(state)),
+        pageBuilder: (context, state) => legacy
+            ? MaterialPage<void>(child: NovelReaderScreen(sourceId: kNovelSource, seriesKey: kNovelSeries, chapterKey: state.pathParameters['chapterKey']!))
+            : cineReaderPage(context, state, novelScreenFor(state), pageKey: novelPageKeyFor(state)),
       ),
     ],
   );

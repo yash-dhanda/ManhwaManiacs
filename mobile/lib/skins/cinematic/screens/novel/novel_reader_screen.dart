@@ -51,11 +51,11 @@ import 'package:manhwamaniacs/skins/cinematic/screens/novel/top_bar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/type_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart' show cineReaderOwnsToastsProvider;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/edge_hud.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/end_states.dart' show ReaderEndNotice;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_entry.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_system_ui.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/side_panel_layout.dart';
-import 'package:manhwamaniacs/skins/cinematic/stock.dart';
 import 'package:manhwamaniacs/skins/cinematic/tint.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -477,7 +477,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
       seriesKey: widget.seriesKey,
       currentChapterKey: ch.chapterKey,
       stock: _stock(),
-      onOpen: (key) => _openByDip(key),
+      onOpen: _openByDip,
     ),);
   }
 
@@ -761,6 +761,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
                     onBackToBook: _leave,
                     offline: chapter.isOffline,
                     onBackToDownloads: () => context.go(Routes.downloads()),
+                    theEnd: _theEnd(series, chapter),
                   ),
                 );
               }
@@ -786,6 +787,23 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
           ),
         ),
       ),
+    );
+  }
+
+  /// The Completed book's end block: `THE END`, "You finished {title}.", the Up next rail.
+  Widget? _theEnd(ReaderSeries? series, NovelChapter chapter) {
+    if (series == null || _ctl.nextKey != null || !series.completed) return null;
+    final name = ref.read(sourcesListProvider).valueOrNull?.where((x) => x.id == widget.sourceId).firstOrNull?.name ?? widget.sourceId;
+    return ReaderEndNotice(
+      sourceId: widget.sourceId,
+      seriesKey: widget.seriesKey,
+      title: series.title,
+      sourceName: name,
+      chapterCount: series.chapters.length,
+      completed: true,
+      latestChapter: chapterNumberText(chapter.chapterNumber),
+      readHours: math.max(1, (series.chapters.length * 0.2).ceil()),
+      onBackToSeries: _leave,
     );
   }
 
@@ -824,7 +842,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
       final opener = novelOpenerHeight(context, hasNumber: number != null, title: chapter.title, wordCount: chapter.wordCount, type: type, width: width);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _ctl.setViewport(size, margin: margin, bandTop: kNovelPageTopPad, bandBottom: kNovelFolioBand, openerHeight: opener);
+        _ctl.setViewport(size, margin: margin, bandTop: kNovelPageTopPad, openerHeight: opener);
         _ctl.paginateNovel(type.measure, type);
         if (!_restored) {
           _restored = true;
@@ -861,6 +879,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
         onBackToBook: _leave,
         offline: chapter.isOffline,
         onBackToDownloads: () => context.go(Routes.downloads()),
+        theEnd: _theEnd(series, chapter),
       ),
       onPage: (i) {
         _ctl.onPaged(i);
@@ -977,7 +996,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with SingleTi
             sourceId: widget.sourceId,
             seriesKey: widget.seriesKey,
             currentChapterKey: chapter.chapterKey,
-            onOpen: (key) => _openByDip(key),
+            onOpen: _openByDip,
             onClose: () => setState(() => _leftPanel = false),
           ),
           right: NovelMarginsPanel(

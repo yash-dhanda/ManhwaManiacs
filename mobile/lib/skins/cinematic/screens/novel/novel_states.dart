@@ -122,7 +122,8 @@ class NovelEmptyView extends StatelessWidget {
   Widget build(BuildContext context) => _Pad(
         child: CineNotice(
           tone: CineNoticeTone.empty,
-          headline: 'This chapter came through empty — usually a page that was pulled or is still being published.',
+          headline: 'This chapter came through empty',
+          deck: 'Usually a page that was pulled or is still being published.',
           wholeScreen: true,
           primary: CineNoticeAction('Back to the book', onBack),
         ),
