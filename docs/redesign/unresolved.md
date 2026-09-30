@@ -96,3 +96,7 @@ None reported by the verifier.
 - Last acceptance item: CI APK build and iOS dry run green, with run links in the report (fix attempted, not re-checked)
 - B6: chapters-per-day date labels must not collide (nothing clips) (fix attempted, not re-checked)
 - Proof: comparison against the web twin's phone captures (fix attempted, not re-checked)
+
+## mobile/13
+
+None reported by the verifier.
