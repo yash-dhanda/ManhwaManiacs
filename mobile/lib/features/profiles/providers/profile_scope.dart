@@ -56,6 +56,7 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   (ref) => ref.invalidate(annualIndexProvider),
   (ref) => ref.invalidate(statsRangeProvider),
   (ref) => ref.invalidate(recommendationsProvider),
+  (ref) => ref.invalidate(worldRecommendationsProvider),
   (ref) => ref.invalidate(readingHistoryProvider),
   (ref) => ref.invalidate(historyPagesProvider),
   (ref) => ref.invalidate(genreWeightsProvider),

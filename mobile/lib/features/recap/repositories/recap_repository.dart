@@ -48,6 +48,36 @@ class RecapRepository {
     return RecapOpen.stream(_events(body.stream));
   }
 
+  /// `GET /ai/recap?shape=deck&scope=` (glass 9.1.3). `scope` is `series` or `chapter`; a JSON answer is [RecapNone], a stream a
+  /// [DeckStream]. The prose call above never sends `shape`.
+  Future<RecapOpen> openDeck(RecapKey k, {String scope = 'series', CancelToken? cancel}) async {
+    final Response<ResponseBody> r;
+    try {
+      r = await _dio.get<ResponseBody>(
+        '/ai/recap',
+        queryParameters: {..._q(k), 'shape': 'deck', 'scope': scope},
+        cancelToken: cancel,
+        options: Options(responseType: ResponseType.stream, headers: {'Accept': 'text/event-stream, application/json'}),
+      );
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      if (e.response?.statusCode == 404 || e.response?.statusCode == 403) return const RecapOpen.none('not_found');
+      final offline = e.type == DioExceptionType.connectionError || e.type == DioExceptionType.connectionTimeout;
+      return RecapOpen.none(offline ? 'offline' : 'error');
+    }
+    final body = r.data!;
+    if ((r.headers.value('content-type') ?? '').toLowerCase().contains('json')) {
+      final text = await utf8.decodeStream(body.stream.map<List<int>>((c) => c));
+      Map<String, dynamic> j = const {};
+      try {
+        final d = jsonDecode(text);
+        if (d is Map<String, dynamic>) j = d;
+      } catch (_) {}
+      return RecapOpen.none((j['reason'] ?? j['code'] ?? 'error') as String, retryAfter: int.tryParse(r.headers.value('retry-after') ?? ''));
+    }
+    return DeckStream(parseSse(body.stream));
+  }
+
   Stream<RecapEvent> _events(Stream<List<int>> bytes) async* {
     await for (final e in parseSse(bytes)) {
       Map<String, dynamic> j = const {};

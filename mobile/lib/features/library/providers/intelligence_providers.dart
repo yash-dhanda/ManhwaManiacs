@@ -3,6 +3,8 @@ import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
+import 'package:manhwamaniacs/features/library/repositories/ask_repository.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 final statisticsProvider = FutureProvider.autoDispose<LibraryStatistics>((ref) async {
@@ -140,3 +142,13 @@ class LocalSuggestionsNotifier extends AutoDisposeAsyncNotifier<WorldSuggestResp
     state = const AsyncValue<WorldSuggestResponse?>.data(null);
   }
 }
+
+/// The Ask box's calls (glass 9.1.2).
+final askRepositoryProvider = Provider<AskRepository>((ref) => AskRepository(ref.watch(dioProvider)), name: 'askRepository');
+
+/// `GET /library/world/recommendations?genre=` for one genre (null: none). Same invalidator slot as [recommendationsProvider].
+final worldRecommendationsProvider = FutureProvider.autoDispose.family<WorldRecommendations, String?>((ref, genre) async {
+  final result = await ref.watch(askRepositoryProvider).worldRecommendations(genre: genre);
+  if (result.isErr) throw result.error;
+  return result.value;
+}, name: 'worldRecommendations');
