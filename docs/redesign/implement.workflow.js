@@ -95,6 +95,15 @@ for (const step of A.steps) {
     r = await implement(step.path, `This is attempt ${n}: an earlier attempt stopped as blocked on ${r.blockers.join(', ')}, which are now integrated. Your worktree may already hold that attempt's commits; continue from them.`, n)
   }
   if (!r || r.status === 'blocked') { results.push({ step: sid, status: 'blocked', blockers: r ? r.blockers : null }); log(`${A.lane}: stopped at ${sid}`); break }
+  // completeness gate: a step that reports "partial" is sent back with its own open items until it is done (max 3 extra passes)
+  let extraPass = 0
+  while (r && r.status === 'partial' && extraPass < 3) {
+    extraPass++
+    log(`${A.lane}: ${sid} reported partial; continuation pass ${extraPass}`)
+    const r2 = await implement(step.path, `CONTINUATION PASS ${extraPass}: an earlier pass of this step returned "partial" and stopped early. Its own open items: ${JSON.stringify(r.open_issues)}. The work already committed is in the worktree; keep it. Deliver EVERY remaining scope item and acceptance checkbox of the prompt file now, do not stop until the scope is complete, and return status "done" only when it is. Returning "partial" again is allowed only for items that need the owner or an unmet prerequisite step.`, 10 + extraPass)
+    if (!r2) break
+    r = r2
+  }
   // speed (owner order: as fast as possible): no separate adversarial verify or fix pass; the step agent runs its own tests and the final audit re-checks everything
   const v = { pass: true, failures: [], tests: 'step agent tests only' }
   const fixed = false
