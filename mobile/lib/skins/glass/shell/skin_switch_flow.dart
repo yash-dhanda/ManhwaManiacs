@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
-import 'package:manhwamaniacs/features/downloads/utils/active_download_count.dart';
 import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -39,7 +38,7 @@ import 'package:manhwamaniacs/skins/skin.dart';
 Future<void> startSkinSwitch(BuildContext context, WidgetRef ref,
     {required Rect sourceRect,}) async {
   final copy = skinSwitchAlertCopy(
-      downloadsQueued: ref.read(glassActiveDownloadCountProvider) > 0,
+      downloadsQueued: ref.read(activeDownloadCountProvider) > 0,
       offline: ref.read(glassOfflineProvider),);
   final ok = await showGlassAlert<bool>(
     context,
