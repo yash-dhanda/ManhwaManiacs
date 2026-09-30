@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/cinematic/app_frame.dart';
+import 'package:manhwamaniacs/skins/cinematic/flight_layer.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/router.dart';
 import 'package:manhwamaniacs/skins/cinematic/scroll_behavior.dart';
@@ -66,7 +67,7 @@ class CinematicSkin implements Skin {
           child: CineTextSettings(
             child: AnnotatedRegion<SystemUiOverlayStyle>(
               value: cineRestingOverlayStyle,
-              child: CineAppFrame(child: child),
+              child: CineAppFrame(child: FlightLayer(child: child)),
             ),
           ),
         ),
