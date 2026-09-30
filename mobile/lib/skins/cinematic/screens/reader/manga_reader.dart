@@ -13,6 +13,8 @@ import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
+import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
+import 'package:manhwamaniacs/features/ocr/providers/dialogue_jump_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
@@ -49,6 +51,7 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
@@ -59,6 +62,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/ambient_bridge.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/auto_scroll_chip.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/auto_scroll_speed_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/bubble_pulse.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/chapter_download_control.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_page_physics.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart' show cineReaderOwnsToastsProvider;
@@ -78,6 +82,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/ocr_overlay.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/page_actions_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/page_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/paged_rules.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/previously_on_chip.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/read_all_divider.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_chrome.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_entry.dart';
@@ -192,9 +197,32 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
 
   late final StateController<bool> _toastOwner = ref.read(cineReaderOwnsToastsProvider.notifier);
 
+  DateTime? _lastReadAt;
+
+  /// A Dialogue-screen hit for this chapter: jump to its page, tell the reader, pulse the bubble.
+  Future<void> _landDialogue() async {
+    final jump = ref.read(dialogueJumpProvider.notifier).take(_id.sourceId, _id.seriesKey, _id.chapterKey);
+    if (jump == null) return;
+    final id = (sourceId: _id.sourceId, seriesKey: _id.seriesKey, chapterKey: _id.chapterKey);
+    final landing = await resolveDialogueLanding(jump, () => ref.read(ocrChapterTextProvider(id).future).catchError((Object _) => <PageText>[]));
+    if (!mounted) return;
+    final page = landing.page;
+    if (page != null) {
+      _engine.jumpToPage(page);
+      final b = landing.box;
+      if (b != null) _ocr.pulse(_id.chapterKey, page, OcrTextBox(text: '', x: b.x, y: b.y, width: b.w, height: b.h));
+    }
+    ref.read(cineToastsProvider.notifier).info(landing.toast);
+  }
+
   @override
   void initState() {
     super.initState();
+    // Held for the reader's lifetime: the chip's gap is measured before this session's progress.
+    ref.listenManual(readerLastReadAtProvider((sourceId: _id.sourceId, seriesKey: _id.seriesKey)), (_, v) {
+      if (mounted) setState(() => _lastReadAt = v.valueOrNull);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_landDialogue()));
     Future.microtask(() {
       try {
         _toastOwner.state = true;
@@ -1526,6 +1554,21 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
                     ),
                   ),
                 ),
+                if (s.page == 1 && !loadingChapter)
+                  Positioned(
+                    top: MediaQuery.viewPaddingOf(context).top + cineHitMin(context) + 8,
+                    left: MediaQuery.sizeOf(context).width >= 600 ? context.cine.space8 : context.cine.space4,
+                    child: ReaderChromeMotion(
+                      visible: showChrome && !(landscape && !s.chromeVisible),
+                      fromTop: true,
+                      child: PreviouslyOnChip(
+                        sourceId: _id.sourceId,
+                        seriesKey: _id.seriesKey,
+                        chapterKey: s.chapterId,
+                        lastReadAt: _lastReadAt,
+                      ),
+                    ),
+                  ),
                 Positioned(
                   bottom: 0,
                   left: 0,

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
+import 'package:manhwamaniacs/features/library/utils/all_followed.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_models.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/recap/providers/recap_providers.dart';
 import 'package:manhwamaniacs/features/recap/recap_setting.dart';
 import 'package:manhwamaniacs/features/recap/utils/should_open_recap.dart';
+import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 
@@ -15,8 +17,18 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 /// on the first page. It opens the recap with origin `reader` (`returnTo` is the reader's location)
 /// and hides with the chrome like the rest of the running head.
 ///
-/// TODO(mobile/12): mount under the manga reader's running head on page 1.
-/// TODO(mobile/14): mount under the novel reader's running head on page 1.
+/// Mounted under the manga reader's running head on page 1 ([readerLastReadAtProvider] feeds it).
+/// When this profile last read the series, fetched once when the reader opens and held for the
+/// reader's lifetime so progress pushed during the session cannot hide the chip.
+final readerLastReadAtProvider = FutureProvider.autoDispose.family<DateTime?, ({String sourceId, String seriesKey})>((ref, k) async {
+  final r = await listAllFollowed(ref.read(libraryRepositoryProvider));
+  if (r.isErr) return null;
+  for (final f in r.value) {
+    if (f.sourceId == k.sourceId && f.seriesKey == k.seriesKey) return f.readState?.lastReadAt;
+  }
+  return null;
+});
+
 class PreviouslyOnChip extends ConsumerWidget {
   const PreviouslyOnChip({super.key, required this.sourceId, required this.seriesKey, required this.chapterKey, required this.lastReadAt});
   final String sourceId, seriesKey, chapterKey;

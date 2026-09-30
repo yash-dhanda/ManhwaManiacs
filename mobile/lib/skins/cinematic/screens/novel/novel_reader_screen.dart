@@ -77,6 +77,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/auto_scroll_speed_s
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart' show cineReaderOwnsToastsProvider;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/edge_hud.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/end_states.dart' show ReaderEndNotice;
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/previously_on_chip.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_entry.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_system_ui.dart';
@@ -197,6 +198,8 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
   @override
   void initState() {
     super.initState();
+    // Held for the reader's lifetime: the chip's gap is measured before this session's progress.
+    ref.listenManual(readerLastReadAtProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)), (_, __) {});
     _chromeAnim.value = 0;
     Future.microtask(() {
       try {
@@ -1443,6 +1446,21 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
           ),
         ),
       ),
+      if (s.chapterPercent < 2)
+        Positioned(
+          top: MediaQuery.viewPaddingOf(context).top + 56,
+          left: tablet ? 32 : 16,
+          child: _ChromeFade(
+            animation: _chromeAnim,
+            visible: _chrome,
+            child: PreviouslyOnChip(
+              sourceId: widget.sourceId,
+              seriesKey: widget.seriesKey,
+              chapterKey: chapter.chapterKey,
+              lastReadAt: ref.watch(readerLastReadAtProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey))).valueOrNull,
+            ),
+          ),
+        ),
       Positioned(
         bottom: 0,
         left: 0,

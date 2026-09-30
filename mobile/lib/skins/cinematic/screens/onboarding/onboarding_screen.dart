@@ -29,6 +29,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/onboarding_stat
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/onboarding_top_bar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/print_overlay.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/seeds_step.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_page_physics.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -346,10 +347,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         }
         return false;
       },
-      // TODO(mobile/13): CinePagePhysics (the CineSprings.release settle) once mobile/13 lands; the
-      // stock page physics stand in until then.
       child: PageView.builder(
         controller: _page,
+        physics: const CinePagePhysics(),
         itemCount: _stack.length,
         itemBuilder: (context, i) => _Fade(
           key: ValueKey('step-${_stack[i]}'),

@@ -40,7 +40,6 @@ None reported by verifier. flutter analyze NOT run at merge (flutter not install
 
 Verifier items (fix attempted, not re-checked):
 - Acceptance: `flutter analyze` reports no issues (post-merge analyze was clean)
-- Section E.3 / acceptance: opening a hit lands on the matched page and pulses the 2 px spot frame twice, or shows the chapter-start toast
 - Section F.3: scan widgets added to the mobile/04 Diagnostics primitives gallery with fixture states
 - Ground rules / scope: use the mobile/04, mobile/05 and mobile/06 primitives and the real SetHeading
 - Screenshots of the states 'Discover searching, group jump, scan block in each phase, reader bubble pulse' and 'Dip into the reader' (E.3)
@@ -57,13 +56,11 @@ No unresolved items.
 
 - (fix attempted, not re-checked) Acceptance: iOSTapTargetGuideline, androidTapTargetGuideline and labeledTapTargetGuideline pass on the three screens AND the What's new sheet
 - (fix attempted, not re-checked) Acceptance: Save to Files 'CI's APK build and iOS dry run are green for the native commit'
-- (fix attempted, not re-checked) Dependency stand-ins (informational, not code defects): StreakFlame (mobile/08) and NarratingIndicator plus activeNarrationJobsProvider (mobile/15)
 
 ## mobile/18 (L09, cinematic settings and edition restart)
 
 - (fix attempted, not re-checked) Acceptance: every baseline-passing test still passes; flutter test 0 failed
 - (fix attempted, not re-checked) C3 Ambient row: guided auto-advance 'fixed-hold stepper 2-10 s step 0.5'
-- mobile/22 MUST add its Circle providers to the mature-gate invalidators and delete 'circle_service' from noClientCache in mobile/test/features/settings/mature_invalidators_test.dart
 
 ## mobile/11
 
@@ -71,8 +68,6 @@ None reported by the verifier.
 
 ## mobile/19
 
-- (fix attempted, not re-checked) E5 readers' first-page chip (manga and novel chrome)
-- (fix attempted, not re-checked) C2 chapter-end credits rails (caught-up More like this, the-end Up next)
 - (fix attempted, not re-checked) B4 / acceptance: Try again cancels the running request with a CancelToken
 - (fix attempted, not re-checked) B9 World card widget at mobile/lib/skins/cinematic/primitives/world_card.dart, and B6 rails using it
 - (fix attempted, not re-checked) C5 suggested tags: reject token fades over 160 ms
@@ -80,7 +75,6 @@ None reported by the verifier.
 
 ## mobile/20 (cinematic onboarding, merged from redesign/M20)
 
-- (fix attempted, not re-checked) B7: backward swipe release settles with CinePagePhysics / CineSprings.release (504 ms)
 - (fix attempted, not re-checked) Acceptance: hardware keyboard, arrows move focus inside roving groups, and the 'Onboarding' group is listed in the ? sheet
 - (fix attempted, not re-checked) E2.2: the wall hides the flying posters in the same frame the flight layer paints copies (Visibility maintainSize/State/Animation)
 - (fix attempted, not re-checked) E2.6: Tonight holds its whole Front page moment (kicker, cover rack, headline, deck) until `landed`
@@ -91,7 +85,6 @@ None reported by the verifier.
 
 ## mobile/21 (cinematic numbers, streak, annual)
 
-- D3: the Annual PageView must use mobile/13's CinePagePhysics (finger-tracked, releasing on CineSprings.release) (fix attempted, not re-checked)
 - A2: extend LibraryRepository and library_repository_impl.dart with statistics({days}), annual(year) and markMilestoneSeen(days) (fix attempted, not re-checked)
 - Last acceptance item: CI APK build and iOS dry run green, with run links in the report (fix attempted, not re-checked)
 - B6: chapters-per-day date labels must not collide (nothing clips) (fix attempted, not re-checked)
@@ -145,5 +138,14 @@ None reported by the verifier.
 None reported by the verifier.
 
 ## mobile/30
+
+No unresolved items reported by the verifier.
+## mobile/24b (cinematic reconcile)
+
+- `screens/discover/cine_kit.dart` still holds local SlugTabs, CineNotice, TypedText, QuietButton and FlickerPlate (about 170 call sites); the real primitives take tone enums and actions, so the swap is a per-screen rewrite not done here.
+- DialogueLandingHost is kept for its tests; the manga reader lands dialogue jumps itself through its OcrOverlayController.
+- Not attempted (need a device, art or owner): all "fix attempted, not re-checked" acceptance items above that name CI runs, proof screenshots, or hardware checks.
+
+## mobile/24b
 
 No unresolved items reported by the verifier.

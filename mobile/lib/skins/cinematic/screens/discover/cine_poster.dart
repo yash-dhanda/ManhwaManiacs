@@ -40,28 +40,6 @@ class CineCover extends ConsumerWidget {
   }
 }
 
-/// Duotone over [child]: luminance mapped from black to [duo]. TODO(mobile/04):
-/// swap for `duotone.dart` and the series' own `ambient.duo`.
-class Duotone extends StatelessWidget {
-  const Duotone({super.key, required this.duo, required this.child});
-
-  final Color duo;
-  final Widget child;
-
-  static const _gray = ColorFilter.matrix(<double>[
-    0.2126, 0.7152, 0.0722, 0, 0, //
-    0.2126, 0.7152, 0.0722, 0, 0,
-    0.2126, 0.7152, 0.0722, 0, 0,
-    0, 0, 0, 1, 0,
-  ]);
-
-  @override
-  Widget build(BuildContext context) => ColorFiltered(
-        colorFilter: ColorFilter.mode(duo, BlendMode.modulate),
-        child: ColorFiltered(colorFilter: _gray, child: child),
-      );
-}
-
 /// A 1 px impression while pressed: 80 ms `easeSet` down, 160 ms `easeSettle`
 /// up; none under reduced motion.
 class PressImpression extends StatefulWidget {

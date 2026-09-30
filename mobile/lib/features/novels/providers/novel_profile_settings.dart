@@ -5,8 +5,8 @@ import 'package:manhwamaniacs/core/storage/json_record.dart';
 // imports keep working.
 export 'package:manhwamaniacs/features/novels/providers/listen_settings_provider.dart';
 
-// TODO(mobile/14): the Type sheet owns this record (`mm.novel-settings.u{user}p{profile}`); this
-// file holds the fields Settings (mobile/18) edits, under the names mobile/14 and 23 use.
+// The Type sheet (mobile/14) and Settings (mobile/18) share this record
+// (`mm.novel-settings.u{user}p{profile}`).
 
 const kNovelSettingsPrefix = 'mm.novel-settings.';
 const kNovelFaces = ['newsreader', 'literata', 'sourceserif', 'archivo', 'atkinson'];
