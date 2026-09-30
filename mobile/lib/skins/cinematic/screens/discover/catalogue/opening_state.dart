@@ -113,7 +113,6 @@ class _OpeningStateState extends State<OpeningState> {
 /// 30% of the viewport, fading in over 800 ms once the opening state has gone
 /// slow (3 s); a plain appearance under reduced motion. Text over it stays in
 /// the raised-stock scope (`ink.60` and up, never `ink.45`).
-/// TODO(mobile/04): `CineStock.raised` scope and the mood grade.
 class CatalogueWash extends StatefulWidget {
   const CatalogueWash({super.key, required this.sourceId});
 

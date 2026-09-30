@@ -133,8 +133,8 @@ class _BubblePulseState extends State<BubblePulse>
 /// page, shows the toast, and hands [builder] a per-page overlay that draws
 /// the [BubblePulse] on that page only.
 ///
-/// TODO(mobile/12): mount from the Cinematic reader chrome; TODO(mobile/06):
-/// the Dialogue screen enters the reader with `enterReader(entry: dip)`.
+/// The manga reader lands the same jump itself (`resolveDialogueLanding` plus its own
+/// `OcrOverlayController` pulse); this host serves readers without that controller.
 class DialogueLandingHost extends ConsumerStatefulWidget {
   const DialogueLandingHost({
     super.key,

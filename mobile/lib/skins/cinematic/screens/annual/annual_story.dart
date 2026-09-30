@@ -22,6 +22,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/annual/pages/cover_page.da
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/pages/page_frame.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/pages/press_run_page.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/pages/text_pages.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_page_physics.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
@@ -248,7 +249,7 @@ class _AnnualStoryState extends ConsumerState<AnnualStory>
                     },
                     child: PageView.builder(
                       controller: _pager,
-                      physics: const _StoryPhysics(),
+                      physics: const CinePagePhysics(),
                       itemCount: _pages.length,
                       onPageChanged: (i) {
                         if (_programmatic) return;
@@ -295,17 +296,4 @@ class _AnnualStoryState extends ConsumerState<AnnualStory>
       ),
     );
   }
-}
-
-/// Finger-tracked page turns that release on `CineSprings.release`.
-// TODO(mobile/13): `CinePagePhysics` owns this once mobile/13 lands.
-class _StoryPhysics extends PageScrollPhysics {
-  const _StoryPhysics({super.parent});
-
-  @override
-  _StoryPhysics applyTo(ScrollPhysics? ancestor) =>
-      _StoryPhysics(parent: buildParent(ancestor));
-
-  @override
-  SpringDescription get spring => CineSprings.release.description;
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
@@ -14,7 +16,6 @@ import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_results.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/sources_screen.dart';
-
 import 'harness.dart';
 
 SourceSearchGroup _group(String id, int n) => SourceSearchGroup(
@@ -166,11 +167,12 @@ void main() {
         await pumpScreen(tester, screen,
             sources: FakeSources(sources: _sources),);
         await tester.pump();
-        expect(CineKeyRegistry.groups.value.keys, contains(name));
-        expect(CineKeyRegistry.groups.value[name], isNotEmpty);
+        final reg = ProviderScope.containerOf(tester.element(find.byType(CineKeys).first))
+            .read(shortcutRegistryProvider.notifier);
+        expect(reg.registeredGroups().map((ShortcutGroup g) => g.name), contains(name));
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump(const Duration(seconds: 12));
-        expect(CineKeyRegistry.groups.value.keys, isNot(contains(name)));
+        expect(reg.registeredGroups().map((ShortcutGroup g) => g.name), isNot(contains(name)));
       });
     }
   });

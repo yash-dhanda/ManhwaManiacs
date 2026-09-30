@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.da
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/genre_index.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_health.dart';
+import 'package:manhwamaniacs/skins/cinematic/duotone.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -287,9 +288,8 @@ class _GenreTile extends ConsumerWidget {
             fit: StackFit.expand,
             children: [
               ColoredBox(color: t.colorPaper1),
-              // TODO(mobile/04): the series' own ambient.duo (fallback used here).
               if (cover != null)
-                Duotone(
+                CineDuotone(
                   duo: t.colorAmbientFallbackDuo,
                   child: CineCover(url: cover.coverUrl, displayWidth: 200),
                 ),

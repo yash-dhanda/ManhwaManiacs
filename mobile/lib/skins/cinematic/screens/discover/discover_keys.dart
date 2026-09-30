@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show ShortcutEntry, shortcutRegistryProvider;
 
 /// One hardware-keyboard binding. A binding with [whenTextFieldFree] stays
 /// out of the way while a text field owns the keyboard, so `1` or `[` still
 /// type into the search field.
 class CineKey {
-  const CineKey(this.activator, this.run, {this.whenTextFieldFree = false});
+  const CineKey(this.activator, this.run, {this.whenTextFieldFree = false, this.label = ''});
+
+  /// Shown in the shell's shortcut sheet; empty falls back to the key's own name.
+  final String label;
 
   final ShortcutActivator activator;
   final VoidCallback run;
@@ -35,29 +40,9 @@ class _Act extends Action<_Intent> {
   }
 }
 
-/// The screens' key groups currently on screen, by masthead title
-/// (`Discover`, `Sources`, `Catalogue`, `Dialogue`), with their bindings.
-///
-/// TODO(mobile/06): replace with the shell's key registry (the shell's
-/// shortcut sheet reads it). Screens register through [CineKeys] only, so the
-/// swap is inside this file.
-abstract final class CineKeyRegistry {
-  static final ValueNotifier<Map<String, List<CineKey>>> groups =
-      ValueNotifier(const {});
-
-  static void register(String group, List<CineKey> keys) {
-    groups.value = {...groups.value, group: keys};
-  }
-
-  static void unregister(String group, List<CineKey> keys) {
-    if (!identical(groups.value[group], keys)) return;
-    groups.value = {...groups.value}..remove(group);
-  }
-}
-
 /// Wraps [child] in Shortcuts + Actions for [keys] and registers them under
 /// the screen's masthead [group].
-class CineKeys extends StatefulWidget {
+class CineKeys extends ConsumerStatefulWidget {
   const CineKeys(
       {super.key,
       required this.group,
@@ -69,11 +54,13 @@ class CineKeys extends StatefulWidget {
   final Widget child;
 
   @override
-  State<CineKeys> createState() => _CineKeysState();
+  ConsumerState<CineKeys> createState() => _CineKeysState();
 }
 
-class _CineKeysState extends State<CineKeys> {
-  List<CineKey>? _registered;
+class _CineKeysState extends ConsumerState<CineKeys> {
+  final Object _token = Object();
+  late final _registry = ref.read(shortcutRegistryProvider.notifier);
+  bool _alive = true;
 
   @override
   void initState() {
@@ -84,23 +71,30 @@ class _CineKeysState extends State<CineKeys> {
   }
 
   void _sync() {
-    if (!mounted) return;
-    _registered = widget.keys;
-    CineKeyRegistry.register(widget.group, widget.keys);
+    if (!mounted || !_alive) return;
+    _registry.register(_token, [
+      for (final k in widget.keys)
+        ShortcutEntry(
+          group: widget.group,
+          activator: k.activator,
+          description: k.label.isNotEmpty ? k.label : k.activator.debugDescribeKeys(),
+          onInvoke: k.run,
+        ),
+    ]);
   }
 
   @override
   void didUpdateWidget(CineKeys old) {
     super.didUpdateWidget(old);
-    if (_registered != null && !identical(old.keys, widget.keys)) {
+    if (!identical(old.keys, widget.keys)) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
     }
   }
 
   @override
   void dispose() {
-    final r = _registered;
-    if (r != null) CineKeyRegistry.unregister(widget.group, r);
+    _alive = false;
+    Future.microtask(() => _registry.unregister(_token));
     super.dispose();
   }
 
