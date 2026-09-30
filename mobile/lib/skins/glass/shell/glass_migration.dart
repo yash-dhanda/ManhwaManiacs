@@ -23,4 +23,4 @@ final glassPrefsMigrationProvider = Provider<void>((ref) {
   }
 
   ref.listen(activeProfileProvider, (_, __) => run(), fireImmediately: true);
-}, name: 'glassPrefsMigration');
+}, name: 'glassPrefsMigration',);

@@ -79,7 +79,7 @@ void main() {
       for (final (scale, cols) in [(0.6, 4), (1.0, 3), (1.5, 2)]) {
         final p = await _prefs({'settings_library_cover_scale': scale});
         await runGlassPrefsMigration(p, userId: 1, profileId: 1);
-        expect(jsonDecode(p.getString('mm.glass.prefs.u1p1')!)['libraryColumns'], cols);
+        expect((jsonDecode(p.getString('mm.glass.prefs.u1p1')!) as Map<String, dynamic>)['libraryColumns'], cols);
       }
     });
 

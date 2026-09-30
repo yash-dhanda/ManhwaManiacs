@@ -38,7 +38,7 @@ class DynamicIconPlugin implements AppIconPlugin {
 
   @override
   Future<void> setAndroid(String name) =>
-      FlutterDynamicIconPlus.setAlternateIconName(iconName: name, blacklistBrands: const [], blacklistManufactures: const [], blacklistModels: const []);
+      FlutterDynamicIconPlus.setAlternateIconName(iconName: name);
 }
 
 /// The app icon rules of glass 12.2. Only an explicit skin choice on this device moves the icon: never a profile hand-off, never a

@@ -44,7 +44,7 @@ void main() {
 
   test('an unknown scene falls back to off and unknown fields survive', () async {
     final c = await _c({});
-    final key = 'mm.soundscape.defaults.u1p1';
+    const key = 'mm.soundscape.defaults.u1p1';
     expect(c.read(sharedPrefsProvider).getKeys(), isEmpty);
     await c.read(soundscapeDefaultsRecordProvider.notifier).setScene('lava');
     expect(c.read(soundscapeDefaultsProvider).scene, 'off');

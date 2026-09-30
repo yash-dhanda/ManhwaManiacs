@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
+import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
@@ -52,18 +53,28 @@ Future<void> startSkinSwitch(BuildContext context, WidgetRef ref,
     ],
   );
   if (ok != true || !context.mounted) return;
+  await runSkinSwitch(context, ref, SkinId.cinematic);
+}
+
+/// The switch itself (no alert): the `skin.switch` haptic and cue, the melt, the icon rule of glass 12.2 inside the restart moment
+/// (after the melt reaches black, before the restart; explicit choices only) and the restart. The arrival toast's Undo calls it too.
+Future<void> runSkinSwitch(BuildContext context, WidgetRef ref, SkinId target) async {
   unawaited(ref.read(glassHapticsProvider).fire(HapticEvent.skinSwitch));
   glassSound(ref, SoundEvent.skinSwitch);
   try {
-    await switchSkinFrom(context, ref,
-        to: SkinId.cinematic, outgoing: () => playMelt(ref),);
+    await switchSkinFrom(
+      context,
+      ref,
+      to: target,
+      outgoing: () async {
+        await playMelt(ref);
+        await ref.read(appIconSwitcherProvider).onExplicitSkinChoice(target);
+      },
+    );
   } catch (_) {
     await unmelt(ref);
     if (context.mounted) {
-      showGlassToast(
-          ref,
-          const GlassToastSpec("Couldn't switch skins. Try again.",
-              kind: GlassToastKind.error,),);
+      showGlassToast(ref, const GlassToastSpec("Couldn't switch skins. Try again.", kind: GlassToastKind.error));
     }
   }
 }

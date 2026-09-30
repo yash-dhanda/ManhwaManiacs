@@ -99,7 +99,7 @@ void main() {
         appIconSwitcherProvider.overrideWithValue(AppIconSwitcher(prefs: prefs, plugin: fake, glassAvailable: true)),
       ],
       child: const Directionality(textDirection: TextDirection.ltr, child: AppIconPauseListener(child: SizedBox())),
-    ));
+    ),);
     t.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
     t.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
     t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
