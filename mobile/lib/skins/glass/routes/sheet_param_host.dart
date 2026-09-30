@@ -17,7 +17,7 @@ class GlassSheetParamHost extends StatefulWidget {
 }
 
 class _GlassSheetParamHostState extends State<GlassSheetParamHost> {
-  GlassSheetRoute<void>? _route;
+  Route<void>? _route;
   String? _open;
 
   @override
@@ -55,7 +55,7 @@ class _GlassSheetParamHostState extends State<GlassSheetParamHost> {
       opening: spec.opening ?? spec.detents.last,
       wideForm: spec.wideForm,
     );
-    final route = page.createRoute(context) as GlassSheetRoute<void>;
+    final route = page.createRoute(context);
     _route = route;
     _open = id;
     unawaited(Navigator.of(context).push<void>(route).whenComplete(() {

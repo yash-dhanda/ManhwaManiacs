@@ -136,3 +136,7 @@ class _RealSteps implements PurgeSteps {
 }
 
 void purgeMatureLocal(Ref ref) => runMaturePurge(_RealSteps(ref));
+
+
+/// A test hook: runs the purge from a container (the shell watches the gate value and calls [purgeMatureLocal] the same way).
+final glassPurgeProbeProvider = Provider<void Function()>((ref) => () => purgeMatureLocal(ref));
