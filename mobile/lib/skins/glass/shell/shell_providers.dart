@@ -78,3 +78,6 @@ final glassOfflineProvider = Provider<bool>((ref) {
 
 /// The shell registers what `mod+B` and the expand button call.
 final glassSidebarToggleProvider = StateProvider<void Function()?>((ref) => null);
+
+/// True while the "You were signed out" alert is pending: the guard does not redirect (glass 8.0.9).
+final glassSignedOutPendingProvider = StateProvider<bool>((ref) => false);
