@@ -1,3 +1,4 @@
+import 'package:manhwamaniacs/features/onboarding/utils/onboarding_steps.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
@@ -24,13 +25,16 @@ PickerOutcome decidePickerOutcome({
   required String runningSkin,
   required bool glassAvailable,
   required bool onboardingBuilt,
+  bool pendingDone = false,
 }) {
   final saved = profile.skin;
   if (glassAvailable && saved != null && saved != runningSkin) {
     return const PickerOutcome(PickerOutcomeKind.restartSkin);
   }
-  if (profile.onboardingStep == null && onboardingBuilt) {
-    return PickerOutcome(PickerOutcomeKind.onboarding, route: Routes.onboarding({'step': glassAvailable ? 1 : 2}));
+  // Not finished, and no finished save waiting to be sent: resume where the profile stopped.
+  final step = profile.onboarding;
+  if (step?.isDone != true && !pendingDone && onboardingBuilt) {
+    return PickerOutcome(PickerOutcomeKind.onboarding, route: Routes.onboarding({'step': resumeStep(step, glassAvailable).n}));
   }
   return const PickerOutcome(PickerOutcomeKind.home);
 }

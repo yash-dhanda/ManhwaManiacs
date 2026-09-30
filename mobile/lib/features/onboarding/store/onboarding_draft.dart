@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/storage/profile_scoped_key.dart';
 import 'package:manhwamaniacs/features/onboarding/models/taste.dart';
+import 'package:manhwamaniacs/features/onboarding/repositories/onboarding_repository.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -90,6 +91,13 @@ class OnboardingStore {
 
   Future<void> writePending(OnboardingDraft d) => _p.setString(_key(_pendingPrefix), jsonEncode({'draft': d.toJson()}));
   Future<void> clearPending() => _p.remove(_key(_pendingPrefix));
+
+  /// Sends a waiting `step: done` save for [profileId] in the background; clears it on success.
+  Future<void> flushPending(int profileId, OnboardingRepository repo) async {
+    final pending = readPending();
+    if (pending == null) return;
+    if ((await repo.saveTaste(profileId, pending)).isOk) await clearPending();
+  }
 }
 
 final onboardingStoreProvider = Provider<OnboardingStore>(OnboardingStore.new, name: 'onboardingStore');

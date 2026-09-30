@@ -170,6 +170,16 @@ class OnboardingFlow extends AutoDisposeNotifier<OnboardingState> {
   /// Skip and Print's save: `step: done` with the touched fields, three tries 2 s apart; a
   /// failure goes to the pending key. True when the server has it.
   Future<bool> saveDone({Duration spacing = const Duration(seconds: 2)}) async {
+    // The screen leaves before the save settles; the state must outlive it.
+    final link = ref.keepAlive();
+    try {
+      return await _saveDone(spacing);
+    } finally {
+      link.close();
+    }
+  }
+
+  Future<bool> _saveDone(Duration spacing) async {
     final id = _profileId;
     final store = ref.read(onboardingStoreProvider);
     final d = _draft();
@@ -190,6 +200,15 @@ class OnboardingFlow extends AutoDisposeNotifier<OnboardingState> {
 
   /// Print my first issue: follow the picks (4 at a time), save `done`, refetch `/home`.
   Future<PrintOutcome> printIssue({Duration spacing = const Duration(seconds: 2)}) async {
+    final link = ref.keepAlive();
+    try {
+      return await _printIssue(spacing);
+    } finally {
+      link.close();
+    }
+  }
+
+  Future<PrintOutcome> _printIssue(Duration spacing) async {
     final lib = ref.read(libraryRepositoryProvider);
     final picks = state.picks;
     final saving = saveDone(spacing: spacing);
