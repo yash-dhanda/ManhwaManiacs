@@ -34,13 +34,13 @@ const _kReaderBack = Duration(milliseconds: 440);
 /// the route is going forward and the entry is `wipe`, the Dip for a `dip` entry, the Dip while the
 /// route is reversing (a pop never replays the blades), and the finger-tracked slide during a
 /// swipe.
-Page<void> cineReaderPage(BuildContext context, GoRouterState state, Widget child) {
+Page<void> cineReaderPage(BuildContext context, GoRouterState state, Widget child, {LocalKey? pageKey}) {
   final entry = readerEntryFromExtra(state.extra);
   final size = MediaQuery.sizeOf(context);
   final d = readerDurations(entry, size.width, reduced: CineRouteMotion.reduced);
   final reduced = CineRouteMotion.reduced;
   return SwipeablePage<void>(
-    key: state.pageKey,
+    key: pageKey ?? state.pageKey,
     name: state.name,
     canSwipe: defaultTargetPlatform == TargetPlatform.iOS,
     canOnlySwipeFromEdge: true,

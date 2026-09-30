@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:manhwamaniacs/skins/cinematic/a11y/folio.dart';
@@ -105,10 +106,8 @@ class NovelProgressFolioState extends State<NovelProgressFolio> {
             }
             return KeyEventResult.ignored;
           },
-          child: PopScope(
-            canPop: false,
-            onPopInvokedWithResult: (didPop, _) => cancelEdit(),
-            child: Center(
+          child: Builder(
+            builder: (context) => Center(
               child: Semantics(
                 textField: true,
                 label: 'Go to percent of this chapter',
@@ -145,10 +144,15 @@ class NovelProgressFolioState extends State<NovelProgressFolio> {
       excludeSemantics: true,
       onTap: _cycle,
       onLongPress: beginEdit,
-      child: GestureDetector(
+      child: RawGestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: _cycle,
-        onLongPress: beginEdit,
+        gestures: <Type, GestureRecognizerFactory>{
+          TapGestureRecognizer: GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(TapGestureRecognizer.new, (r) => r.onTap = _cycle),
+          LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(
+            () => LongPressGestureRecognizer(duration: const Duration(milliseconds: 450)),
+            (r) => r.onLongPress = beginEdit,
+          ),
+        },
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: hit, minWidth: hit),
           child: Center(child: CineRoleText(_label, c.typeFolio, color: stock.muted)),

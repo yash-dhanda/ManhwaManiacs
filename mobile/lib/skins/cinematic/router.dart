@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/skins/cinematic/app_frame.dart';
 import 'package:manhwamaniacs/skins/cinematic/router_gate.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/novel/novel_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_route_page.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/system/cine_error_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell.dart';
@@ -23,7 +24,6 @@ import 'package:manhwamaniacs/skins/skins.dart';
 const Set<ScreenId> PENDING = {
   ScreenId.circle,
   ScreenId.circleMember,
-  ScreenId.novel,
 };
 
 /// The one root navigator key of the Cinematic router.
@@ -37,7 +37,7 @@ Page<void> _page(_Move move, BuildContext context, GoRouterState state, Widget c
       _Move.page => cinePage(state, child),
       _Move.match => cineMatchCutPage(state, child),
       _Move.dip => cineDipPage(state, child),
-      _Move.reader => cineReaderPage(context, state, child),
+      _Move.reader => cineReaderPage(context, state, child, pageKey: novelPageKeyFor(state)),
     };
 
 String _nameOf(ScreenId id) => PENDING.contains(id) ? '$kPendingRoutePrefix${id.id}' : id.id;

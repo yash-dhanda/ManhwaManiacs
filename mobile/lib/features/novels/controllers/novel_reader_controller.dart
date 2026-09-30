@@ -644,6 +644,9 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
 
   Bookmark? _lastBookmark;
 
+  /// The bookmark the last [bookmark] call saved.
+  Bookmark? get lastBookmark => _lastBookmark;
+
   /// Save the exact spot being read in one action: the paragraph at the reading line, the point
   /// within it, the chapter's paragraph count and a 180-character snippet.
   Future<NovelBookmarkResult> bookmark() async {
