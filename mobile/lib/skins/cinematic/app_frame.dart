@@ -27,6 +27,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/system/cine_broken_part.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/system/cine_error_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart' show cineReaderOwnsToastsProvider;
 import 'package:manhwamaniacs/skins/cinematic/shell/global_keys.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/rating_card_slot.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/stop_press_banner.dart';
@@ -243,7 +244,7 @@ class _CineAppFrameState extends ConsumerState<CineAppFrame> {
                   key: _toastKey,
                   anchorBottom: anchor,
                   bannerHeight: showBanner ? _bannerHeight : 0,
-                  hidden: cineTopRouteObserver.lightboxOnTop.value,
+                  hidden: cineTopRouteObserver.lightboxOnTop.value || ref.watch(cineReaderOwnsToastsProvider),
                   child: widget.child,
                 ),
                 if (showBanner)

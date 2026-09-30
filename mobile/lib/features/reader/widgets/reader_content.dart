@@ -40,7 +40,7 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 /// lives in [ReaderEngineView] and this widget only supplies today's chrome —
 /// the bars, edge prompts, filter overlay, back gesture, more-options sheet
 /// and SnackBars — through the engine's chrome builder and slots.
-class ReaderContent extends ConsumerStatefulWidget {
+class ReaderContent extends ConsumerStatefulWidget implements ReaderFrameBody {
   const ReaderContent({
     super.key,
     required this.feed,

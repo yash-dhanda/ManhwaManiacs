@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/history/history_screen.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/index/index_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/library_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_manage_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_screen.dart';
@@ -74,12 +75,37 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.featureByFollow: (context, state) => FeatureByFollowScreen(
         followedId: int.tryParse(state.pathParameters['followedId'] ?? '') ?? -1,
       ),
+  ScreenId.reader: (context, state) => _readerFor(state),
   ScreenId.feature: (context, state) => FeatureScreen(
         sourceId: state.pathParameters['sourceId']!,
         seriesKey: state.pathParameters['seriesKey']!,
         chapter: state.uri.queryParameters['chapter'],
       ),
 };
+
+/// The reader for `/reader/...`, `/library/read/...` (the manifest path) and
+/// `/sources/.../read` (the source path, which keeps its own progress). Each segment is decoded
+/// once by go_router; the page and anchor come from the query.
+Widget _readerFor(GoRouterState state) {
+  final p = state.pathParameters;
+  final q = state.uri.queryParameters;
+  final page = int.tryParse(q['page'] ?? '') ?? 1;
+  final at = double.tryParse(q['at'] ?? '');
+  final all = q['all'] == '1' || q['all'] == 'true';
+  final key = ValueKey<String>(state.uri.toString());
+  if (state.uri.path.startsWith('/sources/')) {
+    return CineReaderRoute.source(key: key, sourceId: p['sourceId']!, seriesKey: p['seriesKey']!, chapterKey: p['chapterKey']!, initialPage: page, readAll: all);
+  }
+  return CineReaderRoute.manifest(
+    key: key,
+    sourceId: p['sourceId']!,
+    seriesKey: p['seriesKey']!,
+    chapterKey: p['chapterKey']!,
+    initialPage: page,
+    initialAnchor: at == null || at.isNaN ? null : (page: page, fraction: at.clamp(0.0, 1.0)),
+    readAll: all,
+  );
+}
 
 /// The screen for [id]: the registered one, else mobile/01's skin-neutral pending screen inside the
 /// real frame (running head, back arrow).
