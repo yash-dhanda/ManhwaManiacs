@@ -149,3 +149,5 @@ Items only the owner can do, by step.
 - mobile/28: run docs/redesign/proof/mobile-28/device-check.md on an iPhone (SideStore) and the Android flagship.
 
 - mobile/24: run docs/redesign/proof/mobile-24/device-pass.md on the iPhone (Build iOS IPA through SideStore) and the Android flagship (signed release APK built where the signing key lives). It includes the Audio session (iOS) row in Settings, Diagnostics.
+## mobile/29
+- Device checks: docs/redesign/proof/mobile-29/device-check.md

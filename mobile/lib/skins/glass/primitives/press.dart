@@ -126,6 +126,9 @@ class GlassPressRecognizer extends OneSequenceGestureRecognizer {
   Timer? _claim;
   bool _claimFired = false;
 
+  /// `onClaimed` runs once per press: an arena that resolves inside `resolve` calls `acceptGesture` before the timer continues.
+  bool _claimNotified = false;
+
   @override
   void addAllowedPointer(PointerDownEvent event) {
     if (_active) return;
@@ -134,6 +137,7 @@ class GlassPressRecognizer extends OneSequenceGestureRecognizer {
     _down = event.position;
     _accepted = false;
     _claimFired = false;
+    _claimNotified = false;
     _active = true;
     onDown?.call(event);
     if (claimAfter != null) {
@@ -141,7 +145,10 @@ class GlassPressRecognizer extends OneSequenceGestureRecognizer {
         if (!_active) return;
         _claimFired = true;
         resolve(GestureDisposition.accepted);
-        if (_accepted) onClaimed?.call();
+        if (_accepted && !_claimNotified) {
+          _claimNotified = true;
+          onClaimed?.call();
+        }
       });
     }
   }
@@ -191,7 +198,8 @@ class GlassPressRecognizer extends OneSequenceGestureRecognizer {
     if (up != null) {
       _finish(cancelled: false);
       onUp?.call(up);
-    } else if (_claimFired) {
+    } else if (_claimFired && !_claimNotified) {
+      _claimNotified = true;
       onClaimed?.call();
     }
   }

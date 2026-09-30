@@ -1,0 +1,5 @@
+# mobile/29 report
+Captures map to acceptance: shell-* frames and insets; title-capsule nav row; dock-* dock moves; accessory-* accessory; sheet-route-*/detail-window sheet routes; stack-* depth; palette/shortcuts keys; whats-new/app-update overlays; signed-out/skin-switch/melt flows; not-found/route-error status; splash-* Droplet; shell-solid/contrast a11y variants.
+Budget (tests): phone page+sheet+toast 4 layers/6 shapes; phone search 2/3; tablet 4/4; desktop 3/3.
+Deviations: dock is one SkinGlassGroup (GlassTabBar not used: its indicator animates on its own spring); glass/DESIGN.md wins over the prompt's SwipeablePage/Predictive names (GlassSwipePage, GlassPageTransitionsBuilder built). Heroine velocity via HeroineVelocity above the Heroine. Guard moved to features/auth/utils/route_guard.dart. Shared fixes: press recognizer double onClaimed; toast tag; recent searches {q,gateOpen}; request_failures; audio reducer; cover_tag.
+Not wired: account_disabled alert copy (auth state does not expose it), sound engine hooks beyond existing cues, audio reducer not yet applied by skin_audio, web-twin capture comparison (none present).
