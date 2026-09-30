@@ -1,3 +1,5 @@
+import 'dart:ui' show Rect;
+
 import 'package:dio/dio.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
@@ -107,6 +109,56 @@ class ReaderRepositoryImpl implements ReaderRepository {
         'source_id': sourceId,
         'series_key': seriesKey,
         'chapter_keys': chapterKeys,
+      },);
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> postPageTints({
+    required String sourceId,
+    required String seriesKey,
+    required String chapterKey,
+    required List<({int page, String hex})> tints,
+  }) async {
+    try {
+      await _dio.post<void>('/reader/page-tints', data: {
+        'source_id': sourceId,
+        'series_key': seriesKey,
+        'chapter_key': chapterKey,
+        'tints': [for (final t in tints) {'page': t.page, 'hex': t.hex}],
+      },);
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(_err(e));
+    } catch (e) {
+      return Err(UnknownError(message: e.toString(), cause: e));
+    }
+  }
+
+  @override
+  Future<Result<void>> postPanels({
+    required String sourceId,
+    required String seriesKey,
+    required String chapterKey,
+    required List<({int page, List<Rect> panels})> pages,
+  }) async {
+    try {
+      await _dio.post<void>('/reader/panels', data: {
+        'source_id': sourceId,
+        'series_key': seriesKey,
+        'chapter_key': chapterKey,
+        'pages': [
+          for (final p in pages)
+            {
+              'page': p.page,
+              'panels': [for (final r in p.panels) {'x': r.left, 'y': r.top, 'w': r.width, 'h': r.height}],
+            },
+        ],
       },);
       return const Ok(null);
     } on DioException catch (e) {
