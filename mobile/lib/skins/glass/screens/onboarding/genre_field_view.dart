@@ -41,9 +41,15 @@ class GenreFieldView extends ConsumerStatefulWidget {
 }
 
 class GenreFieldViewState extends ConsumerState<GenreFieldView> with SingleTickerProviderStateMixin {
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker(_onTick);
+  }
+
   GenreField? _field;
   Size _size = Size.zero;
-  late final Ticker _ticker = createTicker(_onTick);
+  late final Ticker _ticker;
   Duration _last = Duration.zero;
   StreamSubscription<Offset>? _gravitySub;
   Offset? _hover;
@@ -365,8 +371,7 @@ class GenreFieldViewState extends ConsumerState<GenreFieldView> with SingleTicke
             top: b.p.dy - b.radius,
             width: b.radius * 2,
             height: b.radius * 2,
-            child: IgnorePointer(
-              child: Semantics(
+            child: Semantics(
                 button: true,
                 label: genreSemanticsLabel(b.name, b.weight),
                 hint: 'Double-tap to change',
@@ -378,7 +383,6 @@ class GenreFieldViewState extends ConsumerState<GenreFieldView> with SingleTicke
                   const CustomSemanticsAction(label: 'Clear'): () => widget.onWeight(b.name, 0),
                 },
                 child: const SizedBox.expand(),
-              ),
             ),
           ),
       ];

@@ -105,7 +105,7 @@ class OrbField extends ConsumerStatefulWidget {
 
 class _OrbFieldState extends ConsumerState<OrbField> with SingleTickerProviderStateMixin {
   late final OrbPhysics _physics = OrbPhysics(spring: springOf(gt.springDismiss));
-  late final Ticker _ticker = createTicker(_onTick);
+  late final Ticker _ticker;
   final Map<int, GlobalKey> _keys = {};
   final Map<int, FocusNode> _nodes = {};
   final Map<int, bool> _hidden = {};
@@ -121,6 +121,7 @@ class _OrbFieldState extends ConsumerState<OrbField> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+    _ticker = createTicker(_onTick);
     widget.controller._state = this;
   }
 

@@ -299,6 +299,8 @@ class _GlassProfilePickerState extends ConsumerState<GlassProfilePicker> with Si
     Widget body = Stack(
       fit: StackFit.expand,
       children: [
+        // The splash's Droplet lens lands here: a transparent 96 px box (128 px on wide frames) at the centre of the orb field.
+        Positioned.fill(child: IgnorePointer(child: Center(child: KeyedSubtree(key: _centre, child: SizedBox.square(dimension: wide ? 128 : 96))))),
         SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -317,10 +319,6 @@ class _GlassProfilePickerState extends ConsumerState<GlassProfilePicker> with Si
                     ),
                   ),
                   const SizedBox(height: 40),
-                  KeyedSubtree(
-                    key: _centre,
-                    child: const SizedBox(width: 0, height: 0),
-                  ),
                   content,
                   if (profiles != null && profiles.length >= kMaxProfiles) ...[
                     const SizedBox(height: 24),
@@ -359,6 +357,9 @@ class _GlassProfilePickerState extends ConsumerState<GlassProfilePicker> with Si
     );
   }
 
+  /// Orbs take taps until the flight or the melt starts (a second tap before 450 ms changes the choice).
+  bool get _interruptible => !_busy || (_chosenId != null && Handoff.canInterrupt((_clock.value * Handoff.totalMs).round()));
+
   void _back() {
     if (context.canPop()) {
       context.pop();
@@ -392,7 +393,7 @@ class _GlassProfilePickerState extends ConsumerState<GlassProfilePicker> with Si
       orbSize: wide ? 128 : 96,
       spacing: wide ? 40 : 24,
       manage: _manage,
-      enabled: !_busy,
+      enabled: _interruptible,
       onFocusChanged: (id) => setState(() => _focusedId = id),
       onPick: (e) {
         final p = list.where((x) => x.id == e.id).firstOrNull;

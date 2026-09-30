@@ -33,4 +33,4 @@ const List<String> kMatureGenres = ['Adult', 'Ecchi', 'Hentai', 'Mature', 'Smut'
 List<String> glassGenres({required bool matureOpen}) => matureOpen ? [...kGlassGenres.take(19), ...kMatureGenres] : kGlassGenres;
 
 /// `r = 52 - (rank - 1) * 16 / 23` px: the first genre 52, the last 36.
-double genreRadius(int rank, {int total = 24}) => 52 - (rank - 1) * 16 / (total - 1);
+double genreRadius(int rank, {int total = 24}) => total <= 1 ? 52 : 52 - (rank - 1) * 16 / (total - 1);

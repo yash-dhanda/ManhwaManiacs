@@ -22,10 +22,16 @@ class GlassSkinPreviewLoop extends ConsumerStatefulWidget {
 }
 
 class _GlassSkinPreviewLoopState extends ConsumerState<GlassSkinPreviewLoop> with SingleTickerProviderStateMixin {
-  late final Ticker _ticker = createTicker(_onTick);
+  late final Ticker _ticker;
   int _frame = 0;
   bool _once = false;
   static const int _frameMs = 166;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker(_onTick);
+  }
 
   bool get _bundled => widget.skin == 'cinematic' || kGlassPreviewFramesBundled;
 

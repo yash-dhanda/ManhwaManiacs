@@ -36,6 +36,7 @@ import 'package:manhwamaniacs/skins/glass/screens/profiles/avatar_arc.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/avatar_map.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/delete_profile_alert.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form_field.dart';
+import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show glassPurgeProbeProvider;
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart' show glassOfflineProvider;
 import 'package:manhwamaniacs/skins/glass/shell/skin_switch_flow.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
@@ -91,6 +92,7 @@ class _GlassProfileFormState extends ConsumerState<GlassProfileForm> with Ticker
   @override
   void initState() {
     super.initState();
+    _pop.value = 1; // created now, not lazily inside dispose
     _name.addListener(() => setState(() {}));
   }
 
@@ -202,7 +204,11 @@ class _GlassProfileFormState extends ConsumerState<GlassProfileForm> with Ticker
       );
       if (!mounted) return;
       if (err == null) {
-        if (isActive && target.matureContentEnabled != _mature) applyMatureGateChanged(ref);
+        if (isActive && target.matureContentEnabled != _mature) {
+          applyMatureGateChanged(ref);
+          // mobile/29 has no gate watcher: closing the ACTIVE profile's gate runs the 18+ purge from here (glass 8.0.8).
+          if (!_mature) ref.read(glassPurgeProbeProvider)();
+        }
         ref.read(glassProfileHopProvider.notifier).state = target.id;
         if (isActive && skinChanged) {
           setState(() => _saving = false);

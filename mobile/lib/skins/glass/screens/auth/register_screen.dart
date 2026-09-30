@@ -25,6 +25,7 @@ import 'package:manhwamaniacs/skins/glass/screens/auth/auth_lens.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/overlay_run.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/slab_condense.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_common.dart';
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show GlassTwin;
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// Register (glass 8.4, mobile S04): Closed, Bootstrap and Open, with live validation and every server code on its field.
@@ -226,7 +227,7 @@ class _GlassRegisterScreenState extends ConsumerState<GlassRegisterScreen> with 
         if (phone)
           Align(
             alignment: Alignment.centerLeft,
-            child: GlassIconButton(icon: roleIcon(GlassIconRole.back), label: 'Back to sign in', kind: GlassIconButtonKind.nav, onPressed: _back),
+            child: GlassIconButton(icon: roleIcon(GlassIconRole.back), label: 'Back to sign in', kind: GlassIconButtonKind.nav, twin: GlassTwin.content, onPressed: _back),
           ),
         Center(
           child: KeyedSubtree(
