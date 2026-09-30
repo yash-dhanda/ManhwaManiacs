@@ -73,7 +73,7 @@ class GuidedAutoAdvance {
 /// Typed reads of the per-profile manga record. Every getter carries the prompt's default.
 extension ReaderSettingsView on JsonRecord {
   bool get gap => boolOf('gap', false);
-  String get pageTurn => choice('pageTurn', const ['cut', 'slide', 'fade'], 'slide');
+  String get pageTurn => choice('pageTurn', const ['cut', 'slide', 'fade'], 'cut');
   int get brightness => intOf('brightness', 0).clamp(-75, 0);
   int get warmth => intOf('warmth', 0).clamp(0, 100);
   String get colour => choice('colour', const ['normal', 'sepia', 'grey'], 'normal');

@@ -31,7 +31,7 @@ class ReaderPrefs {
     this.autoScrollSpeedX = 1.0,
     this.sideMarginPct = 0,
     this.gap = false,
-    this.pageTurn = 'slide',
+    this.pageTurn = 'cut',
     this.brightness = 0,
     this.warmthPct = 0,
     this.colour = 'normal',
