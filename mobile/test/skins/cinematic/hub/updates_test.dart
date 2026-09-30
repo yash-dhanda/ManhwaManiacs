@@ -2,6 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/profiles/models/mood.dart';
+import 'package:manhwamaniacs/features/profiles/models/profile.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/profiles/repositories/profiles_repository.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
@@ -189,4 +194,34 @@ void main() {
     expect(rig.at, '/updates');
     expect(find.text('Read updates'), findsNothing);
   });
+
+  testWidgets('notices off for the profile: a NOTE line with Turn on that patches notify_enabled', (t) async {
+    final repo = _Profiles();
+    await pumpShelf(t, start: '/updates', extra: [...updatesOverrides(_updates()), profilesRepositoryProvider.overrideWithValue(repo)]);
+    expect(find.byKey(const Key('updates-notices-off')), findsOneWidget);
+    expect(find.text('New-chapter notices are off for this profile.'), findsOneWidget);
+    await t.tap(find.text('Turn on'));
+    await settle(t, 800);
+    expect(repo.patched, [true]);
+  });
+}
+
+class _Profiles implements ProfilesRepository {
+  final List<bool?> patched = [];
+  bool on = false;
+
+  Profile get _p => Profile(id: 1, name: 'Tester', avatarKey: null, mood: Mood.neutral, sortOrder: 0, matureContentEnabled: false, createdAt: DateTime.utc(2026), notifyEnabled: on);
+
+  @override
+  Future<Result<List<Profile>>> list() async => Ok([_p]);
+
+  @override
+  Future<Result<Profile>> update(int id, {String? name, String? avatarKey, Mood? mood, int? sortOrder, bool? matureContentEnabled, String? skin, bool? notifyEnabled}) async {
+    patched.add(notifyEnabled);
+    on = notifyEnabled ?? on;
+    return Ok(_p);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }

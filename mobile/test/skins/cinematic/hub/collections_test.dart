@@ -146,6 +146,24 @@ void main() {
     expect([for (final e in find.byType(CineCollectionPlate).evaluate()) (e.widget as CineCollectionPlate).name], ['Night reads', 'Slow burns', 'Unread pile']);
   });
 
+  testWidgets('Alt+arrows move the focused plate; the Move items are also semantics custom actions', (t) async {
+    final h = t.ensureSemantics();
+    final lib = _lib();
+    await _pump(t, lib, prefs: {'mm.collections.sort.u1p1': 'custom'});
+    final first = find.byType(CineCollectionPlate).first;
+    // The first plate can only go down or to the bottom.
+    final data = t.getSemantics(first).getSemanticsData();
+    expect(data.customSemanticsActionIds?.length, 2);
+    t.widget<CineCollectionPlate>(first).focusNode!.requestFocus();
+    await t.pump();
+    await t.sendKeyDownEvent(LogicalKeyboardKey.altLeft);
+    await t.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await t.sendKeyUpEvent(LogicalKeyboardKey.altLeft);
+    await settleShelf(t, by: const Duration(milliseconds: 900));
+    expect([for (final e in find.byType(CineCollectionPlate).evaluate()) (e.widget as CineCollectionPlate).name], ['Night reads', 'Slow burns', 'Unread pile']);
+    h.dispose();
+  });
+
   testWidgets('the states: empty, no match, error, offline', (t) async {
     await _pump(t, _lib(shelves: []));
     expect(find.text('NO SHELVES YET'), findsOneWidget);

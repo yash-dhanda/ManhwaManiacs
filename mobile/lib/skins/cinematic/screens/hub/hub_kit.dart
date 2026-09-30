@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
+import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// A notice across four columns (phones) or six of eight (tablets), under a hub tab's toolbar.
 class HubNoticeBox extends StatelessWidget {
@@ -122,3 +124,6 @@ String agoWords(DateTime at, DateTime now) {
   if (gap.inHours < 24) return '${gap.inHours} h ago';
   return '${gap.inDays} d ago';
 }
+
+/// How long a programmatic scroll (a focus move by key) takes: 240 ms, and none under reduced motion.
+Duration hubScroll(BuildContext context) => CineMotion.reduced(context) ? Duration.zero : CineDur.line;

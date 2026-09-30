@@ -107,3 +107,6 @@ Items only the owner can do, by step.
 
 ## mobile/09 (Cinematic Library shelf)
 - Device checks: see docs/redesign/proof/mobile-09/device-checklist.md (hub swipe at 120 Hz, back order, haptics, VoiceOver/TalkBack Move actions). Shipped with widget-test coverage as the fallback.
+
+## mobile/10 (Cinematic Updates, Collections, History, Bookmarks)
+- Device checks: see docs/redesign/proof/mobile-10/device-checklist.md (plate to header match cut and its iOS edge-swipe reversal, Android predictive back from a shelf, swipe rows against the hub swipe, the Updates check haptics, arm dialogs with a double tap, VoiceOver and TalkBack on marginal notes, text scale 1.3 and 2.0). Shipped with widget-test coverage as the fallback.

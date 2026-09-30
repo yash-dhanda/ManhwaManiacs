@@ -100,7 +100,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen> {
     final to = (cur < 0 ? (d > 0 ? 0 : _flat.length - 1) : cur + d).clamp(0, _flat.length - 1);
     _nodes[to].requestFocus();
     final ctx = _nodes[to].context;
-    if (ctx != null) unawaited(Scrollable.ensureVisible(ctx, duration: CineDur.line, alignment: 0.3));
+    if (ctx != null) unawaited(Scrollable.ensureVisible(ctx, duration: hubScroll(context), alignment: 0.3));
   }
 
   // ---- one bookmark ---------------------------------------------------------------------------

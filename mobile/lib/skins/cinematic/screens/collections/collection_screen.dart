@@ -117,7 +117,7 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
     final n = _nodes[i];
     n.requestFocus();
     final ctx = n.context;
-    if (ctx != null) unawaited(Scrollable.ensureVisible(ctx, duration: CineDur.line, alignment: 0.3));
+    if (ctx != null) unawaited(Scrollable.ensureVisible(ctx, duration: hubScroll(context), alignment: 0.3));
   }
 
   void _exitModes() => setState(() {

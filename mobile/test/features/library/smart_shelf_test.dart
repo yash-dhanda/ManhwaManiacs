@@ -90,7 +90,10 @@ void main() {
     expect(c.previewAmbientDuo, const Color(0xFFB8B2A4));
     expect(c.createdAt, isNotNull);
     final plain = Collection.fromJson({'id': 1, 'name': 'x'});
-    expect((plain.smart, plain.previewCovers, plain.previewAmbientDuo, plain.createdAt), (false, isEmpty, isNull, isNull));
+    expect(plain.smart, isFalse);
+    expect(plain.previewCovers, isEmpty);
+    expect(plain.previewAmbientDuo, isNull);
+    expect(plain.createdAt, isNull);
   });
 
   test('create, update and reorder send the right bodies', () async {

@@ -91,7 +91,7 @@ class _CollectionsScreenState extends ConsumerState<CollectionsScreen> {
     final n = _nodes[i];
     n.requestFocus();
     final ctx = n.context;
-    if (ctx != null) unawaited(Scrollable.ensureVisible(ctx, duration: CineDur.line, alignment: 0.3));
+    if (ctx != null) unawaited(Scrollable.ensureVisible(ctx, duration: hubScroll(context), alignment: 0.3));
   }
 
   bool get _canReorder => ref.read(collectionSortProvider) == CollectionSort.custom && _search.text.trim().isEmpty && _all.length > 1;

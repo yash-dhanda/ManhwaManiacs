@@ -33,10 +33,10 @@ void main() {
     });
 
     test('each static /library/... path reaches its own screen before /library/:followedId', () {
-      expect(leaf('/library/collections').name, 'pending.collections');
-      expect(leaf('/library/collections/7').name, 'pending.collection');
-      expect(leaf('/library/history').name, 'pending.history');
-      expect(leaf('/library/bookmarks').name, 'pending.bookmarks');
+      expect(leaf('/library/collections').name, 'collections');
+      expect(leaf('/library/collections/7').name, 'collection');
+      expect(leaf('/library/history').name, 'history');
+      expect(leaf('/library/bookmarks').name, 'bookmarks');
       expect(leaf('/library/statistics').name, 'pending.numbers');
       expect(leaf('/library/recommendations').name, 'pending.picks');
       expect(leaf('/library/statistics/annual/2026').name, 'pending.annual');
