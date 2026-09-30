@@ -8,11 +8,8 @@ import 'package:manhwamaniacs/app/router/routes.dart';
 import 'package:manhwamaniacs/app/theme/app_colors.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/platform/system_ui.dart';
-import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
-import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
-import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
-import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
+import 'package:manhwamaniacs/features/novels/controllers/novel_reader_controller.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio_format.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_palette.dart';
@@ -22,7 +19,6 @@ import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.d
 import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provider.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
-import 'package:manhwamaniacs/features/novels/utils/novel_snippet.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_speaking.dart';
 import 'package:manhwamaniacs/features/novels/widgets/narration_save_button.dart';
 import 'package:manhwamaniacs/features/novels/widgets/novel_audio_player.dart';
@@ -31,38 +27,11 @@ import 'package:manhwamaniacs/features/novels/widgets/novel_chapter_view.dart';
 import 'package:manhwamaniacs/features/novels/widgets/novel_contents_sheet.dart';
 import 'package:manhwamaniacs/features/novels/widgets/novel_reader_chrome.dart';
 import 'package:manhwamaniacs/features/novels/widgets/novel_type_panel.dart';
-import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
-import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_series_navigation.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
-import 'package:manhwamaniacs/features/reader/utils/reading_clock.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_error_state.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
-import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
-
-/// How often a scroll is turned into a progress position. The manga reader
-/// uses the same 500 ms, and for the same reason: often enough that a kill
-/// loses nothing worth noticing, rare enough that it is not per-frame work.
-const _progressSaveMs = 500;
-
-/// The pause at the end of a chapter before the next one opens.
-///
-/// This is the manga reader's `_autoNextChapterMs`, deliberately the same
-/// number: it is the beat that makes the transition feel like turning a page
-/// rather than the app navigating, and two different beats for the two readers
-/// would be two different feelings in one app.
-const _autoNextChapterMs = 900;
-
-/// Frames a deferred restore is allowed to home in for before it settles
-/// wherever it has got to — the same budget and the same reasoning as the
-/// manga reader's `_maxRestoreFrames`.
-const _maxRestoreFrames = 30;
-
-/// Fraction of the viewport height that counts as the reading line: the
-/// paragraph a reader is actually on is the one just below the top edge, not
-/// the one clipped by it.
-const _readingLineFraction = 0.25;
 
 /// The novel reader.
 ///
@@ -70,6 +39,9 @@ const _readingLineFraction = 0.25;
 /// the manga reader's, and [initialBucket] is the progress BUCKET (see
 /// `utils/novel_progress.dart`) carried in the same `?page=` query parameter —
 /// so a "Continue" link needs no novel-specific branch to build.
+///
+/// The logic (chapter, neighbours, progress, bookmark, restore, auto next)
+/// lives in `NovelReaderController`; this screen only renders its state.
 class NovelReaderScreen extends ConsumerWidget {
   const NovelReaderScreen({
     super.key,
@@ -100,13 +72,19 @@ class NovelReaderScreen extends ConsumerWidget {
   NovelChapterKey get _key =>
       (sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterKey);
 
+  NovelReaderArgs get _args => NovelReaderArgs(
+        sourceId: sourceId,
+        seriesKey: seriesKey,
+        chapterKey: chapterKey,
+        initialBucket: initialBucket,
+        initialParagraph: initialParagraph,
+        initialFraction: initialFraction,
+      );
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chapterAsync = ref.watch(resolvedNovelChapterProvider(_key));
-    // Watched, never awaited (spec R3): a downloaded chapter opens off the
-    // phone, and what comes next is filled in whenever the network can say.
-    final neighbours =
-        ref.watch(novelChapterNeighboursProvider(_key)).valueOrNull;
+    final controller = ref.watch(novelReaderControllerProvider(_args));
+    final chapterAsync = controller.chapterValue;
 
     void retry() {
       // The payload is its own cache entry; invalidating only the resolved
@@ -164,10 +142,7 @@ class NovelReaderScreen extends ConsumerWidget {
             child: _NovelReaderBody(
               key: ValueKey('$sourceId:$seriesKey:$chapterKey'),
               chapter: chapter,
-              neighbours: neighbours,
-              initialBucket: initialBucket,
-              initialParagraph: initialParagraph,
-              initialFraction: initialFraction,
+              args: _args,
             ),
           );
         },
@@ -180,39 +155,23 @@ class _NovelReaderBody extends ConsumerStatefulWidget {
   const _NovelReaderBody({
     super.key,
     required this.chapter,
-    required this.neighbours,
-    required this.initialBucket,
-    this.initialParagraph,
-    this.initialFraction,
+    required this.args,
   });
 
   final NovelChapter chapter;
-
-  /// Adjacent keys, when the network has supplied them. Kept beside the
-  /// chapter rather than folded into it so a later arrival never replaces the
-  /// paragraph list this state is measuring against — the reading position
-  /// would jump.
-  final NovelChapterNeighbours? neighbours;
-  final int initialBucket;
-  final int? initialParagraph;
-  final double? initialFraction;
+  final NovelReaderArgs args;
 
   @override
   ConsumerState<_NovelReaderBody> createState() => _NovelReaderBodyState();
 }
 
-class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
+class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody>
+    implements NovelReadingSurface {
   final _scrollController = ScrollController();
   late List<GlobalKey> _paragraphKeys;
 
   bool _chromeVisible = false;
 
-  /// The furthest bucket already handed to the outbox for this chapter.
-  /// Scrolling back up must never tell the server the reader is earlier than
-  /// they got to — see [nextProgressPush].
-  int _furthestSent = 0;
-
-  /// The bucket currently under the reading line, for the read-out.
   /// The progress bucket, as a notifier rather than a field.
   ///
   /// Buckets are 1% of a chapter (kMaxProgressBuckets = 100) and the scroll
@@ -231,103 +190,68 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
   /// paragraph already on screen does not re-aim the viewport.
   int _followedParagraph = -1;
 
-
-  /// How long this reader has been read, for the reading-time statistic.
-  final ReadingClock _clock = ReadingClock(DateTime.now());
-
-  Timer? _progressTimer;
-  Timer? _autoNextTimer;
-  bool _autoNextTriggered = false;
-
-  /// Whether the scroll was at the bottom when it last moved. Noted on every
-  /// scroll event, which the paragraph measurement is not: it is two numbers
-  /// the scroll position already holds, and it is the one part of a pending
-  /// save [dispose] can still act on.
-  bool _scrolledToEnd = false;
-
-  /// The chapter to continue into, from whichever source knows it: the
-  /// online payload carries its own, a disk copy learns it out of band.
-  String? get _nextKey =>
-      widget.chapter.nextChapterKey ?? widget.neighbours?.nextChapterKey;
-
-  String? get _previousKey =>
-      widget.chapter.previousChapterKey ?? widget.neighbours?.previousChapterKey;
-
-  int? _pendingRestoreParagraph;
-  int _restoreFrames = 0;
-  double _lastRestoreMaxExtent = -1;
-
-  /// How far into [_pendingRestoreParagraph] the restore is aiming, and
-  /// whether it is aiming at the reading line rather than the top of the
-  /// viewport.
-  ///
-  /// Both are only ever non-default on the bookmark path. Resuming by bucket
-  /// keeps landing the paragraph's top at the top of the screen exactly as it
-  /// always has — a bucket is a coarse "about here", and dropping the reader
-  /// a quarter of a screen lower would be pretending to a precision it does
-  /// not have.
-  double _restoreFraction = 0;
-  bool _restoreToReadingLine = false;
-
   /// A save is in flight; the chrome's bookmark button is disabled meanwhile
   /// so a double tap cannot make two bookmarks of one spot.
   bool _bookmarkPending = false;
 
   /// Resolved once, while the element is alive, because [dispose] has to
-  /// release it and cannot ask for it there: `StatefulElement.unmount` marks
-  /// the element defunct BEFORE calling `dispose()`, so a `ref.read` from
-  /// inside it throws `Cannot use "ref" after the widget was disposed` — in
-  /// release as much as in debug, since that check is a plain `throw` and not
-  /// an assert. Thrown from there it also skipped `super.dispose()` and left
-  /// the screen pinned awake for the rest of the session. The manga reader
-  /// resolves its own outbox handles in `build` for the same reason.
+  /// release it and cannot ask for it there (`ref` is unusable in `dispose`).
   late final ReaderWakelock _wakelock;
+  late final NovelReaderController _controller;
+  ProviderSubscription<NovelReaderState>? _sub;
 
-  /// Where saves go, resolved in [build] for the same reason as [_wakelock]:
-  /// the save that finishes a chapter is made as the reader leaves it — Next
-  /// navigates away straight after, and [dispose] flushes a pending one — so
-  /// most of it runs after this element is gone, when `ref.read` throws.
-  /// Reading the downloads store through `ref` there used to throw after the
-  /// server save, so the 48 h expiry of a downloaded copy never started.
-  late ProgressOutboxController _progressOutbox;
-  DownloadsStore? _downloadsStore;
-  late SourceProgressNotifier _localProgress;
+  NovelChapter get _chapter => widget.chapter;
+
+  /// The chapter to continue into, from whichever source knows it: the
+  /// online payload carries its own, a disk copy learns it out of band.
+  String? get _nextKey =>
+      ref.read(novelReaderControllerProvider(widget.args)).nextKey ?? _chapter.nextChapterKey;
+
+  String? get _previousKey =>
+      ref.read(novelReaderControllerProvider(widget.args)).prevKey ?? _chapter.previousChapterKey;
 
   @override
   void initState() {
     super.initState();
     _wakelock = ref.read(readerWakelockProvider);
+    _controller = ref.read(novelReaderControllerProvider(widget.args).notifier)
+      ..attach(this)
+      ..seamless = false
+      ..locationReplacer = _openChapter;
     _paragraphKeys = List.generate(
-      widget.chapter.paragraphs.length,
+      _chapter.paragraphs.length,
       (_) => GlobalKey(),
     );
-    _follower = NovelAudioFollower(widget.chapter.paragraphs);
+    _follower = NovelAudioFollower(_chapter.paragraphs);
+    _controller.narrationBusy =
+        () => _follower.range.value != null || _follower.voicing.value;
     _follower.range.addListener(_onSpeakingChanged);
     _follower.voicing.addListener(_onVoicingChanged);
-    _scrollController.addListener(_onScroll);
+    _scrollController.addListener(_controller.onScrolled);
+    // Only the percent and the stale-anchor note depend on the controller here.
+    _sub = ref.listenManual<NovelReaderState>(
+      novelReaderControllerProvider(widget.args),
+      (previous, next) {
+        if (next.readingBucket != _bucket.value) {
+          _bucket.value = next.readingBucket;
+        }
+        if (next.stale && !(previous?.stale ?? false)) _reportStaleAnchor();
+      },
+    );
     applyReadingSystemUiMode();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _applyWakelock();
-      _beginRestore();
+      _controller.beginRestore();
     });
   }
 
   @override
   void dispose() {
-    // A save the debounce was still holding. The paragraphs cannot be
-    // measured any more — the scrollable under this state is unmounted before
-    // it — so only the end of the chapter survives, which is the save that
-    // matters: scroll to the last line and press Back inside half a second,
-    // and the chapter used to stay unread.
-    if (_progressTimer != null) {
-      _progressTimer!.cancel();
-      _progressTimer = null;
-      if (_scrolledToEnd) {
-        _push(completedProgress(widget.chapter.paragraphs.length));
-      }
-    }
-    _autoNextTimer?.cancel();
+    _sub?.close();
+    _controller
+      ..detach(this)
+      ..locationReplacer = null;
     _scrollController.dispose();
     _bucket.dispose();
     _follower.range.removeListener(_onSpeakingChanged);
@@ -345,96 +269,7 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
     keepAwake ? _wakelock.enable() : _wakelock.disable();
   }
 
-  // ── Restore ──────────────────────────────────────────────────────────────
-
-  /// Resume where the reader left off, never past it.
-  ///
-  /// The target is a paragraph, but a lazily-built list only knows the offsets
-  /// of the paragraphs it has actually laid out — so this homes in the way the
-  /// manga reader's restore does: jump as far as the list currently admits,
-  /// let that force more paragraphs to lay out, and re-check next frame, under
-  /// a hard frame budget so a list whose extent keeps creeping cannot drag the
-  /// reader backwards while they are trying to read.
-  void _beginRestore() {
-    final paragraphs = widget.chapter.paragraphs.length;
-    final requested = widget.initialParagraph;
-    if (requested != null && paragraphs > 0) {
-      // A bookmark: land on the paragraph, at the point within it, at the
-      // reading line the position was measured against.
-      //
-      // The clamp is the honest degradation the design asks for — a chapter
-      // an aggregator has since re-split may hold fewer paragraphs than it
-      // did, and the nearest surviving one (with a quiet word about it) beats
-      // both failing to open and silently starting from the top.
-      final target = (requested - 1).clamp(0, paragraphs - 1);
-      _restoreFraction = widget.initialFraction ?? 0;
-      _restoreToReadingLine = true;
-      _pendingRestoreParagraph = target;
-      _bucket.value = bucketForParagraph(target, paragraphs);
-      _furthestSent = _bucket.value;
-      _restoreFrames = 0;
-      _lastRestoreMaxExtent = -1;
-      if (requested > paragraphs) _reportStaleAnchor(requested, paragraphs);
-      _attemptRestore();
-      return;
-    }
-    final target = paragraphForBucket(widget.initialBucket, paragraphs);
-    if (target <= 0) {
-      _bucket.value = bucketForParagraph(0, paragraphs);
-      // Opening at the top is still progress worth remembering as "seen", but
-      // never as further than the reader actually got.
-      _furthestSent = 0;
-      return;
-    }
-    _pendingRestoreParagraph = target;
-    _furthestSent = widget.initialBucket;
-    _bucket.value = widget.initialBucket;
-    _restoreFrames = 0;
-    _lastRestoreMaxExtent = -1;
-    _attemptRestore();
-  }
-
-  void _attemptRestore() {
-    final target = _pendingRestoreParagraph;
-    if (target == null) return;
-    if (!mounted || !_scrollController.hasClients) {
-      _pendingRestoreParagraph = null;
-      return;
-    }
-
-    final position = _scrollController.position;
-    final box = _boxFor(target);
-    if (box != null) {
-      // The target has been laid out: land on it exactly. The point aimed at
-      // and the reference it is aimed at are BOTH the ones the capture used
-      // (see [_anchorAtReadingLine]), which is what makes bookmarking a spot
-      // and returning to it a round trip rather than an approximation.
-      final anchorPoint = box.localToGlobal(Offset.zero).dy +
-          _restoreFraction * box.size.height;
-      final reference =
-          _restoreToReadingLine ? _readingLine() : _viewportTop();
-      final delta = anchorPoint - reference;
-      _scrollController.jumpTo(
-        (position.pixels + delta).clamp(0.0, position.maxScrollExtent),
-      );
-      _pendingRestoreParagraph = null;
-      return;
-    }
-
-    final maxExtent = position.maxScrollExtent;
-    final stoppedGrowing = maxExtent <= _lastRestoreMaxExtent;
-    final outOfFrames = ++_restoreFrames >= _maxRestoreFrames;
-    if (stoppedGrowing || outOfFrames) {
-      _pendingRestoreParagraph = null;
-      return;
-    }
-    _lastRestoreMaxExtent = maxExtent;
-    // Jump to where the target is *estimated* to be, which forces the list to
-    // build that far and makes the exact answer available next frame.
-    final fraction = target / widget.chapter.paragraphs.length;
-    _scrollController.jumpTo((maxExtent * fraction).clamp(0.0, maxExtent));
-    WidgetsBinding.instance.addPostFrameCallback((_) => _attemptRestore());
-  }
+  // ── NovelReadingSurface ──────────────────────────────────────────────────
 
   RenderBox? _boxFor(int paragraphIndex) {
     if (paragraphIndex < 0 || paragraphIndex >= _paragraphKeys.length) {
@@ -454,27 +289,39 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
   /// The line a reader is actually reading on — a quarter of the way down,
   /// not the top edge, where the paragraph is half clipped.
   double _readingLine() =>
-      _viewportTop() + MediaQuery.sizeOf(context).height * _readingLineFraction;
+      _viewportTop() + MediaQuery.sizeOf(context).height * widget.args.readingLineFraction;
 
-  /// Tell the reader, once and quietly, that the paragraph the bookmark named
-  /// no longer exists and they have been put on the last one that does.
-  ///
-  /// Never a failure: the chapter opened and is readable. What would be wrong
-  /// is landing somewhere else in silence, which reads as the app having lost
-  /// their place.
-  void _reportStaleAnchor(int requested, int available) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'This chapter changed — opened at paragraph $available '
-            'instead of $requested.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    });
+  @override
+  bool get atEnd {
+    if (!_scrollController.hasClients) return false;
+    final position = _scrollController.position;
+    return position.pixels >= position.maxScrollExtent - 8;
+  }
+
+  @override
+  double get maxExtent =>
+      _scrollController.hasClients ? _scrollController.position.maxScrollExtent : 0;
+
+  @override
+  void jumpEstimate(double fraction) {
+    if (!_scrollController.hasClients) return;
+    final max = _scrollController.position.maxScrollExtent;
+    _scrollController.jumpTo((max * fraction).clamp(0.0, max));
+  }
+
+  @override
+  bool landOn(int index, double fraction, {required bool toReadingLine}) {
+    if (!mounted || !_scrollController.hasClients) return true; // nothing to aim at
+    final box = _boxFor(index);
+    if (box == null) return false;
+    final position = _scrollController.position;
+    final anchorPoint =
+        box.localToGlobal(Offset.zero).dy + fraction * box.size.height;
+    final reference = toReadingLine ? _readingLine() : _viewportTop();
+    _scrollController.jumpTo(
+      (position.pixels + anchorPoint - reference).clamp(0.0, position.maxScrollExtent),
+    );
+    return true;
   }
 
   /// The exact reading position: which paragraph is under the reading line,
@@ -487,7 +334,8 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
   /// The fraction is of the paragraph's own height and is not pixels: the
   /// same paragraph is three lines on a tablet and nine on a phone, so a
   /// pixel offset would name a different sentence on each.
-  ({int index, double fraction})? _anchorAtReadingLine() {
+  @override
+  ({int index, double fraction})? anchorAtReadingLine() {
     if (!mounted || !_scrollController.hasClients) return null;
     final readingLine = _readingLine();
     final attached = <int>[];
@@ -508,42 +356,45 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
     return (index: index, fraction: fraction);
   }
 
+  /// Tell the reader, once and quietly, that the paragraph the bookmark named
+  /// no longer exists and they have been put on the last one that does.
+  ///
+  /// Never a failure: the chapter opened and is readable. What would be wrong
+  /// is landing somewhere else in silence, which reads as the app having lost
+  /// their place.
+  void _reportStaleAnchor() {
+    final requested = widget.args.initialParagraph;
+    final available = _chapter.paragraphs.length;
+    if (requested == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'This chapter changed — opened at paragraph $available '
+            'instead of $requested.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    });
+  }
+
   // ── Bookmark ─────────────────────────────────────────────────────────────
 
   /// Save the exact spot being read, in ONE action.
   ///
   /// Nothing is asked for — the paragraph, the point within it and the
-  /// chapter's paragraph count are all things this screen already knows. The
-  /// snippet is cut here, at capture time, and stored with the row: it is
-  /// what makes a prose bookmark recognisable, and deriving it later would
-  /// need the chapter's text, which is exactly what a phone with no signal
-  /// does not have.
+  /// chapter's paragraph count are all things the controller already knows.
   Future<void> _handleBookmark() async {
     if (_bookmarkPending) return;
-    final anchor = _anchorAtReadingLine();
-    if (anchor == null) return;
+    final percent = _controller.bookmarkPercent();
     setState(() => _bookmarkPending = true);
     try {
-      final chapter = widget.chapter;
-      final total = chapter.paragraphs.length;
-      final index = anchor.index + 1;
-      final (snippet, _) =
-          novelSnippetAt(chapter.paragraphs, index, anchor.fraction);
-      final saved = await ref.read(bookmarkOutboxControllerProvider).create(
-            id: (
-              sourceId: chapter.sourceId,
-              seriesKey: chapter.seriesKey,
-              chapterKey: chapter.chapterKey,
-            ),
-            media: BookmarkMedia.novel,
-            anchorIndex: index,
-            anchorFraction: anchor.fraction,
-            anchorTotal: total,
-            chapterNumber: chapter.chapterNumber,
-            snippet: snippet,
-          );
-      if (!mounted || saved == null || !context.mounted) return;
-      final percent = bookmarkPositionPercent(index, anchor.fraction, total);
+      final result = await _controller.bookmark();
+      if (!mounted || result != NovelBookmarkResult.saved || !context.mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -559,147 +410,7 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
     }
   }
 
-  // ── Progress ─────────────────────────────────────────────────────────────
-
-  void _onScroll() {
-    if (_pendingRestoreParagraph != null) return;
-    _scrolledToEnd = _atEnd();
-    _progressTimer ??= Timer(
-      const Duration(milliseconds: _progressSaveMs),
-      () {
-        _progressTimer = null;
-        _recordPosition();
-      },
-    );
-    _maybeScheduleAutoNext();
-  }
-
-  /// Which paragraph is under the reading line, and what that means for
-  /// progress.
-  ///
-  /// Only the paragraphs the list has actually built have offsets to measure,
-  /// which is exactly the handful on screen — so the sparse set is collected
-  /// here and [activeParagraphIndex] (a pure function, tested without a widget
-  /// tree) picks from it.
-  void _recordPosition() {
-    final anchor = _anchorAtReadingLine();
-    if (anchor == null) return;
-
-    final position = progressAtReadingLine(
-      anchor.index,
-      widget.chapter.paragraphs.length,
-      atEnd: _atEnd(),
-    );
-    if (position.bucket != _bucket.value) {
-      // No setState: the notifier repaints only the chrome's percent.
-      _bucket.value = position.bucket;
-    }
-    _push(position);
-  }
-
-  /// Hands [position] to the outbox unless it is no further than what was
-  /// already sent for this chapter.
-  void _push(NovelProgressPosition position) {
-    final push = nextProgressPush(position, _furthestSent);
-    if (push == null) return;
-    _furthestSent = push.bucket;
-    unawaited(_saveProgress(push));
-  }
-
-  /// Local-first, exactly like the manga reader: every save goes to the
-  /// on-device outbox and is flushed best-effort, so the reader never blocks
-  /// on — or loses a save to — a flaky connection. The bucket rides in
-  /// `last_page` and the bucket count in `page_count`, which is what lets the
-  /// server's furthest-wins merge, the library's "continue reading" and the
-  /// statistics service all work with no change at all.
-  ///
-  /// Only through the handles resolved in [build]: this runs on after the
-  /// reader has closed whenever it was a closing save.
-  Future<void> _saveProgress(NovelProgressPosition position) async {
-    final chapter = widget.chapter;
-    final downloadsStore = _downloadsStore;
-    final localProgress = _localProgress;
-    await _progressOutbox.save(
-          ProgressPush(
-            sourceId: chapter.sourceId,
-            seriesKey: chapter.seriesKey,
-            chapterKey: chapter.chapterKey,
-            chapterNumber: chapter.chapterNumber,
-            lastPage: position.bucket,
-            pageCount: position.buckets,
-            isCompleted: position.completed,
-            timeSpentSeconds: _clock.elapsed(DateTime.now()),
-          ),
-        );
-    if (position.completed) {
-      // Read-then-expire: starts the 48h phone-copy timer. A no-op when this
-      // chapter was never downloaded.
-      await downloadsStore?.markRead(
-            (
-              sourceId: chapter.sourceId,
-              seriesKey: chapter.seriesKey,
-              chapterKey: chapter.chapterKey,
-            ),
-          );
-    }
-    // Also into this phone's own store, as the manga reader does: the book
-    // page merges it with the server's rows, and the outbox may not have
-    // flushed by the time Back lands there — Continue must already know.
-    // Last, so the saves that matter are never behind this one.
-    await localProgress.record(
-          sourceId: chapter.sourceId,
-          seriesId: chapter.seriesKey,
-          chapterId: chapter.chapterKey,
-          page: position.bucket,
-          pageCount: position.buckets,
-        );
-  }
-
   // ── Seamless continuation ────────────────────────────────────────────────
-
-  /// The manga reader's mechanism, unchanged: at the end of the chapter, if
-  /// the user's auto-next preference is on and there is a next chapter, wait
-  /// [_autoNextChapterMs] and go. Once per chapter — [_autoNextTriggered]
-  /// makes a bounce at the bottom, or a second scroll event in the same
-  /// window, incapable of firing it twice.
-  void _maybeScheduleAutoNext() {
-    // A chapter being read aloud is not over when its last line reaches the
-    // top of the screen: follow-scroll gets there while there is still voice
-    // left, and advancing would cut the reader off mid-sentence. The stop
-    // tick calls back in through [_onSpeakingChanged].
-    //
-    // [NovelAudioFollower.voicing] as well as the range: audio the page
-    // cannot follow plays with nothing lit, and is just as unfinished.
-    if (_follower.range.value != null || _follower.voicing.value) {
-      _autoNextTimer?.cancel();
-      _autoNextTimer = null;
-      return;
-    }
-    final next = _nextKey;
-    if (!ref.read(readerDefaultsProvider).autoNextChapter ||
-        next == null ||
-        _autoNextTriggered ||
-        !_atEnd()) {
-      _autoNextTimer?.cancel();
-      _autoNextTimer = null;
-      return;
-    }
-    if (_autoNextTimer != null) return;
-    _autoNextTimer = Timer(
-      const Duration(milliseconds: _autoNextChapterMs),
-      () {
-        if (!mounted || _autoNextTriggered) return;
-        _autoNextTriggered = true;
-        _openNextChapter();
-      },
-    );
-  }
-
-  bool _atEnd() {
-    if (!_scrollController.hasClients) return false;
-    final position = _scrollController.position;
-    return position.pixels >= position.maxScrollExtent - 8;
-  }
 
   /// Continue into the next chapter, saying first that this one is finished.
   ///
@@ -707,15 +418,7 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
   /// and auto-next — and nothing else: Previous and a jump from Contents are
   /// not the reader finishing this chapter, so they use [_openChapter]
   /// directly and leave its progress as the scroll left it.
-  void _openNextChapter() {
-    final next = _nextKey;
-    if (next == null) return;
-    // The explicit save supersedes whatever the debounce was holding.
-    _progressTimer?.cancel();
-    _progressTimer = null;
-    _push(completedProgress(widget.chapter.paragraphs.length));
-    _openChapter(next);
-  }
+  void _openNextChapter() => _controller.next();
 
   void _openChapter(String chapterKey) {
     // `go`, not `push`: continuing a book replaces the chapter rather than
@@ -723,8 +426,8 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
     // instead of walking backwards through everything just read.
     context.go(
       RoutePaths.novelReader(
-        widget.chapter.sourceId,
-        widget.chapter.seriesKey,
+        _chapter.sourceId,
+        _chapter.seriesKey,
         chapterKey,
       ),
     );
@@ -841,7 +544,7 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
   /// listened to WITHOUT follow-along gets to continue: its range never
   /// moves, so [_onSpeakingChanged] never hears of it.
   void _onVoicingChanged() {
-    if (!_follower.voicing.value) _maybeScheduleAutoNext();
+    if (!_follower.voicing.value) _controller.maybeScheduleAutoNext();
   }
 
   /// The voice moved to another paragraph, or stopped.
@@ -852,7 +555,7 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
       // The voice stopped. [_maybeScheduleAutoNext] refuses to fire while it
       // is reading, so this is where a chapter finished by LISTENING rather
       // than by scrolling gets to continue.
-      _maybeScheduleAutoNext();
+      _controller.maybeScheduleAutoNext();
       return;
     }
     if (range.paragraph == _followedParagraph) return;
@@ -877,7 +580,7 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
   /// [_anchorAtReadingLine] measures against — so listening and reading agree
   /// about where "here" is, and a bookmark taken while listening round-trips.
   void _followScroll(int paragraph, {required bool starting}) {
-    if (_pendingRestoreParagraph != null) return;
+    if (_controller.restoring) return;
     if (!mounted || !_scrollController.hasClients) return;
     final position = _scrollController.position;
     // Never fight a finger, or our own in-flight animation.
@@ -892,12 +595,7 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
       // The restore machinery already knows how to reach an unbuilt paragraph:
       // jump to where it is estimated to be, let the list build, measure, and
       // land exactly. Reusing it beats a second, less-tested guess.
-      _restoreFraction = 0;
-      _restoreToReadingLine = true;
-      _pendingRestoreParagraph = paragraph;
-      _restoreFrames = 0;
-      _lastRestoreMaxExtent = -1;
-      _attemptRestore();
+      _controller.jumpToParagraph(paragraph);
       return;
     }
 
@@ -924,9 +622,7 @@ class _NovelReaderBodyState extends ConsumerState<_NovelReaderBody> {
   @override
   Widget build(BuildContext context) {
     final chapter = widget.chapter;
-    _progressOutbox = ref.read(progressOutboxControllerProvider);
-    _downloadsStore = ref.read(downloadsStoreProvider);
-    _localProgress = ref.read(sourceProgressProvider.notifier);
+    _controller.autoNext = ref.watch(readerDefaultsProvider).autoNextChapter;
     final surface = _surface(context);
     final prefsKey = novelSeriesPrefsKey(chapter.sourceId, chapter.seriesKey);
     final prefs = ref.watch(novelPreferencesControllerProvider(prefsKey));

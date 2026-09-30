@@ -25,7 +25,7 @@ void main() {
   test('no stored size opens at the system-scaled face default: 36 px at 2.0 in Newsreader, 34 in Archivo', () {
     expect(resolve(scale: 2).fontSize, 36);
     expect(resolve(book: {'face': 'archivo'}, scale: 2).fontSize, 34);
-    expect(resolve(scale: 1).fontSize, 18);
+    expect(resolve().fontSize, 18);
     expect(resolve(scale: 3).fontSize, 40);
     expect(resolve(scale: 0.5).fontSize, 14);
   });

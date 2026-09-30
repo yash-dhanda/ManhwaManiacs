@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/storage/json_record.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_palette.dart';
-import 'package:manhwamaniacs/core/storage/json_record.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
@@ -187,7 +187,7 @@ class NovelPreferencesController
         'measure': null,
         'paragraphSpacing': null,
         'letterSpacing': null,
-      }));
+      }),);
 
   /// One map for every series this persona has tuned. A corrupt blob resolves
   /// to an empty store rather than throwing: type settings are a convenience,

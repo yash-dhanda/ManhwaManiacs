@@ -136,7 +136,7 @@ void main() {
     final spaced = _paginate(ps, type: _type.copyWith(paragraphSpacing: 0.6));
     expect(spaced, isNotEmpty);
     final l = NovelParagraphLayout(text: ps[1], type: _type.copyWith(paragraphSpacing: 0.6), width: 320, ink: _ink, indent: true);
-    final plain = NovelParagraphLayout(text: ps[1], type: _type, width: 320, ink: _ink, indent: false);
+    final plain = NovelParagraphLayout(text: ps[1], type: _type, width: 320, ink: _ink);
     expect(l.lines.first.left, plain.lines.first.left, reason: 'no indent when spacing > 0');
     final indented = NovelParagraphLayout(text: ps[1], type: _type, width: 320, ink: _ink, indent: true);
     expect(indented.boxesFor(0, 1).first.left, closeTo(1.3 * 18, 1), reason: 'the first character starts 1.3em in');

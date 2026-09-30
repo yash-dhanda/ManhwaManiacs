@@ -189,7 +189,7 @@ class NovelParagraphLayout {
         baseline: l.baseline + b.origin.dy,
         left: metrics[i].left + b.origin.dx,
         right: metrics[i].left + metrics[i].width + b.origin.dx,
-      ));
+      ),);
     }
   }
 

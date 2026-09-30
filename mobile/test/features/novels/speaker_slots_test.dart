@@ -24,7 +24,7 @@ void main() {
       NovelSpeakerSpan(paragraph: 0, start: 0, end: 8, head: '"Hello,"', speaker: 'Alice'),
       NovelSpeakerSpan(paragraph: 1, start: 0, end: 10, head: '"Oh dear!"', speaker: 'Rabbit'),
       NovelSpeakerSpan(paragraph: 1, start: 11, end: 12, head: '', speaker: null),
-    ]);
+    ],);
     final runs = speakerRuns(a, paragraphs);
     expect(runs[0]!.single.slot, 1);
     expect(runs[1]!.single.slot, 2);
@@ -42,7 +42,7 @@ void main() {
   });
 
   test('a stale fingerprint or unattributed chapter returns no tints', () {
-    final spans = const [NovelSpeakerSpan(paragraph: 0, start: 0, end: 8, head: '"Hello,"', speaker: 'Alice')];
+    const spans = [NovelSpeakerSpan(paragraph: 0, start: 0, end: 8, head: '"Hello,"', speaker: 'Alice')];
     expect(speakerRuns(attr(paragraphs, cast: ['Alice'], spans: spans, fp: 'nope'), paragraphs), isEmpty);
     expect(speakerRuns(attr(paragraphs, cast: ['Alice'], spans: spans, attributed: false), paragraphs), isEmpty);
   });
