@@ -1085,7 +1085,11 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       final lastFlat = feed.startOfChapter(c) + chapter.pages.length;
       final end =
           metrics.offsetToPage(lastFlat) + metrics.extentAt(lastFlat - 1);
-      if (end - scrollOffset <= viewport * 0.6) _emitCompleted(chapter);
+      // The very end of the strip counts too: a chapter with no footer below it can never lift
+      // its last page past the line, however far the reader scrolls.
+      final atEnd = c == feed.chapters.length - 1 &&
+          isAtScrollEnd(scrollOffset: scrollOffset, maxScroll: _scrollController.position.maxScrollExtent);
+      if (end - scrollOffset <= viewport * 0.6 || atEnd) _emitCompleted(chapter);
     }
   }
 
