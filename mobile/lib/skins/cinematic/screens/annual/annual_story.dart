@@ -192,6 +192,9 @@ class _AnnualStoryState extends ConsumerState<AnnualStory>
         autofocus: true,
         child: RawGestureDetector(
           behavior: HitTestBehavior.opaque,
+          // The page's own Semantics node carries the custom actions (Next, Previous, Pause); the
+          // gesture layer would add a tappable node with no label.
+          excludeFromSemantics: true,
           gestures: {
             TapGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(

@@ -87,6 +87,8 @@ class _YearHeatmapState extends State<YearHeatmap> {
             scrollDirection: Axis.horizontal,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
+              // The chart's text summary and its day list are the accessible route; a tap surface with no label is not.
+              excludeFromSemantics: true,
               onTapUp: (d) {
                 final c = (d.localPosition.dx / (_kCell + _kGap)).floor();
                 final r =

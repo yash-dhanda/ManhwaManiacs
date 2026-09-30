@@ -87,6 +87,8 @@ class ChaptersPerDay extends StatelessWidget {
                   minHit: cineHitMin(context),);
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
+                // The chart's text summary and its day list are the accessible route; a tap surface with no label is not.
+                excludeFromSemantics: true,
                 onTapUp: (d) {
                   final i = nearestBar(
                       d.localPosition.dx - _kLeft, plotW, daily.length,);
