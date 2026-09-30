@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dar
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_zoom.dart';
+import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart' show locateGlobalPage, chapterStarts, readAllFlag;
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
@@ -27,13 +28,17 @@ import 'package:manhwamaniacs/features/reader/engine/reader_surface_slots.dart';
 import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/engine/zoom_math.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_feed.dart' show kChapterSeamExtent;
 import 'package:manhwamaniacs/features/reader/models/reader_prefs.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/auto_scroll_speed.dart';
+import 'package:manhwamaniacs/features/reader/utils/read_all_feed.dart' show isFailedChapter;
+import 'package:manhwamaniacs/features/reader/utils/reader_feed_factory.dart' show readAllControllerProvider;
 import 'package:manhwamaniacs/features/reader/utils/reader_prefs_migration.dart' show LegacyReaderKeys;
 import 'package:manhwamaniacs/features/reader/utils/time_left.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -67,6 +72,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/ocr_overlay.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/page_actions_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/page_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/paged_rules.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/read_all_divider.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_chrome.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_entry.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_gestures.dart';
@@ -98,9 +104,12 @@ final pendingChapterCaptionProvider = StateProvider<String?>((ref) => null, name
 /// callbacks) and renders the running head, the folio bar with the ruler, the strip's bands and
 /// credits, the Contents, the gestures and the keys.
 class CineMangaReader extends ConsumerStatefulWidget {
-  const CineMangaReader({super.key, required this.body});
+  const CineMangaReader({super.key, required this.body, this.readAll = false});
 
   final ReaderFrameBody body;
+
+  /// The read-all route's reader (ScreenId `readAll`): one strip across the series, no layouts.
+  final bool readAll;
 
   @override
   ConsumerState<CineMangaReader> createState() => _CineMangaReaderState();
@@ -253,8 +262,10 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   void _onEngine() {
     final s = _engine.value;
     if (s.chapterId.isNotEmpty && s.chapterId != _lastChapterId) {
+      final crossed = _lastChapterId != null && _isReadAll;
       _lastChapterId = s.chapterId;
       _completedOpen = false;
+      if (crossed) cineFeedback(context, HapticEvent.scrubBoundary, sound: SoundEvent.scrubBoundary);
       _announce(s);
     }
     if (s.chromeVisible != _lastChrome) {
@@ -397,6 +408,21 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     context.go(_location(chapterKey, page: page), extra: <String, String>{'entry': ReaderEntry.dip.name});
   }
 
+  /// A chapter picked in Contents: in read-all it scrolls to it when it is loaded (no Dip), else
+  /// the strip restarts there; elsewhere it opens by Dip.
+  void _pickChapter(String chapterKey) {
+    if (!_isReadAll) {
+      _goToChapter(chapterKey);
+      return;
+    }
+    final i = _body.feed.indexOfChapter(chapterKey);
+    if (i >= 0) {
+      _engine.seekToChapter(i);
+    } else {
+      context.go(ReadAllTarget(_id.sourceId, _id.seriesKey, from: chapterKey).location, extra: <String, String>{'entry': ReaderEntry.dip.name});
+    }
+  }
+
   void _leave() => leaveReaderByDip(context, sourceId: _id.sourceId, seriesKey: _id.seriesKey);
 
   void _openSeries() => _body.onOpenSeries();
@@ -435,7 +461,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
         _ => ReaderLayout.strip,
       };
 
-  bool get _isReadAll => false;
+  bool get _isReadAll => widget.readAll;
 
   bool get _locked => _engine.value.locked;
 
@@ -726,6 +752,52 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     );
   }
 
+  /// The per-page overlay slot: a failed read-all chapter's notice, else the OCR overlay.
+  Widget _overlayFor(BuildContext context, int page, String chapterKey, Size box) {
+    final chapter = _chapterById(chapterKey);
+    if (_isReadAll && chapter != null && chapter.id == chapterKey && isFailedChapter(chapter)) {
+      final series = ref.read(readerSeriesProvider(_seriesKey));
+      final n = series?.chapterOf(chapterKey)?.number;
+      return ColoredBox(
+        color: context.cine.colorPaper0,
+        child: Center(
+          child: NextFailedNotice(
+            label: 'Chapter ${chapterNumberText(n)}',
+            onRetry: () => unawaited(ref.read(readAllControllerProvider)?.retry(chapterKey) ?? Future<void>.value()),
+            onOpen: () => _goToChapter(chapterKey),
+          ),
+        ),
+      );
+    }
+    return OcrPageOverlay(controller: _ocr, sourceId: _id.sourceId, seriesKey: _id.seriesKey, chapterKey: chapterKey, page: page, size: box);
+  }
+
+  /// The ruler's position in the loaded read-all window: the page counted from the start of the
+  /// first loaded chapter, and the pages loaded in all.
+  ({int page, int count})? _readAllGlobal(ReaderEngineState s) {
+    if (s.readAll == null) return null;
+    final counts = [for (final c in _body.feed.chapters) c.pages.length];
+    if (counts.isEmpty || s.chapterIndex >= counts.length) return null;
+    final starts = chapterStarts(counts);
+    return (page: starts[s.chapterIndex] + s.page, count: counts.fold<int>(0, (a, b) => a + b));
+  }
+
+  String _readAllFlag(int global) {
+    final counts = [for (final c in _body.feed.chapters) c.pages.length];
+    final loc = locateGlobalPage(counts, global - 1);
+    final id = _body.feed.chapters[loc.chapter].id;
+    final n = ref.read(readerSeriesProvider(_seriesKey))?.chapterOf(id)?.number;
+    return readAllFlag(chapterFolio(n), loc.page);
+  }
+
+  /// Dragging the read-all ruler: the chapter under the finger, then the page in it.
+  void _readAllSeek(int global) {
+    final counts = [for (final c in _body.feed.chapters) c.pages.length];
+    final loc = locateGlobalPage(counts, global - 1);
+    if (loc.chapter != _engine.value.chapterIndex) _engine.seekToChapter(loc.chapter);
+    _engine.jumpToPage(loc.page);
+  }
+
   void _retryPage(ReaderChapter chapter, int n) {
     final p = chapter.pages[n - 1];
     if (p.imageUrl.isNotEmpty) unawaited(CachedNetworkImage.evictFromCache(p.imageUrl));
@@ -787,7 +859,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
             activeProgress: active == null || active.progress.pageTotal == 0 ? 0 : active.progress.pagesDone / active.progress.pageTotal,
             onPick: (chapter) {
               onPicked();
-              if (chapter.id != current) _goToChapter(chapter.id);
+              if (chapter.id != current) _pickChapter(chapter.id);
             },
             onMarkTap: (chapter, mark) {},
           );
@@ -831,6 +903,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     }
     _syncSwipeable(prefs);
 
+    final readAllKeys = _isReadAll ? ref.watch(seriesReadingOrderProvider((sourceId: _id.sourceId, seriesId: _id.seriesKey))).valueOrNull : null;
     final layout = _isReadAll ? ReaderLayout.strip : _layoutOf(prefs);
     if (layout != _lastLayout) {
       // Switching layout keeps the page: the view being replaced still holds the state.
@@ -876,8 +949,9 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       pageLayerBuilder: (context, pages) => paged ? readerWarmth(context, pages, prefs.warmthPct) : _pageLayer(context, pages, prefs),
       pageSemantics: accessible ? _pageSemantics : (context, chapter, n, page) => Semantics(label: 'Page $n of ${chapter.pages.length}', child: page),
       slotSignature: (series?.chapters.length, prefs.autoNextChapter, _heroFor, Object.hashAll(_retryEpoch.values)),
-      pageOverlayBuilder: (context, page, chapterKey, box) =>
-          OcrPageOverlay(controller: _ocr, sourceId: _id.sourceId, seriesKey: _id.seriesKey, chapterKey: chapterKey, page: page, size: box),
+      seamExtent: _isReadAll ? ReadAllDivider.extent : kChapterSeamExtent,
+      readAllKeys: readAllKeys,
+      pageOverlayBuilder: _overlayFor,
       onPageLongPress: (chapterId, page) {
         if (_locked) return;
         cineFeedback(context, HapticEvent.longpressOpen);
@@ -1023,7 +1097,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       progress: progress,
       downloads: downloads,
       onPick: (chapter) {
-        if (chapter.id != current) _goToChapter(chapter.id);
+        if (chapter.id != current) _pickChapter(chapter.id);
       },
       onMarkTap: (chapter, mark) {},
     );
@@ -1115,6 +1189,9 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     final entering = toCh == null
         ? (to == null ? '' : to.toUpperCase())
         : (toCh.title.toLowerCase().startsWith('chapter') ? chapterFolio(toCh.number) : '${chapterFolio(toCh.number)} · ${toCh.title.toUpperCase()}');
+    if (_isReadAll && kind == BandKind.seam) {
+      return ReadAllDivider(from: chapterNumberText(fromCh?.number), to: chapterNumberText(toCh?.number));
+    }
     return cineBand(
       context,
       kind,
@@ -1218,6 +1295,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     final bookmarked = s.bookmarks.any((a) => a.page == s.page);
     final minutes = minutesLeft(page: s.page, pageCount: s.pageCount, pagesPerMinute: _pace.pagesPerMinute);
     final showChrome = s.chromeVisible && !s.locked;
+    final raGlobal = _readAllGlobal(s);
     final trailing = <Widget>[
       ChapterDownloadControl(sourceId: _id.sourceId, seriesKey: _id.seriesKey, chapterKey: s.chapterId.isEmpty ? _id.chapterKey : s.chapterId),
       CineIconButton(
@@ -1258,7 +1336,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
                     fromTop: true,
                     child: ReaderRunningHead(
                       seriesTitle: series?.title ?? _body.feed.chapters.firstOrNull?.seriesTitle ?? '',
-                      folio: chapterFolio(chapter?.number),
+                      folio: s.readAll == null ? chapterFolio(chapter?.number) : '${chapterFolio(chapter?.number)} · ${s.readAll!.index} OF ${s.readAll!.total}',
                       loading: loadingChapter,
                       offlineEdition: offline,
                       onBack: _leave,
@@ -1289,6 +1367,11 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
                       counterKey: _counter,
                       autoScrolling: s.autoScrolling,
                       showAutoScroll: !paged,
+                      rulerPage: raGlobal?.page,
+                      rulerCount: raGlobal?.count,
+                      rulerBoundaries: s.readAll?.boundaries ?? const [],
+                      rulerFlag: raGlobal == null ? null : _readAllFlag,
+                      onRulerSeek: raGlobal == null ? null : _readAllSeek,
                       speedLabel: '${speedX.toStringAsFixed(1)}×',
                       onToggleAutoScroll: _toggleAutoScroll,
                       minutesLeft: minutes,

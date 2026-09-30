@@ -34,6 +34,11 @@ class ReaderFolioBar extends StatelessWidget {
     this.minutesLeft,
     this.showAutoScroll = true,
     this.returnFocus,
+    this.rulerPage,
+    this.rulerCount,
+    this.rulerBoundaries = const [],
+    this.rulerFlag,
+    this.onRulerSeek,
   });
 
   final int page, pageCount;
@@ -50,6 +55,14 @@ class ReaderFolioBar extends StatelessWidget {
   final VoidCallback onToggleAutoScroll;
   final int? minutesLeft;
   final FocusNode? returnFocus;
+
+  /// Read-all: the ruler spans the chapters loaded, not the chapter being read; [rulerPage] and
+  /// [rulerCount] are in that window, [rulerBoundaries] its chapter starts and [rulerFlag] the
+  /// dragging flag (`CH 143 · p. 7`). The counter under it stays chapter-local.
+  final int? rulerPage, rulerCount;
+  final List<int> rulerBoundaries;
+  final String Function(int page)? rulerFlag;
+  final ValueChanged<int>? onRulerSeek;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +92,15 @@ class ReaderFolioBar extends StatelessWidget {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: ReaderRuler(page: page, pageCount: pageCount, rtl: rtl, bookmarkPages: bookmarkPages, onSeek: onSeek),
+                        child: ReaderRuler(
+                          page: rulerPage ?? page,
+                          pageCount: rulerCount ?? pageCount,
+                          rtl: rtl,
+                          bookmarkPages: rulerCount == null ? bookmarkPages : const [],
+                          onSeek: onRulerSeek ?? onSeek,
+                          boundaries: rulerBoundaries,
+                          flagText: rulerFlag,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),

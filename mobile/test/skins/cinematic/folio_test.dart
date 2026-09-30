@@ -13,6 +13,7 @@ void main() {
       ('12 MIN', null, '12 minutes'),
       ('18+', null, 'Mature, 18 plus'),
       ('CH 12 OF 40', null, 'Chapter 12 of 40'),
+      ('CH 142 · 12 OF 201', null, 'Chapter 12 of 201'),
       ('NEXT · CH 143', null, 'Next, chapter 143'),
       ('3 NEW', null, '3 new chapters'),
       ('1 NEW', null, '1 new chapter'),

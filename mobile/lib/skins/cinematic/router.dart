@@ -25,7 +25,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.annual,
   ScreenId.circle,
   ScreenId.circleMember,
-  ScreenId.readAll,
   ScreenId.novel,
 };
 

@@ -19,11 +19,20 @@ class ReaderRuler extends StatefulWidget {
     required this.onSeek,
     this.bookmarkPages = const [],
     this.rtl = false,
+    this.boundaries = const [],
+    this.flagText,
   });
 
   final int page, pageCount;
   final List<int> bookmarkPages;
   final bool rtl;
+
+  /// Read-all: the 0-based page offsets at which chapters after the first begin, drawn as 2 px
+  /// gaps in the track; dragging over one fires `scrub.boundary`.
+  final List<int> boundaries;
+
+  /// The folio flag while dragging (`CH 143 · p. 7` in read-all); `p. 18` by default.
+  final String Function(int page)? flagText;
 
   /// Called live while dragging and on a tap.
   final ValueChanged<int> onSeek;
@@ -47,11 +56,25 @@ class _ReaderRulerState extends State<ReaderRuler> with SingleTickerProviderStat
     super.dispose();
   }
 
+  int _segment(int page) {
+    var n = 0;
+    for (final b in widget.boundaries) {
+      if (page - 1 >= b) n++;
+    }
+    return n;
+  }
+
   void _seek(double x) {
     final page = rulerPage(x, widget.pageCount, _width, rtl: widget.rtl);
     setState(() {
       _dragX = x.clamp(0.0, _width);
-      if (page != _dragPage && _dragPage != null) cineFeedback(context, HapticEvent.scrubTick);
+      if (page != _dragPage && _dragPage != null) {
+        if (_segment(page) != _segment(_dragPage!)) {
+          cineFeedback(context, HapticEvent.scrubBoundary, sound: SoundEvent.scrubBoundary);
+        } else {
+          cineFeedback(context, HapticEvent.scrubTick);
+        }
+      }
       _dragPage = page;
     });
     widget.onSeek(page);
@@ -111,6 +134,7 @@ class _ReaderRulerState extends State<ReaderRuler> with SingleTickerProviderStat
                       x: x,
                       dragging: _dragging,
                       ticks: rulerTickXs(widget.pageCount, _width, rtl: widget.rtl),
+                      gaps: [for (final b in widget.boundaries) rulerX(b + 1, widget.pageCount, _width, rtl: widget.rtl)],
                       bookmarks: rulerBookmarkXs(widget.bookmarkPages, widget.pageCount, _width, rtl: widget.rtl),
                       rtl: widget.rtl,
                       enabled: _enabled,
@@ -124,7 +148,7 @@ class _ReaderRulerState extends State<ReaderRuler> with SingleTickerProviderStat
                             alignment: Alignment.topLeft,
                             child: Transform.translate(
                               offset: Offset((x - 22).clamp(0.0, (_width - 44).clamp(0.0, double.infinity)), -34),
-                              child: _Flag(page: _dragPage!),
+                              child: _Flag(text: widget.flagText?.call(_dragPage!) ?? 'p. ${_dragPage!}'),
                             ),
                           )
                         : null,
@@ -141,8 +165,8 @@ class _ReaderRulerState extends State<ReaderRuler> with SingleTickerProviderStat
 
 /// The `p. 18` flag above the thumb: a `#000000` box with a 1 px `ink.100` border.
 class _Flag extends StatelessWidget {
-  const _Flag({required this.page});
-  final int page;
+  const _Flag({required this.text});
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +174,7 @@ class _Flag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(color: const Color(0xFF000000), border: Border.all(color: c.colorInk100)),
-      child: CineRoleText('p. $page', c.typeFolio, color: c.colorInk100),
+      child: CineRoleText(text, c.typeFolio, color: c.colorInk100),
     );
   }
 }
@@ -160,6 +184,7 @@ class _RulerPainter extends CustomPainter {
     required this.x,
     required this.dragging,
     required this.ticks,
+    this.gaps = const [],
     required this.bookmarks,
     required this.rtl,
     required this.enabled,
@@ -171,16 +196,26 @@ class _RulerPainter extends CustomPainter {
 
   final double x;
   final bool dragging, rtl, enabled;
-  final List<double> ticks, bookmarks;
+  final List<double> ticks, bookmarks, gaps;
   final Color track, played, tick, spot;
 
   @override
   void paint(Canvas canvas, Size size) {
     final y = size.height / 2;
-    canvas.drawRect(Rect.fromLTWH(0, y - 1, size.width, 2), Paint()..color = enabled ? track : track.withValues(alpha: 0.5));
-    if (!enabled) return;
+    final trackPaint = Paint()..color = enabled ? track : track.withValues(alpha: 0.5);
+    // Chapter boundaries (read-all) are 2 px gaps: the track is drawn in segments between them.
+    final cuts = [0.0, ...(List.of(gaps)..sort()), size.width];
     final from = rtl ? x : 0.0, to = rtl ? size.width : x;
-    canvas.drawRect(Rect.fromLTRB(from, y - 1, to, y + 1), Paint()..color = played);
+    final playedPaint = Paint()..color = played;
+    for (var i = 0; i < cuts.length - 1; i++) {
+      final a = cuts[i] + (i == 0 ? 0 : 1), b = cuts[i + 1] - (i == cuts.length - 2 ? 0 : 1);
+      if (b <= a) continue;
+      canvas.drawRect(Rect.fromLTRB(a, y - 1, b, y + 1), trackPaint);
+      if (!enabled) continue;
+      final pa = a > from ? a : from, pb = b < to ? b : to;
+      if (pb > pa) canvas.drawRect(Rect.fromLTRB(pa, y - 1, pb, y + 1), playedPaint);
+    }
+    if (!enabled) return;
     final tickPaint = Paint()..color = tick;
     for (final tx in ticks) {
       canvas.drawRect(Rect.fromLTWH((tx - 0.5).clamp(0.0, size.width - 1), y + 3, 1, 4), tickPaint);
@@ -200,6 +235,7 @@ class _RulerPainter extends CustomPainter {
       o.enabled != enabled ||
       o.rtl != rtl ||
       o.ticks.length != ticks.length ||
+      o.gaps.length != gaps.length ||
       o.bookmarks.length != bookmarks.length ||
       o.track != track;
 }

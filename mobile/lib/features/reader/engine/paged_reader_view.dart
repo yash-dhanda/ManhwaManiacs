@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart' show SchedulerBinding, SchedulerPhase;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/core/platform/native_bridge.dart';
@@ -348,6 +349,34 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     unawaited(save(_chapter, page));
   }
 
+  /// A page's real size, learned when it decodes (a manifest carries none): a wide page changes
+  /// the spreads of the double layout, and the reader stays on the page being read.
+  void _learn(int page, int w, int h) {
+    if (!mounted || _learned.containsKey(page)) return;
+    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      // Already decoded pictures answer from inside a build.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _learn(page, w, h));
+      return;
+    }
+    setState(() => _learned[page] = Size(w.toDouble(), h.toDouble()));
+    if (!_double) return;
+    final next = _computeViews();
+    if (next.length == _views.length && _sameViews(next, _views)) return;
+    final lead = _leadPage;
+    final onCredits = _view >= _views.length;
+    _views = next;
+    _view = onCredits ? _views.length : _viewIndexOfPage(lead);
+    if (_pc.hasClients) _pc.jumpToPage(_view);
+    _publish();
+  }
+
+  bool _sameViews(List<PageView1> a, List<PageView1> b) {
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].length != b[i].length) return false;
+    }
+    return true;
+  }
+
   void _prefetch() {
     if (!mounted) return;
     final from = _view.clamp(0, math.max(0, _views.length - 1)).toInt();
@@ -364,7 +393,24 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
           null,
           page.localFile != null ? FileImage(page.localFile!) as ImageProvider : CachedNetworkImageProvider(page.imageUrl, headers: headers),
         );
-        precacheImage(provider, context, onError: (_, __) {});
+        final unknown = page.width == null && !_learned.containsKey(n);
+        if (!unknown) {
+          precacheImage(provider, context, onError: (_, __) {});
+          continue;
+        }
+        // Resolving the picture warms the cache the same way, and says how big it is.
+        final stream = provider.resolve(createLocalImageConfiguration(context));
+        late final ImageStreamListener listener;
+        listener = ImageStreamListener(
+          (info, _) {
+            final w = info.image.width, h = info.image.height;
+            info.dispose();
+            stream.removeListener(listener);
+            _learn(n, w, h);
+          },
+          onError: (_, __) => stream.removeListener(listener),
+        );
+        stream.addListener(listener);
       }
     }
   }
@@ -832,20 +878,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
       priority: (viewIndex - _view).abs() <= 1,
       declaredWidth: p.width,
       declaredHeight: p.height,
-      onIntrinsicSize: _learned.containsKey(p.number) || p.width != null
-          ? null
-          : (w, h) {
-              if (!mounted) return;
-              setState(() => _learned[p.number] = Size(w.toDouble(), h.toDouble()));
-              final was = _views.length;
-              final next = _computeViews();
-              if (next.length != was) {
-                final lead = _leadPage;
-                _views = next;
-                _view = _viewIndexOfPage(lead);
-                _pc.jumpToPage(_view);
-              }
-            },
+      onIntrinsicSize: _learned.containsKey(p.number) || p.width != null ? null : (w, h) => _learn(p.number, w, h),
     );
     final Widget image = heroTag == null ? imageCore : Hero(tag: heroTag, child: imageCore);
     final overlay = options.pageOverlayBuilder;

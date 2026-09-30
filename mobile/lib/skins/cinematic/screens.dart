@@ -23,6 +23,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_manage_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/read_all_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/recap/recap_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_screen.dart';
@@ -81,6 +82,14 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
         followedId: int.tryParse(state.pathParameters['followedId'] ?? '') ?? -1,
       ),
   ScreenId.reader: (context, state) => _readerFor(state),
+  ScreenId.readAll: (context, state) => ReadAllScreen(
+        key: ValueKey<String>(state.uri.toString()),
+        sourceId: state.pathParameters['sourceId']!,
+        seriesKey: state.pathParameters['seriesKey']!,
+        from: state.uri.queryParameters['from'],
+        page: int.tryParse(state.uri.queryParameters['page'] ?? '') ?? 1,
+        at: double.tryParse(state.uri.queryParameters['at'] ?? ''),
+      ),
   ScreenId.picks: (context, state) => PicksScreen(focusAsk: state.uri.queryParameters['ask'] == '1'),
   ScreenId.recap: (context, state) => RecapScreen(
         key: ValueKey('${state.pathParameters['sourceId']}/${state.pathParameters['seriesKey']}/${state.uri.queryParameters['to']}'),
