@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
@@ -24,6 +26,12 @@ class ProgressOutboxController {
   ProgressOutboxController(this.ref);
 
   final Ref ref;
+
+  final _notAdvanced = StreamController<({String sourceId, String seriesKey})>.broadcast();
+
+  /// Series whose rows the server accepted without advancing (it already held a later position:
+  /// another device is further on). The reader fetches the server row and offers the jump.
+  Stream<({String sourceId, String seriesKey})> get notAdvanced => _notAdvanced.stream;
 
   /// Stands for "the container is gone". Not `null`, which is a real scope
   /// (signed out), and not any scope id, so a teardown mid-drain always reads
@@ -185,6 +193,12 @@ class ProgressOutboxController {
         await store.clearProgressOutbox([
           for (final group in chunk) ...group.outboxIds,
         ]);
+        final answer = result.value;
+        if (answer.advanced < answer.saved) {
+          for (final group in chunk) {
+            _notAdvanced.add((sourceId: group.push.sourceId, seriesKey: group.push.seriesKey));
+          }
+        }
       }
       _holdFlushUntil = null;
     } catch (_) {

@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_controller.dart';
@@ -359,8 +360,12 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
       );
       _numbers[chapterKey] = resolved.chapterNumber;
       return resolved.chapter;
-    } catch (_) {
+    } catch (e) {
       // A seam that cannot be crossed leaves the edge prompt as the way over.
+      final wait = rateLimitWait(e);
+      if (wait != null && mounted) {
+        ref.read(readerRateLimitedUntilProvider.notifier).state = DateTime.now().add(wait);
+      }
       return null;
     }
   }

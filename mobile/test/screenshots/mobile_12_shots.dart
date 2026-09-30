@@ -13,8 +13,9 @@ import 'support/skin_shots.dart';
 void mobile12Shots() {
   Future<void> addPages(WidgetTester tester, {String chapter = 'c2', int pages = 6}) async {
     final png = await tester.runAsync(() async => {
-          for (var n = 1; n <= pages; n++)
-            '/reader/page/$chapter-$n/image': await ShotCoverArt(title: 'Tower of Dawn', seed: n).toPng(width: 400, height: 1200),
+          for (final c in ['c1', 'c2', 'c3'])
+            for (var n = 1; n <= pages; n++)
+              '/reader/page/$c-$n/image': await ShotCoverArt(title: 'Tower of Dawn', seed: n + (c == chapter ? 0 : 3)).toPng(width: 400, height: 1200),
         });
     addShotCovers(png!);
   }
@@ -36,7 +37,7 @@ void mobile12Shots() {
       if (!on) continue;
       await addPages(tester);
       final rig = await pumpReader(tester, wide: wide, reduced: reduced, prefsValues: prefs);
-      await pumpUntilCoversLoad(tester, rounds: 4);
+      await pumpUntilCoversLoad(tester, rounds: 12);
       await settleReader(tester, ms: 800);
       if (act != null) await act(tester, rig);
       await captureSeriesShot(tester, name, size);

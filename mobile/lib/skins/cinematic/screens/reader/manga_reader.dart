@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
@@ -22,8 +23,10 @@ import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/engine/zoom_math.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_prefs.dart';
+import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/auto_scroll_speed.dart';
 import 'package:manhwamaniacs/features/reader/utils/time_left.dart';
@@ -31,6 +34,7 @@ import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
@@ -111,6 +115,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   bool _lastAuto = false;
   ({ReaderNextState next, bool hasNext, int loaded}) _footerKey = (next: ReaderNextState.none, hasNext: false, loaded: 0);
   FurtherElsewhere? _shownFurther;
+  StreamSubscription<({String sourceId, String seriesKey})>? _progressSub;
   ReaderSystemUi? _appliedUi;
   String? _caption;
   bool _ratingShown = false;
@@ -146,6 +151,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
       } catch (_) {}
     });
     _engine.addListener(_onEngine);
+    _progressSub = ref.read(progressOutboxControllerProvider).notAdvanced.listen((k) => unawaited(_checkFurther(k)));
     _engine.chapterCompleted.listen(_onCompleted);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -180,6 +186,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
   void dispose() {
     _chipTimer?.cancel();
     _retryTimer?.cancel();
+    unawaited(_progressSub?.cancel());
     _brightnessHud.dispose();
     _speedHud.dispose();
     _swipeDx.dispose();
@@ -250,7 +257,9 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     _retryTimer?.cancel();
     if (s.nextState == ReaderNextState.failed) {
       const backoff = [2, 4, 8, 16, 30];
-      final wait = backoff[math.min(_retryStep, backoff.length - 1)];
+      var wait = backoff[math.min(_retryStep, backoff.length - 1)];
+      final limited = ref.read(readerRateLimitedUntilProvider)?.difference(DateTime.now()).inSeconds;
+      if (limited != null && limited > wait) wait = limited + 1;
       _retryStep++;
       _retryTimer = Timer(Duration(seconds: wait), () {
         if (mounted) unawaited(_body.onReachedFeedEnd?.call());
@@ -285,6 +294,24 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> {
     _chipTimer = Timer(context.cine.durHoldChip, () {
       if (mounted) setState(() => _chipVisible = false);
     });
+  }
+
+  /// The outbox says the server did not advance for this series: read its rows and, when one is
+  /// past the chapter being read, hand it to the engine (which raises `furtherElsewhere`).
+  Future<void> _checkFurther(({String sourceId, String seriesKey}) k) async {
+    if (k.sourceId != _id.sourceId || k.seriesKey != _id.seriesKey) return;
+    final rows = await ref.read(readerRepositoryProvider).seriesProgress(sourceId: k.sourceId, seriesKey: k.seriesKey);
+    if (!mounted || rows.isErr) return;
+    final s = _engine.value;
+    final here = ref.read(readerSeriesProvider(_seriesKey))?.chapterOf(s.chapterId)?.number;
+    ReadingProgress? far;
+    for (final r in rows.value) {
+      if ((r.chapterNumber ?? -1) > (far?.chapterNumber ?? -1)) far = r;
+    }
+    if (far == null || far.chapterKey == s.chapterId) return;
+    final ahead = (far.chapterNumber ?? -1) > (here ?? -1);
+    if (!ahead) return;
+    _engine.reportServerProgress(chapterKey: far.chapterKey, chapterNumber: far.chapterNumber, lastPage: far.lastPage, advanced: false);
   }
 
   void _offerJump(FurtherElsewhere f) {

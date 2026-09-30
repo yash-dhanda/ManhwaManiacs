@@ -23,6 +23,7 @@ import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_filter_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/auto_scroll_speed.dart';
 import 'package:manhwamaniacs/features/reader/utils/page_extents.dart';
@@ -2271,8 +2272,12 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     final feed = widget.feed;
     if (feed.isEmpty) return const SizedBox.shrink();
     final chapter = feed.chapters.last;
+    final limitedUntil = ref.watch(readerRateLimitedUntilProvider);
+    final limitedFor = limitedUntil?.difference(DateTime.now());
+    final rateLimited = limitedFor != null && limitedFor > Duration.zero;
     final band = switch (_nextState()) {
       ReaderNextState.loading => BandKind.nextLoading,
+      ReaderNextState.failed when rateLimited => BandKind.rateLimited,
       ReaderNextState.failed => BandKind.nextFailed,
       ReaderNextState.none when options.offline => BandKind.offlineEnd,
       _ => null,
@@ -2288,7 +2293,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
             options.creditsBuilder!(
                 context, chapter, chapter.nextChapterId, options.creditsMode,),
           if (band != null && options.bandBuilder != null)
-            options.bandBuilder!(context, band, from: chapter.title),
+            options.bandBuilder!(context, band, from: chapter.title, retryIn: band == BandKind.rateLimited ? limitedFor : null),
         ],
       ),
     );
