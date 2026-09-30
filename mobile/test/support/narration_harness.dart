@@ -22,9 +22,9 @@ import 'test_overrides.dart';
 Map<String, dynamic> listenFixture(String name) =>
     jsonDecode(File('test/fixtures/listen/$name.json').readAsStringSync()) as Map<String, dynamic>;
 
-NovelAudio listenAudio({bool stale = false}) => NovelAudio.fromJson(listenFixture(stale ? 'audio-stale' : 'audio'));
+NovelAudio listenAudio({bool stale = false}) => NovelAudio.fromJson(listenFixture(stale ? 'unit-audio-stale' : 'unit-audio'));
 
-List<String> listenParagraphs() => (listenFixture('chapter')['paragraphs'] as List).cast<String>();
+List<String> listenParagraphs() => (listenFixture('unit-chapter')['paragraphs'] as List).cast<String>();
 
 NarrationTarget listenTarget({String chapter = 'c12', bool stale = false, String? file}) => NarrationTarget(
       key: (sourceId: 'src', seriesKey: 'book', chapterKey: chapter),
