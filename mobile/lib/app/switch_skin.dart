@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/app_restart.dart';
 import 'package:manhwamaniacs/app/skin_boot.dart';
+import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/profiles/providers/skin_outbox.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -71,7 +72,12 @@ Future<void> switchSkin({
   await prefs.setString(kSkinReturnKey, currentLocation);
   if (undoable && from != null) await prefs.setString(kSkinFromKey, from.name);
   if (carrySession) await prefs.setString(kSkinSessionKey, '1');
-  await (prepare ?? skinFor(to).prepare)();
+  try {
+    await (prepare ?? skinFor(to).prepare)();
+  } catch (e, st) {
+    // The new skin prepares again at boot, before its router is built.
+    appLogger.w('Skin prepare before the restart failed', e, st);
+  }
   restart();
 }
 

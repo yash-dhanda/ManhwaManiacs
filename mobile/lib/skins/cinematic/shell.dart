@@ -66,7 +66,7 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
     WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_maybeWhatsNew()));
     // The edition arrival toast waits for the splash (cinematic 8.30.3).
     ref.listenManual<bool>(splashDoneProvider, (_, done) {
-      if (done) _arrival();
+      if (done) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _arrival() : null);
     }, fireImmediately: true,);
   }
 
