@@ -6,13 +6,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
+import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/glass/registry.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/gate/mature_gate_switch.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/list_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/reorder_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/swipe_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/profile_orb.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/reactions/glass_reactions.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/reactions/reaction_picker.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/reactions/reaction_strip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/bulk_toolbar.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/select_mode.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/selectable_group.dart';
@@ -443,6 +450,135 @@ void main() {
       expect(find.byType(GlassStackOverview), findsNothing);
       expect(find.text('Solo Leveling'), findsOneWidget);
       expect(find.text('Home home'), findsOneWidget);
+    });
+  });
+
+  group('reactions', () {
+    Future<List<ReactionKind>> pumpButton(WidgetTester tester, {ReactionKind? mine, List<ReactionKind>? cleared}) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final sent = <ReactionKind>[];
+      await tester.pumpWidget(primHost(
+        Center(child: GlassReactionButton(mine: mine, onSend: sent.add, onClear: () => cleared?.add(ReactionKind.loved))),
+        align: false,
+      ),);
+      await pumpFor(tester, 200);
+      return sent;
+    }
+
+    ProviderContainer container(WidgetTester t) => ProviderScope.containerOf(t.element(find.byType(GlassReactionButton)));
+
+    testWidgets('a tap sends Love; tapping your own Love removes it', (tester) async {
+      final cleared = <ReactionKind>[];
+      final sent = await pumpButton(tester, cleared: cleared);
+      await tester.tap(find.byType(GlassReactionButton));
+      await pumpFor(tester, 200);
+      expect(sent, [ReactionKind.loved]);
+      expect(GlassHaptics.debugLog.map((e) => e.event), contains(HapticEvent.reactionSend));
+      await tester.pumpWidget(const SizedBox.shrink());
+      final sent2 = await pumpButton(tester, mine: ReactionKind.loved, cleared: cleared);
+      await tester.tap(find.byType(GlassReactionButton));
+      await pumpFor(tester, 200);
+      expect(sent2, isEmpty);
+      expect(cleared, [ReactionKind.loved]);
+    });
+
+    testWidgets('a 300 ms hold blooms six named bubbles as one layer of six shapes; sliding onto one and releasing sends it', (tester) async {
+      final sent = await pumpButton(tester);
+      final centre = tester.getCenter(find.byType(GlassReactionButton));
+      final g = await tester.startGesture(centre);
+      await pumpFor(tester, 200);
+      expect(find.byKey(const ValueKey('glass-reaction-bubbles')), findsNothing, reason: 'not before 300 ms');
+      await pumpFor(tester, 250);
+      expect(find.byKey(const ValueKey('glass-reaction-bubbles')), findsOneWidget);
+      for (final r in kGlassReactions) {
+        expect(find.text(r.name), findsOneWidget);
+      }
+      final entries = container(tester).read(glassRegistryProvider).entries.where((e) => e.label == 'ReactionBubbles').toList();
+      expect(entries.length, 1, reason: 'one layer');
+      expect(entries.single.shapes, 6);
+      expect(GlassHaptics.debugLog.map((e) => e.event), contains(HapticEvent.reactionBloom));
+      final target = bubbleCentres(centre)[4]; // Twist
+      await g.moveTo(target);
+      await pumpFor(tester, 300);
+      expect(GlassHaptics.debugLog.map((e) => e.event), contains(HapticEvent.reactionCross));
+      await g.up();
+      await pumpFor(tester, 800);
+      expect(sent, [ReactionKind.shook]);
+      expect(find.byKey(const ValueKey('glass-reaction-bubbles')), findsNothing);
+    });
+
+    testWidgets('releasing outside the bubbles cancels', (tester) async {
+      final sent = await pumpButton(tester);
+      final g = await tester.startGesture(tester.getCenter(find.byType(GlassReactionButton)));
+      await pumpFor(tester, 500);
+      await g.moveTo(const Offset(20, 800));
+      await pumpFor(tester, 100);
+      await g.up();
+      await pumpFor(tester, 800);
+      expect(sent, isEmpty);
+      expect(find.byKey(const ValueKey('glass-reaction-bubbles')), findsNothing);
+    });
+
+    testWidgets('Enter sends Love, Shift+Enter opens the picker, arrows choose, Enter sends; six semantics actions', (tester) async {
+      final h = tester.ensureSemantics();
+      final sent = await pumpButton(tester);
+      final labels = tester.getSemantics(find.bySemanticsLabel('React to this chapter')).getSemanticsData().customSemanticsActionIds!.map((id) => CustomSemanticsAction.getAction(id)!.label).toSet();
+      expect(labels, {for (final r in kGlassReactions) 'React with ${r.name}'});
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await pumpFor(tester, 200);
+      expect(sent, [ReactionKind.loved]);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await pumpFor(tester, 500);
+      expect(find.byKey(const ValueKey('glass-reaction-bubbles')), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await pumpFor(tester, 800);
+      expect(sent.last, kGlassReactions[3].kind);
+      h.dispose();
+    });
+
+    Widget strip(List<StripReactor> reactors, {ReactionKind? mine, bool sharingOff = false}) => SizedBox(
+          width: 390,
+          child: GlassReactionStrip(reactors: reactors, onSend: (_) {}, sourceId: 's', seriesKey: 'k', chapterKey: '212', chapterLabel: 'Ch 212', mine: mine, sharingOff: sharingOff),
+        );
+
+    testWidgets('a guarded reaction shows only the orb and "reacted to Ch 212"; completing the chapter unseals the glyphs', (tester) async {
+      const friend = StripReactor(kind: ReactionKind.hype, name: 'Aiko', preset: GlassAvatarPreset.violetSpark);
+      await tester.pumpWidget(primHost(strip(const [friend])));
+      await pumpFor(tester, 200);
+      expect(find.text('reacted to Ch 212'), findsOneWidget);
+      final hypeSlot = find.byKey(const ValueKey('glass-reaction-slot-hype'));
+      expect(find.descendant(of: hypeSlot, matching: find.text('0')), findsOneWidget, reason: 'no per-kind count leaks while sealed');
+      final c = ProviderScope.containerOf(tester.element(find.byType(GlassReactionStrip)));
+      c.read(completedThisSessionProvider.notifier).markCompleted('s', 'k', '212');
+      await pumpFor(tester, 100);
+      expect(find.text('reacted to Ch 212'), findsNothing);
+      await pumpFor(tester, 500);
+      expect(find.descendant(of: hypeSlot, matching: find.text('1')), findsOneWidget);
+    });
+
+    testWidgets('your own reaction is never guarded and reads as bloom; sharing off shows the helper', (tester) async {
+      const own = StripReactor(kind: ReactionKind.loved, name: 'You', preset: GlassAvatarPreset.violetSpark, isOwn: true);
+      await tester.pumpWidget(primHost(strip(const [own], mine: ReactionKind.loved, sharingOff: true)));
+      await pumpFor(tester, 200);
+      expect(find.text('reacted to Ch 212'), findsNothing);
+      expect(find.descendant(of: find.byKey(const ValueKey('glass-reaction-slot-loved')), matching: find.text('1')), findsOneWidget);
+      expect(find.text('Only you see this. Turn on Circle sharing to show others.'), findsOneWidget);
+    });
+
+    testWidgets('1 to 6 send directly while the strip has focus', (tester) async {
+      final sent = <ReactionKind>[];
+      await tester.pumpWidget(primHost(SizedBox(width: 390, child: GlassReactionStrip(reactors: const [], onSend: sent.add, sourceId: 's', seriesKey: 'k', chapterKey: '1', chapterLabel: 'Ch 1'))));
+      await pumpFor(tester, 200);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.sendKeyEvent(LogicalKeyboardKey.digit1);
+      await tester.sendKeyEvent(LogicalKeyboardKey.digit6);
+      expect(sent, [ReactionKind.hype, ReactionKind.chefsKiss]);
     });
   });
 }
