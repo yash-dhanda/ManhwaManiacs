@@ -34,7 +34,7 @@ class HomeContinueRail extends ConsumerWidget {
       onSeeAll: seeAllOf(ref, rail),
       itemCount: items.length,
       itemWidth: wide ? 320 : 280,
-      itemHeight: wide ? 148 : 132,
+      itemHeight: (wide ? 148 : 132) * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.5),
       itemBuilder: (context, i) => ContinueCard(item: items[i]),
     );
   }
@@ -75,6 +75,7 @@ class ContinueCard extends ConsumerWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
+      excludeFromSemantics: true, // the trailing ellipsis is the accessible way to the same menu
       onLongPress: menu,
       child: GlassContinueStack(
         cover: HomeHero(sourceId: row.sourceId, seriesKey: row.seriesKey, child: HomeCoverImage(url: row.coverUrl, width: 88)),

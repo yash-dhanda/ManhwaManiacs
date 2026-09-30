@@ -32,7 +32,7 @@ class HomeCircleRail extends ConsumerWidget {
       onSeeAll: seeAllOf(ref, rail),
       itemCount: items.length,
       itemWidth: 280,
-      itemHeight: 124 * 1.5 + 8 + 40 + 14,
+      itemHeight: posterCardHeight(context),
       itemBuilder: (context, i) {
         final c = items[i];
         return c.letter != null ? LetterCard(letter: c.letter!) : FriendReadCard(poster: c.poster!, env: env);

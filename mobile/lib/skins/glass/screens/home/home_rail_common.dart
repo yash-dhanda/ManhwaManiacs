@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/letter_reveal.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/poster.dart' show posterWidthFor;
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_rails.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/spotlight_card.dart';
@@ -48,3 +51,6 @@ class HomeRailHeader extends ConsumerWidget {
     );
   }
 }
+
+/// The height of one poster card of a rail (poster, title in two lines, one caption line) at the frame's poster width.
+double posterCardHeight(BuildContext context, {double extra = 0}) => math.max(posterWidthFor(GlassFrame.of(context)), 126.0) * 1.5 + 66 + extra;

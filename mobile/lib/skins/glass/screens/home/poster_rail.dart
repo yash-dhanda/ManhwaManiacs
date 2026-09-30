@@ -29,7 +29,7 @@ class HomePosterRail extends ConsumerWidget {
       screenId: kHomeScreenId,
       onSeeAll: seeAllOf(ref, rail),
       itemCount: items.length,
-      itemHeight: 124 * 1.5 + 8 + 40 + 14,
+      itemHeight: posterCardHeight(context),
       itemBuilder: (context, i) => HomePosterCard(poster: items[i], env: env, onOpened: (g) => ref.read(rerankNotesProvider.notifier).noteOpenedFromRail(g)),
     );
   }

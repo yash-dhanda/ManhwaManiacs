@@ -78,8 +78,8 @@ class _Unread extends UnreadCountNotifier {
   int build() => n;
 }
 
-Future<ShellRig> pumpHome(WidgetTester t, FakeHomeRepo repo, {Size size = const Size(390, 844), DateTime? now, int unread = 0, List<Override> extra = const [], bool settle = true, bool libraryDown = false}) async {
-  final rig = await pumpGlassShell(t, size: size, settle: false, extra: [...homeOverrides(repo, now: now, unread: unread, libraryDown: libraryDown), ...extra]);
+Future<ShellRig> pumpHome(WidgetTester t, FakeHomeRepo repo, {Size size = const Size(390, 844), DateTime? now, int unread = 0, List<Override> extra = const [], bool settle = true, bool libraryDown = false, bool platformAndroid = false}) async {
+  final rig = await pumpGlassShell(t, size: size, settle: false, platformAndroid: platformAndroid, extra: [...homeOverrides(repo, now: now, unread: unread, libraryDown: libraryDown), ...extra]);
   if (settle) {
     for (var i = 0; i < 10; i++) {
       await t.pump(const Duration(milliseconds: 300));

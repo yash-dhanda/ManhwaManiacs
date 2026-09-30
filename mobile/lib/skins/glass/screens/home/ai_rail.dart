@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -54,7 +53,7 @@ class HomeAiRail extends ConsumerWidget {
     final key = railRevealKey(ref, rail.id);
     final badge = rail.ai ? const MachineBadge() : null;
     Widget cardFor(int i) => AiPickCard(item: items[i], ai: rail.ai, env: env, railId: rail.id);
-    final h = math.max(posterWidthFor(GlassFrame.of(context)), 126.0) * 1.5 + 90;
+    final h = posterCardHeight(context, extra: 28);
     if (state.state == AiSurfaceState.thinking) {
       return GlassRail(title: rail.title, revealKey: key, screenId: kHomeScreenId, itemCount: 0, itemBuilder: (_, __) => const SizedBox.shrink(), itemHeight: h, state: GlassRailState.loading, aiSkeleton: true, skeletonCount: 4, titleLeading: const ThinkingOrbit());
     }

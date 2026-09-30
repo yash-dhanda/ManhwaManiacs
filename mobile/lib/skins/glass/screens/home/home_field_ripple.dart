@@ -24,12 +24,13 @@ class HomeFieldRipple extends ConsumerStatefulWidget {
 }
 
 class _HomeFieldRippleState extends ConsumerState<HomeFieldRipple> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this);
+  late final AnimationController _c;
   bool _done = false;
 
   @override
   void initState() {
     super.initState();
+    _c = AnimationController(vsync: this);
     if (ref.read(glassMotionPrefsProvider).reduced) {
       _done = true;
       return;
