@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/features/downloads/services/device_storage_info.da
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio_format.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
+import 'package:manhwamaniacs/features/novels/novel_text/novel_text_index.dart';
 import 'package:manhwamaniacs/features/novels/providers/saved_audio_provider.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -912,7 +913,18 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
       return _ChapterOutcome.cancelled;
     }
     final completed = await store.markCompleteIfAllPagesPresent(chapter.rowId);
-    if (completed) return _ChapterOutcome.completed;
+    if (completed) {
+      // The on-device text search (mobile/38). Never a reason to fail a finished download.
+      try {
+        await NovelTextIndex(await store.database).indexChapter(
+          sourceId: chapter.sourceId,
+          seriesKey: chapter.seriesKey,
+          chapterKey: chapter.chapterKey,
+          paragraphs: novel.paragraphs,
+        );
+      } catch (_) {}
+      return _ChapterOutcome.completed;
+    }
     return _recordChapterFailure(store, chapter, 'The text failed to save.');
   }
 
