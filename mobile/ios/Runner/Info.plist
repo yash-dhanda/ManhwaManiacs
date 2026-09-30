@@ -42,6 +42,8 @@
 	<string>ManhwaManiacs only needs your media library if you pick an audio file from it. It never reads your library otherwise.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>ManhwaManiacs only needs your photo library if you pick an image from it, for example when restoring a backup. It never reads your photos otherwise.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>ManhwaManiacs saves share cards to Photos only when you choose Save image. It never reads your library.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

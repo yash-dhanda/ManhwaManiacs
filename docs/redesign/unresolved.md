@@ -88,3 +88,11 @@ None reported by the verifier.
 ## mobile/12 (cinematic manga reader strip, merged from redesign/L01)
 
 - A10: fetchChapterText must return the page texts and boxes, with a repository test on a fake Dio adapter (null on 404)
+
+## mobile/21 (cinematic numbers, streak, annual)
+
+- D3: the Annual PageView must use mobile/13's CinePagePhysics (finger-tracked, releasing on CineSprings.release) (fix attempted, not re-checked)
+- A2: extend LibraryRepository and library_repository_impl.dart with statistics({days}), annual(year) and markMilestoneSeen(days) (fix attempted, not re-checked)
+- Last acceptance item: CI APK build and iOS dry run green, with run links in the report (fix attempted, not re-checked)
+- B6: chapters-per-day date labels must not collide (nothing clips) (fix attempted, not re-checked)
+- Proof: comparison against the web twin's phone captures (fix attempted, not re-checked)

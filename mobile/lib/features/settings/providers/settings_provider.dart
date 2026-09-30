@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.
 import 'package:manhwamaniacs/features/library/providers/history_pages_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/shelf_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/tags_provider.dart';
@@ -148,6 +149,9 @@ final List<void Function(Ref ref)> matureScopedInvalidators = [
   (ref) => ref.invalidate(homeFeedProvider),
   // Reading intelligence surfaces (reading_stats_service).
   (ref) => ref.invalidate(statisticsProvider),
+  (ref) => ref.invalidate(numbersStatisticsProvider),
+  (ref) => ref.invalidate(annualProvider),
+  (ref) => ref.invalidate(annualIndexProvider),
   (ref) => ref.invalidate(recommendationsProvider),
   (ref) => ref.invalidate(genreWeightsProvider),
   (ref) => ref.invalidate(sourcesHealthProvider),

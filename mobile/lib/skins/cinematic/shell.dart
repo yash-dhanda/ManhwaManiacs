@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/skins/cinematic/nav_map.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/overlays/stop_the_press.dart';
 import 'package:manhwamaniacs/skins/cinematic/overlays/whats_new_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/annual_entry_points.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_mood_grade.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
@@ -205,7 +206,8 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
 
     return AutoDownloadTrigger(
       onQueued: (n) => ref.read(cineToastsProvider.notifier).info(queuedNewChaptersLine(n)),
-      child: PopScope(
+      child: AnnualDecemberToastHost(
+        child: PopScope(
       canPop: back == CineBranchBack.system,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
@@ -229,6 +231,7 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
             ),
           ],),
         ),
+      ),
       ),
       ),
     );

@@ -28,7 +28,7 @@ class StreakFlame extends ConsumerStatefulWidget {
 
   final HomeStreak streak;
 
-  /// 16, 24 or 96.
+  /// 16, 24, 56 or 96.
   final double size;
   final DateTime? now;
 

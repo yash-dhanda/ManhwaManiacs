@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/admin/status_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/setup_screen.dart';
@@ -17,6 +18,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_screen.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/history/history_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/index/index_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/library_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/onboarding_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/picks_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart';
@@ -45,6 +47,8 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.collection: (context, state) => CollectionScreen(collectionId: int.tryParse(state.pathParameters['id'] ?? '') ?? -1),
   ScreenId.history: (context, state) => const HistoryScreen(),
   ScreenId.bookmarks: (context, state) => const BookmarksScreen(),
+  ScreenId.numbers: (context, state) => const NumbersScreen(),
+  ScreenId.annual: (context, state) => AnnualScreen(key: ValueKey(state.pathParameters['year']), yearParam: state.pathParameters['year'] ?? ''),
   ScreenId.setup: (context, state) => const SetupScreen(),
   ScreenId.login: (context, state) => const LoginScreen(),
   ScreenId.register: (context, state) => const RegisterScreen(),

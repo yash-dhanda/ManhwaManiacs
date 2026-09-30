@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/glyphs.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/raised_folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// A rail's header row, reusable outside rails: a drawn rule, the folio, the revealed heading and
 /// See all (cinematic 7.8, 7.27).
 class CineSectionHeader extends StatelessWidget {
-  const CineSectionHeader({super.key, required this.headingId, required this.heading, this.folio, this.onSeeAll, this.rule = true});
+  const CineSectionHeader({super.key, required this.headingId, required this.heading, this.folio, this.onSeeAll, this.rule = true, this.footnote});
   final String headingId, heading;
   final String? folio;
   final VoidCallback? onSeeAll;
   final bool rule;
+
+  /// A raised footnote mark after the heading (The Numbers' "Chapters per day").
+  final int? footnote;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +35,8 @@ class CineSectionHeader extends StatelessWidget {
             linked: onSeeAll != null,
           ),
         ),
+        if (footnote != null)
+          Padding(padding: const EdgeInsets.only(left: 2), child: Text.rich(TextSpan(children: [raisedFolio(footnote!, CineText.style(context, c.typeSection).fontSize ?? 24)]))),
         const Spacer(),
         if (onSeeAll != null)
           Semantics(

@@ -29,6 +29,7 @@ class SetHeading extends ConsumerStatefulWidget {
     this.startDelayMs = 120,
     this.focusNode,
     this.roman,
+    this.typedRange,
   });
 
   final String text;
@@ -53,6 +54,11 @@ class SetHeading extends ConsumerStatefulWidget {
   /// title of "Because you read *{title}*", cinematic 9.1.4).
   final ({int start, int end})? roman;
 
+  /// A grapheme range `[start, end)` typed at 50 ms per grapheme (no rise or blur) instead of
+  /// letter-revealed, starting at the stagger time of its first letter: the figure inside "You
+  /// read for 212 hours." (The Annual). The full string stays in the semantics label.
+  final ({int start, int end})? typedRange;
+
   @override
   ConsumerState<SetHeading> createState() => _SetHeadingState();
 }
@@ -62,7 +68,26 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
   late final bool _seenAtMount = !_signal && ref.read(seenHeadingsProvider).contains(widget.id);
   late final int _n = widget.text.characters.where((c) => c != ' ').length;
   late final double _step = _n < 2 ? 0 : math.min(24.0, 560 / (_n - 1));
-  late final int _plannedMs = (widget.startDelayMs + _step * math.max(0, _n - 1) + 640).round();
+  late final int _typedLetters = _typedCount();
+  late final int _typedFirstK = _typedFirst();
+  late final int _plannedMs = math.max(
+    (widget.startDelayMs + _step * math.max(0, _n - 1) + 640).round(),
+    _typedLetters == 0 ? 0 : (widget.startDelayMs + _step * _typedFirstK + 50 * _typedLetters).round(),
+  );
+
+  int _typedCount() {
+    final r = widget.typedRange;
+    if (r == null) return 0;
+    return widget.text.characters.indexed.where((e) => e.$1 >= r.start && e.$1 < r.end && e.$2 != ' ').length;
+  }
+
+  /// The stagger index of the range's first letter.
+  int _typedFirst() {
+    final r = widget.typedRange;
+    if (r == null) return 0;
+    return widget.text.characters.indexed.where((e) => e.$1 < r.start && e.$2 != ' ').length;
+  }
+
   late final AnimationController _c;
   late final AnimationController _hover;
   late final AnimationController _out;
@@ -131,7 +156,7 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
       if (r == null || r.isCompleted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          _signalTimer = Timer(const Duration(milliseconds: 160), () {
+          _signalTimer = Timer(_reduced ? Duration.zero : const Duration(milliseconds: 160), () {
             if (mounted) _start();
           });
         });
@@ -198,8 +223,18 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
     final ink = s.color ?? DefaultTextStyle.of(context).style.color!;
     final delay = widget.startDelayMs.toDouble();
     var i = 0;
+    var typedSeen = 0;
     Widget letter(String ch, int gi) {
       final k = i++, start = delay + _step * k;
+      final tr = widget.typedRange;
+      if (tr != null && gi >= tr.start && gi < tr.end) {
+        // Typed: appears whole at its 50 ms slot, from the range's first stagger time.
+        final at = (delay + _step * _typedFirstK + 50 * typedSeen++) / total;
+        return AnimatedBuilder(
+          animation: _c,
+          builder: (_, __) => Opacity(opacity: _c.value >= at ? 1 : 0, child: Text(ch, textScaler: scaler, style: s)),
+        );
+      }
       final isRoman = r != null && gi >= r.start && gi < r.end;
       final main = Interval(start / total, math.min(1, (start + 640) / total), curve: CineCurves.settle);
       final sharp = Interval(start / total, math.min(1, (start + 440) / total), curve: CineCurves.settle);
@@ -245,6 +280,7 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
         return FadeTransition(opacity: _c.drive(CurveTween(curve: Interval(0, math.min(1, 200 / total)))), child: plain);
       }
       i = 0;
+      typedSeen = 0;
       return Wrap(children: [
         for (var w = 0; w < words.length; w++)
           Row(mainAxisSize: MainAxisSize.min, children: [

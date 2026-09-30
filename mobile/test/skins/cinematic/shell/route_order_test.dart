@@ -28,8 +28,8 @@ void main() {
     expect(name('/library/collections'), 'collections');
     expect(name('/library/collections/7'), 'collection');
     expect(name('/library/recommendations'), 'picks');
-    expect(name('/library/statistics'), 'pending.numbers');
-    expect(name('/library/statistics/annual/2026'), 'pending.annual');
+    expect(name('/library/statistics'), 'numbers');
+    expect(name('/library/statistics/annual/2026'), 'annual');
     expect(leaf('/library/browse').path, '/library/browse');
     expect(name('/library/read/a/b/c'), '/library/read/:sourceId/:seriesKey/:chapterKey');
   });

@@ -26,6 +26,10 @@ void main() {
       ('4.1 GB OF 10 GB · 21 GB FREE ON THIS PHONE', null, '4.1 of 10 gigabytes used, 21 gigabytes free on this phone'),
       ('4.1 GB · 21 GB FREE ON THIS TABLET', null, '4.1 gigabytes used, 21 gigabytes free on this tablet'),
       ('12 CH · 240 MB', null, '12 chapters, 240 megabytes'),
+      ('2 D AGO', null, '2 days ago'),
+      ('1 H AGO', null, '1 hour ago'),
+      ('3 W AGO', null, '3 weeks ago'),
+      ('CH 142', null, 'Chapter 142'),
     ];
     for (final (visual, count, spoken) in rows) {
       expect(folioLabel(visual, count: count), spoken, reason: visual);

@@ -43,6 +43,10 @@ const Map<String, List<String>> _providersByService = {
   'progress_service': ['sourceSeriesServerProgressProvider'],
   'reading_stats_service': [
     'statisticsProvider',
+    // The Numbers and The Annual (mobile/21).
+    'numbersStatisticsProvider',
+    'annualProvider',
+    'annualIndexProvider',
     'recommendationsProvider',
     'genreWeightsProvider',
     'readingHistoryProvider',

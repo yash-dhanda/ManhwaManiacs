@@ -54,6 +54,26 @@ class MediaStoreChannel {
     return exportDestinationFor(target, await sdkInt());
   }
 
+  /// True on Android 10 (API 29) and later: `Save image` is offered there.
+  Future<bool> canSaveImage() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return false;
+    try {
+      return await _channel.invokeMethod<bool>('canSaveImage') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Saves a PNG into `Pictures/ManhwaManiacs` (no permission needed). True on success.
+  Future<bool> saveImage(Uint8List bytes, String name) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return false;
+    try {
+      return await _channel.invokeMethod<bool>('saveImage', {'bytes': bytes, 'name': name}) ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Copies one file into `Download/{relativeDir}` (no permission needed on API 29+).
   Future<void> saveDownload({required String relativePath, required String name, required String mime, required String path}) =>
       _channel.invokeMethod<void>('saveDownload', {
@@ -91,3 +111,6 @@ String exportPathLine(ExportDestination d, String series) => switch (d) {
       ExportDestination.mediaStoreDownloads => 'Files › Downloads › ManhwaManiacs › Exports › $series',
       ExportDestination.shareOnly => '',
     };
+
+/// mobile/21's name for the same channel object.
+final mediaStoreProvider = mediaStoreChannelProvider;

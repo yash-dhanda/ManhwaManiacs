@@ -1,0 +1,358 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/platform/media_store.dart';
+import 'package:manhwamaniacs/core/time/clock.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/library/models/annual.dart';
+import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
+import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
+import 'package:manhwamaniacs/features/library/repositories/numbers_repository.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart'
+    show GenreWeight;
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/authed_cover.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/toast_host.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/share/press_run.dart';
+import 'package:manhwamaniacs/skins/cinematic/share/share_card_capture.dart';
+import 'package:manhwamaniacs/skins/cinematic/share/share_card_model.dart';
+import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/skin_haptics.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../support/numbers_fixtures.dart';
+import '../../../support/test_overrides.dart';
+
+/// A 1 x 1 opaque PNG, the stand-in cover of the widget tests.
+final Uint8List kTinyPng = base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',);
+
+/// The Numbers repository the tests drive: payloads by range, one Annual per
+/// year, and a record of every request.
+class FakeNumbersRepo implements NumbersRepository {
+  FakeNumbersRepo(
+      {Map<int, LibraryStatistics>? stats,
+      Map<int, Annual>? annuals,
+      this.failWith,})
+      : stats = stats ??
+            {
+              for (final d in [7, 30, 90, 365]) d: statisticsFixture(days: d),
+            },
+        annuals = annuals ??
+            {
+              2026: annualFixture(),
+              2025: annualFixture(year: 2025, partial: false),
+            };
+
+  final Map<int, LibraryStatistics> stats;
+  final Map<int, Annual> annuals;
+  final List<int> statisticsDays = [];
+  final List<int> annualYears = [];
+  final List<int> marked = [];
+  AppError? failWith;
+
+  /// Holds `annual` until completed (the loading state).
+  Completer<void>? gate;
+
+  /// Holds `statistics` until completed (the galley proof).
+  Completer<void>? statsGate;
+
+  @override
+  Future<Result<LibraryStatistics>> statistics({required int days}) async {
+    statisticsDays.add(days);
+    await statsGate?.future;
+    if (failWith != null) return Err(failWith!);
+    return Ok(stats[days] ?? statisticsFixture(days: days));
+  }
+
+  @override
+  Future<Result<Annual>> annual(int year) async {
+    annualYears.add(year);
+    await gate?.future;
+    if (failWith != null) return Err(failWith!);
+    final a = annuals[year];
+    return a == null
+        ? Err(failWith ?? const UnknownError(message: 'no fixture'))
+        : Ok(a);
+  }
+
+  @override
+  Future<Result<void>> markMilestoneSeen(int days) async {
+    marked.add(days);
+    return const Ok(null);
+  }
+}
+
+/// Records haptic events instead of playing them.
+class RecordingHaptics extends SkinHaptics {
+  RecordingHaptics()
+      : super(skin: SkinId.cinematic, map: cinematicHaptics, enabled: true);
+  final List<HapticEvent> events = [];
+
+  @override
+  Future<void> fire(HapticEvent event,
+          {double velocity = 0, int depth = 1,}) async =>
+      events.add(event);
+}
+
+class FakeShare implements ShareDelegate {
+  FakeShare([this.status = ShareResultStatus.success, this.raw = '']);
+  ShareResultStatus status;
+  String raw;
+  bool throwOnShare = false;
+  final List<ShareParams> shared = [];
+
+  @override
+  Future<ShareResult> share(ShareParams params) async {
+    shared.add(params);
+    if (throwOnShare) throw Exception('no share sheet');
+    return ShareResult(raw, status);
+  }
+}
+
+class FakeMediaStore extends MediaStoreChannel {
+  FakeMediaStore({this.can = true});
+  bool can;
+  final List<String> saved = [];
+
+  @override
+  Future<bool> canSaveImage() async => can;
+
+  @override
+  Future<bool> saveImage(Uint8List bytes, String name) async {
+    saved.add(name);
+    return true;
+  }
+}
+
+class CineTestEnv {
+  CineTestEnv({FakeNumbersRepo? repo, this.now, this.prefs = const {}})
+      : repo = repo ?? FakeNumbersRepo();
+  final FakeNumbersRepo repo;
+  final DateTime? now;
+  final Map<String, Object> prefs;
+  final RecordingHaptics haptics = RecordingHaptics();
+  final FakeShare share = FakeShare();
+  final FakeMediaStore media = FakeMediaStore();
+  Uint8List? cardBytes;
+  late SharedPreferences sp;
+  int renders = 0;
+
+  Future<List<Override>> overrides({List<Override> extra = const []}) async {
+    SharedPreferences.setMockInitialValues(testPrefsDefaults(prefs));
+    sp = await SharedPreferences.getInstance();
+    return [
+      sharedPrefsProvider.overrideWithValue(sp),
+      authenticatedAuthOverride(),
+      activeProfileOverride(),
+      profileSessionReadyOverride(),
+      ...contentModeOverrides(),
+      numbersRepositoryProvider.overrideWithValue(repo),
+      genreWeightsProvider.overrideWith((ref, limit) async => const [
+            GenreWeight(genre: 'Fantasy', weight: 0.41),
+            GenreWeight(genre: 'Romance', weight: 0.22),
+            GenreWeight(genre: 'Action', weight: 0.15),
+          ],),
+      clockProvider.overrideWithValue(() => now ?? DateTime(2026, 9, 29, 10)),
+      skinHapticsProvider.overrideWithValue(haptics),
+      shareDelegateProvider.overrideWithValue(share),
+      cardRendererProvider.overrideWithValue((context, t, f) async {
+        renders++;
+        return cardBytes ?? kTinyPng;
+      }),
+      mediaStoreProvider.overrideWithValue(media),
+      authedCoverProvider
+          .overrideWithValue((url, {width}) => MemoryImage(kTinyPng)),
+      ...extra,
+    ];
+  }
+}
+
+GoRouter cineRouter({String initial = '/library/statistics', Widget? home}) =>
+    GoRouter(
+      initialLocation: initial,
+      routes: [
+        GoRoute(
+            path: '/',
+            builder: (_, __) => home ?? const Scaffold(body: Text('HOME')),),
+        GoRoute(
+            path: Routes.libraryPattern,
+            builder: (_, __) => const Scaffold(body: Text('LIBRARY')),),
+        GoRoute(
+            path: ScreenId.indexHub.path,
+            builder: (_, __) => const Scaffold(body: Text('INDEX')),),
+        GoRoute(
+            path: ScreenId.numbers.path,
+            builder: (_, __) => const NumbersScreen(),),
+        GoRoute(
+            path: ScreenId.annual.path,
+            builder: (_, s) =>
+                AnnualScreen(yearParam: s.pathParameters['year'] ?? ''),),
+        GoRoute(
+            path: '/sources/:sourceId/series/:seriesKey',
+            builder: (_, __) => const Scaffold(body: Text('FEATURE')),),
+      ],
+    );
+
+void setView(WidgetTester tester, Size size,
+    {EdgeInsets padding = EdgeInsets.zero,}) {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  tester.view.padding = FakeViewPadding(
+      left: padding.left,
+      top: padding.top,
+      right: padding.right,
+      bottom: padding.bottom,);
+  addTearDown(tester.view.reset);
+}
+
+/// Pumps [router] under the Cinematic theme.
+Future<void> pumpCine(
+  WidgetTester tester,
+  CineTestEnv env, {
+  GoRouter? router,
+  Widget? home,
+  Size size = const Size(390, 844),
+  EdgeInsets padding = const EdgeInsets.only(top: 47, bottom: 34),
+  TargetPlatform platform = TargetPlatform.iOS,
+  bool reduced = false,
+  bool accessible = false,
+  double textScale = 1.0,
+  List<Override> extra = const [],
+  ProviderContainer? sharedContainer,
+  Key? boundaryKey,
+  Widget Function(Widget app)? wrap,
+}) async {
+  setView(tester, size, padding: padding);
+  final r = router ?? cineRouter();
+  final overrides = await env.overrides(extra: extra);
+  Widget app = MaterialApp.router(
+    routerConfig: r,
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData(
+        platform: platform,
+        extensions: const [cinematicTokens],
+        scaffoldBackgroundColor: const Color(0xFF000000),
+        brightness: Brightness.dark,),
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+          disableAnimations: reduced,
+          accessibleNavigation: accessible,
+          textScaler: TextScaler.linear(textScale),),
+      child: CineToastHost(child: child!),
+    ),
+  );
+  if (wrap != null) app = wrap(app);
+  if (boundaryKey != null) app = RepaintBoundary(key: boundaryKey, child: app);
+  app = sharedContainer != null
+      ? UncontrolledProviderScope(container: sharedContainer, child: app)
+      : ProviderScope(overrides: overrides, child: app);
+  await tester.pumpWidget(app);
+}
+
+/// Pumps [ms] in 50 ms frames (repeating animations never settle).
+Future<void> pumpMs(WidgetTester tester, int ms) async {
+  var left = ms;
+  while (left > 0) {
+    final step = left > 50 ? 50 : left;
+    await tester.pump(Duration(milliseconds: step));
+    left -= step;
+  }
+}
+
+/// Every tappable [GestureDetector] must be at least 44 (iOS) or 48 (Android) both ways.
+void expectHitTargets(WidgetTester tester, TargetPlatform platform,
+    {Finder? within,}) {
+  final min = platform == TargetPlatform.iOS ? 44.0 : 48.0;
+  final all = find.descendant(
+      of: within ?? find.byType(Scaffold),
+      matching: find.byType(GestureDetector),);
+  final small = <String>[];
+  for (final e in all.evaluate()) {
+    final w = e.widget as GestureDetector;
+    if (w.onTap == null && w.onTapUp == null) continue;
+    final box = e.renderObject! as RenderBox;
+    if (!box.hasSize) continue;
+    if (box.size.width < min - 0.01 || box.size.height < min - 0.01) {
+      small.add('${box.size} ${e.widget.key ?? ''}');
+    }
+  }
+  expect(small, isEmpty, reason: 'targets under $min');
+}
+
+/// Finds a revealed or typed line: a `SetHeading` or `TypedHeadline` holding [text], or a plain
+/// `Text` of it that is not part of one (letter reveals split their text per letter).
+Finder headline(String text) => _HeadlineFinder(text);
+
+class _HeadlineFinder extends MatchFinder {
+  _HeadlineFinder(this.text);
+  final String text;
+
+  @override
+  String get description => 'headline "$text"';
+
+  @override
+  bool matches(Element candidate) {
+    final w = candidate.widget;
+    if (w is SetHeading) return w.text == text;
+    if (w is TypedHeadline) return w.text == text;
+    if (w is! Text) return false;
+    final data = w.data ?? w.textSpan?.toPlainText(includePlaceholders: false);
+    if (data != text) return false;
+    var inside = false;
+    candidate.visitAncestorElements((a) {
+      if (a.widget is SetHeading || a.widget is TypedHeadline) {
+        inside = true;
+        return false;
+      }
+      return true;
+    });
+    return !inside;
+  }
+}
+
+/// Every semantics label in the tree, virtual nodes of a `CustomPainter.semanticsBuilder` included
+/// (`find.bySemanticsLabel` only sees nodes that belong to a render object).
+List<String> allSemanticsLabels(WidgetTester tester) {
+  final out = <String>[];
+  void walk(SemanticsNode n) {
+    if (n.label.isNotEmpty) out.add(n.label);
+    n.visitChildren((c) {
+      walk(c);
+      return true;
+    });
+  }
+
+  final root = RendererBinding.instance.renderViews.first.owner?.semanticsOwner?.rootSemanticsNode;
+  if (root != null) walk(root);
+  return out;
+}
+
+/// [renderShareCard] under test: the capture needs frames and real engine time, so pump while
+/// it runs.
+Future<Uint8List> captureCard(WidgetTester tester, BuildContext ctx, ShareTemplate t, ShareFormat f) async {
+  Uint8List? out;
+  Object? err;
+  unawaited(renderShareCard(ctx, t, f).then((b) => out = b, onError: (Object e) => err = e));
+  for (var i = 0; i < 400 && out == null && err == null; i++) {
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 5)));
+  }
+  if (err != null) throw err!;
+  return out!;
+}
