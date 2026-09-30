@@ -29,6 +29,14 @@ String _spoken(String v) {
     final n = int.parse(m[1]!);
     return 'Paused $n ${_plural(n, 'day')}';
   }
+  m = RegExp(r'^(\d+)\s*(H|D|M|W|MO)\s*AGO$', caseSensitive: false).firstMatch(v);
+  if (m != null) {
+    final n = int.parse(m[1]!);
+    final unit = switch (m[2]!.toUpperCase()) { 'H' => 'hour', 'D' => 'day', 'W' => 'week', 'MO' => 'month', _ => 'minute' };
+    return '$n ${_plural(n, unit)} ago';
+  }
+  m = RegExp(r'^CH\s*(\d+(?:\.\d+)?)$', caseSensitive: false).firstMatch(v);
+  if (m != null) return 'Chapter ${m[1]}';
   m = RegExp(r'^(\d+)\s*([HDM])$', caseSensitive: false).firstMatch(v);
   if (m != null) {
     final n = int.parse(m[1]!);

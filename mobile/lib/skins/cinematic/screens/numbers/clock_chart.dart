@@ -2,9 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/clock_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// The 24-hour clock (cinematic 9.2.1): 24 radial bars 4 px wide from radius
 /// 60 to 120, hour x 15 degrees clockwise from the top; `ink.100` at opacity
@@ -22,7 +22,7 @@ class ClockChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final folio = cineStyle(context, context.cine.typeFolio, color: CineColors.ink45);
+    final folio = CineText.style(context, context.cine.typeFolio).copyWith(color: CineColors.ink45);
     const pad = 24.0;
     final side = diameter + pad * 2;
     return Semantics(

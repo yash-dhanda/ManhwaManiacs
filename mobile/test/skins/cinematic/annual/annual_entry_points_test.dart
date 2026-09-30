@@ -10,7 +10,7 @@ void main() {
   setUpAll(loadAppFonts);
 
   test('the toast shows in December, once per profile per year', () {
-    expect(shouldShowAnnualToast(DateTime(2026, 12, 1), null), isTrue);
+    expect(shouldShowAnnualToast(DateTime(2026, 12), null), isTrue);
     expect(shouldShowAnnualToast(DateTime(2026, 12, 20), '2025'), isTrue);
     expect(shouldShowAnnualToast(DateTime(2026, 12, 20), '2026'), isFalse);
     expect(shouldShowAnnualToast(DateTime(2026, 11, 30), null), isFalse);

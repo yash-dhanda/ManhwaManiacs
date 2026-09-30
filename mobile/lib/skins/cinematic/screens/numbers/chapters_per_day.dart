@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/utils/numbers_rules.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/chart_math.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 const double _kLeft = 30;
 const double _kRight = 44;
@@ -40,22 +41,22 @@ class ChaptersPerDay extends StatelessWidget {
     final summary = rangeSummary(rangeSentenceLabel(days), daily, best);
     final shown = daily.isEmpty ? null : daily[(selected ?? daily.length - 1).clamp(0, daily.length - 1)];
     final plotH = tablet ? 240.0 : 160.0;
-    final folio = cineStyle(context, t.typeFolio, color: CineColors.ink45);
+    final folio = CineText.style(context, t.typeFolio).copyWith(color: CineColors.ink45);
     return Semantics(
       container: true,
       explicitChildNodes: true,
       label: summary,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        CineText(summary, t.typeCaption, color: CineColors.ink60),
+        CineRoleText(summary, t.typeCaption, color: CineColors.ink60),
         const SizedBox(height: 12),
         Row(children: [
-          Expanded(child: shown == null ? const SizedBox.shrink() : CineText(dayReadout(shown), t.typeFolio, maxLines: 2, semanticsLabel: 'Selected: ${daySemantics(shown)}')),
-          if (best != null) CineText('Best day ${bestDate(best.date)} · ${best.chaptersRead} chapters', t.typeCaption, color: CineColors.ink60, maxLines: 1),
+          Expanded(child: shown == null ? const SizedBox.shrink() : Semantics(label: 'Selected: ${daySemantics(shown)}', excludeSemantics: true, child: CineRoleText(dayReadout(shown), t.typeFolio, maxLines: 2))),
+          if (best != null) CineRoleText('Best day ${bestDate(best.date)} · ${best.chaptersRead} chapters', t.typeCaption, color: CineColors.ink60, maxLines: 1),
         ],),
         const SizedBox(height: 8),
         LayoutBuilder(builder: (context, box) {
           final plotW = box.maxWidth - _kLeft - _kRight;
-          final painter = _BarsPainter(daily: daily, selected: selected, days: days, plotH: plotH, plotW: plotW, folio: folio, onSelect: onSelect, minHit: minHit(context));
+          final painter = _BarsPainter(daily: daily, selected: selected, days: days, plotH: plotH, plotW: plotW, folio: folio, onSelect: onSelect, minHit: cineHitMin(context));
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapUp: (d) {

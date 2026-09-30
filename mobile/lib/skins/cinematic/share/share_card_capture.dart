@@ -5,7 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cover.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/authed_cover.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card_model.dart';
 
@@ -19,7 +19,7 @@ Future<Uint8List> renderShareCard(BuildContext context, ShareTemplate t, ShareFo
   ImageProvider? art;
   final url = t.art?.coverUrl;
   if (url != null) {
-    art = ProviderScope.containerOf(context).read(coverImageProvider)(url);
+    art = ProviderScope.containerOf(context).read(authedCoverProvider)(url);
     final done = Completer<void>();
     unawaited(precacheImage(art, context, onError: (_, __) => done.isCompleted ? null : done.complete()).then((_) => done.isCompleted ? null : done.complete()));
     await done.future;

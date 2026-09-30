@@ -2,9 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
-import 'package:manhwamaniacs/features/library/models/shareable.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart' show GenreWeight;
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// "Top genres: Fantasy 41 %, Romance 22 %, Action 15 %."
 String genreSummary(List<GenreWeight> genres) => 'Top genres: ${genres.take(3).map((g) => '${g.genre} ${(g.weight * 100).round()} %').join(', ')}.';
@@ -30,10 +30,10 @@ class GenreRadar extends StatelessWidget {
     final t = context.cine;
     if (list.length < 3) {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        for (final g in list) Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: CineText('${g.genre.toUpperCase()} · ${(g.weight * 100).round()} %', t.typeKicker, color: CineColors.ink60)),
+        for (final g in list) Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: CineRoleText('${g.genre.toUpperCase()} · ${(g.weight * 100).round()} %', t.typeKicker, color: CineColors.ink60)),
       ],);
     }
-    final kicker = cineStyle(context, t.typeKicker, color: CineColors.ink45).copyWith(fontSize: 10);
+    final kicker = CineText.style(context, t.typeKicker).copyWith(color: CineColors.ink45).copyWith(fontSize: 10);
     final summary = genreSummary(list);
     final full = size + 96;
     return Semantics(

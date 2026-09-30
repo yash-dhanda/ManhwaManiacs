@@ -55,8 +55,8 @@ Map<String, dynamic> statisticsJson({
     'range': {'days': days, 'since': '2026-08-30T00:00:00', 'until': '2026-09-29T00:00:00', 'timezone_offset_minutes': 330, 'session_cap_seconds': 1800},
     'totals': hasHistory
         ? {'sessions': 900, 'pages_read': 48221, 'chapters_read': 1240, 'series_read': 80, 'seconds_read': 412 * 3600, 'first_session_at': '2026-07-27T04:00:00Z', 'last_session_at': '2026-09-29T04:00:00Z'}
-        : {},
-    'window': hasHistory ? {'sessions': 60, 'pages_read': 6812, 'chapters_read': 184, 'series_read': 23, 'seconds_read': 31 * 3600} : {},
+        : <String, Object?>{},
+    'window': hasHistory ? {'sessions': 60, 'pages_read': 6812, 'chapters_read': 184, 'series_read': 23, 'seconds_read': 31 * 3600} : <String, Object?>{},
     'streak': {
       'current_days': hasHistory ? currentDays : 0,
       'longest_days': hasHistory ? longestDays : 0,
@@ -64,14 +64,14 @@ Map<String, dynamic> statisticsJson({
       'at_risk': atRisk,
       'milestones_seen': milestonesSeen,
     },
-    'daily': hasHistory ? dailyRows(now, days) : const [],
-    'by_hour': hasHistory ? [for (var h = 0; h < 24; h++) {'hour': h, 'sessions': 1, 'pages_read': 10, 'seconds_read': h >= 21 || h <= 1 ? 3 * 3600 + h * 60 : (h == 12 ? 900 : 0)}] : const [],
+    'daily': hasHistory ? dailyRows(now, days) : const <Object?>[],
+    'by_hour': hasHistory ? [for (var h = 0; h < 24; h++) {'hour': h, 'sessions': 1, 'pages_read': 10, 'seconds_read': h >= 21 || h <= 1 ? 3 * 3600 + h * 60 : (h == 12 ? 900 : 0)}] : const <Object?>[],
     'by_source': hasHistory
         ? [
             {'source_id': 'shelf', 'name': 'MangaDex', 'sessions': 40, 'pages_read': 812, 'chapters_read': 90, 'series_read': 12, 'seconds_read': 9 * 3600},
             {'source_id': 'asura', 'name': 'Asura', 'sessions': 20, 'pages_read': 400, 'chapters_read': 50, 'series_read': 8, 'seconds_read': 5 * 3600},
           ]
-        : const [],
+        : const <Object?>[],
     'by_series': hasHistory
         ? [
             for (var i = 0; i < 5; i++)
@@ -87,13 +87,13 @@ Map<String, dynamic> statisticsJson({
                 'seconds_read': (6 - i) * 3600,
               },
           ]
-        : const [],
+        : const <Object?>[],
     'recent_sessions': hasHistory
         ? [
             {'source_id': 'shelf', 'series_key': 'series-0', 'chapter_key': 'ch-142', 'chapter_number': 142.0, 'title': 'Series number 1', 'pages_read': 34, 'seconds_read': 1500, 'started_at': '2026-09-29T15:34:00Z', 'ended_at': '2026-09-29T15:59:00Z'},
             {'source_id': 'shelf', 'series_key': 'series-1', 'chapter_key': 'ch-9', 'chapter_number': 9.0, 'title': 'Series number 2', 'pages_read': 20, 'seconds_read': 600, 'started_at': '2026-09-28T15:34:00Z', 'ended_at': '2026-09-28T15:44:00Z'},
           ]
-        : const [],
+        : const <Object?>[],
     if (withShareable)
       'shareable': {
         'genre_weights': hasHistory
@@ -105,14 +105,14 @@ Map<String, dynamic> statisticsJson({
                 {'genre': 'Comedy', 'weight': 0.07},
                 {'genre': 'Mystery', 'weight': 0.05},
               ]
-            : const [],
-        'top_series': hasHistory ? [_series('series-0', 'Series number 1', seconds: 6 * 3600, chapters: 38, duo: '#7FA6D6'), _series('series-1', 'Series number 2', duo: '#D68F7F')] : const [],
+            : const <Object?>[],
+        'top_series': hasHistory ? [_series('series-0', 'Series number 1', seconds: 6 * 3600, chapters: 38, duo: '#7FA6D6'), _series('series-1', 'Series number 2', duo: '#D68F7F')] : const <Object?>[],
         'art_series': hasHistory
             ? [
                 for (var i = 0; i < 9; i++) {'source_id': 'shelf', 'series_key': 'series-$i', 'cover_url': '/sources/shelf/series/series-$i/cover', 'ambient': ambient('#7FA6D6')},
               ]
-            : const [],
-        'top_sources': const [],
+            : const <Object?>[],
+        'top_sources': const <Object?>[],
       },
   };
 }
@@ -167,7 +167,7 @@ Map<String, dynamic> annualJson({
               {'voice_id': 'v1', 'name': 'Marlowe', 'seconds': 7200},
               {'voice_id': 'v2', 'name': 'Isolde', 'seconds': 3600},
             ]
-          : const [],
+          : const <Object?>[],
       'available_years': [2026, 2025],
       if (withShareable)
         'shareable': {
@@ -180,7 +180,7 @@ Map<String, dynamic> annualJson({
           'art_series': [
             for (var i = 0; i < 9; i++) {'source_id': 'shelf', 'series_key': 'series-$i', 'cover_url': '/sources/shelf/series/series-$i/cover', 'ambient': ambient('#7FA6D6')},
           ],
-          'top_sources': const [],
+          'top_sources': const <Object?>[],
         },
     };
 

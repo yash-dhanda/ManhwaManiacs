@@ -33,6 +33,13 @@ Color pageLight(double h, double s) {
   return c;
 }
 
+/// `#RRGGBB` (an `ambient` role from the API) to a colour; [fallback] when absent or malformed.
+Color parseAmbientHex(String? hex, {Color fallback = CineColors.ambientFallbackDuo}) {
+  final h = hex?.replaceFirst('#', '');
+  final v = h == null || h.length != 6 ? null : int.tryParse(h, radix: 16);
+  return v == null ? fallback : Color(0xFF000000 | v);
+}
+
 abstract final class CineTint {
   /// A reader page's seed (`#rrggbb`) to `page.light`; null falls back to the ambient ink.
   static Color light(String? seedHex) {

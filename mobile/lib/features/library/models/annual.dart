@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/features/library/models/shareable.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart' show GenreWeight;
 
 /// `GET /library/annual` (cinematic 9.2.7), by field name. Glass's additive
 /// fields (`pagesRead`, `longestStreak.start/end`, `busiestDay`, `firstsLasts`)

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cover.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/duotone.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/letter_reveal.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/pages/page_frame.dart';
+import 'package:manhwamaniacs/skins/cinematic/tint.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// Distance the credits travel (36 px/s over 10 s, `durRollColophon`).
 const double kRollDistance = 360;
@@ -43,7 +42,7 @@ class _AnnualColophonPageState extends ConsumerState<AnnualColophonPage> with Si
   void _sync() {
     if (!mounted) return;
     final p = widget.env.player;
-    final go = p.index == widget.index && p.running && !cineReduced(context);
+    final go = p.index == widget.index && p.running && !CineMotion.reduced(context);
     if (go && !_roll.isCompleted) {
       _roll.forward();
     } else {
@@ -62,22 +61,21 @@ class _AnnualColophonPageState extends ConsumerState<AnnualColophonPage> with Si
   Widget build(BuildContext context) {
     final t = context.cine;
     final a = widget.env.annual;
-    final reduced = cineReduced(context);
+    final reduced = CineMotion.reduced(context);
     final top = a.topSeries.isEmpty ? null : a.topSeries.first;
-    final provider = ref.watch(coverImageProvider);
     final lines = colophonLines(a);
     final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.30);
     const valueStyle = TextStyle(fontFamily: 'BodoniModa', fontStyle: FontStyle.italic, fontSize: 24, height: 1.2, fontWeight: FontWeight.w500, color: CineColors.ink100, fontVariations: [FontVariation('wght', 500), FontVariation('opsz', 28)]);
 
     final Widget credits = Column(mainAxisSize: MainAxisSize.min, children: [
       for (final (label, value) in lines) ...[
-        CineText(label, t.typeCreditLabel, color: CineColors.ink60, textAlign: TextAlign.center),
+        CineRoleText(label, t.typeCreditLabel, color: CineColors.ink60, textAlign: TextAlign.center),
         const SizedBox(height: 4),
         Text(value, style: valueStyle, textAlign: TextAlign.center, textScaler: scaler),
         const SizedBox(height: 28),
       ],
     ],);
-    final closing = SetHeading(closingLine(a.year), role: italicOf(t.typeHeadline), textAlign: TextAlign.center);
+    final closing = Center(child: AnnualTitle(closingLine(a.year), italicOf(t.typeHeadline), id: 'closing'));
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -93,7 +91,7 @@ class _AnnualColophonPageState extends ConsumerState<AnnualColophonPage> with Si
                 right: 0,
                 top: h * 0.3,
                 height: h * 0.4,
-                child: Opacity(opacity: 0.3, child: DuotoneImage(image: provider(top!.coverUrl!), duo: parseHex(top.ambient?.duo))),
+                child: AnnualArt(url: top!.coverUrl!, duo: parseAmbientHex(top.ambient?.duo), opacity: 0.3),
               ),
             if (reduced)
               Center(child: SingleChildScrollView(padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 20), child: Column(mainAxisSize: MainAxisSize.min, children: [credits, closing])))

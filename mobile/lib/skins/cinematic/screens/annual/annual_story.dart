@@ -4,13 +4,15 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/library/models/annual.dart';
-import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/buttons.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cue.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/keys.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_announce.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_controls.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_player.dart';
@@ -58,7 +60,7 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _player.autoAdvance = !(cineReduced(context) || MediaQuery.accessibleNavigationOf(context));
+    _player.autoAdvance = !(CineMotion.reduced(context) || MediaQuery.accessibleNavigationOf(context));
   }
 
   @override
@@ -74,16 +76,16 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
   }
 
   void _announce(int i) {
-    SemanticsService.announce('Page ${i + 1} of ${_pages.length}: ${_pages[i].title}', TextDirection.ltr);
+    cineAnnounce(context, 'Page ${i + 1} of ${_pages.length}: ${_pages[i].title}');
   }
 
   Future<void> _goTo(int i, {required bool user}) async {
     if (i < 0 || i >= _pages.length || i == _player.index || !_pager.hasClients) return;
-    if (user) cinematicCue(ref, HapticEvent.annualPage, SoundEvent.annualPage);
+    if (user) cineFeedback(context, HapticEvent.annualPage, sound: SoundEvent.annualPage);
     _programmatic = true;
     _player.showPage(i);
     _announce(i);
-    if (cineReduced(context)) {
+    if (CineMotion.reduced(context)) {
       _pager.jumpToPage(i);
     } else {
       await _pager.animateToPage(i, duration: CineDur.pageturn, curve: CineCurves.turn);
@@ -121,7 +123,7 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
   Widget _story(BuildContext context, Size size, MediaQueryData media) {
     final accessible = media.accessibleNavigation;
     final pad = media.viewPadding;
-    final hit = minHit(context);
+    final hit = cineHitMin(context);
     final env = AnnualEnv(
       annual: widget.annual,
       profileName: widget.profileName,
@@ -129,7 +131,7 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
       goTo: (i) => _goTo(i, user: true),
       close: widget.onClose,
       readNumbers: widget.onReadNumbers,
-      now: ref.read(numbersNowProvider)(),
+      now: ref.read(clockProvider)(),
     );
     Widget pageFor(int i) => switch (_pages[i].kind) {
           AnnualPageKind.cover => AnnualCoverPage(env: env),
@@ -144,14 +146,19 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
           AnnualPageKind.colophon => AnnualColophonPage(env: env, index: i),
           AnnualPageKind.pressRun => AnnualPressRunPage(env: env),
         };
-    return KeyMap(
-      actions: {
-        LogicalKeyboardKey.arrowRight: _next,
-        LogicalKeyboardKey.arrowLeft: _previous,
-        LogicalKeyboardKey.space: _player.togglePause,
-        LogicalKeyboardKey.escape: widget.onClose,
-      },
-      child: RawGestureDetector(
+    ShortcutEntry key(LogicalKeyboardKey k, String description, VoidCallback f, {bool single = true}) =>
+        ShortcutEntry(group: 'The Annual', activator: SingleActivator(k), description: description, singleKey: single, onInvoke: f);
+    return RegisteredShortcuts(
+      group: 'The Annual',
+      entries: [
+        key(LogicalKeyboardKey.arrowRight, 'Next page', _next),
+        key(LogicalKeyboardKey.arrowLeft, 'Previous page', _previous),
+        key(LogicalKeyboardKey.space, 'Pause or play', _player.togglePause),
+        key(LogicalKeyboardKey.escape, 'Close', widget.onClose, single: false),
+      ],
+      child: Focus(
+        autofocus: true,
+        child: RawGestureDetector(
         behavior: HitTestBehavior.opaque,
         gestures: {
           TapGestureRecognizer: GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(TapGestureRecognizer.new, (r) {
@@ -191,11 +198,12 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
                 },
                 child: PageView.builder(
                   controller: _pager,
+                  physics: const _StoryPhysics(),
                   itemCount: _pages.length,
                   onPageChanged: (i) {
                     if (_programmatic) return;
                     // A swipe: the player follows the finger.
-                    cinematicCue(ref, HapticEvent.annualPage, SoundEvent.annualPage);
+                    cineFeedback(context, HapticEvent.annualPage, sound: SoundEvent.annualPage);
                     _player.showPage(i);
                     _announce(i);
                   },
@@ -204,7 +212,7 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
               ),
             ),
             Positioned(left: 16, right: 16, top: pad.top + 8, child: AnnualSegments(player: _player)),
-            Positioned(right: 16 - (hit - 40) / 2, top: pad.top + 8 + 2 + 8 - (hit - 40) / 2, child: OnArtButton(role: CineIconRole.close, label: 'Close', onPressed: widget.onClose)),
+            Positioned(right: 16 - (hit - 40) / 2, top: pad.top + 8 + 2 + 8 - (hit - 40) / 2, child: CineIconButton(role: CineIconRole.close, label: 'Close', variant: CineIconButtonVariant.onArt, onPressed: widget.onClose)),
             if (accessible)
               Positioned(
                 left: 16,
@@ -215,6 +223,19 @@ class _AnnualStoryState extends ConsumerState<AnnualStory> with TickerProviderSt
           ],),
         ),
       ),
+      ),
     );
   }
+}
+
+/// Finger-tracked page turns that release on `CineSprings.release`.
+// TODO(mobile/13): `CinePagePhysics` owns this once mobile/13 lands.
+class _StoryPhysics extends PageScrollPhysics {
+  const _StoryPhysics({super.parent});
+
+  @override
+  _StoryPhysics applyTo(ScrollPhysics? ancestor) => _StoryPhysics(parent: buildParent(ancestor));
+
+  @override
+  SpringDescription get spring => CineSprings.release.description;
 }

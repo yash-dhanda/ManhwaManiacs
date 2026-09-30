@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/buttons.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/notice.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/rules.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/typed_text.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// A takeover page on black holding one state of The Annual.
 class _StatePage extends StatelessWidget {
@@ -23,7 +23,7 @@ class AnnualNotEnough extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _StatePage(
-        child: CineNotice(kicker: 'THE ANNUAL', headline: notEnoughLine(recordedDays), actionLabel: 'Close', onAction: onClose, actionKind: CineButtonKind.secondary),
+        child: CineNotice(tone: CineNoticeTone.empty, kicker: 'THE ANNUAL', headline: notEnoughLine(recordedDays), primary: CineNoticeAction('Close', onClose)),
       );
 }
 
@@ -38,16 +38,17 @@ class AnnualLoading extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Semantics(liveRegion: true, child: TypedText('Setting the pages…', style: cineStyleOf(context, role), scaler: CineType.scaler(context, role), header: true)),
+          Semantics(
+            liveRegion: true,
+            child: TypedHeadline('Setting the pages…', style: CineText.style(context, role).copyWith(color: CineColors.ink100), cap: role.cap, level: 1),
+          ),
           const SizedBox(height: 20),
-          const IndeterminateRule(),
+          const CineIndeterminateRule(),
         ],),
       ),
     );
   }
 }
-
-TextStyle cineStyleOf(BuildContext context, CineTextRole role) => CineType.style(context, role).copyWith(color: CineColors.ink100);
 
 /// Offline, and this year was never opened before.
 class AnnualOffline extends StatelessWidget {
@@ -56,7 +57,7 @@ class AnnualOffline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _StatePage(
-        child: CineNotice(kicker: 'OFFLINE EDITION', headline: 'The Annual needs a connection the first time.', actionLabel: 'Close', onAction: onClose, actionKind: CineButtonKind.secondary),
+        child: CineNotice(tone: CineNoticeTone.offline, kicker: 'OFFLINE EDITION', headline: 'The Annual needs a connection the first time.', primary: CineNoticeAction('Close', onClose)),
       );
 }
 
@@ -69,25 +70,12 @@ class AnnualError extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _StatePage(
         child: CineNotice(
+          tone: CineNoticeTone.error,
           kicker: 'CORRECTION',
-          kickerColor: CineColors.proof,
           headline: "The Annual didn't print.",
-          actionLabel: 'Try again',
-          onAction: onRetry,
-          secondaryLabel: 'Close',
-          onSecondary: onClose,
+          primary: CineNoticeAction('Try again', onRetry),
+          quiet: CineNoticeAction('Close', onClose),
         ),
       );
 }
 
-/// A year that is not a number: the not-found screen inside the takeover.
-/// TODO(mobile/06): mobile/06's 8.32 not-found screen owns this.
-class AnnualNotFound extends StatelessWidget {
-  const AnnualNotFound({super.key, required this.onClose});
-  final VoidCallback onClose;
-
-  @override
-  Widget build(BuildContext context) => _StatePage(
-        child: CineNotice(kicker: 'NOT FOUND', headline: "That issue isn't on the shelf.", actionLabel: 'Close', onAction: onClose, actionKind: CineButtonKind.secondary),
-      );
-}

@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/milestone_card_host.dart';
-import 'package:manhwamaniacs/skins/cinematic/parts/numbers_streak_flame.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/streak_flame.dart';
 
 import '../../../screenshots/support/shot_harness.dart';
 import '../../../support/numbers_fixtures.dart';
@@ -32,7 +32,7 @@ void main() {
   GoRouter router() => GoRouter(routes: [
         GoRoute(path: '/', builder: (_, __) => const _TonightStandIn(label: 'TONIGHT')),
         GoRoute(path: '/second', builder: (_, __) => const _TonightStandIn(label: 'TONIGHT AGAIN')),
-      ]);
+      ],);
 
   Future<void> open(WidgetTester tester, CineTestEnv env) async {
     await pumpCine(tester, env, router: router());
@@ -49,9 +49,9 @@ void main() {
     expect(find.text('Your longest is 31.'), findsOneWidget);
     expect(env.repo.marked, [30]);
     // The tier flame: 96 px with the ring painter (30-99 days).
-    final flame = tester.widget<NumbersStreakFlame>(find.byType(NumbersStreakFlame));
+    final flame = tester.widget<StreakFlame>(find.byType(StreakFlame));
     expect(flame.size, 96);
-    expect(flame.days, 30);
+    expect(flame.streak.currentDays, 30);
     expect(find.byWidgetPredicate((w) => w is CustomPaint && w.painter.runtimeType.toString() == '_RingPainter'), findsOneWidget);
     expect(env.haptics.events.map((e) => e.name), contains('streakMilestone'));
   });

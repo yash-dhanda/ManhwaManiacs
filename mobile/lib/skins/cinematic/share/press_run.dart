@@ -4,12 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/platform/media_store.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/buttons.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cue.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/notice.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/sheet.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/toast.dart';
+import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card_capture.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card_model.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -35,7 +37,7 @@ typedef CardRenderer = Future<Uint8List> Function(BuildContext context, ShareTem
 final cardRendererProvider = Provider<CardRenderer>((_) => renderShareCard, name: 'cardRenderer');
 
 /// Opens the press-run sheet (`[0.92]` detent, 720 wide max).
-Future<void> showPressRun(BuildContext context, ShareInput input) => showCineSheet<void>(context, kicker: 'PRESS RUN', builder: (context) => PressRunBody(input: input));
+Future<void> showPressRun(BuildContext context, ShareInput input) => showCineSheet<void>(context, kicker: 'PRESS RUN', title: 'Press run', builder: (context) => PressRunBody(input: input));
 
 /// The press run's content (cinematic 9.2.5): a 240 px live preview of the
 /// real PNG, the template slug line, the STORY | POST control and the actions.
@@ -98,7 +100,7 @@ class _PressRunBodyState extends ConsumerState<PressRunBody> {
     } catch (_) {
       if (!mounted || token != _token) return;
       setState(() => _rendering = false);
-      showCineToast(context, "Couldn't make the card. Try again.", duration: CineDur.holdToastError, error: true);
+      ref.read(cineToastsProvider.notifier).error("Couldn't make the card. Try again.");
     }
   }
 
@@ -109,7 +111,7 @@ class _PressRunBodyState extends ConsumerState<PressRunBody> {
     try {
       return await ref.read(cardRendererProvider)(context, t, _format);
     } catch (_) {
-      if (mounted) showCineToast(context, "Couldn't make the card. Try again.", duration: CineDur.holdToastError, error: true);
+      if (mounted) ref.read(cineToastsProvider.notifier).error("Couldn't make the card. Try again.");
       return null;
     }
   }
@@ -136,16 +138,16 @@ class _PressRunBodyState extends ConsumerState<PressRunBody> {
     final ok = (_canSave ?? false) && await ref.read(mediaStoreProvider).saveImage(bytes, name);
     if (!mounted) return;
     if (ok) {
-      showCineToast(context, instead ? 'Saved the card instead.' : 'Card saved to Pictures › ManhwaManiacs.');
+      ref.read(cineToastsProvider.notifier).success(instead ? 'Saved the card instead.' : 'Card saved to Pictures › ManhwaManiacs.');
     } else {
-      showCineToast(context, instead ? "Couldn't share the card." : "Couldn't save the card.", duration: CineDur.holdToastError, error: true);
+      ref.read(cineToastsProvider.notifier).error(instead ? "Couldn't share the card." : "Couldn't save the card.");
     }
   }
 
   Future<void> _share() async {
     final t = _current;
     if (t == null) return;
-    cinematicCue(ref, HapticEvent.shareExport, SoundEvent.shareExport);
+    cineFeedback(context, HapticEvent.shareExport, sound: SoundEvent.shareExport);
     final bytes = await _cardBytes();
     if (bytes == null || !mounted) return;
     final name = shareFileName(t.id, _format);
@@ -155,7 +157,7 @@ class _PressRunBodyState extends ConsumerState<PressRunBody> {
     if (r == null || r.status == ShareResultStatus.unavailable) {
       // A share that failed saves the card instead (Android); iOS has no silent save.
       if (_ios) {
-        showCineToast(context, "Couldn't share the card.", duration: CineDur.holdToastError, error: true);
+        ref.read(cineToastsProvider.notifier).error("Couldn't share the card.");
       } else {
         await _saveAndroid(bytes, name, instead: true);
       }
@@ -165,7 +167,7 @@ class _PressRunBodyState extends ConsumerState<PressRunBody> {
   Future<void> _save() async {
     final t = _current;
     if (t == null) return;
-    cinematicCue(ref, HapticEvent.shareExport, SoundEvent.shareExport);
+    cineFeedback(context, HapticEvent.shareExport, sound: SoundEvent.shareExport);
     final bytes = await _cardBytes();
     if (bytes == null || !mounted) return;
     final name = shareFileName(t.id, _format);
@@ -173,7 +175,7 @@ class _PressRunBodyState extends ConsumerState<PressRunBody> {
       final r = await _openShareSheet(bytes, name);
       if (!mounted) return;
       if (r != null && r.status == ShareResultStatus.success && (r.raw).contains('SaveToCameraRoll')) {
-        showCineToast(context, 'Card saved.');
+        ref.read(cineToastsProvider.notifier).success('Card saved.');
       }
     } else {
       await _saveAndroid(bytes, name, instead: false);
@@ -182,9 +184,8 @@ class _PressRunBodyState extends ConsumerState<PressRunBody> {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.cine;
     if (_templates.isEmpty) {
-      return const CineNotice(kicker: 'PRESS RUN', headline: 'Nothing to print yet.', line: 'Read a few chapters and your cards appear here.');
+      return const CineNotice(tone: CineNoticeTone.empty, kicker: 'PRESS RUN', headline: 'Nothing to print yet.', deck: 'Read a few chapters and your cards appear here.');
     }
     final cur = _current!;
     return SingleChildScrollView(
@@ -199,25 +200,28 @@ class _PressRunBodyState extends ConsumerState<PressRunBody> {
               decoration: BoxDecoration(border: Border.all(color: CineColors.rule2)),
               child: Stack(alignment: Alignment.center, children: [
                 if (_bytes != null) Opacity(opacity: _rendering ? 0.4 : 1, child: Image.memory(_bytes!, fit: BoxFit.contain, gaplessPlayback: true)),
-                if (_rendering) const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 1.5, color: CineColors.spot)),
+                if (_rendering) const CineLeaderDial(size: 24, showAfter: Duration.zero),
               ],),
             ),
           ),
         ),
         const SizedBox(height: 16),
-        _SlugLine(
-          labels: [for (final x in _templates) x.id.label],
-          index: _index.clamp(0, _templates.length - 1),
-          onSelect: (i) {
-            if (i == _index) return;
+        CineSlugLines(
+          items: [for (final x in _templates) CineSlug(x.id.name, x.id.label)],
+          selected: {_templates[_index.clamp(0, _templates.length - 1)].id.name},
+          onChanged: (id) {
+            final i = _templates.indexWhere((x) => x.id.name == id);
+            if (i < 0 || i == _index) return;
             setState(() => _index = i);
             _preview();
           },
         ),
         const SizedBox(height: 12),
-        _FormatControl(
-          format: _format,
-          onChanged: (f) {
+        CineSegmentedControl(
+          labels: const ['STORY', 'POST'],
+          index: _format.index,
+          onChanged: (i) {
+            final f = ShareFormat.values[i];
             if (f == _format) return;
             setState(() => _format = f);
             _preview();
@@ -225,97 +229,18 @@ class _PressRunBodyState extends ConsumerState<PressRunBody> {
         ),
         const SizedBox(height: 20),
         Row(children: [
-          Expanded(child: KeyedSubtree(key: _shareKey, child: CineButton('Share', loading: _rendering, onPressed: _rendering ? null : _share))),
+          Expanded(child: KeyedSubtree(key: _shareKey, child: CineButton(label: 'Share', loading: _rendering, onPressed: _rendering ? null : _share))),
           if (_canSave ?? false) ...[
             const SizedBox(width: 8),
-            Expanded(child: CineButton('Save image', kind: CineButtonKind.secondary, onPressed: _rendering ? null : _save)),
+            Expanded(child: CineButton(label: 'Save image', variant: CineButtonVariant.secondary, onPressed: _rendering ? null : _save)),
           ],
         ],),
         if (widget.onReadNumbers != null) ...[
           const SizedBox(height: 8),
-          Align(alignment: Alignment.centerLeft, child: CineButton('Read the numbers', kind: CineButtonKind.quiet, onPressed: widget.onReadNumbers)),
-        ],
-        if (widget.inline) SizedBox(height: 4, child: CineText('', t.typeMicro)),
-      ],),
-    );
-  }
-}
-
-/// The template slug line (7.5): a single-select of the available templates, the
-/// underline sliding 320 ms on `settle`; every entry is 44 / 48 tall.
-class _SlugLine extends StatelessWidget {
-  const _SlugLine({required this.labels, required this.index, required this.onSelect});
-  final List<String> labels;
-  final int index;
-  final ValueChanged<int> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.cine;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(children: [
-        for (var i = 0; i < labels.length; i++) ...[
-          if (i > 0) CineText(' · ', t.typeKicker, color: CineColors.ink30),
-          Semantics(
-            button: true,
-            selected: i == index,
-            label: labels[i],
-            excludeSemantics: true,
-            onTap: () => onSelect(i),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onSelect(i),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: minHit(context), minWidth: minHit(context)),
-                child: Center(
-                  widthFactor: 1,
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    CineText(labels[i], t.typeKicker, color: i == index ? CineColors.ink100 : CineColors.ink60, excludeSemantics: true),
-                    const SizedBox(height: 4),
-                    AnimatedContainer(duration: CineDur.column, curve: CineCurves.settle, height: 2, width: i == index ? 24 : 0, color: CineColors.spot),
-                  ],),
-                ),
-              ),
-            ),
-          ),
+          Align(alignment: Alignment.centerLeft, child: CineButton(label: 'Read the numbers', variant: CineButtonVariant.quiet, onPressed: widget.onReadNumbers)),
         ],
       ],),
     );
   }
 }
 
-/// `STORY | POST`, 40 px (7.5).
-class _FormatControl extends StatelessWidget {
-  const _FormatControl({required this.format, required this.onChanged});
-  final ShareFormat format;
-  final ValueChanged<ShareFormat> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.cine;
-    Widget seg(ShareFormat f, String label) => Expanded(
-          child: Semantics(
-            button: true,
-            selected: format == f,
-            label: label,
-            excludeSemantics: true,
-            onTap: () => onChanged(f),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onChanged(f),
-              child: Container(
-                constraints: BoxConstraints(minHeight: minHit(context)),
-                alignment: Alignment.center,
-                color: format == f ? CineColors.paper4 : Colors.transparent,
-                child: CineText(label, t.typeKicker, color: format == f ? CineColors.ink100 : CineColors.ink60, excludeSemantics: true),
-              ),
-            ),
-          ),
-        );
-    return Container(
-      decoration: BoxDecoration(border: Border.all(color: CineColors.rule2)),
-      child: Row(children: [seg(ShareFormat.story, 'STORY'), Container(width: 1, height: 40, color: CineColors.rule2), seg(ShareFormat.post, 'POST')]),
-    );
-  }
-}

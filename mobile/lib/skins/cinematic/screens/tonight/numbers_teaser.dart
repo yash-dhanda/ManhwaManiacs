@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/utils/headline.dart';
 import 'package:manhwamaniacs/features/library/utils/streak.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/annual_entry_points.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cards/cine_stat_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_galley.dart';
@@ -47,7 +48,10 @@ class NumbersTeaser extends ConsumerWidget {
       CineStatBlock(kicker: 'TIME READ', value: hoursMinutes(n.secondsWeek), caption: 'this week', loading: loading),
       Align(
         alignment: Alignment.bottomLeft,
-        child: CineButton(label: 'Open The Numbers', variant: CineButtonVariant.quiet, onPressed: () => context.go(Routes.numbers())),
+        child: Wrap(children: [
+          CineButton(label: 'Open The Numbers', variant: CineButtonVariant.quiet, onPressed: () => context.go(Routes.numbers())),
+          if (env.now.month == 12) const AnnualOutLink(),
+        ],),
       ),
     ];
     return Padding(

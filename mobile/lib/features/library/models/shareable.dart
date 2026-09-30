@@ -1,3 +1,4 @@
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart' show GenreWeight;
 /// The `shareable` block of `GET /library/statistics` and `GET /library/annual`
 /// (cinematic 9.2.5): only non-mature series, whatever the 18+ gate says. A
 /// share card may draw nothing else.
@@ -17,19 +18,6 @@ class SeriesAmbient {
     if (duo is! String || tint is! String) return null;
     return SeriesAmbient(duo: duo, tint: tint, ink: ink is String ? ink : '#F3F0E8');
   }
-}
-
-class GenreWeight {
-  const GenreWeight({required this.genre, required this.weight});
-  final String genre;
-
-  /// Share of reading seconds, 0..1.
-  final double weight;
-
-  factory GenreWeight.fromJson(Map<String, dynamic> json) => GenreWeight(
-        genre: (json['genre'] as String? ?? '').trim(),
-        weight: (json['weight'] as num?)?.toDouble() ?? 0,
-      );
 }
 
 class ShareSeries {

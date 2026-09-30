@@ -4,9 +4,11 @@ import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/home/utils/front_page.dart';
+import 'package:manhwamaniacs/features/library/utils/milestones.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/milestone_card_host.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_mood_grade.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_feed.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_shortcuts.dart';
@@ -92,7 +94,10 @@ class _TonightScreenState extends ConsumerState<TonightScreen> {
       customRunningHead: true,
       firstRunNote: false,
       mastheadFocusNode: _headline,
-      body: CineMoodGrade(mood: mood, child: TonightShortcuts(commands: _commands, child: switched)),
+      body: MilestoneCardHost(
+        streak: v?.feed == null ? null : readingStreakOf(v!.feed!.streak),
+        child: CineMoodGrade(mood: mood, child: TonightShortcuts(commands: _commands, child: switched)),
+      ),
     );
   }
 }

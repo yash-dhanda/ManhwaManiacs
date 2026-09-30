@@ -2,10 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:manhwamaniacs/features/library/utils/streak_state.dart';
+import 'package:manhwamaniacs/features/library/utils/streak.dart';
+import 'package:manhwamaniacs/skins/cinematic/cine_grain.dart';
+import 'package:manhwamaniacs/skins/cinematic/duotone.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/duotone.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card_model.dart';
+import 'package:manhwamaniacs/skins/cinematic/tint.dart';
 
 /// In debug builds only, every string the card draws (cleared per render), so a
 /// test proves that no non-shareable title reaches a card.
@@ -104,7 +106,7 @@ class ShareCard extends StatelessWidget {
 
     Widget text(String s, TextStyle style, {int? maxLines}) => Text(s, style: style, maxLines: maxLines, textScaler: TextScaler.noScaling, softWrap: maxLines != 1, overflow: TextOverflow.clip);
 
-    final artDuo = parseHex(template.art?.ambient?.duo);
+    final artDuo = parseAmbientHex(template.art?.ambient?.duo);
     final oxfordW = wordTp.width;
 
     return MediaQuery(
@@ -126,7 +128,11 @@ class ShareCard extends StatelessWidget {
                     top: artTop,
                     width: w,
                     height: math.max(0, artBottom - artTop),
-                    child: art == null ? const _DarkBand() : DuotoneImage(image: art!, duo: artDuo, error: const _DarkBand()),
+                    child: art == null
+                        ? const _DarkBand()
+                        : CineGrain(
+                            child: CineDuotone(duo: artDuo, child: Image(image: art!, fit: BoxFit.cover, gaplessPlayback: true, errorBuilder: (_, __, ___) => const _DarkBand())),
+                          ),
                   ),
                   Positioned(left: m, top: m, width: inner, child: text(template.kicker, kicker(), maxLines: 1)),
                   Positioned(left: m, top: nameTop, width: inner, child: text(template.profileName, name(), maxLines: 1)),
@@ -163,7 +169,7 @@ class ShareCard extends StatelessWidget {
 class _DarkBand extends StatelessWidget {
   const _DarkBand();
   @override
-  Widget build(BuildContext context) => const Stack(fit: StackFit.expand, children: [ColoredBox(color: Color(0xFF0B0B0A)), Grain()]);
+  Widget build(BuildContext context) => const CineGrain(child: ColoredBox(color: Color(0xFF0B0B0A)));
 }
 
 /// The Oxford rule: 3 px, a 2 px gap, 1 px; `#F3F0E8` with its first 12 % `#F4D03F`.

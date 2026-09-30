@@ -1,28 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/time/clock.dart';
+import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
-import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
-import 'package:manhwamaniacs/features/library/utils/streak_state.dart';
-import 'package:manhwamaniacs/shared/providers/core_providers.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cue.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/rules.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/typed_text.dart';
-import 'package:manhwamaniacs/skins/cinematic/parts/numbers_streak_flame.dart';
+import 'package:manhwamaniacs/features/library/utils/streak.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_format.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
-import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// The caption of the streak block by state (cinematic 9.2.2).
-String streakCaption(HomeStreak s, StreakState state) {
+String streakCaption(HomeStreak s, StreakLiveState state) {
   switch (state) {
-    case StreakState.readToday:
+    case StreakLiveState.aliveToday:
       return 'DAYS IN A ROW · LONGEST ${s.longestDays}';
-    case StreakState.notYetToday:
+    case StreakLiveState.aliveNotToday:
       return 'Read today to keep your ${s.currentDays}-day streak.';
-    case StreakState.atRisk:
+    case StreakLiveState.atRisk:
       return '${capitalise(spell(s.currentDays))} ${s.currentDays == 1 ? 'day' : 'days'} and counting. One chapter keeps it alive.';
-    case StreakState.broken:
+    case StreakLiveState.none:
       return s.longestDays > 0 ? 'Longest: ${s.longestDays} ${s.longestDays == 1 ? 'day' : 'days'}. Start a new one today.' : 'Start your first streak today.';
   }
 }
@@ -64,7 +61,7 @@ class WeekDots extends StatelessWidget {
           Column(mainAxisSize: MainAxisSize.min, children: [
             Container(width: 8, height: 8, decoration: BoxDecoration(color: read[i] ? CineColors.spot : null, border: read[i] ? null : Border.all(color: CineColors.rule2))),
             const SizedBox(height: 4),
-            SizedBox(width: 8, child: OverflowBox(maxWidth: 16, child: CineText(initials[i], micro, color: CineColors.ink45, textAlign: TextAlign.center, excludeSemantics: true))),
+            SizedBox(width: 8, child: OverflowBox(maxWidth: 16, child: ExcludeSemantics(child: CineRoleText(initials[i], micro, color: CineColors.ink45, textAlign: TextAlign.center)))),
           ],),
         ],
       ],),
@@ -72,9 +69,9 @@ class WeekDots extends StatelessWidget {
   }
 }
 
-/// The streak block (cinematic 9.2.1): kicker, flame beside the day count, the
-/// caption by state, the week dots. Plays Ignite once when the last active day
-/// has just flipped to today.
+/// The streak block (cinematic 9.2.1): kicker, `StreakFlame` beside the day count, the caption by
+/// state, the week dots. The flame plays Ignite (and its haptic and cue) itself when the last
+/// active day has just flipped to today; the numeral then types its new value.
 class StreakBlock extends ConsumerStatefulWidget {
   const StreakBlock({super.key, required this.streak, required this.daily, this.signature = false, this.wide = false});
 
@@ -88,45 +85,42 @@ class StreakBlock extends ConsumerStatefulWidget {
 }
 
 class _StreakBlockState extends ConsumerState<StreakBlock> {
-  bool _ignite = false;
+  late HomeStreak _home = HomeStreak.fromReadingStreak(widget.streak);
+  late final DateTime _now = ref.read(clockProvider)();
 
   @override
-  void initState() {
-    super.initState();
-    final now = ref.read(numbersNowProvider)();
-    final prefs = ref.read(sharedPrefsProvider);
-    final key = ref.read(streakSeenKeyProvider);
-    final home = HomeStreak.fromReadingStreak(widget.streak);
-    if (justExtended(home, now, prefs.getString(key))) {
-      _ignite = true;
-      prefs.setString(key, todayKey(now));
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) cinematicCue(ref, HapticEvent.streakExtend, SoundEvent.streakExtend);
-      });
-    }
+  void didUpdateWidget(StreakBlock old) {
+    super.didUpdateWidget(old);
+    if (old.streak != widget.streak) _home = HomeStreak.fromReadingStreak(widget.streak);
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.cine;
-    final now = ref.watch(numbersNowProvider)();
-    final home = HomeStreak.fromReadingStreak(widget.streak);
-    final state = streakState(home, now);
+    final now = ref.watch(clockProvider)();
+    // Watching keeps the one-shot value alive, so the flame below reads the same answer.
+    final ignite = ref.watch(streakIgnitionProvider((streak: _home, now: _now)));
+    final state = streakState(_home, now);
     final days = widget.streak.currentDays;
-    final caption = streakCaption(home, state);
-    final capRole = state == StreakState.readToday ? t.typeCredit : t.typeCaption;
+    final numeral = CineText.style(context, t.typeNumeral).copyWith(color: CineColors.ink100, fontFeatures: const [FontFeature.liningFigures(), FontFeature.tabularFigures()]);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      DrawnRule(animate: widget.signature),
+      CineRuleDraw(kind: CineRuleKind.heavy, draw: widget.signature),
       const SizedBox(height: 12),
-      CineText('STREAK', t.typeKicker, color: CineColors.ink60),
+      CineRoleText('STREAK', t.typeKicker, color: CineColors.ink60),
       const SizedBox(height: 4),
       Row(children: [
-        NumbersStreakFlame(days: days, state: state, size: widget.wide ? 96 : 56, ignite: _ignite, fromTier: _ignite ? streakTier(days - 1) : null),
+        StreakFlame(streak: _home, size: widget.wide ? 96 : 56, now: _now, ignite: ignite),
         const SizedBox(width: 4),
-        Flexible(child: TypedNumeral('$days', animate: _ignite || widget.signature, semanticsLabel: '$days days')),
+        Flexible(
+          child: Semantics(
+            label: '$days days',
+            excludeSemantics: true,
+            child: ignite || widget.signature ? TypedHeadline('$days', style: numeral, cap: t.typeNumeral.cap) : Text('$days', style: numeral, textScaler: CineText.scaler(context, t.typeNumeral), maxLines: 1),
+          ),
+        ),
       ],),
       const SizedBox(height: 4),
-      CineText(caption, capRole, color: CineColors.ink60),
+      CineRoleText(streakCaption(_home, state), state == StreakLiveState.aliveToday ? t.typeCredit : t.typeCaption, color: CineColors.ink60),
       const SizedBox(height: 16),
       WeekDots(read: weekRead(widget.daily, now)),
     ],);

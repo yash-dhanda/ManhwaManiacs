@@ -1,7 +1,7 @@
 import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/models/shareable.dart';
-import 'package:manhwamaniacs/features/library/utils/streak_state.dart';
+import 'package:manhwamaniacs/features/library/utils/streak.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/clock_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_format.dart';
 

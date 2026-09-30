@@ -1,8 +1,6 @@
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/press_run.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card.dart';
@@ -30,7 +28,10 @@ void main() {
   testWidgets('every template captures to a PNG of 1080 x 1920 (Story) and 1080 x 1350 (Post)', (tester) async {
     final env = CineTestEnv();
     late BuildContext ctx;
-    await pumpCine(tester, env, router: cineRouter(initial: '/', home: host((c) => ctx = c)));
+    await pumpCine(tester, env, router: cineRouter(initial: '/', home: host((c) {
+      ctx = c;
+      return const SizedBox();
+    }),),);
     final templates = shareTemplates(ShareInput.annual(annualFixture(), 'Yash'));
     expect(templates, hasLength(6));
     for (final t in templates) {
@@ -46,7 +47,10 @@ void main() {
   testWidgets('a card draws only shareable fields: the mature title never appears', (tester) async {
     final env = CineTestEnv();
     late BuildContext ctx;
-    await pumpCine(tester, env, router: cineRouter(initial: '/', home: host((c) => ctx = c)));
+    await pumpCine(tester, env, router: cineRouter(initial: '/', home: host((c) {
+      ctx = c;
+      return const SizedBox();
+    }),),);
     final j = annualJson();
     (j['top_series'] as List).insert(0, {'source_id': 'x', 'series_key': 'm', 'title': 'MATURE SECRET', 'cover_url': '/c', 'seconds_read': 99999, 'chapters_read': 999});
     final input = ShareInput.annual(annualFromJson(j), 'Yash');
@@ -65,7 +69,10 @@ void main() {
   testWidgets('a failing cover leaves the dark band and the card still renders', (tester) async {
     final env = CineTestEnv();
     late BuildContext ctx;
-    await pumpCine(tester, env, router: cineRouter(initial: '/', home: host((c) => ctx = c)));
+    await pumpCine(tester, env, router: cineRouter(initial: '/', home: host((c) {
+      ctx = c;
+      return const SizedBox();
+    }),),);
     final t = shareTemplates(ShareInput.annual(annualFixture(withShareable: false), 'Yash')).first;
     final bytes = await tester.runAsync(() => renderShareCard(ctx, t, ShareFormat.story));
     expect(pngSize(bytes!).h, 1920);
@@ -100,7 +107,7 @@ void main() {
 
     testWidgets('a fixture with an empty shareable.topSeries has no No. 1', (tester) async {
       final j = annualJson();
-      (j['shareable'] as Map)['top_series'] = [];
+      (j['shareable'] as Map)['top_series'] = <Object?>[];
       await open(tester, input: ShareInput.annual(annualFromJson(j), 'Yash'));
       expect(find.text('NO. 1'), findsNothing);
       expect(find.text('TIME'), findsOneWidget);

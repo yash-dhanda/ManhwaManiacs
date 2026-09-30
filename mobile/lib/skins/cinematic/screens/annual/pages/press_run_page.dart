@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/pages/page_frame.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/press_run.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card_model.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// Page 11: the press run inline; the story ends here.
 class AnnualPressRunPage extends StatelessWidget {
@@ -18,7 +18,7 @@ class AnnualPressRunPage extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Padding(padding: const EdgeInsets.only(top: 48), child: CineText('PRESS RUN', context.cine.typeKicker, color: CineColors.ink60)),
+                Padding(padding: const EdgeInsets.only(top: 48), child: CineRoleText('PRESS RUN', context.cine.typeKicker, color: CineColors.ink60)),
                 Flexible(child: PressRunBody(input: ShareInput.annual(env.annual, env.profileName), inline: true, onReadNumbers: env.readNumbers)),
               ],),
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/library/models/shareable.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart' show GenreWeight;
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_copy.dart';
 
 import '../../../support/numbers_fixtures.dart';
@@ -36,11 +37,11 @@ void main() {
 
   test('empty data skips pages and the segments renumber', () {
     final j = annualJson();
-    j['genres'] = [];
-    j['top_sources'] = [];
+    j['genres'] = <Object?>[];
+    j['top_sources'] = <Object?>[];
     j['longest_streak'] = {'days': 0};
     j['circle'] = [
-      {'profile_id': 2, 'name': 'Riya', 'finished_together': []},
+      {'profile_id': 2, 'name': 'Riya', 'finished_together': <Object?>[]},
     ];
     final pages = annualPages(annualFromJson(j)).map((p) => p.kind).toList();
     expect(pages, isNot(contains(AnnualPageKind.genres)));
@@ -54,7 +55,7 @@ void main() {
     expect(timeHeadline(212 * 3600), 'You read for 212 hours.');
     expect(timeHeadline(3600), 'You read for 1 hour.');
     expect(timeHeadline(1500), 'You read for 25 minutes.');
-    expect(timeFigureRange(212 * 3600), (13, 16));
+    expect(timeFigureRange(212 * 3600), (start: 13, end: 16));
     expect(timeDeck(9 * 86400), "That's nine days, cover to cover.");
     expect(timeDeck(86400), "That's one day, cover to cover.");
     expect(timeDeck(12 * 86400), "That's 12 days, cover to cover.");

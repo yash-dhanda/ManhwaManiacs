@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart'
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_story.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/system/cine_error_screen.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// The Annual (ScreenId `annual`, `/library/statistics/annual/:year`; cinematic
@@ -23,7 +24,7 @@ class AnnualScreen extends ConsumerWidget {
     final year = int.tryParse(yearParam);
     Widget body;
     if (year == null) {
-      body = AnnualNotFound(onClose: close);
+      body = CineErrorScreen.notFound(location: Routes.annual(yearParam));
     } else {
       final async = ref.watch(annualProvider(year));
       body = async.when(

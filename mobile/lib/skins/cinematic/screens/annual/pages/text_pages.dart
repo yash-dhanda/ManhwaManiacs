@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/features/library/utils/streak_state.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/letter_reveal.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/rules.dart';
-import 'package:manhwamaniacs/skins/cinematic/parts/numbers_streak_flame.dart';
+import 'package:manhwamaniacs/features/home/models/home_feed.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/pages/page_frame.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/clock_chart.dart';
@@ -12,6 +10,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/numbers/clock_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/genre_radar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_format.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// Page 2: "You read for 212 hours." with the figure typed.
 class AnnualTimePage extends StatelessWidget {
@@ -26,8 +25,8 @@ class AnnualTimePage extends StatelessWidget {
     return AnnualPageFrame(
       annual: env.annual,
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SetHeading(timeHeadline(s), role: t.typeHeadline, typedRange: timeFigureRange(s)),
-        if (deck != null) ...[const SizedBox(height: 12), CineText(deck, t.typeDeck, color: CineColors.ink80)],
+        AnnualTitle(timeHeadline(s), t.typeHeadline, id: 'time', typedRange: timeFigureRange(s)),
+        if (deck != null) ...[const SizedBox(height: 12), CineRoleText(deck, t.typeDeck, color: CineColors.ink80)],
       ],),
     );
   }
@@ -49,7 +48,7 @@ class AnnualChaptersPage extends StatelessWidget {
     return AnnualPageFrame(
       annual: env.annual,
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SetHeading(chaptersHeadline(a.chaptersRead), role: t.typeHeadline, typedRange: (0, fmt(a.chaptersRead).length)),
+        AnnualTitle(chaptersHeadline(a.chaptersRead), t.typeHeadline, id: 'chapters', typedRange: (start: 0, end: fmt(a.chaptersRead).length)),
         const SizedBox(height: 24),
         Semantics(
           label: 'Chapters by month: ${[for (var i = 0; i < 12; i++) '${DateTimeMonth.name(i + 1)} ${months[i]}'].join(', ')}',
@@ -63,7 +62,7 @@ class AnnualChaptersPage extends StatelessWidget {
                   child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
                     Container(height: months[i] / maxV * 80, color: i == current ? CineColors.spot : CineColors.ink100),
                     const SizedBox(height: 4),
-                    CineText(initials[i], t.typeMicro, color: CineColors.ink45, excludeSemantics: true),
+                    ExcludeSemantics(child: CineRoleText(initials[i], t.typeMicro, color: CineColors.ink45)),
                   ],),
                 ),
               ],
@@ -94,9 +93,9 @@ class AnnualNumberOnePage extends StatelessWidget {
     return AnnualPageFrame(
       annual: env.annual,
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SetHeading(no1Headline(first.title), role: t.typeHeadline),
+        AnnualTitle(no1Headline(first.title), t.typeHeadline, id: 'no1'),
         const SizedBox(height: 8),
-        CineText(no1Credit(first), t.typeCredit, color: CineColors.ink80),
+        CineRoleText(no1Credit(first), t.typeCredit, color: CineColors.ink80),
         const SizedBox(height: 16),
         for (var i = 1; i < top.length && i < 5; i++)
           Padding(
@@ -106,9 +105,9 @@ class AnnualNumberOnePage extends StatelessWidget {
               label: 'No. ${i + 1}: ${top[i].title}, ${rankFolio(top[i])}',
               excludeSemantics: true,
               child: Row(children: [
-                SizedBox(width: 32, child: Text('${i + 1}', style: cineStyle(context, t.typeNumeral, color: CineColors.ink45, size: 24, features: kNumeralFeatures))),
-                Expanded(child: CineText(top[i].title, t.typeTitle, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                CineText(rankFolio(top[i]), t.typeFolio, color: CineColors.ink60),
+                SizedBox(width: 32, child: Text('${i + 1}', style: CineText.style(context, t.typeNumeral).copyWith(color: CineColors.ink45, fontSize: 24, height: 1, fontFeatures: const [FontFeature.liningFigures(), FontFeature.tabularFigures()]))),
+                Expanded(child: CineRoleText(top[i].title, t.typeTitle, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                CineRoleText(rankFolio(top[i]), t.typeFolio, color: CineColors.ink60),
               ],),
             ),
           ),
@@ -130,7 +129,7 @@ class AnnualGenresPage extends StatelessWidget {
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
         Center(child: FittedBox(fit: BoxFit.scaleDown, child: GenreRadar(genres: env.annual.genres))),
         const SizedBox(height: 16),
-        SetHeading(genresLine(env.annual.genres), role: t.typeHeadline),
+        AnnualTitle(genresLine(env.annual.genres), t.typeHeadline, id: 'genres'),
       ],),
     );
   }
@@ -150,7 +149,7 @@ class AnnualClockPage extends StatelessWidget {
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
         Center(child: FittedBox(fit: BoxFit.scaleDown, child: ClockChart(byHour: env.annual.byHour, summary: line))),
         const SizedBox(height: 8),
-        SetHeading(line, role: t.typeHeadline),
+        AnnualTitle(line, t.typeHeadline, id: 'clock'),
       ],),
     );
   }
@@ -168,9 +167,14 @@ class AnnualStreakPage extends StatelessWidget {
     return AnnualPageFrame(
       annual: env.annual,
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        NumbersStreakFlame(days: s.days, state: StreakState.readToday, size: 96, forceFill: true),
+        StreakFlame(
+          streak: HomeStreak(currentDays: s.days, longestDays: s.days, lastActiveDate: DateTime(env.now.year, env.now.month, env.now.day)),
+          size: 96,
+          now: env.now,
+          ignite: false,
+        ),
         const SizedBox(height: 8),
-        SetHeading(streakLine(s), role: t.typeHeadline),
+        AnnualTitle(streakLine(s), t.typeHeadline, id: 'streak'),
       ],),
     );
   }
@@ -188,7 +192,7 @@ class AnnualSourcesPage extends StatelessWidget {
     return AnnualPageFrame(
       annual: env.annual,
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        SetHeading(sourcesHeadline(sources.first.name), role: t.typeHeadline),
+        AnnualTitle(sourcesHeadline(sources.first.name), t.typeHeadline, id: 'sources'),
         const SizedBox(height: 20),
         for (final s in sources)
           Padding(
@@ -198,9 +202,9 @@ class AnnualSourcesPage extends StatelessWidget {
               label: '${s.name}, ${(s.share * 100).round()} percent',
               excludeSemantics: true,
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [Expanded(child: CineText(s.name, t.typeUi)), CineText('${(s.share * 100).round()} %', t.typeFolio, color: CineColors.ink80)]),
+                Row(children: [Expanded(child: CineRoleText(s.name, t.typeUi)), CineRoleText('${(s.share * 100).round()} %', t.typeFolio, color: CineColors.ink80)]),
                 const SizedBox(height: 8),
-                ShareRule(value: s.share),
+                CineRuleProgress(value: s.share),
               ],),
             ),
           ),
@@ -224,7 +228,7 @@ class AnnualAvatar extends StatelessWidget {
         height: 56,
         alignment: Alignment.center,
         color: _accents[seed.abs() % _accents.length],
-        child: Text(name.isEmpty ? '?' : name[0].toUpperCase(), style: cineStyle(context, context.cine.typeSubhead)),
+        child: Text(name.isEmpty ? '?' : name[0].toUpperCase(), style: CineText.style(context, context.cine.typeSubhead)),
       );
 }
 
@@ -242,7 +246,7 @@ class AnnualCirclePage extends ConsumerWidget {
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [AnnualAvatar(name: env.profileName), const SizedBox(width: 12), AnnualAvatar(name: member.name, seed: member.profileId)]),
         const SizedBox(height: 16),
-        SetHeading(circleLine(env.annual)!, role: t.typeHeadline),
+        AnnualTitle(circleLine(env.annual)!, t.typeHeadline, id: 'circle'),
       ],),
     );
   }

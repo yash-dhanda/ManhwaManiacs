@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/chart_math.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 const double _kCell = 10;
 const double _kGap = 2;
@@ -57,16 +57,16 @@ class _YearHeatmapState extends State<YearHeatmap> {
     final grid = heatGrid(widget.daily, widget.today);
     const w = 53 * (_kCell + _kGap) - _kGap;
     const h = _kTop + 7 * (_kCell + _kGap) - _kGap;
-    final folio = cineStyle(context, t.typeFolio, color: CineColors.ink45);
+    final folio = CineText.style(context, t.typeFolio).copyWith(color: CineColors.ink45);
     final selDay = widget.selected != null && widget.selected! < widget.daily.length ? widget.daily[widget.selected!] : null;
     return Semantics(
       container: true,
       explicitChildNodes: true,
       label: heatSummary(widget.daily),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        CineText(heatSummary(widget.daily), t.typeCaption, color: CineColors.ink60),
+        CineRoleText(heatSummary(widget.daily), t.typeCaption, color: CineColors.ink60),
         const SizedBox(height: 12),
-        if (selDay != null) ...[CineText(dayReadout(selDay), t.typeFolio), const SizedBox(height: 8)],
+        if (selDay != null) ...[CineRoleText(dayReadout(selDay), t.typeFolio), const SizedBox(height: 8)],
         SingleChildScrollView(
           controller: _scroll,
           scrollDirection: Axis.horizontal,
@@ -174,7 +174,7 @@ class _Legend extends StatelessWidget {
             Row(mainAxisSize: MainAxisSize.min, children: [
               CustomPaint(size: const Size(_kCell, _kCell), painter: _FormPainter(i)),
               const SizedBox(width: 4),
-              CineText(labels[i], t.typeFolio, color: CineColors.ink45),
+              CineRoleText(labels[i], t.typeFolio, color: CineColors.ink45),
             ],),
         ],),
       ),

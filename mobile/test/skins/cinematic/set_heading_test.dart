@@ -171,4 +171,23 @@ void main() {
     expect(spans[1].style?.fontStyle, FontStyle.normal);
     expect(t.getSemantics(find.byType(SetHeading)).label, text);
   });
+
+  testWidgets('a typed range types one grapheme per 50 ms from the first letter of the range and keeps the full label', (t) async {
+    const text = 'You read 212 hours.';
+    Widget heading() => const SetHeading(text, id: 'h-typed', style: _style, cap: 1.3, level: 2, trigger: SetTrigger.signal, startDelayMs: 0, typedRange: (start: 9, end: 12));
+    await t.pumpWidget(_host(c, heading()));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 170));
+    await t.pump(const Duration(milliseconds: 10));
+    List<double> figure() => [
+          for (final w in t.widgetList<Opacity>(find.descendant(of: find.byType(SetHeading), matching: find.byType(Opacity)))) w.opacity,
+        ];
+    Finder digit(String d) => find.descendant(of: find.byType(SetHeading), matching: find.text(d));
+    // Letters of the range are all-or-nothing; after the reveal every one is shown.
+    await t.pump(const Duration(milliseconds: 2000));
+    expect(figure().every((v) => v == 1), isTrue);
+    expect(digit('2'), findsNWidgets(2));
+    expect(digit('1'), findsOneWidget);
+    expect(t.getSemantics(find.byType(SetHeading)).label, text);
+  });
 }

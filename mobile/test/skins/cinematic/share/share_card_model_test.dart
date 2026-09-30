@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/features/library/utils/streak_state.dart';
+import 'package:manhwamaniacs/features/library/utils/streak.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card_model.dart';
 
 import '../../../support/numbers_fixtures.dart';

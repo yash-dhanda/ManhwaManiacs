@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_segments.dart';
 
@@ -14,7 +13,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppFonts);
 
-  CineTestEnv envWith({bool circle = false, bool voices = true, int recorded = 120, Object? failWith}) => CineTestEnv(
+  CineTestEnv envWith({bool circle = false, bool voices = true, int recorded = 120, AppError? failWith}) => CineTestEnv(
         repo: FakeNumbersRepo(annuals: {2026: annualFixture(circle: circle, voices: voices, recordedDays: recorded), 2025: annualFixture(year: 2025, partial: false)}, failWith: failWith),
       );
 
@@ -89,7 +88,7 @@ void main() {
   testWidgets('a swipe down closes the story', (tester) async {
     await openAnnual(tester, envWith());
     await tester.fling(find.byType(PageView), const Offset(0, 400), 1500);
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
     expect(find.text('INDEX'), findsOneWidget);
   });
 
@@ -163,7 +162,7 @@ void main() {
     await pumpMs(tester, 1500);
     expect(currentFill(tester), before);
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
     expect(find.text('INDEX'), findsOneWidget);
   });
 
@@ -247,7 +246,7 @@ void main() {
     expect(find.text('Your Annual needs a few more weeks of reading. 5 days recorded so far.'), findsOneWidget);
     expect(find.byType(AnnualSegments), findsNothing);
     await tester.tap(find.text('Close'));
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
     expect(find.text('INDEX'), findsOneWidget);
   });
 

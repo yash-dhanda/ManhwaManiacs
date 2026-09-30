@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,20 +7,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
-import 'package:manhwamaniacs/features/library/utils/streak_state.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cover.dart';
-import 'package:manhwamaniacs/skins/cinematic/parts/numbers_streak_flame.dart';
+import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/milestone_card_host.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/authed_cover.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/streak_block.dart';
+import 'package:manhwamaniacs/skins/cinematic/share/press_run.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card_capture.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/share_card_model.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_copy.dart';
-import 'package:manhwamaniacs/skins/cinematic/share/press_run.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/numbers/chart_math.dart';
-import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
-import 'package:manhwamaniacs/skins/cinematic/parts/milestone_card_host.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_player.dart';
 
 import '../../skins/cinematic/support/cine_harness.dart';
 import '../../support/numbers_fixtures.dart';
@@ -82,7 +78,7 @@ Future<void> mobile21Shot(
     accessible: accessible,
     textScale: textScale,
     boundaryKey: key,
-    extra: [coverImageProvider.overrideWithValue(shotCover)],
+    extra: [authedCoverProvider.overrideWithValue(shotCover)],
     wrap: grid ? (app) => Stack(textDirection: TextDirection.ltr, children: [app, const Positioned.fill(child: IgnorePointer(child: _GridOverlay()))]) : null,
   );
   await tester.pump();
@@ -107,8 +103,8 @@ class _GridOverlay extends StatelessWidget {
         final colW = (box.maxWidth - 2 * margin - gutter * (cols - 1)) / cols;
         return Stack(children: [
           for (var i = 0; i < cols; i++) Positioned(left: margin + i * (colW + gutter), top: 0, bottom: 0, width: colW, child: ColoredBox(color: CineColors.spot.withValues(alpha: 0.10))),
-        ]);
-      });
+        ],);
+      },);
 }
 
 Future<void> scrollTo(WidgetTester tester, Finder f) async {
@@ -127,11 +123,11 @@ Widget streakTiersRow() => Scaffold(
               SizedBox(
                 width: 110,
                 child: Column(children: [
-                  NumbersStreakFlame(days: d, state: d == 0 ? StreakState.broken : StreakState.readToday, size: 56),
+                  StreakFlame(streak: HomeStreak(currentDays: d, longestDays: 200, lastActiveDate: d == 0 ? null : DateTime(2026, 9, 29)), size: 56, now: DateTime(2026, 9, 29, 10), ignite: false),
                   Text('$d DAYS', style: const TextStyle(fontFamily: 'IBMPlexMono', fontSize: 11, color: CineColors.ink60)),
-                ]),
+                ],),
               ),
-          ]),
+          ],),
         ),
       ),
     );
@@ -155,10 +151,10 @@ Future<void> writeCards(WidgetTester tester, {required String dir}) async {
         body: Builder(builder: (c) {
           ctx = c;
           return const SizedBox.shrink();
-        }),
+        },),
       ),
     ),
-    extra: [coverImageProvider.overrideWithValue(shotCover)],
+    extra: [authedCoverProvider.overrideWithValue(shotCover)],
   );
   final templates = shareTemplates(ShareInput.annual(annualFixture(), 'Yash'));
   for (final t in templates) {
@@ -195,28 +191,28 @@ void mobile21Group() {
         final box = t.getRect(find.byType(CustomPaint).evaluate().map((e) => find.byWidget(e.widget)).firstWhere((f) => t.getSize(f).height > 150 && t.getSize(f).width > 300));
         await t.tapAt(Offset(box.left + box.width * 0.62, box.top + 60));
         await pumpMs(t, 500);
-      });
+      },);
       await mobile21Shot(tester, 'numbers-clock-radar', size: size, after: (t) async {
         await pumpMs(t, 2500);
         await scrollTo(t, find.text('When you read'));
         await t.drag(find.byType(Scrollable).last, const Offset(0, -140));
         await pumpMs(t, 3000);
-      });
+      },);
       await mobile21Shot(tester, 'numbers-lists', size: size, after: (t) async {
         await pumpMs(t, 2500);
         await scrollTo(t, find.text('Where you read'));
         await t.drag(find.byType(Scrollable).last, const Offset(0, -260));
         await pumpMs(t, 1500);
-      });
+      },);
     });
 
     testWidgets('mobile-21 milestone and press run $tag', (tester) async {
-      final env = CineTestEnv(repo: FakeNumbersRepo(stats: {30: statisticsFixture(currentDays: 30, milestonesSeen: const [7])}));
+      final env = CineTestEnv(repo: FakeNumbersRepo(stats: {30: statisticsFixture(currentDays: 30)}));
       await mobile21Shot(tester, 'milestone-card', size: size, env: env, router: GoRouter(routes: [GoRoute(path: '/', builder: (_, __) => const _TonightStandIn())]), after: (t) => pumpMs(t, 3200));
       await mobile21Shot(tester, 'press-run-sheet', size: size, router: cineRouter(initial: '/', home: Scaffold(body: Builder(builder: (c) {
         WidgetsBinding.instance.addPostFrameCallback((_) => showPressRun(c, ShareInput.annual(annualFixture(), 'Yash')));
         return const SizedBox.expand();
-      }))), after: (t) => pumpMs(t, 2500));
+      },),),), after: (t) => pumpMs(t, 2500),);
     });
 
     testWidgets('mobile-21 annual pages $tag', (tester) async {
@@ -230,14 +226,14 @@ void mobile21Group() {
             await pumpMs(t, 350);
           }
           await pumpMs(t, i == 9 ? 5000 : 3500);
-        });
+        },);
       }
     });
   }
 
   testWidgets('mobile-21 phone-only states', (tester) async {
     final phone = kShotPhone;
-    CineTestEnv stats(LibraryStatistics Function(int d) f, {Object? fail, Map<String, Object> prefs = const {}}) => CineTestEnv(repo: FakeNumbersRepo(stats: {for (final d in [7, 30, 90, 365]) d: f(d)}, failWith: fail), prefs: prefs);
+    CineTestEnv stats(LibraryStatistics Function(int d) f, {AppError? fail, Map<String, Object> prefs = const {}}) => CineTestEnv(repo: FakeNumbersRepo(stats: {for (final d in [7, 30, 90, 365]) d: f(d)}, failWith: fail), prefs: prefs);
     await mobile21Shot(tester, 'numbers-loading', size: phone, after: (t) => pumpMs(t, 250));
     await mobile21Shot(tester, 'numbers-empty', size: phone, env: stats((d) => statisticsFixture(days: d, empty: true)));
     await mobile21Shot(tester, 'numbers-never-read', size: phone, env: stats((d) => statisticsFixture(days: d, neverRead: true)));

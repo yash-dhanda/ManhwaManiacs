@@ -2,39 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/buttons.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cover.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/folio.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/letter_reveal.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/rules.dart';
+import 'package:manhwamaniacs/skins/cinematic/a11y/folio.dart';
+import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_section_header.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/raised_folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_format.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/transitions.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
-/// An H3 of The Numbers: its section rule draws 120 ms before the letters
-/// (`SetHeading`, `type.section`), with an optional raised footnote mark.
+/// An H3 of The Numbers (`CineSectionHeader`: the section rule draws 120 ms before the letters of
+/// the `SetHeading` in `type.section`), with an optional raised footnote mark.
 class SectionHead extends StatelessWidget {
   const SectionHead(this.text, {super.key, this.footnote});
   final String text;
   final int? footnote;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.cine;
-    return Padding(
-      padding: const EdgeInsets.only(top: 32, bottom: 16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const DrawnRule(height: 1, color: CineColors.rule2),
-        const SizedBox(height: 12),
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Flexible(child: SetHeading(text, role: t.typeSection, trigger: SetTrigger.inView, delay: const Duration(milliseconds: 120))),
-          if (footnote != null) Padding(padding: const EdgeInsets.only(left: 2), child: Text.rich(TextSpan(children: [footnoteMark(footnote!, (cineStyle(context, t.typeSection).fontSize ?? 24) * 0.6)]))),
-        ],),
-      ],),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: 32, bottom: 16),
+        child: CineSectionHeader(headingId: 'numbers-${text.toLowerCase().replaceAll(' ', '-')}', heading: text, footnote: footnote),
+      );
 }
 
 /// "812 pages · 9 h · 41 %".
@@ -60,11 +59,11 @@ class WhereYouRead extends StatelessWidget {
             excludeSemantics: true,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Expanded(child: CineText(s.name, t.typeUi, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                CineText(sourceFolio(s, total), t.typeFolio, color: CineColors.ink60),
+                Expanded(child: CineRoleText(s.name, t.typeUi, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                CineRoleText(sourceFolio(s, total), t.typeFolio, color: CineColors.ink60),
               ],),
               const SizedBox(height: 8),
-              ShareRule(value: total == 0 ? 0 : s.secondsRead / total),
+              CineRuleProgress(value: total == 0 ? 0 : s.secondsRead / total),
             ],),
           ),
         ),
@@ -82,32 +81,25 @@ String agoFolio(DateTime last, DateTime now) {
   return '${d.inDays ~/ 30} MO AGO';
 }
 
-class _PressRow extends StatefulWidget {
+class _PressRow extends StatelessWidget {
   const _PressRow({required this.onTap, required this.child, required this.label});
   final VoidCallback onTap;
   final Widget child;
   final String label;
 
   @override
-  State<_PressRow> createState() => _PressRowState();
-}
-
-class _PressRowState extends State<_PressRow> {
-  bool _down = false;
-
-  @override
   Widget build(BuildContext context) => Semantics(
         button: true,
-        label: widget.label,
+        label: label,
         excludeSemantics: true,
-        onTap: widget.onTap,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapDown: (_) => setState(() => _down = true),
-          onTapCancel: () => setState(() => _down = false),
-          onTapUp: (_) => setState(() => _down = false),
-          onTap: widget.onTap,
-          child: ConstrainedBox(constraints: BoxConstraints(minHeight: minHit(context)), child: ColoredBox(color: _down ? CineColors.paper3 : Colors.transparent, child: widget.child)),
+        onTap: onTap,
+        child: CinePressable(
+          onTap: onTap,
+          expand: true,
+          builder: (context, st) => ConstrainedBox(
+            constraints: BoxConstraints(minHeight: cineHitMin(context)),
+            child: ColoredBox(color: st.pressed ? CineColors.paper3 : Colors.transparent, child: child),
+          ),
         ),
       );
 }
@@ -122,7 +114,6 @@ class MostRead extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.cine;
-    final cover = ref.watch(coverImageProvider);
     final rows = series.take(5).toList();
     return Column(children: [
       for (var i = 0; i < rows.length; i++)
@@ -132,27 +123,21 @@ class MostRead extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              SizedBox(width: 28, child: Text('${i + 1}', style: cineStyle(context, t.typeNumeral, color: CineColors.ink45, size: 24, features: kNumeralFeatures))),
-              Hero(
-                tag: 'cover:${rows[i].sourceId}:${rows[i].seriesKey}',
-                child: SizedBox(
-                  width: 40,
-                  height: 60,
-                  child: rows[i].coverUrl == null
-                      ? const ColoredBox(color: CineColors.paper2)
-                      : Image(image: cover(rows[i].coverUrl!, width: 40), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const ColoredBox(color: CineColors.paper2)),
-                ),
+              SizedBox(width: 28, child: Text('${i + 1}', style: CineText.style(context, t.typeNumeral).copyWith(color: CineColors.ink45, fontSize: 24, height: 1, fontFeatures: const [FontFeature.liningFigures(), FontFeature.tabularFigures()]))),
+              CineHero(
+                tag: (rows[i].sourceId, rows[i].seriesKey),
+                child: SizedBox(width: 40, height: 60, child: CineImage(url: rows[i].coverUrl, title: rows[i].title, width: 40)),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CineText(rows[i].title ?? rows[i].seriesKey, t.typeTitle, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  CineRoleText(rows[i].title ?? rows[i].seriesKey, t.typeTitle, maxLines: 2, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 2),
-                  CineText('${fmt(rows[i].pagesRead)} pages · ${rows[i].chaptersRead} chapters · ${hoursLower(rows[i].secondsRead)}', t.typeCaption, color: CineColors.ink60),
+                  CineRoleText('${fmt(rows[i].pagesRead)} pages · ${rows[i].chaptersRead} chapters · ${hoursLower(rows[i].secondsRead)}', t.typeCaption, color: CineColors.ink60),
                   if (rows[i].lastReadAt != null)
                     Builder(builder: (context) {
                       final folio = 'Last read ${agoFolio(rows[i].lastReadAt!.toLocal(), now)}';
-                      return CineText(folio, t.typeCaption, color: CineColors.ink60, semanticsLabel: spokenFolio(folio));
+                      return Semantics(label: folioLabel(folio), excludeSemantics: true, child: CineRoleText(folio, t.typeCaption, color: CineColors.ink60));
                     },),
                 ],),
               ),
@@ -166,14 +151,23 @@ class MostRead extends ConsumerWidget {
 /// `21:04`.
 String sessionTime(DateTime t) => DateFormat('HH:mm').format(t.toLocal());
 
+void _open(BuildContext context, WidgetRef ref, ContentModeScope scope, RecentSession s) {
+  final novel = scope.novelsEnabled && scope.modeOf(s.sourceId) == ContentMode.novel;
+  final target = novel ? ReaderTarget.novel(s.sourceId, s.seriesKey, s.chapterKey) : ReaderTarget.manifest(s.sourceId, s.seriesKey, s.chapterKey);
+  readerPrefetchOf(ref).onPress(target);
+  // The Numbers is not a Column-wipe origin: Dip.
+  enterReader(context, target, entry: ReaderEntry.dip);
+}
+
 /// Recent sessions: §7.16 standard rows, 56 px minimum, built lazily.
-class RecentSessionsSliver extends StatelessWidget {
+class RecentSessionsSliver extends ConsumerWidget {
   const RecentSessionsSliver({super.key, required this.sessions});
   final List<RecentSession> sessions;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = context.cine;
+    final scope = ref.watch(contentModeScopeProvider);
     return SliverList.builder(
       itemCount: sessions.length,
       itemBuilder: (context, i) {
@@ -185,20 +179,23 @@ class RecentSessionsSliver extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(children: [
-              SizedBox(width: 52, child: s.startedAt == null ? null : CineText(sessionTime(s.startedAt!), t.typeFolio, color: CineColors.ink45)),
+              SizedBox(width: 52, child: s.startedAt == null ? null : CineRoleText(sessionTime(s.startedAt!), t.typeFolio, color: CineColors.ink45)),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CineText(s.title ?? s.seriesKey, t.typeUi, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  CineText('${s.pagesRead} pages · $minutes min', t.typeCaption, color: CineColors.ink60),
+                  CineRoleText(s.title ?? s.seriesKey, t.typeUi, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  CineRoleText('${s.pagesRead} pages · $minutes min', t.typeCaption, color: CineColors.ink60),
                 ],),
               ),
               if (chapter != null)
-                CineTap(
-                  label: 'Open ${spokenFolio(chapter)}',
-                  minWidth: false,
-                  // TODO(mobile/06): `enterReader(context, target, entry: ReaderEntry.dip)`.
-                  onTap: () => context.push(Routes.reader(s.sourceId, s.seriesKey, s.chapterKey)),
-                  child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: CineText(chapter, t.typeFolio, color: CineColors.spot, excludeSemantics: true)),
+                Semantics(
+                  button: true,
+                  label: 'Open ${folioLabel(chapter)}',
+                  excludeSemantics: true,
+                  onTap: () => _open(context, ref, scope, s),
+                  child: CinePressable(
+                    onTap: () => _open(context, ref, scope, s),
+                    builder: (context, st) => Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: CineRoleText(chapter, t.typeFolio, color: st.hovered ? CineColors.ink100 : CineColors.spot)),
+                  ),
                 ),
             ],),
           ),
@@ -218,11 +215,11 @@ class YourLibrary extends StatelessWidget {
     final t = context.cine;
     final total = stats.byReadingStatus.values.fold<int>(0, (a, b) => a + b);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      CineText('${fmt(stats.followedTotal)} FOLLOWED · ${fmt(stats.favorites)} ${stats.favorites == 1 ? 'FAVOURITE' : 'FAVOURITES'} · ${fmt(stats.chaptersCompleted)} CHAPTERS FINISHED', t.typeCredit, color: CineColors.ink60),
+      CineRoleText('${fmt(stats.followedTotal)} FOLLOWED · ${fmt(stats.favorites)} ${stats.favorites == 1 ? 'FAVOURITE' : 'FAVOURITES'} · ${fmt(stats.chaptersCompleted)} CHAPTERS FINISHED', t.typeCredit, color: CineColors.ink60),
       const SizedBox(height: 12),
       for (final (key, label) in kStatusRows)
         if ((stats.byReadingStatus[key] ?? 0) > 0) ...[
-          const HairRule(),
+          const CineRuleDraw(draw: false),
           Semantics(
             container: true,
             label: '$label, ${stats.byReadingStatus[key]}',
@@ -231,11 +228,11 @@ class YourLibrary extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Column(children: [
                 Row(children: [
-                  Expanded(child: CineText(label, t.typeKicker, color: CineColors.ink60)),
-                  CineText(fmt(stats.byReadingStatus[key]!), t.typeUi),
+                  Expanded(child: CineRoleText(label, t.typeKicker, color: CineColors.ink60)),
+                  CineRoleText(fmt(stats.byReadingStatus[key]!), t.typeUi),
                 ],),
                 const SizedBox(height: 8),
-                ShareRule(value: total == 0 ? 0 : stats.byReadingStatus[key]! / total),
+                CineRuleProgress(value: total == 0 ? 0 : stats.byReadingStatus[key]! / total),
               ],),
             ),
           ),
@@ -259,11 +256,11 @@ class Footnotes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.cine;
-    final style = cineStyle(context, t.typeCaption, color: CineColors.ink60);
+    final style = CineText.style(context, t.typeCaption).copyWith(color: CineColors.ink60);
     final first = stats.totals.firstSessionAt;
     final since = first == null ? null : DateFormat('d MMMM y', 'en_US').format(first.toLocal());
     final cap = stats.sessionCapSeconds ~/ 60;
-    InlineSpan mark(int n) => footnoteMark(n, style.fontSize ?? 13);
+    InlineSpan mark(int n) => raisedFolio(n, style.fontSize ?? 13);
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 560),
       child: Text.rich(
@@ -301,25 +298,19 @@ class AnnualBanner extends StatelessWidget {
         Row(children: [
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CineText(december ? 'THE ANNUAL $year IS OUT' : 'THE ANNUAL $year', t.typeKicker, color: CineColors.ink60),
-              if (!december) CineText('Your year so far.', t.typeUi),
+              CineRoleText(december ? 'THE ANNUAL $year IS OUT' : 'THE ANNUAL $year', t.typeKicker, color: CineColors.ink60),
+              if (!december) CineRoleText('Your year so far.', t.typeUi),
             ],),
           ),
-          CineButton('Open', small: true, kind: CineButtonKind.secondary, onPressed: () => onOpen(year)),
+          CineButton(label: 'Open', size: CineButtonSize.sm, variant: CineButtonVariant.secondary, onPressed: () => onOpen(year)),
         ],),
         if (years.length > 1) ...[
           const SizedBox(height: 4),
-          Wrap(children: [
-            for (var i = 0; i < years.length; i++) ...[
-              if (i > 0) CineText(' · ', t.typeFolio, color: CineColors.ink45),
-              CineTap(
-                label: 'The Annual ${years[i]}',
-                minWidth: false,
-                onTap: () => onOpen(years[i]),
-                child: CineText('${years[i]}', t.typeFolio, color: years[i] == year ? CineColors.ink100 : CineColors.ink60, excludeSemantics: true),
-              ),
-            ],
-          ],),
+          CineSlugLines(
+            items: [for (final y in years) CineSlug('$y', '$y')],
+            selected: {'$year'},
+            onChanged: (id) => onOpen(int.parse(id)),
+          ),
         ],
       ],),
     );

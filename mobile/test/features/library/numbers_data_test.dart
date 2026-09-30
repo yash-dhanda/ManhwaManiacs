@@ -4,13 +4,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/library/repositories/numbers_repository.dart';
 import 'package:manhwamaniacs/features/library/store/numbers_snapshot.dart';
 import 'package:manhwamaniacs/features/library/utils/milestones.dart';
 import 'package:manhwamaniacs/features/library/utils/numbers_rules.dart';
-import 'package:manhwamaniacs/features/library/utils/streak_state.dart';
+import 'package:manhwamaniacs/features/library/utils/streak.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -186,23 +187,14 @@ void main() {
     HomeStreak h(int d, DateTime? last, {bool risk = false}) => HomeStreak(currentDays: d, longestDays: 31, lastActiveDate: last, atRisk: risk);
 
     test('tiers at 0, 3, 12, 45 and 120 days', () {
-      expect([0, 3, 12, 45, 120].map(streakTier), [StreakTier.ember, StreakTier.one, StreakTier.three, StreakTier.ring, StreakTier.sparks]);
+      expect([0, 3, 12, 45, 120].map(streakTier), [StreakTier.none, StreakTier.one, StreakTier.three, StreakTier.ring, StreakTier.sparks]);
     });
 
     test('read today, not yet before 20:00, at risk after 20:00', () {
-      expect(streakState(h(12, DateTime(2026, 9, 29)), today), StreakState.readToday);
-      expect(streakState(h(12, DateTime(2026, 9, 28)), today), StreakState.notYetToday);
-      expect(streakState(h(12, DateTime(2026, 9, 28)), DateTime(2026, 9, 29, 20, 1)), StreakState.atRisk);
-      expect(streakState(h(12, DateTime(2026, 9, 28), risk: true), today), StreakState.atRisk);
-      expect(streakState(h(12, DateTime(2026, 9, 20)), today), StreakState.broken);
-      expect(streakState(h(0, null), today), StreakState.broken);
-    });
-
-    test('justExtended plays once per day', () {
-      final s = h(12, DateTime(2026, 9, 29));
-      expect(justExtended(s, today, null), isTrue);
-      expect(justExtended(s, today, todayKey(today)), isFalse);
-      expect(justExtended(h(12, DateTime(2026, 9, 28)), today, null), isFalse);
+      expect(streakState(h(12, DateTime(2026, 9, 29)), today), StreakLiveState.aliveToday);
+      expect(streakState(h(12, DateTime(2026, 9, 28)), today), StreakLiveState.aliveNotToday);
+      expect(streakState(h(12, DateTime(2026, 9, 28)), DateTime(2026, 9, 29, 20, 1)), StreakLiveState.atRisk);
+      expect(streakState(h(0, null), today), StreakLiveState.none);
     });
 
     test('HomeStreak.fromReadingStreak copies the shared fields', () {

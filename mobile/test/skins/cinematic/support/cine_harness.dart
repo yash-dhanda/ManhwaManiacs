@@ -1,19 +1,20 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/platform/media_store.dart';
+import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/library/repositories/numbers_repository.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cover.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/authed_cover.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/annual/annual_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/share/press_run.dart';
@@ -21,6 +22,7 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/skin_haptics.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../support/numbers_fixtures.dart';
@@ -39,21 +41,21 @@ class FakeNumbersRepo implements NumbersRepository {
   final List<int> statisticsDays = [];
   final List<int> annualYears = [];
   final List<int> marked = [];
-  Object? failWith;
+  AppError? failWith;
 
   @override
   Future<Result<LibraryStatistics>> statistics({required int days}) async {
     statisticsDays.add(days);
-    if (failWith != null) return Err(failWith! as dynamic);
+    if (failWith != null) return Err(failWith!);
     return Ok(stats[days] ?? statisticsFixture(days: days));
   }
 
   @override
   Future<Result<Annual>> annual(int year) async {
     annualYears.add(year);
-    if (failWith != null) return Err(failWith! as dynamic);
+    if (failWith != null) return Err(failWith!);
     final a = annuals[year];
-    return a == null ? Err(failWith! as dynamic) : Ok(a);
+    return a == null ? Err(failWith ?? const UnknownError(message: 'no fixture')) : Ok(a);
   }
 
   @override
@@ -87,7 +89,7 @@ class FakeShare implements ShareDelegate {
   }
 }
 
-class FakeMediaStore implements MediaStoreChannel {
+class FakeMediaStore extends MediaStoreChannel {
   FakeMediaStore({this.can = true});
   bool can;
   final List<String> saved = [];
@@ -124,11 +126,11 @@ class CineTestEnv {
       profileSessionReadyOverride(),
       ...contentModeOverrides(),
       numbersRepositoryProvider.overrideWithValue(repo),
-      numbersNowProvider.overrideWithValue(() => now ?? DateTime(2026, 9, 29, 10)),
+      clockProvider.overrideWithValue(() => now ?? DateTime(2026, 9, 29, 10)),
       skinHapticsProvider.overrideWithValue(haptics),
       shareDelegateProvider.overrideWithValue(share),
       mediaStoreProvider.overrideWithValue(media),
-      coverImageProvider.overrideWithValue((url, {width}) => MemoryImage(kTinyPng)),
+      authedCoverProvider.overrideWithValue((url, {width}) => MemoryImage(kTinyPng)),
       ...extra,
     ];
   }

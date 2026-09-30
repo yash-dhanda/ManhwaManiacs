@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/library/models/shareable.dart';
+import 'package:manhwamaniacs/features/sources/models/source_genre.dart' show GenreWeight;
 import 'package:manhwamaniacs/skins/cinematic/screens/numbers/numbers_format.dart';
 
 /// Every copy rule of The Annual (cinematic 9.2.4) in one place, tested in
@@ -61,11 +62,11 @@ String timeHeadline(int seconds) {
 }
 
 /// The hours figure inside [timeHeadline], for the typed range.
-(int, int) timeFigureRange(int seconds) {
+({int start, int end}) timeFigureRange(int seconds) {
   final head = timeHeadline(seconds);
   const start = 'You read for '.length;
   final end = head.indexOf(' ', start);
-  return (start, end);
+  return (start: start, end: end);
 }
 
 /// "That's nine days, cover to cover."; under a day and at least 12 h, "That's

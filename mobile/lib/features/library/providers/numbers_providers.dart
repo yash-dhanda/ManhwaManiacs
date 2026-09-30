@@ -4,7 +4,6 @@ import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
-import 'package:manhwamaniacs/features/library/models/shareable.dart';
 import 'package:manhwamaniacs/features/library/repositories/numbers_repository.dart';
 import 'package:manhwamaniacs/features/library/store/numbers_snapshot.dart';
 import 'package:manhwamaniacs/features/library/utils/numbers_rules.dart';
@@ -22,6 +21,9 @@ String numbersScopeOf(Ref ref) {
   final user = auth is AuthAuthenticated ? auth.user.id : 0;
   return 'u${user}p${ref.watch(activeProfileProvider)?.id ?? 0}';
 }
+
+/// [numbersScopeOf] for widgets: unique per user and profile.
+final numbersScopeProvider = Provider<String>(numbersScopeOf, name: 'numbersScope');
 
 final numbersSnapshotProvider = Provider<NumbersSnapshot>((ref) {
   final auth = ref.watch(authControllerProvider);
@@ -77,15 +79,6 @@ final annualIndexProvider = FutureProvider.autoDispose<Annual?>((ref) async {
   }
 });
 
-/// The radar's genre weights.
-// TODO(mobile/16): the app's one `genreWeightsProvider(8)` lands with mobile/16;
-// until then the radar reads the statistics payload's non-mature `shareable`
-// genre weights (the same numbers, gate-independent). Swap this body then.
-final numbersGenreWeightsProvider = Provider.autoDispose.family<List<GenreWeight>, int>((ref, days) {
-  final load = ref.watch(numbersStatisticsProvider(days)).valueOrNull;
-  return load?.data.shareable?.genreWeights ?? const [];
-});
-
 /// 7 | 30 | 90 | 365, remembered per profile (Glass shares the key).
 class StatsRangeNotifier extends Notifier<int> {
   String get _key => 'mm.stats.range.${numbersScopeOf(ref)}';
@@ -106,9 +99,3 @@ class StatsRangeNotifier extends Notifier<int> {
 
 final statsRangeProvider = NotifierProvider<StatsRangeNotifier, int>(StatsRangeNotifier.new, name: 'statsRange');
 
-/// The wall clock, overridable so a fake clock can drive the streak states.
-final numbersNowProvider = Provider<DateTime Function()>((_) => DateTime.now, name: 'numbersNow');
-
-/// The per-profile key holding the day whose streak extension already played
-/// Ignite (`mm.streak.seen.u{user}p{profile}`).
-final streakSeenKeyProvider = Provider<String>((ref) => 'mm.streak.seen.${numbersScopeOf(ref)}');

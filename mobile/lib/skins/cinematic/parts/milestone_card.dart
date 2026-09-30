@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
+import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
-import 'package:manhwamaniacs/features/library/utils/streak_state.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/buttons.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/cine_text.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/keys.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/letter_reveal.dart';
-import 'package:manhwamaniacs/skins/cinematic/kit/typed_text.dart';
-import 'package:manhwamaniacs/skins/cinematic/parts/numbers_streak_flame.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// "Seven days in a row." and its siblings (sentence case).
 String milestoneHeadline(int days) => switch (days) {
@@ -28,10 +26,13 @@ String milestoneDeck(ReadingStreak s) => s.currentDays >= s.longestDays ? 'Your 
 /// headline, the deck, `Share` (primary) and `Close` (quiet). A tap outside the
 /// column, a swipe down (past 120 px or 800 px/s), Android back and `Esc` close it.
 class MilestoneCard extends StatefulWidget {
-  const MilestoneCard({super.key, required this.days, required this.streak, required this.onShare, required this.onClose});
+  const MilestoneCard({super.key, required this.days, required this.streak, required this.now, required this.onShare, required this.onClose});
 
   final int days;
   final ReadingStreak streak;
+
+  /// Today, local (the flame's read-today state).
+  final DateTime now;
   final VoidCallback onShare;
   final VoidCallback onClose;
 
@@ -69,8 +70,17 @@ class _MilestoneCardState extends State<MilestoneCard> with SingleTickerProvider
     final t = context.cine;
     final wide = MediaQuery.sizeOf(context).width >= 600;
     final headline = milestoneHeadline(widget.days);
-    return KeyMap(
-      actions: {LogicalKeyboardKey.escape: widget.onClose},
+    final today = DateTime(widget.now.year, widget.now.month, widget.now.day);
+    final numeral = CineText.style(context, t.typeNumeral).copyWith(color: CineColors.ink100, fontFeatures: const [FontFeature.liningFigures(), FontFeature.tabularFigures()]);
+    return Focus(
+      autofocus: true,
+      onKeyEvent: (_, e) {
+        if (e is KeyDownEvent && e.logicalKey == LogicalKeyboardKey.escape) {
+          widget.onClose();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
       child: Semantics(
         scopesRoute: true,
         namesRoute: true,
@@ -97,19 +107,32 @@ class _MilestoneCardState extends State<MilestoneCard> with SingleTickerProvider
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          NumbersStreakFlame(days: widget.days, state: StreakState.readToday, size: 96, forceFill: true),
-                          SetHeading('STREAK', role: t.typeKicker, trigger: SetTrigger.signal, color: CineColors.ink60),
+                          StreakFlame(
+                            streak: HomeStreak(currentDays: widget.days, longestDays: widget.streak.longestDays < widget.days ? widget.days : widget.streak.longestDays, lastActiveDate: today),
+                            size: 96,
+                            now: today,
+                            ignite: false,
+                          ),
+                          SetHeading('STREAK', id: 'milestone-kicker', style: CineText.style(context, t.typeKicker).copyWith(color: CineColors.ink60), cap: t.typeKicker.cap, level: null, trigger: SetTrigger.signal),
                           const SizedBox(height: 8),
-                          TypedNumeral('${widget.days}', scale: 1.5, semanticsLabel: '${widget.days} days'),
+                          Semantics(
+                            label: '${widget.days} days',
+                            excludeSemantics: true,
+                            child: TypedHeadline(
+                              '${widget.days}',
+                              style: numeral.copyWith(fontSize: numeral.fontSize! * 1.5),
+                              cap: t.typeNumeral.cap,
+                            ),
+                          ),
                           const SizedBox(height: 8),
-                          SetHeading(headline, role: t.typeHeadline, level: 1, trigger: SetTrigger.signal),
+                          SetHeading(headline, id: 'milestone-${widget.days}', style: CineText.style(context, t.typeHeadline).copyWith(color: CineColors.ink100), cap: t.typeHeadline.cap, level: 1, trigger: SetTrigger.signal),
                           const SizedBox(height: 12),
-                          CineText(milestoneDeck(widget.streak), t.typeDeck, color: CineColors.ink60),
+                          CineRoleText(milestoneDeck(widget.streak), t.typeDeck, color: CineColors.ink60),
                           const SizedBox(height: 24),
                           Row(children: [
-                            CineButton('Share', onPressed: widget.onShare),
+                            CineButton(label: 'Share', onPressed: widget.onShare),
                             const SizedBox(width: 8),
-                            CineButton('Close', kind: CineButtonKind.quiet, onPressed: widget.onClose),
+                            CineButton(label: 'Close', variant: CineButtonVariant.quiet, onPressed: widget.onClose),
                           ],),
                         ],),
                       ),
