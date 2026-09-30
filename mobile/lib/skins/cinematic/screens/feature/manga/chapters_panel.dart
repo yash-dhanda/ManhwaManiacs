@@ -24,6 +24,7 @@ import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/chapter_reaction_folio.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_summary_line.dart';
@@ -557,6 +558,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
                     markPage: active != null && active.chapterKey == c.id && active.progress.pageTotal > 0
                         ? active.progress.pagesDone
                         : null,
+                    reactionSlot: ChapterReactionFolio(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number),
                     onPress: () => pf.onPress(ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id)),
                     onDwell: () => pf.onDwell(ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id)),
                     onSwipeRead: canMark

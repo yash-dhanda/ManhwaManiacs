@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
@@ -13,6 +16,8 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/pass_it_on_sheet.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/circle_panel.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/selection_bar.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.dart';
@@ -66,6 +71,7 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
   final _commands = FeatureCommands();
   final _scroll = ScrollController();
   late final List<FeatureTab> _tabs;
+  bool _circleOff = false;
   late final TabController _tabController;
   double _offset = 0;
 
@@ -83,9 +89,14 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
       ),
       FeatureTab(id: 'details', label: 'DETAILS', panelBuilder: (_) => DetailsPanel(data: d)),
       FeatureTab(id: 'more-like-this', label: 'MORE LIKE THIS', panelBuilder: (_) => MoreLikeThisPanel(data: d)),
+      FeatureTab(id: 'circle', label: 'CIRCLE', panelBuilder: (_) => FeatureCirclePanel(sourceId: d.sourceId, seriesKey: d.seriesKey, title: d.title, coverUrl: d.series.coverUrl)),
       ...widget.extraTabs,
     ];
     _tabController = TabController(length: _tabs.length, vsync: this, initialIndex: _initialIndex());
+    _tabController.addListener(() {
+      // A disabled tab (04 CIRCLE while this profile does not share) cannot be opened.
+      if (!_tabController.indexIsChanging && _circleOff && _tabs[_tabController.index].id == 'circle') _tabController.animateTo(0);
+    });
     _scroll.addListener(() {
       final o = _scroll.hasClients ? _scroll.offset : 0.0;
       if ((o > 24) != (_offset > 24) || (o > _titleAt) != (_offset > _titleAt)) {
@@ -175,6 +186,9 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
         ),
     ];
     final wide = MediaQuery.sizeOf(context).width >= 600;
+    final circle = circleTabState(ref);
+    _circleOff = circle != CircleTabState.on;
+    final hasMembers = (ref.watch(circleMembersProvider).valueOrNull ?? const []).isNotEmpty;
     final mature = d.followed?.rating == 'mature' &&
         (ref.watch(matureContentProvider).valueOrNull ?? false);
     final topPad = MediaQuery.paddingOf(context).top;
@@ -236,6 +250,12 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
                   ),
                 ),
               ),
+              if (hasMembers)
+                onArt(
+                  PhosphorRegular.paperPlaneTilt,
+                  'Recommend to…',
+                  () => unawaited(showPassItOnSheet(context, sourceId: d.sourceId, seriesKey: d.seriesKey, title: d.title, coverUrl: d.series.coverUrl)),
+                ),
               onArt(PhosphorRegular.dotsThree, 'More', _overflow),
             ],
           ),
@@ -314,11 +334,22 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
                               unselectedLabelColor: t.colorInk60,
                               tabs: [
                                 for (var i = 0; i < _tabs.length; i++)
-                                  Tab(
-                                    height: 48,
-                                    text: '${_tabs[i].folio(i)} ${_tabs[i].label}'
-                                        '${_tabs[i].count != null ? superscript(_tabs[i].count!) : ''}',
-                                  ),
+                                  if (_tabs[i].id == 'circle' && circle != CircleTabState.on)
+                                    Tab(
+                                      height: 48,
+                                      child: Semantics(
+                                        enabled: false,
+                                        label: '${_tabs[i].folio(i)} ${_tabs[i].label}, $kCircleTabOffHint',
+                                        excludeSemantics: true,
+                                        child: Tooltip(message: circle == CircleTabState.absent ? "The Circle isn't available on this server." : kCircleTabOffHint, child: Text('${_tabs[i].folio(i)} ${_tabs[i].label}', style: TextStyle(color: t.colorInk30))),
+                                      ),
+                                    )
+                                  else
+                                    Tab(
+                                      height: 48,
+                                      text: '${_tabs[i].folio(i)} ${_tabs[i].label}'
+                                          '${_tabs[i].count != null ? superscript(_tabs[i].count!) : ''}',
+                                    ),
                               ],
                             ),
                           ),

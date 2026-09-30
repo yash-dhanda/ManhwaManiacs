@@ -100,6 +100,7 @@ class ScheduleRow extends StatefulWidget {
     this.stale = false,
     this.paused = false,
     this.pauseReason,
+    this.reactionSlot,
   });
 
   final SourceChapterSummary chapter;
@@ -128,6 +129,9 @@ class ScheduleRow extends StatefulWidget {
   final bool stale;
   final bool paused;
   final DownloadQueuePauseReason? pauseReason;
+
+  /// The circle's reaction count folio (`3` + `users-three`), when the chapter has any.
+  final Widget? reactionSlot;
 
   @override
   State<ScheduleRow> createState() => _ScheduleRowState();
@@ -249,6 +253,7 @@ class _ScheduleRowState extends State<ScheduleRow> {
               ],
             ),
           ),
+          if (widget.reactionSlot != null) widget.reactionSlot!,
           if (p != null && !read && p.pageCount > 0)
             Padding(
               padding: const EdgeInsets.only(right: 4),
