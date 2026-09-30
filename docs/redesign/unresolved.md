@@ -156,3 +156,7 @@ None reported by the verifier.
 
 ## mobile/v1 leftovers (Cinematic)
 - `mobile/lib/skins/cinematic/screens/discover/cine_kit.dart`: local stand-ins for slug tabs, notice, typed text, quiet button and flicker plate remain. The real primitives (cine_slug_lines, cine_notice, typed_headline, cine_button, CinePlate) have a different API (tone enums, actions), so the swap is a per-screen rewrite (>1h). No `TODO(mobile/0-24)` marker matches the 24b grep (the marker is a prose note, not a matching pattern).
+
+## mobile/38
+
+None reported.
