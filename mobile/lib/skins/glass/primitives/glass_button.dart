@@ -70,6 +70,7 @@ class GlassButton extends ConsumerStatefulWidget {
     this.debugLabel,
     this.onLongPress,
     this.focusNode,
+    this.mono = false,
   });
 
   final String label;
@@ -98,6 +99,9 @@ class GlassButton extends ConsumerStatefulWidget {
   final String? debugLabel;
   final VoidCallback? onLongPress;
   final FocusNode? focusNode;
+
+  /// The label in `mono` (a countdown such as "Try again in 42 s").
+  final bool mono;
 
   @override
   ConsumerState<GlassButton> createState() => _GlassButtonState();
@@ -149,7 +153,7 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
 
     final hasIcon = widget.icon != null || v == GlassButtonVariant.destructive || showError;
     final labelFor = showError ? (widget.errorText ?? "Couldn't do that") : widget.label;
-    TextStyle style(String _) => roleStyle(context, m.role, onGlass: true, legible: legible, wght: baseWght + 40, maxScale: 1.5);
+    TextStyle style(String _) => roleStyle(context, widget.mono ? gt.typeMonoLarge : m.role, onGlass: true, legible: legible, wght: baseWght + 40, maxScale: 1.5);
     Size measure(String t) => measureText(context, t, style(t));
     final shown = measure(labelFor);
     final base = measure(widget.label);
@@ -241,7 +245,7 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
                   curve: gt.curveColorShift.curve,
                   builder: (context, col, _) => GlassText(
                     labelFor,
-                    role: m.role,
+                    role: widget.mono ? gt.typeMonoLarge : m.role,
                     onGlass: true,
                     wght: info.states.pressed ? baseWght + 40 : baseWght,
                     color: col,

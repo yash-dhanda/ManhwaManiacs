@@ -16,8 +16,8 @@ class GlassEffectsController {
 
   /// Flies [orb] from [from] to [to] on `springZoom` (reduced: a 200 ms cross-fade). Completes when it lands.
   Future<void> flyOrb(
-          {required Rect from, required Rect to, required Widget orb,}) =>
-      _layer?._fly(from, to, orb) ?? Future.value();
+          {required Rect from, required Rect to, required Widget orb, bool tail = false,}) =>
+      _layer?._fly(from, to, orb, tail: tail) ?? Future.value();
 
   /// The Skin melt, 615 ms: every live glass surface dematerialises (350 ms), the root blurs 0 to 40 px, a circular clip closes from
   /// the screen diagonal to the centre over black. Reduced: a 200 ms fade to black.
@@ -42,7 +42,8 @@ class GlassEffectsLayer extends ConsumerStatefulWidget {
 }
 
 class _Flight {
-  _Flight(this.from, this.to, this.orb, this.controller, this.done);
+  _Flight(this.from, this.to, this.orb, this.controller, this.done, {this.tail = false});
+  final bool tail;
   final Rect from;
   final Rect to;
   final Widget orb;
@@ -76,9 +77,9 @@ class _GlassEffectsLayerState extends ConsumerState<GlassEffectsLayer>
 
   bool get _reduced => ref.read(glassMotionPrefsProvider).reduced;
 
-  Future<void> _fly(Rect from, Rect to, Widget orb) {
+  Future<void> _fly(Rect from, Rect to, Widget orb, {bool tail = false}) {
     final c = AnimationController(vsync: this);
-    final f = _Flight(from, to, orb, c, Completer<void>());
+    final f = _Flight(from, to, orb, c, Completer<void>(), tail: tail);
     setState(() => _flights.add(f));
     unawaited(
       GlassMotion.play(MotionName.zoom, controller: c, target: 1)
@@ -146,6 +147,17 @@ class _GlassEffectsLayerState extends ConsumerState<GlassEffectsLayer>
           },
         ),
         for (final f in _flights)
+          if (f.tail && !_reduced)
+            AnimatedBuilder(
+              animation: f.controller,
+              builder: (context, _) => IgnorePointer(
+                child: CustomPaint(
+                  painter: MeniscusTailPainter(from: f.from.center, to: Rect.lerp(f.from, f.to, f.controller.value)!.center, width: 12, fade: (1 - ((f.controller.value - 0.46) / 0.54).clamp(0.0, 1.0))),
+                  size: Size.infinite,
+                ),
+              ),
+            ),
+        for (final f in _flights)
           AnimatedBuilder(
             animation: f.controller,
             builder: (context, _) {
@@ -183,4 +195,31 @@ class _IrisPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_IrisPainter old) => old.radius != radius;
+}
+
+/// The meniscus tail of a profile flight (glass 4.10): a tapered path from the origin to the orb, [width] px at the orb tapering to 0,
+/// `iris400` at 30 %, fading with [fade].
+class MeniscusTailPainter extends CustomPainter {
+  const MeniscusTailPainter({required this.from, required this.to, required this.width, required this.fade});
+  final Offset from;
+  final Offset to;
+  final double width;
+  final double fade;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final d = to - from;
+    final len = d.distance;
+    if (len < 1 || fade <= 0) return;
+    final n = Offset(-d.dy, d.dx) / len * (width / 2);
+    final path = Path()
+      ..moveTo(from.dx, from.dy)
+      ..lineTo(to.dx + n.dx, to.dy + n.dy)
+      ..lineTo(to.dx - n.dx, to.dy - n.dy)
+      ..close();
+    canvas.drawPath(path, Paint()..color = const Color(0xFFA99BFF).withValues(alpha: 0.3 * fade));
+  }
+
+  @override
+  bool shouldRepaint(MeniscusTailPainter old) => old.from != from || old.to != to || old.fade != fade || old.width != width;
 }

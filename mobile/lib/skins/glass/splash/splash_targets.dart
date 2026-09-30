@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Where the Droplet's lens lands (glass 8.2). `mobile/30` registers Login's and the picker's marks; otherwise it lands in the dock
+/// Where the Droplet's lens lands (glass 8.2). `mobile/30` registers Setup's, Login's and the picker's marks (in that order); otherwise it lands in the dock
 /// capsule (phone) or the sidebar's profile capsule (wider frames).
-enum GlassSplashTarget { login, picker }
+enum GlassSplashTarget { setup, login, picker }
 
 final Map<GlassSplashTarget, GlobalKey> _targets = {};
 

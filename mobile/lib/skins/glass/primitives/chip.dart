@@ -32,6 +32,7 @@ class GlassChip extends ConsumerWidget {
     this.onPressed,
     this.onRemove,
     this.leading,
+    this.dot,
     this.count,
     this.loading = false,
     this.error,
@@ -50,6 +51,9 @@ class GlassChip extends ConsumerWidget {
   /// `input`: the trailing x.
   final VoidCallback? onRemove;
   final IconData? leading;
+
+  /// A 12 px colour dot in place of a glyph (the profile form's moods).
+  final Color? dot;
 
   /// `count`: "Pinned 4".
   final int? count;
@@ -101,7 +105,7 @@ class GlassChip extends ConsumerWidget {
     final disabled = !enabled || forceStates.disabled;
     final err = error != null || forceStates.error;
     final isSelected = selected || forceStates.selected;
-    final hasLeading = leading != null;
+    final hasLeading = leading != null || dot != null;
     final visualH = isTag ? 24.0 : 32.0;
     final width = widthOf(context, label: label, kind: kind, hasLeading: hasLeading, count: count, legible: legible, selected: isSelected);
     final size = Size(width, visualH);
@@ -161,6 +165,8 @@ class GlassChip extends ConsumerWidget {
               builder: (context, v, _) => Transform.scale(scale: v.clamp(0.0, 1.25), child: GlyphIcon(GlassGlyph.check, size: 16, color: labelColor)),
             ),
           );
+        } else if (dot != null) {
+          lead = Padding(padding: const EdgeInsets.only(right: 6), child: DecoratedBox(decoration: BoxDecoration(color: dot, shape: BoxShape.circle), child: const SizedBox.square(dimension: 12)));
         } else if (hasLeading) {
           lead = Padding(padding: const EdgeInsets.only(right: 6), child: Icon(leading, size: 16, color: labelColor));
         }
@@ -281,7 +287,10 @@ class _GlassRemovableChipState extends ConsumerState<GlassRemovableChip> with Si
 /// The droplet slides between chips on `springTab`, stretching `scaleX = 1 + min(|v| / 2000, 0.25)` and
 /// `scaleY = 1 / sqrt(scaleX)`; it can be caught mid-flight (glass 7.5).
 class GlassChoiceChips<T> extends ConsumerStatefulWidget {
-  const GlassChoiceChips({super.key, required this.options, required this.selected, required this.onSelected, required this.labelOf});
+  const GlassChoiceChips({super.key, required this.options, required this.selected, required this.onSelected, required this.labelOf, this.dotOf});
+
+  /// A 12 px colour dot before a chip's label.
+  final Color? Function(T)? dotOf;
   final List<T> options;
   final T selected;
   final ValueChanged<T> onSelected;
@@ -306,7 +315,7 @@ class _GlassChoiceChipsState<T> extends ConsumerState<GlassChoiceChips<T>> with 
   }
 
   List<double> _widths(BuildContext context, bool legible) => [
-        for (final o in widget.options) GlassChip.widthOf(context, label: widget.labelOf(o), kind: GlassChipKind.choice, legible: legible, selected: o == widget.selected),
+        for (final o in widget.options) GlassChip.widthOf(context, label: widget.labelOf(o), kind: GlassChipKind.choice, hasLeading: widget.dotOf?.call(o) != null, legible: legible, selected: o == widget.selected),
       ];
 
   @override
@@ -377,6 +386,7 @@ class _GlassChoiceChipsState<T> extends ConsumerState<GlassChoiceChips<T>> with 
               child: GlassChip(
                 label: widget.labelOf(widget.options[i]),
                 kind: GlassChipKind.choice,
+                dot: widget.dotOf?.call(widget.options[i]),
                 selected: widget.options[i] == widget.selected,
                 inChoiceGroup: true,
                 onPressed: () => widget.onSelected(widget.options[i]),
