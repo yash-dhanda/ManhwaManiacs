@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
+import 'package:manhwamaniacs/features/profiles/models/profile_extras.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profile_scope.dart';
 import 'package:manhwamaniacs/features/profiles/repositories/profiles_repository.dart';
 import 'package:manhwamaniacs/features/profiles/repositories/profiles_repository_impl.dart';
@@ -75,7 +77,23 @@ class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
     String? skin,
     int? sortOrder,
     bool? notifyEnabled,
+    ProfileExtras? extras,
   }) async {
+    if (extras != null && !extras.isEmpty) {
+      // One PATCH carries the fields and the extras (the daily goal has no repository parameter).
+      final r = await _patch(profileId, {
+        if (name != null) 'name': name,
+        if (avatarKey != null) 'avatar_key': avatarKey,
+        if (mood != null) 'mood': mood.wire,
+        if (matureContentEnabled != null) 'mature_content_enabled': matureContentEnabled,
+        if (notifyEnabled != null) 'notify_enabled': notifyEnabled,
+        ...extras.toJson(),
+      });
+      if (r.error != null) return r.error;
+      await ref.read(activeProfileProvider.notifier).sync(r.profile!);
+      await refresh();
+      return null;
+    }
     final result = await ref.read(profilesRepositoryProvider).update(
           profileId,
           name: name,
@@ -90,6 +108,59 @@ class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
     // Mirror the edit into the active-selection snapshot so the shell tint and
     // switcher chip update without re-selecting.
     await ref.read(activeProfileProvider.notifier).sync(result.value);
+    await refresh();
+    return null;
+  }
+
+  Future<({AppError? error, Profile? profile})> _patch(int id, Map<String, Object?> body) async {
+    try {
+      final r = await ref.read(dioProvider).patch<Map<String, dynamic>>('/profiles/$id', data: body);
+      return (error: null, profile: Profile.fromJson(r.data!));
+    } on DioException catch (e) {
+      return (error: e.error is AppError ? e.error! as AppError : UnknownError(message: e.message ?? 'Dio error', cause: e), profile: null);
+    } catch (e) {
+      return (error: UnknownError(message: e.toString(), cause: e), profile: null);
+    }
+  }
+
+  /// `POST /profiles` never carries the skin or the daily goal, so [extras] go in one `PATCH` after it succeeds.
+  Future<CreateProfileOutcome> createWithExtras({
+    required String name,
+    required String avatarKey,
+    required Mood mood,
+    bool? matureContentEnabled,
+    ProfileExtras? extras,
+  }) async {
+    final result = await ref.read(profilesRepositoryProvider).create(name: name, avatarKey: avatarKey, mood: mood, matureContentEnabled: matureContentEnabled);
+    if (result.isErr) return CreateProfileOutcome(error: result.error);
+    var created = result.value;
+    var failed = false;
+    if (extras != null && !extras.isEmpty) {
+      final r = await _patch(created.id, extras.toJson());
+      if (r.error != null) {
+        failed = true;
+      } else {
+        created = r.profile!;
+      }
+    }
+    await refresh();
+    return CreateProfileOutcome(created: created, extrasFailed: failed);
+  }
+
+  /// Rewrites `sort_order` for the profiles whose index changed, one after another, then refreshes.
+  Future<AppError?> reorder(List<int> idsInOrder) async {
+    final current = [...(state.valueOrNull ?? const <Profile>[])];
+    for (var i = 0; i < idsInOrder.length; i++) {
+      final p = current.where((x) => x.id == idsInOrder[i]).firstOrNull;
+      if (p == null) continue;
+      final index = current.indexOf(p);
+      if (index == i) continue;
+      final r = await _patch(p.id, {'sort_order': i});
+      if (r.error != null) {
+        await refresh();
+        return r.error;
+      }
+    }
     await refresh();
     return null;
   }
