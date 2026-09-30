@@ -88,6 +88,8 @@ class NovelAttribution {
     required this.narrator,
     required this.narratorVoiceId,
     required this.cast,
+    this.textFingerprint,
+    this.spans = const <NovelSpeakerSpan>[],
   });
 
   factory NovelAttribution.fromJson(Map<String, dynamic> json) {
@@ -103,8 +105,22 @@ class NovelAttribution {
               .where((member) => member.name.isNotEmpty)
               .toList(growable: false)
           : const <NovelCastMember>[],
+      textFingerprint: json['text_fingerprint'] as String?,
+      spans: json['spans'] is List
+          ? (json['spans'] as List)
+              .whereType<Map<String, dynamic>>()
+              .map(NovelSpeakerSpan.fromJson)
+              .toList(growable: false)
+          : const <NovelSpeakerSpan>[],
     );
   }
+
+  /// SHA-256 of the paragraphs the offsets were computed against (`chapter_fingerprint` on the
+  /// server); tints are only trusted when it matches the text on screen.
+  final String? textFingerprint;
+
+  /// Quoted runs, `p` = paragraph index, offsets in Unicode code points.
+  final List<NovelSpeakerSpan> spans;
 
   /// An unattributed chapter is the ORDINARY case, not an error: almost
   /// nothing in the library has been through the pass.
@@ -126,6 +142,27 @@ class NovelAttribution {
   final List<NovelCastMember> cast;
 }
 
+
+/// One attributed stretch of speech (`GET /novels/attribution` `spans[]`).
+class NovelSpeakerSpan {
+  const NovelSpeakerSpan({required this.paragraph, required this.start, required this.end, required this.head, required this.speaker});
+
+  factory NovelSpeakerSpan.fromJson(Map<String, dynamic> json) => NovelSpeakerSpan(
+        paragraph: (json['p'] as num?)?.toInt() ?? -1,
+        start: (json['s'] as num?)?.toInt() ?? 0,
+        end: (json['e'] as num?)?.toInt() ?? 0,
+        head: (json['head'] as String?) ?? '',
+        speaker: json['speaker'] as String?,
+      );
+
+  final int paragraph, start, end;
+
+  /// The first characters of the attributed text, proving the offsets.
+  final String head;
+
+  /// The speaker's name, or null when the line stays with the narrator.
+  final String? speaker;
+}
 
 /// What came of asking for chapters to be narrated.
 ///

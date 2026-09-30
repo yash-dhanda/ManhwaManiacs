@@ -65,9 +65,18 @@ BookDefaults resolveBookPrefs(JsonRecord? own, BookDefaults defaults, {double sy
 int systemScaledSize(int base, double scale) => (base * scale).round().clamp(14, 40);
 
 extension NovelSettingsView on JsonRecord {
-  String get novelStock => choice('stock', kNovelStocks, 'issue');
+  /// The stored stock id; a profile that never chose one reads Nitrate (cinematic 2.1.6). The K26
+  /// fallback (`mm.novel-palette`) is applied by `resolveStockId` in the Cinematic `stocks.dart`.
+  String get novelStock => choice('stock', kNovelStocks, 'nitrate');
+  bool get hasNovelStock => kNovelStocks.contains(data['stock']);
   String get novelLayout => choice('layout', const ['scroll', 'paged'], 'scroll');
-  String get novelPageTurn => choice('pageTurn', const ['cut', 'slide', 'fade'], 'slide');
+  String get novelPageTurn => choice('pageTurn', const ['cut', 'slide', 'fade'], 'cut');
+  String get novelMargins => choice('margins', const ['narrow', 'standard', 'wide'], 'standard');
+  String get novelTapZones => choice('tapZones', const ['standard', 'bothMargins', 'oneHand'], 'standard');
+  bool get novelSwipeChapter => boolOf('swipeChapter', false);
+
+  /// Screen dimmer, -75..0.
+  int get novelBrightness => intOf('brightness', 0).clamp(-75, 0);
   bool get novelBold => boolOf('bold', false);
   bool get novelJustify => boolOf('justify', false);
   bool get novelAutoNext => boolOf('autoNextChapter', true);

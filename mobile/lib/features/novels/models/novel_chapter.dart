@@ -24,6 +24,8 @@ class NovelChapter {
     required this.nextChapterKey,
     required this.wordCount,
     this.isOffline = false,
+    this.cacheStale = false,
+    this.cacheFetchedAt,
   });
 
   final String sourceId;
@@ -43,6 +45,12 @@ class NovelChapter {
   /// True when this was reconstructed from the on-device store with no
   /// network call at all.
   final bool isOffline;
+
+  /// `cache.stale`: the source is down and this is the last copy the server saved.
+  final bool cacheStale;
+
+  /// `cache.fetched_at` (ISO 8601), when the server stored the copy.
+  final String? cacheFetchedAt;
 
   /// How many progress buckets this chapter's paragraphs map onto — what goes
   /// in `page_count` (see `utils/novel_progress.dart`).
@@ -81,6 +89,8 @@ class NovelChapter {
       // reading-time estimate is the main thing a reader looks at before
       // opening a chapter, so "unknown" is worth a cheap local count.
       wordCount: reported > 0 ? reported : countWords(paragraphs),
+      cacheStale: json['cache'] is Map && (json['cache'] as Map)['stale'] == true,
+      cacheFetchedAt: json['cache'] is Map ? (json['cache'] as Map)['fetched_at'] as String? : null,
     );
   }
 

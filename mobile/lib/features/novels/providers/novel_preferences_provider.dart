@@ -4,17 +4,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_palette.dart';
+import 'package:manhwamaniacs/core/storage/json_record.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 
-/// Type settings for one book.
+/// Type settings for one book (the K25 record `mm.novel-prefs.u{user}p{profile}`, keyed
+/// `source:series`).
+///
+/// The legacy fields keep their own (15-26, 1.4-2.1) clamps when read through the getters, but
+/// the stored record is carried verbatim in [raw]: a legacy write never strips the Cinematic
+/// fields (`face`, `paragraphSpacing`, `letterSpacing`, a size beyond 26) and a Cinematic write
+/// never invents the legacy ones.
 class NovelPreferences {
   const NovelPreferences({
     this.fontSize = kDefaultNovelFontSize,
     this.lineHeight = kDefaultNovelLineHeight,
     this.measure = kDefaultNovelMeasure,
     this.fontFamily = NovelFontFamily.serif,
+    this.raw = const <String, dynamic>{},
   });
 
   final double fontSize;
@@ -23,6 +32,26 @@ class NovelPreferences {
   /// Column width in characters — see `models/novel_typography.dart`.
   final double measure;
   final NovelFontFamily fontFamily;
+
+  /// The stored record, unknown fields included.
+  final Map<String, dynamic> raw;
+
+  bool get hasSize => raw['fontSize'] is num;
+  bool get hasLineHeight => raw['lineHeight'] is num;
+  bool get hasMeasure => raw['measure'] is num;
+
+  /// The stored face, else the read-time fallback from the legacy `fontFamily` (`serif` ->
+  /// Newsreader, `sans` -> Archivo); null when the book stores neither.
+  NovelFace? get face =>
+      NovelFace.fromWire(raw['face'] as String?) ??
+      (raw['fontFamily'] is String ? (NovelFontFamily.fromWire(raw['fontFamily'] as String?) == NovelFontFamily.sans ? NovelFace.archivo : NovelFace.newsreader) : null);
+
+  /// The stored Cinematic values, each clamped to its own range; null when absent.
+  double? get storedSize => hasSize ? clampCineFontSize((raw['fontSize'] as num).toDouble()) : null;
+  double? get storedLeading => hasLineHeight ? clampCineLeading((raw['lineHeight'] as num).toDouble()) : null;
+  double? get storedMeasure => hasMeasure ? clampCineMeasure((raw['measure'] as num).toDouble()) : null;
+  double get paragraphSpacing => raw['paragraphSpacing'] is num ? clampParagraphSpacing((raw['paragraphSpacing'] as num).toDouble()) : 0;
+  double get letterSpacing => raw['letterSpacing'] is num ? clampLetterSpacing((raw['letterSpacing'] as num).toDouble()) : 0;
 
   NovelPreferences copyWith({
     double? fontSize,
@@ -35,21 +64,35 @@ class NovelPreferences {
         lineHeight: clampNovelLineHeight(lineHeight ?? this.lineHeight),
         measure: clampNovelMeasure(measure ?? this.measure),
         fontFamily: fontFamily ?? this.fontFamily,
+        raw: {
+          ...raw,
+          if (fontSize != null) 'fontSize': clampNovelFontSize(fontSize),
+          if (lineHeight != null) 'lineHeight': clampNovelLineHeight(lineHeight),
+          if (measure != null) 'measure': clampNovelMeasure(measure),
+          if (fontFamily != null) 'fontFamily': fontFamily.wire,
+        },
       );
 
-  Map<String, dynamic> toJson() => {
-        'fontSize': fontSize,
-        'lineHeight': lineHeight,
-        'measure': measure,
-        'fontFamily': fontFamily.wire,
-      };
+  /// Sets Cinematic keys (already clamped by the caller) in the stored record; a null value
+  /// removes the key, so the book falls back to the profile default again.
+  NovelPreferences withRaw(Map<String, Object?> patch) {
+    final next = {...raw};
+    patch.forEach((k, v) => v == null ? next.remove(k) : next[k] = v);
+    return NovelPreferences(
+      fontSize: fontSize,
+      lineHeight: lineHeight,
+      measure: measure,
+      fontFamily: fontFamily,
+      raw: next,
+    );
+  }
 
-  /// Clamped on the way IN, not only on the way out: these are persisted, and
-  /// a value that drifted out of range (a bad write, a hand-edited store, a
-  /// range that narrowed in a later release) would otherwise follow the reader
-  /// around forever.
-  factory NovelPreferences.fromJson(Map<String, dynamic> json) =>
-      NovelPreferences(
+  /// The record as stored: only keys somebody set. A book that never chose a size keeps no
+  /// `fontSize`, so the Cinematic reader can still open it at the system-scaled default.
+  Map<String, dynamic> toJson() => Map<String, dynamic>.of(raw);
+
+  /// Clamped on the way IN (legacy ranges) but the record itself is kept in [raw].
+  factory NovelPreferences.fromJson(Map<String, dynamic> json) => NovelPreferences(
         fontSize: clampNovelFontSize(
           (json['fontSize'] as num?)?.toDouble() ?? kDefaultNovelFontSize,
         ),
@@ -60,6 +103,7 @@ class NovelPreferences {
           (json['measure'] as num?)?.toDouble() ?? kDefaultNovelMeasure,
         ),
         fontFamily: NovelFontFamily.fromWire(json['fontFamily'] as String?),
+        raw: Map<String, dynamic>.from(json),
       );
 }
 
@@ -125,6 +169,25 @@ class NovelPreferencesController
 
   Future<void> setFontFamily(NovelFontFamily value) =>
       update(state.copyWith(fontFamily: value));
+
+  // Cinematic controls (mobile/14): each writes only its own key.
+  Future<void> setFace(NovelFace face) => update(state.withRaw({'face': face.wire}));
+  Future<void> setSize(double v) => update(state.withRaw({'fontSize': clampCineFontSize(v)}));
+  Future<void> setLeading(double v) => update(state.withRaw({'lineHeight': clampCineLeading(v)}));
+  Future<void> setCineMeasure(double v) => update(state.withRaw({'measure': clampCineMeasure(v)}));
+  Future<void> setParagraphSpacing(double v) => update(state.withRaw({'paragraphSpacing': clampParagraphSpacing(v)}));
+  Future<void> setLetterSpacing(double v) => update(state.withRaw({'letterSpacing': clampLetterSpacing(v)}));
+
+  /// Forgets every per-book type value: the book reads the profile and face defaults again.
+  Future<void> resetType() => update(state.withRaw({
+        'face': null,
+        'fontFamily': null,
+        'fontSize': null,
+        'lineHeight': null,
+        'measure': null,
+        'paragraphSpacing': null,
+        'letterSpacing': null,
+      }));
 
   /// One map for every series this persona has tuned. A corrupt blob resolves
   /// to an empty store rather than throwing: type settings are a convenience,
@@ -215,4 +278,42 @@ String _scopedKey(
       : ref.read(activeProfileProvider)?.id;
   if (userId == null || profileId == null) return deviceKey;
   return '${prefix}u${userId}p$profileId';
+}
+
+
+/// Resolves what the Cinematic reader sets its body in: the book's stored values, then the
+/// profile's `bookDefaults` (Settings), then the face defaults scaled by the system text scale
+/// (cinematic 3.3, 3.4). Pure: [systemScale] is `MediaQuery.textScalerOf(context).scale(1)`.
+NovelType resolveNovelType({
+  required NovelPreferences book,
+  required JsonRecord settings,
+  required bool legible,
+  required double systemScale,
+  required bool tablet,
+  required bool osBold,
+}) {
+  final defaults = settings.data['bookDefaults'] is Map ? settings.child('bookDefaults') : null;
+  final face = book.face ??
+      NovelFace.fromWire(defaults?.data['face'] as String?) ??
+      (legible ? NovelFace.atkinson : NovelFace.newsreader);
+  final d = faceDefaults(face, tablet: tablet);
+  final double size = book.storedSize ??
+      (defaults != null && defaults.data['fontSize'] is num
+          ? clampCineFontSize(defaults.doubleOf('fontSize', d.size))
+          : clampCineFontSize((d.size * systemScale).roundToDouble()));
+  final leading = book.storedLeading ??
+      (defaults != null && defaults.data['lineHeight'] is num ? clampCineLeading(defaults.doubleOf('lineHeight', d.leading)) : d.leading);
+  final measure = book.storedMeasure ??
+      (defaults != null && defaults.data['measure'] is num ? clampCineMeasure(defaults.doubleOf('measure', kCineDefaultMeasure)) : kCineDefaultMeasure);
+  return NovelType(
+    face: face,
+    fontSize: size,
+    lineHeight: leading,
+    measure: measure,
+    letterSpacing: book.letterSpacing,
+    paragraphSpacing: book.paragraphSpacing,
+    bold: settings.novelBold,
+    osBold: osBold,
+    justify: settings.novelJustify,
+  );
 }
