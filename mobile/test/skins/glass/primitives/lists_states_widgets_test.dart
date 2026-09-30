@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show CheckedState;
 
 import 'package:flutter/semantics.dart';
@@ -15,6 +16,9 @@ import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/bulk_toolbar.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/select_mode.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/selectable_group.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/stack/back_menu.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/stack/route_snapshot.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/stack/stack_overview.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 
@@ -350,6 +354,95 @@ void main() {
       await tester.tap(find.text('I am 18 or older, enable'));
       await pumpFor(tester, 900);
       expect(value, isTrue);
+    });
+  });
+
+  group('stack overview', () {
+    final levels = [
+      const GlassRouteSnapshot(routeKey: 'r0', title: 'Home', depth: 0, tab: GlassTab.home, rimTint: Color(0xFF8F7EFF)),
+      const GlassRouteSnapshot(routeKey: 'r1', title: 'Solo Leveling', depth: 1, tab: GlassTab.home, rimTint: Color(0xFFFF9ED8)),
+      const GlassRouteSnapshot(routeKey: 'r2', title: 'Chapter 12', depth: 2, tab: GlassTab.home, rimTint: Color(0xFF5CE1E6)),
+    ];
+
+    Future<void> phone(WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+    }
+
+    testWidgets('a tap picks a card after the newer levels drop away; keys move, Enter picks, Esc closes', (tester) async {
+      await phone(tester);
+      GlassRouteSnapshot? picked;
+      var closed = 0;
+      await tester.pumpWidget(primHost(
+        GlassStackOverview(levels: levels, onPick: (l) => picked = l, onRemove: (_) {}, onClose: () => closed++),
+        align: false,
+      ),);
+      await pumpFor(tester, 700);
+      expect(find.text('Solo Leveling'), findsOneWidget);
+      expect(find.text('Chapter 12'), findsOneWidget);
+      expect(GlassHaptics.debugLog.map((e) => e.event), contains(HapticEvent.stackOpen));
+      await tester.tap(find.byKey(const ValueKey('glass-stack-card-1')));
+      await pumpFor(tester, 300);
+      expect(picked, isNull, reason: 'the drop-away runs first');
+      await pumpFor(tester, 900);
+      expect(picked?.routeKey, 'r1');
+      expect(GlassHaptics.debugLog.map((e) => e.event), contains(HapticEvent.stackPick));
+      // keys
+      picked = null;
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(primHost(GlassStackOverview(levels: levels, onPick: (l) => picked = l, onRemove: (_) {}, onClose: () => closed++), align: false));
+      await pumpFor(tester, 700);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await pumpFor(tester, 1200);
+      expect(picked?.routeKey, 'r1');
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(primHost(GlassStackOverview(levels: levels, onPick: (_) {}, onRemove: (_) {}, onClose: () => closed++), align: false));
+      await pumpFor(tester, 700);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      expect(closed, 1);
+    });
+
+    testWidgets('a sideways swipe past 40 % removes the card and the levels above it', (tester) async {
+      await phone(tester);
+      GlassRouteSnapshot? removed;
+      await tester.pumpWidget(primHost(GlassStackOverview(levels: levels, onPick: (_) {}, onRemove: (l) => removed = l, onClose: () {}), align: false));
+      await pumpFor(tester, 700);
+      await tester.drag(find.byKey(const ValueKey('glass-stack-card-1')), const Offset(200, 0));
+      await pumpFor(tester, 1200);
+      expect(removed?.routeKey, 'r1');
+    });
+
+    testWidgets('semantics: a list of buttons "Back to {title}, level {n} of {total}"', (tester) async {
+      await phone(tester);
+      final h = tester.ensureSemantics();
+      await tester.pumpWidget(primHost(GlassStackOverview(levels: levels, onPick: (_) {}, onRemove: (_) {}, onClose: () {}), align: false));
+      await pumpFor(tester, 700);
+      expect(find.bySemanticsLabel('Back to Solo Leveling, level 2 of 3'), findsOneWidget);
+      expect(find.bySemanticsLabel('Back to Home, level 1 of 3'), findsOneWidget);
+      h.dispose();
+    });
+
+    testWidgets('under reduced motion it opens as the flat back menu, newest first, the root last', (tester) async {
+      expect(backMenuLabels(levels, 'Home'), ['Solo Leveling', 'Home home']);
+      expect(backMenuLabels(levels.sublist(0, 1), 'Home'), isEmpty);
+      final host = OverlayHost(tester);
+      await host.pump(
+        reduced: true,
+        page: Consumer(
+          builder: (context, ref, _) => Center(
+            child: GestureDetector(
+              onTap: () => unawaited(openGlassStackOverview(context, ref, levels: levels, backButtonRect: const Rect.fromLTWH(20, 60, 44, 44), tabName: 'Home', onPick: (_) {})),
+              child: const SizedBox(width: 100, height: 44, child: Text('open')),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await pumpFor(tester, 700);
+      expect(find.byType(GlassStackOverview), findsNothing);
+      expect(find.text('Solo Leveling'), findsOneWidget);
+      expect(find.text('Home home'), findsOneWidget);
     });
   });
 }

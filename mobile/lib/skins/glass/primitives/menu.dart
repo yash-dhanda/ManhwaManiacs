@@ -40,6 +40,8 @@ class GlassMenuEntry {
     this.keyHint,
     this.separatorBefore = false,
     this.errorText,
+    this.leading,
+    this.trailingMono,
   });
 
   final String label;
@@ -54,6 +56,12 @@ class GlassMenuEntry {
   /// A 6 px gap before this row (groups are separated by gaps).
   final bool separatorBefore;
   final String? errorText;
+
+  /// A 24 px visual before the label (a cover thumbnail in the back menu); replaces the icon's place.
+  final Widget? leading;
+
+  /// A trailing value in `mono` (a depth number).
+  final String? trailingMono;
 }
 
 /// The size and content of a menu body: T4 padding 6, min width 220, max 320, rows `hitMin` tall.
@@ -65,7 +73,7 @@ abstract final class GlassMenuMetrics {
     for (final e in entries) {
       final label = measureText(context, e.label, roleStyle(context, gt.typeBody, onGlass: true, maxScale: 1.5)).width;
       final key = wide && e.keyHint != null ? 12.0 + 26 * keycapLabel(e.keyHint!).length : 0.0;
-      w = math.max(w, 16 + label + 12 + (e.icon != null ? 20 + 12 : 0) + (e.checked ?? false ? 28 : 0) + key + 16);
+      w = math.max(w, 16 + label + 12 + (e.icon != null ? 20 + 12 : 0) + (e.leading != null ? 24 + 12 : 0) + (e.trailingMono != null ? 12 + 24 : 0) + (e.checked ?? false ? 28 : 0) + key + 16);
     }
     final gaps = entries.where((e) => e.separatorBefore).length * 6.0;
     return Size(w.clamp(220.0, 320.0), entries.length * hit + gaps + 12);
@@ -277,7 +285,7 @@ class _GlassMenuPanelState extends ConsumerState<GlassMenuPanel> {
       if (st == _RowState.loading) const Padding(padding: EdgeInsets.only(left: 8), child: GlassSpinner()),
       if ((e.checked ?? false) && st != _RowState.loading) Padding(padding: const EdgeInsets.only(left: 8), child: GlassBacking(size: 28, child: Icon(PhosphorBold.check, size: 16, color: gt.colorIris400))),
       if (wide && e.keyHint != null) ...[const SizedBox(width: 12), for (final k in keycapLabel(e.keyHint!, platform: Theme.of(context).platform)) Padding(padding: const EdgeInsets.only(left: 2), child: GlassKeycap(k))],
-      if (ios && icon != null && st == _RowState.idle) Padding(padding: const EdgeInsets.only(left: 12), child: icon),
+      if (ios && icon != null && e.leading == null && st == _RowState.idle) Padding(padding: const EdgeInsets.only(left: 12), child: icon),
     ];
     return Semantics(
       checked: e.checked,
@@ -306,9 +314,11 @@ class _GlassMenuPanelState extends ConsumerState<GlassMenuPanel> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  if (!ios && icon != null) Padding(padding: const EdgeInsets.only(right: 12), child: icon),
+                  if (e.leading != null) Padding(padding: const EdgeInsets.only(right: 12), child: SizedBox.square(dimension: 24, child: e.leading)),
+                  if (!ios && icon != null && e.leading == null) Padding(padding: const EdgeInsets.only(right: 12), child: icon),
                   if (st == _RowState.error) Padding(padding: const EdgeInsets.only(right: 8), child: GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.warningCircle, size: 20, color: gt.colorDanger))),
                   Expanded(child: GlassText(label, role: gt.typeBody, onGlass: true, color: e.enabled ? null : gt.colorLabel4, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  if (e.trailingMono != null) Padding(padding: const EdgeInsets.only(left: 12), child: GlassText(e.trailingMono!, role: gt.typeMono, color: gt.colorOnGlass.withValues(alpha: 0.56), onGlass: true)),
                   ...trailing,
                 ],
               ),
