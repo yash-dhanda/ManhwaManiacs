@@ -12,8 +12,8 @@ void main() {
       CircleReader(member: m(3, 'Kabir'), chapterKey: 'c141', chapterNumber: 141),
     ],
     chapters: [
-      CircleChapterReactions(chapterKey: 'c142', chapterNumber: 142, by: [(member: m(1, 'Asha'), kind: 'chefs_kiss')]),
-      CircleChapterReactions(chapterKey: 'c144', chapterNumber: 144, by: [(member: m(4, 'Dev'), kind: 'tears')]),
+      CircleChapterReactions(chapterKey: 'c142', chapterNumber: 142, by: [ReactionBy.of(m(1, 'Asha'), ReactionKind.chefsKiss)]),
+      CircleChapterReactions(chapterKey: 'c144', chapterNumber: 144, by: [ReactionBy.of(m(4, 'Dev'), ReactionKind.tears)]),
     ],
   );
 
@@ -39,12 +39,12 @@ void main() {
 
   test('the server seal counts too; labels and short chapter names', () {
     final d = CircleSeriesData(chapters: [
-      CircleChapterReactions(chapterKey: 'c142', chapterNumber: 142, sealed: false, by: [(member: m(1, 'Asha'), kind: 'loved')]),
+      CircleChapterReactions(chapterKey: 'c142', chapterNumber: 142, sealed: false, by: [ReactionBy.of(m(1, 'Asha'), ReactionKind.loved)]),
     ],);
     expect(circleRows(d, openKey: 'c142', openNumber: 142, completedOpen: false).single.label, 'LOVED');
     expect(chapterShort(142), 'Ch. 142');
     expect(chapterShort(142.5), 'Ch. 142.5');
-    expect(reactionLabel('wrecked'), 'WRECKED');
+    expect(reactionLabel(ReactionKind.wrecked), 'WRECKED');
   });
 
   test('a member on this chapter with no reaction is here', () {

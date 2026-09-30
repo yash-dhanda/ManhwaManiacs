@@ -7,6 +7,9 @@ import 'package:manhwamaniacs/skins/cinematic/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/setup_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/bookmarks/bookmarks_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/circle/circle_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/circle/circle_tabs.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/circle_member/circle_member_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/collection_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/collections/collections_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
@@ -50,6 +53,8 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
   ScreenId.history: (context, state) => const HistoryScreen(),
   ScreenId.bookmarks: (context, state) => const BookmarksScreen(),
   ScreenId.numbers: (context, state) => const NumbersScreen(),
+  ScreenId.circle: (context, state) => CircleScreen(initialTab: circleTabFromQuery(state.uri.queryParameters['tab'])),
+  ScreenId.circleMember: (context, state) => CircleMemberScreen(profileId: int.tryParse(state.pathParameters['profileId'] ?? '') ?? -1),
   ScreenId.annual: (context, state) => AnnualScreen(key: ValueKey(state.pathParameters['year']), yearParam: state.pathParameters['year'] ?? ''),
   ScreenId.setup: (context, state) => const SetupScreen(),
   ScreenId.login: (context, state) => const LoginScreen(),

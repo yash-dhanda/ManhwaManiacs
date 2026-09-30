@@ -263,6 +263,8 @@ class ReactionBy extends ProfileRef {
   final ReactionKind? kind;
   final DateTime? createdAt;
 
+  ReactionBy.of(ProfileRef p, ReactionKind this.kind, {this.createdAt}) : super(profileId: p.profileId, name: p.name, avatarKey: p.avatarKey, username: p.username);
+
   ProfileRef get member => ProfileRef(profileId: profileId, name: name, avatarKey: avatarKey, username: username);
 
   factory ReactionBy.fromJson(Map<String, dynamic> j) {

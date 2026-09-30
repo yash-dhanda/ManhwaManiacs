@@ -21,10 +21,7 @@ import 'package:manhwamaniacs/skins/skins.dart';
 // Every id is pending except the series page; finishing a screen deletes its line. mobile/24
 // deletes the set.
 // ignore: constant_identifier_names
-const Set<ScreenId> PENDING = {
-  ScreenId.circle,
-  ScreenId.circleMember,
-};
+const Set<ScreenId> PENDING = {};
 
 /// The one root navigator key of the Cinematic router.
 final GlobalKey<NavigatorState> cineRootKey = GlobalKey<NavigatorState>(debugLabel: 'cine-root');

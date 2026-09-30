@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
+import 'package:manhwamaniacs/features/circle/utils/reaction_kinds.dart';
 
 /// What a row of the reader's CIRCLE tab says about a member (cinematic 9.3.3, the spoiler guard).
 enum CircleRowKind {
@@ -26,10 +27,7 @@ class CircleRow {
 }
 
 /// The kicker of a reaction kind.
-String reactionLabel(String kind) => switch (kind) {
-      'chefs_kiss' => "CHEF'S KISS",
-      final k => k.toUpperCase(),
-    };
+String reactionLabel(ReactionKind? kind) => kind == null ? '' : reactionSpec(kind).label.toUpperCase();
 
 String _num(double? n) => n == null ? '' : (n == n.roundToDouble() ? n.toStringAsFixed(0) : n.toString());
 
