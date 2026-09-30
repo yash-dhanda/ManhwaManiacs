@@ -30,21 +30,43 @@ class FeatureSpread extends StatelessWidget {
               children: [
                 Expanded(
                   flex: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        parts.kicker,
-                        const SizedBox(height: 8),
-                        parts.title,
-                        if (parts.deck != null) ...[const SizedBox(height: 8), parts.deck!],
-                        const SizedBox(height: 16),
-                        parts.credits,
-                        const SizedBox(height: 16),
-                        parts.actions,
-                      ],
+                  // The text sits on the duotone field: black at 0.84 across the column is the
+                  // over-art minimum for every ink it uses (cinematic 2.1.4, `proof` row).
+                  child: ColoredBox(
+                    color: const Color.fromRGBO(0, 0, 0, 0.84),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      // Foot-anchored; scrolls from its foot when a short screen (a landscape phone) is
+                      // shorter than the text.
+                      child: LayoutBuilder(
+                        builder: (context, box) => SingleChildScrollView(
+                          reverse: true,
+                          child: ConstrainedBox(
+                            constraints:
+                                BoxConstraints(minHeight: box.maxHeight),
+                            child: Align(
+                              alignment: Alignment.bottomLeft,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  parts.kicker,
+                                  const SizedBox(height: 8),
+                                  parts.title,
+                                  if (parts.deck != null) ...[
+                                    const SizedBox(height: 8),
+                                    parts.deck!
+                                  ],
+                                  const SizedBox(height: 16),
+                                  parts.credits,
+                                  const SizedBox(height: 16),
+                                  parts.actions,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -58,7 +80,9 @@ class FeatureSpread extends StatelessWidget {
                         child: FractionallySizedBox(
                           alignment: Alignment.centerLeft,
                           widthFactor: 0.5,
-                          child: DecoratedBox(decoration: BoxDecoration(gradient: CineScrim.gutter)),
+                          child: DecoratedBox(
+                              decoration:
+                                  BoxDecoration(gradient: CineScrim.gutter)),
                         ),
                       ),
                       Positioned(
