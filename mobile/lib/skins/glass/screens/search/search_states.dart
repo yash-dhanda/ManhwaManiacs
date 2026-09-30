@@ -66,7 +66,7 @@ class SearchLoadingSkeleton extends StatelessWidget {
               const SizedBox(height: 16),
               const GlassSkeleton(width: 160, height: 22, radius: 8),
               const SizedBox(height: 10),
-              SizedBox(height: 168, child: Row(children: [for (var i = 0; i < 3; i++) Padding(padding: const EdgeInsets.only(right: 12), child: GlassSkeleton(width: 112, height: 168, index: i))])),
+              SizedBox(height: 168, child: ListView.builder(scrollDirection: Axis.horizontal, physics: const NeverScrollableScrollPhysics(), itemCount: 3, itemBuilder: (_, i) => Padding(padding: const EdgeInsets.only(right: 12), child: GlassSkeleton(width: 112, height: 168, index: i)))),
             ],
           ],
         ),

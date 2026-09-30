@@ -68,13 +68,13 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
   @override
   void initState() {
     super.initState();
+    _shortcuts = ref.read(shortcutRegistryProvider.notifier);
     _search.text = widget.q ?? '';
     _tick = Timer.periodic(const Duration(seconds: 30), (_) {
       if (mounted) setState(() {});
     });
     Future.microtask(() {
       if (!mounted) return;
-      _shortcuts = ref.read(shortcutRegistryProvider.notifier);
       _shortcuts.register(_token, catalogueShortcutEntries());
       ref.read(sourceBrowseQueryProvider(_id).notifier).update((s) => s.copyWith(search: widget.q ?? '', sort: widget.mode ?? s.sort, genre: widget.genre ?? ''));
     });
@@ -88,7 +88,7 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
     _search.dispose();
     _searchFocus.dispose();
     _refresh.dispose();
-    final reg = ref.read(shortcutRegistryProvider.notifier);
+    final reg = _shortcuts;
     final t = _token;
     Future.microtask(() => reg.unregister(t));
     super.dispose();
