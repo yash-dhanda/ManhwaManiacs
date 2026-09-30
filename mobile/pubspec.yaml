@@ -125,6 +125,13 @@ dev_dependencies:
   flutter_lints: ^4.0.0
 
   fake_async: any
+# The host SQLite for `flutter test` (sqflite_common_ffi, dev only): package:sqlite3's bundled build has no FTS4, which the
+# novel-text index (mobile/38) needs; the operating system's does, as do Android's framework SQLite and iOS's.
+hooks:
+  user_defines:
+    sqlite3:
+      source: system
+
 flutter:
   # ── Darwin dependency management: CocoaPods only ───────────────────────────
   # Swift Package Manager is ON BY DEFAULT on the stable channel
