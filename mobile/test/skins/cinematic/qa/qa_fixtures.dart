@@ -1,4 +1,4 @@
-// ignore_for_file: directives_ordering, require_trailing_commas, prefer_const_constructors, avoid_redundant_argument_values, unnecessary_lambdas, unnecessary_await_in_return, avoid_print
+// ignore_for_file: directives_ordering, require_trailing_commas, prefer_const_constructors, avoid_redundant_argument_values, unnecessary_lambdas, unnecessary_await_in_return
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';

@@ -1,4 +1,4 @@
-// ignore_for_file: directives_ordering, require_trailing_commas, prefer_const_constructors, avoid_redundant_argument_values, unnecessary_lambdas, unnecessary_await_in_return, avoid_print
+// ignore_for_file: directives_ordering, require_trailing_commas, prefer_const_constructors, avoid_redundant_argument_values, unnecessary_lambdas, unnecessary_await_in_return
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -13,6 +13,11 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 
 import '../auth/auth_test_support.dart' show FakeAuth;
 import 'qa_fixtures.dart';
+import 'package:manhwamaniacs/skins/cinematic/app_frame.dart';
+import 'package:manhwamaniacs/skins/cinematic/flight_layer.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/stock.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import '../library/library_test_support.dart';
 
 /// The four proof sizes of the `mobile/03` harness (`kSkinShotSizes` + wide + landscape), logical px.
@@ -108,6 +113,9 @@ Future<LibRig> pumpQaScreen(
   Map<String, Object> prefs = const {},
   List<Override> extra = const [],
   bool settle = true,
+  Key? boundaryKey,
+  List<Override> before = const [],
+  ShelfLibrary? lib,
 }) async {
   assert(_complete);
   _mockPlugins(t);
@@ -120,10 +128,23 @@ Future<LibRig> pumpQaScreen(
     reduced: reduced,
     novelsEnabled: s.novels,
     prefs: prefs,
-    extra: [...s.extra, ...(await s.more?.call() ?? const <Override>[]), ...extra],
+    extra: [...before, ...s.extra, ...(await s.more?.call() ?? const <Override>[]), ...extra],
     settle: settle,
+    frame: _realFrame,
+    boundaryKey: boundaryKey,
+    lib: lib,
   );
 }
+
+/// What `CinematicSkin.wrap` builds around the app (Increase Contrast, the app's reduced-motion
+/// switch, Hyperlegible text, the frame and the flight layer), minus the splash.
+Widget _realFrame(Widget child) => CineContrastScope(
+      child: CineMotionScope(
+        child: CineTextSettings(
+          child: CineAppFrame(splash: false, child: FlightLayer(child: child)),
+        ),
+      ),
+    );
 
 /// Unmounts and lets every pending screen timer (retry back-offs, toasts) fire, so the test ends
 /// with none pending.
