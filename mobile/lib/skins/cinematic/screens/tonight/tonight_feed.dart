@@ -7,7 +7,9 @@ import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
+import 'package:manhwamaniacs/features/home/utils/rerank.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -18,6 +20,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/ambient_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_lightbox.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_pull_to_reprint.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
+import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/also_in_this_issue.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/cover_story_header.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/cover_story_parts.dart';
@@ -117,7 +120,7 @@ class _TonightFeedState extends ConsumerState<TonightFeed> {
   void _continue() {
     final cv = _feed.cover;
     if (cv?.chapterKey == null) return;
-    continueTo(context, ref, cv!.sourceId, cv.seriesKey, cv.chapterKey!, entry: ReaderEntry.wipe);
+    unawaited(continueTo(context, ref, sourceId: cv!.sourceId, seriesKey: cv.seriesKey, chapterKey: cv.chapterKey!, title: cv.title, lastReadAt: cv.pausedDays > 0 ? ref.read(clockProvider)().subtract(Duration(days: cv.pausedDays)) : null, recap: cv.recap, origin: RecapEntry.wipe));
   }
 
   void _dwell() {
@@ -190,7 +193,7 @@ class _TonightFeedState extends ConsumerState<TonightFeed> {
     final tags = HeroTags.of(feed);
     final env = TonightEnv(feed: feed, tags: tags, now: now, refresh: () => unawaited(_reprint()));
     final reduced = CineMotion.reduced(context);
-    final plans = planSections(feed);
+    final plans = planSections(feed, noted: ref.watch(rerankNotesProvider));
     final gap = wide ? 64.0 : 40.0;
     final hPad = EdgeInsets.only(left: grid.left, right: grid.right);
 

@@ -15,6 +15,7 @@ import 'package:manhwamaniacs/features/library/providers/library_series_actions.
 import 'package:manhwamaniacs/features/library/utils/bulk_runner.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/updates/mark_all_read.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
@@ -32,6 +33,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_radio.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/hub/hub_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/library/library_hub.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/updates/recent_checks.dart';
@@ -175,7 +177,7 @@ class _UpdatesScreenState extends ConsumerState<UpdatesScreen> with SingleTicker
   }
 
   void _read(String sourceId, String seriesKey, String chapterKey) =>
-      continueTo(context, ref, sourceId, seriesKey, chapterKey, entry: ReaderEntry.dip);
+      unawaited(continueTo(context, ref, sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterKey, origin: RecapEntry.dip));
 
   Future<void> _toggleNotify(FollowedSeries s) async {
     final r = await ref.read(libraryRepositoryProvider).patchSeries(s.id, notify: !s.notify);

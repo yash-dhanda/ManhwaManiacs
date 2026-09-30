@@ -116,6 +116,9 @@ List<Override> _metadataCacheProviderOverrides() => [
 
 class _EmptyLibraryRepository implements LibraryRepository {
   @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
 

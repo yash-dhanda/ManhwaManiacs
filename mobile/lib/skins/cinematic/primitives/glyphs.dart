@@ -35,6 +35,8 @@ abstract final class CineGlyph {
   static const caretRight = 0xe13a;
   static const headphones = 0xe2a6;
   static const dotsThree = 0xe1fe;
+  static const thumbsUp = 0xe48e;
+  static const sparkle = 0xe6a2;
   static const arrowLineUp = 0xe066;
   static const arrowLineDown = 0xe05c;
 

@@ -140,6 +140,9 @@ class _FakeUpdatesRepository implements UpdatesRepository {
 /// series list from `GET /library/series`.
 class _FakeLibraryRepository implements LibraryRepository {
   @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
 

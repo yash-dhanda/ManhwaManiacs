@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
 import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
@@ -12,8 +13,10 @@ import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
@@ -28,6 +31,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/quick_look.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/quick_look_actions.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -51,15 +55,21 @@ ReaderTarget readerTargetFor(String sourceId, String seriesKey, String chapterKe
 
 bool _novel(WidgetRef ref, String sourceId) => isNovelSource(ref.read(contentModeScopeProvider), sourceId) ?? false;
 
-/// Open the reader on [chapterKey] with [entry], warming the chapter first.
-void continueTo(BuildContext context, WidgetRef ref, String sourceId, String seriesKey, String chapterKey, {required ReaderEntry entry}) {
+/// Open the reader on [chapterKey] with [entry], warming the chapter first. Screens call
+/// `continueTo` (`recap/continue_to.dart`), which opens a recap first when the setting asks.
+void openReaderAt(BuildContext context, WidgetRef ref, String sourceId, String seriesKey, String chapterKey, {required ReaderEntry entry, bool replace = false}) {
   final target = readerTargetFor(sourceId, seriesKey, chapterKey, novel: _novel(ref, sourceId));
   readerPrefetchOf(ref).onPress(target);
-  enterReader(context, target, entry: entry);
+  enterReader(context, target, entry: entry, replace: replace);
 }
 
-void openRecap(BuildContext context, String sourceId, String seriesKey, String chapterKey) =>
-    unawaited(context.push<void>(Routes.recap(sourceId, seriesKey, {'to': chapterKey})));
+/// The recap takeover for `to`; [origin] says how it leaves (Column wipe, Dip, or back to the page).
+void openRecap(BuildContext context, String sourceId, String seriesKey, String chapterKey, {RecapEntry origin = RecapEntry.wipe}) {
+  final router = GoRouter.of(context);
+  unawaited(router.push<void>(Routes.recap(sourceId, seriesKey, {'to': chapterKey}), extra: RecapOrigin(origin, returnTo: cineLocationOf(router))));
+}
+
+RecapEntry _origin(ReaderEntry e) => e == ReaderEntry.wipe ? RecapEntry.wipe : RecapEntry.dip;
 
 /// The feature page by the match cut.
 void openSeries(BuildContext context, String sourceId, String seriesKey) => unawaited(context.push<void>(Routes.feature(sourceId, seriesKey)));
@@ -113,8 +123,8 @@ Future<void> openCuttingQuickLook(BuildContext context, WidgetRef ref, HomeConti
     cover: _cover(ref, r.coverUrl, title),
     actions: quickLookActions({
       QuickLookId.open: () => openSeries(context, r.sourceId, r.seriesKey),
-      QuickLookId.continueReading: () => continueTo(context, ref, r.sourceId, r.seriesKey, r.chapterKey, entry: entry),
-      if (item.recap?.available ?? false) QuickLookId.previouslyOn: () => openRecap(context, r.sourceId, r.seriesKey, r.chapterKey),
+      QuickLookId.continueReading: () => unawaited(continueTo(context, ref, sourceId: r.sourceId, seriesKey: r.seriesKey, chapterKey: r.chapterKey, title: title, lastReadAt: r.lastReadAt, recap: item.recap, origin: _origin(entry))),
+      if (item.recap?.available ?? false) QuickLookId.previouslyOn: () => openRecap(context, r.sourceId, r.seriesKey, r.chapterKey, origin: _origin(entry)),
       if (!offline) QuickLookId.markRead: () => unawaited(_markRead(context, ref, item)),
       QuickLookId.removeFromRow: () {
         hideContinue(ref.read, r);
@@ -157,8 +167,8 @@ Future<void> openFollowedQuickLook(BuildContext context, WidgetRef ref, HomeSeri
   final canRecap = (item.recap?.available ?? false) && chapter != null;
   final actions = quickLookActions({
     QuickLookId.open: () => openSeries(context, s.sourceId, s.seriesKey),
-    if (chapter != null) QuickLookId.continueReading: () => continueTo(context, ref, s.sourceId, s.seriesKey, chapter, entry: entry),
-    if (canRecap) QuickLookId.previouslyOn: () => openRecap(context, s.sourceId, s.seriesKey, chapter),
+    if (chapter != null) QuickLookId.continueReading: () => unawaited(continueTo(context, ref, sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKey: chapter, title: s.title, lastReadAt: item.lastReadAt ?? s.readState?.lastReadAt, recap: item.recap, origin: _origin(entry))),
+    if (canRecap) QuickLookId.previouslyOn: () => openRecap(context, s.sourceId, s.seriesKey, chapter, origin: _origin(entry)),
     QuickLookId.addToCollection: () => unawaited(showAddToShelfSheet(context, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title)),
     QuickLookId.favourite: () async {
       final err = await ref.read(librarySeriesActionsProvider).setFavorite(s, favorite: !s.isFavorite);
@@ -196,12 +206,15 @@ Future<void> openFollowedQuickLook(BuildContext context, WidgetRef ref, HomeSeri
 /// A world or source pick: Open, Not for me, and for information-only titles Search my sources and
 /// Read on {site}. [onNotForMe] lets the rail drop the poster (it fades over 240 ms).
 Future<void> openPickQuickLook(BuildContext context, WidgetRef ref, HomePickItem item, {required ReaderEntry entry, VoidCallback? onNotForMe, Object? heroTag}) {
+  final container = ProviderScope.containerOf(context, listen: false);
   final w = item.world;
   final title = item.title;
   final info = w != null && w.available.isEmpty;
   final site = w?.readElsewhere;
   final actions = quickLookActions({
     if (!info) QuickLookId.open: () => openPick(context, item),
+    // More like this: the feature page's tab (an item on the reader's sources only).
+    if (!info) QuickLookId.moreLikeThis: () => context.push(featureMoreLikeThis(w?.available.first.sourceId ?? item.source!.sourceId, w?.available.first.seriesKey ?? item.source!.id)),
     QuickLookId.notForMe: () async {
       final ai = ref.read(aiRepositoryProvider);
       final src = item.source;
@@ -211,7 +224,12 @@ Future<void> openPickQuickLook(BuildContext context, WidgetRef ref, HomePickItem
         sourceId: w == null ? src!.sourceId : null,
         seriesKey: w == null ? src!.id : null,
       );
-      if (res.isOk) onNotForMe?.call();
+      if (res.isOk) {
+        // The rail fades the poster over 240 ms first; then it joins the session's dismissed set.
+        final id = w != null ? pickId(w) : 's${src!.sourceId}:${src.id}';
+        onNotForMe?.call();
+        unawaited(Future<void>.delayed(onNotForMe == null ? Duration.zero : const Duration(milliseconds: 250), () => container.read(dismissedPicksProvider.notifier).add(id)));
+      }
     },
   });
   return openQuickLook(
@@ -243,3 +261,45 @@ Future<void> openSourceQuickLook(BuildContext context, WidgetRef ref, HomeSource
       cover: _cover(ref, item.latestCovers.isEmpty ? null : item.latestCovers.first, item.name),
       actions: quickLookActions({QuickLookId.open: () => context.go(Routes.source(item.sourceId))}),
     );
+
+/// A world item on any AI surface (Picks, More like this): the feature page when the reader's
+/// sources carry it, a source picker when several do, else Discover with `?q={title}`.
+void openWorldItem(BuildContext context, WorldItem w) {
+  if (w.available.length > 1) {
+    unawaited(showSourcePickerSheet(context, title: w.title, sources: w.available, onOpen: (s) => openSeries(context, s.sourceId, s.seriesKey)));
+  } else if (w.available.length == 1) {
+    openSeries(context, w.available.first.sourceId, w.available.first.seriesKey);
+  } else {
+    context.go(Routes.discover({'q': w.title}));
+  }
+}
+
+/// Quick look of a world item: Open (or Search my sources and Read on for information-only
+/// titles), More like this and Not for me. The `why` shows as the credits line.
+Future<void> openWorldQuickLook(BuildContext context, WidgetRef ref, WorldItem w, {VoidCallback? onNotForMe, VoidCallback? onMoreLikeThis, Object? heroTag}) {
+  final info = w.available.isEmpty;
+  final site = w.readElsewhere;
+  return openQuickLook(
+    context,
+    title: w.title,
+    heroTag: heroTag,
+    kicker: w.why == null ? 'QUICK LOOK' : 'WHY THIS ONE',
+    credits: w.why ?? w.badgeLine,
+    cover: _cover(ref, w.coverUrl, w.title),
+    actions: [
+      ...quickLookActions({
+        if (!info) QuickLookId.open: () => openWorldItem(context, w),
+        if (onMoreLikeThis != null) QuickLookId.moreLikeThis: onMoreLikeThis,
+        if (onNotForMe != null) QuickLookId.notForMe: onNotForMe,
+      }),
+      if (info) ...[
+        QuickLookAction('search-my-sources', 'Search my sources', CineIconRole.search, onSelected: () => context.go(Routes.discover({'q': w.title}))),
+        if (site != null)
+          QuickLookAction('read-on', 'Read on ${site.site} ↗', CineIconRole.external, onSelected: () async {
+            final ok = await launchUrl(Uri.parse(site.url), mode: LaunchMode.externalApplication).catchError((Object _) => false);
+            if (!ok) ref.read(cineToastsProvider.notifier).error("Couldn't open ${site.url}");
+          },),
+      ],
+    ],
+  );
+}

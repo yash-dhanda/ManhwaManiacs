@@ -21,6 +21,7 @@ import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.da
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
@@ -28,6 +29,7 @@ import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_contents.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_front_matter.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_states.dart';
@@ -45,6 +47,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/chapters_panel.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_actions.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_overflow.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/previously_on_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/series_ambient.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -223,6 +226,10 @@ class _BookViewState extends ConsumerState<BookView> {
         headers: apiImageHttpHeaders(ref.read(authTokenStoreProvider).token, profileId: ref.read(activeProfileProvider)?.id),
       );
 
+  /// The split button: a recap first when `mm.recap` asks (novels read their text, `sourced_from: text`).
+  void _continue(SourceChapterSummary c) => unawaited(continueTo(context, ref,
+      sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, title: d.title, lastReadAt: d.followed?.readState?.lastReadAt, origin: RecapEntry.wipe,),);
+
   void _open(SourceChapterSummary c, {bool listen = false}) {
     final target = ReaderTarget.novel(d.sourceId, d.seriesKey, c.id, listen: listen);
     readerPrefetchOf(ref).onPress(target);
@@ -386,7 +393,7 @@ class _BookViewState extends ConsumerState<BookView> {
     final caughtUp =
         resumeChapter != null && reading.last.id == resumeChapter.id && (p?.completed ?? false);
     _commands.continueReading =
-        resumeChapter == null || caughtUp ? null : () => _open(resumeChapter);
+        resumeChapter == null || caughtUp ? null : () => _continue(resumeChapter);
     _commands.listen = audio != null && narrated.isNotEmpty && resumeChapter != null
         ? () => _open(resumeChapter, listen: true)
         : null;
@@ -498,7 +505,7 @@ class _BookViewState extends ConsumerState<BookView> {
                       disabledBackgroundColor: t.colorPaper3,
                       disabledForegroundColor: t.colorInk30,
                     ),
-                    onPressed: resumeChapter == null || caughtUp ? null : () => _open(resumeChapter),
+                    onPressed: resumeChapter == null || caughtUp ? null : () => _continue(resumeChapter),
                     child: caughtUp
                         ? const Row(
                             mainAxisSize: MainAxisSize.min,
@@ -512,6 +519,7 @@ class _BookViewState extends ConsumerState<BookView> {
                           ),
                   ),
                   const SizedBox(height: 8),
+                  PreviouslyOnButton(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: caughtUp ? null : resumeChapter?.id, commands: _commands),
                   if (audio != null && narrated.isNotEmpty && resumeChapter != null)
                     OutlinedButton(
                       key: const Key('listen'),

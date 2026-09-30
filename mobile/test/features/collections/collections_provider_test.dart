@@ -20,6 +20,9 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 class _CollectionsRepo implements LibraryRepository {
   @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
 

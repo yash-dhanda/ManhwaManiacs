@@ -68,3 +68,12 @@ No unresolved items.
 ## mobile/11
 
 None reported by the verifier.
+
+## mobile/19
+
+- (fix attempted, not re-checked) E5 readers' first-page chip (manga and novel chrome)
+- (fix attempted, not re-checked) C2 chapter-end credits rails (caught-up More like this, the-end Up next)
+- (fix attempted, not re-checked) B4 / acceptance: Try again cancels the running request with a CancelToken
+- (fix attempted, not re-checked) B9 World card widget at mobile/lib/skins/cinematic/primitives/world_card.dart, and B6 rails using it
+- (fix attempted, not re-checked) C5 suggested tags: reject token fades over 160 ms
+- (fix attempted, not re-checked) B1 / G stale badge from world recommendations

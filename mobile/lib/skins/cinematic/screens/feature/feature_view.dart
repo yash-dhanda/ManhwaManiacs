@@ -35,12 +35,16 @@ class FeatureView extends ConsumerWidget {
     required this.seriesKey,
     this.followed,
     this.focusChapter,
+    this.tab,
   });
 
   final String sourceId;
   final String seriesKey;
   final FollowedSeries? followed;
   final String? focusChapter;
+
+  /// `?tab=more-like-this`.
+  final String? tab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -65,7 +69,7 @@ class FeatureView extends ConsumerWidget {
             );
             return novel ?? false
                 ? BookView(data: data, focusChapter: focusChapter)
-                : MangaFeatureView(data: data, offlineEdition: true);
+                : MangaFeatureView(data: data, offlineEdition: true, initialTab: tab);
           }
           if (novel ?? false) return BookOfflineNotice(sourceId: sourceId);
         }
@@ -93,6 +97,7 @@ class FeatureView extends ConsumerWidget {
             ? BookView(data: data, focusChapter: focusChapter)
             : MangaFeatureView(
                 data: data,
+                initialTab: tab,
                 savedCopy: v.series.cacheStale && fetched != null ? savedCopyAge(fetched) : null,
               );
       },

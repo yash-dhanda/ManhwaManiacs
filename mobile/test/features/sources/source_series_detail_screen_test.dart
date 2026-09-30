@@ -130,6 +130,9 @@ class _FakeSourcesRepository implements SourcesRepository {
 /// [SeriesFollowButton] reads via `followedFor` to decide Follow vs Unfollow.
 class _FakeLibraryRepository implements LibraryRepository {
   @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
 

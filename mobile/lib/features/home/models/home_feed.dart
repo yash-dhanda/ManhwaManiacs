@@ -76,9 +76,10 @@ class HomeStreak {
 
 /// The 9.1.5 availability object.
 class RecapAvailability {
-  const RecapAvailability({required this.available, this.reason, this.fromKey, this.toKey, this.estSeconds, this.cached = false});
+  const RecapAvailability({required this.available, this.reason, this.fromKey, this.toKey, this.fromNumber, this.toNumber, this.estSeconds, this.cached = false});
   final bool available;
   final String? reason, fromKey, toKey;
+  final num? fromNumber, toNumber;
   final int? estSeconds;
   final bool cached;
 
@@ -91,6 +92,8 @@ class RecapAvailability {
       reason: _str(j['reason']),
       fromKey: _str(range?['from_key']),
       toKey: _str(range?['to_key']),
+      fromNumber: range?['from_number'] as num?,
+      toNumber: range?['to_number'] as num?,
       estSeconds: _int(j['est_seconds']),
       cached: j['cached'] as bool? ?? false,
     );

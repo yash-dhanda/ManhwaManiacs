@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/core/utils/pagination.dart';
@@ -46,6 +47,9 @@ export '../feature/feature_test_support.dart' show Recorder;
 /// A server-shaped fake of `GET /library/series`: it filters, sorts and pages what it holds and
 /// records every call, so the tests can assert the parameters the shelf sends.
 class ShelfLibrary implements LibraryRepository {
+  @override
+  Future<Result<WorldSuggestResponse>> localSuggest(String prompt, {int limit = 6}) => throw UnimplementedError();
+
   ShelfLibrary({
     required this.all,
     this.failList = false,

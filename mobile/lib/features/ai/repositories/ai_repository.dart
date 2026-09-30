@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/ai/models/similar_result.dart';
 
 /// The AI desk's suggested-tags line. Any failure (a 404 before backend/05
 /// exists, offline, the desk closed) reads as "nothing suggested": the UI
@@ -32,6 +33,12 @@ class AiRepository {
     } catch (_) {
       return kNoSuggestedTags;
     }
+  }
+
+  /// `GET /ai/similar`. Failures throw (the caller shows the §9.1.8 unavailable state).
+  Future<SimilarResult> similar(SimilarQuery q) async {
+    final r = await _dio.get<Map<String, dynamic>>('/ai/similar', queryParameters: q.params);
+    return SimilarResult.fromJson(r.data ?? const {});
   }
 
   /// `POST /ai/feedback` with `signal: tag_rejected`; best effort.

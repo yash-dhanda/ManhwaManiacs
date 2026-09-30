@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
@@ -18,13 +19,20 @@ enum CineRailState { ready, loading, empty, error, aiUnavailable }
 
 enum CineAiReason { budget, notConfigured, rateLimited, failed }
 
-/// The section 9.1.8 copy for an unavailable AI rail; the returned kicker is `NOTE` except for a rate limit.
-({String kicker, String copy}) cineAiUnavailableCopy(CineAiReason r, {int? retryAfterSeconds}) => switch (r) {
-      CineAiReason.budget => (kicker: 'NOTE', copy: 'The picks desk is closed tonight. Asks reset at midnight UTC.'),
-      CineAiReason.notConfigured => (kicker: 'NOTE', copy: "The editors' desk isn't set up on this server."),
-      CineAiReason.rateLimited => (kicker: 'SLOW DOWN', copy: 'Too many asks at once. Try again in ${retryAfterSeconds ?? 10} s.'),
-      CineAiReason.failed => (kicker: 'NOTE', copy: "The editors couldn't answer that one. Try describing it differently."),
-    };
+/// The section 9.1.8 copy for an unavailable AI rail, from the one copy module (`ai_copy.dart`);
+/// the kicker is `NOTE` except for a rate limit.
+({String kicker, String copy}) cineAiUnavailableCopy(CineAiReason r, {int? retryAfterSeconds}) {
+  final c = aiCopyForCode(
+    switch (r) {
+      CineAiReason.budget => 'budget_exhausted',
+      CineAiReason.notConfigured => 'not_configured',
+      CineAiReason.rateLimited => 'rate_limited',
+      CineAiReason.failed => null,
+    },
+    retryAfter: retryAfterSeconds ?? 10,
+  );
+  return (kicker: c.kicker, copy: c.text);
+}
 
 typedef CineRailItemBuilder = Widget Function(BuildContext context, int index, double posterWidth, FocusNode node);
 

@@ -1,7 +1,7 @@
 import 'package:manhwamaniacs/core/error/app_error.dart';
 
-/// §9.1.8 vocabulary for the ASK scope and the Ask-the-editors block.
-/// TODO(mobile/08): reuse its module when it lands; mobile/19 extends this.
+/// §9.1.8 vocabulary for every AI surface (Tonight's rails, Picks, Discover's ASK, Similar, tags,
+/// the recap). One module: extend it, never fork it.
 class AiCopy {
   const AiCopy(this.kicker, this.text, {this.rateLimited = false});
 
@@ -19,6 +19,7 @@ AiCopy aiCopyForCode(String? code, {int? retryAfter}) => switch (code) {
           'NOTE',
           "The editors' desk isn't set up on this server.",
         ),
+      'ai_no_matches' => const AiCopy('NOTE', 'Nothing fit that description. Try describing it differently.'),
       'rate_limited' => AiCopy(
           'SLOW DOWN',
           'Too many asks at once. Try again in ${retryAfter ?? 12} s.',
@@ -47,3 +48,12 @@ int? retryAfterSeconds(ApiError e) {
   final after = d is Map ? d['retry_after'] : null;
   return e.retryAfter?.inSeconds ?? (after is num ? after.toInt() : null);
 }
+
+/// The typed thinking lines (a leader dial follows after 1 s).
+const kAiThinkingPicks = 'Reading your shelf…';
+const kAiThinkingSimilar = 'Finding series like this one…';
+const kAiThinkingRecap = 'Writing the recap…';
+
+/// The unavailable line of a surface: the copy for [reason], then what is shown instead
+/// ("Here is your shelf instead.", "Here are series from the same genres.").
+String aiUnavailableLine(String? reason, String instead) => '${aiCopyForCode(reason).text} $instead';

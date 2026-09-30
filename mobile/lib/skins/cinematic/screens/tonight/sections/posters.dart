@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
+import 'package:manhwamaniacs/features/home/utils/rerank.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_poster.dart';
@@ -38,10 +40,20 @@ class _PostersSectionState extends ConsumerState<PostersSection> {
   HomeSection get _s => widget.plan.section;
 
   /// The visible items with their index in the section (the Hero tag key).
-  List<(int, Object)> get _items => [
-        for (var i = 0; i < _s.items.length; i++)
-          if (!_gone.contains(i)) (i, _s.items[i]),
-      ];
+  List<(int, Object)> get _items {
+    // Cards dismissed with Not for me anywhere in the app are gone from these rails too.
+    final dismissed = ref.watch(dismissedPicksProvider);
+    return [
+      for (var i = 0; i < _s.items.length; i++)
+        if (!_gone.contains(i) && !_dismissedItem(_s.items[i], dismissed)) (i, _s.items[i]),
+    ];
+  }
+
+  bool _dismissedItem(Object it, Set<String> dismissed) {
+    if (it is! HomePickItem) return false;
+    final w = it.world;
+    return dismissed.contains(w != null ? pickId(w) : 's${it.source!.sourceId}:${it.source!.id}');
+  }
 
   void _notForMe(int i) {
     setState(() => _fading.add(i));
@@ -178,7 +190,11 @@ class _PostersSectionState extends ConsumerState<PostersSection> {
         duotone: info ? (item.ambient?.duo ?? context.cine.colorAmbientFallbackDuo) : null,
         focusNode: node,
         flickerIndex: index,
-        onTap: () => openPick(context, item),
+        onTap: () {
+          final g = item.world?.genres.firstOrNull ?? item.source?.genres.firstOrNull;
+          if (g != null) ref.read(rerankNotesProvider.notifier).noteOpenedFromRail(g);
+          openPick(context, item);
+        },
       ),
     );
   }

@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
+import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
+import 'package:manhwamaniacs/skins/cinematic/navigation.dart' show ReaderEntry;
 import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cards/cine_cutting_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/quick_look.dart';
+import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/sections.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/sections/tonight_rail.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_layout.dart';
@@ -67,7 +70,7 @@ class ContinueCuttingsSection extends ConsumerWidget {
           imageUrl: coverAbs(ref, r.coverUrl),
           progress: r.pageCount > 0 ? r.progressPct.clamp(0.0, 1.0) : null,
           nudge: _nudge(it),
-          onTap: () => continueTo(context, ref, r.sourceId, r.seriesKey, r.chapterKey, entry: env.entry),
+          onTap: () => unawaited(continueTo(context, ref, sourceId: r.sourceId, seriesKey: r.seriesKey, chapterKey: r.chapterKey, title: r.title, lastReadAt: r.lastReadAt, recap: it.recap, origin: env.entry == ReaderEntry.wipe ? RecapEntry.wipe : RecapEntry.dip)),
         );
         return CineQuickLookTarget(
           onOpen: () => unawaited(openCuttingQuickLook(context, ref, it, entry: env.entry, heroTag: tag)),

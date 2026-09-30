@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 /// callbacks they own; a null one makes its key do nothing.
 class FeatureCommands {
   VoidCallback? continueReading; // Enter, C
+  VoidCallback? previouslyOn; // P (only while a recap is available)
   VoidCallback? readAll; // A
   VoidCallback? listen; // L (Book)
   VoidCallback? viewCover; // V
@@ -48,6 +49,8 @@ class FeatureShortcuts extends StatelessWidget {
         key == LogicalKeyboardKey.numpadEnter ||
         key == LogicalKeyboardKey.keyC) {
       run = c.continueReading;
+    } else if (key == LogicalKeyboardKey.keyP) {
+      run = c.previouslyOn;
     } else if (key == LogicalKeyboardKey.keyV) {
       run = c.viewCover;
     } else if (key == LogicalKeyboardKey.add ||
