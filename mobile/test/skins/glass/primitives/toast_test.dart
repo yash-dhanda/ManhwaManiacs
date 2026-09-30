@@ -219,7 +219,7 @@ void main() {
     expect(r.left, greaterThan(76 + 24));
     expect(r.bottom, lessThan(1194 - 24));
     final rest = r.bottom;
-    _c(tester).read(glassBottomBarProvider.notifier).state = true;
+    _c(tester).read(glassBottomBarProvider.notifier).state = GlassBottomBar.bulk;
     await pumpFor(tester, 100);
     expect(tester.getRect(_toast('Saved')).bottom, closeTo(rest - 64, 2));
   });

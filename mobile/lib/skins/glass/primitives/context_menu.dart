@@ -25,6 +25,7 @@ Future<void> showGlassContextMenu(
   String title = 'Item',
   ValueChanged<DragUpdateDetails>? onPreviewDrag,
   VoidCallback? onClosed,
+  ChangeNotifier? closeSignal,
 }) {
   final scale = glassPreviewScale(kind);
   final lifted = Rect.fromCenter(center: sourceRect.center, width: sourceRect.width * scale, height: sourceRect.height * scale);
@@ -46,6 +47,7 @@ Future<void> showGlassContextMenu(
       previewScale: scale,
       onPreviewDrag: onPreviewDrag,
       onClosed: onClosed,
+      closeSignal: closeSignal,
     ),
   );
 }

@@ -94,11 +94,11 @@ void main() {
       final q = c.read(overlayQueueProvider.notifier);
       q.requestSlot(OverlayKind.appUpdate);
       expect(_vis(c), {OverlayKind.appUpdate});
-      c.read(glassBottomBarProvider.notifier).state = true;
+      c.read(glassBottomBarProvider.notifier).state = GlassBottomBar.bulk;
       expect(_vis(c), isEmpty);
       q.requestSlot(OverlayKind.toast);
       expect(_vis(c), {OverlayKind.toast});
-      c.read(glassBottomBarProvider.notifier).state = false;
+      c.read(glassBottomBarProvider.notifier).state = GlassBottomBar.none;
       expect(_vis(c), {OverlayKind.toast, OverlayKind.appUpdate});
     });
 

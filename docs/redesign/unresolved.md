@@ -131,3 +131,7 @@ Fix attempted, not re-checked:
 ## mobile/23
 
 None reported by the verifier. (flutter analyze: 18 info-level avoid_dynamic_calls lints in new tests, no errors.)
+
+## mobile/28
+
+None reported by the verifier.

@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/ai/machine_badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/slab.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
@@ -25,6 +26,8 @@ class GlassWorldCard extends StatelessWidget {
     this.tags = const [],
     this.onOpen,
     this.sourceIcon,
+    this.ai = false,
+    this.friendName,
   })  : sourceName = source,
         infoOnly = false,
         site = null,
@@ -42,6 +45,8 @@ class GlassWorldCard extends StatelessWidget {
     required String this.siteUrl,
     this.tags = const [],
     this.onSearchMySources,
+    this.ai = false,
+    this.friendName,
   })  : sourceName = null,
         extraSources = 0,
         infoOnly = true,
@@ -66,6 +71,12 @@ class GlassWorldCard extends StatelessWidget {
   final String? siteUrl;
   final VoidCallback? onOpen;
   final VoidCallback? onSearchMySources;
+
+  /// An AI card (glass 2.1.9, 7.38): a 0.5 px `machineRim` rim instead of the slab border and the machine badge before the `why`.
+  final bool ai;
+
+  /// An AI card that shows a friend's pick also carries the friend's `bloom` chip: the people light next to the machine light.
+  final String? friendName;
 
   Future<void> _external() async {
     try {
@@ -94,9 +105,9 @@ class GlassWorldCard extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              GlyphIcon(GlassGlyph.sparkle, size: 14, color: gt.colorMachine),
-              const SizedBox(width: 4),
+              if (ai) ...[const MachineBadge(), const SizedBox(width: 4)],
               Expanded(child: GlassLabel(why, role: gt.typeFootnote, italic: true, color: gt.colorLabel2)),
+              if (ai && friendName != null) Padding(padding: const EdgeInsets.only(left: 4), child: _FriendChip(friendName!)),
             ],
           ),
         ],
@@ -121,6 +132,8 @@ class GlassWorldCard extends StatelessWidget {
         height: 132,
         child: GlassSlab(
           padding: const EdgeInsets.all(6),
+          borderColor: ai ? gt.colorMachineRim : const Color(0x0FFFFFFF),
+          borderWidth: ai ? 0.5 : 1,
           onTap: onOpen,
           semanticsLabel: '$title, $kind, $why, on $sourceName${extraSources > 0 ? ' and $extraSources more' : ''}',
           child: Stack(
@@ -137,6 +150,8 @@ class GlassWorldCard extends StatelessWidget {
       height: 200,
       child: GlassSlab(
         padding: const EdgeInsets.all(6),
+        borderColor: ai ? gt.colorMachineRim : const Color(0x0FFFFFFF),
+        borderWidth: ai ? 0.5 : 1,
         dashed: true,
         semanticsLabel: '$title, not on your sources',
         child: Column(
@@ -155,4 +170,16 @@ class GlassWorldCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The friend's pick on an AI card: the people light (`bloom`) beside the machine light (glass 2.1.9).
+class _FriendChip extends StatelessWidget {
+  const _FriendChip(this.name);
+  final String name;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+        decoration: BoxDecoration(color: gt.colorBloomWash, borderRadius: BorderRadius.circular(gt.radiusCapsule), border: Border.all(color: gt.colorBloomRim, width: 0.5)),
+        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1), child: GlassLabel(name, role: gt.typeCaption2, color: gt.colorBloom)),
+      );
 }

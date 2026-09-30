@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/drag_owner.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
@@ -257,7 +258,10 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
       ),
     );
 
-    return CallbackShortcuts(
+    return GlassDragOwner(
+      kind: GlassDragOwnerKind.pager,
+      atLeadingEdge: _c.isAtFirstPanel,
+      child: CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.bracketLeft): () => _step(-1),
         const SingleActivator(LogicalKeyboardKey.bracketRight): () => _step(1),
@@ -283,6 +287,7 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
