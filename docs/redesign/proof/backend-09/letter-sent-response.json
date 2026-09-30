@@ -1,0 +1,22 @@
+{
+    "id": "b55ce85e16e64b6ea1a1c80bfadfbb75",
+    "to": [
+        {
+            "profile_id": 2,
+            "name": "Aarav",
+            "avatar_key": "default",
+            "username": "demo",
+            "state": "new"
+        }
+    ],
+    "source_id": "mangadex",
+    "series_key": "d2b02bb0-a8ec-405f-9c2d-d63df7cff785",
+    "title": "Bijutsubu Girl",
+    "cover_url": "/sources/mangadex/series/d2b02bb0-a8ec-405f-9c2d-d63df7cff785/cover",
+    "ambient": null,
+    "palette": null,
+    "content_kind": "manga",
+    "note": "The tower arc is worth it.",
+    "state": "new",
+    "created_at": "2026-09-29T22:56:43.137463"
+}

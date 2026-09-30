@@ -1,0 +1,43 @@
+{
+    "collections": [],
+    "shared_with_me": [
+        {
+            "id": 1,
+            "name": "Weekend binge",
+            "description": "Seeded for screenshots",
+            "sort_order": 0,
+            "series_count": 3,
+            "rules": null,
+            "smart": false,
+            "created_at": "2026-09-29T22:56:34.952936",
+            "preview_covers": [
+                "/sources/mangadex/series/d0f9e331-e022-4b49-8399-e14091d8b703/cover",
+                "/sources/mangadex/series/d2b02bb0-a8ec-405f-9c2d-d63df7cff785/cover",
+                "/sources/mangadex/series/a29bd145-116e-49c8-bc2f-b15857299304/cover"
+            ],
+            "preview_ambient_duo": null,
+            "owner": {
+                "profile_id": 1,
+                "name": "Riya",
+                "avatar_key": "default",
+                "username": "demo"
+            },
+            "role": "can_add",
+            "shared": {
+                "owner_profile_id": 1,
+                "mode": "can_add",
+                "member_profile_ids": [
+                    2
+                ],
+                "members": [
+                    {
+                        "profile_id": 2,
+                        "name": "Aarav",
+                        "avatar_key": "default",
+                        "username": "demo"
+                    }
+                ]
+            }
+        }
+    ]
+}

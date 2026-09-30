@@ -3,7 +3,7 @@
 Client contract for `web/22`, `mobile/22` (Cinematic) and `web/43`, `mobile/43` (Glass). One API for
 both skins; no endpoint takes a skin parameter. Every `/circle/*` route needs `X-Profile-Id`
 (`400 profile_required` without a profile). Errors use `{code, message, details}`. Timestamps are
-naive-UTC ISO 8601. `backend/09` appends its own sections here.
+naive-UTC ISO 8601. The `backend/09` sections (reactions, letters, shared shelves) follow.
 
 ## The shareable set S(member, viewer)
 
@@ -48,7 +48,7 @@ when `share_streak` is on, else `null`. Poll every 60 s while visible.
 `{profile, shares, now, last_active_at, streak, reading, finished, reactions, shelves}`:
 `reading` = `CircleSeries + last_activity_at` (no progress); `finished` = `CircleSeries + finished_at`;
 `reactions` (max 30) = `CircleSeries + chapter_key, chapter_number, reaction, created_at`;
-`shelves` is `[]` until `backend/09`.
+`shelves` = that member's shelves effectively shared with the viewer, as `SharedShelf` objects.
 
 ## `GET /circle/feed?cursor=&limit=&profile_id=&kind=`
 
@@ -87,3 +87,115 @@ request, not part of the per-day cache. `shareable` never carries Circle data.
 
 `palette`, `content_kind`, `followed_by_viewer`, `last_active_at`, `streak`, `now.since`, and Annual
 `circle.both`.
+
+---
+
+# backend/09: reactions, letters and shared shelves
+
+Every visibility decision about another profile calls `CircleService` (S, `series_mature`, the viewer gate).
+The 18+ gate applies when serving, never when storing. Everything below is additive. Validation failures are
+`422`. `X-Profile-Id` is required on every call.
+
+## Reactions
+
+One reaction per profile per chapter. **Seven kinds**, the stored values shared by both skins:
+`loved`, `shook`, `laughed`, `tears`, `chefs_kiss`, `hype`, `wrecked` (any other value is `422`). Labels are the
+clients' (Cinematic shows five stamps plus `HYPE`/`WRECKED`; Glass shows six and renders `laughed` as "Laughed").
+
+- `POST /circle/reactions` `{source_id, series_key, chapter_key, kind}` -> `200 ChapterReactions`. No row: insert;
+  same kind: no change; another kind: moved in place. `chapter_number` comes from the viewer's own progress row
+  (else null); `shared = activity AND reactions` of the viewer **at that moment**, so a reaction made while
+  "Show my reactions" was off never surfaces later. The `reacted` Circle event is replaced (deleted, and re-written
+  when `shared`).
+- `DELETE /circle/reactions` body `{source_id, series_key, chapter_key}` -> `204`, idempotent (removes the event too).
+- `GET /circle/reactions?source=&series=` -> `{chapters: [ChapterReactions]}`, only chapters with a visible reaction,
+  `chapter_number` desc (nulls last) then `chapter_key`. `series` is percent-decoded.
+
+`ChapterReactions`: `{chapter_key, chapter_number, counts: {loved, shook, laughed, tears, chefs_kiss, hype, wrecked},
+total, by: [{profile_id, name, avatar_key, username, kind, created_at}], mine, sealed}`. `counts` always has all
+seven keys. Visible = the viewer's own (always) plus another profile's reaction when it is a member (S), `shared`,
+its `reactions` switch is on, it is at or after `share_activity_since`, the series is not hidden and the both-sided
+18+ rule passes. `counts`, `total` and `by` are computed after filtering.
+
+### The spoiler guard, server half
+
+The server always returns the full reaction. `sealed` is true when the viewer has **not completed** the chapter (no
+`is_completed` progress row with the same `chapter_key`, or the same non-null `chapter_number`); a half-read chapter
+is sealed. It is computed per request (no write on unseal): the next read after `POST /reader/progress` says
+`sealed: false`. It appears on `ChapterReactions`, on `GET /circle/feed` items of kind `reacted` (null on other
+kinds) and on the `reactions` items of `GET /circle/members/{profile_id}`. Clients never guard the viewer's own
+reaction (`mine`). The unseal animation (160 ms, 40 ms apart) is the clients'.
+
+## Letters
+
+- `GET /circle/members?source_id=&series_key=`: with both, every member gains `can_receive: bool`; with neither, no
+  field; with one, `422`. A recipient can receive when it is a member, its `recommendations` switch is on and, for a
+  mature series (either side resolves mature), its own gate is open and its effective `include_mature` is on. No
+  reason is ever returned. A sender whose own gate is closed gets `404 series_not_found` for a mature series.
+- `POST /circle/letters` `{to_profile_ids: [1-10 unique], source_id, series_key, note?}` -> `201 SentLetter`. `note`
+  is stripped, at most 140 characters (`422` above), empty becomes null. Any recipient that cannot receive (itself, an
+  unknown id, a non-member) -> `409 recipient_unavailable` with `details: {profile_ids: [...]}` and **nothing is
+  written**. One row per recipient sharing one `sent_group`; title and cover are snapshotted from the sender's follow,
+  else the source cache, else the key. The sender need not share activity.
+- `GET /circle/letters?box=inbox` (default) -> array of `Letter`: `{id (int), from: ProfileRef, ...CircleSeries, note,
+  state, created_at}`, states `new`, `read`, `kept`, never `dismissed`, newest first. A letter whose series is mature
+  for the viewer is **absent** while the viewer's gate is closed, as is a letter from an inactive account. Every
+  "new" count (tab badge, `2 NEW` folio, sidebar, Glass bloom dot) counts `state == "new"` rows of this list.
+- `GET /circle/letters?box=sent` -> array of `SentLetter`, one per send: `{id (the sent_group string), to: [ProfileRef +
+  state], ...CircleSeries, note, state, created_at}`. A recipient's `state` is `new` or `read` (`kept` and
+  `dismissed` read as `read`; never whether it was added). The row's `state` is `new` when any recipient is `new`.
+  `box` other than `inbox` or `sent` is `422`.
+- `PATCH /circle/letters/{id}` `{state: read|kept|dismissed}` -> `200 Letter`. Recipient only; another profile's
+  letter, an unknown id or a letter absent under the gate is `404 not_found`. Cinematic's `Keep` writes `kept`;
+  Glass writes `read` and `dismissed` only.
+
+`GET /home` gains `sent_to_you` (inbox letters in `new` or `kept`, newest first, max 10, items are `Letter`,
+`note` = the newest item's note, only for a household with other profiles) and the `letter` candidate of `also[]`
+(`{kind: "letter", source_id, series_key, title, headline: "{name} recommends {title}", deck, ambient}`, priority
+`new_chapters`, `because`, `letter`, `almost_there`). Both are computed per request, never cached.
+
+## Shared shelves
+
+Roles: `owner`, `can_add`, `view_only`. A member needs a `collection_shares` row and an effective membership: the
+owner's `activity` on and account active, the member's `activity` and `shelves` on. Otherwise `404 not_found`.
+
+| Call | owner | `can_add` | `view_only` |
+|---|---|---|---|
+| `GET /library/collections/{id}` | yes | yes | yes |
+| `POST /library/collections/{id}/series` | yes | yes | 403 `forbidden` |
+| `DELETE /library/collections/{id}/series` | any row | rows it added, else 403 | 403 |
+| `PATCH`, `DELETE`, `PUT .../series/order`, `POST .../share` | yes | 403 | 403 |
+| `DELETE .../share/me` | 403 | yes | yes |
+
+- `POST /library/collections/{id}/share` `{profile_ids: [0-10 unique], mode: can_add|view_only}` -> `200` owner row.
+  Empty ids unshare. Refusals (in order, nothing written): `409 smart_shelf_not_shareable`, `409 sharing_off`,
+  `409 member_unavailable` with `details: {profile_ids}` (the owner, unknown, inactive, or `activity`/`shelves` off).
+  Series added by a removed member stay.
+- `DELETE /library/collections/{id}/share/{profile_ref}` -> `204`; `profile_ref` is `me` or an integer id (else `422`).
+  The owner removes a member (idempotent); a member may pass only `me` or its own id and leaves the shelf.
+- `PUT .../series/order` (backend/02) still answers `422 order_mismatch` unless the body equals the visible
+  membership; on a shared shelf that is the owner's view under the shared-shelf 18+ rule.
+- `GET /library/collections`: the bare array of the viewer's own shelves, each with `role: "owner"` and
+  `shared: {owner_profile_id, mode, member_profile_ids, members: [ProfileRef]} | null`. **Deliberate deviation:**
+  `shared_with_me` cannot be added to a bare array without breaking today's clients, so
+  `GET /library/collections?include_shared=true` returns `{collections: [...], shared_with_me: [SharedShelf]}`
+  (`X-Total-Count` = length of `collections`).
+- `SharedShelf`: the owner-row fields (`id`, `name`, `description`, `series_count`, `preview_covers`,
+  `preview_ambient_duo`, `rules` always null, `created_at`) over the rows visible to the viewer, plus `owner`
+  (ProfileRef), `role` and `shared`. Ordered by owner name then shelf name.
+- `GET /library/collections/{id}` gains `role`, `shared`, `owner` and, on every series row, `title`, `cover_url`,
+  `ambient`, `palette`, `added_by_profile_id`, `added_by` (ProfileRef or null). Rows render from the shelf's own
+  snapshot, never from the viewer's library. `POST .../series` snapshots title and cover from the adder.
+- 18+ on a shared shelf (owner and members alike): a row is visible when it is not mature by
+  `series_mature(adder or owner, viewer)` or the viewer's gate is open; hidden rows are absent from `series`,
+  `series_count` and the previews. An unshared shelf keeps the original gate path.
+- `GET /circle/members/{profile_id}` `shelves` = that member's shelves effectively shared with the viewer.
+
+**Profile deletion.** `fk_collection_series_added_by` cascades: deleting a profile removes the series it added to
+other profiles' shelves, its shares, reactions and every letter to or from it, so a reused profile id can never
+inherit another profile's add rights.
+
+## Errors added
+
+`recipient_unavailable` (409), `series_not_found` (404), `smart_shelf_not_shareable` (409), `sharing_off` (409),
+`member_unavailable` (409), `forbidden` (403), `not_found` (404), `order_mismatch` (422), `validation_error` (422).

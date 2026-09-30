@@ -1,0 +1,18 @@
+[
+    {
+        "profile_id": 2,
+        "name": "Aarav",
+        "avatar_key": "default",
+        "username": "demo",
+        "shares": {
+            "activity": true,
+            "reactions": true,
+            "shelves": true,
+            "recommendations": true
+        },
+        "now": null,
+        "last_active_at": "2026-09-29T22:56:42.924646",
+        "streak": null,
+        "can_receive": true
+    }
+]

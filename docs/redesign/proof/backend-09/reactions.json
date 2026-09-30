@@ -1,0 +1,30 @@
+{
+    "chapters": [
+        {
+            "chapter_key": "proof-ch-1",
+            "chapter_number": null,
+            "counts": {
+                "loved": 1,
+                "shook": 0,
+                "laughed": 0,
+                "tears": 0,
+                "chefs_kiss": 0,
+                "hype": 0,
+                "wrecked": 0
+            },
+            "total": 1,
+            "by": [
+                {
+                    "profile_id": 1,
+                    "name": "Riya",
+                    "avatar_key": "default",
+                    "username": "demo",
+                    "kind": "loved",
+                    "created_at": "2026-09-29T22:56:42.783230"
+                }
+            ],
+            "mine": null,
+            "sealed": true
+        }
+    ]
+}
