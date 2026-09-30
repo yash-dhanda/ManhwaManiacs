@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/about_se
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/admin_section.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/ambient_section.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/appearance_section.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/circle_section.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/content_section.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/diagnostics_section.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/feedback_section.dart';
@@ -80,7 +81,7 @@ Future<void> refreshSettingsPage(WidgetRef ref, String slug) async {
 
 SettingsPageDef? settingsPageOf(String slug) => settingsPages.where((p) => p.slug == slug).firstOrNull;
 
-/// Every section in app order. `circle` (mobile/22) registers itself when it lands.
+/// Every section in app order. 
 final List<SettingsSectionDef> allSettingsSections = [
   SettingsSectionDef('profile', 'Profile & account', (_) => const ProfileSection(), const [
     SettingsRowSpec('switch-profile', 'Switch profile', keywords: ['persona', 'who is reading']),
@@ -161,6 +162,15 @@ final List<SettingsSectionDef> allSettingsSections = [
   SettingsSectionDef('content', 'Content', (_) => const ContentSection(), const [
     SettingsRowSpec('mature', 'Show mature content (18+)', keywords: ['adult', 'nsfw', 'certificate']),
     SettingsRowSpec('pinned-sources', 'Manage pinned sources', keywords: ['sources']),
+  ], perProfile: true,),
+  SettingsSectionDef('circle', 'Circle & privacy', (_) => const CircleSection(), const [
+    SettingsRowSpec('share-activity', "Share what I'm reading", keywords: ['circle', 'activity', 'privacy', 'social', 'others see']),
+    SettingsRowSpec('share-reactions', 'Show my reactions', keywords: ['stamps', 'circle']),
+    SettingsRowSpec('share-shelves', 'Let others add me to shared shelves', keywords: ['collections', 'invite']),
+    SettingsRowSpec('share-recommendations', 'Receive recommendations', keywords: ['letters', 'pass it on']),
+    SettingsRowSpec('share-mature', 'Include 18+ titles in my activity', keywords: ['adult', 'mature']),
+    SettingsRowSpec('hide-series', 'Hide this series from my activity', keywords: ['exclude', 'private']),
+    SettingsRowSpec('clear-activity', 'Clear my shared activity', keywords: ['delete', 'reset', 'circle']),
   ], perProfile: true,),
   SettingsSectionDef('feedback', 'Feedback', (_) => const FeedbackSection(), const [
     SettingsRowSpec('haptics', 'Haptic feedback', keywords: ['vibration']),
