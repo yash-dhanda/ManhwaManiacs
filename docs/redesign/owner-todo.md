@@ -157,3 +157,6 @@ Items only the owner can do, by step.
 - The nine Glass art-style crops (`mobile/assets/onboarding/styles/glass/{01..09}-{id}.webp`, each under 40,000 bytes, brief in glass/DESIGN.md 12.7) are still to be supplied through `shared/05`'s intake. Fallback in place: typographic tiles (`kGlassStyleArtBundled` is false).
 - The Glass preview frames (`mobile/assets/skin_previews/glass/000.png` to `035.png`) are captured by `mobile/39`. Fallback in place: the neutral mark on the brand aurora (`kGlassPreviewFramesBundled` is false).
 - mobile/31: device checks in docs/redesign/proof/mobile-31/device-check.md
+
+## mobile/38 (Glass search, sources, catalogue, dialogue)
+- Device checks: see `docs/redesign/proof/mobile-38/device-checklist.md` (orb morph on both OSs, 120 Hz late groups, jump-bar ticks, pin fly haptics, FTS4 tokenizer log line on the Android flagship, VoiceOver and TalkBack).
