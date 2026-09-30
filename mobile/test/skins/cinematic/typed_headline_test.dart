@@ -97,4 +97,40 @@ void main() {
     await t.pump(const Duration(seconds: 6));
     h.dispose();
   });
+
+  // mobile/24 F1 (cinematic 10.2): focus does not skip; Space skips; the whole reveal takes
+  // n x 50 ms + 3,180 ms of caret blinks + 160 ms fade + 200 ms of slack, then the caret is gone.
+  testWidgets('focus at 100 ms does not skip it: the 10th grapheme is still hidden at 200 ms', (t) async {
+    await t.pumpWidget(_host(TypedHeadline(_text, style: _style)));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 100));
+    Focus.of(t.element(find.descendant(of: find.byType(TypedHeadline), matching: find.byType(RichText)))).requestFocus();
+    await t.pump(const Duration(milliseconds: 100));
+    expect(_revealed(t), lessThan(10));
+    expect(_caret, findsOneWidget);
+    await t.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('Space on the focused headline completes it and the count never advances again', (t) async {
+    await t.pumpWidget(_host(TypedHeadline(_text, style: _style)));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 300));
+    Focus.of(t.element(find.descendant(of: find.byType(TypedHeadline), matching: find.byType(RichText)))).requestFocus();
+    await t.pump();
+    await t.sendKeyEvent(LogicalKeyboardKey.space);
+    await t.pump();
+    expect(_revealed(t), 40);
+    await t.pump(const Duration(milliseconds: 500));
+    expect(_revealed(t), 40);
+    await t.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('every grapheme is revealed and the caret is gone after n x 50 + 3,180 + 160 + 200 ms', (t) async {
+    await t.pumpWidget(_host(TypedHeadline(_text, style: _style)));
+    await t.pump();
+    await t.pump(Duration(milliseconds: 40 * 50 + 3180 + 160 + 200));
+    expect(_revealed(t), 40);
+    // The caret has faded out: gone from the tree or fully transparent.
+    if (_caret.evaluate().isNotEmpty) expect(_caretOpacity(t), 0);
+  });
 }
