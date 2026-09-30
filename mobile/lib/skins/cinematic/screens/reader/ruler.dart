@@ -3,6 +3,7 @@ import 'package:flutter/physics.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_tint.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/ruler_math.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -146,7 +147,7 @@ class _ReaderRulerState extends State<ReaderRuler> with SingleTickerProviderStat
                       rtl: widget.rtl,
                       enabled: _enabled,
                       track: c.colorRule2,
-                      played: c.colorInk100,
+                      played: ReaderTintScope.of(context).light ?? c.colorInk100,
                       tick: c.colorInk30,
                       spot: c.colorSpot,
                     ),

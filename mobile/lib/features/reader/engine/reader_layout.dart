@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
 /// How the chapter is laid out: the continuous strip, one page per screen, or a two-page spread
-/// per screen (glass 15.4).
-enum ReaderLayout { strip, single, double }
+/// per screen (glass 15.4), or one panel at a time driven by the camera (guided view).
+enum ReaderLayout { strip, single, double, guided }
 
 /// How a page fits the paged stage.
 enum ReaderPageFit { width, height, original }

@@ -1,3 +1,5 @@
+import 'dart:ui' show Rect;
+
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
@@ -60,6 +62,8 @@ class ChapterManifest {
               id: '$chapterKey:${page.number}',
               number: page.number,
               imageUrl: resolveApiResourceUrl(apiBaseUrl, page.url),
+              tint: page.tint,
+              panels: page.panels,
             ),
           )
           .toList(),
@@ -68,13 +72,28 @@ class ChapterManifest {
 }
 
 class ManifestPage {
-  const ManifestPage({required this.number, required this.url});
+  const ManifestPage({required this.number, required this.url, this.tint, this.panels});
 
   final int number;
   final String url;
 
+  /// `pages[].tint` (`#RRGGBB`) when a client reported it; `pages[].panels` in page fractions,
+  /// null while nobody analysed the page, empty when analysed with none found.
+  final String? tint;
+  final List<Rect>? panels;
+
   factory ManifestPage.fromJson(Map<String, dynamic> json) => ManifestPage(
         number: json['number'] as int,
         url: json['url'] as String,
+        tint: json['tint'] as String?,
+        panels: (json['panels'] as List<dynamic>?)?.map((e) {
+          final m = e as Map<String, dynamic>;
+          return Rect.fromLTWH(
+            (m['x'] as num).toDouble(),
+            (m['y'] as num).toDouble(),
+            (m['w'] as num).toDouble(),
+            (m['h'] as num).toDouble(),
+          );
+        }).toList(),
       );
 }

@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_palette.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
+import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 
@@ -51,6 +52,8 @@ class NovelPreferences {
   double? get storedLeading => hasLineHeight ? clampCineLeading((raw['lineHeight'] as num).toDouble()) : null;
   double? get storedMeasure => hasMeasure ? clampCineMeasure((raw['measure'] as num).toDouble()) : null;
   double get paragraphSpacing => raw['paragraphSpacing'] is num ? clampParagraphSpacing((raw['paragraphSpacing'] as num).toDouble()) : 0;
+  /// Auto-scroll speed for this book (0.50-3.00x); null falls back to the Settings default.
+  double? get autoScrollSpeedX => raw['autoScrollSpeedX'] is num ? ((raw['autoScrollSpeedX'] as num).toDouble()).clamp(0.5, 3.0) : null;
   double get letterSpacing => raw['letterSpacing'] is num ? clampLetterSpacing((raw['letterSpacing'] as num).toDouble()) : 0;
 
   NovelPreferences copyWith({
@@ -176,6 +179,8 @@ class NovelPreferencesController
   Future<void> setLeading(double v) => update(state.withRaw({'lineHeight': clampCineLeading(v)}));
   Future<void> setCineMeasure(double v) => update(state.withRaw({'measure': clampCineMeasure(v)}));
   Future<void> setParagraphSpacing(double v) => update(state.withRaw({'paragraphSpacing': clampParagraphSpacing(v)}));
+  /// The book's auto-scroll speed (0.50-3.00x), or null to fall back to the Settings default.
+  Future<void> setAutoScrollSpeedX(double? v) => update(state.withRaw({'autoScrollSpeedX': v == null ? null : snapAutoScrollSpeed(v)}));
   Future<void> setLetterSpacing(double v) => update(state.withRaw({'letterSpacing': clampLetterSpacing(v)}));
 
   /// Forgets every per-book type value: the book reads the profile and face defaults again.
@@ -317,3 +322,12 @@ NovelType resolveNovelType({
     justify: settings.novelJustify,
   );
 }
+
+/// 0.50-3.00 in 0.05 steps.
+double snapAutoScrollSpeed(double v) => (v.clamp(0.5, 3.0) * 20).round() / 20;
+
+/// The profile's reading pace store (`mm.novel-pace.u{user}p{profile}`), rebuilt on a profile switch.
+final novelPaceStoreProvider = Provider<NovelPaceStore>(
+  (ref) => NovelPaceStore(ref.watch(sharedPrefsProvider), _scopedKey(ref, prefix: 'mm.novel-pace.', deviceKey: 'mm.novel-pace.device', watch: true)),
+  name: 'novelPaceStore',
+);

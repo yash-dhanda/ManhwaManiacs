@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provid
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
 import 'package:manhwamaniacs/features/settings/providers/a11y_prefs_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/novel/novel_ambient_rows.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/stocks.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/type_rows.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_kit.dart';
@@ -39,6 +40,7 @@ Future<void> showNovelTypeSheet(
   required CineStockColors stock,
   AmbientRoles? ambient,
   List<NovelTypeRow>? rows,
+  bool toAmbient = false,
 }) =>
     showCineSheet<void>(
       context,
@@ -49,14 +51,17 @@ Future<void> showNovelTypeSheet(
         stock,
         Material(
           type: MaterialType.transparency,
-          child: NovelTypeBody(prefsKey: prefsKey, ambient: ambient, rows: rows ?? kNovelTypeRows),
+          child: NovelTypeBody(prefsKey: prefsKey, ambient: ambient, rows: rows ?? kNovelTypeRows, scrollToKey: toAmbient ? kNovelAmbientKey : null),
         ),
       ),
     );
 
 /// The rows of the sheet and its `Reset text and page` footer.
 class NovelTypeBody extends ConsumerWidget {
-  const NovelTypeBody({super.key, required this.prefsKey, required this.rows, this.ambient});
+  const NovelTypeBody({super.key, required this.prefsKey, required this.rows, this.ambient, this.scrollToKey});
+
+  /// A row to scroll into view when the sheet opens (the waveform opens it at `AMBIENT`).
+  final GlobalKey? scrollToKey;
 
   final String prefsKey;
   final AmbientRoles? ambient;
@@ -81,6 +86,12 @@ class NovelTypeBody extends ConsumerWidget {
       stockId: ref.watch(novelStockIdProvider),
       ambient: ambient,
     );
+    if (scrollToKey != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = scrollToKey!.currentContext;
+        if (ctx != null && ctx.mounted) unawaited(Scrollable.ensureVisible(ctx));
+      });
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

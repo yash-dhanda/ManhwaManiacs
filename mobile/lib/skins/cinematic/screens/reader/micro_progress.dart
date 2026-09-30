@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_tint.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// A 2 px `spot` rule at the very bottom of the screen showing chapter progress while the chrome is
@@ -21,7 +22,7 @@ class ReaderMicroProgress extends StatelessWidget {
         child: ExcludeSemantics(
           child: Align(
             alignment: rtl ? Alignment.centerRight : Alignment.centerLeft,
-            child: FractionallySizedBox(widthFactor: progress.clamp(0.0, 1.0), child: ColoredBox(color: context.cine.colorSpot)),
+            child: FractionallySizedBox(widthFactor: progress.clamp(0.0, 1.0), child: ColoredBox(color: ReaderTintScope.of(context).light ?? context.cine.colorSpot)),
           ),
         ),
       ),

@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/physics.dart' show SpringDescription;
-import 'package:flutter/widgets.dart' show Curve, Offset, ScrollPhysics;
+import 'package:flutter/widgets.dart' show Curve, Offset, Rect, ScrollPhysics;
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
+import 'package:manhwamaniacs/features/reader/engine/auto_scroll_controller.dart';
+import 'package:manhwamaniacs/features/reader/engine/camera.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_tint.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_layout.dart';
 
@@ -110,6 +114,17 @@ abstract interface class ReaderEngineHost implements ReaderEngineCommands {
   });
 }
 
+/// Geometry a host can answer: page fractions to viewport px (the strip's scroll offset and page
+/// extents, current every frame). Implemented by the strip view.
+abstract interface class ReaderGeometryHost {
+  /// Viewport px of the point ([x], [y]) in page fractions of chapter-local [page]; null when the
+  /// page is not laid out.
+  Offset? pageToViewport(int page, double x, double y);
+
+  /// The viewport rectangle in logical px.
+  Rect get viewportRect;
+}
+
 /// Something the chrome should tell the reader about; the engine draws
 /// nothing itself.
 sealed class ReaderEngineEvent {
@@ -177,8 +192,75 @@ class ReaderEngine extends ValueNotifier<ReaderEngineState>
   /// Pixels pulled past the end of the strip, 0 at rest.
   final ValueNotifier<double> endPull = ValueNotifier<double>(0);
 
+  /// Page tint, panel detection, words on screen and the exit reports (mobile/23 A4).
+  final ReaderAmbient ambient = ReaderAmbient();
+
+  /// The 400 ms speed ramp, pace by dialogue and touch interruption of auto-scroll (A6).
+  final AutoScrollController autoScroll = AutoScrollController();
+
+  /// The guided layout's camera (A5).
+  final ReaderCamera camera = ReaderCamera();
+
+  /// The chrome's tint source: `PageTintSource.page(seed)`, `PageTintSource.cover` or null.
+  ValueNotifier<PageTintSource?> get pageTint => ambient.pageTint;
+
+  /// Panels of the chapter on screen by 1-based page.
+  ValueNotifier<Map<int, PanelsState>> get panels => ambient.panels;
+
+  /// Words in the viewport while pace by dialogue has text; null otherwise.
+  ValueNotifier<int?> get wordsOnScreen => ambient.wordsOnScreen;
+
+  /// Words in panel [panelIndex] of [page] (null without dialogue text).
+  int? wordsInPanel(int page, int panelIndex) => ambient.wordsInPanel(page, panelIndex);
+
+  /// The rect the guided camera is fitted on (null: whole page).
+  CameraTarget? get cameraRect => camera.cameraRect;
+
+  /// Fits [rect] (page fractions of [rect.page]) in the viewport within 24 px margins at up to 3x,
+  /// dollying over [duration] along [curve] (or springing), or cutting when neither is given.
+  /// The guided stage listens to [camera] and runs the animation with its ticker.
+  void setCamera(CameraTarget rect, {Duration? duration, Curve? curve, SpringDescription? spring, Offset? velocity}) {
+    _cameraCommand.value = (rect: rect, duration: duration, curve: curve, spring: spring, velocity: velocity, serial: ++_cameraSerial);
+  }
+
+  int _cameraSerial = 0;
+
+  /// The latest [setCamera] request, for the stage that owns the ticker.
+  final ValueNotifier<({CameraTarget rect, Duration? duration, Curve? curve, SpringDescription? spring, Offset? velocity, int serial})?> _cameraCommand =
+      ValueNotifier(null);
+  ValueListenable<({CameraTarget rect, Duration? duration, Curve? curve, SpringDescription? spring, Offset? velocity, int serial})?> get cameraCommand => _cameraCommand;
+
+  /// Viewport px of the point ([x], [y]) in page fractions of chapter-local [page], current every
+  /// frame while scrolling, zooming or moving the camera.
+  Offset pageToViewport(int page, double x, double y) {
+    if (camera.active) return camera.pageToViewport(page, x, y);
+    final h = _host;
+    if (h is ReaderGeometryHost) return (h as ReaderGeometryHost).pageToViewport(page, x, y) ?? Offset.zero;
+    return Offset.zero;
+  }
+
+  /// The page and page fractions under a viewport [point] (the guided camera's page).
+  (int, Offset) viewportToPage(Offset point) => camera.viewportToPage(point);
+
+  /// The viewport rect (strip host) or the camera's viewport.
+  Rect get viewportRect {
+    final h = _host;
+    if (!camera.active && h is ReaderGeometryHost) return (h as ReaderGeometryHost).viewportRect;
+    return Offset.zero & camera.viewport;
+  }
+
+  /// Guided view is on: read by mobile/12's iOS back-swipe rule.
+  void setGuidedActive(bool on) {
+    camera.active = on;
+    if (value.guidedActive != on) value = value.copyWith(guidedActive: on);
+  }
+
   @override
   void dispose() {
+    ambient.dispose();
+    autoScroll.dispose();
+    camera.dispose();
+    _cameraCommand.dispose();
     unawaited(_completed.close());
     topPull.dispose();
     endPull.dispose();

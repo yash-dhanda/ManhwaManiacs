@@ -572,6 +572,57 @@ class DownloadsStore {
     };
   }
 
+  /// Stores the analysis of a saved chapter: [tints] page -> `#RRGGBB`, [panels] page -> JSON
+  /// `[[l,t,w,h],...]` in page fractions (`[]` for none). Only pages already saved are touched.
+  Future<void> saveChapterAnalysis(
+    ChapterIdentity id, {
+    Map<int, String> tints = const {},
+    Map<int, String> panels = const {},
+  }) async {
+    final db = await database;
+    final row = await _getRow(db, id);
+    if (row == null) return;
+    final rowId = row[DownloadsSchema.colId]! as int;
+    final pages = {...tints.keys, ...panels.keys};
+    await db.transaction((txn) async {
+      for (final page in pages) {
+        await txn.update(
+          DownloadsSchema.savedPages,
+          {
+            if (tints.containsKey(page)) DownloadsSchema.colTint: tints[page],
+            if (panels.containsKey(page)) DownloadsSchema.colPanels: panels[page],
+          },
+          where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colChapterRowId} = ? '
+              'AND ${DownloadsSchema.colPageNumber} = ?',
+          whereArgs: [scopeId, rowId, page],
+        );
+      }
+    });
+  }
+
+  /// The stored analysis of a saved chapter: page -> seed, page -> panels JSON.
+  Future<({Map<int, String> tints, Map<int, String> panels})> readChapterAnalysis(ChapterIdentity id) async {
+    final db = await database;
+    final row = await _getRow(db, id);
+    final tints = <int, String>{};
+    final panels = <int, String>{};
+    if (row == null) return (tints: tints, panels: panels);
+    final rows = await db.query(
+      DownloadsSchema.savedPages,
+      columns: [DownloadsSchema.colPageNumber, DownloadsSchema.colTint, DownloadsSchema.colPanels],
+      where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colChapterRowId} = ?',
+      whereArgs: [scopeId, row[DownloadsSchema.colId]],
+    );
+    for (final r in rows) {
+      final page = r[DownloadsSchema.colPageNumber]! as int;
+      final t = r[DownloadsSchema.colTint] as String?;
+      final pn = r[DownloadsSchema.colPanels] as String?;
+      if (t != null) tints[page] = t;
+      if (pn != null) panels[page] = pn;
+    }
+    return (tints: tints, panels: panels);
+  }
+
   /// Absolute on-disk paths for every page of [id] currently present in this
   /// scope, keyed by page number. Only includes pages whose blob file still
   /// exists — an orphaned index row (file deleted by hand) is silently

@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/jump_to_page_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_glyphs.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_tint.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/ruler.dart';
 import 'package:manhwamaniacs/skins/cinematic/scrim_head.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -76,7 +77,7 @@ class ReaderFolioBar extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        scrimSoleLayer(fade: 64),
+        scrimSoleLayer(fade: 64, tint: ReaderTintScope.of(context).tint),
         Padding(
           padding: EdgeInsets.only(left: side.left + gutter - 8, right: side.right + gutter - 8, bottom: bottom),
           child: ConstrainedBox(

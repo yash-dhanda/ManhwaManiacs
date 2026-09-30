@@ -33,6 +33,8 @@ class _FixedConnectivity implements NetworkConnectivity {
 
   @override
   Future<bool> isOnWifi() async => onWifi;
+  @override
+  Future<bool> isOnline() async => true;
 }
 
 /// Pumps a widget that calls [NextChapterAutoQueue.maybeQueue] [calls] times

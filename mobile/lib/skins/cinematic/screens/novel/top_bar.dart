@@ -48,6 +48,7 @@ class NovelTopBar extends StatelessWidget {
     required this.actions,
     this.offline = false,
     this.savedCopyAgo,
+    this.titleTrailing,
   });
 
   final CineStockColors stock;
@@ -63,6 +64,9 @@ class NovelTopBar extends StatelessWidget {
   /// `cache.stale`: `3 H` for the `SAVED COPY · 3 H` micro badge; null when the text is fresh.
   final String? savedCopyAgo;
 
+  /// After the running title: the house-sound `waveform` while a loop plays.
+  final Widget? titleTrailing;
+
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
@@ -76,6 +80,7 @@ class NovelTopBar extends StatelessWidget {
             flex: 2,
             child: CineRoleText(runningTitle, c.typeNav, color: stock.muted, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
+          if (titleTrailing != null) titleTrailing!,
           if (offline)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 4),

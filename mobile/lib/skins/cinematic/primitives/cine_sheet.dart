@@ -36,7 +36,11 @@ class CineSheet extends StatefulWidget {
     this.onRetry,
     this.reduced = false,
     this.onClose,
+    this.topRule,
   });
+
+  /// The 1 px top edge colour when the caller tints it (the reader's `page.light`); `rule.2` else.
+  final Color? topRule;
 
   final String kicker, title;
   final Widget child;
@@ -213,7 +217,7 @@ class _CineSheetState extends State<CineSheet> with SingleTickerProviderStateMix
         key: const Key('cine-sheet-surface'),
         child: Container(
         key: _surfaceKey,
-        decoration: BoxDecoration(color: c.colorPaper2, border: Border(top: BorderSide(color: c.colorRule2))),
+        decoration: BoxDecoration(color: c.colorPaper2, border: Border(top: BorderSide(color: widget.topRule ?? c.colorRule2))),
           child: live ? SizedBox(height: topMax, child: column) : ConstrainedBox(constraints: BoxConstraints(maxHeight: topMax), child: column),
         ),
       ),
