@@ -16,8 +16,6 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 /// appear in `matureScopedInvalidators`, so a new gated endpoint cannot be
 /// added without deciding what it invalidates on the client.
 const Map<String, List<String>> _providersByService = {
-  // The Annual (mobile/21).
-  'annual_service': ['annualProvider', 'annualIndexProvider'],
   'bookmark_service': ['bookmarksProvider'],
   'browse_service': [
     'sourceBrowseProvider',
@@ -45,8 +43,10 @@ const Map<String, List<String>> _providersByService = {
   'progress_service': ['sourceSeriesServerProgressProvider'],
   'reading_stats_service': [
     'statisticsProvider',
-    // The Numbers (mobile/21).
+    // The Numbers and The Annual (mobile/21).
     'numbersStatisticsProvider',
+    'annualProvider',
+    'annualIndexProvider',
     'recommendationsProvider',
     'genreWeightsProvider',
     'readingHistoryProvider',
