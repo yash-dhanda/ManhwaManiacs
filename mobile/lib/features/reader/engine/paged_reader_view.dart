@@ -6,16 +6,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show SchedulerBinding, SchedulerPhase;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/network/request_limiter.dart';
 import 'package:manhwamaniacs/core/platform/native_bridge.dart';
 import 'package:manhwamaniacs/core/utils/haptics.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
+import 'package:manhwamaniacs/features/reader/engine/paged_prefetch.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_zoom.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_provider.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_layout.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_long_press.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_page_image.dart';
 import 'package:manhwamaniacs/features/reader/engine/spread.dart';
 import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
@@ -127,8 +130,6 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
   Offset _pinchFocal = Offset.zero;
   ({Offset position, DateTime at})? _tapDown;
   late TapClassifier _classifier = _newClassifier();
-  Timer? _longPress;
-  Offset? _longPressStart;
   Offset? _dragStart;
   double _dragDx = 0;
   DateTime _dragStartAt = DateTime.now();
@@ -233,8 +234,8 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
 
   @override
   void dispose() {
+    if (!_disposed.isCompleted) _disposed.complete();
     WidgetsBinding.instance.removeObserver(this);
-    _cancelLongPress();
     _zoomAnim?.dispose();
     _fade?.dispose();
     _hideTimer?.cancel();
@@ -377,6 +378,8 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     return true;
   }
 
+  final Completer<void> _disposed = Completer<void>();
+
   void _prefetch() {
     if (!mounted) return;
     final from = _view.clamp(0, math.max(0, _views.length - 1)).toInt();
@@ -395,22 +398,40 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
         );
         final unknown = page.width == null && !_learned.containsKey(n);
         if (!unknown) {
-          precacheImage(provider, context, onError: (_, __) {});
+          if (page.localFile != null) {
+            precacheImage(provider, context, onError: (_, __) {});
+          } else {
+            unawaited(warmThroughLimiter(ref.read(sourcesLimiterProvider), pagedPrefetchPriority(v - from), () => precacheImage(provider, context, onError: (_, __) {}), cancel: _disposed.future).catchError((_) {}));
+          }
           continue;
         }
         // Resolving the picture warms the cache the same way, and says how big it is.
-        final stream = provider.resolve(createLocalImageConfiguration(context));
-        late final ImageStreamListener listener;
-        listener = ImageStreamListener(
-          (info, _) {
-            final w = info.image.width, h = info.image.height;
-            info.dispose();
-            stream.removeListener(listener);
-            _learn(n, w, h);
-          },
-          onError: (_, __) => stream.removeListener(listener),
-        );
-        stream.addListener(listener);
+        Future<void> resolve() {
+          final done = Completer<void>();
+          final stream = provider.resolve(createLocalImageConfiguration(context));
+          late final ImageStreamListener listener;
+          listener = ImageStreamListener(
+            (info, _) {
+              final w = info.image.width, h = info.image.height;
+              info.dispose();
+              stream.removeListener(listener);
+              _learn(n, w, h);
+              if (!done.isCompleted) done.complete();
+            },
+            onError: (_, __) {
+              stream.removeListener(listener);
+              if (!done.isCompleted) done.complete();
+            },
+          );
+          stream.addListener(listener);
+          return done.future;
+        }
+
+        if (page.localFile != null) {
+          unawaited(resolve());
+        } else {
+          unawaited(warmThroughLimiter(ref.read(sourcesLimiterProvider), pagedPrefetchPriority(v - from), resolve, cancel: _disposed.future).catchError((_) {}));
+        }
       }
     }
   }
@@ -604,31 +625,14 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
 
   // ── Pointers ──────────────────────────────────────────────────────────────
 
-  void _cancelLongPress() {
-    _longPress?.cancel();
-    _longPress = null;
-    _longPressStart = null;
-  }
-
   void _onDown(PointerDownEvent e) {
     if (_pointers.isEmpty) {
       _tapDown = (position: e.localPosition, at: DateTime.now());
       _dragStart = e.localPosition;
       _dragDx = 0;
       _dragStartAt = DateTime.now();
-      final cb = widget.options.onPageLongPress;
-      if (cb != null) {
-        _cancelLongPress();
-        _longPressStart = e.localPosition;
-        final at = e.localPosition;
-        _longPress = Timer(const Duration(milliseconds: 450), () {
-          _longPress = null;
-          if (mounted) cb(_chapter.id, _pageAt(at));
-        });
-      }
     } else {
       _tapDown = null;
-      _cancelLongPress();
     }
     _pointers[e.pointer] = e.localPosition;
     if (widget.options.pinch && _pointers.length == 2) {
@@ -645,8 +649,6 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     final down = _tapDown;
     final slop = widget.options.tapSlop ?? 18;
     if (down != null && (e.localPosition - down.position).distance > slop) _tapDown = null;
-    final ls = _longPressStart;
-    if (ls != null && (e.localPosition - ls).distance > 8) _cancelLongPress();
     final start = _pinchStart;
     if (start != null && _pointers.length >= 2) {
       final pts = _pointers.values.take(2).toList();
@@ -667,7 +669,6 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
 
   void _onUp(PointerUpEvent e) {
     final wasTap = _pointers.length == 1 ? _tapDown : null;
-    _cancelLongPress();
     _pointers.remove(e.pointer);
     _endPinch();
     if (wasTap != null && DateTime.now().difference(wasTap.at) < const Duration(milliseconds: 350)) {
@@ -686,7 +687,6 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
   }
 
   void _onCancel(PointerCancelEvent e) {
-    _cancelLongPress();
     _pointers.remove(e.pointer);
     _tapDown = null;
     _endPinch();
@@ -1002,7 +1002,22 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
       onPointerMove: _onMove,
       onPointerUp: _onUp,
       onPointerCancel: _onCancel,
-      child: stack,
+      child: widget.options.onPageLongPress == null
+          ? stack
+          : RawGestureDetector(
+              behavior: HitTestBehavior.translucent,
+              gestures: {
+                ReaderLongPressRecognizer: GestureRecognizerFactoryWithHandlers<ReaderLongPressRecognizer>(
+                  // 450 ms hold; a drag past the 8 px slop hands the touch to scrolling.
+                  ReaderLongPressRecognizer.new,
+                  (r) => r.onLongPressStart = (d) {
+                    final cb = widget.options.onPageLongPress;
+                    if (cb != null && _pointers.length == 1 && mounted) cb(_chapter.id, _pageAt(d.localPosition));
+                  },
+                ),
+              },
+              child: stack,
+            ),
     );
     return ProviderScope(
       overrides: [readerEngineProvider.overrideWithValue(widget.controller)],

@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_provider.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_long_press.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_page_image.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_surface_slots.dart';
 import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
@@ -570,7 +571,6 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   @override
   void dispose() {
-    _cancelLongPress();
     WidgetsBinding.instance.removeObserver(this);
     _zoomController?.dispose();
     _panX.dispose();
@@ -1752,35 +1752,16 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         target, point, d, spring != null ? Curves.easeOutCubic : curve,);
   }
 
-  Timer? _longPressTimer;
-  Offset? _longPressStart;
-
-  void _cancelLongPress() {
-    _longPressTimer?.cancel();
-    _longPressTimer = null;
-    _longPressStart = null;
-  }
-
-  void _armLongPress(Offset at) {
+  void _longPressed(Offset at) {
     final cb = widget.options.onPageLongPress;
-    if (cb == null || widget.feed.isEmpty) return;
-    _cancelLongPress();
-    _longPressStart = at;
-    _longPressTimer = Timer(const Duration(milliseconds: 450), () {
-      _longPressTimer = null;
-      if (!mounted || !_scrollController.hasClients) return;
-      final flat = _metrics.pageAtOffset(_scrollController.offset + at.dy);
-      final pos = _positionAt(flat - 1);
-      cb(widget.feed.chapters[pos.chapterIndex].id, pos.page);
-    });
+    if (cb == null || widget.feed.isEmpty || _pointers.length != 1) return;
+    if (!mounted || !_scrollController.hasClients) return;
+    final flat = _metrics.pageAtOffset(_scrollController.offset + at.dy);
+    final pos = _positionAt(flat - 1);
+    cb(widget.feed.chapters[pos.chapterIndex].id, pos.page);
   }
 
   void _onPointerDown(PointerDownEvent e) {
-    if (_pointers.isEmpty) {
-      _armLongPress(e.localPosition);
-    } else {
-      _cancelLongPress();
-    }
     _pointers[e.pointer] = e.localPosition;
     _tapDown = _pointers.length == 1
         ? (position: e.localPosition, at: DateTime.now())
@@ -1799,8 +1780,6 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   void _onPointerMove(PointerMoveEvent e) {
     if (!_pointers.containsKey(e.pointer)) return;
     _pointers[e.pointer] = e.localPosition;
-    final lp = _longPressStart;
-    if (lp != null && (e.localPosition - lp).distance > 8) _cancelLongPress();
     final down = _tapDown;
     final slop = widget.options.tapSlop;
     if (down != null &&
@@ -1829,7 +1808,6 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   void _onPointerUp(PointerUpEvent e) {
     final wasTap = _pointers.length == 1 ? _tapDown : null;
-    _cancelLongPress();
     _pointers.remove(e.pointer);
     _endPinchIfDone();
     final slop = widget.options.tapSlop;
@@ -1843,7 +1821,6 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   }
 
   void _onPointerCancel(PointerCancelEvent e) {
-    _cancelLongPress();
     _pointers.remove(e.pointer);
     _tapDown = null;
     _endPinchIfDone();
@@ -2583,7 +2560,19 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         onPointerMove: _onPointerMove,
         onPointerUp: _onPointerUp,
         onPointerCancel: _onPointerCancel,
-        child: pageList,
+        child: options.onPageLongPress == null
+            ? pageList
+            : RawGestureDetector(
+                behavior: HitTestBehavior.translucent,
+                gestures: {
+                  ReaderLongPressRecognizer: GestureRecognizerFactoryWithHandlers<ReaderLongPressRecognizer>(
+                    // 450 ms hold; a drag past the 8 px slop hands the touch to scrolling.
+                    ReaderLongPressRecognizer.new,
+                    (r) => r.onLongPressStart = (d) => _longPressed(d.localPosition),
+                  ),
+                },
+                child: pageList,
+              ),
       );
     }
 

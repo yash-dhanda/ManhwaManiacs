@@ -191,7 +191,6 @@ void mobile13Shots() {
       await settleReader(t, ms: 500);
       await loadArt(t);
     });
-    TestGesture? held;
     await show(tester, 'readall-ruler-drag', chrome: false, chapter: 'c12', origin: ReaderRigOrigin.readAll, extra: ra(), artChapters: 14, artFirst: 12, act: (t, rig, wide) async {
       await settle(t);
       await showChrome(t);
