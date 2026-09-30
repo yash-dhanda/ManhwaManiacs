@@ -8,7 +8,10 @@ import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/settings/providers/app_update_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/server_capabilities_provider.dart';
+import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
@@ -42,6 +45,25 @@ class _NoProfiles extends ProfilesNotifier {
   Future<List<Profile>> build() async => const [];
 }
 
+/// The network-free overrides every shell test and capture shares (letters, profiles, pins, capabilities, unread, downloads).
+List<Override> shellTestOverrides({int unread = 0, int downloads = 0}) => [
+      authenticatedAuthOverride(),
+      activeProfileOverride(),
+      profileSessionReadyOverride(),
+      unreadNotificationCountProvider.overrideWith(() => _Unread(unread)),
+      activeDownloadCountProvider.overrideWithValue(downloads),
+      setupCompletedProvider.overrideWithValue(true),
+      ...noDownloadsStoreOverrides(),
+      ...contentModeOverrides(),
+      lettersProvider.overrideWith(_NoLetters.new),
+      profilesProvider.overrideWith(_NoProfiles.new),
+      sourcePinsProvider.overrideWith(_NoPins.new),
+      serverCapabilitiesProvider.overrideWith((ref) async => const ServerCapabilities()),
+      appUpdateProvider.overrideWith((ref) async => null),
+      packageInfoProvider.overrideWith((ref) async => PackageInfo(appName: 'ManhwaManiacs', packageName: 'app.test', version: '3.5.0', buildNumber: '57')),
+      glassAccelerometerProvider.overrideWithValue(() => const Stream.empty()),
+    ];
+
 class ShellRig {
   ShellRig(this.router, this.container);
   final GoRouter router;
@@ -70,18 +92,7 @@ Future<ShellRig> pumpGlassShell(
     overrides: [
       sharedPrefsProvider.overrideWithValue(prefs),
       skinIdProvider.overrideWithValue(SkinId.glass),
-      authenticatedAuthOverride(),
-      activeProfileOverride(),
-      profileSessionReadyOverride(),
-      unreadNotificationCountProvider.overrideWith(() => _Unread(unread)),
-      activeDownloadCountProvider.overrideWithValue(downloads),
-      setupCompletedProvider.overrideWithValue(true),
-      ...noDownloadsStoreOverrides(),
-      ...contentModeOverrides(),
-      lettersProvider.overrideWith(_NoLetters.new),
-      profilesProvider.overrideWith(_NoProfiles.new),
-      sourcePinsProvider.overrideWith(_NoPins.new),
-      serverCapabilitiesProvider.overrideWith((ref) async => const ServerCapabilities()),
+      ...shellTestOverrides(unread: unread, downloads: downloads),
       ...extra,
     ],
   );

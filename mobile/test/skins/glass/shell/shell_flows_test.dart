@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_user.dart';
@@ -8,7 +7,6 @@ import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/stack/snapshot_store.dart';
-import 'package:manhwamaniacs/skins/glass/routes/route_frame.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_back_button.dart';
 import 'package:manhwamaniacs/skins/glass/shell/purge.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';

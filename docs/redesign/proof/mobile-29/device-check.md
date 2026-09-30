@@ -1,0 +1,14 @@
+# Owner device checks (result box empty)
+- Droplet from the black native frame: cold, warm, after a skin switch, with haptics. Result:
+- Dock droplet tap, drag, catch, merge at 120 Hz, 0 dropped frames in the motion-timings overlay. Result:
+- Minimise and restore on scroll. Result:
+- iOS full-width back swipe with velocity hand-off; a row swipe on a pushed page does not pop it. Result:
+- Android predictive back on a page (glass card) and on a sheet. Result:
+- Poster zoom carrying a throw; the Dive into a reader. Result:
+- Stack overview fan from a long-press on Back. Result:
+- Tab long-press menus and the profile switcher. Result:
+- Accessory swipe-down hide with Undo. Result:
+- Melt into Cinematic and back. Result:
+- iPad or Android tablet with keyboard: sidebar, Cmd/Ctrl K palette, ?, g l. Result:
+- VoiceOver and TalkBack: dock, Back "All levels" action, stack overview. Result:
+- Reduce Motion and Reduce Transparency variants. Result:

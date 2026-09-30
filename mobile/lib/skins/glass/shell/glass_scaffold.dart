@@ -144,9 +144,7 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
             padding:
                 EdgeInsets.only(top: insets.top - (widget.largeTitle ? 0 : 0)),),
         if (widget.largeTitle)
-          SliverToBoxAdapter(
-              child: GlassLargeTitle(
-                  title: widget.title, margin: margin, offset: _offset,),),
+          SliverToBoxAdapter(child: Padding(padding: EdgeInsets.symmetric(horizontal: margin), child: GlassLargeTitle(title: widget.title, margin: margin, offset: _offset))),
         SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: margin),
             sliver: SliverMainAxisGroup(slivers: widget.slivers),),

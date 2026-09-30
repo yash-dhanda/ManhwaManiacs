@@ -22,6 +22,7 @@ import 'package:manhwamaniacs/skins/glass/routes/nav_extra.dart';
 import 'package:manhwamaniacs/skins/glass/routes/route_frame.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_param_host.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
+import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
 import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
@@ -79,6 +80,9 @@ const String kGlassPrimitivesPath = '/dev/glass/primitives';
 
 /// The shell demo (`mobile/29`): the frame with a scaffold, lists, a poster rail, accessories, the Dive and depth pushes.
 const String kGlassShellDemoPath = '/dev/glass/shell';
+
+/// The route error screen on its own (its captures and its tests).
+const String kGlassRouteErrorDemoPath = '/dev/glass/route-error';
 
 class _PendingWithDev extends StatelessWidget {
   const _PendingWithDev({required this.child});
@@ -231,6 +235,7 @@ GoRouter buildGlassRouter(Ref ref) {
     routes: [
       _devRoute(kGlassDevPath, () => const GlassDevIndex()),
       _devRoute(kGlassCalibrationPath, () => const GlassCalibrationPage()),
+      _devRoute(kGlassRouteErrorDemoPath, () => GlassRouteError(error: StateError('demo'))),
       GoRoute(
         path: kGlassPrimitivesPath,
         builder: (context, state) => _DevScaffold(child: GlassGallery(section: state.uri.queryParameters['section'])),

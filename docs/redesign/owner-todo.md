@@ -146,3 +146,6 @@ Items only the owner can do, by step.
 
 - mobile/23: M23 is only partly built (engine pure modules + parity vectors); UI, house sound, guided view and engine integration remain. See the M23 report.
 - mobile/28: run docs/redesign/proof/mobile-28/device-check.md on an iPhone (SideStore) and the Android flagship.
+
+## mobile/29
+- Device checks: docs/redesign/proof/mobile-29/device-check.md
