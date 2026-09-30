@@ -176,7 +176,14 @@ class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProv
     } else if (!run && _ticker.isActive) {
       _ticker.stop();
     }
-    final tilt = run && ref.read(glassInAppPrefsProvider).lightFollowsDevice;
+    var tilt = false;
+    if (run) {
+      try {
+        tilt = ref.read(glassInAppPrefsProvider).lightFollowsDevice;
+      } catch (_) {
+        // no prefs in scope (gallery, bare tests): no tilt
+      }
+    }
     if (tilt && _grav == null) {
       _grav = ref.read(gravityProvider).stream.listen((g) => _gravity = g, onError: (Object _) {});
     } else if (!tilt && _grav != null) {
