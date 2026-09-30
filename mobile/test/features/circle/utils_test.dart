@@ -96,7 +96,9 @@ void main() {
     const base = Sharing();
     test('only changed keys, never presence or streak', () {
       expect(sharingPatch(base, base.copyWith(activity: true)), {'activity': true});
-      expect(sharingPatch(base, base.copyWith(showPresence: true, shareStreak: true)), isEmpty);
+      expect(sharingPatch(base, base.copyWith(showPresence: true)), {'show_presence': true});
+      expect(sharingPatch(base, base.copyWith(shareStreak: true)), {'share_streak': true});
+      expect(sharingPatch(base.copyWith(showPresence: true, shareStreak: true), base.copyWith(showPresence: true, shareStreak: true)), isEmpty);
       expect(sharingPatch(base, base.copyWith(includeMature: true, reactions: false)), {'include_mature': true, 'reactions': false});
     });
     test('excluded_series is sent whole', () {

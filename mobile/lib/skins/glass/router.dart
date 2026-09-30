@@ -37,6 +37,7 @@ import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
+import 'package:manhwamaniacs/skins/glass/shell/glass_migration.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
 import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell.dart';
@@ -251,7 +252,8 @@ GoRouter buildGlassRouter(Ref ref) {
     ..listen<bool>(glassSignedOutPendingProvider, (_, __) => bridge.poke())
     ..listen<bool>(glassRedirectHoldProvider, (_, __) => bridge.poke())
     ..listen(profilesProvider, (_, __) => bridge.poke())
-    ..listen(profileHeaderSyncProvider, (_, __) {});
+    ..listen(profileHeaderSyncProvider, (_, __) {})
+    ..listen(glassPrefsMigrationProvider, (_, __) {});
 
   final rootKey = GlobalKey<NavigatorState>(debugLabel: 'glass root');
   final branchKeys = {for (final t in GlassTab.values) t: GlobalKey<NavigatorState>(debugLabel: 'glass ${t.name}')};

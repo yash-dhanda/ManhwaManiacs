@@ -66,6 +66,9 @@ class AiFeedback {
     return i.anilistId > 0 ? _send('undo', anilistId: i.anilistId) : _send('undo', sourceId: a?.sourceId, seriesKey: a?.seriesKey);
   }
 
+  /// Settings -> AI and recaps -> Clear "Not interested": `POST /ai/feedback {signal: clear}`.
+  Future<bool> clear() => _send('clear');
+
   Future<bool> tagRejected(String sourceId, String seriesKey, String tag) => _send('tag_rejected', sourceId: sourceId, seriesKey: seriesKey, tag: tag);
 }
 
