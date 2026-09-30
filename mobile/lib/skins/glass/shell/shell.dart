@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/menu.dart' show GlassMenuBack;
 import 'package:manhwamaniacs/skins/glass/primitives/new_chapters_capsule.dart' show GlassCapsuleHost;
 import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/recede.dart';
@@ -218,16 +219,21 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
       ],
     ];
 
-    return PopScope(
-      canPop: widget.navigationShell.currentIndex == 0,
+    return ValueListenableBuilder<int>(
+      valueListenable: GlassMenuBack.open,
+      builder: (context, menus, child) => PopScope(
+      canPop: widget.navigationShell.currentIndex == 0 && menus == 0,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        if (GlassMenuBack.closeTop()) return;
         if (plan.overlayOpen) {
           ref.read(glassSidebarChoiceProvider.notifier).state = false;
           return;
         }
         widget.navigationShell.goBranch(0);
       },
+      child: child!,
+      ),
       child: CallbackShortcuts(
         bindings: {
           const SingleActivator(LogicalKeyboardKey.escape): () {

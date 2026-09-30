@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/menu.dart' show GlassMenuBack;
 import 'package:manhwamaniacs/skins/glass/routes/route_meta.dart';
 
 /// Every page the Glass router builds sits in one of these: the stack-overview capture target (a `RepaintBoundary` on [frameKey]),
@@ -48,6 +49,18 @@ class _GlassRouteFrameState extends State<GlassRouteFrame> {
   Widget build(BuildContext context) {
     Widget body = widget.child;
     if (widget.sheetHost != null) body = widget.sheetHost!(body);
+    // Android back order rule 2: an open anchored menu closes before the page pops.
+    body = ValueListenableBuilder<int>(
+      valueListenable: GlassMenuBack.open,
+      child: body,
+      builder: (context, open, child) => PopScope(
+        canPop: open == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) GlassMenuBack.closeTop();
+        },
+        child: child!,
+      ),
+    );
     return GlassRouteMetaScope(
       meta: _meta,
       child: RepaintBoundary(

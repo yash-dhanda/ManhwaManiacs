@@ -400,6 +400,19 @@ class _MenuOverlay extends ConsumerStatefulWidget {
   ConsumerState<_MenuOverlay> createState() => _MenuOverlayState();
 }
 
+/// Android back closes an open anchored menu first (glass 8.0.5, rule 2): every page's back handler asks this.
+abstract final class GlassMenuBack {
+  static final ValueNotifier<int> open = ValueNotifier(0);
+  static final List<VoidCallback> _closers = [];
+
+  /// Closes the topmost open menu; false when none is open.
+  static bool closeTop() {
+    if (_closers.isEmpty) return false;
+    _closers.last();
+    return true;
+  }
+}
+
 class _MenuOverlayState extends ConsumerState<_MenuOverlay> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 434), reverseDuration: const Duration(milliseconds: 350));
   late final Animation<double> _t;
@@ -417,6 +430,8 @@ class _MenuOverlayState extends ConsumerState<_MenuOverlay> with SingleTickerPro
     super.initState();
     _prevFocus = FocusManager.instance.primaryFocus;
     spec.closeSignal?.addListener(_close);
+    GlassMenuBack._closers.add(_closeFromBack);
+    scheduleMicrotask(() => GlassMenuBack.open.value = GlassMenuBack._closers.length);
     final reduced = ref.read(glassMotionPrefsProvider).reduced;
     _t = reduced ? CurvedAnimation(parent: _c, curve: Curves.linear) : CurvedAnimation(parent: _c, curve: SpringCurve(gt.springMorph, settleMs: 434), reverseCurve: gt.curveDematerialize.curve);
     if (reduced) _c.duration = const Duration(milliseconds: 150);
@@ -433,12 +448,16 @@ class _MenuOverlayState extends ConsumerState<_MenuOverlay> with SingleTickerPro
 
   @override
   void dispose() {
+    GlassMenuBack._closers.remove(_closeFromBack);
+    scheduleMicrotask(() => GlassMenuBack.open.value = GlassMenuBack._closers.length);
     spec.closeSignal?.removeListener(_close);
     final unblock = _unblock;
     scheduleMicrotask(() => unblock?.call()); // a provider cannot change while the tree is finalising
     _c.dispose();
     super.dispose();
   }
+
+  void _closeFromBack() => _close();
 
   void _close([GlassMenuEntry? selected]) {
     if (_closing) return;
