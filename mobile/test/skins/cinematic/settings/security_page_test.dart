@@ -1,4 +1,4 @@
-// ignore_for_file: directives_ordering
+// ignore_for_file: directives_ordering, unawaited_futures, avoid_dynamic_calls, library_private_types_in_public_api, inference_failure_on_collection_literal
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -62,7 +62,7 @@ Future<void> fill(WidgetTester t, {String cur = 'old-password', String nw = 'new
 
 Future<void> submit(WidgetTester t) async {
   final b = find.widgetWithText(CineButton, 'Change password');
-  Scrollable.ensureVisible(t.element(b), alignment: 0.5, duration: Duration.zero);
+  Scrollable.ensureVisible(t.element(b), alignment: 0.5);
   await t.pump();
   await t.tap(b);
   await settle(t, ms: 400);
@@ -155,7 +155,7 @@ void main() {
     expect(find.textContaining(RegExp(r'^SIGNED IN \d')), findsNWidgets(2));
     expect(find.text('Sign out'), findsOneWidget, reason: "the current row's own sign out");
     final revoke = find.widgetWithText(CineButton, 'Revoke');
-    Scrollable.ensureVisible(t.element(revoke), alignment: 0.5, duration: Duration.zero);
+    Scrollable.ensureVisible(t.element(revoke), alignment: 0.5);
     await t.pump();
     await t.tap(revoke);
     await settle(t, ms: 600);
@@ -179,7 +179,7 @@ void main() {
   testWidgets('Sign out everywhere needs the checkbox and the arm', (t) async {
     await pump(t);
     final btn = find.widgetWithText(CineButton, 'Sign out everywhere');
-    Scrollable.ensureVisible(t.element(btn), alignment: 0.5, duration: Duration.zero);
+    Scrollable.ensureVisible(t.element(btn), alignment: 0.5);
     await t.pump();
     await t.tap(btn);
     await settle(t, ms: 1400);

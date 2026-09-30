@@ -1,4 +1,4 @@
-// ignore_for_file: directives_ordering
+// ignore_for_file: directives_ordering, unawaited_futures, avoid_dynamic_calls, library_private_types_in_public_api, inference_failure_on_collection_literal
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/cinematic/overlays/stop_the_press.dart';
@@ -94,7 +94,7 @@ void main() {
     await t.pump(const Duration(milliseconds: 400));
     expect(find.byKey(const Key('press-masthead')), findsOneWidget, reason: 'still holding the black frame');
     expect(errors, isEmpty);
-    await settle(t, ms: 1500);
+    await settle(t);
     expect(find.byKey(const Key('press-masthead')), findsNothing);
     expect(errors, ["Couldn't switch editions. Try again."]);
   });

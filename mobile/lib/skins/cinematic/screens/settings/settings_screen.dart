@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/features/settings/providers/server_capabilities_pr
 import 'package:manhwamaniacs/features/settings/utils/settings_search.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_masthead.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_pull_to_reprint.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_search_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/pages/licenses_page.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/section_pane.dart';
@@ -151,7 +152,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } else if (widget.slug == null) {
       content = _contents(context, env, sections, side, footer);
     } else {
-      content = SingleChildScrollView(
+      final slug = widget.slug!;
+      final scroll = SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(side, CineScaffoldScope.topExtentOf(context) + c.space6, side, c.space12),
         child: SectionPane(
           slug: widget.slug!,
@@ -162,6 +165,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           overrideTitle: _licenses && widget.slug == 'about' ? 'Licenses' : null,
         ),
       );
+      content = settingsPageOf(slug) == null ? scroll : CinePullToReprint(onRefresh: () => refreshSettingsPage(ref, slug), child: scroll);
     }
 
     return SettingsKeys(
@@ -280,7 +284,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         SizedBox(width: left, child: SingleChildScrollView(padding: EdgeInsets.only(bottom: c.space12), child: toc)),
         SizedBox(width: gutter),
         Expanded(
-          child: SingleChildScrollView(
+          child: _reprint(current, SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.only(bottom: c.space12),
             child: Align(
               alignment: Alignment.topLeft,
@@ -301,9 +306,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],),
               ),
             ),
-          ),
+          ),),
         ),
       ],),
     );
   }
+
+  Widget _reprint(String slug, Widget scroll) =>
+      settingsPageOf(slug) == null ? scroll : CinePullToReprint(onRefresh: () => refreshSettingsPage(ref, slug), child: scroll);
 }

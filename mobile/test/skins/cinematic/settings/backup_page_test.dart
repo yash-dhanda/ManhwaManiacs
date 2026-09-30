@@ -1,4 +1,4 @@
-// ignore_for_file: directives_ordering
+// ignore_for_file: directives_ordering, unawaited_futures, avoid_dynamic_calls, library_private_types_in_public_api, inference_failure_on_collection_literal
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -55,7 +55,7 @@ class _Dio implements Dio {
 
 Future<void> tapBtn(WidgetTester t, String label) async {
   final b = find.widgetWithText(CineButton, label);
-  Scrollable.ensureVisible(t.element(b), alignment: 0.5, duration: Duration.zero);
+  Scrollable.ensureVisible(t.element(b), alignment: 0.5);
   await t.pump();
   await t.tap(b);
   await settle(t, ms: 400);
@@ -91,10 +91,10 @@ void main() {
     final dio = _Dio();
     await pumpPage(t, const BackupPage(), more: [
       backupDownloaderProvider.overrideWithValue(BackupDownloader(dio, tempDir: () async => dir, clock: () => DateTime(2026, 9, 28, 3), share: (p) async => shared.add(p))),
-    ]);
+    ],);
     expect(find.text('The whole database, every account. Keep it private.'), findsOneWidget);
     final sw = find.byType(CineSwitch).first;
-    Scrollable.ensureVisible(t.element(sw), alignment: 0.5, duration: Duration.zero);
+    Scrollable.ensureVisible(t.element(sw), alignment: 0.5);
     await t.pump();
     await t.tap(sw);
     await settle(t, ms: 400);
@@ -108,7 +108,7 @@ void main() {
     addTearDown(() => dir.deleteSync(recursive: true));
     final c = await pumpPage(t, const BackupPage(), more: [
       backupDownloaderProvider.overrideWithValue(BackupDownloader(_Dio(fail: true), tempDir: () async => dir, share: (_) async {})),
-    ]);
+    ],);
     await tapBtn(t, 'Export backup');
     expect(c.read(cineToastsProvider).any((x) => x.text == "Couldn't download the backup."), isTrue);
   });
@@ -118,9 +118,9 @@ void main() {
     addTearDown(() => dir.deleteSync(recursive: true));
     await pumpPage(t, const BackupPage(), more: [
       backupDownloaderProvider.overrideWithValue(BackupDownloader(_SlowDio(), tempDir: () async => dir, share: (_) async {})),
-    ]);
+    ],);
     final b = find.widgetWithText(CineButton, 'Export backup');
-    Scrollable.ensureVisible(t.element(b), alignment: 0.5, duration: Duration.zero);
+    Scrollable.ensureVisible(t.element(b), alignment: 0.5);
     await t.pump();
     await t.tap(b);
     await t.pump(const Duration(milliseconds: 50));
@@ -143,7 +143,7 @@ void main() {
     await tapBtn(t, 'Choose backup file');
     expect(find.text('x.db · 412.0 MB'), findsOneWidget);
     final open = find.widgetWithText(CineButton, 'Restore from this file…');
-    Scrollable.ensureVisible(t.element(open), alignment: 0.5, duration: Duration.zero);
+    Scrollable.ensureVisible(t.element(open), alignment: 0.5);
     await t.pump();
     await t.tap(open);
     await settle(t, ms: 400);

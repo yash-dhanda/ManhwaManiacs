@@ -1,4 +1,4 @@
-// ignore_for_file: directives_ordering
+// ignore_for_file: directives_ordering, unawaited_futures, avoid_dynamic_calls, library_private_types_in_public_api, inference_failure_on_collection_literal
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -95,7 +95,7 @@ void main() {
 
     testWidgets('below 600 dp the confirmation is a sheet: the copy, and Stay in Cinematic', (t) async {
       await pumpPicker(t, glass: true, dry: true);
-      Scrollable.ensureVisible(t.element(find.text('Switch to Glass')), alignment: 0.5, duration: Duration.zero);
+      Scrollable.ensureVisible(t.element(find.text('Switch to Glass')), alignment: 0.5);
       await t.pump();
       await t.tap(find.text('Switch to Glass'));
       await settle(t, ms: 700);

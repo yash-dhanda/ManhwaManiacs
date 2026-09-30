@@ -1,4 +1,4 @@
-// ignore_for_file: directives_ordering
+// ignore_for_file: directives_ordering, unawaited_futures, avoid_dynamic_calls, library_private_types_in_public_api, inference_failure_on_collection_literal
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
@@ -37,7 +37,7 @@ Future<_Admin> pump(WidgetTester t, {SettingsRig? rig, Size size = const Size(39
 
 Future<void> tapBtn(WidgetTester t, String label, {int index = 0}) async {
   final b = find.widgetWithText(CineButton, label).at(index);
-  Scrollable.ensureVisible(t.element(b), alignment: 0.5, duration: Duration.zero);
+  Scrollable.ensureVisible(t.element(b), alignment: 0.5);
   await t.pump();
   await t.tap(b);
   await settle(t, ms: 400);

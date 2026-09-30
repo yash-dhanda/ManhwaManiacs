@@ -1,4 +1,8 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/admin/providers/members_provider.dart';
+import 'package:manhwamaniacs/features/auth/providers/sessions_provider.dart';
+import 'package:manhwamaniacs/features/settings/providers/backup_provider.dart';
 import 'package:manhwamaniacs/features/settings/utils/settings_search.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/pages/backup_page.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/pages/members_page.dart';
@@ -54,6 +58,25 @@ final List<SettingsPageDef> settingsPages = [
   SettingsPageDef('members', 'Members', 'admin', (_) => const MembersPage(), adminOnly: true),
   SettingsPageDef('backup', 'Backup & restore', 'admin', (_) => const BackupPage(), adminOnly: true),
 ];
+
+/// Pull to reprint on a pushed page: refetches what the page shows.
+Future<void> refreshSettingsPage(WidgetRef ref, String slug) async {
+  try {
+    switch (slug) {
+      case 'security':
+        ref.invalidate(authSessionsProvider);
+        await ref.read(authSessionsProvider.future);
+      case 'members':
+        ref.invalidate(membersProvider);
+        await ref.read(membersProvider.future);
+      case 'backup':
+        ref.invalidate(backupStatusProvider);
+        await ref.read(backupStatusProvider.future);
+    }
+  } catch (_) {
+    // The page shows its own error strip.
+  }
+}
 
 SettingsPageDef? settingsPageOf(String slug) => settingsPages.where((p) => p.slug == slug).firstOrNull;
 

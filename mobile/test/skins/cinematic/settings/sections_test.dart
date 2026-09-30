@@ -1,4 +1,4 @@
-// ignore_for_file: directives_ordering
+// ignore_for_file: directives_ordering, unawaited_futures, avoid_dynamic_calls, library_private_types_in_public_api, inference_failure_on_collection_literal
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -7,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/settings/services/server_switch.dart';
 import 'package:manhwamaniacs/features/setup/utils/server_check.dart';
-import 'package:manhwamaniacs/features/setup/utils/server_check_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
@@ -23,7 +22,7 @@ import 'settings_rig.dart';
 
 /// Scrolls [f] to the middle of the screen (under neither the running head nor the thumb index).
 Future<void> reveal(WidgetTester tester, Finder f) async {
-  Scrollable.ensureVisible(tester.element(f.first), alignment: 0.5, duration: Duration.zero);
+  Scrollable.ensureVisible(tester.element(f.first), alignment: 0.5);
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 50));
 }
@@ -42,10 +41,6 @@ Future<void> tapFinder(WidgetTester tester, Finder f) async {
 }
 
 Finder switchOf(String label) => find.byWidgetPredicate((w) => w is CineSwitch && w.label == label);
-
-Map<String, dynamic> prefJson(WidgetTester tester, ProviderContainerReader read, String key) => jsonDecode(read().getString(key)!) as Map<String, dynamic>;
-
-typedef ProviderContainerReader = dynamic Function();
 
 class _FakeSwitch implements ServerSwitch {
   final calls = <String>[];
