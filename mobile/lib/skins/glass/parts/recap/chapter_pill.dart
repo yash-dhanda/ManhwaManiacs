@@ -81,8 +81,10 @@ class _RecapChapterPillState extends ConsumerState<RecapChapterPill> {
         onTap: _open,
         onVerticalDragUpdate: (d) =>
             setState(() => _dy = (_dy + d.delta.dy).clamp(-60.0, 0.0)),
-        onVerticalDragEnd: (_) =>
-            _dy <= -kPillSwipePx ? _leave() : setState(() => _dy = 0),
+        onVerticalDragEnd: (d) => _dy + (d.primaryVelocity ?? 0) * 0.1 <=
+                -kPillSwipePx
+            ? _leave()
+            : setState(() => _dy = 0),
         child: Semantics(
           button: true,
           label: 'Previously, $est seconds, suggested by AI',

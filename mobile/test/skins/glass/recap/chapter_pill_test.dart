@@ -23,7 +23,7 @@ void main() {
     var gone = 0;
     await t.pumpWidget(primHost(RecapChapterPill(sourceId: 's', seriesKey: 'k', chapterKey: 'c', onGone: () => gone++), overrides: [recapAvailabilityProvider.overrideWith((ref, k) async => const RecapAvailability(available: true))]));
     await t.pump(const Duration(milliseconds: 50));
-    await t.drag(find.textContaining('Previously'), const Offset(0, -40));
+    await t.drag(find.textContaining('Previously'), const Offset(0, -80));
     await t.pump(const Duration(milliseconds: 100));
     expect(gone, 1);
   });

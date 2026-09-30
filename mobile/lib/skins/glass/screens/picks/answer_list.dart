@@ -228,6 +228,40 @@ class AnswerCard extends ConsumerWidget {
   }
 }
 
+/// One answer as a poster tile for the grid: cover, title, and the `why` line.
+class AnswerTile extends ConsumerWidget {
+  const AnswerTile({super.key, required this.item});
+  final WorldItem item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AspectRatio(
+            aspectRatio: 2 / 3,
+            child: DecoratedBox(
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: gt.colorMachineRim, width: 0.5)),
+              child: ClipRRect(borderRadius: BorderRadius.circular(14), child: HomeCoverImage(url: item.coverUrl, width: 160)),
+            ),
+          ),
+          const SizedBox(height: 8),
+          GlassText(item.title, role: gt.typeFootnote, wght: 600, maxLines: 2, overflow: TextOverflow.ellipsis),
+          if (item.why != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(padding: EdgeInsets.only(top: 2, right: 4), child: MachineBadge(size: 12)),
+                  Expanded(child: GlassText(item.why!, role: gt.typeCaption1, color: gt.colorLabel2, maxLines: 3, overflow: TextOverflow.ellipsis)),
+                ],
+              ),
+            ),
+        ],
+      );
+}
+
 /// The answers of one ask (up to 8 local, 12 worldwide): a list or a grid, dealt out of the Ask button.
 class AnswerList extends ConsumerStatefulWidget {
   const AnswerList(
@@ -373,7 +407,7 @@ class _AnswerListState extends ConsumerState<AnswerList> {
         item: w,
         swipeRow: phone && !widget.asGrid,
         onMoreLikeThis: _moreLike,
-        child: AnswerCard(item: w, animate: widget.animateDeal && _dealt),
+        child: widget.asGrid ? AnswerTile(item: w) : AnswerCard(item: w, animate: widget.animateDeal && _dealt),
       );
       return KeyedSubtree(key: key, child: content);
     }
