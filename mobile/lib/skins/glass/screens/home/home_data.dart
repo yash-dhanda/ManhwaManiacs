@@ -13,3 +13,7 @@ final homeFollowedProvider = FutureProvider.autoDispose<List<FollowedSeries>>((r
   if (r.isErr) throw r.error;
   return r.value;
 }, name: 'homeFollowed',);
+
+/// True while the AI rails are being computed (their headers show the orbit and half-speed skeletons); the screen also treats a reload with
+/// a previous feed as thinking. A seam for the captures.
+final homeAiThinkingProvider = StateProvider<bool>((ref) => false, name: 'homeAiThinking');

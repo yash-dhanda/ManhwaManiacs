@@ -76,7 +76,9 @@ class GreetingHeader extends ConsumerWidget {
           TypedHeadline(greetingFor(now, name), role: gt.typeLargeTitle, placement: 'home.greeting', headingLevel: 1),
           if (!sub.isEmpty) ...[
             const SizedBox(height: 4),
-            Semantics(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Semantics(
               container: true,
               label: sub.text,
               child: ExcludeSemantics(
@@ -95,6 +97,7 @@ class GreetingHeader extends ConsumerWidget {
                   ],
                 ),
               ),
+            ),
             ),
           ],
         ],

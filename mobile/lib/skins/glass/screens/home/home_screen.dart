@@ -300,7 +300,7 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
             followed: followed,
             inMode: scope.novelsEnabled ? (f) => scope.mode == scope.modeOf(f.sourceId) : null,
             noted: _noted,
-            aiThinking: view.isReloading && !view.isRefreshing,
+            aiThinking: ref.watch(homeAiThinkingProvider) || (view.isReloading && !view.isRefreshing),
           );
     final feed = fv?.feed;
     final env = HomeRailEnv(handlers: _handlers(), aiReason: feed?.ai.reason, now: now);
