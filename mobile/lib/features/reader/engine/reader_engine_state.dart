@@ -1,4 +1,7 @@
+import 'dart:ui' show Rect;
+
 import 'package:flutter/foundation.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_sample.dart';
 import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 
@@ -58,6 +61,11 @@ class ReaderEngineState {
     this.furtherElsewhere,
     this.guidedActive = false,
     this.readAll,
+    this.currentPageSample,
+    this.scrollVelocity = 0,
+    this.seamProgress,
+    this.overscrollExtent = 0,
+    this.panelBoxes,
   });
 
   /// The chapter under the reading line — an id, never a feed index.
@@ -109,6 +117,21 @@ class ReaderEngineState {
   /// read-all feed; null elsewhere.
   final ReadAllState? readAll;
 
+  /// The page under the reading line sampled at 64 px (glass 15.4); null until one lands.
+  final PageSample? currentPageSample;
+
+  /// Signed px/s, positive forward; changes here only across 3000 px/s or at 0 (per frame: `ReaderEngine.live`).
+  final double scrollVelocity;
+
+  /// 0-1 while a chapter seam is on screen, else null (per frame: `ReaderEngine.live`).
+  final double? seamProgress;
+
+  /// Displayed px pulled past the chapter end (+) or start (-); changes here only across 0, 48, 72.
+  final double overscrollExtent;
+
+  /// Panels of the current page in page fractions; null while analysing or without a result.
+  final List<Rect>? panelBoxes;
+
   static const ReaderEngineState initial = ReaderEngineState(
     chapterId: '',
     chapterTitle: '',
@@ -157,6 +180,13 @@ class ReaderEngineState {
     bool clearFurtherElsewhere = false,
     bool? guidedActive,
     ReadAllState? readAll,
+    PageSample? currentPageSample,
+    double? scrollVelocity,
+    double? seamProgress,
+    bool clearSeamProgress = false,
+    double? overscrollExtent,
+    List<Rect>? panelBoxes,
+    bool clearPanelBoxes = false,
   }) =>
       ReaderEngineState(
         chapterId: chapterId ?? this.chapterId,
@@ -182,6 +212,11 @@ class ReaderEngineState {
             : (furtherElsewhere ?? this.furtherElsewhere),
         guidedActive: guidedActive ?? this.guidedActive,
         readAll: readAll ?? this.readAll,
+        currentPageSample: currentPageSample ?? this.currentPageSample,
+        scrollVelocity: scrollVelocity ?? this.scrollVelocity,
+        seamProgress: clearSeamProgress ? null : (seamProgress ?? this.seamProgress),
+        overscrollExtent: overscrollExtent ?? this.overscrollExtent,
+        panelBoxes: clearPanelBoxes ? null : (panelBoxes ?? this.panelBoxes),
       );
 
   @override
@@ -208,7 +243,12 @@ class ReaderEngineState {
           other.locked == locked &&
           other.furtherElsewhere == furtherElsewhere &&
           other.guidedActive == guidedActive &&
-          other.readAll == readAll;
+          other.readAll == readAll &&
+          other.currentPageSample == currentPageSample &&
+          other.scrollVelocity == scrollVelocity &&
+          other.seamProgress == seamProgress &&
+          other.overscrollExtent == overscrollExtent &&
+          listEquals(other.panelBoxes, panelBoxes);
 
   @override
   int get hashCode => Object.hashAll([
@@ -233,6 +273,11 @@ class ReaderEngineState {
         furtherElsewhere,
         guidedActive,
         readAll,
+        currentPageSample,
+        scrollVelocity,
+        seamProgress,
+        overscrollExtent,
+        panelBoxes == null ? null : Object.hashAll(panelBoxes!),
       ]);
 
   @override
