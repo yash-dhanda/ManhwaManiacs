@@ -11,7 +11,7 @@ import 'package:manhwamaniacs/skins/skins.dart';
 class DialogueIdleLens extends StatelessWidget {
   const DialogueIdleLens({super.key});
   @override
-  Widget build(BuildContext context) => GlassObjectLens(situation: LensSituation.dialogueIdle, title: 'Search the dialogue you remember', description: 'Type at least one word.', placement: GlassLensPlacement.inline);
+  Widget build(BuildContext context) => const GlassObjectLens(situation: LensSituation.dialogueIdle, title: 'Search the dialogue you remember', description: 'Type at least one word.', placement: GlassLensPlacement.inline);
 }
 
 class DialogueEmptyLens extends StatelessWidget {
@@ -31,7 +31,7 @@ class DialogueErrorLens extends StatelessWidget {
 class DialogueOfflineLens extends StatelessWidget {
   const DialogueOfflineLens({super.key});
   @override
-  Widget build(BuildContext context) => GlassObjectLens(situation: LensSituation.offline, tone: GlassLensTone.offline, title: 'Dialogue search needs a connection');
+  Widget build(BuildContext context) => const GlassObjectLens(situation: LensSituation.offline, tone: GlassLensTone.offline, title: 'Dialogue search needs a connection');
 }
 
 class DialogueNovelsLens extends ConsumerWidget {
@@ -49,7 +49,7 @@ class DialogueNovelsLens extends ConsumerWidget {
 class DialogueUnavailableLens extends StatelessWidget {
   const DialogueUnavailableLens({super.key});
   @override
-  Widget build(BuildContext context) => GlassObjectLens(situation: LensSituation.unavailable, title: "Dialogue search isn't available on this server.");
+  Widget build(BuildContext context) => const GlassObjectLens(situation: LensSituation.unavailable, title: "Dialogue search isn't available on this server.");
 }
 
 class DialogueSkeleton extends StatelessWidget {
@@ -70,7 +70,7 @@ class DialogueHint extends ConsumerWidget {
             ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 GlassLabel('Only chapters with extracted text can be searched. Extract text from downloaded chapters in Downloads.', role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 4),
                 GlassButton(label: 'Downloads', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () => ref.read(skinRouterProvider).go(Routes.downloads())),
-              ])
+              ],)
             : GlassLabel("This phone can't extract text. Chapters extracted on another device still show up here.", role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 4),
       );
 }

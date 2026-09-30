@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/library/utils/recent_searches.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs_more.dart';
 import 'package:manhwamaniacs/skins/glass/screens/search/search_common.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -49,7 +50,7 @@ class SearchIdle extends ConsumerWidget {
           GlassTap(
             label: 'Browse sources',
             onTap: () => ref.read(skinRouterProvider).go(Routes.sources()),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(GlassGlyph28.globe.regular, size: 20, color: gt.colorInfo), const SizedBox(width: 10), GlassLabel('Browse sources', role: gt.typeBody)]),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(GlassGlyph.globe.regular, size: 20, color: gt.colorInfo), const SizedBox(width: 10), GlassLabel('Browse sources', role: gt.typeBody)]),
           ),
           if (askAvailable) ...[
             const SizedBox(height: 12),

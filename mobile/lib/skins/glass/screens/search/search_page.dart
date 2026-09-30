@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide ShortcutRegistry;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart
 import 'package:manhwamaniacs/features/downloads/providers/downloaded_series_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/utils/search_downloads.dart';
+import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
@@ -39,9 +40,6 @@ import 'package:manhwamaniacs/skins/glass/screens/search/search_idle.dart';
 import 'package:manhwamaniacs/skins/glass/screens/search/search_keys.dart';
 import 'package:manhwamaniacs/skins/glass/screens/search/search_states.dart';
 import 'package:manhwamaniacs/skins/glass/screens/search/tier_capsule.dart';
-import 'package:manhwamaniacs/skins/glass/haptics.dart';
-import 'package:manhwamaniacs/skins/skins.dart';
-import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 
 /// The Discover body of `/search` (glass 8.9), placed above the bottom field by the shell's search page.
 class GlassSearchBody extends ConsumerStatefulWidget {
@@ -110,7 +108,7 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
       if (q.length >= 2) {
         unawaited(writeRecentSearch(ref.read(sharedPrefsProvider), q, profileId: ref.read(activeProfileProvider)?.id, gateOpen: ref.read(matureGateOpenProvider)).then((_) {
           if (mounted) setState(() {});
-        }));
+        }),);
       }
     });
     _order = const [];
@@ -204,7 +202,7 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
         query: _q,
         recent: readRecentSearches(prefs, profileId: pid),
         askAvailable: false, // needs `picksReady` (mobile/41)
-        onSearch: (t) => GoRouter.of(context).replace<void>(Uri(path: '/search', queryParameters: {'q': t, if (_rawScope != null) 'scope': _rawScope!}).toString()),
+        onSearch: (t) => GoRouter.of(context).replace<void>(Uri(path: '/search', queryParameters: {'q': t, if (_rawScope != null) 'scope': _rawScope}).toString()),
         onRemove: (t) async {
           final left = readRecentSearchEntries(prefs, profileId: pid).where((e) => e.q != t).toList();
           await clearRecentSearches(prefs, profileId: pid);
@@ -213,7 +211,7 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
           }
           if (mounted) setState(() {});
         },
-      ));
+      ),);
     } else if (scope == GlassDiscoverScope.text) {
       children.add(NovelTextResults(query: _q));
     } else if (scope == GlassDiscoverScope.dialogue) {
@@ -233,7 +231,6 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
           ListView(
             controller: _scroll,
             padding: EdgeInsets.fromLTRB(margin, MediaQuery.paddingOf(context).top + 56, margin, bottom),
-            reverse: false,
             children: children,
           ),
           if (jump != null) Positioned(right: 0, top: MediaQuery.paddingOf(context).top + 120, bottom: bottom, child: jump),
@@ -257,7 +254,7 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
               Icon(GlassGlyph28.cloudArrowDown.regular, size: 18, color: gt.colorLabel3),
               const SizedBox(width: 10),
               Flexible(child: GlassLabel(g.seriesTitle ?? g.seriesKey, role: gt.typeBody)),
-            ]),
+            ],),
           ),
       ],
     ];
@@ -334,7 +331,7 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
           animate: tier2 || (result.tier == 2),
           child: SearchGroupSection(group: g, grid: grid, retrying: notifier.isRetrying(g.source ?? ''), onRetry: () => notifier.retrySource(g.source!)),
         ),
-      ));
+      ),);
     }
     if (quiet.isNotEmpty) {
       out.add(QuietSourcesRow(count: quiet.length, open: _showQuiet, onToggle: () => setState(() => _showQuiet = !_showQuiet)));
@@ -378,7 +375,7 @@ class _DialogueInline extends ConsumerWidget {
                 child: Builder(builder: (context) {
                   final s = followed.where((f) => f.sourceId == h.sourceId && f.seriesKey == h.seriesKey).firstOrNull;
                   return GlassDialogueCard(hit: h, title: s?.title, coverUrl: s?.coverUrl, onOpen: () => openDialogueHit(ref, h, query));
-                }),
+                },),
               ),
           ],
         );

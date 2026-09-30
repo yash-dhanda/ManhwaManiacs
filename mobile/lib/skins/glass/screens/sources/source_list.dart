@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart' show KeyDownEvent, LogicalKeyboardKey;
-
-import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
@@ -10,9 +8,7 @@ import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/health_bead.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/source_row_card.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/glyphs_more.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/swipe_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart';
@@ -77,7 +73,7 @@ class GlassSourceListRow extends ConsumerWidget {
       child: GlassSwipeRow(
         name: source.name,
         trailing: enabled
-            ? [SwipeAction(id: 'pin', label: pinned ? 'Unpin' : 'Pin', glyph: GlassGlyph28.pushPin.regular, tone: SwipeTone.iris, run: () async => onPin())]
+            ? [SwipeAction(id: 'pin', label: pinned ? 'Unpin' : 'Pin', glyph: GlassGlyph.pushPin.regular, tone: SwipeTone.iris, run: () async => onPin())]
             : const [],
         child: Row(children: [Expanded(child: card), if (trailingHandle != null) trailingHandle!]),
       ),

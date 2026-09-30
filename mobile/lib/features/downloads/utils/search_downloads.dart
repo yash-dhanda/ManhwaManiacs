@@ -15,7 +15,7 @@ List<DownloadedSeriesGroup> searchDownloads(Iterable<DownloadedSeriesGroup> grou
     if (!words.every(title.contains)) continue;
     final ready = g.chapters.any((c) => c.state == DownloadChapterState.complete && !c.kind.isAudio);
     if (!ready) continue;
-    if (!gateOpen && g.chapters.any((SavedChapter c) => c.mature == true)) continue;
+    if (!gateOpen && g.chapters.any((SavedChapter c) => (c.mature ?? false))) continue;
     out.add(g);
   }
   return out;

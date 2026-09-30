@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide ShortcutRegistry;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
@@ -15,8 +15,8 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/pull_to_refresh.dart';
@@ -37,7 +37,6 @@ import 'package:manhwamaniacs/skins/glass/screens/sources/novel_shelf.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/opening_lens.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/top_capsule.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
-import 'package:manhwamaniacs/skins/skins.dart';
 
 /// `/sources/:sourceId` (glass 8.11): the catalogue of one source.
 class GlassCatalogueScreen extends ConsumerStatefulWidget {
@@ -155,7 +154,7 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
 
     Widget content;
     if (code == 'source_not_found' || (sources != null && source == null && err != null && !(gateOpen == false && false))) {
-      content = CatalogueUnavailableLens(kind: CatalogueUnavailable.notFound);
+      content = const CatalogueUnavailableLens(kind: CatalogueUnavailable.notFound);
     } else if (source != null && source.mature && !gateOpen) {
       content = const CatalogueUnavailableLens(kind: CatalogueUnavailable.gated);
     } else if (!(source?.browsable ?? true) && !searching || code == 'source_not_browsable') {
@@ -238,20 +237,20 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
             _setQuery((q) => q.copyWith(search: v.trim()));
             _url(q: v.trim());
           });
-        }),
+        },),
         if (!searching && browsableNow && modes.isNotEmpty) ...[
           const SizedBox(height: 10),
           ModeStrip(modes: modes, selected: query.sort, onSelect: (m) {
             _setQuery((q) => q.copyWith(sort: m));
             _url(mode: m);
-          }),
+          },),
         ],
         if (genres.isNotEmpty) ...[
           const SizedBox(height: 8),
           Align(alignment: Alignment.centerLeft, child: GenreChip(genres: genres, selected: query.genre, onSelect: (g) {
             _setQuery((q) => q.copyWith(genre: g));
             _url(genre: g);
-          })),
+          },),),
         ],
         const SizedBox(height: 16),
         ModeSwipe(onSwipe: (d) => _stepMode(modes, d), child: content),
@@ -277,19 +276,19 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
               GlassMenuEntry(label: 'Copy source id', onSelected: () {
                 unawaited(Clipboard.setData(ClipboardData(text: id)));
                 showGlassToast(ref, const GlassToastSpec('Copied'));
-              }),
+              },),
               GlassMenuEntry(label: pinned ? 'Unpin' : 'Pin', onSelected: () {
                 final s = source;
                 if (s != null) unawaited(ref.read(sourcePinsProvider.notifier).toggle(id, name: s.name, iconUrl: s.iconUrl, mature: s.mature).catchError((_) {}));
-              }),
+              },),
             ],
             refreshSliver: GlassPullToRefresh(controller: _refresh, onRefresh: _doRefresh),
             slivers: [SliverPadding(padding: EdgeInsets.fromLTRB(margin, 8, margin, 140), sliver: SliverToBoxAdapter(child: Builder(builder: (c) {
               _pos = Scrollable.maybeOf(c)?.position;
               return body;
-            })))],
-          )),
-          Positioned(right: phone ? 16 : 24, bottom: phone ? 96 : 24, child: TopCapsule(visible: _top, onTap: () => GlassScrollTop.scrollToTop())),
+            },),),),],
+          ),),
+          Positioned(right: phone ? 16 : 24, bottom: phone ? 96 : 24, child: TopCapsule(visible: _top, onTap: GlassScrollTop.scrollToTop)),
         ],
       ),
     );

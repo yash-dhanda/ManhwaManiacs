@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 
 /// A plain tappable region with a 48 x 48 minimum hit area and button semantics.
 class GlassTap extends StatelessWidget {

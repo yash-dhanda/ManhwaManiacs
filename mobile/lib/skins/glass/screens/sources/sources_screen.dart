@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide ShortcutRegistry;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
+import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
@@ -20,10 +21,8 @@ import 'package:manhwamaniacs/features/sources/utils/source_latest.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
-import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/glyphs_more.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/inline_notice.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/reorder_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
@@ -152,7 +151,7 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
           const SizedBox(height: 12),
           for (final p in cached)
             Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Row(children: [Expanded(child: GlassLabel(p.name, role: gt.typeHeadline)), GlassLabel('Needs a connection', role: gt.typeCaption1, color: gt.colorWarning)])),
-        ]);
+        ],);
       } else if (down) {
         body = const SourcesOfflineLens();
       } else {
@@ -196,7 +195,7 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
               GlassChip(label: 'Pinned (${pinnedRows.length})', kind: GlassChipKind.choice, selected: _chip == _Chip.pinned, onPressed: () => setState(() => _chip = _Chip.pinned)),
               if (gateOpen) ...[const SizedBox(width: 8), GlassChip(label: '18+', kind: GlassChipKind.choice, selected: _chip == _Chip.mature, onPressed: () => setState(() => _chip = _Chip.mature))],
               if (trouble.isNotEmpty) ...[const SizedBox(width: 8), GlassChip(label: 'Having trouble (${trouble.length})', kind: GlassChipKind.choice, selected: _chip == _Chip.trouble, onPressed: () => setState(() => _chip = _Chip.trouble))],
-            ]),
+            ],),
           ),
           if (!pinsOk && !offline) Padding(padding: const EdgeInsets.only(top: 10), child: GlassInlineNotice(message: 'Pinning is unavailable until your pins load', variant: GlassNoticeVariant.warning, actionLabel: 'Retry', onAction: () => unawaited(_onRefresh()))),
           const SizedBox(height: 12),
@@ -221,7 +220,7 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
                     GlassMenuEntry(label: 'Copy source id', onSelected: () {
                       unawaited(Clipboard.setData(ClipboardData(text: s.id)));
                       showGlassToast(ref, const GlassToastSpec('Copied'));
-                    }),
+                    },),
                   ],
                   itemBuilder: (context, s, i, info) => KeyedSubtree(
                     key: _rowKeys.putIfAbsent(s.id, GlobalKey.new),
@@ -235,7 +234,7 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
                   child: Row(children: [
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [GlassLabel(p.name, role: gt.typeHeadline, color: gt.colorLabel2), GlassLabel('No longer installed', role: gt.typeFootnote, color: gt.colorLabel2)])),
                     GlassChip(label: 'Unpin', kind: GlassChipKind.assist, onPressed: () => unawaited(ref.read(sourcePinsProvider.notifier).toggle(p.sourceId).catchError((_) {}))),
-                  ]),
+                  ],),
                 ),
               const SizedBox(height: 16),
             ],

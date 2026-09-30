@@ -4,9 +4,9 @@ import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/status_capsule.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/lens_glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/object_lens.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/status_capsule.dart';
 
 /// Seconds to wait after a 429: the interceptor's `retryAfter`, else `retry_after` from `details`, else 12.
 int retryAfterOf(Object error) {

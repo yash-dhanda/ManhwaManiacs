@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide ShortcutRegistry;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
@@ -123,7 +123,6 @@ class _GlassDialogueScreenState extends ConsumerState<GlassDialogueScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           GlassSearchField(
-            variant: GlassSearchVariant.page,
             controller: _c,
             focusNode: _focus,
             placeholder: 'Search dialogue',
@@ -194,7 +193,7 @@ class _GlassDialogueScreenState extends ConsumerState<GlassDialogueScreen> {
                 child: Builder(builder: (context) {
                   final s = followed.where((f) => f.sourceId == h.sourceId && f.seriesKey == h.seriesKey).firstOrNull;
                   return GlassDialogueCard(hit: h, title: s?.title, coverUrl: s?.coverUrl, onOpen: () => openDialogueHit(ref, h, _q));
-                }),
+                },),
               ),
             GlassLabel('Showing the first ${items.length} of $total matches', role: gt.typeFootnote, color: gt.colorLabel2),
             if (hasMore) GlassButton(label: 'Load more', variant: GlassButtonVariant.plain, loading: _loadingMore, onPressed: () => _loadMore(next)),

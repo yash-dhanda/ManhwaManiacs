@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,7 +38,7 @@ class _CatalogueHeaderState extends ConsumerState<CatalogueHeader> {
           ClipRRect(borderRadius: BorderRadius.circular(12), child: SizedBox(width: 48, height: 48, child: widget.iconUrl == null || widget.iconUrl!.isEmpty ? GlassSourceMonogram(name: widget.name, sourceId: widget.sourceId, size: 48) : HomeCoverImage(url: widget.iconUrl, width: 48))),
           const SizedBox(width: 12),
           Expanded(child: LetterReveal(widget.name, role: gt.typeLargeTitle, revealKey: 'catalogue-${widget.sourceId}', screenId: 'source', headingLevel: 1, maxLines: 2)),
-        ]),
+        ],),
         const SizedBox(height: 6),
         GlassLabel(widget.countLine, role: gt.typeFootnote, color: gt.colorLabel2),
         if (f != null) ...[

@@ -36,7 +36,7 @@ class TierCapsule extends ConsumerWidget {
               children: [
                 SizedBox(width: 56, child: LiquidProgress(value: done ? 1 : value, height: 8)),
                 const SizedBox(width: 10),
-                Flexible(child: GlassLabel(text, role: gt.typeFootnote, maxScale: 1.5, color: gt.colorLabel1, maxLines: 1)),
+                Flexible(child: GlassLabel(text, role: gt.typeFootnote, color: gt.colorLabel1)),
                 if (done) Padding(padding: const EdgeInsets.only(left: 6), child: Icon(GlassGlyph28.check.regular, size: 14, color: gt.colorSuccess)),
               ],
             ),

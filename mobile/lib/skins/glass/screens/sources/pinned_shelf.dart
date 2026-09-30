@@ -50,7 +50,7 @@ class PinnedShelf extends ConsumerWidget {
                         ),
                         const SizedBox(width: 10),
                         Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [GlassLabel(s.name, role: gt.typeHeadline), GlassLabel(line, role: gt.typeCaption1, color: gt.colorLabel2, maxLines: 2)])),
-                      ]),
+                      ],),
                     ),
                   ),
                 ),

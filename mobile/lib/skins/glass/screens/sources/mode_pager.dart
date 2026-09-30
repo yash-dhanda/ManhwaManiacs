@@ -15,7 +15,7 @@ class ModeStrip extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Row(children: [
           for (final m in modes) Padding(padding: const EdgeInsets.only(right: 8), child: GlassChip(label: m.label, kind: GlassChipKind.choice, selected: m.id == selected, onPressed: () => onSelect(m.id))),
-        ]),
+        ],),
       );
 }
 

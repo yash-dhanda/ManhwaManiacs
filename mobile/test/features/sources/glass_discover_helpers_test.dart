@@ -61,7 +61,7 @@ void main() {
 
   group('latestUpdateBySource', () {
     test('newest per source, ignores undated', () {
-      final a = DateTime.utc(2026, 9, 1);
+      final a = DateTime.utc(2026, 9);
       final b = DateTime.utc(2026, 9, 2);
       final m = latestUpdateBySource([note('x', a), note('x', b), note('y', a), note('z', null)]);
       expect(m, {'x': b, 'y': a});

@@ -64,7 +64,7 @@ class _SearchJumpBarState extends State<SearchJumpBar> {
                 child: Column(children: [
                   for (var i = 0; i < widget.names.length; i++)
                     Semantics(button: true, label: 'Jump to ${widget.names[i]} results', onTap: () => widget.onJump(i), child: const SizedBox(width: 1, height: 1)),
-                ]),
+                ],),
               ),
             ],
           );

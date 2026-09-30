@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/features/novels/novel_text/novel_text_providers.dart';
 import 'package:manhwamaniacs/features/novels/novel_text/novel_text_index.dart';
+import 'package:manhwamaniacs/features/novels/novel_text/novel_text_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/glyphs_more.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/glyphs_30.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/lens_glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/object_lens.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -102,7 +102,7 @@ class _Row extends StatelessWidget {
               children: [
                 DecoratedBox(
                   decoration: BoxDecoration(color: gt.colorSurface2, borderRadius: BorderRadius.circular(6)),
-                  child: SizedBox(width: 36, height: 52, child: Icon(GlassGlyph28.bookOpenText.regular, size: 20, color: gt.colorLabel2)),
+                  child: SizedBox(width: 36, height: 52, child: Icon(GlassGlyph30.bookOpenText.regular, size: 20, color: gt.colorLabel2)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
