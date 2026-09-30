@@ -25,7 +25,18 @@ class CinematicSkin implements Skin {
     brightness: Brightness.dark,
     scaffoldBackgroundColor: const Color(0xFF000000),
     canvasColor: const Color(0xFF000000),
-    colorScheme: const ColorScheme.dark(surface: Color(0xFF000000)),
+    // The Material fallbacks (a stray FilledButton, a Material text field) read the skin: `spot`
+    // is the accent, black is its ink, and the UI face is Archivo. Nothing here is purple.
+    fontFamily: 'Archivo',
+    colorScheme: ColorScheme.dark(
+      surface: const Color(0xFF000000),
+      primary: cinematicTokens.colorSpot,
+      onPrimary: const Color(0xFF000000),
+      secondary: cinematicTokens.colorSpot,
+      onSecondary: const Color(0xFF000000),
+      outline: cinematicTokens.colorInk60,
+      outlineVariant: cinematicTokens.colorRule2,
+    ),
     extensions: const [cinematicTokens],
     splashFactory: NoSplash.splashFactory,
     highlightColor: const Color(0x00000000),

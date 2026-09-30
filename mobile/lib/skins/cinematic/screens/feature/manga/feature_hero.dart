@@ -294,11 +294,10 @@ class FeatureHero extends ConsumerWidget {
       cap: t.typeCover.cap,
       level: 1,
       trigger: SetTrigger.signal,
-      style: TextStyle(
+      style: CineType.style(context, t.typeCover).copyWith(
         fontSize: setHeadingSize(s.title, headline),
         height: wide ? 48 / 44 : 36 / 32,
         color: t.colorInk100,
-        fontWeight: FontWeight.w700,
       ),
     );
     final deckText = s.description == null || s.description!.trim().isEmpty
@@ -312,7 +311,7 @@ class FeatureHero extends ConsumerWidget {
           : Text(deckText,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: t.colorInk60),),
+              style: CineType.style(context, t.typeDeck).copyWith(color: t.colorInk60),),
       credits: credits,
       actions: FeatureActions(
         data: d,

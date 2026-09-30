@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/chapters_panel.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/previously_on_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart' show CineText;
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// Where `Read` / `Continue` goes, and what the split button says.
@@ -140,6 +141,8 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
       child: FilledButton(
         key: const Key('primary-action'),
         style: FilledButton.styleFrom(
+          textStyle: CineText.style(context, t.typeUi),
+          shape: const RoundedRectangleBorder(),
           minimumSize: Size(wide ? 200 : 0, wide ? 56 : 48),
           disabledBackgroundColor: t.colorPaper3,
           disabledForegroundColor: t.colorInk30,
@@ -159,7 +162,7 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
             width: wide ? null : double.infinity,
             child: OutlinedButton.icon(
               key: const Key('read-all'),
-              style: OutlinedButton.styleFrom(minimumSize: Size(48, wide ? 56 : 48)),
+              style: OutlinedButton.styleFrom(textStyle: CineText.style(context, t.typeUi), shape: const RoundedRectangleBorder(), foregroundColor: t.colorInk100, side: BorderSide(color: t.colorRule2), minimumSize: Size(48, wide ? 56 : 48)),
               icon: const Icon(CineGlyphs.stripScrollRegular, size: 20),
               label: const Text('Read all'),
               onPressed: _readAll,
