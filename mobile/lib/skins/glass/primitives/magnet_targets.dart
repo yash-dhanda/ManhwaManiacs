@@ -5,9 +5,20 @@ import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 /// and a poster asks for the current `Magnet` targets when it is lifted.
 class GlassMagnetRegistry {
   final Map<Object, Offset? Function()> _centres = {};
+  final Map<Object, Object?> _owners = {};
 
-  void register(Object id, Offset? Function() centre) => _centres[id] = centre;
-  void unregister(Object id) => _centres.remove(id);
+  /// [owner] identifies who registered: a glass group can mount a child twice for a moment, and the copy that goes must not take the
+  /// survivor's registration with it.
+  void register(Object id, Offset? Function() centre, {Object? owner}) {
+    _centres[id] = centre;
+    _owners[id] = owner;
+  }
+
+  void unregister(Object id, {Object? owner}) {
+    if (owner != null && _owners[id] != owner) return;
+    _centres.remove(id);
+    _owners.remove(id);
+  }
 
   /// The targets, in global coordinates, of every orb that is mounted.
   List<MagnetTarget> get targets => [

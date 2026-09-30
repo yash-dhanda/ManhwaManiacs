@@ -42,6 +42,7 @@ import 'package:manhwamaniacs/skins/glass/shell/error_surface.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
 import 'package:manhwamaniacs/skins/glass/shell/global_keys.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
+import 'package:manhwamaniacs/skins/glass/shell/stack_overview_host.dart' show glassNavigatorsProvider;
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// Glass Home (`tonight`, glass 8.8, 9.1.1): the typed greeting, the hero spotlight, the rails with the AI light, every state. The data
@@ -59,8 +60,8 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
   final GlassPullToRefreshController _refresh = GlassPullToRefreshController();
   final GlobalKey _spotKey = GlobalKey();
   final Object _token = Object();
-  late final GlassAccessoryController _accessory = ref.read(glassAccessoryProvider.notifier);
-  late final ShortcutRegistry _shortcuts = ref.read(shortcutRegistryProvider.notifier);
+  late final GlassAccessoryController _accessory;
+  late final ShortcutRegistry _shortcuts;
   VoidCallback? _offRefresh;
   CoverPalette? _palette;
   bool _resumed = true;
@@ -76,6 +77,8 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _accessory = ref.read(glassAccessoryProvider.notifier);
+    _shortcuts = ref.read(shortcutRegistryProvider.notifier);
     _offRefresh = useGlassRefresh(() => unawaited(_refresh.refresh()));
     Future.microtask(_registerKeys);
   }
@@ -164,13 +167,12 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
     }
   }
 
-  bool get _tiltActive {
-    if (!_resumed || !_spotOnScreen) return false;
-    final tab = ref.read(glassActiveTabProvider);
-    final depth = ref.read(glassDepthProvider)[GlassTab.home] ?? 0;
-    final prefs = ref.read(glassInAppPrefsProvider);
-    final reduced = ref.read(glassMotionPrefsProvider).reduced;
-    return tab == GlassTab.home && depth == 0 && TickerMode.valuesOf(context).enabled && prefs.lightFollowsDevice && !reduced && (ModalRoute.of(context)?.isCurrent ?? true);
+  /// A route is pushed over Home: on its own branch navigator, or on the root one (a sheet, a reader, the recap). The depth provider is
+  /// watched only to rebuild when a level comes or goes.
+  bool _coveredByRoute() {
+    ref.watch(glassDepthProvider);
+    final rootPushed = ref.read(glassNavigatorsProvider)?.root.currentState?.canPop() ?? false;
+    return rootPushed || !(ModalRoute.of(context)?.isCurrent ?? true);
   }
 
   // -- actions ----------------------------------------------------------------------------------------------------------
@@ -266,12 +268,26 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
     final scope = ref.watch(contentModeScopeProvider);
     final downloaded = ref.watch(downloadedShelfProvider).valueOrNull ?? const [];
     final followed = ref.watch(homeFollowedProvider).valueOrNull ?? const [];
+    // The accelerometer is read only while Home is visible and allowed (glass 15.7): its tab is showing with nothing pushed over it, the
+    // app is resumed, the spotlight is partly on screen, "Light follows the device" is on and motion is not reduced.
+    final tiltActive = _resumed &&
+        _spotOnScreen &&
+        ref.watch(glassActiveTabProvider) == GlassTab.home &&
+        !_coveredByRoute() &&
+        ref.watch(glassInAppPrefsProvider.select((p) => p.lightFollowsDevice)) &&
+        !ref.watch(glassMotionPrefsProvider.select((m) => m.reduced)) &&
+        TickerMode.valuesOf(context).enabled &&
+        (ModalRoute.of(context)?.isCurrent ?? true);
     ref.listen<AsyncValue<HomeFeedView>>(homeFeedProvider, (prev, next) {
       final v = next.valueOrNull;
       if (v?.retryAfter != null && prev?.valueOrNull?.retryAfter == null) _rateLimit(v!.retryAfter!);
-      WidgetsBinding.instance.addPostFrameCallback((_) => _syncAccessory());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _syncAccessory();
+      });
     });
-    ref.listen<List<HiddenContinue>>(continueHiddenProvider, (_, __) => WidgetsBinding.instance.addPostFrameCallback((_) => _syncAccessory()));
+    ref.listen<List<HiddenContinue>>(continueHiddenProvider, (_, __) => WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _syncAccessory();
+        }),);
 
     final continueRows = fv?.feed?.section(HomeSectionType.continueReading)?.items.whereType<HomeContinueItem>().where((c) => !hidden.any((h) => h.sourceId == c.row.sourceId && h.seriesKey == c.row.seriesKey && h.chapterKey == c.row.chapterKey)).toList();
     final specs = fv == null ? const <SpotlightSpec>[] : composeSpotlights(fv, now: now, continueRows: continueRows);
@@ -304,7 +320,7 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
         children: [
           KeyedSubtree(
             key: _spotKey,
-            child: Spotlight(specs: specs, handlers: env.handlers, onFocusedChanged: _focused, tiltActive: _tiltActive, controlsOnScreen: _spotOnScreen),
+            child: Spotlight(specs: specs, handlers: env.handlers, onFocusedChanged: _focused, tiltActive: tiltActive, controlsOnScreen: _spotOnScreen),
           ),
           const SizedBox(height: 16),
           HomeRailsView(rails: rails, env: env, waveKey: Object.hash(feed?.generatedAt, feed?.issueNo, mode, profile?.id), footer: newProfile ? const HomeNewProfileLens() : null),

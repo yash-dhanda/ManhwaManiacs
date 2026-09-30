@@ -3,20 +3,20 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
-import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
+import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/repositories/home_repository.dart';
+import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
+import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
-import 'package:manhwamaniacs/core/error/app_error.dart';
-import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart';
-import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
-import 'package:manhwamaniacs/features/library/models/world_item.dart';
-import 'package:manhwamaniacs/core/utils/pagination.dart';
 
 import '../../../features/home/home_fixtures.dart';
 import '../shell/shell_rig.dart';
@@ -38,9 +38,13 @@ FakeHomeRepo homeRepoOf(String fixture) => FakeHomeRepo(() async => Ok(loadHome(
 
 /// The library answers nothing (the local composer is not under test); followed is empty.
 class _QuietLib implements LibraryRepository {
+  _QuietLib({this.down = false});
+  final bool down;
+
   @override
-  Future<Result<PagedResult<FollowedSeries>>> listSeries({int page = 1, int perPage = 40, String? sort, String? search, String? readingStatus, bool? isFavorite, List<int>? tagIds, bool? newOnly}) async =>
-      Ok(PagedResult(items: const [], total: 0, page: 1, perPage: perPage, hasNext: false));
+  Future<Result<PagedResult<FollowedSeries>>> listSeries({int page = 1, int perPage = 40, String? sort, String? search, String? readingStatus, bool? isFavorite, List<int>? tagIds, bool? newOnly}) async => down
+      ? const Err(NetworkError(message: 'down'))
+      : Ok(PagedResult(items: const [], total: 0, page: 1, perPage: perPage, hasNext: false));
 
   @override
   Future<Result<List<ContinueReadingItem>>> continueReading({int limit = 10}) async => const Err(NetworkError(message: 'down'));
@@ -59,9 +63,9 @@ class _QuietLib implements LibraryRepository {
 }
 
 /// The overrides a Home screen test needs on top of the shell's: the home repository and a quiet library.
-List<Override> homeOverrides(FakeHomeRepo repo, {DateTime? now, int unread = 0}) => [
+List<Override> homeOverrides(FakeHomeRepo repo, {DateTime? now, int unread = 0, bool libraryDown = false}) => [
       homeRepositoryProvider.overrideWithValue(repo),
-      libraryRepositoryProvider.overrideWithValue(_QuietLib()),
+      libraryRepositoryProvider.overrideWithValue(_QuietLib(down: libraryDown)),
       clockProvider.overrideWithValue(() => now ?? DateTime(2026, 9, 30, 15)),
       matureGateOpenProvider.overrideWithValue(false),
       if (unread > 0) unreadNotificationCountProvider.overrideWith(() => _Unread(unread)),
@@ -74,8 +78,8 @@ class _Unread extends UnreadCountNotifier {
   int build() => n;
 }
 
-Future<ShellRig> pumpHome(WidgetTester t, FakeHomeRepo repo, {Size size = const Size(390, 844), DateTime? now, int unread = 0, List<Override> extra = const [], bool settle = true}) async {
-  final rig = await pumpGlassShell(t, size: size, settle: false, extra: [...homeOverrides(repo, now: now, unread: unread), ...extra]);
+Future<ShellRig> pumpHome(WidgetTester t, FakeHomeRepo repo, {Size size = const Size(390, 844), DateTime? now, int unread = 0, List<Override> extra = const [], bool settle = true, bool libraryDown = false}) async {
+  final rig = await pumpGlassShell(t, size: size, settle: false, extra: [...homeOverrides(repo, now: now, unread: unread, libraryDown: libraryDown), ...extra]);
   if (settle) {
     for (var i = 0; i < 10; i++) {
       await t.pump(const Duration(milliseconds: 300));
