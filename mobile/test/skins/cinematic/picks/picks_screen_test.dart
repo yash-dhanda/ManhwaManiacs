@@ -59,7 +59,7 @@ void main() {
     final h = tester.ensureSemantics();
     await pumpPicks(tester);
     expect(find.text('NO. 12 — PICKS'), findsOneWidget);
-    expect(find.byWidgetPredicate((w) => w is Semantics && w.properties.header == true && w.properties.label == 'Picks'), findsOneWidget);
+    expect(find.byWidgetPredicate((w) => w is Semantics && (w.properties.header ?? false) && w.properties.label == 'Picks'), findsOneWidget);
     h.dispose();
     expect(find.textContaining('Describe it in your own words'), findsOneWidget);
     expect(find.byKey(const Key('ask-field')), findsOneWidget);
@@ -73,7 +73,7 @@ void main() {
     await pumpPicks(tester);
     expect(find.text('0 / 600'), findsOneWidget);
     await type(tester, 'ab');
-    var button = tester.widget<Semantics>(find.descendant(of: find.byKey(const Key('ask-button')), matching: find.byType(Semantics)).first);
+    final button = tester.widget<Semantics>(find.descendant(of: find.byKey(const Key('ask-button')), matching: find.byType(Semantics)).first);
     expect(button, isNotNull);
     await tester.tap(find.byKey(const Key('ask-button')));
     await tester.pump();

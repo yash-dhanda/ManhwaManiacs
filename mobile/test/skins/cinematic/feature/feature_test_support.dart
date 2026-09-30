@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/ai/models/similar_result.dart';
 import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart';
 import 'package:manhwamaniacs/features/ai/repositories/ai_repository.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
@@ -332,6 +333,17 @@ class AiFake extends AiRepository {
   final SuggestedTags result;
   final Recorder rec;
   final List<String> rejected = [];
+
+  /// What `GET /ai/similar` answers, and the same-genre answer for `fallback=genres`; null throws.
+  SimilarResult? similarResult, genresResult;
+  Completer<SimilarResult>? similarGate;
+
+  @override
+  Future<SimilarResult> similar(SimilarQuery q) async {
+    if (q.fallbackGenres) return genresResult ?? (throw StateError('no genre fallback'));
+    if (similarGate != null) return similarGate!.future;
+    return similarResult ?? (throw StateError('no similar'));
+  }
 
   @override
   Future<SuggestedTags> suggestedTags(String sourceId, String seriesKey) async => result;

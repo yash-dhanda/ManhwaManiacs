@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
 import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
@@ -205,12 +206,15 @@ Future<void> openFollowedQuickLook(BuildContext context, WidgetRef ref, HomeSeri
 /// A world or source pick: Open, Not for me, and for information-only titles Search my sources and
 /// Read on {site}. [onNotForMe] lets the rail drop the poster (it fades over 240 ms).
 Future<void> openPickQuickLook(BuildContext context, WidgetRef ref, HomePickItem item, {required ReaderEntry entry, VoidCallback? onNotForMe, Object? heroTag}) {
+  final container = ProviderScope.containerOf(context, listen: false);
   final w = item.world;
   final title = item.title;
   final info = w != null && w.available.isEmpty;
   final site = w?.readElsewhere;
   final actions = quickLookActions({
     if (!info) QuickLookId.open: () => openPick(context, item),
+    // More like this: the feature page's tab (an item on the reader's sources only).
+    if (!info) QuickLookId.moreLikeThis: () => context.push(featureMoreLikeThis(w?.available.first.sourceId ?? item.source!.sourceId, w?.available.first.seriesKey ?? item.source!.id)),
     QuickLookId.notForMe: () async {
       final ai = ref.read(aiRepositoryProvider);
       final src = item.source;
@@ -220,7 +224,12 @@ Future<void> openPickQuickLook(BuildContext context, WidgetRef ref, HomePickItem
         sourceId: w == null ? src!.sourceId : null,
         seriesKey: w == null ? src!.id : null,
       );
-      if (res.isOk) onNotForMe?.call();
+      if (res.isOk) {
+        // The rail fades the poster over 240 ms first; then it joins the session's dismissed set.
+        final id = w != null ? pickId(w) : 's${src!.sourceId}:${src.id}';
+        onNotForMe?.call();
+        unawaited(Future<void>.delayed(onNotForMe == null ? Duration.zero : const Duration(milliseconds: 250), () => container.read(dismissedPicksProvider.notifier).add(id)));
+      }
     },
   });
   return openQuickLook(

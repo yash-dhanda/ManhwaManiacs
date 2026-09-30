@@ -79,6 +79,7 @@ final Map<ScreenId, GoRouterWidgetBuilder> cinematicScreens = {
         sourceId: state.pathParameters['sourceId']!,
         seriesKey: state.pathParameters['seriesKey']!,
         chapter: state.uri.queryParameters['chapter'],
+        tab: state.uri.queryParameters['tab'],
       ),
 };
 

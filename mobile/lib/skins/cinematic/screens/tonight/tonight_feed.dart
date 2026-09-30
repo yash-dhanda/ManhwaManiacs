@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
+import 'package:manhwamaniacs/features/home/utils/rerank.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
@@ -192,7 +193,7 @@ class _TonightFeedState extends ConsumerState<TonightFeed> {
     final tags = HeroTags.of(feed);
     final env = TonightEnv(feed: feed, tags: tags, now: now, refresh: () => unawaited(_reprint()));
     final reduced = CineMotion.reduced(context);
-    final plans = planSections(feed);
+    final plans = planSections(feed, noted: ref.watch(rerankNotesProvider));
     final gap = wide ? 64.0 : 40.0;
     final hPad = EdgeInsets.only(left: grid.left, right: grid.right);
 

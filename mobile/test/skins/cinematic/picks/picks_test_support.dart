@@ -28,7 +28,7 @@ class PicksLibrary implements LibraryRepository {
     this.recsError,
     this.availability = const SuggestionAvailability(available: true, reason: 'ok', remainingToday: 8),
     this.genres = const [],
-  }) : recs = recs ?? WorldRecommendations(forYou: [world('Lantern Courier', id: 1, on: const [asura]), world('Salt and Ember', id: 2)]);
+  }) : recs = recs ?? WorldRecommendations(forYou: [world('Lantern Courier', on: const [asura]), world('Salt and Ember', id: 2)]);
 
   final WorldRecommendations recs;
   final AppError? recsError;

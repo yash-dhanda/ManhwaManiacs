@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.d
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/chapters_panel.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/previously_on_button.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// Where `Read` / `Continue` goes, and what the split button says.
@@ -166,6 +167,8 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
           )
         : null;
 
+    final previouslyOn = resume.chapter == null ? null : PreviouslyOnButton(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: resume.chapter, commands: widget.commands, wide: wide);
+
     Widget cell(
       IconData icon,
       String label,
@@ -239,10 +242,11 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (wide)
-          Wrap(spacing: 8, runSpacing: 8, children: [primary, if (readAll != null) readAll])
+          Wrap(spacing: 8, runSpacing: 8, children: [primary, if (readAll != null) readAll, if (previouslyOn != null) previouslyOn])
         else ...[
           primary,
           if (readAll != null) ...[const SizedBox(height: 8), readAll],
+          if (previouslyOn != null) Padding(padding: const EdgeInsets.only(top: 8), child: previouslyOn),
         ],
         const SizedBox(height: 8),
         row,

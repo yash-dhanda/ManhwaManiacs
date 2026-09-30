@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
+import 'package:manhwamaniacs/features/home/utils/rerank.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/numbers_teaser.dart';
@@ -61,15 +62,30 @@ bool sectionVisible(HomeSection s) {
   return s.state == HomeSectionState.unavailable && !isAiSection(s.type) && s.type != HomeSectionType.genres && s.type != HomeSectionType.sources;
 }
 
-/// The rendered sections in the server's order, with folios assigned without a gap.
-List<PlannedSection> planSections(HomeFeed feed) {
-  final out = <PlannedSection>[];
-  for (var i = 0; i < feed.sections.length; i++) {
-    final s = feed.sections[i];
-    if (!sectionVisible(s)) continue;
-    out.add(PlannedSection(section: s, index: i, folio: (out.length + 1).toString().padLeft(2, '0')));
+/// The genre a rail leans on: the first genre of its first item, when the item carries one.
+String? sectionTopGenre(HomeSection s) {
+  for (final it in s.items) {
+    if (it is HomePickItem) {
+      final g = it.world?.genres.firstOrNull ?? it.source?.genres.firstOrNull;
+      if (g != null) return g;
+    }
   }
-  return out;
+  return null;
+}
+
+/// The rendered sections in the server's order, re-ranked in-session by the genres of series the
+/// reader opened from a rail ([noted], cinematic 9.1.4: each matching rail moves up one place, never
+/// above `Continue`), with folios assigned without a gap.
+List<PlannedSection> planSections(HomeFeed feed, {List<String> noted = const []}) {
+  final visible = <(int, HomeSection)>[
+    for (var i = 0; i < feed.sections.length; i++)
+      if (sectionVisible(feed.sections[i])) (i, feed.sections[i]),
+  ];
+  final cont = visible.indexWhere((e) => e.$2.type == HomeSectionType.continueReading);
+  final ranked = noted.isEmpty ? visible : rerankRails<(int, HomeSection)>(visible, noted, (e) => sectionTopGenre(e.$2), floor: cont + 1);
+  return [
+    for (var k = 0; k < ranked.length; k++) PlannedSection(section: ranked[k].$2, index: ranked[k].$1, folio: (k + 1).toString().padLeft(2, '0')),
+  ];
 }
 
 /// The absolute URL of a cover path or URL, or null.

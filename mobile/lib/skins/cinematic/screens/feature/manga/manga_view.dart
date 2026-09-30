@@ -26,6 +26,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/details_pane
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_actions.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_hero.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_overflow.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/more_like_this_panel.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/rating_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/repoint_sheet.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -39,8 +40,12 @@ class MangaFeatureView extends ConsumerStatefulWidget {
     this.extraTabs = const [],
     this.savedCopy,
     this.offlineEdition = false,
+    this.initialTab,
   });
   final FeatureData data;
+
+  /// The id of the tab to open on (`?tab=more-like-this`).
+  final String? initialTab;
 
   /// `mobile/19` / `mobile/22` append their tabs here.
   final List<FeatureTab> extraTabs;
@@ -77,9 +82,10 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
         panelBuilder: (_) => ChaptersPanel(data: d, selection: _selection, commands: _commands),
       ),
       FeatureTab(id: 'details', label: 'DETAILS', panelBuilder: (_) => DetailsPanel(data: d)),
+      FeatureTab(id: 'more-like-this', label: 'MORE LIKE THIS', panelBuilder: (_) => MoreLikeThisPanel(data: d)),
       ...widget.extraTabs,
     ];
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(length: _tabs.length, vsync: this, initialIndex: _initialIndex());
     _scroll.addListener(() {
       final o = _scroll.hasClients ? _scroll.offset : 0.0;
       if ((o > 24) != (_offset > 24) || (o > _titleAt) != (_offset > _titleAt)) {
@@ -103,6 +109,11 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
         final i = (_tabController.index + delta).clamp(0, _tabs.length - 1);
         _tabController.animateTo(i);
       };
+  }
+
+  int _initialIndex() {
+    final i = _tabs.indexWhere((t) => t.id == widget.initialTab);
+    return i < 0 ? 0 : i;
   }
 
   double get _titleAt {

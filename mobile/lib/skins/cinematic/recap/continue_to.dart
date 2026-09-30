@@ -58,7 +58,8 @@ Future<void> continueTo(
 }
 
 /// `Routes.feature` with the More like this tab selected.
-String featureMoreLikeThis(String sourceId, String seriesKey) => Routes.feature(sourceId, seriesKey, {'tab': 'more-like-this'});
+String featureMoreLikeThis(String sourceId, String seriesKey) =>
+    Uri.parse(Routes.feature(sourceId, seriesKey)).replace(queryParameters: {'tab': 'more-like-this'}).toString();
 
 /// Pops the recap and returns to the page it was opened from.
 void closeRecap(BuildContext context) {

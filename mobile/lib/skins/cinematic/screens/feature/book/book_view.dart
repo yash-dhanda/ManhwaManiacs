@@ -48,6 +48,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/chapters_panel.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_actions.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_overflow.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/feature/previously_on_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
@@ -518,6 +519,7 @@ class _BookViewState extends ConsumerState<BookView> {
                           ),
                   ),
                   const SizedBox(height: 8),
+                  PreviouslyOnButton(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: caughtUp ? null : resumeChapter?.id, commands: _commands),
                   if (audio != null && narrated.isNotEmpty && resumeChapter != null)
                     OutlinedButton(
                       key: const Key('listen'),
