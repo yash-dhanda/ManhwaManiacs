@@ -19,11 +19,11 @@ import 'package:manhwamaniacs/features/downloads/services/chapter_page_fetcher.d
 import 'package:manhwamaniacs/features/downloads/services/device_storage_info.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio_format.dart';
-import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart' show wifiOnlyDownloadsProvider;
 import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/novel_text/novel_text_index.dart';
 import 'package:manhwamaniacs/features/novels/providers/saved_audio_provider.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
+import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart' show wifiOnlyDownloadsProvider;
 import 'package:manhwamaniacs/shared/providers/core_providers.dart' show sharedPrefsProvider;
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
@@ -283,7 +283,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     });
     // Back online (or onto Wi-Fi): queued rows held by either start again.
     ref.listen<AsyncValue<bool>>(networkOnlineChangesProvider, (previous, next) {
-      if (next.valueOrNull == true && _foreground && !_userPaused) unawaited(_kick());
+      if ((next.valueOrNull ?? false) && _foreground && !_userPaused) unawaited(_kick());
     });
     return const DownloadQueueState();
   }

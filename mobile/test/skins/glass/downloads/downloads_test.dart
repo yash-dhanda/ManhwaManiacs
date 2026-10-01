@@ -71,7 +71,7 @@ class _Store implements DownloadsStore {
 class _Exporter extends ChapterExporter {
   _Exporter() : super(documentsDirectory: Future.value(Directory.systemTemp));
   @override
-  Future<ChapterExportResult> export({required DownloadsStore store, required String seriesLabel, required List<SavedChapter> chapters, required ChapterExportFormat format}) async =>
+  Future<ChapterExportResult> export({required DownloadsStore store, required String seriesLabel, required List<SavedChapter> chapters, required ChapterExportFormat format, bool fresh = false}) async =>
       ChapterExportResult(directory: Directory.systemTemp.createTempSync('mm-export-'), seriesFolderName: seriesLabel, format: format, chapterCount: chapters.length, pageCount: chapters.length * 40, skippedCount: 0);
 }
 

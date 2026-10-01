@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart';
 import 'package:manhwamaniacs/features/library/models/collection_detail.dart';
 import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart';
@@ -18,10 +19,9 @@ import 'package:manhwamaniacs/features/library/models/series_detail.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
-import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
-import 'package:manhwamaniacs/features/library/utils/followed_series_cache.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
+import 'package:manhwamaniacs/features/library/utils/followed_series_cache.dart';
 import 'package:manhwamaniacs/features/library/utils/library_preferences.dart';
 import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
@@ -284,7 +284,7 @@ void main() {
         overrides: [
           libraryRepositoryProvider.overrideWithValue(_FakeLibraryRepository({
             1: PagedResult(items: [for (var i = 1; i <= 20; i++) _series(i)], total: 30, page: 1, perPage: 20, hasNext: true),
-          })),
+          }),),
           sharedPrefsProvider.overrideWithValue(prefs),
           activeDownloadsScopeIdProvider.overrideWithValue('u1p1'),
         ],

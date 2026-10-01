@@ -34,6 +34,7 @@ class FakeExporter extends ChapterExporter {
     required String seriesLabel,
     required List<SavedChapter> chapters,
     required ChapterExportFormat format,
+    bool fresh = false,
   }) async {
     formatSeen = format;
     if (fail) throw const FileSystemException('disk full');

@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
 import 'package:manhwamaniacs/app/router/routes.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
@@ -13,6 +12,7 @@ import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart'
 import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/library_read_state.dart';
+import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
