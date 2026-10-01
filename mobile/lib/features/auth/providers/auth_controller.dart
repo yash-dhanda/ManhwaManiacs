@@ -40,6 +40,7 @@ class AuthController extends Notifier<AuthState> {
   /// sits on the splash for the full 15s. Only the *startup* probe is impatient
   /// — real requests keep the generous timeout.
   static const Duration _probeTimeout = Duration(seconds: 3);
+  static const Duration _keychainTimeout = Duration(seconds: 5);
 
   /// The backend's code for "that password is wrong" — a 401, exactly like an
   /// expired session (`services/auth_service.change_password`).
@@ -98,7 +99,9 @@ class AuthController extends Notifier<AuthState> {
   Future<void> _restoreSession() async {
     String? token;
     try {
-      token = await ref.read(secureStorageProvider).getAuthToken();
+      // Bounded: a keychain read that never returns held the splash forever (the probe below
+      // has its own bound). Timing out degrades to logged-out and leaves the token stored.
+      token = await ref.read(secureStorageProvider).getAuthToken().timeout(_keychainTimeout);
     } catch (error, stackTrace) {
       // A secure-storage read can fail (e.g. keystore issues); degrade to
       // logged-out rather than crash the launch.

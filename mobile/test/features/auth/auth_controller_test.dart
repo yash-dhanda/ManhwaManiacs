@@ -368,6 +368,16 @@ void main() {
       expect(stopwatch.elapsed, lessThan(const Duration(seconds: 10)));
     });
 
+    test('a keychain read that never returns still ends the splash', () async {
+      final storage = _SlowStorage()..token = 'tok';
+      final (container, _) = await _containerWithPrefs(_FakeAuthRepository(), storage, prefs: _prefsWithCachedUser());
+      final stopwatch = Stopwatch()..start();
+      await container.read(authControllerProvider.notifier).restored;
+      expect(stopwatch.elapsed, lessThan(const Duration(seconds: 8)));
+      expect(container.read(authControllerProvider), isA<AuthUnauthenticated>());
+      expect(storage.token, 'tok', reason: 'the stored token is left for the next launch');
+    });
+
     test('with no cached user it stays logged out but keeps the token',
         () async {
       final storage = _FakeStorage()..token = 'tok';
