@@ -192,6 +192,7 @@ class BookContentsSliver extends ConsumerStatefulWidget {
 
 class _BookContentsSliverState extends ConsumerState<BookContentsSliver> {
   int? _start, _end;
+  Object? _basis;
 
   @override
   Widget build(BuildContext context) {
@@ -205,6 +206,13 @@ class _BookContentsSliverState extends ConsumerState<BookContentsSliver> {
     final focusKey = page.chapters.pulse ?? seriesResume(d.readingOrder, progress, novel: true).chapterKey;
     final focus = focusKey == null ? 0 : shown.indexWhere((c) => c.id == focusKey).clamp(0, shown.length - 1);
     final w = tocWindow(shown.length, focus);
+    // Show earlier/more widen the window around one list and one focus. A new order, a Go to (pulse) or a
+    // changed list starts from the fresh window: kept, the pinned edge could sit before the new start.
+    final basis = (page.chapters.order, focusKey, shown.length);
+    if (basis != _basis) {
+      _basis = basis;
+      _start = _end = null;
+    }
     final start = _start ?? w.start, end = _end ?? w.end;
     final sel = page.chapters.selection;
     final slice = shown.sublist(start, end);
