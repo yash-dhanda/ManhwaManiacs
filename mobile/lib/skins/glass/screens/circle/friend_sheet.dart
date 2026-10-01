@@ -114,7 +114,7 @@ List<Widget> friendSlivers(BuildContext context, WidgetRef ref, int profileId) {
     out
       ..add(box(title('Reading')))
       ..add(box(SizedBox(
-        height: 252,
+        height: 252 + 16 * (MediaQuery.textScalerOf(context).scale(1) - 1).clamp(0.0, 1.0), // the title and the small button scale
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: m),
