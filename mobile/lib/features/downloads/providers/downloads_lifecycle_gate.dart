@@ -128,11 +128,14 @@ class _DownloadsLifecycleGateState extends ConsumerState<DownloadsLifecycleGate>
   Future<void> _sweep() async {
     final interval = ref.read(retentionIntervalProvider).duration;
     final openChapters = ref.read(currentlyOpenChaptersProvider);
+    final controller = ref.read(downloadQueueControllerProvider.notifier);
     try {
       await ref.read(retentionMaintenanceProvider).sweepExpired(
             interval: interval,
             excludeOpen: openChapters,
           );
+      // The sweep deletes rows (and flips vanished ones to failed): lists must re-read.
+      controller.retryAfterStorageChange();
     } catch (_) {
       // Best-effort housekeeping — retried on the next launch/resume.
     }

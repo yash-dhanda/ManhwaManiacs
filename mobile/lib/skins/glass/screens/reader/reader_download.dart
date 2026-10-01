@@ -89,6 +89,7 @@ class _ReaderDownloadControlState extends ConsumerState<ReaderDownloadControl> {
         if (ReaderDownloadControl._asking.contains(widget.chapterId)) {
           _setAsking(false);
           await ref.read(downloadsStoreProvider)?.deleteDownload(_id);
+          queue.retryAfterStorageChange();
           ref.invalidate(seriesChapterDownloadStatusProvider((sourceId: widget.host.sourceId, seriesKey: widget.host.seriesKey)));
         } else {
           _setAsking(true);

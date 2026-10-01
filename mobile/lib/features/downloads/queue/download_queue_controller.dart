@@ -290,7 +290,12 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   /// Deliberately doesn't clear the pause reason itself: the pass re-checks
   /// every guard and sets whichever still applies. A deliberate pause is left
   /// alone, as it is everywhere else.
+  ///
+  /// Also bumps [DownloadQueueState.queueRevision]: rows were removed, so every
+  /// store-backed list (saved shelf, queue, statuses, byte totals) must re-read
+  /// even when no pass runs.
   void retryAfterStorageChange() {
+    _bumpRevision();
     if (_userPaused) return;
     unawaited(_kick());
   }

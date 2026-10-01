@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/downloaded_series_group.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
@@ -82,13 +83,29 @@ String seriesSummary(DownloadedSeriesGroup g) {
 
 /// Removes a chapter at once; the toast's "Download again" puts it back in the queue.
 Future<void> removeChapterWithUndo(WidgetRef ref, SavedChapter c) async {
-  await ref.read(downloadsStoreProvider)?.deleteDownload(c.identity);
+  final store = ref.read(downloadsStoreProvider);
+  final queue = ref.read(downloadQueueControllerProvider.notifier);
+  // deleteDownload also removes the chapter's saved narration; "Download again" must bring both back.
+  final hadAudio = !c.kind.isAudio && await store?.getChapter(audioIdentity(c.identity)) != null;
+  await store?.deleteDownload(c.identity);
+  queue.retryAfterStorageChange();
   ref
     ..invalidate(downloadedSeriesProvider)
     ..invalidate(activeDownloadQueueProvider)
     ..invalidate(totalDeviceDownloadBytesProvider)
     ..invalidate(seriesStorageBreakdownProvider);
-  showGlassToast(ref, GlassToastSpec('Removed from this device', actionLabel: 'Download again', onAction: () => unawaited(ref.read(downloadQueueControllerProvider.notifier).enqueueChapter(id: c.identity, chapterNumber: c.chapterNumber, title: c.title, seriesTitle: c.seriesTitle, kind: c.kind))));
+  showGlassToast(
+    ref,
+    GlassToastSpec(
+      hadAudio ? 'Removed the chapter and its narration' : 'Removed from this device',
+      actionLabel: 'Download again',
+      onAction: () => unawaited(queue.enqueueChapters(
+        hadAudio
+            ? narrationDownloadRequests(chapter: c.identity, chapterNumber: c.chapterNumber, title: c.title, seriesTitle: c.seriesTitle)
+            : [(id: c.identity, chapterNumber: c.chapterNumber, title: c.title, seriesTitle: c.seriesTitle, kind: c.kind)],
+      ),),
+    ),
+  );
 }
 
 /// One series of Chapters (glass 8.22): title, summary, pin, menu and an expand chevron; expanded it lists its chapters. Removing the
@@ -172,6 +189,8 @@ class GlassSeriesDownloadsCardState extends ConsumerState<GlassSeriesDownloadsCa
     for (final c in g.chapters) {
       await store?.deleteDownload(c.identity);
     }
+    if (!mounted) return;
+    ref.read(downloadQueueControllerProvider.notifier).retryAfterStorageChange();
     ref
       ..invalidate(downloadedSeriesProvider)
       ..invalidate(activeDownloadQueueProvider)

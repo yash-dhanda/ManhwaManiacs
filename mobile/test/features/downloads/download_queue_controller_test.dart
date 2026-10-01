@@ -183,6 +183,18 @@ void main() {
     return container;
   }
 
+  test('a storage change bumps the queue revision even with an idle queue', () async {
+    final container = buildContainer(
+      readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(1))),
+      pageFetcher: _ScriptedPageFetcher((url) async => [1]),
+    );
+    final controller = container.read(downloadQueueControllerProvider.notifier);
+    final before = container.read(downloadQueueControllerProvider).queueRevision;
+    controller.retryAfterStorageChange();
+    await controller.debugWaitUntilIdle();
+    expect(container.read(downloadQueueControllerProvider).queueRevision, greaterThan(before));
+  });
+
   test('downloads every page and marks the chapter complete', () async {
     final container = buildContainer(
       readerRepository: _ScriptedReaderRepository(
