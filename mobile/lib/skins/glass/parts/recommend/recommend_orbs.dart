@@ -85,6 +85,13 @@ final _orbRecipientsProvider = Provider.autoDispose<List<CircleMember>>((ref) {
   return ref.watch(recipientsProvider((sourceId: lift.sourceId, seriesKey: lift.seriesKey))).valueOrNull ?? const [];
 });
 
+/// Whether the recommend orbs are up (a lifted poster and someone to send it to). The shell hides the dock meanwhile, which
+/// keeps a phone frame within 8 glass shapes with four orbs (glass 15.7).
+final recommendOrbsUpProvider = Provider.autoDispose<bool>((ref) {
+  final lift = ref.watch(liftProvider);
+  return lift != null && lift.phase == LiftPhase.lifted && ref.watch(_orbRecipientsProvider).isNotEmpty;
+}, name: 'glassRecommendOrbsUp',);
+
 /// The orb row itself (public for the captures and the tests).
 class RecommendOrbLayer extends ConsumerWidget {
   const RecommendOrbLayer({super.key});

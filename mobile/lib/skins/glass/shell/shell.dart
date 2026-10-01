@@ -178,7 +178,7 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
     );
     content = GlassRecede(child: GlassDiveScope(child: Padding(padding: EdgeInsets.only(left: leftPad), child: content)));
 
-    final hidden = hidesDock(path) || sheetLarge || keyboard;
+    final hidden = hidesDock(path) || sheetLarge || keyboard || ref.watch(recommendOrbsUpProvider);
     final children = <Widget>[
       Positioned.fill(child: content),
       if (phone)

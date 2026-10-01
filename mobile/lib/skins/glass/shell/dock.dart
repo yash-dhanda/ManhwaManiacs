@@ -193,6 +193,8 @@ class _GlassDockState extends ConsumerState<GlassDock> with TickerProviderStateM
         final fullH = kDockHeight + (showAcc ? kAccessoryGap + kAccessoryHeight : 0);
         final groupH = lerpDouble2(fullH, kDockMinHeight, m);
         final hideT = _hide.value.clamp(0.0, 1.0);
+        // Fully hidden, the dock leaves the glass registry (its shapes count against the 8-shape budget, glass 15.7).
+        if (hideT > 0.98) return const SizedBox.shrink();
         final shapes = <SkinGlassShape>[
           SkinGlassShape(size: Size(dockW, dockH), child: _dockBody(context, dockW, dockH, m, badges, assistive)),
           SkinGlassShape(size: const Size.square(kSearchOrb), shape: const GlassShape.circle(), child: GlassSearchOrbBody(onTap: widget.onSearch ?? () => openGlassSearch(context, ref))),

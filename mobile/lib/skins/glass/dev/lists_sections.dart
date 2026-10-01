@@ -50,11 +50,12 @@ import 'package:manhwamaniacs/skins/glass/primitives/states/object_lens.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/state_view.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/view_state.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
+import 'package:manhwamaniacs/skins/glass/screens/circle/presence_arc.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// The third part of the primitives gallery (`mobile/28`): lists, swipe rows, reorder, selection, states, the 18+ gate, downloads,
 /// the depth glyph and the stack overview, AI surfaces, charts and reactions.
-const List<String> kGlassListsSections = ['lists', 'swipe', 'reorder', 'select', 'states', 'gate', 'download', 'depth', 'stack', 'ai', 'charts', 'reactions'];
+const List<String> kGlassListsSections = ['lists', 'swipe', 'reorder', 'select', 'states', 'gate', 'download', 'depth', 'stack', 'ai', 'charts', 'reactions', 'circle'];
 
 Widget? glassListsSection(BuildContext context, String name, GalleryGround g) => switch (name) {
       'lists' => const _Lists(),
@@ -69,6 +70,7 @@ Widget? glassListsSection(BuildContext context, String name, GalleryGround g) =>
       'ai' => const _Ai(),
       'charts' => const _Charts(),
       'reactions' => const _Reactions(),
+      'circle' => const _CircleStates(),
       _ => null,
     };
 
@@ -534,4 +536,28 @@ class _ReactionsState extends ConsumerState<_Reactions> {
         ),
         GlassText('Snapshots: ${ref.watch(glassSnapshotStoreProvider).length}', role: gt.typeCaption2, color: gt.colorLabel3),
       ],);
+}
+
+
+/// mobile/43: the presence arc in its states (reading with the breathing ring, today, away with a shared streak, `now: null`) and
+/// the reaction strip guarded and unsealed.
+class _CircleStates extends StatelessWidget {
+  const _CircleStates();
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime(2026, 10, 1, 21);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _cap('presence arc: reading, today, away with a streak, now null (today)'),
+      PresenceArc(now: now, ringPhase: 0.5, members: [
+        CircleMember(profileId: 2, name: 'Aarav', avatarKey: 'violet', now: CircleNow(sourceId: 's', seriesKey: 'or', chapterKey: 'c', title: 'Omniscient Reader', since: now.subtract(const Duration(minutes: 4)))),
+        CircleMember(profileId: 3, name: 'Mira', avatarKey: 'cyan', lastActiveAt: now.subtract(const Duration(hours: 2))),
+        CircleMember(profileId: 4, name: 'Kai', avatarKey: 'rose', lastActiveAt: now.subtract(const Duration(days: 3)), streak: const CircleStreak(currentDays: 12)),
+        CircleMember(profileId: 5, name: 'Noor', avatarKey: 'amber', lastActiveAt: now.subtract(const Duration(minutes: 5))),
+      ],),
+      const SizedBox(height: 24),
+      _cap('arc loading'),
+      const PresenceArcSkeleton(),
+    ],);
+  }
 }
