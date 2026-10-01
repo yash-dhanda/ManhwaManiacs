@@ -139,6 +139,36 @@ class Changelog(BaseModel):
 # consume the exact same source of truth.
 _RELEASE_NOTES: list[ChangelogEntry] = [
     ChangelogEntry(
+        version="4.0.1",
+        build=57,
+        date="October 2026",
+        highlights=[
+            "New profiles now start by picking their look, Cinematic or "
+            "Glass, with live previews of both. Switching looks halfway "
+            "through setup keeps you signed in",
+            "Series pages can open the series on the site it comes from, in "
+            "your browser: \"Open on\" plus the site's name under the "
+            "details in Cinematic, \"Open source page in browser\" in the "
+            "series menu in Glass",
+            "Tablet layout fixes: buttons and panels no longer sit under the "
+            "screen edges, and keyboard focus always scrolls into view with "
+            "a visible focus ring",
+            "Glass alignment fixes: no more doubled margins, the highlight "
+            "on the bottom dock lines up with the tab, tag chips line up, "
+            "labels are no longer cut off, the reader title fits, and "
+            "nothing hides behind the notch",
+            "Undo after switching looks now moves the app icon back too",
+            "In Glass, swiping back now closes the manga reader properly and "
+            "frees the reader instead of leaving it running",
+            "Faster startup that can no longer hang on a slow phone or "
+            "network: anything slow is skipped instead of freezing the app, "
+            "and you stay signed in",
+            "Discover polish in Cinematic",
+            "The old classic look is gone. Profiles that were still on it "
+            "open in Cinematic",
+        ],
+    ),
+    ChangelogEntry(
         version="4.0.0",
         build=57,
         date="October 2026",
