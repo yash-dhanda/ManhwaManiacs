@@ -110,14 +110,21 @@ class GlassCollectionCardState extends ConsumerState<GlassCollectionCard> with S
             const SizedBox(width: 12),
             Expanded(
               // The name and count sit low in the slab, leaving its top-right corner to a tag ("Auto", "Shared with").
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GlassLabel(widget.name, role: gt.typeTitle3, maxLines: 2),
-                  GlassLabel('${widget.count} series', role: gt.typeFootnote, color: gt.colorLabel2),
-                  const SizedBox(height: 12),
-                ],
+              // In a small slab at large text the block keeps its last line in the card (rows are dropped from the top, not cut).
+              child: ClipRect(
+                child: OverflowBox(
+                  alignment: Alignment.bottomLeft,
+                  maxHeight: double.infinity,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GlassLabel(widget.name, role: gt.typeTitle3, maxLines: 2),
+                      GlassLabel('${widget.count} series', role: gt.typeFootnote, color: gt.colorLabel2),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
