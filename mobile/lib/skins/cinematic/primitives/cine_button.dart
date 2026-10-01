@@ -195,7 +195,8 @@ class _CineButtonState extends State<CineButton> with SingleTickerProviderStateM
   }
 
   Widget _link(BuildContext context, CineTokens c) {
-    final style = CineText.style(context, c.typeBody).copyWith(color: c.colorInk100, decoration: TextDecoration.underline, decorationColor: c.colorInk100, decorationThickness: 1);
+    // No underline (owner, 3.5.2): a link reads by weight and full ink.
+    final style = CineText.style(context, c.typeLabel).copyWith(color: c.colorInk100);
     final enabled = widget.onPressed != null;
     return CineFocusRing(
       hit: cineHitMin(context),
@@ -221,7 +222,6 @@ class _CineButtonState extends State<CineButton> with SingleTickerProviderStateM
     const black = Color(0xFF000000);
     late Color bg, fg;
     Color? border;
-    var underline = false;
     switch (v) {
       case CineButtonVariant.primary:
       case CineButtonVariant.split:
@@ -235,8 +235,7 @@ class _CineButtonState extends State<CineButton> with SingleTickerProviderStateM
       case CineButtonVariant.quiet:
       case CineButtonVariant.link:
         bg = const Color(0x00000000);
-        fg = disabled ? c.colorInk30 : (error ? c.colorProof : c.colorInk60);
-        underline = st.hovered && !disabled;
+        fg = disabled ? c.colorInk30 : (error ? c.colorProof : (st.hovered ? c.colorInk100 : c.colorInk60));
       case CineButtonVariant.destructive:
         bg = pressed ? c.colorProofWash : (st.hovered ? c.colorProofWash : const Color(0x00000000));
         fg = disabled ? c.colorInk30 : (pressed ? c.colorProofPress : c.colorProof);
@@ -314,9 +313,7 @@ class _CineButtonState extends State<CineButton> with SingleTickerProviderStateM
       child: Center(
         widthFactor: 1,
         heightFactor: 1,
-        child: underline
-            ? Column(mainAxisSize: MainAxisSize.min, children: [body, SizedBox(height: c.space1), Container(height: 1, color: fg)])
-            : body,
+        child: body,
       ),
     );
 

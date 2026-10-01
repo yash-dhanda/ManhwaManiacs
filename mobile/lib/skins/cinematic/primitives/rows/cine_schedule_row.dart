@@ -103,7 +103,7 @@ class CineScheduleRow extends StatelessWidget {
           ],),
         ),
         if (errorText != null && onRetry != null)
-          GestureDetector(onTap: onRetry, child: CineRoleText('Retry', c.typeLabel, color: c.colorInk100, decoration: TextDecoration.underline))
+          GestureDetector(onTap: onRetry, child: CineRoleText('Retry', c.typeLabel, color: c.colorInk100))
         else ...[
           if (state == CineReadState.inProgress && progressPage != null && pages != null)
             Padding(padding: EdgeInsets.only(left: c.space3), child: CineRoleText('$progressPage/$pages', c.typeFolio, color: c.colorSpot)),
