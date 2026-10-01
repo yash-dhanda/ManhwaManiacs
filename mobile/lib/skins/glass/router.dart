@@ -150,7 +150,8 @@ Page<void> glassSheetOrPage(BuildContext context, GoRouterState state, Widget ch
       builder: (_) => GlassRouteFrame(routeKey: _keyOf(state), child: child),
     );
   }
-  return glassPage(state, screen ?? child);
+  // A sheet's content as a full page (a cold deep link) keeps clear of the notch and the home indicator.
+  return glassPage(state, screen ?? SafeArea(child: child));
 }
 
 String _nameOf(ScreenId id) => id.id;
