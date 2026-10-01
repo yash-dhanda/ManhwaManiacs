@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -29,6 +30,24 @@ void main() {
   late ProviderContainer c;
   setUp(() => c = ProviderContainer());
   tearDown(() => c.dispose());
+
+  testWidgets('letter blur is capped per frame across headings (iOS Impeller offscreen passes)', (t) async {
+    final style = _style.copyWith(fontSize: 14);
+    await t.pumpWidget(_host(c, ListView(children: [
+      for (var i = 0; i < 6; i++)
+        SetHeading('Heading number $i', id: 'cap-$i', style: style, cap: 1.3, level: 2, startDelayMs: 0),
+    ],),),);
+    await t.pump();
+    var peak = 0;
+    for (var f = 0; f < 30; f++) {
+      await t.pump(const Duration(milliseconds: 16));
+      final n = find.byType(ImageFiltered).evaluate().length;
+      if (n > peak) peak = n;
+    }
+    expect(peak, CineMotion.blurCap, reason: 'six headings would blur ~90 letters at once uncapped');
+    await t.pump(const Duration(seconds: 2));
+    expect(find.byType(ImageFiltered), findsNothing);
+  });
 
   testWidgets('reveals per letter and records the id when it finishes', (t) async {
     await t.pumpWidget(_host(c, ListView(children: [_h()])));
