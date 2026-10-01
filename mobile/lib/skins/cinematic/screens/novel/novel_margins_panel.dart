@@ -163,8 +163,9 @@ class _NovelNotesTabState extends ConsumerState<NovelNotesTab> {
   }
 
   Future<void> _add() async {
+    final container = ProviderScope.containerOf(context, listen: false);
     final b = await widget.onAdd();
-    ref.invalidate(bookmarksProvider);
+    container.invalidate(bookmarksProvider);
     if (b == null || !mounted) return;
     setState(() => _editing = b);
     _text.clear();

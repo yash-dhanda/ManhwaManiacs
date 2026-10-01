@@ -49,8 +49,9 @@ class _ChapterDownloadControlState extends ConsumerState<ChapterDownloadControl>
   Future<void> _remove() async {
     _revert?.cancel();
     setState(() => _asking = false);
+    final container = ProviderScope.containerOf(context, listen: false);
     await ref.read(downloadsStoreProvider)?.deleteDownload(_id);
-    ref.invalidate(seriesChapterDownloadStatusProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)));
+    container.invalidate(seriesChapterDownloadStatusProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)));
   }
 
   void _tap(DownloadMarkState mark) {

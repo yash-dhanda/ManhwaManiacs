@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/up_next_provider.dart';
+import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/utils/all_followed.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
@@ -63,32 +64,39 @@ class _ReaderEndNoticeState extends ConsumerState<ReaderEndNotice> {
 
   ReaderSeriesKey get _key => (sourceId: widget.sourceId, seriesKey: widget.seriesKey);
 
-  Future<FollowedSeries?> _ensureFollowed() async {
-    final existing = await ref.read(readerFollowProvider(_key).future);
+  // These run unawaited from a switch and a button: the reader may close before they return, so everything `ref` gives is taken
+  // before the first await (a `ref` after dispose throws, and the Cinematic root turns that into the fatal page).
+  Future<FollowedSeries?> _ensureFollowed(ProviderContainer container, LibraryRepository repo) async {
+    final existing = await container.read(readerFollowProvider(_key).future);
     if (existing != null) return existing;
-    final r = await ref.read(libraryRepositoryProvider).follow(sourceId: widget.sourceId, seriesKey: widget.seriesKey);
-    ref.invalidate(readerFollowProvider(_key));
+    final r = await repo.follow(sourceId: widget.sourceId, seriesKey: widget.seriesKey);
+    container.invalidate(readerFollowProvider(_key));
     return r.isOk ? r.value : null;
   }
 
   Future<void> _setNotify(bool on) async {
-    final f = await _ensureFollowed();
+    final container = ProviderScope.containerOf(context, listen: false);
+    final repo = ref.read(libraryRepositoryProvider);
+    final toasts = ref.read(cineToastsProvider.notifier);
+    final f = await _ensureFollowed(container, repo);
     if (f == null) {
-      ref.read(cineToastsProvider.notifier).error("Couldn't turn that on.");
+      toasts.error("Couldn't turn that on.");
       return;
     }
-    final r = await ref.read(libraryRepositoryProvider).patchSeries(f.id, notify: on);
-    if (r.isOk) {
+    final r = await repo.patchSeries(f.id, notify: on);
+    if (!r.isOk) {
+      toasts.error("Couldn't turn that on.");
+    } else if (mounted) {
       setState(() => _notify = on);
-    } else {
-      ref.read(cineToastsProvider.notifier).error("Couldn't turn that on.");
     }
   }
 
   Future<void> _markDone() async {
-    final f = await _ensureFollowed();
+    final container = ProviderScope.containerOf(context, listen: false);
+    final repo = ref.read(libraryRepositoryProvider);
+    final f = await _ensureFollowed(container, repo);
     if (f == null) return;
-    final r = await ref.read(libraryRepositoryProvider).patchSeries(f.id, readingStatus: 'completed');
+    final r = await repo.patchSeries(f.id, readingStatus: 'completed');
     if (r.isOk && mounted) setState(() => _done = true);
   }
 
