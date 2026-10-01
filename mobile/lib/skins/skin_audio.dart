@@ -155,7 +155,7 @@ class SkinAudio {
   bool _engineReady = false;
   Future<void>? _readying;
 
-  SkinId _skin = SkinId.legacy;
+  SkinId _skin = kDefaultSkin;
   int? _userId;
   int? _profileId;
   SharedPreferences? _prefs;
@@ -251,13 +251,11 @@ class SkinAudio {
   Map<String, String> _cues(SkinId s) => switch (s) {
         SkinId.cinematic => cin.cinematicSoundCues,
         SkinId.glass => gls.glassSoundCues,
-        SkinId.legacy => const {},
       };
 
   Map<SoundEvent, List<String>> _events(SkinId s) => switch (s) {
         SkinId.cinematic => cin.cinematicSoundEvents,
         SkinId.glass => gls.glassSoundEvents,
-        SkinId.legacy => const {},
       };
 
   Future<void> _ensureReady() => _readying ??= _ready().whenComplete(() => _readying = null);

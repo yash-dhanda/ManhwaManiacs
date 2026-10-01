@@ -1,3 +1,5 @@
+// The retired legacy theme, frozen here as the ground the reader parity goldens were taken on.
+// Test-only: nothing under lib/ may wear it.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:manhwamaniacs/app/theme/app_metrics.dart';

@@ -1,6 +1,7 @@
 import 'package:manhwamaniacs/features/onboarding/utils/onboarding_steps.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/skin.dart';
 
 /// What the picker does after a profile is chosen (cinematic 8.5 steps 3 and 4).
 enum PickerOutcomeKind { home, onboarding, restartSkin }
@@ -27,7 +28,8 @@ PickerOutcome decidePickerOutcome({
   required bool onboardingBuilt,
   bool pendingDone = false,
 }) {
-  final saved = profile.skin;
+  // A retired or unknown name (`legacy`) is no restart: the running skin is the default already.
+  final saved = skinIdFromName(profile.skin)?.name;
   if (glassAvailable && saved != null && saved != runningSkin) {
     return const PickerOutcome(PickerOutcomeKind.restartSkin);
   }

@@ -7,19 +7,18 @@ import 'package:manhwamaniacs/skins/token_types.g.dart';
 
 enum SkinId {
   cinematic,
-  glass,
-  legacy;
+  glass;
 
   /// The display face's family name as `pubspec.yaml` `fonts:` declares it (Cinematic: Bodoni
-  /// Moda; Glass: Google Sans Flex; the legacy skin has no display face of its own).
+  /// Moda; Glass: Google Sans Flex).
   String get displayFamily => switch (this) {
         SkinId.cinematic => 'BodoniModa',
         SkinId.glass => 'GoogleSansFlexMM',
-        SkinId.legacy => 'Syne',
       };
 }
 
-/// Exact enum name, else null.
+/// Exact enum name, else null. The retired `legacy` (and anything unknown) is null, so every
+/// caller falls back to [kDefaultSkin].
 SkinId? skinIdFromName(String? name) {
   for (final s in SkinId.values) {
     if (s.name == name) return s;
@@ -27,13 +26,12 @@ SkinId? skinIdFromName(String? name) {
   return null;
 }
 
-/// v1 (3.5.0) ships Cinematic as the default; release/00 later deletes legacy.
+/// Cinematic is the default; a stored `legacy` from before 4.0.1 boots it too.
 const SkinId kDefaultSkin = SkinId.cinematic;
 
 abstract interface class Skin {
   SkinId get id;
 
-  /// Legacy watches its palette and preset providers.
   ThemeData theme(WidgetRef ref);
   SystemUiOverlayStyle overlayStyle(WidgetRef ref);
 

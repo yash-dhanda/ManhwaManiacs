@@ -112,7 +112,6 @@ Future<ListenRig> pumpListen(
   List<String>? paragraphs,
   List<Override> extra = const [],
   Key? boundaryKey,
-  bool legacy = false,
 }) async {
   // No network and no cache directory for the cover behind the reading room.
   final probe = CineImage.cacheProbe, builder = CineImage.providerBuilder;
@@ -141,7 +140,6 @@ Future<ListenRig> pumpListen(
     paragraphs: paragraphs,
     boundaryKey: boundaryKey,
     attribution: listenAttribution(),
-    legacy: legacy,
     rig: FeatureRig(narrated: narrated, online: online),
     extra: [
       if (owner) authenticatedAuthOverride(),

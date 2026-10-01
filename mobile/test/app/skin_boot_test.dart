@@ -48,12 +48,12 @@ void main() {
 
   group('resolveBootRestart', () {
     SkinId? r({
-      SkinId running = SkinId.legacy,
+      SkinId running = SkinId.glass,
       bool known = true,
       String? profile,
       String? queued,
       bool glass = false,
-      SkinId def = SkinId.legacy,
+      SkinId def = SkinId.cinematic,
     }) =>
         resolveBootRestart(
           running: running,
@@ -65,16 +65,19 @@ void main() {
         );
     test('table', () {
       expect(r(known: false, profile: 'cinematic'), isNull); // offline
-      expect(r(profile: 'cinematic', queued: 'legacy'), isNull); // outbox wins
+      expect(r(profile: 'cinematic', queued: 'glass'), isNull); // outbox wins
       expect(r(profile: 'cinematic'), SkinId.cinematic); // mismatch
       expect(
           r(running: SkinId.cinematic, profile: 'cinematic'), isNull,); // match
       expect(r(profile: 'glass'), SkinId.cinematic); // glass coerced
       expect(r(running: SkinId.cinematic, profile: 'glass'), isNull);
-      expect(r(profile: 'glass', glass: true), SkinId.glass);
-      expect(r(), isNull); // default == running
-      expect(r(running: SkinId.cinematic), SkinId.legacy);
-      expect(r(profile: 'nonsense', running: SkinId.cinematic), SkinId.legacy);
+      expect(r(running: SkinId.cinematic, profile: 'glass', glass: true), SkinId.glass);
+      expect(r(running: SkinId.cinematic), isNull); // default == running
+      expect(r(), SkinId.cinematic);
+      expect(r(profile: 'nonsense', glass: true), SkinId.cinematic);
+      // The retired legacy skin parses to the default.
+      expect(r(profile: 'legacy', glass: true), SkinId.cinematic);
+      expect(r(running: SkinId.cinematic, profile: 'legacy'), isNull);
     });
   });
 

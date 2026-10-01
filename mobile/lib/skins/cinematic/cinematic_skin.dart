@@ -53,7 +53,7 @@ class CinematicSkin implements Skin {
     },),
   );
 
-  /// The skin's theme, for the Diagnostics-only primitives gallery pushed from the legacy skin.
+  /// The skin's theme, for the primitives gallery harnesses.
   static ThemeData get baseTheme => _theme;
 
   @override

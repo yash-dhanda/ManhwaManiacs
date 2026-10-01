@@ -10,9 +10,8 @@ const _prefix = 'mm.shelf-query.';
 const _legacyQueryKey = 'manhwamaniacs:library-query'; // K16
 const _legacyCoverScaleKey = 'settings_library_cover_scale'; // K15
 
-/// The legacy skin's stored query (K16) and cover-size slider (K15) as a [ShelfQuery]; null when
-/// neither was ever written. The legacy keys are read and left in place: the legacy skin keeps
-/// reading them until the flip.
+/// The retired legacy skin's stored query (K16) and cover-size slider (K15) as a [ShelfQuery];
+/// null when neither was ever written. The keys are read and left in place.
 ShelfQuery? migrateLegacyShelfQuery(SharedPreferences prefs) {
   final raw = prefs.getString(_legacyQueryKey);
   final scale = prefs.getDouble(_legacyCoverScaleKey);

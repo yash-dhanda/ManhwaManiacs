@@ -42,7 +42,6 @@ void mobile15Shots() {
     bool reduced = false,
     bool online = true,
     bool audio = true,
-    bool legacy = false,
     int probe = 206,
     Set<String> narrated = const {'1', '2', '3'},
     Map<String, Object> prefs = const {},
@@ -59,7 +58,6 @@ void mobile15Shots() {
       reduced: reduced,
       online: online,
       audio: audio,
-      legacy: legacy,
       narrated: narrated,
       prefsValues: prefs,
       boundaryKey: kSkinShotKey,
@@ -337,15 +335,6 @@ void mobile15Shots() {
     await settleNovel(tester, ms: 400);
     await shot(l, 'reduced-motion-reading-room', phone);
     await end(l);
-
-    l = await rig(tester, legacy: true);
-    await showChrome(tester, phone);
-    await tester.tap(find.byIcon(Icons.play_arrow));
-    await l.settle();
-    await settleNovel(tester, ms: 500);
-    await shot(l, 'legacy-audio-player', phone);
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(seconds: 11));
   });
 
   testWidgets('mobile-15 audio save states', (tester) async {

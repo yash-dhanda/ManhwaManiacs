@@ -34,7 +34,7 @@ final highRefreshRateProvider =
 
 /// The app's single owner of the window's display-mode preference.
 ///
-/// Watched from `ManhwaManiacsApp` — the same idiom as
+/// Watched from `SkinApp` — the same idiom as
 /// `profileHeaderSyncProvider` — so the preference is asserted once at startup
 /// and re-asserted on every change, without any individual screen having to
 /// remember to. One owner matters here: `preferredDisplayModeId` is a single

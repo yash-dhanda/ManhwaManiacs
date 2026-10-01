@@ -21,12 +21,9 @@ class SkinBoot {
   final String? returnRoute;
   final bool carrySession;
 
-  /// The device mirror, else [kDefaultSkin]; a retired `legacy` becomes the default.
-  static SkinId resolveSkin(SharedPreferences prefs) {
-    final active = skinIdFromName(prefs.getString(kSkinActiveKey));
-    if (active == null || active == SkinId.legacy) return kDefaultSkin;
-    return active;
-  }
+  /// The device mirror, else [kDefaultSkin]; a retired `legacy` (unknown name) becomes the default.
+  static SkinId resolveSkin(SharedPreferences prefs) =>
+      skinIdFromName(prefs.getString(kSkinActiveKey)) ?? kDefaultSkin;
 
   /// Consumes the one-shot return route and session flag (S15).
   static SkinBoot read(SharedPreferences prefs) {
