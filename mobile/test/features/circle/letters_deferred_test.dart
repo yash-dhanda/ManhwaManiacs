@@ -61,6 +61,20 @@ void main() {
         c.dispose();
       }),);
 
+  test('a pause keeps a letter the note sheet holds; its Send then carries the note', () => fakeAsync((a) {
+        TestWidgetsFlutterBinding.ensureInitialized();
+        final c = ProviderContainer();
+        final n = c.read(pendingLettersProvider.notifier);
+        final held = n.schedule(toProfileIds: const [1], sourceId: 's', seriesKey: 'a', mature: false, send: send)..hold();
+        n.didChangeAppLifecycleState(AppLifecycleState.paused);
+        a.flushMicrotasks();
+        expect(sent, isEmpty);
+        held.sendWithNote('read this');
+        a.flushMicrotasks();
+        expect(sent.single.note, 'read this');
+        c.dispose();
+      }),);
+
   test('flush sends every pending letter', () => fakeAsync((a) {
         final c = ProviderContainer();
         final n = c.read(pendingLettersProvider.notifier);
