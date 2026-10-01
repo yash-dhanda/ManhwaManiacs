@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart' show SpringCurve;
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -79,10 +80,11 @@ class SeriesBand extends ConsumerWidget {
           const DecoratedBox(
             decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x00000000), Color(0xFF000000)], stops: [0.35, 1])),
           ),
+          // On the page gutter, like the cover and copy below it.
           Positioned(
             top: 8 + topInset,
-            left: 12,
-            right: 12,
+            left: GlassFrame.screenMargin(context),
+            right: GlassFrame.screenMargin(context),
             child: Row(
               children: [
                 if (leading != null) leading!,

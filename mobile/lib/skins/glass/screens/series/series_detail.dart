@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart' show Material, MaterialType;
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' as keys show ShortcutRegistry, shortcutRegistryProvider;
@@ -325,11 +326,13 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
         controller: inSheet ? null : _own,
         slivers: [
           SliverToBoxAdapter(child: band),
+          // The header rises 96 px onto the band's gradient and gives that room back to the layout (a translate left a dead band
+          // above the chapters); the rest follows 16 px under it.
           SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: margin),
-            sliver: SliverToBoxAdapter(child: Transform.translate(offset: const Offset(0, -96), child: widget.variant.header(context, this))),
+            sliver: SliverToBoxAdapter(child: SeriesLift(by: 96, child: widget.variant.header(context, this))),
           ),
-          SliverPadding(padding: EdgeInsets.symmetric(horizontal: margin), sliver: SliverToBoxAdapter(child: Transform.translate(offset: const Offset(0, -80), child: _below()))),
+          SliverPadding(padding: EdgeInsets.fromLTRB(margin, 16, margin, 0), sliver: SliverToBoxAdapter(child: _below())),
           ..._chapterSlivers(),
         ],
       );
@@ -436,3 +439,51 @@ class CollapseCapsule extends StatelessWidget {
 
 /// The page's progress value, for the sheet's opening detent and the warm-up.
 SeriesResume resumeFor(WidgetRef ref, GlassSeriesData d) => seriesResume(d.readingOrder, ref.watch(sourceSeriesProgressProvider(d.progressKey)), novel: d.novel);
+
+
+/// Paints [child] [by] px higher and reports a height [by] px shorter, so what follows sits under where the child is drawn.
+class SeriesLift extends SingleChildRenderObjectWidget {
+  const SeriesLift({super.key, required this.by, required Widget super.child});
+  final double by;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderLift(by);
+
+  @override
+  void updateRenderObject(BuildContext context, RenderObject renderObject) => (renderObject as _RenderLift).by = by;
+}
+
+class _RenderLift extends RenderProxyBox {
+  _RenderLift(this._by);
+  double _by;
+  set by(double v) {
+    if (v == _by) return;
+    _by = v;
+    markNeedsLayout();
+  }
+
+  @override
+  void performLayout() {
+    if (child == null) {
+      size = constraints.smallest;
+      return;
+    }
+    child!.layout(constraints.loosen().copyWith(minWidth: constraints.minWidth), parentUsesSize: true);
+    size = constraints.constrain(Size(child!.size.width, math.max(0, child!.size.height - _by)));
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (child != null) context.paintChild(child!, offset + Offset(0, -_by));
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) => transform.translateByDouble(0, -_by, 0, 1);
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) => hitTestChildren(result, position: position);
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
+      child != null && result.addWithPaintOffset(offset: Offset(0, -_by), position: position, hitTest: (r, p) => child!.hitTest(r, position: p));
+}
