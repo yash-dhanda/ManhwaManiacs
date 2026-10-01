@@ -1038,7 +1038,8 @@ class _GoToPagePopoverState extends ConsumerState<GoToPagePopover> with SingleTi
                         alignment: Alignment.centerLeft,
                         child: Material(
                           type: MaterialType.transparency,
-                          child: TextField(
+                          // The styles are already scaled and capped (roleStyle): the field must not scale them again.
+      child: MediaQuery.withNoTextScaling(child: TextField(
                             key: const ValueKey('reader-goto-field'),
                             controller: _text,
                             autofocus: true,
@@ -1052,7 +1053,7 @@ class _GoToPagePopoverState extends ConsumerState<GoToPagePopover> with SingleTi
                               hintStyle: roleStyle(context, gt.typeMono, onGlass: true, size: 15).copyWith(color: gt.colorLabel3),
                             ),
                             onSubmitted: (v) => _go(int.tryParse(v.trim()) ?? widget.state.page),
-                          ),
+                          ),),
                         ),
                       ),
                       const SizedBox(width: 8),

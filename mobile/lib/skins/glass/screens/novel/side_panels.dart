@@ -72,7 +72,7 @@ class NovelRightPanelTabs extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(padding: const EdgeInsets.fromLTRB(16, 16, 16, 4), child: Semantics(header: true, child: Text(tabs.first.label, style: roleStyle(context, gt.typeHeadline, onGlass: true, maxScale: 1.3).copyWith(color: gt.colorOnGlass)))),
+          Padding(padding: const EdgeInsets.fromLTRB(16, 16, 16, 4), child: Semantics(header: true, child: Text(tabs.first.label, style: roleStyle(context, gt.typeHeadline, onGlass: true, maxScale: 1.3).copyWith(color: gt.colorOnGlass), textScaler: TextScaler.noScaling))),
           Expanded(child: Builder(builder: tabs.first.builder)),
         ],
       );

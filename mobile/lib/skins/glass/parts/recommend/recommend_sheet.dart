@@ -253,8 +253,7 @@ class _RecommendSheetBodyState extends ConsumerState<RecommendSheetBody> with Ti
       children: [
         Text.rich(
           TextSpan(children: [const TextSpan(text: 'Recommend '), TextSpan(text: title, style: const TextStyle(fontStyle: FontStyle.italic))]),
-          style: roleStyle(context, gt.typeTitle3).copyWith(color: gt.colorLabel1),
-        ),
+          style: roleStyle(context, gt.typeTitle3).copyWith(color: gt.colorLabel1), textScaler: TextScaler.noScaling,),
         const SizedBox(height: 16),
         if (offline) Padding(padding: const EdgeInsets.only(bottom: 12), child: GlassText('Recommending needs a connection', role: gt.typeFootnote, color: gt.colorLabel2)),
         if (members.isLoading && !members.hasValue)

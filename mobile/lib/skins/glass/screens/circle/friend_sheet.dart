@@ -103,8 +103,7 @@ List<Widget> friendSlivers(BuildContext context, WidgetRef ref, int profileId) {
             child: Text.rich(
               TextSpan(children: [const TextSpan(text: 'Reading now: '), TextSpan(text: p.now!.title, style: const TextStyle(fontStyle: FontStyle.italic))]),
               textAlign: TextAlign.center,
-              style: roleStyle(context, gt.typeFootnote).copyWith(color: gt.colorBloom),
-            ),
+              style: roleStyle(context, gt.typeFootnote).copyWith(color: gt.colorBloom), textScaler: TextScaler.noScaling,),
           ),
         const SizedBox(height: 16),
         GlassButton(label: 'Recommend something to $name', onPressed: () => openRecommendSheet(ref, toProfileId: profileId)),

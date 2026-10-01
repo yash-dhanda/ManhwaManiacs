@@ -92,8 +92,7 @@ class ActivityRow extends ConsumerWidget {
           if (r.glyph != null) WidgetSpan(alignment: PlaceholderAlignment.middle, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: Icon(glassReaction(r.glyph!).fill, size: 18, color: gt.colorBloom))),
         ],
       ],),
-      style: body,
-    );
+      style: body, textScaler: TextScaler.noScaling,);
     final meta = Row(mainAxisSize: MainAxisSize.min, children: [
       Icon(novel ? GlassGlyph.bookOpen.regular : GlassGlyphs.stripScrollRegular, size: 16, color: gt.colorLabel2),
       const SizedBox(width: 6),

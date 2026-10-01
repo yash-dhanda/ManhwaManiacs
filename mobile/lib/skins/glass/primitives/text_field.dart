@@ -272,7 +272,8 @@ class _GlassTextFieldState extends ConsumerState<GlassTextField> {
 
     final field = TextSelectionTheme(
       data: TextSelectionThemeData(cursorColor: gt.colorIris400, selectionColor: const Color(0x667563F2)),
-      child: TextField(
+      // The styles are already scaled and capped (roleStyle): the field must not scale them again.
+      child: MediaQuery.withNoTextScaling(child: TextField(
         controller: _controller,
         focusNode: _node,
         enabled: !disabled,
@@ -297,7 +298,7 @@ class _GlassTextFieldState extends ConsumerState<GlassTextField> {
         decoration: InputDecoration.collapsed(hintText: widget.hint, hintStyle: hint),
         onChanged: widget.onChanged,
         onSubmitted: widget.onSubmitted,
-      ),
+      ),),
     );
 
     Widget well = GlassWell(

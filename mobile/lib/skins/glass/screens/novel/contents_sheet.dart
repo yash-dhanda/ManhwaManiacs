@@ -138,7 +138,7 @@ class _NovelContentsBodyState extends ConsumerState<NovelContentsBody> {
         if (n != null && matches.isEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Text('No chapter ${formatChapterNumber(n)} in this book.', style: roleStyle(context, gt.typeBody).copyWith(color: colors.muted)),
+            child: Text('No chapter ${formatChapterNumber(n)} in this book.', style: roleStyle(context, gt.typeBody).copyWith(color: colors.muted), textScaler: TextScaler.noScaling),
           ),
         Expanded(
           child: ListView.builder(
@@ -181,7 +181,7 @@ class _Message extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(text, textAlign: TextAlign.center, style: roleStyle(context, gt.typeBody).copyWith(color: colors.ink)),
+            Text(text, textAlign: TextAlign.center, style: roleStyle(context, gt.typeBody).copyWith(color: colors.ink), textScaler: TextScaler.noScaling),
             if (action != null) ...[const SizedBox(height: 12), action!],
           ],
         ),

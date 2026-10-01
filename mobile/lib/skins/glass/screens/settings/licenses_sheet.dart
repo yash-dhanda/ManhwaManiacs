@@ -194,7 +194,7 @@ class LicenceText extends ConsumerWidget {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-              child: SelectableText(item.text, style: GlassTypeStyle.style(context, gt.typeMono, size: 13, height: 20).copyWith(color: onGlass ? gt.colorOnGlass : gt.colorLabel2)),
+              child: SelectableText(item.text, style: GlassTypeStyle.style(context, gt.typeMono, size: 13, height: 20).copyWith(color: onGlass ? gt.colorOnGlass : gt.colorLabel2), textScaler: TextScaler.noScaling),
             ),
           ),
         ],),

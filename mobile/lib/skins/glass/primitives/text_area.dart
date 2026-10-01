@@ -107,7 +107,8 @@ class _GlassTextAreaState extends ConsumerState<GlassTextArea> {
 
     Widget field = TextSelectionTheme(
       data: TextSelectionThemeData(cursorColor: gt.colorIris400, selectionColor: const Color(0x667563F2)),
-      child: TextField(
+      // The styles are already scaled and capped (roleStyle): the field must not scale them again.
+      child: MediaQuery.withNoTextScaling(child: TextField(
         controller: _c,
         focusNode: _node,
         enabled: !disabled,
@@ -122,7 +123,7 @@ class _GlassTextAreaState extends ConsumerState<GlassTextArea> {
         onChanged: widget.onChanged,
         maxLength: max,
         buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-      ),
+      ),),
     );
     if (widget.submitOnEnter) {
       field = Focus(

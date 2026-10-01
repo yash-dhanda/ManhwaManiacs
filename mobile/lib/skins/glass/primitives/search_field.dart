@@ -124,7 +124,8 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
     final base = roleStyle(context, gt.typeBody, legible: legible, onGlass: onGlass, maxScale: 1.5);
     return TextSelectionTheme(
       data: TextSelectionThemeData(cursorColor: gt.colorIris400, selectionColor: const Color(0x667563F2)),
-      child: TextField(
+      // The styles are already scaled and capped (roleStyle): the field must not scale them again.
+      child: MediaQuery.withNoTextScaling(child: TextField(
         controller: _c,
         focusNode: _node,
         keyboardType: TextInputType.text,
@@ -136,7 +137,7 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
         decoration: InputDecoration.collapsed(hintText: widget.placeholder, hintStyle: base.copyWith(color: gt.colorLabel2)),
         onChanged: _changed,
         onSubmitted: _submit,
-      ),
+      ),),
     );
   }
 

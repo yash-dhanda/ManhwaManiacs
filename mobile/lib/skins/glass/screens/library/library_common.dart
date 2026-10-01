@@ -98,8 +98,7 @@ class BookTitle extends StatelessWidget {
         text,
         maxLines: maxLines,
         overflow: TextOverflow.ellipsis,
-        style: GlassTypeStyle.style(context, gt.typeHeadline, size: size).copyWith(fontFamily: 'Literata', color: gt.colorLabel1, fontStyle: italic ? FontStyle.italic : null),
-      );
+        style: GlassTypeStyle.style(context, gt.typeHeadline, size: size).copyWith(fontFamily: 'Literata', color: gt.colorLabel1, fontStyle: italic ? FontStyle.italic : null), textScaler: TextScaler.noScaling,);
 }
 
 /// The current location's query parameters, read from inside a `?sheet=` sheet. A sheet is a route the host pushes, not a GoRoute

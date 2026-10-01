@@ -60,13 +60,13 @@ class GlassEndMatter extends StatelessWidget {
           ...reactionSlots,
           const SizedBox(height: 32),
           if (endOfDownload) ...[
-            Text('End of the downloaded copy', style: roleStyle(context, gt.typeBody).copyWith(color: colors.ink), textAlign: TextAlign.center),
+            Text('End of the downloaded copy', style: roleStyle(context, gt.typeBody).copyWith(color: colors.ink), textAlign: TextAlign.center, textScaler: TextScaler.noScaling),
             const SizedBox(height: 8),
             plain('Download next 10 when online', onDownloadNext),
           ] else if (nextLabel != null)
             _NextCard(key: cardKey, label: nextLabel!, onTap: onNext, locked: locked)
           else
-            Text("You've reached the last chapter this source has published", style: roleStyle(context, gt.typeBody).copyWith(color: colors.muted), textAlign: TextAlign.center),
+            Text("You've reached the last chapter this source has published", style: roleStyle(context, gt.typeBody).copyWith(color: colors.muted), textAlign: TextAlign.center, textScaler: TextScaler.noScaling),
           const SizedBox(height: 24),
           Wrap(
             alignment: WrapAlignment.center,
