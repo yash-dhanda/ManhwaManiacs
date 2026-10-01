@@ -20,6 +20,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/liquid_progress.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/progress.dart' show GlassDots;
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/text_field.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/admin_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_row.dart';
@@ -176,10 +177,14 @@ class _BackupBodyState extends ConsumerState<BackupBody> {
 
   Future<void> _cancelStaged() async {
     setState(() => _cancelling = true);
-    await ref.read(backupRepositoryProvider).cancelPendingRestore();
+    final r = await ref.read(backupRepositoryProvider).cancelPendingRestore();
     if (!mounted) return;
     setState(() => _cancelling = false);
     ref.invalidate(backupStatusProvider);
+    if (r.isErr) {
+      // Still staged: a restart would apply it, so say so.
+      settingsToast(ref, "Couldn't cancel. The restore is still staged. ${r.error.userMessage}", kind: GlassToastKind.error);
+    }
   }
 
   @override
