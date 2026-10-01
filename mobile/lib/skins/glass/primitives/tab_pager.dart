@@ -261,7 +261,9 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
         ),
       );
     // Labels that run past the screen fade over the trailing 24 px (as the chip rows), never a hard cut mid-word.
-    if (total > screenW) strip = glassTrailingFade(strip);
+    // The fade applies whenever the labels run past the strip's own viewport (narrower than the screen inside a page).
+    final bare = strip;
+    strip = LayoutBuilder(builder: (context, c) => total > (c.hasBoundedWidth ? c.maxWidth : screenW) ? glassTrailingFade(bare) : bare);
     strip = SizedBox(height: stripHeight, child: strip);
 
     return GlassDragOwner(

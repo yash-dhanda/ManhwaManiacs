@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/progress.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented_math.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/spring_value.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
+import 'package:manhwamaniacs/skins/glass/type.dart';
 import 'package:motor/motor.dart';
 
 class GlassSegment<T> {
@@ -79,6 +80,10 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
   bool _placed = false;
   int _idx = 0;
   List<double> _widths = const [];
+
+  /// One factor for every label (a control never mixes label sizes) and whether the glyphs give way, when a segment is too narrow.
+  double _shrink = 1;
+  bool _dropIcons = false;
   double _thumbAtDragStart = 0;
   double _dragDx = 0;
 
@@ -205,6 +210,9 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
         final natural = labelWidths.map((w) => w + 32).reduce(math.max) * n + 4;
         final total = (c.hasBoundedWidth ? c.maxWidth : natural).clamp(0.0, 4000.0);
         _widths = segmentWidths(labelWidths: labelWidths, total: total - 4);
+        _dropIcons = [for (var i = 0; i < n; i++) labelWidths[i] > _widths[i] - 16].any((x) => x);
+        final textWidths = [for (final s in widget.segments) measureText(context, s.label, st).width];
+        _shrink = [for (var i = 0; i < n; i++) ((_widths[i] - 16) / math.max(1.0, textWidths[i])).clamp(0.0, 1.0)].fold<double>(1, (a, b) => math.min(a, b.toDouble()));
         final lefts = _lefts();
         if (!_placed) {
           _placed = true;
@@ -345,22 +353,19 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
             child: Center(
               child: loading
                   ? const GlassSpinner()
-                  // A segment too narrow for its glyph and label drops the glyph, then scales the label down: never cut, never striped.
-                  : LayoutBuilder(builder: (context, c) {
-                      final label = GlassLabel(s.label, role: gt.typeSubhead, wght: 620, color: sel ? gt.colorLabel1 : gt.colorLabel2);
-                      final w = measureText(context, s.label, roleStyle(context, gt.typeSubhead, wght: 620, legible: legible, maxScale: 1.5)).width;
-                      if (s.icon != null && w + 22 <= c.maxWidth - 8) {
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(s.icon, size: 16, color: sel ? gt.colorLabel1 : gt.colorLabel2),
-                            const SizedBox(width: 6),
-                            label,
-                          ],
-                        );
-                      }
-                      return Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: FittedBox(fit: BoxFit.scaleDown, child: label));
-                    },),
+                  // Too narrow for glyph and label: the glyphs give way, then every label sets down by one shared factor.
+                  : () {
+                      final label = GlassText(s.label, role: gt.typeSubhead, wght: 620, maxScale: 1.5, maxLines: 1, shrink: _shrink, color: sel ? gt.colorLabel1 : gt.colorLabel2);
+                      if (s.icon == null || _dropIcons) return label;
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(s.icon, size: 16, color: sel ? gt.colorLabel1 : gt.colorLabel2),
+                          const SizedBox(width: 6),
+                          label,
+                        ],
+                      );
+                    }(),
             ),
           ),
         ),

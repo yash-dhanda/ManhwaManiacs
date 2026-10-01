@@ -128,8 +128,9 @@ class _SeriesTagsSheetState extends ConsumerState<SeriesTagsSheet> {
         if (!names.contains(s.toLowerCase()) && !_dismissed.contains(s)) s,
     ].take(5).toList();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    // Scrolls when the detent is shorter than the sheet (large text, a short phone); on the sheets' 20 px gutter.
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
