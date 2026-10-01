@@ -193,6 +193,7 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
             // the TextField and a focused field with its keyboard down could not get it back.
             Widget glassFor(double width) => GestureDetector(
                   behavior: HitTestBehavior.opaque,
+                  excludeFromSemantics: true,
                   onTap: _wake,
                   child: SkinGlass(
                     size: Size(width, h),
