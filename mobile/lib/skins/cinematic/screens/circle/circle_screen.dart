@@ -142,7 +142,6 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
     final online = ref.watch(deviceOnlineProvider).valueOrNull ?? true;
     final offline = !online || (membersAsync.hasError && membersAsync.error is NetworkError);
     final wide = MediaQuery.sizeOf(context).width >= 900;
-    final top = MediaQuery.paddingOf(context).top;
     final dup = duplicateMemberNames(members ?? const []);
     final quiet = members != null && members.isEmpty;
     final viewerShares = sharing?.activity ?? false;
@@ -272,7 +271,7 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
             key(LogicalKeyboardKey.keyL, 'Letters', _lettersKey),
             key(LogicalKeyboardKey.keyR, 'Reprint', () => unawaited(_reprint())),
           ],
-          child: Padding(padding: EdgeInsets.only(top: top), child: body()),
+          child: CineBelowHead(child: body()),
         ),
       ),
     );

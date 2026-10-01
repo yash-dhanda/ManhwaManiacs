@@ -265,7 +265,7 @@ class _Masthead extends StatelessWidget {
         if (masthead.deck.isNotEmpty) ...[
           SizedBox(height: c.space2),
           CineStock.raised(Builder(builder: (b) {
-            final deck = CineRoleText(masthead.deck, b.cine.typeDeck, color: b.cine.colorInk60, maxLines: 1, overflow: TextOverflow.ellipsis);
+            final deck = CineRoleText(masthead.deck, b.cine.typeDeck, color: b.cine.colorInk60, maxLines: 2, overflow: TextOverflow.ellipsis); // as CineMasthead: one line cut it at text scale
             if (onDeckTap == null) return deck;
             return Semantics(
               button: true,

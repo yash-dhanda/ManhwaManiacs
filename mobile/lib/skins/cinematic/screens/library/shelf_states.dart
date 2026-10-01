@@ -184,21 +184,18 @@ class ShelfGalley extends StatelessWidget {
     } else {
       final g = ShelfGeometry.of(context, density);
       final n = density == ShelfDensity.compact ? 24 : 12;
-      body = Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: g.delegate,
-          itemCount: n,
-          itemBuilder: (context, i) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            AspectRatio(aspectRatio: 2 / 3, child: CineFlicker(index: i, child: const CineGalleyPlate())),
-            if (density != ShelfDensity.compact) ...[
-              SizedBox(height: c.space2),
-              CineGalleyLine(lineHeight: roleLineHeight(context, c.typeTitle), index: i),
-            ],
-          ],),
-        ),
+      body = GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: g.delegate,
+        itemCount: n,
+        itemBuilder: (context, i) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          AspectRatio(aspectRatio: 2 / 3, child: CineFlicker(index: i, child: const CineGalleyPlate())),
+          if (density != ShelfDensity.compact) ...[
+            SizedBox(height: c.space2),
+            CineGalleyLine(lineHeight: roleLineHeight(context, c.typeTitle), index: i),
+          ],
+        ],),
       );
     }
     return Padding(

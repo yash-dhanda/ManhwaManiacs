@@ -66,12 +66,16 @@ abstract final class CineText {
     );
   }
 
+  /// Archivo and Bodoni carry no box-drawing set: `Continue │ CH 213` drew a missing-glyph box (or
+  /// a system font's bar). Plex Mono, already bundled, carries it.
+  static const _fallback = ['IBMPlexMono'];
+
   static bool _capsRole(CineTokens t, CineTextRole r) =>
       identical(r, t.typeKicker) || identical(r, t.typeCredit) || identical(r, t.typeCreditLabel) || identical(r, t.typeNav) || identical(r, t.typeMicro);
 
   /// The role's style; at scale >= 1.3 the caps roles widen to `wdth` 100, except fixed cells.
   static TextStyle style(BuildContext context, CineTextRole role, {bool fixedCell = false}) {
-    final base = CineType.style(context, role, legible: CineTextSettings.of(context).legible);
+    final base = CineType.style(context, role, legible: CineTextSettings.of(context).legible).copyWith(fontFamilyFallback: _fallback);
     final scale = cineScale(context);
     if (scale < 1.3 || !_capsRole(context.cine, role)) return base;
     return fixedCell ? _withVariations(base, extraTrackingEm: 0.06) : _withVariations(base, wdth: 100);
@@ -114,6 +118,7 @@ abstract final class CineText {
     final weight = FontWeight.values[((w / 100).round() - 1).clamp(0, 8)];
     return TextStyle(
       fontFamily: family,
+      fontFamilyFallback: _fallback,
       fontSize: size,
       height: line / size,
       fontStyle: italic ? FontStyle.italic : FontStyle.normal,

@@ -90,7 +90,7 @@ class CineContentModeChip extends ConsumerWidget {
       builder: (ctx) {
         final c = ctx.cine;
         return Padding(
-          padding: EdgeInsets.all(c.space4),
+          padding: EdgeInsets.symmetric(vertical: c.space4), // the sheet body sets the gutter
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const CineContentModeToggle(),
             SizedBox(height: c.space4),

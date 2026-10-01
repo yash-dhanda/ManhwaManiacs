@@ -114,13 +114,14 @@ class CineKeyboardSheetBody extends StatelessWidget {
               container: true,
               label: '${e.description}, ${keycapsOf(e, platform).join(' ')}',
               excludeSemantics: true,
-              child: Row(children: [
-                Flexible(child: CineRoleText(e.description, c.typeUi, color: c.colorInk60)),
-                SizedBox(width: c.space2),
-                const Expanded(child: Padding(padding: EdgeInsets.only(top: 6), child: CineDotLeader())),
-                SizedBox(width: c.space2),
-                for (final k in keycapsOf(e, platform)) Padding(padding: const EdgeInsets.only(left: 4), child: _Keycap(k)),
-              ],),
+              child: Align(
+                child: CineLeaderRow(
+                  label: CineRoleText(e.description, c.typeUi, color: c.colorInk60),
+                  value: Row(mainAxisSize: MainAxisSize.min, children: [
+                    for (final (i, k) in keycapsOf(e, platform).indexed) Padding(padding: EdgeInsets.only(left: i == 0 ? 0 : 4), child: _Keycap(k)),
+                  ],),
+                ),
+              ),
             ),
           ),
       ],

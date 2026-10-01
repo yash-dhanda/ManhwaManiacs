@@ -232,7 +232,8 @@ class _FiltersButton extends StatelessWidget {
         builder: (context, st) => ConstrainedBox(
           constraints: BoxConstraints(minHeight: cineHitMin(context), minWidth: cineHitMin(context)),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: c.space3),
+            // The row's first word: on the gutter, not 12 px in.
+            padding: EdgeInsets.only(right: c.space3),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               CineRoleText('Filters', c.typeLabel, color: st.hovered ? c.colorInk100 : c.colorInk60),
               if (count > 0)

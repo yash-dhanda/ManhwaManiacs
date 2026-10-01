@@ -102,6 +102,8 @@ class SourceRow extends ConsumerWidget {
                                   : null,
                             ),
                           ),
+                          // No empty caption line: it pushed the name above the icon's centre.
+                          if (source.description.trim().isNotEmpty)
                           Text(
                             source.description,
                             maxLines: 1,

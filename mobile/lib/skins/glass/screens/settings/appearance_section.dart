@@ -22,7 +22,7 @@ class AppearanceSection extends ConsumerWidget {
   final bool? _showIconRow;
 
   /// Test hook; defaults to [GlassSkinSwitch.start].
-  final void Function(SkinId target, Rect origin)? onChooseSkin;
+  final FutureOr<void> Function(SkinId target, Rect origin)? onChooseSkin;
 
   bool get showIconRow => _showIconRow ?? Flags.glassAvailable;
 
@@ -36,7 +36,7 @@ class AppearanceSection extends ConsumerWidget {
     final rec = ref.read(glassPrefsRecordProvider.notifier);
     final lightOn = rec.lightFollowsDevice;
     final switcher = ref.watch(appIconSwitcherProvider);
-    void choose(SkinId t, Rect r) => onChooseSkin != null ? onChooseSkin!(t, r) : unawaited(GlassSkinSwitch.start(context, ref, t, origin: r));
+    FutureOr<void> choose(SkinId t, Rect r) => onChooseSkin != null ? onChooseSkin!(t, r) : GlassSkinSwitch.start(context, ref, t, origin: r);
     return Column(children: [
       SettingsGroup(header: 'Skin', footer: 'Switching skin restarts the app.', children: [
         SettingsAnchor(
