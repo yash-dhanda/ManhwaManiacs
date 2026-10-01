@@ -29,6 +29,8 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final engine = ReaderEngine(sampleDecoder: (_) async => null);
     addTearDown(engine.dispose);
+    // The sampler's 600 ms throttle must run on the test's fake time; wall-clock time made the request bound flaky.
+    engine.sampler.clock = tester.binding.clock.now;
     final chapter = ReaderChapter(
       id: 'long',
       seriesId: 's',
