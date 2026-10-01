@@ -4,7 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/core/utils/pagination.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_search_field.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toast_host.dart';
@@ -14,13 +19,14 @@ import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The frame's keys over a tiny router: paths only, no screens.
-Future<GoRouter> _app(WidgetTester t, {String start = '/'}) async {
+Future<GoRouter> _app(WidgetTester t, {String start = '/', List<Override> overrides = const []}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   late GoRouter router;
   final container = ProviderContainer(overrides: [
     sharedPrefsProvider.overrideWithValue(prefs),
     skinIdProvider.overrideWithValue(SkinId.cinematic),
+    ...overrides,
     skinRouterProvider.overrideWith((ref) {
       router = GoRouter(initialLocation: start, routes: [
         GoRoute(path: '/', builder: (c, s) => _Page(s.uri.toString())),
@@ -50,6 +56,16 @@ class _Page extends StatelessWidget {
   final String loc;
   @override
   Widget build(BuildContext context) => Scaffold(body: Column(children: [Text('at $loc'), const TextField(key: Key('field'))]));
+}
+
+/// The palette's library search: always answers with nothing.
+class _EmptyLibrary implements LibraryRepository {
+  @override
+  Future<Result<PagedResult<FollowedSeries>>> search(String query, {int page = 1, int perPage = 20}) async =>
+      Ok(PagedResult(items: const [], total: 0, page: page, perPage: perPage, hasNext: false));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 String _at(GoRouter r) => r.routerDelegate.currentConfiguration.uri.toString();
@@ -150,6 +166,32 @@ void main() {
     await t.sendKeyEvent(LogicalKeyboardKey.enter);
     await t.pumpAndSettle();
     expect(_at(r), '/circle');
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android),);
+
+  testWidgets('the palette announces "Searching…", then the count or "Nothing matches"', (t) async {
+    final said = <String>[];
+    t.binding.defaultBinaryMessenger.setMockDecodedMessageHandler<dynamic>(SystemChannels.accessibility, (m) async {
+      final data = (m as Map?)?['data'] as Map?;
+      if (data?['message'] is String) said.add(data!['message'] as String);
+      return null;
+    });
+    addTearDown(() => t.binding.defaultBinaryMessenger.setMockDecodedMessageHandler<dynamic>(SystemChannels.accessibility, null));
+    await _app(t, overrides: [libraryRepositoryProvider.overrideWithValue(_EmptyLibrary())]);
+    await t.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await t.sendKeyEvent(LogicalKeyboardKey.keyK);
+    await t.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await t.pumpAndSettle();
+    await t.enterText(find.byType(EditableText).last, 'circle');
+    await t.pump(const Duration(milliseconds: 100));
+    expect(said, isEmpty);
+    await t.pump(const Duration(milliseconds: 200));
+    await t.pump();
+    expect(said, ['Searching…', matches(RegExp(r'^\d+ results?$'))]);
+    said.clear();
+    await t.enterText(find.byType(EditableText).last, 'qqzzx');
+    await t.pump(const Duration(milliseconds: 300));
+    await t.pump();
+    expect(said, ['Searching…', 'Nothing matches “qqzzx”.']);
   }, variant: TargetPlatformVariant.only(TargetPlatform.android),);
 
   test('rankPalette orders groups and truncates at 40', () {
