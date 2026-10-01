@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
@@ -16,7 +17,11 @@ String stopPressLine(int chapters, int series) {
 }
 
 /// The highest notification id the reader dismissed this session; a newer one shows it again.
-final stopPressDismissedProvider = StateProvider<int>((ref) => 0, name: 'stopPressDismissed');
+/// Per profile: ids are global rows, so another profile's dismissal must not hide this one's banner.
+final stopPressDismissedProvider = StateProvider<int>((ref) {
+  ref.watch(activeProfileProvider.select((p) => p?.id));
+  return 0;
+}, name: 'stopPressDismissed');
 
 enum StopPressPlacement { bottom, top }
 
