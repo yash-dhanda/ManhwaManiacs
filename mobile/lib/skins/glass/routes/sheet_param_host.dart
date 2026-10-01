@@ -6,7 +6,8 @@ import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
 
 /// Turns `?sheet={id}` into a sheet on any route (glass 8.0.3): when an id appears (a tap, a deep link after the first frame) the
-/// registered sheet is pushed on the nearest navigator unless a screen claimed it; when the sheet pops the parameter (and its
+/// registered sheet is pushed on the root navigator (above the shell, its dock and the page recede, which would otherwise blur the
+/// sheet with the page) unless a screen claimed it; when the sheet pops the parameter (and its
 /// companions) is removed with `replace`; when the parameter disappears (back, a location change) the sheets pop. A second id while
 /// one is open stacks over it (the player's Voices tile opens the cast sheet); when the upper one pops the parameter falls back to
 /// the one beneath.
@@ -65,7 +66,7 @@ class _GlassSheetParamHostState extends State<GlassSheetParamHost> {
     );
     final route = page.createRoute(context);
     _stack.add((id, route));
-    unawaited(Navigator.of(context).push<void>(route).whenComplete(() {
+    unawaited(Navigator.of(context, rootNavigator: true).push<void>(route).whenComplete(() {
       final at = _stack.indexWhere((e) => e.$2 == route);
       final wasOurs = at >= 0;
       if (wasOurs) _stack.removeAt(at);
