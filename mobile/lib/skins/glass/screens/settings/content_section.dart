@@ -5,7 +5,7 @@ import 'package:manhwamaniacs/skins/glass/screens/settings/settings_common.dart'
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_row.dart';
 
 /// Settings -> Content (glass 8.25.4): the 18+ switch and its gate (`GlassMatureGate`, mobile/28). Turning it off clears the
-/// 18+ data through the gate's own setter (the invalidation list runs `purgeMatureLocal`).
+/// 18+ data: the gate switch runs `purgeMatureLocal` after the setter succeeds.
 class ContentSection extends ConsumerWidget {
   const ContentSection({super.key});
 
