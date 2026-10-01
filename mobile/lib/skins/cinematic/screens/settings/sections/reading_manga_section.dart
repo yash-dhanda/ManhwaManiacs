@@ -86,7 +86,7 @@ class ReadingMangaSection extends ConsumerWidget {
       segmentedRow('ground', 'Ground', const ['BLACK', 'INK', 'SLATE'], const ['black', 'ink', 'slate'].indexOf(r.ground),
           (i) => n.put({'ground': const ['black', 'ink', 'slate'][i]}),),
       const SettingsKicker('TAPS AND SWIPES'),
-      const JumpRow(id: 'tap-zones', child: SettingsCaption('Tap zones: what each side of the page does.')),
+      const JumpRow(id: 'tap-zones', child: SettingsCaption('Tap zones: what each side of the page does. Double-tap Menu to show the controls.')),
       tapRow('left', 'LEFT'),
       tapRow('center', 'CENTRE'),
       tapRow('right', 'RIGHT'),

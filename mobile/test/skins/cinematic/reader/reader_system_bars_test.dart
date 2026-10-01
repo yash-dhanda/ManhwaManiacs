@@ -35,18 +35,18 @@ void main() {
 
         await tester.pump(const Duration(milliseconds: 1000));
         calls.clear();
-        // The chrome starts shown over the entry bars; a centre tap hides it: still the entry mode.
-        await tapSingle(tester);
+        // The chrome starts shown over the entry bars; a centre double tap hides it: still the entry mode.
+        await tapDouble(tester);
         expect(chromeVisible(tester), isFalse);
         expect(calls.where((c) => c != entry), isEmpty, reason: 'chrome hidden: $calls');
 
         calls.clear();
-        await tapSingle(tester);
+        await tapDouble(tester);
         expect(chromeVisible(tester), isTrue);
         expect(calls, ['overlays:SystemUiOverlay.top'], reason: 'chrome shown');
 
         calls.clear();
-        await tapSingle(tester);
+        await tapDouble(tester);
         expect(calls, [entry], reason: 'chrome hidden again');
 
         calls.clear();

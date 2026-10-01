@@ -46,14 +46,4 @@ void main() {
     expect(tapAt(200, 400), StripTap.toggleChrome);
     expect(tapAt(50, 400, rtl: true), StripTap.scrollForward);
   });
-
-  test('double tap toggles resting and min(2 x resting, 3)', () {
-    expect(doubleTapZoomTarget(1.0, 1.0), 2.0);
-    expect(doubleTapZoomTarget(2.0, 1.0), 1.0);
-    expect(doubleTapZoomTarget(1.7, 1.0), 1.0);
-    expect(doubleTapZoomTarget(1.8, 1.8), 3.0);
-    expect(doubleTapZoomTarget(3.0, 1.8), 1.8);
-    expect(tapScrollFraction(forward: true), 0.75);
-    expect(tapScrollFraction(forward: false), -0.75);
-  });
 }

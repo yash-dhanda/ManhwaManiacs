@@ -142,7 +142,7 @@ Widget _zoneRow(SetupCtx c, int i, String label) {
 }
 
 final List<SetupRow> controlsRows = [
-  (c) => const SettingsCaption('Tap zones: what each side of the page does. Saved for this profile.'),
+  (c) => const SettingsCaption('Tap zones: what each side of the page does. Double-tap Menu to show the controls. Saved for this profile.'),
   (c) => _zoneRow(c, 0, 'LEFT'),
   (c) => _zoneRow(c, 1, 'CENTRE'),
   (c) => _zoneRow(c, 2, 'RIGHT'),

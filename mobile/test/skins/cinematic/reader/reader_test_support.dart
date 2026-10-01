@@ -189,6 +189,17 @@ Future<void> tapSingle(WidgetTester tester, [Offset at = const Offset(195, 422)]
   await tester.pump(const Duration(milliseconds: 300));
 }
 
+/// A deliberate double tap at [at], after a quiet gap so the first tap is not the second of an
+/// earlier one: what opens and closes the chrome.
+Future<void> tapDouble(WidgetTester tester, [Offset at = const Offset(195, 422)]) async {
+  await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
+  await tester.tapAt(at);
+  await tester.pump(const Duration(milliseconds: 60));
+  await tester.tapAt(at);
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.pump(const Duration(milliseconds: 300));
+}
+
 /// Tears the reader down and lets its timers (retry back-off, toasts, idle hide) run out.
 Future<void> disposeReader(WidgetTester tester) async {
   await tester.pumpWidget(const SizedBox());

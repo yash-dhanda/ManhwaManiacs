@@ -44,7 +44,7 @@ Future<void> key(WidgetTester tester, LogicalKeyboardKey k, {int ms = 600, bool 
 void main() {
   setUpAll(setUpShotCoverCache);
 
-  testWidgets('single layout mounts the paged view; taps 30 / 40 / 30 turn and toggle the chrome', (tester) async {
+  testWidgets('single layout mounts the paged view; taps 30 / 40 / 30 turn, a centre double tap toggles the chrome', (tester) async {
     await pumpReader(tester, prefsValues: seedLayout('single'));
     await settleReader(tester, ms: 500);
     expect(find.byType(PagedReaderView), findsOneWidget);
@@ -56,7 +56,10 @@ void main() {
     expect(pageOf(tester), 1);
     final before = chromeVisible(tester);
     await tapSingle(tester);
+    expect(chromeVisible(tester), before, reason: 'a single centre tap leaves the chrome alone');
+    await tapDouble(tester);
     expect(chromeVisible(tester), isNot(before));
+    expect(pageOf(tester), 1);
     await disposeReader(tester);
   });
 
@@ -161,25 +164,20 @@ void main() {
     await disposeReader(tester);
   });
 
-  testWidgets('a double tap zooms to 2x at the tap point; a drag then pans and never turns the page', (tester) async {
+  testWidgets('zoomed to 2x, a drag pans and never turns the page', (tester) async {
     await pumpReader(tester, prefsValues: seedLayout('single'));
     await settleReader(tester, ms: 500);
-    ReaderEngineState state() => tester.widget<PagedReaderView>(find.byType(PagedReaderView)).controller.value;
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
-    await tester.tapAt(const Offset(195, 300));
-    await tester.pump(const Duration(milliseconds: 60));
-    await tester.tapAt(const Offset(195, 300));
+    final controller = tester.widget<PagedReaderView>(find.byType(PagedReaderView)).controller;
+    ReaderEngineState state() => controller.value;
+    controller.toggleDoubleTapZoom();
     await settleReader(tester, ms: 500);
     expect(state().zoom, 2.0);
     await tester.flingFrom(const Offset(200, 500), const Offset(-250, 0), 1500);
     await settleReader(tester, ms: 800);
     expect(pageOf(tester), 1);
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
-    await tester.tapAt(const Offset(195, 300));
-    await tester.pump(const Duration(milliseconds: 60));
-    await tester.tapAt(const Offset(195, 300));
+    controller.toggleDoubleTapZoom();
     await settleReader(tester, ms: 500);
-    expect(state().zoom, 1.0, reason: 'the second double tap goes back');
+    expect(state().zoom, 1.0, reason: 'the second toggle goes back');
     await disposeReader(tester);
   });
 
