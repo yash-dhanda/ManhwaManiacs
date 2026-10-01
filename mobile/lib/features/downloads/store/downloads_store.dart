@@ -499,6 +499,34 @@ class DownloadsStore {
     }
   }
 
+  /// Gives every row of [series] that has no series title yet [title]. Rows queued from the
+  /// reader carry none, and Downloads would otherwise list the series under its raw key.
+  /// Returns the rows changed.
+  Future<int> fillSeriesTitle(SeriesIdentity series, String title) async {
+    final db = await database;
+    return db.update(
+      DownloadsSchema.savedChapters,
+      {DownloadsSchema.colSeriesTitle: title},
+      where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colSourceId} = ? AND '
+          '${DownloadsSchema.colSeriesKey} = ? AND ${DownloadsSchema.colSeriesTitle} IS NULL',
+      whereArgs: [scopeId, series.sourceId, series.seriesKey],
+    );
+  }
+
+  /// Whether any row of [series] already carries a series title.
+  Future<bool> hasSeriesTitle(SeriesIdentity series) async {
+    final db = await database;
+    final rows = await db.query(
+      DownloadsSchema.savedChapters,
+      columns: [DownloadsSchema.colId],
+      where: '${DownloadsSchema.colScopeId} = ? AND ${DownloadsSchema.colSourceId} = ? AND '
+          '${DownloadsSchema.colSeriesKey} = ? AND ${DownloadsSchema.colSeriesTitle} IS NOT NULL',
+      whereArgs: [scopeId, series.sourceId, series.seriesKey],
+      limit: 1,
+    );
+    return rows.isNotEmpty;
+  }
+
   // ── Reading ────────────────────────────────────────────────────────────
 
   Future<SavedChapter?> getChapter(ChapterIdentity id) async {

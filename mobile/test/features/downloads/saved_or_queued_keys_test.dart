@@ -22,4 +22,17 @@ void main() {
     expect(keys.first, '11');
     expect(keys, hasLength(10));
   });
+
+  test('a reader-queued chapter with no series title gets one filled in', () async {
+    final harness = await TestDownloadsHarness.create();
+    addTearDown(harness.dispose);
+    final store = harness.storeFor('u1p1');
+    const id = (sourceId: 's', seriesKey: 'manga/x-slug', chapterKey: '1');
+    await store.ensureQueued(id: id);
+    const series = (sourceId: 's', seriesKey: 'manga/x-slug');
+    expect(await store.hasSeriesTitle(series), isFalse);
+    expect(await store.fillSeriesTitle(series, 'Solo Leveling'), 1);
+    expect((await store.getChapter(id))!.seriesTitle, 'Solo Leveling');
+    expect(await store.hasSeriesTitle(series), isTrue);
+  });
 }

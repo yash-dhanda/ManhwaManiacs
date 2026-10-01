@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
 import 'package:manhwamaniacs/app/router/routes.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
@@ -203,6 +204,9 @@ class _ManifestReaderBody extends ConsumerStatefulWidget {
 
 class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
   late ReaderFeedController _controller;
+
+  /// "Save the next chapter while I read" for the library entry, in every skin.
+  final NextChapterAutoQueue _autoQueue = NextChapterAutoQueue();
 
   /// The most recent progress save, and what refreshes the library's shelves
   /// once it lands — both for [dispose], which cannot read a provider.
@@ -411,6 +415,13 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
     // at chapter 30 sends the reader thirty minutes backwards.
     final beforeFeed = _controller.previousBeforeFeed;
     final beyondFeed = _controller.nextBeyondFeed;
+    _autoQueue.maybeQueue(
+      ref,
+      sourceId: sourceId,
+      seriesKey: seriesKey,
+      routeChapterId: widget.chapterKey,
+      nextChapterId: widget.resolved.chapter.nextChapterId ?? widget.neighbours?.nextChapterId,
+    );
 
     return OpenChapterScope(
       chapterId: (

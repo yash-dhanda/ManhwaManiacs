@@ -321,6 +321,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     );
     _bumpRevision();
     unawaited(_kick());
+    if (seriesTitle == null) unawaited(_fillMissingSeriesTitles(store, {(sourceId: id.sourceId, seriesKey: id.seriesKey)}));
   }
 
   /// Queues every chapter in [chapters] — "Download series". Sequential
@@ -344,6 +345,26 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     }
     _bumpRevision();
     unawaited(_kick());
+    final untitled = {
+      for (final c in chapters)
+        if (c.seriesTitle == null) (sourceId: c.id.sourceId, seriesKey: c.id.seriesKey),
+    };
+    if (untitled.isNotEmpty) unawaited(_fillMissingSeriesTitles(store, untitled));
+  }
+
+  /// The reader's download buttons and "Save the next chapter" queue with no series title.
+  /// Best effort: one series lookup per untitled series, written to its untitled rows.
+  Future<void> _fillMissingSeriesTitles(DownloadsStore store, Set<SeriesIdentity> series) async {
+    for (final s in series) {
+      try {
+        if (await store.hasSeriesTitle(s)) continue;
+        final r = await ref.read(sourcesRepositoryProvider).getSeries(s.sourceId, s.seriesKey);
+        if (r.isErr) continue;
+        if (await store.fillSeriesTitle(s, r.value.title) > 0) _bumpRevision();
+      } catch (_) {
+        // Offline or disposed: the key stays the label until the next queue of this series.
+      }
+    }
   }
 
   /// Resets a failed chapter to `queued` and restarts the loop.
