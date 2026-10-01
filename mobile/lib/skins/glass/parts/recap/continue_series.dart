@@ -85,7 +85,10 @@ Future<void> continueSeries(BuildContext context, WidgetRef ref,
       ref.read(offerContinueProvider.notifier).state = () {
         if (context.mounted) unawaited(enterReader(context, ref, item.readerLocation, fromRect: originRect));
       };
-      await router.push<void>(Routes.tonight({'sheet': 'offer'}),
+      // On the current location, like every other `?sheet=`: pushing Home stacked a second Home page
+      // (and moved the dock menu's Continue to the Home tab).
+      final uri = router.routerDelegate.currentConfiguration.uri;
+      router.go(uri.replace(queryParameters: {...uri.queryParameters, 'sheet': 'offer'}).toString(),
           extra: GlassNavExtra(originRect: originRect),);
     case RecapEntryDecision.none:
       if (!context.mounted) return;

@@ -165,6 +165,19 @@ void main() {
     await ctl.close();
   });
 
+  testWidgets('the recap offer opens on the current page instead of pushing another Home', (t) async {
+    final rig = await pumpGlassShell(t, settle: false, extra: [clockProvider.overrideWithValue(() => DateTime(2026, 10, 1, 12))]);
+    await t.pump(const Duration(milliseconds: 600));
+    registerOfferSheet();
+    final el = t.element(find.byWidgetPredicate((w) => w is ConsumerWidget || w is ConsumerStatefulWidget).first);
+    unawaited(continueSeries(el, el as WidgetRef, HomeContinueTarget(sourceId: 's', seriesKey: 'k', chapterKey: 'c2', recap: const RecapAvailability(available: true, toKey: 'c1'), lastReadAt: DateTime(2026, 9, 10, 12)), Rect.zero));
+    await t.pump(const Duration(milliseconds: 300));
+    final cfg = rig.router.routerDelegate.currentConfiguration;
+    expect(cfg.last, isNot(isA<ImperativeRouteMatch>()));
+    expect(cfg.uri.queryParameters['sheet'], 'offer');
+    await pumpFor(t, 1200);
+  });
+
   testWidgets('the offer asks, Show recap opens the deck, the switch writes skipSeries', (t) async {
     final rig = await pumpGlassShell(t, settle: false, extra: [clockProvider.overrideWithValue(() => DateTime(2026, 10, 1, 12))]);
     await t.pump(const Duration(milliseconds: 600));
