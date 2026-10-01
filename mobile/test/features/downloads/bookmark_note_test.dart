@@ -28,7 +28,7 @@ class _Repo implements ReaderRepository {
   }
 
   @override
-  Future<Result<List<Bookmark>>> listBookmarks({String? sourceId, String? seriesKey, DateTime? since, bool includeDeleted = false, int? limit}) async => Ok(remote);
+  Future<Result<List<Bookmark>>> listBookmarks({String? sourceId, String? seriesKey, DateTime? since, bool includeDeleted = false, int? limit, int offset = 0}) async => Ok(remote);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();

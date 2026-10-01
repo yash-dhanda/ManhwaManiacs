@@ -78,6 +78,7 @@ abstract interface class ReaderRepository {
     DateTime? since,
     bool includeDeleted = false,
     int? limit,
+    int offset = 0,
   });
 
   Future<Result<void>> deleteBookmark(int bookmarkId);
