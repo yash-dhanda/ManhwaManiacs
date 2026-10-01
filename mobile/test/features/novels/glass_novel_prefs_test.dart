@@ -48,7 +48,7 @@ Future<ProviderContainer> _container({int profile = 1, Map<String, Object> prefs
     sharedPrefsProvider.overrideWithValue(p),
     authenticatedAuthOverride(),
     activeProfileProvider.overrideWith(() => _Profile(profile)),
-  ]);
+  ],);
   addTearDown(c.dispose);
   return c;
 }
@@ -173,7 +173,7 @@ void main() {
     final c = await _container(prefs: {
       'mm.novel-prefs.u1p1': jsonEncode({'src:ser': {'face': 'archivo', 'autoScrollSpeedX': 1.5, 'x-future': 1}}),
       'mm.novel-settings.u1p1': jsonEncode({'stock': 'moss', 'pageTurn': 'cut', 'layout': 'scroll'}),
-    });
+    },);
     final prefs = c.read(glassNovelPrefsProvider(_book));
     await prefs.setBook({'glassFace': 'literata', 'fontSize': 22});
     await prefs.setProfile({'paper': 'dusk', 'glassPageTurn': 'lift'});
@@ -201,7 +201,7 @@ void main() {
   });
 
   test('two profiles are isolated', () async {
-    final a = await _container(profile: 1);
+    final a = await _container();
     await a.read(glassNovelPrefsProvider(_book)).setBook({'fontSize': 27});
     await a.read(glassNovelPrefsProvider(_book)).setProfile({'paper': 'moss'});
     final stored = Map<String, Object>.fromEntries(

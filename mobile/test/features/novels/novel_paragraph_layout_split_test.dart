@@ -46,7 +46,7 @@ void main() {
     expect(s.fontSize, 20);
     expect(s.height, 1.75);
     expect(s.letterSpacing, closeTo(0.4, 1e-9));
-    const cine = NovelType(fontSize: 18);
+    const cine = NovelType();
     expect(cine.style(const Color(0xFF000000)).fontFamily, NovelFace.newsreader.family);
     expect(glass == glass.copyWith(), isTrue);
     expect(glass == cine, isFalse);

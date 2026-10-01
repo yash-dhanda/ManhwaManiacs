@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/skins/glass/parts/recap/recap_ready_listener.dart'
 import 'package:manhwamaniacs/skins/glass/primitives/new_chapters_capsule.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
+import 'package:manhwamaniacs/skins/glass/screens/novel/type_sheet.dart' show registerGlassNovelSheets;
 import 'package:manhwamaniacs/skins/glass/screens/settings/licenses_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/app_update_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shortcuts_sheet.dart';
@@ -30,6 +31,7 @@ void registerGlassGlobalSheets() {
   registerGlobalSheet('app-update', const GlassSheetSpec(title: 'Update available', builder: _appUpdate, detents: [GlassDetent.medium], opening: GlassDetent.medium));
   registerOfferSheet();
   registerHowItWorksSheet();
+  registerGlassNovelSheets();
 }
 
 Widget _licences(BuildContext _) => const GlassLicencesSheet();

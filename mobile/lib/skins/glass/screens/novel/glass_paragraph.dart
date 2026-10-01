@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:manhwamaniacs/features/novels/models/glass_novel_prefs.dart';
+import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
 
 /// One decoration of a paragraph (D6). The painters ask the paragraph's [RenderParagraph] (read through a `GlobalKey` inside
@@ -184,7 +186,7 @@ class _GlassTextPieceState extends State<GlassTextPiece> {
 }
 
 class _DecorationPainter extends CustomPainter {
-  _DecorationPainter(this.geometry, this.decorations, {required this.front, Listenable? repaint}) : super(repaint: repaint);
+  _DecorationPainter(this.geometry, this.decorations, {required this.front, super.repaint});
   final GlassParagraphGeometry? Function() geometry;
   final List<GlassParagraphDecoration> decorations;
   final bool front;
@@ -218,3 +220,36 @@ String semanticsWithSpeakers(String text, List<SpeakerRun> runs) {
   b.write(text.substring(at));
   return b.toString();
 }
+
+/// The Glass faces' weight axis maxima (Literata 900, Google Sans Flex 1000, Atkinson Hyperlegible Next 800).
+double glassFaceWghtMax(GlassFace f) => switch (f) { GlassFace.literata => 900, GlassFace.sans => 1000, GlassFace.atkinson => 800 };
+
+/// Bold text 520 (glass 3.4); OS Bold Text adds 100 on top, clamped to the axis maximum.
+double glassBodyWght(GlassFace f, {required bool bold, required bool osBold}) => ((bold ? 520.0 : 400.0) + (osBold ? 100 : 0)).clamp(100.0, glassFaceWghtMax(f));
+
+/// The body face of [v] at its size (D6): Literata `opsz` = size; Sans `ROND` 0 and `opsz` = size; Atkinson `wght` only.
+TextStyle glassFaceStyle(GlassFace face, double size, double wght) => switch (face) {
+      GlassFace.literata => TextStyle(fontFamily: 'LiterataMM', fontVariations: [FontVariation('opsz', size.clamp(7, 72).toDouble()), FontVariation('wght', wght)]),
+      GlassFace.sans => TextStyle(fontFamily: 'GoogleSansFlexMM', fontVariations: [const FontVariation('ROND', 0), FontVariation('opsz', size), FontVariation('wght', wght)]),
+      GlassFace.atkinson => TextStyle(fontFamily: 'AtkinsonHyperlegibleNext', fontVariations: [FontVariation('wght', wght)]),
+    };
+
+/// The drop cap (glass 3.4): Literata `wght` 620 at 3.1 em, 3 lines deep, gap 0.08 em, from 80 characters.
+const NovelDropCapSpec kGlassDropCap = NovelDropCapSpec(
+  style: TextStyle(fontFamily: 'LiterataMM', fontVariations: [FontVariation('wght', 620), FontVariation('opsz', 72)]),
+  sizeEm: 3.1,
+);
+
+/// The [NovelType] Glass hands the paginator and the page (A4).
+NovelType glassNovelType(GlassNovelValues v, {required bool osBold, double? measure}) => NovelType(
+      fontSize: v.fontSize,
+      lineHeight: v.lineHeight,
+      measure: measure ?? v.measure,
+      letterSpacing: v.letterSpacing,
+      paragraphSpacing: v.paragraphSpacing,
+      bold: v.bold,
+      osBold: osBold,
+      justify: v.justify,
+      faceStyle: glassFaceStyle(v.face, v.fontSize, glassBodyWght(v.face, bold: v.bold, osBold: osBold)),
+      dropCapSpec: kGlassDropCap,
+    );

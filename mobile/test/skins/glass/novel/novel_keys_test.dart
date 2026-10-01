@@ -20,7 +20,7 @@ void main() {
       NovelKeyAction.playPause,
       NovelKeyAction.goTo,
       NovelKeyAction.shortcuts,
-    ]));
+    ]),);
     expect(off.map((b) => b.action), contains(NovelKeyAction.escape));
   });
 
