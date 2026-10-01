@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_audio_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart' show NovelChapterKey;
+import 'package:manhwamaniacs/skins/glass/listen/glass_narration_host.dart';
 
 /// What the novel reader asks of listen mode (F5): `{available, playing, playFrom(int para), toggle()}`. `mobile/37` replaces the
 /// default ([NarrationListenBridge]) with the full Glass narration host by overriding [glassListenBridgeFactoryProvider].
@@ -85,7 +86,7 @@ class NarrationListenBridge implements GlassListenBridge {
 
 /// The factory the reader builds its bridge with. `mobile/37` overrides it.
 final glassListenBridgeFactoryProvider = Provider<GlassListenBridge Function(Ref ref, GlassListenContext ctx)>(
-  (ref) => NarrationListenBridge.new,
+  (ref) => glassNarrationHostFactory,
   name: 'glassListenBridgeFactory',
 );
 

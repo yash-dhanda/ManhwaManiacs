@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
 import 'package:manhwamaniacs/skins/glass/glass/liquid.dart';
 import 'package:manhwamaniacs/skins/glass/glass_motion_recorder.dart';
 import 'package:manhwamaniacs/skins/glass/glass_scroll_behavior.dart';
+import 'package:manhwamaniacs/skins/glass/listen/glass_narration_host.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/orientation.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
@@ -127,7 +128,7 @@ class _GlassRootState extends ConsumerState<GlassRoot> {
                     child: GlassRecedeScope(
                       child: GlassLastSeenWriter(
                         child: GlassEffectsLayer(
-                          child: GlassSessionLoss(child: GlassGlobalKeys(child: widget.child)),
+                          child: GlassSessionLoss(child: GlassListenLayer(child: GlassGlobalKeys(child: widget.child))),
                         ),
                       ),
                     ),
