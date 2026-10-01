@@ -132,8 +132,10 @@ GlassStorageMeter? glassStorageMeter({
       otherFraction: f(other),
       freeFraction: f(free),
       capMarker: 1.0,
-      label: '${_bytes(profile)} $used',
-      semanticsValue: '${_bytes(profile)} $used used: this profile ${_bytes(profile)}, other app data ${_bytes(other)}, ${_bytes(free)} free',
+      // Against the cap, everything the cap counts: every profile's and mode's downloads, the
+      // same total the queue pauses on. This profile's share stays in the bar and the semantics.
+      label: '${_bytes(profile + other)} $used',
+      semanticsValue: '${_bytes(profile + other)} $used used: this profile ${_bytes(profile)}, other app data ${_bytes(other)}, ${_bytes(free)} free',
       capped: true,
     );
   }
