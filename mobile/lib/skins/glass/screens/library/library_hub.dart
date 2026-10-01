@@ -134,7 +134,8 @@ class _GlassLibraryHubState extends ConsumerState<GlassLibraryHub> {
         ),
       ),
     );
-    return spec.overlay == null ? scaffold : Stack(fit: StackFit.expand, children: [scaffold, spec.overlay!]);
+    // Always the same Stack, so the scaffold (and the pager in it) keeps its element when an overlay comes and goes.
+    return Stack(fit: StackFit.expand, children: [scaffold, if (spec.overlay != null) spec.overlay!]);
   }
 }
 
