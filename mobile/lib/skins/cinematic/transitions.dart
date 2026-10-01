@@ -710,7 +710,15 @@ class CineHero extends StatelessWidget {
   Widget build(BuildContext context) => Hero(
         tag: tag,
         transitionOnUserGestures: defaultTargetPlatform == TargetPlatform.iOS,
-        createRectTween: (a, b) => RectTween(begin: a, end: b),
+        createRectTween: (a, b) => _TurnRectTween(begin: a, end: b),
         child: child,
       );
+}
+
+/// The match cut's `RectTween(begin, end)`, its interpolation run through [CineCurves.turn].
+class _TurnRectTween extends RectTween {
+  _TurnRectTween({super.begin, super.end});
+
+  @override
+  Rect? lerp(double t) => super.lerp(CineCurves.turn.transform(t));
 }

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
+import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/transitions.dart';
 import 'package:swipeable_page_route/swipeable_page_route.dart';
 
@@ -299,5 +300,16 @@ void main() {
     expect(pageOutgoing(1).dx, -24);
     expect(kPredictiveCommit, const Duration(milliseconds: 240));
     expect(kPredictiveCancel, const Duration(milliseconds: 160));
+  });
+
+  testWidgets('the match cut cover flies through CineCurves.turn', (t) async {
+    await t.pumpWidget(const CineHero(tag: ('s', 'k'), child: SizedBox()));
+    const a = Rect.fromLTWH(0, 0, 40, 60);
+    const b = Rect.fromLTWH(100, 200, 160, 240);
+    final tween = t.widget<Hero>(find.byType(Hero)).createRectTween!(a, b);
+    expect(tween.begin, a);
+    expect(tween.end, b);
+    expect(tween.transform(0.5), Rect.lerp(a, b, CineCurves.turn.transform(0.5)));
+    expect(tween.transform(0.25), Rect.lerp(a, b, CineCurves.turn.transform(0.25)));
   });
 }
