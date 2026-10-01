@@ -48,7 +48,7 @@ class GlassSaveToFilesBody extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
               GlassLabel(title, role: gt.typeHeadline, onGlass: on),
-              GlassLabel(caption, role: gt.typeFootnote, onGlass: on, color: gt.colorLabel2),
+              GlassLabel(caption, role: gt.typeFootnote, onGlass: on, color: gt.colorLabel2, maxLines: 3),
             ],),
           ),
         );

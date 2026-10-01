@@ -247,7 +247,7 @@ class _Strip extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: GlassLabel('Show my profile name', role: gt.typeBody, color: gt.colorLabel1)),
+                Expanded(child: GlassLabel('Show my profile name', role: gt.typeBody, color: gt.colorLabel1, maxLines: 3)),
                 GlassSwitch(value: showName, onChanged: onName, label: 'Show my profile name'),
               ],
             ),
