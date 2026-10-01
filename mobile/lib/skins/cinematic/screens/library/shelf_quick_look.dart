@@ -86,7 +86,7 @@ Future<void> showStatusSheet(BuildContext context, {required String title, requi
       builder: (ctx) {
         final c = ctx.cine;
         return Padding(
-          padding: EdgeInsets.fromLTRB(c.space4, 0, c.space4, c.space4),
+          padding: EdgeInsets.only(bottom: c.space4), // the sheet body sets the gutter
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             for (final st in kReadingStatuses)
               ConstrainedBox(

@@ -96,9 +96,11 @@ class EditionPickerDemoPage extends StatelessWidget {
   Widget build(BuildContext context) => CineScaffold(
         location: '/settings/appearance',
         firstRunNote: false,
-        body: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(context.cine.space4, CineScaffoldScope.topExtentOf(context) + context.cine.space6, context.cine.space4, context.cine.space12),
-          child: const EditionPicker(glassAvailable: true, dryRun: true),
+        body: CineBelowHead(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(context.cine.space4, context.cine.space6, context.cine.space4, context.cine.space12),
+            child: const EditionPicker(glassAvailable: true, dryRun: true),
+          ),
         ),
       );
 }

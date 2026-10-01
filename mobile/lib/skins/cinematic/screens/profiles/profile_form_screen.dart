@@ -25,6 +25,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_text_field.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profile_form_logic.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_copy.dart';
@@ -237,7 +238,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
         body: gate ??
             CineMoodGrade(
               mood: _mood == 'default' ? null : _mood,
-              child: _WithTop(builder: (top) => SingleChildScrollView(
+              child: _WithTop(builder: (top) => CineGutter(child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(c.space4, top + c.space6, c.space4, c.space12),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   CineMasthead(kicker: 'CASTING', title: title, id: 'profile-form'),
@@ -275,7 +276,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                     ),
                   ],
                 ],),
-              ),),
+              ),),),
             ),
       ),
     );

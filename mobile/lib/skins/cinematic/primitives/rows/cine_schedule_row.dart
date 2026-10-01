@@ -93,7 +93,8 @@ class CineScheduleRow extends StatelessWidget {
       loading: loading,
       semanticLabel: spoken,
       child: Row(children: [
-        SizedBox(width: 56, child: CineRoleText(number ?? '·', c.typeFolioLg, color: dim, textAlign: TextAlign.right)),
+        // One line, shrunk to fit: `142.5` at text scale 1.3 broke after the point.
+        SizedBox(width: 56, child: Align(alignment: Alignment.centerRight, child: FittedBox(fit: BoxFit.scaleDown, child: CineRoleText(number ?? '·', c.typeFolioLg, color: dim, maxLines: 1)))),
         SizedBox(width: c.space4),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

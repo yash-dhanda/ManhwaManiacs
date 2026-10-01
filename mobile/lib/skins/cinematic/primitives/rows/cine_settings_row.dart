@@ -44,12 +44,8 @@ class CineSettingsRow extends StatelessWidget {
     ],);
     final Widget content;
     if (value != null && !stacked) {
-      content = Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Flexible(child: text),
-        SizedBox(width: c.space2),
-        const Expanded(child: Padding(padding: EdgeInsets.only(bottom: 2), child: CineDotLeader())),
-        SizedBox(width: c.space2),
-        CineRoleText(value!, c.typeFolio, color: disabled ? c.colorInk30 : c.colorInk60),
+      content = Row(children: [
+        Expanded(child: CineLeaderRow(label: text, value: CineRoleText(value!, c.typeFolio, color: disabled ? c.colorInk30 : c.colorInk60, maxLines: 1, overflow: TextOverflow.ellipsis))),
         if (chevron) Padding(padding: EdgeInsets.only(left: c.space2), child: CineGlyphIcon(CineGlyph.caretRight, size: 16, color: c.colorInk45)),
       ],);
     } else if (stacked) {

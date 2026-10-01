@@ -45,7 +45,7 @@ Future<bool> confirmEditionSwitch(BuildContext context, {required bool downloads
       kicker: 'EDITION',
       title: 'Restart in Glass?',
       builder: (ctx) => Padding(
-        padding: EdgeInsets.all(ctx.cine.space4),
+        padding: EdgeInsets.symmetric(vertical: ctx.cine.space4), // the sheet body sets the gutter
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           CineRoleText(body, ctx.cine.typeBody),
           SizedBox(height: ctx.cine.space4),

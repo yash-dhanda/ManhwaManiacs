@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_contents_tabs.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/history/history_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/hub/hub_kit.dart';
@@ -145,7 +146,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> with SingleTicker
       SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.only(left: grid.left, right: grid.right),
-          child: CineContentsTabs(controller: _tabs, tabs: const [CineTab(folio: '01', label: 'BY SERIES'), CineTab(folio: '02', label: 'BY CHAPTER')]),
+          child: CineGutter(child: CineContentsTabs(controller: _tabs, tabs: const [CineTab(folio: '01', label: 'BY SERIES'), CineTab(folio: '02', label: 'BY CHAPTER')])),
         ),
       ),
     ];
