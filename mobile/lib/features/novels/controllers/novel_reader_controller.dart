@@ -668,6 +668,17 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
       anchor = _surface?.anchorAtReadingLine();
     }
     if (anchor == null) return NovelBookmarkResult.nothing;
+    return _bookmarkAnchor(chapter, anchor);
+  }
+
+  /// Bookmarks paragraph [index] (0-based) at [fraction]: "Bookmark this paragraph" of a selection menu.
+  Future<NovelBookmarkResult> bookmarkAt(int index, {double fraction = 0}) async {
+    final chapter = state.chapter;
+    if (chapter == null || index < 0 || index >= chapter.paragraphs.length) return NovelBookmarkResult.nothing;
+    return _bookmarkAnchor(chapter, (index: index, fraction: fraction));
+  }
+
+  Future<NovelBookmarkResult> _bookmarkAnchor(NovelChapter chapter, ({int index, double fraction}) anchor) async {
     try {
       final total = chapter.paragraphs.length;
       final index = anchor.index + 1;

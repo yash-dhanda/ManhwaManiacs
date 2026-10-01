@@ -198,9 +198,33 @@ enum NovelFace {
       leading: face == NovelFace.atkinson ? 1.70 : 1.60,
     );
 
+/// A skin's drop cap, as data (glass 3.4, cinematic 8.15.2): the cap's face ([style] without a size), its
+/// size in ems of the body size, the lines it spans, the gap after it in ems of the cap size and the
+/// shortest paragraph that gets one. A [NovelType] without one sets Cinematic's cap.
+@immutable
+class NovelDropCapSpec {
+  const NovelDropCapSpec({required this.style, required this.sizeEm, this.lines = 3, this.gapEm = 0.08, this.minLength = 80});
+  final TextStyle style;
+  final double sizeEm;
+  final int lines;
+  final double gapEm;
+  final int minLength;
+
+  /// The cap's style at [bodySize] in [color].
+  TextStyle at(double bodySize, Color color) => style.copyWith(fontSize: sizeEm * bodySize, height: 1, color: color);
+
+  @override
+  bool operator ==(Object other) =>
+      other is NovelDropCapSpec && other.style == style && other.sizeEm == sizeEm && other.lines == lines && other.gapEm == gapEm && other.minLength == minLength;
+
+  @override
+  int get hashCode => Object.hash(style, sizeEm, lines, gapEm, minLength);
+}
+
 /// Everything that decides how the Cinematic reader sets its body text, already resolved (book
 /// prefs over profile settings over face defaults). The page, the paginator and the Type sheet
-/// preview all read this one value.
+/// preview all read this one value. A skin that sets its own faces passes [faceStyle] (family and
+/// `FontVariation`s, already resolved for [fontSize]) and [dropCapSpec]; both null is Cinematic.
 @immutable
 class NovelType {
   const NovelType({
@@ -213,9 +237,17 @@ class NovelType {
     this.bold = false,
     this.osBold = false,
     this.justify = false,
+    this.faceStyle,
+    this.dropCapSpec,
   });
 
   final NovelFace face;
+
+  /// The skin's body face (family, variations, features); when set it replaces [face]'s style.
+  final TextStyle? faceStyle;
+
+  /// The skin's drop cap; null sets Cinematic's.
+  final NovelDropCapSpec? dropCapSpec;
 
   /// Absolute logical pixels, 14-40. The body renders with `TextScaler.noScaling`.
   final double fontSize;
@@ -240,6 +272,8 @@ class NovelType {
   /// The body [TextStyle] in [color]; the caller passes the stock ink.
   TextStyle style(Color color, {double? size}) {
     final s = size ?? fontSize;
+    final own = faceStyle;
+    if (own != null) return own.copyWith(fontSize: s, height: lineHeight, color: color, letterSpacing: letterSpacing * s);
     final opsz = face.opszRange;
     return TextStyle(
       fontFamily: face.family,
@@ -266,6 +300,8 @@ class NovelType {
     bool? bold,
     bool? osBold,
     bool? justify,
+    TextStyle? faceStyle,
+    NovelDropCapSpec? dropCapSpec,
   }) =>
       NovelType(
         face: face ?? this.face,
@@ -277,6 +313,8 @@ class NovelType {
         bold: bold ?? this.bold,
         osBold: osBold ?? this.osBold,
         justify: justify ?? this.justify,
+        faceStyle: faceStyle ?? this.faceStyle,
+        dropCapSpec: dropCapSpec ?? this.dropCapSpec,
       );
 
   @override
@@ -290,10 +328,12 @@ class NovelType {
       other.paragraphSpacing == paragraphSpacing &&
       other.bold == bold &&
       other.osBold == osBold &&
-      other.justify == justify;
+      other.justify == justify &&
+      other.faceStyle == faceStyle &&
+      other.dropCapSpec == dropCapSpec;
 
   @override
-  int get hashCode => Object.hash(face, fontSize, lineHeight, measure, letterSpacing, paragraphSpacing, bold, osBold, justify);
+  int get hashCode => Object.hash(face, fontSize, lineHeight, measure, letterSpacing, paragraphSpacing, bold, osBold, justify, faceStyle, dropCapSpec);
 }
 
 // ── Cinematic ranges (cinematic 8.15.5) ──────────────────────────────────────

@@ -180,3 +180,7 @@ Items only the owner can do, by step.
 
 - Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-35/device-check.md`.
 - CI for the `display.stableInsets` commit (APK job and the iOS dry run): lanes do not push; the integrator runs `gh run watch` on the integration push.
+
+## mobile/36 (Glass novel reader)
+
+- [ ] Run `docs/redesign/proof/mobile-36/device-checklist.md` on the iPhone (SideStore IPA) and an Android flagship (CI APK): native selection and the Glass menu, Lift/Slide at 120 Hz, Book open, paper ripple, pinch, system UI around the notch and gesture bar, rotation, iOS edge strip, keep awake, VoiceOver/TalkBack, text scale, Bold Text, the 12,000-word pagination time.
