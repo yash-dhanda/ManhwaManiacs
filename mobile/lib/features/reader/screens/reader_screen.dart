@@ -420,7 +420,7 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
       sourceId: sourceId,
       seriesKey: seriesKey,
       routeChapterId: widget.chapterKey,
-      nextChapterId: widget.resolved.chapter.nextChapterId ?? widget.neighbours?.nextChapterId,
+      nextChapterId: widget.resolved.chapter.nextChapterId ?? widget.neighbours?.next,
     );
 
     return OpenChapterScope(
