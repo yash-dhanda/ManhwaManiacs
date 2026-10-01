@@ -319,13 +319,14 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
 
   Widget _wide(List<SettingsSectionSpec> list, SettingsSection selected, int selectedIndex, bool admin) {
     final searching = _panelQ.trim().isNotEmpty;
+    // The section list widens with the text size (to 1.6x) so its names never break mid-word; its blocks share one left edge.
     final left = SizedBox(
-      width: 240,
+      width: 240 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+            padding: const EdgeInsets.only(bottom: 8),
             child: GlassSearchField(
               variant: GlassSearchVariant.filter, // a real field: typing filters the list in place (the sidebar variant is the palette launcher)
               controller: _panelQuery,
@@ -342,6 +343,7 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
             SettingsResults(query: _panelQ.trim(), matches: _filter(_panelQ), onOpen: _open)
           else ...[
             GlassGroupedList(
+              inset: false,
               children: [
                 for (final s in list)
                   GlassListRow(
@@ -353,6 +355,7 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
               ],
             ),
             GlassGroupedList(
+              inset: false,
               children: [
                 GlassListRow(title: 'Reading history', caret: true, onTap: () => GoRouter.of(context).go(Routes.history())),
                 if (admin) GlassListRow(title: 'System status', caret: true, onTap: () => GoRouter.of(context).go(Routes.status())),

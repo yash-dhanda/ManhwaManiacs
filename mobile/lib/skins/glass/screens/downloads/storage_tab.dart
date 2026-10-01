@@ -57,20 +57,26 @@ class GlassStorageTab extends ConsumerWidget {
             ),
           ],
         );
+    // 8 px above and below each switch row and 16 px before the switch, so rows never butt and text never runs into the track.
     Widget toggle(String label, String? hint, bool v, ValueChanged<bool> on) => ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 56),
-          child: Row(children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                GlassLabel(label, role: gt.typeBody, maxLines: 3),
-                if (hint != null) GlassLabel(hint, role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 3),
-              ],),
-            ),
-            GlassSwitch(label: label, value: v, onChanged: on),
-          ],),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  GlassLabel(label, role: gt.typeBody, maxLines: 4),
+                  if (hint != null) Padding(padding: const EdgeInsets.only(top: 2), child: GlassLabel(hint, role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 5)),
+                ],),
+              ),
+              const SizedBox(width: 16),
+              GlassSwitch(label: label, value: v, onChanged: on),
+            ],),
+          ),
         );
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    // A readable column on wider frames: switches stay near their labels.
+    return Align(alignment: Alignment.topLeft, child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 680), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       const GlassDownloadsMeter(),
       title('Storage limit', device: true),
       chips<StorageCap>([for (final o in StorageCap.values) (o, o.label)], cap, (v) => unawaited(ref.read(storageCapProvider.notifier).setCap(v))),
@@ -117,7 +123,7 @@ class GlassStorageTab extends ConsumerWidget {
         showGlassToast(ref, const GlassToastSpec('Metadata cache cleared'));
       },),),
       const SizedBox(height: 24),
-    ],);
+    ],),),);
   }
 }
 

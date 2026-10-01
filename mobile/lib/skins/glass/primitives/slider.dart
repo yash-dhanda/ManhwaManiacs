@@ -193,6 +193,14 @@ class _GlassSliderState extends ConsumerState<GlassSlider> with SingleTickerProv
 
   double get _stepSize => widget.divisions != null ? (widget.max - widget.min) / widget.divisions! : (widget.max - widget.min) / 100;
 
+  /// 52 px, or wider when the longest of the min / max / current values needs it (large text, "100 %", "1.60").
+  double _valueWidth(BuildContext context) {
+    final style = roleStyle(context, gt.typeMono, size: 13, maxScale: 1.5);
+    String f(double v) => widget.format?.call(v) ?? v.toStringAsFixed(widget.divisions == null ? 2 : 0);
+    final w = [f(widget.min), f(widget.max), f(widget.value)].map((t) => measureText(context, t, style).width).reduce(math.max);
+    return math.max(52.0, w + 12);
+  }
+
   @override
   Widget build(BuildContext context) {
     final hit = GlassFrame.hitMin(context);
@@ -347,15 +355,17 @@ class _GlassSliderState extends ConsumerState<GlassSlider> with SingleTickerProv
             }
             return KeyEventResult.handled;
           },
+          // The value column fits the widest value the slider can show, on one line, right-aligned so values line up row to row.
           child: Row(
             children: [
               Expanded(child: track),
               SizedBox(
-                width: 52,
-                child: Center(
+                width: _valueWidth(context),
+                child: Align(
+                  alignment: Alignment.centerRight,
                   child: widget.loading
                       ? const GlassSpinner(size: 14)
-                      : GlassText(valueText, role: gt.typeMono, size: 13, color: disabled ? GlassColors.g500 : gt.colorLabel2),
+                      : GlassText(valueText, role: gt.typeMono, size: 13, maxScale: 1.5, maxLines: 1, color: disabled ? GlassColors.g500 : gt.colorLabel2),
                 ),
               ),
             ],
