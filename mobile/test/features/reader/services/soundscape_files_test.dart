@@ -59,4 +59,47 @@ void main() {
   });
 
   test('eight ids', () => expect(soundscapeIds, hasLength(8)));
+
+  group('GlassSoundscapeFiles', () {
+    GlassSoundscapeFiles glass({Future<bool> Function()? online}) => GlassSoundscapeFiles(
+          Dio(BaseOptions(baseUrl: 'https://x.test'))..httpClientAdapter = adapter,
+          root: () async => tmp,
+          online: online,
+        );
+
+    test('200 writes the file once and a second call makes no request', () async {
+      final g = glass();
+      final f = await g.ensure('rain', 'bed');
+      expect(f!.path, endsWith('soundscapes/glass/rain-bed.ogg'));
+      expect(f.lengthSync(), 64);
+      await g.ensure('rain', 'bed');
+      expect(adapter.paths, ['/app/soundscapes/glass-rain-bed.ogg']);
+    });
+
+    test('a failure returns null, leaves no .part and is not retried this session', () async {
+      adapter.fail = true;
+      final g = glass();
+      expect(await g.ensure('wind', 'tone'), isNull);
+      expect(await g.ensure('wind', 'tone'), isNull);
+      expect(adapter.paths.length, 1);
+      expect(tmp.listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.part')), isEmpty);
+    });
+
+    test('a leftover .part file never counts as cached', () async {
+      final dir = Directory('${tmp.path}/soundscapes/glass')..createSync(recursive: true);
+      File('${dir.path}/deep-bed.ogg.part').writeAsBytesSync([1, 2, 3]);
+      final f = await glass().ensure('deep', 'bed');
+      expect(adapter.paths.length, 1);
+      expect(f!.lengthSync(), 64);
+    });
+
+    test('offline asks for nothing and tries again later', () async {
+      var on = false;
+      final g = glass(online: () async => on);
+      expect(await g.ensure('ocean', 'bed'), isNull);
+      expect(adapter.paths, isEmpty);
+      on = true;
+      expect(await g.ensure('ocean', 'bed'), isNotNull);
+    });
+  });
 }

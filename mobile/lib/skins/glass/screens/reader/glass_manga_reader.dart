@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' show PointerScrollEvent;
 import 'package:flutter/material.dart' show Material, MaterialType, TextField, InputDecoration, InputBorder;
+import 'package:flutter/scheduler.dart' show SchedulerBinding, SchedulerPhase;
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -11,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show singleKeyShortcutsProvider;
 import 'package:manhwamaniacs/core/platform/mm_platform.dart';
+import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart' show completedThisSessionProvider;
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
@@ -22,6 +24,7 @@ import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/lens_layout.dart';
 import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_sample.dart' show PageSample;
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
@@ -38,6 +41,7 @@ import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart' show kChapterSeamExtent;
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
@@ -45,10 +49,17 @@ import 'package:manhwamaniacs/features/sources/providers/source_reader_provider.
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/glass_ambient_bridge.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/guided_view.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/page_tint.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
+import 'package:manhwamaniacs/skins/glass/parts/circle/series_circle_row.dart' show SeriesCircleRow;
+import 'package:manhwamaniacs/skins/glass/parts/reactions/chapter_reactions.dart' show GlassChapterReactions, openChapterReactions;
+import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_sheet.dart' show openRecommendSheet;
 import 'package:manhwamaniacs/skins/glass/physics/glass_page_physics.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
@@ -58,13 +69,14 @@ import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
+import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart' show paletteOf;
+import 'package:manhwamaniacs/skins/glass/screens/reader/band_lb.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/brightness_band.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/chapter_list.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/chapter_seam.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/dialogue_overlay.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/light_layers.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/neighbour_card.dart';
-import 'package:manhwamaniacs/skins/glass/screens/reader/page_tint_chrome.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/panel_fit.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_chrome.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_exclusion_rects.dart';
@@ -72,8 +84,14 @@ import 'package:manhwamaniacs/skins/glass/screens/reader/reader_gestures.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_host.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_keys.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_settings_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/reader_system_ui.dart' show GlassReaderInsets;
 import 'package:manhwamaniacs/skins/glass/screens/reader/side_panels.dart';
+import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show registerMatureStop, registerPlaybackStop;
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
+import 'package:manhwamaniacs/skins/glass/soundscape/mixer.dart' show MixLevels;
+import 'package:manhwamaniacs/skins/glass/soundscape/recipes.dart';
+import 'package:manhwamaniacs/skins/glass/soundscape/soundscape_controller.dart';
+import 'package:manhwamaniacs/skins/glass/soundscape/soundscape_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -167,6 +185,13 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   double _thumbY = 0;
   String? _openSheet;
   VoidCallback? _releaseClaims;
+  final List<VoidCallback> _stops = [];
+  SoundscapeController? _soundscape;
+  String? _pendingSheet;
+  bool _guided = false;
+  final TintFollower _tintFollower = TintFollower();
+  PageSample? _lbSample, _lbShown;
+  late final GlassAmbientBridge _ambientBridge = GlassAmbientBridge(ref: ref, engine: engine, sourceId: sourceId, seriesKey: seriesKey);
 
   ReaderFrameBody get _body => widget.body;
   ({String sourceId, String seriesKey, String chapterKey, ReaderOrigin origin}) get _id =>
@@ -192,8 +217,11 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     _releaseClaims = _claimSheets();
     _subs
       ..add(engine.seamEvents.listen(_onSeam))
-      ..add(engine.neighbourEvents.listen(_onNeighbour));
+      ..add(engine.neighbourEvents.listen(_onNeighbour))
+      // The spoiler guard unseals a chapter's reactions as soon as it is finished here (glass 9.3, mobile/43).
+      ..add(engine.chapterCompleted.listen((c) => ref.read(completedThisSessionProvider.notifier).markCompleted(c.sourceId, c.seriesKey, c.chapterKey)));
     engine.addListener(_onEngine);
+    _attachCruise();
     if (widget.q != null) unawaited(_prepareHitLens(widget.q!));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -205,10 +233,54 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     });
   }
 
+  // ── Cruise (glass 9.4.1): the controller owns the speed, the engine owns the ramp and the touch pauses ──
+
+  CruiseController get _cruise => ref.read(cruiseControllerProvider.notifier);
+
+  void _attachCruise() {
+    // Keeps the auto-dispose controller alive for as long as this reader is, and repaints the pill on every change.
+    _keepAlive.add(ref.listenManual(cruiseControllerProvider, (_, __) {
+      if (mounted && !_disposed) setState(() {});
+    }),);
+    // Binding changes the provider's state, which is not allowed while the tree builds: after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _cruise.attach(
+        EngineCruiseSource(engine),
+        speed: _settings.cruiseSpeed,
+        persist: (v) => unawaited(GlassReaderSettingsWriter(ref, _seriesRef).series({GlassReaderKeys.cruiseSpeed: v})),
+        reduced: () => ref.read(glassMotionPrefsProvider).reduced,
+      );
+    });
+    _keepAlive.add(ref.listenManual(soundscapeControllerProvider.select((v) => (v.scene, v.state)), (_, __) {
+      if (mounted && !_disposed) setState(() {});
+    }),);
+    _keepAlive.add(ref.listenManual(glassReaderSettingsProvider(_seriesRef), (p, n) => _cruise.follow(_settings.cruiseSpeed)));
+    _stops.add(registerPlaybackStop('cruise', _cruise.stop));
+    // The soundscape follows the reader: what it should play on open, and a fade-out and pause on leaving.
+    final soundscape = ref.read(soundscapeControllerProvider.notifier);
+    _soundscape = soundscape;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final own = ref.read(readerPrefsProvider(_seriesRef)).soundscape;
+      final genres = ref.read(sourceSeriesDetailProvider((sourceId: sourceId, seriesId: seriesKey))).valueOrNull?.series.genres ?? const <String>[];
+      final mature = ref.read(sourcesListProvider).valueOrNull?.where((x) => x.id == sourceId).firstOrNull?.mature ?? false;
+      unawaited(soundscape.enterReader(SoundscapeReaderContext(
+        seriesRef: _seriesRef,
+        genres: genres,
+        rememberedScene: SoundScene.byName(own?.scene),
+        rememberedMix: own == null ? null : MixLevels(bed: own.bed, detail: own.detail, tone: own.tone),
+        mature: mature,
+      ),),);
+    });
+    final mature = ref.read(sourcesListProvider).valueOrNull?.where((x) => x.id == sourceId).firstOrNull?.mature ?? false;
+    if (mature) _stops.add(registerMatureStop('cruise', _cruise.stop));
+  }
+
   /// `?sheet=settings|chapters|note` is this reader's own: the global sheet host steps aside.
   VoidCallback _claimSheets() {
     final r = [
-      for (final id in const ['settings', 'chapters', 'note']) glassClaimSheet(id),
+      for (final id in const ['settings', 'chapters', 'note', 'soundscape']) glassClaimSheet(id),
     ];
     return () {
       for (final f in r) {
@@ -273,6 +345,10 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     for (final s in _keepAlive) {
       s.close();
     }
+    for (final stop in _stops) {
+      stop();
+    }
+    _soundscape?.leaveReader();
     engine.removeListener(_onEngine);
     _zoomChipTimer?.cancel();
     _seamChipTimer?.cancel();
@@ -375,7 +451,22 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   bool get pageTinted => _settings.values.pageTinted && !ref.read(glassA11yProvider).solid;
 
   @override
+  bool get rainOn {
+    final v = ref.read(soundscapeControllerProvider);
+    final playing = v.scene == SoundScene.rain && (v.state == SoundscapeState.starting || v.state == SoundscapeState.playingBuiltin || v.state == SoundscapeState.playingRecorded || v.state == SoundscapeState.ducked);
+    return playing && !reducedMotion && !ref.read(glassA11yProvider).solid;
+  }
+
+  @override
   Color? get tint => _tint;
+
+  @override
+  PageSample? get lbSample => _lbSample ?? engine.value.currentPageSample;
+
+  Color? get _coverTint {
+    final a = paletteOf(null, ref.read(sourceSeriesDetailProvider((sourceId: sourceId, seriesId: seriesKey))).valueOrNull?.series.ambient)?.a;
+    return a == null || a.isEmpty ? null : a.first;
+  }
 
   @override
   bool get goToOpen => _goTo;
@@ -398,8 +489,21 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     if (_disposed) return;
     final s = engine.value;
     final sample = s.currentPageSample;
-    final next = gatedTint(_tint, sample?.tint == null ? null : clampTint(sample!.tint!));
-    if (next != _tint && mounted) setState(() => _tint = next);
+    // Glass 9.4.4: the clamped tint, moved only past a Delta E of 0.04 and never during a fling above 3000 px/s; a greyscale page keeps
+    // it and six in a row fall back to the cover. The legibility sample is held through a fling the same way.
+    _tintFollower.cover = _coverTint;
+    final fling = s.scrollVelocity.abs() > kTintFlingHold;
+    if (!fling) _lbSample = sample;
+    final next = _tintFollower.feed(sample?.tint, s.scrollVelocity);
+    if ((next != _tint || (!fling && _lbSample != _lbShown)) && mounted) {
+      _lbShown = _lbSample;
+      void apply() {
+        if (mounted && !_disposed) setState(() => _tint = next);
+      }
+
+      // The engine publishes from inside its own build: never rebuild this reader in that phase.
+      SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks ? WidgetsBinding.instance.addPostFrameCallback((_) => apply()) : apply();
+    }
     _maybeAutoNext(s);
     _syncWake();
     final f = s.furtherElsewhere;
@@ -516,7 +620,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
   void _syncWake() {
     if (!mounted || _disposed) return;
-    final cruising = engine.value.autoScrolling;
+    final cruising = engine.value.autoScrolling || _guided;
     final want = _foreground && (_settings.values.keepAwake || cruising);
     final wl = _wakelock;
     if (want) {
@@ -625,18 +729,62 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
   @override
   void toggleCruise() {
+    if (!cruiseAvailable) return;
     glassFire(ref, HapticEvent.autoscrollToggle);
-    if (engine.value.autoScrolling) {
-      engine.toggleAutoScroll();
+    _cruise.toggle();
+  }
+
+  @override
+  CruiseState get cruise => ref.read(cruiseControllerProvider);
+
+  @override
+  bool get cruiseAvailable => !paged;
+
+  @override
+  void cruisePreview(double v) => _cruise.preview(v);
+
+  @override
+  void cruiseCommit(double v) => _cruise.commit(v);
+
+  @override
+  void cruiseStep(double by) => _cruise.step(by);
+
+  @override
+  void cruiseResume() => _cruise.resume();
+
+  // ── Guided view (glass 9.4.3): `shift+p`, the page menu, the settings row, the landscape menu and the panel-focus button ──
+
+  @override
+  bool get guidedOn => _guided;
+
+  @override
+  bool get guidedAvailable => !paged && engine.value.panelBoxes != null;
+
+  @override
+  void toggleGuided() {
+    if (paged || locked) return;
+    if (_guided) {
+      setState(() => _guided = false);
+      engine.scheduleHideChrome();
     } else {
-      engine.startAutoScroll(_settings.cruiseSpeed * 60);
+      engine.holdChrome();
+      setState(() => _guided = true);
     }
+    _syncWake();
+  }
+
+  /// Leaves guided view onto the strip with the framed panel's top at the top content inset (`inset.top + 60`).
+  void _closeGuided(int page, double? panelTop) {
+    if (!mounted) return;
+    setState(() => _guided = false);
+    engine.scheduleHideChrome();
+    engine.jumpToPage(page);
+    _syncWake();
   }
 
   void _stepCruise(double by) {
-    final v = snapCruise(_settings.cruiseSpeed + by);
-    unawaited(GlassReaderSettingsWriter(ref, _seriesRef).series({GlassReaderKeys.cruiseSpeed: v}));
-    if (engine.value.autoScrolling) engine.setAutoScrollPxPerSecond(v * 60);
+    if (!cruiseAvailable) return;
+    _cruise.step(by);
   }
 
   @override
@@ -785,6 +933,16 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   /// has landed (a replace would drop a sheet pushed before it); without one it is pushed at once.
   void _presentSheet(String id) {
     if (_openSheet != null) return;
+    // Desktop frame: the Soundscape section lives at the top of the right panel's Settings tab.
+    if (id == 'soundscape' && isReaderDesktopFrame(MediaQuery.sizeOf(context))) {
+      _rightTab = RightPanelTab.settings;
+      if (!_rightPanel) {
+        _togglePanel(left: false);
+      } else {
+        setState(() {});
+      }
+      return;
+    }
     if (_router != null && _location != null) {
       _setSheetParam(id);
       return;
@@ -803,7 +961,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     final id = _sheetParam();
     final appeared = id != _lastParam;
     _lastParam = id;
-    if (appeared && id != null && _openSheet == null && const {'settings', 'chapters', 'note'}.contains(id)) {
+    if (appeared && id != null && _openSheet == null && const {'settings', 'chapters', 'note', 'soundscape'}.contains(id)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _openSheet == null && _sheetParam() == id) _pushSheet(id);
       });
@@ -841,12 +999,22 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
             },
           ),
         ),
+      'soundscape' => soundscapeSheetPage(seriesRef: _seriesRef, landscapePhone: landscapePhone),
       _ => GlassSheetPage<void>(
           key: const ValueKey('reader-sheet-settings'),
           title: 'Reader settings',
           detents: landscapePhone ? const [GlassDetent.large] : const [GlassDetent.medium, GlassDetent.large],
           opening: landscapePhone ? GlassDetent.large : GlassDetent.medium,
-          builder: (c) => SingleChildScrollView(child: ReaderSettingsBody(seriesRef: _seriesRef, readAll: widget.readAll)),
+          builder: (c) => SingleChildScrollView(
+            child: ReaderSettingsBody(
+              seriesRef: _seriesRef,
+              readAll: widget.readAll,
+              onOpenSheet: (id) {
+                _pendingSheet = id;
+                unawaited(Navigator.of(c).maybePop());
+              },
+            ),
+          ),
         ),
     };
     _openSheet = id;
@@ -857,9 +1025,25 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         if (!mounted) return;
         engine.scheduleHideChrome();
         _setSheetParam(null);
+        final next = _pendingSheet;
+        _pendingSheet = null;
+        if (next != null) _openNext(next);
       }),
     );
   }
+
+  /// What an Ambient row asked for once the settings sheet has left.
+  void _openNext(String id) {
+    if (id == 'guided') {
+      toggleGuided();
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _presentSheet(id);
+      });
+    }
+  }
+
+  void _openFromPanel(String id) => id == 'guided' ? toggleGuided() : _presentSheet(id);
 
   Future<void> _saveNote(String text) async {
     final outbox = ref.read(bookmarkOutboxControllerProvider);
@@ -908,7 +1092,14 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         GlassMenuEntry(label: 'Save page image', onSelected: () => unawaited(_savePage(chapterId, page, anchor))),
         GlassMenuEntry(label: 'Bookmark this spot', onSelected: toggleBookmark),
         GlassMenuEntry(label: 'Show dialogue', onSelected: _openDialogue),
+        if (!paged) GlassMenuEntry(label: 'Guided view', onSelected: toggleGuided),
         GlassMenuEntry(label: 'Report broken page', onSelected: () => _retryPage(chapterId, page)),
+        GlassMenuEntry(
+          label: 'React to this chapter',
+          separatorBefore: true,
+          onSelected: () => unawaited(openChapterReactions(context, sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterId, chapterNumber: _numberOf(chapterId))),
+        ),
+        GlassMenuEntry(label: 'Recommend to…', onSelected: () => openRecommendSheet(ref, sourceId: sourceId, seriesKey: seriesKey)),
       ],
     );
     _menuOpen = false;
@@ -1160,6 +1351,10 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         _stepCruise(-0.25);
       case ReaderKeyAction.cruiseFaster:
         _stepCruise(0.25);
+      case ReaderKeyAction.soundscape:
+        _presentSheet('soundscape');
+      case ReaderKeyAction.guided:
+        toggleGuided();
       case ReaderKeyAction.bookmark:
         toggleBookmark();
       case ReaderKeyAction.chapterList:
@@ -1297,10 +1492,14 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     return t != null && t.trim().isNotEmpty ? t : 'Page $n of ${chapter.pages.length}';
   }
 
+  /// The printed number of a chapter of the feed (from its title), for the reaction labels.
+  double? _numberOf(String chapterKey) => chapterNumberOf(_body.feed.chapters.where((c) => c.id == chapterKey).firstOrNull?.title);
+
   Widget _caughtUp(ReaderChapter chapter) {
     final n = chapterNumberOf(chapter.title);
     final followed = ref.read(updatesProvider.notifier).followedFor(sourceId: sourceId, seriesKey: seriesKey) != null;
     return CaughtUpCard(
+      reactions: GlassChapterReactions(sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapter.id, chapterNumber: n),
       nextNumber: n == null ? 'the next one' : '${(n + 1).floor()}',
       inLibrary: followed,
       onFollow: () async {
@@ -1329,6 +1528,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       ..watch(deviceOnlineProvider);
     final ocr = ref.watch(ocrChapterTextProvider(_chapterIdentity)).valueOrNull;
     _ocrText = {for (final p in ocr ?? const <PageText>[]) p.page: p.text};
+    _ambientBridge.sync(chapters: _body.feed.chapters, rtl: v.prefs.rtl);
     final size = MediaQuery.sizeOf(context);
     final accessibleNav = MediaQuery.accessibleNavigationOf(context);
     final desktop = isReaderDesktopFrame(size);
@@ -1342,13 +1542,15 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     // Idle hide after 3,000 ms only when a tap opened the chrome (glass 8.14.2): the skin's timer, not the engine's.
     const autoHideAfter = Duration(days: 1);
 
-    Widget chrome(BuildContext context, ReaderEngineState state) => LayoutBuilder(
+    Widget chromeFor(BuildContext context, ReaderEngineState state) => LayoutBuilder(
           builder: (context, c) {
             final w = c.maxWidth;
             final cw = column == null ? w : math.min(w, column);
             return GlassReaderChrome(host: this, state: state, column: Rect.fromLTWH((w - cw) / 2, 0, cw, c.maxHeight));
           },
         );
+    // While guided view is open the chrome is drawn above it (the engine's copy steps aside): the top groups stay as they are.
+    Widget chrome(BuildContext context, ReaderEngineState state) => _guided ? const SizedBox.shrink() : chromeFor(context, state);
 
     final Widget view;
     if (isPaged) {
@@ -1501,8 +1703,13 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
                   right: ReaderRightPanel(
                     tab: _rightTab,
                     onTab: (t) => setState(() => _rightTab = t),
-                    settings: ReaderSettingsBody(seriesRef: _seriesRef, readAll: widget.readAll),
+                    settings: ReaderSettingsBody(seriesRef: _seriesRef, readAll: widget.readAll, inPanel: true, onOpenSheet: _openFromPanel),
                     pageText: (ocr ?? const <PageText>[]).where((p) => p.page == engine.value.page).firstOrNull,
+                    circle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      GlassChapterReactions(sourceId: sourceId, seriesKey: seriesKey, chapterKey: _chapterIdentity.chapterKey, chapterNumber: _numberOf(_chapterIdentity.chapterKey)),
+                      const SizedBox(height: 16),
+                      SeriesCircleRow(sourceId: sourceId, seriesKey: seriesKey),
+                    ],),
                   ),
                 )
               : stripArea,
@@ -1549,6 +1756,32 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
             ),
           ),
         if (_hitShown && _matches.isNotEmpty) ..._hitLayer(size),
+        if (_guided && _chapter(engine.value.chapterId) != null)
+          Positioned.fill(
+            child: GlassGuidedView(
+              key: const ValueKey('glass-guided'),
+              engine: engine,
+              chapter: _chapter(engine.value.chapterId)!,
+              rtl: v.prefs.rtl,
+              initialPage: engine.value.page,
+              onClose: _closeGuided,
+              onNextChapter: _nextId == null ? null : () {
+                setState(() => _guided = false);
+                nextChapter();
+              },
+              onPreviousChapter: _previousId == null ? null : () {
+                setState(() => _guided = false);
+                previousChapter();
+              },
+              lb: bandLb(Rect.fromLTWH(0, 0, size.width, size.height), size, engine.value.currentPageSample),
+              tint: pageTinted ? _tint : null,
+              bottomInset: math.max(GlassReaderInsets.of(context).bottom, MediaQuery.systemGestureInsetsOf(context).bottom) + 16,
+            ),
+          ),
+        if (_guided)
+          Positioned.fill(
+            child: ValueListenableBuilder<ReaderEngineState>(valueListenable: engine, builder: (context, state, _) => chromeFor(context, state)),
+          ),
         if (_tapsMounted)
           Positioned.fill(
             child: IgnorePointer(

@@ -26,6 +26,10 @@ const Map<String, List<String>> _providersByService = {
     'lettersProvider',
     'sharedCollectionsProvider',
     'sharedShelfDetailProvider',
+    // Glass (mobile/43): the recommend sheet's members, Sent letters and a friend's feed.
+    'seriesMembersProvider',
+    'sentLettersProvider',
+    'memberFeedProvider',
   ],
   'bookmark_service': ['bookmarksProvider'],
   'browse_service': [

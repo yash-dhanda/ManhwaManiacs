@@ -159,7 +159,7 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
   late final AnimationController _x = AnimationController.unbounded(vsync: this);
   late final AnimationController _o = AnimationController(vsync: this, value: 0);
   late final AnimationController _rim = AnimationController(vsync: this, duration: widget.entry.spec.effectiveDuration);
-  bool _hover = false, _focused = false, _touch = false, _dragging = false, _in = false, _closing = false;
+  bool _hover = false, _focused = false, _touch = false, _dragging = false, _in = false, _closing = false, _away = false;
   GlassMotionEntry? _move;
   Offset _drag = Offset.zero;
 
@@ -173,6 +173,7 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
       if (st == AnimationStatus.completed && mounted && !_paused && !_sticky) ref.read(glassToastProvider.notifier).dismiss(e.id);
     });
     e.focus.addListener(_onFocus);
+    _away = !widget.present;
     if (_reduced) _y.value = 0;
     WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
     _announce();
@@ -232,6 +233,7 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
   }
 
   void _fall() {
+    if (_away && mounted) setState(() => _away = false);
     _y.stop();
     if (_reduced) {
       _y.value = 0;
@@ -253,6 +255,8 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
     if (remove) _closing = true;
     void done() {
       if (remove && mounted) ref.read(glassToastProvider.notifier).remove(e.id);
+      // A toast waiting behind a menu is off screen: it drops its glass until it falls back in (glass 15.7).
+      if (!remove && mounted && !_in) setState(() => _away = true);
     }
 
     if (_reduced) {
@@ -374,9 +378,10 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
 
     final capsule = Stack(
           children: [
-            const Positioned.fill(
-              child: SkinGlass(tier: GlassTierId.t2, shape: GlassShape.superellipse(22), layer: GlassLayerKind.hud, debugLabel: 'GlassToast', child: SizedBox.shrink()),
-            ),
+            if (!_away)
+              const Positioned.fill(
+                child: SkinGlass(tier: GlassTierId.t2, shape: GlassShape.superellipse(22), layer: GlassLayerKind.hud, debugLabel: 'GlassToast', child: SizedBox.shrink()),
+              ),
             if (spec.undo != null)
               Positioned.fill(
                 child: IgnorePointer(

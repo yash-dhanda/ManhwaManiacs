@@ -144,7 +144,7 @@ void main() {
     }
     expect(find.bySemanticsLabel('Larger text'), findsOneWidget);
     expect(find.bySemanticsLabel('Narrower column'), findsOneWidget);
-    await t.drag(find.text('Measure').first, const Offset(0, -700));
+    await t.drag(find.text('Measure').first, const Offset(0, -900));
     await settle(t, ms: 500);
     for (final label in ['Bold text', 'Line guide', 'Page-tinted chrome', 'Keep screen awake']) {
       expect(find.text(label), findsWidgets, reason: label);

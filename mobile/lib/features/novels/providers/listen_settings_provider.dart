@@ -11,6 +11,7 @@ extension ListenSettingsView on JsonRecord {
   bool get autoPlayNext => boolOf('autoPlayNext', true);
   bool get keepPlayerVisible => boolOf('keepPlayerVisible', false);
   bool get shakeToExtend => boolOf('shakeToExtend', true);
+  bool get glassShakeToExtend => boolOf('glassShakeToExtend', false);
 }
 
 class ListenSettingsNotifier extends ProfileRecordNotifier {

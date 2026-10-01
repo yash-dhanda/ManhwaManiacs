@@ -8,9 +8,13 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/settings/utils/whats_new_policy.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/glass/listen/listen_sheets.dart';
+import 'package:manhwamaniacs/skins/glass/parts/collections/collection_share_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/how_it_works_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/offer_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/recap_ready_listener.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recommend/letter_note_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/new_chapters_capsule.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
@@ -21,6 +25,7 @@ import 'package:manhwamaniacs/skins/glass/screens/settings/licenses_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/app_update_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shortcuts_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/whats_new_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/soundscape/soundscape_sheet.dart' show registerSoundscapeSheet;
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,7 +40,13 @@ void registerGlassGlobalSheets() {
   registerSaveToFilesSheet();
   registerOfferSheet();
   registerHowItWorksSheet();
+  // The Circle's sheets (mobile/43, glass 9.3.3, 9.3.4).
+  registerRecommendSheets();
+  registerLetterNoteSheet();
+  registerCollectionShareSheet();
   registerGlassNovelSheets();
+  registerSoundscapeSheet();
+  registerListenSheets();
 }
 
 Widget _licences(BuildContext _) => const GlassLicencesSheet();

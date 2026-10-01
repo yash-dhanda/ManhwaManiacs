@@ -14,11 +14,13 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
+import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart' show completedThisSessionProvider;
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart' show DownloadKind;
 import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
+import 'package:manhwamaniacs/features/novels/controllers/novel_auto_scroll.dart';
 import 'package:manhwamaniacs/features/novels/controllers/novel_reader_controller.dart';
 import 'package:manhwamaniacs/features/novels/engine/novel_paginator.dart';
 import 'package:manhwamaniacs/features/novels/engine/novel_paragraph_layout.dart' show kNovelSceneBreakExtent, novelParagraphIndents;
@@ -27,13 +29,19 @@ import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_typography.dart';
 import 'package:manhwamaniacs/features/novels/providers/glass_novel_prefs_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_audio_provider.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart' show novelAttributionProvider;
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_preferences_provider.dart' show novelPaceStoreProvider;
+import 'package:manhwamaniacs/features/novels/providers/saved_audio_provider.dart' show SavedAudioState, savedAudioStateProvider;
+import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart' show seriesAudioProvider;
+import 'package:manhwamaniacs/features/novels/utils/narration_timing.dart' show FollowKind, followDecision;
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
+import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart' show avgWordsPerLine;
 import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
@@ -41,12 +49,32 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/cruise.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/cruise_pill.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/novel_cruise.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/rain_on_glass.dart';
+import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
+import 'package:manhwamaniacs/skins/glass/glass/registry.dart' show GlassLayerKind;
+import 'package:manhwamaniacs/skins/glass/glass/shape.dart' show GlassShape;
+import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
+import 'package:manhwamaniacs/skins/glass/listen/cast_sheet.dart' show GlassCastBody;
+import 'package:manhwamaniacs/skins/glass/listen/glass_narration_host.dart';
+import 'package:manhwamaniacs/skins/glass/listen/highlight_layer.dart';
+import 'package:manhwamaniacs/skins/glass/listen/listen_row.dart';
+import 'package:manhwamaniacs/skins/glass/listen/paged_follow.dart';
+import 'package:manhwamaniacs/skins/glass/listen/player_column.dart' show GlassPlayerColumn, PlayerForm;
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
+import 'package:manhwamaniacs/skins/glass/parts/reactions/chapter_reactions.dart' show GlassChapterReactions;
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
+import 'package:manhwamaniacs/skins/glass/prefs.dart' show glassA11yProvider;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart' show GlassButton, GlassButtonIcon, GlassButtonVariant;
+import 'package:manhwamaniacs/skins/glass/primitives/press.dart' show GlassMaterial, GlassPressable;
 import 'package:manhwamaniacs/skins/glass/primitives/reactions/glass_reactions.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/reactions/reaction_flight.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/tab_pager.dart' show GlassTabPagerController;
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_swipe_route.dart';
@@ -54,6 +82,7 @@ import 'package:manhwamaniacs/skins/glass/routes/route_frame.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_param_host.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart' show paletteOf;
+import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart' show roleIcon;
 import 'package:manhwamaniacs/skins/glass/screens/novel/bottom_capsule.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/chapter_end_pull.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/chapter_header.dart';
@@ -82,6 +111,13 @@ import 'package:manhwamaniacs/skins/glass/screens/novel/tinted_run_chip.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/type_rows.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/type_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_system_ui.dart';
+import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show registerMatureStop, registerPlaybackStop;
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show SkinGlass;
+import 'package:manhwamaniacs/skins/glass/soundscape/mixer.dart' show MixLevels;
+import 'package:manhwamaniacs/skins/glass/soundscape/recipes.dart';
+import 'package:manhwamaniacs/skins/glass/soundscape/soundscape_controller.dart';
+import 'package:manhwamaniacs/skins/glass/soundscape/soundscape_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/type.dart' show GlassText;
 
 /// The reading line: 38 % from the top (G1).
 const double kNovelReadingLine = 0.38;
@@ -115,13 +151,13 @@ Page<void> glassNovelPage(GoRouterState state) {
   if (defaultTargetPlatform == TargetPlatform.android) {
     return GlassMaterialPage<void>(key: key, name: state.name, builder: (_) => body, instantEnter: true);
   }
-  // TODO(mobile/33): with `extra: {'entry': 'book', 'plateRect', 'cover'}` return mobile/33's `GlassBookOpenPage` here.
+  // Book open (`extra: {'entry': 'book', ...}`) is routed to mobile/33's `GlassBookOpenPage` in `router.dart`.
   return GlassSwipePage<void>(key: key, name: state.name, builder: (_) => body, edgeOnly: 20, instantEnter: true);
 }
 
 /// ScreenId `novel` (`/novels/:sourceId/:seriesKey/:chapterKey?page&para&at&listen=1`): the Glass novel reader (glass 8.15).
 class GlassNovelReaderScreen extends StatelessWidget {
-  const GlassNovelReaderScreen({super.key, required this.sourceId, required this.seriesKey, required this.chapterKey, this.bucket = 1, this.paragraph, this.fraction, this.nonce = ''});
+  const GlassNovelReaderScreen({super.key, required this.sourceId, required this.seriesKey, required this.chapterKey, this.bucket = 1, this.paragraph, this.fraction, this.nonce = '', this.listen = false});
 
   factory GlassNovelReaderScreen.of(GoRouterState s) {
     final p = s.pathParameters;
@@ -135,6 +171,7 @@ class GlassNovelReaderScreen extends StatelessWidget {
       paragraph: int.tryParse(q['para'] ?? ''),
       fraction: at == null || at.isNaN ? null : at.clamp(0.0, 1.0),
       nonce: novelNonce(s),
+      listen: q['listen'] == '1',
     );
   }
 
@@ -143,6 +180,7 @@ class GlassNovelReaderScreen extends StatelessWidget {
   final int? paragraph;
   final double? fraction;
   final String nonce;
+  final bool listen;
 
   @override
   Widget build(BuildContext context) => GlassReaderSystemUi(
@@ -155,20 +193,24 @@ class GlassNovelReaderScreen extends StatelessWidget {
           paragraph: paragraph,
           fraction: fraction,
           nonce: nonce,
+          listen: listen,
         ),
       );
 }
 
 /// The reader's body. It renders `NovelReaderController`'s state (`mobile/14`) and owns no reading logic of its own.
 class GlassNovelReader extends ConsumerStatefulWidget {
-  const GlassNovelReader({super.key, required this.sourceId, required this.seriesKey, required this.chapterKey, this.bucket = 1, this.paragraph, this.fraction, this.nonce = '', this.chromeSlots = const [], this.topCentreSlots = const []});
+  const GlassNovelReader({super.key, required this.sourceId, required this.seriesKey, required this.chapterKey, this.bucket = 1, this.paragraph, this.fraction, this.nonce = '', this.listen = false, this.chromeSlots = const [], this.topCentreSlots = const []});
   final String sourceId, seriesKey, chapterKey;
   final int bucket;
   final int? paragraph;
   final double? fraction;
   final String nonce;
 
-  /// `mobile/37`'s listen and voices buttons (E3).
+  /// `?listen=1`: start reading aloud at the resume point once the first frame is laid out (glass 8.15.2).
+  final bool listen;
+
+  /// Extra top-right buttons from later steps (`mobile/37`'s own listen and voices buttons are added here).
   final List<NovelChromeSlot> chromeSlots;
 
   /// `mobile/41`'s "Previously · 20 s" pill (E9); the newest capsule wins the slot.
@@ -199,6 +241,9 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   late final AnimationController _rightAnim;
 
   final ScrollController _scroll = ScrollController();
+  late final NovelAutoScroll _cruiseAuto = NovelAutoScroll(scroll: _scroll, vsync: this, basePxPerSecond: _cruiseBase, onEnd: _cruiseEnded);
+  final List<VoidCallback> _ambientStops = [];
+  SoundscapeController? _soundscape;
   final FocusNode _surfaceFocus = FocusNode(debugLabel: 'novel reading surface');
   final FocusScopeNode _chromeScope = FocusScopeNode(debugLabel: 'novel chrome');
   final FocusScopeNode _leftScope = FocusScopeNode(debugLabel: 'novel contents panel');
@@ -238,6 +283,13 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   Offset? _rippleOrigin;
   int _revision = 0;
   String? _announced;
+
+  // -- Listen mode (mobile/37) --
+  late final GlassListenBand _band = GlassListenBand(vsync: this, reduced: () => _reduced, onSentence: _onBandSentence);
+  final PagedFollow _pagedFollow = PagedFollow();
+  late final AnimationController _jumpFade = AnimationController(vsync: this, duration: const Duration(milliseconds: 120), value: 1);
+  bool _voiceDecoupled = false, _programmaticTurn = false, _listenBooted = false;
+
   Object? _pageKey;
   ProviderSubscription<NovelReaderState>? _sub;
   int _semanticsPercent = 0;
@@ -256,7 +308,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     _leftAnim = AnimationController(vsync: this, value: 0);
     _rightAnim = AnimationController(vsync: this, value: 0);
     WidgetsBinding.instance.addObserver(this);
-    for (final id in const [kNovelSheetContents, kNovelSheetType, kNovelSheetNote]) {
+    for (final id in const [kNovelSheetContents, kNovelSheetType, kNovelSheetNote, kNovelSheetSoundscape]) {
       _releases.add(glassClaimSheet(id));
     }
     _ctl
@@ -265,12 +317,15 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       ..locationReplacer = _replaceLocation
       ..narrationBusy = _narrationBusy;
     _scroll.addListener(_onScroll);
+    _attachAmbient();
     _sub = ref.listenManual<NovelReaderState>(novelReaderControllerProvider(_args), _onState);
+    ref.listenManual<NarrationState>(narrationControllerProvider, _onNarration);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _surfaceFocus.requestFocus();
       _syncWakelock();
       _openSheetFromLocation();
+      _bootListen();
       glassFire(ref, HapticEvent.readerEnter);
       glassSound(ref, SoundEvent.readerEnter);
     });
@@ -307,7 +362,14 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     _ctl
       ..detach(this)
       ..locationReplacer = null;
+    for (final stop in _ambientStops) {
+      stop();
+    }
+    _soundscape?.leaveReader();
+    _cruiseAuto.dispose();
     _scroll.dispose();
+    _band.dispose();
+    _jumpFade.dispose();
     for (final c in [_chromeAnim, _nextAnim, _pulse, _flag, _leftAnim, _rightAnim]) {
       c.dispose();
     }
@@ -384,6 +446,282 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     return (ready: store.samples().length >= 3, wpm: store.paceWpm);
   }
 
+  // -- Listen mode (mobile/37, glass 8.16) -------------------------------------------
+
+  GlassNarrationActions get _actions => ref.read(glassNarrationActionsProvider);
+
+  bool get _narratingHere {
+    final n = ref.read(narrationControllerProvider);
+    return n.key == _chapterKey && n.target != null && n.active;
+  }
+
+  /// `?listen=1`: reads aloud from the resume point once the first frame is laid out; a start that cannot happen (audio focus
+  /// refused, still preparing) leaves the listen row up, paused.
+  void _bootListen() {
+    if (_listenBooted || !widget.listen || _state.chapter == null) return;
+    _listenBooted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_listenStart());
+    });
+  }
+
+  /// The narration moved: when it went on to the neighbouring chapter the text swaps in place (the post-play card, the lock screen),
+  /// and on the desktop frame starting narration opens the Listen tab.
+  void _onNarration(NarrationState? prev, NarrationState next) {
+    final k = next.key;
+    if (k == null || !mounted) return;
+    final mine = _chapterKey;
+    if (k != prev?.key) {
+      _voiceDecoupled = false;
+      _pagedFollow.backToTheVoice();
+      if (prev?.key == mine && k.sourceId == mine.sourceId && k.seriesKey == mine.seriesKey && k.chapterKey != mine.chapterKey) {
+        if (k.chapterKey == _ctl.nextKey) {
+          _next();
+        } else if (k.chapterKey == _ctl.previousKey) {
+          _previous();
+        }
+      }
+    }
+    if (_desktop && !(prev?.active ?? false) && next.active && k == mine) _showRightTab(2);
+  }
+
+  /// Starts reading aloud at the reading line's paragraph (the header capsule, the listen button, `p`).
+  Future<void> _listenStart({bool fromReadingLine = true}) async {
+    final b = _bridge();
+    if (b == null) return;
+    // The audio answer may still be on its way (a deep link starts narration at the first frame).
+    if (await ref.read(playableNovelAudioProvider(_chapterKey).future) == null || !mounted) return;
+    glassFire(ref, HapticEvent.listenToggle);
+    final para = fromReadingLine ? (anchorAtReadingLine()?.index ?? (_paged ? paragraphOfPage(_ctl.pages, _pagedView.currentState?.page ?? 0) : 0)) : 0;
+    _voiceDecoupled = false;
+    _pagedFollow.backToTheVoice();
+    await b.playFrom(para);
+  }
+
+  /// The listen button (glass 8.15.3): the owner on an un-narrated chapter lands in the Audiobook sheet (Narrate, this chapter selected);
+  /// everyone else starts narration, or opens the player when it is already reading this chapter.
+  void _onListenButton() {
+    final key = _chapterKey;
+    if (_narratingHere) {
+      _openListenSurface();
+      return;
+    }
+    final playable = ref.read(playableNovelAudioProvider(key)).valueOrNull;
+    if (playable != null) {
+      unawaited(_listenStart());
+      return;
+    }
+    if (ref.read(glassIsOwnerProvider)) {
+      _holdChrome();
+      _actions.openSheet('audiobook', extra: {'series': '${key.sourceId}:${key.seriesKey}', 'chapter': key.chapterKey, 'mode': 'narrate'});
+    }
+  }
+
+  /// The full player: a sheet over the page, or the Listen tab on the desktop frame.
+  void _openListenSurface([Rect? from]) {
+    _holdChrome();
+    if (_desktop) {
+      _showRightTab(2);
+    } else {
+      _actions.openPlayer(from);
+    }
+  }
+
+  void _openVoices() {
+    _holdChrome();
+    if (_desktop) {
+      _showRightTab(1);
+    } else {
+      _actions.openSheet('cast');
+    }
+  }
+
+  final GlassTabPagerController _panelTabs = GlassTabPagerController();
+
+  /// Opens the right panel on tab [i] (0 Aa, 1 Voices, 2 Listen).
+  void _showRightTab(int i) {
+    if (!_desktop) return;
+    if (!_rightPanel) _togglePanel(right: true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_panelTabs.pages.hasClients) _panelTabs.pages.jumpToPage(i);
+    });
+  }
+
+  List<NovelChromeSlot> _listenSlots() {
+    final key = _chapterKey;
+    final playable = ref.read(playableNovelAudioProvider(key)).valueOrNull;
+    final owner = ref.read(glassIsOwnerProvider);
+    final canRender = ref.read(seriesAudioProvider((sourceId: key.sourceId, seriesKey: key.seriesKey))).valueOrNull?.canRender ?? false;
+    if (playable == null && !(owner && canRender)) return const [];
+    return [
+      NovelChromeSlot(icon: GlassButtonIcon(roleIcon(GlassIconRole.listen), fill: roleIcon(GlassIconRole.listen, GlassIconWeight.fill)), label: 'Listen', onPressed: _onListenButton, inMoreMenu: true),
+      NovelChromeSlot(icon: GlassButtonIcon(roleIcon(GlassIconRole.voiceCast), fill: roleIcon(GlassIconRole.voiceCast, GlassIconWeight.fill)), label: 'Voices', onPressed: _openVoices, inMoreMenu: true),
+    ];
+  }
+
+  Widget _voicesTab(BuildContext c) => GlassCastBody(chapter: _chapterKey, onGlass: false);
+
+  Widget _listenTab(BuildContext c) => Consumer(
+        builder: (context, ref, _) {
+          final n = ref.watch(narrationControllerProvider);
+          if (n.target != null) return const GlassPlayerColumn(form: PlayerForm.tab);
+          final has = ref.watch(playableNovelAudioProvider(_chapterKey)).valueOrNull != null;
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GlassText(has ? 'Read this chapter aloud' : 'This chapter has no audio yet', role: gt.typeCallout, textAlign: TextAlign.center),
+                  if (has) ...[const SizedBox(height: 12), GlassButton(label: 'Listen', variant: GlassButtonVariant.primary, onPressed: () => unawaited(_listenStart()))],
+                ],
+              ),
+            ),
+          );
+        },
+      );
+
+  /// "Listen · 14 min" under the chapter facts (glass 8.15.2) and, when the audio cannot follow along, the quiet line saying so.
+  List<Widget> _headerListen(NovelChapter chapter, PaperColors colors) {
+    final playable = ref.read(playableNovelAudioProvider(_chapterKey)).valueOrNull;
+    if (playable == null) return const [];
+    final minutes = math.max(1, (playable.audio.totalMs / 60000).round());
+    final saved = ref.read(savedAudioStateProvider(_chapterKey)) == SavedAudioState.saved;
+    final label = 'Listen · $minutes min${saved ? ' · saved' : ''}';
+    final follows = playable.audio.followsText(chapter.paragraphs);
+    final style = roleStyle(context, gt.typeSubhead, wght: 600, maxScale: 1.5).copyWith(color: colors.ink);
+    return [
+      const SizedBox(height: 12),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: GlassPressable(
+          material: GlassMaterial.content,
+          sink: 0.96,
+          onTap: () => unawaited(_listenStart()),
+          semanticsLabel: label,
+          builder: (context, info) => ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Center(
+              widthFactor: 1,
+              child: DecoratedBox(
+                decoration: ShapeDecoration(color: colors.ink.withValues(alpha: 0.12), shape: const GlassShape.capsule().border(const Size(180, 32))),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(roleIcon(GlassIconRole.listen, GlassIconWeight.fill), size: 16, color: colors.ink), const SizedBox(width: 8), Text(label, style: style, textScaler: TextScaler.noScaling)]),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      if (!follows)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text('Audio plays without follow-along for this chapter', style: roleStyle(context, gt.typeCaption1, maxScale: 1.3).copyWith(color: colors.muted), textScaler: TextScaler.noScaling),
+        ),
+    ];
+  }
+
+  // Follow the voice (glass 8.16.7, J2 and J4).
+
+  void _onBandSentence(BandTarget? t) {
+    if (t == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _followVoice(t);
+    });
+  }
+
+  void _followVoice(BandTarget t) {
+    if (!_band.enabled) return;
+    if (_paged) {
+      _followPaged(t);
+    } else {
+      _followScroll(t);
+    }
+  }
+
+  /// Paged mode: the page turns, with the chosen transition (Fade under reduced motion), the moment the voice reaches a sentence that is
+  /// not on the page; a manual turn decouples until "Back to the voice".
+  void _followPaged(BandTarget t) {
+    final view = _pagedView.currentState;
+    if (view == null || _ctl.pages.isEmpty) return;
+    var target = -1;
+    for (var i = 0; i < _ctl.pages.length && target < 0; i++) {
+      for (final sl in _ctl.pages[i]) {
+        if (sl.paragraphIndex == t.paragraph && sl.startChar <= t.start && t.start < sl.endChar) {
+          target = i;
+          break;
+        }
+      }
+    }
+    if (target < 0) target = pageOfParagraph(_ctl.pages, t.paragraph);
+    final here = view.page;
+    if (target == here || _pagedFollow.decoupled) return;
+    _programmaticTurn = true;
+    final delta = target - here;
+    (delta.abs() == 1 ? view.turnBy(delta) : Future<void>(() => view.jumpTo(target))).whenComplete(() => _programmaticTurn = false);
+  }
+
+  /// Scroll mode: keeps the sentence at 38 % of the viewport and scrolls on `springSettle` only when it leaves 20-70 %; beyond two
+  /// viewports it jumps with a 120 ms cross-fade; a manual scroll decouples (no automatic return).
+  void _followScroll(BandTarget t) {
+    if (_voiceDecoupled || !_scrollOk) return;
+    final box = _boxFor(t.paragraph);
+    final viewport = _viewportHeight();
+    if (box == null) {
+      // The paragraph is not built: land it at the top band through the controller's own path.
+      _ctl.jumpToParagraph(t.paragraph, toReadingLine: false);
+      return;
+    }
+    final text = _readerParagraphLength(t.paragraph);
+    final fraction = text <= 0 ? 0.0 : (t.start / text).clamp(0.0, 1.0);
+    final top = box.localToGlobal(Offset.zero).dy + fraction * box.size.height - _viewportTop();
+    final d = followDecision(top, viewport);
+    if (d.kind == FollowKind.none) return;
+    final to = (_scroll.position.pixels + d.delta).clamp(_scroll.position.minScrollExtent, _scroll.position.maxScrollExtent);
+    _programmatic = true;
+    if (_reduced) {
+      _jump(to);
+      _programmatic = false;
+    } else if (d.kind == FollowKind.jump) {
+      unawaited(_jumpFade.animateTo(0.2, duration: const Duration(milliseconds: 60)).then((_) {
+        if (mounted) _jump(to);
+        return mounted ? _jumpFade.animateTo(1, duration: const Duration(milliseconds: 60)) : null;
+      }).whenComplete(() => _programmatic = false),);
+    } else {
+      unawaited(_scroll.animateTo(to, duration: Duration(milliseconds: gt.springSettle.ms), curve: SpringCurve(gt.springSettle)).whenComplete(() => _programmatic = false));
+    }
+  }
+
+  int _readerParagraphLength(int i) {
+    final c = _state.chapter;
+    return c == null || i < 0 || i >= c.paragraphs.length ? 0 : c.paragraphs[i].length;
+  }
+
+  /// A manual scroll or turn while narrating decouples the page from the voice.
+  void _decoupleFromVoice() {
+    if (!_band.enabled || _programmatic || _programmaticTurn) return;
+    if (_paged) {
+      if (_pagedFollow.decoupled) return;
+      _pagedFollow.manualTurn();
+    } else {
+      if (_voiceDecoupled) return;
+      _voiceDecoupled = true;
+    }
+    setState(() {});
+  }
+
+  bool get _decoupled => _band.enabled && (_paged ? _pagedFollow.decoupled : _voiceDecoupled);
+
+  /// "Back to the voice": re-couples and brings the page to the spoken sentence.
+  void _backToTheVoice() {
+    _voiceDecoupled = false;
+    _pagedFollow.backToTheVoice();
+    setState(() {});
+    final n = _band.next;
+    if (n != null) _followVoice(n);
+  }
+
   // -- Controller state -------------------------------------------------------
 
   void _onState(NovelReaderState? prev, NovelReaderState next) {
@@ -415,6 +753,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       _announce(next);
     }
     if (next.nextState != prev?.nextState) _checkRateLimit(next);
+    if (next.chapter != null && prev?.chapter == null) _bootListen();
   }
 
   void _announce(NovelReaderState s) {
@@ -511,9 +850,10 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
 
   void _onScroll() {
     _ctl.onScrolled();
+    if (_scrollOk && _scroll.position.extentAfter < 1) _markFinished();
     if (!_scrollOk) return;
     final p = _scroll.position.pixels;
-    final delta = _programmatic ? 0.0 : p - _lastPixels;
+    final delta = _programmatic || (_cruiseAuto.running && _cruiseAuto.controller.moving) ? 0.0 : p - _lastPixels;
     _lastPixels = p;
     if (delta > 0) {
       _upAccum = 0;
@@ -565,6 +905,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     glassFire(ref, HapticEvent.chapterNext);
     glassSound(ref, SoundEvent.chapterNext);
     _nextAnim.value = 0;
+    _markFinished();
     _ctl.next();
     unawaited(GlassMotion.play(MotionName.novelNext, controller: _nextAnim, target: 1));
   }
@@ -764,7 +1105,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     unawaited(_fly(kind, from, to));
     final key = (sourceId: widget.sourceId, seriesKey: widget.seriesKey);
     final notifier = ref.read(chapterReactionsProvider(key).notifier);
-    await notifier.press(c.chapterKey, kind, chapterNumber: c.chapterNumber);
+    await notifier.press(c.chapterKey, kind, chapterNumber: c.chapterNumber, mature: _sourceMature);
     if (!mounted) return;
     final mine = notifier.reactionsOf(c.chapterKey)?.mine;
     if (mine != kind) {
@@ -822,13 +1163,25 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
 
   void _openNote() => unawaited(_present(kNovelSheetNote));
 
+  bool get _sourceMature => ref.read(sourcesListProvider).valueOrNull?.where((x) => x.id == widget.sourceId).firstOrNull?.mature ?? false;
+
+  /// The chapter is finished here: the spoiler guard unseals its reactions (glass 9.3, mobile/43).
+  void _markFinished() {
+    final c = _state.chapter;
+    if (c == null || c.chapterKey == _finishedKey) return;
+    _finishedKey = c.chapterKey;
+    ref.read(completedThisSessionProvider.notifier).markCompleted(widget.sourceId, widget.seriesKey, c.chapterKey);
+  }
+
+  String? _finishedKey;
+
   /// `?sheet=` on the reader's own location at mount (a deep link) opens that sheet.
   void _openSheetFromLocation() {
     String? id;
     try {
       id = GoRouterState.of(context).uri.queryParameters['sheet'];
     } catch (_) {}
-    if (id == kNovelSheetType || id == kNovelSheetContents || id == kNovelSheetNote) unawaited(_present(id!));
+    if (id == kNovelSheetType || id == kNovelSheetContents || id == kNovelSheetNote || id == kNovelSheetSoundscape) unawaited(_present(id!));
   }
 
   /// Presents one of the reader's sheets (the reader claims their ids, `mobile/29`'s registry).
@@ -837,6 +1190,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     final paper = _values().paper;
     final page = switch (id) {
       kNovelSheetType => novelTypeSheetPage(_typeBody),
+      kNovelSheetSoundscape => soundscapeSheetPage(seriesRef: '${widget.sourceId}:${widget.seriesKey}', landscapePhone: _phone && MediaQuery.sizeOf(context).width > MediaQuery.sizeOf(context).height),
       kNovelSheetContents => novelContentsSheetPage(paper, (c) => _contentsBody(c, autofocus: byKey && HardwareKeyboard.instance.logicalKeysPressed.isEmpty)),
       _ => novelNoteSheetPage((note) async {
           final ok = note.isEmpty || await _ctl.addNoteToLast(note);
@@ -890,6 +1244,16 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
               },
               palette: _palette(),
               phone: _phone,
+              soundscapeSummary: ref.watch(soundscapeControllerProvider).summary,
+              onSoundscape: () {
+                Navigator.of(c).maybePop();
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_present(kNovelSheetSoundscape));
+                });
+              },
+              cruiseOffered: _cruiseInSheet,
+              cruiseRunning: ref.watch(cruiseControllerProvider).running,
+              onToggleCruise: _toggleCruise,
             ),
           );
         },
@@ -1064,6 +1428,100 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     overlay.insert(_keyboardMenu!);
   }
 
+  // -- Cruise (glass 9.4.1, 8.15.4) and the soundscape ----------------------------------------
+
+  bool get _rainOn {
+    final v = ref.read(soundscapeControllerProvider);
+    final playing = v.scene == SoundScene.rain && (v.state == SoundscapeState.starting || v.state == SoundscapeState.playingBuiltin || v.state == SoundscapeState.playingRecorded || v.state == SoundscapeState.ducked);
+    return playing && !_reduced && !ref.read(glassA11yProvider).solid;
+  }
+
+  String get _seriesRef => '${widget.sourceId}:${widget.seriesKey}';
+  bool get _cruiseInSheet => MediaQuery.textScalerOf(context).scale(17) / 17 > 1.3;
+  CruiseController get _cruise => ref.read(cruiseControllerProvider.notifier);
+
+  /// px/s at 1.0x: `(wpm / 60) / wordsPerLine x lineHeightPx`, the words per line measured from the laid-out extent.
+  double _cruiseBase() {
+    final chapter = ref.read(novelReaderControllerProvider(_args)).chapter;
+    if (chapter == null || !_scrollOk) return 0;
+    final type = _type(_values());
+    final lineH = type.fontSize * type.lineHeight;
+    final lines = math.max(1, (_scroll.position.maxScrollExtent / lineH).round());
+    return novelPxPerSecond(1, wpm: ref.read(novelPaceStoreProvider).paceWpm, wordsPerLine: avgWordsPerLine(chapter.wordCount, lines), lineHeightPx: lineH);
+  }
+
+  void _cruiseEnded() {
+    glassFire(ref, HapticEvent.autoscrollEnd);
+    _setChrome(true);
+  }
+
+  void _attachAmbient() {
+    _ambientKeep.add(ref.listenManual(cruiseControllerProvider, (_, __) {
+      if (mounted) setState(() {});
+    }),);
+    _ambientKeep.add(ref.listenManual(soundscapeControllerProvider.select((v) => (v.on, v.scene, v.state)), (_, __) {
+      if (mounted) setState(() {});
+    }),);
+    final soundscape = ref.read(soundscapeControllerProvider.notifier);
+    _soundscape = soundscape;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _cruise.attach(
+        NovelCruiseSource(_cruiseAuto, _scroll),
+        speed: ref.read(readerPrefsProvider(_seriesRef)).cruiseSpeed,
+        persist: (v) => unawaited(ref.read(readerSeriesPrefsProvider.notifier).setFor(_seriesRef, {GlassReaderKeys.cruiseSpeed: v})),
+        reduced: () => _reduced,
+      );
+      final own = ref.read(readerPrefsProvider(_seriesRef)).soundscape;
+      final genres = _series?.series.genres ?? const <String>[];
+      final mature = ref.read(sourcesListProvider).valueOrNull?.where((x) => x.id == widget.sourceId).firstOrNull?.mature ?? false;
+      unawaited(soundscape.enterReader(SoundscapeReaderContext(
+        seriesRef: _seriesRef,
+        genres: genres,
+        rememberedScene: SoundScene.byName(own?.scene),
+        rememberedMix: own == null ? null : MixLevels(bed: own.bed, detail: own.detail, tone: own.tone),
+        mature: mature,
+      ),),);
+    });
+    _ambientStops.add(registerPlaybackStop('cruise', _cruise.stop));
+    final mature = ref.read(sourcesListProvider).valueOrNull?.where((x) => x.id == widget.sourceId).firstOrNull?.mature ?? false;
+    if (mature) _ambientStops.add(registerMatureStop('cruise', _cruise.stop));
+  }
+
+  final List<ProviderSubscription<Object?>> _ambientKeep = [];
+
+  /// `a` and the bottom capsule's button (scroll mode only; narration plays through its own bar).
+  void _toggleCruise() {
+    if (_paged) {
+      showGlassToast(ref, const GlassToastSpec('Cruise needs the scroll layout'));
+      return;
+    }
+    glassFire(ref, HapticEvent.autoscrollToggle);
+    _cruise.toggle();
+  }
+
+  /// `<` and `>` step cruise by 0.25x, only while narration is not playing (narration owns them then).
+  void _stepCruise(double by) {
+    if (ref.read(narrationControllerProvider).isPlaying) return;
+    if (_paged) return;
+    _cruise.step(by);
+  }
+
+  Widget _cruiseButton(Color? tint, double lb) {
+    final c = ref.read(cruiseControllerProvider);
+    return CruisePill(
+      state: c,
+      onToggle: _toggleCruise,
+      onResume: _cruise.resume,
+      onPreview: _cruise.preview,
+      onCommit: _cruise.commit,
+      onStep: _cruise.step,
+      reduced: _reduced,
+      lb: lb,
+      tint: tint,
+    );
+  }
+
   bool _runKey(NovelKeyAction a) {
     _lastKey = _now;
     switch (a) {
@@ -1098,6 +1556,24 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       case NovelKeyAction.playPause:
         final b = _bridge();
         if (b != null) runBridge(b.toggle);
+      case NovelKeyAction.previousSentence:
+        if (_narratingHere) unawaited(ref.read(narrationControllerProvider.notifier).stepSentence(-1));
+      case NovelKeyAction.nextSentence:
+        if (_narratingHere) unawaited(ref.read(narrationControllerProvider.notifier).stepSentence(1));
+      case NovelKeyAction.back15:
+        if (_narratingHere) unawaited(ref.read(narrationControllerProvider.notifier).seekBy(const Duration(seconds: -15)));
+      case NovelKeyAction.forward15:
+        if (_narratingHere) unawaited(ref.read(narrationControllerProvider.notifier).seekBy(const Duration(seconds: 15)));
+      case NovelKeyAction.slower:
+      case NovelKeyAction.faster:
+        // Cruise speed outside narration is `mobile/44`'s.
+        if (_narratingHere) {
+          glassFire(ref, HapticEvent.select);
+          final n = ref.read(narrationControllerProvider);
+          unawaited(ref.read(narrationControllerProvider.notifier).setSpeed(n.speed + (a == NovelKeyAction.faster ? 0.05 : -0.05)));
+        }
+      case NovelKeyAction.voices:
+        _openVoices();
       case NovelKeyAction.goTo:
         _setGoTo(true);
       case NovelKeyAction.shortcuts:
@@ -1111,6 +1587,14 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         _cyclePanel(1);
       case NovelKeyAction.panelPrevious:
         _cyclePanel(-1);
+      case NovelKeyAction.cruise:
+        _toggleCruise();
+      case NovelKeyAction.cruiseSlower:
+        _stepCruise(-Cruise.tick);
+      case NovelKeyAction.cruiseFaster:
+        _stepCruise(Cruise.tick);
+      case NovelKeyAction.soundscape:
+        unawaited(_present(kNovelSheetSoundscape));
       case NovelKeyAction.escape:
         _escape();
     }
@@ -1230,6 +1714,9 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
 
   bool _onScrollNotification(ScrollNotification n) {
     if (n.depth != 0 || !_scrollOk) return false;
+    // A finger drag pauses cruise until the momentum settles (glass 9.4.1).
+    if (n is ScrollStartNotification && n.dragDetails != null && _cruiseAuto.running) _cruiseAuto.controller.manualDrag();
+    if (n is ScrollStartNotification && n.dragDetails != null) _decoupleFromVoice();
     final m = n.metrics;
     double? displayed;
     if (_reduced) {
@@ -1281,8 +1768,16 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       ..watch(glassNovelPrefsProvider(_book))
       ..watch(sourceSeriesDetailProvider((sourceId: widget.sourceId, seriesId: widget.seriesKey)))
       ..watch(playableNovelAudioProvider(_chapterKey))
+      ..watch(seriesAudioProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)))
+      ..watch(glassIsOwnerProvider)
       ..watch(narrationControllerProvider.select((n) => (n.key, n.status)))
       ..watch(glassReducedProvider);
+    final narration = ref.watch(narrationControllerProvider);
+    final attribution = ref.watch(novelAttributionProvider(_chapterKey)).valueOrNull;
+    final bodyChapter = s.chapter;
+    if (bodyChapter != null) {
+      _band.sync(narration: ref.read(narrationControllerProvider.notifier), state: narration, chapter: _chapterKey, paragraphs: bodyChapter.paragraphs, attribution: attribution);
+    }
     final record = ref.watch(readerSettingsProvider);
     _ctl.autoNext = record.autoNextChapter;
     final v = _values();
@@ -1459,8 +1954,9 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
             child: panelled,
             builder: (context, child) {
               final t = _nextAnim.value.clamp(0.0, 1.0);
-              if (t >= 1) return child!;
-              return Opacity(opacity: t, child: Transform.translate(offset: Offset(0, (1 - t) * MediaQuery.sizeOf(context).height * 0.3), child: child));
+              final faded = FadeTransition(opacity: _jumpFade, child: child);
+              if (t >= 1) return faded;
+              return Opacity(opacity: t, child: Transform.translate(offset: Offset(0, (1 - t) * MediaQuery.sizeOf(context).height * 0.3), child: faded));
             },
           ),
           if (v.lineGuide && !ghost) Positioned.fill(child: IgnorePointer(ignoring: false, child: NovelLineGuide(lineHeightPx: v.fontSize * v.lineHeight, paper: colors.bg))),
@@ -1473,7 +1969,16 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
 
   List<GlassParagraphDecoration> _decorations(NovelReaderState s, int i) {
     final runs = s.speakerRuns[i];
-    return [if (runs != null && runs.isNotEmpty) SpeakerBandsDecoration(runs)];
+    return [
+      if (runs != null && runs.isNotEmpty) SpeakerBandsDecoration(runs, hideBackground: _band.enabled ? (r) => _bandCovers(i, r) : null),
+      if (_band.enabled) ListenBandDecoration(_band, i),
+    ];
+  }
+
+  /// The listen band covers this run: the run drops its background under it (its underline stays).
+  bool _bandCovers(int paragraph, SpeakerRun r) {
+    final n = _band.next;
+    return n != null && n.paragraph == paragraph && n.start < r.end && n.end > r.start;
   }
 
   void _onRunTap(SpeakerRun run, Rect rect) {
@@ -1506,6 +2011,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         decorations: _decorations(s, i),
         onRunTap: ghost ? null : _onRunTap,
         semanticsLabel: semanticsWithSpeakers(text, runs),
+        repaint: _band,
       );
     } else {
       piece = GlassTextPiece(
@@ -1518,6 +2024,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         runs: runs,
         decorations: _decorations(s, i),
         onRunTap: ghost ? null : _onRunTap,
+        repaint: _band,
       );
     }
     if (i + 1 != _pulseParagraph || ghost) return piece;
@@ -1556,6 +2063,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       title: chapter.title,
       lengthLine: glassLengthLine(chapter.wordCount, minutes),
       bodySize: v.fontSize,
+      slots: _headerListen(chapter, paperColors(v.paper)),
     );
   }
 
@@ -1575,6 +2083,13 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       onBackToBook: _leave,
       endOfDownload: endOfDownload,
       onDownloadNext: _downloadNext10,
+      // The finished chapter's reactions (mobile/43, glass 9.3.2); a reaction sent from the menu lands in this strip.
+      reactionSlots: ghost
+          ? const []
+          : [
+              const SizedBox(height: 24),
+              GlassChapterReactions(sourceId: widget.sourceId, seriesKey: widget.seriesKey, chapterKey: chapter.chapterKey, chapterNumber: chapter.chapterNumber, mature: _sourceMature),
+            ],
     );
   }
 
@@ -1619,7 +2134,18 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       },
     );
     if (ghost) return list;
-    return NotificationListener<ScrollNotification>(onNotification: _onScrollNotification, child: list);
+    return Listener(
+      onPointerDown: (_) {
+        if (_cruiseAuto.running) _cruiseAuto.controller.touchDown();
+      },
+      onPointerUp: (_) {
+        if (_cruiseAuto.running) _cruiseAuto.controller.touchUp();
+      },
+      onPointerCancel: (_) {
+        if (_cruiseAuto.running) _cruiseAuto.controller.touchUp();
+      },
+      child: NotificationListener<ScrollNotification>(onNotification: _onScrollNotification, child: list),
+    );
   }
 
   /// `?para=` flashes the paragraph with the Row pulse: `iris600` at 14 % fading to 0 over 900 ms (reduced: shown 900 ms, removed).
@@ -1710,10 +2236,14 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       paper: paperColors(v.paper).bg,
       builder: (context, i, ghostPage) => page(context, i, ghost || ghostPage),
       onPage: (i) {
+        if (!_programmaticTurn) _decoupleFromVoice();
         _ctl.onPaged(i);
         glassFire(ref, HapticEvent.pageTurn);
         glassSound(ref, SoundEvent.pageTurn);
-        if (i >= pages.length) _ctl.markComplete();
+        if (i >= pages.length) {
+          _ctl.markComplete();
+          _markFinished();
+        }
         setState(() {});
       },
     );
@@ -1754,6 +2284,10 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
           },
         );
     final topCentre = _topCentre(lb);
+    final landscape = g.landscapePhone;
+    final rowOn = _narratingHere && !ref.watch(glassListenRowHiddenProvider) && !(_desktop && _rightPanel && _panelTabs.pages.hasClients && (_panelTabs.pages.page ?? 0).round() == 2);
+    final rowW = listenRowWidth(novelCapsuleWidth(g.size.width), landscapePhone: landscape);
+    final rowAlign = landscape ? Alignment.centerRight : Alignment.center;
     return [
       // The tint cross-fades over curveTintShift (900 ms; 200 ms reduced) when the paper changes.
       TweenAnimationBuilder<Color?>(
@@ -1762,7 +2296,10 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         curve: gt.curveTintShift.curve,
         builder: (context, tint, _) {
           final t = tint == null || tint.a <= 0.001 ? null : tint;
-          return Stack(
+          return RainOnGlassHost(
+            active: _rainOn && _chrome,
+            light: ref.watch(glassLightAngleProvider).valueOrNull ?? kLightAngleRest,
+            child: Stack(
             fit: StackFit.expand,
             children: [
               Positioned(
@@ -1783,35 +2320,74 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
                       tint: t,
                       savedCopy: chapter.isOffline,
                       staleAge: chapter.cacheStale ? novelCacheAge(chapter.cacheFetchedAt) : null,
-                      slots: widget.chromeSlots,
+                      slots: [...widget.chromeSlots, ..._listenSlots()],
+                      aaBadge: ref.read(soundscapeControllerProvider).on,
                       titleKey: _titleKey,
                       bookmarkDrop: _flag,
                     ),
                   ),
                 ),
               ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: g.bottom,
-                height: 56,
-                child: Center(
-                  child: live(
-                    NovelBottomCapsule(
-                      width: novelCapsuleWidth(g.size.width),
-                      readout: readout,
-                      percent: percent,
-                      onGoTo: () => _setGoTo(true),
-                      lb: lb,
-                      tint: t,
-                      onPrevious: _ctl.previousKey == null ? null : _previous,
-                      onNext: _ctl.nextKey == null ? null : _next,
-                      nextLabel: _nextLabel(),
-                    ),
-                  ),
+              Positioned.fill(
+                child: ListenRowLinger(
+                  chromeShown: _chrome,
+                  pinned: ref.watch(glassListenRowPinnedProvider),
+                  builder: (context, visible) {
+                    final showRow = rowOn && visible;
+                    final inGroup = showRow && _chrome;
+                    return Stack(
+                      children: [
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: g.bottom,
+                          height: inGroup ? 56 + 8 + kListenRowHeight : 56,
+                          child: Center(
+                            child: live(
+                              NovelBottomCapsule(
+                                width: novelCapsuleWidth(g.size.width),
+                                readout: readout,
+                                percent: percent,
+                                onGoTo: () => _setGoTo(true),
+                                lb: lb,
+                                tint: t,
+                                onPrevious: _ctl.previousKey == null ? null : _previous,
+                                onNext: _ctl.nextKey == null ? null : _next,
+                                nextLabel: _nextLabel(),
+                                slots: [if (!_paged && !_cruiseInSheet) _cruiseButton(t, lb)],
+                                listenRow: inGroup ? GlassListenRowBody(width: rowW) : null,
+                                listenRowWidth: rowW,
+                                listenRowAlign: rowAlign,
+                              ),
+                            ),
+                          ),
+                        ),
+                        // The chrome is hidden and the row lingers (5000 ms): the row alone, where it sat.
+                        if (showRow && !_chrome)
+                          Positioned(
+                            left: 0,
+                            right: landscape ? g.right : 0,
+                            bottom: g.bottom + 56 + 8,
+                            height: kListenRowHeight,
+                            child: Align(
+                              alignment: rowAlign,
+                              child: SkinGlass(size: Size(rowW, kListenRowHeight), tier: GlassTierId.t3, lb: lb, debugLabel: 'listen row', child: GlassListenRowBody(width: rowW)),
+                            ),
+                          ),
+                        if (showRow && _decoupled)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: g.bottom + 56 + 8 + kListenRowHeight + 8,
+                            child: Center(child: _BackToTheVoice(onTap: _backToTheVoice)),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],
+          ),
           );
         },
       ),
@@ -1854,8 +2430,10 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   Widget? _topCentre(double lb) {
     final p = _pinchSize;
     if (p != null) return NovelTopCapsule(key: const ValueKey('pinch'), text: 'Text size ${p.round()}', lb: lb);
-    final n = _rateLeft;
-    if (n != null) return NovelTopCapsule(key: const ValueKey('rate'), text: 'The source is busy; the next chapter will load in $n s', warning: true, lb: lb);
+    final left = _rateLeft;
+    if (left != null) return NovelTopCapsule(key: const ValueKey('rate'), text: 'The source is busy; the next chapter will load in $left s', warning: true, lb: lb);
+    final n = ref.read(narrationControllerProvider);
+    if (n.key == _chapterKey && n.target != null && n.active && !n.highlightSafe) return _HighlightPaused(key: const ValueKey('highlight-paused'), lb: lb);
     return widget.topCentreSlots.isEmpty ? null : widget.topCentreSlots.last;
   }
 
@@ -1915,7 +2493,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
               label: 'Type, voices and listen',
               paperBg: colors.bg,
               focus: _rightScope,
-              child: Material(type: MaterialType.transparency, child: _rightPanel ? NovelRightPanelTabs(tabs: novelRightPanelTabs(_typeBody)) : const SizedBox.shrink()),
+              child: Material(type: MaterialType.transparency, child: _rightPanel ? NovelRightPanelTabs(controller: _panelTabs, tabs: novelRightPanelTabs(_typeBody, voices: _voicesTab, listen: _listenTab)) : const SizedBox.shrink()),
             ),
           ),
         ),
@@ -1924,8 +2502,57 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   }
 }
 
-/// The right panel's tabs in order (D2): this step delivers Aa; `mobile/37` appends Voices and Listen.
-List<NovelPanelTab> novelRightPanelTabs(WidgetBuilder aa) => [NovelPanelTab('Aa', aa)];
+/// The right panel's tabs in order (D2, glass 8.15.1): Aa, then `mobile/37`'s Voices and Listen.
+List<NovelPanelTab> novelRightPanelTabs(WidgetBuilder aa, {WidgetBuilder? voices, WidgetBuilder? listen}) => [
+      NovelPanelTab('Aa', aa),
+      if (voices != null) NovelPanelTab('Voices', voices),
+      if (listen != null) NovelPanelTab('Listen', listen),
+    ];
+
+/// "Highlight paused: the text changed" (glass 8.16.7, J3): a quiet `glassThin` capsule in the top-centre slot.
+class _HighlightPaused extends StatelessWidget {
+  const _HighlightPaused({super.key, required this.lb});
+  final double lb;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        liveRegion: true,
+        label: 'Highlight paused: the text changed',
+        excludeSemantics: true,
+        child: SkinGlass(
+          size: Size(math.min(MediaQuery.sizeOf(context).width - 48, 280), 32),
+          tier: GlassTierId.t2,
+          lb: lb,
+          layer: GlassLayerKind.hud,
+          debugLabel: 'highlight paused capsule',
+          child: Center(child: GlassText('Highlight paused: the text changed', role: gt.typeFootnote, wght: 600, onGlass: true, maxScale: 1.3, maxLines: 1, overflow: TextOverflow.ellipsis)),
+        ),
+      );
+}
+
+/// "Back to the voice": a `fill2` twin capsule above the listen row after a manual scroll or turn.
+class _BackToTheVoice extends StatelessWidget {
+  const _BackToTheVoice({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => GlassPressable(
+        material: GlassMaterial.content,
+        sink: 0.96,
+        onTap: onTap,
+        semanticsLabel: 'Back to the voice',
+        builder: (context, info) => ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Center(
+            widthFactor: 1,
+            child: DecoratedBox(
+              decoration: ShapeDecoration(color: gt.colorFill2, shape: const GlassShape.capsule().border(const Size(160, 36))),
+              child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), child: GlassText('Back to the voice', role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1)),
+            ),
+          ),
+        ),
+      );
+}
 
 /// Three four-point stars (U+2726), [em] each, 0.5 em apart plus a word space.
 class _SceneStars extends CustomPainter {

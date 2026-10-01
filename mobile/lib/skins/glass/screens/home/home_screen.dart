@@ -56,7 +56,7 @@ class GlassHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsBindingObserver {
-  final GlassMagnetRegistry _magnets = GlassMagnetRegistry();
+  late final GlassMagnetRegistry _magnets = ref.read(glassRecommendMagnetsProvider);
   final HomeHeroClaims _claims = HomeHeroClaims();
   final GlassPullToRefreshController _refresh = GlassPullToRefreshController();
   final GlobalKey _spotKey = GlobalKey();
@@ -333,9 +333,7 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
 
     final page = HomeHeroScope(
       claims: _claims,
-      child: GlassRecommendOrbs(
-        registry: _magnets,
-        child: GlassScaffold(
+      child: GlassScaffold(
           title: 'Home',
           contentModeSwitch: true,
           trailing: homeBarActions(ref),
@@ -348,7 +346,6 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
             SliverToBoxAdapter(child: body),
           ],
         ),
-      ),
     );
     return Stack(
       fit: StackFit.expand,

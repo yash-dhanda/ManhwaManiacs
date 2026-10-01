@@ -1,29 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/library/providers/lift_store.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart' show GlassLiftPhase;
 
-/// A poster, card or spotlight cover that is being lifted (glass 9.3.4): the friend orbs appear while [phase] is `lifted`.
-@immutable
-class GlassLift {
-  const GlassLift({required this.sourceId, required this.seriesKey, required this.phase, required this.rect});
-  final String sourceId, seriesKey;
-  final GlassLiftPhase phase;
-  final Rect rect;
+export 'package:manhwamaniacs/features/library/providers/lift_store.dart' show LiftPhase, LiftState, liftProvider;
 
-  String get key => '$sourceId:$seriesKey';
-
-  @override
-  bool operator ==(Object other) => other is GlassLift && other.key == key && other.phase == phase && other.rect == rect;
-
-  @override
-  int get hashCode => Object.hash(key, phase, rect);
-}
-
-/// The lift in progress, fed by `GlassPoster.onLiftPhase`; null at rest.
-final liftProvider = StateProvider<GlassLift?>((ref) => null, name: 'glassLift');
-
-/// The `onLiftPhase` callback of a poster of [sourceId]:[seriesKey]; [rectOf] reads the poster's global rect.
-ValueChanged<GlassLiftPhase> liftPhaseHandler(WidgetRef ref, {required String sourceId, required String seriesKey, required Rect Function() rectOf}) {
+/// The `onLiftPhase` callback of a poster of [sourceId]:[seriesKey] (glass 9.3.4): writes the skin-neutral [liftProvider];
+/// [rectOf] reads the poster's global rect.
+ValueChanged<GlassLiftPhase> liftPhaseHandler(WidgetRef ref, {required String sourceId, required String seriesKey, required Rect Function() rectOf, bool mature = false}) {
   final notifier = ref.read(liftProvider.notifier);
   return (phase) {
     if (phase == GlassLiftPhase.ended) {
@@ -31,7 +15,15 @@ ValueChanged<GlassLiftPhase> liftPhaseHandler(WidgetRef ref, {required String so
       if (cur != null && cur.sourceId == sourceId && cur.seriesKey == seriesKey) notifier.state = null;
       return;
     }
-    notifier.state = GlassLift(sourceId: sourceId, seriesKey: seriesKey, phase: phase, rect: rectOf());
+    final rect = rectOf();
+    notifier.state = LiftState(
+      sourceId: sourceId,
+      seriesKey: seriesKey,
+      mature: mature,
+      phase: phase == GlassLiftPhase.growing ? LiftPhase.growing : LiftPhase.lifted,
+      posterRect: rect,
+      pointer: notifier.state?.pointer ?? rect.center,
+    );
   };
 }
 

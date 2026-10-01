@@ -10,7 +10,7 @@ import 'package:manhwamaniacs/skins/glass/screens/novel/paper_frame.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/papers.dart';
 
 /// The novel reader's `?sheet=` ids (glass 8.0.3): `contents`, `type`, `note` (and `recommend`, `mobile/43`'s).
-const String kNovelSheetContents = 'contents', kNovelSheetType = 'type', kNovelSheetNote = 'note', kNovelSheetRecommend = 'recommend';
+const String kNovelSheetContents = 'contents', kNovelSheetType = 'type', kNovelSheetNote = 'note', kNovelSheetRecommend = 'recommend', kNovelSheetSoundscape = 'soundscape';
 
 /// The Aa sheet (H): `?sheet=type`, a `medium` sheet (52 %) so the page updates live above it. Glass `GlassSheetPage` on
 /// `smooth_sheets` 1.2.0.

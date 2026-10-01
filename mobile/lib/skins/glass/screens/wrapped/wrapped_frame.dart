@@ -29,6 +29,9 @@ abstract final class WrappedSlots {
   static const Rect figure = Rect.fromLTRB(24, 216, 336, 520);
   static const Rect footnote = Rect.fromLTRB(24, 528, 336, 552);
   static const Rect export = Rect.fromLTRB(232, 576, 336, 620);
+
+  /// Card 4's "Recommend" capsule (mobile/43).
+  static const Rect recommend = Rect.fromLTRB(24, 576, 128, 620);
 }
 
 /// [r] (frame units) scaled by [scale] and placed at [origin] (the frame's top-left on screen).

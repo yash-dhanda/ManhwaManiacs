@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/circle/utils/dispatch.dart';
+import 'package:manhwamaniacs/features/circle/utils/presence.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
@@ -20,12 +21,12 @@ import 'package:manhwamaniacs/skins/glass/type.dart';
 /// Where a member is (glass 9.3.1): reading now, active today, or away.
 enum Presence { readingNow, activeToday, away }
 
-Presence presenceOf(CircleMember m, DateTime now) {
-  if (m.now != null) return Presence.readingNow;
-  final a = m.lastActiveAt?.toLocal();
-  if (a != null && a.year == now.year && a.month == now.month && a.day == now.day) return Presence.activeToday;
-  return Presence.away;
-}
+/// The shared rule (`presenceState`: reading only within 15 minutes of `now.since`), mapped to the card's names.
+Presence presenceOf(CircleMember m, DateTime now) => switch (presenceState(m, now)) {
+      PresenceState.reading => Presence.readingNow,
+      PresenceState.today => Presence.activeToday,
+      PresenceState.away => Presence.away,
+    };
 
 /// A 32 px presence orb: reading now wears a breathing `bloom` ring, active today a static ring at 40 %, away none.
 class PresenceOrb extends ConsumerStatefulWidget {

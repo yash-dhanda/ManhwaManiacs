@@ -422,7 +422,8 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
     final budget = GlassBudgetScope.maybeOf(context);
     final dpr = MediaQuery.devicePixelRatioOf(context);
 
-    final wantsTwin = widget.twin != null || inHost;
+    // A group whose every shape is a twin draws no live glass, so it is not counted either.
+    final wantsTwin = widget.twin != null || inHost || (widget.groupShapes?.every((s) => s.twin != null) ?? false);
     final solid = !wantsTwin && (a11y.solid || forcedSolid);
     final live = !wantsTwin && !solid;
     _syncRegistration(live, budget?.exempt ?? false);

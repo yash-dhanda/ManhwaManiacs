@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/library/utils/wrapped_cards.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_sheet.dart' show openRecommendSheet;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/letter_reveal.dart';
@@ -11,6 +12,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/poster.dart' show GlassCove
 import 'package:manhwamaniacs/skins/glass/primitives/profile_orb.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/typed_headline.dart';
+import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart' show glassSheetRegistered;
 import 'package:manhwamaniacs/skins/glass/screens/wrapped/page_pile.dart';
 import 'package:manhwamaniacs/skins/glass/screens/wrapped/wrapped_frame.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_common.dart' show avatarPresetFor;
@@ -148,6 +150,11 @@ class _WrappedCardFaceState extends ConsumerState<WrappedCardFace> with SingleTi
     final export = widget.onExport == null
         ? null
         : SizedBox(width: 104, height: 44, child: GlassButton(label: widget.card == WrappedCard.summary ? 'Share your year' : 'Export', size: GlassButtonSize.small, twin: GlassTwin.onGlass, onPressed: widget.onExport));
+    // Card 4's "Recommend" capsule for the #1 series (mobile/43, glass 9.3.4), only on the live card.
+    final top = a.topSeries.firstOrNull;
+    final recommend = widget.card != WrappedCard.topFive || widget.onExport == null || top == null || !glassSheetRegistered('recommend')
+        ? null
+        : SizedBox(width: 104, height: 44, child: GlassButton(label: 'Recommend', size: GlassButtonSize.small, twin: GlassTwin.onGlass, onPressed: () => openRecommendSheet(ref, sourceId: top.sourceId, seriesKey: top.seriesKey, title: top.title)));
     if (widget.reflow) {
       return _Column(ground: cardGround(a), eyebrow: eyebrow, headline: headline, figure: figure, foot: foot, export: export);
     }
@@ -161,6 +168,7 @@ class _WrappedCardFaceState extends ConsumerState<WrappedCardFace> with SingleTi
         Positioned.fromRect(rect: WrappedSlots.figure, child: figure),
         Positioned.fromRect(rect: WrappedSlots.footnote, child: Align(child: foot)),
         if (export != null) Positioned.fromRect(rect: WrappedSlots.export, child: export),
+        if (recommend != null) Positioned.fromRect(rect: WrappedSlots.recommend, child: recommend),
       ],),
     );
   }

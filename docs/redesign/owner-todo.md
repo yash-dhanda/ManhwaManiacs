@@ -172,6 +172,14 @@ Items only the owner can do, by step.
 
 - Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-40/device-check.md` (Orb lift at 120 Hz with 0 dropped frames, the 30 min slider magnet, the Sign out everywhere hold, a backup export to Files, Diagnostics while scrolling, the bead pulse, VoiceOver and TalkBack custom actions, Reduce Motion and Reduce Transparency).
 
+## mobile/43 (Glass Circle)
+
+- Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-43/device-check.md` (presence drift with and without "Show me in presence", the reaction bloom haptics at 120 Hz, the lift-to-orb magnet and Undo, Orbs fly out, the friend orb flight, the letter dot, the gate-closed profile, VoiceOver and TalkBack, Reduce Motion).
+
+## mobile/33 (Glass series detail and book page)
+
+- Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-33/device-check.md` (cover landing from a throw, sheet tracking and snap at 120 Hz, the 1,000-chapter fling and list-to-sheet hand-off, the hero tilt stopping when covered, Android predictive back, iPad two-column window, VoiceOver/TalkBack select mode, Save to Files, Book open paper).
+
 ## mobile/35 (Glass manga reader)
 
 - Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-35/device-check.md`.
@@ -180,3 +188,11 @@ Items only the owner can do, by step.
 ## mobile/36 (Glass novel reader)
 
 - [ ] Run `docs/redesign/proof/mobile-36/device-checklist.md` on the iPhone (SideStore IPA) and an Android flagship (CI APK): native selection and the Glass menu, Lift/Slide at 120 Hz, Book open, paper ripple, pinch, system UI around the notch and gesture bar, rotation, iOS edge strip, keep awake, VoiceOver/TalkBack, text scale, Bold Text, the 12,000-word pagination time.
+
+## mobile/44
+- Device pass: docs/redesign/proof/mobile-44/device-checklist.md (shader on Impeller, flick to cruise, audio session, recorded layers).
+- Recorded layers glass-{scene}-{layer}.ogg are not dropped yet; the procedural layers cover them.
+
+## mobile/37 (Glass Listen mode)
+
+- [ ] Run `docs/redesign/proof/mobile-37/device-checklist.md` on the iPhone (SideStore IPA) and an Android flagship (CI APK).

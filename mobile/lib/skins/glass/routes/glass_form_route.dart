@@ -97,6 +97,7 @@ class _GlassFormPageState<T> extends ConsumerState<_GlassFormPage<T>> {
           title: page.title,
           centerTitle: page.centerTitle,
           leading: page.leading,
+          trailing: page.trailing,
           titleFocus: _title,
           status: status,
           onRetry: page.onRetry,
@@ -160,8 +161,10 @@ class _GlassFormPageState<T> extends ConsumerState<_GlassFormPage<T>> {
         );
       case GlassWideForm.window:
         final w = math.min(560.0, size.width - 24);
-        final top = math.max(0.12 * size.height, 48.0);
-        final maxH = math.min(0.8 * size.height, 880.0);
+        // The listen player is a monolith: T5 glass, radius 32, up to 88 % of the window, a fixed-height column (glass 8.16.2).
+        final mono = page.material == GlassSheetMaterial.monolith;
+        final maxH = mono ? 0.88 * size.height : math.min(0.8 * size.height, 880.0);
+        final top = mono ? 0.06 * size.height : math.max(0.12 * size.height, 48.0);
         final colLeft = sidebar;
         final centerX = colLeft + (size.width - colLeft) / 2;
         body = Positioned(
@@ -171,7 +174,9 @@ class _GlassFormPageState<T> extends ConsumerState<_GlassFormPage<T>> {
           child: _bloom(
             anchor: Offset(centerX, top),
             reduced: reduced,
-            child: ConstrainedBox(constraints: BoxConstraints(maxHeight: maxH), child: _glassed(_scaffold(shrink: true), radius: gt.radiusXxl, tier: GlassTierId.auto)),
+            child: mono
+                ? SizedBox(height: maxH, child: _glassed(_scaffold(), radius: 32, tier: GlassTierId.t5))
+                : ConstrainedBox(constraints: BoxConstraints(maxHeight: maxH), child: _glassed(_scaffold(shrink: true), radius: gt.radiusXxl, tier: GlassTierId.auto)),
           ),
         );
       case GlassWideForm.detailWindow:

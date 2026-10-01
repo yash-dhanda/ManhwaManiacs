@@ -221,8 +221,11 @@ Widget glassPageState(BuildContext context, int page, PageStatus status, String?
 /// The end card of the strip's last chapter (glass 8.14.4 "Caught up"): "You're caught up" and, when the series is not in the
 /// library, the invitation to follow it.
 class CaughtUpCard extends StatelessWidget {
-  const CaughtUpCard({super.key, required this.nextNumber, required this.inLibrary, required this.onFollow});
+  const CaughtUpCard({super.key, required this.nextNumber, required this.inLibrary, required this.onFollow, this.reactions});
   final String nextNumber;
+
+  /// The finished chapter's reactions (mobile/43), above the caught-up line; the sent glyph lands in its strip.
+  final Widget? reactions;
   final bool inLibrary;
   final VoidCallback onFollow;
 
@@ -231,6 +234,7 @@ class CaughtUpCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (reactions != null) ...[reactions!, const SizedBox(height: 16)],
             GlassText("You're caught up", role: gt.typeTitle3, color: gt.colorLabel1, textAlign: TextAlign.center),
             const SizedBox(height: 6),
             GlassText("The source hasn't published chapter $nextNumber yet.", role: gt.typeFootnote, color: gt.colorLabel2, textAlign: TextAlign.center),
