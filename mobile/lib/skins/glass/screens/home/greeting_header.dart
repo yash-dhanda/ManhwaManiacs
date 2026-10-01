@@ -102,10 +102,9 @@ class GreetingHeader extends ConsumerWidget {
                   children: [
                     if (sub.riskLine != null)
                       GlassLabel(sub.riskLine!, role: gt.typeFootnote, color: gt.colorLabel1, maxLines: 2)
-                    else if (sub.newChapters != null) ...[
+                    // No separator glyph: when the chip wraps to its own line a trailing "·" would dangle.
+                    else if (sub.newChapters != null)
                       GlassLabel(sub.newChapters!, role: gt.typeFootnote, color: gt.colorLabel2),
-                      if (sub.streakDays > 0) GlassLabel('·', role: gt.typeFootnote, color: gt.colorLabel2),
-                    ],
                     if (sub.streakDays > 0 && sub.riskLine == null) GreetingStreakChip(days: sub.streakDays, readToday: readToday),
                     if (sub.riskLine != null) GreetingStreakChip(days: sub.streakDays, atRisk: true),
                   ],
