@@ -37,6 +37,16 @@ class CineContentsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.cine;
     final ink = read ? c.colorInk45 : c.colorInk100;
+    final marks = <Widget>[
+      if (minutes != null) CineRoleText('$minutes MIN', c.typeFolio, color: c.colorInk45),
+      if (percent != null && !read) CineRoleText('$percent%', c.typeFolio, color: c.colorSpot),
+      if (read) CineRoleText('READ', c.typeMicro, color: c.colorInk45),
+      if (narrated) CineGlyphIcon(CineGlyph.headphones, size: 16, color: c.colorInk60),
+      if (downloadMark != null) downloadMark!,
+    ];
+    for (var i = marks.length - 1; i > 0; i--) {
+      marks.insert(i, SizedBox(width: c.space2));
+    }
     return CineRowShell(
       minHeight: 48,
       onTap: onTap,
@@ -52,15 +62,12 @@ class CineContentsRow extends StatelessWidget {
       child: Row(children: [
         SizedBox(width: 32, child: CineRoleText('$ordinal', c.typeFolio, color: c.colorInk45, textAlign: TextAlign.right)),
         SizedBox(width: c.space3),
-        Flexible(child: CineLit(title, CineFace.newsreader, 16, 24, color: ink)),
-        SizedBox(width: c.space2),
-        const Expanded(child: Padding(padding: EdgeInsets.only(top: 8), child: CineDotLeader())),
-        SizedBox(width: c.space2),
-        if (minutes != null) CineRoleText('$minutes MIN', c.typeFolio, color: c.colorInk45),
-        if (percent != null && !read) Padding(padding: EdgeInsets.only(left: c.space2), child: CineRoleText('$percent%', c.typeFolio, color: c.colorSpot)),
-        if (read) Padding(padding: EdgeInsets.only(left: c.space2), child: CineRoleText('READ', c.typeMicro, color: c.colorInk45)),
-        if (narrated) Padding(padding: EdgeInsets.only(left: c.space2), child: CineGlyphIcon(CineGlyph.headphones, size: 16, color: c.colorInk60)),
-        if (downloadMark != null) Padding(padding: EdgeInsets.only(left: c.space2), child: downloadMark),
+        Expanded(
+          child: CineLeaderRow(
+            label: CineLit(title, CineFace.newsreader, 16, 24, color: ink),
+            value: marks.isEmpty ? null : Row(mainAxisSize: MainAxisSize.min, children: marks),
+          ),
+        ),
       ],),
     );
   }

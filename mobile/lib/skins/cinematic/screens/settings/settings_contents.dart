@@ -68,13 +68,12 @@ class SettingsContentsList extends ConsumerWidget {
                 decoration: BoxDecoration(border: Border(bottom: c.ruleHair), color: st.pressed ? c.colorPaper3 : null),
                 child: Row(children: [
                   SizedBox(width: 32, child: CineRoleText(folio, c.typeFolio, color: c.colorInk60)),
-                  Flexible(child: CineRoleText(s.title, c.typeUi)),
-                  SizedBox(width: c.space2),
-                  const Expanded(child: Padding(padding: EdgeInsets.only(bottom: 2), child: CineDotLeader())),
-                  if (value != null) ...[
-                    SizedBox(width: c.space2),
-                    Flexible(child: CineRoleText(value, c.typeFolio, color: c.colorInk60, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                  ],
+                  Expanded(
+                    child: CineLeaderRow(
+                      label: CineRoleText(s.title, c.typeUi),
+                      value: value == null ? null : CineRoleText(value, c.typeFolio, color: c.colorInk60, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
+                  ),
                   SizedBox(width: c.space2),
                   CineGlyphIcon(CineGlyph.caretRight, size: 16, color: c.colorInk60),
                 ],),
