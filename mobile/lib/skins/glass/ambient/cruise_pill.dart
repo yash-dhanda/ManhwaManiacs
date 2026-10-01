@@ -52,7 +52,6 @@ class CruiseDrag {
       : hud = AnimationController(vsync: vsync, duration: const Duration(milliseconds: 250));
 
   final AnimationController hud;
-  final LayerLink link = LayerLink();
   final OverlayPortalController portal = OverlayPortalController(debugLabel: 'CruiseHud');
   final void Function(HapticEvent) fire;
   final ValueChanged<double> onPreview, onCommit;
@@ -69,6 +68,8 @@ class CruiseDrag {
     shown = speed;
     _inMagnet = speed == 1.0;
     _atLimit = false;
+    final box = _anchorKey.currentContext?.findRenderObject();
+    if (box is RenderBox && box.hasSize) _anchor = box.localToGlobal(Offset.zero) & box.size;
     portal.show();
     unawaited(GlassMotion.play(MotionName.materialise, controller: hud, target: 1));
     changed();
@@ -118,21 +119,33 @@ class CruiseDrag {
           TapGestureRecognizer: GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(TapGestureRecognizer.new, (r) => r.onTap = onTap),
       };
 
-  /// Wraps [child] so the HUD floats beside it (above it for the pill, to its leading side for the rail).
+  final GlobalKey _anchorKey = GlobalKey();
+  Rect? _anchor;
+
+  /// Wraps [child] so the HUD floats beside it (above it for the pill, to its leading side for the rail). The anchor is measured when
+  /// the drag starts, so the HUD needs no leader/follower pair.
   Widget hudOver(Widget child, {required String text, required double lb, Color? tint, bool beside = false}) => OverlayPortal(
         controller: portal,
-        overlayChildBuilder: (context) => Positioned.fill(
-          child: IgnorePointer(
-            child: CompositedTransformFollower(
-              link: link,
-              targetAnchor: beside ? Alignment.centerLeft : Alignment.topCenter,
-              followerAnchor: beside ? Alignment.centerRight : Alignment.bottomCenter,
-              offset: Offset(beside ? -12 : 0, beside ? 0 : -12),
-              child: Align(alignment: Alignment.topLeft, child: FadeTransition(opacity: hud, child: _Hud(text: text, lb: lb, tint: tint))),
+        overlayChildBuilder: (context) {
+          final a = _anchor;
+          if (a == null) return const SizedBox.shrink();
+          const w = 200.0, h = 44.0;
+          final left = beside ? a.left - 12 - w : a.center.dx - w / 2;
+          final top = beside ? a.center.dy - h / 2 : a.top - 12 - h;
+          return Positioned(
+            left: left,
+            top: top,
+            width: w,
+            height: h,
+            child: IgnorePointer(
+              child: FadeTransition(
+                opacity: hud,
+                child: Align(alignment: beside ? Alignment.centerRight : Alignment.bottomCenter, child: _Hud(text: text, lb: lb, tint: tint)),
+              ),
             ),
-          ),
-        ),
-        child: CompositedTransformTarget(link: link, child: child),
+          );
+        },
+        child: KeyedSubtree(key: _anchorKey, child: child),
       );
 }
 

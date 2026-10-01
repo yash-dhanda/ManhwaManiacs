@@ -601,6 +601,7 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
           child: SkinGlass(
             size: lens.size,
             tier: GlassTierId.t2,
+            finish: GlassFinishKind.clear,
             shape: const GlassShape.superellipse(14),
             lb: widget.lb,
             tint: widget.tint,

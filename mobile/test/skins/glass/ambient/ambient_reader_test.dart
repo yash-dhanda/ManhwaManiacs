@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/guided_view.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/glass_manga_reader.dart';
 import 'package:manhwamaniacs/skins/glass/shell/purge.dart';
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show glassRegistryProvider;
 
 import '../reader/glass_reader_rig.dart';
 
@@ -94,6 +95,22 @@ void main() {
     await settleReader(t, ms: 600);
     expect(find.bySemanticsLabel('Cruise'), findsOneWidget);
     expect(ProviderScope.containerOf(t.element(find.byType(GlassMangaReader))), isNotNull);
+    await disposeGlassReader(t);
+  });
+
+  testWidgets('budget: cruise running and guided view open stay inside 6 layers and 8 shapes, with no glass in the strip', (t) async {
+    await pumpGlassReader(t);
+    await settleReader(t, ms: 600);
+    final c = ProviderScope.containerOf(t.element(find.byType(GlassMangaReader)));
+    await key(t, LogicalKeyboardKey.keyP, char: 'p');
+    expect(c.read(glassRegistryProvider).layers, lessThanOrEqualTo(6));
+    expect(c.read(glassRegistryProvider).shapes, lessThanOrEqualTo(8));
+    await key(t, LogicalKeyboardKey.keyP, char: 'P', shift: true);
+    await settleReader(t, ms: 800);
+    final reg = c.read(glassRegistryProvider);
+    expect(reg.layers, lessThanOrEqualTo(6), reason: [for (final e in reg.entries) '${e.label}(${e.shapes})'].join(', '));
+    expect(reg.shapes, lessThanOrEqualTo(8), reason: [for (final e in reg.entries) '${e.label}(${e.shapes})'].join(', '));
+    expect(reg.entries.where((e) => e.label == 'reader top groups').length, 1);
     await disposeGlassReader(t);
   });
 }
