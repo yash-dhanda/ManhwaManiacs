@@ -201,3 +201,9 @@ Items only the owner can do, by step.
 
 - Device pass rows 1 to 14 at 120 Hz on the iPhone and the Android flagship: `docs/redesign/proof/mobile-45/device-checklist.md`.
 - Drop `calibration-flutter-premium-ios.png` and `calibration-flutter-premium-android.png` into `docs/redesign/proof/mobile-45/` (Settings > Diagnostics > Glass calibration). The harness capture has no refraction, so only these count against the web.
+
+## redesign/G2 (Glass functional gaps, ships in 4.1.0)
+
+- Backend changed: `GET /ai/recap` takes `fresh=1` (deploy the backend with the 4.1.0 release, or "Write it again" answers from the cache).
+- Device check: in a recap deck, "Write it again" writes a new recap and spends one ask; "Continue · Ch N, p. M" opens at that page; a novel's Who's who orbs match the reader's speaker colours.
+
