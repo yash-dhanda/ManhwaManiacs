@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.da
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/skins/glass/icons/glass_icon.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
+import 'package:manhwamaniacs/skins/glass/listen/narrating_chip.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -195,7 +196,9 @@ class _GlassSidebarState extends ConsumerState<GlassSidebar> with TickerProvider
         warn: r.warn,
         loading: r.loading,
         onDisc: widget.overlay,
-        trailing: r.expandable && expanded ? Icon(_libraryOpen ? GlassGlyph.caretDown.regular : GlassGlyph.caretRight.regular, size: 16, color: gt.colorOnGlass) : null,
+        trailing: r.expandable && expanded
+            ? Icon(_libraryOpen ? GlassGlyph.caretDown.regular : GlassGlyph.caretRight.regular, size: 16, color: gt.colorOnGlass)
+            : (r.id == 'downloads' && expanded ? const GlassNarratingChip(onGlass: true) : null),
         onTap: () {
           if (r.expandable) {
             if (expanded) {

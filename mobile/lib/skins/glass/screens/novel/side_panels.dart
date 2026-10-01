@@ -60,8 +60,11 @@ class NovelSidePanel extends StatelessWidget {
 
 /// The right panel's tab strip (`mobile/27`'s in-page tabs) over its panels.
 class NovelRightPanelTabs extends StatelessWidget {
-  const NovelRightPanelTabs({super.key, required this.tabs});
+  const NovelRightPanelTabs({super.key, required this.tabs, this.controller});
   final List<NovelPanelTab> tabs;
+
+  /// Lets the reader open a tab (the listen button opens Listen, `v` opens Voices).
+  final GlassTabPagerController? controller;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +77,6 @@ class NovelRightPanelTabs extends StatelessWidget {
         ],
       );
     }
-    return GlassTabPager(tabs: [for (final t in tabs) GlassTabSpec(t.label)], panels: [for (final t in tabs) Builder(builder: t.builder)]);
+    return GlassTabPager(controller: controller, tabs: [for (final t in tabs) GlassTabSpec(t.label)], panels: [for (final t in tabs) Builder(builder: t.builder)]);
   }
 }

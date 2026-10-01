@@ -80,9 +80,9 @@ logger = logging.getLogger(__name__)
 #: Requests per UTC day, on its own ledger rather than sharing attribution's.
 #: A shared counter means a long attribution run silently disables the button,
 #: and a stuck button silently starves attribution; neither failure is
-#: diagnosable from the symptom. ~$0.003 each, so this caps the feature at
-#: roughly twenty cents a day.
-DAILY_CEILING = 60
+#: diagnosable from the symptom. ~$0.003 each; owner raised it 2026-10-01 so
+#: Browse by genre never runs dry, which caps the feature at about $6 a day.
+DAILY_CEILING = 2000
 
 #: Separate file for the same reason the ceiling is separate.
 BUDGET_PATH = SETTINGS_PATH.parent / "deepseek-suggest-usage.json"
@@ -93,10 +93,10 @@ BUDGET_PATH = SETTINGS_PATH.parent / "deepseek-suggest-usage.json"
 #: until midnight UTC. It stays as the spend backstop; these two rules sit
 #: under it for every account that is not an admin.
 #:
-#: Each such account gets this many a day of its own -- plenty for a reader
-#: asking a few times, and four accounts' worth before the shared pool below
-#: is gone.
-ACCOUNT_DAILY_CEILING = 10
+#: Each such account gets this many a day of its own: enough for endless
+#: genre scrolling (about 40 titles a request), while one open-signup account
+#: still cannot drain the shared pool alone.
+ACCOUNT_DAILY_CEILING = 500
 
 #: And together they stop this far short of DAILY_CEILING, so however many
 #: accounts spend their share, an admin always has this many left. Checked

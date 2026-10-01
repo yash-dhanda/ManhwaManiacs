@@ -21,6 +21,7 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass/follow_ring.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
+import 'package:manhwamaniacs/skins/glass/listen/glass_narration_host.dart' show glassNarrationActionsProvider;
 import 'package:manhwamaniacs/skins/glass/parts/circle/series_circle_row.dart' show hideFromCircleEntry;
 import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_sheet.dart' show recommendMenuEntry;
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
@@ -215,6 +216,7 @@ Future<void> showSeriesMenu(BuildContext context, WidgetRef ref, GlassSeriesData
       if (f != null) GlassMenuEntry(label: 'Add to collection…', enabled: online, onSelected: () => _collectionMenu(context, ref, d, anchor)),
       GlassMenuEntry(label: 'Tags…', enabled: online, keyHint: const SingleActivator(LogicalKeyboardKey.keyT, shift: true), onSelected: () => openTagsSheet(context, d)),
       if (hasProgress) GlassMenuEntry(label: 'Previously on', onSelected: () => openPreviouslyOn(ref, d)),
+      if (d.novel && d.readingOrder.isNotEmpty) GlassMenuEntry(label: 'Voices for this book', onSelected: () => ref.read(glassNarrationActionsProvider).openSheet('cast', extra: {'series': '${d.sourceId}:${d.seriesKey}', 'chapter': d.readingOrder.first.id})),
       if (f != null) GlassMenuEntry(label: 'Check for new chapters', enabled: online, onSelected: () => fire(checkNewChapters(ref, f))),
       if (f != null) GlassMenuEntry(label: 'Move to another source…', enabled: online, onSelected: () => openMoveSource(context, d)),
       if (f != null && gateOpen) GlassMenuEntry(label: 'Content rating…', separatorBefore: true, enabled: online, onSelected: () => _ratingMenu(context, ref, f, anchor)),

@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/features/sources/providers/source_progress_provide
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/glass_motion_recorder.dart' show GlassMotionEntry;
+import 'package:manhwamaniacs/skins/glass/listen/audiobook_button.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/parts/reactions/chapter_reactions.dart' show ChapterReactionSummary;
@@ -128,6 +129,9 @@ class BookVariant implements SeriesVariant {
           primary,
           const SizedBox(height: 8),
           Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [follow, if (download != null) download, if (unsaved > 0 && download != null) GlassLabel('$unsaved', role: gt.typeMono, color: gt.colorLabel2), more]),
+          // The Audiobook button with its live status (glass 8.13, mobile/37).
+          const SizedBox(height: 8),
+          GlassAudiobookButton(sourceId: d.sourceId, seriesKey: d.seriesKey),
         ],);
         final tags = SeriesTags(data: d, mature: mature, limit: 24);
         if (desktop) {

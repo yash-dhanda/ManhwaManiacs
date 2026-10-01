@@ -141,6 +141,9 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
   );
   late final NovelReaderController _ctl = ref.read(novelReaderControllerProvider(_args).notifier);
   late final ReaderWakelock _wakelock = ref.read(readerWakelockProvider);
+
+  /// Whether leaving the reader stops the narration (A1: Cinematic yes), read while the element is alive.
+  late final bool _stopOnExit = ref.read(narrationStopOnReaderExitProvider);
   late final StateController<bool> _toastOwner = ref.read(cineReaderOwnsToastsProvider.notifier);
   late final AnimationController _chromeAnim = AnimationController(vsync: this, value: 0);
 
@@ -200,6 +203,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     super.initState();
     // Held for the reader's lifetime: the chip's gap is measured before this session's progress.
     ref.listenManual(readerLastReadAtProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)), (_, __) {});
+    _stopOnExit;
     _chromeAnim.value = 0;
     Future.microtask(() {
       try {
@@ -250,11 +254,13 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     _narr
       ..onSkipNext = null
       ..onFeedback = null;
-    Future<void>.microtask(() async {
-      try {
-        await _narr.stop();
-      } catch (_) {}
-    });
+    if (_stopOnExit) {
+      Future<void>.microtask(() async {
+        try {
+          await _narr.stop();
+        } catch (_) {}
+      });
+    }
     _follower.dispose();
     _decorator?.dispose();
     _listenUi.dispose();
