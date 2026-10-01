@@ -37,9 +37,14 @@ class DownloadsActions {
   /// so Undo can cancel it; backgrounding the app flushes it.
   void removeChapter(SavedChapter c) {
     final pending = ref.read(pendingRemovalsProvider);
+    // Captured now, not when the timer fires: by then this widget may be disposed (its ref
+    // throws) or another profile active (a different store).
+    final store = ref.read(downloadsStoreProvider);
+    final queue = ref.read(downloadQueueControllerProvider.notifier);
     final handle = pending.schedule(pendingRemovalKey(c.identity), () async {
-      await ref.read(downloadsStoreProvider)?.deleteDownload(c.identity);
-      _refresh();
+      await store?.deleteDownload(c.identity);
+      // Bumps the queue revision, so every store-backed list re-reads.
+      queue.retryAfterStorageChange();
     });
     final label = chapterLabelOf(c);
     final what = c.kind.isAudio ? 'saved audio' : label.toLowerCase().replaceFirst('ch ', 'chapter ');
