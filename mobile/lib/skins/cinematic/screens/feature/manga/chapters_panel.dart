@@ -31,6 +31,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_summary_line.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/series_download_card.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart' show savedPageOf;
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.dart';
@@ -354,7 +355,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
   }
 
   void _open(SourceChapterSummary c) {
-    final target = ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id);
+    final target = ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id, page: savedPageOf(ref, d.sourceId, d.seriesKey, c.id));
     readerPrefetchOf(ref).onPress(target);
     enterReader(context, target, entry: ReaderEntry.wipe);
   }
