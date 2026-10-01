@@ -44,7 +44,11 @@ class DownloadsActions {
     final handle = pending.schedule(pendingRemovalKey(c.identity), () async {
       await store?.deleteDownload(c.identity);
       // Bumps the queue revision, so every store-backed list re-reads.
-      queue.retryAfterStorageChange();
+      try {
+        queue.retryAfterStorageChange();
+      } catch (_) {
+        // The controller went with its container (sign-out): nothing left to refresh.
+      }
     });
     final label = chapterLabelOf(c);
     final what = c.kind.isAudio ? 'saved audio' : label.toLowerCase().replaceFirst('ch ', 'chapter ');
