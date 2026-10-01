@@ -32,6 +32,45 @@ class CineScaffoldScope extends InheritedWidget {
   bool updateShouldNotify(CineScaffoldScope o) => o.topExtent != topExtent;
 }
 
+/// Keyboard focus is never left out of view or under the running head (cinematic 14.4, WCAG 2.4.11): after the frame, the nearest
+/// vertical scroller cuts the focused control into view, clear of the head, by the distance plus 8 px. Flutter's forward traversal
+/// never scrolls back, so a Tab that wraps to the top of a scrolled page (the Numbers range tabs, a long form) needs this.
+/// [CineAppFrame] calls it on every keyboard focus change.
+void cineRevealFocus(FocusNode node) {
+  final ctx = node.context;
+  if (ctx == null) return;
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!ctx.mounted) return;
+    final ro = ctx.findRenderObject();
+    final scrollable = Scrollable.maybeOf(ctx, axis: Axis.vertical);
+    if (ro is! RenderBox || !ro.attached || scrollable == null) return;
+    final box = scrollable.context.findRenderObject();
+    if (box is! RenderBox || !box.attached) return;
+    final view = box.localToGlobal(Offset.zero) & box.size;
+    // The running head floats over the top of its scaffold's body.
+    final scope = ctx.getElementForInheritedWidgetOfExactType<CineScaffoldScope>();
+    final scopeBox = scope?.findRenderObject();
+    final head = scope != null && scopeBox is RenderBox && scopeBox.attached
+        ? scopeBox.localToGlobal(Offset.zero).dy + (scope.widget as CineScaffoldScope).topExtent
+        : view.top;
+    final rect = ro.localToGlobal(Offset.zero) & ro.size;
+    final shift = cineRevealShift(focused: rect, top: math.max(view.top, head), bottom: view.bottom);
+    if (shift == 0) return;
+    final pos = scrollable.position;
+    final target = (pos.pixels + shift).clamp(pos.minScrollExtent, pos.maxScrollExtent);
+    // A cut, not a glide: this skin cuts and dissolves, nothing springs.
+    if (target != pos.pixels) pos.jumpTo(target);
+  });
+  WidgetsBinding.instance.ensureVisualUpdate();
+}
+
+/// How far a scroller must move so [focused] sits between [top] and [bottom] with 8 px to spare; negative scrolls up. 0 when it fits.
+double cineRevealShift({required Rect focused, required double top, required double bottom}) {
+  if (focused.top < top) return focused.top - top - 8;
+  if (focused.bottom > bottom) return focused.bottom - bottom + 8;
+  return 0;
+}
+
 /// Pads [child] down to just below the running head. It reads the extent where it is built, so it
 /// must sit inside [CineScaffold.body]: a screen's own build context is above the scaffold and
 /// sees only the status bar, which put mastheads under the head.
