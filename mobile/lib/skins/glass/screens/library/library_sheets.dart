@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/providers/glass_density_provider.dart';
@@ -56,11 +57,21 @@ class GlassDensityBody extends ConsumerWidget {
 /// Registers the Library family's `?sheet=` ids (glass 8.0.3 "Library and collections"); the other families add theirs as they land.
 void registerLibrarySheets() {
   registerGlobalSheet('filters', glassFiltersSheetSpec);
-  registerGlobalSheet('manage-tags', glassManageTagsSheetSpec);
+  registerGlobalSheet('manage-tags', withTextFields(glassManageTagsSheetSpec));
   registerGlobalSheet('density', glassDensitySheetSpec);
-  registerGlobalSheet('collection-new', glassCollectionNewSheetSpec);
-  registerGlobalSheet('collection-edit', glassCollectionEditSheetSpec);
-  registerGlobalSheet('add-series', glassAddSeriesSheetSpec);
-  registerGlobalSheet('note', glassNoteSheetSpec);
+  registerGlobalSheet('collection-new', withTextFields(glassCollectionNewSheetSpec));
+  registerGlobalSheet('collection-edit', withTextFields(glassCollectionEditSheetSpec));
+  registerGlobalSheet('add-series', withTextFields(glassAddSeriesSheetSpec));
+  registerGlobalSheet('note', withTextFields(glassNoteSheetSpec));
   registerGlobalSheet('run', glassRunSheetSpec);
 }
+
+/// A sheet route has no `Material` ancestor and the text field primitives build a `TextField`: a transparent `Material` gives them
+/// one without painting anything.
+GlassSheetSpec withTextFields(GlassSheetSpec s) => GlassSheetSpec(
+      title: s.title,
+      builder: (context) => Material(type: MaterialType.transparency, child: s.builder(context)),
+      detents: s.detents,
+      opening: s.opening,
+      wideForm: s.wideForm,
+    );
