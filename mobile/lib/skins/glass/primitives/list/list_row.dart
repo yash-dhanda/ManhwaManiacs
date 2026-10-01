@@ -97,10 +97,15 @@ class GlassListRow extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(children: [if (tile != null) ...[tile, const SizedBox(width: 12)], Expanded(child: titleW)]),
+                // The title wraps beside the tile; the control and caret stay at the row's end, never on a line of their own.
+                Row(children: [
+                  if (tile != null) ...[tile, const SizedBox(width: 12)],
+                  Expanded(child: titleW),
+                  if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+                  if (caretW != null) ...[const SizedBox(width: 8), caretW],
+                ],),
                 if (subW != null) Padding(padding: const EdgeInsets.only(top: 2), child: subW),
                 if (valueW != null) Padding(padding: const EdgeInsets.only(top: 4), child: valueW),
-                if (trailing != null || caretW != null) Padding(padding: const EdgeInsets.only(top: 8), child: trailing ?? caretW),
               ],
             ),
           );

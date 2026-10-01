@@ -144,15 +144,20 @@ class _GlassObjectLensState extends ConsumerState<GlassObjectLens> with TickerPr
     if (reduced && _bob.isAnimating) _bob.stop();
     if (!reduced && !_bob.isAnimating) _bob.repeat();
     final host = GlassHost.of(context);
-    final glyph = Icon(lensGlyph(widget.situation), size: 44, color: _glyphColor);
+    // On a short phone or at large text the lens is compact (a 72 px disc, 16 px above and below), so its action stays above the
+    // dock at rest; wider frames give the copy room to set in fewer lines.
+    final mq = MediaQuery.of(context);
+    final compact = mq.size.height < 740 || mq.textScaler.scale(1) >= 1.3;
+    final d = compact ? 72.0 : 96.0;
+    final glyph = Icon(lensGlyph(widget.situation), size: compact ? 34 : 44, color: _glyphColor);
     final Widget disc = widget.placement == GlassLensPlacement.full
-        ? SkinGlass(size: const Size.square(96), tier: GlassTierId.t2, shape: const GlassShape.circle(), debugLabel: 'GlassObjectLens', child: Center(child: glyph))
+        ? SkinGlass(size: Size.square(d), tier: GlassTierId.t2, shape: const GlassShape.circle(), debugLabel: 'GlassObjectLens', child: Center(child: glyph))
         : DecoratedBox(
             decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0x9E131317), border: Border.all(color: const Color(0x38FFFFFF), width: 0.5)),
-            child: SizedBox.square(dimension: 96, child: Center(child: glyph)),
+            child: SizedBox.square(dimension: d, child: Center(child: glyph)),
           );
     final lens = SizedBox.square(
-      dimension: 96,
+      dimension: d,
       child: AnimatedBuilder(
         animation: Listenable.merge([_bob, _hop]),
         builder: (context, child) {
@@ -166,10 +171,10 @@ class _GlassObjectLensState extends ConsumerState<GlassObjectLens> with TickerPr
     final mood = widget.mood;
     final opacity = (kMoodOpacity[mood] ?? 0.2) * (widget.tone == GlassLensTone.empty ? 1 : 0.5);
     final body = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 24),
+      padding: EdgeInsets.symmetric(vertical: compact ? 16 : 64, horizontal: 24),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 300),
+          constraints: BoxConstraints(maxWidth: mq.size.width >= 600 ? 420 : 300),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

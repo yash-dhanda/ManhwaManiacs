@@ -240,8 +240,10 @@ class _GlassDockState extends ConsumerState<GlassDock> with TickerProviderStateM
       );
     }
     final tabW = w / 4;
-    // The droplet is 56 wide at 1x; its labels scale with text (clamped at 1.5, glass 3.3), so it widens with them, within its tab.
-    final dropW = math.min(56 * MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5).scale(11) / 11, tabW - 4);
+    // The droplet is 56 wide at 1x and always clears its widest label by 8 px a side (labels clamp at 1.25 so four fit a 375 px
+    // dock; from 1.6 they hide), within its tab.
+    final labelW = [for (final l in _tabLabels) measureText(context, l, roleStyle(context, gt.typeTabLabel, onGlass: true, wght: 700, maxScale: kDockLabelMaxScale)).width].reduce(math.max);
+    final dropW = math.min(math.max(56.0, labelW + 16), tabW - 4);
     return Listener(
       onPointerDown: (_) => _catch(),
       child: GestureDetector(
@@ -338,7 +340,7 @@ class _DockTab extends ConsumerWidget {
               label,
               maxLines: 1,
               textScaler: TextScaler.noScaling,
-              style: roleStyle(context, gt.typeTabLabel, onGlass: true, wght: selected ? 700 : 600, maxScale: 1.5).copyWith(color: gt.colorOnGlass),
+              style: roleStyle(context, gt.typeTabLabel, onGlass: true, wght: selected ? 700 : 600, maxScale: kDockLabelMaxScale).copyWith(color: gt.colorOnGlass),
             ),
           ],
         );
@@ -346,6 +348,9 @@ class _DockTab extends ConsumerWidget {
     );
   }
 }
+
+/// The dock's tab labels stop growing at 1.25x: four labels fit a 375 px dock with air between them.
+const double kDockLabelMaxScale = 1.25;
 
 class _DropletPainter extends CustomPainter {
   const _DropletPainter({required this.pos, required this.tabW, required this.width, required this.height, required this.velocity, required this.lifted, required this.tint});
