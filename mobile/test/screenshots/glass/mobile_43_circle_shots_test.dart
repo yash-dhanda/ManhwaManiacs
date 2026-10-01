@@ -24,6 +24,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/profile_orb.dart' show Glas
 import 'package:manhwamaniacs/skins/glass/primitives/reactions/reaction_picker.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/reactions/reaction_strip.dart';
 import 'package:manhwamaniacs/skins/glass/screens/circle/circle_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/chapter_seam.dart' show CaughtUpCard;
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart' show glassOfflineProvider;
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 
@@ -120,7 +121,7 @@ void main() {
       await t.tap(find.bySemanticsLabel('Aarav, reading Omniscient Reader now'));
       await t.pump();
       await t.pump(const Duration(milliseconds: 220));
-      if (size == _phone) await s.snap('orb-flight', size);
+      await s.snap('orb-flight', size);
       await s.settle(900);
       await s.settle(600);
       await s.snap('friend-sheet', size);
@@ -183,27 +184,70 @@ void main() {
   });
 
   testWidgets('recommend by drag: the orbs with one holding the poster, then the toast', (t) async {
-    // The lift is written to the lift store as GlassPoster writes it at 450 ms; the held orb swells to 1.2 (the magnet).
-    final s = await _open(t, _phone, '/circle', extra: [
-      recipientsProvider.overrideWith((ref, key) async => const [
-            CircleMember(profileId: 2, name: 'Aarav', avatarKey: 'violet', canReceive: true),
-            CircleMember(profileId: 3, name: 'Mira', avatarKey: 'cyan', canReceive: true),
-            CircleMember(profileId: 4, name: 'Kai', avatarKey: 'rose', canReceive: true),
-          ],),
-    ],);
-    s.container.read(liftProvider.notifier).state = const LiftState(sourceId: 's', seriesKey: 'solo', phase: LiftPhase.lifted, posterRect: Rect.fromLTWH(140, 180, 112, 168));
-    s.container.read(magnetHeldProvider.notifier).state = 3;
-    await s.settle(600);
-    await s.snap('recommend-orbs-magnet', _phone);
-    s.container.read(magnetHeldProvider.notifier).state = null;
-    s.container.read(liftProvider.notifier).state = null;
-    scheduleLetter(s.container, toProfileId: 3, toName: 'Mira', sourceId: 's', seriesKey: 'solo', onAddNote: () {});
-    await s.settle(500);
-    await s.snap('recommend-toast', _phone);
-    for (final p in s.container.read(pendingLettersProvider)) {
-      p.undo();
+    for (final size in _sizes) {
+      // The lift is written to the lift store as GlassPoster writes it at 450 ms; the held orb swells to 1.2 (the magnet).
+      final s = await _open(t, size, '/circle', extra: [
+        recipientsProvider.overrideWith((ref, key) async => const [
+              CircleMember(profileId: 2, name: 'Aarav', avatarKey: 'violet', canReceive: true),
+              CircleMember(profileId: 3, name: 'Mira', avatarKey: 'cyan', canReceive: true),
+              CircleMember(profileId: 4, name: 'Kai', avatarKey: 'rose', canReceive: true),
+            ],),
+      ],);
+      s.container.read(liftProvider.notifier).state = const LiftState(sourceId: 's', seriesKey: 'solo', phase: LiftPhase.lifted, posterRect: Rect.fromLTWH(140, 180, 112, 168));
+      s.container.read(magnetHeldProvider.notifier).state = 3;
+      await s.settle(600);
+      await s.snap('recommend-orbs-magnet', size);
+      s.container.read(magnetHeldProvider.notifier).state = null;
+      s.container.read(liftProvider.notifier).state = null;
+      scheduleLetter(s.container, toProfileId: 3, toName: 'Mira', sourceId: 's', seriesKey: 'solo', onAddNote: () {});
+      await s.settle(500);
+      await s.snap('recommend-toast', size);
+      for (final p in s.container.read(pendingLettersProvider)) {
+        p.undo();
+      }
+      await _end(t);
     }
-    await _end(t);
+  });
+
+  testWidgets('shared shelves: view only, and can add with the adder orbs', (t) async {
+    const rows = [
+      ShelfSeriesRow(sourceId: 's', seriesKey: 'solo', title: 'Solo Leveling', addedBy: aarav),
+      ShelfSeriesRow(sourceId: 's', seriesKey: 'or', title: 'Omniscient Reader', addedBy: mira),
+      ShelfSeriesRow(sourceId: 's', seriesKey: 'tog', title: 'Tower of God', addedBy: aarav),
+      ShelfSeriesRow(sourceId: 's', seriesKey: 'bh', title: 'Blue Hour', addedBy: kai),
+    ];
+    CircleFake shelf(String role) => circleFake()..detail = SharedShelfDetail(shelf: SharedShelf(id: 7, name: 'Weekend reads', seriesCount: 4, owner: aarav, role: role), series: rows);
+    await _all(t, 'shelf-view-only', '/library/collections/7', repo: () => shelf('view_only'));
+    await _all(t, 'shelf-can-add-adder-orbs', '/library/collections/7', repo: () => shelf('can_add'));
+  });
+
+  testWidgets("the manga end card with the finished chapter's reactions", (t) async {
+    for (final size in _sizes) {
+      await captureSkinWidget(
+        t,
+        name: 'end-card-reactions',
+        size: size,
+        overrides: [_noSensor],
+        child: _page(Center(
+          child: CaughtUpCard(
+            nextNumber: '213',
+            inLibrary: true,
+            onFollow: () {},
+            reactions: GlassReactionStrip(
+              // The chapter was just finished here: unsealed.
+              reactors: const [StripReactor(kind: ReactionKind.hype, name: 'Aarav', preset: GlassAvatarPreset.violetSpark, sealed: false), StripReactor(kind: ReactionKind.tears, name: 'Mira', preset: GlassAvatarPreset.cyanRocket, sealed: false)],
+              onSend: (_) {},
+              sourceId: 's',
+              seriesKey: 'or',
+              chapterKey: '212',
+              chapterLabel: 'Ch 212',
+              mine: ReactionKind.loved,
+            ),
+          ),
+        ),),
+        settle: (t) => _ms(t, 700),
+      );
+    }
   });
 
   testWidgets('the series Circle row', (t) async {
