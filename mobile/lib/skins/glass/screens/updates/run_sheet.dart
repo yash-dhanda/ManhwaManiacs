@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
@@ -17,13 +16,13 @@ import 'package:manhwamaniacs/skins/glass/primitives/states/object_lens.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
-import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart' show sheetOnGlass;
+import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart' show sheetOnGlass, sheetParams;
 
 /// `?sheet=run&run={id}` (medium, admins only): trigger, status, times, duration, series checked, new chapters and the whole error in a
 /// `mono` block with a Copy button.
 final GlassSheetSpec glassRunSheetSpec = GlassSheetSpec(
   title: 'Update check',
-  builder: (context) => GlassRunBody(runId: int.tryParse(GoRouterState.of(context).uri.queryParameters['run'] ?? '') ?? 0),
+  builder: (context) => GlassRunBody(runId: int.tryParse(sheetParams(context)['run'] ?? '') ?? 0),
   detents: const [GlassDetent.medium, GlassDetent.large],
   opening: GlassDetent.medium,
 );

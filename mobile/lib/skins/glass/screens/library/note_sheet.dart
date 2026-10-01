@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
@@ -11,11 +10,12 @@ import 'package:manhwamaniacs/skins/glass/primitives/text_field.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
+import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart' show sheetParams;
 
 /// `?sheet=note&bookmark={clientId}` (medium): a one-line note field saved through the note upsert of the bookmark outbox.
 final GlassSheetSpec glassNoteSheetSpec = GlassSheetSpec(
   title: 'Add note',
-  builder: (context) => GlassNoteBody(clientId: GoRouterState.of(context).uri.queryParameters['bookmark'] ?? ''),
+  builder: (context) => GlassNoteBody(clientId: sheetParams(context)['bookmark'] ?? ''),
   detents: const [GlassDetent.medium],
   opening: GlassDetent.medium,
 );

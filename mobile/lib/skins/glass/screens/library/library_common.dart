@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart' show GlassAmbientSpec;
@@ -100,3 +101,7 @@ class BookTitle extends StatelessWidget {
         style: GlassTypeStyle.style(context, gt.typeHeadline, size: size).copyWith(fontFamily: 'Literata', color: gt.colorLabel1, fontStyle: italic ? FontStyle.italic : null),
       );
 }
+
+/// The current location's query parameters, read from inside a `?sheet=` sheet. A sheet is a route the host pushes, not a GoRoute
+/// page, so `GoRouterState.of` cannot answer there; the router's current configuration can.
+Map<String, String> sheetParams(BuildContext context) => GoRouter.of(context).routerDelegate.currentConfiguration.uri.queryParameters;

@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/library/models/collection_detail.dart' show CollectionSeriesRef;
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
@@ -28,7 +27,7 @@ final collectionHeaderRectProvider = StateProvider<Rect?>((ref) => null, name: '
 /// `?sheet=add-series&collection={id}` (large): a search well and the followed series not already in the collection.
 final GlassSheetSpec glassAddSeriesSheetSpec = GlassSheetSpec(
   title: 'Add series',
-  builder: (context) => GlassAddSeriesBody(collectionId: int.tryParse(GoRouterState.of(context).uri.queryParameters['collection'] ?? '') ?? 0),
+  builder: (context) => GlassAddSeriesBody(collectionId: int.tryParse(sheetParams(context)['collection'] ?? '') ?? 0),
   opening: GlassDetent.large,
 );
 

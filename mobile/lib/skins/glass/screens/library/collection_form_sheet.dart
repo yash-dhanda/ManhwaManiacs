@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/services.dart' show TextCapitalization;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
 import 'package:manhwamaniacs/features/collections/utils/rule_draft.dart';
@@ -30,7 +29,7 @@ final GlassSheetSpec glassCollectionNewSheetSpec = GlassSheetSpec(
 
 final GlassSheetSpec glassCollectionEditSheetSpec = GlassSheetSpec(
   title: 'Edit collection',
-  builder: (context) => GlassCollectionFormBody(editId: int.tryParse(GoRouterState.of(context).uri.queryParameters['collection'] ?? '')),
+  builder: (context) => GlassCollectionFormBody(editId: int.tryParse(sheetParams(context)['collection'] ?? '')),
   detents: const [GlassDetent.medium, GlassDetent.large],
   opening: GlassDetent.medium,
 );

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/platform/media_store.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
@@ -17,7 +16,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/progress.dart' show GlassSp
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
-import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart' show sheetOnGlass;
+import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart' show sheetOnGlass, sheetParams;
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 
@@ -63,7 +62,7 @@ class GlassSaveToFilesBody extends ConsumerWidget {
   }
 
   Future<void> _go(BuildContext context, WidgetRef ref, ChapterExportFormat format) async {
-    final q = GoRouterState.of(context).uri.queryParameters;
+    final q = sheetParams(context);
     final series = q['series'] ?? '';
     final cut = series.indexOf(':');
     final source = cut < 0 ? series : series.substring(0, cut);
