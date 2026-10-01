@@ -157,6 +157,10 @@ class _BrightnessBandState extends State<BrightnessBand> {
             child: AnimatedOpacity(
               opacity: _hud || widget.forceHud != null ? 1 : 0,
               duration: const Duration(milliseconds: 200),
+              // Faded out: the HUD leaves the tree, so it never holds a backdrop member while invisible.
+              onEnd: () {
+                if (!_hud && mounted) setState(() => _fingerY = null);
+              },
               child: _BandHud(value: value),
             ),
           ),
