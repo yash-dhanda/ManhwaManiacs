@@ -91,7 +91,7 @@ class CineCuttingCard extends StatelessWidget {
                   ],),
                 ),
                 SizedBox(height: c.space2),
-                CineRoleText(title, c.typeTitle, maxLines: 1, overflow: TextOverflow.ellipsis, decoration: lit ? TextDecoration.underline : null),
+                CineRoleText(title, c.typeTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
                 SizedBox(height: c.space1 / 2),
                 CineRoleText(folio, c.typeFolio, color: context.cine.colorInk45, maxLines: 1, overflow: TextOverflow.ellipsis),
               ],),

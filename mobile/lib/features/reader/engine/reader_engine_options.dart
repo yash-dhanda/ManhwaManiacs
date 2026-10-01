@@ -119,6 +119,10 @@ class ReaderEngineOptions {
     this.readAllKeys,
     this.pageHeroTag,
     this.pageEpoch,
+    this.pinchMin,
+    this.pinchMax,
+    this.rubberBandMax,
+    this.legacyWakeAndLock = true,
   });
 
   /// The colour behind and between pages; null follows the legacy backdrop setting.
@@ -188,6 +192,16 @@ class ReaderEngineOptions {
 
   /// Bumped by `Retry this page`: the page's image is built again (evicted from the cache first).
   final int Function(String chapterId, int page)? pageEpoch;
+
+  /// The strip's two-finger pinch limits; null keeps the legacy 0.5-3.0 (Glass passes 1-3, glass 11).
+  final double? pinchMin, pinchMax;
+
+  /// The most a pinch past a limit shows, in scale units (Glass 0.18, glass 4.5); null keeps the legacy 0.5.
+  final double? rubberBandMax;
+
+  /// The engine keeps the screen awake from the device value K05 and seeds the lock from K07. A skin that owns both (Glass
+  /// reads its per-profile `glass.keepAwake` and `glass.lockControls`) passes false; refresh rate and volume keys stay.
+  final bool legacyWakeAndLock;
 }
 
 /// See [ReaderEngineOptions.pageOverlayBuilder].

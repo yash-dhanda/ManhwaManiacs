@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
-import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
+import 'package:manhwamaniacs/features/downloads/utils/active_download_count.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
@@ -56,7 +56,7 @@ class GlassDockBadges {
 
 final glassDockBadgesProvider = Provider<GlassDockBadges>((ref) {
   final unread = ref.watch(unreadNotificationCountProvider);
-  final downloads = ref.watch(activeDownloadCountProvider);
+  final downloads = ref.watch(glassActiveDownloadCountProvider);
   final letters = ref.watch(lettersProvider).valueOrNull ?? const <Letter>[];
   return GlassDockBadges(homeDot: unread > 0, libraryCount: downloads, youDot: letters.any((l) => l.state == LetterState.newLetter));
 });

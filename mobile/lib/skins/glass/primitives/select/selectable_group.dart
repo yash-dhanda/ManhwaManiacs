@@ -181,7 +181,9 @@ class _GlassSelectableGroupState<K> extends ConsumerState<GlassSelectableGroup<K
       },
       child: body,
     );
-    body = Semantics(container: active, explicitChildNodes: active, label: active ? widget.label : null, child: body);
+    // Always a container: flipping `container` while the subtree's semantics are live trips the framework's
+    // `shouldFormSemanticsNode` assertion on the frame select mode exits. Only the label follows select mode.
+    body = Semantics(container: true, explicitChildNodes: true, label: active ? widget.label : null, child: body);
     return PopScope(
       canPop: !active,
       onPopInvokedWithResult: (didPop, _) {

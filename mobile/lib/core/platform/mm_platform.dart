@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show EdgeInsets;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Typed Dart side of the `mm/platform` channel (glass 15.3 Native). Every call answers a safe
@@ -55,6 +56,15 @@ class MmPlatform {
 
   /// Android 10+: system-gesture exclusion rects, logical px `[left, top, width, height]`; empty clears.
   Future<void> setExclusionRects(List<List<double>> rects) => _call<void>('gestures.setExclusionRects', {'rects': rects});
+
+  /// Android: the stable system-bar and cutout insets in logical px (what the bars take when shown, also while the reader
+  /// hides them). Null on iOS and wherever the window has none yet: callers fall back to `MediaQuery.viewPaddingOf`.
+  Future<EdgeInsets?> stableInsets() async {
+    final m = await _call<Map<Object?, Object?>>('display.stableInsets');
+    if (m == null) return null;
+    double side(String k) => (m[k] as num?)?.toDouble() ?? 0;
+    return EdgeInsets.fromLTRB(side('left'), side('top'), side('right'), side('bottom'));
+  }
 
   /// Android `HAPTIC_FEEDBACK_ENABLED`; true elsewhere.
   Future<bool> hapticsSystemEnabled() async => await _call<bool>('haptics.systemEnabled') ?? true;

@@ -22,7 +22,9 @@ import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/novel_text/novel_text_index.dart';
 import 'package:manhwamaniacs/features/novels/providers/saved_audio_provider.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart' show sharedPrefsProvider;
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 
 /// Why the queue isn't actively fetching right now.
 enum DownloadQueuePauseReason {
@@ -59,7 +61,12 @@ class DownloadQueueState {
     this.pageTotal = 0,
     this.activeChapterCount = 0,
     this.queueRevision = 0,
+    this.pacedUntil,
   });
+
+  /// When the 30 s cool-down after the bulk bucket refused a request ends; null when the queue is not being paced. Read by the
+  /// Glass Queue tab's "Waiting n s: the server is pacing downloads" countdown.
+  final DateTime? pacedUntil;
 
   /// True only while a page fetch is actually in flight — distinct from
   /// "has queued work", which the Downloads screen reads straight from the
@@ -116,6 +123,8 @@ class DownloadQueueState {
     int? pageTotal,
     int? activeChapterCount,
     int? queueRevision,
+    DateTime? pacedUntil,
+    bool clearPacedUntil = false,
   }) {
     return DownloadQueueState(
       isDownloading: isDownloading ?? this.isDownloading,
@@ -126,6 +135,7 @@ class DownloadQueueState {
       pageTotal: pageTotal ?? this.pageTotal,
       activeChapterCount: activeChapterCount ?? this.activeChapterCount,
       queueRevision: queueRevision ?? this.queueRevision,
+      pacedUntil: clearPacedUntil ? null : (pacedUntil ?? this.pacedUntil),
     );
   }
 }
@@ -369,6 +379,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   /// the deletion itself once that chapter's worker lands — which it does
   /// whether or not its siblings are still fetching.
   Future<void> cancelChapter(ChapterIdentity id) async {
+    _dropOrderKey(id);
     final store = ref.read(downloadsStoreProvider);
     if (store == null) return;
     final chapter = await store.getChapter(id);
@@ -416,6 +427,78 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     }
   }
 
+  // The user's queue priority (glass 8.22 Queue tab, drag to prioritise): an ordered list of chapter keys persisted per
+  // `(user, profile)` scope. Chapters named in it start first, in that order; the rest keep the store's order.
+  String? _orderKeyPrefs() {
+    try {
+      final scope = ref.read(activeDownloadsScopeIdProvider);
+      return scope == null ? null : 'mm.downloads.queue-order.$scope';
+    } catch (_) {
+      return null; // a container disposed mid-loop has no stored priority
+    }
+  }
+
+  static String _orderKey(ChapterIdentity id) => '${id.sourceId}|${id.seriesKey}|${id.chapterKey}';
+
+  List<String> _readOrder() {
+    final key = _orderKeyPrefs();
+    if (key == null) return const [];
+    try {
+      return ref.read(sharedPrefsProvider).getStringList(key) ?? const [];
+    } catch (_) {
+      return const []; // a container without preferences has no stored priority
+    }
+  }
+
+  void _writeOrder(List<String> order) {
+    final key = _orderKeyPrefs();
+    if (key == null) return;
+    final SharedPreferences prefs;
+    try {
+      prefs = ref.read(sharedPrefsProvider);
+    } catch (_) {
+      return;
+    }
+    if (order.isEmpty) {
+      prefs.remove(key);
+    } else {
+      prefs.setStringList(key, order);
+    }
+  }
+
+  void _dropOrderKey(ChapterIdentity id) {
+    final order = _readOrder();
+    if (order.contains(_orderKey(id))) _writeOrder([for (final k in order) if (k != _orderKey(id)) k]);
+  }
+
+  /// [rows] (queued, downloading or failed) in the order the loop takes them: the persisted priority list first, then the rest in
+  /// their given order. Keys of chapters no longer in [rows] (finished, cancelled) are pruned from the stored list.
+  List<SavedChapter> applyQueueOrder(List<SavedChapter> rows) {
+    final order = _readOrder();
+    if (order.isEmpty) return rows;
+    final byKey = {for (final r in rows) _orderKey(r.identity): r};
+    final kept = [for (final k in order) if (byKey.containsKey(k)) k];
+    if (kept.length != order.length) _writeOrder(kept);
+    final first = [for (final k in kept) byKey[k]!];
+    final firstKeys = kept.toSet();
+    return [...first, for (final r in rows) if (!firstKeys.contains(_orderKey(r.identity))) r];
+  }
+
+  /// Moves [id] to [newIndex] of the queue as [applyQueueOrder] shows it (`0` starts next). The whole visible order is stored, so
+  /// chapters the user never dragged keep their place around the moved one.
+  Future<void> moveInQueue(ChapterIdentity id, int newIndex) async {
+    final store = ref.read(downloadsStoreProvider);
+    if (store == null) return;
+    final rows = applyQueueOrder(await store.unfinishedChapters(hideMature: !ref.read(matureGateOpenProvider)));
+    final keys = [for (final r in rows) _orderKey(r.identity)];
+    final key = _orderKey(id);
+    if (!keys.remove(key)) return;
+    keys.insert(newIndex.clamp(0, keys.length), key);
+    _writeOrder(keys);
+    _bumpRevision();
+    if (_foreground && !_userPaused) unawaited(_kick());
+  }
+
   void _bumpRevision() =>
       state = state.copyWith(queueRevision: state.queueRevision + 1);
 
@@ -459,7 +542,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
         return;
       }
 
-      final pending = await store.pendingChapters(hideMature: !ref.read(matureGateOpenProvider));
+      final pending = applyQueueOrder(await store.pendingChapters(hideMature: !ref.read(matureGateOpenProvider)));
       if (pending.isEmpty) {
         // Nothing left to hand them to; a window kept past here would be
         // content for chapters the user has since cancelled.
@@ -1101,8 +1184,10 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   /// far tighter than the single-chapter buckets because one call there is
   /// worth up to `max_chapters` upstream scrapes. A window that keeps failing
   /// must not turn into one bulk request per chapter.
-  void _blockBulkWindows() =>
-      _bulkWindowBlockedUntil = DateTime.now().add(kBulkWindowCooldown);
+  void _blockBulkWindows() {
+    _bulkWindowBlockedUntil = DateTime.now().add(kBulkWindowCooldown);
+    state = state.copyWith(pacedUntil: _bulkWindowBlockedUntil);
+  }
 
   bool get _bulkWindowBlocked {
     final until = _bulkWindowBlockedUntil;

@@ -36,6 +36,12 @@ class CineToastsNotifier extends Notifier<List<CineToast>> {
   List<CineToast> build() => const [];
 
   int _push(CineToastKind kind, String text, Duration hold, {String? label, VoidCallback? onAction}) {
+    // The same notice never stacks on itself; an Undo still does (each undoes something else).
+    if (onAction == null) {
+      for (final t in state) {
+        if (t.kind == kind && t.text == text) return t.id;
+      }
+    }
     final id = _next++;
     state = [...state, CineToast(id: id, kind: kind, text: text, hold: hold, actionLabel: label, onAction: onAction)];
     return id;

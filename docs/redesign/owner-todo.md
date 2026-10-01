@@ -157,6 +157,7 @@ Items only the owner can do, by step.
 - The nine Glass art-style crops (`mobile/assets/onboarding/styles/glass/{01..09}-{id}.webp`, each under 40,000 bytes, brief in glass/DESIGN.md 12.7) are still to be supplied through `shared/05`'s intake. Fallback in place: typographic tiles (`kGlassStyleArtBundled` is false).
 - The Glass preview frames (`mobile/assets/skin_previews/glass/000.png` to `035.png`) are captured by `mobile/39`. Fallback in place: the neutral mark on the brand aurora (`kGlassPreviewFramesBundled` is false).
 - mobile/31: device checks in docs/redesign/proof/mobile-31/device-check.md
+- mobile/32: run the device checks in docs/redesign/proof/mobile-32/device-check.md (pinch density 120 Hz, pager vs back swipe, dock badge, Save to Files, VoiceOver/TalkBack, gate).
 - mobile/42: device checks in docs/redesign/proof/mobile-42/device-check.md
 - mobile/39: run docs/redesign/proof/mobile-39/device-checklist.md on iPhone and Android; recapture assets/skin_previews/glass once the series sheet and reader exist (MM_WRITE_PREVIEWS=1).
 
@@ -174,3 +175,8 @@ Items only the owner can do, by step.
 ## mobile/43 (Glass Circle)
 
 - Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-43/device-check.md` (presence drift with and without "Show me in presence", the reaction bloom haptics at 120 Hz, the lift-to-orb magnet and Undo, Orbs fly out, the friend orb flight, the letter dot, the gate-closed profile, VoiceOver and TalkBack, Reduce Motion).
+
+## mobile/35 (Glass manga reader)
+
+- Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-35/device-check.md`.
+- CI for the `display.stableInsets` commit (APK job and the iOS dry run): lanes do not push; the integrator runs `gh run watch` on the integration push.
