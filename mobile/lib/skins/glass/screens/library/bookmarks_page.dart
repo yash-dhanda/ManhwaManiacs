@@ -122,7 +122,7 @@ class _GlassBookmarksPageState extends ConsumerState<GlassBookmarksPage> {
   void _clearFilter() {
     final uri = Uri.parse(GoRouterState.of(context).uri.toString());
     final q = {...uri.queryParameters}..remove('source')..remove('series');
-    GoRouter.of(context).replace<void>(uri.replace(queryParameters: q.isEmpty ? null : q).toString());
+    GoRouter.of(context).replace<void>(Uri(path: uri.path, queryParameters: q.isEmpty ? null : q).toString());
   }
 
   Widget _lens(LensSituation s, String title, {String? description, LensAction? primary, GlassLensTone tone = GlassLensTone.empty}) =>
