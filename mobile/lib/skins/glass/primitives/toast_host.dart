@@ -106,7 +106,8 @@ class _GlassToastHostState extends ConsumerState<GlassToastHost> {
         // Readers hide the status bar, so their line is the view padding (safe-top + 60, under the 8 + 44 px chrome band).
         child: Align(
           alignment: Alignment.topCenter,
-          child: Padding(padding: EdgeInsets.only(top: (reader ? MediaQuery.viewPaddingOf(context).top : top) + 60), child: stack),
+          // On the screen gutter, never edge to edge.
+          child: Padding(padding: EdgeInsets.only(top: (reader ? MediaQuery.viewPaddingOf(context).top : top) + 60, left: GlassFrame.screenMargin(context), right: GlassFrame.screenMargin(context)), child: stack),
         ),
       );
     }

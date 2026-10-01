@@ -333,47 +333,53 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
 
   @override
   Widget build(BuildContext context) {
-    final hit = GlassFrame.hitMin(context);
     final spec = e.spec;
     final scale = MediaQuery.textScalerOf(context).scale(1);
     final multi = scale >= 1.6;
+    final hasAction = spec.undo != null || spec.actionLabel != null;
+    final action = !hasAction
+        ? null
+        : GlassButton(
+            label: spec.undo != null ? 'Undo' : spec.actionLabel!,
+            variant: GlassButtonVariant.plain,
+            size: GlassButtonSize.small,
+            onPressed: () {
+              if (spec.undo != null) {
+                ref.read(glassToastProvider.notifier).undoLast();
+              } else {
+                spec.onAction?.call();
+                ref.read(glassToastProvider.notifier).dismiss(e.id);
+              }
+            },
+          );
+    final close = GlassCloseButton(
+      key: ValueKey('glass-toast-close-${e.id}'),
+      label: 'Dismiss',
+      visual: 24,
+      glyphSize: 16,
+      filled: false,
+      onTap: () => ref.read(glassToastProvider.notifier).dismiss(e.id),
+    );
+    // From text scale 1.3 the action moves under the message (right-aligned), so the message keeps the capsule's width.
+    final below = action != null && scale >= 1.3;
+    final top = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GlassBacking(size: 28, child: spec.leading ?? Icon(_glyph, size: 20, color: _color)),
+        const SizedBox(width: 10),
+        // A wrapped message keeps 10 px off the capsule's top and bottom edges.
+        Flexible(child: Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: GlassText(spec.message, role: gt.typeCallout, onGlass: true, maxScale: 1.5))),
+        if (action != null && !below) ...[const SizedBox(width: 8), action],
+        close,
+      ],
+    );
     final content = Padding(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: multi ? 2 : 0),
       child: ConstrainedBox(
         constraints: BoxConstraints(minHeight: multi ? 60 : 44),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GlassBacking(size: 28, child: spec.leading ?? Icon(_glyph, size: 20, color: _color)),
-            const SizedBox(width: 10),
-            // A wrapped message keeps 10 px off the capsule's top and bottom edges.
-            Flexible(child: Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: GlassText(spec.message, role: gt.typeCallout, onGlass: true, maxScale: 1.5))),
-            if (spec.undo != null || spec.actionLabel != null) ...[
-              const SizedBox(width: 8),
-              GlassButton(
-                label: spec.undo != null ? 'Undo' : spec.actionLabel!,
-                variant: GlassButtonVariant.plain,
-                size: GlassButtonSize.small,
-                onPressed: () {
-                  if (spec.undo != null) {
-                    ref.read(glassToastProvider.notifier).undoLast();
-                  } else {
-                    spec.onAction?.call();
-                    ref.read(glassToastProvider.notifier).dismiss(e.id);
-                  }
-                },
-              ),
-            ],
-            GlassCloseButton(
-              key: ValueKey('glass-toast-close-${e.id}'),
-              label: 'Dismiss',
-              visual: 24,
-              glyphSize: 16,
-              filled: false,
-              onTap: () => ref.read(glassToastProvider.notifier).dismiss(e.id),
-            ),
-          ],
-        ),
+        child: below
+            ? Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [top, Padding(padding: const EdgeInsets.only(bottom: 4), child: action)])
+            : top,
       ),
     );
 
@@ -442,7 +448,7 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
               },
               child: AnimatedBuilder(
                 animation: Listenable.merge([_y, _x, _o]),
-                child: ConstrainedBox(constraints: BoxConstraints(maxWidth: 420, minHeight: hit > 44 ? 44 : 44), child: capsule),
+                child: ConstrainedBox(constraints: BoxConstraints(maxWidth: GlassFrame.of(context) == GlassFrameKind.phone ? 420 : 560, minHeight: 44), child: capsule),
                 builder: (context, child) {
                   final rank = widget.rank;
                   final behind = rank > 0;
