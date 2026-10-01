@@ -182,17 +182,6 @@ Widget _pending(ScreenId id, GoRouterState state) => _PendingWithDev(child: Pend
 
 String _nameOf(ScreenId id) => PENDING.contains(id) ? '$kPendingRoutePrefix${id.id}' : id.id;
 
-/// A route for [id] (`path` defaults to its pattern; only the pattern carries the name).
-GoRoute _route(ScreenId id, {String? path, GlobalKey<NavigatorState>? parent, bool reader = false, bool takeover = false}) {
-  final isPattern = path == null || path == id.path;
-  return GoRoute(
-    path: path ?? id.path,
-    name: isPattern ? _nameOf(id) : null,
-    parentNavigatorKey: parent,
-    pageBuilder: (context, state) => glassPage(state, _pending(id, state), reader: reader, takeover: takeover),
-  );
-}
-
 GoRoute _sheetRoute(ScreenId id, GlobalKey<NavigatorState> root, {required String title, List<GlassDetent> detents = const [GlassDetent.medium, GlassDetent.large], GlassWideForm form = GlassWideForm.window, bool numericOnly = false}) => GoRoute(
       path: id.path,
       name: _nameOf(id),
