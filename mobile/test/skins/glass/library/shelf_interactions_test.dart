@@ -106,6 +106,17 @@ void main() {
     expect(rig.container.read(glassDensityProvider).wide, GlassDensityWide.compact);
   });
 
+  testWidgets('a later visit with new query params applies them to the kept-alive shelf', (t) async {
+    final rig = await pumpLibrary(t, _three(), start: '/library');
+    await _settle(t);
+    rig.router.go('/');
+    await _settle(t);
+    rig.router.go('/library?reading_status=reading&sort=added');
+    await _settle(t);
+    final p = rig.container.read(shelfQueryProvider).toListParams();
+    expect((p['reading_status'], p['sort']), ('reading', 'recently_added'));
+  });
+
   testWidgets('the Filters sheet writes reading_status and tags', (t) async {
     final lib = _three()..tags = const [Tag(id: 5, name: 'Cosy', category: 'user', colorHex: '#7AA2F7')];
     final rig = await pumpLibrary(t, lib, start: '/library?sheet=filters');
