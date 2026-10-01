@@ -171,6 +171,30 @@ def test_cached_recap_costs_nothing(client, as_user, acct, series, paid, tmp_pat
     assert info["cached"] is True and info["available"] is True
 
 
+def test_fresh_rewrites_a_cached_recap_and_spends_budget(client, as_user, acct, series, paid, tmp_path):
+    first = sse_events(get(client, as_user, acct).text)
+    paid.answer = {**PROSE, "paragraphs": ["A different telling of the siege and the rest."] * 4}
+    again = sse_events(get(client, as_user, acct, fresh=1).text)
+    assert len(paid.seen) == 2
+    assert json.loads((tmp_path / "s.json").read_text())["requests"] == 2
+    assert [d for n, d in first if n == "delta"] != [d for n, d in again if n == "delta"]
+    # the rewrite replaces the cached copy
+    cached = sse_events(get(client, as_user, acct).text)
+    assert len(paid.seen) == 2
+    assert [d for n, d in cached if n == "delta"] == [d for n, d in again if n == "delta"]
+
+
+def test_fresh_honours_an_exhausted_budget(client, as_user, acct, series, paid, tmp_path):
+    get(client, as_user, acct)
+    (tmp_path / "s.json").write_text(json.dumps(
+        {"date": __import__("services.deepseek_client", fromlist=["x"])._today(), "requests": 10**9}))
+    r = get(client, as_user, acct, fresh=1)
+    assert r.json() == {"available": False, "reason": "budget_exhausted"}
+    assert len(paid.seen) == 1
+    # the cached copy is still served without fresh
+    assert get(client, as_user, acct).headers["content-type"].startswith("text/event-stream")
+
+
 def test_failure_is_one_error_event_and_caches_nothing(client, as_user, acct, series, paid, db_session):
     paid.status = 500
     ev = sse_events(get(client, as_user, acct).text)
