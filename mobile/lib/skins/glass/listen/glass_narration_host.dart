@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
@@ -28,6 +29,21 @@ import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/listen_bridge.dart';
 import 'package:manhwamaniacs/skins/glass/shell/accessory_controller.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
+
+/// The words for a failed listen write (glass 8.0.10): `audio_convert_failed`, `narration_unavailable`, else the server's own.
+String listenErrorText(AppError e) {
+  if (e is ApiError) {
+    switch (e.code) {
+      case 'audio_convert_failed':
+        return "This chapter's audio couldn't be prepared.";
+      case 'narration_unavailable':
+        return "Narration of new chapters isn't available right now.";
+      case 'audio_preparing':
+        return 'Preparing audio';
+    }
+  }
+  return e.userMessage;
+}
 
 /// The owner is an admin account (`is_admin` on `GET /auth/me`): only they render, cast and cancel (glass 8.13).
 final glassIsOwnerProvider = Provider<bool>((ref) {
@@ -208,10 +224,11 @@ class GlassNarrationActions {
     openSheet('player');
   }
 
-  void openSheet(String id) {
+  /// Adds `?sheet=[id]` (and [extra] companions such as `character` and `gender`) to the current location.
+  void openSheet(String id, {Map<String, String> extra = const {}}) {
     final router = _ref.read(skinRouterProvider);
     final uri = router.routerDelegate.currentConfiguration.uri;
-    router.go(uri.replace(queryParameters: {...uri.queryParameters, 'sheet': id}).toString());
+    router.go(uri.replace(queryParameters: {...uri.queryParameters, ...extra, 'sheet': id}).toString());
   }
 
   /// The notification was tapped: the playing chapter's reader, unless it is already the top route (A6).
