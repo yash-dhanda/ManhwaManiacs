@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
@@ -50,6 +52,9 @@ class _FakeSourcesRepository implements SourcesRepository {
   final Map<String, Result<PagedResult<SourceSeriesSummary>>> pagesByQuery;
   final List<int> requestedPages = [];
 
+  /// Holds a "query|sort|page" request open until the test completes it.
+  final Map<String, Completer<void>> gates = {};
+
   @override
   Future<Result<PagedResult<SourceSeriesSummary>>> listSeries(
     String sourceId, {
@@ -61,6 +66,7 @@ class _FakeSourcesRepository implements SourcesRepository {
   }) async {
     requestedPages.add(page);
     final key = '${query ?? ''}|${sort ?? ''}|$page';
+    await gates[key]?.future;
     return pagesByQuery[key] ??
         const Ok(PagedResult(items: [], total: 0, page: 1, perPage: 20, hasNext: false));
   }
@@ -184,5 +190,84 @@ void main() {
     final state = await container.read(sourceBrowseProvider('test-source').future);
     expect(state.items.single.title, 'Solo Leveling');
     expect(state.page, 1);
+  });
+
+  PagedResult<SourceSeriesSummary> pg(List<String> ids, int page, {bool more = true, int total = 0}) =>
+      PagedResult(items: [for (final i in ids) _series(i)], total: total, page: page, perPage: 2, hasNext: more);
+
+  test('a loadMore that lands after a query change does not overwrite the new results', () async {
+    final repo = _FakeSourcesRepository({
+      '||1': Ok(pg(['a'], 1)),
+      '||2': Ok(pg(['b'], 2)),
+      '|popular|1': Ok(pg(['p'], 1, more: false)),
+    });
+    repo.gates['||2'] = Completer<void>();
+    final container = ProviderContainer(overrides: [sourcesRepositoryProvider.overrideWithValue(repo)]);
+    addTearDown(container.dispose);
+    final sub = container.listen(sourceBrowseProvider('test-source'), (_, __) {});
+    addTearDown(sub.close);
+
+    await container.read(sourceBrowseProvider('test-source').future);
+    final more = container.read(sourceBrowseProvider('test-source').notifier).loadMore();
+    container.read(sourceBrowseQueryProvider('test-source').notifier).update((q) => q.copyWith(sort: 'popular'));
+    await container.read(sourceBrowseProvider('test-source').future);
+    repo.gates['||2']!.complete();
+    await more;
+
+    final state = container.read(sourceBrowseProvider('test-source')).value!;
+    expect(state.items.map((s) => s.id), ['p']);
+    expect(state.hasNext, isFalse);
+  });
+
+  test('loadMore drops series already on screen', () async {
+    final repo = _FakeSourcesRepository({
+      '||1': Ok(pg(['a', 'b'], 1)),
+      '||2': Ok(pg(['b', 'c'], 2, more: false)),
+    });
+    final container = ProviderContainer(overrides: [sourcesRepositoryProvider.overrideWithValue(repo)]);
+    addTearDown(container.dispose);
+    await container.read(sourceBrowseProvider('test-source').future);
+    await container.read(sourceBrowseProvider('test-source').notifier).loadMore();
+    expect(container.read(sourceBrowseProvider('test-source')).value!.items.map((s) => s.id), ['a', 'b', 'c']);
+  });
+
+  test('a page the 18+ gate emptied is skipped, not shown as an empty catalogue', () async {
+    final repo = _FakeSourcesRepository({
+      '||1': Ok(pg([], 1)),
+      '||2': Ok(pg(['c'], 2)),
+    });
+    final container = ProviderContainer(overrides: [sourcesRepositoryProvider.overrideWithValue(repo)]);
+    addTearDown(container.dispose);
+    final state = await container.read(sourceBrowseProvider('test-source').future);
+    expect(state.items.map((s) => s.id), ['c']);
+    expect(state.page, 2);
+  });
+
+  test('refresh reports a failure and keeps the previous grid', () async {
+    final repo = _FakeSourcesRepository({'||1': Ok(pg(['a'], 1))});
+    final container = ProviderContainer(overrides: [sourcesRepositoryProvider.overrideWithValue(repo)]);
+    addTearDown(container.dispose);
+    final sub = container.listen(sourceBrowseProvider('test-source'), (_, __) {});
+    addTearDown(sub.close);
+    await container.read(sourceBrowseProvider('test-source').future);
+    repo.pagesByQuery['||1'] = const Err(NetworkError(message: 'offline'));
+    final ok = await container.read(sourceBrowseProvider('test-source').notifier).refresh();
+    expect(ok, isFalse);
+    expect(container.read(sourceBrowseProvider('test-source')).valueOrNull?.items.map((s) => s.id), ['a']);
+  });
+
+  test('countLabel does not pass a page-size total off as the catalogue size', () {
+    final s = SourceBrowseState(items: [_series('a'), _series('b')], total: 2, hasNext: true);
+    expect(s.countLabel, '2+');
+    expect(SourceBrowseState(items: [_series('a')], total: 900, hasNext: true).countLabel, '900');
+    expect(SourceBrowseState(items: [_series('a')], total: 1).countLabel, '1');
+  });
+
+  test('state carries the query it answers', () async {
+    final repo = _FakeSourcesRepository({'||1': Ok(pg(['a'], 1))});
+    final container = ProviderContainer(overrides: [sourcesRepositoryProvider.overrideWithValue(repo)]);
+    addTearDown(container.dispose);
+    final state = await container.read(sourceBrowseProvider('test-source').future);
+    expect(state.query, container.read(sourceBrowseQueryProvider('test-source')));
   });
 }
