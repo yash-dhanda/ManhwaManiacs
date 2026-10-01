@@ -21,6 +21,8 @@ import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.d
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/listen/listen_common.dart';
+import 'package:manhwamaniacs/skins/glass/listen/post_play_card.dart';
 import 'package:manhwamaniacs/skins/glass/listen/voice_hue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/listen_bridge.dart';
@@ -88,7 +90,7 @@ final glassListenScopeProvider = Provider.autoDispose<GlassListenScope?>((ref) {
 }, name: 'glassListenScope',);
 
 /// Where the player sheet grows from (the row's or the accessory's rect), read once when `?sheet=player` opens.
-final glassPlayerOriginProvider = StateProvider<Rect?>((ref) => null, name: 'glassPlayerOrigin');
+Rect? glassPlayerOrigin;
 
 /// Whether the listen row was hidden for this session (D2); the accessory keeps its own flag in [glassAccessoryProvider].
 final glassListenRowHiddenProvider = StateProvider<bool>((ref) => false, name: 'glassListenRowHidden');
@@ -202,7 +204,7 @@ class GlassNarrationActions {
 
   /// Opens `?sheet=player` over the current location, growing from [from].
   void openPlayer([Rect? from]) {
-    _ref.read(glassPlayerOriginProvider.notifier).state = from;
+    glassPlayerOrigin = from;
     openSheet('player');
   }
 
@@ -317,6 +319,14 @@ class _GlassListenLayerState extends ConsumerState<GlassListenLayer> {
         onNextChapter: () => unawaited(actions.changeChapter(next: true)),
         onPreviousChapter: () => unawaited(actions.changeChapter(next: false)),
         voiceSeed: voice.name,
+        voiceHue: voice.hue,
+        voiceInitial: voice.initial,
+        onStop: () => unawaited(actions.stopWithUndo()),
+        phase: switch (listenPhaseOf(s)) {
+          ListenPhase.preparing || ListenPhase.buffering => 1,
+          ListenPhase.failed => 2,
+          _ => 0,
+        },
       ),
     );
   }
@@ -330,5 +340,5 @@ class _GlassListenLayerState extends ConsumerState<GlassListenLayer> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) => GlassPostPlayWatcher(child: widget.child);
 }

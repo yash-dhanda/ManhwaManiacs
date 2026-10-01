@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
+import 'package:manhwamaniacs/skins/glass/listen/listen_common.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart' show project;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
@@ -50,7 +51,13 @@ class GlassAccessoryBody extends ConsumerWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onVerticalDragEnd: (e) {
-          if (project(0, e.velocity.pixelsPerSecond.dy) >= 40) hide();
+          if (project(0, e.velocity.pixelsPerSecond.dy) >= 40) {
+            if (n?.onStop != null) {
+              n!.onStop!();
+            } else {
+              hide();
+            }
+          }
         },
         onLongPress: () => unawaited(
           showGlassMenu(
@@ -160,12 +167,18 @@ class _Narrating extends StatelessWidget {
         child: _Row(
           minimised: minimised,
           progress: n.progress,
-          leading: Container(width: 32, height: 32, decoration: BoxDecoration(shape: BoxShape.circle, color: gt.colorIris700), child: Icon(roleIcon(GlassIconRole.listen).fill, size: 16, color: gt.colorOnGlass)),
+          leading: ListenVoiceOrb(hue: n.voiceHue ?? gt.colorIris500, initial: n.voiceInitial.isEmpty ? '·' : n.voiceInitial),
           title: n.title,
-          trailing: _PlayButton(playing: n.playing, onTap: n.onPlayPause, label: n.playing ? 'Pause' : 'Play'),
+          trailing: ListenPlayButton(phase: _phaseOf(n), onTap: n.onPlayPause),
         ),
       );
 }
+
+ListenPhase _phaseOf(GlassNarrationAccessory n) => switch (n.phase) {
+      1 => ListenPhase.preparing,
+      2 => ListenPhase.failed,
+      _ => n.playing ? ListenPhase.playing : ListenPhase.paused,
+    };
 
 class _Downloading extends StatelessWidget {
   const _Downloading({required this.d, required this.minimised});
