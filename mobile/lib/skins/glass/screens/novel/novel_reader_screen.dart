@@ -41,6 +41,7 @@ import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
@@ -125,7 +126,7 @@ const double kNovelReadingLine = 0.38;
 /// Thresholds of E1: 24 px down hides, 56 px up shows, 3000 ms idle hides after a tap opened it, never in the first 800 ms of a
 /// chapter, never within 30 s of a hardware key.
 const double kChromeHideDown = 24, kChromeShowUp = 56;
-const Duration kChromeIdle = Duration(milliseconds: 3000), kChromeChapterGrace = Duration(milliseconds: 800), kChromeKeyGrace = Duration(seconds: 30);
+const Duration kChromeIdle = kReaderChromeIdle, kChromeChapterGrace = Duration(milliseconds: 800), kChromeKeyGrace = Duration(seconds: 30);
 
 /// A tap: down and up within 400 ms and 18 px (F1's `press.lift` uses the same 18 px; it fires at 150 ms).
 const Duration kTapMax = Duration(milliseconds: 400), kPressLift = Duration(milliseconds: 150);
@@ -274,7 +275,15 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   double _lastPixels = 0, _downAccum = 0, _upAccum = 0;
   Duration _chapterStart = Duration.zero;
   Duration? _lastKey;
-  Timer? _idle, _pressLift, _rateTimer;
+  Timer? _pressLift, _rateTimer;
+  late final ReaderChromeIdle _idle = ReaderChromeIdle(
+    this,
+    visible: () => _chrome,
+    hide: () => _setChrome(false),
+    after: () => kChromeIdle,
+    held: () => !_canHide,
+    off: () => _reduced,
+  );
   int? _rateLeft;
   Offset? _downAt;
   Duration? _downTime;
@@ -355,7 +364,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       r();
     }
     _sub?.close();
-    _idle?.cancel();
+    _idle.dispose();
     _pressLift?.cancel();
     _rateTimer?.cancel();
     _keyboardMenu?.remove();
@@ -827,24 +836,21 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     if (!visible && _chromeScope.hasFocus) _surfaceFocus.requestFocus();
     setState(() => _chrome = visible);
     unawaited(GlassMotion.play(visible ? MotionName.materialise : MotionName.dematerialise, controller: _chromeAnim, target: visible ? 1 : 0));
-    _idle?.cancel();
+    // Shown, it idles out after kChromeIdle untouched (never while [_canHide] is false: a sheet, menu, selection).
+    visible ? _idle.arm() : _idle.hold();
   }
 
-  /// A tap on the column toggles; after a tap opened it, 3000 ms idle hides it again.
+  /// A tap on the column toggles.
   void _toggleChrome() {
     if (_chrome) {
       _setChrome(false, force: _canHide);
       return;
     }
     _setChrome(true);
-    _idle?.cancel();
-    _idle = Timer(kChromeIdle, () {
-      if (mounted && _chrome) _setChrome(false);
-    });
   }
 
+  /// Shows the chrome for a sheet opened from it; the idle waits for the sheet to close.
   void _holdChrome() {
-    _idle?.cancel();
     if (!_chrome) _setChrome(true);
   }
 
@@ -1874,7 +1880,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         child: Focus(
           focusNode: _surfaceFocus,
           autofocus: true,
-          child: Semantics(container: true, label: label, child: OpenChapterScope(chapterId: _chapterKey, child: framed)),
+          child: Semantics(container: true, label: label, child: OpenChapterScope(chapterId: _chapterKey, child: _idle.wrap(framed))),
         ),
       ),
     );

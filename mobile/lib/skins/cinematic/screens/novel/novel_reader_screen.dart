@@ -33,6 +33,7 @@ import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
 import 'package:manhwamaniacs/features/reader/engine/auto_scroll_model.dart' show novelPxPerSecond;
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/settings/providers/a11y_prefs_provider.dart';
@@ -185,6 +186,14 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
 
   TargetPlatform get _platform => Theme.of(context).platform;
   bool get _reduced => CineMotion.reduced(context);
+
+  late final ReaderChromeIdle _idle = ReaderChromeIdle(
+    this,
+    visible: () => _chrome,
+    hide: () => _setChrome(false),
+    held: () => _chromeScope.hasFocus || _editingProgress || _noteOpen || _listenUi.roomOpen,
+    off: () => _reduced,
+  );
   String get _prefsKey => novelSeriesPrefsKey(widget.sourceId, widget.seriesKey);
 
   void _repaint() {
@@ -250,6 +259,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
   void dispose() {
     _sub?.close();
     _speakerTimer?.cancel();
+    _idle.dispose();
     // Leaving the reader stops the narration and removes the notification.
     _narr
       ..onSkipNext = null
@@ -356,6 +366,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     if (visible == _chrome) return;
     if (!visible && _chromeScope.hasFocus) _surfaceFocus.requestFocus();
     setState(() => _chrome = visible);
+    visible ? _idle.arm() : _idle.hold();
     // The status bar comes with the chrome (at the start of its fade in) and leaves at the start
     // of its fade out.
     _applyUi(visible ? ReaderUiPhase.chromeShown : ReaderUiPhase.chromeHidden);
@@ -371,7 +382,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
 
   bool get _canAutoHide => !_chromeScope.hasFocus && !MediaQuery.accessibleNavigationOf(context) && !_editingProgress;
 
-  void _maybeAutoHide() {}
+  void _maybeAutoHide() => _idle.arm();
 
   void _onScroll() {
     _ctl.onScrolled();
@@ -1115,7 +1126,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
                 label: chapter == null ? 'Chapter loading' : 'Chapter ${chapterNumberText(chapter.chapterNumber)}, ${s.chapterPercent} percent',
                 child: OpenChapterScope(
                   chapterId: (sourceId: widget.sourceId, seriesKey: widget.seriesKey, chapterKey: chapter?.chapterKey ?? widget.chapterKey),
-                  child: Stack(
+                  child: _idle.wrap(Stack(
                     fit: StackFit.expand,
                     children: [
                       Positioned.fill(child: body),
@@ -1129,7 +1140,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
                       if (_noteOpen) _noteField(stock),
                       if (!_ratingShown && series != null) _rating(series),
                     ],
-                  ),
+                  ),),
                 ),
               ),
             ),
