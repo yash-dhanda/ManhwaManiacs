@@ -29,6 +29,7 @@ class ListenSettings {
     this.shakeToExtend = true,
     this.autoPlayNext = true,
     this.keepPlayerVisible = false,
+    this.glassShakeToExtend = false,
   });
 
   factory ListenSettings.fromRecord(JsonRecord r) => ListenSettings(
@@ -37,11 +38,15 @@ class ListenSettings {
         shakeToExtend: r.boolOf('shakeToExtend', true),
         autoPlayNext: r.boolOf('autoPlayNext', true),
         keepPlayerVisible: r.boolOf('keepPlayerVisible', false),
+        glassShakeToExtend: r.boolOf('glassShakeToExtend', false),
       );
 
   final double speed;
   final String sleepDefault;
   final bool shakeToExtend, autoPlayNext, keepPlayerVisible;
+
+  /// Glass's own switch (8.16.6), off by default; Cinematic's [shakeToExtend] is never read by Glass.
+  final bool glassShakeToExtend;
 
   SleepChoice get sleepChoice => SleepChoice.parse(sleepDefault);
 
@@ -51,6 +56,7 @@ class ListenSettings {
         'shakeToExtend': shakeToExtend,
         'autoPlayNext': autoPlayNext,
         'keepPlayerVisible': keepPlayerVisible,
+        'glassShakeToExtend': glassShakeToExtend,
       };
 
   @override
@@ -60,8 +66,9 @@ class ListenSettings {
       other.sleepDefault == sleepDefault &&
       other.shakeToExtend == shakeToExtend &&
       other.autoPlayNext == autoPlayNext &&
-      other.keepPlayerVisible == keepPlayerVisible;
+      other.keepPlayerVisible == keepPlayerVisible &&
+      other.glassShakeToExtend == glassShakeToExtend;
 
   @override
-  int get hashCode => Object.hash(speed, sleepDefault, shakeToExtend, autoPlayNext, keepPlayerVisible);
+  int get hashCode => Object.hash(speed, sleepDefault, shakeToExtend, autoPlayNext, keepPlayerVisible, glassShakeToExtend);
 }

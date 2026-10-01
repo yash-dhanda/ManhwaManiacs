@@ -19,6 +19,13 @@ enum NovelKeyAction {
   contents,
   bookmark,
   playPause,
+  previousSentence,
+  nextSentence,
+  back15,
+  forward15,
+  slower,
+  faster,
+  voices,
   goTo,
   shortcuts,
   selectionMenu,
@@ -71,10 +78,22 @@ const List<NovelKeyBinding> kNovelKeyBindings = [
   NovelKeyBinding(SingleActivator(LogicalKeyboardKey.escape), NovelKeyAction.escape, 'Close, then back to the book', printable: false),
 ];
 
+/// `mobile/37`'s Listen group (glass 8.16.8, 8.15.8): `[` / `]` previous / next sentence, Shift+`[` / Shift+`]` back / forward 15 s,
+/// `<` / `>` speed -/+ 0.05 while narrating (cruise speed otherwise, `mobile/44`), `v` voices. `p` is in the main table.
+const List<NovelKeyBinding> kListenKeyBindings = [
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.bracketLeft), NovelKeyAction.previousSentence, 'Previous sentence'),
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.bracketRight), NovelKeyAction.nextSentence, 'Next sentence'),
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.bracketLeft, shift: true), NovelKeyAction.back15, 'Back 15 seconds', printable: false, keys: ['Shift', '[']),
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.bracketRight, shift: true), NovelKeyAction.forward15, 'Forward 15 seconds', printable: false, keys: ['Shift', ']']),
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.comma, shift: true), NovelKeyAction.slower, 'Narration slower', keys: ['<']),
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.period, shift: true), NovelKeyAction.faster, 'Narration faster', keys: ['>']),
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.keyV), NovelKeyAction.voices, 'Voices'),
+];
+
 /// The bindings live for this frame: desktop-only ones only in the desktop frame, printable ones only with Single-key shortcuts on;
 /// [extra] (later steps) first, so they can claim a key.
 List<NovelKeyBinding> novelKeyBindings({required bool desktopFrame, required bool singleKeys, List<NovelKeyBinding> extra = const []}) => [
-      for (final b in [...extra, ...kNovelKeyBindings])
+      for (final b in [...extra, ...kListenKeyBindings, ...kNovelKeyBindings])
         if ((!b.desktopOnly || desktopFrame) && (!b.printable || singleKeys)) b,
     ];
 

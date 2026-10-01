@@ -69,14 +69,7 @@ Future<void> main() async {
   // its playback state stays idle and no notification shows.
   final handler = await AudioService.init<NarrationAudioHandler>(
     builder: NarrationAudioHandler.new,
-    config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.manhwamaniacs.reader.listen',
-      androidNotificationChannelName: 'Listen',
-      androidNotificationIcon: 'drawable/ic_stat_mm',
-      notificationColor: Color(0xFFF4D03F),
-      fastForwardInterval: Duration(seconds: 15),
-      rewindInterval: Duration(seconds: 15),
-    ),
+    config: narrationAudioServiceConfig(SkinBoot.resolveSkin(prefs)),
   );
 
   registerFontLicenses();

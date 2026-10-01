@@ -27,6 +27,7 @@ class GlassDropCapParagraph extends StatelessWidget {
     this.locale,
     this.textKey,
     this.semanticsLabel,
+    this.repaint,
   });
 
   final String paragraph;
@@ -44,6 +45,9 @@ class GlassDropCapParagraph extends StatelessWidget {
   final Locale? locale;
   final GlobalKey? textKey;
   final String? semanticsLabel;
+
+  /// Repaints the decorations without a rebuild (the listen band).
+  final Listenable? repaint;
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +112,7 @@ class GlassDropCapParagraph extends StatelessWidget {
                       decorations: decorations,
                       onRunTap: onRunTap,
                       locale: locale,
+                      repaint: repaint,
                     ),
                     ),
                   ),
@@ -126,6 +131,7 @@ class GlassDropCapParagraph extends StatelessWidget {
                   decorations: decorations,
                   onRunTap: onRunTap,
                   locale: locale,
+                  repaint: repaint,
                 ),
             ],
           ),

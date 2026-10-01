@@ -16,6 +16,8 @@ class _Commands implements NarrationCommands {
   @override
   Future<void> skipToNext() async => log.add('next');
   @override
+  Future<void> skipToPrevious() async => log.add('previous');
+  @override
   Future<void> stop() async => log.add('stop');
 }
 
@@ -86,5 +88,21 @@ void main() {
     final h = NarrationAudioHandler();
     await h.play();
     await h.rewind();
+  });
+
+  test('Glass control set: previous, rewind, play or pause, fast-forward, next; compact 1-3; plus 15 s seeks', () async {
+    final h = NarrationAudioHandler()..controlSet = NarrationControlSet.glass;
+    final c = _Commands();
+    h.attach(c);
+    h.publish(playing: true, processing: AudioProcessingState.ready, position: Duration.zero);
+    final s = h.playbackState.value;
+    expect(s.controls, [MediaControl.skipToPrevious, MediaControl.rewind, MediaControl.pause, MediaControl.fastForward, MediaControl.skipToNext]);
+    expect(s.androidCompactActionIndices, [1, 2, 3]);
+    expect(s.systemActions, {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward});
+    await h.skipToPrevious();
+    await h.rewind();
+    await h.fastForward();
+    expect(c.log, ['previous']);
+    expect(c.seekBys, [const Duration(seconds: -15), const Duration(seconds: 15)]);
   });
 }

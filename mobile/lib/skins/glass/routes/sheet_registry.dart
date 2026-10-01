@@ -3,12 +3,22 @@ import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 
 /// A sheet that opens from `?sheet={id}` on any route (glass 8.0.3): its title, body and forms.
 class GlassSheetSpec {
-  const GlassSheetSpec({required this.title, required this.builder, this.detents = const [GlassDetent.large], this.opening, this.wideForm = GlassWideForm.window});
+  const GlassSheetSpec({required this.title, required this.builder, this.detents = const [GlassDetent.large], this.opening, this.wideForm = GlassWideForm.window, this.material = GlassSheetMaterial.standard, this.origin, this.centerTitle = false, this.trailing});
   final String title;
   final WidgetBuilder builder;
   final List<GlassDetent> detents;
   final GlassDetent? opening;
   final GlassWideForm wideForm;
+
+  /// `monolith` for the listen full player (T5 at medium, solid2 at large).
+  final GlassSheetMaterial material;
+
+  /// The trigger's rect when the sheet should grow out of it (read when the sheet opens).
+  final Rect? Function()? origin;
+  final bool centerTitle;
+
+  /// A control before the close button (the player's ⋯).
+  final Widget? trailing;
 }
 
 final Map<String, GlassSheetSpec> _specs = {};
