@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_prefs.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
@@ -142,7 +143,9 @@ Widget _zoneRow(SetupCtx c, int i, String label) {
 }
 
 final List<SetupRow> controlsRows = [
-  (c) => const SettingsCaption('Tap zones: what each side of the page does. Double-tap Menu to show the controls. Saved for this profile.'),
+  (c) => menuOpenRow(c.ref, 'setup-menu-open'),
+  (c) => menuAtEndRow(c.ref, 'setup-menu-end'),
+  (c) => SettingsCaption('Tap zones: what each side of the page does. ${MenuOpen.of(c.ref.watch(readerSettingsProvider)).help} Saved for this profile.'),
   (c) => _zoneRow(c, 0, 'LEFT'),
   (c) => _zoneRow(c, 1, 'CENTRE'),
   (c) => _zoneRow(c, 2, 'RIGHT'),
@@ -240,3 +243,16 @@ final List<SetupTab> kSetupTabs = [
   SetupTab('03', 'CONTROLS', controlsRows),
   SetupTab('04', 'AMBIENT', ambientRows),
 ];
+
+/// 'Open menu with' (Settings > Reading and the reader's setup sheet), for every reader of the profile.
+Widget menuOpenRow(WidgetRef ref, String id) {
+  final mode = MenuOpen.of(ref.watch(readerSettingsProvider));
+  return segmentedRow(id, 'Open menu with', const ['TAP', 'DOUBLE TAP', 'EDGE'], mode.index,
+      (i) => unawaited(ref.read(readerSettingsProvider.notifier).put({'menuOpen': MenuOpen.values[i].name})),
+      description: 'Edge: a tap along the top or bottom of the page. Manga and novels. ${SavedScope.profile}.',);
+}
+
+/// 'Show menu at chapter end'.
+Widget menuAtEndRow(WidgetRef ref, String id) => switchRow(id, 'Show menu at chapter end', menuAtChapterEnd(ref.watch(readerSettingsProvider)),
+    (v) => ref.read(readerSettingsProvider.notifier).put({'menuAtChapterEnd': v}),
+    description: 'The next-chapter controls come up by themselves. ${SavedScope.profile}.',);

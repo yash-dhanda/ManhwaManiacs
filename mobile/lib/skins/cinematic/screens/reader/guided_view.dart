@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/diagnostics/motion_recorder.dart';
 import 'package:manhwamaniacs/features/reader/engine/camera.dart';
 import 'package:manhwamaniacs/features/reader/engine/guided.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
@@ -277,6 +278,8 @@ class _CineGuidedViewState extends ConsumerState<CineGuidedView> with TickerProv
       _feedback(page: true);
       _credits = true;
       _afterMove();
+      // The chapter's end shows the menu (next-chapter controls), unless the profile turned it off.
+      if (menuAtChapterEnd(ref.read(readerSettingsProvider))) _showChrome();
     }
   }
 
@@ -460,26 +463,36 @@ class _CineGuidedViewState extends ConsumerState<CineGuidedView> with TickerProv
 
   // ── Gestures ─────────────────────────────────────────────────────────────
 
+  void _toggleChrome() {
+    _pauseAuto();
+    _chromeVisible ? _hideChrome() : _showChrome();
+  }
+
+  /// Sides step after the 300 ms a double tap (the glance) needs. The menu follows 'Open menu with': Tap toggles at
+  /// once in the centre (a double then takes the toggle back and glances), Double tap toggles on a centre double, Top
+  /// or bottom edge toggles on a tap in the edge bands.
   void _onTapUp(Offset pos, Size size) {
     final kind = _taps.classify(pos, DateTime.now());
+    final mode = MenuOpen.of(ref.read(readerSettingsProvider)).forScreenReader(_accessible);
+    final f = pos.dx / size.width;
+    final forwardSide = widget.rtl ? f < 0.3 : f > 0.7;
+    final backSide = widget.rtl ? f > 0.7 : f < 0.3;
+    final centre = !forwardSide && !backSide;
+    final edge = inMenuEdge(pos, size, padding: MediaQuery.paddingOf(context));
+    _singleTap?.cancel();
     if (kind == TapKind.double) {
-      _singleTap?.cancel();
+      if (mode == MenuOpen.doubleTap && centre) return _toggleChrome();
+      if (mode.toggles(TapKind.single, inMenuZone: centre, inEdge: edge)) _toggleChrome();
       unawaited(_glance());
       return;
     }
-    _singleTap?.cancel();
+    if (mode != MenuOpen.doubleTap && mode.toggles(kind, inMenuZone: centre, inEdge: edge)) return _toggleChrome();
     _singleTap = Timer(const Duration(milliseconds: 300), () {
       if (!mounted) return;
-      final f = pos.dx / size.width;
-      final forwardSide = widget.rtl ? f < 0.3 : f > 0.7;
-      final backSide = widget.rtl ? f > 0.7 : f < 0.3;
       if (forwardSide) {
         _next();
       } else if (backSide) {
         _previous();
-      } else {
-        _pauseAuto();
-        _chromeVisible ? _hideChrome() : _showChrome();
       }
     });
   }

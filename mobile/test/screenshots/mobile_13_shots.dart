@@ -46,7 +46,7 @@ void mobile13Shots() {
 
   Future<void> showChrome(WidgetTester tester) async {
     if (chromeVisible(tester)) return;
-    await tapDouble(tester);
+    await tapMenu(tester);
   }
 
   String legacyDirection(String v) => v;

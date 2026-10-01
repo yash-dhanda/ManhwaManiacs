@@ -56,7 +56,10 @@ class NovelPagedColumns extends StatefulWidget {
 
   /// The page shown changed (0-based; `pages.length` is the end-matter page).
   final ValueChanged<int> onPage;
-  final VoidCallback onMenu;
+
+  /// A tap at a position in the page box; true when it opened or closed the menu ('Open menu with'), and the tap does
+  /// nothing else. [inMenuZone] is whether the tap zones put it on Menu.
+  final bool Function(Offset position, Size size, {required bool inMenuZone}) onMenu;
 
   /// Tints by paragraph index, in paragraph offsets.
   final Map<int, List<NovelDecoration>> decorations;
@@ -137,13 +140,15 @@ class NovelPagedColumnsState extends State<NovelPagedColumns> with SingleTickerP
   }
 
   void _tap(TapUpDetails d, Size size) {
-    switch (novelTapAction(widget.tapZones, d.localPosition, size)) {
+    final action = novelTapAction(widget.tapZones, d.localPosition, size);
+    if (widget.onMenu(d.localPosition, size, inMenuZone: action == NovelTapAction.menu)) return;
+    switch (action) {
       case NovelTapAction.back:
         turnBy(-1);
       case NovelTapAction.forward:
         turnBy(1);
       case NovelTapAction.menu:
-        widget.onMenu();
+        break;
     }
   }
 

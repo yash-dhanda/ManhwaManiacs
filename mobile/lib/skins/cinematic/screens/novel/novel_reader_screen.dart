@@ -33,7 +33,9 @@ import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
 import 'package:manhwamaniacs/features/reader/engine/auto_scroll_model.dart' show novelPxPerSecond;
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
+import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/settings/providers/a11y_prefs_provider.dart';
@@ -380,6 +382,19 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
 
   void _toggleChrome() => _setChrome(!_chrome);
 
+  final TapClassifier _menuTaps = TapClassifier(doubleTapWindow: const Duration(milliseconds: 300), doubleTapSlop: 24);
+
+  /// 'Open menu with' (Tap, Double tap, Top or bottom edge; Tap under a screen reader): true when this tap at
+  /// [position] in a page box of [size] opened or closed the chrome.
+  bool _menuTap(Offset position, Size size, {required bool inMenuZone}) {
+    final kind = _menuTaps.classify(position, DateTime.now());
+    final mode = MenuOpen.of(ref.read(readerSettingsProvider)).forScreenReader(MediaQuery.accessibleNavigationOf(context));
+    final edge = inMenuEdge(position, size, padding: MediaQuery.paddingOf(context));
+    if (!mode.toggles(kind, inMenuZone: inMenuZone, inEdge: edge)) return false;
+    _toggleChrome();
+    return true;
+  }
+
   bool get _canAutoHide => !_chromeScope.hasFocus && !MediaQuery.accessibleNavigationOf(context) && !_editingProgress;
 
   void _maybeAutoHide() => _idle.arm();
@@ -399,7 +414,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
       _upAccum += -delta;
       if (_upAccum >= 56 && !_chrome) _setChrome(true);
     }
-    if (atEnd && !_chrome) _setChrome(true);
+    if (atEnd && !_chrome && menuAtChapterEnd(ref.read(readerSettingsProvider))) _setChrome(true);
   }
 
   // ── NovelReadingSurface (scroll layout) ───────────────────────────────────
@@ -1184,7 +1199,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
         onPointerCancel: (_) => _auto.running ? _auto.controller.touchUp() : null,
         child: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: () => _auto.running ? null : _toggleChrome(),
+        onTapUp: (d) => _auto.running ? null : _menuTap(d.localPosition, MediaQuery.sizeOf(context), inMenuZone: true),
         child: _SwipeChapter(
           enabled: ref.watch(novelSettingsProvider).novelSwipeChapter,
           onSwipe: (forward) {
@@ -1378,12 +1393,14 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
         _ctl.onPaged(i);
         _bucket.value = ref.read(novelReaderControllerProvider(_args)).readingBucket;
         if (i >= pages.length) {
+          // The chapter's end shows the menu, unless the profile turned it off.
+          if (!_chrome && menuAtChapterEnd(ref.read(readerSettingsProvider))) _setChrome(true);
           _ctl.markComplete();
           ref.read(completedThisSessionProvider.notifier).markCompleted(widget.sourceId, widget.seriesKey, chapter.chapterKey);
           cineFeedback(context, HapticEvent.chapterComplete, sound: SoundEvent.chapterComplete);
         }
       },
-      onMenu: _toggleChrome,
+      onMenu: _menuTap,
     );
   }
 

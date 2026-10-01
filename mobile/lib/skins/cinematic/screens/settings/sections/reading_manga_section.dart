@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_confirm_dialog.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/reader/setup_rows.dart' show menuAtEndRow, menuOpenRow;
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/recap_rows.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_kit.dart';
 
@@ -86,7 +88,9 @@ class ReadingMangaSection extends ConsumerWidget {
       segmentedRow('ground', 'Ground', const ['BLACK', 'INK', 'SLATE'], const ['black', 'ink', 'slate'].indexOf(r.ground),
           (i) => n.put({'ground': const ['black', 'ink', 'slate'][i]}),),
       const SettingsKicker('TAPS AND SWIPES'),
-      const JumpRow(id: 'tap-zones', child: SettingsCaption('Tap zones: what each side of the page does. Double-tap Menu to show the controls.')),
+      menuOpenRow(ref, 'menu-open'),
+      menuAtEndRow(ref, 'menu-at-end'),
+      JumpRow(id: 'tap-zones', child: SettingsCaption('Tap zones: what each side of the page does. ${MenuOpen.of(r).help}')),
       tapRow('left', 'LEFT'),
       tapRow('center', 'CENTRE'),
       tapRow('right', 'RIGHT'),

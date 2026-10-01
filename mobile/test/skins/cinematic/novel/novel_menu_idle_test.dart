@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/top_bar.dart';
@@ -21,7 +23,55 @@ Future<void> _open(WidgetTester t) async {
   expect(_shown(t), isTrue, reason: 'a tap opens');
 }
 
+Future<void> _tap(WidgetTester t, Offset at) async {
+  await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
+  await t.tapAt(at);
+  await settleNovel(t, ms: 400);
+}
+
 void main() {
+  testWidgets("Open menu with 'Double tap': a single tap does nothing, a double tap opens", (t) async {
+    await pumpNovel(t, prefsValues: {'mm.reader-settings.device': '{"menuOpen":"doubleTap"}'});
+    await settleNovel(t);
+    await _tap(t, const Offset(195, 422));
+    expect(_shown(t), isFalse);
+    await t.tapAt(const Offset(195, 422));
+    await t.pump(const Duration(milliseconds: 60));
+    await t.tapAt(const Offset(195, 422));
+    await t.pump();
+    expect(_shown(t), isTrue);
+    await disposeNovel(t);
+  });
+
+  testWidgets("Open menu with 'Top or bottom edge': the centre does nothing, the bottom band opens", (t) async {
+    await pumpNovel(t, prefsValues: {'mm.reader-settings.device': '{"menuOpen":"edge"}'});
+    await settleNovel(t);
+    await _tap(t, const Offset(195, 422));
+    expect(_shown(t), isFalse);
+    await _tap(t, const Offset(195, 780));
+    expect(_shown(t), isTrue);
+    await disposeNovel(t);
+  });
+
+  for (final on in [true, false]) {
+    testWidgets('the chapter end shows the menu when Show menu at chapter end is ${on ? 'on' : 'off'}', (t) async {
+      await pumpNovel(t, prefsValues: {if (!on) 'mm.reader-settings.device': '{"menuAtChapterEnd":false}'});
+      await settleNovel(t);
+      expect(_shown(t), isFalse);
+      final pos = t.state<ScrollableState>(find.byType(Scrollable).first).position;
+      // Steps down, so the lazy list's extent settles without a correction that reads as a scroll back.
+      for (var i = 0; i < 40 && pos.extentAfter > 0; i++) {
+        pos.jumpTo(math.min(pos.pixels + 300, pos.maxScrollExtent));
+        await t.pump();
+      }
+      await settleNovel(t, ms: 300);
+      expect(_shown(t), on);
+      // Let the progress save land before teardown.
+      await settleNovel(t, ms: 4000);
+      await disposeNovel(t);
+    });
+  }
+
   testWidgets('opened, it is up at 4.9 s and hidden at 5.1 s', (t) async {
     await pumpNovel(t);
     await _open(t);

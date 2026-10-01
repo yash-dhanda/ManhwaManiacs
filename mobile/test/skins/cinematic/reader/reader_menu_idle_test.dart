@@ -6,23 +6,21 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/running_head.dart';
 import '../../../screenshots/support/shot_network.dart';
 import 'reader_test_support.dart';
 
-// The owner's rule: the reading menu a double tap opens stays 5 s untouched, then hides. Touching it
+// The owner's rule: the reading menu, once open, stays 5 s untouched, then hides. Touching it
 // (a control, the chapter slider, a sheet from it) starts the 5 s again; a drag or a sheet in
 // progress never runs out; scrolling hides it at once; a screen reader or reduce motion keeps it up.
 // Both entry points: the library reader and the source reader.
 
 const _centre = Offset(195, 422);
 
-/// Waits out the menu shown at open, then opens it with a double tap; the clock starts on return.
+/// Waits out the menu shown at open, then opens it with a tap; the clock starts on return.
 Future<void> _open(WidgetTester tester) async {
   await settleReader(tester, ms: 5600);
   expect(chromeVisible(tester), isFalse, reason: 'idle-hidden after open');
   await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
   await tester.tapAt(_centre);
-  await tester.pump(const Duration(milliseconds: 60));
-  await tester.tapAt(_centre);
   await tester.pump();
-  expect(chromeVisible(tester), isTrue, reason: 'a double tap opens');
+  expect(chromeVisible(tester), isTrue, reason: 'a tap opens (Open menu with: Tap)');
 }
 
 /// Pumps [ms] in 100 ms steps from now.
