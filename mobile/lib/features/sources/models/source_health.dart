@@ -1,3 +1,5 @@
+import 'package:manhwamaniacs/core/time/server_instant.dart';
+
 /// Reachability of one source, as `GET /sources` and `GET /sources/health`
 /// carry it in each row's `health` object.
 enum SourceHealthStatus {
@@ -14,8 +16,7 @@ enum SourceHealthStatus {
       };
 }
 
-DateTime? _date(Object? v) =>
-    v is String ? DateTime.tryParse(v)?.toLocal() : null;
+DateTime? _date(Object? v) => serverInstant(v)?.toLocal();
 
 class SourceHealth {
   const SourceHealth({

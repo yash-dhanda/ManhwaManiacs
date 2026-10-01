@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/time/server_instant.dart';
 import 'package:manhwamaniacs/skins/glass/copy/errors.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
@@ -158,7 +159,7 @@ class NovelStateView extends StatelessWidget {
 
 /// "Saved copy · 2 h": the age from `cache.fetched_at`.
 String novelCacheAge(String? iso, {DateTime? now}) {
-  final t = iso == null ? null : DateTime.tryParse(iso);
+  final t = serverInstant(iso);
   if (t == null) return '';
   final d = (now ?? DateTime.now()).toUtc().difference(t.toUtc());
   if (d.inHours < 1) return '${d.inMinutes.clamp(1, 59)} min';

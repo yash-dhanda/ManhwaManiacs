@@ -116,8 +116,15 @@ class GlassToastController extends Notifier<List<GlassToastEntry>> {
   bool undoLast() {
     final u = _lastUndo;
     if (u == null) return false;
-    _lastUndo = null;
-    _undoExpiry?.cancel();
+    return undo(u);
+  }
+
+  /// Runs one toast's own [u] (its Undo button), not whichever undo came last.
+  bool undo(VoidCallback u) {
+    if (identical(_lastUndo, u)) {
+      _lastUndo = null;
+      _undoExpiry?.cancel();
+    }
     unawaited(ref.read(glassHapticsProvider).fire(HapticEvent.undo));
     u();
     for (final e in state) {
@@ -355,7 +362,7 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
                 size: GlassButtonSize.small,
                 onPressed: () {
                   if (spec.undo != null) {
-                    ref.read(glassToastProvider.notifier).undoLast();
+                    ref.read(glassToastProvider.notifier).undo(spec.undo!);
                   } else {
                     spec.onAction?.call();
                     ref.read(glassToastProvider.notifier).dismiss(e.id);
