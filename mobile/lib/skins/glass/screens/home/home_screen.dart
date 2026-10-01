@@ -37,6 +37,7 @@ import 'package:manhwamaniacs/skins/glass/screens/home/home_states.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/spotlight.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/spotlight_card.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/spotlights.dart';
+import 'package:manhwamaniacs/skins/glass/screens/wrapped/wrapped_origin.dart';
 import 'package:manhwamaniacs/skins/glass/shell/accessory_controller.dart';
 import 'package:manhwamaniacs/skins/glass/shell/error_surface.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
@@ -215,6 +216,7 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
             case SpotlightAction.searchSources:
               unawaited(ref.read(skinRouterProvider).push<void>(Routes.discover({'q': s.title})));
             case SpotlightAction.openWrapped:
+              ref.read(wrappedOriginProvider.notifier).state = from;
               unawaited(ref.read(skinRouterProvider).push<void>(Routes.annual(s.year ?? ref.read(clockProvider)().year)));
             case SpotlightAction.previouslyOn:
               if (s.hasSeries) unawaited(openRecap(ref, s.sourceId!, s.seriesKey!, s.target?.recap?.toKey ?? s.recap?.toKey ?? s.target?.chapterKey ?? '', from: from));
@@ -230,6 +232,7 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
         },
         onOpen: (s, from, {velocity}) {
           if (s.isWrapped) {
+            ref.read(wrappedOriginProvider.notifier).state = from;
             unawaited(ref.read(skinRouterProvider).push<void>(Routes.annual(s.year ?? ref.read(clockProvider)().year)));
           } else if (s.hasSeries) {
             unawaited(openSeries(ref, s.sourceId!, s.seriesKey!, from: from, velocity: velocity));

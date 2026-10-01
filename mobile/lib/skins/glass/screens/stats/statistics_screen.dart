@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/providers/daily_goal_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
@@ -74,14 +75,11 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
   late int _days = rangeFromParam(widget.range) ?? ref.read(statsRangeProvider);
   final GlassPullToRefreshController _refresh = GlassPullToRefreshController();
   final GlobalKey _heroKey = GlobalKey();
-  final Object _token = Object();
-  late final ShortcutRegistry _shortcuts = ref.read(shortcutRegistryProvider.notifier);
   LibraryStatistics? _last;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(_registerKeys);
     WidgetsBinding.instance.addPostFrameCallback((_) => _consumeShareIntent());
   }
 
@@ -94,17 +92,14 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
 
   @override
   void dispose() {
-    final s = _shortcuts;
-    final t = _token;
-    Future.microtask(() => s.unregister(t));
     _refresh.dispose();
     super.dispose();
   }
 
-  void _registerKeys() {
-    if (!mounted) return;
+  /// The "Your reading" keys (B15): dispatched while focus is inside the screen, listed in the `?` sheet.
+  List<ShortcutEntry> _keys() {
     ShortcutEntry e(String d, ShortcutActivator a, VoidCallback f, List<String> keys) => ShortcutEntry(group: 'Your reading', activator: a, description: d, onInvoke: f, keys: keys, singleKey: a is SingleActivator && !a.shift);
-    _shortcuts.register(_token, [
+    return [
       e('Previous range', const SingleActivator(LogicalKeyboardKey.bracketLeft), () => _step(-1), ['[']),
       e('Next range', const SingleActivator(LogicalKeyboardKey.bracketRight), () => _step(1), [']']),
       e('Scrub the focused chart', const SingleActivator(LogicalKeyboardKey.abort), () {}, ['←', '→']),
@@ -113,7 +108,7 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
       e('Daily goal', const SingleActivator(LogicalKeyboardKey.keyG, shift: true), () => unawaited(_goalMenu(context)), ['Shift', 'G']),
       e('Play your year', const SingleActivator(LogicalKeyboardKey.keyW), () => _openWrapped(null), ['W']),
       e('Refresh', const SingleActivator(LogicalKeyboardKey.keyR), () => unawaited(_refresh.refresh()), ['R']),
-    ]);
+    ];
   }
 
   void _step(int d) {
@@ -210,7 +205,7 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
     final now = ref.watch(clockProvider)();
     final hasHistory = s?.hasReadingHistory ?? false;
     final canShare = s != null && !(load?.offline ?? false) && hasHistory;
-    return GlassScaffold(
+    final scaffold = GlassScaffold(
       title: 'Your reading',
       leading: GlassLeading.back,
       trailing: [
@@ -243,6 +238,7 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
         const SliverToBoxAdapter(child: SizedBox(height: 120)),
       ],
     );
+    return RegisteredShortcuts(group: 'Your reading', entries: _keys(), child: Focus(autofocus: true, child: scaffold));
   }
 }
 
@@ -389,6 +385,11 @@ class _Content extends ConsumerWidget {
             onYear: (yy) => ref.read(skinRouterProvider).replace<Object?>(Routes.numbers({'range': rangeParam(days), 'year': yy})),
           )
         : null;
+    // Lists follow Manga or Novels; the streak, totals and the clock count both (glass 8.0.8).
+    final scope = ref.watch(contentModeScopeProvider);
+    final bySeries = scope.filter(s.bySeries, (r) => r.sourceId);
+    final bySource = scope.filter(s.bySource, (r) => r.sourceId);
+    final sessions = scope.filter(s.recentSessions, (r) => r.sourceId);
     return LayoutBuilder(
       builder: (context, box) {
         final wide = box.maxWidth >= 900;
@@ -415,9 +416,9 @@ class _Content extends ConsumerWidget {
           if (wide) row([(8, perDay), (4, clock)]) else ...[perDay, gap(20), clock],
           if (heat != null) ...[gap(20), heat],
           gap(20),
-          if (wide) row([(4, radar), (8, MostRead(series: s.bySeries))]) else ...[radar, gap(20), MostRead(series: s.bySeries)],
+          if (wide) row([(4, radar), (8, MostRead(series: bySeries))]) else ...[radar, gap(20), MostRead(series: bySeries)],
           gap(20),
-          if (wide) row([(6, SourcesCard(sources: s.bySource)), (6, RecentSessions(sessions: s.recentSessions))]) else ...[SourcesCard(sources: s.bySource), gap(20), RecentSessions(sessions: s.recentSessions)],
+          if (wide) row([(6, SourcesCard(sources: bySource)), (6, RecentSessions(sessions: sessions))]) else ...[SourcesCard(sources: bySource), gap(20), RecentSessions(sessions: sessions)],
           gap(20),
           LibraryCard(stats: s),
           if (wrapped != null) ...[gap(20), wrapped],
