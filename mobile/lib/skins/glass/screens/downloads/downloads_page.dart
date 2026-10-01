@@ -20,6 +20,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/states/lens_glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/object_lens.dart';
 import 'package:manhwamaniacs/skins/glass/screens/downloads/chapters_tab.dart';
 import 'package:manhwamaniacs/skins/glass/screens/downloads/queue_tab.dart';
+import 'package:manhwamaniacs/skins/glass/screens/downloads/series_downloads_card.dart' show confirmRemoveSeriesDownloads;
 import 'package:manhwamaniacs/skins/glass/screens/downloads/storage_tab.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_keys.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_section.dart';
@@ -115,7 +116,10 @@ class _GlassDownloadsPageState extends ConsumerState<GlassDownloadsPage> {
             if (g != null) unawaited(_pin(g));
           }
         },),
-        LibraryKey(description: 'Remove the focused series', keys: const ['Delete'], match: kKey(LogicalKeyboardKey.delete), action: () {}),
+        LibraryKey(description: 'Remove the focused series', keys: const ['Delete'], match: kKey(LogicalKeyboardKey.delete), action: () {
+          final g = _tab == DownloadsTab.chapters ? _focused : null;
+          if (g != null) unawaited(confirmRemoveSeriesDownloads(context, ref, g));
+        },),
         LibraryKey(description: 'Move through the list', keys: const ['↑', '↓'], match: kKey(LogicalKeyboardKey.arrowDown), action: () => FocusManager.instance.primaryFocus?.nextFocus()),
         LibraryKey(description: '', keys: const [], match: kKey(LogicalKeyboardKey.arrowUp), action: () => FocusManager.instance.primaryFocus?.previousFocus()),
       ],

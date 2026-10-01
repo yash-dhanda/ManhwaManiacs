@@ -108,6 +108,29 @@ Future<void> removeChapterWithUndo(WidgetRef ref, SavedChapter c) async {
   );
 }
 
+/// "Remove every saved chapter of X?" behind a hold-to-confirm alert; the card menu and the Delete
+/// shortcut both land here. [onConfirmed] runs before the deletes (the card's drain).
+Future<void> confirmRemoveSeriesDownloads(BuildContext context, WidgetRef ref, DownloadedSeriesGroup g, {Rect? from, VoidCallback? onConfirmed}) async {
+  final ok = await showGlassAlert<bool>(
+    context,
+    title: 'Remove every saved chapter of ${g.seriesTitle ?? g.seriesKey}?',
+    body: 'Your reading progress is kept.',
+    sourceRect: from,
+    actions: const [GlassAlertAction<bool>('Cancel', role: GlassAlertRole.cancel, value: false)],
+    extra: Builder(builder: (ctx) => HoldToConfirm(label: 'Hold to remove', mode: HoldMode.inAlert, fallbackLabel: 'Remove all downloads', onConfirm: () => Navigator.of(ctx).pop(true))),
+  );
+  if (ok != true || !context.mounted) return;
+  // Read before the awaits: the card may be gone by the time the deletes finish.
+  final store = ref.read(downloadsStoreProvider);
+  final queue = ref.read(downloadQueueControllerProvider.notifier);
+  onConfirmed?.call();
+  for (final c in g.chapters) {
+    await store?.deleteDownload(c.identity);
+  }
+  // Bumps the queue revision (every list re-reads) and restarts a queue paused at the cap.
+  queue.retryAfterStorageChange();
+}
+
 /// One series of Chapters (glass 8.22): title, summary, pin, menu and an expand chevron; expanded it lists its chapters. Removing the
 /// whole series collapses the card on `springDismiss` (Drain) while the meter level falls.
 class GlassSeriesDownloadsCard extends ConsumerStatefulWidget {
@@ -173,30 +196,7 @@ class GlassSeriesDownloadsCardState extends ConsumerState<GlassSeriesDownloadsCa
     router.go(loc.replace(queryParameters: {...loc.queryParameters, 'sheet': 'save-files', 'series': '${g.sourceId}:${g.seriesKey}', if (only != null) 'chapter': only.chapterKey}).toString());
   }
 
-  Future<void> _removeSeries(Rect from) async {
-    final ok = await showGlassAlert<bool>(
-      context,
-      title: 'Remove every saved chapter of $_title?',
-      body: 'Your reading progress is kept.',
-      sourceRect: from,
-      actions: const [GlassAlertAction<bool>('Cancel', role: GlassAlertRole.cancel, value: false)],
-      extra: Builder(builder: (ctx) => HoldToConfirm(label: 'Hold to remove', mode: HoldMode.inAlert, fallbackLabel: 'Remove all downloads', onConfirm: () => Navigator.of(ctx).pop(true))),
-    );
-    if (ok != true || !mounted) return;
-    // Drain: the card collapses on springDismiss while the meter's level falls.
-    final store = ref.read(downloadsStoreProvider);
-    drain();
-    for (final c in g.chapters) {
-      await store?.deleteDownload(c.identity);
-    }
-    if (!mounted) return;
-    ref.read(downloadQueueControllerProvider.notifier).retryAfterStorageChange();
-    ref
-      ..invalidate(downloadedSeriesProvider)
-      ..invalidate(activeDownloadQueueProvider)
-      ..invalidate(totalDeviceDownloadBytesProvider)
-      ..invalidate(seriesStorageBreakdownProvider);
-  }
+  Future<void> _removeSeries(Rect from) => confirmRemoveSeriesDownloads(context, ref, g, from: from, onConfirmed: drain);
 
   Future<void> _pin() async {
     await ref.read(downloadsStoreProvider)?.setSeriesPinned(series: (sourceId: g.sourceId, seriesKey: g.seriesKey), pinned: !g.pinned);
