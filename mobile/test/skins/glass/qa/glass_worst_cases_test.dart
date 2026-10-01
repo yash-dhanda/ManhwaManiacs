@@ -1,9 +1,9 @@
-// ignore_for_file: directives_ordering, prefer_const_constructors
+// ignore_for_file: require_trailing_commas, avoid_redundant_argument_values, prefer_const_declarations, directives_ordering, prefer_function_declarations_over_variables
+// ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/glass/glass/tier_math.dart' show foldDim;
-import 'package:manhwamaniacs/skins/glass/glass/axes.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';

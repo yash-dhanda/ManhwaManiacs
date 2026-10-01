@@ -1,4 +1,5 @@
-// ignore_for_file: directives_ordering, require_trailing_commas, prefer_const_constructors, avoid_redundant_argument_values, unnecessary_lambdas
+// ignore_for_file: require_trailing_commas, avoid_redundant_argument_values, prefer_const_declarations, directives_ordering, prefer_function_declarations_over_variables
+// ignore_for_file: prefer_const_constructors, unnecessary_lambdas
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -6,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meta/meta.dart' show isTest;
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
@@ -45,6 +45,9 @@ class GlassQaReader extends FakeReader {
   Future<Result<ChapterManifestWindow>> manifestWindow({required String sourceId, required String seriesKey, required List<String> chapterKeys}) async =>
       const Err(NetworkError(message: 'offline in test'));
 }
+
+/// Invented titles of `glass/DESIGN.md` 12.7 for the proof captures (no real series, source or art).
+const kGlassQaTitles = ['The Ninth Regression', 'Salt and Iron', 'Moonlit Bakery', 'The Lantern Courier', 'Tower of Dawn', 'Paper Weather'];
 
 /// The proof sizes of `mobile/45` (logical px). `phone-max` is defined here only (the large phone of `web/45`).
 const Map<String, Size> kGlassQaSizes = {
@@ -137,11 +140,11 @@ final bool _complete = () {
 }();
 
 /// The library, reader, sources and downloads fakes shared by every Glass QA mount.
-List<Override> glassQaDataOverrides({Recorder? rec, ShelfLibrary? lib, bool gateOpen = false, ContentMode mode = ContentMode.manga, bool novels = false}) {
+List<Override> glassQaDataOverrides({Recorder? rec, ShelfLibrary? lib, bool gateOpen = false, ContentMode mode = ContentMode.manga, bool novels = false, bool coverArt = false}) {
   final r = rec ?? Recorder();
   return [
     ...contentModeOverrides(mode: mode, novelsEnabled: novels),
-    libraryRepositoryProvider.overrideWithValue(lib ?? ShelfLibrary(all: [for (var i = 1; i <= 12; i++) shelfSeries(i)])),
+    libraryRepositoryProvider.overrideWithValue(lib ?? ShelfLibrary(all: [for (var i = 1; i <= 12; i++) shelfSeries(i, title: coverArt ? kGlassQaTitles[(i - 1) % kGlassQaTitles.length] : null, cover: coverArt ? 'http://shots.test/covers/$i.png' : '')])),
     readerRepositoryProvider.overrideWithValue(GlassQaReader(r)),
     skinHapticsProvider.overrideWithValue(RecordingHaptics(r)),
     downloadQueueControllerProvider.overrideWith(() => RecordingQueue(r)),
@@ -175,12 +178,17 @@ Future<GlassQaRig> pumpGlassQa(
   bool boldText = false,
   bool highContrast = false,
   bool accessible = false,
+  EdgeInsets padding = EdgeInsets.zero,
+  Key? boundaryKey,
+  bool coverArt = false,
+  bool mockPlugins = true,
+  ShelfLibrary? lib,
   Map<String, Object> prefs = const {},
   List<Override> extra = const [],
   bool settle = true,
 }) async {
   assert(_complete);
-  _mockPlugins(t);
+  if (mockPlugins) _mockPlugins(t);
   final rec = Recorder();
   SharedPreferences.setMockInitialValues(testPrefsDefaults(prefs));
   final p = await SharedPreferences.getInstance();
@@ -188,7 +196,7 @@ Future<GlassQaRig> pumpGlassQa(
     sharedPrefsProvider.overrideWithValue(p),
     skinIdProvider.overrideWithValue(SkinId.glass),
     ...shellTestOverrides(),
-    ...glassQaDataOverrides(rec: rec, novels: s.novels),
+    ...glassQaDataOverrides(rec: rec, novels: s.novels, lib: lib, coverArt: coverArt),
     ...s.extra,
     ...(await s.more?.call() ?? const <Override>[]),
     ...extra,
@@ -199,13 +207,19 @@ Future<GlassQaRig> pumpGlassQa(
   addTearDown(c.dispose);
   t.view.physicalSize = size * dpr;
   t.view.devicePixelRatio = dpr;
+  if (padding != EdgeInsets.zero) {
+    final fp = FakeViewPadding(left: padding.left * dpr, top: padding.top * dpr, right: padding.right * dpr, bottom: padding.bottom * dpr);
+    t.view.padding = fp;
+    t.view.viewPadding = fp;
+  }
   addTearDown(t.view.reset);
   debugDefaultTargetPlatformOverride = platform; // reset by [glassQaWidgets] (a teardown runs after the invariant check)
   final router = c.read(skinRouterProvider);
   if (s.location != '/') router.go(s.location);
+  Widget wrap(Widget app) => boundaryKey == null ? app : RepaintBoundary(key: boundaryKey, child: app);
   await t.pumpWidget(UncontrolledProviderScope(
     container: c,
-    child: Consumer(
+    child: wrap(Consumer(
       builder: (context, ref, _) => MaterialApp.router(
         debugShowCheckedModeBanner: false,
         theme: GlassSkin.baseTheme.copyWith(platform: platform),
@@ -221,7 +235,7 @@ Future<GlassQaRig> pumpGlassQa(
           child: const GlassSkin().wrap(context, child ?? const SizedBox.shrink()),
         ),
       ),
-    ),
+    )),
   ));
   if (settle) {
     for (var i = 0; i < 16; i++) {
@@ -234,7 +248,6 @@ Future<GlassQaRig> pumpGlassQa(
 }
 
 /// `testWidgets` that clears the platform override [pumpGlassQa] sets before the framework's invariant check.
-@isTest
 void glassQaWidgets(String description, Future<void> Function(WidgetTester t) body, {Timeout? timeout}) {
   testWidgets(description, (t) async {
     try {

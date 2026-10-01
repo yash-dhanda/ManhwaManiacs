@@ -1,4 +1,5 @@
-// ignore_for_file: directives_ordering, prefer_const_constructors
+// ignore_for_file: require_trailing_commas, avoid_redundant_argument_values, prefer_const_declarations, directives_ordering, prefer_function_declarations_over_variables
+// ignore_for_file: prefer_const_constructors
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show SizedBox;
 import 'package:flutter_test/flutter_test.dart';

@@ -1,9 +1,9 @@
-// ignore_for_file: directives_ordering, prefer_const_constructors
+// ignore_for_file: require_trailing_commas, avoid_redundant_argument_values, prefer_const_declarations, directives_ordering, prefer_function_declarations_over_variables
+// ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/app_restart.dart';
 import 'package:manhwamaniacs/app/skin_app.dart';
 import 'package:manhwamaniacs/app/skin_boot.dart';
