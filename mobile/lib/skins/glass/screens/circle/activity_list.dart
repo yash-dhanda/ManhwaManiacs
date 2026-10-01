@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart' show CircleFeedState;
 import 'package:manhwamaniacs/features/circle/utils/collapse_feed.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -40,7 +41,7 @@ List<({String label, List<FeedEntry> entries})> activityDays(List<FeedItem> item
 /// skeleton row that asks for the next page.
 List<Widget> activitySlivers({
   required List<({String label, List<FeedEntry> entries})> days,
-  required bool hasMore,
+  required CircleFeedState feed,
   required VoidCallback onLoadMore,
   required FocusNode Function(String id) focusOf,
   required Listenable Function(String id) reactOf,
@@ -53,8 +54,13 @@ List<Widget> activitySlivers({
             SliverList.list(children: [for (final e in d.entries) ActivityRow(key: ValueKey(e.item.id), entry: e, focusNode: focusOf(e.item.id), reactRequest: reactOf(e.item.id))]),
           ],
         ),
-      if (hasMore) SliverToBoxAdapter(child: _LoadMore(onLoadMore: onLoadMore)),
+      if (feed.hasMore) loadMoreSliver(feed, onLoadMore),
     ];
+
+/// The trailing skeleton row that asks for the next page. A lazy sliver, so it is built (and asks) only once scrolled near;
+/// keyed by the cursor, so every new page gets a fresh ask; a failed ask is retried after a pause while it stays built.
+Widget loadMoreSliver(CircleFeedState feed, VoidCallback onLoadMore) =>
+    SliverList.list(children: [_LoadMore(key: ValueKey(feed.nextCursor), loading: feed.loadingMore, onLoadMore: onLoadMore)]);
 
 class _DayHeader extends SliverPersistentHeaderDelegate {
   _DayHeader(this.label);
@@ -86,7 +92,8 @@ class _DayHeader extends SliverPersistentHeaderDelegate {
 }
 
 class _LoadMore extends StatefulWidget {
-  const _LoadMore({required this.onLoadMore});
+  const _LoadMore({super.key, required this.loading, required this.onLoadMore});
+  final bool loading;
   final VoidCallback onLoadMore;
 
   @override
@@ -94,10 +101,28 @@ class _LoadMore extends StatefulWidget {
 }
 
 class _LoadMoreState extends State<_LoadMore> {
+  Timer? _retry;
+
   @override
   void initState() {
     super.initState();
     scheduleMicrotask(widget.onLoadMore);
+  }
+
+  @override
+  void didUpdateWidget(_LoadMore old) {
+    super.didUpdateWidget(old);
+    // Same cursor, no longer loading: that page failed.
+    if (old.loading && !widget.loading) {
+      _retry?.cancel();
+      _retry = Timer(const Duration(seconds: 3), () => widget.onLoadMore());
+    }
+  }
+
+  @override
+  void dispose() {
+    _retry?.cancel();
+    super.dispose();
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heroine/heroine.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/utils/presence.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -140,6 +141,23 @@ void main() {
     await unmount(t);
   });
 
+  testWidgets('activity keeps paging: every new page asks again for the next', (t) async {
+    final repo = _Pages(circleFake());
+    await pumpCircle(t, repo);
+    await settle(t);
+    expect(repo.cursors, containsAllInOrder(['p2', 'p3']));
+    await unmount(t);
+  });
+
+  testWidgets('friend sheet: no Recommend button when they take no recommendations', (t) async {
+    final page = aaravPage();
+    final repo = circleFake(page: MemberPage(profile: page.profile, now: page.now, reading: page.reading));
+    await pumpCircle(t, repo, start: '/circle/2');
+    await settle(t);
+    expect(find.text('Recommend something to Aarav'), findsNothing);
+    await unmount(t);
+  });
+
   testWidgets('friend sheet: 404 says they stopped sharing; a cold deep link renders a full page', (t) async {
     final repo = circleFake()..memberPage = null;
     final rig = await pumpCircle(t, repo, start: '/circle/2');
@@ -175,4 +193,18 @@ void main() {
     expect(circleTabOf('nope'), CircleTab.activity);
     expect(presenceLabel(const CircleMember(profileId: 1, name: 'Kai', streak: CircleStreak(currentDays: 12)), PresenceState.away), 'Kai, away, 12-day streak');
   });
+}
+
+/// Pages p2 then p3, then the end.
+class _Pages extends CircleFake {
+  _Pages(CircleFake base) : super(membersList: base.membersList, feedItems: base.feedItems, letterList: base.letterList, memberPage: base.memberPage, sharingValue: base.sharingValue, shared: base.shared);
+  final cursors = <String>[];
+
+  @override
+  Future<Result<FeedPage>> feed({String? cursor, int limit = 50, String? kind, int? profileId}) async {
+    if (profileId != null) return super.feed(profileId: profileId);
+    if (cursor == null) return Ok(FeedPage(items: feedItems, nextCursor: 'p2'));
+    cursors.add(cursor);
+    return Ok(FeedPage(nextCursor: cursor == 'p2' ? 'p3' : null));
+  }
 }

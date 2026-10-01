@@ -305,7 +305,7 @@ class _CircleScreenState extends ConsumerState<CircleScreen> {
       ..addAll([for (final d in days) for (final e in d.entries) e.item.id]);
     return activitySlivers(
       days: days,
-      hasMore: s.hasMore,
+      feed: s,
       onLoadMore: () => unawaited(ref.read(circleFeedProvider(null).notifier).loadMore()),
       focusOf: _rows.focusOf,
       reactOf: _rows.reactOf,
