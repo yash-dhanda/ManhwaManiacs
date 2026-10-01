@@ -44,6 +44,15 @@ class BarPainter extends CustomPainter {
     final max = data.fold<double>(0, (m, d) => math.max(m, d.value));
     final step = s.width / data.length;
     final bw = barWidth(s.width, data.length);
+    // Labels never overlap: every Nth one, N from the widest label against the bar step (52 weeks on a phone show a few).
+    String textOf(ChartDatum d) => d.label ?? (d.day == null ? '' : weekdayInitial(d.day!));
+    var widest = 0.0;
+    for (final d in data) {
+      final p = TextPainter(text: TextSpan(text: textOf(d), style: label), textDirection: TextDirection.ltr)..layout();
+      widest = math.max(widest, p.width);
+      p.dispose();
+    }
+    final every = math.max(labelEvery, ((widest + 6) / step).ceil());
     for (var i = 0; i < data.length; i++) {
       final d = data[i];
       final x = i * step + (step - bw) / 2;
@@ -59,10 +68,7 @@ class BarPainter extends CustomPainter {
           Paint()..color = color,
         );
       }
-      if (i % labelEvery == 0) {
-        final text = d.label ?? (d.day == null ? '' : weekdayInitial(d.day!));
-        paintChartText(canvas, text, Offset(i * step + step / 2, r.bottom + 4), label, center: true);
-      }
+      if (i % every == 0) paintChartText(canvas, textOf(d), Offset(i * step + step / 2, r.bottom + 4), label, center: true);
     }
     // the second axis
     final seconds = [for (final d in data) d.second];
