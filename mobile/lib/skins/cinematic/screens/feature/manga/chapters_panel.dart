@@ -22,16 +22,17 @@ import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
+import 'package:manhwamaniacs/features/sources/utils/resume_order.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/chapter_reaction_folio.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart' show savedPageOf;
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_summary_line.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/series_download_card.dart';
-import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart' show savedPageOf;
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_shortcuts.dart';
@@ -39,7 +40,6 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/schedule_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/features/sources/utils/resume_order.dart';
 
 const kNeedsConnection = 'Needs a connection.';
 
@@ -101,7 +101,7 @@ class ChapterMarks {
     final rows = manualReadRows([
       for (final c in chapters)
         (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number, pageCount: c.pageCount, completed: false),
-    ], at: manualMarkStamp(ref.read(sourceSeriesProgressProvider(_key))));
+    ], at: manualMarkStamp(ref.read(sourceSeriesProgressProvider(_key))),);
     for (final chunk in chunksOf200(rows)) {
       final r = await repo.saveProgressBatch(chunk);
       if (r.isErr) {

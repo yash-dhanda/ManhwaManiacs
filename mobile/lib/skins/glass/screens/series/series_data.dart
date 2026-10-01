@@ -94,7 +94,7 @@ class SeriesMarks {
     final repo = ref.read(readerRepositoryProvider);
     final rows = manualReadRows([
       for (final c in chapters) (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number, pageCount: c.pageCount, completed: false),
-    ], at: manualMarkStamp(ref.read(sourceSeriesProgressProvider(d.progressKey))));
+    ], at: manualMarkStamp(ref.read(sourceSeriesProgressProvider(d.progressKey))),);
     for (final chunk in chunksOf200(rows)) {
       final r = await repo.saveProgressBatch(chunk);
       if (r.isErr) {

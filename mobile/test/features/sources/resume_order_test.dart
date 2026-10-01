@@ -9,7 +9,7 @@ SourceChapterSummary _c(String id, double? n) => SourceChapterSummary(id: id, so
 SourceChapterProgress _p(DateTime at, {bool done = true, int page = 20}) => SourceChapterProgress(page: page, pageCount: 20, completed: done, updatedAt: at);
 
 void main() {
-  final t0 = DateTime.utc(2026, 9, 1);
+  final t0 = DateTime.utc(2026, 9, 2);
 
   test('a manual mark stamped by manualMarkStamp never becomes the Continue chapter', () {
     final order = [for (var i = 1; i <= 80; i++) _c('c$i', i.toDouble())];

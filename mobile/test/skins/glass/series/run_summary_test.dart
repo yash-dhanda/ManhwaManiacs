@@ -12,7 +12,7 @@ void main() {
   });
 
   test('a key never seen yet is still pending, and an all-cancelled run ends quietly', () {
-    expect(runSummary({'a'}, const {}, seen: const {}), isNull);
+    expect(runSummary({'a'}, const {}), isNull);
     expect(runSummary({'a'}, const {}, seen: {'a'}), '');
   });
 }
