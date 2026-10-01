@@ -217,14 +217,19 @@ void main() {
       await settleFor(t, 3000);
     });
 
-    testWidgets('the fail-safe resets after 3000 ms when Tonight never lands', (t) async {
+    testWidgets('the wall hides the flying poster; the fail-safe resets after 3000 ms when Tonight never lands', (t) async {
       final img = await image(t);
       final rig = await pumpOnboarding(t, step: 5, profileStep: 5);
-      rig.container.read(cineFlightProvider.notifier).arm([FlightItem(key: 'a:b', image: img, rect: const Rect.fromLTWH(10, 10, 40, 60))]);
+      await settleFor(t, 800);
+      bool wallShows() => t.widget<Visibility>(find.ancestor(of: find.byWidgetPredicate((w) => w is CinePoster && w.title == 'Series 1'), matching: find.byType(Visibility)).first).visible;
+      expect(wallShows(), isTrue);
+      rig.container.read(cineFlightProvider.notifier).arm([FlightItem(key: 'shelf:k1', image: img, rect: const Rect.fromLTWH(10, 10, 40, 60))]);
       await t.pump();
+      expect(wallShows(), isFalse, reason: 'the wall hides the poster the flight layer paints');
       await t.pump(const Duration(milliseconds: 3100));
       await t.pump(const Duration(milliseconds: 300));
       expect(rig.container.read(cineFlightProvider).status, FlightStatus.idle);
+      expect(wallShows(), isTrue);
     });
 
     testWidgets('one failing follow: "Followed 4 of 5. One couldn\'t be added."', (t) async {
