@@ -278,7 +278,7 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
     final leading = route is GlassSheetRoute || route is GlassFormRoute ? null : GlassBackChevron(onTap: () => seriesBack(ref, sourceId: data.followed == null ? data.sourceId : null));
     final band = GlassFollowRing(
       controller: ring,
-      child: KeyedSubtree(key: bandKey, child: SeriesBand(data: data, height: bandH, leading: leading, onMore: openMenu)),
+      child: KeyedSubtree(key: bandKey, child: SeriesBand(data: data, height: bandH + (leading == null ? 0 : MediaQuery.paddingOf(context).top), topInset: leading == null ? 0 : MediaQuery.paddingOf(context).top, leading: leading, onMore: openMenu)),
     );
     final offline = !isOnline(ref);
 
@@ -330,7 +330,9 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
 
     final count = data.chapters.length;
     if (count > 200 && !data.novel) {
-      final ctl = inSheet ? PrimaryScrollController.maybeOf(context) : _own;
+      // ponytail: the phone sheet's scroll controller is the sheet's shared primary one, which the fast-scroll thumb cannot own;
+      // the thumb shows on the full page and the windows only. Give the sheet its own controller hand-off if owners want it there.
+      final ScrollController? ctl = inSheet ? null : _own;
       if (ctl != null) {
         final shown = shownChapters(data, chapters.order);
         scroll = GlassFastScroll(

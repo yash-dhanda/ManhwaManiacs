@@ -50,7 +50,8 @@ String? updatedAgo(String? raw, DateTime now) {
 /// The top band (glass 8.12 Top band): the cover's blurred enlargement in the series palette fading to black, [height] 280 on phones and
 /// tablet frames, 240 on the desktop frame; the nav row's trailing glass group (share, bookmarks, ⋯) sits inside it.
 class SeriesBand extends ConsumerWidget {
-  const SeriesBand({super.key, required this.data, required this.height, required this.onMore, this.leading});
+  const SeriesBand({super.key, required this.data, required this.height, required this.onMore, this.leading, this.topInset = 0});
+  final double topInset;
   final GlassSeriesData data;
   final double height;
   final void Function(Rect anchor) onMore;
@@ -77,7 +78,7 @@ class SeriesBand extends ConsumerWidget {
             decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x00000000), Color(0xFF000000)], stops: [0.35, 1])),
           ),
           Positioned(
-            top: 8,
+            top: 8 + topInset,
             left: 12,
             right: 12,
             child: Row(
