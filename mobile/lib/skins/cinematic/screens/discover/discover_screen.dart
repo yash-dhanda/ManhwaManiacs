@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dar
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/discover_scope.dart';
+import 'package:manhwamaniacs/features/sources/utils/genre_index.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
@@ -187,9 +188,20 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
     // /search?genre=Romance opens that genre's sheet once.
     if (widget.genre != null && !_genreOpened) {
-      final idx = ref.watch(genreIndexProvider).valueOrNull;
-      final entry =
-          idx?.where((g) => g.genre == widget.genre!.toLowerCase()).firstOrNull;
+      final idx = ref.watch(genreIndexProvider);
+      String key(String g) => g.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
+      // The AI grid needs only the genre: with no pinned source spelling it
+      // the same way (or no pins at all) it still opens, minus 'On your sources'.
+      final entry = idx.isLoading
+          ? null
+          : (idx.valueOrNull ?? const <GenreEntry>[])
+                  .where((g) => key(g.genre) == key(widget.genre!))
+                  .firstOrNull ??
+              GenreEntry(
+                genre: widget.genre!.toLowerCase(),
+                label: widget.genre!,
+                sourceIds: const [],
+              );
       if (entry != null) {
         _genreOpened = true;
         final pins = ref.read(sourcePinsProvider).valueOrNull?.pins ?? const [];
