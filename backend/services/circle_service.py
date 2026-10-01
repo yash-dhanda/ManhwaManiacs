@@ -16,6 +16,8 @@ when storing.
 
 from __future__ import annotations
 
+import unicodedata
+
 import json
 import uuid
 from collections import defaultdict
@@ -62,6 +64,40 @@ READING_KINDS = ("started", "finished_chapter", "finished_series")
 REACTION_KINDS = ("loved", "shook", "laughed", "tears", "chefs_kiss", "hype", "wrecked")
 LETTER_STATES = ("new", "read", "kept")  # dismissed never shows
 NOTE_MAX = 140
+
+
+def note_length(text: str) -> int:
+    """The note's length as the apps' counters see it: user-perceived characters, not code points.
+
+    Flutter's ``maxLength`` counts grapheme clusters, so a flag (2 code points), a skin-toned emoji (2) or a ZWJ
+    family (up to 7) is one character there. ponytail: stdlib approximation of UAX #29 (extenders, ZWJ joins,
+    regional-indicator pairs), not the full rules; swap for the ``regex`` module's ``\\X`` if a script needs more.
+    """
+    n = 0
+    joined = pair_open = False
+    for ch in text:
+        o = ord(ch)
+        if joined:
+            joined = False
+            continue
+        if o == 0x200D:
+            joined = True
+            continue
+        if (
+            0xFE00 <= o <= 0xFE0F
+            or 0x1F3FB <= o <= 0x1F3FF
+            or 0xE0020 <= o <= 0xE007F
+            or unicodedata.category(ch) in ("Mn", "Me", "Mc")
+        ):
+            continue
+        if 0x1F1E6 <= o <= 0x1F1FF:
+            pair_open = not pair_open
+            if not pair_open:
+                continue
+        else:
+            pair_open = False
+        n += 1
+    return n
 _CHUNK = 200
 _EPOCH = datetime(1970, 1, 1)
 

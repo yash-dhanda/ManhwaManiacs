@@ -93,6 +93,10 @@ def test_validation(client, H, world):
     sharing(client, H, world, "c")
     assert send(client, H, world, "a", ["c"], note="x" * 141).status_code == 422
     assert send(client, H, world, "a", ["c"], note="x" * 140).status_code == 201
+    # Emoji count as one each, as on the phone: 2-code-point flags and skin tones, a 7-code-point family.
+    emoji = "\U0001F1EE\U0001F1F3" * 60 + "\U0001F44D\U0001F3FD" * 60 + "\U0001F468\u200D\U0001F469\u200D\U0001F467\u200D\U0001F466" * 20
+    assert send(client, H, world, "a", ["c"], note=emoji).status_code == 201
+    assert send(client, H, world, "a", ["c"], note=emoji + "x").status_code == 422
     assert send(client, H, world, "a", [], note="hi").status_code == 422
     assert send(client, H, world, "a", list(range(100, 111))).status_code == 422
     assert send(client, H, world, "a", ["c", "c"]).status_code == 422
