@@ -26,12 +26,12 @@ test("params match the path's :segments", () => {
     assert.deepEqual(s.params, [...s.path.matchAll(/:(\w+)/g)].map((m) => m[1]), s.id);
 });
 
-test("29 sheets, 20 settings sections, glass flag off", () => {
+test("29 sheets, 20 settings sections, glass flag on", () => {
   assert.equal(contract.sheets.length, 29);
   assert.ok(unique(contract.sheets));
   assert.equal(contract.settingsSections.length, 20);
   assert.ok(unique(contract.settingsSections.map((s) => s.slug)));
-  assert.equal(contract.flags.glass_available, false);
+  assert.equal(contract.flags.glass_available, true);
 });
 
 test("90 haptic events and 52 sound events, no duplicates", () => {

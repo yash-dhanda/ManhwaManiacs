@@ -363,7 +363,7 @@ abstract final class SheetIds {
 }
 
 abstract final class Flags {
-  static const bool glassAvailable = false;
+  static const bool glassAvailable = true;
 }
 
 enum HapticEvent {
