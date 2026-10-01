@@ -80,7 +80,12 @@ class AskControls extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
+        // The button and the quota share a line while they fit, and stack when they don't (large text, a countdown).
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 8,
           children: [
             KeyedSubtree(
               key: buttonKey,
@@ -97,7 +102,6 @@ class AskControls extends ConsumerWidget {
                 onPressed: canAsk && !asking && !waiting ? onAsk : null,
               ),
             ),
-            const Spacer(),
             if (remaining != null && remaining! <= kQuotaShow)
               QuotaMeter(remaining: remaining!),
           ],

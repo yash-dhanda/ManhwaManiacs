@@ -239,11 +239,17 @@ class ChapterRowsSliver extends ConsumerWidget {
     final ocr = ref.watch(ocrFeatureVisibleProvider);
     final scale = rowTextScale(context);
     final sel = chapters.selection;
-    return SliverVariedExtentList.builder(
-      key: chapters.rowsKey,
-      itemCount: shown.length,
-      itemExtentBuilder: (i, _) => i >= shown.length ? null : chapterRowExtent(hasSecondary: false, textScale: scale),
-      itemBuilder: (context, i) {
+    // From text scale 1.6 a row stacks and its meta line may wrap: rows size themselves (a fixed extent would clip them); below
+    // it the fixed extent keeps scroll-to-chapter exact.
+    Widget list(NullableIndexedWidgetBuilder itemBuilder) => scale >= 1.6
+        ? SliverList.builder(key: chapters.rowsKey, itemCount: shown.length, itemBuilder: itemBuilder)
+        : SliverVariedExtentList.builder(
+            key: chapters.rowsKey,
+            itemCount: shown.length,
+            itemExtentBuilder: (i, _) => i >= shown.length ? null : chapterRowExtent(hasSecondary: false, textScale: scale),
+            itemBuilder: itemBuilder,
+          );
+    return list((context, i) {
         final c = shown[i];
         final p = progress[c.id];
         final s = statuses[c.id];
@@ -304,8 +310,7 @@ class ChapterRowsSliver extends ConsumerWidget {
           ],
           child: body,
         );
-      },
-    );
+      });
   }
 
   void _toggle(String key) {

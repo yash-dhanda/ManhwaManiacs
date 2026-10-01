@@ -54,7 +54,8 @@ class HowItWorksBody extends ConsumerWidget {
             ],
           ),
         );
-    return Padding(
+    // Scrolls when the medium detent is shorter than the copy (large text).
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,

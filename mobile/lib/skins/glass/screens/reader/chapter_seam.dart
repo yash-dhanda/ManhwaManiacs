@@ -82,11 +82,15 @@ class GlassChapterSeam extends StatelessWidget {
           if (to != null && to!.toUpperCase() != label) GlassText(to!, role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 1, overflow: TextOverflow.ellipsis),
           if (missing.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(GlassGlyph.warning.regular, size: 14, color: gt.colorWarning),
-              const SizedBox(width: 6),
-              GlassText('Chapter ${missing.join(', ')} ${missing.length == 1 ? 'is' : 'are'} missing from this source', role: gt.typeFootnote, color: gt.colorWarning),
-            ],),
+            // The note wraps inside the strip's margins rather than running off the screen.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(GlassGlyph.warning.regular, size: 14, color: gt.colorWarning),
+                const SizedBox(width: 6),
+                Flexible(child: GlassText('Chapter ${missing.join(', ')} ${missing.length == 1 ? 'is' : 'are'} missing from this source', role: gt.typeFootnote, color: gt.colorWarning)),
+              ],),
+            ),
           ],
           const SizedBox(height: 12),
           const _Hairline(),

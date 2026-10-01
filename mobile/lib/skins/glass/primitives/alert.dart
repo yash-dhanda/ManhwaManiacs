@@ -269,9 +269,14 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
       ],);
     }
 
+    // The copy scrolls when the alert is taller than the screen (large text on a small phone); the buttons stay pinned.
     final content = Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Flexible(child: SingleChildScrollView(child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -314,6 +319,8 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
               ),
             ),
           ],
+        ],
+          ),),),
           const SizedBox(height: 20),
           buttons,
         ],
@@ -322,8 +329,10 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
 
     final src = widget.sourceRect;
     final from = src != null ? 0.9 : 0.94;
-    final panel = SizedBox(
+    final mq = MediaQuery.of(context);
+    final panel = Container(
       width: width,
+      constraints: BoxConstraints(maxHeight: mq.size.height - mq.padding.vertical - 48),
       child: Semantics(
         scopesRoute: true,
         namesRoute: true,
