@@ -360,11 +360,57 @@ CineSwipeBuilder keepSwipeDetector(CineSwipeBuilder builder) =>
     (context, animation, secondaryAnimation, isSwipeGesture, child) {
       final route = ModalRoute.of(context);
       return builder(context, animation, secondaryAnimation, isSwipeGesture,
-          route == null ? child : KeyedSubtree(key: _SwipeDetectorKey(route), child: child),);
+          route == null
+              ? child
+              : _SwipeGuard(
+                  key: _SwipeDetectorKey(route),
+                  navigator: route.navigator,
+                  swiped: isSwipeGesture && route.isCurrent,
+                  child: child,
+                ),);
     };
 
 class _SwipeDetectorKey extends GlobalObjectKey {
   const _SwipeDetectorKey(super.value);
+}
+
+/// swipeable_page_route 0.4.8's detector has no `dispose` (Flutter's Cupertino one does): a route
+/// removed mid-swipe (a `go` from the reader, a redirect) left the navigator in a user gesture for
+/// good. When the route that took the swipe goes away with the gesture still open, close it.
+class _SwipeGuard extends StatefulWidget {
+  const _SwipeGuard({super.key, required this.navigator, required this.swiped, required this.child});
+  final NavigatorState? navigator;
+  final bool swiped;
+  final Widget child;
+
+  @override
+  State<_SwipeGuard> createState() => _SwipeGuardState();
+}
+
+class _SwipeGuardState extends State<_SwipeGuard> {
+  /// This route took a swipe that the navigator has not yet ended.
+  bool _armed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.swiped) {
+      _armed = true;
+    } else if (!(widget.navigator?.userGestureInProgress ?? false)) {
+      _armed = false;
+    }
+    return widget.child;
+  }
+
+  @override
+  void dispose() {
+    final nav = widget.navigator;
+    if (_armed && nav != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (nav.mounted && nav.userGestureInProgress) nav.didStopUserGesture();
+      });
+    }
+    super.dispose();
+  }
 }
 
 CineSwipeBuilder cineSwipeBuilder(CineTransitionKind kind) => keepSwipeDetector(

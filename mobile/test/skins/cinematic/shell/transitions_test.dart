@@ -211,6 +211,37 @@ void main() {
       expect(t.state<NavigatorState>(find.byType(Navigator).first).userGestureInProgress, isFalse);
     }, variant: TargetPlatformVariant.only(TargetPlatform.iOS),);
 
+    testWidgets('a route removed mid-swipe (a go under the finger) does not leave the gesture open', (t) async {
+      final r = await _app(t);
+      final nav = t.state<NavigatorState>(find.byType(Navigator).first);
+      unawaited(r.push<void>('/a'));
+      await t.pumpAndSettle();
+      final g = await t.startGesture(const Offset(4, 300));
+      await g.moveBy(const Offset(20, 0));
+      await t.pump();
+      await g.moveBy(const Offset(60, 0));
+      await t.pump();
+      expect(nav.userGestureInProgress, isTrue);
+      r.go('/');
+      await t.pumpAndSettle();
+      await g.up();
+      await t.pumpAndSettle();
+      expect(find.text('home'), findsOneWidget);
+      expect(nav.userGestureInProgress, isFalse);
+      // And the next swipe works.
+      unawaited(r.push<void>('/a'));
+      await t.pumpAndSettle();
+      final g2 = await t.startGesture(const Offset(4, 300));
+      await g2.moveBy(const Offset(20, 0));
+      await t.pump();
+      await g2.moveBy(const Offset(600, 0));
+      await t.pump();
+      await g2.up();
+      await t.pumpAndSettle();
+      expect(find.text('page a'), findsNothing);
+      expect(nav.userGestureInProgress, isFalse);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS),);
+
     // 3.5.3 freeze: the detector remounted when the swipe started, the release never arrived,
     // and the navigator stayed in a user gesture (every route ignoring pointers) forever.
     for (final (kind, path) in [('page', '/a'), ('match', '/m'), ('dip', '/d')]) {
