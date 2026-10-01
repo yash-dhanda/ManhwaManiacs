@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
@@ -186,7 +188,7 @@ class ChapterReactionsNotifier extends FamilyAsyncNotifier<List<ChapterReactions
 
   /// Press a stamp: sets, moves or clears the viewer's reaction on [chapterKey]. Drawn at once;
   /// rolled back on a server refusal, queued in the outbox on a network failure.
-  Future<void> press(String chapterKey, ReactionKind kind, {double? chapterNumber}) async {
+  Future<void> press(String chapterKey, ReactionKind kind, {double? chapterNumber, bool mature = false}) async {
     final before = state.valueOrNull ?? const <ChapterReactions>[];
     final cur = reactionsOf(chapterKey) ?? ChapterReactions(chapterKey: chapterKey, chapterNumber: chapterNumber, counts: {for (final k in ReactionKind.values) k: 0}, sealed: false);
     final action = pressReaction(cur.mine, kind);
@@ -207,7 +209,7 @@ class ChapterReactionsNotifier extends FamilyAsyncNotifier<List<ChapterReactions
     }
     if (r.isOk) return;
     if (_isNetwork(r.error)) {
-      await ref.read(reactionOutboxProvider)?.enqueue(OutboxEntry(sourceId: arg.sourceId, seriesKey: arg.seriesKey, chapterKey: chapterKey, kind: next, at: DateTime.now().toUtc()));
+      await ref.read(reactionOutboxProvider)?.enqueue(OutboxEntry(sourceId: arg.sourceId, seriesKey: arg.seriesKey, chapterKey: chapterKey, kind: next, at: DateTime.now().toUtc(), mature: mature));
       return;
     }
     state = AsyncData(before);
@@ -305,3 +307,45 @@ class CircleActions {
 }
 
 final circleActionsProvider = Provider<CircleActions>(CircleActions.new, name: 'circleActions');
+
+// ── Glass additions (mobile/43) ───────────────────────────────────────────────
+
+/// Every member for one series with `canReceive` (the recommend sheet lists the disabled ones too, `recommendTargets`).
+final seriesMembersProvider = FutureProvider.autoDispose.family<List<CircleMember>, CircleSeriesKey>((ref, key) async {
+  return _ok(await ref.watch(circleRepositoryProvider).members(sourceId: key.sourceId, seriesKey: key.seriesKey));
+}, name: 'seriesMembers',);
+
+/// `GET /circle/letters?box=sent` (glass 15.5): what this profile recommended, with each recipient's opened state.
+final sentLettersProvider = FutureProvider.autoDispose<List<SentLetter>>((ref) async {
+  try {
+    final r = await ref.watch(dioProvider).get<List<dynamic>>('/circle/letters', queryParameters: {'box': 'sent'});
+    return [for (final e in (r.data ?? const [])) if (e is Map) SentLetter.fromJson(Map<String, dynamic>.from(e))];
+  } on DioException catch (e) {
+    throw e.error is AppError ? e.error! : UnknownError(message: e.message ?? 'Dio error', cause: e);
+  }
+}, name: 'sentLetters',);
+
+/// One member's activity (`GET /circle/feed?profile_id=`), the friend sheet's Recent; pages on `next_cursor`.
+class MemberFeedNotifier extends FamilyAsyncNotifier<CircleFeedState, int> {
+  @override
+  Future<CircleFeedState> build(int arg) async {
+    final p = _ok(await ref.watch(circleRepositoryProvider).feed(profileId: arg));
+    return CircleFeedState(items: p.items, nextCursor: p.nextCursor);
+  }
+
+  Future<void> loadMore() async {
+    final s = state.valueOrNull;
+    if (s == null || !s.hasMore || s.loadingMore) return;
+    state = AsyncData(CircleFeedState(items: s.items, nextCursor: s.nextCursor, loadingMore: true));
+    final r = await ref.read(circleRepositoryProvider).feed(profileId: arg, cursor: s.nextCursor);
+    if (r.isErr) {
+      state = AsyncData(CircleFeedState(items: s.items, nextCursor: s.nextCursor));
+      return;
+    }
+    final seen = {for (final i in s.items) i.id};
+    state = AsyncData(CircleFeedState(items: [...s.items, for (final i in r.value.items) if (!seen.contains(i.id)) i], nextCursor: r.value.nextCursor));
+  }
+}
+
+final memberFeedProvider = AsyncNotifierProvider.family<MemberFeedNotifier, CircleFeedState, int>(MemberFeedNotifier.new, name: 'memberFeed');
+

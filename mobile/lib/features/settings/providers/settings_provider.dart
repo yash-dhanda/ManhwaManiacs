@@ -187,6 +187,10 @@ final List<void Function(Ref ref)> matureScopedInvalidators = [
   (ref) => ref.invalidate(lettersProvider),
   (ref) => ref.invalidate(sharedCollectionsProvider),
   (ref) => ref.invalidate(sharedShelfDetailProvider),
+  // Glass (mobile/43): the recommend sheet's members, Sent letters and the friend sheet's Recent.
+  (ref) => ref.invalidate(seriesMembersProvider),
+  (ref) => ref.invalidate(sentLettersProvider),
+  (ref) => ref.invalidate(memberFeedProvider),
   // The last AI suggestion answer (suggestion_service). It was chosen from a
   // shelf filtered by the gate that was open when it was asked for, so closing
   // the gate leaves adult titles on screen until the next submit — and the

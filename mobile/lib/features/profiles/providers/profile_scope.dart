@@ -92,6 +92,10 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   (ref) => ref.invalidate(sharingProvider),
   (ref) => ref.invalidate(sharedCollectionsProvider),
   (ref) => ref.invalidate(sharedShelfDetailProvider),
+  // Glass (mobile/43): the recommend sheet's members, Sent letters and the friend sheet's Recent.
+  (ref) => ref.invalidate(seriesMembersProvider),
+  (ref) => ref.invalidate(sentLettersProvider),
+  (ref) => ref.invalidate(memberFeedProvider),
   // NOTE: the Downloads queue is intentionally NOT here. Downloads are an
   // account-level (per-user) queue on the backend — the Download model is keyed
   // by user_id only, has no profile_id column, and the profile-scoping migration

@@ -6,20 +6,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// One queued reaction: a [kind] to set, or null to clear.
 class OutboxEntry {
-  const OutboxEntry({required this.sourceId, required this.seriesKey, required this.chapterKey, required this.kind, required this.at});
+  const OutboxEntry({required this.sourceId, required this.seriesKey, required this.chapterKey, required this.kind, required this.at, this.mature = false});
   final String sourceId, seriesKey, chapterKey;
   final ReactionKind? kind;
   final DateTime at;
 
+  /// The chapter belongs to an 18+ series: the gate-close purge drops it (glass 8.0.8 step 5).
+  final bool mature;
+
   String get chapter => '$sourceId:$seriesKey:$chapterKey';
 
-  Map<String, Object?> toJson() => {'source_id': sourceId, 'series_key': seriesKey, 'chapter_key': chapterKey, 'kind': kind?.wire, 'at': at.toUtc().toIso8601String()};
+  Map<String, Object?> toJson() => {'source_id': sourceId, 'series_key': seriesKey, 'chapter_key': chapterKey, 'kind': kind?.wire, 'at': at.toUtc().toIso8601String(), if (mature) 'mature': true};
 
   static OutboxEntry? tryParse(Object? o) {
     if (o is! Map) return null;
     final s = o['source_id'], k = o['series_key'], c = o['chapter_key'];
     if (s is! String || k is! String || c is! String) return null;
-    return OutboxEntry(sourceId: s, seriesKey: k, chapterKey: c, kind: ReactionKind.tryParse(o['kind']), at: DateTime.tryParse('${o['at']}') ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true));
+    return OutboxEntry(sourceId: s, seriesKey: k, chapterKey: c, kind: ReactionKind.tryParse(o['kind']), at: DateTime.tryParse('${o['at']}') ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true), mature: o['mature'] == true);
   }
 }
 
@@ -48,6 +51,9 @@ class ReactionOutbox {
 
   /// Queue [e], replacing an earlier entry for the same chapter.
   Future<void> enqueue(OutboxEntry e) => _save([...entries().where((x) => x.chapter != e.chapter), e]);
+
+  /// Drops every queued reaction on an 18+ series (the gate closed).
+  Future<void> dropMature() => _save([...entries().where((e) => !e.mature)]);
 
   /// The queued kind for a chapter: `(true, kind)` when queued (kind null = clear).
   (bool, ReactionKind?) pending(String sourceId, String seriesKey, String chapterKey) {

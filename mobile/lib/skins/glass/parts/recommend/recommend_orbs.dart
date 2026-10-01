@@ -6,7 +6,6 @@ import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dar
 import 'package:manhwamaniacs/skins/glass/parts/recommend/lift_provider.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart' show gt;
 import 'package:manhwamaniacs/skins/glass/primitives/magnet_targets.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/poster.dart' show GlassLiftPhase;
 import 'package:manhwamaniacs/skins/glass/primitives/profile_orb.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/spring_value.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/avatar_map.dart';
@@ -74,7 +73,7 @@ class RecommendOrbLayer extends ConsumerWidget {
     final members = ref.watch(_orbRecipientsProvider);
     final held = ref.watch(magnetHeldProvider);
     final pulse = ref.watch(orbPulseProvider);
-    final show = lift != null && lift.phase == GlassLiftPhase.lifted && members.isNotEmpty;
+    final show = lift != null && lift.phase == LiftPhase.lifted && members.isNotEmpty;
     if (!show) return const SizedBox.shrink();
     final top = MediaQuery.viewPaddingOf(context).top + 72;
     return Positioned(
