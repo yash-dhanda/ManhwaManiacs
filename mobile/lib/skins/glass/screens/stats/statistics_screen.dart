@@ -299,7 +299,8 @@ class _Body extends ConsumerWidget {
         if (neverRead) {
           return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             selector,
-            const SizedBox(height: 240, child: GlassObjectLens(situation: LensSituation.library, title: 'Nothing read on this profile yet', description: 'Read a chapter and your streak and totals start here.')),
+            // Sized by its content (a fixed 240 px box cut its last line at large text).
+            const GlassObjectLens(situation: LensSituation.library, title: 'Nothing read on this profile yet', description: 'Read a chapter and your streak and totals start here.', placement: GlassLensPlacement.inline),
             LibraryCard(stats: s),
           ],);
         }
