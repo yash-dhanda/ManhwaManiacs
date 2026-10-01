@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/further_elsewhere.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
@@ -230,6 +231,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     if (widget.q != null) unawaited(_prepareHitLens(widget.q!));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // The strip's zoom lives in an app-wide provider: a reader opens unzoomed, never at the last one's pinch.
+      ref.read(readerUiProvider.notifier).setZoom(1.0);
       glassFire(ref, HapticEvent.readerEnter);
       _syncWake();
       final sheet = _sheetParam();
