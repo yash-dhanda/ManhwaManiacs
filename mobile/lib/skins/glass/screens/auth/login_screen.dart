@@ -354,10 +354,7 @@ class _ServerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hit = GlassFrame.hitMin(context);
-    return Row(
-      children: [
-        Expanded(
-          child: GlassPressable(
+    final server = GlassPressable(
             material: GlassMaterial.content,
             sink: 0.98,
             onTap: onCopy,
@@ -374,11 +371,13 @@ class _ServerRow extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ),
-        GlassButton(label: 'Change server', variant: GlassButtonVariant.plain, onPressed: onChange),
-      ],
-    );
+          );
+    final change = GlassButton(label: 'Change server', variant: GlassButtonVariant.plain, onPressed: onChange);
+    // From 1.6 the two no longer fit side by side (3.3 rule 4: rows stack).
+    if (MediaQuery.textScalerOf(context).scale(1) >= 1.6) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [server, change]);
+    }
+    return Row(children: [Expanded(child: server), change]);
   }
 }
 
