@@ -74,6 +74,30 @@ void main() {
     }
   });
 
+  test('a paragraph of hard line breaks splits across pages (every line its own box)', () {
+    final poem = List.generate(60, (i) => 'Line $i of a poem broken by hand.').join('\n');
+    final l = NovelParagraphLayout(text: poem, type: _type, width: 320, ink: _ink, indent: false, dropCap: false);
+    final starts = [for (final x in l.lines) x.start];
+    for (var i = 1; i < starts.length; i++) {
+      expect(starts[i], greaterThan(starts[i - 1]), reason: 'line $i repeats an earlier box');
+    }
+    expect(starts, containsAll([for (var i = 0; i < 60; i++) poem.indexOf('Line $i ')]));
+    l.dispose();
+    final pages = _paginate([poem]);
+    expect(pages.length, greaterThan(2), reason: 'all 60 lines were kept on one overflowing page');
+    var cursor = 0;
+    for (final page in pages) {
+      for (final s in page) {
+        expect(s.startChar, cursor);
+        cursor = s.endChar;
+        final own = NovelParagraphLayout(text: poem.substring(s.startChar, s.endChar), type: _type, width: 320, ink: _ink, indent: false, dropCap: false);
+        expect(own.height, lessThanOrEqualTo(480 + 0.5));
+        own.dispose();
+      }
+    }
+    expect(cursor, poem.length);
+  });
+
   test('a scene break is never split and takes its own extent', () {
     final ps = fixtureParagraphs();
     final pages = _paginate(ps, height: 260);
