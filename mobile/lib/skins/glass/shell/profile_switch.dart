@@ -22,12 +22,13 @@ class GlassProfileSwitch {
   final Ref ref;
 
   /// Stops narration, cruise and the soundscape (no Undo), cancels in-flight recaps (they register a canceller with
-  /// `registerPlaybackStop`), runs the purge first when the target's 18+ gate is closed, sets the active profile, decides the skin.
+  /// `registerPlaybackStop`), sets the active profile, then runs the purge when its 18+ gate is closed, decides the skin.
   /// The current profile's download queue pauses itself when the scope changes; the new profile's resumes with it.
   Future<({SkinId? restartTo})> prepare(Profile target) async {
     GlassStops.stopAllPlayback();
-    if (!target.matureContentEnabled) purgeMatureLocal(ref);
     await ref.read(activeProfileProvider.notifier).select(target);
+    // After the select: the purge's per-profile parts (gate-open recent searches) are the target's.
+    if (!target.matureContentEnabled) purgeMatureLocal(ref);
     final running = ref.read(skinIdProvider);
     final to = resolveProfileSkin(
         profileSkin: target.skin,
