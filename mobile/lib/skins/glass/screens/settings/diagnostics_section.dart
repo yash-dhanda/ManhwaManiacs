@@ -10,7 +10,8 @@ import 'package:manhwamaniacs/core/diagnostics/diagnostics_snapshot.dart';
 import 'package:manhwamaniacs/core/diagnostics/performance_monitor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
-import 'package:manhwamaniacs/skins/contract.g.dart' show Flags;
+import 'package:manhwamaniacs/skins/contract.g.dart' show Flags, HapticEvent;
+import 'package:manhwamaniacs/skins/glass/haptics.dart' show glassHapticsProvider;
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
@@ -155,6 +156,7 @@ class _DiagnosticsSectionState extends ConsumerState<DiagnosticsSection> {
                 onSelected: (s) async {
                   if (s == SkinId.glass) return;
                   // Glass's own exit: the melt, then the debug key (never the profile's skin or mm.skin.active).
+                  unawaited(ref.read(glassHapticsProvider).fire(HapticEvent.skinSwitch)); // the restart is confirmed (5.2)
                   await playMelt(ref);
                   if (context.mounted) await debugSwitchSkin(context, ref, SkinId.cinematic);
                 },
