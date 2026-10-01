@@ -264,9 +264,12 @@ _CACHE: OrderedDict[tuple, tuple[datetime, dict[str, Any]]] = OrderedDict()
 _CACHE_LOCK = threading.Lock()
 
 
-def invalidate_profile(profile_id: int | None) -> None:
+def invalidate_profile(profile_id: int | None, user_id: int | None = None) -> None:
+    """Drop a profile's entries. With no profile, ``user_id`` limits it to one account."""
     with _CACHE_LOCK:
-        for key in [k for k in _CACHE if k[0] == profile_id]:
+        for key in [
+            k for k in _CACHE if k[0] == profile_id and (user_id is None or k[1] == user_id)
+        ]:
             del _CACHE[key]
 
 
@@ -365,7 +368,13 @@ class HomeService:
         now = utcnow()
         local = now + timedelta(minutes=tz_offset_minutes)
         gate = bool(self.library._gate_open())
-        key = (self.profile_id, gate, content_kind, tz_offset_minutes, local.hour)
+        # user_id: requests with no resolved profile must not share one entry
+        # across accounts. The stamp misses the cache after any follow,
+        # unfollow or progress write instead of serving it for CACHE_TTL.
+        key = (
+            self.profile_id, self.user_id, gate, content_kind, tz_offset_minutes,
+            local.hour, self._library_stamp(),
+        )
         payload: dict[str, Any] | None = None
         if not refresh:
             with _CACHE_LOCK:
@@ -399,6 +408,26 @@ class HomeService:
                 entry = ((letter["source_id"], letter["series_key"]), letter["title"], letter)
                 out["also"] = select_also([pool[0], pool[1], [entry], pool[2]], out.get("cover"))
         return out
+
+    def _library_stamp(self) -> tuple[Any, ...]:
+        """Changes whenever the profile's follows or reading progress change."""
+        lib = self.library
+        follows = self._db.execute(
+            lib._scope(
+                select(func.count(), func.max(FollowedSeries.id), func.max(FollowedSeries.updated_at))
+            )
+        ).one()
+        progress = self._db.execute(
+            lib._progress_scope(
+                select(
+                    func.count(),
+                    func.max(ChapterProgress.last_read_at),
+                    func.sum(ChapterProgress.last_page),
+                    func.sum(ChapterProgress.is_completed),
+                )
+            )
+        ).one()
+        return (*follows, *progress)
 
     @staticmethod
     def _insert(sections: list[dict[str, Any]], section: dict[str, Any]) -> None:

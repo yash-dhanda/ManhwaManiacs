@@ -523,3 +523,32 @@ def test_new_this_week_uses_last_new_chapter_at_not_notifications(
     follow(seed_follow, acct, "stale", "Stale Update", 3, last_new_chapter_at=utcnow() - timedelta(days=9))
     body = get(client, as_user, acct).json()
     assert [i["series_key"] for i in section(body, "new_this_week")["items"]] == ["quiet"]
+
+
+def test_cache_without_a_profile_is_never_shared_across_accounts(
+    client, as_user, make_user, monkeypatch
+):
+    builds = []
+    real = HomeService._build
+    monkeypatch.setattr(HomeService, "_build", lambda self, *a, **k: (builds.append(self.user_id), real(self, *a, **k))[1])
+    a, b = make_user("acct_a"), make_user("acct_b")
+    client.get("/home?tz_offset_minutes=330", headers=as_user(a.id))
+    client.get("/home?tz_offset_minutes=330", headers=as_user(b.id))
+    assert builds == [a.id, b.id]
+
+
+def test_cache_misses_after_follow_or_reading(
+    client, as_user, acct, rich, seed_follow, seed_progress, monkeypatch
+):
+    builds = []
+    real = HomeService._build
+    monkeypatch.setattr(HomeService, "_build", lambda self, *a, **k: (builds.append(1), real(self, *a, **k))[1])
+    get(client, as_user, acct)
+    get(client, as_user, acct)
+    assert len(builds) == 1
+    follow(seed_follow, acct, "fresh", "Fresh Follow", 5)
+    get(client, as_user, acct)
+    assert len(builds) == 2
+    read(seed_progress, acct, "fresh", 1)
+    get(client, as_user, acct)
+    assert len(builds) == 3
