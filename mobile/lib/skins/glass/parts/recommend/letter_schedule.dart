@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/circle/utils/letters_deferred.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 
 /// The pending recommendation: [cancel] before the toast leaves stops the letter.
@@ -38,10 +39,15 @@ LetterHandle scheduleLetter(
 }) {
   ProviderSubscription<List<GlassToastEntry>>? sub;
   late final PendingLetter pending;
+  // The sender is the profile active now: the send may run after a profile switch.
+  int? from;
+  try {
+    from = container.read(activeProfileProvider)?.id;
+  } catch (_) {}
 
   Future<void> send(LetterDraft d) async {
     sub?.close();
-    final err = await container.read(circleActionsProvider).sendLetter(toProfileIds: d.toProfileIds, sourceId: d.sourceId, seriesKey: d.seriesKey, note: d.note);
+    final err = await container.read(circleActionsProvider).sendLetter(toProfileIds: d.toProfileIds, sourceId: d.sourceId, seriesKey: d.seriesKey, note: d.note, asProfileId: from);
     if (err == null) return;
     onFailed?.call();
     final toasts = container.read(glassToastProvider.notifier);

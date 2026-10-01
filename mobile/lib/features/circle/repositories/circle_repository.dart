@@ -31,7 +31,8 @@ abstract interface class CircleRepository {
   Future<Result<List<Letter>>> letters();
 
   /// `POST /circle/letters`.
-  Future<Result<void>> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note});
+  /// [asProfileId] pins the sender (a deferred letter outlives a profile switch).
+  Future<Result<void>> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note, int? asProfileId});
 
   /// `PATCH /circle/letters/{id}`.
   Future<Result<Letter>> patchLetter(int id, LetterState state);

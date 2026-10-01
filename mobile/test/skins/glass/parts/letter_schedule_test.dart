@@ -10,15 +10,19 @@ import 'package:manhwamaniacs/skins/glass/parts/recommend/letter_schedule.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../support/test_overrides.dart';
+
 class _Repo implements CircleRepository {
   _Repo(this.answer);
   Result<Object?> Function() answer;
   final sent = <List<int>>[];
+  final from = <int?>[];
 
   @override
   // ignore: strict_raw_type
-  Future<Result<dynamic>> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note}) async {
+  Future<Result<dynamic>> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note, int? asProfileId}) async {
     sent.add(toProfileIds);
+    from.add(asProfileId);
     return answer();
   }
 
@@ -41,6 +45,17 @@ void main() {
     addTearDown(c.dispose);
     return c;
   }
+
+  test('the letter is sent as the profile that dropped it, even after a switch', () {
+    fakeAsync((async) {
+      final repo = _Repo(() => const Ok(null));
+      final c = ProviderContainer(overrides: [circleRepositoryProvider.overrideWithValue(repo), sharedPrefsProvider.overrideWithValue(prefs), activeProfileOverride()]);
+      addTearDown(c.dispose);
+      scheduleLetter(c, toProfileId: 7, toName: 'Mira', sourceId: 's', seriesKey: 'k');
+      async.elapse(const Duration(seconds: 11));
+      expect(repo.from, [1]);
+    });
+  });
 
   test('the letter goes out when the toast leaves, not before', () {
     fakeAsync((async) {

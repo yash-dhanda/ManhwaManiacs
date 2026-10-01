@@ -342,8 +342,8 @@ class CircleActions {
   CircleRepository get _repo => _ref.read(circleRepositoryProvider);
 
   /// `POST /circle/letters`; on success the sent letters are the recipients' business.
-  Future<Object?> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note}) async {
-    final r = await _repo.sendLetter(toProfileIds: toProfileIds, sourceId: sourceId, seriesKey: seriesKey, note: note);
+  Future<Object?> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note, int? asProfileId}) async {
+    final r = await _repo.sendLetter(toProfileIds: toProfileIds, sourceId: sourceId, seriesKey: seriesKey, note: note, asProfileId: asProfileId);
     if (r.isErr) return r.error;
     _ref.invalidate(sentLettersProvider);
     return null;

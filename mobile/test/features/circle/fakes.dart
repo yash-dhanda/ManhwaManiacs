@@ -86,7 +86,7 @@ class FakeCircleRepository implements CircleRepository {
   Future<Result<List<Letter>>> letters() async => _r(letterList);
 
   @override
-  Future<Result<void>> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note}) async {
+  Future<Result<void>> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note, int? asProfileId}) async {
     log.add('send ${toProfileIds.join(',')}');
     if (failSend != null) return Err(failSend!);
     sent.add((to: toProfileIds, note: note));
