@@ -139,25 +139,45 @@ class Changelog(BaseModel):
 # consume the exact same source of truth.
 _RELEASE_NOTES: list[ChangelogEntry] = [
     ChangelogEntry(
-        version="3.6.0",
+        version="4.0.0",
         build=57,
         date="October 2026",
         highlights=[
-            "Glass is here: a second look for the whole app, in the style of "
-            "iOS liquid glass, with layered see-through panels, springy motion "
-            "and depth",
-            "Pick it in Settings, under Appearance. The app restarts into the "
-            "look you chose, on the same screen, and each profile keeps its "
-            "own choice",
-            "On phones the app icon can follow the look: turn on \"App icon "
-            "follows the skin\" in Glass's Settings. It stays off unless you "
-            "turn it on. On Android, if the home-screen icon disappears after "
-            "this update, add it again from the app drawer",
-            "Cinematic fixes since 3.5.0: screens line up properly, swiping "
-            "back on iPhone no longer freezes the app, signing in and picking "
-            "a profile no longer get stuck, Browse by genre keeps finding new "
-            "AI picks instead of running dry, and a double tap in the reader "
-            "opens its menu",
+            "ManhwaManiacs 4.0 is a complete redesign. Every screen, button, "
+            "animation and gesture is new, on a true-black screen made for "
+            "OLED phones",
+            "Two looks to choose from. Cinematic: black-on-black with "
+            "magazine-style type, headlines that write themselves in and "
+            "letters that rise out of a blur. Glass: an iOS-style liquid "
+            "glass look with see-through layered panels, springy motion and "
+            "depth",
+            "Switch looks in Settings, under Appearance. The app restarts "
+            "into the look you picked, on the same screen, and each profile "
+            "keeps its own choice. On phones the app icon can follow the "
+            "look too (off unless you turn it on)",
+            "Tonight, the new home: what to read next, \"previously on\" "
+            "recaps of where you left off, and AI picks built from what you "
+            "actually read",
+            "Browse by genre never runs out: every genre fills with fresh AI "
+            "picks as you scroll or pull to refresh, each one checked "
+            "against a worldwide catalogue so nothing is made up. Sources "
+            "and genres now have their own sections in Discover",
+            "Reading stats: daily streaks, minutes and chapters, and a "
+            "Wrapped-style recap of your reading you can share",
+            "Circle: a small private group for you and a couple of friends, "
+            "with a shared feed, letters and recommendations",
+            "A new reader: smoother scrolling, the next chapter loads before "
+            "you reach it, and the menu opens with a double tap in the middle "
+            "so it never pops up while you scroll. Novels get a new page "
+            "layout and listen mode with named voices and a sleep timer",
+            "Ambient extras while reading: optional soundscapes and subtle "
+            "page effects; rich haptics throughout, UI sounds off by default",
+            "Fixes: no more freezes when swiping back on iPhone, you stay "
+            "signed in after restarting the app, the bottom tabs always "
+            "respond, text and margins line up on every screen, and notices "
+            "no longer show twice",
+            "Your library, downloads, history and settings carry over "
+            "unchanged",
         ],
     ),
     ChangelogEntry(
