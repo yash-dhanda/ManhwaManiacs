@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show EdgeInsets;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/platform/mm_platform.dart';
 
@@ -19,6 +20,7 @@ void main() {
         'a11y.contrastLevel' => 0.75,
         'audio.isMusicActive' => true,
         'haptics.systemEnabled' => false,
+        'display.stableInsets' => {'left': 0.0, 'top': 24.0, 'right': 0.0, 'bottom': 48.0},
         _ => null,
       };
     });
@@ -55,6 +57,17 @@ void main() {
       ],
     });
     expect(calls[1].arguments, {'rects': <List<double>>[]});
+  });
+
+  test('display.stableInsets is argument-free and maps to EdgeInsets', () async {
+    expect(await platform.stableInsets(), const EdgeInsets.fromLTRB(0, 24, 0, 48));
+    expect(calls.single.method, 'display.stableInsets');
+    expect(calls.single.arguments, isNull);
+  });
+
+  test('display.stableInsets answers null on iOS (no map), so callers use viewPadding', () async {
+    messenger.setMockMethodCallHandler(channel, (call) async => null);
+    expect(await platform.stableInsets(), isNull);
   });
 
   test('a missing handler answers the safe defaults', () async {
