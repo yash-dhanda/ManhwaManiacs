@@ -49,6 +49,16 @@ class _GroupState extends State<GlassRailGroup> {
   Widget build(BuildContext context) => FocusTraversalGroup(child: widget.child);
 }
 
+/// A rail's item width: phones show 2.8 items (1.6 from text scale 1.9) after the content margin, wider frames the frame's poster.
+double glassRailItemWidth(BuildContext context) {
+  final frame = GlassFrame.of(context);
+  if (frame != GlassFrameKind.phone) return posterWidthFor(frame);
+  final margin = GlassFrame.contentMargin(context);
+  const gap = 12.0;
+  final visible = MediaQuery.textScalerOf(context).scale(1) >= 1.9 ? 1.6 : 2.8;
+  return ((MediaQuery.sizeOf(context).width - margin + gap) / visible - gap).floorToDouble();
+}
+
 /// One rail (glass 7.9): a `title2` header played by [LetterReveal], an optional subtitle, "See all", and a
 /// horizontal scroller on [SnapPhysics] (`springSettle`): free momentum, the ballistic end rounded to the
 /// stride, a rubber band at both ends, no snapping while a finger is down. Posters peek at the trailing
@@ -261,15 +271,7 @@ class _GlassRailState extends ConsumerState<GlassRail> {
     _margin = GlassFrame.contentMargin(context);
     _gap = frame == GlassFrameKind.phone ? 12 : 16;
     _viewport = size.width;
-    final scale = MediaQuery.textScalerOf(context).scale(1);
-    if (widget.itemWidth != null) {
-      _itemW = widget.itemWidth!;
-    } else if (frame == GlassFrameKind.phone) {
-      final visible = scale >= 1.9 ? 1.6 : 2.8;
-      _itemW = ((size.width - _margin + _gap) / visible - _gap).floorToDouble();
-    } else {
-      _itemW = posterWidthFor(frame);
-    }
+    _itemW = widget.itemWidth ?? glassRailItemWidth(context);
     if (widget.state == GlassRailState.empty) {
       return widget.unavailable ?? const SizedBox.shrink();
     }
@@ -375,7 +377,7 @@ class _GlassRailState extends ConsumerState<GlassRail> {
                           _focused = i;
                           if (_remembered != i) setState(() => _remembered = i);
                         },
-                        child: GlassRailItemScope(node: _node(i), child: widget.itemBuilder(context, i)),
+                        child: GlassRailItemScope(node: _node(i), width: _itemW, child: widget.itemBuilder(context, i)),
                       ),
                     ),
                   );

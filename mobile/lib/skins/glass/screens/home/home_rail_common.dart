@@ -6,7 +6,7 @@ import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dar
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/letter_reveal.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/poster.dart' show posterWidthFor;
+import 'package:manhwamaniacs/skins/glass/primitives/rail.dart' show glassRailItemWidth;
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_rails.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/spotlight_card.dart';
@@ -57,5 +57,5 @@ class HomeRailHeader extends ConsumerWidget {
 double posterCardHeight(BuildContext context, {double extra = 0}) {
   final title = measureText(context, 'Ag', roleStyle(context, gt.typeFootnote, wght: 600, maxScale: 1.5)).height;
   final meta = measureText(context, 'Ag', roleStyle(context, gt.typeCaption1, maxScale: 1.5)).height;
-  return math.max(posterWidthFor(GlassFrame.of(context)), 126.0) * 1.5 + math.max(66.0, 8 + 2 * title + meta + 4) + extra;
+  return glassRailItemWidth(context) * 1.5 + math.max(66.0, 8 + 2 * title + meta + 4) + extra;
 }

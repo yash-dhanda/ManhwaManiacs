@@ -484,7 +484,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
   Widget build(BuildContext context) {
     final reduced = ref.watch(glassReducedProvider);
     final frame = GlassFrame.of(context);
-    final w = widget.width ?? posterWidthFor(frame);
+    final w = widget.width ?? GlassRailItemScope.widthOf(context) ?? posterWidthFor(frame);
     final h = w * 1.5;
     final forced = widget.forceStates;
     final disabled = !widget.enabled || forced.disabled;
