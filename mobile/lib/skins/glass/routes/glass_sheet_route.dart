@@ -347,6 +347,9 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
   late final GlassSnapGrid _grid = GlassSnapGrid(page.detents);
   bool _fieldFocused = false;
 
+  /// The surface moves under the stacking dim and scale when another sheet opens over this one; keyed so its content is not rebuilt.
+  final GlobalKey _surfaceKey = GlobalKey(debugLabel: 'GlassSheet.surface');
+
   bool get _reduced => ref.read(glassMotionPrefsProvider).reduced;
 
   @override
@@ -690,7 +693,7 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
       },
     );
 
-    Widget content = SizedBox(height: large, child: surface);
+    Widget content = SizedBox(key: _surfaceKey, height: large, child: surface);
 
     // Stacking (glass 15.3): a sheet with another over it drops to 70 % brightness; at `large` it scales to
     // 0.9165 and moves up 2 % of the screen height.
