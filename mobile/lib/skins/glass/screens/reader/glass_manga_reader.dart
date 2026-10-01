@@ -538,6 +538,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   }
 
   FurtherElsewhere? _furtherShown;
+  String? _lastLayoutKey;
+  int? _carryPage;
 
   Future<void> _checkFurther(({String sourceId, String seriesKey}) k) async {
     if (k.sourceId != sourceId || k.seriesKey != seriesKey) return;
@@ -1581,6 +1583,13 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     final portraitPhone = size.shortestSide < 600 && size.height >= size.width;
     final layout = widget.readAll ? 'strip' : v.prefs.layout;
     final isPaged = layout == 'single' || layout == 'double';
+    // A layout switch mounts a fresh view: it opens where the reader is, not where the route opened.
+    final layoutKey = isPaged ? 'paged' : 'strip';
+    if (_lastLayoutKey != null && layoutKey != _lastLayoutKey) {
+      _carryPage = engine.value.page;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _carryPage = null);
+    }
+    _lastLayoutKey = layoutKey;
     if (_lastLayout != null && _lastLayout != layout) _showTapsOverlay();
     _lastLayout = layout;
     final column = desktop ? stripWithPanels(size.width, left: _leftPanel, right: _rightPanel) : null;
@@ -1616,7 +1625,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         slideCurve: const Cubic(0.2, 0.9, 0.3, 1),
         reducedMotion: reducedMotion,
         reducedDuration: const Duration(milliseconds: 160),
-        initialPage: _body.initialPage,
+        initialPage: _carryPage ?? _body.initialPage,
         onEvent: _onEvent,
         bookmarkAnchors: _body.bookmarkAnchors,
         onSaveProgress: _body.onSaveProgress,
@@ -1642,8 +1651,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         scrollStorageKey: _body.scrollStorageKey,
         onBack: _leave,
         onOpenSeries: openSeries,
-        initialPage: _body.initialPage,
-        initialAnchor: _body.initialAnchor,
+        initialPage: _carryPage ?? _body.initialPage,
+        initialAnchor: _carryPage != null ? (page: _carryPage!, fraction: 0.0) : _body.initialAnchor,
         showBookmark: _body.showBookmark,
         onSaveProgress: _body.onSaveProgress,
         onAddBookmark: _body.onAddBookmark,
