@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
+import 'package:manhwamaniacs/features/library/utils/series_identity.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
@@ -34,10 +35,7 @@ class GlassFeatureScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cached = ref.watch(updatesProvider.select((s) => s.valueOrNull?.followed));
-    FollowedSeries? row = followed;
-    for (final f in cached ?? const <FollowedSeries>[]) {
-      if (f.sourceId == sourceId && f.seriesKey == seriesKey) row = f;
-    }
+    final row = cached == null ? followed : followFor(cached, sourceId, seriesKey);
     final novel = isNovelSource(ref.watch(contentModeScopeProvider), sourceId) ?? false;
     final source = ref.watch(sourcesListProvider).valueOrNull?.where((s) => s.id == sourceId).firstOrNull;
     final gateOpen = ref.watch(matureContentProvider).valueOrNull ?? false;
@@ -104,20 +102,36 @@ class GlassFeatureScreen extends ConsumerWidget {
 
 /// `/library/:followedId` (glass 8.0.3 `featureByFollow`): resolves the follow row and renders the same screen in place (the header
 /// skeleton meanwhile, no redirect).
-class GlassFeatureByFollowScreen extends ConsumerWidget {
+class GlassFeatureByFollowScreen extends ConsumerStatefulWidget {
   const GlassFeatureByFollowScreen({super.key, required this.followedId, this.chapter, this.sheet});
   final int followedId;
   final String? chapter, sheet;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cached = ref.watch(updatesProvider.select((s) => s.valueOrNull?.followed));
-    for (final f in cached ?? const <FollowedSeries>[]) {
-      if (f.id == followedId) return GlassFeatureScreen(sourceId: f.sourceId, seriesKey: f.seriesKey, followed: f, chapter: chapter, sheet: sheet);
+  ConsumerState<GlassFeatureByFollowScreen> createState() => _GlassFeatureByFollowScreenState();
+}
+
+class _GlassFeatureByFollowScreenState extends ConsumerState<GlassFeatureByFollowScreen> {
+  /// The row this route resolved to; from then on the page stays on that series (an unfollow
+  /// deletes the id, an undo follows under a new one) and finds its follow by series.
+  FollowedSeries? _pinned;
+
+  Widget _page(FollowedSeries f) => GlassFeatureScreen(sourceId: f.sourceId, seriesKey: f.seriesKey, followed: f, chapter: widget.chapter, sheet: widget.sheet);
+
+  @override
+  Widget build(BuildContext context) {
+    final followedId = widget.followedId;
+    if (_pinned == null) {
+      final cached = ref.watch(updatesProvider.select((s) => s.valueOrNull?.followed));
+      for (final f in cached ?? const <FollowedSeries>[]) {
+        if (f.id == followedId) _pinned = f;
+      }
     }
+    final pin = _pinned;
+    if (pin != null) return _page(pin);
     return ref.watch(seriesDetailProvider(followedId)).whenData((v) => v.series).when(
           loading: () => const SeriesSkeleton(),
-          data: (f) => GlassFeatureScreen(sourceId: f.sourceId, seriesKey: f.seriesKey, followed: f, chapter: chapter, sheet: sheet),
+          data: (f) => _page(_pinned = f),
           error: (e, _) => e is ApiError && (e.statusCode == 404 || e.code == 'series_not_found')
               ? const SeriesLens(kind: SeriesLensKind.followMissing)
               : SeriesLens(kind: SeriesLensKind.error, onRetry: () => ref.invalidate(seriesDetailProvider(followedId))),
