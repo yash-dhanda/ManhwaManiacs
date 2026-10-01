@@ -164,3 +164,7 @@ Items only the owner can do, by step.
 ## mobile/34 (reader engine, Glass commands)
 
 - Device check on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-34/device-check.md` (120 Hz, 0 dropped frames on the long strip and on a real 120-page chapter; `mode=single` pull readout; sample turns `decode`).
+## mobile/35 (Glass manga reader)
+
+- Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-35/device-check.md`.
+- CI for the `display.stableInsets` commit (APK job and the iOS dry run): lanes do not push; the integrator runs `gh run watch` on the integration push.
