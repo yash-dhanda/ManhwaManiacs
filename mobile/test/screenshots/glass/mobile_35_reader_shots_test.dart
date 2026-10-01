@@ -5,12 +5,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/platform/gravity.dart';
+import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
+import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
+import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
+import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/features/reader/engine/seam.dart';
+import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
+import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/glass/glass_skin.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/scrub_rail.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/chapter_seam.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/glass_manga_reader.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/page_thumb.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_states.dart';
 
 import '../../skins/glass/reader/demo_pages.dart';
@@ -42,11 +53,16 @@ void main() {
     String query = '',
     int pages = 20,
     TargetPlatform platform = TargetPlatform.iOS,
+    bool withOcr = true,
+    FeatureRig? feature,
+    bool toasts = false,
   }) async {
     final sz = size ?? phone;
-    addShotCovers({...demo.bytes('c1', demo: 2), ...demo.bytes('c2'), ...demo.bytes('c3', demo: 2)});
+    final artBytes = {...demo.bytes('c1', demo: 2), ...demo.bytes('c2'), ...demo.bytes('c3', demo: 2)};
+    // The scrub lens, the go-to thumbnail and the panel rows ask the image proxy for w=240 / w=96.
+    addShotCovers({...artBytes, for (final e in artBytes.entries) ...{proxiedPageUrl(e.key, 240): e.value, proxiedPageUrl(e.key, 96): e.value}});
     final rig = await pumpGlassReader(t,
-        size: sz.logical, padding: sz.padding, chapterKey: chapter, chapters: chapters(pages: pages), ocr: demo.ocr(), prefsValues: prefs, extra: extra, query: query, platform: platform, mockPathProvider: false);
+        size: sz.logical, padding: sz.padding, chapterKey: chapter, chapters: chapters(pages: pages), ocr: withOcr ? demo.ocr() : const [], prefsValues: prefs, extra: extra, query: query, platform: platform, mockPathProvider: false, feature: feature, toasts: toasts);
     await pumpUntilCoversLoad(t, rounds: 12);
     await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 800)));
     await settleReader(t, ms: 900);
@@ -169,6 +185,7 @@ void main() {
     await shot(t, 'next-card-armed');
     await g.moveBy(const Offset(0, -55));
     await settleReader(t, ms: 400);
+    await pumpUntilCoversLoad(t, rounds: 8);
     await shot(t, 'next-card-locked');
     await g.cancel();
     await disposeGlassReader(t);
@@ -281,6 +298,178 @@ void main() {
     await frame('gate-closed', GlassReaderFailure(failure: ReaderFailure(error: null, noPages: false, retry: () {}, back: () {}), gated: true));
     await t.pumpWidget(const SizedBox());
   });
+
+  testWidgets('scrub lens, brightness band HUD, taps overlay, settings at large', (t) async {
+    await open(t);
+    await scrollBy(t, 600);
+    final rail = t.getRect(find.byType(GlassScrubRail));
+    final g = await t.startGesture(Offset(rail.center.dx, rail.top + rail.height * 0.25));
+    await t.pump(const Duration(milliseconds: 100));
+    await g.moveBy(const Offset(0, 60));
+    await t.pump(const Duration(milliseconds: 100));
+    await g.moveBy(const Offset(0, 60));
+    await settleReader(t, ms: 500);
+    await pumpUntilCoversLoad(t, rounds: 8);
+    await shot(t, 'scrub-lens');
+    await g.up();
+    await art(t);
+
+    final b = await t.startGesture(const Offset(40, 560));
+    await b.moveBy(const Offset(0, -12));
+    await t.pump();
+    await b.moveBy(const Offset(0, -110));
+    await settleReader(t, ms: 300);
+    await shot(t, 'brightness-band-hud');
+    await b.up();
+    await settleReader(t, ms: 1000);
+
+    // A layout change shows the three panes for 1.5 s.
+    await key(t, LogicalKeyboardKey.keyV, char: 'v');
+    await shot(t, 'taps-overlay');
+    await disposeGlassReader(t);
+
+    await open(t);
+    await scrollBy(t, 600);
+    await key(t, LogicalKeyboardKey.comma, char: ',');
+    await settleReader(t, ms: 600);
+    await t.dragFrom(const Offset(195, 470), const Offset(0, -420));
+    await settleReader(t, ms: 900);
+    await shot(t, 'settings-sheet-large');
+    await disposeGlassReader(t);
+  });
+
+  testWidgets('sideways chapter swipe and a paged Slide mid-turn', (t) async {
+    await open(t, prefs: {'mm.reader-settings.device': '{"glass":{"swipeChapter":true}}'});
+    await scrollBy(t, 600, chrome: false);
+    final g = await t.startGesture(const Offset(320, 420));
+    await g.moveBy(const Offset(-20, 0));
+    await t.pump();
+    await g.moveBy(const Offset(-240, 0));
+    await settleReader(t, ms: 200);
+    await shot(t, 'swipe-neighbour');
+    await g.cancel();
+    await disposeGlassReader(t);
+
+    await open(t, prefs: {
+      'mm.reader-prefs.device': '{"demo:k":{"layout":"single","fit":"height"}}',
+      'mm.reader-settings.device': '{"glass":{"pageTransition":"slide"}}',
+    });
+    await art(t);
+    st(t).engine.hideChrome();
+    await settleReader(t, ms: 500);
+    final p = await t.startGesture(const Offset(330, 420));
+    await p.moveBy(const Offset(-20, 0));
+    await t.pump();
+    await p.moveBy(const Offset(-150, 0));
+    await t.pump(const Duration(milliseconds: 50));
+    await shot(t, 'paged-slide-mid');
+    await p.cancel();
+    await disposeGlassReader(t);
+  });
+
+  testWidgets('seam bands: loading, failed, missing, rate limited, offline end', (t) async {
+    final bands = GlassReaderBands(nextLabel: 'Chapter 144', previousLabel: 'Chapter 142', onRetryNeighbour: () {}, onOpenNext: () {}, onDownloadNext: () {}, backoff: const Duration(seconds: 4));
+    Future<void> band(String name, Widget Function(BuildContext) b) async {
+      setSkinShotView(t, phone);
+      await t.pumpWidget(ProviderScope(
+          overrides: [...await skinShotRootOverrides(), gravitySensorProvider.overrideWithValue(() => const Stream.empty())],
+          child: shotFrame(ColoredBox(
+            color: const Color(0xFF000000),
+            child: Column(children: [
+              Expanded(child: Container(color: const Color(0xFF0B0B0F))),
+              Builder(builder: b),
+              Expanded(child: Container(color: const Color(0xFF0B0B0F))),
+            ]),
+          ))));
+      await t.pump(const Duration(milliseconds: 1400));
+      await shot(t, name);
+    }
+
+    await band('seam-loading', (c) => bands.build(c, BandKind.nextLoading));
+    await band('seam-failed', (c) => bands.build(c, BandKind.nextFailed));
+    await band('seam-missing', (c) => const GlassChapterSeam(from: 'Chapter 143', to: 'Chapter 145'));
+    await band('rate-limited', (c) => bands.build(c, BandKind.rateLimited));
+    await band('offline-end', (c) => bands.build(c, BandKind.offlineEnd));
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('offline: the capsule and the chapter list; Extract text on a saved chapter', (t) async {
+    const saved = (state: DownloadChapterState.complete, error: null);
+    await open(t, feature: FeatureRig(online: false, statuses: {'c1': saved, 'c2': saved}));
+    await scrollBy(t, 600);
+    await shot(t, 'offline');
+    await key(t, LogicalKeyboardKey.keyT, char: 't');
+    await settleReader(t, ms: 900);
+    await shot(t, 'chapter-list-offline');
+    await disposeGlassReader(t);
+
+    await open(t, withOcr: false, feature: FeatureRig(statuses: {'c2': saved}), extra: [ocrAvailableProvider.overrideWith((ref) async => true)]);
+    await key(t, LogicalKeyboardKey.keyO, char: 'o');
+    await settleReader(t, ms: 400);
+    await shot(t, 'extract-text');
+    await disposeGlassReader(t);
+  });
+
+  testWidgets('toast states: bookmark saved and failed, stale anchor, further elsewhere; unavailable', (t) async {
+    await open(t, toasts: true, extra: [bookmarkOutboxControllerProvider.overrideWith((ref) => _ShotOutbox(ref.watch(readerRepositoryProvider)))]);
+    await scrollBy(t, 600);
+    await key(t, LogicalKeyboardKey.keyB, char: 'b');
+    await settleReader(t, ms: 500);
+    await shot(t, 'bookmark-saved');
+    await disposeGlassReader(t);
+
+    await open(t, toasts: true);
+    await scrollBy(t, 600);
+    await key(t, LogicalKeyboardKey.keyB, char: 'b');
+    await settleReader(t, ms: 500);
+    await shot(t, 'bookmark-failed');
+    await disposeGlassReader(t);
+
+    // The toast lives 4 s: open without the long art warm-up so it is still up for the capture.
+    await pumpGlassReader(t,
+        size: phone.logical, padding: phone.padding, chapters: chapters(), ocr: demo.ocr(), query: '?page=25&at=0.2', mockPathProvider: false, toasts: true);
+    await settleReader(t, ms: 1200);
+    await shot(t, 'stale-anchor');
+    await disposeGlassReader(t);
+
+    await open(t, toasts: true);
+    await scrollBy(t, 600);
+    st(t).engine.reportServerProgress(chapterKey: 'c3', chapterNumber: 146, lastPage: 12, advanced: false);
+    await settleReader(t, ms: 600);
+    await shot(t, 'further-elsewhere');
+    await disposeGlassReader(t);
+
+    setSkinShotView(t, phone);
+    await t.pumpWidget(ProviderScope(
+        overrides: [...await skinShotRootOverrides(), gravitySensorProvider.overrideWithValue(() => const Stream.empty())],
+        child: shotFrame(GlassReaderFailure(
+            failure: ReaderFailure(
+                error: const ApiError(statusCode: 404, code: 'series_not_found', message: 'Series not found'), noPages: false, retry: () {}, back: () {}),))));
+    await t.pump(const Duration(milliseconds: 400));
+    await shot(t, 'unavailable');
+    await t.pumpWidget(const SizedBox());
+  });
+}
+
+/// Saves every bookmark (no store in the rig).
+class _ShotOutbox extends BookmarkOutboxController {
+  _ShotOutbox(ReaderRepository repo) : super(store: null, repository: repo, activeScopeId: () => 'u1p1');
+
+  @override
+  Future<Bookmark?> create({
+    required ChapterIdentity id,
+    required BookmarkMedia media,
+    required int anchorIndex,
+    required double anchorFraction,
+    required int anchorTotal,
+    String? seriesTitle,
+    double? chapterNumber,
+    String? snippet,
+    String? note,
+  }) async {
+    final now = DateTime.now().toUtc();
+    return Bookmark(clientId: 'shot', sourceId: id.sourceId, seriesKey: id.seriesKey, chapterKey: id.chapterKey, createdAt: now, updatedAt: now);
+  }
 }
 
 /// A state widget inside the Glass root, for the state captures.

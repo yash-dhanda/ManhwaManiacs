@@ -18,6 +18,8 @@ import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_reader_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/glass/glass_skin.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart' show glassReaderActiveProvider;
+import 'package:manhwamaniacs/skins/glass/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/glass/router.dart' show kGlassReaderPageKey;
 import 'package:manhwamaniacs/skins/glass/screens/reader/glass_manga_reader.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_screen.dart';
@@ -26,6 +28,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../cinematic/reader/reader_test_support.dart';
 
+export '../../cinematic/feature/feature_test_support.dart' show FeatureRig;
 export '../../cinematic/reader/reader_test_support.dart' show readerChapter, kReaderSource, kReaderSeries, settleReader, Recorder;
 
 /// Records wakelock calls.
@@ -98,8 +101,10 @@ Future<GlassReaderRig> pumpGlassReader(
   Map<String, ReaderChapter> chapters = const {},
   List<PageText>? ocr,
   bool mockPathProvider = true,
+  FeatureRig? feature,
+  bool toasts = false,
 }) async {
-  final r = FeatureRig();
+  final r = feature ?? FeatureRig();
   SharedPreferences.setMockInitialValues(prefsValues);
   final prefs = await SharedPreferences.getInstance();
   tester.view
@@ -167,6 +172,7 @@ Future<GlassReaderRig> pumpGlassReader(
         sourceChapterNeighboursProvider.overrideWith((ref, key) async => (previousChapterId: n(key.chapterId).prev, nextChapterId: n(key.chapterId).next)),
         chapterNeighboursProvider.overrideWith((ref, key) async => (chapterNumber: 1.0, prev: n(key.chapterKey).prev, next: n(key.chapterKey).next)),
         ocrChapterTextProvider.overrideWith((ref, id) async => ocr),
+        if (toasts) glassReaderActiveProvider.overrideWith((ref) => true),
         ...extra,
       ],
       child: RepaintBoundary(
@@ -177,7 +183,12 @@ Future<GlassReaderRig> pumpGlassReader(
           theme: GlassSkin.baseTheme.copyWith(platform: platform),
           builder: (context, c) => MediaQuery(
             data: MediaQuery.of(context).copyWith(accessibleNavigation: accessible),
-            child: const GlassSkin().wrap(context, c ?? const SizedBox.shrink()),
+            // The shell's toast host, for captures that show a reader toast (top-centre, 60 px down).
+            child: const GlassSkin().wrap(
+                context,
+                toasts
+                    ? Overlay(initialEntries: [OverlayEntry(builder: (_) => GlassToastHost(child: c ?? const SizedBox.shrink()))])
+                    : c ?? const SizedBox.shrink()),
           ),
         ),
       ),
