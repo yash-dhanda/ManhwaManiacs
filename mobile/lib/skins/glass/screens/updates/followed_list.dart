@@ -32,6 +32,8 @@ class GlassFollowedList extends ConsumerWidget {
             GlassSwipeRow(
               key: ValueKey('f-${s.id}'),
               name: s.title,
+              // The row's own "More actions" menu already carries Unfollow: no second dots button.
+              showMore: false,
               trailing: [
                 SwipeAction(id: 'unfollow', label: 'Unfollow', glyph: roleIcon(GlassIconRole.following), tone: SwipeTone.danger, destructive: true, run: () => _unfollow(ref, s)),
               ],
@@ -54,7 +56,7 @@ class GlassFollowedList extends ConsumerWidget {
                               child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), child: GlassLabel(s.sourceId, role: gt.typeCaption1)),
                             ),
                             const SizedBox(width: 8),
-                            Expanded(child: GlassLabel(s.lastCheckedAt == null ? 'Not checked yet' : '${s.chapterCount} chapters', role: gt.typeFootnote, color: gt.colorLabel2)),
+                            Expanded(child: GlassLabel(s.lastCheckedAt == null ? 'Not checked yet' : '${s.chapterCount} chapters', role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 2)),
                           ],),
                         ],),
                       ),
