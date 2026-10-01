@@ -13,10 +13,10 @@ import 'package:manhwamaniacs/features/downloads/utils/format_bytes.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/settings/services/metadata_cache.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/chip_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/radio_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/screens/downloads/storage_meter_capsule.dart';
@@ -46,17 +46,23 @@ class GlassStorageTab extends ConsumerWidget {
         );
     // The choice group draws the sliding selection capsule behind its chips (glass 7.5).
     // A group wider than the page scrolls to the screen edge under the row's trailing fade ("Unlimited" never cut at the gutter).
-    Widget chips<T>(List<(T, String)> items, T selected, void Function(T) onPick) => GlassChipRow(
-          padding: EdgeInsets.zero,
-          children: [
-            GlassChoiceChips<T>(
-              options: [for (final i in items) i.$1],
-              selected: selected,
-              onSelected: onPick,
-              labelOf: (v) => items.firstWhere((i) => i.$1 == v).$2,
-            ),
-          ],
-        );
+    // The options as choice chips while they all fit the column; when they don't (large text, a narrow phone) a radio list,
+    // so every option ("Unlimited") stays in sight instead of scrolling off under a fade.
+    Widget chips<T>(List<(T, String)> items, T selected, void Function(T) onPick) => LayoutBuilder(builder: (context, c) {
+          final need = items.fold<double>(0, (w, i) => w + GlassChip.widthOf(context, label: i.$2, kind: GlassChipKind.choice, selected: i.$1 == selected) + 8) - 8;
+          if (!c.hasBoundedWidth || need <= c.maxWidth) {
+            return Align(
+              alignment: Alignment.centerLeft,
+              child: GlassChoiceChips<T>(
+                options: [for (final i in items) i.$1],
+                selected: selected,
+                onSelected: onPick,
+                labelOf: (v) => items.firstWhere((i) => i.$1 == v).$2,
+              ),
+            );
+          }
+          return GlassRadioList<T>(options: [for (final i in items) GlassRadioOption(value: i.$1, label: i.$2)], value: selected, onChanged: onPick);
+        },);
     // 8 px above and below each switch row and 16 px before the switch, so rows never butt and text never runs into the track.
     Widget toggle(String label, String? hint, bool v, ValueChanged<bool> on) => ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 56),
