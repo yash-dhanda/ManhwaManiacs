@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
@@ -56,7 +57,7 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
         ref.watch(genreIndexProvider).valueOrNull ?? const <GenreEntry>[];
     final trending = ref.watch(trendingProvider).valueOrNull ?? const [];
     final sources = scope.filter(
-      ref.watch(sourcesListProvider).valueOrNull ?? const [],
+      ref.watch(sourcesListProvider).valueOrNull ?? const <SourceSummary>[],
       (s) => s.id,
     );
     final tablet = isTablet(context);

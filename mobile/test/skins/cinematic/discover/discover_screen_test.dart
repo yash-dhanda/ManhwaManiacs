@@ -2,13 +2,13 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
-import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
-import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/repositories/ask_repository.dart';
+import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
+import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/genre_grid.dart';
 
@@ -163,5 +163,5 @@ class _NoPages extends AskRepository {
   _NoPages() : super(Dio());
   @override
   Future<Result<WorldGenrePage>> genrePage(String genre, {String? cursor, CancelToken? cancel}) async =>
-      const Ok(WorldGenrePage(items: [], nextCursor: null));
+      const Ok(WorldGenrePage());
 }

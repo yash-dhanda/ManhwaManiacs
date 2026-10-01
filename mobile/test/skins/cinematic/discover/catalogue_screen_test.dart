@@ -124,21 +124,6 @@ void main() {
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
     h.dispose();
   });
-}
-
-class _Slow extends FakeSources {
-  _Slow() : super(sources: [src('asura')]);
-
-  @override
-  Future<Result<PagedResult<SourceSeriesSummary>>> listSeries(
-    String sourceId, {
-    int page = 1,
-    String? query,
-    String? sort,
-    String? genre,
-    bool refresh = false,
-  }) =>
-      Completer<Result<PagedResult<SourceSeriesSummary>>>().future;
 
   testWidgets('picking a genre sends its id and keeps the back stack', (tester) async {
     final fake = FakeSources(
@@ -178,4 +163,19 @@ class _Slow extends FakeSources {
     await settle(tester, 800);
     expect(fake.seriesCalls, greaterThan(1));
   });
+}
+
+class _Slow extends FakeSources {
+  _Slow() : super(sources: [src('asura')]);
+
+  @override
+  Future<Result<PagedResult<SourceSeriesSummary>>> listSeries(
+    String sourceId, {
+    int page = 1,
+    String? query,
+    String? sort,
+    String? genre,
+    bool refresh = false,
+  }) =>
+      Completer<Result<PagedResult<SourceSeriesSummary>>>().future;
 }

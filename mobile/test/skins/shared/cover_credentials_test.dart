@@ -1,13 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/core/network/interceptors/auth_interceptor.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
+
+import '../../support/test_overrides.dart';
 
 /// Source logos are third-party favicons: the session token must stay home.
 void main() {
@@ -17,6 +19,7 @@ void main() {
         overrides: [
           authTokenStoreProvider.overrideWithValue(AuthTokenStore()..token = 'secret'),
           apiBaseUrlProvider.overrideWith((ref) => 'https://api.example.com'),
+          activeProfileOverride(),
         ],
         child: MaterialApp(theme: ThemeData(extensions: const [cinematicTokens]), home: SizedBox(width: 40, height: 40, child: cover)),
       ),

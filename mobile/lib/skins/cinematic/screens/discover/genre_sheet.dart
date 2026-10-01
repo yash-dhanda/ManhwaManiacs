@@ -50,9 +50,9 @@ Future<void> openGenreOnSources(
   if (rows.length == 1) {
     unawaited(
       context.push(Routes.source(
-          rows.first.sourceId,
-          {'genre': genre.idFor(rows.first.sourceId)},
-        )),
+        rows.first.sourceId,
+        {'genre': genre.idFor(rows.first.sourceId)},
+      ),),
     );
     return;
   }
@@ -109,6 +109,7 @@ Future<void> openGenreOnSources(
     },
   );
   if (picked != null && context.mounted) {
-    unawaited(context.push(Routes.source(picked, {'genre': genre.idFor(picked)})));
+    unawaited(
+        context.push(Routes.source(picked, {'genre': genre.idFor(picked)})),);
   }
 }
