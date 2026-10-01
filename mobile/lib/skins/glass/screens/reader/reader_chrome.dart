@@ -477,8 +477,9 @@ class _TitleCapsule extends StatelessWidget {
             // One line while "series · chapter" fits; otherwise two compact lines (the series over the chapter), so the series keeps
             // its whole width instead of collapsing to "Tower…" beside the chapter.
             child: LayoutBuilder(builder: (context, c) {
-              final one = measureText(context, '$series · $chapter', roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600, maxScale: 1.3)).width;
-              if (readAll != null || one <= c.maxWidth) {
+              final one = measureText(context, '$series · $chapter', roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600, maxScale: 1.3)).width +
+                  (readAll == null ? 0 : 8 + measureText(context, readAll!, roleStyle(context, gt.typeMono, onGlass: true, maxScale: 1.3)).width);
+              if (one <= c.maxWidth) {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -493,7 +494,7 @@ class _TitleCapsule extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   GlassText(series, role: gt.typeFootnote, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.15),
-                  GlassText(chapter, role: gt.typeCaption1, onGlass: true, maxLines: 1, maxScale: 1.15),
+                  GlassText(readAll == null ? chapter : '$chapter · ${readAll!}', role: gt.typeCaption1, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.15),
                 ],
               );
             },),

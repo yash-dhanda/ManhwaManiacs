@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/grouped_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/list_row.dart';
+import 'package:manhwamaniacs/skins/glass/shell/insets.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// Anchors for the settings index (glass 8.25): every row registers a key under its index id so a search hit can scroll to it and
@@ -19,7 +20,10 @@ class SettingsAnchors extends ChangeNotifier {
   bool reveal(String id) {
     final ctx = _keys[id]?.currentContext;
     if (ctx == null) return false;
-    Scrollable.ensureVisible(ctx);
+    // The row lands just below the floating bar (its top inset), not under it.
+    final viewport = Scrollable.maybeOf(ctx)?.position.viewportDimension ?? 0;
+    final top = GlassInsets.of(ctx).top + 8;
+    Scrollable.ensureVisible(ctx, alignment: viewport > top ? top / viewport : 0);
     _pulsing = id;
     notifyListeners();
     return true;
