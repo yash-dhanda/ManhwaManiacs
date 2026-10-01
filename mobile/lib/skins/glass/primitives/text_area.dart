@@ -31,6 +31,8 @@ class GlassTextArea extends ConsumerStatefulWidget {
     this.submitOnEnter = false,
     this.errorTrigger = 0,
     this.forceStates = GlassWidgetStates.none,
+    this.showCounter = true,
+    this.imeAction,
   });
 
   final TextEditingController? controller;
@@ -47,6 +49,12 @@ class GlassTextArea extends ConsumerStatefulWidget {
   final bool submitOnEnter;
   final int errorTrigger;
   final GlassWidgetStates forceStates;
+
+  /// The built-in counter from 80 % of [maxLength]; a screen that draws its own (For you's always-visible one) turns it off.
+  final bool showCounter;
+
+  /// Overrides the software keyboard's action (For you keeps a newline key while Enter from a hardware keyboard asks).
+  final TextInputAction? imeAction;
 
   @override
   ConsumerState<GlassTextArea> createState() => _GlassTextAreaState();
@@ -94,7 +102,7 @@ class _GlassTextAreaState extends ConsumerState<GlassTextArea> {
     final base = roleStyle(context, gt.typeBody, legible: legible, onGlass: inHost, maxScale: 1.5);
     final len = _c.text.characters.length;
     final max = widget.maxLength;
-    final showCounter = max != null && len >= max * 0.8;
+    final showCounter = widget.showCounter && max != null && len >= max * 0.8;
     final warn = max != null && len >= max * 0.95;
 
     Widget field = TextSelectionTheme(
@@ -106,7 +114,7 @@ class _GlassTextAreaState extends ConsumerState<GlassTextArea> {
         minLines: 3,
         maxLines: 8,
         keyboardType: TextInputType.multiline,
-        textInputAction: widget.submitOnEnter ? TextInputAction.send : TextInputAction.newline,
+        textInputAction: widget.imeAction ?? (widget.submitOnEnter ? TextInputAction.send : TextInputAction.newline),
         keyboardAppearance: Brightness.dark,
         cursorColor: gt.colorIris400,
         style: base.copyWith(color: gt.colorLabel1),
