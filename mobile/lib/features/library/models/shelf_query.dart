@@ -48,6 +48,12 @@ enum ShelfDensity {
   static ShelfDensity parse(String? v) => values.firstWhere((d) => d.name == v, orElse: () => wall);
 }
 
+/// The Library hub's sections, named by the `tab` route parameter (Glass only; read by the hub, never by the shelf query).
+const List<String> kLibraryTabs = ['shelf', 'collections', 'history', 'bookmarks', 'downloads'];
+
+/// The hub section `?tab=` names, or null.
+String? libraryTabFromRoute(Map<String, String> query) => kLibraryTabs.contains(query['tab']) ? query['tab'] : null;
+
 /// What the route contract carries besides the query: `select=1` opens select mode on mount.
 typedef ShelfRoute = ({ShelfQuery query, bool openSelectMode});
 
@@ -62,6 +68,7 @@ class ShelfQuery {
     this.tagIds = const [],
     this.density = ShelfDensity.wall,
     this.q = '',
+    this.readingStatus,
   });
 
   final ShelfStatus status;
@@ -71,12 +78,18 @@ class ShelfQuery {
   final ShelfDensity density;
   final String q;
 
+  /// The Glass Filters sheet's shelf status (`reading_status`); wins over [status] when both are set. Cinematic never sets it.
+  final ShelfStatus? readingStatus;
+
+  /// `reading_status` sent to the server: the Filters sheet's value, else the chip's.
+  ShelfStatus get effectiveStatus => readingStatus ?? status;
+
   /// A status other than ALL, favourites, new only, a tag or a search is active.
-  bool get filtering => status != ShelfStatus.all || fav || newOnly || tagIds.isNotEmpty || q.trim().isNotEmpty;
+  bool get filtering => effectiveStatus != ShelfStatus.all || fav || newOnly || tagIds.isNotEmpty || q.trim().isNotEmpty;
 
   /// How many of the Filters sheet's filters are on (the `Filters ⁽2⁾` folio): status, favourites,
   /// new only and tags count; sort, density and search do not.
-  int get activeFilterCount => (status != ShelfStatus.all ? 1 : 0) + (fav ? 1 : 0) + (newOnly ? 1 : 0) + (tagIds.isNotEmpty ? 1 : 0);
+  int get activeFilterCount => (effectiveStatus != ShelfStatus.all ? 1 : 0) + (fav ? 1 : 0) + (newOnly ? 1 : 0) + (tagIds.isNotEmpty ? 1 : 0);
 
   /// Manual order can be dragged only over the whole, unfiltered shelf.
   bool get canReorder => sort == ShelfSort.manual && !filtering;
@@ -89,6 +102,8 @@ class ShelfQuery {
     List<int>? tagIds,
     ShelfDensity? density,
     String? q,
+    ShelfStatus? readingStatus,
+    bool clearReadingStatus = false,
   }) =>
       ShelfQuery(
         status: status ?? this.status,
@@ -98,6 +113,7 @@ class ShelfQuery {
         tagIds: tagIds ?? this.tagIds,
         density: density ?? this.density,
         q: q ?? this.q,
+        readingStatus: clearReadingStatus ? null : (readingStatus ?? this.readingStatus),
       );
 
   /// Every filter cleared; sort and density stay.
@@ -110,20 +126,26 @@ class ShelfQuery {
     if (status != null) s = s.copyWith(status: ShelfStatus.parse(status));
     final sort = query['sort'];
     if (sort != null && ShelfSort.values.any((e) => e.name == sort)) s = s.copyWith(sort: ShelfSort.parse(sort));
-    if (query.containsKey('fav')) s = s.copyWith(fav: query['fav'] == '1' || query['fav'] == 'true');
+    final rs = query['reading_status'];
+    if (rs != null) s = s.copyWith(readingStatus: ShelfStatus.parse(rs));
+    // `is_favorite` is the older name of `fav`; `fav` wins when both are present.
+    final favRaw = query['fav'] ?? query['is_favorite'];
+    if (favRaw != null) s = s.copyWith(fav: favRaw == '1' || favRaw == 'true');
     if (query.containsKey('new')) s = s.copyWith(newOnly: query['new'] == '1' || query['new'] == 'true');
     final view = query['view'];
     if (view != null && ShelfDensity.values.any((e) => e.name == view)) s = s.copyWith(density: ShelfDensity.parse(view));
     final tags = query['tags'];
     if (tags != null) s = s.copyWith(tagIds: [for (final p in tags.split(',')) if (int.tryParse(p.trim()) case final n? when n > 0) n]);
-    if (query.containsKey('q')) s = s.copyWith(q: query['q']);
+    // `search` is the older name of `q`; `q` wins when both are present.
+    final qRaw = query['q'] ?? query['search'];
+    if (qRaw != null) s = s.copyWith(q: qRaw);
     return (query: s, openSelectMode: query['select'] == '1');
   }
 
   /// `GET /library/series` parameters.
   Map<String, String> toListParams() => {
         'sort': sort.wire,
-        if (status.wire != null) 'reading_status': status.wire!,
+        if (effectiveStatus.wire != null) 'reading_status': effectiveStatus.wire!,
         if (fav) 'is_favorite': 'true',
         if (newOnly) 'new_only': 'true',
         if (tagIds.isNotEmpty) 'tag_ids': tagIds.join(','),
@@ -169,8 +191,9 @@ class ShelfQuery {
       other.newOnly == newOnly &&
       listEquals(other.tagIds, tagIds) &&
       other.density == density &&
-      other.q == q;
+      other.q == q &&
+      other.readingStatus == readingStatus;
 
   @override
-  int get hashCode => Object.hash(status, sort, fav, newOnly, Object.hashAll(tagIds), density, q);
+  int get hashCode => Object.hash(status, sort, fav, newOnly, Object.hashAll(tagIds), density, q, readingStatus);
 }

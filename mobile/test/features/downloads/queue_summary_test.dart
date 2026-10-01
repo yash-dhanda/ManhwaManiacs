@@ -87,4 +87,15 @@ void main() {
     expect(s.current!.kind, DownloadKind.novel);
     expect(s.seriesTotal, 1);
   });
+
+  test('pacing: pacedUntil and its seconds left; signed out is its own flag', () {
+    final until = DateTime(2026, 1, 1, 12, 0, 30);
+    final s = summariseQueue(DownloadQueueState(isDownloading: true, currentChapter: id, pacedUntil: until), [cur, q], [cur, q])!;
+    expect(s.pacedUntil, until);
+    expect(s.pacedSecondsLeft(DateTime(2026, 1, 1, 12, 0, 18)), 12);
+    expect(s.pacedSecondsLeft(DateTime(2026, 1, 1, 12, 0, 30)), isNull);
+    final out = summariseQueue(const DownloadQueueState(pauseReason: DownloadQueuePauseReason.noScope), [q], [q])!;
+    expect(out.signedOut, isTrue);
+    expect(summariseQueue(const DownloadQueueState(), [], []), isNull);
+  });
 }
