@@ -225,7 +225,9 @@ class _GlassBackGestureController<T> {
     if (pop) {
       navigator.pop();
       if (controller.isAnimating) {
-        unawaited(controller.animateWith(SpringSimulation(spring, controller.value, 0, -v)));
+        // Backward, so the controller ends `dismissed` and the navigator disposes the route; `animateWith` ended `completed` near 0
+        // and left the popped page (a reader with its engine and wakelock) mounted for good.
+        unawaited(controller.animateBackWith(SpringSimulation(spring, controller.value, 0, -v)));
       }
     } else {
       unawaited(controller.animateWith(SpringSimulation(spring, controller.value, 1, math.max(-v, 0))));
