@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/settings/providers/source_cache_ttl_provi
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/alert.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/slab.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -202,7 +203,7 @@ class _BodyState extends ConsumerState<_Body> {
         ],),
         if (_error != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(32, 0, 32, 8),
+            padding: GlassFrame.gutter(context, bottom: 8, inner: 16),
             child: Semantics(liveRegion: true, child: GlassText(_error!, role: gt.typeFootnote, color: gt.colorDanger)),
           ),
         // Keeps the last rows clear of the floating bar.
@@ -244,7 +245,7 @@ class _ScheduleStrip extends StatelessWidget {
     return SettingsAnchor(
       id: 'updates-schedule',
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        padding: GlassFrame.gutter(context, bottom: 16),
         child: GlassSlab(
           radius: 20,
           padding: EdgeInsets.zero,

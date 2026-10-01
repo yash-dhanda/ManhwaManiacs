@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/settings/services/server_switch.dart';
 import 'package:manhwamaniacs/features/setup/utils/server_check.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/confirm_alert.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
@@ -101,7 +102,7 @@ class _ServerSectionState extends ConsumerState<ServerSection> {
     final url = ref.watch(settingsApiUrlProvider);
     if (url.hasError) return GlassInlineError(message: "Couldn't read the saved address", onRetry: () => ref.invalidate(settingsApiUrlProvider));
     final current = url.valueOrNull;
-    if (current == null) return const Padding(padding: EdgeInsets.all(16), child: GlassSkeletonGroup(label: 'Loading the address', child: GlassSkeleton(height: 52)));
+    if (current == null) return Padding(padding: GlassFrame.gutter(context, top: 16, bottom: 16), child: const GlassSkeletonGroup(label: 'Loading the address', child: GlassSkeleton(height: 52)));
     final same = normaliseAddress(_c.text) == normaliseAddress(current);
     return SettingsGroup(
       id: 'server-url',

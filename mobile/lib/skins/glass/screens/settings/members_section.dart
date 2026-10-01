@@ -112,10 +112,10 @@ class MembersBody extends ConsumerWidget {
       final others = list.where((a) => a.id != me).length;
       body = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         if (others == 0)
-          Padding(padding: const EdgeInsets.all(16), child: GlassText('Only your account so far', role: gt.typeCallout, color: gt.colorLabel2)),
+          Padding(padding: GlassFrame.gutter(context, top: 16, bottom: 16, inner: 16), child: GlassText('Only your account so far', role: gt.typeCallout, color: gt.colorLabel2)),
         if (wide) _MembersTable(accounts: list, me: me, now: now, onActive: (a, v) => _setActive(ref, a, v), onDelete: (a) => _delete(context, ref, a)) else SettingsGroup(children: [for (final a in list) _row(context, ref, a, me, now)]),
         Padding(
-          padding: const EdgeInsets.fromLTRB(32, 4, 16, 16),
+          padding: GlassFrame.gutter(context, top: 4, bottom: 16, inner: 16) - const EdgeInsets.only(right: 16),
           child: Row(children: [
             Expanded(child: GlassText('$others other ${others == 1 ? 'account' : 'accounts'}', role: gt.typeFootnote, color: gt.colorLabel2)),
             GlassButton(label: 'Refresh', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () => ref.invalidate(membersProvider)),
@@ -127,7 +127,7 @@ class MembersBody extends ConsumerWidget {
       id: 'members',
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(32, 0, 32, 12),
+          padding: GlassFrame.gutter(context, bottom: 12, inner: 16),
           child: GlassText(
             "Registration is open on this server. Deactivating keeps an account's data and signs it out everywhere; deleting removes the account and everything it owns.",
             role: gt.typeFootnote,

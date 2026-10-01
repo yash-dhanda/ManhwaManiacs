@@ -70,7 +70,7 @@ Widget settingsSectionBody(SettingsSection s) {
 class SettingsPendingBody extends StatelessWidget {
   const SettingsPendingBody({super.key});
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.all(24), child: GlassText('This section arrives in the next update.', role: gt.typeBody, color: gt.colorLabel2));
+  Widget build(BuildContext context) => Padding(padding: GlassFrame.gutter(context, top: 24, bottom: 24, inner: 16), child: GlassText('This section arrives in the next update.', role: gt.typeBody, color: gt.colorLabel2));
 }
 
 String _labelOf(SettingsSection s) {
@@ -276,7 +276,8 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
           SliverToBoxAdapter(child: GlassGroupedList(header: 'About', children: [_navRow(kAboutSection)])),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(32, 8, 32, 32),
+              // The root's slivers already sit on the margin: the footer on the group header text, the search well on the group edge.
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
               child: GlassText('Settings save as you change them. Switching skin restarts the app.', role: gt.typeFootnote, color: gt.colorLabel2),
             ),
           ),
@@ -286,7 +287,7 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
   Widget _navRow(SettingsSectionSpec s) => GlassListRow(title: s.label, icon: s.glyph.regular, iconColor: s.tile, caret: true, onTap: () => _openSection(s.section));
 
   Widget _searchWell() => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        padding: const EdgeInsets.only(bottom: 12),
         child: Focus(
           focusNode: _panelFocus,
           onFocusChange: (f) {

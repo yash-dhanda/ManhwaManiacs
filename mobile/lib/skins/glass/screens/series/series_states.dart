@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/inline_notice.dart';
@@ -31,8 +32,10 @@ class SeriesSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GlassSkeletonGroup(
         label: book ? 'Loading this book' : 'Loading this series',
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+        // Never taller than the window (a 667 px phone): the rows past the bottom are clipped, not striped.
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(GlassFrame.screenMargin(context), 24, GlassFrame.screenMargin(context), 24),
           child: Column(
             key: const ValueKey('series-skeleton'),
             crossAxisAlignment: CrossAxisAlignment.start,

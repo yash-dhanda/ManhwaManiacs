@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/settings/providers/backup_provider.dart';
 import 'package:manhwamaniacs/features/settings/services/backup_download.dart';
 import 'package:manhwamaniacs/features/settings/utils/format_storage_bytes.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart' show GlassIconWeight;
 import 'package:manhwamaniacs/skins/glass/primitives/alert.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/slab.dart';
@@ -192,13 +193,13 @@ class _BackupBodyState extends ConsumerState<BackupBody> {
     if (status.hasError && !status.isLoading) {
       card = GlassInlineError(message: "Couldn't read the backup status", onRetry: () => ref.invalidate(backupStatusProvider));
     } else if (s == null) {
-      card = const Padding(padding: EdgeInsets.all(16), child: GlassSkeletonGroup(label: 'Loading the backup status', child: GlassSkeleton(height: 64)));
+      card = Padding(padding: GlassFrame.gutter(context, top: 16, bottom: 16), child: const GlassSkeletonGroup(label: 'Loading the backup status', child: GlassSkeleton(height: 64)));
     } else {
       final n = nightlyCard(s.nightly);
       card = SettingsAnchor(
         id: 'backup-nightly',
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          padding: GlassFrame.gutter(context, bottom: 12),
           child: GlassSlab(
             padding: const EdgeInsets.all(16),
             child: Row(children: [
@@ -215,7 +216,7 @@ class _BackupBodyState extends ConsumerState<BackupBody> {
       card,
       if (s?.restorePending ?? false)
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          padding: GlassFrame.gutter(context, bottom: 12),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             GlassInlineNotice(message: 'A restore is staged and applies when the server restarts.', variant: GlassNoticeVariant.warning, actionLabel: _cancelling ? null : 'Cancel staged restore', onAction: on ? () => unawaited(_cancelStaged()) : null),
             if (_cancelling) const Padding(padding: EdgeInsets.only(top: 8), child: GlassDots()),
@@ -245,7 +246,7 @@ class _BackupBodyState extends ConsumerState<BackupBody> {
       SettingsAnchor(
         id: 'backup-restore',
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          padding: GlassFrame.gutter(context, top: 8, bottom: 16),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: Container(

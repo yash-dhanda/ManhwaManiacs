@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/features/library/utils/followed_series_cache.dart'
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/inline_notice.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
@@ -113,7 +114,7 @@ class NeedsProfileNotice extends StatelessWidget {
   const NeedsProfileNotice({super.key});
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(16),
+        padding: GlassFrame.gutter(context, top: 16, bottom: 16),
         child: GlassInlineNotice(message: 'Choose a profile first', actionLabel: 'Choose a profile', onAction: () => GoRouter.of(context).go(Routes.profiles())),
       );
 }
@@ -135,7 +136,7 @@ class SettingsSkeleton extends StatelessWidget {
   Widget build(BuildContext context) => GlassSkeletonGroup(
         label: 'Loading settings',
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: GlassFrame.gutter(context, top: 16, bottom: 16),
           child: Column(children: [
             for (var i = 0; i < rows; i++) Padding(padding: const EdgeInsets.only(bottom: 12), child: GlassSkeleton(height: 52, index: i)),
           ],),

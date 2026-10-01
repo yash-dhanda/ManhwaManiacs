@@ -44,6 +44,13 @@ abstract final class GlassFrame {
   static double contentMargin(BuildContext context) =>
       context.getInheritedWidgetOfExactType<GlassMarginApplied>() != null ? 0 : screenMargin(context);
 
+  /// Insets on the content gutter: [contentMargin] (+ [inner], e.g. 16 to sit on a grouped list's header text) left and right.
+  /// Every body that brings its own insets (a Settings section, a state block) uses this, never a literal 16.
+  static EdgeInsets gutter(BuildContext context, {double top = 0, double bottom = 0, double inner = 0}) {
+    final m = contentMargin(context) + inner;
+    return EdgeInsets.fromLTRB(m, top, m, bottom);
+  }
+
   /// True on a phone-sized window of [view] (used before a BuildContext exists).
   static bool isPhoneView(FlutterView view) =>
       ofSize(view.physicalSize / view.devicePixelRatio) == GlassFrameKind.phone;

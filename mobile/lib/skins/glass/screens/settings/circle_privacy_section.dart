@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/library/models/reading_history_item.dart'
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/alert.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -43,7 +44,7 @@ class CirclePrivacySection extends ConsumerWidget {
         return async.when(
           loading: () => const SettingsSkeleton(),
           error: (_, __) => Padding(
-            padding: const EdgeInsets.all(16),
+            padding: GlassFrame.gutter(context, top: 16, bottom: 16),
             child: GlassInlineNotice(message: "Couldn't load sharing settings", variant: GlassNoticeVariant.warning, actionLabel: 'Try again', onAction: () => ref.invalidate(sharingProvider(profile.id))),
           ),
           data: (s) => _Body(profileId: profile.id, name: profile.name, sharing: s, offline: offline),

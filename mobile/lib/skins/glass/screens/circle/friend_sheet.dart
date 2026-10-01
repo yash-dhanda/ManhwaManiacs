@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -114,7 +115,7 @@ List<Widget> friendSlivers(BuildContext context, WidgetRef ref, int profileId) {
     out
       ..add(box(title('Reading')))
       ..add(box(SizedBox(
-        height: 252 + 16 * (MediaQuery.textScalerOf(context).scale(1) - 1).clamp(0.0, 1.0), // the title and the small button scale
+        height: readingPosterHeight(context),
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: m),
@@ -164,6 +165,13 @@ class _HeaderOrb extends StatelessWidget {
           child: GlassProfileOrb(preset: glassPresetFor(avatarKey), size: 112, friend: true, name: name),
         ),
       );
+}
+
+/// The poster, its title line and "Add to library" (two centred lines when the text is large) at the current text scale.
+double readingPosterHeight(BuildContext context) {
+  final title = measureText(context, 'Ag', roleStyle(context, gt.typeFootnote)).height;
+  final button = measureText(context, 'Add to library', roleStyle(context, gt.typeSubhead, onGlass: true, wght: 660, maxScale: 1.5), maxWidth: 112 - 16, maxLines: 2).height + 20;
+  return 168 + 4 + title + math.max(GlassFrame.hitMin(context), button) + 4;
 }
 
 /// A poster of their Reading list with "Add to library"; no progress line (the sharing copy promises starts and finishes only).

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_user.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/swipe_row.dart';
@@ -91,11 +92,12 @@ class GlassInlineError extends StatelessWidget {
   Widget build(BuildContext context) => ConstrainedBox(
         constraints: BoxConstraints(minHeight: height ?? 0),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: GlassFrame.gutter(context, top: 16, bottom: 16, inner: 16),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Semantics(liveRegion: true, child: GlassText(message, role: gt.typeCallout, color: gt.colorLabel2)),
             const SizedBox(height: 8),
-            GlassButton(label: retryLabel, variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: onRetry),
+            // The plain button's label sits on the message's left edge (its 8 px capsule padding hangs outside).
+            Transform.translate(offset: const Offset(-8, 0), child: GlassButton(label: retryLabel, variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: onRetry)),
           ],),
         ),
       );
@@ -118,7 +120,7 @@ class GlassRowSkeletons extends StatelessWidget {
   Widget build(BuildContext context) => GlassSkeletonGroup(
         label: label,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: GlassFrame.gutter(context, top: 16, bottom: 16),
           child: Column(children: [
             for (var i = 0; i < n; i++) Padding(padding: const EdgeInsets.only(bottom: 12), child: GlassSkeleton(height: 52, index: i)),
           ],),

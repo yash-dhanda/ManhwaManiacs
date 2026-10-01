@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/auth/utils/password_change_check.dart';
 import 'package:manhwamaniacs/features/auth/utils/session_device_label.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/alert.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -231,7 +232,7 @@ class SessionsGroup extends ConsumerWidget {
     } else if (!sessions.hasValue) {
       body = const GlassRowSkeletons(4, label: 'Loading sessions');
     } else if (sessions.value!.isEmpty) {
-      body = Padding(padding: const EdgeInsets.all(16), child: GlassText('No active sessions', role: gt.typeCallout, color: gt.colorLabel2));
+      body = Padding(padding: GlassFrame.gutter(context, top: 16, bottom: 16, inner: 16), child: GlassText('No active sessions', role: gt.typeCallout, color: gt.colorLabel2));
     } else {
       body = SettingsGroup(children: [
         for (final s in sessions.value!) _sessionRow(context, ref, s, now, offline),
@@ -240,7 +241,7 @@ class SessionsGroup extends ConsumerWidget {
     return SettingsAnchor(
       id: 'sessions',
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Padding(padding: const EdgeInsets.fromLTRB(32, 8, 16, 0), child: header),
+        Padding(padding: GlassFrame.gutter(context, top: 8, inner: 16), child: header),
         body,
       ],),
     );
