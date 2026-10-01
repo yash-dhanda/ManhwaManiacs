@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
@@ -85,7 +86,8 @@ class _NovelTopCapsuleState extends State<NovelTopCapsule> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     final style = roleStyle(context, gt.typeFootnote, onGlass: true, wght: 600, maxScale: 1.3);
-    final w = measureText(context, widget.text, style).width + 24 + (widget.warning ? 26 : 0);
+    // Never wider than the screen less its gutters; a longer line sets down inside the capsule.
+    final w = math.min(measureText(context, widget.text, style).width + 24 + (widget.warning ? 26 : 0), MediaQuery.sizeOf(context).width - 32);
     return FadeTransition(
       opacity: _c,
       child: Semantics(
@@ -103,12 +105,18 @@ class _NovelTopCapsuleState extends State<NovelTopCapsule> with SingleTickerProv
               fit: StackFit.expand,
               children: [
                 if (widget.tint != null) DecoratedBox(decoration: BoxDecoration(color: widget.tint, borderRadius: BorderRadius.circular(16))),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (widget.warning) ...[GlassBacking(size: 20, child: GlyphIcon(GlassGlyph.warning, size: 14, color: gt.colorWarning)), const SizedBox(width: 6)],
-                    GlassText(widget.text, role: gt.typeFootnote, wght: 600, onGlass: true, maxScale: 1.3, maxLines: 1),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.warning) ...[GlassBacking(size: 20, child: GlyphIcon(GlassGlyph.warning, size: 14, color: gt.colorWarning)), const SizedBox(width: 6)],
+                        GlassText(widget.text, role: gt.typeFootnote, wght: 600, onGlass: true, maxScale: 1.3, maxLines: 1),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
