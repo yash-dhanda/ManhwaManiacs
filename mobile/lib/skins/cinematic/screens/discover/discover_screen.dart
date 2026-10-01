@@ -64,7 +64,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   @override
   void didUpdateWidget(DiscoverScreen old) {
     super.didUpdateWidget(old);
-    if (widget.q != old.q && widget.q != _text.text) {
+    if (widget.q != old.q && widget.q != _text.text.trim()) {
       _text.text = widget.q;
       unawaited(
         Future<void>.microtask(() => _search(widget.q, replaceUrl: false)),
