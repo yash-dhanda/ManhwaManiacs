@@ -1,5 +1,8 @@
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
@@ -203,6 +206,35 @@ void main() {
     await _finish(tester);
   });
 
+  testWidgets('a touch that catches a fling never reaches the tap handler', (tester) async {
+    // The real-time hold lets the image cache reach path_provider.
+    const pathProvider = MethodChannel('plugins.flutter.io/path_provider');
+    final temp = Directory.systemTemp.createTempSync('mm-engine-taps-');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(pathProvider, (c) async => temp.path);
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(pathProvider, null));
+    final kinds = <TapKind>[];
+    await _pump(
+      tester,
+      feed: ReaderFeed.of([_chapter('1', pages: 10)]),
+      options: ReaderEngineOptions(tapSlop: 8, doubleTapSlop: 24, tapHandler: (info) => kinds.add(info.kind)),
+    );
+    await tester.flingFrom(const Offset(200, 700), const Offset(0, -300), 2500);
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.pump(const Duration(milliseconds: 16));
+    final at = _offset(tester);
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(_offset(tester), isNot(at), reason: 'still coasting');
+    // Held past the 300 ms post-scroll cooldown, still under the 350 ms tap limit.
+    final g = await tester.startGesture(const Offset(200, 400));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 320)));
+    await g.up();
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.tapAt(const Offset(200, 400));
+    await tester.pump(const Duration(seconds: 1));
+    expect(kinds, [TapKind.single], reason: 'the catch is dropped, so the next tap is a single');
+    await _finish(tester);
+  });
+
   testWidgets('a two-finger pinch changes zoom; a one-finger drag scrolls without changing it', (tester) async {
     final engine = await _pump(tester, options: const ReaderEngineOptions(pinch: true));
     final before = _offset(tester);
@@ -301,7 +333,7 @@ void main() {
     await _finish(tester);
   });
 
-  testWidgets('auto-hide: 24 px forward hides, 56 px back shows, never inside the grace', (tester) async {
+  testWidgets('auto-hide: 24 px forward hides, scrolling back never shows, never inside the grace', (tester) async {
     final engine = await _pump(
       tester,
       feed: ReaderFeed.of([_chapter('1', pages: 10)]),
@@ -313,12 +345,9 @@ void main() {
     expect(engine.value.chromeVisible, isFalse);
     await tester.dragFrom(const Offset(200, 700), const Offset(0, -500));
     await tester.pump(const Duration(seconds: 2));
-    await tester.dragFrom(const Offset(200, 300), const Offset(0, 40));
-    await tester.pump(const Duration(milliseconds: 600));
-    expect(engine.value.chromeVisible, isFalse, reason: '40 px back, less than 56 after the slop');
     await tester.dragFrom(const Offset(200, 300), const Offset(0, 200));
     await tester.pump(const Duration(milliseconds: 600));
-    expect(engine.value.chromeVisible, isTrue);
+    expect(engine.value.chromeVisible, isFalse, reason: 'only a double tap opens the menu');
     await _finish(tester);
 
     final graced = await _pump(

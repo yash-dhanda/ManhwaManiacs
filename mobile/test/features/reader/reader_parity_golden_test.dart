@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/app/theme/app_theme.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/page_extents.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_content.dart';
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
@@ -251,11 +252,10 @@ final _scenes = <String, _Scene>{
       initialPage: 3,
     );
     await _waitOutTapCooldown(tester);
-    final centre = tester.getCenter(find.byType(ListView));
-    // The reader detects a double tap itself, against the wall clock: two
-    // taps with nothing in between.
-    await tester.tapAt(centre);
-    await tester.tapAt(centre);
+    // A centre double tap is the menu's now; this is the zoom it used to make.
+    ProviderScope.containerOf(tester.element(find.byType(ListView)))
+        .read(readerUiProvider.notifier)
+        .toggleDoubleTapZoom();
     await tester.pump();
     await _loadPages(tester, rounds: 10);
     await tester.pump(const Duration(milliseconds: 3100));

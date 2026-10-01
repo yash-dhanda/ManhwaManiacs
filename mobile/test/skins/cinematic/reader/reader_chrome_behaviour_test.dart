@@ -33,7 +33,7 @@ void main() {
       await disposeReader(tester);
     });
 
-    testWidgets('hides after 24 px down, shows after 56 px up, never in the first 800 ms', (tester) async {
+    testWidgets('hides after 24 px down, scrolling back never shows it, never in the first 800 ms', (tester) async {
       await pumpReader(tester);
       await _wait(tester, 1000);
       // The grace is measured on the wall clock.
@@ -48,7 +48,7 @@ void main() {
       expect(chromeVisible(tester), isFalse, reason: 'under 56 px up');
       await tester.dragFrom(const Offset(195, 300), const Offset(0, 130));
       await _wait(tester, 400);
-      expect(chromeVisible(tester), isTrue, reason: '56 px up shows');
+      expect(chromeVisible(tester), isFalse, reason: 'only a double tap opens the menu');
       await disposeReader(tester);
     });
 

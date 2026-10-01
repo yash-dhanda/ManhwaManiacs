@@ -492,7 +492,7 @@ void main() {
     );
 
     testWidgets(
-      'bands set to toggle reveal the controls instead of turning the page',
+      'bands set to toggle reveal the controls on a double tap instead of turning the page',
       (tester) async {
         final prefs = await _freshPrefs({
           _tapZonesKey: 'toggle,toggle,toggle',
@@ -523,6 +523,15 @@ void main() {
         container.read(readerUiProvider.notifier).setControlsVisible(false);
         await tester.pump();
 
+        await tester.tapAt(const Offset(100, 300));
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(container.read(readerUiProvider).controlsVisible, isFalse,
+            reason: 'a single tap leaves the controls alone');
+
+        // The double-tap window reads the wall clock.
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
+        await tester.tapAt(const Offset(100, 300));
+        await tester.pump(const Duration(milliseconds: 60));
         await tester.tapAt(const Offset(100, 300));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
