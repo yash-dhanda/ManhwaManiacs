@@ -40,12 +40,13 @@ String chapterShort(double? n) => n == null ? 'a later chapter' : 'Ch. ${_num(n)
 /// The CIRCLE tab's rows for the chapter open at [openKey] / [openNumber]. While the viewer has
 /// not finished it ([completedOpen] false and the server still seals it) a reaction on it or on any
 /// later chapter shows only that the member reacted; members further on show where they are.
-List<CircleRow> circleRows(CircleSeriesData data, {required String openKey, required double? openNumber, required bool completedOpen}) {
+/// [selfId] is the viewer's profile: their own reactions come back in `by` and are not a Circle row.
+List<CircleRow> circleRows(CircleSeriesData data, {required String openKey, required double? openNumber, required bool completedOpen, int? selfId}) {
   final members = <int, CircleMemberRef>{
     for (final r in data.readers) r.member.profileId: r.member,
     for (final c in data.chapters)
       for (final b in c.by) b.member.profileId: b.member,
-  };
+  }..remove(selfId);
   final rows = <CircleRow>[];
   for (final m in members.values) {
     final reader = data.readers.where((r) => r.member.profileId == m.profileId).firstOrNull;

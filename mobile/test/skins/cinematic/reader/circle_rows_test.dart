@@ -51,4 +51,11 @@ void main() {
     final d = CircleSeriesData(readers: [CircleReader(member: m(1, 'Asha'), chapterKey: 'c142', chapterNumber: 142)]);
     expect(circleRows(d, openKey: 'c142', openNumber: 142, completedOpen: false).single.kind, CircleRowKind.here);
   });
+
+  test("the viewer's own reaction is not a Circle row", () {
+    final d = CircleSeriesData(chapters: [
+      CircleChapterReactions(chapterKey: 'c142', chapterNumber: 142, sealed: false, by: [ReactionBy.of(m(9, 'Me'), ReactionKind.loved)]),
+    ],);
+    expect(circleRows(d, openKey: 'c142', openNumber: 142, completedOpen: true, selfId: 9), isEmpty);
+  });
 }
