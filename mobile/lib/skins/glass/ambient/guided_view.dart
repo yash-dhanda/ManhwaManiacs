@@ -110,10 +110,10 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
     super.initState();
     _page = widget.initialPage.clamp(1, math.max(1, _pages));
     _anim.addListener(_onAnim);
-    _engine.setGuidedActive(true);
     _engine.ambient.panels.addListener(_onPanels);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _engine.setGuidedActive(true);
       _enter(_page, last: false, cut: true, announce: false);
     });
   }
@@ -121,9 +121,12 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
   @override
   void dispose() {
     _engine.ambient.panels.removeListener(_onPanels);
-    try {
-      _engine.setGuidedActive(false);
-    } catch (_) {}
+    final engine = _engine;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        engine.setGuidedActive(false);
+      } catch (_) {}
+    });
     _anim.dispose();
     _fade.dispose();
     _focus.dispose();
