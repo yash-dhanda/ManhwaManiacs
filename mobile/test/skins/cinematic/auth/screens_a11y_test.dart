@@ -69,8 +69,9 @@ void main() {
           for (var j = i + 1; j < rects.length; j++) {
             final gapX = rects[i].left >= rects[j].right ? rects[i].left - rects[j].right : rects[j].left >= rects[i].right ? rects[j].left - rects[i].right : -1;
             final gapY = rects[i].top >= rects[j].bottom ? rects[i].top - rects[j].bottom : rects[j].top >= rects[i].bottom ? rects[j].top - rects[i].bottom : -1;
-            final nested = rects[i].contains(rects[j].topLeft) && rects[i].contains(rects[j].bottomRight) ||
-                rects[j].contains(rects[i].topLeft) && rects[j].contains(rects[i].bottomRight);
+            // Inclusive: a control whose edge lies on its row's edge (a switch on the gutter) is
+            // still inside the row. Rect.contains excludes the right and bottom edges.
+            final nested = rects[i].expandToInclude(rects[j]) == rects[i] || rects[j].expandToInclude(rects[i]) == rects[j];
             final overlap = gapX < 0 && gapY < 0 && !nested;
             expect(overlap, isFalse, reason: 'controls $i and $j overlap: ${rects[i]} ${rects[j]}');
           }
