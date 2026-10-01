@@ -155,7 +155,7 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
   }
 
   void _openWrapped(Rect? origin) {
-    final year = int.tryParse(widget.year ?? '') ?? DateTime.now().year;
+    final year = int.tryParse(widget.year ?? '') ?? annualDefaultYear(DateTime.now(), ref.read(annualIndexProvider).valueOrNull);
     ref.read(wrappedOriginProvider.notifier).state = origin;
     unawaited(ref.read(skinRouterProvider).push<void>(Routes.annual(year)));
   }
@@ -327,7 +327,7 @@ class _Content extends ConsumerWidget {
     final s = load.data;
     final genres = ref.watch(genreWeightsProvider(8)).valueOrNull ?? const [];
     final annual = ref.watch(annualIndexProvider).valueOrNull;
-    final y = int.tryParse(year ?? '') ?? now.year;
+    final y = int.tryParse(year ?? '') ?? annualDefaultYear(now, annual);
     final coverUrl = s.shareable?.topSeries.firstOrNull?.coverUrl;
     final last7 = s.daily.length > 7 ? s.daily.sublist(s.daily.length - 7) : s.daily;
     ShareSpec stat(String id, String label, String numeral, String unit, String ctx) => ShareSpec.stat(id: id, eyebrow: label, numeral: numeral, unit: unit, contextLine: ctx, coverUrl: coverUrl);

@@ -163,12 +163,21 @@ void main() {
     });
 
     test('annualAvailable: December or 30 recorded days', () {
-      final thin = annualFixture(recordedDays: 29);
+      const thin = Annual(year: 2026, recordedDays: 29, availableYears: [2026]);
       final thick = annualFixture(recordedDays: 30);
       expect(annualAvailable(DateTime(2026, 11, 30), thin), isFalse);
       expect(annualAvailable(DateTime(2026, 12), thin), isTrue);
       expect(annualAvailable(DateTime(2026, 9), thick), isTrue);
       expect(annualAvailable(DateTime(2026, 9), null), isFalse);
+    });
+
+    test('last year stays on offer until this year is out', () {
+      const early = Annual(year: 2027, recordedDays: 5, availableYears: [2027, 2026]);
+      expect(annualAvailable(DateTime(2027, 2, 10), early), isTrue);
+      expect(annualDefaultYear(DateTime(2027, 2, 10), early), 2026);
+      expect(annualDefaultYear(DateTime(2027, 12), early), 2027);
+      const solo = Annual(year: 2027, recordedDays: 5, availableYears: [2027]);
+      expect(annualDefaultYear(DateTime(2027, 2, 10), solo), 2027);
     });
 
     test('issueNumber counts earlier available years', () {

@@ -452,7 +452,9 @@ class WrappedEntryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final title = wrappedTitle(annual) == WrappedTitle.soFar ? 'Your $year so far' : 'Your $year in chapters';
+    // [annual] is the current year's payload; a picked past year is a finished one.
+    final current = annual.year == year ? annual : null;
+    final title = current != null && wrappedTitle(current) == WrappedTitle.soFar ? 'Your $year so far' : 'Your $year in chapters';
     final years = annual.availableYears;
     return Builder(
       builder: (context) => GlassSlab(
@@ -475,7 +477,7 @@ class WrappedEntryCard extends ConsumerWidget {
                 children: [
                   GlassLabel('$year', role: gt.typeDisplay, color: gt.colorLabel1),
                   GlassLabel(title, role: gt.typeTitle3, color: gt.colorLabel1, maxLines: 2),
-                  if (annual.recordedDays < 30) GlassLabel('${plural(annual.recordedDays, 'day')} recorded so far', role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 2),
+                  if (current != null && current.recordedDays < 30) GlassLabel('${plural(annual.recordedDays, 'day')} recorded so far', role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 2),
                 ],
               ),
             ),

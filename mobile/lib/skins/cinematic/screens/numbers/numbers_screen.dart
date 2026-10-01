@@ -95,7 +95,9 @@ class _NumbersScreenState extends ConsumerState<NumbersScreen>
   }
 
   void _openAnnual([int? year]) =>
-      context.push(Routes.annual(year ?? ref.read(clockProvider)().year));
+      context.push(Routes.annual(year ??
+          annualDefaultYear(ref.read(clockProvider)(),
+              ref.read(annualIndexProvider).valueOrNull,),),);
 
   void _share() {
     final stats = ref.read(numbersStatisticsProvider(_range)).valueOrNull;
@@ -242,7 +244,7 @@ class _NumbersScreenState extends ConsumerState<NumbersScreen>
                                     delay: Duration(milliseconds: 1200),),),
                             if (showAnnual)
                               AnnualBanner(
-                                  year: now.year,
+                                  year: annualDefaultYear(now, annual),
                                   december: now.month == 12,
                                   years: years,
                                   onOpen: _openAnnual,),

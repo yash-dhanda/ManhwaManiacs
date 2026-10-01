@@ -25,9 +25,22 @@ DailyActivity? bestChapterDay(List<DailyActivity> daily) {
   return best;
 }
 
-/// The Annual is out from 1 December (local) or once 30 days are recorded.
+/// The Annual is out from 1 December (local) or once 30 days are recorded;
+/// until then last year's, when there is one, stays on offer.
 bool annualAvailable(DateTime nowLocal, Annual? current) =>
+    _currentOut(nowLocal, current) ||
+    (current?.availableYears.contains(nowLocal.year - 1) ?? false);
+
+bool _currentOut(DateTime nowLocal, Annual? current) =>
     nowLocal.month == 12 || (current?.recordedDays ?? 0) >= 30;
+
+/// The year an Annual entry opens by default: this year once it is out,
+/// otherwise last year when it has one.
+int annualDefaultYear(DateTime nowLocal, Annual? current) =>
+    !_currentOut(nowLocal, current) &&
+            (current?.availableYears.contains(nowLocal.year - 1) ?? false)
+        ? nowLocal.year - 1
+        : nowLocal.year;
 
 /// 1 + the number of available years below [year].
 int issueNumber(int year, List<int> availableYears) =>
