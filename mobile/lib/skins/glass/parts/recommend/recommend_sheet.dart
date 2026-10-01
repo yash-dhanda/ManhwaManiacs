@@ -60,8 +60,8 @@ Map<String, String> currentQuery(WidgetRef ref) {
 }
 
 /// Opens the recommend sheet: `?sheet=recommend&series={sourceId}:{seriesKey}` (plus `&to=` to preselect) on the current
-/// location; with no series it opens on the pick step. On a sheet route (the friend sheet) it is pushed directly on the root
-/// navigator, because sheet routes do not host `?sheet=`.
+/// location; with no series it opens on the pick step. On a sheet route (the friend sheet) or any pushed page it is pushed
+/// directly on the root navigator, because sheet routes do not host `?sheet=` and a `go` would wipe the back stack.
 void openRecommendSheet(WidgetRef ref, {String? sourceId, String? seriesKey, String? title, int? toProfileId}) {
   final router = ref.read(skinRouterProvider);
   final uri = router.routerDelegate.currentConfiguration.uri;
@@ -71,7 +71,9 @@ void openRecommendSheet(WidgetRef ref, {String? sourceId, String? seriesKey, Str
     if (title != null) 'title': title,
     if (toProfileId != null) 'to': '$toProfileId',
   };
-  if (uri.path.startsWith('/circle/')) {
+  // A pushed page (a series opened as a sheet from Home or Library) is pushed over too: `go` rebuilds the stack from
+  // the URL alone, dropping the pages beneath and the page's own sheet presentation.
+  if (uri.path.startsWith('/circle/') || router.canPop()) {
     final nav = ref.read(glassNavigatorsProvider)?.root.currentState;
     if (nav == null) return;
     final page = GlassSheetPage<void>(
