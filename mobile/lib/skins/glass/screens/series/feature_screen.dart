@@ -36,6 +36,7 @@ class GlassFeatureScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cached = ref.watch(updatesProvider.select((s) => s.valueOrNull?.followed));
     final row = cached == null ? followed : followFor(cached, sourceId, seriesKey);
+    if (sourceKindPending(ref, sourceId)) return const SeriesSkeleton();
     final novel = isNovelSource(ref.watch(contentModeScopeProvider), sourceId) ?? false;
     final source = ref.watch(sourcesListProvider).valueOrNull?.where((s) => s.id == sourceId).firstOrNull;
     final gateOpen = ref.watch(matureContentProvider).valueOrNull ?? false;
@@ -74,7 +75,7 @@ class GlassFeatureScreen extends ConsumerWidget {
       data: (v) {
         final d = GlassSeriesData(sourceId: sourceId, seriesKey: seriesKey, series: v.series, chapters: v.chapters, followed: row, novel: novel);
         return GlassSeriesPage(
-          key: ValueKey('series-page-$sourceId-$seriesKey'),
+          key: ValueKey('series-page-$sourceId-$seriesKey-$novel'),
           data: d,
           variant: novel ? BookVariant(mature: mature) : MangaVariant(velocity: velocity, mature: mature),
           focusChapter: chapter,
