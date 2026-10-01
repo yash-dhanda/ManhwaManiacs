@@ -60,6 +60,10 @@ class SeriesChapters extends ChangeNotifier {
   Set<String> run = {};
   int runAlreadySaved = 0;
 
+  /// The run's keys the status stream has shown: one that then disappears was cancelled or removed
+  /// (from its row, Downloads or elsewhere) and will never finish.
+  final Set<String> runSeen = {};
+
   void setOrder(String o) {
     order = o;
     notifyListeners();
@@ -465,7 +469,7 @@ class ChapterSelectToolbar extends ConsumerWidget {
     final sel = chapters.selection;
     final statuses = ref.watch(seriesChapterDownloadStatusProvider(d.identity)).valueOrNull ?? const {};
     final run = chapters.run;
-    final done = run.where((k) => statuses[k]?.state == DownloadChapterState.complete || statuses[k]?.state == DownloadChapterState.failed).length;
+    final done = run.where((k) => statuses[k]?.state == DownloadChapterState.complete || statuses[k]?.state == DownloadChapterState.failed || (statuses[k] == null && chapters.runSeen.contains(k))).length;
     final running = run.isNotEmpty && done < run.length;
     final online = isOnline(ref);
     final picked = d.chapters.where((c) => sel.isSelected(c.id)).toList();
@@ -542,6 +546,7 @@ class ChapterSelectToolbar extends ConsumerWidget {
         if (statuses[c.id]?.state != DownloadChapterState.complete) c.id,
     ];
     chapters.run = keys.toSet();
+    chapters.runSeen.clear();
     chapters.runAlreadySaved = picked.length - keys.length;
     chapters.selection.end();
     chapters.ping();
@@ -560,12 +565,16 @@ class ChapterSelectToolbar extends ConsumerWidget {
 }
 
 /// The summary toast once every chapter of a run has finished (glass 8.12 Select mode).
-String? runSummary(Set<String> run, Map<String, ChapterDownloadStatus> statuses, {int? freeMb}) {
+/// A key in [seen] that is no longer in [statuses] was cancelled and counts as finished; '' when every
+/// chapter was cancelled (the run ends without a toast).
+String? runSummary(Set<String> run, Map<String, ChapterDownloadStatus> statuses, {Set<String> seen = const {}, int? freeMb}) {
   if (run.isEmpty) return null;
   final ok = run.where((k) => statuses[k]?.state == DownloadChapterState.complete).length;
   final failed = run.where((k) => statuses[k]?.state == DownloadChapterState.failed).length;
-  if (ok + failed < run.length) return null;
-  if (failed == 0) return '$ok chapter${ok == 1 ? '' : 's'} downloaded';
+  final dropped = run.where((k) => statuses[k] == null && seen.contains(k)).length;
+  if (ok + failed + dropped < run.length) return null;
+  if (ok + failed == 0) return '';
+  if (failed == 0) return dropped == 0 ? '$ok chapter${ok == 1 ? '' : 's'} downloaded' : '$ok of ${run.length} downloaded';
   return '$ok of ${run.length} downloaded, $failed failed';
 }
 
@@ -584,10 +593,13 @@ String initialOrder(WidgetRef ref, GlassSeriesData d) =>
 /// Keeps a run's summary toast and `download.done` (once per batch).
 void watchRun(WidgetRef ref, GlassSeriesData d, SeriesChapters c) {
   ref.listen<AsyncValue<Map<String, ChapterDownloadStatus>>>(seriesChapterDownloadStatusProvider(d.identity), (prev, next) {
-    final s = runSummary(c.run, next.valueOrNull ?? const {});
+    final statuses = next.valueOrNull ?? const {};
+    c.runSeen.addAll(c.run.where(statuses.containsKey));
+    final s = runSummary(c.run, statuses, seen: c.runSeen);
     if (s == null) return;
     c.run = {};
     c.ping();
+    if (s.isEmpty) return;
     fire(ref.read(glassHapticsProvider).fire(s.contains('failed') ? HapticEvent.downloadFail : HapticEvent.downloadDone));
     showGlassToast(ref, GlassToastSpec(s, kind: s.contains('failed') ? GlassToastKind.error : GlassToastKind.success));
   });
