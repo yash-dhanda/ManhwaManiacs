@@ -165,7 +165,7 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
     c.tags = () => openTagsSheet(context, data);
     c.share = () => copySeriesLink(ref, data);
     c.recommend = glassSheetRegistered('recommend') ? () => openRecommendSheet(ref, sourceId: data.sourceId, seriesKey: data.seriesKey, title: data.title) : null;
-    c.toggleSort = () => chapters.setOrder(chapters.order == 'newest' ? 'oldest' : 'newest');
+    c.toggleSort = () => setChapterOrder(ref, data, chapters, chapters.order == 'newest' ? 'oldest' : 'newest');
     c.select = toggleSelect;
     c.focusGoTo = focusGoTo;
     c.more = () => openMenu(rectOf(bandKey.currentContext ?? context));

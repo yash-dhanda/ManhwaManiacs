@@ -167,10 +167,7 @@ class ChaptersHeader extends ConsumerWidget {
                   ? const [GlassSegment(value: 'oldest', label: 'First → last'), GlassSegment(value: 'newest', label: 'Last → first')]
                   : const [GlassSegment(value: 'newest', label: 'Newest'), GlassSegment(value: 'oldest', label: 'Oldest')],
               selected: chapters.order,
-              onSelected: (o) {
-                chapters.setOrder(o);
-                fire(saveChapterSort(ref.read(sharedPrefsProvider), profileId: ref.read(activeProfileProvider)?.id.toString(), sourceId: d.sourceId, seriesKey: d.seriesKey, order: o));
-              },
+              onSelected: (o) => setChapterOrder(ref, d, chapters, o),
             ),
           ],
         ),
@@ -356,6 +353,12 @@ class ChapterRowsSliver extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Sets and remembers the chapter order for this series (the segmented control and the keyboard toggle).
+void setChapterOrder(WidgetRef ref, GlassSeriesData d, SeriesChapters chapters, String o) {
+  chapters.setOrder(o);
+  fire(saveChapterSort(ref.read(sharedPrefsProvider), profileId: ref.read(activeProfileProvider)?.id.toString(), sourceId: d.sourceId, seriesKey: d.seriesKey, order: o));
 }
 
 /// Mark read: the batch call, "Marked 42 chapters read · Undo" (Undo deletes only the keys that were not completed before).
