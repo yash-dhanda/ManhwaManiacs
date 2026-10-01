@@ -755,6 +755,7 @@ class _PageImageState extends State<_PageImage> {
   ImageStream? _stream;
   ImageStreamListener? _listener;
   ui.Image? _image;
+  bool _failed = false;
 
   @override
   void didChangeDependencies() {
@@ -768,11 +769,38 @@ class _PageImageState extends State<_PageImage> {
     final next = provider.resolve(createLocalImageConfiguration(context));
     if (next.key == _stream?.key) return;
     _stream?.removeListener(_listener!);
-    _listener = ImageStreamListener((info, _) {
-      widget.onSize(info.image.width, info.image.height);
-      if (mounted) setState(() => _image = info.image);
-    });
+    // With an onError the failure stays here (a retry) instead of reaching FlutterError, which the Cinematic root turns into the
+    // fatal page.
+    _listener = ImageStreamListener(
+      (info, _) {
+        widget.onSize(info.image.width, info.image.height);
+        if (mounted) setState(() => _image = info.image);
+      },
+      onError: (_, __) {
+        if (mounted) setState(() => _failed = true);
+      },
+    );
     _stream = next..addListener(_listener!);
+  }
+
+  // ponytail: plain text retry; a skin-styled error state can replace it.
+  Widget _failedView() => Semantics(
+        button: true,
+        label: "Couldn't load this page. Retry",
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _retry,
+          child: const Center(
+            child: Text("Couldn't load this page. Tap to retry.", style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 15, decoration: TextDecoration.none)),
+          ),
+        ),
+      );
+
+  void _retry() {
+    _stream?.removeListener(_listener!);
+    _stream = null;
+    setState(() => _failed = false);
+    _resolve();
   }
 
   @override
@@ -782,7 +810,9 @@ class _PageImageState extends State<_PageImage> {
   }
 
   @override
-  Widget build(BuildContext context) => _image == null
-      ? const SizedBox.expand()
-      : RawImage(image: _image, fit: BoxFit.fill);
+  Widget build(BuildContext context) => _image != null
+      ? RawImage(image: _image, fit: BoxFit.fill)
+      : _failed
+          ? _failedView()
+          : const SizedBox.expand();
 }
