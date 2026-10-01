@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/skins/glass/dev/auth_fixtures.dart' show FakeAuth;
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/hold_to_confirm.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/skin_card.dart';
 import 'package:manhwamaniacs/skins/glass/shell/handoff_layer.dart' show glassEffectsProvider;
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart' show glassOfflineProvider;
 
@@ -109,7 +110,8 @@ void main() {
 
   Future<ShotSession> openAlert(WidgetTester t, {List<Override> extra = const []}) async {
     final s = await _open(t, _phone, '/settings/appearance', extra: extra);
-    await t.tap(find.text('Cinematic').first);
+    // The card's preview, not its name: the name sits beside the floating tab bar on the first screen since the margin fix.
+    await t.tapAt(t.getTopLeft(find.byType(GlassSkinCard).last) + const Offset(40, 40));
     for (var i = 0; i < 4; i++) {
       await s.settle(300);
     }
