@@ -1,4 +1,6 @@
 
+import 'dart:async';
+
 import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
@@ -84,9 +86,20 @@ extension CatchableSpring on AnimationController {
   /// Spring toward [target]; [velocityPxPerS] over [travelPx] is the release velocity in unit space.
   TickerFuture springTo(double target, SpringToken token, {double velocityPxPerS = 0, double travelPx = 1}) {
     final v = velocityPxPerS == 0 && isAnimating ? velocity : velocityPxPerS / travelPx;
-    return animateWith(SpringSimulation(springOf(token), value, target, v));
+    final run = animateWith(SpringSimulation(springOf(token), value, target, v, tolerance: glassSpringTolerance((target - value).abs())));
+    // Done within the tolerance: land exactly on the target unless another move has started since.
+    unawaited(run.then((_) {
+      if (!isAnimating) value = target;
+    }),);
+    return run;
   }
 }
+
+/// When a Glass spring counts as settled: within 0.5 % of its travel (the spec's settle, design/lib/spring.mjs) and slower than
+/// 10 % of the travel per second. Flutter's default (1e-3 absolute) ran every move 1.3 to 2x its planned settle; this one is
+/// never early and at most about 45 ms late (test/skins/glass/qa/motion_settle_test.dart).
+Tolerance glassSpringTolerance(double travel) =>
+    travel < 1e-6 ? Tolerance.defaultTolerance : Tolerance(distance: 0.005 * travel, velocity: 0.1 * travel);
 
 /// Lands a fling on the nearest multiple of [stride] (rails, the voice orbit, pagers).
 class SnapPhysics extends ScrollPhysics {

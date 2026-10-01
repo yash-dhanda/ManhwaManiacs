@@ -1,0 +1,429 @@
+[
+  {
+    "label": "PRESS SWELL",
+    "plannedMs": 253,
+    "specSettleMs": 252.7,
+    "controllerSettleMs60Hz": 283.3,
+    "flutterDefaultToleranceMs60Hz": 366.7
+  },
+  {
+    "label": "CONTENT SINK",
+    "plannedMs": 253,
+    "specSettleMs": 252.7,
+    "controllerSettleMs60Hz": 283.3,
+    "flutterDefaultToleranceMs60Hz": 366.7
+  },
+  {
+    "label": "BLOOM",
+    "plannedMs": 434,
+    "specSettleMs": 434.4,
+    "controllerSettleMs60Hz": 450.0,
+    "flutterDefaultToleranceMs60Hz": 800.0
+  },
+  {
+    "label": "PUSH",
+    "plannedMs": 615,
+    "specSettleMs": 614.9,
+    "controllerSettleMs60Hz": 616.7,
+    "flutterDefaultToleranceMs60Hz": 983.3
+  },
+  {
+    "label": "POP",
+    "plannedMs": 615,
+    "specSettleMs": 614.9,
+    "controllerSettleMs60Hz": 616.7,
+    "flutterDefaultToleranceMs60Hz": 983.3
+  },
+  {
+    "label": "STACK FAN",
+    "plannedMs": 436,
+    "specSettleMs": 435.5,
+    "controllerSettleMs60Hz": 466.7,
+    "flutterDefaultToleranceMs60Hz": 916.7
+  },
+  {
+    "label": "ZOOM",
+    "plannedMs": 558,
+    "specSettleMs": 557.7,
+    "controllerSettleMs60Hz": 566.7,
+    "flutterDefaultToleranceMs60Hz": 800.0
+  },
+  {
+    "label": "DIVE",
+    "plannedMs": 558,
+    "specSettleMs": 557.7,
+    "controllerSettleMs60Hz": 566.7,
+    "flutterDefaultToleranceMs60Hz": 800.0
+  },
+  {
+    "label": "BOOK OPEN",
+    "plannedMs": 615,
+    "specSettleMs": 614.9,
+    "controllerSettleMs60Hz": 616.7,
+    "flutterDefaultToleranceMs60Hz": 983.3
+  },
+  {
+    "label": "TAB DROPLET",
+    "plannedMs": 518,
+    "specSettleMs": 518.0,
+    "controllerSettleMs60Hz": 533.3,
+    "flutterDefaultToleranceMs60Hz": 716.7
+  },
+  {
+    "label": "MINIMISE",
+    "plannedMs": 473,
+    "specSettleMs": 473.0,
+    "controllerSettleMs60Hz": 483.3,
+    "flutterDefaultToleranceMs60Hz": 783.3
+  },
+  {
+    "label": "SHEET PRESENT",
+    "plannedMs": 447,
+    "specSettleMs": 447.4,
+    "controllerSettleMs60Hz": 466.7,
+    "flutterDefaultToleranceMs60Hz": 616.7
+  },
+  {
+    "label": "SHEET SNAP",
+    "plannedMs": 342,
+    "specSettleMs": 342.0,
+    "controllerSettleMs60Hz": 383.3,
+    "flutterDefaultToleranceMs60Hz": 766.7
+  },
+  {
+    "label": "TOAST FALL",
+    "plannedMs": 431,
+    "specSettleMs": 430.8,
+    "controllerSettleMs60Hz": 433.3,
+    "flutterDefaultToleranceMs60Hz": 716.7
+  },
+  {
+    "label": "WAVE",
+    "plannedMs": 431,
+    "specSettleMs": 430.8,
+    "controllerSettleMs60Hz": 433.3,
+    "flutterDefaultToleranceMs60Hz": 716.7
+  },
+  {
+    "label": "SURFACE FROM DEPTH",
+    "plannedMs": 431,
+    "specSettleMs": 430.8,
+    "controllerSettleMs60Hz": 433.3,
+    "flutterDefaultToleranceMs60Hz": 716.7
+  },
+  {
+    "label": "DEAL",
+    "plannedMs": 431,
+    "specSettleMs": 430.8,
+    "controllerSettleMs60Hz": 433.3,
+    "flutterDefaultToleranceMs60Hz": 716.7
+  },
+  {
+    "label": "LETTER REVEAL",
+    "plannedMs": 345,
+    "specSettleMs": 345.3,
+    "controllerSettleMs60Hz": 383.3,
+    "flutterDefaultToleranceMs60Hz": 783.3
+  },
+  {
+    "label": "TYPING REVEAL",
+    "plannedMs": 50,
+    "specSettleMs": 289.2,
+    "controllerSettleMs60Hz": 333.3,
+    "flutterDefaultToleranceMs60Hz": 533.3
+  },
+  {
+    "label": "STEP INTO THE LIGHT",
+    "plannedMs": 1100,
+    "specSettleMs": 642.5,
+    "controllerSettleMs60Hz": 683.3,
+    "flutterDefaultToleranceMs60Hz": 1166.7
+  },
+  {
+    "label": "THROW",
+    "plannedMs": 558,
+    "specSettleMs": 557.7,
+    "controllerSettleMs60Hz": 566.7,
+    "flutterDefaultToleranceMs60Hz": 800.0
+  },
+  {
+    "label": "RUBBER BAND",
+    "plannedMs": 414,
+    "specSettleMs": 413.8,
+    "controllerSettleMs60Hz": 416.7,
+    "flutterDefaultToleranceMs60Hz": 700.0
+  },
+  {
+    "label": "MENISCUS REFRESH",
+    "plannedMs": 467,
+    "specSettleMs": 467.2,
+    "controllerSettleMs60Hz": 500.0,
+    "flutterDefaultToleranceMs60Hz": 850.0
+  },
+  {
+    "label": "SCRUB LENS",
+    "plannedMs": 467,
+    "specSettleMs": 467.2,
+    "controllerSettleMs60Hz": 500.0,
+    "flutterDefaultToleranceMs60Hz": 850.0
+  },
+  {
+    "label": "CHAPTER CARD RISE",
+    "plannedMs": 558,
+    "specSettleMs": 557.7,
+    "controllerSettleMs60Hz": 566.7,
+    "flutterDefaultToleranceMs60Hz": 800.0
+  },
+  {
+    "label": "NOVEL NEXT",
+    "plannedMs": 615,
+    "specSettleMs": 614.9,
+    "controllerSettleMs60Hz": 616.7,
+    "flutterDefaultToleranceMs60Hz": 983.3
+  },
+  {
+    "label": "PANEL CAMERA",
+    "plannedMs": 392,
+    "specSettleMs": 391.9,
+    "controllerSettleMs60Hz": 416.7,
+    "flutterDefaultToleranceMs60Hz": 833.3
+  },
+  {
+    "label": "HIT LENS",
+    "plannedMs": 392,
+    "specSettleMs": 391.9,
+    "controllerSettleMs60Hz": 416.7,
+    "flutterDefaultToleranceMs60Hz": 833.3
+  },
+  {
+    "label": "PAGE SLIDE",
+    "plannedMs": 615,
+    "specSettleMs": 614.9,
+    "controllerSettleMs60Hz": 616.7,
+    "flutterDefaultToleranceMs60Hz": 983.3
+  },
+  {
+    "label": "PAGE LIFT",
+    "plannedMs": 615,
+    "specSettleMs": 614.9,
+    "controllerSettleMs60Hz": 616.7,
+    "flutterDefaultToleranceMs60Hz": 983.3
+  },
+  {
+    "label": "PAPER RIPPLE",
+    "plannedMs": 615,
+    "specSettleMs": 614.9,
+    "controllerSettleMs60Hz": 616.7,
+    "flutterDefaultToleranceMs60Hz": 983.3
+  },
+  {
+    "label": "LIQUID FILL",
+    "plannedMs": 467,
+    "specSettleMs": 467.2,
+    "controllerSettleMs60Hz": 500.0,
+    "flutterDefaultToleranceMs60Hz": 850.0
+  },
+  {
+    "label": "HOLD FILL",
+    "plannedMs": 1000,
+    "specSettleMs": 378.4,
+    "controllerSettleMs60Hz": 383.3,
+    "flutterDefaultToleranceMs60Hz": 633.3
+  },
+  {
+    "label": "DROPLET REVEAL",
+    "plannedMs": 1200,
+    "specSettleMs": 467.2,
+    "controllerSettleMs60Hz": 500.0,
+    "flutterDefaultToleranceMs60Hz": 850.0
+  },
+  {
+    "label": "CARD FLIP",
+    "plannedMs": 436,
+    "specSettleMs": 435.5,
+    "controllerSettleMs60Hz": 466.7,
+    "flutterDefaultToleranceMs60Hz": 916.7
+  },
+  {
+    "label": "DECK LIFT-OFF",
+    "plannedMs": 436,
+    "specSettleMs": 435.5,
+    "controllerSettleMs60Hz": 466.7,
+    "flutterDefaultToleranceMs60Hz": 916.7
+  },
+  {
+    "label": "STORY STACK",
+    "plannedMs": 615,
+    "specSettleMs": 614.9,
+    "controllerSettleMs60Hz": 616.7,
+    "flutterDefaultToleranceMs60Hz": 983.3
+  },
+  {
+    "label": "STREAK FLARE",
+    "plannedMs": 643,
+    "specSettleMs": 642.5,
+    "controllerSettleMs60Hz": 683.3,
+    "flutterDefaultToleranceMs60Hz": 1166.7
+  },
+  {
+    "label": "GOAL RING CLOSE",
+    "plannedMs": 600,
+    "specSettleMs": 430.8,
+    "controllerSettleMs60Hz": 433.3,
+    "flutterDefaultToleranceMs60Hz": 716.7
+  },
+  {
+    "label": "REACTION BLOOM AND ARC",
+    "plannedMs": 467,
+    "specSettleMs": 467.2,
+    "controllerSettleMs60Hz": 500.0,
+    "flutterDefaultToleranceMs60Hz": 850.0
+  },
+  {
+    "label": "PRESENCE DRIFT",
+    "plannedMs": 1064,
+    "specSettleMs": 1064.2,
+    "controllerSettleMs60Hz": 1066.7,
+    "flutterDefaultToleranceMs60Hz": 1616.7
+  },
+  {
+    "label": "BEAD PULSE",
+    "plannedMs": 289,
+    "specSettleMs": 289.2,
+    "controllerSettleMs60Hz": 333.3,
+    "flutterDefaultToleranceMs60Hz": 533.3
+  },
+  {
+    "label": "DENSITY REFLOW",
+    "plannedMs": 431,
+    "specSettleMs": 430.8,
+    "controllerSettleMs60Hz": 433.3,
+    "flutterDefaultToleranceMs60Hz": 716.7
+  },
+  {
+    "label": "PIN FLY",
+    "plannedMs": 558,
+    "specSettleMs": 557.7,
+    "controllerSettleMs60Hz": 566.7,
+    "flutterDefaultToleranceMs60Hz": 800.0
+  },
+  {
+    "label": "FAN OPEN",
+    "plannedMs": 643,
+    "specSettleMs": 642.5,
+    "controllerSettleMs60Hz": 683.3,
+    "flutterDefaultToleranceMs60Hz": 1166.7
+  },
+  {
+    "label": "DRAIN",
+    "plannedMs": 467,
+    "specSettleMs": 467.2,
+    "controllerSettleMs60Hz": 500.0,
+    "flutterDefaultToleranceMs60Hz": 850.0
+  },
+  {
+    "label": "AMBIENT DRIFT",
+    "plannedMs": 1064,
+    "specSettleMs": 1064.2,
+    "controllerSettleMs60Hz": 1066.7,
+    "flutterDefaultToleranceMs60Hz": 1616.7
+  },
+  {
+    "label": "ADDRESS DRAIN",
+    "plannedMs": 558,
+    "specSettleMs": 557.7,
+    "controllerSettleMs60Hz": 566.7,
+    "flutterDefaultToleranceMs60Hz": 800.0
+  },
+  {
+    "label": "LENS SPLIT",
+    "plannedMs": 643,
+    "specSettleMs": 642.5,
+    "controllerSettleMs60Hz": 683.3,
+    "flutterDefaultToleranceMs60Hz": 1166.7
+  },
+  {
+    "label": "ORB LIFT",
+    "plannedMs": 558,
+    "specSettleMs": 557.7,
+    "controllerSettleMs60Hz": 566.7,
+    "flutterDefaultToleranceMs60Hz": 800.0
+  },
+  {
+    "label": "DOTS MERGE",
+    "plannedMs": 431,
+    "specSettleMs": 430.8,
+    "controllerSettleMs60Hz": 433.3,
+    "flutterDefaultToleranceMs60Hz": 716.7
+  },
+  {
+    "label": "COVER ARC",
+    "plannedMs": 289,
+    "specSettleMs": 289.2,
+    "controllerSettleMs60Hz": 333.3,
+    "flutterDefaultToleranceMs60Hz": 533.3
+  },
+  {
+    "label": "AVATAR ARC",
+    "plannedMs": 280,
+    "specSettleMs": 289.2,
+    "controllerSettleMs60Hz": 333.3,
+    "flutterDefaultToleranceMs60Hz": 533.3
+  },
+  {
+    "label": "ORBS FLY OUT",
+    "plannedMs": 558,
+    "specSettleMs": 557.7,
+    "controllerSettleMs60Hz": 566.7,
+    "flutterDefaultToleranceMs60Hz": 800.0
+  },
+  {
+    "label": "TAG FLIGHT",
+    "plannedMs": 558,
+    "specSettleMs": 557.7,
+    "controllerSettleMs60Hz": 566.7,
+    "flutterDefaultToleranceMs60Hz": 800.0
+  },
+  {
+    "label": "PLUS ONE",
+    "plannedMs": 643,
+    "specSettleMs": 642.5,
+    "controllerSettleMs60Hz": 683.3,
+    "flutterDefaultToleranceMs60Hz": 1166.7
+  },
+  {
+    "label": "HIGHLIGHT BAND",
+    "plannedMs": 431,
+    "specSettleMs": 430.8,
+    "controllerSettleMs60Hz": 433.3,
+    "flutterDefaultToleranceMs60Hz": 716.7
+  },
+  {
+    "label": "LOZENGE MORPH",
+    "plannedMs": 431,
+    "specSettleMs": 430.8,
+    "controllerSettleMs60Hz": 433.3,
+    "flutterDefaultToleranceMs60Hz": 716.7
+  },
+  {
+    "label": "FOLLOW SCROLL",
+    "plannedMs": 414,
+    "specSettleMs": 413.8,
+    "controllerSettleMs60Hz": 416.7,
+    "flutterDefaultToleranceMs60Hz": 700.0
+  },
+  {
+    "label": "LENS HOP",
+    "plannedMs": 643,
+    "specSettleMs": 642.5,
+    "controllerSettleMs60Hz": 683.3,
+    "flutterDefaultToleranceMs60Hz": 1166.7
+  },
+  {
+    "label": "CARD DROP",
+    "plannedMs": 643,
+    "specSettleMs": 642.5,
+    "controllerSettleMs60Hz": 683.3,
+    "flutterDefaultToleranceMs60Hz": 1166.7
+  }
+]
