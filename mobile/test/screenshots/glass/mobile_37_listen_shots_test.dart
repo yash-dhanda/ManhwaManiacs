@@ -16,27 +16,22 @@ import 'package:manhwamaniacs/features/novels/controllers/narration_controller.d
 import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
 import 'package:manhwamaniacs/features/novels/providers/narration_jobs_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
-import 'package:manhwamaniacs/features/novels/providers/narration_jobs_provider.dart';
-import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
-import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
-import 'package:manhwamaniacs/features/novels/repositories/novels_repository.dart' show NovelSeriesAudioDetail;
-import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
-import 'package:manhwamaniacs/features/novels/repositories/novels_repository.dart' show NovelSeriesAudioDetail;
+import 'package:manhwamaniacs/features/novels/providers/saved_audio_provider.dart' show SavedAudioState;
 import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
+import 'package:manhwamaniacs/features/novels/repositories/novels_repository.dart' show NovelSeriesAudioDetail;
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
-import 'package:manhwamaniacs/skins/glass/listen/glass_narration_host.dart';
-import 'package:manhwamaniacs/skins/glass/listen/post_play_card.dart' show glassPostPlayProvider;
-import 'package:manhwamaniacs/skins/glass/listen/player_column.dart' show GlassPlayerColumn;
 import 'package:manhwamaniacs/skins/glass/listen/audiobook_button.dart';
+import 'package:manhwamaniacs/skins/glass/listen/glass_narration_host.dart';
+import 'package:manhwamaniacs/skins/glass/listen/player_column.dart' show GlassPlayerColumn;
+import 'package:manhwamaniacs/skins/glass/listen/post_play_card.dart' show glassPostPlayProvider;
 import 'package:manhwamaniacs/skins/glass/listen/save_audio.dart' show saveAudioLabel;
-import 'package:manhwamaniacs/features/novels/providers/saved_audio_provider.dart' show SavedAudioState;
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
-import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show SkinGlassRoot;
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show SkinGlassRoot;
 
 import '../../skins/cinematic/novel/novel_test_support.dart' as cine;
 import '../../skins/glass/listen/listen_rig.dart';
@@ -57,19 +52,12 @@ class _Wake implements ReaderWakelock {
   Future<void> disable() async {}
 }
 
-class _InApp extends GlassInAppPrefsController {
-  _InApp(this.prefs);
-  final GlassInAppPrefs prefs;
-  @override
-  GlassInAppPrefs build() => prefs;
-}
-
 class _Reduced extends GlassInAppPrefsController {
   @override
   GlassInAppPrefs build() => const GlassInAppPrefs(reduceMotion: true);
 }
 
-List<Override> _novel({bool online = true, bool paragraphsLong = false}) => [
+List<Override> _novel({bool online = true}) => [
       readerWakelockProvider.overrideWithValue(_Wake()),
       sourcesListProvider.overrideWith((ref) async => const [SourceSummary(id: 'demo', name: 'Demo Source', description: '', browsable: true, supportsImport: false)]),
       sourceSeriesDetailProvider.overrideWith((ref, k) async => SourceSeriesDetailData(series: cine.loadSeriesFixture('manga-ongoing').series, chapters: cine.novelChapters())),
@@ -120,7 +108,6 @@ class _Open {
       chapterNumber: 1,
       chapterTitle: 'Down the Rabbit-Hole',
       narratorName: 'Voice 20',
-      coverUrl: null,
     );
     await t.runAsync(() => narr.start(target, startMs: startMs));
     for (var i = 0; i < 8; i++) {

@@ -1,15 +1,14 @@
 // ignore_for_file: require_trailing_commas
 import 'dart:ui' show Size;
 
-import 'package:flutter/widgets.dart' show ValueKey;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/novels/models/narration_save_state.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
 import 'package:manhwamaniacs/features/novels/repositories/novels_repository.dart' show NovelSeriesAudioDetail;
 import 'package:manhwamaniacs/features/novels/utils/audiobook_plan.dart';
 import 'package:manhwamaniacs/skins/glass/listen/audiobook_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/listen/narrating_chip.dart';
-import 'package:manhwamaniacs/features/novels/models/narration_save_state.dart';
 
 import '../novel/novel_rig.dart';
 import 'listen_rig.dart';
@@ -91,12 +90,12 @@ void main() {
 
   testWidgets('the Narrating chip counts the chapters in flight', (t) async {
     expect(narratingLabel(3), 'Narrating 3');
-    expect(const ValueKey('x'), isNotNull);
+    expect(narratingLabel(1), 'Narrating 1');
   });
 
   test('row statuses in both modes and the wording of the estimate and the primary button', () {
     const chapters = [AudiobookChapter(key: 'a', label: 'A'), AudiobookChapter(key: 'b', label: 'B'), AudiobookChapter(key: 'c', label: 'C'), AudiobookChapter(key: 'd', label: 'D')];
-    final plan = AudiobookPlan(
+    const plan = AudiobookPlan(
       chapters: chapters,
       rendered: {'a', 'b'},
       narratable: {'a', 'b', 'c'},

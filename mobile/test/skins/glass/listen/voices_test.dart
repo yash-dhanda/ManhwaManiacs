@@ -3,18 +3,18 @@ import 'dart:ui' show Size;
 
 import 'package:flutter/widgets.dart' show ValueKey;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
 import 'package:manhwamaniacs/skins/glass/listen/cast_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/listen/orbit_math.dart';
 import 'package:manhwamaniacs/skins/glass/listen/voice_card.dart';
 import 'package:manhwamaniacs/skins/glass/listen/voice_grid.dart';
 import 'package:manhwamaniacs/skins/glass/listen/voice_orbit.dart';
-import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
 
 import '../novel/novel_rig.dart';
 import 'listen_rig.dart';
 
-Future<GlassListenRig> _open(WidgetTester t, String query, {bool owner = true, bool accessible = false}) async {
-  final l = await pumpGlassListen(t, owner: owner, pushed: false, size: const Size(390, 1000), query: '');
+Future<GlassListenRig> _open(WidgetTester t, String query, {bool owner = true}) async {
+  final l = await pumpGlassListen(t, owner: owner, pushed: false, size: const Size(390, 1000));
   await settle(t);
   l.novel.router.go('${l.novel.location}?$query');
   await settle(t, ms: 1500);

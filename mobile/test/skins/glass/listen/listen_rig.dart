@@ -7,7 +7,6 @@ import 'dart:ui' show Size;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter/widgets.dart' show Key;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sensors_plus/sensors_plus.dart' show AccelerometerEvent;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/platform/gravity.dart' show gravitySensorProvider;
@@ -29,6 +28,7 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/glass/listen/listen_sheets.dart' show registerListenSheets;
 import 'package:manhwamaniacs/skins/skin_audio.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
+import 'package:sensors_plus/sensors_plus.dart' show AccelerometerEvent;
 
 import '../../../features/novels/support/fake_novels_repository.dart';
 import '../../../support/fake_narration_player.dart';

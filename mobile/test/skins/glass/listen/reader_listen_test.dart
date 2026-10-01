@@ -5,12 +5,12 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
 import 'package:manhwamaniacs/skins/glass/listen/audiobook_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/listen/glass_narration_host.dart';
-import 'package:manhwamaniacs/skins/glass/screens/novel/paged_view.dart';
-import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
 import 'package:manhwamaniacs/skins/glass/listen/listen_row.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/novel_reader_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/novel/paged_view.dart';
 
 import '../novel/novel_rig.dart';
 import 'listen_rig.dart';
@@ -18,7 +18,7 @@ import 'listen_rig.dart';
 void main() {
   testWidgets('a narrated chapter shows the Listen button, the header capsule and no row until narrating', (t) async {
     final handle = t.ensureSemantics();
-    final l = await pumpGlassListen(t);
+    await pumpGlassListen(t);
     await settle(t);
     await t.tapAt(const Offset(195, 500));
     await settle(t, ms: 500);
