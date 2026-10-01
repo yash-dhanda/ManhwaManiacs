@@ -121,30 +121,37 @@ class _ProfilePickerScreenState extends ConsumerState<ProfilePickerScreen> with 
     if (!reduced) await _ring.forward(from: 0);
     if (!mounted) return;
     await shutter?.irisClose(center, size / 2);
-    if (!mounted) return;
-    cineFeedback(context, HapticEvent.profileSelect);
-    await ref.read(activeProfileProvider.notifier).select(p);
-    if (!mounted) return;
-    // A finished save that never reached the server counts as done: send it now (mobile/20).
-    final store = ref.read(onboardingStoreProvider);
-    final pendingDone = store.readPending() != null;
-    if (pendingDone) unawaited(store.flushPending(p.id, ref.read(onboardingRepositoryProvider)));
-    final outcome = decidePickerOutcome(
-      profile: p,
-      runningSkin: ref.read(skinIdProvider).name,
-      glassAvailable: Flags.glassAvailable,
-      onboardingBuilt: ref.read(onboardingBuiltProvider),
-      pendingDone: pendingDone,
-    );
-    if (outcome.kind == PickerOutcomeKind.restartSkin) {
-      // Inside the black: mirror + return route '/' through mobile/01's restart path, no confirm.
-      await restartInto(context, ref, skin: SkinId.values.byName(p.skin!), returnRoute: '/');
-      return;
+    // The closed iris covers the whole app and takes every touch: whatever happens between the
+    // close and the open (a throw, this screen unmounting), it opens again.
+    var restarting = false;
+    try {
+      if (!mounted) return;
+      cineFeedback(context, HapticEvent.profileSelect);
+      await ref.read(activeProfileProvider.notifier).select(p);
+      if (!mounted) return;
+      // A finished save that never reached the server counts as done: send it now (mobile/20).
+      final store = ref.read(onboardingStoreProvider);
+      final pendingDone = store.readPending() != null;
+      if (pendingDone) unawaited(store.flushPending(p.id, ref.read(onboardingRepositoryProvider)));
+      final outcome = decidePickerOutcome(
+        profile: p,
+        runningSkin: ref.read(skinIdProvider).name,
+        glassAvailable: Flags.glassAvailable,
+        onboardingBuilt: ref.read(onboardingBuiltProvider),
+        pendingDone: pendingDone,
+      );
+      if (outcome.kind == PickerOutcomeKind.restartSkin) {
+        // Inside the black: mirror + return route '/' through mobile/01's restart path, no confirm.
+        await restartInto(context, ref, skin: SkinId.values.byName(p.skin!), returnRoute: '/');
+        restarting = true;
+        return;
+      }
+      ref.read(profileSessionReadyProvider.notifier).enter();
+      // The iris out opens onboarding itself: no Dip under it.
+      context.go(outcome.kind == PickerOutcomeKind.onboarding ? outcome.route : Routes.tonight(), extra: const {'transition': 'cut'});
+    } finally {
+      if (!restarting) unawaited(shutter?.irisOut(center, duration: _skipped ? const Duration(milliseconds: 120) : null));
     }
-    ref.read(profileSessionReadyProvider.notifier).enter();
-    // The iris out opens onboarding itself: no Dip under it.
-    context.go(outcome.kind == PickerOutcomeKind.onboarding ? outcome.route : Routes.tonight(), extra: const {'transition': 'cut'});
-    unawaited(shutter?.irisOut(center, duration: _skipped ? const Duration(milliseconds: 120) : null));
   }
 
   Future<void> _continueOffline() async {
