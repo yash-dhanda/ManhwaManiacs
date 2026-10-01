@@ -477,9 +477,10 @@ class _TitleCapsule extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // The series name gives way first; the chapter always shows.
-                Flexible(child: GlassText(series, role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                Flexible(flex: 2, child: GlassText(' · $chapter', role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                // The series name gives way first; the chapter always shows (the capsule's minimum fits it). The chapter is not flexible:
+                // an equal flex share cut the name to "T…" beside the chapter's empty share.
+                Flexible(flex: 3, child: GlassText(series, role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                GlassText(' · $chapter', role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1),
                 if (readAll != null) ...[const SizedBox(width: 8), Flexible(child: GlassText(readAll!, role: gt.typeMono, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis))],
               ],
             ),

@@ -485,6 +485,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
   // ── Engine events ──────────────────────────────────────────────────────
 
+  /// What the PopScope last saw of [cinemaHidden] (Back exits cinema before it leaves).
+  bool? _cinemaHiddenShown;
+
   void _onEngine() {
     if (_disposed) return;
     final s = engine.value;
@@ -503,6 +506,14 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
       // The engine publishes from inside its own build: never rebuild this reader in that phase.
       SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks ? WidgetsBinding.instance.addPostFrameCallback((_) => apply()) : apply();
+    }
+    if (cinemaHidden != _cinemaHiddenShown && mounted) {
+      _cinemaHiddenShown = cinemaHidden;
+      void rebuild() {
+        if (mounted && !_disposed) setState(() {});
+      }
+
+      SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks ? WidgetsBinding.instance.addPostFrameCallback((_) => rebuild()) : rebuild();
     }
     _announceChapter(s.chapterId);
     _maybeAutoNext(s);
@@ -1809,8 +1820,10 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       ],
     );
 
+    // With nothing to close and a page beneath, Back is a real pop, so the iOS edge swipe (edge-only 20 px) can run; otherwise the
+    // pop is refused and Back closes the top layer first (`_onEngine` rebuilds when cinema's hidden chrome flips).
     return PopScope(
-      canPop: false,
+      canPop: backStep(_layers) == ReaderEscape.leave && Navigator.of(context).canPop(),
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _onBack();
       },

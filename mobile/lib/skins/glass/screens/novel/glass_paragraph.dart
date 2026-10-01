@@ -174,7 +174,9 @@ class _GlassTextPieceState extends State<GlassTextPiece> {
       at = e;
     }
     if (at < end) children.add(TextSpan(text: text.substring(at, end)));
-    return TextSpan(style: widget.style, children: children, locale: widget.locale);
+    // Not inheriting: the ambient DefaultTextStyle (letter spacing, height) must not reach the page, or the rendered lines differ from
+    // the paginator's and the drop cap's TextPainter measurements (which see [widget.style] alone) and wrap differently.
+    return TextSpan(style: widget.style.copyWith(inherit: false), children: children, locale: widget.locale);
   }
 
   @override

@@ -213,7 +213,7 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
     } else if (section == null) {
       page = _root(specs, admin);
     } else {
-      page = GlassScaffold(title: _labelOf(section), leading: GlassLeading.back, slivers: [SliverToBoxAdapter(child: settingsSectionBody(section))]);
+      page = GlassScaffold(title: _labelOf(section), leading: GlassLeading.back, insetSlivers: false, slivers: [SliverToBoxAdapter(child: settingsSectionBody(section))]);
     }
 
     return PopScope(
@@ -364,14 +364,19 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
     return GlassScaffold(
       title: 'Settings',
       leading: GlassLeading.back,
+      // The section body brings its own insets (as on the phone page); the margin goes round the two columns.
+      insetSlivers: false,
       slivers: [
         SliverToBoxAdapter(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              left,
-              Expanded(child: settingsSectionBody(selected)),
-            ],
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: GlassFrame.screenMargin(context)),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                left,
+                Expanded(child: settingsSectionBody(selected)),
+              ],
+            ),
           ),
         ),
       ],

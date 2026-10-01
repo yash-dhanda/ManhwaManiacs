@@ -93,7 +93,7 @@ class GlassDropCapParagraph extends StatelessWidget {
                 children: [
                   Padding(
                     padding: EdgeInsets.only(top: math.max(0, baseline - capBaseline)),
-                    child: Text(dropCap.initial, style: capStyle, textScaler: TextScaler.noScaling),
+                    child: Text(dropCap.initial, style: capStyle.copyWith(inherit: false), textScaler: TextScaler.noScaling),
                   ),
                   SizedBox(width: gap),
                   Expanded(

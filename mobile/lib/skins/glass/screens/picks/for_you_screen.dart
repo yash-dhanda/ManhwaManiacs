@@ -161,7 +161,6 @@ class _ForYouScreenState extends ConsumerState<ForYouScreen> {
     final recs = ref.watch(worldRecommendationsProvider(widget.genre));
     final admin = ref.watch(authControllerProvider
         .select((a) => a is AuthAuthenticated && a.user.isAdmin),);
-    final margin = GlassFrame.screenMargin(context);
     final phone = GlassFrame.of(context) == GlassFrameKind.phone;
 
     // Why the Ask box is replaced by a notice, if it is.
@@ -199,98 +198,96 @@ class _ForYouScreenState extends ConsumerState<ForYouScreen> {
       };
     }
 
-    final body = Padding(
-      padding: EdgeInsets.symmetric(horizontal: margin),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: phone ? double.infinity : 1200),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.genre != null)
-              Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: GenreFilterChip(
-                      genre: widget.genre!, onClear: _clearGenre,),),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (closed != null)
-                    closed == 'budget_exhausted'
-                        ? const BudgetNotice()
-                        : AiNotice(
-                            reason: closed,
-                            long: true,
-                            admin: admin,
-                            retrySeconds: ask.retryIn,)
-                  else ...[
-                    AskBox(
-                        controller: _text,
-                        focusNode: _focus,
-                        thinking: asking,
-                        onSubmit: _ask,),
-                    AskExamples(onPick: (t) {
-                      _text.text = t;
-                      _ask();
-                    },),
-                    AskControls(
-                      buttonKey: _askKey,
-                      canAsk: _canAsk,
-                      asking: asking,
-                      onAsk: _ask,
-                      onlyMine: _onlyMine,
-                      onOnlyMine: (v) => setState(() => _onlyMine = v),
-                      useTaste: _useTaste,
-                      onUseTaste: (v) => setState(() => _useTaste = v),
-                      novels: novels,
-                      remaining: remaining,
-                      retryIn: f?.code == 'rate_limited' ? ask.retryIn : null,
-                    ),
-                    if (asking)
-                      AskingPanel(
-                          elapsed: ask.elapsed,
-                          onCancel:
-                              ref.read(askControllerProvider.notifier).cancel,),
-                    if (failure != null) failure,
-                    if (f?.code == 'rate_limited')
-                      AiNotice(
-                          reason: 'rate_limited',
+    // GlassScaffold insets the slivers and the large title by the screen margin.
+    final body = ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: phone ? double.infinity : 1200),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.genre != null)
+            Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: GenreFilterChip(
+                    genre: widget.genre!, onClear: _clearGenre,),),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (closed != null)
+                  closed == 'budget_exhausted'
+                      ? const BudgetNotice()
+                      : AiNotice(
+                          reason: closed,
                           long: true,
-                          retrySeconds: ask.retryIn ?? 0,),
-                    if (ask.phase == AskPhase.results)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: AnswerList(
-                          key: ValueKey('answers-${ask.serial}'),
-                          answers: ask.items,
-                          askButtonKey: _askKey,
-                          asGrid: _grid,
-                          animateDeal: true,
-                          onAskAgain: _ask,
-                          onToggleGrid: () => setState(() => _grid = !_grid),
-                        ),
+                          admin: admin,
+                          retrySeconds: ask.retryIn,)
+                else ...[
+                  AskBox(
+                      controller: _text,
+                      focusNode: _focus,
+                      thinking: asking,
+                      onSubmit: _ask,),
+                  AskExamples(onPick: (t) {
+                    _text.text = t;
+                    _ask();
+                  },),
+                  AskControls(
+                    buttonKey: _askKey,
+                    canAsk: _canAsk,
+                    asking: asking,
+                    onAsk: _ask,
+                    onlyMine: _onlyMine,
+                    onOnlyMine: (v) => setState(() => _onlyMine = v),
+                    useTaste: _useTaste,
+                    onUseTaste: (v) => setState(() => _useTaste = v),
+                    novels: novels,
+                    remaining: remaining,
+                    retryIn: f?.code == 'rate_limited' ? ask.retryIn : null,
+                  ),
+                  if (asking)
+                    AskingPanel(
+                        elapsed: ask.elapsed,
+                        onCancel:
+                            ref.read(askControllerProvider.notifier).cancel,),
+                  if (failure != null) failure,
+                  if (f?.code == 'rate_limited')
+                    AiNotice(
+                        reason: 'rate_limited',
+                        long: true,
+                        retrySeconds: ask.retryIn ?? 0,),
+                  if (ask.phase == AskPhase.results)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: AnswerList(
+                        key: ValueKey('answers-${ask.serial}'),
+                        answers: ask.items,
+                        askButtonKey: _askKey,
+                        asGrid: _grid,
+                        animateDeal: true,
+                        onAskAgain: _ask,
+                        onToggleGrid: () => setState(() => _grid = !_grid),
                       ),
-                    if (ask.phase == AskPhase.results && ask.partial)
-                      const Padding(
-                          padding: EdgeInsets.only(top: 4),
-                          child: AskFailureNote(
-                              text: glassAiPartialLine,),),
-                  ],
+                    ),
+                  if (ask.phase == AskPhase.results && ask.partial)
+                    const Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: AskFailureNote(
+                            text: glassAiPartialLine,),),
                 ],
-              ),
+              ],
             ),
-            const SizedBox(height: 24),
-            ForYouSections(
-                recs: recs,
-                genre: widget.genre,
-                novels: novels,
-                onClearGenre: _clearGenre,
-                onRetry: () =>
-                    ref.invalidate(worldRecommendationsProvider(widget.genre)),),
-            const SizedBox(height: 40),
-          ],
-        ),
+          ),
+          const SizedBox(height: 24),
+          ForYouSections(
+              recs: recs,
+              genre: widget.genre,
+              novels: novels,
+              onClearGenre: _clearGenre,
+              onRetry: () =>
+                  ref.invalidate(worldRecommendationsProvider(widget.genre)),),
+          const SizedBox(height: 40),
+        ],
       ),
     );
 
@@ -314,7 +311,7 @@ class _ForYouScreenState extends ConsumerState<ForYouScreen> {
           refreshSliver:
               GlassPullToRefresh(controller: _refresh, onRefresh: _onRefresh),
           largeTitleOverride: Padding(
-            padding: EdgeInsets.fromLTRB(margin, 16, margin, 8),
+            padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
             child: LetterReveal('What do you feel like?',
                 role: gt.typeLargeTitle,
                 revealKey: 'picks:title',

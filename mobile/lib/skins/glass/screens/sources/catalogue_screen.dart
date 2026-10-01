@@ -283,7 +283,8 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
               },),
             ],
             refreshSliver: GlassPullToRefresh(controller: _refresh, onRefresh: _doRefresh),
-            slivers: [SliverPadding(padding: EdgeInsets.fromLTRB(margin, 8, margin, 140), sliver: SliverToBoxAdapter(child: Builder(builder: (c) {
+            slivers: [SliverPadding(padding: const EdgeInsets.fromLTRB(0, 8, 0, 140), // GlassScaffold insets the slivers
+ sliver: SliverToBoxAdapter(child: Builder(builder: (c) {
               _pos = Scrollable.maybeOf(c)?.position;
               return body;
             },),),),],

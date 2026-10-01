@@ -65,6 +65,7 @@ class GlassScaffold extends ConsumerStatefulWidget {
     this.largeTitleOverride,
     this.refreshSliver,
     this.bodyBuilder,
+    this.insetSlivers = true,
   });
 
   final String title;
@@ -75,6 +76,9 @@ class GlassScaffold extends ConsumerStatefulWidget {
   final List<GlassMenuEntry> overflow;
   final bool showDepth;
   final List<Widget> slivers;
+
+  /// False when the slivers carry their own screen margin (the Settings section bodies, laid out for the wide frame's column too).
+  final bool insetSlivers;
   final GlassAmbientSpec? ambient;
   final bool mature;
 
@@ -163,12 +167,15 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
             padding:
                 EdgeInsets.only(top: insets.top - (widget.largeTitle ? 0 : 0)),),
         if (widget.largeTitle && widget.largeTitleOverride != null)
-          SliverToBoxAdapter(child: Padding(padding: EdgeInsets.symmetric(horizontal: margin), child: widget.largeTitleOverride))
+          SliverToBoxAdapter(child: Padding(padding: EdgeInsets.symmetric(horizontal: margin), child: GlassMarginApplied(child: widget.largeTitleOverride!)))
         else if (widget.largeTitle)
           SliverToBoxAdapter(child: Padding(padding: EdgeInsets.symmetric(horizontal: margin), child: GlassLargeTitle(title: widget.title, margin: margin, offset: _offset))),
-        SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: margin),
-            sliver: SliverMainAxisGroup(slivers: widget.slivers),),
+        if (widget.insetSlivers)
+          SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: margin),
+              sliver: GlassMarginApplied(child: SliverMainAxisGroup(slivers: widget.slivers)),)
+        else
+          SliverMainAxisGroup(slivers: widget.slivers),
         SliverPadding(padding: EdgeInsets.only(bottom: insets.bottom)),
       ],
     );

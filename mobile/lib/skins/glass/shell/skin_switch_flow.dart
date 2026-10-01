@@ -69,7 +69,8 @@ Future<void> startSkinSwitch(BuildContext context, WidgetRef ref,
 
 /// The switch itself (no alert): the `skin.switch` haptic and cue, the melt, the icon rule of glass 12.2 inside the restart moment
 /// (after the melt reaches black, before the restart; explicit choices only) and the restart. The arrival toast's Undo calls it too.
-Future<void> runSkinSwitch(BuildContext context, WidgetRef ref, SkinId target) async {
+/// [undoable] false for the Undo itself, so the skin it returns to shows no arrival toast of its own.
+Future<void> runSkinSwitch(BuildContext context, WidgetRef ref, SkinId target, {bool undoable = true}) async {
   unawaited(ref.read(glassHapticsProvider).fire(HapticEvent.skinSwitch));
   glassSound(ref, SoundEvent.skinSwitch);
   try {
@@ -77,6 +78,7 @@ Future<void> runSkinSwitch(BuildContext context, WidgetRef ref, SkinId target) a
       context,
       ref,
       to: target,
+      undoable: undoable,
       outgoing: () async {
         await playMelt(ref);
         await ref.read(appIconSwitcherProvider).onExplicitSkinChoice(target);

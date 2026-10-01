@@ -18,7 +18,7 @@ class HomeThisWeekCard extends ConsumerWidget {
     final minutes = (numbers.secondsWeek / 60).round();
     final chapters = numbers.chaptersWeek;
     final days = numbers.streak.currentDays;
-    final margin = GlassFrame.screenMargin(context);
+    final margin = GlassFrame.contentMargin(context);
     Widget figure(Widget value, String label) => Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

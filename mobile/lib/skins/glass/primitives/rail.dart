@@ -258,7 +258,7 @@ class _GlassRailState extends ConsumerState<GlassRail> {
   Widget build(BuildContext context) {
     final frame = GlassFrame.of(context);
     final size = MediaQuery.sizeOf(context);
-    _margin = GlassFrame.screenMargin(context);
+    _margin = GlassFrame.contentMargin(context);
     _gap = frame == GlassFrameKind.phone ? 12 : 16;
     _viewport = size.width;
     final scale = MediaQuery.textScalerOf(context).scale(1);

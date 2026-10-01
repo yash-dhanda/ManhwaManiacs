@@ -14,7 +14,7 @@ class GlassChipRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final margin = GlassFrame.screenMargin(context);
+    final margin = GlassFrame.contentMargin(context);
     final pad = padding ?? EdgeInsets.symmetric(horizontal: margin, vertical: 8);
     final row = AnimatedSize(
       duration: Duration(milliseconds: gt.springSnappy.ms),

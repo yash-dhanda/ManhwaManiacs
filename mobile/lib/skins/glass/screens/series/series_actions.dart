@@ -187,7 +187,8 @@ class SeriesActions extends ConsumerWidget {
       children: [
         split,
         const SizedBox(height: 8),
-        Row(children: [Flexible(child: follow), const SizedBox(width: 8), group]),
+        // A Wrap, not a Row: at large text the group moves under the follow button instead of truncating its label.
+        Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [follow, group]),
       ],
     );
   }

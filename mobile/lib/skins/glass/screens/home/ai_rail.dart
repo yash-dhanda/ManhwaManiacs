@@ -65,7 +65,7 @@ class HomeAiRail extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             HomeRailHeader(title: rail.title, railId: rail.id, leading: const MachineBadge()),
-            Padding(padding: EdgeInsets.fromLTRB(GlassFrame.screenMargin(context), 8, GlassFrame.screenMargin(context), 0), child: notice),
+            Padding(padding: EdgeInsets.fromLTRB(GlassFrame.contentMargin(context), 8, GlassFrame.contentMargin(context), 0), child: notice),
           ],
         );
       }
