@@ -150,11 +150,8 @@ class _GlassPlayerColumnState extends ConsumerState<GlassPlayerColumn> {
       ],
     );
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    final compact = MediaQuery.textScalerOf(context).scale(1) >= 1.3 || screen.height < 700;
+    final parts = <Widget>[
           Row(
             children: [
               GlassArtwork(sourceId: t.key.sourceId, seriesKey: t.key.seriesKey, size: art),
@@ -172,9 +169,19 @@ class _GlassPlayerColumnState extends ConsumerState<GlassPlayerColumn> {
           const GlassPlayerTiles(),
           if (waiting != null) GlassPostPlayCard(key: ValueKey(waiting), onGlass: onGlass),
           const SizedBox(height: 8),
-          Expanded(child: GlassSentenceList(onGlass: listForm)),
-        ],
-      ),
+    ];
+    // On a short screen or at large text the controls and the sentence list scroll together (the list keeps 240 px), so the
+    // controls never overflow the sheet; otherwise the list fills what the controls leave.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: compact
+          ? LayoutBuilder(builder: (context, c) => SingleChildScrollView(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  ...parts,
+                  SizedBox(height: math.max(240.0, c.maxHeight.isFinite ? c.maxHeight * 0.45 : 240), child: GlassSentenceList(onGlass: listForm)),
+                ],),
+              ),)
+          : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [...parts, Expanded(child: GlassSentenceList(onGlass: listForm))]),
     );
   }
 }
