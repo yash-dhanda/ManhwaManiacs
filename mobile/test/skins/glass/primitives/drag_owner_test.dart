@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/drag_owner.dart';
 
@@ -23,5 +24,22 @@ void main() {
     r.unregister('row');
     expect(r.ownsDragAt(const Offset(200, 30), movingRight: false), isFalse);
     expect(r.length, 1);
+  });
+
+  testWidgets('an owner in a muted subtree (an offstage tab, a covered route) owns nothing', (t) async {
+    final c = ProviderContainer();
+    addTearDown(c.dispose);
+    Widget app(bool on) => UncontrolledProviderScope(
+          container: c,
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: TickerMode(enabled: on, child: const GlassDragOwner(kind: GlassDragOwnerKind.row, child: SizedBox.expand())),
+          ),
+        );
+    await t.pumpWidget(app(true));
+    final r = c.read(glassDragOwnerRegistryProvider);
+    expect(r.ownsDragAt(const Offset(200, 300), movingRight: false), isTrue);
+    await t.pumpWidget(app(false));
+    expect(r.ownsDragAt(const Offset(200, 300), movingRight: false), isFalse);
   });
 }
