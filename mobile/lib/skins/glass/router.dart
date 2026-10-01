@@ -35,6 +35,7 @@ import 'package:manhwamaniacs/skins/glass/screens/home/home_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/collection_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_hub.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_section.dart';
+import 'package:manhwamaniacs/skins/glass/screens/novel/novel_reader_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/glass_steps.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/onboarding_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/picks/for_you_screen.dart';
@@ -71,7 +72,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.feature,
   ScreenId.circle,
   ScreenId.circleMember,
-  ScreenId.novel,
 };
 
 /// The Glass development routes (mobile/25), outside the `ScreenId` map. Settings -> Diagnostics links the calibration page (mobile/40).
@@ -383,7 +383,7 @@ GoRouter buildGlassRouter(Ref ref) {
       // `/sources/.../read` the source reader with its own progress (S19).
       for (final a in Routes.readerAliases) _readerRoute(ScreenId.reader, GlassReaderScreen.of, path: a, parent: rootKey),
       _readerRoute(ScreenId.readAll, GlassReadAllScreen.of, parent: rootKey),
-      _route(ScreenId.novel, parent: rootKey, reader: true),
+      GoRoute(path: ScreenId.novel.path, name: _nameOf(ScreenId.novel), parentNavigatorKey: rootKey, pageBuilder: (context, state) => glassNovelPage(state)),
       GoRoute(
         path: ScreenId.discover.path,
         name: _nameOf(ScreenId.discover),
@@ -418,7 +418,7 @@ GoRouter buildGlassRouter(Ref ref) {
       // Mobile aliases (redirects).
       _redirect(Routes.profileNewAliases.first, (s) => Routes.profileNew()),
       _redirect(Routes.profileEditAliases.first, (s) => Routes.profileEdit(s.pathParameters['id']!)),
-      _redirect(Routes.novelAliases.first, (s) => Routes.novel(s.pathParameters['sourceId']!, s.pathParameters['seriesKey']!, s.pathParameters['chapterKey']!)),
+      _redirect(Routes.novelAliases.first, (s) => Routes.novel(s.pathParameters['sourceId']!, s.pathParameters['seriesKey']!, s.pathParameters['chapterKey']!, s.uri.queryParameters)),
       _redirect(Routes.dialogueAliases.first, (s) => Routes.dialogue({'q': s.uri.queryParameters['q']})),
       _redirect(Routes.collectionsAliases.first, (s) => Routes.collections()),
       _redirect(Routes.collectionAliases.first, (s) => Routes.collection(s.pathParameters['id']!)),

@@ -120,9 +120,10 @@ class NovelParagraphLayout {
   }
 
   void _buildDropCap(TextStyle style, DropCap dc) {
-    final capStyle = CineType.dropcap(lineHeightPx).copyWith(color: ink);
+    final spec = type.dropCapSpec;
+    final capStyle = spec == null ? CineType.dropcap(lineHeightPx).copyWith(color: ink) : spec.at(type.fontSize, ink);
     final cap = TextPainter(text: TextSpan(text: dc.initial, style: capStyle), textDirection: TextDirection.ltr, textScaler: TextScaler.noScaling)..layout();
-    final gap = 0.08 * (capStyle.fontSize ?? type.fontSize * 3);
+    final gap = (spec?.gapEm ?? 0.08) * (capStyle.fontSize ?? type.fontSize * 3);
     final indentX = cap.width + gap;
     final narrowW = math.max(1.0, width - indentX);
     final rest = dc.rest;
@@ -194,6 +195,39 @@ class NovelParagraphLayout {
   }
 
   Size get size => Size(width, height);
+
+  /// The drop-cap split (glass 3.4, 8.15.2): the character offset in [rest] (the paragraph after its
+  /// initial) where line [lines] ends when [rest] is laid out in [style] at `width - capAdvancePlusGap`,
+  /// from `computeLineMetrics()` and `getLineBoundary`. A paragraph of [lines] lines or fewer returns
+  /// `rest.length` (all of it sits beside the cap). A skin renders the capped paragraph as the cap and
+  /// `rest.substring(0, split)` side by side, then `rest.substring(split)` at full width, exactly as
+  /// this layout and the paginator place it.
+  static int dropCapSplit(
+    String rest,
+    TextStyle style, {
+    required double width,
+    required double capAdvancePlusGap,
+    bool justify = false,
+    int lines = 3,
+  }) {
+    final tp = TextPainter(
+      text: TextSpan(text: rest, style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: TextScaler.noScaling,
+      textAlign: justify ? TextAlign.justify : TextAlign.left,
+    )..layout(maxWidth: math.max(1.0, width - capAdvancePlusGap));
+    try {
+      final count = tp.computeLineMetrics().length;
+      if (count <= lines) return rest.length;
+      var start = 0;
+      for (var i = 0; i < lines; i++) {
+        start = tp.getLineBoundary(TextPosition(offset: start)).end;
+      }
+      return start.clamp(0, rest.length);
+    } finally {
+      tp.dispose();
+    }
+  }
 
   /// Paints the paragraph's text (and its drop cap) with its top-left at [origin].
   void paintText(Canvas canvas, Offset origin) {
