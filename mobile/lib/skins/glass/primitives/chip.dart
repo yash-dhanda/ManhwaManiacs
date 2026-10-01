@@ -114,9 +114,9 @@ class GlassChip extends ConsumerWidget {
       final tag = Container(
         height: 24,
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        alignment: Alignment.center,
         decoration: BoxDecoration(color: gt.colorFill4, borderRadius: BorderRadius.circular(12)),
-        child: GlassLabel(label, role: gt.typeCaption1, extraTrackingEm: 0.08, upper: true, color: gt.colorLabel2),
+        // widthFactor 1: a tag hugs its label; `Container.alignment` filled the whole line of a Wrap.
+        child: Center(widthFactor: 1, child: GlassLabel(label, role: gt.typeCaption1, extraTrackingEm: 0.08, upper: true, color: gt.colorLabel2)),
       );
       if (onLink == null) return Semantics(label: label, child: ExcludeSemantics(child: tag));
       return GlassPressable(
@@ -127,9 +127,8 @@ class GlassChip extends ConsumerWidget {
         builder: (context, info) => Container(
           height: 24,
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          alignment: Alignment.center,
           decoration: BoxDecoration(color: info.states.hovered ? gt.colorFill3 : gt.colorFill4, borderRadius: BorderRadius.circular(12)),
-          child: GlassLabel(label, role: gt.typeCaption1, extraTrackingEm: 0.08, upper: true, color: gt.colorLabel2),
+          child: Center(widthFactor: 1, child: GlassLabel(label, role: gt.typeCaption1, extraTrackingEm: 0.08, upper: true, color: gt.colorLabel2)),
         ),
       );
     }

@@ -53,9 +53,8 @@ class _GlassSkinCardState extends State<GlassSkinCard> {
           Container(
             height: 20,
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            alignment: Alignment.center,
             decoration: BoxDecoration(color: gt.colorFill2, borderRadius: BorderRadius.circular(10)),
-            child: GlassText('Current', role: gt.typeCaption1, wght: 600),
+            child: Center(widthFactor: 1, child: GlassText('Current', role: gt.typeCaption1, wght: 600)),
           ),
       ],),
       const SizedBox(height: 4),
