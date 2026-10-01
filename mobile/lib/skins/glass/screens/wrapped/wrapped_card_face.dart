@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/glass/screens/wrapped/page_pile.dart';
 import 'package:manhwamaniacs/skins/glass/screens/wrapped/wrapped_frame.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_common.dart' show avatarPresetFor;
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/wrapped/wrapped_copy.dart';
 import 'package:manhwamaniacs/skins/glass/wrapped/wrapped_figures.dart';
 
@@ -120,6 +121,7 @@ class _WrappedCardFaceState extends ConsumerState<WrappedCardFace> with SingleTi
       pile: final_ ? (_pile?..settle()) : _pile,
       flame: widget.card == WrappedCard.streak ? StreakFlame(size: 220, state: FlameState.litToday, days: widget.annual.longestStreak.days, flare: _flare) : null,
       orb: liveOrb,
+      lens: (logo) => SkinGlass(tier: GlassTierId.t2, size: const Size(96, 96), layer: GlassLayerKind.overlays, debugLabel: 'wrapped-source-lens', child: logo),
       togetherName: widget.togetherName,
       togetherTitle: widget.togetherTitle,
     );
@@ -130,7 +132,14 @@ class _WrappedCardFaceState extends ConsumerState<WrappedCardFace> with SingleTi
     final a = widget.annual;
     final copy = wrappedCopy(widget.card, a, profileName: widget.profileName, togetherName: widget.togetherName, togetherTitle: widget.togetherTitle);
     final cover = widget.card == WrappedCard.cover;
-    final headline = cover
+    final italics = switch (widget.card) {
+      WrappedCard.firstsLasts => [firstsLastsTitles(a).first, firstsLastsTitles(a).last],
+      WrappedCard.together => [widget.togetherTitle ?? ''],
+      _ => const <String>[],
+    };
+    final headline = italics.isNotEmpty
+        ? _ItalicTitles(copy.headline, italics)
+        : cover
         ? TypedHeadline(copy.headline, role: gt.typeDisplay, placement: 'wrapped.cover', headingLevel: 1, textAlign: TextAlign.center)
         : LetterReveal(copy.headline, role: gt.typeTitle1, screenId: 'wrapped', revealKey: '${a.year}-${widget.card.name}', maxLines: 3, textAlign: TextAlign.center, headingLevel: 2);
     final eyebrow = GlassLabel(copy.eyebrow, role: gt.typeCaption1, color: gt.colorLabel2, upper: true, extraTrackingEm: 0.18, textAlign: TextAlign.center);
@@ -186,4 +195,34 @@ class _Column extends StatelessWidget {
           ],),
         ),
       );
+}
+
+
+/// Cards 9 and 11 set the series titles in italic (glass 9.2.3), so their headline is one rich text; it shows at once.
+class _ItalicTitles extends StatelessWidget {
+  const _ItalicTitles(this.text, this.titles);
+  final String text;
+  final List<String> titles;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = roleStyle(context, gt.typeTitle1, maxScale: 1).copyWith(color: gt.colorLabel1);
+    final spans = <TextSpan>[];
+    var rest = text;
+    for (final t in titles.where((t) => t.isNotEmpty)) {
+      final at = rest.indexOf(t);
+      if (at < 0) continue;
+      spans
+        ..add(TextSpan(text: rest.substring(0, at)))
+        ..add(TextSpan(text: t, style: const TextStyle(fontStyle: FontStyle.italic)));
+      rest = rest.substring(at + t.length);
+    }
+    spans.add(TextSpan(text: rest));
+    return Semantics(
+      header: true,
+      label: text,
+      excludeSemantics: true,
+      child: Text.rich(TextSpan(style: style, children: spans), maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, textScaler: TextScaler.noScaling),
+    );
+  }
 }

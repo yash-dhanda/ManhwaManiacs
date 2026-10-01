@@ -130,7 +130,9 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
   final Object _token = Object();
   late final ShortcutRegistry _shortcuts = ref.read(shortcutRegistryProvider.notifier);
   final GlobalKey<GlassShareSideState> _sideKey = GlobalKey();
-  DateTime? _downAt;
+  // A press becomes a hold at 450 ms (a timer, so the threshold follows the frame clock in tests too).
+  Timer? _holdTimer;
+  bool _held = false;
   Offset _downPos = Offset.zero;
   bool _dragged = false;
   GlassMotionEntry? _stackEntry;
@@ -143,13 +145,20 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // The story's keys come straight off the keyboard while it is the current route, whatever holds focus (the share side,
+    // a button the pointer just pressed), so Esc and the arrows always reach it.
+    HardwareKeyboard.instance.addHandler(_hwKey);
     _originRect = ref.read(wrappedOriginProvider);
     _auto.addStatusListener((s) {
       if (s == AnimationStatus.completed) _go(1);
     });
     _settle.addListener(_onSettle);
     _flip.addStatusListener((s) {
-      if (s == AnimationStatus.dismissed && _share != null) setState(() => _share = null);
+      // A spring run back to 0 ends as `completed`, a timed one as `dismissed`: either way the card shows its front again.
+      if ((s == AnimationStatus.dismissed || s == AnimationStatus.completed) && _flip.value <= 0.001 && _share != null) {
+        setState(() => _share = null);
+        _focus.requestFocus(); // the share side held focus: Esc and the arrows come back to the story
+      }
       _syncAuto();
     });
     Future.microtask(_registerKeys);
@@ -170,12 +179,14 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _podiumTimer?.cancel();
+    _holdTimer?.cancel();
     final s = _shortcuts;
     final t = _token;
     Future.microtask(() => s.unregister(t));
     for (final c in [_settle, _auto, _flip, _closeC, _fade]) {
       c.dispose();
     }
+    HardwareKeyboard.instance.removeHandler(_hwKey);
     _focus.dispose();
     super.dispose();
   }
@@ -217,6 +228,11 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
   /// Moves one card (-1 or +1): the story stack settles on `springPage`; reduced motion cross-fades over 200 ms.
   void _go(int dir) {
     if (_closing || _share != null) return;
+    if (_settle.isAnimating && _settleDir != 0) {
+      // A press during the stack's settle lands the moving card at once, then moves on from there.
+      _settle.stop();
+      _finishSettle();
+    }
     final next = _index + dir;
     if (next < 0 || next >= _cards.length) {
       if (dir > 0) _auto.stop();
@@ -295,7 +311,9 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
   // -- gestures -------------------------------------------------------------------------------------------------------
 
   void _tapDown(TapDownDetails d) {
-    _downAt = DateTime.now();
+    _held = false;
+    _holdTimer?.cancel();
+    _holdTimer = Timer(const Duration(milliseconds: 450), () => _held = true);
     _downPos = d.localPosition;
     _dragged = false;
     setState(() => _pressed = true);
@@ -303,7 +321,8 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
   }
 
   void _tapUp(TapUpDetails d, double width) {
-    final held = DateTime.now().difference(_downAt ?? DateTime.now());
+    _holdTimer?.cancel();
+    final held = _held ? const Duration(milliseconds: 450) : Duration.zero;
     final moved = (d.localPosition - _downPos).distance;
     setState(() => _pressed = false);
     if (!_dragged && isTap(held, moved)) _go(tapDirection(d.localPosition.dx, width));
@@ -374,6 +393,7 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
     glassFire(ref, HapticEvent.shareFlip);
     glassSound(ref, SoundEvent.shareFlip);
     _auto.stop();
+    _flipBack = false;
     setState(() => _share = spec);
     if (_reduced) {
       _flip.value = 1;
@@ -382,24 +402,49 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
     }
   }
 
+  bool _flipBack = false;
+
   void _closeShare() {
     if (_share == null) return;
     if (_reduced) {
       _flip.value = 0;
       setState(() => _share = null);
+      _focus.requestFocus();
       _syncAuto();
     } else {
-      unawaited(GlassMotion.play(MotionName.cardFlip, controller: _flip, target: 0));
+      _flipBack = true;
+      unawaited(GlassMotion.play(MotionName.cardFlip, controller: _flip, target: 0).then((_) {
+        // Settled on the front: the side is gone (whatever status the spring ended with).
+        if (!mounted || _share == null || _flip.value > 0.5) return;
+        setState(() => _share = null);
+        _focus.requestFocus();
+        _syncAuto();
+      }),);
     }
+  }
+
+  bool _hwKey(KeyEvent e) {
+    if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return false;
+    return _key(_focus, e) == KeyEventResult.handled;
   }
 
   KeyEventResult _key(FocusNode n, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
     if (!_keyboard) setState(() => _keyboard = true);
     final k = e.logicalKey;
+    if (_share != null && _flip.value < 0.02 && _flipBack) {
+      // Flipped back already (the spring's tail is still running below a pixel): the front is showing.
+      _flip.stop();
+      setState(() => _share = null);
+      _syncAuto();
+    }
     if (_share != null) {
       if (k == LogicalKeyboardKey.escape) {
         _closeShare();
+        return KeyEventResult.handled;
+      }
+      if (k == LogicalKeyboardKey.digit1 || k == LogicalKeyboardKey.digit2) {
+        _sideKey.currentState?.setFormat(k == LogicalKeyboardKey.digit1 ? ShareFormat.story : ShareFormat.post);
         return KeyEventResult.handled;
       }
       return KeyEventResult.ignored;
@@ -481,6 +526,9 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
           ),
         ],);
 
+    // The buttons keep a real hitMin (44 iOS, 48 Android) at any frame scale: the 44 px visual sits centred in it.
+    final hit = GlassFrame.hitMin(context) / (_reflow ? 1.0 : math.min(scale, 1.0));
+
     // The 360 x 640 frame contents (or the reflowing column at large text).
     Widget contents(double w, double h) => Stack(clipBehavior: Clip.none, children: [
           Positioned.fill(
@@ -501,19 +549,23 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
           ),
           Positioned(left: 16, right: 16, top: 12, height: 4, child: IgnorePointer(child: _Capsules(count: _cards.length, index: _index, auto: _auto))),
           Positioned(
-            left: 24,
-            right: 24,
-            top: 24,
-            height: 44,
+            left: 24 - (hit - 44) / 2,
+            right: 24 - (hit - 44) / 2,
+            top: 24 - (hit - 44) / 2,
+            height: hit,
             child: Row(children: [
-              if (assistive || _keyboard) ...[_RoundButton(label: 'Previous card', glyph: GlassGlyphIcon.left, onTap: () => _go(-1)), const SizedBox(width: 8), _RoundButton(label: 'Next card', glyph: GlassGlyphIcon.right, onTap: () => _go(1))],
+              if (assistive || _keyboard) ...[
+                _RoundButton(label: 'Previous card', glyph: GlassGlyphIcon.left, hit: hit, onTap: () => _go(-1)),
+                SizedBox(width: math.max(0, 52 - hit)),
+                _RoundButton(label: 'Next card', glyph: GlassGlyphIcon.right, hit: hit, onTap: () => _go(1)),
+              ],
               const Spacer(),
-              _RoundButton(label: _paused ? 'Play' : 'Pause', glyph: _paused ? GlassGlyphIcon.play : GlassGlyphIcon.pause, onTap: () {
+              _RoundButton(label: _paused ? 'Play' : 'Pause', glyph: _paused ? GlassGlyphIcon.play : GlassGlyphIcon.pause, hit: hit, onTap: () {
                 setState(() => _paused = !_paused);
                 _syncAuto();
               },),
-              const SizedBox(width: 8),
-              _RoundButton(label: 'Close', glyph: GlassGlyphIcon.close, onTap: () => unawaited(_closeStory())),
+              SizedBox(width: math.max(0, 52 - hit)),
+              _RoundButton(label: 'Close', glyph: GlassGlyphIcon.close, hit: hit, onTap: () => unawaited(_closeStory())),
             ],),
           ),
         ],);
@@ -571,7 +623,6 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
       child: Focus(
         focusNode: _focus,
         autofocus: true,
-        onKeyEvent: _key,
         child: Listener(
           onPointerDown: (_) {
             if (_keyboard) setState(() => _keyboard = false);
@@ -648,8 +699,9 @@ class _Capsules extends StatelessWidget {
 enum GlassGlyphIcon { left, right, play, pause, close }
 
 class _RoundButton extends StatelessWidget {
-  const _RoundButton({required this.label, required this.glyph, required this.onTap});
+  const _RoundButton({required this.label, required this.glyph, required this.onTap, this.hit = 44});
   final String label;
+  final double hit;
   final GlassGlyphIcon glyph;
   final VoidCallback onTap;
 
@@ -668,7 +720,12 @@ class _RoundButton extends StatelessWidget {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
-          child: ExcludeSemantics(child: Container(width: 44, height: 44, decoration: BoxDecoration(shape: BoxShape.circle, color: gt.colorFill2), child: Icon(_icon, size: 20, color: gt.colorLabel1))),
+          child: ExcludeSemantics(
+            child: SizedBox.square(
+              dimension: hit,
+              child: Center(child: Container(width: 44, height: 44, decoration: BoxDecoration(shape: BoxShape.circle, color: gt.colorFill2), child: Icon(_icon, size: 20, color: gt.colorLabel1))),
+            ),
+          ),
         ),
       );
 }
