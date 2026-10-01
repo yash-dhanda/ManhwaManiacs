@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show Rect;
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,12 +32,12 @@ class BackupDownloader {
   BackupDownloader(this._dio, {Future<Directory> Function()? tempDir, DateTime Function()? clock, Future<void> Function(String path)? share})
       : _tempDir = tempDir ?? getTemporaryDirectory,
         _clock = clock ?? DateTime.now,
-        _share = share ?? _sharePath;
+        _share = share;
 
   final Dio _dio;
   final Future<Directory> Function() _tempDir;
   final DateTime Function() _clock;
-  final Future<void> Function(String path) _share;
+  final Future<void> Function(String path)? _share;
 
   /// Downloads and returns the file path; [onProgress] gets received and total bytes (total is -1
   /// when the server sends no length).
@@ -46,16 +47,18 @@ class BackupDownloader {
     await _dio.download(
       '/backup/export',
       path,
-      queryParameters: {'include_cache': includeCaches},
+      // `include_cache=true` only when asked; the backend's default is false (glass 8.25.10).
+      queryParameters: includeCaches ? const {'include_cache': true} : null,
       onReceiveProgress: onProgress,
     );
     return path;
   }
 
-  Future<void> share(String path) => _share(path);
+  /// Opens the share sheet; [origin] is the global rect of the button that asked (the iPad popover anchor).
+  Future<void> share(String path, {Rect? origin}) => _share?.call(path) ?? _sharePath(path, origin);
 
-  static Future<void> _sharePath(String path) async {
-    await SharePlus.instance.share(ShareParams(files: [XFile(path, mimeType: 'application/octet-stream')]));
+  static Future<void> _sharePath(String path, Rect? origin) async {
+    await SharePlus.instance.share(ShareParams(files: [XFile(path, mimeType: 'application/octet-stream')], sharePositionOrigin: origin));
   }
 }
 
