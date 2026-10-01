@@ -300,16 +300,6 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   Offset _glowAt = Offset.zero;
   LiquidGlassSettings? _held;
 
-  /// One key per shape's content: the live, solid and twin paths wrap it differently, so a surface forced solid (the stacking rule,
-  /// the budget, Low Power) moved its content to a new parent and rebuilt it, killing a drag in progress on the dock or a sheet.
-  final List<GlobalKey> _contentKeys = [];
-  GlobalKey _contentKey(int i) {
-    while (_contentKeys.length <= i) {
-      _contentKeys.add(GlobalKey(debugLabel: 'SkinGlass.content'));
-    }
-    return _contentKeys[i];
-  }
-
   int get shapeCount => widget.groupShapes?.length ?? 1;
 
   // -- lifecycle --------------------------------------------------------------
@@ -459,7 +449,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
           final specs = widget.groupShapes ??
               [SkinGlassShape(size: constraintSize ?? Size.zero, child: widget.child, shape: widget.shape, twin: widget.twin)];
           if (widget.groupShapes != null) return _buildGroup(context, specs, env);
-          return _buildShape(context, specs.first, specs.first.size, env, grouped: false, index: 0);
+          return _buildShape(context, specs.first, specs.first.size, env, grouped: false);
         },
       );
     }
@@ -495,23 +485,23 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   }
 
   Widget _buildGroup(BuildContext context, List<SkinGlassShape> specs, _Env env) {
+    final children = <Widget>[];
+    for (var i = 0; i < specs.length; i++) {
+      if (i > 0) children.add(SizedBox(width: widget.groupAxis == Axis.horizontal ? widget.groupGap : 0, height: widget.groupAxis == Axis.vertical ? widget.groupGap : 0));
+      final shape = _buildShape(context, specs[i], specs[i].size, env, grouped: true);
+      final off = widget.groupOffsets;
+      children.add(off != null && i < off.length ? Transform.translate(offset: off[i], child: shape) : shape);
+    }
     final aligns = widget.groupAligns;
     final Widget flex;
     if (aligns != null) {
-      final shapes = [for (var i = 0; i < specs.length; i++) _buildShape(context, specs[i], specs[i].size, env, grouped: true, index: i)];
+      final shapes = [for (var i = 0; i < specs.length; i++) _buildShape(context, specs[i], specs[i].size, env, grouped: true)];
       flex = SizedBox(
         width: double.infinity,
         height: widget.groupHeight ?? specs.map((s) => s.size.height).reduce((a, b) => a > b ? a : b),
         child: Stack(children: [for (var i = 0; i < shapes.length; i++) Align(alignment: aligns[i], child: shapes[i])]),
       );
     } else {
-      final children = <Widget>[];
-      for (var i = 0; i < specs.length; i++) {
-        if (i > 0) children.add(SizedBox(width: widget.groupAxis == Axis.horizontal ? widget.groupGap : 0, height: widget.groupAxis == Axis.vertical ? widget.groupGap : 0));
-        final shape = _buildShape(context, specs[i], specs[i].size, env, grouped: true, index: i);
-        final off = widget.groupOffsets;
-        children.add(off != null && i < off.length ? Transform.translate(offset: off[i], child: shape) : shape);
-      }
       flex = Flex(direction: widget.groupAxis, mainAxisSize: MainAxisSize.min, children: children);
     }
     final live = env.live && specs.every((s) => s.twin == null);
@@ -576,7 +566,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
     );
   }
 
-  Widget _buildShape(BuildContext context, SkinGlassShape spec, Size size, _Env env, {required bool grouped, required int index}) {
+  Widget _buildShape(BuildContext context, SkinGlassShape spec, Size size, _Env env, {required bool grouped}) {
     const t = glassTokens;
     final inHost = GlassHost.of(context);
     final twinKind = spec.twin ?? widget.twin ?? (inHost ? GlassTwin.onGlass : null);
@@ -590,9 +580,8 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
     Widget surface(double lb) {
       final dim = env.solid || twinKind != null ? 0.0 : dimFor(lb, highContrast: hc);
       final grad = gradFor(lb, bold: env.a11y.boldText);
-      final content = KeyedSubtree(
-        key: _contentKey(index),
-        child: GlassHost(child: GlassTextAxes(rond: look.p.rond, grad: grad, child: spec.child)),
+      final content = GlassHost(
+        child: GlassTextAxes(rond: look.p.rond, grad: grad, child: spec.child),
       );
       final radius = BorderRadius.circular(shape.radiusFor(size));
       final tint = widget.rimTint;
