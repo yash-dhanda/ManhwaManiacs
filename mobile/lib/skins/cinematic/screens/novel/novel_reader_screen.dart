@@ -250,11 +250,13 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     _narr
       ..onSkipNext = null
       ..onFeedback = null;
-    Future<void>.microtask(() async {
-      try {
-        await _narr.stop();
-      } catch (_) {}
-    });
+    if (ref.read(narrationStopOnReaderExitProvider)) {
+      Future<void>.microtask(() async {
+        try {
+          await _narr.stop();
+        } catch (_) {}
+      });
+    }
     _follower.dispose();
     _decorator?.dispose();
     _listenUi.dispose();
