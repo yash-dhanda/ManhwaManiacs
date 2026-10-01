@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/gestures.dart' show DeviceGestureSettings, ScaleGestureRecognizer, ScaleStartDetails, ScaleUpdateDetails, ScaleEndDetails, TapGestureRecognizer, TapUpDetails, kDoubleTapSlop;
+import 'package:flutter/gestures.dart' show ScaleGestureRecognizer, ScaleStartDetails, ScaleUpdateDetails, ScaleEndDetails, TapGestureRecognizer, TapUpDetails, kDoubleTapSlop;
 import 'package:flutter/physics.dart' show SpringSimulation;
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/ambient_glyphs.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/cruise_pill.dart' show slop10;
 import 'package:manhwamaniacs/skins/glass/ambient/guided.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
@@ -524,21 +525,20 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
                 children: [
                   const Positioned.fill(child: ColoredBox(color: Color(0xFF000000))),
                   Positioned.fill(
-                    child: RawGestureDetector(
+                    child: slop10(context, RawGestureDetector(
                       behavior: HitTestBehavior.opaque,
                       gestures: {
                         TapGestureRecognizer: GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(TapGestureRecognizer.new, (r) => r.onTapUp = _onTapUp),
                         ScaleGestureRecognizer: GestureRecognizerFactoryWithHandlers<ScaleGestureRecognizer>(
                           ScaleGestureRecognizer.new,
                           (r) => r
-                            ..gestureSettings = const DeviceGestureSettings(touchSlop: 10)
                             ..onStart = _scaleStart
                             ..onUpdate = _scaleUpdate
                             ..onEnd = _scaleEnd,
                         ),
                       },
                       child: AnimatedBuilder(animation: _fade, builder: (context, child) => Opacity(opacity: _fade.value.clamp(0.0, 1.0), child: child), child: _stage()),
-                    ),
+                    ),),
                   ),
                   if (!_overview && _lensTo != null && !_finding && !_whole) ..._dimAndLens(),
                   if (_overview) ..._overviewLayer(),

@@ -109,7 +109,6 @@ class CruiseDrag {
         VerticalDragGestureRecognizer: GestureRecognizerFactoryWithHandlers<VerticalDragGestureRecognizer>(
           VerticalDragGestureRecognizer.new,
           (r) => r
-            ..gestureSettings = const DeviceGestureSettings(touchSlop: 10)
             ..onStart = ((_) => start(speed()))
             ..onUpdate = ((d) => update(d.delta.dy))
             ..onEnd = ((_) => end())
@@ -210,7 +209,9 @@ class _CruisePillState extends ConsumerState<CruisePill> with TickerProviderStat
       onDecrease: () => widget.onStep(-Cruise.tick),
       onTap: widget.onToggle,
       excludeSemantics: true,
-      child: RawGestureDetector(
+      child: slop10(
+        context,
+        RawGestureDetector(
         behavior: HitTestBehavior.opaque,
         gestures: _drag.gestures(
           onTap: (s.paused && widget.reduced) ? widget.onResume : widget.onToggle,
@@ -228,11 +229,16 @@ class _CruisePillState extends ConsumerState<CruisePill> with TickerProviderStat
             ],
           ),
         ),
+        ),
       ),
     );
     return _drag.hudOver(pill, text: text, lb: widget.lb, tint: widget.tint);
   }
 }
+
+/// The drag slop of glass 4.10 is 10 px (`thresholdDragSlopTouch`): a recogniser takes its slop from the nearest `MediaQuery`.
+Widget slop10(BuildContext context, Widget child) =>
+    MediaQuery(data: MediaQuery.of(context).copyWith(gestureSettings: const DeviceGestureSettings(touchSlop: 10)), child: child);
 
 /// Raw values past which the drag has hit an end of the range.
 const double kLimitLow = 0.25, kLimitHigh = 4.0;
@@ -297,7 +303,7 @@ class _CruiseRailStripState extends ConsumerState<CruiseRailStrip> with TickerPr
 
   @override
   Widget build(BuildContext context) => _drag.hudOver(
-        RawGestureDetector(behavior: HitTestBehavior.opaque, gestures: _drag.gestures(speed: () => widget.speed), child: widget.child),
+        slop10(context, RawGestureDetector(behavior: HitTestBehavior.opaque, gestures: _drag.gestures(speed: () => widget.speed), child: widget.child)),
         text: formatSpeed(_drag.dragging ? _drag.shown : widget.speed),
         lb: widget.lb,
         tint: widget.tint,
