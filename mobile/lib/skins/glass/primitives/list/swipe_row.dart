@@ -419,7 +419,6 @@ class _GlassSwipeRowState extends ConsumerState<GlassSwipeRow> with TickerProvid
     final semantics = <CustomSemanticsAction, VoidCallback>{
       for (final a in _all) CustomSemanticsAction(label: a.label): () => unawaited(_trigger(a)),
     };
-    final open = _x.value != 0;
     return GlassSwipeSemantics(
       actions: semantics,
       child: Focus(
@@ -453,6 +452,7 @@ class _GlassSwipeRowState extends ConsumerState<GlassSwipeRow> with TickerProvid
                     animation: Listenable.merge([_x, _h]),
                     builder: (context, _) {
                       final x = _x.value;
+                      final open = x != 0;
                       final row = Row(
                         children: [
                           Expanded(child: widget.child),
@@ -476,7 +476,14 @@ class _GlassSwipeRowState extends ConsumerState<GlassSwipeRow> with TickerProvid
                               _pills(x),
                               Transform.translate(
                                 offset: Offset(x, 0),
-                                child: open ? AbsorbPointer(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: _close, child: row)) : row,
+                                // One structure whatever the offset (`open` read here, per frame): the absorb used to be decided in the outer
+                                // build, so a row that closed without an outer rebuild kept swallowing every tap, and its tap-to-close sat
+                                // under the AbsorbPointer where it could never fire.
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: open ? _close : null,
+                                  child: AbsorbPointer(absorbing: open, child: row),
+                                ),
                               ),
                             ],
                           ),
