@@ -27,6 +27,7 @@ import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_sample.dart' show PageSample;
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
@@ -354,7 +355,6 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     _seamChipTimer?.cancel();
     _wakeRelease?.cancel();
     _autoNext?.cancel();
-    _idleHide?.cancel();
     _tapsTimer?.cancel();
     _exclusion.clear();
     if (_wakeHeld) unawaited(_wakelock.disable());
@@ -1269,21 +1269,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     }
   }
 
-  Timer? _idleHide;
-
-  void _toggleChrome() {
-    _idleHide?.cancel();
-    if (engine.value.chromeVisible) {
-      engine.hideChrome();
-      return;
-    }
-    engine.showChrome();
-    if (MediaQuery.accessibleNavigationOf(context)) return;
-    _idleHide = Timer(const Duration(milliseconds: 3000), () {
-      // Never while a sheet, menu, popover, scrub or overlay holds the chrome.
-      if (mounted && _openSheet == null && !_menuOpen && !_goTo && !_scrubbing && !_dialogue && !_hitShown) engine.hideChrome();
-    });
-  }
+  void _toggleChrome() => engine.value.chromeVisible ? engine.hideChrome() : engine.showChrome();
 
   void _turn(int by) {
     final s = engine.value;
@@ -1484,6 +1470,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         rubberBandMax: 0.18,
         legacyWakeAndLock: false,
         lifecycleVolumeKeys: true,
+        // The engine's idle countdown never runs out while a sheet, menu, popover, scrub or overlay holds the chrome.
+        chromeHeld: () => _openSheet != null || _menuOpen || _goTo || _scrubbing || _dialogue || _hitShown,
+        chromeIdleOff: () => reducedMotion,
         pageStateBuilder: glassPageState,
         bandBuilder: GlassReaderBands(
           nextLabel: _nextId == null ? 'The next chapter' : chapterLabel(_nextId!),
@@ -1564,8 +1553,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     _lastLayout = layout;
     final column = desktop ? stripWithPanels(size.width, left: _leftPanel, right: _rightPanel) : null;
     final options = _options(v, column: column, accessibleNav: accessibleNav);
-    // Idle hide after 3,000 ms only when a tap opened the chrome (glass 8.14.2): the skin's timer, not the engine's.
-    const autoHideAfter = Duration(days: 1);
+    // The menu idles out (5 s untouched) on the engine's countdown, shared with Cinematic.
+    const autoHideAfter = kReaderChromeIdle;
 
     Widget chromeFor(BuildContext context, ReaderEngineState state) => LayoutBuilder(
           builder: (context, c) {
