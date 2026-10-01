@@ -12,8 +12,6 @@ const String kGlassMigratedPrefix = 'mm.glass.migrated.v1.';
 /// The per-profile Glass library columns (K15), read by the Glass library (`mobile/32`); lives in `mm.glass.prefs`.
 const String kGlassLibraryColumnsField = 'libraryColumns';
 
-// TODO(mobile/32): the Glass library reads `libraryColumns` from `mm.glass.prefs` (2, 3 or 4) for its first open.
-
 /// K15 `settings_library_cover_scale`: under 0.85 is Compact (4 columns), 0.85 to 1.25 Comfortable (3), over 1.25 two columns.
 int libraryColumnsFromCoverScale(double k15) => k15 < 0.85 ? 4 : (k15 <= 1.25 ? 3 : 2);
 

@@ -11,6 +11,8 @@ import 'package:manhwamaniacs/features/profiles/utils/daily_goal_options.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../support/test_overrides.dart';
+
 Profile _p(int id, int order) => Profile(id: id, name: 'P$id', avatarKey: 'violet', mood: Mood.neutral, sortOrder: order, matureContentEnabled: false, createdAt: DateTime.utc(2024));
 
 class _Repo implements ProfilesRepository {
@@ -59,6 +61,7 @@ Future<(ProviderContainer, _Repo, _Adapter)> _rig({bool fail = false, List<Profi
     sharedPrefsProvider.overrideWithValue(prefs),
     profilesRepositoryProvider.overrideWithValue(repo),
     dioProvider.overrideWithValue(dio),
+    authenticatedAuthOverride(),
   ],);
   addTearDown(c.dispose);
   await c.read(profilesProvider.future);

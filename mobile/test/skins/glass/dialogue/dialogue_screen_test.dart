@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
@@ -44,6 +45,9 @@ void main() {
     expect(j?.chapterKey, '12');
     expect(j?.page, 3);
     expect(j?.q, 'hello');
+    // The reader route is a real screen since mobile/35: let its loading timers run out after the tree goes.
+    await t.pumpWidget(const SizedBox());
+    await t.pump(const Duration(minutes: 1));
   });
 
   testWidgets('idle lens without a query', (t) async {

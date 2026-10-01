@@ -54,7 +54,8 @@ class GenreWord extends StatelessWidget {
     final ink = skip ? c.colorInk45 : (like || love ? c.colorInk100 : c.colorInk60);
     final scaler = CineText.literalScaler(context, CineFace.bodoni);
     Text word(TextStyle s) => Text(name, style: s, textScaler: scaler, softWrap: false);
-    final underline = base.copyWith(color: const Color(0x00000000), decoration: TextDecoration.underline, decorationColor: c.colorSpot, decorationThickness: 2);
+    // Liked or loved, the word fills with `spot` from the left (no underline: owner, 3.5.2).
+    final marked = base.copyWith(color: c.colorSpot);
     final strike = base.copyWith(color: ink, decoration: TextDecoration.lineThrough, decorationColor: c.colorProof, decorationThickness: 1);
 
     Widget drawn(bool on, Duration d, Curve curve, Widget Function(double t) build) => TweenAnimationBuilder<double>(
@@ -101,7 +102,7 @@ class GenreWord extends StatelessWidget {
             Positioned.fill(
               child: drawn(like || love, c.durLine, CineCurves.settle, (t) => Align(
                 alignment: Alignment.centerLeft,
-                child: ClipRect(child: Align(alignment: Alignment.centerLeft, widthFactor: t, child: word(underline))),
+                child: ClipRect(child: Align(alignment: Alignment.centerLeft, widthFactor: t, child: word(marked))),
               ),),
             ),
           ],),

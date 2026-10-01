@@ -169,7 +169,7 @@ class CineCollectionPlate extends StatelessWidget {
                     child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                       Expanded(
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                          CineRoleText(name, c.typeSubhead, maxLines: 2, overflow: TextOverflow.ellipsis, decoration: lit ? TextDecoration.underline : null),
+                          CineRoleText(name, c.typeSubhead, maxLines: 2, overflow: TextOverflow.ellipsis),
                           const SizedBox(height: 4),
                           CineRoleText(credit, c.typeCredit, color: c.colorInk80, maxLines: 1, overflow: TextOverflow.ellipsis),
                         ],),

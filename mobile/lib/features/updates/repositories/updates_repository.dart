@@ -1,3 +1,4 @@
+import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
@@ -49,4 +50,23 @@ class UpdateCheckOutcome {
 
   final bool queued;
   final UpdateRun? run;
+}
+
+/// What "Check now" did (glass 8.21): ran inline, was queued behind a running check, or found one already running (`409`).
+enum CheckOutcome { ran, queued, alreadyRunning }
+
+extension UpdatesRepositoryGlass on UpdatesRepository {
+  /// `POST /updates/check`, with `409 check_already_running` answered as [CheckOutcome.alreadyRunning] instead of an error.
+  Future<Result<CheckOutcome>> checkNow() async {
+    final r = await triggerCheck();
+    if (r.isErr) {
+      final e = r.error;
+      if (e is ApiError && (e.statusCode == 409 || e.code == 'check_already_running')) return const Ok(CheckOutcome.alreadyRunning);
+      return Err(e);
+    }
+    return Ok(r.value.queued ? CheckOutcome.queued : CheckOutcome.ran);
+  }
+
+  /// `POST /updates/followed/{id}/check`.
+  Future<Result<UpdateRun>> checkSeries(int followedId) => checkFollowed(followedId);
 }

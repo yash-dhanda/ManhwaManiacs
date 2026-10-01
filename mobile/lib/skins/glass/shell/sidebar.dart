@@ -10,7 +10,7 @@ import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
-import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
+import 'package:manhwamaniacs/features/downloads/utils/active_download_count.dart';
 import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/server_capabilities_provider.dart';
@@ -100,7 +100,7 @@ class _GlassSidebarState extends ConsumerState<GlassSidebar> with TickerProvider
     final caps = ref.watch(serverCapabilitiesProvider).valueOrNull ?? const ServerCapabilities();
     final unread = ref.watch(unreadNotificationCountProvider);
     final letters = ref.watch(lettersProvider);
-    final downloads = ref.watch(activeDownloadCountProvider);
+    final downloads = ref.watch(glassActiveDownloadCountProvider);
     final novel = ref.watch(novelsEnabledProvider) && ref.watch(contentModeControllerProvider) == ContentMode.novel;
     final pins = ref.watch(sourcePinsProvider).valueOrNull?.pins ?? const [];
     final rows = <_Row>[

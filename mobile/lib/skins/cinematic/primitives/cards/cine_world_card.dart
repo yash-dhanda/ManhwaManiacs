@@ -161,7 +161,7 @@ class _CineWorldCardState extends State<CineWorldCard> {
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                             CineRoleText(widget.kicker, c.typeKicker, color: c.colorInk45, maxLines: 2, overflow: TextOverflow.ellipsis),
                             SizedBox(height: c.space1),
-                            CineRoleText(widget.title, c.typeTitle, maxLines: 2, overflow: TextOverflow.ellipsis, decoration: lit && !info ? TextDecoration.underline : null),
+                            CineRoleText(widget.title, c.typeTitle, maxLines: 2, overflow: TextOverflow.ellipsis),
                             if (widget.byline != null) ...[SizedBox(height: c.space1), CineRoleText('by ${widget.byline}', c.typeCaption, color: c.colorInk60, maxLines: 1, overflow: TextOverflow.ellipsis)],
                             if (widget.why != null) ...[
                               SizedBox(height: c.space2),

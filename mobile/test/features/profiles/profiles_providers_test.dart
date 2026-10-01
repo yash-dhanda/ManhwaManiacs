@@ -10,6 +10,8 @@ import 'package:manhwamaniacs/features/profiles/repositories/profiles_repository
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../support/test_overrides.dart';
+
 Profile _profile({
   required int id,
   String name = 'Reader',
@@ -105,6 +107,8 @@ Future<ProviderContainer> _container({
     overrides: [
       sharedPrefsProvider.overrideWithValue(instance),
       profilesRepositoryProvider.overrideWithValue(repo),
+      // The list is empty until there is a session.
+      authenticatedAuthOverride(),
     ],
   );
 }

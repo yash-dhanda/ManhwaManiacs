@@ -13,6 +13,9 @@ abstract final class _Keys {
 class SecureStorageService {
   SecureStorageService() : _storage = const FlutterSecureStorage(
         aOptions: AndroidOptions(encryptedSharedPreferences: true),
+        // iOS may launch (prewarm, background audio or downloads) before the phone is unlocked;
+        // the default `whenUnlocked` item then fails to read and the launch lands signed out.
+        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
       );
 
   final FlutterSecureStorage _storage;

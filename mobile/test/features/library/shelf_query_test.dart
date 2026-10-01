@@ -65,4 +65,43 @@ void main() {
     expect(const ShelfQuery(sort: ShelfSort.manual, fav: true).canReorder, isFalse);
     expect(const ShelfQuery(fav: true, sort: ShelfSort.title, density: ShelfDensity.list).cleared(), const ShelfQuery(sort: ShelfSort.title, density: ShelfDensity.list));
   });
+
+  group('Glass query names (mobile/32 A1)', () {
+    test('reading_status wins over the chip status and is sent once', () {
+      const q = ShelfQuery(status: ShelfStatus.reading, readingStatus: ShelfStatus.onHold);
+      expect(q.toListParams()['reading_status'], 'on_hold');
+      expect(const ShelfQuery(status: ShelfStatus.completed).toListParams()['reading_status'], 'completed');
+      expect(q.filtering, isTrue);
+      expect(q.cleared().readingStatus, isNull);
+    });
+
+    test('every reading_status value parses from the route', () {
+      for (final v in ['unread', 'reading', 'completed', 'on_hold', 'plan_to_read', 'dropped']) {
+        final r = ShelfQuery.fromRoute({'reading_status': v}).query;
+        expect(r.toListParams()['reading_status'], v);
+      }
+    });
+
+    test('search and is_favorite are aliases of q and fav; the new names win', () {
+      final a = ShelfQuery.fromRoute({'search': 'solo', 'is_favorite': 'true'}).query;
+      expect((a.q, a.fav), ('solo', true));
+      final b = ShelfQuery.fromRoute({'search': 'x', 'q': 'y', 'is_favorite': 'false', 'fav': '1'}).query;
+      expect((b.q, b.fav), ('y', true));
+      expect(a.toListParams()['search'], 'solo');
+      expect(a.toListParams()['is_favorite'], 'true');
+    });
+
+    test('the tab name is read by the hub only', () {
+      expect(libraryTabFromRoute({'tab': 'history'}), 'history');
+      expect(libraryTabFromRoute({'tab': 'nope'}), isNull);
+      expect(ShelfQuery.fromRoute({'tab': 'history'}).query, const ShelfQuery());
+    });
+
+    test('a round trip through the route keeps the query; Cinematic params are unchanged', () {
+      const q = ShelfQuery(status: ShelfStatus.reading, fav: true, tagIds: [2, 5], sort: ShelfSort.title);
+      final back = ShelfQuery.fromRoute({'status': 'reading', 'fav': '1', 'tags': '2,5', 'sort': 'title'}).query;
+      expect(back, q);
+      expect(q.toListParams(), {'sort': 'title', 'reading_status': 'reading', 'is_favorite': 'true', 'tag_ids': '2,5', 'page': '1', 'per_page': '200'});
+    });
+  });
 }

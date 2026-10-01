@@ -66,7 +66,7 @@ class _GlassSheetParamHostState extends State<GlassSheetParamHost> {
       final uri = _uri();
       if (uri != null && uri.queryParameters.containsKey('sheet')) {
         final q = {...uri.queryParameters}..remove('sheet');
-        GoRouter.of(context).replace<void>(uri.replace(queryParameters: q.isEmpty ? null : q).toString());
+        GoRouter.of(context).replace<void>(Uri(path: uri.path, queryParameters: q.isEmpty ? null : q).toString());
       }
     }),);
   }

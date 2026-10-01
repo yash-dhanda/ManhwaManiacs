@@ -14,6 +14,8 @@ import 'package:manhwamaniacs/skins/glass/parts/recap/recap_ready_listener.dart'
 import 'package:manhwamaniacs/skins/glass/primitives/new_chapters_capsule.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
+import 'package:manhwamaniacs/skins/glass/screens/downloads/save_to_files_sheet.dart' show registerSaveToFilesSheet;
+import 'package:manhwamaniacs/skins/glass/screens/library/library_sheets.dart' show registerLibrarySheets;
 import 'package:manhwamaniacs/skins/glass/screens/novel/type_sheet.dart' show registerGlassNovelSheets;
 import 'package:manhwamaniacs/skins/glass/screens/settings/licenses_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/app_update_sheet.dart';
@@ -29,6 +31,8 @@ void registerGlassGlobalSheets() {
   // The Open-source licences sheet (mobile/40, glass 8.25.14): `large` on phones, the 560 px window on the desktop frame.
   registerGlobalSheet('licenses', const GlassSheetSpec(title: 'Open-source licences', builder: _licences));
   registerGlobalSheet('app-update', const GlassSheetSpec(title: 'Update available', builder: _appUpdate, detents: [GlassDetent.medium], opening: GlassDetent.medium));
+  registerLibrarySheets();
+  registerSaveToFilesSheet();
   registerOfferSheet();
   registerHowItWorksSheet();
   registerGlassNovelSheets();

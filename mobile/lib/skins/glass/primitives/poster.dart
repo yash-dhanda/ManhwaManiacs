@@ -662,6 +662,9 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
       ),
     );
 
+    // A narrow poster cannot hold the status tag and "N new" side by side: "N new" drops under the status tag.
+    return LayoutBuilder(builder: (context, box) {
+    final stackNew = m.status != null && m.newCount > 0 && box.maxWidth < 150;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -675,6 +678,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
             children: [
               if (m.status != null || (m.mature && !cornerVisible)) fade(!hideTags, Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                 if (m.status != null) GlassBadge.status(m.status!, onCover: true),
+                if (stackNew) ...[const SizedBox(height: 4), GlassBadge.newChapters(m.newCount)],
                 if (m.mature && !cornerVisible) ...[if (m.status != null) const SizedBox(height: 4), const GlassBadge.mature(onCover: true)],
               ],),),
               fade(cornerVisible && widget.onFavourite != null, cornerButton(GlassGlyph.star.regular, gt.colorStreakCore, 'Favourite', widget.onFavourite, fill: GlassGlyph.star.fill, on: m.favourite)),
@@ -688,7 +692,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
           child: Stack(
             alignment: Alignment.topRight,
             children: [
-              if (m.newCount > 0) fade(!hideTags, GlassBadge.newChapters(m.newCount)),
+              if (m.newCount > 0 && !stackNew) fade(!hideTags, GlassBadge.newChapters(m.newCount)),
               fade(cornerVisible && widget.onFollow != null, cornerButton(GlassGlyph.bellSimple.regular, gt.colorIris400, 'Follow', widget.onFollow, fill: GlassGlyph.bellRinging.fill, on: widget.following)),
               if (widget.selectMode)
                 SpringValue(
@@ -724,6 +728,7 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
         if (_peek && widget.peekLabel != null) Positioned(left: 8, right: 8, bottom: 8, child: _peekBar()),
       ],
     );
+    },);
   }
 
   Widget _peekBar() => MouseRegion(

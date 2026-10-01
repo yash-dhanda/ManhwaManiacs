@@ -48,12 +48,17 @@ class ReaderFailure {
 /// `ReaderSkeleton` and `ReaderErrorState`. The two entry screens (`ReaderScreen`,
 /// `SourceReaderScreen`) read this, so a skin swaps the frame without owning a data path.
 class ReaderFrames {
-  const ReaderFrames({this.content, this.loading, this.failure});
+  const ReaderFrames({this.content, this.loading, this.failure, this.keepAcrossChapters = false});
 
   /// Receives the resolved reader body (feed, callbacks, identity).
   final Widget Function(BuildContext context, ReaderFrameBody body)? content;
   final Widget Function(BuildContext context)? loading;
   final Widget Function(BuildContext context, ReaderFailure failure)? failure;
+
+  /// The frame keeps its state when the route moves to another chapter of the same series (Glass replaces the route under a
+  /// constant page key and its engine takes the new feed). False (the default, Cinematic and legacy) rebuilds the frame per
+  /// chapter.
+  final bool keepAcrossChapters;
 }
 
 /// Overridden by the Cinematic reader route; the default keeps the legacy frame.

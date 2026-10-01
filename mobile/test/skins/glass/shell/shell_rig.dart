@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/core/platform/gravity.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
+import 'package:manhwamaniacs/features/downloads/utils/active_download_count.dart' show glassActiveDownloadCountProvider;
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/library/models/suggestion.dart';
@@ -64,6 +65,7 @@ List<Override> shellTestOverrides({int unread = 0, int downloads = 0}) => [
       glassPrefsMigrationProvider.overrideWithValue(null),
       unreadNotificationCountProvider.overrideWith(() => _Unread(unread)),
       activeDownloadCountProvider.overrideWithValue(downloads),
+      glassActiveDownloadCountProvider.overrideWithValue(downloads),
       setupCompletedProvider.overrideWithValue(true),
       ...noDownloadsStoreOverrides(),
       ...contentModeOverrides(),
