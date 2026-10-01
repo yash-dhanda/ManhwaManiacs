@@ -260,14 +260,22 @@ final skinHapticsProvider = Provider<SkinHaptics>((ref) => SkinHaptics(
     ),);
 
 /// Settings -> Sound and haptics "Feel it" (glass 5.3): sample [index] of selection, soft 0.5, rigid 0.6, droplet, success.
+/// Android has no `impact` channel method and no Core Haptics, so it plays the samples the way Glass's Android path does.
 Future<void> playFeelSample(int index, {HapticsDriver driver = const PlatformHapticsDriver(), AssetBundle? bundle}) async {
+  final android = defaultTargetPlatform == TargetPlatform.android;
   switch (index) {
     case 0:
       await driver.named(HapticsType.selection);
+    case 1 when android:
+      await driver.perform('soft');
     case 1:
       await driver.impact('soft', 0.5);
+    case 2 when android:
+      await driver.perform('rigid');
     case 2:
       await driver.impact('rigid', 0.6);
+    case 3 when android:
+      await driver.oneShot(12, 153);
     case 3:
       try {
         await driver.ahap(await (bundle ?? rootBundle).loadString('assets/haptics/glass/droplet.ahap.json'));
