@@ -62,6 +62,22 @@ Future<void> _end(WidgetTester t) async {
   await t.pump(const Duration(minutes: 11));
 }
 
+/// Pumps [ms] of frames 50 ms apart, so tickers (count-ups, the pile, the podium) see every step.
+Future<void> _frames(WidgetTester t, int ms) async {
+  for (var e = 0; e < ms; e += 50) {
+    await t.pump(const Duration(milliseconds: 50));
+  }
+}
+
+/// Lets a share render (real async: precache, toImage, PNG encode) finish, then the flip settle.
+Future<void> _rendered(WidgetTester t) async {
+  for (var i = 0; i < 120; i++) {
+    await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 5)));
+    await t.pump(const Duration(milliseconds: 16));
+  }
+  await _frames(t, 800);
+}
+
 Annual _annual() => Annual.fromJson({
       ...annualJson(partial: false, circle: true),
       'busiest_day': {
@@ -72,8 +88,14 @@ Annual _annual() => Annual.fromJson({
         ],
       },
       'firsts_lasts': {
-        'first': {'series': {'source_id': 'shelf', 'series_key': 'series-1', 'title': 'Tower of God', 'cover_url': '/sources/shelf/series/series-1/cover'}, 'read_at': '2026-01-05T10:00:00Z'},
-        'last': {'series': {'source_id': 'shelf', 'series_key': 'series-4', 'title': 'Lookism', 'cover_url': '/sources/shelf/series/series-4/cover'}, 'read_at': '2026-09-20T10:00:00Z'},
+        'first': {
+          'series': {'source_id': 'shelf', 'series_key': 'series-1', 'title': 'Tower of God', 'cover_url': '/sources/shelf/series/series-1/cover'},
+          'read_at': '2026-01-05T10:00:00Z'
+        },
+        'last': {
+          'series': {'source_id': 'shelf', 'series_key': 'series-4', 'title': 'Lookism', 'cover_url': '/sources/shelf/series/series-4/cover'},
+          'read_at': '2026-09-20T10:00:00Z'
+        },
       },
     });
 
@@ -124,11 +146,13 @@ void main() {
     final repo = FakeNumbers(annuals: {2026: _annual()});
     final cards = wrappedCards(_annual(), profileShares: true);
     for (final size in _sizes) {
-      final s = await _open(t, size, repo, start: '/library/statistics/annual/2026');
-      await t.sendKeyEvent(LogicalKeyboardKey.space);
-      await s.settle(2600);
+      final s = await _open(t, size, repo, start: '/library/statistics/annual/2026', settleMs: 1);
+      await t.sendKeyEvent(LogicalKeyboardKey.space); // paused on the cover before the 6 s auto-advance
+      for (var f = 0; f < 55; f++) {
+        await t.pump(const Duration(milliseconds: 100)); // the typing reveal runs frame by frame
+      }
+      await pumpUntilCoversLoad(t, rounds: 25);
       await s.snap('wrapped-01-cover', size);
-      if (size != _phone) continue;
       for (var i = 1; i < cards.length; i++) {
         // Step until this card is the only one up (the file name always matches what is shown).
         for (var k = 0; k < 3 && !_only(cards[i]); k++) {
@@ -140,7 +164,7 @@ void main() {
         for (var f = 0; f < 30; f++) {
           await t.pump(const Duration(milliseconds: 100));
         }
-        await pumpUntilCoversLoad(t, rounds: 6);
+        await pumpUntilCoversLoad(t, rounds: 25);
         await s.snap('wrapped-${cards[i].number.toString().padLeft(2, '0')}-${cards[i].name}', size);
       }
     }
@@ -156,27 +180,35 @@ void main() {
     s = await _open(t, _phone, repo, start: '/library/statistics/annual/2026');
     await s.snap('wrapped-large-text-2.0', _phone);
     t.platformDispatcher.clearTextScaleFactorTestValue();
-    final gated = FakeNumbers(annuals: {2026: _annual()})..gate = Completer<void>();
-    s = await _open(t, _phone, gated, start: '/library/statistics/annual/2026', settleMs: 1);
-    await s.snap('wrapped-loading', _phone);
-    gated.gate!.complete();
-    s = await _open(t, _phone, FakeNumbers(annuals: {2026: Annual.fromJson(annualJson(recordedDays: 5))}), start: '/library/statistics/annual/2026');
-    await s.snap('wrapped-thin', _phone);
+    for (final size in _sizes) {
+      final gated = FakeNumbers(annuals: {2026: _annual()})..gate = Completer<void>();
+      s = await _open(t, size, gated, start: '/library/statistics/annual/2026', settleMs: 1);
+      await s.snap('wrapped-loading', size);
+      gated.gate!.complete();
+      s = await _open(t, size, FakeNumbers(annuals: {2026: Annual.fromJson(annualJson(recordedDays: 5))}), start: '/library/statistics/annual/2026');
+      await s.snap('wrapped-thin', size);
+    }
     await _end(t);
   });
 
   testWidgets('share: the side and the real PNGs', (t) async {
-    final repo = FakeNumbers(annuals: {2026: _annual()});
-    final s = await _open(t, _phone, repo, start: '/library/statistics/annual/2026');
-    await t.sendKeyEvent(LogicalKeyboardKey.space);
-    await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await s.settle(800);
-    await t.tap(find.text('Export').first);
-    await s.settle(1200);
-    await s.snap('share-side-story', _phone);
-    await t.sendKeyEvent(LogicalKeyboardKey.digit2);
-    await s.settle(1200);
-    await s.snap('share-side-post', _phone);
+    await _covers(t);
+    final px = _coverBytes.values.first;
+    for (final size in _sizes) {
+      final repo = FakeNumbers(annuals: {2026: _annual()});
+      final s = await _open(t, size, repo, start: '/library/statistics/annual/2026', settleMs: 1, extra: [glassShareImageProvider.overrideWithValue((url) => MemoryImage(_coverBytes[url] ?? px))]);
+      await t.sendKeyEvent(LogicalKeyboardKey.space); // paused on the cover
+      await _frames(t, 1000);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await _frames(t, 2000);
+      expect(_only(WrappedCard.time), isTrue);
+      await t.sendKeyEvent(LogicalKeyboardKey.keyE);
+      await _rendered(t);
+      await s.snap('share-side-story', size);
+      await t.sendKeyEvent(LogicalKeyboardKey.digit2);
+      await _rendered(t);
+      await s.snap('share-side-post', size);
+    }
     await _end(t);
   });
 
@@ -209,30 +241,34 @@ void main() {
     await write('card-04-top-five-post', ShareSpec.forCard(WrappedCard.topFive, a)!, ShareFormat.post);
     await write('card-12-summary-story', ShareSpec.forCard(WrappedCard.summary, a)!, ShareFormat.story);
     final st = statisticsFixture();
-    await write('share-range-story', ShareSpec.stat(id: 'range-30', eyebrow: 'Your reading', numeral: '${st.window.chaptersRead}', unit: 'chapters', contextLine: 'Last 30 days', bars: st.daily), ShareFormat.story);
+    await write('share-range-story', ShareSpec.stat(id: 'range-30', eyebrow: 'Your reading', numeral: '${st.window.chaptersRead}', unit: 'chapters', contextLine: 'Last 30 days', bars: st.daily),
+        ShareFormat.story);
     await write('share-streak-story', ShareSpec.stat(id: 'streak', eyebrow: 'Streak', numeral: '12', unit: 'day streak', contextLine: 'Longest: 31 days', flame: true), ShareFormat.story);
     await s.settle(100);
     await _end(t);
   });
 
   testWidgets('stats: table view, scrub, offline, goal menu, flare and milestone', (t) async {
-    var s = await _open(t, _phone, FakeNumbers());
-    await t.tap(find.text('Show as table').first);
-    await s.settle(600);
-    await s.snap('stats-table-view', _phone);
+    late ShotSession s;
+    for (final size in _sizes) {
+      s = await _open(t, size, FakeNumbers());
+      await t.tap(find.text('Show as table').first);
+      await s.settle(600);
+      await s.snap('stats-table-view', size);
 
-    s = await _open(t, _phone, FakeNumbers(), start: '/library/statistics?range=30');
-    final chart = find.byType(GlassChart).first;
-    await t.ensureVisible(chart);
-    await s.settle(300);
-    final r = t.getRect(chart);
-    final g = await t.startGesture(Offset(r.left + 20, r.center.dy));
-    for (var x = r.left + 20; x < r.center.dx; x += 10) {
-      await g.moveTo(Offset(x, r.center.dy));
-      await t.pump(const Duration(milliseconds: 16));
+      s = await _open(t, size, FakeNumbers(), start: '/library/statistics?range=30');
+      final chart = find.byType(GlassChart).first;
+      await t.ensureVisible(chart);
+      await s.settle(300);
+      final r = t.getRect(chart);
+      final g = await t.startGesture(Offset(r.left + 20, r.center.dy));
+      for (var x = r.left + 20; x < r.center.dx; x += 10) {
+        await g.moveTo(Offset(x, r.center.dy));
+        await t.pump(const Duration(milliseconds: 16));
+      }
+      await s.snap('stats-scrub', size);
+      await g.up();
     }
-    await s.snap('stats-scrub', _phone);
-    await g.up();
 
     for (final size in _sizes) {
       final repo = FakeNumbers();
@@ -244,23 +280,27 @@ void main() {
       await s.snap('stats-offline', size);
     }
 
-    s = await _open(t, _phone, FakeNumbers());
-    await t.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
-    await t.sendKeyEvent(LogicalKeyboardKey.keyG);
-    await t.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
-    await s.settle(500);
-    await s.snap('goal-menu', _phone);
+    for (final size in _sizes) {
+      s = await _open(t, size, FakeNumbers());
+      await t.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await t.sendKeyEvent(LogicalKeyboardKey.keyG);
+      await t.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await s.settle(500);
+      await s.snap('goal-menu', size);
+      await t.sendKeyEvent(LogicalKeyboardKey.escape);
+      await s.settle(300);
 
-    final repo = FakeNumbers()..stats[1] = LibraryStatistics.fromJson(statisticsJson(days: 1, currentDays: 30, milestonesSeen: const []));
-    s = await _open(t, _phone, repo);
-    final handle = s.container.read(progressAnswerHandlerProvider);
-    handle(const ProgressAnswer(streak: StreakSnapshot(currentDays: 29, extendedToday: false), todaySeconds: 300));
-    handle(const ProgressAnswer(streak: StreakSnapshot(currentDays: 30, extendedToday: true), todaySeconds: 900));
-    await t.pump();
-    await t.pump(const Duration(milliseconds: 300));
-    await s.snap('flare', _phone);
-    await s.settle(900);
-    await s.snap('milestone-toast', _phone);
+      final repo = FakeNumbers()..stats[1] = LibraryStatistics.fromJson(statisticsJson(days: 1, currentDays: 30, milestonesSeen: const []));
+      s = await _open(t, size, repo);
+      final handle = s.container.read(progressAnswerHandlerProvider);
+      handle(const ProgressAnswer(streak: StreakSnapshot(currentDays: 29, extendedToday: false), todaySeconds: 300));
+      handle(const ProgressAnswer(streak: StreakSnapshot(currentDays: 30, extendedToday: true), todaySeconds: 900));
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 300));
+      await s.snap('flare', size);
+      await s.settle(900);
+      await s.snap('milestone-toast', size);
+    }
     await _end(t);
   });
 
@@ -330,34 +370,37 @@ void main() {
         ),
       );
     }
-    final repo = FakeNumbers(annuals: {2026: _annual()});
     final cards = wrappedCards(_annual(), profileShares: true);
-    final s = await _open(t, _phone, repo, start: '/library/statistics/annual/2026');
-    await t.sendKeyEvent(LogicalKeyboardKey.space); // paused: the keys move
-    Future<void> goTo(WrappedCard c) async {
-      for (var i = 0; i < cards.length && find.byKey(ValueKey('wrapped-card-${c.name}')).evaluate().isEmpty; i++) {
-        await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-        await t.pump();
-        await t.pump(const Duration(milliseconds: 700));
+    for (final size in _sizes) {
+      final repo = FakeNumbers(annuals: {2026: _annual()});
+      final s = await _open(t, size, repo, start: '/library/statistics/annual/2026', settleMs: 1);
+      await t.sendKeyEvent(LogicalKeyboardKey.space); // paused: the keys move
+      Future<void> goTo(WrappedCard c) async {
+        for (var i = 0; i < cards.length && find.byKey(ValueKey('wrapped-card-${c.name}')).evaluate().isEmpty; i++) {
+          await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+          await _frames(t, 900);
+        }
       }
-    }
 
-    await goTo(WrappedCard.time);
-    await s.settle(1600);
-    await t.sendKeyEvent(LogicalKeyboardKey.keyE);
-    await t.pump();
-    await t.pump(const Duration(milliseconds: 200));
-    await s.snap('share-flip', _phone);
-    await t.sendKeyEvent(LogicalKeyboardKey.escape);
-    await s.settle(800);
-    await goTo(WrappedCard.volume);
-    await s.settle(2600);
-    await s.settle(2600);
-    await s.snap('wrapped-pile', _phone);
-    await goTo(WrappedCard.topFive);
-    await t.pump(const Duration(milliseconds: 650));
-    await t.pump(const Duration(milliseconds: 120));
-    await s.snap('wrapped-podium-drop', _phone);
+      await goTo(WrappedCard.time);
+      await _frames(t, 1600);
+      await t.sendKeyEvent(LogicalKeyboardKey.keyE);
+      await _frames(t, 200);
+      await s.snap('share-flip', size);
+      await t.sendKeyEvent(LogicalKeyboardKey.escape);
+      await _rendered(t);
+      await goTo(WrappedCard.volume);
+      await _frames(t, 5000);
+      await s.snap('wrapped-pile', size);
+      await goTo(WrappedCard.topFive);
+      await _frames(t, 2000);
+      await pumpUntilCoversLoad(t, rounds: 25); // the covers in the image cache, then the drop again
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      await _frames(t, 900);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await _frames(t, 1100); // the settle, then #5, #4 and #3 down while #2 and #1 still fall
+      await s.snap('wrapped-podium-drop', size);
+    }
     await _end(t);
   });
 }
