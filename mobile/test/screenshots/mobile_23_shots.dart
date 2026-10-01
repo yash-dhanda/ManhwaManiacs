@@ -170,7 +170,7 @@ void mobile23Shots() {
   }
 
   Future<void> showChrome(WidgetTester tester) async {
-    if (!chromeVisible(tester)) await tapSingle(tester);
+    if (!chromeVisible(tester)) await tapDouble(tester);
   }
 
   Future<void> reader(

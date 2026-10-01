@@ -40,14 +40,6 @@ TapZoneAction stripScrollTapAction(Offset p, Size s) {
   return TapZoneAction.menu;
 }
 
-/// Whether a double tap may be recognised at [p]: everywhere in the plain strip; only in the centre band in paged mode and
-/// with Tap to scroll on (a side-band tap acts at once, without a double-tap window).
-bool doubleTapAllowedAt(Offset p, Size s, {required bool paged, required bool tapToScroll}) {
-  if (!paged && !tapToScroll) return true;
-  if (paged) return tapBandOf(p.dx, s.width) == TapBand.centre;
-  return stripScrollTapAction(p, s) == TapZoneAction.menu;
-}
-
 /// Two taps make a double when the second lands within the window and the slop.
 bool isDoubleTap({required Duration gap, required double distance}) =>
     gap <= kGlassDoubleTapWindow && distance <= kGlassDoubleTapSlop;

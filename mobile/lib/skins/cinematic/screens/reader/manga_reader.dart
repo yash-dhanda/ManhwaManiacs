@@ -19,7 +19,6 @@ import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
-import 'package:manhwamaniacs/features/reader/engine/paged_zoom.dart';
 import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart' show locateGlobalPage, chapterStarts, readAllFlag;
 import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart' show PanelsFound;
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
@@ -570,15 +569,12 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
       _ocr.hideOutlines();
       return;
     }
-    if (info.kind == TapKind.double) {
-      cineFeedback(context, HapticEvent.zoomSnap);
-      _engine.zoomAt(info.position, pagedDoubleTapTarget(s.zoom), duration: _reduced ? Duration.zero : context.cine.durLine, curve: CineCurves.settle);
-      return;
-    }
     final zones = resolveZones(prefs.tapZones, rtl: prefs.rtl);
     final step = zoneStep(zoneAction(info.position.dx, info.size.width, zones));
+    // The menu zone takes a double tap to open or close the chrome; a single tap there does nothing.
+    // Pinch zooms.
     if (step == null) {
-      s.chromeVisible ? _engine.hideChrome() : _engine.showChrome();
+      if (info.kind == TapKind.double) s.chromeVisible ? _engine.hideChrome() : _engine.showChrome();
       return;
     }
     if (s.chromeVisible) _engine.hideChrome();
@@ -616,22 +612,14 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
       _onPagedTap(info, prefs);
       return;
     }
-    if (info.kind == TapKind.double) {
-      cineFeedback(context, HapticEvent.zoomSnap);
-      _engine.zoomAt(
-        info.position,
-        doubleTapZoomTarget(s.zoom, prefs.zoom),
-        duration: _reduced ? Duration.zero : context.cine.durLine,
-        curve: CineCurves.settle,
-      );
-      return;
-    }
     // Auto-scroll keeps running through a tap: the touch pauses it and the release resumes it
     // (the chrome stays hidden).
     if (s.autoScrolling) return;
     switch (stripTap(info.position, info.size, tapToScroll: prefs.stripTaps == 'scroll', rtl: prefs.rtl)) {
+      // A double tap opens or closes the chrome; a single touch here is too often the end of a
+      // scroll. Pinch zooms.
       case StripTap.toggleChrome:
-        s.chromeVisible ? _engine.hideChrome() : _engine.showChrome();
+        if (info.kind == TapKind.double) s.chromeVisible ? _engine.hideChrome() : _engine.showChrome();
       case StripTap.scrollBack:
         _scrollBy(forward: false);
       case StripTap.scrollForward:

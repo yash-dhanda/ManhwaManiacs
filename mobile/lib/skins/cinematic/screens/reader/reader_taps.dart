@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui';
 
 // The reader tap rules, free of widgets (cinematic 8.14.3, 8.14.5, 11).
@@ -54,11 +53,6 @@ StripTap stripTap(Offset position, Size size, {required bool tapToScroll, bool r
   if (x > 2 / 3) return rtl ? StripTap.scrollBack : StripTap.scrollForward;
   return StripTap.toggleChrome;
 }
-
-/// The double-tap target: from the series' resting zoom to min(2 x resting, 3.0), from any other
-/// zoom back to the resting zoom.
-double doubleTapZoomTarget(double current, double resting) =>
-    (current - resting).abs() < 0.05 ? math.min(resting * 2, 3.0) : resting;
 
 /// How far a tap-to-scroll moves: 75 % of the viewport, backwards when [forward] is false.
 double tapScrollFraction({required bool forward}) => forward ? 0.75 : -0.75;

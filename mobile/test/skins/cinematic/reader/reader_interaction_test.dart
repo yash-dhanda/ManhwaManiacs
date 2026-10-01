@@ -19,19 +19,16 @@ bool _chip(WidgetTester tester) => tester.widget<ReaderZoomChip>(find.byType(Rea
 void main() {
   setUpAll(setUpShotCoverCache);
 
-  testWidgets('a double tap zooms to 200% and the chip shows for 1200 ms', (tester) async {
+  testWidgets('a zoom shows the chip for 1200 ms', (tester) async {
     await pumpReader(tester);
     await settleReader(tester, ms: 600);
     expect(_chip(tester), isFalse);
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
-    await tester.tapAt(const Offset(195, 422));
-    await tester.pump(const Duration(milliseconds: 20));
-    await tester.tapAt(const Offset(195, 422));
-    await settleReader(tester, ms: 500);
-    expect(find.text('200%'), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.equal);
+    await settleReader(tester, ms: 200);
+    expect(find.text('110%'), findsOneWidget);
     expect(_chip(tester), isTrue);
-    await tester.pump(const Duration(milliseconds: 1000));
-    expect(_chip(tester), isTrue, reason: 'still held about 1000 ms after the zoom landed');
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(_chip(tester), isTrue, reason: 'still held 1100 ms after the zoom');
     await tester.pump(const Duration(milliseconds: 300));
     expect(_chip(tester), isFalse, reason: 'gone after 1200 ms');
     await disposeReader(tester);

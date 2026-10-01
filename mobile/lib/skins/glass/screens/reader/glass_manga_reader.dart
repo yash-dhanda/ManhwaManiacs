@@ -1230,7 +1230,6 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   // ── Taps, keys, gestures ───────────────────────────────────────────────
 
   void _onTap(ReaderTapInfo info) {
-    final s = engine.value;
     if (locked) {
       if (inUnlockRegion(info.position, info.size)) {
         final n = _unlock.tap(DateTime.now());
@@ -1240,42 +1239,23 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       if (!paged) return;
     }
     _light(info.position);
-    final doubleOk = doubleTapAllowedAt(info.position, info.size, paged: paged, tapToScroll: _settings.values.tapToScroll);
-    if (info.kind == TapKind.double && doubleOk) {
-      // A double tap never changes chrome visibility: the first tap's toggle is reverted at once.
-      s.chromeVisible ? engine.hideChrome() : engine.showChrome();
-      final target = s.zoom > 1.05 ? 1.0 : 2.0;
-      engine.zoomAt(info.position, target,
-          duration: const Duration(milliseconds: 380), curve: const Cubic(0.2, 0.9, 0.3, 1), spring: springOf(gt.springCamera),);
-      glassFire(ref, HapticEvent.zoomSnap);
-      _showZoomChip((target * 100).round());
-      return;
+    final zones = _settings.prefs.tapZones?.map((z) => TapZoneAction.values.byName(z)).toList();
+    final action = paged
+        ? pagedTapAction(tapBandOf(info.position.dx, info.size.width), rtl: _settings.prefs.rtl, zones: zones)
+        : _settings.values.tapToScroll
+            ? stripScrollTapAction(info.position, info.size)
+            : TapZoneAction.menu;
+    switch (action) {
+      // A double tap opens or closes the chrome; a single touch here is too often the end of a scroll.
+      // Pinch zooms.
+      case TapZoneAction.menu:
+        if (info.kind == TapKind.double) _toggleChrome();
+      case TapZoneAction.previous || TapZoneAction.next when paged:
+        _turn(action == TapZoneAction.next ? 1 : -1);
+      case TapZoneAction.previous || TapZoneAction.next:
+        engine.scrollByViewport(action == TapZoneAction.next ? 0.75 : -0.75,
+            duration: springOf(gt.springSettle).duration, curve: const Cubic(0.2, 0.9, 0.3, 1),);
     }
-    if (paged) {
-      final band = tapBandOf(info.position.dx, info.size.width);
-      final zones = _settings.prefs.tapZones?.map((z) => TapZoneAction.values.byName(z)).toList();
-      switch (pagedTapAction(band, rtl: _settings.prefs.rtl, zones: zones)) {
-        case TapZoneAction.previous:
-          _turn(-1);
-        case TapZoneAction.next:
-          _turn(1);
-        case TapZoneAction.menu:
-          _toggleChrome();
-      }
-      return;
-    }
-    if (_settings.values.tapToScroll) {
-      switch (stripScrollTapAction(info.position, info.size)) {
-        case TapZoneAction.previous:
-          engine.scrollByViewport(-0.75, duration: springOf(gt.springSettle).duration, curve: const Cubic(0.2, 0.9, 0.3, 1));
-        case TapZoneAction.next:
-          engine.scrollByViewport(0.75, duration: springOf(gt.springSettle).duration, curve: const Cubic(0.2, 0.9, 0.3, 1));
-        case TapZoneAction.menu:
-          _toggleChrome();
-      }
-      return;
-    }
-    _toggleChrome();
   }
 
   Timer? _idleHide;

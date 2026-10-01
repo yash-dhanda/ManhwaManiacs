@@ -150,6 +150,7 @@ class CineShutterLayerState extends State<CineShutterLayer> with SingleTickerPro
   }
 
   Future<void> _irisOut(Offset center, {Duration? duration}) async {
+    if (!mounted) return; // the frame went away with the iris (a restart, a teardown)
     final size = MediaQuery.sizeOf(context);
     _diagonal = math.sqrt(size.width * size.width + size.height * size.height);
     final reduced = CineMotion.reduced(context);

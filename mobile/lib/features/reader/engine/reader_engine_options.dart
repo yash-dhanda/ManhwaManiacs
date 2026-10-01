@@ -71,16 +71,16 @@ typedef PageSemanticsBuilder = Widget Function(BuildContext context, ReaderChapt
 /// Wraps the page list (the skin's warmth layer).
 typedef PageLayerBuilder = Widget Function(BuildContext context, Widget pages);
 
-/// The scroll-driven chrome rules of cinematic 8.14.3: hide after a cumulative [hidePx] of
-/// downward scroll since the last direction change, show after [showPx] upward, never inside the
-/// first [grace] of a chapter. Off (null) the engine hides on the start of a drag as it always did.
+/// The scroll-driven chrome rule of cinematic 8.14.3: hide after a cumulative [hidePx] of
+/// downward scroll since the last direction change, never inside the first [grace] of a chapter.
+/// Scrolling never shows the chrome (only a double tap does). Off (null) the engine hides on the
+/// start of a drag as it always did.
 class ReaderAutoHide {
   const ReaderAutoHide(
       {this.hidePx = 24,
-      this.showPx = 56,
       this.grace = const Duration(milliseconds: 800),
       this.onScroll = true,});
-  final double hidePx, showPx;
+  final double hidePx;
   final Duration grace;
 
   /// False while a screen reader runs: the chrome never hides by scrolling.

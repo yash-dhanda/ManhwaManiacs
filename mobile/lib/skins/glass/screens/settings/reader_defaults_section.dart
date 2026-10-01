@@ -121,7 +121,7 @@ class _MangaGroup extends ConsumerWidget {
       SettingsBlock(
         id: 'reader-tap-zones',
         title: 'Tap zones',
-        caption: 'Tap a band to cycle Previous, Menu, Next.',
+        caption: 'Tap a band to cycle Previous, Menu, Next. Double-tap Menu to show the controls.',
         child: _TapZones(config: dev.tapZones ?? TapZoneConfig.defaultFor(dev.direction), custom: dev.tapZones != null, onChanged: (c) => unawaited(devN.setTapZones(c))),
       ),
       SettingsSegmentedBlock<String>(

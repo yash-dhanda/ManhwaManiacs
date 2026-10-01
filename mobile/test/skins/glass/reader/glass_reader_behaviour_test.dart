@@ -50,7 +50,7 @@ const _ocr = [
 ];
 
 void main() {
-  testWidgets('24 px of downward scroll hides the chrome, 56 px up restores it; the pill reads 1 / 6', (t) async {
+  testWidgets('24 px of downward scroll hides the chrome, scrolling up never restores it; the pill reads 1 / 6', (t) async {
     await pumpGlassReader(t);
     await settleReader(t, ms: 1000);
     expect(chromeOn(t), isTrue);
@@ -61,7 +61,7 @@ void main() {
     expect(find.text('1 / 6').evaluate().isNotEmpty || find.text('2 / 6').evaluate().isNotEmpty, isTrue, reason: 'the pill shows the page readout');
     await pull(t, 70);
     await settleReader(t, ms: 400);
-    expect(chromeOn(t), isTrue);
+    expect(chromeOn(t), isFalse, reason: 'only a double tap opens the menu');
     await disposeGlassReader(t);
   });
 

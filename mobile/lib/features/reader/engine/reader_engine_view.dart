@@ -62,7 +62,7 @@ const _autoNextChapterMs = 900;
 /// Minimum milliseconds after a scroll event before a tap is treated as intentional.
 const _postScrollCooldownMs = 300;
 
-/// Max gap between two taps to register a double-tap (zoom toggle).
+/// Max gap between two taps to register a double-tap.
 const _doubleTapMs = 280;
 
 /// Frames a deferred scroll-restore is allowed to home in for before it settles
@@ -360,7 +360,6 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   ({Offset position, DateTime at})? _tapDown;
   AnimationController? _zoomController;
   double _downAccum = 0;
-  double _upAccum = 0;
   DateTime _suppressAutoHideUntil = DateTime.fromMillisecondsSinceEpoch(0);
   final Set<String> _completedNotified = {};
   FurtherElsewhere? _furtherElsewhere;
@@ -372,6 +371,11 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   // Tap-detection state
   bool _isScrolling = false;
+
+  /// The touch now down landed on a moving strip, or one that stopped inside the cooldown (the touch
+  /// that catches a fling ends that scroll before [_noteTouchDown] runs). It is stopping the scroll,
+  /// never a tap.
+  bool _touchCaughtScroll = false;
   DateTime _lastScrollEnd = DateTime.fromMillisecondsSinceEpoch(0);
   Offset? _tapDownPosition;
   int _consecutiveCenterTaps = 0;
@@ -1826,6 +1830,12 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _tapDownPosition = details.localPosition;
   }
 
+  void _noteTouchDown(PointerDownEvent _) {
+    _touchCaughtScroll = _isScrolling ||
+        _velocity.velocity() != 0 ||
+        DateTime.now().difference(_lastScrollEnd).inMilliseconds < _postScrollCooldownMs;
+  }
+
   /// A tap for the skin's [ReaderEngineOptions.tapHandler], after the same scroll cooldown the
   /// built-in rules use. The classifier tells single from double with the skin's window and slop.
   void _dispatchSkinTap(Offset pos) {
@@ -1833,7 +1843,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (handler == null) return;
     final sinceLastScroll =
         DateTime.now().difference(_lastScrollEnd).inMilliseconds;
-    if (_isScrolling || sinceLastScroll < _postScrollCooldownMs) return;
+    if (_touchCaughtScroll || _isScrolling || sinceLastScroll < _postScrollCooldownMs) return;
     final kind = _tapClassifier.classify(pos, DateTime.now());
     handler(
       ReaderTapInfo(
@@ -1856,7 +1866,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     // Ignore if we're scrolling or within the cooldown after a scroll ends
     final sinceLastScroll =
         DateTime.now().difference(_lastScrollEnd).inMilliseconds;
-    if (_isScrolling || sinceLastScroll < _postScrollCooldownMs) return;
+    if (_touchCaughtScroll || _isScrolling || sinceLastScroll < _postScrollCooldownMs) return;
 
     final width = _containerWidth ?? 400.0;
     final height = _containerHeight ?? 800.0;
@@ -1891,38 +1901,37 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
     _consecutiveCenterTaps = 0;
 
-    // Double-tap → zoom. Detected manually via timestamps rather than
+    // Double taps are detected manually via timestamps rather than
     // GestureDetector.onDoubleTap, which would add a ~300ms disambiguation
     // delay to every control-button tap and kill the smooth feel.
     final now = DateTime.now();
-    if (now.difference(_lastTapTime).inMilliseconds < _doubleTapMs) {
-      _lastTapTime = DateTime.fromMillisecondsSinceEpoch(0);
+    final isDouble = now.difference(_lastTapTime).inMilliseconds < _doubleTapMs;
+    _lastTapTime = isDouble ? DateTime.fromMillisecondsSinceEpoch(0) : now;
+
+    // The reader's own tap zones, so thumb reach is theirs to retune. Nothing
+    // is stored until they pick, which is what keeps the bands mirroring
+    // themselves for a right-to-left series.
+    final defaults = ref.read(readerDefaultsProvider);
+    final zones =
+        defaults.tapZones ?? TapZoneConfig.defaultFor(defaults.direction);
+    final zone = resolveTapZone(pos.dx, width, zones);
+
+    // The menu zone takes a double tap to open or close the controls: a single
+    // touch there is too often the end of a scroll. Pinch zooms.
+    if (zone == TapZoneAction.toggle) {
+      if (isDouble) ui.controlsVisible ? _hideControls() : _showControls();
+      return;
+    }
+    if (isDouble) {
       _haptics.light();
       ref.read(readerUiProvider.notifier).toggleDoubleTapZoom();
       return;
     }
-    _lastTapTime = now;
-
-    // Any tap while controls are visible just dismisses them.
     if (ui.controlsVisible) {
       _hideControls();
       return;
     }
-
-    // Controls hidden → the reader's own tap zones, so thumb reach is
-    // theirs to retune. Nothing is stored until they pick, which is what keeps
-    // the bands mirroring themselves for a right-to-left series.
-    final defaults = ref.read(readerDefaultsProvider);
-    final zones =
-        defaults.tapZones ?? TapZoneConfig.defaultFor(defaults.direction);
-    switch (resolveTapZone(pos.dx, width, zones)) {
-      case TapZoneAction.advance:
-        _pageBy(forward: true);
-      case TapZoneAction.retreat:
-        _pageBy(forward: false);
-      case TapZoneAction.toggle:
-        _showControls();
-    }
+    _pageBy(forward: zone == TapZoneAction.advance);
   }
 
   /// Jump to the start of [page].
@@ -2024,29 +2033,23 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     return false;
   }
 
-  /// Cumulative scroll since the last direction change: hide after [ReaderAutoHide.hidePx]
-  /// forward, show after [ReaderAutoHide.showPx] back; never inside the grace of a chapter's
-  /// first moments, and never after a programmatic jump the reader asked for.
+  /// Cumulative forward scroll since the last direction change hides the chrome after
+  /// [ReaderAutoHide.hidePx]; never inside the grace of a chapter's first moments, and never after a
+  /// programmatic jump the reader asked for. Scrolling back never shows it: only a deliberate double
+  /// tap opens the menu.
   void _trackAutoHide(double delta, ReaderAutoHide autoHide) {
     if (delta == 0 || !autoHide.onScroll) return;
     if (DateTime.now().isBefore(_suppressAutoHideUntil)) return;
-    final visible = ref.read(readerUiProvider).controlsVisible;
-    if (delta > 0) {
-      _upAccum = 0;
-      _downAccum += delta;
-      if (visible &&
-          _downAccum >= autoHide.hidePx &&
-          DateTime.now().difference(_openedAt) >= autoHide.grace) {
-        _downAccum = 0;
-        _hideControls();
-      }
-    } else {
+    if (delta < 0) {
       _downAccum = 0;
-      _upAccum += -delta;
-      if (!visible && _upAccum >= autoHide.showPx) {
-        _upAccum = 0;
-        _showControls();
-      }
+      return;
+    }
+    _downAccum += delta;
+    if (ref.read(readerUiProvider).controlsVisible &&
+        _downAccum >= autoHide.hidePx &&
+        DateTime.now().difference(_openedAt) >= autoHide.grace) {
+      _downAccum = 0;
+      _hideControls();
     }
   }
 
@@ -3011,7 +3014,12 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       overrides: [readerEngineProvider.overrideWithValue(widget.controller)],
       child: NotificationListener<ScrollNotification>(
         onNotification: _onScrollNotification,
-        child: GestureDetector(
+        child: Listener(
+          // An ancestor of the strip, so the strip's own pointer-down (which catches a fling and
+          // ends the scroll) has run by the time this one asks whether it was moving.
+          behavior: HitTestBehavior.translucent,
+          onPointerDown: _noteTouchDown,
+          child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTapDown: _handleTapDown,
           onTap: _handleTap,
@@ -3042,6 +3050,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
               ),
             ],
           ),),
+        ),
         ),
       ),
     );

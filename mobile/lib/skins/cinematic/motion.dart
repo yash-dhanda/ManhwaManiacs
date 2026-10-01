@@ -98,6 +98,25 @@ abstract final class CineMotion {
   }
 
   static void _releaseRack() => _rackRunning = math.max(0, _rackRunning - 1);
+
+  /// Letter-blur layers allowed per frame, app-wide. Each `ImageFiltered` is its own offscreen
+  /// pass; Letter set blurs every letter for 440 ms, so a screen revealing a few headings at once
+  /// stacked ~100 passes a frame on iOS Impeller. Letters past the cap rise and fade unblurred.
+  static const int blurCap = 24;
+  static int _blurUsed = 0;
+  static bool _blurReset = false;
+
+  /// Takes one of this frame's [blurCap] blur layers; false once they are spent.
+  static bool claimBlur() {
+    if (!_blurReset) {
+      _blurReset = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _blurUsed = 0;
+        _blurReset = false;
+      });
+    }
+    return _blurUsed++ < blurCap;
+  }
 }
 
 /// Whether [context]'s box is at least partly inside the screen; drives the off-screen pauses.

@@ -39,7 +39,7 @@ const List<SettingsSearchEntry> settingsSearchIndex = [
   SettingsSearchEntry(label: 'Haptic feedback', tabIndex: 0, subtitle: 'Feedback'),
   SettingsSearchEntry(label: 'Reading direction', tabIndex: 0, subtitle: 'Default reader preferences'),
   SettingsSearchEntry(label: 'Fit mode', tabIndex: 0, subtitle: 'Default reader preferences'),
-  SettingsSearchEntry(label: 'Tap zones', tabIndex: 0, subtitle: 'What each side of the page does when tapped, left-handed, right-to-left'),
+  SettingsSearchEntry(label: 'Tap zones', tabIndex: 0, subtitle: 'What each side of the page does when tapped (double-tap the centre for the controls), left-handed, right-to-left'),
   SettingsSearchEntry(label: 'Refresh rate', tabIndex: 0, subtitle: 'Default reader preferences, FPS', androidOnly: true),
   SettingsSearchEntry(label: 'Keep screen awake', tabIndex: 0, subtitle: 'Default reader preferences'),
   SettingsSearchEntry(label: 'Auto next chapter', tabIndex: 0, subtitle: 'Default reader preferences'),

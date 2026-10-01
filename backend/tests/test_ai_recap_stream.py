@@ -139,7 +139,7 @@ def test_no_stream_answers_json(client, as_user, acct, series, monkeypatch, tmp_
         r = get(client, as_user, acct)
     else:
         (tmp_path / "s.json").write_text(json.dumps(
-            {"date": __import__("services.deepseek_client", fromlist=["x"])._today(), "requests": 999}))
+            {"date": __import__("services.deepseek_client", fromlist=["x"])._today(), "requests": 10**9}))
         r = get(client, as_user, acct)
     assert r.status_code == 200
     assert "text/event-stream" not in r.headers["content-type"]

@@ -2,9 +2,11 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
+import 'package:manhwamaniacs/features/onboarding/store/onboarding_draft.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart' show activeProfileProvider;
@@ -66,6 +68,19 @@ void main() {
     await t.pump(const Duration(milliseconds: 600));
     expect(rig.at, '/');
     await settle(t, 1500);
+  });
+
+  testWidgets('a failure inside the closed iris still opens it: the app is never left covered', (t) async {
+    await pumpAuth(t, start: '/profiles', auth: _signedIn(), active: _yash, extra: [
+      onboardingStoreProvider.overrideWith((ref) => throw StateError('store unavailable')),
+    ]);
+    await settle(t, 300);
+    final errors = <Object>[];
+    await runZonedGuarded(() => t.tap(find.bySemanticsLabel('Read as Yash')), (e, _) => errors.add(e));
+    await settle(t, 2500);
+    expect(errors, [isA<StateError>()]);
+    // The shutter paints nothing and takes no touches once it has opened.
+    expect(find.byWidgetPredicate((w) => w is CustomPaint && w.painter.runtimeType.toString() == '_ShutterPainter'), findsNothing);
   });
 
   testWidgets('a tap on an avatar picks it; reduced motion cross-fades in about 200 ms', (t) async {

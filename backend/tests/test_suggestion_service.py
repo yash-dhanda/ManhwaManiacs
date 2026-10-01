@@ -451,7 +451,9 @@ def test_availability_reports_the_days_remaining_allowance(service, monkeypatch)
         suggestion_service.deepseek_client, "is_configured", lambda: True
     )
     monkeypatch.setattr(
-        suggestion_service.deepseek_client, "spent_today", lambda path=None: 58
+        suggestion_service.deepseek_client,
+        "spent_today",
+        lambda path=None: suggestion_service.DAILY_CEILING - 2,
     )
     state = service.availability()
     assert state["available"] is True

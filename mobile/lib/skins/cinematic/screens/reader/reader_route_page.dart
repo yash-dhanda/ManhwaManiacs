@@ -47,7 +47,7 @@ Page<void> cineReaderPage(BuildContext context, GoRouterState state, Widget chil
     backGestureDetectionWidth: 20,
     transitionDuration: d.forward,
     reverseTransitionDuration: d.reverse,
-    transitionBuilder: (context, animation, secondaryAnimation, isSwipeGesture, child) {
+    transitionBuilder: keepSwipeDetector((context, animation, secondaryAnimation, isSwipeGesture, child) {
       if (isSwipeGesture && (ModalRoute.of(context)?.isCurrent ?? true)) {
         return CineSwipeSlide.top(animation: animation, child: child);
       }
@@ -69,7 +69,7 @@ Page<void> cineReaderPage(BuildContext context, GoRouterState state, Widget chil
           return child!;
         },
       );
-    },
+    },),
     builder: (_) => child,
   );
 }
