@@ -170,3 +170,7 @@ Items only the owner can do, by step.
 ## mobile/40 (Glass You, About, admin settings, Server, Diagnostics, System status)
 
 - Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-40/device-check.md` (Orb lift at 120 Hz with 0 dropped frames, the 30 min slider magnet, the Sign out everywhere hold, a backup export to Files, Diagnostics while scrolling, the bead pulse, VoiceOver and TalkBack custom actions, Reduce Motion and Reduce Transparency).
+
+## mobile/33 (Glass series detail and book page)
+
+- Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-33/device-check.md` (cover landing from a throw, sheet tracking and snap at 120 Hz, the 1,000-chapter fling and list-to-sheet hand-off, the hero tilt stopping when covered, Android predictive back, iPad two-column window, VoiceOver/TalkBack select mode, Save to Files, Book open paper).
