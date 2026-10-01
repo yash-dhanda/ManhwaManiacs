@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
@@ -119,5 +120,33 @@ void main() {
     await settle(tester);
     expect(pages.cursors, ['0', '0']);
     expect(find.text('Title 0'), findsWidgets);
+  });
+
+  testWidgets('a search opened from the grid is not left underneath it', (tester) async {
+    final router = GoRouter(initialLocation: '/search', routes: [
+      GoRoute(
+        path: '/search',
+        builder: (context, s) => Scaffold(
+          body: TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const GenreGridScreen(genre: 'Murim')),
+            ),
+            child: Text('at ${s.uri}'),
+          ),
+        ),
+      ),
+    ],);
+    await pumpScreen(tester, const SizedBox(), router: router, extra: [
+      askRepositoryProvider.overrideWithValue(_Pages()),
+      matureContentProvider.overrideWith(_MatureOff.new),
+    ],);
+    await settle(tester);
+    await tester.tap(find.text('at /search'));
+    await settle(tester, 800);
+    expect(find.byType(GenreGridScreen), findsOneWidget);
+    router.go('/search?q=Solo');
+    await settle(tester, 800);
+    expect(find.byType(GenreGridScreen), findsNothing);
+    expect(find.text('at /search?q=Solo'), findsOneWidget);
   });
 }

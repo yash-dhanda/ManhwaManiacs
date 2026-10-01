@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
@@ -37,6 +38,25 @@ class GenreGridScreen extends ConsumerStatefulWidget {
 
 class _GenreGridScreenState extends ConsumerState<GenreGridScreen> {
   final _scroll = ScrollController();
+
+  /// This grid is a pageless route over the Discover page. A `go` that only
+  /// changes that page's query (`/search?q=`, from a card's Search my sources)
+  /// keeps the page, so the grid would sit on top of the results it opened.
+  GoRouter? _router;
+  String? _path;
+
+  void _onRoute() {
+    final r = _router;
+    if (r == null || !mounted) return;
+    final uri = r.routerDelegate.currentConfiguration.uri;
+    final route = ModalRoute.of(context);
+    if (uri.path == _path && uri.toString() != _at && route != null) {
+      r.routerDelegate.removeListener(_onRoute);
+      Navigator.of(context).removeRoute(route);
+    }
+  }
+
+  String? _at;
   final _items = <WorldItem>[];
   final _seen = <String>{};
   String? _cursor = '0';
@@ -49,10 +69,19 @@ class _GenreGridScreenState extends ConsumerState<GenreGridScreen> {
     super.initState();
     _scroll.addListener(_onScroll);
     unawaited(_load());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _router = GoRouter.maybeOf(context);
+      final uri = _router?.routerDelegate.currentConfiguration.uri;
+      _path = uri?.path;
+      _at = uri?.toString();
+      _router?.routerDelegate.addListener(_onRoute);
+    });
   }
 
   @override
   void dispose() {
+    _router?.routerDelegate.removeListener(_onRoute);
     _scroll.dispose();
     super.dispose();
   }
@@ -68,7 +97,9 @@ class _GenreGridScreenState extends ConsumerState<GenreGridScreen> {
   Future<void> _load({bool replace = false}) async {
     if (!replace && (_loading || _cursor == null)) return;
     final gen = ++_gen;
-    final cursor = replace ? '0' : _cursor;
+    // A reprint takes the next page; once the list has ended it starts over.
+    final restart = replace && _cursor == null;
+    final cursor = restart ? '0' : _cursor;
     setState(() {
       _loading = true;
       _error = null;
@@ -82,10 +113,8 @@ class _GenreGridScreenState extends ConsumerState<GenreGridScreen> {
       _loading = false;
       switch (r) {
         case Ok(:final value):
-          if (replace) {
-            _items.clear();
-            _seen.clear();
-          }
+          if (replace) _items.clear();
+          if (restart) _seen.clear();
           for (final i in value.items) {
             if (_seen.add(pickId(i))) {
               _items.add(i);
