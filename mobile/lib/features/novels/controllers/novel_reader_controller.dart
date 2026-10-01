@@ -241,6 +241,10 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
   ProviderSubscription<Object?>? _prefetchSub;
   int _furthestSent = 0;
   bool _completedSent = false;
+
+  /// Reading time on the open chapter so far: the clock hands out deltas since the last save, and
+  /// a pace sample needs the chapter's whole time.
+  int _chapterSeconds = 0;
   bool _scrolledToEnd = false;
   bool _autoNextTriggered = false;
   bool _disposed = false;
@@ -538,9 +542,10 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
     if (chapter == null) return;
     final store = _downloadsStore;
     final spent = _clock.elapsed(DateTime.now());
+    _chapterSeconds += spent;
     // A finished chapter feeds the profile's reading pace (auto-scroll's measured wpm).
     if (position.completed) {
-      unawaited(_pace.recordCompletion(chapterKey: chapter.chapterKey, wordCount: chapter.wordCount, timeSpentSeconds: spent));
+      unawaited(_pace.recordCompletion(chapterKey: chapter.chapterKey, wordCount: chapter.wordCount, timeSpentSeconds: _chapterSeconds));
     }
     await _progressOutbox.save(
       ProgressPush(
@@ -647,6 +652,7 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
     _autoNextTriggered = false;
     _furthestSent = 0;
     _completedSent = false;
+    _chapterSeconds = 0;
     _scrolledToEnd = false;
     _pendingRestoreParagraph = null;
     _pagedAnchorSet = false;
