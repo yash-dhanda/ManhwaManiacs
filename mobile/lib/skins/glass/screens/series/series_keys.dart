@@ -21,6 +21,7 @@ List<ShortcutEntry> seriesShortcutEntries({bool book = false}) {
     e('Previously on', ['P']),
     e('Tags…', ['Shift', 'T'], single: false),
     e('Copy the share link', ['Shift', 'S'], single: false),
+    e('Recommend to…', ['Shift', 'R'], single: false),
     e('Close', ['Esc'], single: false),
   ];
 }
@@ -55,6 +56,7 @@ class SeriesKeys extends ConsumerWidget {
           if (shift && k == LogicalKeyboardKey.keyT) return hit(commands.tags);
           if (shift && k == LogicalKeyboardKey.keyS) return hit(commands.share);
           if (shift && k == LogicalKeyboardKey.keyD) return hit(commands.downloadNext10);
+          if (shift && k == LogicalKeyboardKey.keyR) return hit(commands.recommend);
           if (!ref.read(singleKeyShortcutsProvider)) return KeyEventResult.ignored;
           if (e.character == '*') return hit(commands.favorite);
           if (shift || HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed || HardwareKeyboard.instance.isAltPressed) return KeyEventResult.ignored;

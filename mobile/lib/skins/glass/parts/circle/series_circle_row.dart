@@ -6,7 +6,7 @@ import 'package:manhwamaniacs/features/circle/utils/excluded_series.dart';
 import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/glass/copy/reactions.dart';
-import 'package:manhwamaniacs/skins/glass/parts/reactions/chapter_reactions.dart' show chLabel;
+import 'package:manhwamaniacs/skins/glass/parts/reactions/chapter_reactions.dart' show GlassChapterReactions, chLabel;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
@@ -73,4 +73,30 @@ GlassMenuEntry? hideFromCircleEntry(WidgetRef ref, {required String sourceId, re
           ),);
     },
   );
+}
+
+/// The Circle block of the series detail and the book page (glass 8.12, 8.13, 9.3.2, 9.3.6): the reaction control for the latest
+/// chapter this profile finished, then [SeriesCircleRow]. [readingOrder] is the series' chapters in reading order (ids are the
+/// chapter keys). Nothing when neither has anything to show.
+class SeriesCircleBlock extends ConsumerWidget {
+  const SeriesCircleBlock({super.key, required this.sourceId, required this.seriesKey, required this.readingOrder, this.mature = false});
+  final String sourceId, seriesKey;
+  final List<({String key, double? number})> readingOrder;
+  final bool mature;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Kept warm for the page's ⋯ menu: "Recommend to…" reads the members, "Hide from my Circle" this profile's sharing.
+    ref.watch(circleMembersProvider);
+    if (ref.watch(activeProfileProvider)?.id case final pid?) ref.watch(sharingProvider(pid));
+    final fin = ref.watch(finishedChaptersProvider((sourceId: sourceId, seriesKey: seriesKey)));
+    final latest = readingOrder.lastWhere((c) => fin.contains(c.key), orElse: () => (key: '', number: null));
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+      if (latest.key.isNotEmpty) ...[
+        GlassChapterReactions(key: ValueKey('series-reactions-${latest.key}'), sourceId: sourceId, seriesKey: seriesKey, chapterKey: latest.key, chapterNumber: latest.number, mature: mature),
+        const SizedBox(height: 8),
+      ],
+      SeriesCircleRow(sourceId: sourceId, seriesKey: seriesKey),
+    ],);
+  }
 }

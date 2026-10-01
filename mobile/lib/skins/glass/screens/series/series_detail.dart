@@ -13,6 +13,8 @@ import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
 import 'package:manhwamaniacs/skins/glass/glass/follow_ring.dart';
 import 'package:manhwamaniacs/skins/glass/parts/ai/more_like_this_rail.dart';
+import 'package:manhwamaniacs/skins/glass/parts/circle/series_circle_row.dart' show SeriesCircleBlock;
+import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_sheet.dart' show openRecommendSheet;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/fast_scroll.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart' show GlassButtonIcon;
@@ -21,6 +23,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/icon_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/image_viewer.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_form_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
+import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart' show glassSheetRegistered;
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart' show paletteOf, HomeCoverImage;
 import 'package:manhwamaniacs/skins/glass/screens/series/book_page.dart' show kTocRowExtent;
 import 'package:manhwamaniacs/skins/glass/screens/series/chapter_extents.dart';
@@ -160,6 +163,7 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
     };
     c.tags = () => openTagsSheet(context, data);
     c.share = () => copySeriesLink(ref, data);
+    c.recommend = glassSheetRegistered('recommend') ? () => openRecommendSheet(ref, sourceId: data.sourceId, seriesKey: data.seriesKey, title: data.title) : null;
     c.toggleSort = () => chapters.setOrder(chapters.order == 'newest' ? 'oldest' : 'newest');
     c.select = toggleSelect;
     c.focusGoTo = focusGoTo;
@@ -251,6 +255,8 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
           if ((data.series.description ?? '').isNotEmpty) ...[SeriesDescription(text: data.series.description!), const SizedBox(height: 16)],
           if (layout == SeriesLayout.desktop) const SizedBox.shrink() else ...[OfficialLinks(data: data), const SizedBox(height: 12)],
           SeriesDownloadCard(data: data),
+          const SizedBox(height: 8),
+          SeriesCircleBlock(sourceId: data.sourceId, seriesKey: data.seriesKey, readingOrder: [for (final c in data.readingOrder) (key: c.id, number: c.number)], mature: widget.mature),
           const SizedBox(height: 8),
           PreviouslyOnRow(data: data),
           const SizedBox(height: 8),

@@ -21,6 +21,8 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass/follow_ring.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
+import 'package:manhwamaniacs/skins/glass/parts/circle/series_circle_row.dart' show hideFromCircleEntry;
+import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_sheet.dart' show recommendMenuEntry;
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_group.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
@@ -39,7 +41,7 @@ import 'package:manhwamaniacs/skins/skins.dart';
 
 /// The page's commands, shared by the buttons, the ⋯ menu and the hardware keys (glass 8.12 Keys).
 class SeriesCommands {
-  VoidCallback? continueReading, readAll, toggleFollow, favorite, notify, downloadNext10, pickChapter, previouslyOn, tags, share, toggleSort, select, focusGoTo, more;
+  VoidCallback? continueReading, readAll, toggleFollow, favorite, notify, downloadNext10, pickChapter, previouslyOn, tags, share, toggleSort, select, focusGoTo, more, recommend;
 }
 
 /// Where the reader opens for [chapterKey] (manga reader, or the novel reader for books).
@@ -198,7 +200,7 @@ class SeriesActions extends ConsumerWidget {
 const _statuses = [('unread', 'Unread'), ('reading', 'Reading'), ('completed', 'Completed'), ('on_hold', 'On hold'), ('plan_to_read', 'Plan to read'), ('dropped', 'Dropped')];
 
 /// The ⋯ menu (glass 8.12): Reading status, Add to collection, Tags…, Previously on, Check for new chapters, Move to another source…,
-/// Content rating (gate open only).
+/// Content rating (gate open only), Recommend to…, Hide from my Circle.
 Future<void> showSeriesMenu(BuildContext context, WidgetRef ref, GlassSeriesData d, Rect anchor) {
   final f = d.followed;
   final online = onlineNow(ref);
@@ -216,6 +218,9 @@ Future<void> showSeriesMenu(BuildContext context, WidgetRef ref, GlassSeriesData
       if (f != null) GlassMenuEntry(label: 'Check for new chapters', enabled: online, onSelected: () => fire(checkNewChapters(ref, f))),
       if (f != null) GlassMenuEntry(label: 'Move to another source…', enabled: online, onSelected: () => openMoveSource(context, d)),
       if (f != null && gateOpen) GlassMenuEntry(label: 'Content rating…', separatorBefore: true, enabled: online, onSelected: () => _ratingMenu(context, ref, f, anchor)),
+      // The Circle (mobile/43, glass 8.12, 8.13, 9.3.4, 9.3.6).
+      if (recommendMenuEntry(ref, sourceId: d.sourceId, seriesKey: d.seriesKey, title: d.title, keyHint: const SingleActivator(LogicalKeyboardKey.keyR, shift: true)) case final e?) e,
+      if (hideFromCircleEntry(ref, sourceId: d.sourceId, seriesKey: d.seriesKey, title: d.title) case final e?) e,
     ],
   );
 }

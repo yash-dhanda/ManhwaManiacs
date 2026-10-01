@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/skins/glass/parts/recommend/orb_flight.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart' show springOf;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/menu.dart' show GlassMenuEntry;
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/profile_orb.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/search_field.dart';
@@ -81,6 +82,20 @@ void openRecommendSheet(WidgetRef ref, {String? sourceId, String? seriesKey, Str
     return;
   }
   router.go(uri.replace(queryParameters: {...uri.queryParameters, ...params}).toString());
+}
+
+/// "Recommend to…" for a series' menus (glass 9.3.4, E6): once the Circle has loaded with nobody taking recommendations it reads
+/// "Recommend to… (no one is taking recommendations yet)" and is disabled. Null while the `recommend` sheet is not registered.
+GlassMenuEntry? recommendMenuEntry(WidgetRef ref, {required String sourceId, required String seriesKey, String? title, SingleActivator? keyHint}) {
+  if (!glassSheetRegistered('recommend')) return null;
+  final ms = ref.read(circleMembersProvider).valueOrNull;
+  final none = ms != null && !ms.any((m) => m.shares.recommendations);
+  return GlassMenuEntry(
+    label: none ? 'Recommend to… (no one is taking recommendations yet)' : 'Recommend to…',
+    enabled: !none,
+    keyHint: keyHint,
+    onSelected: () => openRecommendSheet(ref, sourceId: sourceId, seriesKey: seriesKey, title: title),
+  );
 }
 
 ({String sourceId, String seriesKey})? parseSeries(String? s) {

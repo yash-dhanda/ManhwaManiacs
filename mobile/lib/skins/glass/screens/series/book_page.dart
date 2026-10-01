@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/glass_motion_recorder.dart' show GlassMotionEntry;
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
+import 'package:manhwamaniacs/skins/glass/parts/reactions/chapter_reactions.dart' show ChapterReactionSummary;
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/download_control.dart';
@@ -289,7 +290,10 @@ class TocRow extends StatelessWidget {
                 ],),
             ],),
           ),
-          if (!selectMode) GlassDownloadControl(view: view, chapterLabel: 'chapter ${e.ordinal ?? ''}', onDownload: onDownload),
+          if (!selectMode) ...[
+            ChapterReactionSummary(sourceId: chapter.sourceId, seriesKey: chapter.seriesId, chapterKey: chapter.id),
+            GlassDownloadControl(view: view, chapterLabel: 'chapter ${e.ordinal ?? ''}', onDownload: onDownload),
+          ],
         ],),
       ),
     );
