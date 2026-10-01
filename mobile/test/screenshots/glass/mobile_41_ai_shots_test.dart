@@ -220,17 +220,19 @@ void main() {
     });
   }
 
-  testWidgets('how it works, the ready toast and More like this', (t) async {
-    var s = await _open(t, _phone, '/');
-    s.router.go('/?sheet=how-it-works');
-    await pumpFor(t, 1400);
-    await s.snap('how-it-works', _phone);
-    await _end(t);
+  for (final size in [_phone, _tablet]) {
+    testWidgets('how it works and the ready toast at ${size.name}', (t) async {
+      var s = await _open(t, size, '/');
+      s.router.go('/?sheet=how-it-works');
+      await pumpFor(t, 1400);
+      await s.snap('how-it-works', size);
+      await _end(t);
 
-    s = await _open(t, _phone, '/');
-    s.container.read(glassToastProvider.notifier).show(const GlassToastSpec('Recap for Solo Leveling is ready', kind: GlassToastKind.success, actionLabel: 'Open'));
-    await pumpFor(t, 900);
-    await s.snap('recap-ready-toast', _phone);
-    await _end(t);
-  });
+      s = await _open(t, size, '/');
+      s.container.read(glassToastProvider.notifier).show(const GlassToastSpec('Recap for Solo Leveling is ready', kind: GlassToastKind.success, actionLabel: 'Open'));
+      await pumpFor(t, 900);
+      await s.snap('recap-ready-toast', size);
+      await _end(t);
+    });
+  }
 }
