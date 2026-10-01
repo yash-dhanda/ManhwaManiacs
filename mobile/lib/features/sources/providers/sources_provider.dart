@@ -111,6 +111,9 @@ class SourceBrowseState {
 
   bool get isEmpty => items.isEmpty;
 
+  /// Whether this value answers [current] (or does not say which query it is).
+  bool answers(SourceBrowseQuery current) => query == null || query == current;
+
   /// The header count. Many connectors report the page size (or 0) as the
   /// total, so while more pages remain a total no larger than what is loaded
   /// reads as "N+".

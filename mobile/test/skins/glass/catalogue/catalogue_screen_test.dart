@@ -19,8 +19,11 @@ class _NoMature extends MatureContentController {
 class _Browse extends SourceBrowseNotifier {
   _Browse(this.answer);
   final Future<SourceBrowseState> Function() answer;
+  static int loadMores = 0;
   @override
   Future<SourceBrowseState> build(String sourceId) => answer();
+  @override
+  Future<void> loadMore() async => loadMores++;
 }
 
 SourceSeriesSummary series(String t) => SourceSeriesSummary(id: t, sourceId: 'a', title: t, chapterCount: 3, genres: const [], coverUrl: '');
@@ -88,5 +91,24 @@ void main() {
     await pumpGlassShell(t, start: '/sources/a', extra: ov(() async => throw const ApiError(statusCode: 500, code: 'internal', message: 'boom')));
     await t.pump(const Duration(seconds: 2));
     expect(find.text("Couldn't load this catalogue"), findsOneWidget);
+  });
+
+  testWidgets('a value left from the previous query is not drawn under the new one', (t) async {
+    await pumpGlassShell(t, start: '/sources/a', extra: ov(() async => SourceBrowseState(items: [series('Old')], total: 1, query: const SourceBrowseQuery(sourceId: 'a', sort: 'popular'))));
+    await t.pump(const Duration(seconds: 2));
+    expect(find.text('Old'), findsNothing);
+  });
+
+  testWidgets('the count line does not call a page size the catalogue size, nor default order Latest', (t) async {
+    await pumpGlassShell(t, start: '/sources/a', extra: ov(() async => SourceBrowseState(items: [series('One'), series('Two')], total: 2, hasNext: true)));
+    await t.pump(const Duration(seconds: 2));
+    expect(find.text('2+ series'), findsOneWidget);
+  });
+
+  testWidgets('a page shorter than the viewport loads the next one by itself', (t) async {
+    _Browse.loadMores = 0;
+    await pumpGlassShell(t, start: '/sources/a', extra: ov(() async => SourceBrowseState(items: [series('One')], total: 1, hasNext: true)));
+    await t.pump(const Duration(seconds: 2));
+    expect(_Browse.loadMores, greaterThan(0));
   });
 }
