@@ -1,3 +1,5 @@
+import 'dart:ui' show FramePhase;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -123,10 +125,22 @@ class PerformanceMonitor extends ChangeNotifier {
 
     final count = _window.length;
     final avgFrameMs = (totalFrameUs / count) / 1000.0;
-    final fps = avgFrameMs > 0 ? (1000.0 / avgFrameMs).clamp(0, 1000) : 0.0;
+    // Delivered frames per second: the mean vsync-to-vsync interval while frames are being produced. Build plus raster
+    // time is only the work per frame (2 ms + 3 ms would read as 200 FPS on a 60 Hz panel).
+    // ponytail: gaps over 100 ms count as idle and are skipped, so a long hitch within a burst reads as idle too.
+    var intervalUs = 0.0;
+    var intervals = 0;
+    for (var i = 1; i < count; i++) {
+      final d = _window[i].timestampInMicroseconds(FramePhase.vsyncStart) - _window[i - 1].timestampInMicroseconds(FramePhase.vsyncStart);
+      if (d > 0 && d < 100000) {
+        intervalUs += d;
+        intervals++;
+      }
+    }
+    final fps = intervals > 0 ? 1e6 / (intervalUs / intervals) : 0.0;
 
     _snapshot = PerformanceSnapshot(
-      fps: fps.toDouble(),
+      fps: fps,
       avgFrameMs: avgFrameMs,
       worstFrameMs: worstUs / 1000.0,
       avgBuildMs: (totalBuildUs / count) / 1000.0,

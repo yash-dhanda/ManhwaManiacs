@@ -58,6 +58,8 @@ class _DiagnosticsSectionState extends ConsumerState<DiagnosticsSection> {
     });
     if (_platform == TargetPlatform.android) {
       unawaited(ref.read(readerDisplayModeProvider).describe().then((d) {
+        // Jank is measured against this panel's frame budget, not 60 Hz.
+        if (d.activeRefreshRate > 0) _monitor.setTargetRefreshRate(d.activeRefreshRate);
         if (mounted) setState(() => _display = d);
       }),);
     }
