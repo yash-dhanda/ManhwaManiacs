@@ -45,6 +45,12 @@ void main() {
     expect(find.text('Sharing settings'), findsOneWidget);
   });
 
+  testWidgets('nobody shares but a letter came: the LETTERS tab is there', (tester) async {
+    await pumpCircle(tester, FakeCircleRepository().._letters([letter(1)]));
+    await settle(tester);
+    expect(find.text('LETTERS'), findsOneWidget);
+  });
+
   testWidgets('an error shows the correction', (tester) async {
     await pumpCircle(tester, FakeCircleRepository()..failWith = const ApiError(statusCode: 500, code: 'x', message: 'x'));
     await settle(tester);

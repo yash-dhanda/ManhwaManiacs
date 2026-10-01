@@ -182,7 +182,8 @@ class _CircleScreenState extends ConsumerState<CircleScreen> {
       slivers.add(box(const GlassSkeletonGroup(label: 'Loading your Circle', child: PresenceArcSkeleton())));
     }
 
-    final membersEmpty = members.hasValue && members.value!.isEmpty;
+    // Letters arrive from senders who don't share activity: with any, the tabs stay so they can be read.
+    final membersEmpty = members.hasValue && members.value!.isEmpty && (ref.watch(lettersProvider).valueOrNull ?? const <Letter>[]).isEmpty;
     if (offline && !members.hasValue) {
       slivers.add(box(CircleOffline(onRetry: () async {
         ref.invalidate(circleMembersProvider);

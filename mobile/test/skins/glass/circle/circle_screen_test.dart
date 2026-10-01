@@ -112,8 +112,14 @@ void main() {
     expect(visibleText(), contains('Aarav read chapters 140–152 of Solo Leveling'));
     await unmount(t);
 
-    await pumpCircle(t, circleFake(members: const [], feed: const []));
+    await pumpCircle(t, circleFake(members: const [], feed: const [])..letterList = const []);
     expect(find.text('Your Circle is quiet'), findsOneWidget);
+    await unmount(t);
+
+    // A letter from someone who doesn't share keeps the tabs, so it can be read.
+    await pumpCircle(t, circleFake(members: const [], feed: const []));
+    expect(find.text('Your Circle is quiet'), findsNothing);
+    expect(find.textContaining('Letters'), findsWidgets);
     await unmount(t);
 
     await pumpCircle(t, circleFake(fail: const ApiError(statusCode: 500, code: 'server_error', message: 'x')));
