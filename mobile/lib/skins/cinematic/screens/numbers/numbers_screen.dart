@@ -132,7 +132,6 @@ class _NumbersScreenState extends ConsumerState<NumbersScreen>
     final years = annual == null || annual.availableYears.isEmpty
         ? <int>[now.year]
         : annual.availableYears;
-    final top = MediaQuery.paddingOf(context).top;
 
     return CineScaffold(
       runningTitle: 'No. 10 · THE NUMBERS',
@@ -168,8 +167,7 @@ class _NumbersScreenState extends ConsumerState<NumbersScreen>
             _key(LogicalKeyboardKey.keyS, 'Share', _share),
             _key(LogicalKeyboardKey.keyR, 'Reprint', _reprint),
           ],
-          child: Padding(
-            padding: EdgeInsets.only(top: top),
+          child: CineBelowHead(
             child: NestedScrollView(
               headerSliverBuilder: (context, inner) => [
                 SliverOverlapAbsorber(

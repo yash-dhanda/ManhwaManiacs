@@ -66,7 +66,7 @@ class CircleMemberScreen extends ConsumerWidget {
       runningTitle: name == null ? 'No. 11 · CIRCLE' : 'No. 11 · CIRCLE / ${name.toUpperCase()}',
       firstRunNote: false,
       body: CirclePollScope(
-        child: CinePullToReprint(
+        child: CineBelowHead(child: CinePullToReprint(
           onRefresh: () => _reprint(ref),
           child: page != null
               ? _Body(page: page, online: online)
@@ -77,7 +77,7 @@ class CircleMemberScreen extends ConsumerWidget {
                   online: online,
                   onRetry: () => ref.invalidate(circleMemberProvider(profileId)),
                 ),
-        ),
+        ),),
       ),
     );
   }
