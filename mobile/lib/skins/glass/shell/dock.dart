@@ -239,6 +239,8 @@ class _GlassDockState extends ConsumerState<GlassDock> with TickerProviderStateM
       );
     }
     final tabW = w / 4;
+    // The droplet is 56 wide at 1x; its labels scale with text (clamped at 1.5, glass 3.3), so it widens with them, within its tab.
+    final dropW = math.min(56 * MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5).scale(11) / 11, tabW - 4);
     return Listener(
       onPointerDown: (_) => _catch(),
       child: GestureDetector(
@@ -252,7 +254,7 @@ class _GlassDockState extends ConsumerState<GlassDock> with TickerProviderStateM
             Positioned.fill(
               child: IgnorePointer(
                 child: CustomPaint(
-                  painter: _DropletPainter(pos: _pos.value, tabW: tabW, height: h, velocity: _pos.velocity * tabW, lifted: _dragging, tint: gt.colorIris400),
+                  painter: _DropletPainter(pos: _pos.value, tabW: tabW, width: dropW, height: h, velocity: _pos.velocity * tabW, lifted: _dragging, tint: gt.colorIris400),
                 ),
               ),
             ),
@@ -333,7 +335,7 @@ class _DockTab extends ConsumerWidget {
               label,
               maxLines: 1,
               textScaler: TextScaler.noScaling,
-              style: roleStyle(context, gt.typeTabLabel, onGlass: true, wght: selected ? 700 : 600).copyWith(color: gt.colorOnGlass),
+              style: roleStyle(context, gt.typeTabLabel, onGlass: true, wght: selected ? 700 : 600, maxScale: 1.5).copyWith(color: gt.colorOnGlass),
             ),
           ],
         );
@@ -343,9 +345,10 @@ class _DockTab extends ConsumerWidget {
 }
 
 class _DropletPainter extends CustomPainter {
-  const _DropletPainter({required this.pos, required this.tabW, required this.height, required this.velocity, required this.lifted, required this.tint});
+  const _DropletPainter({required this.pos, required this.tabW, required this.width, required this.height, required this.velocity, required this.lifted, required this.tint});
   final double pos;
   final double tabW;
+  final double width;
   final double height;
   final double velocity;
   final bool lifted;
@@ -356,14 +359,14 @@ class _DropletPainter extends CustomPainter {
     final s = dropletStretch(velocity);
     final lift = lifted ? 1.06 : 1.0;
     final c = Offset((pos + 0.5) * tabW, size.height / 2);
-    final rect = Rect.fromCenter(center: c, width: 56 * s.x * lift, height: 52 * s.y * lift);
+    final rect = Rect.fromCenter(center: c, width: width * s.x * lift, height: 52 * s.y * lift);
     final r = RRect.fromRectAndRadius(rect, Radius.circular(rect.height / 2));
     canvas.drawRRect(r, Paint()..color = Color.fromRGBO(255, 255, 255, lifted ? 0.10 : 0.14));
     canvas.drawRRect(r, Paint()..style = PaintingStyle.stroke..strokeWidth = 0.5..color = Color.lerp(const Color(0x40FFFFFF), tint, 0.12)!);
   }
 
   @override
-  bool shouldRepaint(_DropletPainter o) => o.pos != pos || o.velocity != velocity || o.lifted != lifted || o.tabW != tabW;
+  bool shouldRepaint(_DropletPainter o) => o.pos != pos || o.velocity != velocity || o.lifted != lifted || o.tabW != tabW || o.width != width;
 }
 
 class _NeckPainter extends CustomPainter {
