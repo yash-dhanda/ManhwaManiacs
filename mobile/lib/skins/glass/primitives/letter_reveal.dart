@@ -362,7 +362,7 @@ class _Run extends StatelessWidget {
             final opacity = _fade.transform((dt / 180).clamp(0.0, 1.0));
             final blur = 12 * (1 - v).clamp(0.0, 1.0);
             Widget w = Transform.translate(offset: Offset(0, 0.4 * em * (1 - v)), child: Transform.scale(scale: 0.96 + 0.04 * v, child: text()));
-            if (blur > 0.05) w = ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur), child: w);
+            if (blur > 0.05 && GlassMotion.claimBlur()) w = ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur), child: w);
             return Opacity(opacity: opacity.clamp(0.0, 1.0), child: w);
           }
 
