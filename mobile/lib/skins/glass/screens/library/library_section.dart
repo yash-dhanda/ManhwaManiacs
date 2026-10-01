@@ -28,9 +28,12 @@ enum LibrarySection {
 /// What the active section asks the hub's nav row to show (phone, embedded mode).
 @immutable
 class LibraryChromeSpec {
-  const LibraryChromeSpec({this.trailing = const [], this.overflow = const []});
+  const LibraryChromeSpec({this.trailing = const [], this.overflow = const [], this.overlay});
   final List<GlassBarAction> trailing;
   final List<GlassMenuEntry> overflow;
+
+  /// Drawn by the hub above its scaffold (and so above the scroll edges): the bulk toolbar's floating bar.
+  final Widget? overlay;
 }
 
 /// Provided by the hub on phones. Sections find it with [LibraryChrome.maybeOf]; null means the section is its own page.
@@ -106,7 +109,7 @@ class _LibrarySectionFrameState extends ConsumerState<LibrarySectionFrame> {
     final c = _chrome;
     if (c == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) c.publish(widget.section, LibraryChromeSpec(trailing: widget.trailing, overflow: widget.overflow));
+      if (mounted) c.publish(widget.section, LibraryChromeSpec(trailing: widget.trailing, overflow: widget.overflow, overlay: widget.overlay));
     });
   }
 
@@ -172,6 +175,7 @@ class _LibrarySectionFrameState extends ConsumerState<LibrarySectionFrame> {
         ],
       );
     }
-    return widget.overlay == null ? body : Stack(fit: StackFit.expand, children: [body, widget.overlay!]);
+    // Embedded, the hub draws the overlay above its scroll edges; as a page it sits over this scaffold.
+    return widget.overlay == null || _chrome != null ? body : Stack(fit: StackFit.expand, children: [body, widget.overlay!]);
   }
 }

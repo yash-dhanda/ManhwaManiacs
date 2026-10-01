@@ -11,7 +11,6 @@ import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart' show GlassGlyp
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs_more.dart' show GlassGlyph28;
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/bulk_toolbar.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/select/floating_bar.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/select_mode.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/shelf_actions.dart';
@@ -56,24 +55,19 @@ class GlassShelfBulkBar extends ConsumerWidget {
       return BulkResult(ok: ids.length);
     }
 
-    return ListenableBuilder(
-      listenable: controller,
-      builder: (context, _) => GlassFloatingBar(
-        visible: controller.active,
-        child: GlassBulkToolbar<int>(
-          controller: controller,
-          chunk: 4,
-          actions: [
-            BulkAction<int>(id: 'favourite', label: 'Favourite', glyph: roleIcon(GlassIconRole.favourite, GlassIconWeight.fill), verb: 'favourited', run: (ids, c) => a.setFavourite(ids, true, cancel: _cancelOf(c))),
-            BulkAction<int>(id: 'unfavourite', label: 'Unfavourite', glyph: roleIcon(GlassIconRole.favourite), verb: 'unfavourited', run: (ids, c) => a.setFavourite(ids, false, cancel: _cancelOf(c))),
-            BulkAction<int>(id: 'mark-read', label: 'Mark read', glyph: GlassGlyph.check.regular, verb: 'marked read', run: (ids, c) => a.markRead(ids, cancel: _cancelOf(c)), undo: a.undoMarkRead),
-            BulkAction<int>(id: 'mark-unread', label: 'Mark unread', glyph: GlassGlyph28.arrowCounterClockwise.regular, verb: 'marked unread', run: (ids, c) => a.markUnread(ids, cancel: _cancelOf(c)), undo: a.undoMarkUnread),
-            BulkAction<int>(id: 'collection', label: 'Add to collection', glyph: GlassGlyph28.stack.regular, verb: 'added', run: (ids, c) => pickCollection(ids)),
-            BulkAction<int>(id: 'download', label: 'Download next 10', glyph: roleIcon(GlassIconRole.download), verb: 'queued', run: (ids, c) => a.downloadNextTen(ids, cancel: _cancelOf(c))),
-            BulkAction<int>(id: 'remove', label: 'Remove from library', glyph: roleIcon(GlassIconRole.delete), destructive: true, verb: 'removed', run: (ids, c) => a.unfollow(ids, cancel: _cancelOf(c)), undo: a.undoUnfollow),
-          ],
-        ),
-      ),
+    // GlassBulkToolbar is its own floating bar (it shows while select mode is on); wrapping it in a second one hid its content.
+    return GlassBulkToolbar<int>(
+      controller: controller,
+      chunk: 4,
+      actions: [
+        BulkAction<int>(id: 'favourite', label: 'Favourite', glyph: roleIcon(GlassIconRole.favourite, GlassIconWeight.fill), verb: 'favourited', run: (ids, c) => a.setFavourite(ids, true, cancel: _cancelOf(c))),
+        BulkAction<int>(id: 'unfavourite', label: 'Unfavourite', glyph: roleIcon(GlassIconRole.favourite), verb: 'unfavourited', run: (ids, c) => a.setFavourite(ids, false, cancel: _cancelOf(c))),
+        BulkAction<int>(id: 'mark-read', label: 'Mark read', glyph: GlassGlyph.check.regular, verb: 'marked read', run: (ids, c) => a.markRead(ids, cancel: _cancelOf(c)), undo: a.undoMarkRead),
+        BulkAction<int>(id: 'mark-unread', label: 'Mark unread', glyph: GlassGlyph28.arrowCounterClockwise.regular, verb: 'marked unread', run: (ids, c) => a.markUnread(ids, cancel: _cancelOf(c)), undo: a.undoMarkUnread),
+        BulkAction<int>(id: 'collection', label: 'Add to collection', glyph: GlassGlyph28.stack.regular, verb: 'added', run: (ids, c) => pickCollection(ids)),
+        BulkAction<int>(id: 'download', label: 'Download next 10', glyph: roleIcon(GlassIconRole.download), verb: 'queued', run: (ids, c) => a.downloadNextTen(ids, cancel: _cancelOf(c))),
+        BulkAction<int>(id: 'remove', label: 'Remove from library', glyph: roleIcon(GlassIconRole.delete), destructive: true, verb: 'removed', run: (ids, c) => a.unfollow(ids, cancel: _cancelOf(c)), undo: a.undoUnfollow),
+      ],
     );
   }
 }

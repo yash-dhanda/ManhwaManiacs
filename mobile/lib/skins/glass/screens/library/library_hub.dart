@@ -104,7 +104,7 @@ class _GlassLibraryHubState extends ConsumerState<GlassLibraryHub> {
       };
     }
     final spec = _chrome[_active.value] ?? const LibraryChromeSpec();
-    return GlassScaffold(
+    final scaffold = GlassScaffold(
       title: 'Library',
       // The content-mode capsule shows only when novels are enabled (glass 8.17 nav row); otherwise its shape would stand empty.
       contentModeSwitch: ref.watch(novelsEnabledProvider),
@@ -134,6 +134,7 @@ class _GlassLibraryHubState extends ConsumerState<GlassLibraryHub> {
         ),
       ),
     );
+    return spec.overlay == null ? scaffold : Stack(fit: StackFit.expand, children: [scaffold, spec.overlay!]);
   }
 }
 
