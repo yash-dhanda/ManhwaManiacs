@@ -108,18 +108,13 @@ class IndexRow extends StatelessWidget {
           child: Row(
             children: [
               if (leading != null) ...[leading!, SizedBox(width: c.space2)],
-              Flexible(child: CineRoleText(label, c.typeUi, color: st.hovered || st.focused ? c.colorInk100 : c.colorInk100)),
-              SizedBox(width: c.space2),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: LeaderDraw(index: index, play: playLeaders, child: const CineDotLeader()),
+                child: CineLeaderRow(
+                  label: CineRoleText(label, c.typeUi),
+                  leader: LeaderDraw(index: index, play: playLeaders, child: const CineDotLeader()),
+                  value: shown == null ? null : CineRoleText(shown, c.typeFolio, color: c.colorInk45, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
               ),
-              if (shown != null) ...[
-                SizedBox(width: c.space2),
-                CineRoleText(shown, c.typeFolio, color: c.colorInk45),
-              ],
               SizedBox(width: c.space2),
               CineGlyphIcon(CineGlyph.caretRight, size: 16, color: c.colorInk45),
             ],

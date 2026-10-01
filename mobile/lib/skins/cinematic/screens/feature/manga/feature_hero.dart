@@ -187,7 +187,9 @@ class _CreditsBlockState extends State<CreditsBlock> with SingleTickerProviderSt
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        // Label and value on one baseline (the kicker is smaller than the value).
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
                         children: [
                           SizedBox(width: 72, child: Text(widget.rows[i].$1, style: kickerStyle(context))),
                           Expanded(child: Text(widget.rows[i].$2)),

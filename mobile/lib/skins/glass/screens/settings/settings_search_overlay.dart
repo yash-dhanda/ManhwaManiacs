@@ -51,6 +51,14 @@ class _GlassSettingsSearchOverlayState extends State<GlassSettingsSearchOverlay>
   String _q = '';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _node.requestFocus();
+    });
+  }
+
+  @override
   void dispose() {
     _c.dispose();
     _node.dispose();

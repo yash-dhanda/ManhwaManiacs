@@ -188,12 +188,17 @@ class _Badge extends StatelessWidget {
       constraints: BoxConstraints(minWidth: 16, minHeight: line > 16 ? line : 16),
       padding: const EdgeInsets.symmetric(horizontal: 3),
       color: c.colorSpot,
-      alignment: Alignment.center,
-      child: Text(
-        text,
-        maxLines: 1,
-        textScaler: scale,
-        style: CineText.literal(context, CineFace.plexMono, 10, 12, wght: 600).copyWith(color: const Color(0xFF000000)),
+      // Not `alignment:`: under the cell's loose width that stretched the square into a bar
+      // across the whole tab, over its icon.
+      child: Center(
+        widthFactor: 1,
+        heightFactor: 1,
+        child: Text(
+          text,
+          maxLines: 1,
+          textScaler: scale,
+          style: CineText.literal(context, CineFace.plexMono, 10, 12, wght: 600).copyWith(color: const Color(0xFF000000)),
+        ),
       ),
     );
   }

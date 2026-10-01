@@ -151,7 +151,7 @@ class _BodyState extends ConsumerState<_Body> with SingleTickerProviderStateMixi
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(children: [
-                Container(width: 36, height: 54, decoration: BoxDecoration(color: gt.colorFill2, borderRadius: BorderRadius.circular(6))),
+                SettingsSeriesThumb(coverUrl: settingsCachedSeries(ref, e.sourceId, e.seriesKey)?.coverUrl),
                 const SizedBox(width: 12),
                 Expanded(child: GlassText(e.title, role: gt.typeBody, maxLines: 2)),
                 GlassButton(

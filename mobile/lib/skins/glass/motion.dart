@@ -85,7 +85,8 @@ const Map<MotionName, GlassMoveSpec> glassMotionTable = {
   MotionName.paperRipple: GlassMoveSpec(ms: 615, spring: GlassSprings.page, reduced: GlassReduced.fade(200)),
   MotionName.liquidFill: GlassMoveSpec(ms: 467, spring: GlassSprings.lens, reduced: GlassReduced.instant),
   MotionName.holdFill: GlassMoveSpec(ms: 1000, spring: GlassSprings.dismiss, reduced: GlassReduced.instant),
-  MotionName.skinMelt: GlassMoveSpec(ms: 615, curve: GlassCurves.dematerialize, reduced: GlassReduced.fade(200)),
+  // Linear clock over 615 ms; the melt maps it onto its three parts (dematerialize, the smooth blur, the page mask; glass 4.10).
+  MotionName.skinMelt: GlassMoveSpec(ms: 615, reduced: GlassReduced.fade(200)),
   MotionName.dropletReveal: GlassMoveSpec(ms: 1200, spring: GlassSprings.lens, reduced: GlassReduced.fade(200)),
   MotionName.cardFlip: GlassMoveSpec(ms: 436, spring: GlassSprings.smooth, reduced: GlassReduced.fade(200)),
   MotionName.deckLiftOff: GlassMoveSpec(ms: 436, spring: GlassSprings.smooth, reduced: GlassReduced.fade(150)),

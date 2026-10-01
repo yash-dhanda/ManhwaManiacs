@@ -243,14 +243,14 @@ void main() {
         blobStore: harness.openBlobStore(),
       );
       await _download(store, chapterKey: 'c1', seriesKey: 's');
-      expect(await current.getVersion(), 6);
+      expect(await current.getVersion(), 7);
       await current.close();
     }
 
     Future<void> expectIntactOnCurrentBuild(String path) async {
       final reopened = await openDownloadsDatabase(overridePath: path);
       addTearDown(reopened.close);
-      expect(await reopened.getVersion(), 6);
+      expect(await reopened.getVersion(), 7);
       await expectSchemaMatchesFresh(reopened);
       final store = DownloadsStore(
         scopeId: 'u1p1',
@@ -293,12 +293,12 @@ void main() {
       // A future build: additive, as every migration here has been.
       final newer = await openDatabase(
         path,
-        version: 6,
+        version: 8,
         onUpgrade: (db, _, __) => db.execute(
           'CREATE TABLE IF NOT EXISTS future_table (x INTEGER)',
         ),
       );
-      expect(await newer.getVersion(), 6);
+      expect(await newer.getVersion(), 8);
       await newer.close();
 
       await expectIntactOnCurrentBuild(path);

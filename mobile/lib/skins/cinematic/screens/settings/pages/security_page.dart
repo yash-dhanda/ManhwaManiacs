@@ -223,9 +223,11 @@ class SessionsList extends ConsumerWidget {
                 child: Row(children: [
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Row(children: [
-                        Flexible(child: CineRoleText(sessionDeviceLabel(s.userAgent), c.typeUi)),
-                        if (s.isCurrent) ...[SizedBox(width: c.space2), const CineBadge('THIS DEVICE', variant: CineBadgeVariant.text)],
+                      // A Wrap, not a Row: the badge drops to the next line instead of squeezing
+                      // the name until a word breaks mid-letter ("ManhwaManiac / s app").
+                      Wrap(spacing: c.space2, runSpacing: c.space1, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                        CineRoleText(sessionDeviceLabel(s.userAgent), c.typeUi),
+                        if (s.isCurrent) const CineBadge('THIS DEVICE', variant: CineBadgeVariant.text),
                       ],),
                       Semantics(
                         label: folioLabel('LAST USED ${agoLabel(s.lastUsedAt, now)}'),
