@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/library/utils/glass_density.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart' show isNovelSource;
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/series_card.dart';
@@ -25,7 +26,6 @@ import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/select_mode.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/select/selectable_group.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
-import 'package:manhwamaniacs/skins/glass/screens/home/continue_with_recap.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_actions.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/density_pinch.dart';
@@ -142,7 +142,7 @@ List<GlassMenuEntry> shelfMenuEntries(BuildContext context, WidgetRef ref, Follo
   final target = chapterKey == null ? null : HomeContinueTarget(sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKey: chapterKey, isNovel: novel, chapterNumber: r?.chapterNumber, lastReadAt: r?.lastReadAt);
   return [
     ...first,
-    if (target != null) GlassMenuEntry(label: 'Continue', onSelected: () => unawaited(continueWithRecap(context, ref, target, from))),
+    if (target != null) GlassMenuEntry(label: 'Continue', onSelected: () => unawaited(continueSeries(context, ref, target, from))),
     GlassMenuEntry(label: 'Details', onSelected: () => unawaited(openSeries(ref, s.sourceId, s.seriesKey, from: from))),
     GlassMenuEntry(label: s.isFavorite ? 'Unfavourite' : 'Favourite', onSelected: () => unawaited(a.favourite(s))),
     GlassMenuEntry(label: 'Mark read', run: () async {
