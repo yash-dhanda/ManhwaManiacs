@@ -167,8 +167,13 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
   final Map<String, int> _retryEpoch = {};
   ({String chapter, int page})? _heroFor;
   ReaderLayout _lastLayout = ReaderLayout.strip;
+  /// The chapter a paged or guided view shows after a layout switch, for as long as the route it
+  /// was carried under stays (a continuous strip may have moved past the route's chapter).
   String? _carryChapterId;
+  String? _carryFor;
   int? _carryPage;
+
+  String get _pagedChapterId => _carryFor == _id.chapterKey ? (_carryChapterId ?? _id.chapterKey) : _id.chapterKey;
   int _zonesReplay = 0;
   bool _bandsOn = false;
   String? _lastZonesKey;
@@ -456,6 +461,10 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
         ReaderOrigin.manifest => ReaderTarget.manifest(_id.sourceId, _id.seriesKey, chapterKey, page: page).location,
         ReaderOrigin.source => ReaderTarget.source(_id.sourceId, _id.seriesKey, chapterKey, page: page).location,
       };
+
+  /// A paged view steps from the chapter it shows: the body's prompts point past the FEED's edges,
+  /// which a strip session may already have extended by a chapter each way.
+  VoidCallback? _pagedStep(String? neighbour, VoidCallback? fallback) => neighbour == null ? fallback : () => _goToChapter(neighbour);
 
   /// Between chapters is a Dip, never a wipe.
   void _goToChapter(String chapterKey, {int? page}) {
@@ -1049,13 +1058,13 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
       // Switching layout keeps the page: the view being replaced still holds the state.
       final s = _engine.value;
       _carryChapterId = s.chapterId.isEmpty ? null : s.chapterId;
+      _carryFor = _id.chapterKey;
       _carryPage = s.page;
       _lastLayout = layout;
       _lastZonesKey = null;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _carryPage = null;
-        _carryChapterId = null;
-      });
+      // Only the page is one-shot (it seeds the new view); the chapter stays, or the next rebuild
+      // would hand the paged view the route's chapter at the carried page number.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _carryPage = null);
     }
     final paged = layout != ReaderLayout.strip;
     _syncBands(prefs, layout);
@@ -1107,7 +1116,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
     final autoHideAfter = accessible ? const Duration(days: 1) : const Duration(milliseconds: 3000);
     final Widget view;
     if (layout == ReaderLayout.guided) {
-      final chapter = _chapterById(_carryChapterId ?? _id.chapterKey) ?? body.feed.chapters.first;
+      final chapter = _chapterById(_pagedChapterId) ?? body.feed.chapters.first;
       view = CineGuidedView(
         key: const ValueKey('guided'),
         engine: _engine,
@@ -1119,12 +1128,12 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
         autoAdvance: settings.guidedAutoAdvance,
         autoHideAfter: autoHideAfter,
         onSaveProgress: body.onSaveProgress,
-        onPreviousChapter: body.onPreviousChapter,
-        onNextChapter: body.onNextChapter,
+        onPreviousChapter: _pagedStep(chapter.previousChapterId, body.onPreviousChapter),
+        onNextChapter: _pagedStep(chapter.nextChapterId, body.onNextChapter),
         creditsBuilder: (context) => ColoredBox(color: ground, child: SingleChildScrollView(child: _credits(context, chapter, null, CreditsMode.compact))),
       );
     } else if (paged) {
-      final chapter = _chapterById(_carryChapterId ?? _id.chapterKey) ?? body.feed.chapters.first;
+      final chapter = _chapterById(_pagedChapterId) ?? body.feed.chapters.first;
       view = PagedReaderView(
         key: const ValueKey('paged'),
         controller: _engine,
@@ -1149,8 +1158,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
         bookmarkAnchors: body.bookmarkAnchors,
         onSaveProgress: body.onSaveProgress,
         onAddBookmark: body.onAddBookmark,
-        onPreviousChapter: body.onPreviousChapter,
-        onNextChapter: body.onNextChapter,
+        onPreviousChapter: _pagedStep(chapter.previousChapterId, body.onPreviousChapter),
+        onNextChapter: _pagedStep(chapter.nextChapterId, body.onNextChapter),
         options: options,
         style: PagedStageStyle(centreLine: context.cine.colorRule1),
       );
