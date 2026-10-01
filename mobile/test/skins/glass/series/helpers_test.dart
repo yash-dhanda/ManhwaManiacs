@@ -46,6 +46,7 @@ void main() {
     test('1.3', () {
       expect(chapterRowExtent(hasSecondary: false, textScale: 1.3), closeTo(72.8, 1e-9));
       expect(chapterRowExtent(hasSecondary: true, textScale: 1.3), closeTo(88.4, 1e-9));
+      expect(chapterRowExtent(hasSecondary: false, textScale: 1.6), closeTo(56 * 1.6 + 48, 1e-9)); // stacked: the control line
     });
   });
 }

@@ -345,16 +345,22 @@ class _GlassSegmentedState<T> extends ConsumerState<GlassSegmented<T>> with Sing
             child: Center(
               child: loading
                   ? const GlassSpinner()
-                  : s.icon == null
-                      ? GlassLabel(s.label, role: gt.typeSubhead, wght: 620, color: sel ? gt.colorLabel1 : gt.colorLabel2)
-                      : Row(
+                  // A segment too narrow for its glyph and label drops the glyph, then scales the label down: never cut, never striped.
+                  : LayoutBuilder(builder: (context, c) {
+                      final label = GlassLabel(s.label, role: gt.typeSubhead, wght: 620, color: sel ? gt.colorLabel1 : gt.colorLabel2);
+                      final w = measureText(context, s.label, roleStyle(context, gt.typeSubhead, wght: 620, legible: legible, maxScale: 1.5)).width;
+                      if (s.icon != null && w + 22 <= c.maxWidth - 8) {
+                        return Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(s.icon, size: 16, color: sel ? gt.colorLabel1 : gt.colorLabel2),
                             const SizedBox(width: 6),
-                            GlassLabel(s.label, role: gt.typeSubhead, wght: 620, color: sel ? gt.colorLabel1 : gt.colorLabel2),
+                            label,
                           ],
-                        ),
+                        );
+                      }
+                      return Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: FittedBox(fit: BoxFit.scaleDown, child: label));
+                    },),
             ),
           ),
         ),
