@@ -64,7 +64,7 @@ class _GlassDragOwnerState extends ConsumerState<GlassDragOwner> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _onstage = TickerMode.of(context);
+    _onstage = TickerMode.valuesOf(context).enabled;
   }
 
   Rect _rect() {
