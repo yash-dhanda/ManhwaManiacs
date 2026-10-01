@@ -64,7 +64,7 @@ class GlassCastBody extends ConsumerWidget {
     final owner = ref.watch(glassIsOwnerProvider);
     final online = ref.watch(deviceOnlineProvider).valueOrNull ?? true;
     final canEdit = owner && online;
-    if (async.hasError) {
+    if (async.hasError || (async.valueOrNull?.failed ?? false)) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),

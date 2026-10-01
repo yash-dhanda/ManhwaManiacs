@@ -13,7 +13,7 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 /// attribution exists for a fraction of the library, so a reader must not wait
 /// on a lookup that usually answers nothing.
 ///
-/// A failure resolves to [NovelAttribution.none] rather than throwing. The
+/// A failure resolves to [NovelAttribution.unavailable] (a [NovelAttribution.none] with `failed`) rather than throwing. The
 /// cast panel is an addition to the page — it has to leave exactly the reading
 /// experience that shipped before it existed, not an error screen.
 final novelAttributionProvider = FutureProvider.autoDispose
@@ -25,7 +25,7 @@ final novelAttributionProvider = FutureProvider.autoDispose
             seriesKey: key.seriesKey,
             chapterKey: key.chapterKey,
           );
-      return result.isErr ? NovelAttribution.none : result.value;
+      return result.isErr ? NovelAttribution.unavailable : result.value;
     });
 
 /// Every voice a character can be given.
