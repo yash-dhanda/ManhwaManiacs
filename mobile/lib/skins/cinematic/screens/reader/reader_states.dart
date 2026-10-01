@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/not_available.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart' show CineFlicker;
@@ -14,9 +15,27 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart'
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
-Widget _ground(BuildContext context, Widget child) => ColoredBox(
-      color: context.cine.colorPaper0,
-      child: Material(color: const Color(0x00000000), child: child),
+/// The paper ground of the loading and failure states. They stand in for the reader, so a cold
+/// open (nothing beneath) still backs to the series on Android; [onBack] adds the top-left Back the
+/// loading state carries.
+Widget _ground(BuildContext context, Widget child, {VoidCallback? onBack}) => SkinBackFallback(
+      glass: false,
+      child: ColoredBox(
+        color: context.cine.colorPaper0,
+        child: Material(
+          color: const Color(0x00000000),
+          child: onBack == null
+              ? child
+              : Stack(children: [
+                  child,
+                  Positioned(
+                    top: MediaQuery.viewPaddingOf(context).top,
+                    left: 8,
+                    child: CineIconButton(label: 'Back to the series', role: CineIconRole.back, onPressed: onBack),
+                  ),
+                ],),
+        ),
+      ),
     );
 
 /// The chapter loading: three galley page plates at the manifest's (or 2:3) aspect in the strip
@@ -84,10 +103,7 @@ class ReaderLoading extends ConsumerWidget {
     }
   }
 
-  void _back(BuildContext context) {
-    final router = GoRouter.of(context);
-    if (router.canPop()) router.pop();
-  }
+  void _back(BuildContext context) => skinBack(context, glass: false);
 }
 
 /// What a chapter that did not open shows: the `NOT IN THIS ISSUE` notice for a removed or gated
@@ -123,6 +139,7 @@ class ReaderFailureView extends StatelessWidget {
     }
     return _ground(
       context,
+      onBack: failure.back,
       SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: c.space4),
@@ -147,6 +164,7 @@ class ReadAllListFailureView extends StatelessWidget {
     final c = context.cine;
     return _ground(
       context,
+      onBack: onBack,
       SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: c.space4),
