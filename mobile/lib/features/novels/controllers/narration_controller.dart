@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
+import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
+import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio_format.dart';
 import 'package:manhwamaniacs/features/novels/providers/listen_session_outbox_provider.dart';
@@ -22,8 +24,6 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/skin.dart' show SkinId;
 import 'package:manhwamaniacs/skins/skin_audio.dart';
 import 'package:manhwamaniacs/skins/skins.dart' show skinIdProvider;
-import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
-import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 
 /// What the player is doing, in the terms every screen shows.
 enum NarrationStatus {
