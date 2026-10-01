@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart' s
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_sheet.dart' as recommend;
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/series_card.dart';
@@ -133,7 +134,7 @@ class _WaveTileState extends ConsumerState<_WaveTile> with SingleTickerProviderS
 }
 
 /// The context menu entries of a shelf series (glass 8.17): Continue, Details, Favourite, Mark read, Add to collection, Download next
-/// 10, Previously on, Remove from library.
+/// 10, Previously on, Recommend to…, Remove from library.
 List<GlassMenuEntry> shelfMenuEntries(BuildContext context, WidgetRef ref, FollowedSeries s, Rect from, {List<GlassMenuEntry> first = const []}) {
   final a = ref.read(glassShelfActionsProvider);
   final r = s.readState;
@@ -151,6 +152,8 @@ List<GlassMenuEntry> shelfMenuEntries(BuildContext context, WidgetRef ref, Follo
     GlassMenuEntry(label: 'Add to collection', onSelected: () => unawaited(_pickCollection(context, ref, s, from))),
     GlassMenuEntry(label: 'Download next 10', onSelected: () => unawaited(downloadNextTen(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, readNumber: r?.chapterNumber, novel: novel))),
     if (target != null) GlassMenuEntry(label: 'Previously on', onSelected: () => unawaited(openRecap(ref, s.sourceId, s.seriesKey, chapterKey!, from: from))),
+    // mobile/43 (glass 9.3.4): the recommend sheet over the library's own location.
+    if (recommendSheetRegistered) GlassMenuEntry(label: 'Recommend to…', onSelected: () => recommend.openRecommendSheet(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title)),
     GlassMenuEntry(label: 'Remove from library', destructive: true, separatorBefore: true, onSelected: () => unawaited(a.remove(s))),
   ];
 }
