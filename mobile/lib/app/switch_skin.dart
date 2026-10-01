@@ -29,8 +29,10 @@ Future<void> restartInto(
   restart.restart();
 }
 
-String currentLocation(BuildContext context) =>
-    GoRouter.of(context).routerDelegate.currentConfiguration.uri.toString();
+/// The router's location. A caller above the router (the Glass splash's arrival toast, whose Undo switches back) has no
+/// `GoRouter` in its context, so it reads the app's router.
+String currentLocation(BuildContext context, WidgetRef ref) =>
+    (GoRouter.maybeOf(context) ?? ref.read<GoRouter>(skinRouterProvider)).routerDelegate.currentConfiguration.uri.toString();
 
 /// Stack §2.5 mobile steps 1-5, with everything injected. At t = 0 the `PATCH` is queued and
 /// `mm.skin.t0` written; [outgoing] is the skin's own exit animation (Stop the press, the melt);
@@ -85,7 +87,7 @@ Future<void> switchSkinFrom(
     from: ref.read(skinIdProvider),
     undoable: undoable,
     outgoing: outgoing,
-    currentLocation: currentLocation(context),
+    currentLocation: currentLocation(context, ref),
     prefs: ref.read(sharedPrefsProvider),
     outbox: ref.read(skinOutboxProvider),
     restart: restart.restart,

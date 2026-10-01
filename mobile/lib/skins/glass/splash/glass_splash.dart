@@ -198,7 +198,7 @@ class _GlassSplashState extends ConsumerState<GlassSplash> with SingleTickerProv
     final back = skinIdFromName(from);
     if (back == null) return;
     // Undo is an explicit choice, so the icon rule applies (glass 12.2); no alert.
-    showGlassToast(ref, GlassToastSpec('Switched to Glass', undo: () => unawaited(runSkinSwitch(context, ref, back))));
+    showGlassToast(ref, GlassToastSpec('Switched to Glass', undo: () => unawaited(runSkinSwitch(context, ref, back, undoable: false))));
   }
 
   @override
