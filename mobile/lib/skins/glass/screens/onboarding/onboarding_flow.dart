@@ -224,17 +224,20 @@ class GlassOnboardingFlow extends AutoDisposeNotifier<GlassOnboardingState> {
       final d = _draft();
       if (id == null) return false;
       final body = tasteBody(d, OnboardingStep.done);
+      // Pending from the first moment: the screen leaves for Home before the save settles, and the
+      // onboarding redirect must already count the profile as done (else it bounces to /welcome).
+      await store.writePending(d);
       for (var attempt = 0; attempt < 3; attempt++) {
         if (attempt > 0) await Future<void>.delayed(spacing);
         final r = await ref.read(onboardingRepositoryProvider).saveTaste(id, body);
         if (r.isOk) {
           await store.clearDraft();
-          await store.clearPending();
+          // The list says done before the pending marker goes.
           await ref.read(profilesProvider.notifier).refresh();
+          await store.clearPending();
           return true;
         }
       }
-      await store.writePending(d);
       return false;
     } finally {
       link.close();

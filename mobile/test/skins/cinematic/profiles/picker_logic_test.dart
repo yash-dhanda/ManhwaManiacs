@@ -45,6 +45,13 @@ void main() {
     expect(d(_p(skin: 'cinematic'), glass: true, onboarding: true).kind, PickerOutcomeKind.onboarding);
   });
 
+  test('Tonight resumes an unfinished profile even when it skips the picker', () {
+    expect(onboardingResumeRoute(_p(step: '3'), glassAvailable: true, onboardingBuilt: true), contains('step=3'));
+    expect(onboardingResumeRoute(_p(skin: 'glass'), glassAvailable: true, onboardingBuilt: true), contains('step=1'));
+    expect(onboardingResumeRoute(_p(step: 'done'), glassAvailable: true, onboardingBuilt: true), isNull);
+    expect(onboardingResumeRoute(_p(step: '3'), glassAvailable: true, onboardingBuilt: true, pendingDone: true), isNull);
+  });
+
   test('credit line and grid', () {
     expect(pickerCredit(_p()), 'NEW');
     expect(pickerCredit(_p(step: 'done')), '');

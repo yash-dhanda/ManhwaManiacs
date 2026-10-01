@@ -33,12 +33,18 @@ PickerOutcome decidePickerOutcome({
   if (glassAvailable && saved != null && saved != runningSkin) {
     return const PickerOutcome(PickerOutcomeKind.restartSkin);
   }
-  // Not finished, and no finished save waiting to be sent: resume where the profile stopped.
-  final step = profile.onboarding;
-  if (step?.isDone != true && !pendingDone && onboardingBuilt) {
-    return PickerOutcome(PickerOutcomeKind.onboarding, route: Routes.onboarding({'step': resumeStep(step, glassAvailable).n}));
-  }
+  final resume = onboardingResumeRoute(profile, glassAvailable: glassAvailable, onboardingBuilt: onboardingBuilt, pendingDone: pendingDone);
+  if (resume != null) return PickerOutcome(PickerOutcomeKind.onboarding, route: resume);
   return const PickerOutcome(PickerOutcomeKind.home);
+}
+
+/// Not finished, and no finished save waiting to be sent: the onboarding step to resume at. Null when
+/// the profile is done. The picker and Tonight's redirect (cold start, Manage's Use, a restart in from
+/// Glass) both read it.
+String? onboardingResumeRoute(Profile profile, {required bool glassAvailable, required bool onboardingBuilt, bool pendingDone = false}) {
+  final step = profile.onboarding;
+  if (step?.isDone == true || pendingDone || !onboardingBuilt) return null;
+  return Routes.onboarding({'step': resumeStep(step, glassAvailable).n});
 }
 
 /// The credit line under a name: `NEW` until onboarding is done, never reading activity.

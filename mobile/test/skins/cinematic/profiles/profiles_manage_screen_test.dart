@@ -53,6 +53,30 @@ void main() {
     expect(find.text('Reading as Guest'), findsOneWidget);
   });
 
+  testWidgets('Use on a profile that has not finished onboarding resumes it', (t) async {
+    final rig = await _open(t, profiles: [profile(1, 'Yash'), profile(2, 'Guest', step: '3')]);
+    await t.ensureVisible(find.widgetWithText(CineButton, 'Use').first);
+    await t.tap(find.widgetWithText(CineButton, 'Use').first);
+    await settle(t, 400);
+    expect(rig.container.read(activeProfileProvider)?.name, 'Guest');
+    expect(rig.at, startsWith('/welcome'));
+  });
+
+  testWidgets('an edit after a reorder shows in the rows', (t) async {
+    final rig = await _open(t);
+    await t.sendKeyEvent(LogicalKeyboardKey.tab);
+    await t.pump();
+    await t.sendKeyDownEvent(LogicalKeyboardKey.altLeft);
+    await t.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await t.sendKeyUpEvent(LogicalKeyboardKey.altLeft);
+    await settle(t, 600);
+    final i = rig.profiles.items.indexWhere((p) => p.id == 3);
+    rig.profiles.items[i] = profile(3, 'Kiddo', sort: rig.profiles.items[i].sortOrder);
+    await rig.container.read(profilesProvider.notifier).refresh();
+    await settle(t, 300);
+    expect(find.text('Kiddo'), findsOneWidget);
+  });
+
   testWidgets('Alt+Down moves the focused row, writes sort_order and announces the position', (t) async {
     final said = <String>[];
     final rig = await _open(t, announcements: said);

@@ -209,7 +209,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   /// Offline: Tonight's offline edition without saving `done`; the saved step is kept.
-  void _skipForNow() => _leaveToTonight();
+  void _skipForNow() {
+    // Tonight's resume redirect leaves this profile alone until the next launch.
+    ref.read(onboardingDeferredProvider.notifier).state = ref.read(activeProfileProvider)?.id;
+    _leaveToTonight();
+  }
 
   // --- print and Cut to home ---------------------------------------------------------------
 
