@@ -338,7 +338,7 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
     final scale = MediaQuery.textScalerOf(context).scale(1);
     final multi = scale >= 1.6;
     final content = Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: multi ? 12 : 0),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: multi ? 2 : 0),
       child: ConstrainedBox(
         constraints: BoxConstraints(minHeight: multi ? 60 : 44),
         child: Row(
@@ -346,7 +346,8 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
           children: [
             GlassBacking(size: 28, child: spec.leading ?? Icon(_glyph, size: 20, color: _color)),
             const SizedBox(width: 10),
-            Flexible(child: GlassText(spec.message, role: gt.typeCallout, onGlass: true, maxScale: 1.5)),
+            // A wrapped message keeps 10 px off the capsule's top and bottom edges.
+            Flexible(child: Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: GlassText(spec.message, role: gt.typeCallout, onGlass: true, maxScale: 1.5))),
             if (spec.undo != null || spec.actionLabel != null) ...[
               const SizedBox(width: 8),
               GlassButton(
