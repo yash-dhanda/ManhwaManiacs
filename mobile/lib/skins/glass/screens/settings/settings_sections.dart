@@ -30,7 +30,7 @@ const List<SettingsSectionSpec> kSettingsSections = [
   SettingsSectionSpec(SettingsSection.circle, 'Circle and privacy', GlassGlyph28.usersThree, GlassColors.surface3),
   SettingsSectionSpec(SettingsSection.ai, 'AI and recaps', GlassGlyph28.sparkle, GlassColors.surface3),
   SettingsSectionSpec(SettingsSection.feedback, 'Sound and haptics', SettingsGlyphs.speakerHigh, GlassColors.iris800),
-  SettingsSectionSpec(SettingsSection.notifications, 'Notifications', GlassGlyph28.bellSimple, GlassColors.danger, admin: true),
+  SettingsSectionSpec(SettingsSection.notifications, 'Notifications', GlassGlyph28.bellSimple, GlassColors.danger),
   SettingsSectionSpec(SettingsSection.security, 'Security', SettingsGlyphs.lockSimple, GlassColors.surface3),
   SettingsSectionSpec(SettingsSection.storage, 'Storage', SettingsGlyphs.hardDrives, GlassColors.surface3),
   SettingsSectionSpec(SettingsSection.backup, 'Backup', SettingsGlyphs.cloudArrowUp, GlassColors.surface3, admin: true),

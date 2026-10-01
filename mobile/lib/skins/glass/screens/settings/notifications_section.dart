@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/admin/providers/status_providers.dart';
 import 'package:manhwamaniacs/features/admin/utils/status_summary.dart' show describeCheckSchedule;
+import 'package:manhwamaniacs/features/profiles/providers/notify_enabled_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/source_cache_ttl_provider.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -43,13 +44,39 @@ class NotificationsDraft {
   int get hashCode => Object.hash(enabled, onStartup, notify, interval, ttl);
 }
 
-/// Settings -> Notifications (glass 8.25.6, admin): the schedule strip, three switches, the interval slider with its 30 min magnet,
-/// the catalogue-cache stepper and the draft-then-save bar.
+/// Settings -> Notifications (glass 8.25.6): every profile's own "Notify me" master (`PATCH /profiles/{id} {notify_enabled}`, the
+/// same one Cinematic writes); for an admin, also the server-wide checker: the schedule strip, three switches, the interval slider
+/// with its 30 min magnet, the catalogue-cache stepper and the draft-then-save bar.
 class NotificationsSection extends ConsumerWidget {
   const NotificationsSection({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => const GlassAdminGate(child: _Body());
+  Widget build(BuildContext context, WidgetRef ref) => Column(children: [
+        const _ProfileNotify(),
+        if (glassIsAdmin(ref)) const _Body(),
+      ],);
+}
+
+class _ProfileNotify extends ConsumerWidget {
+  const _ProfileNotify();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => SettingsGroup(
+        id: 'notify-profile',
+        footer: 'Saved for this profile',
+        children: [
+          SettingsSwitchRow(
+            id: 'notify-me',
+            title: 'Notify me about new chapters',
+            caption: "When this is off, new chapters don't reach your Library badge, Updates or the banner.",
+            value: ref.watch(notifyEnabledProvider),
+            onChanged: (v) async {
+              final err = await ref.read(notifyEnabledProvider.notifier).setEnabled(v);
+              if (err != null) settingsToast(ref, "Couldn't save. Try again.", kind: GlassToastKind.error);
+            },
+          ),
+        ],
+      );
 }
 
 class _Body extends ConsumerStatefulWidget {
@@ -158,7 +185,7 @@ class _BodyState extends ConsumerState<_Body> {
         SettingsGroup(children: [
           SettingsSwitchRow(id: 'updates-auto', title: 'Check for new chapters automatically', caption: 'Nothing is checked and nothing notifies while this is off.', value: d.enabled, enabled: enabled, onChanged: (v) => _edit((x) => x.copyWith(enabled: v))),
           SettingsSwitchRow(id: 'updates-startup', title: 'Check when the server starts', value: d.onStartup, enabled: enabled, onChanged: (v) => _edit((x) => x.copyWith(onStartup: v))),
-          SettingsSwitchRow(id: 'updates-notify', title: 'Notify me about new chapters', caption: 'The master switch. Turn one series off from its own page.', value: d.notify, enabled: enabled, onChanged: (v) => _edit((x) => x.copyWith(notify: v))),
+          SettingsSwitchRow(id: 'updates-notify', title: 'Send new-chapter notifications', caption: 'For every account on this server. Turn one series off from its own page.', value: d.notify, enabled: enabled, onChanged: (v) => _edit((x) => x.copyWith(notify: v))),
         ],),
         SettingsGroup(children: [
           SettingsAnchor(
