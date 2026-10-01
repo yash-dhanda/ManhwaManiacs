@@ -48,7 +48,7 @@ void main() {
     addTearDown(c.dispose);
     c.listen(cruiseControllerProvider, (_, __) {});
     final n = c.read(cruiseControllerProvider.notifier);
-    n.attach(engine, speed: speed, persist: saved.add, reduced: () => reduced);
+    n.attach(EngineCruiseSource(engine), speed: speed, persist: saved.add, reduced: () => reduced);
     return n;
   }
 

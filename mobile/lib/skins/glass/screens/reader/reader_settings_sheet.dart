@@ -12,15 +12,19 @@ import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/fill_slider.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/hold_to_confirm.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/slider.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/stepper.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/soundscape/soundscape_controller.dart';
+import 'package:manhwamaniacs/skins/glass/soundscape/soundscape_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// The Glass reader's values for one series, read live from the stores the settings sheet writes (glass 8.14.5, 8.25.3).
@@ -58,9 +62,15 @@ class GlassReaderSettingsWriter {
 /// The reader settings (glass 8.14.5): a sheet at `medium` on phones and tablet frames (changes apply live), inline in the right
 /// panel's Settings tab on desktop frames. Every row names its scope.
 class ReaderSettingsBody extends ConsumerWidget {
-  const ReaderSettingsBody({super.key, required this.seriesRef, this.readAll = false, this.onTapsChanged});
+  const ReaderSettingsBody({super.key, required this.seriesRef, this.readAll = false, this.onTapsChanged, this.onOpenSheet, this.inPanel = false});
   final String seriesRef;
   final bool readAll;
+
+  /// Ambient rows that open something else (`soundscape`, `guided`): the host closes this sheet first.
+  final ValueChanged<String>? onOpenSheet;
+
+  /// Inline in the desktop frame's right panel: the Soundscape section opens the tab (glass 8.14.11).
+  final bool inPanel;
 
   /// The layout changed: the reader shows its three-pane tap overlay.
   final VoidCallback? onTapsChanged;
@@ -86,6 +96,10 @@ class ReaderSettingsBody extends ConsumerWidget {
             value: ref.watch(cruiseControllerProvider).running,
             onChanged: (_) => ref.read(cruiseControllerProvider.notifier).toggle(),
           ),
+        if (inPanel) ...[
+          const _Section('Soundscape'),
+          SoundscapeSheetBody(seriesRef: seriesRef),
+        ],
         const _Section('Layout'),
         if (!readAll)
           _Row(
@@ -229,6 +243,9 @@ class ReaderSettingsBody extends ConsumerWidget {
             onChanged: (t) => unawaited(w.series({GlassReaderKeys.cruiseSpeed: cruiseMagnet(trackToCruise(t))})),
           ),
         ),
+        if (!inPanel)
+          _NavRow(title: 'Soundscape', value: ref.watch(soundscapeControllerProvider).summary, onTap: () => onOpenSheet?.call('soundscape')),
+        if (strip) _NavRow(title: 'Guided view', value: null, onTap: () => onOpenSheet?.call('guided')),
         const _Section('Screen'),
         _SwitchRow(title: 'Cinema mode', scope: allSeries, value: p.cinema, onChanged: (x) => unawaited(w.profile({'cinema': x}))),
         if (p.cinema)
@@ -326,6 +343,41 @@ class _Row extends StatelessWidget {
             const SizedBox(height: 8),
             child,
           ],
+        ),
+      );
+}
+
+/// A row that opens something: the title, its current value and a caret.
+class _NavRow extends StatelessWidget {
+  const _NavRow({required this.title, required this.value, required this.onTap});
+  final String title;
+  final String? value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: title,
+        value: value,
+        excludeSemantics: true,
+        onTap: onTap,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: GlassFrame.hitMin(context)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              child: Row(
+                children: [
+                  Expanded(child: GlassText(title, role: gt.typeSubhead, wght: 600, onGlass: true)),
+                  if (value != null) GlassText(value!, role: gt.typeFootnote, onGlass: true),
+                  const SizedBox(width: 6),
+                  Icon(GlassGlyph.caretRight.regular, size: 16, color: gt.colorOnGlass),
+                ],
+              ),
+            ),
+          ),
         ),
       );
 }
