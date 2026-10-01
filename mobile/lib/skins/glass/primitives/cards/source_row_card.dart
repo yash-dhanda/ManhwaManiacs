@@ -66,17 +66,19 @@ class GlassSourceRowCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
+                    // The name wraps (two lines) and the bead and tags flow after it, onto the next line when they must.
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 4,
+                      runSpacing: 2,
                       children: [
-                        Flexible(child: GlassLabel(name, role: gt.typeHeadline)),
-                        const SizedBox(width: 4),
+                        GlassLabel(name, role: gt.typeHeadline, maxLines: 2),
                         GlassHealthBead(status: health, demoted: demoted),
-                        const SizedBox(width: 4),
                         GlassChip(label: language, kind: GlassChipKind.tag),
-                        if (mature) ...[const SizedBox(width: 4), const GlassBadge.mature()],
+                        if (mature) const GlassBadge.mature(),
                       ],
                     ),
-                    GlassLabel(description, role: gt.typeFootnote, color: gt.colorLabel2),
+                    if (description.isNotEmpty) GlassLabel(description, role: gt.typeFootnote, color: gt.colorLabel2),
                   ],
                 ),
               ),
