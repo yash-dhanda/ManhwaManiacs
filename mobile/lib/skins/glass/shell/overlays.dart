@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
 import 'package:manhwamaniacs/skins/glass/screens/downloads/save_to_files_sheet.dart' show registerSaveToFilesSheet;
 import 'package:manhwamaniacs/skins/glass/screens/library/library_sheets.dart' show registerLibrarySheets;
+import 'package:manhwamaniacs/skins/glass/screens/novel/type_sheet.dart' show registerGlassNovelSheets;
 import 'package:manhwamaniacs/skins/glass/screens/settings/licenses_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/app_update_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shortcuts_sheet.dart';
@@ -34,6 +35,7 @@ void registerGlassGlobalSheets() {
   registerSaveToFilesSheet();
   registerOfferSheet();
   registerHowItWorksSheet();
+  registerGlassNovelSheets();
 }
 
 Widget _licences(BuildContext _) => const GlassLicencesSheet();

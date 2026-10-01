@@ -16,7 +16,7 @@ import 'package:manhwamaniacs/skins/glass/type.dart';
 /// plus, the value in `mono` 15/20 between them (min width 64), each with a `hitMin` hit. Past a limit the value text
 /// stretches 4 px toward the pressed side and springs back, with `detent.limit`.
 class GlassStepper extends ConsumerStatefulWidget {
-  const GlassStepper({super.key, required this.value, required this.onChanged, required this.label, this.min = 0, this.max = 100, this.step = 1, this.format});
+  const GlassStepper({super.key, required this.value, required this.onChanged, required this.label, this.min = 0, this.max = 100, this.step = 1, this.format, this.increaseLabel, this.decreaseLabel});
   final int value;
   final ValueChanged<int> onChanged;
   final String label;
@@ -24,6 +24,9 @@ class GlassStepper extends ConsumerStatefulWidget {
   final int max;
   final int step;
   final String Function(int value)? format;
+
+  /// The buttons' names when "Increase {label}" does not read well ("Larger text", "Smaller text").
+  final String? increaseLabel, decreaseLabel;
 
   @override
   ConsumerState<GlassStepper> createState() => _GlassStepperState();
@@ -99,7 +102,7 @@ class _GlassStepperState extends ConsumerState<GlassStepper> with SingleTickerPr
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            button(-1, GlassGlyph.minus.bold, 'Decrease ${widget.label}'),
+            button(-1, GlassGlyph.minus.bold, widget.decreaseLabel ?? 'Decrease ${widget.label}'),
             ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 64),
               child: AnimatedBuilder(
@@ -114,7 +117,7 @@ class _GlassStepperState extends ConsumerState<GlassStepper> with SingleTickerPr
                 ),
               ),
             ),
-            button(1, GlassGlyph.plus.bold, 'Increase ${widget.label}'),
+            button(1, GlassGlyph.plus.bold, widget.increaseLabel ?? 'Increase ${widget.label}'),
           ],
         ),
       ),

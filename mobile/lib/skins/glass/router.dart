@@ -36,6 +36,7 @@ import 'package:manhwamaniacs/skins/glass/screens/home/home_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/collection_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_hub.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_section.dart';
+import 'package:manhwamaniacs/skins/glass/screens/novel/novel_reader_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/glass_steps.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/onboarding_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/picks/for_you_screen.dart';
@@ -73,7 +74,6 @@ import 'package:manhwamaniacs/skins/skins.dart';
 const Set<ScreenId> PENDING = {
   ScreenId.circle,
   ScreenId.circleMember,
-  ScreenId.novel,
 };
 
 /// The Glass development routes (mobile/25), outside the `ScreenId` map. Settings -> Diagnostics links the calibration page (mobile/40).
@@ -424,16 +424,18 @@ GoRouter buildGlassRouter(Ref ref) {
         parentNavigatorKey: rootKey,
         pageBuilder: (context, state) {
           final extra = state.extra;
-          if (!isBookOpenExtra(extra)) return glassPage(state, _pending(ScreenId.novel, state), reader: true);
+          if (!isBookOpenExtra(extra)) return glassNovelPage(state);
+          // Book open from the book page (mobile/33): the plate rotates open onto mobile/36's reader.
           final m = extra! as Map;
+          final key = novelPageKey(state);
           return GlassBookOpenPage<void>(
-            key: state.pageKey,
+            key: key,
             name: state.name,
             plateRect: m['plateRect'] as Rect,
             cover: m['cover'] as ImageProvider?,
             paper: (m['paper'] as Color?) ?? const Color(0xFFF4EEE2),
             reduced: ref.read(glassMotionPrefsProvider).reduced,
-            child: GlassRouteFrame(routeKey: _keyOf(state), child: _pending(ScreenId.novel, state)),
+            child: GlassRouteFrame(routeKey: key.value, sheetHost: (c) => GlassSheetParamHost(child: c), child: GlassNovelReaderScreen.of(state)),
           );
         },
       ),
@@ -471,7 +473,7 @@ GoRouter buildGlassRouter(Ref ref) {
       // Mobile aliases (redirects).
       _redirect(Routes.profileNewAliases.first, (s) => Routes.profileNew()),
       _redirect(Routes.profileEditAliases.first, (s) => Routes.profileEdit(s.pathParameters['id']!)),
-      _redirect(Routes.novelAliases.first, (s) => Routes.novel(s.pathParameters['sourceId']!, s.pathParameters['seriesKey']!, s.pathParameters['chapterKey']!)),
+      _redirect(Routes.novelAliases.first, (s) => Routes.novel(s.pathParameters['sourceId']!, s.pathParameters['seriesKey']!, s.pathParameters['chapterKey']!, s.uri.queryParameters)),
       _redirect(Routes.dialogueAliases.first, (s) => Routes.dialogue({'q': s.uri.queryParameters['q']})),
       _redirect(Routes.collectionsAliases.first, (s) => Routes.collections()),
       _redirect(Routes.collectionAliases.first, (s) => Routes.collection(s.pathParameters['id']!)),

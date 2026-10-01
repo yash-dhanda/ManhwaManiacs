@@ -1,0 +1,130 @@
+{
+ "attributed": true,
+ "text_fingerprint": "41926bafca8904148c4c19e6b4a19726b4173c143f96a3e467419cebc6b1d80f",
+ "narrator": null,
+ "spans": [
+  {
+   "p": 0,
+   "s": 0,
+   "e": 40,
+   "head": "Alice",
+   "speaker": "Alice"
+  },
+  {
+   "p": 1,
+   "s": 0,
+   "e": 40,
+   "head": "So sh",
+   "speaker": "White Rabbit"
+  },
+  {
+   "p": 2,
+   "s": 0,
+   "e": 40,
+   "head": "There",
+   "speaker": "Mouse"
+  },
+  {
+   "p": 3,
+   "s": 0,
+   "e": 40,
+   "head": "In an",
+   "speaker": "Dodo"
+  },
+  {
+   "p": 4,
+   "s": 0,
+   "e": 40,
+   "head": "The r",
+   "speaker": "Duck"
+  },
+  {
+   "p": 5,
+   "s": 0,
+   "e": 40,
+   "head": "Eithe",
+   "speaker": "Lory"
+  },
+  {
+   "p": 6,
+   "s": 0,
+   "e": 40,
+   "head": "“Well",
+   "speaker": "Eaglet"
+  },
+  {
+   "p": 7,
+   "s": 0,
+   "e": 40,
+   "head": "Down,",
+   "speaker": "Caterpillar"
+  },
+  {
+   "p": 8,
+   "s": 0,
+   "e": 40,
+   "head": "Prese",
+   "speaker": "Duchess"
+  },
+  {
+   "p": 9,
+   "s": 0,
+   "e": 40,
+   "head": "Down,",
+   "speaker": "Cheshire Cat"
+  },
+  {
+   "p": 10,
+   "s": 0,
+   "e": 40,
+   "head": "Alice",
+   "speaker": "Hatter"
+  }
+ ],
+ "cast": [
+  {
+   "name": "Alice",
+   "lines": 11
+  },
+  {
+   "name": "White Rabbit",
+   "lines": 10
+  },
+  {
+   "name": "Mouse",
+   "lines": 9
+  },
+  {
+   "name": "Dodo",
+   "lines": 8
+  },
+  {
+   "name": "Duck",
+   "lines": 7
+  },
+  {
+   "name": "Lory",
+   "lines": 6
+  },
+  {
+   "name": "Eaglet",
+   "lines": 5
+  },
+  {
+   "name": "Caterpillar",
+   "lines": 4
+  },
+  {
+   "name": "Duchess",
+   "lines": 3
+  },
+  {
+   "name": "Cheshire Cat",
+   "lines": 2
+  },
+  {
+   "name": "Hatter",
+   "lines": 1
+  }
+ ]
+}

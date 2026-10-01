@@ -169,16 +169,26 @@ class _FakeAuthRepository implements AuthRepository {
   }
 }
 
-/// A keychain read that settles after the first frame's requests are already out.
+/// A keychain read that settles only when released: the first frame's requests go out first.
 class _SlowStorage extends _FakeStorage {
+  final gate = Completer<void>();
+
   @override
-  Future<String?> getAuthToken() => Future.delayed(const Duration(milliseconds: 50), () => token);
+  Future<String?> getAuthToken() async {
+    await gate.future;
+    return token;
+  }
 }
 
+/// Answers 401, but only once [hold] (when set) completes.
 class _Always401 implements HttpClientAdapter {
+  Future<void>? hold;
+
   @override
-  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async =>
-      ResponseBody.fromString('{}', 401, headers: {Headers.contentTypeHeader: [Headers.jsonContentType]});
+  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+    await hold;
+    return ResponseBody.fromString('{}', 401, headers: {Headers.contentTypeHeader: [Headers.jsonContentType]});
+  }
 
   @override
   void close({bool force = false}) {}
@@ -232,9 +242,17 @@ void main() {
       final storage = _SlowStorage()..token = 'tok';
       final (container, _) = await _containerWithPrefs(_FakeAuthRepository(meResult: Ok(_user)), storage);
       final controller = container.read(authControllerProvider.notifier);
-      final dio = container.read(dioProvider)..httpClientAdapter = _Always401();
-      await expectLater(dio.get<dynamic>('/profiles'), throwsA(isA<DioException>()));
+      final answer = Completer<void>();
+      final adapter = _Always401()..hold = answer.future;
+      final dio = container.read(dioProvider)..httpClientAdapter = adapter;
+      // Sent with no token; its 401 lands after the restore has set one.
+      final early = dio.get<dynamic>('/profiles');
+      await pumpEventQueue();
+      storage.gate.complete();
       await controller.restored;
+      answer.complete();
+      await expectLater(early, throwsA(isA<DioException>()));
+      adapter.hold = null;
       // A request under the restored token is still a real expiry.
       expect(container.read(authControllerProvider), isA<AuthAuthenticated>());
       expect(container.read(sessionEndReasonProvider), isNull);
