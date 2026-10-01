@@ -119,7 +119,7 @@ class ActivityRow extends ConsumerWidget {
         if (!i.followedByViewer && i.actor.profileId != ref.watch(activeProfileProvider)?.id)
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: GlassButton(label: 'Read it too', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () => unawaited(followFromCircle(ref, sourceId: i.sourceId, seriesKey: i.seriesKey, title: i.title).then((ok) => ok ? onFollow?.call() : null))),
+            child: GlassButton(label: 'Read it too', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () => unawaited(followFromCircle(ref, sourceId: i.sourceId, seriesKey: i.seriesKey, title: i.title, actorId: i.actor.profileId).then((ok) => ok ? onFollow?.call() : null))),
           ),
       ],
     );

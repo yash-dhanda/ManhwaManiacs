@@ -25,7 +25,8 @@ Rect? rectOf(BuildContext context) {
 
 /// Follows a series from the Circle ("Read it too", a letter's "Add to library"): `follow.add`, the feeds mark it followed, and
 /// the toast "Following {title}". A failure toasts "Couldn't follow {title}". Returns whether it worked.
-Future<bool> followFromCircle(WidgetRef ref, {required String sourceId, required String seriesKey, required String title}) async {
+/// [actorId] is the dispatch's member: their feed (a friend sheet's Recent) is marked too.
+Future<bool> followFromCircle(WidgetRef ref, {required String sourceId, required String seriesKey, required String title, int? actorId}) async {
   final r = await ref.read(libraryRepositoryProvider).follow(sourceId: sourceId, seriesKey: seriesKey);
   final toasts = ref.read(glassToastProvider.notifier);
   if (r.isErr) {
@@ -37,6 +38,7 @@ Future<bool> followFromCircle(WidgetRef ref, {required String sourceId, required
   glassSound(ref, SoundEvent.followAdd);
   try {
     ref.read(circleFeedProvider(null).notifier).markFollowed(sourceId, seriesKey);
+    if (actorId != null && ref.exists(memberFeedProvider(actorId))) ref.read(memberFeedProvider(actorId).notifier).markFollowed(sourceId, seriesKey);
   } catch (_) {}
   ref
     ..invalidate(libraryListProvider)
