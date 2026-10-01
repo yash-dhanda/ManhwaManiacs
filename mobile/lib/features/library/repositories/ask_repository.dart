@@ -49,6 +49,17 @@ class AskRepository {
         WorldRecommendations.fromJson,
       );
 
+  /// `GET /discover/genre/{genre}/ai?cursor=`: one page of the endless genre grid.
+  Future<Result<WorldGenrePage>> genrePage(String genre, {String? cursor, CancelToken? cancel}) => _run(
+        () => _dio.get<Map<String, dynamic>>(
+          '/discover/genre/${Uri.encodeComponent(genre)}/ai',
+          queryParameters: {if (cursor != null) 'cursor': cursor},
+          cancelToken: cancel,
+          options: Options(receiveTimeout: _slow),
+        ),
+        WorldGenrePage.fromJson,
+      );
+
   Future<Result<T>> _run<T>(Future<Response<Map<String, dynamic>>> Function() call, T Function(Map<String, dynamic>) parse) async {
     try {
       final r = await call();

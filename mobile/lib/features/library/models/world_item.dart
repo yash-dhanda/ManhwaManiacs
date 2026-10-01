@@ -268,6 +268,27 @@ class WorldSuggestResponse {
       );
 }
 
+/// `GET /discover/genre/{genre}/ai`: one page of the endless genre grid.
+class WorldGenrePage {
+  const WorldGenrePage({this.items = const [], this.nextCursor, this.fromCatalogue = false, this.unavailableReason});
+
+  final List<WorldItem> items;
+
+  /// Null only when nothing more exists anywhere.
+  final String? nextCursor;
+
+  /// The AI could not answer, so the page is the catalogue's own genre list.
+  final bool fromCatalogue;
+  final String? unavailableReason;
+
+  factory WorldGenrePage.fromJson(Map<String, dynamic> json) => WorldGenrePage(
+        items: _items(json['items']),
+        nextCursor: _text(json['next_cursor']),
+        fromCatalogue: json['source'] == 'catalogue',
+        unavailableReason: _text(json['unavailable_reason']),
+      );
+}
+
 /// A trimmed non-empty string, or null.
 String? _text(Object? raw) {
   if (raw is! String) return null;
