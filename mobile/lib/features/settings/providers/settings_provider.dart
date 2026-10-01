@@ -472,4 +472,10 @@ final List<void Function(Ref ref)> metadataCacheInvalidators = [
   (ref) => ref.invalidate(readingHistoryProvider),
   (ref) => ref.invalidate(bookmarksProvider),
   (ref) => ref.invalidate(updatesProvider),
+  // The Cinematic shelf, open series pages and Tonight hold series metadata too.
+  (ref) => ref.invalidate(shelfProvider),
+  (ref) => ref.invalidate(shelfCountsProvider),
+  (ref) => ref.invalidate(shelfContinueProvider),
+  (ref) => ref.invalidate(seriesDetailProvider),
+  (ref) => ref.invalidate(homeFeedProvider),
 ];

@@ -518,7 +518,7 @@ void main() {
     });
 
     test('metadataCacheInvalidators covers every intended provider exactly once', () {
-      expect(metadataCacheInvalidators, hasLength(9));
+      expect(metadataCacheInvalidators, hasLength(14));
     });
   });
 }
