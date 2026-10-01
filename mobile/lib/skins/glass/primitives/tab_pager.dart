@@ -56,7 +56,7 @@ class GlassTabPagerController {
 /// In-page tabs over a pager (glass 7.13): a scrollable strip with a `glassFilm` clear capsule that slides and
 /// stretches between the labels while a finger drags a panel, over a `PageView` with `BouncingScrollPhysics`.
 class GlassTabPager extends ConsumerStatefulWidget {
-  const GlassTabPager({super.key, required this.tabs, required this.panels, this.controller, this.onChanged, this.initialIndex = 0})
+  const GlassTabPager({super.key, required this.tabs, required this.panels, this.controller, this.onChanged, this.initialIndex = 0, this.locked = false})
       : assert(tabs.length == panels.length && tabs.length >= 2);
 
   final List<GlassTabSpec> tabs;
@@ -64,6 +64,9 @@ class GlassTabPager extends ConsumerStatefulWidget {
   final GlassTabPagerController? controller;
   final ValueChanged<int>? onChanged;
   final int initialIndex;
+
+  /// The panel owns horizontal drags (select-mode range paint, a pinch): the pager stops swiping; the strip still switches.
+  final bool locked;
 
   @override
   ConsumerState<GlassTabPager> createState() => _GlassTabPagerState();
@@ -277,7 +280,7 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
                 onNotification: _onScroll,
                 child: PageView(
                   controller: _pages,
-                  physics: const BouncingScrollPhysics(),
+                  physics: widget.locked ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
                   onPageChanged: (_) {},
                   children: [
                     for (var i = 0; i < widget.panels.length; i++) Semantics(container: true, explicitChildNodes: true, child: _panel(i)),

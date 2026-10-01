@@ -8,8 +8,12 @@ import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart' show glass
 /// Does [e] match? `hk` carries the modifiers.
 typedef LibraryKeyMatch = bool Function(KeyEvent e, HardwareKeyboard hk);
 
-/// A printable key with no modifier ("x", "*", "["); Shift is ignored so "*" and "?" match where they need it.
-LibraryKeyMatch kChar(String c) => (e, hk) => e.character == c && !hk.isControlPressed && !hk.isMetaPressed && !hk.isAltPressed;
+/// A printable key with no modifier ("x", "*", "["). Shift is ignored for symbols so "*" and "?" match where they need it, but a
+/// letter never matches with Shift down (`shift+x` and `shift+m` are their own bindings).
+LibraryKeyMatch kChar(String c) {
+  final letter = RegExp('^[a-z]\$').hasMatch(c);
+  return (e, hk) => e.character == c && !hk.isControlPressed && !hk.isMetaPressed && !hk.isAltPressed && !(letter && hk.isShiftPressed);
+}
 
 /// A named key with exact Alt and Shift state.
 LibraryKeyMatch kKey(LogicalKeyboardKey k, {bool alt = false, bool shift = false}) =>

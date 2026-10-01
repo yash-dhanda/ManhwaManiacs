@@ -83,6 +83,7 @@ class _GlassShelfPageState extends ConsumerState<GlassShelfPage> {
     _offSearch = registerSearchFocus(_searchFocus);
     _offRefresh = useGlassRefresh(() => unawaited(_pull.refresh()));
     _scroll.addListener(_onScroll);
+    _select.addListener(_syncLock);
     Future.microtask(() {
       if (!mounted) return;
       _offBridge = bridgeLibrarySelection(ref, _select);
@@ -102,8 +103,16 @@ class _GlassShelfPageState extends ConsumerState<GlassShelfPage> {
     }
   }
 
+  /// While select mode paints ranges or a pinch runs, the shelf owns horizontal drags and the hub's pager stands still.
+  void _syncLock() {
+    if (!mounted) return;
+    final lock = LibraryChrome.maybeOf(context)?.pagerLock;
+    if (lock != null) lock.value = _select.active || _pinching;
+  }
+
   @override
   void dispose() {
+    _select.removeListener(_syncLock);
     _offSearch?.call();
     _offRefresh?.call();
     _offBridge?.call();
@@ -244,13 +253,14 @@ class _GlassShelfPageState extends ConsumerState<GlassShelfPage> {
       LibraryKey(description: 'Move through the grid', keys: const ['←', '↑', '→', '↓'], match: (e, hk) => false, action: () {}),
       LibraryKey(description: 'Move through the grid', keys: const ['h', 'j', 'k', 'l'], single: true, match: (e, hk) => false, action: () {}),
       LibraryKey(description: 'First or last series', keys: const ['Home', 'End'], match: (e, hk) => false, action: () {}),
-      LibraryKey(description: 'Select', keys: const ['x'], single: true, match: kChar('x'), action: () {
-        final id = _focused.value;
-        if (id != null) _select.active ? _select.toggle(id) : _select.enter(id);
-      },),
+      // shift+x first: a keyboard may report the shifted key's character as a lower-case 'x'.
       LibraryKey(description: 'Select a range', keys: const ['⇧', 'x'], single: true, match: kShiftLetter(LogicalKeyboardKey.keyX), action: () {
         final id = _focused.value;
         if (id != null) _select.extendTo(id);
+      },),
+      LibraryKey(description: 'Select', keys: const ['x'], single: true, match: kChar('x'), action: () {
+        final id = _focused.value;
+        if (id != null) _select.active ? _select.toggle(id) : _select.enter(id);
       },),
       LibraryKey(description: 'Favourite', keys: const ['*'], single: true, match: kChar('*'), action: () {
         final i = _focusedIndex;
@@ -408,7 +418,9 @@ class _GlassShelfPageState extends ConsumerState<GlassShelfPage> {
         live: _live,
         wheel: !_phone,
         onPinching: (p) {
-          if (p != _pinching) setState(() => _pinching = p);
+          if (p == _pinching) return;
+          setState(() => _pinching = p);
+          _syncLock();
         },
         onStep: (d) {
           if (d != 0 && !list) _step(d);

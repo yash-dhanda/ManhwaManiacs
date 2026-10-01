@@ -35,12 +35,15 @@ class LibraryChromeSpec {
 
 /// Provided by the hub on phones. Sections find it with [LibraryChrome.maybeOf]; null means the section is its own page.
 class LibraryChrome extends InheritedWidget {
-  const LibraryChrome({super.key, required this.active, required this.offset, required this.publish, required super.child});
+  const LibraryChrome({super.key, required this.active, required this.offset, required this.publish, required this.pagerLock, required super.child});
 
   /// The section on screen; only it may drive [offset] and [publish].
   final ValueListenable<LibrarySection> active;
   final ValueNotifier<double> offset;
   final void Function(LibrarySection section, LibraryChromeSpec spec) publish;
+
+  /// Set by the active section while it owns horizontal drags (select mode, a pinch): the hub's pager stops swiping.
+  final ValueNotifier<bool> pagerLock;
 
   static LibraryChrome? maybeOf(BuildContext c) => c.getInheritedWidgetOfExactType<LibraryChrome>();
 

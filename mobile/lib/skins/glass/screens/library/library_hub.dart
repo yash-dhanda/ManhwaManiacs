@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dart' show novelsEnabledProvider;
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/tab_pager.dart';
 import 'package:manhwamaniacs/skins/glass/screens/downloads/downloads_page.dart';
@@ -39,6 +40,7 @@ class _GlassLibraryHubState extends ConsumerState<GlassLibraryHub> {
   late final GlassTabPagerController _pager = GlassTabPagerController(initialIndex: widget.initial.index);
   late final ValueNotifier<LibrarySection> _active = ValueNotifier(widget.initial);
   final Map<LibrarySection, LibraryChromeSpec> _chrome = {};
+  final ValueNotifier<bool> _lock = ValueNotifier(false);
   late final List<Widget> _panels;
 
   @override
@@ -70,6 +72,7 @@ class _GlassLibraryHubState extends ConsumerState<GlassLibraryHub> {
   @override
   void dispose() {
     _active.dispose();
+    _lock.dispose();
     _pager.dispose();
     super.dispose();
   }
@@ -83,6 +86,7 @@ class _GlassLibraryHubState extends ConsumerState<GlassLibraryHub> {
     final section = LibrarySection.values[i];
     if (_active.value == section) return;
     _active.value = section;
+    _lock.value = false;
     setState(() {});
     // The location always names the section on screen; the same page key means the Navigator updates this page in place.
     GoRouter.of(context).replace<void>(section.path);
@@ -102,7 +106,8 @@ class _GlassLibraryHubState extends ConsumerState<GlassLibraryHub> {
     final spec = _chrome[_active.value] ?? const LibraryChromeSpec();
     return GlassScaffold(
       title: 'Library',
-      contentModeSwitch: true,
+      // The content-mode capsule shows only when novels are enabled (glass 8.17 nav row); otherwise its shape would stand empty.
+      contentModeSwitch: ref.watch(novelsEnabledProvider),
       slivers: const [],
       ambient: ref.watch(libraryAmbientProvider),
       trailing: spec.trailing,
@@ -111,14 +116,20 @@ class _GlassLibraryHubState extends ConsumerState<GlassLibraryHub> {
         active: _active,
         offset: offset,
         publish: _publish,
+        pagerLock: _lock,
         child: Padding(
-          padding: EdgeInsets.only(top: insets.top - 8),
-          child: GlassTabPager(
-            controller: _pager,
-            initialIndex: widget.initial.index,
-            onChanged: _changed,
-            tabs: [for (final s in LibrarySection.values) GlassTabSpec(s.label)],
-            panels: _panels,
+          // Below the nav row's soft edge (safe-top + 52 plateau), so the tab strip is never under the fade.
+          padding: EdgeInsets.only(top: insets.top + 4),
+          child: ValueListenableBuilder<bool>(
+            valueListenable: _lock,
+            builder: (context, locked, _) => GlassTabPager(
+              controller: _pager,
+              initialIndex: widget.initial.index,
+              onChanged: _changed,
+              locked: locked,
+              tabs: [for (final s in LibrarySection.values) GlassTabSpec(s.label)],
+              panels: _panels,
+            ),
           ),
         ),
       ),
