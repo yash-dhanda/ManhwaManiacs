@@ -1,9 +1,16 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
+import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/library/utils/followed_series_cache.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/inline_notice.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/slider.dart';
@@ -11,8 +18,29 @@ import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_row.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
-import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
+
+/// The library cache's row for a series a settings list stores only by key (glass 8.25.15 hidden series, 8.25.16 skip list).
+FollowedSeries? settingsCachedSeries(WidgetRef ref, String sourceId, String seriesKey) {
+  final scope = ref.watch(activeDownloadsScopeIdProvider);
+  if (scope == null) return null;
+  return cachedFollowedSeriesByKey(ref.read(sharedPrefsProvider), followedSeriesCacheKeyFor(scope), sourceId, seriesKey, gateOpen: ref.watch(matureGateOpenProvider));
+}
+
+/// A 36 x 54 cover from the library cache, or the `fill2` slab when the series is not cached.
+class SettingsSeriesThumb extends StatelessWidget {
+  const SettingsSeriesThumb({super.key, this.coverUrl});
+  final String? coverUrl;
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: SizedBox(
+          width: 36,
+          height: 54,
+          child: coverUrl == null || coverUrl!.isEmpty ? ColoredBox(color: gt.colorFill2) : GlassCoverImage(url: coverUrl!, width: 36),
+        ),
+      );
+}
 
 /// A row with a switch on its trailing edge.
 class SettingsSwitchRow extends StatelessWidget {
