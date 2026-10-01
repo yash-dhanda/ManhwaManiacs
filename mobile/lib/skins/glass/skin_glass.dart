@@ -800,3 +800,10 @@ class SkinGlassRoot extends ConsumerWidget {
 
 /// Dematerialises every mounted glass surface at once (350 ms; the skin melt, glass 4.10). Completes when they are all gone.
 Future<void> dematerializeAllGlass() => Future.wait([for (final s in SkinGlassState._mounted.toList()) s.dematerialize()]);
+
+/// Brings them back (a melt undone).
+void rematerializeAllGlass() {
+  for (final s in SkinGlassState._mounted.toList()) {
+    if (!s._disposed) s._mat.forward();
+  }
+}
