@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/skins/glass/physics/glass_page_physics.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_gestures.dart';
 
 void main() {
@@ -54,5 +55,13 @@ void main() {
     final d = UnlockCounter();
     d.tap(t0);
     expect(d.tap(t0.add(const Duration(milliseconds: 2500))), 1, reason: 'older taps fall out of the 2 s window');
+  });
+
+  test('paged physics: the projection past half a page commits, one page at most', () {
+    expect(GlassPagePhysics.targetPage(390 * 2 + 100, 0, 390), 2, reason: 'a short drag springs back');
+    expect(GlassPagePhysics.targetPage(390 * 2 + 220, 0, 390), 3, reason: 'past half a page commits');
+    expect(GlassPagePhysics.targetPage(390 * 2 + 60, 1200, 390), 3, reason: 'a flick projects past half');
+    expect(GlassPagePhysics.targetPage(390 * 2 + 60, 30000, 390), 3, reason: 'never more than one page');
+    expect(GlassPagePhysics.targetPage(390 * 2 + 60, -30000, 390), 2);
   });
 }
