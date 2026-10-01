@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/repositories/ask_repository.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_pull_to_reprint.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/genre_grid.dart';
 
 import 'harness.dart';
@@ -21,6 +22,7 @@ class _Pages extends AskRepository {
   _Pages() : super(Dio());
   final cursors = <String?>[];
   bool fail = false;
+  bool end = false;
 
   @override
   Future<Result<WorldGenrePage>> genrePage(String genre, {String? cursor, CancelToken? cancel}) async {
@@ -32,7 +34,7 @@ class _Pages extends AskRepository {
         if (n > 0) WorldItem(title: 'Title ${n * 10 - 1}', anilistId: n * 10 - 1),
         for (var i = n * 10; i < n * 10 + 10; i++) WorldItem(title: 'Title $i', anilistId: i),
       ],
-      nextCursor: '${n + 1}',
+      nextCursor: end ? null : '${n + 1}',
     ),);
   }
 }
@@ -98,6 +100,24 @@ void main() {
     pages.fail = false;
     await tester.tap(find.text('Retry'));
     await settle(tester);
+    expect(find.text('Title 0'), findsWidgets);
+  });
+
+  testWidgets('pull to reprint works after the list has ended', (tester) async {
+    final pages = _Pages()..end = true;
+    await pumpScreen(
+      tester,
+      const GenreGridScreen(genre: 'Murim'),
+      extra: [
+        askRepositoryProvider.overrideWithValue(pages),
+        matureContentProvider.overrideWith(_MatureOff.new),
+      ],
+    );
+    await settle(tester, 800);
+    expect(pages.cursors, ['0']);
+    await tester.widget<CinePullToReprint>(find.byType(CinePullToReprint)).onRefresh();
+    await settle(tester);
+    expect(pages.cursors, ['0', '0']);
     expect(find.text('Title 0'), findsWidgets);
   });
 }

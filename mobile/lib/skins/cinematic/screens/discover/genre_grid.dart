@@ -62,22 +62,30 @@ class _GenreGridScreenState extends ConsumerState<GenreGridScreen> {
     if (p.pixels >= p.maxScrollExtent * 0.7) unawaited(_load());
   }
 
+  /// Bumped per request; a reprint overtakes a page still in flight.
+  int _gen = 0;
+
   Future<void> _load({bool replace = false}) async {
-    if (_loading || _cursor == null) return;
+    if (!replace && (_loading || _cursor == null)) return;
+    final gen = ++_gen;
+    final cursor = replace ? '0' : _cursor;
     setState(() {
       _loading = true;
       _error = null;
     });
     final r = await ref
         .read(askRepositoryProvider)
-        .genrePage(widget.genre, cursor: _cursor);
-    if (!mounted) return;
+        .genrePage(widget.genre, cursor: cursor);
+    if (!mounted || gen != _gen) return;
     var added = 0;
     setState(() {
       _loading = false;
       switch (r) {
         case Ok(:final value):
-          if (replace) _items.clear();
+          if (replace) {
+            _items.clear();
+            _seen.clear();
+          }
           for (final i in value.items) {
             if (_seen.add(pickId(i))) {
               _items.add(i);
