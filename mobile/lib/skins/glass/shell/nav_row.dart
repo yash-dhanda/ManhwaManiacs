@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
@@ -139,7 +141,20 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
         break;
     }
 
-    // Centre: a status capsule while offline, else the title capsule once the large title is under the row.
+    // The trailing run, right to left: the icon group, then the mode switch 8 px before it (each its own capsule, never stacked
+    // on one another), sized to its label.
+    final n = actions.length;
+    final actionsW = n == 0 ? 0.0 : n * side + (n - 1) * 8;
+    final showSwitch = widget.contentModeSwitch && ref.watch(novelsEnabledProvider);
+    final switchW = showSwitch
+        ? measureText(context, ref.watch(contentModeControllerProvider).label, roleStyle(context, gt.typeSubhead, onGlass: true, wght: 620)).width + 42
+        : 0.0;
+    final trailingW = actionsW + (showSwitch ? switchW + (n == 0 ? 0 : 8) : 0);
+    final leadingW = widget.leading == GlassLeading.none ? 0.0 : side;
+
+    // Centre: a status capsule while offline, else the title capsule once the large title is under the row. It fits between the
+    // leading and trailing runs (centred on the row), or is left out when they leave it under 56 px.
+    final centreMax = w - 2 * math.max(leadingW, trailingW) - 16;
     if (widget.offline) {
       const text = 'Offline';
       shapes.add(
@@ -150,27 +165,27 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
         ),
       );
       aligns.add(Alignment.center);
-    } else if (_showTitle) {
+    } else if (_showTitle && centreMax >= 56) {
       final style =
           roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600);
       final tw = (measureText(context, widget.title, style).width + 32)
-          .clamp(56.0, w * 0.6);
+          .clamp(56.0, math.min(w * 0.6, centreMax)).toDouble();
       shapes.add(SkinGlassShape(
           size: Size(tw, 36),
           child: _TitleCapsule(title: widget.title, width: tw),),);
       aligns.add(Alignment.center);
     }
 
-    // Trailing: mode switch and up to three icons.
-    if (widget.contentModeSwitch) {
-      shapes.add(const SkinGlassShape(
-          size: Size(88, 36),
+    if (showSwitch) {
+      final right = n == 0 ? 0.0 : actionsW + 8;
+      final left = w - right - switchW;
+      shapes.add(SkinGlassShape(
+          size: Size(switchW, 36),
           child:
-              GlassContentModeSwitch(variant: GlassContentModeVariant.navRow),),);
-      aligns.add(Alignment.centerRight);
+              const GlassContentModeSwitch(variant: GlassContentModeVariant.navRow),),);
+      aligns.add(Alignment(w <= switchW ? 1 : (2 * left / (w - switchW) - 1).clamp(-1.0, 1.0), 0));
     }
     if (actions.isNotEmpty) {
-      final n = actions.length;
       shapes.add(
         SkinGlassShape(
           size: Size(n * side + (n - 1) * 8, side),
