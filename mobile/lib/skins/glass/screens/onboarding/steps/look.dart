@@ -61,8 +61,10 @@ class _Card extends StatelessWidget {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
-          child: DecoratedBox(
-            decoration: BoxDecoration(color: gt.colorSurface1, borderRadius: BorderRadius.circular(26), border: selected ? Border.all(color: gt.colorIris500, width: 2) : null),
+          // The selection ring is drawn over the card (the preview art used to cover its top half).
+          child: Container(
+            decoration: BoxDecoration(color: gt.colorSurface1, borderRadius: BorderRadius.circular(26)),
+            foregroundDecoration: selected ? BoxDecoration(borderRadius: BorderRadius.circular(26), border: Border.all(color: gt.colorIris500, width: 2)) : null,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
               child: Stack(
