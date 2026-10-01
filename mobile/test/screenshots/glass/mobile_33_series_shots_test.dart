@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/platform/gravity.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
@@ -61,10 +62,19 @@ final _progress = {'c142': SourceChapterProgress(page: 18, pageCount: 40, comple
 
 Map<String, ChapterDownloadStatus> _saved(int from, int to) => {for (var i = from; i <= to; i++) 'c$i': (state: DownloadChapterState.complete, error: null)};
 
+class _Wake implements ReaderWakelock {
+  @override
+  Future<void> enable() async {}
+  @override
+  Future<void> disable() async {}
+}
+
 List<Override> _ov({SourceSeriesDetailData? data, bool followed = false, bool novel = false, bool mature = false, Map<String, ChapterDownloadStatus> saved = const {}, Map<String, SourceChapterProgress>? progress}) => [
       ...seriesOverrides(data: data, followed: followed ? [followRow()] : const [], novel: novel, mature: mature, progress: progress ?? _progress),
       seriesChapterDownloadStatusProvider.overrideWith((ref, s) async => saved),
       sourcesRepositoryProvider.overrideWithValue(_Sources()),
+      // Book open lands on mobile/36's novel reader, which holds the screen awake.
+      readerWakelockProvider.overrideWithValue(_Wake()),
       glassLightAngleProvider.overrideWith((ref) => Stream.value(kLightAngleRest)),
     ];
 
