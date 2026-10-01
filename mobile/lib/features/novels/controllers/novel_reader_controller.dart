@@ -240,6 +240,7 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
   final List<ProviderSubscription<Object?>> _subs = [];
   ProviderSubscription<Object?>? _prefetchSub;
   int _furthestSent = 0;
+  bool _completedSent = false;
   bool _scrolledToEnd = false;
   bool _autoNextTriggered = false;
   bool _disposed = false;
@@ -522,9 +523,10 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
   }
 
   void _push(NovelProgressPosition position) {
-    final push = nextProgressPush(position, _furthestSent);
+    final push = nextProgressPush(position, _furthestSent, completedSent: _completedSent);
     if (push == null) return;
     _furthestSent = push.bucket;
+    _completedSent |= push.completed;
     unawaited(_saveProgress(push));
   }
 
@@ -644,6 +646,7 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
     _progressTimer = null;
     _autoNextTriggered = false;
     _furthestSent = 0;
+    _completedSent = false;
     _scrolledToEnd = false;
     _pendingRestoreParagraph = null;
     _pagedAnchorSet = false;
