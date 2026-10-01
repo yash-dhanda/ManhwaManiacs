@@ -105,6 +105,7 @@ class BookVariant implements SeriesVariant {
         );
         final primary = GlassButton(
           key: const ValueKey('book-primary'),
+          twin: windowTwin(context),
           label: resume.label,
           variant: GlassButtonVariant.primary,
           fullWidth: true,
@@ -112,6 +113,7 @@ class BookVariant implements SeriesVariant {
         );
         final follow = GlassButton(
           key: page.followKey,
+          twin: windowTwin(context),
           label: d.followed == null ? 'Add to library' : 'In library',
           selected: d.followed != null,
           loading: followPending(ref),

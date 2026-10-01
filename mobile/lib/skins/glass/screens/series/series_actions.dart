@@ -142,6 +142,7 @@ class SeriesActions extends ConsumerWidget {
     // The split button is sized by its label; at large text it scales down rather than overflow the column.
     final split = FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: GlassSplitButton(
       key: const ValueKey('series-continue'),
+      twin: windowTwin(context),
       label: resume.label,
       semanticsLabel: resume.label.replaceAll(' · Ch ', ', chapter '),
       onPressed: resume.chapterKey == null ? null : commands.continueReading,
@@ -159,12 +160,14 @@ class SeriesActions extends ConsumerWidget {
       selected: f != null,
       loading: pending,
       role: GlassRole.pageControl,
+      twin: windowTwin(context),
       fullWidth: stacked,
       disabledReason: online ? null : 'Needs a connection',
       onPressed: online ? commands.toggleFollow : null,
     );
     final group = GlassGroup(
       key: const ValueKey('series-secondary-group'),
+      twin: windowTwin(context),
       items: [
         if (f != null) GlassGroupItem(icon: GlassButtonIcon(GlassGlyph.star.regular, fill: GlassGlyph.star.fill), label: 'Favourite', toggle: f.isFavorite, onPressed: online ? commands.favorite : null),
         if (f != null) GlassGroupItem(icon: GlassButtonIcon(GlassGlyph.bellSimple.regular, fill: GlassGlyph.bellRinging.fill), label: 'Notifications', toggle: f.notify, onPressed: online ? commands.notify : null),

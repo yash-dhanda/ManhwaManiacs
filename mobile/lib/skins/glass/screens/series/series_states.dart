@@ -8,6 +8,9 @@ import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/lens_glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/object_lens.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/status_capsule.dart';
+import 'package:manhwamaniacs/skins/glass/routes/glass_form_route.dart';
+import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show GlassTwin;
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// Leaves the series page: pops the sheet, or goes to the source catalogue (or the library) when nothing is beneath.
@@ -98,44 +101,51 @@ class SeriesLens extends ConsumerWidget {
       if (sourceId != null) r.go(Routes.source(sourceId!));
     }
 
-    return switch (kind) {
-      SeriesLensKind.error => GlassObjectLens(
-          key: const ValueKey('series-lens-error'),
-          situation: LensSituation.loadError,
-          tone: GlassLensTone.error,
-          title: book ? "Couldn't load this book" : "Couldn't load this series",
-          description: message ?? "The source didn't answer.",
-          primary: onRetry == null ? null : LensAction('Try again', onRetry!),
-          secondary: sourceId == null ? null : LensAction('Back to source', backToSource),
+    final (situation, tone, title, description, primary, secondary) = switch (kind) {
+      SeriesLensKind.error => (
+          LensSituation.loadError,
+          GlassLensTone.error,
+          book ? "Couldn't load this book" : "Couldn't load this series",
+          message ?? "The source didn't answer.",
+          onRetry == null ? null : LensAction('Try again', onRetry!),
+          sourceId == null ? null : LensAction('Back to source', backToSource),
         ),
-      SeriesLensKind.offline => GlassObjectLens(
-          key: const ValueKey('series-lens-offline'),
-          situation: LensSituation.offline,
-          tone: GlassLensTone.offline,
-          title: book ? 'This book needs a connection to load' : 'This series needs a connection to load',
-          primary: LensAction('Open downloads', () => ref.read(skinRouterProvider).go(Routes.downloads())),
+      SeriesLensKind.offline => (
+          LensSituation.offline,
+          GlassLensTone.offline,
+          book ? 'This book needs a connection to load' : 'This series needs a connection to load',
+          null,
+          LensAction('Open downloads', () => ref.read(skinRouterProvider).go(Routes.downloads())),
+          null,
         ),
-      SeriesLensKind.followMissing => GlassObjectLens(
-          key: const ValueKey('series-lens-missing'),
-          situation: LensSituation.notFound,
-          title: "This isn't here any more",
-          description: 'It may have been removed on another device.',
-          primary: LensAction('Back', back),
+      SeriesLensKind.followMissing => (LensSituation.notFound, GlassLensTone.empty, "This isn't here any more", 'It may have been removed on another device.', LensAction('Back', back), null),
+      SeriesLensKind.notFound || SeriesLensKind.unavailable => (
+          LensSituation.unavailable,
+          GlassLensTone.empty,
+          message ?? 'This series is no longer available from its source',
+          null,
+          onMove != null ? LensAction('Move to another source…', onMove!) : LensAction('Back', back),
+          onRemove != null ? LensAction('Remove from library', onRemove!) : (onMove != null ? LensAction('Back', back) : null),
         ),
-      SeriesLensKind.notFound || SeriesLensKind.unavailable => GlassObjectLens(
-          key: const ValueKey('series-lens-unavailable'),
-          situation: LensSituation.unavailable,
-          title: message ?? 'This series is no longer available from its source',
-          primary: onMove != null ? LensAction('Move to another source…', onMove!) : LensAction('Back', back),
-          secondary: onRemove != null ? LensAction('Remove from library', onRemove!) : (onMove != null ? LensAction('Back', back) : null),
-        ),
-      SeriesLensKind.gated => GlassObjectLens(
-          key: const ValueKey('series-lens-gated'),
-          situation: LensSituation.unavailable,
-          title: "This isn't available on this profile",
-          primary: LensAction('Back home', () => ref.read(skinRouterProvider).go(Routes.tonight())),
-        ),
+      SeriesLensKind.gated => (LensSituation.unavailable, GlassLensTone.empty, "This isn't available on this profile", null, LensAction('Back home', () => ref.read(skinRouterProvider).go(Routes.tonight())), null),
     };
+    final key = ValueKey('series-lens-${kind.name}');
+    // Inside a sheet or a window the lens and its actions are content twins (glass 7.10, 7.24): the overlay is the only glass there.
+    final route = ModalRoute.of(context);
+    if (route is! GlassSheetRoute && route is! GlassFormRoute) {
+      return GlassObjectLens(key: key, situation: situation, tone: tone, title: title, description: description, primary: primary, secondary: secondary);
+    }
+    return Column(
+      key: key,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GlassObjectLens(placement: GlassLensPlacement.inline, situation: situation, tone: tone, title: title, description: description),
+        Wrap(spacing: 8, children: [
+          for (final (i, a) in [primary, secondary].nonNulls.indexed)
+            GlassButton(label: a.label, twin: GlassTwin.content, variant: i == 0 ? GlassButtonVariant.primary : GlassButtonVariant.secondary, onPressed: a.onPressed),
+        ],),
+      ],
+    );
   }
 }
 

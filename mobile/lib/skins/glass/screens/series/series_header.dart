@@ -22,9 +22,11 @@ import 'package:manhwamaniacs/skins/glass/primitives/glass_group.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/letter_reveal.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/routes/glass_form_route.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart' show HomeCoverImage;
 import 'package:manhwamaniacs/skins/glass/screens/home/spotlight_card.dart' show SpotlightTilt;
 import 'package:manhwamaniacs/skins/glass/screens/series/series_data.dart';
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show GlassTwin;
 import 'package:manhwamaniacs/skins/glass/transitions/poster_zoom.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -88,6 +90,7 @@ class SeriesBand extends ConsumerWidget {
                 Builder(
                   builder: (c) => GlassGroup(
                     key: const ValueKey('series-band-group'),
+                    twin: windowTwin(context),
                     items: [
                       GlassGroupItem(icon: GlassButtonIcon(GlassGlyph.arrowSquareOut.regular), label: 'Share', onPressed: () => copySeriesLink(ref, d)),
                       GlassGroupItem(
@@ -107,6 +110,9 @@ class SeriesBand extends ConsumerWidget {
     );
   }
 }
+
+/// In the desktop window (a `materialThick` content slab, glass 7.10) the page's controls are content twins, not live glass.
+GlassTwin? windowTwin(BuildContext context) => ModalRoute.of(context) is GlassFormRoute ? GlassTwin.content : null;
 
 /// A widget's global rect.
 Rect rectOf(BuildContext c) {
