@@ -167,6 +167,16 @@ class OnboardingFlow extends AutoDisposeNotifier<OnboardingState> {
     unawaited(ref.read(onboardingRepositoryProvider).saveTaste(id, tasteBody(d, OnboardingStep.at(nextStep))));
   }
 
+  /// Before a restart into the other skin: the draft and the taste with [step] (the other skin's
+  /// numbering), both awaited, so the new skin's resume reads the step it continues at.
+  // ponytail: one try; offline the server keeps the old step and the other skin resumes there.
+  Future<void> handOff(int step) async {
+    final id = _profileId;
+    final d = _draft();
+    await ref.read(onboardingStoreProvider).writeDraft(d);
+    if (id != null) await ref.read(onboardingRepositoryProvider).saveTaste(id, tasteBody(d, OnboardingStep.at(step)));
+  }
+
   /// Skip and Print's save: `step: done` with the touched fields, three tries 2 s apart; a
   /// failure goes to the pending key. True when the server has it.
   Future<bool> saveDone({Duration spacing = const Duration(seconds: 2)}) async {

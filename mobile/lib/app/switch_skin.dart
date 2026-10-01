@@ -71,13 +71,14 @@ Future<void> switchSkin({
 }
 
 /// [switchSkin] wired to the running app: the context's `AppRestart`, the shared prefs, the
-/// outbox and the active profile.
+/// outbox and the active profile. [returnRoute] replaces the current location as where the new skin opens.
 Future<void> switchSkinFrom(
   BuildContext context,
   WidgetRef ref, {
   required SkinId to,
   required Future<void> Function() outgoing,
   bool undoable = true,
+  String? returnRoute,
 }) {
   final restart = AppRestart.of(context);
   return switchSkin(
@@ -85,7 +86,7 @@ Future<void> switchSkinFrom(
     from: ref.read(skinIdProvider),
     undoable: undoable,
     outgoing: outgoing,
-    currentLocation: currentLocation(context),
+    currentLocation: returnRoute ?? currentLocation(context),
     prefs: ref.read(sharedPrefsProvider),
     outbox: ref.read(skinOutboxProvider),
     restart: restart.restart,
