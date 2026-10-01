@@ -123,7 +123,9 @@ class GlassText extends ConsumerWidget {
       height: height,
       maxScale: maxScale,
     ).copyWith(color: color ?? (onGlass ? glassTokens.colorOnGlass : glassTokens.colorLabel1));
-    final style = shrink == 1 ? base : base.copyWith(fontSize: (base.fontSize ?? 17) * shrink);
+    // Setting down never goes under the 11.5 px text floor (glass G9: no text under 11 px).
+    final fs = base.fontSize ?? 17;
+    final style = shrink == 1 ? base : base.copyWith(fontSize: math.max(math.min(fs, 11.5), fs * shrink));
     Text text0(TextStyle st) => Text(
           text,
           style: st,
