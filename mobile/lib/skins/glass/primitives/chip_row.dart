@@ -42,7 +42,12 @@ class _GlassChipRowState extends State<GlassChipRow> {
     final x = box.localToGlobal(Offset.zero).dx;
     final w = MediaQuery.sizeOf(context).width;
     final l = x.clamp(0.0, w), r = (w - x - box.size.width).clamp(0.0, w);
-    if ((l - _left).abs() > 0.5 || (r - _right).abs() > 0.5) setState(() => (_left, _right) = (l, r));
+    if ((l - _left).abs() > 0.5 || (r - _right).abs() > 0.5) {
+      setState(() {
+        _left = l;
+        _right = r;
+      });
+    }
   }
 
   @override
