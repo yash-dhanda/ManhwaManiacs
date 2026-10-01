@@ -113,6 +113,7 @@ class GlassSheetScaffold extends ConsumerWidget {
     this.onStepDetent,
     this.titleFocus,
     this.leading,
+    this.trailing,
     this.centerTitle = false,
     this.showGrabber = true,
     this.status = GlassSheetStatus.ready,
@@ -129,6 +130,9 @@ class GlassSheetScaffold extends ConsumerWidget {
   final ValueChanged<int>? onStepDetent;
   final FocusNode? titleFocus;
   final Widget? leading;
+
+  /// A control before the close button (the listen player's ⋯).
+  final Widget? trailing;
   final bool centerTitle;
   final bool showGrabber;
   final GlassSheetStatus status;
@@ -158,6 +162,7 @@ class GlassSheetScaffold extends ConsumerWidget {
             if (leading != null) ...[leading!, const SizedBox(width: 8)],
             if (centerTitle && leading == null) SizedBox(width: hit),
             Expanded(child: Align(alignment: centerTitle ? Alignment.center : Alignment.centerLeft, child: titleWidget)),
+            if (trailing != null) ...[trailing!, const SizedBox(width: 8)],
             GlassCloseButton(key: const ValueKey('glass-sheet-close'), onTap: onClose),
           ],
         ),

@@ -16,7 +16,9 @@ import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/providers/tags_controller.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
+import 'package:manhwamaniacs/features/novels/models/novel_cast.dart' show NovelAudioJob;
 import 'package:manhwamaniacs/features/novels/providers/novel_series_providers.dart';
+import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart' show novelAudioJobsProvider, seriesAudioProvider;
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
@@ -162,6 +164,9 @@ List<Override> seriesOverrides({
     ocrAvailableProvider.overrideWith((ref) async => false),
     ocrCoverageProvider.overrideWith((ref, s) async => throw StateError('no ocr')),
     novelSeriesWordCountsProvider.overrideWith((ref, s) async => const {}),
+    // The Audiobook button's live status: nothing narrating, so no polling timers.
+    seriesAudioProvider.overrideWith((ref, k) async => (rendered: <String>{}, narratable: <String>{}, canRender: false)),
+    novelAudioJobsProvider.overrideWith((ref, k) => Stream.value(const <NovelAudioJob>[])),
     sourceSeriesProgressProvider.overrideWith((ref, k) => progress),
     updatesProvider.overrideWith(() => FakeUpdates(followed)),
     readerRepositoryProvider.overrideWithValue(FakeReader()),

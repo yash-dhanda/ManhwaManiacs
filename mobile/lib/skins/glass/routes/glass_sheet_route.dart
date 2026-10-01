@@ -170,6 +170,7 @@ class GlassSheetPage<T> extends Page<T> {
     this.wideForm,
     this.centerTitle = false,
     this.leading,
+    this.trailing,
     this.status,
     this.onRetry,
     this.errorText,
@@ -188,6 +189,7 @@ class GlassSheetPage<T> extends Page<T> {
   final GlassWideForm? wideForm;
   final bool centerTitle;
   final Widget? leading;
+  final Widget? trailing;
   final ValueListenable<GlassSheetStatus>? status;
   final VoidCallback? onRetry;
   final String? errorText;
@@ -618,6 +620,7 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
         title: page.title,
         centerTitle: page.centerTitle,
         leading: page.leading,
+        trailing: page.trailing,
         titleFocus: _title,
         status: status,
         onRetry: page.onRetry,
