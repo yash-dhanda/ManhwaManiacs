@@ -69,8 +69,8 @@ void main() {
         hits.add('${f.path}:$line');
       }
     }
-    // Contract-assigned uses only: the cover palette's 64 px decode (palette.dart), the skin-preview loop's own assets, the share card's render.
-    final allowed = {'lib/skins/glass/glass/palette.dart', 'lib/skins/glass/screens/onboarding/skin_preview_loop.dart', 'lib/skins/glass/wrapped/share_card.dart'};
+    // Contract-assigned uses only: the cover palette's 64 px decode (palette.dart), the share card's render.
+    final allowed = {'lib/skins/glass/glass/palette.dart', 'lib/skins/glass/wrapped/share_card.dart'};
     expect([for (final h in hits) if (!allowed.contains(h.split(':').first)) h], isEmpty);
   });
 

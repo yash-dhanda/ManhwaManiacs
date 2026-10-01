@@ -58,7 +58,6 @@ class EditionPicker extends ConsumerWidget {
             family: SkinId.glass.displayFamily,
             description: 'Glass: layered glass, springs and depth.',
             switchLabel: 'Switch to Glass',
-            missing: 'Preview frames arrive with the Glass build.',
             onSwitch: () => unawaited(_switch(context, ref)),
           )
         : const NextIssuePlate();

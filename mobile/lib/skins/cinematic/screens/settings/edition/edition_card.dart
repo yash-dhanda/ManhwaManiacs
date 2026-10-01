@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/preview_loop.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
+import 'package:manhwamaniacs/skins/skin_preview.dart';
 
-/// One edition card: a 3:4 plate (`paper.1`) holding a centred 9:16 frame (1 px `rule.2`) with
-/// the preview, then the name, a one-line description and the badge or button.
+/// One edition card: a 3:4 plate (`paper.1`) holding a centred phone frame (390:844, 1 px `rule.2`) with
+/// the skin's live miniature ([SkinPreview], still under reduced motion), then the name, a one-line
+/// description and the badge or button.
 class EditionCard extends StatelessWidget {
   const EditionCard({
     super.key,
@@ -18,10 +20,9 @@ class EditionCard extends StatelessWidget {
     this.current = false,
     this.onSwitch,
     this.switchLabel = '',
-    this.missing = '',
   });
 
-  final String skinFolder, name, family, description, missing;
+  final String skinFolder, name, family, description;
   final String switchLabel;
   final bool italic, current;
   final VoidCallback? onSwitch;
@@ -41,10 +42,10 @@ class EditionCard extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: c.space3),
               alignment: Alignment.center,
               child: AspectRatio(
-                aspectRatio: 9 / 16,
+                aspectRatio: kSkinPreviewAspect,
                 child: Container(
-                  decoration: BoxDecoration(border: Border.all(color: c.colorRule2)),
-                  child: PreviewLoop(skin: skinFolder, missing: missing),
+                  foregroundDecoration: BoxDecoration(border: Border.all(color: c.colorRule2)),
+                  child: SkinPreview(key: Key('edition-preview-$skinFolder'), skin: skinFolder, play: !CineMotion.reduced(context)),
                 ),
               ),
             ),

@@ -3,8 +3,8 @@ import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/edition_c
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/skin.dart';
 
-/// Step 1, Edition (cinematic 8.7): both editions as live previews (the bundled 36-frame loops of
-/// 8.30.3, frame 000 only under reduced motion), stacked on phones and side by side from 600 px.
+/// Step 1, Edition (cinematic 8.7): both editions as live miniatures ([EditionCard], still under
+/// reduced motion), stacked on phones and side by side from 600 px.
 /// Cinematic is this edition (the footer keeps it); `Choose Glass` hands the run to Glass.
 class EditionStep extends StatelessWidget {
   const EditionStep({super.key, required this.onGlass});
