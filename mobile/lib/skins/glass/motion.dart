@@ -60,7 +60,7 @@ const Map<MotionName, GlassMoveSpec> glassMotionTable = {
   MotionName.sheetSnap: GlassMoveSpec(ms: 342, spring: GlassSprings.sheetSnap, reduced: GlassReduced.fade(150)),
   MotionName.recede: GlassMoveSpec(ms: 0, reduced: GlassReduced.instant),
   MotionName.toastFall: GlassMoveSpec(ms: 431, spring: GlassSprings.snappy, reduced: GlassReduced.fade(150)),
-  MotionName.wave: GlassMoveSpec(ms: 431, spring: GlassSprings.snappy, reduced: GlassReduced.instant),
+  MotionName.wave: GlassMoveSpec(ms: 431, spring: GlassSprings.snappy, reduced: GlassReduced.fade(150)),
   MotionName.surfaceFromDepth: GlassMoveSpec(ms: 431, spring: GlassSprings.snappy, reduced: GlassReduced.fade(150)),
   MotionName.deal: GlassMoveSpec(ms: 431, spring: GlassSprings.snappy, reduced: GlassReduced.instant),
   MotionName.letterReveal: GlassMoveSpec(ms: 345, spring: GlassSprings.letter, reduced: GlassReduced.instant),
