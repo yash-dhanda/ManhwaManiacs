@@ -182,6 +182,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   bool _foreground = true;
   bool _userPaused = false;
   bool _loopRunning = false;
+  bool _kickPending = false;
   Future<void>? _activeRun;
 
   /// Row ids the user cancelled while the loop still owned their writes. See
@@ -529,9 +530,23 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
       state = state.copyWith(queueRevision: state.queueRevision + 1);
 
   Future<void> _kick() {
-    if (_loopRunning) return _activeRun ?? Future<void>.value();
+    if (_loopRunning) {
+      // The running pass may already have read an empty queue and be about to
+      // exit; it runs once more instead of stranding whatever was just queued.
+      _kickPending = true;
+      return _activeRun ?? Future<void>.value();
+    }
     _loopRunning = true;
-    final run = _processLoop().whenComplete(() => _loopRunning = false);
+    final run = () async {
+      try {
+        do {
+          _kickPending = false;
+          await _processLoop();
+        } while (_kickPending);
+      } finally {
+        _loopRunning = false;
+      }
+    }();
     _activeRun = run;
     return run;
   }
