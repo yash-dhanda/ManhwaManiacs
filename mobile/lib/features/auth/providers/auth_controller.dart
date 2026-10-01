@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
@@ -38,6 +39,13 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 final authTokenReadTimeoutProvider = Provider<Duration?>((ref) => null, name: 'authTokenReadTimeout');
 
 class AuthController extends Notifier<AuthState> {
+  /// A session signed in with "Keep me signed in" off: never written to the keychain, held for
+  /// this process only, so it survives a skin restart (a new ProviderScope) but not a relaunch.
+  static String? _sessionOnlyToken;
+
+  @visibleForTesting
+  static void forgetSessionOnlyToken() => _sessionOnlyToken = null;
+
   /// How long the launch-time `/auth/me` probe gets before the app stops
   /// waiting and falls back to the cached session.
   ///
@@ -112,6 +120,7 @@ class AuthController extends Notifier<AuthState> {
       appLogger.w('Failed to read stored auth token', error, stackTrace);
       token = null;
     }
+    if (token == null || token.isEmpty) token = _sessionOnlyToken;
     if (token == null || token.isEmpty) {
       state = const AuthUnauthenticated();
       return;
@@ -135,6 +144,8 @@ class AuthController extends Notifier<AuthState> {
     final error = result.error;
     if (error is ApiError && error.isUnauthorized) {
       await _clearSession();
+      // The dead session's profile goes with it: the next account to sign in must not enter as it.
+      await ref.read(activeProfileProvider.notifier).clear();
       state = const AuthUnauthenticated();
       return;
     }
@@ -206,7 +217,7 @@ class AuthController extends Notifier<AuthState> {
           remember: remember,
         );
     if (result.isErr) return result.error;
-    await _persistSession(result.value);
+    await _persistSession(result.value, remember: remember);
     state = AuthAuthenticated(result.value.user);
     return null;
   }
@@ -230,7 +241,7 @@ class AuthController extends Notifier<AuthState> {
           remember: remember,
         );
     if (result.isErr) return result.error;
-    await _persistSession(result.value);
+    await _persistSession(result.value, remember: remember);
     state = AuthAuthenticated(result.value.user);
     return null;
   }
@@ -327,10 +338,13 @@ class AuthController extends Notifier<AuthState> {
     state = const AuthUnauthenticated();
   }
 
-  Future<void> _persistSession(AuthResponse response) async {
+  Future<void> _persistSession(AuthResponse response, {required bool remember}) async {
     ref.read(authTokenStoreProvider).token = response.token;
+    _sessionOnlyToken = remember ? null : response.token;
     try {
-      await ref.read(secureStorageProvider).setAuthToken(response.token);
+      final storage = ref.read(secureStorageProvider);
+      // "Keep me signed in" off: nothing in the keychain, so a relaunch starts at the login screen.
+      await (remember ? storage.setAuthToken(response.token) : storage.clearAuthToken());
     } catch (error, stackTrace) {
       // Best-effort, exactly like [_cacheUser]: a keychain write can throw a
       // PlatformException (the plugin turns any non-`noErr` OSStatus into one),
@@ -351,6 +365,7 @@ class AuthController extends Notifier<AuthState> {
   /// blob may let the *next* account's cold start restore this one's session.
   Future<void> _clearSession() async {
     ref.read(authTokenStoreProvider).clear();
+    _sessionOnlyToken = null;
     ref.read(sessionOfflineProvider.notifier).markOnline();
     try {
       await ref.read(secureStorageProvider).clearAuthToken();
