@@ -10,7 +10,9 @@ import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/cruise.dart' show formatSpeed;
 import 'package:manhwamaniacs/skins/glass/ambient/cruise_pill.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/rain_on_glass.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
+import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
@@ -134,7 +136,10 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
       curve: gt.curveTintShift.curve,
       builder: (context, tint, _) {
         final t = host.pageTinted && tint != null && tint.a > 0.01 ? tint.withValues(alpha: 1) : null;
-        return Stack(
+        return RainOnGlassHost(
+          active: host.rainOn && visible,
+          light: ref.watch(glassLightAngleProvider).valueOrNull ?? kLightAngleRest,
+          child: Stack(
           clipBehavior: Clip.none,
           children: [
             // Soft edges, fading with the chrome, tinted at 30 %.
@@ -155,6 +160,7 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
               Positioned(left: 0, right: 0, bottom: 0, height: 2, child: _MicroProgress(progress: s.progress, tint: t)),
             if (host.lockPulse > 0) Center(child: _LockPulse(key: ValueKey(host.lockPulse))),
           ],
+          ),
         );
       },
     );
@@ -380,14 +386,17 @@ class _TopGroups extends ConsumerWidget {
       if (download != null) Alignment.centerRight,
       Alignment.centerRight,
     ];
-    return SizedBox(
-      height: side,
-      child: _GroupRow(
-        shapes: shapes,
-        aligns: aligns,
-        lb: lb,
-        tint: tint,
-        leftCount: host.offline ? 3 : 2,
+    return RainOnGlass(
+      radius: BorderRadius.circular(side / 2),
+      child: SizedBox(
+        height: side,
+        child: _GroupRow(
+          shapes: shapes,
+          aligns: aligns,
+          lb: lb,
+          tint: tint,
+          leftCount: host.offline ? 3 : 2,
+        ),
       ),
     );
   }
@@ -573,7 +582,9 @@ class _BottomCapsule extends StatelessWidget {
             ),
           ],
         );
-        return SkinGlass(
+        return RainOnGlass(
+          radius: BorderRadius.circular(h / 2),
+          child: SkinGlass(
           size: Size(w, h),
           tier: GlassTierId.t3,
           lb: lb,
@@ -605,6 +616,7 @@ class _BottomCapsule extends StatelessWidget {
                 child: _Hairline(progress: state.progress, color: Color.lerp(gt.colorIris500, tint ?? gt.colorIris500, m * PageTint.edge)!.withValues(alpha: 0.8)),
               ),
             ],
+          ),
           ),
         );
       },

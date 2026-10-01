@@ -34,6 +34,9 @@ abstract interface class GlassReaderHost {
   bool get reducedMotion;
   bool get pageTinted;
 
+  /// The Rain scene is playing and nothing switches the shader off (Reduce Motion, Reduce Transparency, Solid glass).
+  bool get rainOn;
+
   /// The chrome's current page tint (already gated and held), null for neutral glass.
   Color? get tint;
 

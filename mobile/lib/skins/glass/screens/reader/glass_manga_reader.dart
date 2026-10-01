@@ -235,6 +235,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         reduced: () => ref.read(glassMotionPrefsProvider).reduced,
       );
     });
+    _keepAlive.add(ref.listenManual(soundscapeControllerProvider.select((v) => (v.scene, v.state)), (_, __) {
+      if (mounted && !_disposed) setState(() {});
+    }),);
     _keepAlive.add(ref.listenManual(glassReaderSettingsProvider(_seriesRef), (p, n) => _cruise.follow(_settings.cruiseSpeed)));
     _stops.add(registerPlaybackStop('cruise', _cruise.stop));
     // The soundscape follows the reader: what it should play on open, and a fade-out and pause on leaving.
@@ -429,6 +432,13 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
   @override
   bool get pageTinted => _settings.values.pageTinted && !ref.read(glassA11yProvider).solid;
+
+  @override
+  bool get rainOn {
+    final v = ref.read(soundscapeControllerProvider);
+    final playing = v.scene == SoundScene.rain && (v.state == SoundscapeState.starting || v.state == SoundscapeState.playingBuiltin || v.state == SoundscapeState.playingRecorded || v.state == SoundscapeState.ducked);
+    return playing && !reducedMotion && !ref.read(glassA11yProvider).solid;
+  }
 
   @override
   Color? get tint => _tint;

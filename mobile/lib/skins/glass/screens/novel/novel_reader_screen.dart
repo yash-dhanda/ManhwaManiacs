@@ -48,9 +48,12 @@ import 'package:manhwamaniacs/skins/glass/ambient/cruise.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/cruise_pill.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/novel_cruise.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/rain_on_glass.dart';
+import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
+import 'package:manhwamaniacs/skins/glass/prefs.dart' show glassA11yProvider;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/reactions/glass_reactions.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/reactions/reaction_flight.dart';
@@ -1098,6 +1101,12 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
 
   // -- Cruise (glass 9.4.1, 8.15.4) and the soundscape ----------------------------------------
 
+  bool get _rainOn {
+    final v = ref.read(soundscapeControllerProvider);
+    final playing = v.scene == SoundScene.rain && (v.state == SoundscapeState.starting || v.state == SoundscapeState.playingBuiltin || v.state == SoundscapeState.playingRecorded || v.state == SoundscapeState.ducked);
+    return playing && !_reduced && !ref.read(glassA11yProvider).solid;
+  }
+
   String get _seriesRef => '${widget.sourceId}:${widget.seriesKey}';
   bool get _cruiseInSheet => MediaQuery.textScalerOf(context).scale(17) / 17 > 1.3;
   CruiseController get _cruise => ref.read(cruiseControllerProvider.notifier);
@@ -1121,7 +1130,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     _ambientKeep.add(ref.listenManual(cruiseControllerProvider, (_, __) {
       if (mounted) setState(() {});
     }),);
-    _ambientKeep.add(ref.listenManual(soundscapeControllerProvider.select((v) => v.on), (_, __) {
+    _ambientKeep.add(ref.listenManual(soundscapeControllerProvider.select((v) => (v.on, v.scene, v.state)), (_, __) {
       if (mounted) setState(() {});
     }),);
     final soundscape = ref.read(soundscapeControllerProvider.notifier);
@@ -1903,7 +1912,10 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         curve: gt.curveTintShift.curve,
         builder: (context, tint, _) {
           final t = tint == null || tint.a <= 0.001 ? null : tint;
-          return Stack(
+          return RainOnGlassHost(
+            active: _rainOn && _chrome,
+            light: ref.watch(glassLightAngleProvider).valueOrNull ?? kLightAngleRest,
+            child: Stack(
             fit: StackFit.expand,
             children: [
               Positioned(
@@ -1955,6 +1967,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
                 ),
               ),
             ],
+          ),
           );
         },
       ),

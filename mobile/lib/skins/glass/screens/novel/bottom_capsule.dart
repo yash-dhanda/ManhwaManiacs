@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/rain_on_glass.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/tooltip.dart';
@@ -51,7 +52,9 @@ class NovelBottomCapsule extends StatelessWidget {
           opacity: onTap == null ? 0.3 : 1,
           child: GlassBarIcon(icon: roleIcon(role), label: label, onPressed: onTap),
         );
-    return SkinGlass(
+    return RainOnGlass(
+      radius: BorderRadius.circular(28),
+      child: SkinGlass(
       size: Size(width, 56),
       tier: GlassTierId.t3,
       lb: lb,
@@ -88,6 +91,7 @@ class NovelBottomCapsule extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

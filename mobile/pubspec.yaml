@@ -170,6 +170,7 @@ flutter:
     - assets/skin_previews/glass/
   shaders:
     - lib/skins/cinematic/shaders/grain.frag
+    - lib/skins/glass/shaders/rain_on_glass.frag
   fonts:
     # Syne (display / headings) and DM Sans (body / UI) are bundled as variable
     # fonts so the app NEVER depends on runtime fetching from fonts.gstatic.com.
