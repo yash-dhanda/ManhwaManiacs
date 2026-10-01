@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
+import 'package:manhwamaniacs/features/sources/utils/series_share_url.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/features/updates/utils/check_series.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -164,8 +165,7 @@ Future<void> showFeatureOverflow(
                       : null, disabledHint: 'Moving needs a connection.',),
                 item('Share link', () async {
                   Navigator.pop(ctx);
-                  final base = ref.read(apiBaseUrlProvider);
-                  final url = '$base${Routes.feature(d.sourceId, d.seriesKey)}';
+                  final url = seriesShareUrl(ref.read(apiBaseUrlProvider), Routes.feature(d.sourceId, d.seriesKey));
                   try {
                     await SharePlus.instance.share(ShareParams(text: url));
                   } catch (_) {

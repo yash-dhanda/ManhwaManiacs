@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/sources/providers/series_enrichment_provi
 import 'package:manhwamaniacs/features/sources/utils/genre_link.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/features/sources/utils/series_share_url.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart' show SpringCurve;
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
@@ -32,10 +33,10 @@ import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// The series URL the share action copies.
-String seriesShareUrl(WidgetRef ref, GlassSeriesData d) => '${ref.read(apiBaseUrlProvider).replaceFirst(RegExp(r'/api/?$'), '')}${Routes.feature(d.sourceId, d.seriesKey)}';
+String seriesLink(WidgetRef ref, GlassSeriesData d) => seriesShareUrl(ref.read(apiBaseUrlProvider), Routes.feature(d.sourceId, d.seriesKey));
 
 void copySeriesLink(WidgetRef ref, GlassSeriesData d) {
-  unawaited(Clipboard.setData(ClipboardData(text: seriesShareUrl(ref, d))));
+  unawaited(Clipboard.setData(ClipboardData(text: seriesLink(ref, d))));
   showGlassToast(ref, const GlassToastSpec('Link copied'));
 }
 
