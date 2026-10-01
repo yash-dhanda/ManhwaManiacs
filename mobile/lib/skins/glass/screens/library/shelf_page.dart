@@ -344,6 +344,14 @@ class _GlassShelfPageState extends ConsumerState<GlassShelfPage> {
       onSort: () => _sortMenu(Rect.fromLTWH(MediaQuery.sizeOf(context).width / 2, 160, 1, 1)),
       onBrowseAll: widget.browseAll ? null : () => GoRouter.of(context).replace<void>(Routes.libraryAliases.first),
       sortLabel: switch (q.sort) { ShelfSort.manual => 'Manual order', ShelfSort.title => 'Title', ShelfSort.added => 'Recently added', _ => 'Sort' },
+      density: density.wide,
+      onDensity: (d) {
+        if (d == density.wide) return;
+        _flip.snapshot();
+        ref.read(glassDensityProvider.notifier).setWide(d);
+        unawaited(ref.read(glassHapticsProvider).fire(HapticEvent.select));
+        _flip.play(instant: ref.read(glassMotionPrefsProvider).reduced);
+      },
     );
 
     final Widget body;

@@ -1,11 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/models/shelf_query.dart';
+import 'package:manhwamaniacs/features/library/utils/glass_density.dart' show GlassDensityWide;
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/search_field.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 
 /// What the toolbar shows and calls; the page owns the query (`shelfQueryProvider`).
 class ShelfToolbarSpec {
@@ -20,6 +22,8 @@ class ShelfToolbarSpec {
     required this.onSort,
     this.onBrowseAll,
     this.sortLabel = 'Sort',
+    this.density,
+    this.onDensity,
   });
   final ShelfQuery query;
   final TextEditingController searchController;
@@ -33,6 +37,10 @@ class ShelfToolbarSpec {
   /// Null on Browse all itself.
   final VoidCallback? onBrowseAll;
   final String sortLabel;
+
+  /// Tablet and desktop frames: the Comfortable · Compact · List segmented control (the non-gesture density path).
+  final GlassDensityWide? density;
+  final ValueChanged<GlassDensityWide>? onDensity;
 }
 
 /// The Shelf toolbar (glass 8.17), pinned under the nav row with `edgeHard`: the search well "Search your library", the progress chips
@@ -100,6 +108,20 @@ class _Toolbar extends ConsumerWidget {
                 chip('★ Favourites', q.fav, spec.onFavourites),
                 GlassChip(label: 'Filters', kind: GlassChipKind.count, count: filters == 0 ? null : filters, selected: filters > 0, onPressed: spec.onFilters),
                 GlassChip(label: spec.sortLabel, onPressed: spec.onSort),
+                if (spec.density != null && spec.onDensity != null && GlassFrame.of(context) != GlassFrameKind.phone)
+                  SizedBox(
+                    width: 300,
+                    child: GlassSegmented<GlassDensityWide>(
+                      compact: true,
+                      segments: const [
+                        GlassSegment(value: GlassDensityWide.comfortable, label: 'Comfortable'),
+                        GlassSegment(value: GlassDensityWide.compact, label: 'Compact'),
+                        GlassSegment(value: GlassDensityWide.list, label: 'List'),
+                      ],
+                      selected: spec.density!,
+                      onSelected: spec.onDensity!,
+                    ),
+                  ),
                 if (spec.onBrowseAll != null) GlassButton(label: 'Browse all', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: spec.onBrowseAll),
               ],
             ),
