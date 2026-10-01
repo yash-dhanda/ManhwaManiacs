@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
+import 'package:manhwamaniacs/features/reader/utils/read_all_feed.dart' show skipFailedChapters;
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_controller.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_factory.dart';
@@ -295,7 +296,7 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
   Future<void> Function(ReaderChapter, int) _trackSaves(
     Future<void> Function(ReaderChapter chapter, int page) save,
   ) =>
-      (chapter, page) => _lastSave = save(chapter, page);
+      skipFailedChapters((chapter, page) => _lastSave = save(chapter, page));
 
   ReaderFeedController _buildController() {
     final factory = ref.read(readerFeedFactoryProvider);
@@ -331,9 +332,11 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
   /// store had none to stamp.
   double? _chapterNumberOf(ReaderChapter chapter) {
     if (chapter.id == widget.chapterKey) {
-      return widget.resolved.chapterNumber ?? widget.neighbours?.chapterNumber;
+      return widget.resolved.chapterNumber ?? widget.neighbours?.chapterNumber ?? chapter.chapterNumber;
     }
-    return _numbers[chapter.id];
+    // Read-all windows build chapters from batch manifests that never pass
+    // through _loadChapter, so the chapter's own number is the fallback.
+    return _numbers[chapter.id] ?? chapter.chapterNumber;
   }
 
   /// Chapter numbers learned while extending the feed. Progress needs the

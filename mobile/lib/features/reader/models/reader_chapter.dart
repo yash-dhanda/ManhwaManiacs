@@ -16,6 +16,7 @@ class ReaderChapter {
     this.seriesTitle,
     this.previousChapterId,
     this.nextChapterId,
+    this.chapterNumber,
   });
 
   final String id;
@@ -27,6 +28,10 @@ class ReaderChapter {
   final String? seriesTitle;
   final String? previousChapterId;
   final String? nextChapterId;
+
+  /// The printed chapter number, when the payload carried one. Progress and
+  /// bookmarks are filed under it; null only when the source has none.
+  final double? chapterNumber;
 
   /// Value equality, because every screen that holds a chapter gets a **new**
   /// instance each time the provider behind it runs — `resolvedReaderChapter`
@@ -51,6 +56,7 @@ class ReaderChapter {
           other.seriesTitle == seriesTitle &&
           other.previousChapterId == previousChapterId &&
           other.nextChapterId == nextChapterId &&
+          other.chapterNumber == chapterNumber &&
           listEquals(other.pages, pages);
 
   @override
@@ -63,6 +69,7 @@ class ReaderChapter {
         seriesTitle,
         previousChapterId,
         nextChapterId,
+        chapterNumber,
         Object.hashAll(pages),
       );
 
