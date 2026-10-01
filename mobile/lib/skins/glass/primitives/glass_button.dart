@@ -71,6 +71,7 @@ class GlassButton extends ConsumerStatefulWidget {
     this.onLongPress,
     this.focusNode,
     this.mono = false,
+    this.hang = false,
   });
 
   final String label;
@@ -102,6 +103,10 @@ class GlassButton extends ConsumerStatefulWidget {
 
   /// The label in `mono` (a countdown such as "Try again in 42 s").
   final bool mono;
+
+  /// A plain button under left-aligned text ("More", "Try again"): its 8 px capsule padding hangs outside so the label sits on the
+  /// text's left edge.
+  final bool hang;
 
   @override
   ConsumerState<GlassButton> createState() => _GlassButtonState();
@@ -282,7 +287,8 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
           );
 
           if (isPlain) {
-            return SizedBox.fromSize(size: size, child: Center(child: content));
+            final plain = SizedBox.fromSize(size: size, child: Center(child: content));
+            return widget.hang ? Transform.translate(offset: Offset(-padH, 0), child: plain) : plain;
           }
           if (v == GlassButtonVariant.destructiveConfirm) {
             return Container(

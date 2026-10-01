@@ -345,7 +345,7 @@ class _SeriesDescriptionState extends State<SeriesDescription> {
             child: GlassLabel(widget.text, key: const ValueKey('series-description'), role: gt.typeBody, color: gt.colorLabel2, maxLines: _open ? 200 : 3),
           ),
           if (!_open && widget.text.length > 140)
-            GlassButton(label: 'More', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () => setState(() => _open = true)),
+            GlassButton(label: 'More', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, hang: true, onPressed: () => setState(() => _open = true)),
         ],
       );
 }

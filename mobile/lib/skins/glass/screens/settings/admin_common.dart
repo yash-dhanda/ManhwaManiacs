@@ -96,8 +96,7 @@ class GlassInlineError extends StatelessWidget {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Semantics(liveRegion: true, child: GlassText(message, role: gt.typeCallout, color: gt.colorLabel2)),
             const SizedBox(height: 8),
-            // The plain button's label sits on the message's left edge (its 8 px capsule padding hangs outside).
-            Transform.translate(offset: const Offset(-8, 0), child: GlassButton(label: retryLabel, variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: onRetry)),
+            GlassButton(label: retryLabel, variant: GlassButtonVariant.plain, size: GlassButtonSize.small, hang: true, onPressed: onRetry),
           ],),
         ),
       );

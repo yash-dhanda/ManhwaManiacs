@@ -112,7 +112,7 @@ class GlassStorageTab extends ConsumerWidget {
       title('Metadata cache', device: true),
       GlassLabel('Series details and lists kept on this phone. Clearing it refetches them.', role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 3),
       const SizedBox(height: 8),
-      Align(alignment: Alignment.centerLeft, child: GlassButton(label: 'Clear metadata cache', variant: GlassButtonVariant.plain, onPressed: () {
+      Align(alignment: Alignment.centerLeft, child: GlassButton(label: 'Clear metadata cache', variant: GlassButtonVariant.plain, hang: true, onPressed: () {
         clearMetadataCacheFromWidget(ref);
         showGlassToast(ref, const GlassToastSpec('Metadata cache cleared'));
       },),),
