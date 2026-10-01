@@ -174,7 +174,8 @@ class _Phone extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: h + 40,
+          // The 44 px actions straddle the card's lower edge (half below it), so they never sit on the cover's title art.
+          height: h + 40 + 22,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -189,7 +190,7 @@ class _Phone extends ConsumerWidget {
                   onPageChanged: state._changed,
                   itemBuilder: (context, i) => Center(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 20, bottom: 20),
+                      padding: const EdgeInsets.only(top: 20, bottom: 20 + 22),
                       child: _Drop(
                         enabled: widget.initialDrop && i == 0,
                         child: SpotlightTilt(
@@ -204,7 +205,7 @@ class _Phone extends ConsumerWidget {
               Positioned(
                 left: 0,
                 right: 0,
-                bottom: 20 + 16,
+                bottom: 20,
                 child: Center(child: SpotlightActions(spec: spec, handlers: widget.handlers, onScreen: widget.controlsOnScreen)),
               ),
             ],
