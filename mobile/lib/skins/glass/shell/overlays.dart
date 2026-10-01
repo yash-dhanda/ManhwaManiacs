@@ -8,6 +8,9 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/settings/utils/whats_new_policy.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recap/how_it_works_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recap/offer_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recap/recap_ready_listener.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/new_chapters_capsule.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
@@ -25,6 +28,8 @@ void registerGlassGlobalSheets() {
   // `licenses` renders the pending body until mobile/40 replaces this registration (glass 8.25.14).
   registerGlobalSheet('licenses', const GlassSheetSpec(title: 'Open-source licences', builder: _licencesPending));
   registerGlobalSheet('app-update', const GlassSheetSpec(title: 'Update available', builder: _appUpdate, detents: [GlassDetent.medium], opening: GlassDetent.medium));
+  registerOfferSheet();
+  registerHowItWorksSheet();
 }
 
 Widget _licencesPending(BuildContext _) => const SettingsPendingBody();
@@ -147,7 +152,7 @@ class _GlassOverlaysState extends ConsumerState<GlassOverlays> with WidgetsBindi
       final u = ref.read(glassAppUpdateProvider.notifier);
       if ((u.state == null) != (updateSpec == null)) u.state = updateSpec;
     });
-    return widget.child;
+    return RecapReadyListener(child: widget.child);
   }
 }
 
