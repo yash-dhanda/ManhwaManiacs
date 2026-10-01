@@ -40,6 +40,9 @@ class PicksLibrary implements LibraryRepository {
   Result<WorldSuggestResponse> answer = Ok(WorldSuggestResponse(items: [world('Night Ward', id: 9, why: 'Slow and political.')], remainingToday: 7));
   int worldAsks = 0, localAsks = 0, recCalls = 0;
 
+  /// The token of every world ask, in order.
+  final worldTokens = <CancelToken?>[];
+
   @override
   Future<Result<WorldRecommendations>> worldRecommendations({int seeds = 5, int perSeed = 10}) async {
     recCalls++;
@@ -55,8 +58,9 @@ class PicksLibrary implements LibraryRepository {
   Future<Result<WorldSuggestResponse>> _ask() => gate?.future ?? Future.value(answer);
 
   @override
-  Future<Result<WorldSuggestResponse>> worldSuggest(String prompt, {int limit = 12}) {
+  Future<Result<WorldSuggestResponse>> worldSuggest(String prompt, {int limit = 12, CancelToken? cancelToken}) {
     worldAsks++;
+    worldTokens.add(cancelToken);
     return _ask();
   }
 

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart';
@@ -83,9 +84,11 @@ abstract interface class LibraryRepository {
   ///
   /// One call here is one paid API request on the server, so this is only ever
   /// fired by an explicit submit — never on mount, never per keystroke.
+  /// [cancelToken] aborts it when a newer ask replaces it.
   Future<Result<WorldSuggestResponse>> worldSuggest(
     String prompt, {
     int limit = 12,
+    CancelToken? cancelToken,
   });
 
   /// `POST /library/suggest`: the same box answered from the reader's own sources. Items are
