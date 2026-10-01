@@ -159,7 +159,7 @@ void main() {
     await _covers(t);
     final repo = FakeNumbers(annuals: {2026: _annual()});
     final s = await _open(t, _phone, repo);
-    final ctx = t.element(find.byType(Overlay).first);
+    final ctx = t.element(find.byType(Text).first);
     Future<void> write(String name, ShareSpec spec, ShareFormat f) async {
       final fut = renderShareCard(ctx, spec, f);
       await t.pump();

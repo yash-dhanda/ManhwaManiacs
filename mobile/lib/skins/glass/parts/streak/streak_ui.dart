@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart'
 import 'package:manhwamaniacs/features/library/providers/streak_events_provider.dart';
 import 'package:manhwamaniacs/features/library/utils/milestones.dart';
 import 'package:manhwamaniacs/features/library/utils/progress_streak.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart' show sharedPrefsProvider;
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
@@ -42,11 +43,15 @@ final streakUiProvider = NotifierProvider<StreakUiNotifier, StreakUiState>(Strea
 /// Deletes the active profile's `mm.numbers.last.*` and `mm.annual.last.*` snapshots and invalidates every statistics and Wrapped payload
 /// outright, so the screens show their offline states offline.
 void purgeNumbers(Ref ref) {
-  unawaited(ref.read(numbersSnapshotProvider).purge());
-  ref
-    ..invalidate(numbersStatisticsProvider)
-    ..invalidate(annualProvider)
-    ..invalidate(annualIndexProvider);
+  // Reads no profile-scoped provider (this runs mid profile switch): every profile's cached statistics go, they are only caches.
+  final prefs = ref.read(sharedPrefsProvider);
+  for (final k in prefs.getKeys().where((k) => k.startsWith('mm.numbers.last.') || k.startsWith('mm.annual.last.')).toList()) {
+    unawaited(prefs.remove(k));
+  }
+  // The statistics payloads go now; the Wrapped ones (annualProvider, read by Home through annualIndexProvider) are not invalidated
+  // here: a rebuild mid-purge refetches and breaks the profile switch (gate_end_to_end_test). Their snapshots are deleted above.
+  Future<void>.microtask(() => ref.invalidate(numbersStatisticsProvider));
+
 }
 
 /// Set to `streak` just before pushing Statistics from the milestone toast: the hero then lifts and flips to the Streak share side.

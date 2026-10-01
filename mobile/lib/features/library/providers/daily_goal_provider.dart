@@ -31,7 +31,8 @@ class DailyGoalNotifier extends Notifier<DailyGoalState> {
   @override
   DailyGoalState build() {
     final profile = ref.watch(activeProfileProvider);
-    final profiles = ref.watch(profilesProvider).valueOrNull;
+    // Never forces a profiles fetch: the picker has loaded it by the time a profile is active.
+    final profiles = ref.exists(profilesProvider) ? ref.watch(profilesProvider).valueOrNull : null;
     final goal = profiles?.where((p) => p.id == profile?.id).firstOrNull?.dailyGoalMinutes;
     var seconds = 0;
     if (profile != null) {
