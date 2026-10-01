@@ -76,8 +76,9 @@ class GlassCollectionCardState extends ConsumerState<GlassCollectionCard> with S
         semanticsLabel: '${widget.name}, ${widget.count} series',
         child: Row(
           children: [
+            // At large text the fan gives the name room (it scales down inside a narrower box).
             SizedBox(
-              width: widget.width * 0.6,
+              width: widget.width * (MediaQuery.textScalerOf(context).scale(1) >= 1.3 ? 0.42 : 0.6),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
@@ -108,12 +109,14 @@ class GlassCollectionCardState extends ConsumerState<GlassCollectionCard> with S
             ),
             const SizedBox(width: 12),
             Expanded(
+              // The name and count sit low in the slab, leaving its top-right corner to a tag ("Auto", "Shared with").
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GlassLabel(widget.name, role: gt.typeTitle3, maxLines: 2),
                   GlassLabel('${widget.count} series', role: gt.typeFootnote, color: gt.colorLabel2),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),

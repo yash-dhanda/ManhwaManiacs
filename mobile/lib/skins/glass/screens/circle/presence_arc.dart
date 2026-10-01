@@ -165,7 +165,8 @@ class _ArcOrb extends StatelessWidget {
                               const TextSpan(text: 'Reading '),
                               TextSpan(text: member.now!.title, style: const TextStyle(fontStyle: FontStyle.italic)),
                             ],),
-                            maxLines: 1,
+                            // Two lines: "Reading" alone would not say what.
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
                             style: roleStyle(context, gt.typeFootnote, maxScale: 1.4).copyWith(color: gt.colorBloom), textScaler: TextScaler.noScaling,),
