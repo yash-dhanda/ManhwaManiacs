@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/platform/gravity.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
@@ -14,6 +15,7 @@ import 'package:manhwamaniacs/features/onboarding/models/onboarding_catalog.dart
 import 'package:manhwamaniacs/features/onboarding/models/taste.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/profiles/providers/skin_outbox.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -51,6 +53,11 @@ Future<void> _cont(WidgetTester t, String label) async {
   await settleFor(t, 2000);
 }
 
+class _FailingProfiles extends ProfilesNotifier {
+  @override
+  Future<List<Profile>> build() async => throw const NetworkError(message: 'down');
+}
+
 void main() {
   setUpAll(loadAppFonts);
 
@@ -80,6 +87,13 @@ void main() {
     expect(rig.at, '/welcome');
     expect(find.text('Pick a look'), findsWidgets);
     debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('a profile list that fails to load shows Retry, not a blank takeover', (t) async {
+    await pumpAuth(t, '/welcome?step=3', _fx(step: '3'), extra: [profilesProvider.overrideWith(_FailingProfiles.new)]);
+    await settleFor(t, 1500);
+    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('Not now'), findsOneWidget);
   });
 
   testWidgets('Skip writes done and lands on Home', (t) async {
