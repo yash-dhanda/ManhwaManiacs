@@ -7,7 +7,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/status_capsule.dart';
-import 'package:manhwamaniacs/skins/glass/screens/novel/reader_system_ui_stand_in.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/reader_system_ui.dart';
 import 'package:manhwamaniacs/skins/glass/shell/bar_icon.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_back_button.dart';
 import 'package:manhwamaniacs/skins/glass/shell/nav_row.dart' show statusCapsuleWidth;
@@ -19,7 +19,7 @@ import 'package:manhwamaniacs/skins/glass/type.dart';
 class NovelChromeGeometry {
   NovelChromeGeometry.of(BuildContext context)
       : size = MediaQuery.sizeOf(context),
-        inset = NovelReaderInsets.of(context),
+        inset = GlassReaderInsets.of(context),
         side = math.max(44.0, GlassFrame.hitMin(context)),
         gestureBottom = MediaQuery.systemGestureInsetsOf(context).bottom;
 
@@ -141,12 +141,15 @@ class NovelChromeTop extends StatelessWidget {
     final savedText = staleAge != null ? 'Saved copy · $staleAge' : (savedCopy ? 'Saved copy' : null);
     var savedW = savedText == null ? 0.0 : statusCapsuleWidth(context, savedText);
     // A narrow phone keeps the title readable: the capsule falls back to its glyph and the age ("2 h"); its name stays in semantics.
-    final compactSaved = savedText != null && avail - side - 8 - iconsW - 8 - savedW - 8 < 120;
+    final compactSaved = savedText != null && avail - side - 8 - iconsW - 8 - savedW - 8 < 160;
     if (compactSaved) savedW = statusCapsuleWidth(context, staleAge ?? '') - (staleAge == null ? 6 : 0);
     final style = roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600, maxScale: 1.3);
     final textW = measureText(context, title, style).width + 32;
-    final maxTitle = math.max(56.0, math.min(avail * (landscape ? 0.4 : 0.6), avail - side - 8 - iconsW - 8 - (savedText == null ? 0 : savedW + 8)));
-    final titleW = textW.clamp(56.0, maxTitle).toDouble();
+    // The chapter part (" · Ch 12") always shows, with a little of the series name before it.
+    final cut = title.lastIndexOf(' · ');
+    final minTitle = cut < 0 ? 56.0 : measureText(context, title.substring(cut), style).width + 32 + 24;
+    final maxTitle = math.max(minTitle, math.min(avail * (landscape ? 0.4 : 0.6), avail - side - 8 - iconsW - 8 - (savedText == null ? 0 : savedW + 8)));
+    final titleW = textW.clamp(math.min(minTitle, textW), maxTitle).toDouble();
     final shapes = <SkinGlassShape>[
       SkinGlassShape(size: Size(side, side), shape: const GlassShape.circle(), child: NovelTintedShape(tint: tint, circle: true, child: const GlassBackButton(inGroup: true, showDepth: true))),
       SkinGlassShape(size: Size(titleW, side), child: NovelTintedShape(tint: tint, child: _TitleCapsule(key: titleKey, text: title, onTap: onContents))),

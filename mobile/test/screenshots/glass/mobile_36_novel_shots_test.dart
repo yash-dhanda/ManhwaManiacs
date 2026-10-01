@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
 import 'package:manhwamaniacs/features/novels/providers/glass_novel_prefs_provider.dart';
@@ -21,16 +22,14 @@ import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
 import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
-import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
-import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/screens/novel/glass_paragraph.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/novel_reader_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/paged_view.dart';
-import 'package:manhwamaniacs/skins/glass/screens/novel/glass_paragraph.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/selection_menu.dart';
 
 import '../../skins/cinematic/novel/novel_test_support.dart' as cine;
@@ -403,7 +402,7 @@ void main() {
       await writeShot(t, find.byKey(kSkinShotKey), '$dir/cinematic-novel-phone.png', pixelRatio: _phone.pixelRatio);
     } else {
       final boundary = t.renderObject<RenderRepaintBoundary>(find.byKey(kSkinShotKey));
-      await t.runAsync(() async => (await boundary.toImage(pixelRatio: 1)).dispose());
+      await t.runAsync(() async => (await boundary.toImage()).dispose());
     }
     await cine.disposeNovel(t);
   });

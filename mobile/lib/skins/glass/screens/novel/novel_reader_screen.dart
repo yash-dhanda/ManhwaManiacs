@@ -75,13 +75,13 @@ import 'package:manhwamaniacs/skins/glass/screens/novel/papers.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/pinch_size.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/pinch_steps.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/progress_hairline.dart';
-import 'package:manhwamaniacs/skins/glass/screens/novel/reader_system_ui_stand_in.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/selection_menu.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/side_panels.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/speaker_bands.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/tinted_run_chip.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/type_rows.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/type_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/reader_system_ui.dart';
 
 /// The reading line: 38 % from the top (G1).
 const double kNovelReadingLine = 0.38;
@@ -145,7 +145,7 @@ class GlassNovelReaderScreen extends StatelessWidget {
   final String nonce;
 
   @override
-  Widget build(BuildContext context) => NovelReaderSystemUi(
+  Widget build(BuildContext context) => GlassReaderSystemUi(
         child: GlassNovelReader(
           key: ValueKey('glass-novel-reader:$sourceId:$seriesKey:$nonce'),
           sourceId: sourceId,
@@ -1363,7 +1363,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         Positioned.fill(child: body),
         if (showChrome) ..._chromeLayers(context, s, chapter, v),
         if (!ghost && chapter != null)
-          Positioned(left: 0, right: 0, top: NovelReaderInsets.of(context).top, height: 2, child: NovelProgressHairline(progress: percent / 100, color: colors.muted)),
+          Positioned(left: 0, right: 0, top: GlassReaderInsets.of(context).top, height: 2, child: NovelProgressHairline(progress: percent / 100, color: colors.muted)),
       ],
     );
     // A transparent Material gives the page its text defaults (no debug underline) and the selection toolbar its ancestor.
@@ -1398,7 +1398,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   /// with desktop panels open the measure fits the room left (D3) without changing the stored one.
   double _columnWidth(GlassNovelValues v) {
     final size = MediaQuery.sizeOf(context);
-    final inset = NovelReaderInsets.of(context);
+    final inset = GlassReaderInsets.of(context);
     final type = _type(v);
     final adv = novelZeroAdvance(type);
     final measure = _desktop ? fitMeasureCh(measure: v.measure, viewport: size.width, zeroAdvance: adv, left: _leftPanel, right: _rightPanel) : v.measure;
@@ -1660,7 +1660,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         // The header as laid out (the offstage copy below), so page one reserves exactly its height.
         final measured = _headerKey.currentContext?.size?.height;
         final opener = measured ?? estimate;
-        _ctl.setViewport(size, margin: math.max(20, NovelReaderInsets.of(context).left), bandTop: g.topBand, bandBottom: g.bottomBand, openerHeight: opener);
+        _ctl.setViewport(size, margin: math.max(20, GlassReaderInsets.of(context).left), bandTop: g.topBand, bandBottom: g.bottomBand, openerHeight: opener);
         _ctl.paginateNovel(type.measure, type);
         if (!_restored) {
           _restored = true;

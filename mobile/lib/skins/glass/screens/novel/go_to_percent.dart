@@ -14,8 +14,8 @@ import 'package:manhwamaniacs/skins/glass/primitives/text_field.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
-// TODO(mobile/35): mobile/35 builds the reader's go-to popover; when it lands, render that one here with the novel's slider and
-// field (percent, or page in paged mode) and delete this local copy.
+// mobile/35's `GoToPagePopover` is bound to the manga engine (`GlassReaderHost`, `ReaderEngineState`, page thumbnails); the novel's
+// percent / page twin below follows its shape (T4, 280 wide, bloom, slider, field, tinted Go) without that engine.
 
 /// The go-to popover (E6): `glassThick`, 280 wide, blooming above the bottom capsule on `springMorph`; a slider 0-100 % (`detent.tick`
 /// every 5 %) and a number field with "%" after it; Go (tinted) or `TextInputAction.go` jumps. In paged mode the slider steps by page
