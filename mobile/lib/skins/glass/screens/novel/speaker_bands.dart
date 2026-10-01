@@ -21,12 +21,16 @@ Color speakerHue(int slot, [GlassTokens t = glassTokens]) {
 
 /// The bands and underlines of one paragraph's attributed runs (D9). The text keeps the paper ink.
 class SpeakerBandsDecoration extends GlassParagraphDecoration {
-  const SpeakerBandsDecoration(this.runs);
+  const SpeakerBandsDecoration(this.runs, {this.hideBackground});
   final List<SpeakerRun> runs;
+
+  /// A run whose band the listen highlight covers drops its background (its underline stays), glass 8.16.7.
+  final bool Function(SpeakerRun run)? hideBackground;
 
   @override
   void paintBehind(Canvas canvas, GlassParagraphGeometry g) {
     for (final r in runs) {
+      if (hideBackground?.call(r) ?? false) continue;
       final paint = Paint()..color = speakerHue(r.slot).withValues(alpha: kSpeakerBandAlpha);
       for (final b in g.boxes(r.start, r.end)) {
         canvas.drawRect(b, paint);

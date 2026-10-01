@@ -32,6 +32,9 @@ class NovelBottomCapsule extends StatelessWidget {
     this.nextLabel,
     this.slots = const [],
     this.readoutKey,
+    this.listenRow,
+    this.listenRowWidth,
+    this.listenRowAlign = Alignment.center,
   });
 
   final double width;
@@ -45,49 +48,69 @@ class NovelBottomCapsule extends StatelessWidget {
   final List<Widget> slots;
   final GlobalKey? readoutKey;
 
+  /// `mobile/37`'s listen row (glass 8.16.1): a 48 px shape of this capsule's group, 8 px above it ([listenRowWidth] wide, aligned by
+  /// [listenRowAlign]; 320 floating bottom-right on a landscape phone).
+  final Widget? listenRow;
+  final double? listenRowWidth;
+  final Alignment listenRowAlign;
+
   @override
   Widget build(BuildContext context) {
     Widget icon(GlassIconRole role, String label, VoidCallback? onTap) => Opacity(
           opacity: onTap == null ? 0.3 : 1,
           child: GlassBarIcon(icon: roleIcon(role), label: label, onPressed: onTap),
         );
-    return SkinGlass(
-      size: Size(width, 56),
-      tier: GlassTierId.t3,
-      lb: lb,
-      debugLabel: 'novel bottom capsule',
-      child: NovelTintedShape(
-        tint: tint,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: Row(
-            children: [
-              icon(GlassIconRole.chapterPrevious, 'Previous chapter', onPrevious),
-              Expanded(
-                child: Semantics(
-                  button: true,
-                  label: '$percent percent, go to a percentage',
-                  excludeSemantics: true,
+    final content = NovelTintedShape(
+      tint: tint,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Row(
+          children: [
+            icon(GlassIconRole.chapterPrevious, 'Previous chapter', onPrevious),
+            Expanded(
+              child: Semantics(
+                button: true,
+                label: '$percent percent, go to a percentage',
+                excludeSemantics: true,
+                onTap: onGoTo,
+                child: GestureDetector(
+                  key: readoutKey,
+                  behavior: HitTestBehavior.opaque,
                   onTap: onGoTo,
-                  child: GestureDetector(
-                    key: readoutKey,
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onGoTo,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 48),
-                      child: Center(child: GlassText(readout, role: gt.typeMono, size: 13, onGlass: true, maxScale: 1.3, maxLines: 1)),
-                    ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    child: Center(child: GlassText(readout, role: gt.typeMono, size: 13, onGlass: true, maxScale: 1.3, maxLines: 1)),
                   ),
                 ),
               ),
-              ...slots,
-              GlassTooltip(
-                message: nextLabel ?? 'No next chapter',
-                child: icon(GlassIconRole.chapterNext, 'Next chapter', onNext),
-              ),
-            ],
-          ),
+            ),
+            ...slots,
+            GlassTooltip(
+              message: nextLabel ?? 'No next chapter',
+              child: icon(GlassIconRole.chapterNext, 'Next chapter', onNext),
+            ),
+          ],
         ),
+      ),
+    );
+    final row = listenRow;
+    if (row == null) {
+      return SkinGlass(size: Size(width, 56), tier: GlassTierId.t3, lb: lb, debugLabel: 'novel bottom capsule', child: content);
+    }
+    // The listen row and the capsule are two shapes of one group: one layer (glass 15.7, the novel reader row).
+    final rowW = listenRowWidth ?? width;
+    return SizedBox(
+      width: width,
+      height: 48 + 8 + 56,
+      child: SkinGlassGroup(
+        shapes: [
+          SkinGlassShape(size: Size(rowW, 48), child: row),
+          SkinGlassShape(size: Size(width, 56), child: content),
+        ],
+        axis: Axis.vertical,
+        aligns: [listenRowAlign, Alignment.center],
+        lb: lb,
+        debugLabel: 'novel bottom capsule and listen row',
       ),
     );
   }

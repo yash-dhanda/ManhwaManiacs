@@ -7,15 +7,18 @@ import 'dart:ui' show Rect, TextBox;
 const double kBandPadX = 4, kBandPadY = 2, kBandRadius = 6;
 
 /// One rect per line: boxes whose vertical extents overlap are one line. Pads each by [padX] x [padY].
-List<Rect> bandRects(List<TextBox> boxes, {double padX = kBandPadX, double padY = kBandPadY}) {
+List<Rect> bandRects(List<TextBox> boxes, {double padX = kBandPadX, double padY = kBandPadY}) =>
+    bandRectsOf([for (final b in boxes) Rect.fromLTRB(b.left, b.top, b.right, b.bottom)], padX: padX, padY: padY);
+
+/// [bandRects] for boxes that are already rects (a decoration's `boxes()`).
+List<Rect> bandRectsOf(List<Rect> boxes, {double padX = kBandPadX, double padY = kBandPadY}) {
   if (boxes.isEmpty) return const [];
   final sorted = [...boxes]..sort((a, b) {
       final t = a.top.compareTo(b.top);
       return t != 0 ? t : a.left.compareTo(b.left);
     });
   final lines = <Rect>[];
-  for (final b in sorted) {
-    final r = Rect.fromLTRB(b.left, b.top, b.right, b.bottom);
+  for (final r in sorted) {
     if (lines.isNotEmpty) {
       final last = lines.last;
       final overlap = (r.bottom < last.bottom ? r.bottom : last.bottom) - (r.top > last.top ? r.top : last.top);
