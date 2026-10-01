@@ -31,12 +31,17 @@ class _GlassDownloadsFeedState extends ConsumerState<GlassDownloadsFeed> {
   String? _batchSeries;
   final Set<String> _batchSeriesSet = {};
   bool _failed = false;
+  bool _following = false;
 
   void _accessory() {
-    final rows = ref.read(activeDownloadQueueProvider).valueOrNull ?? const <SavedChapter>[];
-    final q = ref.read(downloadQueueControllerProvider);
     final n = ref.read(glassActiveDownloadCountProvider);
     final acc = ref.read(glassAccessoryProvider.notifier);
+    if (n == 0) {
+      if (ref.read(glassAccessoryProvider).downloading != null) acc.setDownloading(null);
+      return;
+    }
+    final rows = ref.read(activeDownloadQueueProvider).valueOrNull ?? const <SavedChapter>[];
+    final q = ref.read(downloadQueueControllerProvider);
     final owed = rows.where((c) => c.state == DownloadChapterState.queued || c.state == DownloadChapterState.downloading).length;
     if (owed == 0 || n == 0) {
       if (ref.read(glassAccessoryProvider).downloading != null) acc.setDownloading(null);
@@ -95,10 +100,17 @@ class _GlassDownloadsFeedState extends ConsumerState<GlassDownloadsFeed> {
       _batchDone = 0;
       _batchSeriesSet.clear();
     }
+    if (unfinished == 0) _following = ref.read(glassActiveDownloadCountProvider) > 0;
   }
 
   @override
   Widget build(BuildContext context) {
+    // The queue is followed only while something is owed or a batch is still settling: the count is the one always-on read (the
+    // dock badge reads it too), so nothing here starts the queue on its own.
+    final owed = ref.watch(glassActiveDownloadCountProvider);
+    if (owed > 0) _following = true;
+    ref.listen(glassActiveDownloadCountProvider, (p, n) => WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _accessory() : null));
+    if (!_following) return widget.child;
     ref.listen(downloadedSeriesProvider, (p, n) {
       final v = n.valueOrNull;
       if (v != null) _transitions(v);
