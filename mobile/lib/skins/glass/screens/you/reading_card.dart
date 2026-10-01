@@ -1,21 +1,20 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
 import 'package:manhwamaniacs/features/library/utils/you_cards.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart' show GlassIconWeight;
 import 'package:manhwamaniacs/skins/glass/primitives/cards/slab.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/charts/chart_math.dart' show ChartDatum;
 import 'package:manhwamaniacs/skins/glass/primitives/charts/sparkline_painter.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/status_capsule.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/admin_common.dart' show glassSpan;
-import 'package:manhwamaniacs/skins/glass/screens/you/you_glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// "12-day streak" or "Read today to start a streak".
@@ -56,6 +55,9 @@ class ReadingCard extends ConsumerWidget {
     final s = load.data;
     final w = weekSummary(s.daily);
     final days = s.streak.currentDays;
+    final now = ref.watch(clockProvider)();
+    final today = s.daily.where((d) => d.date.year == now.year && d.date.month == now.month && d.date.day == now.day).firstOrNull;
+    final readToday = (today?.pagesRead ?? 0) > 0;
     final saved = load.offline ? (_savedAgo(s.daily) ?? 'earlier') : null;
     return GlassSlab(
       padding: const EdgeInsets.all(16),
@@ -64,8 +66,7 @@ class ReadingCard extends ConsumerWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         if (saved != null) Padding(padding: const EdgeInsets.only(bottom: 8), child: GlassStatusCapsule(kind: GlassStatusKind.savedCopy, savedAgo: saved)),
         Row(children: [
-          // mobile/42 replaces this glyph with the physics StreakFlame in the same 44 px slot.
-          SizedBox(width: 44, height: 44, child: Center(child: GlyphIcon(YouGlyphs.flame, size: 44, weight: GlassIconWeight.fill, color: gt.colorStreak))),
+          SizedBox(width: 44, height: 44, child: Center(child: StreakFlame(size: 44, days: days, semanticLabel: false, state: flameStateOf(days: days, readToday: readToday, atRisk: s.streak.atRisk)))),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart
 import 'package:manhwamaniacs/features/novels/providers/narration_jobs_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dart';
 import 'package:manhwamaniacs/features/settings/models/app_version.dart';
+import 'package:manhwamaniacs/skins/glass/listen/narrating_chip.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/screens/you/orb_lift.dart';
@@ -95,10 +96,11 @@ void main() {
     expect(find.text('Dialogue search', skipOffstage: false), findsNothing);
   });
 
-  m40Test('the Downloads row carries "Narrating 3" while narration jobs run', (t) async {
+  m40Test('the Downloads row carries the Narrating chip (chapters in flight) while narration jobs run', (t) async {
     final jobs = [for (var i = 0; i < 3; i++) NarrationJob(sourceId: 'novels', seriesKey: 'n$i', title: 'Book $i', done: 1, total: 4)];
     await pumpYou(t, extra: [activeNarrationJobsProvider.overrideWithValue(jobs)]);
-    expect(find.text('Narrating 3', skipOffstage: false), findsOneWidget);
+    expect(find.byType(GlassNarratingChip, skipOffstage: false), findsOneWidget);
+    expect(find.text('Narrating 4', skipOffstage: false), findsOneWidget);
   });
 
   test('update row lines on Android', () {
