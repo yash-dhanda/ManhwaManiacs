@@ -18,6 +18,7 @@ Future<void> showSpeedSheet(BuildContext context, {CineStockColors? stock}) => s
       title: 'Listening speed',
       stock: stock,
       livePreview: true,
+      detents: const [0.5],
       builder: (_) => const SpeedSheetBody(),
     );
 

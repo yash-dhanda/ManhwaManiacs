@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio.dart';
 import 'package:manhwamaniacs/features/novels/utils/sleep_timer.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_sheet.dart';
 
 import 'listen_test_support.dart';
 
@@ -137,6 +138,8 @@ void main() {
     await openRoom(l);
     await tester.tap(find.byKey(const Key('tile-speed')));
     await settleNovel(tester, ms: 700);
+    // mobile/15 E: the speed sheet rests on the single detent [0.5].
+    expect(tester.widget<CineSheet>(find.byType(CineSheet)).liveDetents, [0.5]);
     final track = find.byKey(const ValueKey('speed-ruler-track'));
     final rect = tester.getRect(track);
     // 40 % along the 0.50-3.00 track is 1.50x.
