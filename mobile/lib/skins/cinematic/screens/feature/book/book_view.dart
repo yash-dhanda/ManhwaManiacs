@@ -346,7 +346,7 @@ class _BookViewState extends ConsumerState<BookView> {
           for (final x in d.chapters)
             (key: x.id, number: x.number, completed: progress[x.id]?.completed ?? false),
         ];
-        final keys = chaptersUpTo(refs, c.number ?? double.infinity).map((r) => r.key).toSet();
+        final keys = {...chaptersUpTo(refs, c.number).map((r) => r.key), if (!(progress[c.id]?.completed ?? false)) c.id};
         final chapters = d.chapters.where((x) => keys.contains(x.id)).toList();
         await _markRead(chapters, 'Marked ${chapters.length} chapters read.');
       case 'unread':

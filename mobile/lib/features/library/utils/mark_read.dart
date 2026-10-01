@@ -16,10 +16,13 @@ typedef ChapterRef = ({
 typedef ChapterMark = ({String key, double? number, bool completed});
 
 /// Every not-yet-completed chapter numbered at or below [number]
-/// (chapters without a number are excluded).
-List<ChapterMark> chaptersUpTo(List<ChapterMark> chapters, double number) => [
-      for (final c in chapters)
-        if (c.number != null && c.number! <= number && !c.completed) c,
+/// (chapters without a number are excluded). An unnumbered target ([number]
+/// null) has no place in the numbering, so nothing: "up to an extra" must not
+/// read as "up to infinity" and mark the whole series.
+List<ChapterMark> chaptersUpTo(List<ChapterMark> chapters, double? number) => [
+      if (number != null)
+        for (final c in chapters)
+          if (c.number != null && c.number! <= number && !c.completed) c,
     ];
 
 /// The keys an Undo deletes: only those that were not completed before.
