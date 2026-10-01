@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
@@ -8,24 +6,27 @@ import 'package:manhwamaniacs/skins/glass/primitives/scrim.dart';
 
 enum GlassEdge { top, bottom }
 
-/// The soft scroll edge (glass 7.32, `edgeSoft`): a plateau of `Color(0xB8000000)` from the screen edge to the far edge
-/// of its bar group ([plateau] px: top safe-top + 52, or safe-top + 104 while a toast shows; desktop frames 60; bottom
-/// safe-bottom + 85, + 56 while the accessory shows), then a 24 px linear fade to transparent, under a `BackdropFilter`
-/// blur of sigma 6 (registered as a scrim). [opacity] follows how much content is under it. Under Solid glass and
-/// Reduce Transparency it becomes the hard edge (`edgeHard`, no blur).
+/// The soft scroll edge (glass 7.32, `edgeSoft`, owner revision 2026-10-02): a tint, never a blur band. `Color(0xB8000000)` covers
+/// only the device inset ([solid]: the status bar or the home indicator), then fades linearly to transparent across the bar group
+/// and [fade] px past its far edge ([plateau]: top safe-top + 52, or safe-top + 104 while a toast shows; desktop frames 60; bottom
+/// safe-bottom + 85, + 56 while the accessory shows), so content stays readable right up to the bars and the bars' own glass
+/// carries their legibility. [opacity] follows how much content is under it. Under Solid glass and Reduce Transparency it becomes
+/// the hard edge (`edgeHard`).
 class GlassScrollEdge extends ConsumerWidget {
-  const GlassScrollEdge({super.key, required this.edge, required this.plateau, this.opacity = 1});
+  const GlassScrollEdge({super.key, required this.edge, required this.plateau, this.opacity = 1, this.solid = 0});
   final GlassEdge edge;
   final double plateau;
   final double opacity;
+  final double solid;
+
+  static const double fade = 16;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final solid = ref.watch(glassA11yProvider.select((a) => a.solid));
+    final solidGlass = ref.watch(glassA11yProvider.select((a) => a.solid));
     if (opacity <= 0) return const SizedBox.shrink();
     final top = edge == GlassEdge.top;
-    const fade = 24.0;
-    if (solid) {
+    if (solidGlass) {
       return SizedBox(
         height: plateau + fade,
         child: Opacity(
@@ -39,7 +40,7 @@ class GlassScrollEdge extends ConsumerWidget {
       );
     }
     final total = plateau + fade;
-    final stopA = plateau / total;
+    final stopA = (solid / total).clamp(0.0, 1.0);
     final begin = top ? Alignment.topCenter : Alignment.bottomCenter;
     final end = top ? Alignment.bottomCenter : Alignment.topCenter;
     const c = Color(0xB8000000);
@@ -49,15 +50,10 @@ class GlassScrollEdge extends ConsumerWidget {
         opacity: opacity,
         child: GlassScrimMark(
           label: 'edgeSoft',
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-              child: DecoratedBox(
-                key: const ValueKey('glass-edge-soft'),
-                decoration: BoxDecoration(gradient: LinearGradient(begin: begin, end: end, colors: const [c, c, Color(0x00000000)], stops: [0, stopA, 1])),
-                child: const SizedBox.expand(),
-              ),
-            ),
+          child: DecoratedBox(
+            key: const ValueKey('glass-edge-soft'),
+            decoration: BoxDecoration(gradient: LinearGradient(begin: begin, end: end, colors: const [c, c, Color(0x00000000)], stops: [0, stopA, 1])),
+            child: const SizedBox.expand(),
           ),
         ),
       ),

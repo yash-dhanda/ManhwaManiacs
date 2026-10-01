@@ -48,17 +48,26 @@ void main() {
     expect(_edgeOpacity(tester, GlassEdge.bottom), 0);
   });
 
-  testWidgets('the soft edge is a B8 plateau then a 24 px fade under a blur of 6, registered as a scrim', (tester) async {
+  testWidgets('the soft edge is a tint, no blur: B8 over the device inset, then a linear fade to clear 16 px past the bars; a scrim', (tester) async {
     await tester.pumpWidget(primHost(_list()));
     await tester.pump(const Duration(milliseconds: 50));
-    expect(tester.getSize(find.byType(GlassScrollEdge).last).height, 109); // the bottom edge: plateau 85 + a 24 px fade
+    expect(tester.getSize(find.byType(GlassScrollEdge).last).height, 101); // the bottom edge: bars 85 + a 16 px fade
+    expect(find.descendant(of: find.byType(GlassScrollEdge), matching: find.byType(BackdropFilter)), findsNothing);
     final box = tester.widget<DecoratedBox>(find.byKey(const ValueKey('glass-edge-soft')).last);
     final g = (box.decoration as BoxDecoration).gradient! as LinearGradient;
     expect(g.colors.first, const Color(0xB8000000));
-    expect(g.stops![1], closeTo(85 / 109, 1e-9)); // the bottom edge: plateau 85 of 109
+    expect(g.stops![1], 0); // no device inset here: the fade starts at the screen edge
     final registry = primContainer(tester).read(glassRegistryProvider);
     expect(registry.scrims, greaterThanOrEqualTo(1));
     expect(registry.layers, 0);
+  });
+
+  testWidgets('the solid part of the soft edge covers only the device inset', (tester) async {
+    await tester.pumpWidget(primHost(const Align(alignment: Alignment.bottomCenter, child: GlassScrollEdge(edge: GlassEdge.bottom, plateau: 119, solid: 34))));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(tester.getSize(find.byType(GlassScrollEdge)).height, 135);
+    final g = (tester.widget<DecoratedBox>(find.byKey(const ValueKey('glass-edge-soft'))).decoration as BoxDecoration).gradient! as LinearGradient;
+    expect(g.stops![1], closeTo(34 / 135, 1e-9));
   });
 
   testWidgets('under Solid glass the edge becomes the hard edge: edgeHard with a 0.5 px separator, no blur', (tester) async {
