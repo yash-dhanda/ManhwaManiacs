@@ -201,8 +201,13 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
             top: 0,
             left: 0,
             right: 0,
+            // At rest at the top nothing is under the bar: the edge appears as content scrolls under it (glass 7.32), so it never
+            // draws a band across the ambient field of a page at rest.
             child: IgnorePointer(
-                child: GlassScrollEdge(edge: GlassEdge.top, plateau: top),),),
+                child: ValueListenableBuilder<double>(
+                  valueListenable: _offset,
+                  builder: (context, v, _) => GlassScrollEdge(edge: GlassEdge.top, plateau: top, opacity: (v / 24).clamp(0.0, 1.0)),
+                ),),),
         Positioned(
             bottom: 0,
             left: 0,

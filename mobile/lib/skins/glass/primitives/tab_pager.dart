@@ -91,6 +91,8 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
     _focus.addAll(List.generate(widget.tabs.length, (i) => FocusNode(debugLabel: 'GlassTab$i')));
     _pages.addListener(_onPage);
     _lastPage = widget.initialIndex.toDouble();
+    // Opened on a later tab (a deep link to Bookmarks or Downloads): its label scrolls into view, never left off-screen.
+    if (_index > 0) _reveal(_index);
   }
 
   @override
