@@ -212,7 +212,7 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
           child: _live(visible, _materialised(_Rail(host: host, state: s, height: railH, railTop: railTop))),
         ),
       // The match capsule takes the bottom line while the hit lens shows.
-      if (!_pillGone && !host.matchesShown)
+      if (!_pillGone && !host.matchesShown && !host.guidedOn)
         Positioned(
           left: widget.column.left,
           width: widget.column.width,
@@ -337,7 +337,8 @@ class _TopGroups extends ConsumerWidget {
     final style = roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600);
     final mono = roleStyle(context, gt.typeMono, onGlass: true);
     final textW = measureText(context, title, style).width + (readAllText == null ? 0 : measureText(context, readAllText, mono).width + 8);
-    final trailingCount = landscape ? 3 : 2;
+    final focus = host.guidedAvailable || host.guidedOn;
+    final trailingCount = (landscape ? 3 : 2) + (focus ? 1 : 0);
     // The chapter part of the title always shows; on a narrow phone the download control gives way first.
     final chapterW = measureText(context, ' · ${host.chapterShort(state.chapterId)}', style).width;
     final minTitle = chapterW + 32 + 48;
@@ -367,6 +368,10 @@ class _TopGroups extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (focus) ...[
+              GlassBarIcon(icon: roleIcon(GlassIconRole.guidedView), label: host.guidedOn ? 'Close guided view' : 'Guided view', toggled: host.guidedOn, onPressed: host.toggleGuided),
+              const SizedBox(width: 8),
+            ],
             _BookmarkButton(saved: state.bookmarks.isNotEmpty, onPressed: host.toggleBookmark),
             const SizedBox(width: 8),
             GlassBarIcon(icon: roleIcon(GlassIconRole.readerSettings), label: 'Reader settings', onPressed: host.openSettings),

@@ -47,6 +47,8 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/glass_ambient_bridge.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/guided_view.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
@@ -60,6 +62,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/band_lb.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/brightness_band.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/chapter_list.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/chapter_seam.dart';
@@ -74,6 +77,7 @@ import 'package:manhwamaniacs/skins/glass/screens/reader/reader_gestures.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_host.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_keys.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_settings_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/reader_system_ui.dart' show GlassReaderInsets;
 import 'package:manhwamaniacs/skins/glass/screens/reader/side_panels.dart';
 import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show registerMatureStop, registerPlaybackStop;
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
@@ -177,6 +181,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   final List<VoidCallback> _stops = [];
   SoundscapeController? _soundscape;
   String? _pendingSheet;
+  bool _guided = false;
+  late final GlassAmbientBridge _ambientBridge = GlassAmbientBridge(ref: ref, engine: engine, sourceId: sourceId, seriesKey: seriesKey);
 
   ReaderFrameBody get _body => widget.body;
   ({String sourceId, String seriesKey, String chapterKey, ReaderOrigin origin}) get _id =>
@@ -582,7 +588,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
   void _syncWake() {
     if (!mounted || _disposed) return;
-    final cruising = engine.value.autoScrolling;
+    final cruising = engine.value.autoScrolling || _guided;
     final want = _foreground && (_settings.values.keepAwake || cruising);
     final wl = _wakelock;
     if (want) {
@@ -714,8 +720,35 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   @override
   void cruiseResume() => _cruise.resume();
 
-  /// Guided view (glass 9.4.3), `shift+p`, the page menu, the settings row and the panel-focus button.
-  void toggleGuided() {}
+  // ── Guided view (glass 9.4.3): `shift+p`, the page menu, the settings row, the landscape menu and the panel-focus button ──
+
+  @override
+  bool get guidedOn => _guided;
+
+  @override
+  bool get guidedAvailable => !paged && engine.value.panelBoxes != null;
+
+  @override
+  void toggleGuided() {
+    if (paged || locked) return;
+    if (_guided) {
+      setState(() => _guided = false);
+      engine.scheduleHideChrome();
+    } else {
+      engine.holdChrome();
+      setState(() => _guided = true);
+    }
+    _syncWake();
+  }
+
+  /// Leaves guided view onto the strip with the framed panel's top at the top content inset (`inset.top + 60`).
+  void _closeGuided(int page, double? panelTop) {
+    if (!mounted) return;
+    setState(() => _guided = false);
+    engine.scheduleHideChrome();
+    engine.jumpToPage(page);
+    _syncWake();
+  }
 
   void _stepCruise(double by) {
     if (!cruiseAvailable) return;
@@ -1027,6 +1060,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         GlassMenuEntry(label: 'Save page image', onSelected: () => unawaited(_savePage(chapterId, page, anchor))),
         GlassMenuEntry(label: 'Bookmark this spot', onSelected: toggleBookmark),
         GlassMenuEntry(label: 'Show dialogue', onSelected: _openDialogue),
+        if (!paged) GlassMenuEntry(label: 'Guided view', onSelected: toggleGuided),
         GlassMenuEntry(label: 'Report broken page', onSelected: () => _retryPage(chapterId, page)),
       ],
     );
@@ -1472,6 +1506,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       ..watch(deviceOnlineProvider);
     final ocr = ref.watch(ocrChapterTextProvider(_chapterIdentity)).valueOrNull;
     _ocrText = {for (final p in ocr ?? const <PageText>[]) p.page: p.text};
+    _ambientBridge.sync(chapters: _body.feed.chapters, rtl: v.prefs.rtl);
     final size = MediaQuery.sizeOf(context);
     final accessibleNav = MediaQuery.accessibleNavigationOf(context);
     final desktop = isReaderDesktopFrame(size);
@@ -1485,13 +1520,15 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     // Idle hide after 3,000 ms only when a tap opened the chrome (glass 8.14.2): the skin's timer, not the engine's.
     const autoHideAfter = Duration(days: 1);
 
-    Widget chrome(BuildContext context, ReaderEngineState state) => LayoutBuilder(
+    Widget chromeFor(BuildContext context, ReaderEngineState state) => LayoutBuilder(
           builder: (context, c) {
             final w = c.maxWidth;
             final cw = column == null ? w : math.min(w, column);
             return GlassReaderChrome(host: this, state: state, column: Rect.fromLTWH((w - cw) / 2, 0, cw, c.maxHeight));
           },
         );
+    // While guided view is open the chrome is drawn above it (the engine's copy steps aside): the top groups stay as they are.
+    Widget chrome(BuildContext context, ReaderEngineState state) => _guided ? const SizedBox.shrink() : chromeFor(context, state);
 
     final Widget view;
     if (isPaged) {
@@ -1692,6 +1729,32 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
             ),
           ),
         if (_hitShown && _matches.isNotEmpty) ..._hitLayer(size),
+        if (_guided && _chapter(engine.value.chapterId) != null)
+          Positioned.fill(
+            child: GlassGuidedView(
+              key: const ValueKey('glass-guided'),
+              engine: engine,
+              chapter: _chapter(engine.value.chapterId)!,
+              rtl: v.prefs.rtl,
+              initialPage: engine.value.page,
+              onClose: _closeGuided,
+              onNextChapter: _nextId == null ? null : () {
+                setState(() => _guided = false);
+                nextChapter();
+              },
+              onPreviousChapter: _previousId == null ? null : () {
+                setState(() => _guided = false);
+                previousChapter();
+              },
+              lb: bandLb(Rect.fromLTWH(0, 0, size.width, size.height), size, engine.value.currentPageSample),
+              tint: pageTinted ? _tint : null,
+              bottomInset: math.max(GlassReaderInsets.of(context).bottom, MediaQuery.systemGestureInsetsOf(context).bottom) + 16,
+            ),
+          ),
+        if (_guided)
+          Positioned.fill(
+            child: ValueListenableBuilder<ReaderEngineState>(valueListenable: engine, builder: (context, state, _) => chromeFor(context, state)),
+          ),
         if (_tapsMounted)
           Positioned.fill(
             child: IgnorePointer(

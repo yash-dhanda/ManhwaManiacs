@@ -63,6 +63,11 @@ abstract interface class GlassReaderHost {
   void nextChapter();
   void toggleCruise();
 
+  /// Guided view (glass 9.4.3): open, and whether the page under the reading line has panels (the panel-focus button shows).
+  bool get guidedOn;
+  bool get guidedAvailable;
+  void toggleGuided();
+
   /// The cruise pill's state, and whether the layout can cruise at all (a strip does; Single and Double do not).
   CruiseState get cruise;
   bool get cruiseAvailable;
