@@ -68,9 +68,16 @@ class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
           avatarKey: avatarKey,
           mood: mood,
           matureContentEnabled: matureContentEnabled,
-          skin: skin,
         );
     if (result.isErr) return result.error;
+    // `POST /profiles` has no skin field: the edition goes in a `PATCH` once the row exists.
+    if (skin != null) {
+      final r = await ref.read(profilesRepositoryProvider).update(result.value.id, skin: skin);
+      if (r.isErr) {
+        await refresh();
+        return r.error;
+      }
+    }
     await refresh();
     return null;
   }
@@ -253,12 +260,13 @@ class ActiveProfileNotifier extends Notifier<ActiveProfile?> {
   /// every profile-scoped cache is dropped so the incoming persona never shows
   /// the outgoing one's follows/progress/library/collections/mature preference.
   /// This is the single choke point for both the picker ceremony and the
-  /// app-bar switcher chip. A first-time selection (no previous profile) needs
-  /// no invalidation — nothing stale is cached yet.
+  /// app-bar switcher chip. A first selection (no previous profile) drops them
+  /// too: after a sign-out or a delete the kept-alive caches (the Circle's
+  /// members and letters) still hold the previous account's or profile's data.
   Future<void> select(Profile profile) async {
     final previousId = state?.id;
     await _persist(profile.toSnapshot());
-    if (previousId != null && previousId != profile.id) {
+    if (previousId != profile.id) {
       invalidateProfileScopedProviders(ref);
     }
   }

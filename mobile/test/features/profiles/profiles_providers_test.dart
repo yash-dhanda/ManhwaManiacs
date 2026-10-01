@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
+import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
@@ -36,6 +38,7 @@ class _FakeProfilesRepository implements ProfilesRepository {
   List<Profile> profiles;
   int nextId = 100;
   final List<String> calls = [];
+  final List<String?> updateSkins = [];
 
   @override
   Future<Result<List<Profile>>> list() async {
@@ -75,6 +78,7 @@ class _FakeProfilesRepository implements ProfilesRepository {
     String? skin, bool? notifyEnabled,
   }) async {
     calls.add('update');
+    updateSkins.add(skin);
     final updated = _profile(
       id: id,
       name: name ?? 'Reader',
@@ -231,6 +235,47 @@ void main() {
       expect(list.any((p) => p.name == 'Weekend'), isTrue);
     });
 
+    test('create sends the edition in a PATCH (POST /profiles has no skin field)', () async {
+      final repo = _FakeProfilesRepository([_profile(id: 1)]);
+      final container = await _container(repo: repo);
+      addTearDown(container.dispose);
+      await container.read(profilesProvider.future);
+
+      final error = await container.read(profilesProvider.notifier).create(
+            name: 'Weekend',
+            avatarKey: 'amber',
+            mood: Mood.comedy,
+            skin: 'glass',
+          );
+      expect(error, isNull);
+      expect(repo.calls, containsAllInOrder(['create', 'update']));
+      expect(repo.updateSkins, ['glass']);
+    });
+
+    test('the first selection after a sign-out drops the kept-alive Circle caches', () async {
+      final repo = _FakeProfilesRepository([]);
+      SharedPreferences.setMockInitialValues({});
+      final instance = await SharedPreferences.getInstance();
+      var builds = 0;
+      final container = ProviderContainer(overrides: [
+        sharedPrefsProvider.overrideWithValue(instance),
+        profilesRepositoryProvider.overrideWithValue(repo),
+        authenticatedAuthOverride(),
+        circleMembersProvider.overrideWith(() => _CountingMembers(() => builds++)),
+      ],);
+      addTearDown(container.dispose);
+      final sub = container.listen(circleMembersProvider, (_, __) {});
+      addTearDown(sub.close);
+      await container.read(circleMembersProvider.future);
+      expect(builds, 1);
+
+      // Signed out: the selection is cleared without touching the caches.
+      expect(container.read(activeProfileProvider), isNull);
+      await container.read(activeProfileProvider.notifier).select(_profile(id: 2));
+      await container.read(circleMembersProvider.future);
+      expect(builds, 2);
+    });
+
     test('deleting the active profile clears the selection', () async {
       final repo = _FakeProfilesRepository([_profile(id: 1, name: 'Solo')]);
       final container = await _container(repo: repo);
@@ -317,4 +362,15 @@ class _ErroringRepository extends _FakeProfilesRepository {
       const Err(
         ApiError(statusCode: 409, code: 'limit', message: 'Too many profiles'),
       );
+}
+
+class _CountingMembers extends CircleMembersNotifier {
+  _CountingMembers(this.onBuild);
+  final void Function() onBuild;
+
+  @override
+  Future<List<CircleMember>> build() async {
+    onBuild();
+    return const [];
+  }
 }
