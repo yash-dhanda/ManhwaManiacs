@@ -146,7 +146,7 @@ class ChaptersHeader extends ConsumerWidget {
                     label: chapters.selection.isActive ? 'Done' : 'Select',
                     variant: GlassButtonVariant.plain,
                     size: GlassButtonSize.small,
-                    onPressed: onSelect),
+                    onPressed: onSelect,),
               ],
             ),
             Row(
@@ -420,7 +420,7 @@ class SelectHelpers extends ConsumerWidget {
     final statuses = ref.watch(seriesChapterDownloadStatusProvider(d.identity)).valueOrNull ?? const {};
     final saved = {
       for (final e in statuses.entries)
-        if (e.value.state == DownloadChapterState.complete) e.key
+        if (e.value.state == DownloadChapterState.complete) e.key,
     };
     final rows = selectableChapters(d.readingOrder, ref.watch(sourceSeriesProgressProvider(d.progressKey)), saved);
     final unread = unreadUndownloadedKeys(rows), all = undownloadedKeys(rows);
@@ -510,14 +510,14 @@ class ChapterSelectToolbar extends ConsumerWidget {
                               variant: GlassButtonVariant.plain,
                               size: GlassButtonSize.small,
                               disabledReason: online ? null : 'Needs a connection',
-                              onPressed: picked.isEmpty || !online ? null : () => fire(markChaptersRead(ref, d, picked).then((_) => sel.end()))),
+                              onPressed: picked.isEmpty || !online ? null : () => fire(markChaptersRead(ref, d, picked).then((_) => sel.end())),),
                           GlassButton(
                               key: const ValueKey('select-unread'),
                               label: 'Mark unread',
                               variant: GlassButtonVariant.plain,
                               size: GlassButtonSize.small,
                               disabledReason: online ? null : 'Needs a connection',
-                              onPressed: picked.length != 1 || !online ? null : () => fire(markChapterUnread(ref, d, picked.first).then((_) => sel.end()))),
+                              onPressed: picked.length != 1 || !online ? null : () => fire(markChapterUnread(ref, d, picked.first).then((_) => sel.end())),),
                           GlassButton(key: const ValueKey('select-done'), label: 'Done', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: sel.end),
                         ],
                       ),
@@ -533,7 +533,7 @@ class ChapterSelectToolbar extends ConsumerWidget {
     final statuses = ref.read(seriesChapterDownloadStatusProvider(data.identity)).valueOrNull ?? const {};
     final keys = [
       for (final c in picked)
-        if (statuses[c.id]?.state != DownloadChapterState.complete) c.id
+        if (statuses[c.id]?.state != DownloadChapterState.complete) c.id,
     ];
     chapters.run = keys.toSet();
     chapters.runAlreadySaved = picked.length - keys.length;

@@ -118,7 +118,7 @@ class FakeLibrary implements LibraryRepository {
   }
 
   @override
-  Future<Result<List<Tag>>> listTags({String? category}) async => Ok(tags);
+  Future<Result<List<Tag>>> listTags({String? category}) async => const Ok(tags);
 
   @override
   dynamic noSuchMethod(Invocation i) {
@@ -152,7 +152,7 @@ List<Override> seriesOverrides({
     sourceSeriesDetailProvider.overrideWith((ref, key) async => d),
     sourcesListProvider.overrideWith((ref) async => [
           SourceSummary(id: d.series.sourceId, name: 'Demo Scans', description: 'd', browsable: true, supportsImport: false, mature: mature, contentKind: novel ? 'novel' : 'manga'),
-        ]),
+        ],),
     matureContentProvider.overrideWith(() => Gate(gateOpen)),
     sourceGenresProvider.overrideWith((ref, id) async => const []),
     seriesEnrichmentProvider.overrideWith((ref, k) async => null),

@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' as keys show ShortcutRegistry, shortcutRegistryProvider;
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
+import 'package:manhwamaniacs/features/novels/utils/toc_window.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
@@ -21,6 +22,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/image_viewer.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_form_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart' show paletteOf, HomeCoverImage;
+import 'package:manhwamaniacs/skins/glass/screens/series/book_page.dart' show kTocRowExtent;
 import 'package:manhwamaniacs/skins/glass/screens/series/chapter_extents.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/chapters_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/collapse.dart';
@@ -188,8 +190,13 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
     if (i < 0) return;
     chapters.pulse = key;
     chapters.ping();
-    final ext = List<double>.filled(shown.length, chapterRowExtent(hasSecondary: false, textScale: rowTextScale(context)));
-    scrollToRow(context, chapters, ext, i);
+    final scale = rowTextScale(context);
+    // The book's contents build a 400-row window around the focus (glass 8.13), so the row's index is relative to it.
+    final idx = data.novel ? i - tocWindow(shown.length, i).start : i;
+    final ext = List<double>.filled(idx + 1, data.novel ? kTocRowExtent * scale : chapterRowExtent(hasSecondary: false, textScale: scale));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) scrollToRow(context, chapters, ext, idx);
+    });
   }
 
   /// Esc: clear the selection, then end select mode, then close.

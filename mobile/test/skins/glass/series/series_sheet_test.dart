@@ -121,7 +121,7 @@ void main() {
   });
 
   testWidgets('x enters select mode and Next 10 picks ten rows', (t) async {
-    await pumpGlassShell(t, start: _loc, extra: seriesOverrides(progress: {'c1': SourceChapterProgress(page: 40, pageCount: 40, completed: true, updatedAt: DateTime(2026, 9, 1))}));
+    await pumpGlassShell(t, start: _loc, extra: seriesOverrides(progress: {'c1': SourceChapterProgress(page: 40, pageCount: 40, completed: true, updatedAt: DateTime(2026, 9, 2))},),);
     await t.pump(const Duration(seconds: 1));
     await t.sendKeyEvent(LogicalKeyboardKey.keyX);
     await t.pump(const Duration(milliseconds: 400));

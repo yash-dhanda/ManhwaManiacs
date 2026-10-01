@@ -139,7 +139,8 @@ class SeriesActions extends ConsumerWidget {
     final statuses = ref.watch(seriesChapterDownloadStatusProvider(d.identity)).valueOrNull ?? const {};
     final saved = statuses.values.where((s) => s.state == DownloadChapterState.complete).length;
     final unsaved = d.chapters.length - saved;
-    final split = GlassSplitButton(
+    // The split button is sized by its label; at large text it scales down rather than overflow the column.
+    final split = FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: GlassSplitButton(
       key: const ValueKey('series-continue'),
       label: resume.label,
       semanticsLabel: resume.label.replaceAll(' · Ch ', ', chapter '),
@@ -150,7 +151,7 @@ class SeriesActions extends ConsumerWidget {
         GlassMenuEntry(label: 'Pick a chapter', onSelected: commands.pickChapter),
         GlassMenuEntry(label: 'Download next 10', onSelected: commands.downloadNext10, enabled: ref.read(activeProfileProvider) != null),
       ],),),
-    );
+    ),);
     final follow = GlassButton(
       key: followKey ?? const ValueKey('series-follow'),
       label: pending && f == null ? 'Adding…' : (f == null ? 'Add to library' : 'In library'),
