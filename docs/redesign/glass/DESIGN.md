@@ -129,7 +129,7 @@ Reading-status colours (series status pills): Reading `iris400`, Completed `succ
 
 #### 2.1.5 Speaker palette (novel dialogue attribution)
 
-`capabilities.md` §19.2 orders a book's cast by line count, so the two busiest speakers take the two most distinct hues. Ten hues, all ≥ 9.7:1 on black, spaced around the OKLCH hue circle at L ≈ 0.80. On the page each is used as a background band at 14 % alpha with a 1.5 px underline at 60 % alpha; on the cast sheet as a 12 px swatch.
+`capabilities.md` §19.2 orders a book's cast by line count, so the two busiest speakers take the two most distinct hues. Ten hues, all ≥ 9.7:1 on black, spaced around the OKLCH hue circle at L ≈ 0.80. On the page each is used as a background band at 14 % alpha with a 2 px leading tick at 60 % alpha down the run's first line (no text underlines in Glass); on the cast sheet as a 12 px swatch.
 
 | Order | Token | Hex | vs `#000` |
 |---|---|---|---|
@@ -144,7 +144,7 @@ Reading-status colours (series status pills): Reading `iris400`, Completed `succ
 | 9 | `spk9` orchid | `#F59BD6` | 10.54 |
 | 10 | `spk10` olive | `#C8D98A` | 13.75 |
 
-An eleventh speaker and beyond reuse the list from the top with a dashed underline instead of a solid one, so identity never depends on hue alone.
+An eleventh speaker and beyond reuse the list from the top with a dashed tick instead of a solid one, so identity never depends on hue alone.
 
 #### 2.1.6 Mood refraction (the seven profile moods)
 
@@ -168,7 +168,7 @@ A profile's mood is the colour its ambient field falls back to when a screen has
 | `dimModal` | `rgba(0,0,0,0.48)` | Behind alerts, the command palette, the stack overview and full-height sheets |
 | `dimContext` | `rgba(0,0,0,0.55)` + backdrop blur 12 | Behind a lifted context preview |
 | `dimClear` | `rgba(0,0,0,0.35)` | Under clear glass on bright media (hero spotlight, image viewer), added only when the media's `Lb > 0.45` |
-| `edgeSoft` | A **plateau and a fade**: `rgba(0,0,0,0.72)` from the screen edge to the far edge of the bar group (top: safe-top + 52 for the nav row, extended to safe-top + 104 while a toast shows; desktop: 60 for the toolbar row, 12 + 48; bottom: safe-bottom + 85 for the dock and orb, + 56 while the accessory shows), then a 24 px linear fade to transparent; backdrop blur 6 | Under every floating bar group, one per edge, so every label on a bar sits over the 0.72 plateau |
+| `edgeSoft` | A **tint, never a blur band** (owner revision 2026-10-02): `rgba(0,0,0,0.72)` over the device inset (status bar, home indicator), easing to `rgba(0,0,0,0.55)` at the far edge of the bar group (top: safe-top + 52 for the nav row, extended to safe-top + 104 while a toast shows; desktop: 60 for the toolbar row, 12 + 48; bottom: safe-bottom + 85 for the dock and orb, + 56 while the accessory shows), then a 16 px linear fade to transparent; no backdrop blur, so content reads right up to the bars. 0.55 keeps a dock label on T3 over white at the floor dim at 5.3:1 | Under every floating bar group, one per edge, so every label on a bar sits over the 0.72 plateau |
 | `edgeHard` | `rgba(0,0,0,0.92)` + 0.5 px `separator` | Under pinned section headers |
 | `dimLegibility` | `rgba(0,0,0, clamp(0.22 + 0.42 × Lb, 0.22, 0.64))` | Inside **every** glass surface, between the backdrop sample and the glass fill (all tiers, all variants except `solid*`) |
 
@@ -781,7 +781,7 @@ Reduce Motion: every icon event above is replaced by the end state with a 150 ms
 | `dim.legibility` | `clamp(0.22 + 0.42 × Lb, 0.22, 0.64)` | `--mm-dim-min: 0.22; --mm-dim-slope: 0.42; --mm-dim-max: 0.64; --mm-dim-min-hc: 0.40; --mm-dim-max-hc: 0.72` (runtime `--glass-dim` per surface, `@property <number>`; the `-hc` pair is the Increase Contrast clamp, §4.11) | n/a (read by `GlassSurface`) | `dimMin` = `0.22`, `dimSlope` = `0.42`, `dimMax` = `0.64`, `dimMinHc` = `0.40`, `dimMaxHc` = `0.72` |
 | `dim.grad` | `round(40 × Lb)` on glass (+20 with Bold Text) | `--mm-grad-slope: 40` (runtime `--glass-grad`) | n/a | `gradSlope` = `40` |
 | `dim.edgePlateau` | 0.72 (the `edgeSoft` plateau, §2.1.7) | `--mm-dim-edge-plateau: 0.72` | n/a | `dimEdgePlateau` = `0.72` |
-| `dim.edgeFade` | 24 px (the `edgeSoft` fade; its blur is `blur.edge`, 6) | `--mm-dim-edge-fade: 24px` | n/a | `dimEdgeFade` = `24.0` |
+| `dim.edgeFade` | 24 px (the `edgeSoft` fade; its blur is `blur.edge`, 6). Flutter Glass since 2026-10-02: 16 px and no blur (§7.32 owner revision) | `--mm-dim-edge-fade: 24px` | n/a | `dimEdgeFade` = `24.0` |
 | `glass.snap` | [36, 57, 97] (the free-size tier snap of §2.4.3) | TypeScript `glassSnap` | n/a | `glassSnap` = `[36, 57, 97]` |
 | `caustic` | `iris500` at 14 % (pressed 22 %), ellipse 1.2 × 0.7 of the object, offset 8 px at the light angle, blur 18 px, `screen` | `--mm-caustic-alpha: 0.14; --mm-caustic-alpha-pressed: 0.22; --mm-caustic-blur: 18px; --mm-caustic-offset: 8px` | n/a (the `Caustic` primitive) | `causticAlpha` = `0.14`, `causticAlphaPressed` = `0.22`, `causticBlur` = `18.0`, `causticOffset` = `8.0` |
 
@@ -2883,7 +2883,7 @@ A menu blooming from the Sleep tile: Off · 5 · 10 · 15 · 30 · 45 · 60 min 
 
 #### 8.16.7 Highlight-as-read
 
-The active sentence gets a band at 14 % of its speaker's tint (narration uses `iris500`), radius 6, padding 2 × 4; the band **slides** between sentences on `snappy` instead of cross-fading; the current word brightens to full ink with a 2 px underline in the tint (stepping, not animated). Follow keeps the active sentence at 38 % of the viewport height and scrolls on `settle` only when it leaves the 20–70 % band; it jumps (120 ms cross-fade) when more than two viewports away. A manual scroll decouples and shows "Back to the voice" (no automatic return on the page). When the timing map does not match the text on screen (`highlight_safe` false or a changed fingerprint), nothing is highlighted and a quiet capsule says "Highlight paused: the text changed".
+The active sentence gets a band at 14 % of its speaker's tint (narration uses `iris500`), radius 6, padding 2 × 4; the band **slides** between sentences on `snappy` instead of cross-fading; the current word brightens to full ink on a denser lozenge of the tint (32 %, radius 4; stepping, not animated; no text underlines in Glass). Follow keeps the active sentence at 38 % of the viewport height and scrolls on `settle` only when it leaves the 20–70 % band; it jumps (120 ms cross-fade) when more than two viewports away. A manual scroll decouples and shows "Back to the voice" (no automatic return on the page). When the timing map does not match the text on screen (`highlight_safe` false or a changed fingerprint), nothing is highlighted and a quiet capsule says "Highlight paused: the text changed".
 
 #### 8.16.8 States
 
@@ -4033,7 +4033,7 @@ These rules bind every screen; the per-screen specs assume them.
 
 ### 14.3 Colour is never the only signal
 
-- Status pills carry their word; download states carry a glyph and an accessible name (§7.29); unread carries a dot **and** a bar; the 18+ badge carries "18+"; speaker tints carry an underline style (solid or dashed); reactions carry their names in the picker and in the accessible names; the machine light always comes with the sparkle glyph and "suggested by AI" in the accessible name; people light always comes with an orb or a name.
+- Status pills carry their word; download states carry a glyph and an accessible name (§7.29); unread carries a dot **and** a bar; the 18+ badge carries "18+"; speaker tints carry a tick style (solid or dashed); reactions carry their names in the picker and in the accessible names; the machine light always comes with the sparkle glyph and "suggested by AI" in the accessible name; people light always comes with an orb or a name.
 - Charts carry a summary sentence and "Show as table" (§7.39).
 
 ### 14.4 Keyboard and focus

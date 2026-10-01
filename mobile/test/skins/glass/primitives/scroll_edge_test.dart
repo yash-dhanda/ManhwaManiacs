@@ -48,7 +48,7 @@ void main() {
     expect(_edgeOpacity(tester, GlassEdge.bottom), 0);
   });
 
-  testWidgets('the soft edge is a tint, no blur: B8 over the device inset, then a linear fade to clear 16 px past the bars; a scrim', (tester) async {
+  testWidgets('the soft edge is a tint, no blur: B8 over the device inset, 8C at the far edge of the bars, clear 16 px past them; a scrim', (tester) async {
     await tester.pumpWidget(primHost(_list()));
     await tester.pump(const Duration(milliseconds: 50));
     expect(tester.getSize(find.byType(GlassScrollEdge).last).height, 101); // the bottom edge: bars 85 + a 16 px fade
@@ -56,7 +56,9 @@ void main() {
     final box = tester.widget<DecoratedBox>(find.byKey(const ValueKey('glass-edge-soft')).last);
     final g = (box.decoration as BoxDecoration).gradient! as LinearGradient;
     expect(g.colors.first, const Color(0xB8000000));
-    expect(g.stops![1], 0); // no device inset here: the fade starts at the screen edge
+    expect(g.colors, const [Color(0xB8000000), Color(0xB8000000), Color(0x8C000000), Color(0x00000000)]);
+    expect(g.stops![1], 0); // no device inset here
+    expect(g.stops![2], closeTo(85 / 101, 1e-9)); // the bars' far edge
     final registry = primContainer(tester).read(glassRegistryProvider);
     expect(registry.scrims, greaterThanOrEqualTo(1));
     expect(registry.layers, 0);
