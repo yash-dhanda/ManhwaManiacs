@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/novels/providers/novel_series_providers.d
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/novels/utils/toc_window.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/profiles/utils/api_image_headers.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
@@ -177,7 +178,7 @@ void openBook(BuildContext context, WidgetRef ref, GlassSeriesData d, String cha
   final url = resolveCover(ref, d.series.coverUrl);
   GlassMotionEntry? e;
   if (!ref.read(glassMotionPrefsProvider).reduced) e = GlassMotion.recorder.begin(MotionName.bookOpen.label, kBookOpenDuration.inMilliseconds);
-  unawaited(ref.read(skinRouterProvider).push<void>(Routes.novel(d.sourceId, d.seriesKey, chapterKey), extra: bookOpenExtra(plateRect: plateRect, cover: url.isEmpty ? null : NetworkImage(url), paper: paper)));
+  unawaited(ref.read(skinRouterProvider).push<void>(Routes.novel(d.sourceId, d.seriesKey, chapterKey), extra: bookOpenExtra(plateRect: plateRect, cover: url.isEmpty ? null : NetworkImage(url, headers: apiImageHeadersOf(context)), paper: paper)));
   if (e != null) Future<void>.delayed(kBookOpenDuration, () => GlassMotion.recorder.end(e!));
 }
 

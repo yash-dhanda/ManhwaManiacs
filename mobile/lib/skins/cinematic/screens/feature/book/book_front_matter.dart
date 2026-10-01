@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/profiles/utils/api_image_headers.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/ambient_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/drop_cap_paragraph.dart';
@@ -42,7 +43,7 @@ class CoverPlate extends StatelessWidget {
       decoration: BoxDecoration(color: t.colorPaper1, border: Border.all(color: t.colorRule2)),
       child: url == null
           ? initial
-          : Image.network(url!, fit: BoxFit.cover, errorBuilder: (c, e, s) => initial),
+          : Image.network(url!, headers: apiImageHeadersOf(context), fit: BoxFit.cover, errorBuilder: (c, e, s) => initial),
     );
     if (heroTag != null) {
       plate = Hero(
@@ -189,7 +190,7 @@ class _BookFrontMatterState extends State<BookFrontMatter> with SingleTickerProv
                         ClipRect(
                           child: ImageFiltered(
                             imageFilter: ui.ImageFilter.blur(sigmaX: 56, sigmaY: 56),
-                            child: Image.network(widget.coverUrl!,
+                            child: Image.network(widget.coverUrl!, headers: apiImageHeadersOf(context),
                                 fit: BoxFit.cover, errorBuilder: (c, e, s) => const SizedBox(),),
                           ),
                         ),

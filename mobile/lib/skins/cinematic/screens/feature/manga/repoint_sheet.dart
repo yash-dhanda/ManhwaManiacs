@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
 import 'package:manhwamaniacs/features/library/utils/repoint_mapping.dart';
+import 'package:manhwamaniacs/features/profiles/utils/api_image_headers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -288,6 +289,7 @@ class _CandidateRow extends ConsumerWidget {
                     ? null
                     : Image.network(
                         resolveApiResourceUrl(base, candidate.iconUrl!),
+                        headers: apiImageHeadersOf(context),
                         errorBuilder: (c, e, s) => const SizedBox(),
                       ),
               ),
@@ -309,7 +311,7 @@ class _CandidateRow extends ConsumerWidget {
                 color: t.colorPaper1,
                 child: cover == null
                     ? null
-                    : Image.network(cover, fit: BoxFit.cover, errorBuilder: (c, e, s) => const SizedBox()),
+                    : Image.network(cover, headers: apiImageHeadersOf(context), fit: BoxFit.cover, errorBuilder: (c, e, s) => const SizedBox()),
               ),
             ],
           ),

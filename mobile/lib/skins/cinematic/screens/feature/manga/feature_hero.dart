@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
+import 'package:manhwamaniacs/features/profiles/utils/api_image_headers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
@@ -90,6 +91,7 @@ class _FeatureCoverState extends State<FeatureCover> with SingleTickerProviderSt
         ? ColoredBox(color: t.colorPaper2)
         : Image.network(
             widget.url!,
+            headers: apiImageHeadersOf(context),
             fit: BoxFit.cover,
             errorBuilder: (c, e, s) => ColoredBox(color: t.colorPaper2),
           );
