@@ -1,8 +1,14 @@
 // ignore_for_file: require_trailing_commas, directives_ordering, avoid_redundant_argument_values
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
 import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart';
 import 'package:manhwamaniacs/features/ai/repositories/ai_repository.dart';
@@ -99,6 +105,16 @@ void main() {
     // Undo puts the reader's place back: page 28 of 40, not completed.
     final back = rig.rec.pushedRows.last;
     expect((rig.rec.pushedRows.length, back.chapterKey, back.lastPage, back.pageCount, back.isCompleted), (2, 'c142', 28, 40, false));
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('a Continue cutting takes its folio format from its own source, not the cover story', (t) async {
+    final j = jsonDecode(File('test/fixtures/home/ready.json').readAsStringSync()) as Map<String, dynamic>..['cover'] = null;
+    await pumpTonight(t, view: viewOf(HomeFeed.fromJson(j)), size: _tall, prefs: _stamp, extra: [
+      contentModeScopeProvider.overrideWith((ref) => const ContentModeScope(mode: ContentMode.novel, index: {'shelf': ContentMode.novel}, novelsEnabled: true)),
+    ]);
+    await settleTonight(t, by: const Duration(seconds: 3));
+    expect(find.text('70% · CH 142'), findsOneWidget);
     await t.pumpWidget(const SizedBox());
   });
 

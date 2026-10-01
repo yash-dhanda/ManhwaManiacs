@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
+import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart' show ReaderEntry;
 import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cards/cine_cutting_card.dart';
@@ -39,7 +41,8 @@ class ContinueCuttingsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hidden = ref.watch(continueHiddenProvider);
-    final novel = env.feed.cover?.isNovel ?? false;
+    // Each row's own kind (by its source), never the cover story's.
+    final scope = ref.watch(contentModeScopeProvider);
     final all = plan.section.items.whereType<HomeContinueItem>().toList();
     final byRow = {for (final it in all) it.row: it};
     final rows = filterHidden([for (final it in all) it.row], hidden);
@@ -66,7 +69,7 @@ class ContinueCuttingsSection extends ConsumerWidget {
         final tag = env.tags.of('${plan.index}:$index');
         final card = CineCuttingCard(
           title: r.title ?? 'Continue',
-          folio: _folio(it, novel),
+          folio: _folio(it, isNovelSource(scope, it.row.sourceId) ?? false),
           imageUrl: coverAbs(ref, r.coverUrl),
           progress: r.pageCount > 0 ? r.progressPct.clamp(0.0, 1.0) : null,
           nudge: _nudge(it),
