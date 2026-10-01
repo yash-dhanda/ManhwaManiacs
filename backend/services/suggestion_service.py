@@ -800,8 +800,10 @@ class SuggestionService:
         catalog._write({key(page): titles})
         return titles
 
-    def _complete(self, system: str, message: str, timeout: float = TIMEOUT_SECONDS) -> Any:
+    def _complete(self, system: str, message: str, timeout: float | None = None) -> Any:
         """One paid call under the daily ledgers and the wall-clock deadline."""
+        # Read at call time: tests (and the deadline) patch the module value.
+        timeout = TIMEOUT_SECONDS if timeout is None else timeout
         deadline = _DeadlineTransport(timeout)
         account_budget = self._account_budget()
         try:
