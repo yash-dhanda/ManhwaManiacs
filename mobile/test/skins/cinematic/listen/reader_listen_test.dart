@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio.dart';
+import 'package:manhwamaniacs/features/novels/models/novel_cast.dart' show NovelAudioRequest;
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/novel_paragraph.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -50,6 +52,17 @@ void main() {
     expect(l.repo.renderCalls.single.keys, ['1']);
     expect(l.repo.renderCalls.single.priority, 9);
     expect(l.repo.renderCalls.single.force, isFalse);
+    await leaveListen(l);
+  });
+
+  testWidgets('Narrate says why when the server skipped the chapter instead of claiming it was queued', (tester) async {
+    final l = await pumpListen(tester, narrated: const {});
+    await settleNovel(tester, ms: 800);
+    l.repo.requestAudioResult = const Ok(NovelAudioRequest(queued: <String>[], skipped: {'1': 'chapter_not_cached'}));
+    await tester.tap(find.text('Narrate this chapter'));
+    await l.settle();
+    expect(find.text('Queued for narration.'), findsNothing);
+    expect(find.text('Skipped: 1 not downloaded to the server yet.'), findsOneWidget);
     await leaveListen(l);
   });
 

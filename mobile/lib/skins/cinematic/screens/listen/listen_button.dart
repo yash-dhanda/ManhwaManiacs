@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart
 import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/saved_audio_provider.dart';
 import 'package:manhwamaniacs/features/novels/providers/series_audio_provider.dart';
+import 'package:manhwamaniacs/features/novels/utils/audiobook_labels.dart' show skippedNarrationLine;
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
@@ -105,6 +106,9 @@ class _NotNarratedState extends ConsumerState<_NotNarrated> {
     final toasts = ref.read(cineToastsProvider.notifier);
     if (r.isErr) {
       toasts.error(r.error.userMessage);
+    } else if (r.value.queued.isEmpty) {
+      // 200 with nothing queued: the server skipped it (not cached, unreadable, already asked for or narrated).
+      toasts.info(r.value.skipped.isEmpty ? 'Nothing was queued.' : skippedNarrationLine(r.value.skipped));
     } else {
       setState(() => _sent = true);
       cineFeedback(context, HapticEvent.tapSecondary);
