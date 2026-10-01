@@ -178,11 +178,11 @@ class HomeFeedController extends AutoDisposeAsyncNotifier<HomeFeedView> {
       inMode: scope.novelsEnabled ? (id) => scope.modeOf(id) == scope.mode : null,
     );
     if (inputs.allFailed) return (state: HomeFeedState.unavailable, feed: null, origin: HomeFeedOrigin.local, offline: false, retryAfter: retryAfter);
-    return _view(applyAtRisk(composeLocalFeed(inputs, now), now), HomeFeedOrigin.local);
+    return _view(applyAtRisk(composeLocalFeed(inputs, now), now), HomeFeedOrigin.local, retryAfter: retryAfter);
   }
 
-  HomeFeedView _view(HomeFeed feed, HomeFeedOrigin origin) {
+  HomeFeedView _view(HomeFeed feed, HomeFeedOrigin origin, {Duration? retryAfter}) {
     final empty = feed.cover == null && !feed.sections.any((s) => s.hasItems);
-    return (state: empty ? HomeFeedState.empty : HomeFeedState.ready, feed: feed, origin: origin, offline: false, retryAfter: null);
+    return (state: empty ? HomeFeedState.empty : HomeFeedState.ready, feed: feed, origin: origin, offline: false, retryAfter: retryAfter);
   }
 }

@@ -264,6 +264,14 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
   Widget build(BuildContext context) {
     final view = ref.watch(homeFeedProvider);
     final fv = view.valueOrNull;
+    // Armed whenever a 429 view shows and no retry is pending: also for a feed that landed before
+    // Home first built, and for a retry answered by another 429.
+    final wait = fv?.retryAfter;
+    if (wait != null && !(_rateTimer?.isActive ?? false)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !(_rateTimer?.isActive ?? false) && ref.read(homeFeedProvider).valueOrNull?.retryAfter != null) _rateLimit(wait);
+      });
+    }
     final now = ref.watch(clockProvider)();
     final hidden = ref.watch(continueHiddenProvider);
     final profile = ref.watch(activeProfileProvider);
@@ -283,7 +291,7 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
         (ModalRoute.of(context)?.isCurrent ?? true);
     ref.listen<AsyncValue<HomeFeedView>>(homeFeedProvider, (prev, next) {
       final v = next.valueOrNull;
-      if (v?.retryAfter != null && prev?.valueOrNull?.retryAfter == null) _rateLimit(v!.retryAfter!);
+      if (v != null && v.retryAfter == null) _rateTimer?.cancel();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _syncAccessory();
       });
