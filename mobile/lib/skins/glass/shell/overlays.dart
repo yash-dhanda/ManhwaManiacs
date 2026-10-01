@@ -21,6 +21,7 @@ import 'package:manhwamaniacs/skins/glass/screens/settings/licenses_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/app_update_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shortcuts_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/shell/whats_new_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/soundscape/soundscape_sheet.dart' show registerSoundscapeSheet;
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,6 +37,7 @@ void registerGlassGlobalSheets() {
   registerOfferSheet();
   registerHowItWorksSheet();
   registerGlassNovelSheets();
+  registerSoundscapeSheet();
 }
 
 Widget _licences(BuildContext _) => const GlassLicencesSheet();

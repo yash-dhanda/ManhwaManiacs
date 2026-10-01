@@ -15,6 +15,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/slider.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
+import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/soundscape/mixer.dart';
 import 'package:manhwamaniacs/skins/glass/soundscape/recipes.dart';
@@ -31,6 +32,20 @@ GlassSheetPage<void> soundscapeSheetPage({String? seriesRef, required bool lands
       opening: landscapePhone ? GlassDetent.large : GlassDetent.medium,
       builder: (context) => SingleChildScrollView(child: SoundscapeSheetBody(seriesRef: seriesRef)),
     );
+
+/// `?sheet=soundscape` outside a reader (Settings, the listen player): the same sheet, no series (so no "Remember for this series").
+void registerSoundscapeSheet() {
+  if (glassSheetRegistered('soundscape')) return;
+  registerGlobalSheet(
+    'soundscape',
+    GlassSheetSpec(
+      title: 'Soundscape',
+      detents: const [GlassDetent.medium, GlassDetent.large],
+      opening: GlassDetent.medium,
+      builder: (context) => const SingleChildScrollView(child: SoundscapeSheetBody()),
+    ),
+  );
+}
 
 /// The sheet body, also the Soundscape section of the desktop frame's right panel (`inPanel`): seven orbs, the Bed - Detail - Tone mixer,
 /// the master volume and three switches. T4 glass at `medium`, so its text is `onGlass`.
@@ -105,7 +120,6 @@ class _SoundscapeSheetBodyState extends ConsumerState<SoundscapeSheetBody> with 
     final d = ref.watch(soundscapeDefaultsProvider);
     final reduced = ref.watch(glassMotionPrefsProvider.select((p) => p.reduced));
     _clock.run(!reduced);
-    final phone = MediaQuery.sizeOf(context).shortestSide < 600;
     final hit = GlassFrame.hitMin(context);
     final selected = v.on ? v.scene : null;
     final inReader = widget.seriesRef != null;
@@ -120,8 +134,12 @@ class _SoundscapeSheetBodyState extends ConsumerState<SoundscapeSheetBody> with 
           onSelect: () => _select(s),
           bars: selected == s ? LevelBars(levels: _controller.levels, mix: v.mix, reduced: reduced) : null,
         );
-    final off = _OffControl(selected: !v.on, wide: !phone, onSelect: () => unawaited(_controller.stop()), side: math.max(44.0, hit));
+    // The grid fits a phone (and the 328 px panel); the one row needs 7 orbs of room.
+    return LayoutBuilder(builder: (context, box) => _body(context, box.maxWidth < 680, v, d, reduced, hit, orb, selected, inReader));
+  }
 
+  Widget _body(BuildContext context, bool phone, SoundscapeView v, SoundscapeDefaults d, bool reduced, double hit, Widget Function(SoundScene) orb, SoundScene? selected, bool inReader) {
+    final off = _OffControl(selected: !v.on, wide: !phone, onSelect: () => unawaited(_controller.stop()), side: math.max(44.0, hit));
     final orbs = phone
         ? Column(children: [
             Align(alignment: Alignment.centerLeft, child: off),

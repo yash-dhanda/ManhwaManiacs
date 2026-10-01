@@ -24,6 +24,10 @@ enum NovelKeyAction {
   selectionMenu,
   panelNext,
   panelPrevious,
+  cruise,
+  cruiseSlower,
+  cruiseFaster,
+  soundscape,
   escape,
 }
 
@@ -68,6 +72,10 @@ const List<NovelKeyBinding> kNovelKeyBindings = [
   NovelKeyBinding(SingleActivator(LogicalKeyboardKey.f10, shift: true), NovelKeyAction.selectionMenu, 'Selection menu', printable: false, keys: ['Shift', 'F10']),
   NovelKeyBinding(SingleActivator(LogicalKeyboardKey.f6), NovelKeyAction.panelNext, 'Next panel', printable: false, desktopOnly: true),
   NovelKeyBinding(SingleActivator(LogicalKeyboardKey.f6, shift: true), NovelKeyAction.panelPrevious, 'Previous panel', printable: false, desktopOnly: true, keys: ['Shift', 'F6']),
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.keyA), NovelKeyAction.cruise, 'Cruise (scroll mode)'),
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.comma, shift: true), NovelKeyAction.cruiseSlower, 'Cruise slower', keys: ['<']),
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.period, shift: true), NovelKeyAction.cruiseFaster, 'Cruise faster', keys: ['>']),
+  NovelKeyBinding(SingleActivator(LogicalKeyboardKey.keyS, shift: true), NovelKeyAction.soundscape, 'Soundscape', keys: ['Shift', 'S']),
   NovelKeyBinding(SingleActivator(LogicalKeyboardKey.escape), NovelKeyAction.escape, 'Close, then back to the book', printable: false),
 ];
 
