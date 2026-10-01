@@ -25,6 +25,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_lightbox.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid_overlay.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/shell.dart' show cineArrivalProvider;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart' show cineReaderOwnsToastsProvider;
 import 'package:manhwamaniacs/skins/cinematic/screens/system/cine_broken_part.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/system/cine_error_screen.dart';
@@ -173,6 +174,8 @@ class _CineAppFrameState extends ConsumerState<CineAppFrame> {
     FocusManager.instance.addListener(_onFocus);
     _router.routerDelegate.addListener(_routeChanged);
     applyCineRestingSystemUi();
+    // Takes the edition arrival now, at boot, whichever route opens first.
+    ref.read(cineArrivalProvider);
     _ErrorHooks.install(release: widget.releaseErrorWidget);
     appFatalError.addListener(_fatalChanged);
     cineTopRouteObserver.lightboxOnTop.addListener(_lightboxChanged);

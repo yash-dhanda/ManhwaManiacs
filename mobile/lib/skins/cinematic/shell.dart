@@ -47,6 +47,17 @@ int? _folioNumber(String? folio) => folio == null ? null : int.tryParse(folio);
 /// `#000` ground, the mood grade behind the top of Tonight, Library, Discover and Index only, and
 /// the section folio the next masthead rolls from. A section change fires `nav.change` and cue
 /// `tick`, is a **Cut**, and the new branch's lists run Set (`cineSectionEpochProvider`).
+/// When this boot arrived from Glass: `mm.skin.from` is taken on the first read, which the app frame
+/// makes at boot, so the shell can tell an arrival from one it only reaches minutes later.
+final cineArrivalProvider = StateProvider<DateTime?>(
+  (ref) => takeSkinArrival(ref.read(sharedPrefsProvider)) == SkinId.glass.name ? DateTime.now() : null,
+  name: 'cineArrival',
+);
+
+/// The arrival toast (with its Undo) only within 10 s of the boot that arrived.
+bool cineArrivalToastDue(DateTime? arrivedAt, DateTime now) =>
+    arrivedAt != null && now.difference(arrivedAt) < const Duration(seconds: 10);
+
 class CineShell extends ConsumerStatefulWidget {
   const CineShell({super.key, required this.navigationShell, required this.location});
   final StatefulNavigationShell navigationShell;
@@ -75,11 +86,13 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
 
   /// After a switch from Glass, once: "Now in the Cinematic edition." with `Undo` for 10 s. A
   /// boot-time mismatch restart and the debug row never write `mm.skin.from`, so they show none.
+  /// An arrival on a route outside the shell that only reaches it later shows none either.
   void _arrival() {
     if (_arrivalChecked) return;
     _arrivalChecked = true;
-    final from = takeSkinArrival(ref.read(sharedPrefsProvider));
-    if (from != SkinId.glass.name) return;
+    final arrived = ref.read(cineArrivalProvider);
+    ref.read(cineArrivalProvider.notifier).state = null;
+    if (!cineArrivalToastDue(arrived, DateTime.now())) return;
     ref.read(cineToastsProvider.notifier).undo(
       'Now in the Cinematic edition.',
       hold: CineDur.holdToastUndo,
