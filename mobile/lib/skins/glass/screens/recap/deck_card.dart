@@ -237,11 +237,11 @@ String deckTitleOf(String kind, DeckState s) => s.sections
     ? s.sections.firstWhere((x) => x.kind == kind).title
     : kDeckKinds.firstWhere((k) => k.$1 == kind, orElse: () => (kind, kind)).$2;
 
-Widget deckBodyFor(String kind, DeckState s) {
+Widget deckBodyFor(String kind, DeckState s, {Color? Function(String name)? hueOf}) {
   final sec = s.sections.where((x) => x.kind == kind).firstOrNull;
   return switch (kind) {
     'happened' || 'threads' => sectionBody(sec, bullets: true),
-    'cast' => castBody(s.done?.cast ?? const []),
+    'cast' => castBody(s.done?.cast ?? const [], hueOf: hueOf),
     _ => sectionBody(sec),
   };
 }

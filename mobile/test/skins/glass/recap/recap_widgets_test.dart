@@ -1,24 +1,31 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
+import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
 import 'package:manhwamaniacs/features/recap/background_recaps.dart';
 import 'package:manhwamaniacs/features/recap/recap_cache.dart';
 import 'package:manhwamaniacs/features/recap/recap_deck.dart';
 import 'package:manhwamaniacs/features/recap/recap_setting.dart';
+import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
+import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/how_it_works_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/offer_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
+import 'package:manhwamaniacs/skins/glass/screens/novel/speaker_bands.dart' show speakerHue;
 import 'package:manhwamaniacs/skins/glass/screens/recap/recap_deck.dart';
 import 'package:manhwamaniacs/skins/glass/screens/recap/recap_footer.dart';
+import 'package:manhwamaniacs/skins/glass/screens/recap/recap_sheet.dart';
 
 import '../../../screenshots/support/shot_harness.dart';
 import '../primitives/support.dart' show pumpFor;
@@ -175,4 +182,78 @@ void main() {
     expect(find.text('Recaps and dialogue search use it'), findsOneWidget);
     expect(find.text('Open downloads'), findsOneWidget);
   });
+
+  test('Continue names the chapter and the saved page when each is known', () {
+    expect(continueLabel('142', 12), 'Continue · Ch 142, p. 12');
+    expect(continueLabel('142', null), 'Continue · Ch 142');
+    expect(continueLabel('', 12), 'Continue · p. 12');
+    expect(continueLabel('', null), 'Continue');
+  });
+
+  test("Who's who takes the continue chapter's speaker hue by name, any case; others stay g700", () {
+    const a = NovelAttribution(attributed: true, narrator: null, narratorVoiceId: null, cast: [
+      NovelCastMember(name: 'Arthur', gender: 'male', voiceId: null),
+      NovelCastMember(name: 'Tessia', gender: 'female', voiceId: null),
+    ],);
+    final hue = recapCastHue(a);
+    expect(hue('arthur'), speakerHue(1));
+    expect(hue('TESSIA'), speakerHue(2));
+    expect(hue('Sylvie'), isNull);
+    expect(recapCastHue(NovelAttribution.none)('Arthur'), isNull);
+  });
+
+  testWidgets('Continue on the deck restores the saved page of the continue chapter', (t) async {
+    final a = RecapAdapter(chunks: deckEvents());
+    final rig = await pumpRecap(t, a, at: '/', extra: [
+      sourceSeriesProgressProvider.overrideWith((ref, s) => {
+            'c2': SourceChapterProgress(page: 12, pageCount: 40, completed: false, updatedAt: DateTime.utc(2026, 9)),
+          },),
+    ],);
+    unawaited(rig.router.push<void>('/recap/s/k?to=c2'));
+    await pumpFor(t, 2000);
+    expect(find.textContaining('p. 12'), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.enter);
+    await pumpFor(t, 1500);
+    final last = rig.router.routerDelegate.currentConfiguration.last;
+    expect(last.matchedLocation, '/reader/s/k/c2');
+    expect((last as ImperativeRouteMatch).matches.uri.queryParameters, containsPair('page', '12'));
+  });
+
+  testWidgets('Write it again asks with fresh=1; a refusal keeps the recap and disables the button with the reason', (t) async {
+    final a = _Then(chunks: deckEvents(), later: {'available': false, 'reason': 'budget_exhausted'});
+    await pumpRecap(t, a);
+    expect(a.calls.single.queryParameters.containsKey('fresh'), isFalse);
+    await t.sendKeyEvent(LogicalKeyboardKey.keyR);
+    await pumpFor(t, 1500);
+    expect(a.calls, hasLength(2));
+    expect(a.calls.last.queryParameters, containsPair('fresh', '1'));
+    expect(find.text('Where you left off'), findsOneWidget);
+    expect(find.textContaining('Written by test-model'), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.keyR);
+    await pumpFor(t, 600);
+    expect(a.calls, hasLength(2));
+  });
+
+  testWidgets('Write it again streams a new recap in place of the old one', (t) async {
+    final a = RecapAdapter(chunks: deckEvents());
+    await pumpRecap(t, a);
+    await t.tap(find.bySemanticsLabel('Write it again'));
+    await pumpFor(t, 2000);
+    expect(a.calls, hasLength(2));
+    expect(a.calls.last.queryParameters, containsPair('fresh', '1'));
+    expect(find.textContaining('Written by test-model'), findsOneWidget);
+  });
+}
+
+/// Streams the deck on the first call and answers [later] as JSON after it.
+class _Then extends RecapAdapter {
+  _Then({super.chunks, required this.later});
+  final Map<String, Object?> later;
+
+  @override
+  Future<ResponseBody> fetch(RequestOptions o, Stream<Uint8List>? b, Future<void>? c) async {
+    if (calls.isEmpty) return super.fetch(o, b, c);
+    calls.add(o);
+    return ResponseBody.fromString(jsonEncode(later), 200, headers: {'content-type': ['application/json']});
+  }
 }

@@ -36,8 +36,11 @@ bool swipeUpAdvances(double dy, double vy) =>
 /// the left half or `Left` go back. A finger during the lift catches it. Reduced motion: 150 ms cross-fades.
 class RecapDeckView extends ConsumerStatefulWidget {
   const RecapDeckView(
-      {super.key, required this.deck, this.onIndexChanged, this.width,});
+      {super.key, required this.deck, this.onIndexChanged, this.width, this.castHue,});
   final DeckState deck;
+
+  /// The Who's who orb colour by character name (a novel's speaker hue), null for `g700`.
+  final Color? Function(String name)? castHue;
   final ValueChanged<int>? onIndexChanged;
   final double? width;
 
@@ -117,7 +120,7 @@ class RecapDeckViewState extends ConsumerState<RecapDeckView>
                 padding: const EdgeInsets.only(bottom: 16),
                 child: DeckCardFrame(
                     title: deckTitleOf(k.$1, widget.deck),
-                    child: deckBodyFor(k.$1, widget.deck),),),
+                    child: deckBodyFor(k.$1, widget.deck, hueOf: widget.castHue),),),
         ],
       );
     }
@@ -193,7 +196,7 @@ class RecapDeckViewState extends ConsumerState<RecapDeckView>
       key: ValueKey('deck-card-$kind'),
       title: deckTitleOf(kind, widget.deck),
       overlay: deckDim(d - (d >= 1 ? t : 0)),
-      child: deckBodyFor(kind, widget.deck),
+      child: deckBodyFor(kind, widget.deck, hueOf: widget.castHue),
     );
     if (reduced) {
       final o = d == 0 ? 1 - t : (d == 1 ? t : 0.0);

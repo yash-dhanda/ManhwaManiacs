@@ -49,13 +49,13 @@ class RecapRepository {
   }
 
   /// `GET /ai/recap?shape=deck&scope=` (glass 9.1.3). `scope` is `series` or `chapter`; a JSON answer is [RecapNone], a stream a
-  /// [DeckStream]. The prose call above never sends `shape`.
-  Future<RecapOpen> openDeck(RecapKey k, {String scope = 'series', CancelToken? cancel}) async {
+  /// [DeckStream]. The prose call above never sends `shape`. [fresh] skips the server's cached recap ("Write it again"; one ask).
+  Future<RecapOpen> openDeck(RecapKey k, {String scope = 'series', bool fresh = false, CancelToken? cancel}) async {
     final Response<ResponseBody> r;
     try {
       r = await _dio.get<ResponseBody>(
         '/ai/recap',
-        queryParameters: {..._q(k), 'shape': 'deck', 'scope': scope},
+        queryParameters: {..._q(k), 'shape': 'deck', 'scope': scope, if (fresh) 'fresh': '1'},
         cancelToken: cancel,
         options: Options(responseType: ResponseType.stream, headers: {'Accept': 'text/event-stream, application/json'}),
       );
