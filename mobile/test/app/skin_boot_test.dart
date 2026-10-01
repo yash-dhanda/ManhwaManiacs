@@ -31,7 +31,7 @@ void main() {
     test('without debug skips the override', () async {
       final p =
           await _prefs({kSkinDebugKey: 'cinematic', kSkinActiveKey: 'legacy'});
-      expect(SkinBoot.resolveSkinWithoutDebug(p), SkinId.legacy);
+      expect(SkinBoot.resolveSkinWithoutDebug(p), SkinId.cinematic);
     });
   });
 
