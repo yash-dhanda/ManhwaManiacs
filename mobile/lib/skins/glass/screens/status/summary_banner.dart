@@ -111,13 +111,21 @@ class SummaryBanner extends StatelessWidget {
           child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
-                    GlyphIcon(statusGlyph(summary.worst), weight: GlassIconWeight.fill, color: c),
+                  // The glyph sits on the headline's first line; a wrapped problem hangs under its own text, not the bullet.
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    SizedBox(height: measureText(context, 'Ag', roleStyle(context, gt.typeHeadline)).height, child: Center(child: GlyphIcon(statusGlyph(summary.worst), weight: GlassIconWeight.fill, color: c))),
                     const SizedBox(width: 8),
                     Expanded(child: GlassText(glassStatusHeadline(summary), role: gt.typeHeadline)),
                   ],),
                   for (final p in summary.problems)
-                    Padding(padding: const EdgeInsets.only(top: 6), child: GlassText('•  $p', role: gt.typeCallout, color: gt.colorLabel2)),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        GlassText('•', role: gt.typeCallout, color: gt.colorLabel2),
+                        const SizedBox(width: 8),
+                        Expanded(child: GlassText(p, role: gt.typeCallout, color: gt.colorLabel2)),
+                      ],),
+                    ),
                 ],),
           ),
         ),
