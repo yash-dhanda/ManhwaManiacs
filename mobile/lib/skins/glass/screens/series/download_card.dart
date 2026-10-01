@@ -6,15 +6,18 @@ import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.d
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
+import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/machine_badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/liquid_progress.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
+import 'package:manhwamaniacs/skins/glass/routes/glass_form_route.dart';
+import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/series_actions.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/series_data.dart';
-import 'package:manhwamaniacs/skins/glass/screens/series/tags_sheet.dart' show pushSeriesSheet;
+import 'package:manhwamaniacs/skins/skins.dart';
 
 String? _pauseLine(DownloadQueuePauseReason r) => switch (r) {
       DownloadQueuePauseReason.userPaused => 'Paused',
@@ -63,16 +66,28 @@ class SeriesDownloadCard extends ConsumerWidget {
                 label: 'Save to Files…',
                 variant: GlassButtonVariant.plain,
                 size: GlassButtonSize.small,
-                onPressed: () {
-                  final spec = glassSheetSpec('save-files')!;
-                  unawaited(pushSeriesSheet(context, title: spec.title, builder: spec.builder, detents: spec.detents));
-                },
+                onPressed: () => openSaveToFiles(context, ref, d),
               ),
           ],
         ),
       ),
     );
   }
+}
+
+/// Save to Files (`?sheet=save-files&series={source}:{key}[&chapter=]`, mobile/32's sheet, which reads the router location): on the
+/// full page the parameter goes on this location and the shell's sheet host presents it; over the phone sheet or a window, which have
+/// no sheet host, it opens on Downloads.
+void openSaveToFiles(BuildContext context, WidgetRef ref, GlassSeriesData d, {String? chapter}) {
+  final router = ref.read(skinRouterProvider);
+  final q = {'sheet': 'save-files', 'series': '${d.sourceId}:${d.seriesKey}', if (chapter != null) 'chapter': chapter};
+  final route = ModalRoute.of(context);
+  if (route is GlassSheetRoute || route is GlassFormRoute) {
+    unawaited(router.push<void>(Routes.downloads(q)));
+    return;
+  }
+  final loc = router.routerDelegate.currentConfiguration.uri;
+  router.go(loc.replace(queryParameters: {...loc.queryParameters, ...q}).toString());
 }
 
 /// "Previously on" (glass 9.1.3; when the profile has progress): a row with the machine sparkle that opens the `recap` route.

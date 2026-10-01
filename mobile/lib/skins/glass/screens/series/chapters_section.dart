@@ -37,11 +37,11 @@ import 'package:manhwamaniacs/skins/glass/primitives/text_field.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/chapter_extents.dart';
+import 'package:manhwamaniacs/skins/glass/screens/series/download_card.dart' show openSaveToFiles;
 import 'package:manhwamaniacs/skins/glass/screens/series/series_actions.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/series_data.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/series_header.dart' show rectOf;
 import 'package:manhwamaniacs/skins/glass/screens/series/series_states.dart';
-import 'package:manhwamaniacs/skins/glass/screens/series/tags_sheet.dart' show pushSeriesSheet;
 import 'package:manhwamaniacs/skins/glass/transitions/dive.dart';
 
 /// The chapter list's own state (glass 8.12 Chapters section, Select mode).
@@ -280,7 +280,7 @@ class ChapterRowsSliver extends ConsumerWidget {
                   onExtractText: ocr && !d.novel
                       ? () => fire(ref.read(ocrRunControllerProvider.notifier).runChapter(id: (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id), chapterNumber: c.number))
                       : null,
-                  onSaveToFiles: glassSheetRegistered('save-files') ? () => _saveToFiles(context, c) : null,
+                  onSaveToFiles: glassSheetRegistered('save-files') ? () => _saveToFiles(context, ref, c) : null,
                 ),
         );
         final pulsed = chapters.pulse == c.id;
@@ -323,10 +323,7 @@ class ChapterRowsSliver extends ConsumerWidget {
     ref.invalidate(seriesChapterDownloadStatusProvider(data.identity));
   }
 
-  void _saveToFiles(BuildContext context, SourceChapterSummary c) {
-    final spec = glassSheetSpec('save-files');
-    if (spec != null) unawaited(pushSeriesSheet(context, title: spec.title, builder: spec.builder, detents: spec.detents));
-  }
+  void _saveToFiles(BuildContext context, WidgetRef ref, SourceChapterSummary c) => openSaveToFiles(context, ref, data, chapter: c.id);
 
   void _rowMenu(BuildContext context, WidgetRef ref, SourceChapterSummary c, {required bool read, required bool saved}) {
     fire(ref.read(glassHapticsProvider).fire(HapticEvent.longpressOpen));
