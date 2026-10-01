@@ -110,6 +110,18 @@ def test_sharing_patch_partial_and_ownership(client, H, world):
     assert r.json()["excluded_series"] == []
 
 
+def test_sharing_patch_keeps_hidden_titles_and_order(client, H, world):
+    url = f"/profiles/{world['a']}/sharing"
+    client.patch(url, json={"excluded_series": [{"source_id": SRC, "series_key": "a1", "title": "Ay"}]}, headers=H("a"))
+    r = client.patch(url, json={"excluded_series": [
+        {"source_id": SRC, "series_key": "m", "title": "Em"},
+        {"source_id": SRC, "series_key": "a1"},
+    ]}, headers=H("a"))
+    ex = r.json()["excluded_series"]
+    assert {e["series_key"]: e["title"] for e in ex} == {"a1": "Ay", "m": "Em"}
+    assert [e["series_key"] for e in ex] == ["m", "a1"]  # newest first: a1 kept its place
+
+
 def test_no_retroactive_sharing(client, H, world):
     push(client, H, "c", ch=1)  # sharing off: nothing recorded
     share(client, H, world, "c")
