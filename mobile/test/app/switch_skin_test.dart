@@ -62,7 +62,7 @@ Future<(SharedPreferences, VoidCallback, int Function())> _host(
 class _NoFlushOutbox extends SkinOutbox {
   _NoFlushOutbox(SharedPreferences p) : super(p, _Nope());
   @override
-  Future<void> flush() async {}
+  Future<bool> flush() async => false;
 }
 
 class _Nope implements ProfilesRepository {

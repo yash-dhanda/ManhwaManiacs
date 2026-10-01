@@ -59,5 +59,6 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(prefs.getString(kSkinBootRestartKey), isNull);
+    await tester.pump(const Duration(seconds: 1));
   });
 }
