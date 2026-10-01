@@ -29,6 +29,7 @@ from core.profile_context import ProfileContext, resolve_profile_context
 from database.models import SourceSeriesCache
 from database.session import get_db
 from connectors.base import SourceConnector
+from connectors.branding import series_page_url
 from connectors.http import swallowed
 from connectors.http.client import ConnectorHttpError
 from connectors.ids import fully_unquote
@@ -1334,7 +1335,10 @@ class BrowseService:
         # block that parses as nothing looks exactly like it.
         self._traffic_ok(source_id)
         self._require_visible_series(series, connector, source_id)
-        return _serialize_series(series, source_id)
+        payload = _serialize_series(series, source_id)
+        # Detail only: "Open source page in browser" on the series page. Null when the source has no page for it.
+        payload["source_url"] = series_page_url(type(connector), series)
+        return payload
 
     def get_chapters(self, source_id: str, series_id: str) -> list[dict[str, object]]:
         connector = self._get_connector(source_id)
