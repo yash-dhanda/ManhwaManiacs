@@ -425,7 +425,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       _syncRefreshRate(defaults.refreshRate);
       _syncVolumeKeyNav(defaults.volumeKeyNavigation);
       // Apply lock mode from settings (once per session)
-      if (!_lockInitialized && defaults.lockControls) {
+      if (!_lockInitialized && defaults.lockControls && widget.options.legacyWakeAndLock) {
         ref.read(readerUiProvider.notifier).setLocked(true);
         _lockInitialized = true;
       }
@@ -744,7 +744,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   Future<void> _syncWakelock(bool enabled) async {
     final wakelock = _wakelock;
-    if (wakelock == null) return;
+    if (wakelock == null || !widget.options.legacyWakeAndLock) return;
 
     if (enabled && !_wakelockEnabled) {
       await wakelock.enable();
@@ -2109,7 +2109,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (!released) {
       _applyZoom(
           rubberBand
-              ? rubberScale(scale, min: min, max: max)
+              ? rubberScale(scale, min: min, max: max, d: widget.options.rubberBandMax ?? 0.5)
               : clampZoom(scale, min: min, max: max),
           focal,);
       return;
@@ -2176,7 +2176,8 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       _pinchFocal = (pts[0] + pts[1]) / 2;
       if (start.distance > 0) {
         pinchZoom(_pinchFocal, start.zoom * dist / start.distance, 0,
-            min: kZoomMin, max: kZoomMax,);
+            min: widget.options.pinchMin ?? kZoomMin,
+            max: widget.options.pinchMax ?? kZoomMax,);
       }
     } else if (widget.options.pinch && _pointers.length == 1) {
       final ui = ref.read(readerUiProvider);
@@ -2215,7 +2216,9 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       final zoom = ref.read(readerUiProvider).zoomLevel;
       _pinchStart = null;
       pinchZoom(_pinchFocal, zoom, 0,
-          min: kZoomMin, max: kZoomMax, released: true,);
+          min: widget.options.pinchMin ?? kZoomMin,
+          max: widget.options.pinchMax ?? kZoomMax,
+          released: true,);
       _pinching.value = false;
     }
   }
