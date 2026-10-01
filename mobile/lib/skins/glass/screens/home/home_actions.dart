@@ -7,6 +7,8 @@ import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart' show DownloadKind;
+import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
 import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
@@ -80,8 +82,9 @@ Future<void> downloadNextTen(WidgetRef ref, {required String sourceId, required 
   try {
     final detail = await ref.read(sourceSeriesDetailProvider((sourceId: sourceId, seriesId: seriesKey)).future);
     final ordered = sortSeriesChapters(detail.chapters, numberOf: (c) => c.number, order: SeriesChapterSortOrder.oldest);
+    final saved = await savedOrQueuedChapterKeys(ref.read(downloadsStoreProvider), (sourceId: sourceId, seriesKey: seriesKey));
     final keys = nextUnreadUndownloadedKeys([
-      for (final c in ordered) (key: c.id, number: c.number, title: c.title, isRead: readNumber != null && c.number != null && c.number! <= readNumber, isDownloaded: false),
+      for (final c in ordered) (key: c.id, number: c.number, title: c.title, isRead: readNumber != null && c.number != null && c.number! <= readNumber, isDownloaded: saved.contains(c.id)),
     ]);
     final byKey = {for (final c in ordered) c.id: c};
     await ref.read(downloadQueueControllerProvider.notifier).enqueueChapters([

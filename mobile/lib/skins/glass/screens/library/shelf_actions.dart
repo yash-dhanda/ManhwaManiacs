@@ -6,6 +6,8 @@ import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart' show contentModeScopeProvider;
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart' show DownloadKind;
+import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart' show Collection;
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
@@ -268,8 +270,9 @@ class GlassShelfActions {
     final detail = await _c.read(sourceSeriesDetailProvider((sourceId: s.sourceId, seriesId: s.seriesKey)).future);
     final ordered = sortSeriesChapters(detail.chapters, numberOf: (c) => c.number, order: SeriesChapterSortOrder.oldest);
     final readNumber = s.readState?.chapterNumber;
+    final saved = await savedOrQueuedChapterKeys(_c.read(downloadsStoreProvider), (sourceId: s.sourceId, seriesKey: s.seriesKey));
     final keys = nextUnreadUndownloadedKeys([
-      for (final c in ordered) (key: c.id, number: c.number, title: c.title, isRead: readNumber != null && c.number != null && c.number! <= readNumber, isDownloaded: false),
+      for (final c in ordered) (key: c.id, number: c.number, title: c.title, isRead: readNumber != null && c.number != null && c.number! <= readNumber, isDownloaded: saved.contains(c.id)),
     ]);
     final byKey = {for (final c in ordered) c.id: c};
     await _c.read(downloadQueueControllerProvider.notifier).enqueueChapters([
