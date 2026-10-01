@@ -80,8 +80,9 @@ String _ymd(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toStr
 
 /// Keeps the per-profile, per-day record and returns the events one progress answer causes.
 ///
-/// A flare needs a stored `false` for today and a new `true`: with nothing stored for today the value is stored and nothing
-/// flares, so a second device that sees `true` first stays quiet. The goal fires once per day, only as a crossing.
+/// A flare needs a `false` baseline for today and a new `true`. A record from an earlier day is that baseline (the day's first
+/// chapter usually answers `true` straight away, because the push that advances records the session). With nothing stored at
+/// all the value is stored and nothing flares, so a fresh install that sees `true` first stays quiet. The goal fires once per day, only as a crossing.
 List<StreakEvent> noteProgressResponse({
   required int profileId,
   required ProgressAnswer answer,
@@ -99,7 +100,8 @@ List<StreakEvent> noteProgressResponse({
 
   final streak = answer.streak;
   if (streak != null) {
-    if (same && !stored.extended && streak.extendedToday) events.add(StreakFlare(streak.currentDays));
+    final baselineFalse = stored != null && (!same || !stored.extended);
+    if (baselineFalse && streak.extendedToday) events.add(StreakFlare(streak.currentDays));
     extended = streak.extendedToday || (same && stored.extended);
   }
   final secs = answer.todaySeconds;
