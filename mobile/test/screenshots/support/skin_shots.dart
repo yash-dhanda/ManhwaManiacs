@@ -86,7 +86,23 @@ void setSkinShotView(WidgetTester tester, SkinShotSize size) => _setView(tester,
 /// The root overrides [captureSkinScreen] pumps with: prefs, auth, profile, no downloads store.
 Future<List<Override>> skinShotRootOverrides() => _rootOverrides();
 
-void _setView(WidgetTester tester, SkinShotSize size) {
+/// The alignment sweep re-runs the per-screen proof suites on other phones and text sizes: `MM_SHOT_PHONE=375x667` (or 430x932)
+/// swaps every 'phone' capture's frame and safe areas, `MM_SHOT_TEXT_SCALE=1.3` sets the device text scale for every capture.
+SkinShotSize _swept(SkinShotSize size) {
+  final v = (Platform.environment['MM_SHOT_PHONE'] ?? '').trim();
+  if (size.name != 'phone' || v.isEmpty) return size;
+  final p = v.split('x').map(double.parse).toList();
+  final pad = p[1] < 700 ? const EdgeInsets.only(top: 20) : EdgeInsets.only(top: p[0] >= 428 ? 59 : 47, bottom: 34);
+  return SkinShotSize('phone', Size(p[0], p[1]), size.pixelRatio, pad);
+}
+
+void _setView(WidgetTester tester, SkinShotSize requested) {
+  final size = _swept(requested);
+  final scale = double.tryParse(Platform.environment['MM_SHOT_TEXT_SCALE'] ?? '');
+  if (scale != null) {
+    tester.platformDispatcher.textScaleFactorTestValue = scale;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  }
   _mockPlatformChannels(tester);
   tester.view.physicalSize = size.logical * size.pixelRatio;
   tester.view.devicePixelRatio = size.pixelRatio;
