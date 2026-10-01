@@ -67,12 +67,16 @@ class _Body extends ConsumerWidget {
                   for (final k in s.skipSeries)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Row(children: [
-                        Container(width: 36, height: 54, decoration: BoxDecoration(color: gt.colorFill2, borderRadius: BorderRadius.circular(6))),
+                      child: Builder(builder: (_) {
+                        final i = k.indexOf(':');
+                        final cached = i < 0 ? null : settingsCachedSeries(ref, k.substring(0, i), k.substring(i + 1));
+                        return Row(children: [
+                        SettingsSeriesThumb(coverUrl: cached?.coverUrl),
                         const SizedBox(width: 12),
-                        Expanded(child: GlassText(_titleOf(k), role: gt.typeBody, maxLines: 2)),
+                        Expanded(child: GlassText(cached?.title ?? _titleOf(k), role: gt.typeBody, maxLines: 2)),
                         GlassButton(label: 'Ask again', size: GlassButtonSize.small, variant: GlassButtonVariant.plain, onPressed: () => unawaited(n.allow(k))),
-                      ],),
+                      ],);
+                      },),
                     ),
                 ],),
         ),

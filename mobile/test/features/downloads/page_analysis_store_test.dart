@@ -36,7 +36,7 @@ void main() {
       final db = await openDownloadsDatabase(overridePath: path);
       final cols = [for (final r in await db.rawQuery('PRAGMA table_info(saved_pages)')) r['name']];
       expect(cols, containsAll(['tint', 'panels']));
-      expect(await db.getVersion(), 6);
+      expect(await db.getVersion(), 7);
       await db.close();
     }
   });

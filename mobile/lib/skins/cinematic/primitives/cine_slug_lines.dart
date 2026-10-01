@@ -50,19 +50,24 @@ class CineSlugLines extends StatefulWidget {
 class _CineSlugLinesState extends State<CineSlugLines> {
   final _stack = GlobalKey();
   final Map<String, GlobalKey> _keys = {};
+  final Map<String, GlobalKey> _lines = {};
   Rect? _under;
 
   GlobalKey _key(String id) => _keys.putIfAbsent(id, GlobalKey.new);
+  GlobalKey _line(String id) => _lines.putIfAbsent(id, GlobalKey.new);
 
   void _measure() {
     if (!mounted || widget.multi) return;
     final id = widget.selected.isEmpty ? null : widget.selected.first;
     final chip = id == null ? null : _keys[id]?.currentContext?.findRenderObject() as RenderBox?;
+    final line = id == null ? null : _lines[id]?.currentContext?.findRenderObject() as RenderBox?;
     final stack = _stack.currentContext?.findRenderObject() as RenderBox?;
     Rect? r;
-    if (chip != null && chip.attached && stack != null && stack.attached) {
+    if (chip != null && line != null && chip.attached && line.attached && stack != null && stack.attached) {
+      // Under the label itself, whatever padding the chip carries.
       final o = stack.globalToLocal(chip.localToGlobal(Offset.zero));
-      r = Rect.fromLTWH(o.dx + 12, o.dy + chip.size.height / 2 + 12, (chip.size.width - 24).clamp(0.0, 9999), 2);
+      final x = stack.globalToLocal(line.localToGlobal(Offset.zero)).dx;
+      r = Rect.fromLTWH(x, o.dy + chip.size.height / 2 + 12, line.size.width, 2);
     }
     if (r != _under) setState(() => _under = r);
   }
@@ -76,7 +81,7 @@ class _CineSlugLinesState extends State<CineSlugLines> {
     final children = <Widget>[];
     for (var i = 0; i < widget.items.length; i++) {
       if (i > 0) children.add(ExcludeSemantics(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: CineLit('·', CineFace.archivo, 12, 16, color: c.colorInk30))));
-      children.add(_chip(context, c, widget.items[i], hit));
+      children.add(_chip(context, c, widget.items[i], hit, first: i == 0));
     }
     final row = SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -102,7 +107,9 @@ class _CineSlugLinesState extends State<CineSlugLines> {
     );
   }
 
-  Widget _chip(BuildContext context, CineTokens c, CineSlug s, double hit) {
+  /// The first label starts on the gutter: its leading 12 px would indent the line from every
+  /// other left edge on the page.
+  Widget _chip(BuildContext context, CineTokens c, CineSlug s, double hit, {required bool first}) {
     final selected = widget.selected.contains(s.id);
     final multi = widget.multi;
     final reduced = CineMotion.reduced(context);
@@ -114,7 +121,7 @@ class _CineSlugLinesState extends State<CineSlugLines> {
       final count = s.count == null && !widget.loading
           ? null
           : Transform.translate(offset: const Offset(0, -4.2), child: CineLit(widget.loading ? '–' : '${s.count}', CineFace.plexMono, 10, 12, color: c.colorInk45));
-      Widget line = Row(mainAxisSize: MainAxisSize.min, children: [if (s.leading != null) ...[s.leading!, const SizedBox(width: 6)], label, if (count != null) ...[const SizedBox(width: 2), count]]);
+      Widget line = Row(key: _line(s.id), mainAxisSize: MainAxisSize.min, children: [if (s.leading != null) ...[s.leading!, const SizedBox(width: 6)], label, if (count != null) ...[const SizedBox(width: 2), count]]);
       if (s.removable) {
         line = Container(
           height: 28,
@@ -123,13 +130,17 @@ class _CineSlugLinesState extends State<CineSlugLines> {
           child: Row(mainAxisSize: MainAxisSize.min, children: [label, const SizedBox(width: 6), CineGlyphIcon(CineGlyph.x, size: 12, color: color)]),
         );
       }
-      Widget box = Padding(padding: EdgeInsets.symmetric(horizontal: s.removable ? 0 : 12), child: line);
-      box = ConstrainedBox(constraints: BoxConstraints(minWidth: hit, minHeight: hit), child: Center(widthFactor: 1, child: box));
+      final pad = s.removable ? 0.0 : 12.0;
+      Widget box = Padding(padding: EdgeInsets.only(left: first ? 0 : pad, right: pad), child: line);
+      box = ConstrainedBox(
+        constraints: BoxConstraints(minWidth: hit, minHeight: hit),
+        child: Align(alignment: first ? Alignment.centerLeft : Alignment.center, widthFactor: 1, child: box),
+      );
       if (multi && selected && !s.removable) {
         box = Stack(clipBehavior: Clip.none, children: [
           box,
           Positioned(
-            left: 12,
+            left: first ? 0 : 12,
             right: 12,
             top: hit / 2 + 12,
             height: 2,

@@ -35,7 +35,7 @@ Future<void> showSeriesTagSheet(BuildContext context, FeatureData d) => showCine
           final key = (sourceId: d.sourceId, seriesKey: d.seriesKey);
           final ctl = ref.read(tagsControllerProvider);
           return Padding(
-            padding: EdgeInsets.fromLTRB(c.space4, 0, c.space4, c.space4),
+            padding: EdgeInsets.only(bottom: c.space4), // the sheet body sets the gutter
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               ...all.when(
                 data: (tags) => [

@@ -80,3 +80,18 @@ FollowedSeries? cachedFollowedSeriesById(
   }
   return null;
 }
+
+/// The cached follow row for ([sourceId], [seriesKey]), or `null`: the cover and title a settings list shows for a series it
+/// stores only by key (the recap skip list, the Circle's hidden series).
+FollowedSeries? cachedFollowedSeriesByKey(
+  SharedPreferences prefs,
+  String key,
+  String sourceId,
+  String seriesKey, {
+  bool gateOpen = true,
+}) {
+  for (final series in readCachedFollowedSeries(prefs, key, gateOpen: gateOpen)) {
+    if (series.sourceId == sourceId && series.seriesKey == seriesKey) return series;
+  }
+  return null;
+}

@@ -29,6 +29,8 @@ class _Admin extends FakeAuth {
 
 List<Override> _auth(bool admin) => [authControllerProvider.overrideWith(() => _Admin(admin))];
 
+bool textFieldFocused() => FocusManager.instance.primaryFocus?.context?.findAncestorWidgetOfExactType<EditableText>() != null;
+
 void main() {
   setUpAll(loadAppFonts);
 
@@ -136,5 +138,51 @@ void main() {
     expect(find.text('System status'), findsOneWidget);
     expect(find.text('Solid glass'), findsOneWidget);
   });
-}
 
+  testWidgets('hardware keys on the tablet: / focuses the search, Down and Up move between sections, Enter opens', (t) async {
+    final rig = await pumpAuth(t, '/settings/appearance', _fx(), extra: _auth(true), size: const Size(834, 1194));
+    await settleFor(t, 1500);
+    await t.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await settleFor(t, 800);
+    expect(rig.at, startsWith('/settings/reading-manga'));
+    await t.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await settleFor(t, 800);
+    expect(rig.at, startsWith('/settings/appearance'));
+    await t.sendKeyEvent(LogicalKeyboardKey.enter);
+    await settleFor(t, 800);
+    expect(rig.at, startsWith('/settings/appearance'));
+    await t.sendKeyEvent(LogicalKeyboardKey.slash, character: '/');
+    await settleFor(t, 300);
+    expect(textFieldFocused(), isTrue);
+    await t.enterText(find.byType(EditableText), 'opaque');
+    await settleFor(t, 600);
+    expect(find.text('Solid glass'), findsWidgets);
+    expect(find.text('Reading history'), findsNothing, reason: 'the matches replace the section list in place');
+  });
+
+  testWidgets('hardware keys on the phone: / opens the search overlay, Esc closes it, Esc on a section returns to the list', (t) async {
+    final rig = await pumpAuth(t, '/settings/appearance', _fx(), extra: _auth(false));
+    await settleFor(t, 1500);
+    await t.sendKeyEvent(LogicalKeyboardKey.escape);
+    await settleFor(t, 1200);
+    expect(rig.at, '/settings');
+    await t.sendKeyEvent(LogicalKeyboardKey.slash, character: '/');
+    await settleFor(t, 600);
+    expect(find.byType(EditableText), findsOneWidget);
+    expect(textFieldFocused(), isTrue, reason: 'the overlay field takes focus');
+    await t.sendKeyEvent(LogicalKeyboardKey.escape);
+    await settleFor(t, 1200);
+    expect(find.byType(EditableText), findsNothing, reason: 'closed, and the well does not reopen it');
+  });
+
+  testWidgets('focus returns to the Cinematic card after the alert is cancelled', (t) async {
+    await pumpAuth(t, '/settings/appearance', _fx(), extra: _auth(false));
+    await settleFor(t, 1500);
+    await t.tap(find.text('Cinematic'));
+    await settleFor(t, 800);
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'GlassAlert.cancel');
+    await t.tap(find.text('Stay in Glass'));
+    await settleFor(t, 800);
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'GlassSkinCard');
+  });
+}

@@ -2,12 +2,15 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
+import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart' show springOf;
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
+import 'package:manhwamaniacs/skins/glass/tokens.g.dart' show GlassSprings;
 
 /// The effects that must survive a router reset, so they live above the router in the app builder: the profile hand-off flight
 /// (an orb flying from its menu row to the dock or sidebar, glass 8.25.2) and the skin melt (glass 4.10).
@@ -126,12 +129,13 @@ class _GlassEffectsLayerState extends ConsumerState<GlassEffectsLayer>
                     child: ColoredBox(color: Color.fromRGBO(0, 0, 0, t)),),
               ],);
             }
-            final blur = 40 * Curves.easeOut.transform(t);
+            final m = glassMeltAt(t);
+            final blur = 40 * m.blur;
             final size = MediaQuery.sizeOf(context);
             final diag =
                 math.sqrt(size.width * size.width + size.height * size.height) /
                     2;
-            final r = diag * (1 - Curves.easeInOutCubic.transform(t));
+            final r = diag * (1 - m.mask);
             return Stack(
               fit: StackFit.expand,
               children: [
@@ -222,4 +226,14 @@ class MeniscusTailPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(MeniscusTailPainter old) => old.from != from || old.to != to || old.fade != fade || old.width != width;
+}
+
+final SpringSimulation _meltBlur = SpringSimulation(springOf(GlassSprings.smooth), 0, 1, 0);
+final SpringSimulation _meltMask = SpringSimulation(springOf(GlassSprings.page), 0, 1, 0);
+
+/// The skin melt at linear progress [t] (0..1 over 615 ms, glass 4.10 Skin melt): the blur rides `smooth` (0 -> 40 px) and the
+/// circular mask rides `page`, whose settle ends the melt. Both 0..1.
+({double blur, double mask}) glassMeltAt(double t) {
+  final s = t * 0.615;
+  return (blur: _meltBlur.x(s).clamp(0.0, 1.0), mask: t >= 1 ? 1.0 : _meltMask.x(s).clamp(0.0, 1.0));
 }

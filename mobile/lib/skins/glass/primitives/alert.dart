@@ -96,8 +96,8 @@ class GlassAlert<T> extends ConsumerStatefulWidget {
   /// A glyph on its backing disc above the title (the 18+ gate's `age-gate`).
   final Widget? leading;
 
-  /// Extra content between the body and the buttons (the gate's hold button and its always-visible fallback). When set,
-  /// initial focus goes to the cancel button.
+  /// Extra content between the body and the buttons (the gate's hold button and its always-visible fallback). Initial focus goes
+  /// to the cancel button either way.
   final Widget? extra;
 
   @override
@@ -132,7 +132,7 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startBloom();
-      if (widget.extra != null && mounted) _cancelFocus.requestFocus();
+      if (mounted) _cancelFocus.requestFocus(); // glass 7.11: initial focus on the least destructive action
     });
   }
 

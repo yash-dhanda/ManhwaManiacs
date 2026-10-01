@@ -10,6 +10,8 @@ import 'package:manhwamaniacs/features/downloads/providers/active_download_queue
 import 'package:manhwamaniacs/features/downloads/utils/active_download_count.dart' show glassActiveDownloadCountProvider;
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
+import 'package:manhwamaniacs/features/library/models/suggestion.dart';
+import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/app_update_provider.dart';
@@ -75,6 +77,7 @@ List<Override> shellTestOverrides({int unread = 0, int downloads = 0}) => [
       appUpdateProvider.overrideWith((ref) async => null),
       packageInfoProvider.overrideWith((ref) async => PackageInfo(appName: 'ManhwaManiacs', packageName: 'app.test', version: '3.5.0', buildNumber: '57')),
       gravitySensorProvider.overrideWithValue(() => const Stream.empty()),
+      suggestAvailabilityProvider.overrideWith((ref) async => const SuggestionAvailability(available: false, reason: 'not_configured', remainingToday: 0)),
     ];
 
 class ShellRig {

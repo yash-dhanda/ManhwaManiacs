@@ -30,7 +30,7 @@ Future<void> showScheduleSheet(BuildContext context, {required UpdateSettings? s
       builder: (ctx) {
         final c = ctx.cine;
         return Padding(
-          padding: EdgeInsets.fromLTRB(c.space4, 0, c.space4, c.space4),
+          padding: EdgeInsets.only(bottom: c.space4), // the sheet body sets the gutter
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             if (settings != null) CineRoleText('Checking every ${_interval(settings.checkIntervalMinutes)}.', c.typeBody),
             if (settings?.lastRunAt != null) CineRoleText('Last check: ${_clock(settings!.lastRunAt!)}.', c.typeBody),
