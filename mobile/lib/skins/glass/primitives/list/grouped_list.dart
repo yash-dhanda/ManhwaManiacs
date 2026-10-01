@@ -32,7 +32,7 @@ class GlassGroupedList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final host = GlassHost.of(context);
-    final margin = inset ? GlassFrame.screenMargin(context) : 0.0;
+    final margin = inset ? GlassFrame.contentMargin(context) : 0.0;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: margin),
       child: Column(

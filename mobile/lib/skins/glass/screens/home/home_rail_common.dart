@@ -37,7 +37,7 @@ class HomeRailHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final margin = GlassFrame.screenMargin(context);
+    final margin = GlassFrame.contentMargin(context);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: margin),
       child: Row(

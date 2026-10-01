@@ -16,7 +16,6 @@ import 'package:manhwamaniacs/features/library/store/numbers_snapshot.dart';
 import 'package:manhwamaniacs/features/library/utils/numbers_rules.dart';
 import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/glass/parts/share/share_side.dart';
 import 'package:manhwamaniacs/skins/glass/parts/streak/streak_ui.dart';
@@ -219,20 +218,18 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
       refreshSliver: GlassPullToRefresh(controller: _refresh, onRefresh: _onRefresh),
       slivers: [
         SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: GlassFrameMargins.of(context)),
-            child: _Body(
-              state: async,
-              days: _days,
-              now: now,
-              heroKey: _heroKey,
-              onRange: _setRange,
-              onRetry: () => unawaited(_refresh.refresh()),
-              rangeSpec: _rangeSpec,
-              year: widget.year,
-              onOpenWrapped: _openWrapped,
-              onGoal: _goalMenu,
-            ),
+          // GlassScaffold insets the slivers by the screen margin.
+          child: _Body(
+            state: async,
+            days: _days,
+            now: now,
+            heroKey: _heroKey,
+            onRange: _setRange,
+            onRetry: () => unawaited(_refresh.refresh()),
+            rangeSpec: _rangeSpec,
+            year: widget.year,
+            onOpenWrapped: _openWrapped,
+            onGoal: _goalMenu,
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 120)),
@@ -243,11 +240,6 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
 }
 
 const _exportGlyph = Glyph(regular: PhosphorRegular.export, fill: PhosphorFill.export, bold: PhosphorBold.export, light: PhosphorLight.export);
-
-/// The horizontal screen margin.
-abstract final class GlassFrameMargins {
-  static double of(BuildContext context) => GlassFrame.screenMargin(context);
-}
 
 class _Body extends ConsumerWidget {
   const _Body({required this.state, required this.days, required this.now, required this.heroKey, required this.onRange, required this.onRetry, required this.rangeSpec, required this.year, required this.onOpenWrapped, required this.onGoal});

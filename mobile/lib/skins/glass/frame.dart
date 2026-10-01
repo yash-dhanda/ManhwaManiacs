@@ -5,6 +5,14 @@ import 'package:flutter/widgets.dart';
 
 enum GlassFrameKind { phone, tablet, desktop, wide }
 
+/// Wraps content that is already inset by [GlassFrame.screenMargin] (see [GlassFrame.contentMargin]).
+class GlassMarginApplied extends InheritedWidget {
+  const GlassMarginApplied({super.key, required super.child});
+
+  @override
+  bool updateShouldNotify(GlassMarginApplied oldWidget) => false;
+}
+
 /// Frames are chosen by the window's shorter side, so a rotated phone is still a phone (glass 8.0.1).
 abstract final class GlassFrame {
   static GlassFrameKind ofSize(Size size) {
@@ -30,6 +38,11 @@ abstract final class GlassFrame {
       GlassFrameKind.wide => 40,
     };
   }
+
+  /// The horizontal inset a screen or a list primitive still owes: the screen margin, or 0 inside content `GlassScaffold` already
+  /// insets (its large title and slivers), so a grouped list, chip row or rail there sits on the same gutter as the title.
+  static double contentMargin(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<GlassMarginApplied>() != null ? 0 : screenMargin(context);
 
   /// True on a phone-sized window of [view] (used before a BuildContext exists).
   static bool isPhoneView(FlutterView view) =>

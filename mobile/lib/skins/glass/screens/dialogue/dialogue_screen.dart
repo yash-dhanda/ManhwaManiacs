@@ -108,7 +108,6 @@ class _GlassDialogueScreenState extends ConsumerState<GlassDialogueScreen> {
     final capable = ref.watch(serverOcrCapabilityProvider).valueOrNull ?? true;
     final online = ref.watch(deviceOnlineProvider).valueOrNull ?? true;
     final engine = ref.watch(ocrFeatureVisibleProvider);
-    final margin = GlassFrame.screenMargin(context);
     final wide = GlassFrame.of(context) != GlassFrameKind.phone;
 
     Widget body;
@@ -154,7 +153,7 @@ class _GlassDialogueScreenState extends ConsumerState<GlassDialogueScreen> {
         leading: GlassLeading.back,
         slivers: [
           SliverPadding(
-            padding: EdgeInsets.fromLTRB(margin, 0, margin, 120),
+            padding: const EdgeInsets.only(bottom: 120), // GlassScaffold insets the slivers
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

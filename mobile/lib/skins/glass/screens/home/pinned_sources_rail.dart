@@ -22,7 +22,7 @@ class HomePinnedSourcesRail extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sources = rail.items.cast<HomeSourceItem>();
-    final margin = GlassFrame.screenMargin(context);
+    final margin = GlassFrame.contentMargin(context);
     final w = posterWidthFor(GlassFrame.of(context));
     void go(String path) => unawaited(ref.read(skinRouterProvider).push<void>(path));
     return Column(

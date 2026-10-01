@@ -134,7 +134,6 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
     final gateOpen = ref.watch(matureContentProvider).valueOrNull ?? false;
     final scope = ref.watch(contentModeScopeProvider);
     final online = ref.watch(deviceOnlineProvider).valueOrNull ?? true;
-    final margin = GlassFrame.screenMargin(context);
     final wide = GlassFrame.of(context) != GlassFrameKind.phone;
     final novels = ref.watch(contentModeControllerProvider) == ContentMode.novel;
 
@@ -259,7 +258,8 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
         contentModeSwitch: true,
         refreshSliver: GlassPullToRefresh(controller: _refresh, onRefresh: _onRefresh),
         slivers: [
-          SliverPadding(padding: EdgeInsets.fromLTRB(margin, 8, margin, 140), sliver: SliverToBoxAdapter(child: body)),
+          // GlassScaffold insets the slivers by the screen margin.
+          SliverPadding(padding: const EdgeInsets.fromLTRB(0, 8, 0, 140), sliver: SliverToBoxAdapter(child: body)),
         ],
       ),
     );
