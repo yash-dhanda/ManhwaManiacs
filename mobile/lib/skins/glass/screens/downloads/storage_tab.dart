@@ -43,9 +43,19 @@ class GlassStorageTab extends ConsumerWidget {
             if (device) GlassLabel(kEveryone, role: gt.typeFootnote, color: gt.colorLabel3),
           ],),
         );
-    Widget chips<T>(List<(T, String)> items, T selected, void Function(T) onPick) => Wrap(spacing: 8, runSpacing: 8, children: [
-          for (final i in items) GlassChip(label: i.$2, kind: GlassChipKind.choice, selected: i.$1 == selected, inChoiceGroup: true, onPressed: () => onPick(i.$1)),
-        ],);
+    // The choice group draws the sliding selection capsule behind its chips (glass 7.5).
+    Widget chips<T>(List<(T, String)> items, T selected, void Function(T) onPick) => Align(
+          alignment: Alignment.centerLeft,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: GlassChoiceChips<T>(
+              options: [for (final i in items) i.$1],
+              selected: selected,
+              onSelected: onPick,
+              labelOf: (v) => items.firstWhere((i) => i.$1 == v).$2,
+            ),
+          ),
+        );
     Widget toggle(String label, String? hint, bool v, ValueChanged<bool> on) => ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 56),
           child: Row(children: [

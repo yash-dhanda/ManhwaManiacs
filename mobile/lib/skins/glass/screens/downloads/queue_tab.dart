@@ -24,6 +24,14 @@ import 'package:manhwamaniacs/skins/glass/primitives/states/object_lens.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart' show roleButtonIcon;
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show GlassTwin;
 
+/// "Chapter 12" (sentence case, glass copy), or the chapter's title when it has no number.
+String glassChapterLabel(SavedChapter c) {
+  final n = c.chapterNumber;
+  if (n != null) return 'Chapter ${n == n.roundToDouble() ? n.toInt() : n}';
+  final t = c.title;
+  return t == null || t.isEmpty ? 'Chapter ${c.chapterKey}' : t;
+}
+
 const String kForegroundNote = 'Downloads run while ManhwaManiacs is open; leaving pauses them and coming back picks up where they stopped.';
 
 /// The pause reason line with its clearing behaviour (glass 8.22): null when the queue clears itself without a word.
@@ -109,7 +117,7 @@ class _GlassQueueTabState extends ConsumerState<GlassQueueTab> {
             const SizedBox(height: 8),
             GlassLabel(cur.seriesTitle, role: gt.typeHeadline, maxLines: 2),
             GlassLabel(
-              cur.kind.isAudio ? 'Fetching the audio…' : (cur.kind.isNovel ? 'Fetching the text…' : (cur.pageTotal <= 0 ? 'Reading chapter details…' : '${cur.chapterLabel[0]}${cur.chapterLabel.substring(1).toLowerCase()} · page ${cur.pageDone.clamp(0, cur.pageTotal)} of ${cur.pageTotal}')),
+              cur.kind.isAudio ? 'Fetching the audio…' : (cur.kind.isNovel ? 'Fetching the text…' : (cur.pageTotal <= 0 ? 'Reading chapter details…' : '${cur.chapterLabel.replaceFirst(RegExp('^CH '), 'Chapter ')} · page ${cur.pageDone.clamp(0, cur.pageTotal)} of ${cur.pageTotal}')),
               role: gt.typeFootnote,
               color: gt.colorLabel2,
             ),
@@ -137,7 +145,7 @@ class _GlassQueueTabState extends ConsumerState<GlassQueueTab> {
       if (rows.isNotEmpty)
         GlassReorderList<SavedChapter>(
           items: rows,
-          nameOf: (c) => '${c.seriesTitle ?? c.seriesKey} ${chapterLabelOf(c)}',
+          nameOf: (c) => '${c.seriesTitle ?? c.seriesKey} ${glassChapterLabel(c)}',
           onReorder: (from, to) => unawaited(_q.moveInQueue(rows[from].identity, to)),
           itemBuilder: (context, c, i, info) => _QueueRow(chapter: c, paused: state.isPaused),
         ),
@@ -164,19 +172,19 @@ class _QueueRow extends ConsumerWidget {
       DownloadChapterState.complete => 'Saved',
     };
     return GlassRowShell(
-      semanticsLabel: '${c.seriesTitle ?? c.seriesKey}, ${chapterLabelOf(c)}, $text',
+      semanticsLabel: '${c.seriesTitle ?? c.seriesKey}, ${glassChapterLabel(c)}, $text',
       minHeight: 64,
       builder: (context, stacked, info) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(children: [
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              GlassLabel('${c.seriesTitle ?? c.seriesKey} · ${chapterLabelOf(c)}', role: gt.typeBody),
+              GlassLabel('${c.seriesTitle ?? c.seriesKey} · ${glassChapterLabel(c)}', role: gt.typeBody),
               GlassLabel(text, role: gt.typeFootnote, color: c.state == DownloadChapterState.failed ? gt.colorDanger : gt.colorLabel2, maxLines: 2),
             ],),
           ),
           if (c.state == DownloadChapterState.failed) GlassButton(label: 'Retry', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () => unawaited(q.retryChapter(c.identity))),
-          GlassIconButton(icon: roleButtonIcon(GlassIconRole.close), label: 'Remove ${chapterLabelOf(c)} from the queue', kind: GlassIconButtonKind.row, twin: GlassTwin.content, onPressed: () => unawaited(q.cancelChapter(c.identity))),
+          GlassIconButton(icon: roleButtonIcon(GlassIconRole.close), label: 'Remove ${glassChapterLabel(c)} from the queue', kind: GlassIconButtonKind.row, twin: GlassTwin.content, onPressed: () => unawaited(q.cancelChapter(c.identity))),
         ],),
       ),
     );

@@ -11,7 +11,6 @@ import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart'
 import 'package:manhwamaniacs/features/downloads/providers/downloads_storage_providers.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/utils/format_bytes.dart';
-import 'package:manhwamaniacs/features/downloads/utils/queue_summary.dart' show chapterLabelOf;
 import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
@@ -30,6 +29,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/list/swipe_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/progress.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/screens/downloads/queue_tab.dart' show glassChapterLabel;
 import 'package:manhwamaniacs/skins/glass/screens/home/home_actions.dart' show openSeries;
 import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart' show globalRectOf, roleButtonIcon, roleIcon;
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show GlassTwin;
@@ -278,7 +278,7 @@ class _ChapterRow extends ConsumerWidget {
       pagesTotal: lead ? q.pageTotal : c.pageCount,
       pauseReason: paused ? _pause(q.pauseReason) : null,
     ),);
-    final label = chapterLabelOf(c);
+    final label = glassChapterLabel(c);
     final saved = c.state == DownloadChapterState.complete;
     final ocrOk = ref.watch(ocrAvailableProvider).valueOrNull ?? false;
     final run = ref.watch(ocrRunControllerProvider);
