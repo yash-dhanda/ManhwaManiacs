@@ -23,6 +23,14 @@ class StatusBars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final max = data.fold<double>(0, (m, d) => d.value > m ? d.value : m);
+    // The word column fits the longest word at the current text size (92 px at least, 45 % of the row at most).
+    final style = roleStyle(context, gt.typeFootnote);
+    final widest = data.fold<double>(0, (m, d) {
+      final w = measureText(context, _word(d.label), style).width;
+      return w > m ? w : m;
+    });
+    return LayoutBuilder(builder: (context, outer) {
+    final wordW = (widest + 8).clamp(92.0, outer.hasBoundedWidth ? outer.maxWidth * 0.45 : widest + 8).toDouble();
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -31,7 +39,7 @@ class StatusBars extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(
               children: [
-                SizedBox(width: 92, child: GlassText(_word(data[i].label), role: gt.typeFootnote, color: selected == i ? gt.colorLabel1 : gt.colorLabel2, maxLines: 1)),
+                SizedBox(width: wordW, child: GlassText(_word(data[i].label), role: gt.typeFootnote, color: selected == i ? gt.colorLabel1 : gt.colorLabel2, maxLines: 2)),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, box) {
@@ -48,12 +56,13 @@ class StatusBars extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                SizedBox(width: 36, child: GlassText('${data[i].value.round()}', role: gt.typeMono, textAlign: TextAlign.right, color: gt.colorLabel1)),
+                ConstrainedBox(constraints: const BoxConstraints(minWidth: 36), child: GlassText('${data[i].value.round()}', role: gt.typeMono, textAlign: TextAlign.right, color: gt.colorLabel1)),
               ],
             ),
           ),
       ],
     );
+    },);
   }
 
   static String _word(String? label) {
