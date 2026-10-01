@@ -58,10 +58,18 @@ class AuthInterceptor extends Interceptor {
     handler.next(options);
   }
 
+  /// Only a 401 for a request that carried the *current* token says the session is dead. A
+  /// request sent before the launch-time restore had read the keychain (no header) or under a
+  /// token since replaced answered 401 for that, and treating it as expiry signed a valid
+  /// session out and deleted its stored token: "signed out after every restart", twice.
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    final token = _tokenStore.token;
     if (err.response?.statusCode == 401 &&
-        !_ignored401Paths.contains(err.requestOptions.path)) {
+        !_ignored401Paths.contains(err.requestOptions.path) &&
+        token != null &&
+        token.isNotEmpty &&
+        err.requestOptions.headers['Authorization'] == 'Bearer $token') {
       _onUnauthorized();
     }
     handler.next(err);

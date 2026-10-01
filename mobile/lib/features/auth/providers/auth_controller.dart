@@ -275,7 +275,6 @@ class AuthController extends Notifier<AuthState> {
     unawaited(_clearSession());
     unawaited(ref.read(activeProfileProvider.notifier).clear());
     ref.read(profileSessionReadyProvider.notifier).reset();
-    ref.invalidate(profilesProvider);
     state = const AuthUnauthenticated();
   }
 
@@ -286,9 +285,8 @@ class AuthController extends Notifier<AuthState> {
     await _clearSession();
     await ref.read(activeProfileProvider.notifier).clear();
     ref.read(profileSessionReadyProvider.notifier).reset();
-    // Drop the previous account's cached profile list so the next sign-in
+    // The profile list watches this state: it empties here, so the next sign-in
     // never briefly renders another user's profiles.
-    ref.invalidate(profilesProvider);
     state = const AuthUnauthenticated();
   }
 

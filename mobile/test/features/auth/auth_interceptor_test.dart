@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -26,6 +27,21 @@ class _CapturingAdapter implements HttpClientAdapter {
         Headers.contentTypeHeader: [Headers.jsonContentType],
       },
     );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+/// Answers 401 only once released, so the token can change while the request is out.
+class _GatedAdapter implements HttpClientAdapter {
+  final _gate = Completer<void>();
+  void release() => _gate.complete();
+
+  @override
+  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+    await _gate.future;
+    return ResponseBody.fromString('{}', 401, headers: {Headers.contentTypeHeader: [Headers.jsonContentType]});
   }
 
   @override
@@ -83,6 +99,29 @@ void main() {
         throwsA(isA<DioException>()),
       );
       expect(expired, 1);
+    });
+
+    test('a 401 for a request sent without the current token is not an expiry', () async {
+      var expired = 0;
+      final store = AuthTokenStore();
+      final adapter = _GatedAdapter();
+      final dio = _dio(AuthInterceptor(tokenStore: store, onUnauthorized: () => expired++), adapter);
+
+      // Sent before the launch-time restore set the token; it answers after.
+      final pending = dio.get<dynamic>('/profiles');
+      await pumpEventQueue();
+      store.token = 'restored';
+      adapter.release();
+      await expectLater(pending, throwsA(isA<DioException>()));
+      // Sent under a token that has since been replaced.
+      final adapter2 = _GatedAdapter();
+      dio.httpClientAdapter = adapter2;
+      final stale = dio.get<dynamic>('/profiles');
+      await pumpEventQueue();
+      store.token = 'newer';
+      adapter2.release();
+      await expectLater(stale, throwsA(isA<DioException>()));
+      expect(expired, 0);
     });
 
     test('ignores a 401 from the public login endpoint', () async {
