@@ -192,7 +192,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
       unawaited(_syncWakelock(d.keepScreenAwake));
       _syncRate(d.refreshRate);
       unawaited(_syncVolume(d.volumeKeyNavigation));
-      if (d.lockControls) ref.read(readerUiProvider.notifier).setLocked(true);
+      if (d.lockControls && widget.options.legacyWakeAndLock) ref.read(readerUiProvider.notifier).setLocked(true);
       // The resting zoom of a paged page is 1x; a series' strip zoom below or above it does not carry over.
       ref.read(readerUiProvider.notifier).setZoom(1);
       _scheduleHide();
@@ -253,6 +253,8 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
   // ── Native services (the same rules as the strip) ─────────────────────────
 
   Future<void> _syncWakelock(bool on) async {
+    // Glass owns keep-awake through the same wakelock (legacyWakeAndLock false), as ReaderEngineView does.
+    if (!widget.options.legacyWakeAndLock) return;
     if (on && !_wakelockOn) {
       await _wakelock?.enable();
       _wakelockOn = true;
