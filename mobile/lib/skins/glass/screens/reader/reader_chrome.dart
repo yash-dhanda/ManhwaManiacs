@@ -474,16 +474,29 @@ class _TitleCapsule extends StatelessWidget {
           onLongPress: onLongPress,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // The series name gives way first; the chapter always shows (the capsule's minimum fits it). The chapter is not flexible:
-                // an equal flex share cut the name to "T…" beside the chapter's empty share.
-                Flexible(flex: 3, child: GlassText(series, role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                GlassText(' · $chapter', role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1),
-                if (readAll != null) ...[const SizedBox(width: 8), Flexible(child: GlassText(readAll!, role: gt.typeMono, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis))],
-              ],
-            ),
+            // One line while "series · chapter" fits; otherwise two compact lines (the series over the chapter), so the series keeps
+            // its whole width instead of collapsing to "Tower…" beside the chapter.
+            child: LayoutBuilder(builder: (context, c) {
+              final one = measureText(context, '$series · $chapter', roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600, maxScale: 1.3)).width;
+              if (readAll != null || one <= c.maxWidth) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // The series name gives way first; the chapter always shows (the capsule's minimum fits it).
+                    Flexible(flex: 3, child: GlassText(series, role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.3)),
+                    GlassText(' · $chapter', role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1, maxScale: 1.3),
+                    if (readAll != null) ...[const SizedBox(width: 8), Flexible(child: GlassText(readAll!, role: gt.typeMono, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.3))],
+                  ],
+                );
+              }
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GlassText(series, role: gt.typeFootnote, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.15),
+                  GlassText(chapter, role: gt.typeCaption1, onGlass: true, maxLines: 1, maxScale: 1.15),
+                ],
+              );
+            },),
           ),
         ),
       );
