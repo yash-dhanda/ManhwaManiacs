@@ -1130,8 +1130,9 @@ class FollowedSeriesService:
         elif key == "sort_order":
             rows.sort(key=lambda r: r.sort_order, reverse=reverse)
         elif key in ("updated_at", "recently_updated"):
+            # New chapters, not the sweep's last visit; a series with none yet ranks by its follow date.
             rows.sort(
-                key=lambda r: r.last_checked_at or r.created_at, reverse=True
+                key=lambda r: r.last_new_chapter_at or r.created_at, reverse=True
             )
         elif key in ("created_at", "recently_added"):
             rows.sort(key=lambda r: r.created_at, reverse=True)
@@ -1648,7 +1649,11 @@ class FollowedSeriesService:
         rows = self._db.execute(
             self._scope(select(FollowedSeries).options(*self._NO_CHAPTERS))
             .where(FollowedSeries.last_checked_at.is_not(None))
-            .order_by(FollowedSeries.last_checked_at.desc())
+            .order_by(
+                func.coalesce(
+                    FollowedSeries.last_new_chapter_at, FollowedSeries.created_at
+                ).desc()
+            )
             .limit(limit)
         ).scalars().all()
         return [

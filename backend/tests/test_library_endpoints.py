@@ -377,3 +377,25 @@ def test_tags_and_series_tags(api, h):
 
     assert api.delete(f"/library/tags/{tid}", headers=h).status_code == 204
     assert tid not in [t["id"] for t in api.get("/library/tags", headers=h).json()]
+
+
+def test_recently_updated_ranks_by_new_chapters_not_last_check(api, h, db_session):
+    from datetime import datetime
+
+    from database.models import FollowedSeries
+
+    a = _follow(api, h, S1)
+    b = _follow(api, h, S2)
+    # S1 was checked last but found nothing; S2 got new chapters earlier.
+    ra = db_session.get(FollowedSeries, a["id"])
+    rb = db_session.get(FollowedSeries, b["id"])
+    ra.last_checked_at = datetime(2026, 5, 2)
+    ra.last_new_chapter_at = datetime(2026, 4, 1)
+    rb.last_checked_at = datetime(2026, 5, 1)
+    rb.last_new_chapter_at = datetime(2026, 4, 30)
+    db_session.commit()
+
+    listed = api.get("/library/series", params={"sort": "recently_updated"}, headers=h).json()
+    assert [s["series_key"] for s in listed["items"]] == [S2, S1]
+    strip = api.get("/library/recently-updated", headers=h).json()
+    assert [s["series_key"] for s in strip] == [S2, S1]
