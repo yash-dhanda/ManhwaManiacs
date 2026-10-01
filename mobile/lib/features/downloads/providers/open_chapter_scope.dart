@@ -116,7 +116,8 @@ class _OpenChapterScopeState extends ConsumerState<OpenChapterScope> {
   void _releaseAsync(Set<ScopedChapterIdentity>? claim) {
     if (claim == null) return;
     scheduleMicrotask(() {
-      if (identical(_openChaptersNotifier.state, claim)) {
+      // The container may be gone by then (the whole tree torn down with the reader open).
+      if (_openChaptersNotifier.mounted && identical(_openChaptersNotifier.state, claim)) {
         _openChaptersNotifier.state = const {};
       }
     });

@@ -20,6 +20,7 @@ import 'package:manhwamaniacs/skins/glass/dev/glass_dev_index.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_gallery.dart';
 import 'package:manhwamaniacs/skins/glass/dev/overlay_sections.dart';
 import 'package:manhwamaniacs/skins/glass/dev/shell_demo.dart';
+import 'package:manhwamaniacs/skins/glass/prefs.dart' show glassMotionPrefsProvider;
 import 'package:manhwamaniacs/skins/glass/routes/depth_observer.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_swipe_route.dart';
@@ -44,6 +45,8 @@ import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/recap/recap_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/screens/series/detent_from_throw.dart';
+import 'package:manhwamaniacs/skins/glass/screens/series/feature_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/catalogue_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/sources_screen.dart';
@@ -60,6 +63,7 @@ import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/shell/stack_overview_host.dart';
+import 'package:manhwamaniacs/skins/glass/transitions/book_open_page.dart';
 import 'package:manhwamaniacs/skins/pending_routes.dart';
 import 'package:manhwamaniacs/skins/pending_screen.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -68,8 +72,6 @@ import 'package:manhwamaniacs/skins/skins.dart';
 // `readerLanding` is built here: it redirects to the library (glass 8.0.3).
 // ignore: constant_identifier_names
 const Set<ScreenId> PENDING = {
-  ScreenId.featureByFollow,
-  ScreenId.feature,
   ScreenId.circle,
   ScreenId.circleMember,
 };
@@ -202,6 +204,39 @@ GoRoute _sheetRoute(ScreenId id, GlobalKey<NavigatorState> root, {required Strin
           return glassPage(state, GlassNotFound(location: state.uri.toString()));
         }
         return glassSheetOrPage(context, state, _pending(id, state), title: title, detents: detents, form: form);
+      },
+    );
+
+/// The series sheet route (glass 8.12 Presentation): a sheet opening at `medium`, or at `large` after a hard throw (the poster's
+/// release velocity in [GlassNavExtra.velocity]); the 960 px detail window on desktop frames; the full page with nothing beneath.
+GoRoute _seriesRoute(ScreenId id, GlobalKey<NavigatorState> root, Widget Function(GoRouterState s) build, {bool numericOnly = false}) => GoRoute(
+      path: id.path,
+      name: _nameOf(id),
+      parentNavigatorKey: root,
+      pageBuilder: (context, state) {
+        if (numericOnly && int.tryParse(state.pathParameters['followedId'] ?? '') == null) {
+          return glassPage(state, GlassNotFound(location: state.uri.toString()));
+        }
+        final extra = state.extra;
+        final child = build(state);
+        if (extra is GlassNavExtra && extra.presentation == GlassPresentation.sheet) {
+          final size = MediaQuery.maybeSizeOf(context) ?? const Size(390, 844);
+          final safeTop = MediaQuery.maybePaddingOf(context)?.top ?? 0;
+          final large = sheetLargePx(size.height, safeTop);
+          final medium = sheetDetentPx(GlassDetent.medium, viewport: size.height, large: large);
+          final v = extra.velocity;
+          final opening = v != null && openingDetent(vy: v.dy, mediumTop: size.height - medium, largeTop: size.height - large, viewportHeight: size.height) == SeriesDetent.large ? GlassDetent.large : GlassDetent.medium;
+          return GlassSheetPage<void>(
+            key: state.pageKey,
+            name: state.name,
+            title: 'Series',
+            opening: opening,
+            wideForm: GlassWideForm.detailWindow,
+            originRect: extra.originRect,
+            builder: (_) => GlassRouteFrame(routeKey: _keyOf(state), child: child),
+          );
+        }
+        return glassPage(state, child);
       },
     );
 
@@ -383,7 +418,27 @@ GoRouter buildGlassRouter(Ref ref) {
       // `/sources/.../read` the source reader with its own progress (S19).
       for (final a in Routes.readerAliases) _readerRoute(ScreenId.reader, GlassReaderScreen.of, path: a, parent: rootKey),
       _readerRoute(ScreenId.readAll, GlassReadAllScreen.of, parent: rootKey),
-      GoRoute(path: ScreenId.novel.path, name: _nameOf(ScreenId.novel), parentNavigatorKey: rootKey, pageBuilder: (context, state) => glassNovelPage(state)),
+      GoRoute(
+        path: ScreenId.novel.path,
+        name: _nameOf(ScreenId.novel),
+        parentNavigatorKey: rootKey,
+        pageBuilder: (context, state) {
+          final extra = state.extra;
+          if (!isBookOpenExtra(extra)) return glassNovelPage(state);
+          // Book open from the book page (mobile/33): the plate rotates open onto mobile/36's reader.
+          final m = extra! as Map;
+          final key = novelPageKey(state);
+          return GlassBookOpenPage<void>(
+            key: key,
+            name: state.name,
+            plateRect: m['plateRect'] as Rect,
+            cover: m['cover'] as ImageProvider?,
+            paper: (m['paper'] as Color?) ?? const Color(0xFFF4EEE2),
+            reduced: ref.read(glassMotionPrefsProvider).reduced,
+            child: GlassRouteFrame(routeKey: key.value, sheetHost: (c) => GlassSheetParamHost(child: c), child: GlassNovelReaderScreen.of(state)),
+          );
+        },
+      ),
       GoRoute(
         path: ScreenId.discover.path,
         name: _nameOf(ScreenId.discover),
@@ -396,7 +451,7 @@ GoRouter buildGlassRouter(Ref ref) {
           transitionsBuilder: (context, animation, secondary, child) => GlassRouteFrame(routeKey: _keyOf(state), child: GlassSearchPage(animation: animation)),
         ),
       ),
-      _sheetRoute(ScreenId.feature, rootKey, title: 'Series', form: GlassWideForm.detailWindow),
+      _seriesRoute(ScreenId.feature, rootKey, (s) => GlassFeatureScreen(sourceId: s.pathParameters['sourceId']!, seriesKey: s.pathParameters['seriesKey']!, chapter: s.uri.queryParameters['chapter'], sheet: s.uri.queryParameters['sheet'], velocity: s.extra is GlassNavExtra ? (s.extra! as GlassNavExtra).velocity : null)),
       GoRoute(
         path: ScreenId.recap.path,
         name: _nameOf(ScreenId.recap),
@@ -412,7 +467,7 @@ GoRouter buildGlassRouter(Ref ref) {
       _formSheetRoute(ScreenId.profileNew, rootKey, title: 'Add profile'),
       _formSheetRoute(ScreenId.profileEdit, rootKey, title: 'Edit profile', edit: true),
       // `/library/:followedId` after every static /library path (the shell's branches are matched first).
-      _sheetRoute(ScreenId.featureByFollow, rootKey, title: 'Series', form: GlassWideForm.detailWindow, numericOnly: true),
+      _seriesRoute(ScreenId.featureByFollow, rootKey, (s) => GlassFeatureByFollowScreen(followedId: int.parse(s.pathParameters['followedId']!), chapter: s.uri.queryParameters['chapter'], sheet: s.uri.queryParameters['sheet']), numericOnly: true),
       // readerLanding: /reader goes to the library.
       GoRoute(path: ScreenId.readerLanding.path, name: ScreenId.readerLanding.id, redirect: (context, state) => Routes.readerLandingRedirect),
       // Mobile aliases (redirects).
