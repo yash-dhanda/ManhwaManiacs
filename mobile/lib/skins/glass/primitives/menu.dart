@@ -76,7 +76,9 @@ abstract final class GlassMenuMetrics {
       w = math.max(w, 16 + label + 12 + (e.icon != null ? 20 + 12 : 0) + (e.leading != null ? 24 + 12 : 0) + (e.trailingMono != null ? 12 + 24 : 0) + (e.checked ?? false ? 28 : 0) + key + 16);
     }
     final gaps = entries.where((e) => e.separatorBefore).length * 6.0;
-    return Size(w.clamp(220.0, 320.0), entries.length * hit + gaps + 12);
+    // At large text a menu grows (to 1.5x of 320, never wider than the screen less 8 px a side) so its rows keep their words.
+    final maxW = math.min(MediaQuery.sizeOf(context).width - 16, 320 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.5));
+    return Size(w.clamp(math.min(220.0, maxW), maxW), entries.length * hit + gaps + 12);
   }
 }
 
@@ -317,7 +319,7 @@ class _GlassMenuPanelState extends ConsumerState<GlassMenuPanel> {
                   if (e.leading != null) Padding(padding: const EdgeInsets.only(right: 12), child: SizedBox.square(dimension: 24, child: e.leading)),
                   if (!ios && icon != null && e.leading == null) Padding(padding: const EdgeInsets.only(right: 12), child: icon),
                   if (st == _RowState.error) Padding(padding: const EdgeInsets.only(right: 8), child: GlassBacking(size: 28, child: GlyphIcon(GlassGlyph.warningCircle, size: 20, color: gt.colorDanger))),
-                  Expanded(child: GlassText(label, role: gt.typeBody, onGlass: true, color: e.enabled ? null : gt.colorLabel4, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  Expanded(child: GlassText(label, role: gt.typeBody, onGlass: true, color: e.enabled ? null : gt.colorLabel4, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.5)),
                   if (e.trailingMono != null) Padding(padding: const EdgeInsets.only(left: 12), child: GlassText(e.trailingMono!, role: gt.typeMono, color: gt.colorOnGlass.withValues(alpha: 0.56), onGlass: true)),
                   ...trailing,
                 ],
@@ -338,6 +340,8 @@ Rect menuRectFor(Rect anchor, Size menu, Size screen, EdgeInsets pad) {
   left = left.clamp(margin, math.max(margin, screen.width - menu.width - margin));
   var top = anchor.bottom + gap;
   if (top + menu.height > screen.height - pad.bottom - margin) top = math.max(pad.top + margin, anchor.top - gap - menu.height);
+  // Never above the status bar (an anchor placed above a tall preview) nor past the bottom inset.
+  top = top.clamp(pad.top + margin, math.max(pad.top + margin, screen.height - pad.bottom - margin - menu.height));
   return Rect.fromLTWH(left, top, menu.width, menu.height);
 }
 
