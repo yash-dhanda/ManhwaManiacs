@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/providers/library_read_state.dart';
+import 'package:manhwamaniacs/skins/glass/screens/home/home_data.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
@@ -64,9 +65,11 @@ class _FakeLib implements LibraryRepository {
   @override
   Future<Result<WorldRecommendations>> worldRecommendations({int seeds = 5, int perSeed = 10}) async => _r<WorldRecommendations>(null);
 
+  int lists = 0;
+
   @override
   Future<Result<PagedResult<FollowedSeries>>> listSeries({int page = 1, int perPage = 40, String? sort, String? search, String? readingStatus, bool? isFavorite, List<int>? tagIds, bool? newOnly,}) async =>
-      _r(followed == null ? null : PagedResult(items: followed!, total: followed!.length, page: 1, perPage: perPage, hasNext: false));
+      lists++ < 0 ? throw StateError('') : _r(followed == null ? null : PagedResult(items: followed!, total: followed!.length, page: 1, perPage: perPage, hasNext: false));
 
   @override
   Future<Result<LibraryStatistics>> statistics() async => _r<LibraryStatistics>(null);
@@ -175,5 +178,20 @@ void main() {
     c.read(libraryReadStateProvider).refresh();
     await Future<void>.delayed(Duration.zero);
     expect(home.calls, hasLength(2));
+  });
+
+  test("Glass Home's followed list re-reads with every new feed", () async {
+    var name = 'ready';
+    final home = _FakeHome(() => Ok(loadHome(name)));
+    final lib = _FakeLib(followed: const []);
+    final c = await container(home, lib);
+    final sub = c.listen(homeFollowedProvider, (_, __) {});
+    addTearDown(sub.close);
+    await c.read(homeFollowedProvider.future);
+    final before = lib.lists;
+    name = 'caught-up';
+    await c.read(homeFeedProvider.notifier).refreshFromServer();
+    await c.read(homeFollowedProvider.future);
+    expect(lib.lists, greaterThan(before));
   });
 }
