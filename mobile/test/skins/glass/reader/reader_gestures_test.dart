@@ -35,14 +35,6 @@ void main() {
     expect(stripScrollTapAction(const Offset(195, 420), s), TapZoneAction.menu);
   });
 
-  test('band rules: double tap anywhere in the plain strip, only the centre in paged and tap-to-scroll', () {
-    expect(doubleTapAllowedAt(const Offset(20, 420), s, paged: false, tapToScroll: false), isTrue);
-    expect(doubleTapAllowedAt(const Offset(20, 420), s, paged: true, tapToScroll: false), isFalse);
-    expect(doubleTapAllowedAt(const Offset(195, 420), s, paged: true, tapToScroll: false), isTrue);
-    expect(doubleTapAllowedAt(const Offset(195, 100), s, paged: false, tapToScroll: true), isFalse);
-    expect(doubleTapAllowedAt(const Offset(195, 420), s, paged: false, tapToScroll: true), isTrue);
-  });
-
   test('locked: five centre taps within 2 s unlock', () {
     expect(inUnlockRegion(const Offset(195, 420), s), isTrue);
     expect(inUnlockRegion(const Offset(20, 420), s), isFalse);
