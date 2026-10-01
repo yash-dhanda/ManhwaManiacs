@@ -52,6 +52,7 @@ class GlassChapterSeam extends StatelessWidget {
     if (slim) {
       return Semantics(
         header: true,
+        headingLevel: 2,
         label: to ?? '',
         excludeSemantics: true,
         child: Center(
@@ -65,6 +66,7 @@ class GlassChapterSeam extends StatelessWidget {
     }
     return Semantics(
       header: true,
+      headingLevel: 2,
       label: [to ?? '', if (missing.isNotEmpty) 'Chapter ${missing.join(', ')} is missing from this source'].join('. '),
       excludeSemantics: true,
       child: Column(

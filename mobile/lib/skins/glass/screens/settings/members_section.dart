@@ -182,7 +182,7 @@ class _MembersTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget head(int i, String t) => _cell(i, Semantics(header: true, child: GlassText(t.toUpperCase(), role: gt.typeFootnote, wght: 600, color: gt.colorLabel2)));
+    Widget head(int i, String t) => _cell(i, Semantics(header: true, headingLevel: 2, child: GlassText(t.toUpperCase(), role: gt.typeFootnote, wght: 600, color: gt.colorLabel2)));
     return Semantics(
       label: 'Members',
       container: true,

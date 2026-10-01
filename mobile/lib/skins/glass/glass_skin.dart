@@ -102,12 +102,22 @@ class _GlassRootState extends ConsumerState<GlassRoot> {
     bands: (context) => glassFocusBands(context, accessory: ref.read(glassAccessoryVisibleProvider)),
   );
 
+  bool _reducedProbe() => ref.read(glassMotionPrefsProvider).reduced;
+
   @override
   void initState() {
     super.initState();
-    GlassMotion.isReduced = () => ref.read(glassMotionPrefsProvider).reduced;
+    GlassMotion.isReduced = _reducedProbe;
     GlassMotion.recorder.attach();
     GlassMotionRecorder.instance.mark('SKIN RESTART');
+  }
+
+  @override
+  void dispose() {
+    // The static probe must not outlive the ref it reads (a later move would throw "Cannot use ref after the widget was disposed"). After a
+    // skin restart the new root has already installed its own probe, which this check leaves alone.
+    if (GlassMotion.isReduced == _reducedProbe) GlassMotion.isReduced = () => false;
+    super.dispose();
   }
 
   @override

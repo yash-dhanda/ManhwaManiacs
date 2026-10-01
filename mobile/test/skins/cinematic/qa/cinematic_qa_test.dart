@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/pending_screen.dart';
 
 import 'qa_accepted.dart';
 import 'qa_audit.dart';
@@ -30,7 +29,6 @@ void main() {
             final rig = await pumpQaScreen(t, s, size: size, platform: platform);
             final want = s.id == ScreenId.readerLanding ? '/library' : Uri.parse(s.location).path;
             expect(Uri.parse(rig.at).path, want, reason: '${s.id.id} was redirected');
-            expect(find.byType(PendingScreen), findsNothing, reason: '${s.id.id} still builds the pending screen');
             final all = await auditScreen(t, platform: platform);
             final open = [for (final v in all) if (!kQaAccepted.any((a) => a.covers(s.id.id, v))) v];
             if (write) {

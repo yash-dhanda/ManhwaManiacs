@@ -177,6 +177,7 @@ class SeriesCover extends ConsumerWidget {
         label: 'Cover of ${data.title}',
         onTap: onTap,
         child: GestureDetector(
+          excludeFromSemantics: true, // the labelled Semantics above carries the tap; the detector's own node was an unlabelled twin
           onTap: onTap,
           onScaleStart: onTap == null ? null : (_) {},
           onScaleUpdate: onTap == null ? null : (s) {
@@ -228,7 +229,7 @@ class SeriesTitleBlock extends ConsumerWidget {
         Focus(
           focusNode: titleFocus,
           child: Semantics(
-            header: true,
+            container: true, // LetterReveal carries the one header node (G2)
             child: LetterReveal(s.title, role: gt.typeTitle1, screenId: 'series', wght: 700, maxLines: 3),
           ),
         ),

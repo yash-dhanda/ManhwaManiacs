@@ -1,3 +1,4 @@
+// ignore_for_file: require_trailing_commas, avoid_redundant_argument_values, prefer_const_declarations, directives_ordering, prefer_function_declarations_over_variables
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,7 +11,7 @@ void main() {
   test('projection and rubber band', () {
     expect(project(0, 1000), closeTo(499, 0.01));
     expect(project(10, -1000), closeTo(-489, 0.01));
-    expect(rubberband(100, 800), closeTo(51.5, 0.1));
+    expect(rubberband(100, 800, 0.55), closeTo(51.5, 0.1)); // 15.8, the constant spelled out
     expect(rubberband(-100, 800), closeTo(-51.5, 0.1));
     expect(rubberband(100, 800), closeTo(51.5, 0.1));
     expect(projectCapped(0, 100000, 800), 800);

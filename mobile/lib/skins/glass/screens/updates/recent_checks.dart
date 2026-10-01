@@ -27,7 +27,7 @@ class GlassRecentChecks extends ConsumerWidget {
     final runs = ref.watch(glassRecentRunsProvider);
     final now = ref.watch(clockProvider)();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(padding: const EdgeInsets.only(top: 16, bottom: 8), child: Semantics(header: true, child: GlassLabel('Recent checks', role: gt.typeFootnote, wght: 600, upper: true, color: gt.colorLabel2))),
+      Padding(padding: const EdgeInsets.only(top: 16, bottom: 8), child: Semantics(header: true, headingLevel: 2, child: GlassLabel('Recent checks', role: gt.typeFootnote, wght: 600, upper: true, color: gt.colorLabel2))),
       runs.when(
         loading: () => GlassSkeletonGroup(child: Column(children: [for (var i = 0; i < 3; i++) Padding(padding: const EdgeInsets.only(bottom: 8), child: GlassSkeleton(height: 52, radius: 12, index: i))])),
         error: (_, __) => GlassLabel("Recent checks didn't load", role: gt.typeFootnote, color: gt.colorDanger),

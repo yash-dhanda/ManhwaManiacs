@@ -538,7 +538,9 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.home);
       await tester.pump();
       expect(co.last, 0.5);
-      expect(tester.getSemantics(find.bySemanticsLabel('Speed')).getSemanticsData().value, contains('about'));
+      final speed = tester.getSemantics(find.bySemanticsLabel('Speed')).getSemanticsData();
+      expect(speed.value, '0.5 times'); // glass 8.15.5: Flutter's slider value
+      expect(speed.hint, contains('about')); // the words-per-minute equivalent
       handle.dispose();
     });
   });

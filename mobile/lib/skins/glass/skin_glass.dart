@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' show LiquidGlassSettings;
 import 'package:liquid_glass_widgets/theme/glass_theme_helpers.dart' show GlassThemeHelpers;
 import 'package:manhwamaniacs/skins/glass/glass/axes.dart';
+import 'package:manhwamaniacs/skins/glass/glass/focus_ring.dart' show GlassFocusRingHost;
 import 'package:manhwamaniacs/skins/glass/glass/glow.dart';
 import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/glass/liquid.dart';
@@ -725,7 +726,8 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   Widget _stack(Size size, {required List<Widget> children, bool fixed = false}) {
     final stack = Stack(clipBehavior: Clip.none, fit: StackFit.passthrough, children: children);
     // A group shape (or a surface given `size:`) is exactly its declared size, whatever its parent asks.
-    return fixed ? SizedBox.fromSize(size: size, child: stack) : stack;
+    // The focus-ring host paints the ring of a control inside this glass outside the glass clip (glass 2.6).
+    return GlassFocusRingHost(child: fixed ? SizedBox.fromSize(size: size, child: stack) : stack);
   }
 
 }

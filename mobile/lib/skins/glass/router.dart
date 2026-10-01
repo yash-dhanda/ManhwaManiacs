@@ -65,14 +65,9 @@ import 'package:manhwamaniacs/skins/glass/shell/shell.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/shell/stack_overview_host.dart';
 import 'package:manhwamaniacs/skins/glass/transitions/book_open_page.dart';
-import 'package:manhwamaniacs/skins/pending_routes.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
-// Every id is pending; finishing a screen deletes its line. mobile/45 deletes the set.
 // `readerLanding` is built here: it redirects to the library (glass 8.0.3).
-// ignore: constant_identifier_names
-const Set<ScreenId> PENDING = {};
-
 /// The Glass development routes (mobile/25), outside the `ScreenId` map. Settings -> Diagnostics links the calibration page (mobile/40).
 const String kGlassDevPath = '/dev/glass';
 const String kGlassCalibrationPath = '/dev/glass/calibration';
@@ -160,7 +155,7 @@ Page<void> glassSheetOrPage(BuildContext context, GoRouterState state, Widget ch
   return glassPage(state, screen ?? child);
 }
 
-String _nameOf(ScreenId id) => PENDING.contains(id) ? '$kPendingRoutePrefix${id.id}' : id.id;
+String _nameOf(ScreenId id) => id.id;
 
 /// The series sheet route (glass 8.12 Presentation): a sheet opening at `medium`, or at `large` after a hard throw (the poster's
 /// release velocity in [GlassNavExtra.velocity]); the 960 px detail window on desktop frames; the full page with nothing beneath.

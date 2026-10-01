@@ -40,6 +40,7 @@ class SearchGroupSection extends ConsumerWidget {
         children: [
           Semantics(
             header: true,
+            headingLevel: 2,
             focusable: true,
             child: Focus(
               focusNode: headerFocus,

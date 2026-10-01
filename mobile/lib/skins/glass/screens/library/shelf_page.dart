@@ -400,7 +400,7 @@ class _GlassShelfPageState extends ConsumerState<GlassShelfPage> {
 
     final slivers = <Widget>[
       SliverToBoxAdapter(child: ShelfContinueRail(show: !q.filtering && !offline && !_select.active)),
-      SliverPersistentHeader(pinned: true, delegate: ShelfToolbarDelegate(toolbar, extent: 120)),
+      SliverPersistentHeader(pinned: true, delegate: ShelfToolbarDelegate(toolbar, extent: 120 + 18 * (MediaQuery.textScalerOf(context).scale(1) - 1).clamp(0.0, 1.0))),
       if (_select.active)
         SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.only(bottom: 12), child: GlassSelectAssistChips<int>(controller: _select, visible: [for (final r in _rows) r.id]))),
       if (capped)

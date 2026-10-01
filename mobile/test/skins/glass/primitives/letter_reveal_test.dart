@@ -1,3 +1,4 @@
+// ignore_for_file: require_trailing_commas, avoid_redundant_argument_values, prefer_const_declarations, directives_ordering, prefer_function_declarations_over_variables
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -106,6 +107,33 @@ void main() {
     await tester.pump();
     expect(find.text('Continue reading'), findsOneWidget);
     expect(glassRevealSlots.running, 0);
+  });
+
+  // mobile/45 H5: the timing contract of 10.2.
+  testWidgets('every letter settles within 24 x (g - 1) + 345 + 100 ms; the glint crosses once, 120 ms after the last letter, over 500 ms', (tester) async {
+    const text = 'Continue reading'; // 15 letters: spaces take no time
+    const g = 15;
+    await tester.pumpWidget(primHost(_reveal(text)));
+    await pumpFor(tester, 24 * (g - 1) + 345 + 100);
+    for (final o in _opacities(find.byType(LetterReveal)).evaluate()) {
+      expect((o.widget as Opacity).opacity, 1, reason: 'a letter is still waiting');
+    }
+    final lastSettled = 24 * (g - 1) + 345;
+    expect(find.descendant(of: find.byType(LetterReveal), matching: find.byType(ShaderMask)), findsNothing, reason: 'the glint waits 120 ms after the last letter');
+    await pumpFor(tester, lastSettled + 120 + 250 - (24 * (g - 1) + 345 + 100));
+    expect(find.descendant(of: find.byType(LetterReveal), matching: find.byType(ShaderMask)), findsOneWidget, reason: 'mid-glint');
+    await pumpFor(tester, 600);
+    expect(find.descendant(of: find.byType(LetterReveal), matching: find.byType(ShaderMask)), findsNothing, reason: 'one crossing only');
+  });
+
+  testWidgets('a fresh ProviderScope (a new session or an AppRestart) reveals again; the same scope does not', (tester) async {
+    await tester.pumpWidget(primHost(_reveal('Continue reading')));
+    await pumpFor(tester, 3000);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(primHost(_reveal('Continue reading')));
+    await pumpFor(tester, 100);
+    expect(glassRevealSlots.running, 1, reason: 'a new scope starts a new session');
+    await pumpFor(tester, 3000);
   });
 
   test('above 60 graphemes it animates per word', () {

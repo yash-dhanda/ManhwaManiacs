@@ -307,7 +307,7 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
                   children: [
                     Icon(const IconData(0xe30c, fontFamily: 'PhosphorRegular'), size: 20, color: gt.colorLabel2),
                     const SizedBox(width: 8),
-                    GlassText('Search settings', role: gt.typeBody, color: gt.colorLabel2),
+                    Flexible(child: GlassText('Search settings', role: gt.typeBody, color: gt.colorLabel2, maxLines: 1, overflow: TextOverflow.ellipsis)),
                   ],
                 ),
               ),

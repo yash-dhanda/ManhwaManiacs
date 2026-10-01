@@ -335,7 +335,7 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
             ],),
             const SizedBox(height: 4),
             Semantics(
-                header: true,
+                container: true, // TypedHeadline carries the one header node (G2)
                 child: TypedHeadline('Previously on $title',
                     role: gt.typeTitle2,
                     placement: 'recap.deck',

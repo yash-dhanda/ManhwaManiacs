@@ -39,7 +39,7 @@ class GlassStorageTab extends ConsumerWidget {
     Widget title(String s, {bool device = false}) => Padding(
           padding: const EdgeInsets.only(top: 20, bottom: 8),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Semantics(header: true, child: GlassLabel(s, role: gt.typeHeadline)),
+            Semantics(header: true, headingLevel: 2, child: GlassLabel(s, role: gt.typeHeadline)),
             if (device) GlassLabel(kEveryone, role: gt.typeFootnote, color: gt.colorLabel3),
           ],),
         );

@@ -183,7 +183,7 @@ class _GlassCollectionsPageState extends ConsumerState<GlassCollectionsPage> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(top: 20, bottom: 4),
-              child: Semantics(header: true, child: GlassText('From your Circle', role: gt.typeTitle3)),
+              child: Semantics(header: true, headingLevel: 2, child: GlassText('From your Circle', role: gt.typeTitle3)),
             ),
           ),
         if (withMe.isNotEmpty)

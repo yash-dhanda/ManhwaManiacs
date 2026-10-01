@@ -39,6 +39,85 @@ class GlassFocusPainter extends CustomPainter {
   bool shouldRepaint(GlassFocusPainter old) => old.shape != shape || old.opacity != opacity || old.highContrast != highContrast;
 }
 
+/// What a [GlassFocusRing] inside clipped glass asks its [GlassFocusRingHost] to paint.
+class _RingRequest {
+  const _RingRequest(this.context, this.shape, this.opacity, this.highContrast);
+  final BuildContext context;
+  final GlassShape shape;
+  final double opacity;
+  final bool highContrast;
+}
+
+class _RingScope extends InheritedWidget {
+  const _RingScope({required this.host, required super.child});
+  final GlassFocusRingHostState host;
+  @override
+  bool updateShouldNotify(_RingScope old) => old.host != host;
+}
+
+/// Wraps clipped glass (`SkinGlass` puts one around each shape's stack). A control inside the glass is clipped to the glass shape, so the
+/// ring it would draw outside its own bounds never shows; the control reports it here instead and the host paints it as a
+/// `foregroundPainter` outside the clip (glass 2.6, 14.4: "never masked").
+class GlassFocusRingHost extends StatefulWidget {
+  const GlassFocusRingHost({super.key, required this.child});
+  final Widget child;
+
+  @override
+  State<GlassFocusRingHost> createState() => GlassFocusRingHostState();
+}
+
+class GlassFocusRingHostState extends State<GlassFocusRingHost> {
+  final ValueNotifier<int> _tick = ValueNotifier(0);
+  final Map<Object, _RingRequest> _requests = {};
+
+  void _report(Object owner, _RingRequest? r) {
+    if (r == null || r.opacity <= 0) {
+      if (_requests.remove(owner) != null) _tick.value++;
+    } else {
+      _requests[owner] = r;
+      _tick.value++;
+    }
+  }
+
+  @override
+  void dispose() {
+    _tick.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => _RingScope(
+        host: this,
+        child: CustomPaint(
+          foregroundPainter: _HostPainter(this, _tick),
+          child: widget.child,
+        ),
+      );
+}
+
+class _HostPainter extends CustomPainter {
+  _HostPainter(this.host, Listenable repaint) : super(repaint: repaint);
+  final GlassFocusRingHostState host;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final hostBox = host.context.findRenderObject();
+    if (hostBox is! RenderBox || !hostBox.attached) return;
+    for (final r in host._requests.values) {
+      final box = r.context.findRenderObject();
+      if (box is! RenderBox || !box.attached || !box.hasSize) continue;
+      final at = box.localToGlobal(Offset.zero, ancestor: hostBox);
+      canvas.save();
+      canvas.translate(at.dx, at.dy);
+      GlassFocusPainter(shape: r.shape, opacity: r.opacity, highContrast: r.highContrast).paint(canvas, box.size);
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_HostPainter old) => old.host != host;
+}
+
 /// Shows [GlassFocusPainter] around [child] while a descendant has keyboard focus.
 class GlassFocusRing extends ConsumerStatefulWidget {
   const GlassFocusRing({super.key, required this.shape, required this.child, this.forceVisible = false});
@@ -82,9 +161,29 @@ class _GlassFocusRingState extends ConsumerState<GlassFocusRing> with SingleTick
     _sync();
   }
 
+  GlassFocusRingHostState? _host;
+  bool _hc = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final h = context.dependOnInheritedWidgetOfExactType<_RingScope>()?.host;
+    if (h != _host) {
+      _host?._report(this, null);
+      _host = h;
+      _fade.removeListener(_toHost);
+      if (h != null) _fade.addListener(_toHost);
+    }
+  }
+
+  /// Inside clipped glass the host paints the ring (outside the clip); this widget then paints nothing itself.
+  void _toHost() => _host?._report(this, _RingRequest(context, widget.shape, _fade.value, _hc));
+
   @override
   void dispose() {
     FocusManager.instance.removeHighlightModeListener(_onMode);
+    _host?._report(this, null);
+    _fade.removeListener(_toHost);
     _fade.dispose();
     super.dispose();
   }
@@ -92,6 +191,8 @@ class _GlassFocusRingState extends ConsumerState<GlassFocusRing> with SingleTick
   @override
   Widget build(BuildContext context) {
     final hc = ref.watch(glassA11yProvider.select((a) => a.increaseContrast));
+    _hc = hc;
+    final hosted = _host != null;
     return Focus(
       canRequestFocus: false,
       skipTraversal: true,
@@ -99,14 +200,16 @@ class _GlassFocusRingState extends ConsumerState<GlassFocusRing> with SingleTick
         _focused = f;
         _sync();
       },
-      child: AnimatedBuilder(
-        animation: _fade,
-        builder: (context, child) => CustomPaint(
-          foregroundPainter: GlassFocusPainter(shape: widget.shape, opacity: _fade.value, highContrast: hc),
-          child: child,
-        ),
-        child: widget.child,
-      ),
+      child: hosted
+          ? widget.child
+          : AnimatedBuilder(
+              animation: _fade,
+              builder: (context, child) => CustomPaint(
+                foregroundPainter: GlassFocusPainter(shape: widget.shape, opacity: _fade.value, highContrast: hc),
+                child: child,
+              ),
+              child: widget.child,
+            ),
     );
   }
 }

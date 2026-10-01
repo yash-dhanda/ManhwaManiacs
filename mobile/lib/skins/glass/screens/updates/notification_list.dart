@@ -41,7 +41,7 @@ class GlassNotificationList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => GlassSwipeGroup(
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           for (final d in days) ...[
-            Padding(padding: const EdgeInsets.only(top: 12, bottom: 8), child: Semantics(header: true, child: GlassLabel(d.label[0] + d.label.substring(1).toLowerCase(), role: gt.typeFootnote, wght: 600, upper: true, color: gt.colorLabel2))),
+            Padding(padding: const EdgeInsets.only(top: 12, bottom: 8), child: Semantics(header: true, headingLevel: 2, child: GlassLabel(d.label[0] + d.label.substring(1).toLowerCase(), role: gt.typeFootnote, wght: 600, upper: true, color: gt.colorLabel2))),
             for (final g in d.groups)
               Padding(padding: const EdgeInsets.only(bottom: 10), child: UpdateCard(key: ValueKey('${g.sourceId}|${g.seriesKey}|${d.label}'), group: g, onFocus: () => focusedKey?.call(g))),
           ],

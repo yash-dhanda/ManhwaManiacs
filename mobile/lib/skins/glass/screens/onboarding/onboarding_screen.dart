@@ -58,7 +58,13 @@ class _GlassOnboardingScreenState extends ConsumerState<GlassOnboardingScreen> w
   bool _edgeBlock = false;
   bool _leaving = false;
   final GlobalKey _dotsKey = GlobalKey();
-  late final AnimationController _merge = AnimationController(vsync: this);
+  late final AnimationController _merge;
+
+  @override
+  void initState() {
+    super.initState();
+    _merge = AnimationController(vsync: this); // eager: a lazy controller built inside dispose() reads a deactivated ancestor
+  }
 
   @override
   void dispose() {

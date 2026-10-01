@@ -460,7 +460,7 @@ class _GlassProfileFormState extends ConsumerState<GlassProfileForm> with Ticker
     );
   }
 
-  Widget _label(String t) => Semantics(header: true, child: GlassText(t, role: gt.typeFootnote, wght: 600, onGlass: true, color: gt.colorOnGlass));
+  Widget _label(String t) => Semantics(header: true, headingLevel: 2, child: GlassText(t, role: gt.typeFootnote, wght: 600, onGlass: true, color: gt.colorOnGlass));
 }
 
 /// One avatar radio: a 56 px orb, `Semantics(inMutuallyExclusiveGroup, checked)`, arrows move the selection.

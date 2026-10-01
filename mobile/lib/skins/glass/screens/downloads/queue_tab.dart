@@ -112,7 +112,7 @@ class _GlassQueueTabState extends ConsumerState<GlassQueueTab> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: const Color(0x9E131317), borderRadius: BorderRadius.circular(26), border: Border.all(color: const Color(0x38FFFFFF), width: 0.5)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Semantics(header: true, child: GlassLabel(headline, role: gt.typeFootnote, wght: 600, upper: true, color: gt.colorLabel2)),
+          Semantics(header: true, headingLevel: 2, child: GlassLabel(headline, role: gt.typeFootnote, wght: 600, upper: true, color: gt.colorLabel2)),
           if (cur != null) ...[
             const SizedBox(height: 8),
             GlassLabel(cur.seriesTitle, role: gt.typeHeadline, maxLines: 2),

@@ -283,6 +283,7 @@ class _CircleScreenState extends ConsumerState<CircleScreen> {
           autofocus: _tab == t,
           child: Semantics(
             header: true,
+            headingLevel: 2,
             child: Row(children: [
               GlassText(title, role: gt.typeTitle3),
               if (badge > 0) Padding(padding: const EdgeInsets.only(left: 8), child: GlassBadge.count(badge)),

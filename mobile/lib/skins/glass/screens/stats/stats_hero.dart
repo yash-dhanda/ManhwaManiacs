@@ -53,7 +53,7 @@ class StatsHero extends ConsumerWidget {
           if (goal.goalMinutes != null) GlassLabel(goalLine(goal.minutes, goal.goalMinutes!), role: gt.typeFootnote, color: gt.colorLabel2),
           const SizedBox(height: 8),
           if (s.currentDays > 0)
-            LetterReveal('${s.currentDays}-day streak', role: gt.typeTitle1, screenId: 'numbers.hero', textAlign: TextAlign.center)
+            LetterReveal('${s.currentDays}-day streak', role: gt.typeTitle1, screenId: 'numbers.hero', textAlign: TextAlign.center, headingLevel: 2)
           else
             GlassLabel('No streak', role: gt.typeTitle1, color: gt.colorLabel1),
           if (record != null)

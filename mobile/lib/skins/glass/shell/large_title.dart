@@ -30,6 +30,20 @@ class _GlassLargeTitleState extends ConsumerState<GlassLargeTitle> {
   final FocusNode _focus = FocusNode(debugLabel: 'large title');
 
   @override
+  void initState() {
+    super.initState();
+    // Focus on navigation (glass 8.0.8): after a route change focus moves to the new screen's title. Nothing deeper is stolen from:
+    // an autofocused field, or a control the user already reached, keeps it.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || ModalRoute.of(context)?.isCurrent == false) return;
+      final primary = FocusManager.instance.primaryFocus;
+      final scope = FocusScope.of(context);
+      final inside = primary != null && primary != scope && primary.ancestors.contains(scope);
+      if (!inside) _focus.requestFocus();
+    });
+  }
+
+  @override
   void dispose() {
     _focus.dispose();
     super.dispose();
@@ -40,8 +54,9 @@ class _GlassLargeTitleState extends ConsumerState<GlassLargeTitle> {
     final profile = ref.watch(activeProfileProvider.select((p) => p?.id));
     final reduced =
         ref.watch(glassMotionPrefsProvider.select((m) => m.reduced));
+    // The header node is LetterReveal's (labelled, level 1); an outer header would be a second, empty one (G2).
     return Semantics(
-      header: true,
+      container: true,
       child: Focus(
         focusNode: _focus,
         child: ValueListenableBuilder<double>(

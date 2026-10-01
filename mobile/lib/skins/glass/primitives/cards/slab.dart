@@ -76,6 +76,8 @@ class GlassSlab extends ConsumerWidget {
       longPressHaptic: onLongPress == null ? null : HapticEvent.longpressOpen,
       enabled: !disabled,
       forceStates: forceStates,
+      // A slab nobody can act on is a container, not an unlabelled button (14.5).
+      noSemantics: onTap == null && onLongPress == null && customActions.isEmpty && !selectMode && semanticsLabel == null,
       semanticsLabel: semanticsLabel,
       semanticsHint: disabled ? disabledReason : null,
       checked: selectMode ? selected : null,

@@ -3,15 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
-import 'package:manhwamaniacs/skins/glass/router.dart' as glass;
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test('reader and readAll are out of PENDING; readerLanding stays a redirect to /library; the aliases are reader routes', () async {
-    expect(glass.PENDING.contains(ScreenId.reader), isFalse);
-    expect(glass.PENDING.contains(ScreenId.readAll), isFalse);
-    expect(glass.PENDING.contains(ScreenId.readerLanding), isFalse);
+  test('reader and readAll are real routes; readerLanding stays a redirect to /library; the aliases are reader routes', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final c = ProviderContainer(overrides: [skinIdProvider.overrideWithValue(SkinId.glass), sharedPrefsProvider.overrideWithValue(prefs)]);

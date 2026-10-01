@@ -43,6 +43,7 @@ class GlassGroupedList extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: Semantics(
                 header: true,
+                headingLevel: 2,
                 child: GlassLabel(header!, role: gt.typeFootnote, wght: 600, upper: true, extraTrackingEm: 0.04, color: host ? gt.colorOnGlass.withValues(alpha: 0.72) : gt.colorLabel2, onGlass: host),
               ),
             ),

@@ -41,6 +41,7 @@ import 'mobile_14_shots.dart';
 import 'mobile_15_shots.dart';
 import 'mobile_22_shots.dart';
 import 'mobile_23_shots.dart';
+import 'mobile_45_shots.dart';
 import 'support/mobile21_shots.dart';
 import 'support/shot_covers.dart';
 import 'support/shot_fixtures.dart';
@@ -78,6 +79,7 @@ void main() {
   setUpAll(setUpShotCoverCache);
 
   // mobile-11: the Cinematic series page, Book page and chapter downloads.
+  group('mobile-45', mobile45Shots);
   group('mobile-15', mobile15Shots);
   group('mobile-23', mobile23Shots);
   group('mobile-22', mobile22Shots);

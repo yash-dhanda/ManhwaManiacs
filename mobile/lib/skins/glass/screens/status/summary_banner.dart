@@ -59,7 +59,7 @@ class StatusCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
           Row(children: [
-            Expanded(child: Semantics(header: true, child: GlassText(title, role: gt.typeHeadline))),
+            Expanded(child: Semantics(header: true, headingLevel: 2, child: GlassText(title, role: gt.typeHeadline))),
             if (trailing != null) trailing!,
           ],),
           const SizedBox(height: 12),

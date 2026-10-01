@@ -87,7 +87,7 @@ List<Widget> friendSlivers(BuildContext context, WidgetRef ref, int profileId) {
   final feed = ref.watch(memberFeedProvider(profileId));
   final host = GlassHost.of(context);
   final sub = host ? gt.colorOnGlass : gt.colorLabel2;
-  Widget title(String t) => Padding(padding: EdgeInsets.fromLTRB(m, 24, m, 12), child: Semantics(header: true, child: GlassText(t, role: gt.typeTitle3)));
+  Widget title(String t) => Padding(padding: EdgeInsets.fromLTRB(m, 24, m, 12), child: Semantics(header: true, headingLevel: 2, child: GlassText(t, role: gt.typeTitle3)));
   final out = <Widget>[
     box(Padding(
       padding: EdgeInsets.fromLTRB(m, 8, m, 0),
@@ -114,7 +114,7 @@ List<Widget> friendSlivers(BuildContext context, WidgetRef ref, int profileId) {
     out
       ..add(box(title('Reading')))
       ..add(box(SizedBox(
-        height: 252,
+        height: 252 + 16 * (MediaQuery.textScalerOf(context).scale(1) - 1).clamp(0.0, 1.0), // the title and the small button scale
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: m),

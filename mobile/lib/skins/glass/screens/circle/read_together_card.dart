@@ -52,7 +52,7 @@ class _ReadTogetherCardState extends ConsumerState<ReadTogetherCard> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: gt.colorSurface1, borderRadius: BorderRadius.circular(26)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Semantics(header: true, child: GlassText('Read together', role: gt.typeTitle3)),
+        Semantics(header: true, headingLevel: 2, child: GlassText('Read together', role: gt.typeTitle3)),
         const SizedBox(height: 8),
         GlassText(
           'Share what this profile reads with the other readers on this server: what you start and finish, your reactions, and the collections you choose to share. Never your bookmarks, searches or downloads.',

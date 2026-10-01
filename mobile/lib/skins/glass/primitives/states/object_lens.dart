@@ -175,7 +175,7 @@ class _GlassObjectLensState extends ConsumerState<GlassObjectLens> with TickerPr
             children: [
               ExcludeSemantics(child: lens),
               const SizedBox(height: 16),
-              Semantics(header: true, child: GlassText(widget.title, role: gt.typeTitle3, textAlign: TextAlign.center, onGlass: host)),
+              Semantics(header: true, headingLevel: 2, child: GlassText(widget.title, role: gt.typeTitle3, textAlign: TextAlign.center, onGlass: host)),
               if (widget.description != null) ...[
                 const SizedBox(height: 8),
                 GlassText(widget.description!, role: gt.typeCallout, color: host ? gt.colorOnGlass : gt.colorLabel2, textAlign: TextAlign.center, onGlass: host),

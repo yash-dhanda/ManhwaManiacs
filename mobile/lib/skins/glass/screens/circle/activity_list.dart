@@ -68,6 +68,7 @@ class _DayHeader extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => Semantics(
         header: true,
+        headingLevel: 2,
         child: Container(
           height: 36,
           alignment: Alignment.centerLeft,

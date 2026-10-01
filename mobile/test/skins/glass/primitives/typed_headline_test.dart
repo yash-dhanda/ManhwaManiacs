@@ -1,7 +1,10 @@
+// ignore_for_file: require_trailing_commas, avoid_redundant_argument_values, prefer_const_declarations, directives_ordering, prefer_function_declarations_over_variables
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/revealed_headings.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/typed_headline.dart';
 
 import 'support.dart';
@@ -117,6 +120,54 @@ void main() {
     expect(mid.a, lessThan(1));
     await pumpFor(tester, 150);
     expect(_colorOf(_root(tester), 59)!.a, 1);
+  });
+
+  // mobile/45 H1 and H3.
+  testWidgets('the caret is 2 px wide, 0.72 em tall; the heading carries its full label from the first frame under ExcludeSemantics spans', (tester) async {
+    final h = tester.ensureSemantics();
+    await tester.pumpWidget(primHost(_headline()));
+    await tester.pump(const Duration(milliseconds: 20));
+    final caret = tester.getSize(_caret);
+    expect(caret.width, 2);
+    final em = _root(tester).style!.fontSize!;
+    expect(caret.height, closeTo(em * 0.72, 0.5));
+    expect(tester.widget<CustomPaint>(_caret).painter.runtimeType.toString(), '_CaretPainter'); // iris400 core, painted by the glass tokens
+    expect(find.bySemanticsLabel(_text), findsOneWidget, reason: 'the full string, frame 1');
+    h.dispose();
+    await pumpFor(tester, 7000);
+  });
+
+  testWidgets('navigating away completes it silently, and after a skip the count never advances again', (tester) async {
+    var show = true;
+    late StateSetter set;
+    await tester.pumpWidget(primHost(StatefulBuilder(builder: (context, s) {
+      set = s;
+      return show ? _headline() : const SizedBox();
+    },),),);
+    await pumpFor(tester, 100);
+    await tester.tapAt(tester.getCenter(_rich.first));
+    await tester.pump();
+    await pumpFor(tester, 200);
+    final root = _root(tester);
+    final before = [for (var i = 0; i < _text.characters.length - 1; i++) _colorOf(root, i)];
+    await pumpFor(tester, 500);
+    expect([for (var i = 0; i < _text.characters.length - 1; i++) _colorOf(_root(tester), i)], before);
+    set(() => show = false);
+    await pumpFor(tester, 4000);
+  });
+
+  testWidgets('the placement is "{profileId}:{placement}" in revealedHeadingsProvider from the moment typing starts', (tester) async {
+    await tester.pumpWidget(primHost(_headline()));
+    await tester.pump(const Duration(milliseconds: 20));
+    final c = ProviderScope.containerOf(tester.element(_rich.first));
+    expect(c.read(revealedHeadingsProvider).single, endsWith(':gallery:greeting'));
+    expect(c.read(revealedHeadingsProvider).single, matches(RegExp(r'^(\d+|anon):gallery:greeting$')));
+    await pumpFor(tester, 7000);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(primHost(_headline()));
+    await tester.pump(const Duration(milliseconds: 20));
+    expect(_caret, findsOneWidget, reason: 'a fresh ProviderScope types again');
+    await pumpFor(tester, 7000);
   });
 
   test('the timeline is n x 50 + the tail + three blinks + the dematerialise', () {

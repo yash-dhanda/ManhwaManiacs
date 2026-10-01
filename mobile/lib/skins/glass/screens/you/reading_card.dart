@@ -31,14 +31,15 @@ class YouCardProblem extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) => GlassSlab(
-        height: 120,
+  Widget build(BuildContext context) => ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 120), // grows with the text scale instead of overflowing
+      child: GlassSlab(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
           GlassText(offline ? 'Needs a connection' : "Couldn't load this", role: gt.typeCallout, color: gt.colorLabel2),
           if (!offline) GlassButton(label: 'Retry', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: onRetry),
         ],),
-      );
+      ),);
 }
 
 /// The Reading card (glass 8.24): streak, this week's time and chapters, a 7-point sparkline; the whole card opens Statistics.

@@ -479,8 +479,8 @@ class _TitleCapsule extends StatelessWidget {
               children: [
                 // The series name gives way first; the chapter always shows.
                 Flexible(child: GlassText(series, role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                GlassText(' · $chapter', role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1),
-                if (readAll != null) ...[const SizedBox(width: 8), GlassText(readAll!, role: gt.typeMono, onGlass: true)],
+                Flexible(flex: 2, child: GlassText(' · $chapter', role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                if (readAll != null) ...[const SizedBox(width: 8), Flexible(child: GlassText(readAll!, role: gt.typeMono, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis))],
               ],
             ),
           ),

@@ -11,13 +11,12 @@ import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/search_field.dart';
 import 'package:manhwamaniacs/skins/glass/screens/search/search_page.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_common.dart';
-import 'package:manhwamaniacs/skins/pending_screen.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// Where the orb was when the search opened, so the field can grow out of it and shrink back into it.
 final glassSearchOriginProvider = StateProvider<Rect?>((ref) => null);
 
-/// `mobile/38` fills this with the Discover body; until then the slot shows the shared pending screen.
+/// `mobile/38` fills this with the Discover body; the default is the real search body.
 final glassDiscoverBodyProvider = StateProvider<Widget Function(BuildContext context, String query)?>((ref) => (context, query) => GlassSearchBody(query: query));
 
 /// The 50 px search orb's content (its glass is a shape of the dock's group). A tap opens `/search`.
@@ -95,9 +94,11 @@ class _GlassSearchPageState extends ConsumerState<GlassSearchPage> {
       child: Stack(
       fit: StackFit.expand,
       children: [
+        // The page has no visible title (the field is the page); screen readers get the one level-1 heading (G2).
+        Positioned(left: 0, top: 0, width: 1, height: 1, child: Semantics(header: true, headingLevel: 1, label: 'Search', child: const SizedBox.expand())),
         FadeTransition(
           opacity: widget.animation,
-          child: body != null ? body(context, _q.text) : const PendingScreen(screenId: 'discover', location: '/search'),
+          child: body != null ? body(context, _q.text) : const SizedBox.shrink(),
         ),
         AnimatedBuilder(
           animation: widget.animation,
