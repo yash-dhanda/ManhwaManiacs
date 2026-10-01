@@ -84,13 +84,18 @@ class _GlassSessionLossState extends ConsumerState<GlassSessionLoss> {
     }
     unawaited(ref.read(glassHapticsProvider).fire(HapticEvent.warning));
     final copy = signedOutCopy(disabled: false);
-    final signIn = await showGlassAlert<bool>(
-      ctx,
-      title: copy.title,
-      body: copy.body,
-      actions: [GlassAlertAction<bool>(copy.button, value: true)],
-    );
-    ref.read(glassSignedOutPendingProvider.notifier).state = false;
+    bool? signIn;
+    try {
+      signIn = await showGlassAlert<bool>(
+        ctx,
+        title: copy.title,
+        body: copy.body,
+        actions: [GlassAlertAction<bool>(copy.button, value: true)],
+      );
+    } finally {
+      // Released however the alert ends: left true, the router's auth guard stayed off for the session.
+      if (mounted) ref.read(glassSignedOutPendingProvider.notifier).state = false;
+    }
     if (signIn ?? false) ref.read(skinRouterProvider).go(signInLocation(_username));
   }
 
