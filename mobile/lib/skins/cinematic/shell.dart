@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/features/settings/providers/app_update_provider.da
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/cinematic/back_order.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
@@ -187,6 +188,8 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
     final newLetters = ref.watch(newLetterCountProvider);
     final downloads = ref.watch(activeDownloadCountProvider);
     final back = cineBranchBack(info);
+    // A page off a branch root with nothing beneath it (a `go`, a deep link) backs to its parent.
+    final parent = backParentOf(widget.location, glass: false);
 
     ref.listen(activeProfileProvider, (_, p) {
       if (p != null) unawaited(_maybeWhatsNew());
@@ -217,13 +220,13 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
       onQueued: (n) => ref.read(cineToastsProvider.notifier).info(queuedNewChaptersLine(n)),
       child: AnnualDecemberToastHost(
         child: PopScope(
-      canPop: back == CineBranchBack.system,
+      canPop: back == CineBranchBack.system && parent == null,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         // A modal state (select mode, the full player, ...) takes the back press first (8.0.5).
         if (ref.read(cineBackOrderProvider.notifier).handleBack()) return;
         final router = GoRouter.of(context);
-        router.go(back == CineBranchBack.toShelf ? Routes.library() : Routes.tonight());
+        router.go(parent ?? (back == CineBranchBack.toShelf ? Routes.library() : Routes.tonight()));
       },
       child: Material(
         color: const Color(0xFF000000),

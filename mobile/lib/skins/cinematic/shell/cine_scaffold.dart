@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/nav_map.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
@@ -119,7 +120,7 @@ class CineScaffold extends ConsumerStatefulWidget {
   final String? runningTitle;
 
   /// Null on branch roots; pushed screens pass `const CineBack()`. When neither is given the
-  /// scaffold shows a back arrow whenever the route can pop.
+  /// scaffold shows a back arrow whenever the route can pop or has a parent (`backParentOf`).
   final CineBack? back;
   final List<CineHeadAction> trailing;
   final bool overArt;
@@ -295,8 +296,11 @@ class _CineScaffoldState extends ConsumerState<CineScaffold> {
     final info = navInfoFor(loc);
     final title = widget.runningTitle ?? info.title;
     final mq = MediaQuery.of(context);
-    final showBack = widget.back != null || (info.branch == null && (GoRouter.maybeOf(context)?.canPop() ?? false));
-    final back = showBack ? (widget.back ?? const CineBack()) : null;
+    // Every page that is not a tab root or an entry screen has Back (a pop, else its parent).
+    final showBack = widget.back != null ||
+        backParentOf(loc, glass: false) != null ||
+        (info.branch == null && (GoRouter.maybeOf(context)?.canPop() ?? false));
+    final back = showBack ? CineBack(widget.back?.onPressed ?? () => skinBack(context, glass: false, location: loc)) : null;
 
     // Nothing followed yet: known only once the follow cache has answered.
     final note = widget.firstRunNote && info.firstRunNote && ref.watch(_followCountProvider) == 0;

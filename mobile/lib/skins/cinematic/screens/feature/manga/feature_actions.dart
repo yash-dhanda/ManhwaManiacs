@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
@@ -264,5 +264,5 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
   }
 }
 
-/// Keeps the `context.canPop` back behaviour in one place.
-void featureBack(BuildContext context) => context.canPop() ? context.pop() : context.go('/');
+/// Keeps the back behaviour in one place: pop, else the source's catalogue (`backParentOf`).
+void featureBack(BuildContext context) => skinBack(context, glass: false);

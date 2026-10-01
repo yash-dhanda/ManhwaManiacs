@@ -23,6 +23,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/discover/index_field_heade
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/health_details_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/source_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/sources/source_table.dart';
+import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/skin_haptics.dart';
@@ -240,9 +241,13 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
               if (id != null) unawaited(_move(id, (i, _) => i + 1));
             }),
           ],
-          child: Scaffold(
-            backgroundColor: t.colorPaper0,
-            body: SafeArea(child: body),
+          // The running head carries Back (to Discover when nothing is beneath).
+          child: CineScaffold(
+            firstRunNote: false,
+            body: Scaffold(
+              backgroundColor: t.colorPaper0,
+              body: SafeArea(child: body),
+            ),
           ),
         );
 

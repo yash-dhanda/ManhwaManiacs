@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_models.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/recap/providers/recap_providers.dart';
 import 'package:manhwamaniacs/features/recap/recap_setting.dart';
 import 'package:manhwamaniacs/features/recap/utils/should_open_recap.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -63,8 +63,7 @@ String featureMoreLikeThis(String sourceId, String seriesKey) =>
 
 /// Pops the recap and returns to the page it was opened from.
 void closeRecap(BuildContext context) {
-  final router = GoRouter.of(context);
-  if (router.canPop()) router.pop();
+  skinBack(context, glass: false);
 }
 
 /// Whether a recap is available for [k], asked now and given up on after [limit]: Quick look adds its
