@@ -114,7 +114,7 @@ class ShelfGeometry {
     final grid = CineGrid.of(context);
     final perRow = perRowFor(width, density);
     final gap = wide ? 12.0 : 8.0;
-    final content = width - grid.left - grid.right - 16;
+    final content = width - grid.left - grid.right; // posters sit on the page gutter
     final cell = (content - gap * (perRow - 1)) / perRow;
     final lines = CineReflow.of(context).railCompact ? 2 : 1;
     final caption = density == ShelfDensity.compact ? 0.0 : 8 + lines * roleLineHeight(context, c.typeTitle) + 2 + roleLineHeight(context, c.typeFolio) + 9; // 1 px over the measured lines: a scaled line can round up 0.2
@@ -172,7 +172,7 @@ class ShelfWall extends StatelessWidget {
     final g = ShelfGeometry.of(context, env.query.density);
     if (env.reorder) return _reorderWall(context, g, side);
     return SliverPadding(
-      padding: side.copyWith(left: side.left + 8, right: side.right + 8, top: 8),
+      padding: side.copyWith(top: 8),
       sliver: SliverGrid(
         gridDelegate: g.delegate,
         delegate: SliverChildBuilderDelegate(
@@ -186,7 +186,7 @@ class ShelfWall extends StatelessWidget {
   /// ponytail: Manual order renders the reorderable wall non-lazily (the 200-row page is the
   /// ceiling); every other wall stays a lazy `SliverGrid`.
   Widget _reorderWall(BuildContext context, ShelfGeometry g, EdgeInsets side) => SliverPadding(
-        padding: side.copyWith(left: side.left + 8, right: side.right + 8, top: 8),
+        padding: side.copyWith(top: 8),
         sliver: SliverToBoxAdapter(
           child: CinePosterGroup(
             child: CineReorderableWall<FollowedSeries>(

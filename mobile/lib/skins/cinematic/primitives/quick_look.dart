@@ -36,7 +36,7 @@ Future<String?> openQuickLook(
       if (reduced) art = TweenAnimationBuilder<double>(tween: Tween(begin: 0, end: 1), duration: CineDur.reduced, builder: (_, v, ch) => Opacity(opacity: v, child: ch), child: art);
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Padding(
-          padding: EdgeInsets.all(c.space4),
+          padding: EdgeInsets.symmetric(vertical: c.space4), // the sheet body sets the gutter
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             art,
             SizedBox(width: c.space4),

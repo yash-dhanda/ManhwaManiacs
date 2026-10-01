@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_tooltip.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -172,7 +173,8 @@ class _CineContentsTabsState extends State<CineContentsTabs> {
         return Container(
           key: _keys[i],
           constraints: const BoxConstraints(minHeight: 48),
-          padding: EdgeInsets.symmetric(horizontal: c.space4),
+          // Inside a gutter the first label starts on it instead of 16 px in.
+          padding: EdgeInsets.only(left: i == 0 && CineGutter.bleedOf(context) > 0 ? 0 : c.space4, right: c.space4),
           transform: st.pressed ? Matrix4.translationValues(0, 1, 0) : null,
           child: Stack(alignment: Alignment.bottomCenter, children: [
             Center(

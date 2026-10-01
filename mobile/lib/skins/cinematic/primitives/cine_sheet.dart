@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_galley.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_physics.dart';
 import 'package:manhwamaniacs/skins/cinematic/stock.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -174,7 +175,7 @@ class _CineSheetState extends State<CineSheet> with SingleTickerProviderStateMix
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
         padding: EdgeInsets.fromLTRB(c.space4, c.space2, c.space4, c.space6 + inset),
-        child: SizedBox(width: double.infinity, child: body),
+        child: CineGutter(child: SizedBox(width: double.infinity, child: body)),
       ),
     );
 

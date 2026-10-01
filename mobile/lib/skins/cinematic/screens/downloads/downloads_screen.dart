@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_contents_tabs.dart
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_masthead.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/scan/dialogue_scan_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/downloads/activity_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/downloads/downloads_copy.dart';
@@ -276,9 +277,11 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen> with SingleTi
                     color: c.colorPaper0,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: side),
-                      child: CineContentsTabs(
-                        controller: _tabs,
-                        tabs: const [CineTab(folio: '01', label: 'SAVED'), CineTab(folio: '02', label: 'STORAGE')],
+                      child: CineGutter(
+                        child: CineContentsTabs(
+                          controller: _tabs,
+                          tabs: const [CineTab(folio: '01', label: 'SAVED'), CineTab(folio: '02', label: 'STORAGE')],
+                        ),
                       ),
                     ),
                   ),

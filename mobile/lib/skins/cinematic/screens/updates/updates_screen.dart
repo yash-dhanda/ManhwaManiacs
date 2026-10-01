@@ -31,6 +31,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_contents_tabs.dart
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_radio.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/sheet_route.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
@@ -370,7 +371,7 @@ class _UpdatesScreenState extends ConsumerState<UpdatesScreen> with SingleTicker
       SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.only(left: grid.left, right: grid.right),
-          child: Row(children: [
+          child: CineGutter(child: Row(children: [
             Expanded(
               child: CineContentsTabs(controller: _tabs, tabs: [
                 CineTab(folio: '01', label: 'NEW', count: data == null ? null : unread.length, loading: data == null && !failed),
@@ -385,7 +386,7 @@ class _UpdatesScreenState extends ConsumerState<UpdatesScreen> with SingleTicker
                 size: CineButtonSize.sm,
                 onPressed: () => unawaited(_pickSource(sourceOptions)),
               ),
-          ],),
+          ],),),
         ),
       ),
       if (failed)
