@@ -404,7 +404,8 @@ class _GlassRailState extends ConsumerState<GlassRail> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GlassSkeleton(width: _itemW, height: _itemW * 1.5, index: i, delayed: false),
+            // At 1.9 and up the rail shows 1.6 posters, wider than the row's height was planned for: the poster gives way, not the caption.
+            GlassSkeleton(width: _itemW, height: (_itemW * 1.5).clamp(0.0, widget.itemHeight - 36).toDouble(), index: i, delayed: false),
             const SizedBox(height: 8),
             GlassSkeleton(width: _itemW * 0.85, height: 12, radius: 6, index: i, delayed: false),
             const SizedBox(height: 6),
