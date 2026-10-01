@@ -39,6 +39,7 @@ from core.profile_context import ProfileContext, resolve_profile_context
 from core.time_utils import utcnow
 from database.models import (
     ChapterProgress,
+    CircleEvent,
     Collection,
     CollectionSeries,
     CollectionShare,
@@ -947,6 +948,21 @@ class FollowedSeriesService:
         self._db.delete(row)
         self._db.commit()
 
+    def _finished_announced(self, row: FollowedSeries) -> bool:
+        return (
+            self._db.execute(
+                select(CircleEvent.id)
+                .where(
+                    CircleEvent.profile_id == row.profile_id,
+                    CircleEvent.kind == "finished_series",
+                    CircleEvent.source_id == row.source_id,
+                    CircleEvent.series_key == row.series_key,
+                )
+                .limit(1)
+            ).first()
+            is not None
+        )
+
     def patch(self, followed_id: int, **changes: Any) -> dict[str, Any]:
         self._require_owner()
         row = self._get_visible(followed_id)
@@ -960,7 +976,13 @@ class FollowedSeriesService:
                     code="invalid_reading_status",
                     status_code=422,
                 )
-            if status == "completed" and row.reading_status != "completed":
+            # Once per series: an Undo of "Remove from library" re-follows and re-patches
+            # "completed", which must not announce "finished" to the Circle a second time.
+            if (
+                status == "completed"
+                and row.reading_status != "completed"
+                and not self._finished_announced(row)
+            ):
                 record_event(
                     self._db,
                     user_id=row.user_id,
