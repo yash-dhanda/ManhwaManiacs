@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
+import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/downloads/utils/auto_download.dart';
@@ -85,7 +86,12 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
       onUndo: () {
         if (!mounted) return;
         cineFeedback(context, HapticEvent.undo);
-        unawaited(switchSkinFrom(context, ref, to: SkinId.glass, undoable: false, outgoing: () => StopThePress.outgoing(context)));
+        // Undo is an explicit choice on this device, so the icon follows the skin back when that is on (glass 12.2, release/01 D2).
+        final icon = ref.read(appIconSwitcherProvider);
+        unawaited(switchSkinFrom(context, ref, to: SkinId.glass, undoable: false, outgoing: () async {
+          await StopThePress.outgoing(context);
+          await icon.onExplicitSkinChoice(SkinId.glass);
+        },),);
       },
     );
   }
