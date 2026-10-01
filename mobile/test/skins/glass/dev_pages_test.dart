@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/skins/glass/dev/glass_dev_index.dart';
 import 'package:manhwamaniacs/skins/glass/glass_skin.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/diagnostics_section.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -43,7 +44,10 @@ void main() {
       debugDefaultTargetPlatformOverride = platform;
       final handle = tester.ensureSemantics();
       await pumpPage(tester, const GlassDevIndex());
-      expect(find.text('Glass calibration'), findsWidgets);
+      expect(find.text('Diagnostics'), findsOneWidget);
+      // mobile/40 moved the calibration, layers, motion-timings and preview rows into Diagnostics.
+      expect(find.text('Glass calibration'), findsNothing);
+      expect(find.text('Glass layers on screen'), findsNothing);
       await expectLater(tester, meetsGuideline(platform == TargetPlatform.iOS ? iOSTapTargetGuideline : androidTapTargetGuideline));
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
       handle.dispose();
@@ -61,7 +65,7 @@ void main() {
   }
 
   testWidgets('the layers row shows the live counts and turns warning above the budget', (tester) async {
-    final c = await pumpPage(tester, const GlassDevIndex());
+    final c = await pumpPage(tester, const SingleChildScrollView(child: DiagnosticsSection()));
     expect(find.textContaining('0 / 6 layers · 0 / 8 shapes · 0 scrims'), findsOneWidget);
     final ctl = c.read(glassRegistryProvider.notifier);
     for (var i = 0; i < 7; i++) {
@@ -72,7 +76,7 @@ void main() {
   });
 
   testWidgets('the motion timings switch shows the overlay', (tester) async {
-    final c = await pumpPage(tester, const GlassDevIndex());
+    final c = await pumpPage(tester, const SingleChildScrollView(child: DiagnosticsSection()));
     expect(find.byType(GlassMotionTimingsOverlay), findsNothing);
     c.read(glassShowMotionTimingsProvider.notifier).state = true;
     await tester.pump();

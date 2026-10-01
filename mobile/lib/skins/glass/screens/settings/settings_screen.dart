@@ -15,12 +15,19 @@ import 'package:manhwamaniacs/skins/glass/primitives/list/list_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/search_field.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/about_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/account_section.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/admin_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/ai_recaps_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/appearance_section.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/backup_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/circle_privacy_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/content_section.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/diagnostics_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/feedback_section.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/members_section.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/notifications_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/reader_defaults_section.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/security_section.dart';
+import 'package:manhwamaniacs/skins/glass/screens/settings/server_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_index_filter.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_keys.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_row.dart';
@@ -35,7 +42,7 @@ import 'package:manhwamaniacs/skins/glass/type.dart';
 /// True once a hardware key event has been seen this session (the Shortcuts section shows only then).
 final hardwareKeySeenProvider = StateProvider<bool>((ref) => false);
 
-/// The body a section route renders (`storage` leaves for Downloads -> Storage; `mobile/40`'s sections render the pending body).
+/// The body a section route renders (`storage` leaves for Downloads -> Storage before any Settings widget builds).
 Widget settingsSectionBody(SettingsSection s) {
   if (sectionsBuiltLater.contains(s)) return const SettingsPendingBody();
   return switch (s) {
@@ -48,11 +55,18 @@ Widget settingsSectionBody(SettingsSection s) {
     SettingsSection.keyboard => const ShortcutsSection(),
     SettingsSection.profile => const AccountSection(),
     SettingsSection.about => const AboutSection(),
+    SettingsSection.notifications => const NotificationsSection(),
+    SettingsSection.security => const SecuritySection(),
+    SettingsSection.members => const MembersSection(),
+    SettingsSection.backup => const BackupSection(),
+    SettingsSection.server => const ServerSection(),
+    SettingsSection.diagnostics => const DiagnosticsSection(),
+    SettingsSection.admin => const AdminSection(),
     _ => const SettingsPendingBody(),
   };
 }
 
-/// What a section `mobile/40` owns shows until it lands.
+/// What a section listed in [sectionsBuiltLater] shows until it lands.
 class SettingsPendingBody extends StatelessWidget {
   const SettingsPendingBody({super.key});
   @override
@@ -63,7 +77,8 @@ String _labelOf(SettingsSection s) {
   if (s == SettingsSection.about) return kAboutSection.label;
   if (s == SettingsSection.profile) return 'Account';
   if (readerGroupSections.contains(s)) return 'Reader';
-  if (s == SettingsSection.admin) return 'Admin';
+  if (s == SettingsSection.admin) return 'Administration';
+  if (s == SettingsSection.members) return 'Members';
   for (final e in kSettingsSections) {
     if (e.section == s) return e.label;
   }
