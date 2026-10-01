@@ -83,7 +83,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(engine.live.scrollVelocity.value, 0);
     final elapsedMs = frames * 8.33;
-    expect(engine.sampler.requests, lessThanOrEqualTo(elapsedMs / 600 + 2));
+    // One decode at the start and one per 600 ms window (the last window's trailing decode lands just after the scroll ends), plus
+    // the settle. The fixture decoder returns null, so nothing is cached and the settle decodes again.
+    expect(engine.sampler.requests, lessThanOrEqualTo((elapsedMs / 600).ceil() + 2));
     final dir = Platform.environment['MM_PROOF_DIR'];
     if (dir != null) {
       File('$dir/strip-120.json').writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
@@ -98,7 +100,7 @@ void main() {
         'velocityMax': vMax,
         'sampleRequests': engine.sampler.requests,
         'scrollMs': elapsedMs.round(),
-        'sampleRequestsBound': (elapsedMs / 600 + 2).floor(),
+        'sampleRequestsBound': (elapsedMs / 600).ceil() + 2,
       }),);
     }
     await tester.pumpWidget(const SizedBox.shrink());

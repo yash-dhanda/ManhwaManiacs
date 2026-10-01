@@ -596,11 +596,14 @@ class _SkinChoice extends ConsumerWidget {
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  Expanded(child: _SkinSegment(skin: 'glass', label: 'Glass', selected: glassSel, onTap: () => onChanged('glass'))),
-                  Expanded(child: _SkinSegment(skin: 'cinematic', label: 'Cinematic', selected: !glassSel, onTap: () => onChanged('cinematic'))),
-                ],
+              Positioned.fill(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch, // each segment is a 52 px tall target
+                  children: [
+                    Expanded(child: _SkinSegment(skin: 'glass', label: 'Glass', selected: glassSel, onTap: () => onChanged('glass'))),
+                    Expanded(child: _SkinSegment(skin: 'cinematic', label: 'Cinematic', selected: !glassSel, onTap: () => onChanged('cinematic'))),
+                  ],
+                ),
               ),
             ],
           ),
@@ -633,7 +636,7 @@ class _SkinSegment extends StatelessWidget {
             children: [
               SkinMiniPreview(skin: skin),
               const SizedBox(width: 8),
-              GlassLabel(label, role: gt.typeSubhead, wght: selected ? 620 : 460, color: selected ? gt.colorLabel1 : gt.colorLabel2),
+              Flexible(child: GlassLabel(label, role: gt.typeSubhead, wght: selected ? 620 : 460, color: selected ? gt.colorLabel1 : gt.colorLabel2)),
             ],
           ),
         ),
@@ -646,8 +649,8 @@ class SkinMiniPreview extends StatelessWidget {
   final String skin;
   final double size;
 
-  /// Glass's frames are captured by `mobile/39`; Cinematic's ship now.
-  static const bool glassFramesBundled = false;
+  /// Both skins' frames ship (`mobile/39` captured Glass's).
+  static const bool glassFramesBundled = true;
 
   @override
   Widget build(BuildContext context) {
