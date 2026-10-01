@@ -146,7 +146,7 @@ class HouseSound extends ChangeNotifier {
     if (gen != _gen) return;
     _fade.value = 0;
     await _apply();
-    await _player!.play();
+    unawaited(_player!.play()); // never awaited: a looping play() completes only when playback stops
     _playing = true;
     _paused = false;
     _audio.setSoundscapeActive(true);
@@ -182,7 +182,7 @@ class HouseSound extends ChangeNotifier {
     _paused = false;
     _playing = true;
     _audio.setSoundscapeActive(true);
-    await _player?.play();
+    unawaited(_player?.play());
     notifyListeners();
     await _fade.to(1, kFadeIn, _step);
   }
@@ -213,7 +213,7 @@ class HouseSound extends ChangeNotifier {
       p = _factory();
       await p.load(file);
       await p.setVolume(0);
-      await p.play();
+      unawaited(p.play());
       final ramp = _Ramp(0);
       final pl = p;
       void step() => unawaited(pl.setVolume(_volume * ramp.value));

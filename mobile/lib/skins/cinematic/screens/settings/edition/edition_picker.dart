@@ -3,15 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
+import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/profiles/providers/skin_outbox.dart';
 import 'package:manhwamaniacs/skins/cinematic/overlays/stop_the_press.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/confirm_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/edition_card.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/next_issue_plate.dart';
-import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/skin.dart';
@@ -22,21 +21,22 @@ const String kEditionOffline = "Saves when you're back online.";
 
 /// The edition picker (cinematic 8.30.3): the Cinematic card (this edition) and, beside or under
 /// it, Glass: the disabled `NEXT ISSUE` plate while [glassAvailable] is false, else its card with
-/// `Switch to Glass`. [dryRun] plays Stop the press without writing or restarting (debug proof).
+/// `Switch to Glass`.
 class EditionPicker extends ConsumerWidget {
-  const EditionPicker({super.key, required this.glassAvailable, this.dryRun = false});
+  const EditionPicker({super.key, required this.glassAvailable});
 
-  final bool glassAvailable, dryRun;
+  final bool glassAvailable;
 
   Future<void> _switch(BuildContext context, WidgetRef ref) async {
     final queued = ref.read(activeDownloadCountProvider) > 0;
-    final ok = await confirmEditionSwitch(context, downloadsQueued: queued);
+    final icon = ref.read(appIconSwitcherProvider);
+    final ok = await confirmEditionSwitch(context, downloadsQueued: queued, iconFollows: icon.follow);
     if (!ok || !context.mounted) return;
-    if (dryRun) {
-      await StopThePress.dryRun(context, onError: ref.read(cineToastsProvider.notifier).error);
-      return;
-    }
-    await switchSkinFrom(context, ref, to: SkinId.glass, outgoing: () => StopThePress.outgoing(context));
+    await switchSkinFrom(context, ref, to: SkinId.glass, outgoing: () async {
+      await StopThePress.outgoing(context);
+      // An explicit choice on this device: the icon follows only while `mm.icon.follow` is on (glass 12.2).
+      await icon.onExplicitSkinChoice(SkinId.glass);
+    },);
   }
 
   @override
@@ -86,21 +86,4 @@ class EditionPicker extends ConsumerWidget {
       },
     );
   }
-}
-
-/// Debug-build proof page: the picker with the flag on, whose confirm runs the dry-run press.
-class EditionPickerDemoPage extends StatelessWidget {
-  const EditionPickerDemoPage({super.key});
-
-  @override
-  Widget build(BuildContext context) => CineScaffold(
-        location: '/settings/appearance',
-        firstRunNote: false,
-        body: CineBelowHead(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(context.cine.space4, context.cine.space6, context.cine.space4, context.cine.space12),
-            child: const EditionPicker(glassAvailable: true, dryRun: true),
-          ),
-        ),
-      );
 }

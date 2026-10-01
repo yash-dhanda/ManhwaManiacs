@@ -139,6 +139,28 @@ class Changelog(BaseModel):
 # consume the exact same source of truth.
 _RELEASE_NOTES: list[ChangelogEntry] = [
     ChangelogEntry(
+        version="3.6.0",
+        build=57,
+        date="October 2026",
+        highlights=[
+            "Glass is here: a second look for the whole app, in the style of "
+            "iOS liquid glass, with layered see-through panels, springy motion "
+            "and depth",
+            "Pick it in Settings, under Appearance. The app restarts into the "
+            "look you chose, on the same screen, and each profile keeps its "
+            "own choice",
+            "On phones the app icon can follow the look: turn on \"App icon "
+            "follows the skin\" in Glass's Settings. It stays off unless you "
+            "turn it on. On Android, if the home-screen icon disappears after "
+            "this update, add it again from the app drawer",
+            "Cinematic fixes since 3.5.0: screens line up properly, swiping "
+            "back on iPhone no longer freezes the app, signing in and picking "
+            "a profile no longer get stuck, Browse by genre keeps finding new "
+            "AI picks instead of running dry, and a double tap in the reader "
+            "opens its menu",
+        ],
+    ),
+    ChangelogEntry(
         version="3.5.0",
         build=57,
         date="October 2026",

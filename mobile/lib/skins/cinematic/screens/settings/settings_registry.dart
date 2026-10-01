@@ -203,7 +203,6 @@ final List<SettingsSectionDef> allSettingsSections = [
     SettingsRowSpec('high-refresh', 'Use the highest refresh rate everywhere', gate: RowGate.android),
     SettingsRowSpec('grid', 'Show the layout grid'),
     SettingsRowSpec('timings', 'Show motion timings'),
-    SettingsRowSpec('edition-debug', 'Edition (debug)'),
   ]),
   SettingsSectionDef('about', 'About', (_) => const AboutSection(), const [
     SettingsRowSpec('app-version', 'App version', keywords: ['build']),

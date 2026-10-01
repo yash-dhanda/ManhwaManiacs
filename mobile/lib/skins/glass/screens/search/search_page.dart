@@ -124,7 +124,7 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
         aiAvailable: ref.read(suggestAvailabilityProvider).valueOrNull?.available ?? false,
         dialogueAvailable: _dialogueOn,
         novelsEnabled: ref.read(novelsEnabledProvider),
-        picksReady: false, // glass `picks` is built by mobile/41; until then `ask` parses to `all`.
+        picksReady: false, // no `ask` results pane in Search: `?scope=ask` parses to `all`; the idle row hands the words to Picks.
       );
 
   List<GlassDiscoverScope> _scopes() => [
@@ -209,7 +209,7 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
       children.add(SearchIdle(
         query: _q,
         recent: readRecentSearches(prefs, profileId: pid),
-        askAvailable: false, // needs `picksReady` (mobile/41)
+        askAvailable: ref.watch(suggestAvailabilityProvider).valueOrNull?.available ?? false,
         onSearch: (t) => GoRouter.of(context).replace<void>(Uri(path: '/search', queryParameters: {'q': t, if (_rawScope != null) 'scope': _rawScope}).toString()),
         onRemove: (t) async {
           final left = readRecentSearchEntries(prefs, profileId: pid).where((e) => e.q != t).toList();

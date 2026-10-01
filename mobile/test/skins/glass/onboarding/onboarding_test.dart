@@ -70,14 +70,6 @@ void main() {
     h.dispose();
   });
 
-  testWidgets('the dots read "of 6" with Look hidden', (t) async {
-    final h = t.ensureSemantics();
-    await pumpAuth(t, '/welcome?step=3', _fx(step: '3'), debugGlass: false);
-    await settleFor(t, 1500);
-    expect(find.bySemanticsLabel('Step 2 of 6'), findsOneWidget);
-    h.dispose();
-  });
-
   testWidgets('Android back from step 3 goes to step 2, from step 1 leaves the step alone', (t) async {
     final rig = await pumpAuth(t, '/welcome?step=3', _fx(step: '3'), android: true);
     await settleFor(t, 1500);

@@ -1,8 +1,8 @@
-import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/skin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const kSkinActiveKey = 'mm.skin.active';
+/// Retired: only [SkinBoot.read] touches it, to remove a leftover.
 const kSkinDebugKey = 'mm.skin.debug';
 const kSkinReturnKey = 'mm.skin.return';
 const kSkinT0Key = 'mm.skin.t0';
@@ -21,19 +21,11 @@ class SkinBoot {
   final String? returnRoute;
   final bool carrySession;
 
-  /// Debug override, else the device mirror, else [kDefaultSkin]; `glass`
-  /// from the mirror becomes `cinematic` while it is unavailable (§8.0.7).
+  /// The device mirror, else [kDefaultSkin]; a retired `legacy` becomes the default.
   static SkinId resolveSkin(SharedPreferences prefs) {
-    final debug = skinIdFromName(prefs.getString(kSkinDebugKey));
-    if (debug == SkinId.glass && !Flags.glassAvailable) return SkinId.cinematic;
-    return debug ?? resolveSkinWithoutDebug(prefs);
-  }
-
-  /// What "Clear override" and "Leave the preview" restart into.
-  static SkinId resolveSkinWithoutDebug(SharedPreferences prefs) {
     final active = skinIdFromName(prefs.getString(kSkinActiveKey));
     if (active == null || active == SkinId.legacy) return kDefaultSkin;
-    return active == SkinId.glass && !Flags.glassAvailable ? SkinId.cinematic : active;
+    return active;
   }
 
   /// Consumes the one-shot return route and session flag (S15).
@@ -42,6 +34,8 @@ class SkinBoot {
     final carry = prefs.getString(kSkinSessionKey) == '1';
     prefs.remove(kSkinReturnKey);
     prefs.remove(kSkinSessionKey);
+    // The pre-flip debug override is gone (release/01 Decision 3): drop a leftover once, no restart.
+    if (prefs.containsKey(kSkinDebugKey)) prefs.remove(kSkinDebugKey);
     return SkinBoot(skin: resolveSkin(prefs), returnRoute: route, carrySession: carry);
   }
 }

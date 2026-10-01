@@ -184,3 +184,12 @@ None reported by the verifier.
 ## mobile/44
 
 (none reported)
+
+## release/00 + release/01 (mobile-only 3.6.0, lane R1)
+
+- Cinematic onboarding step 1 (Edition, cinematic 8.7: `YOUR EDITION`, the two live previews, the deferred restart after `Print my first issue`) is not built. The flow stays at four steps with Glass on (`onboarding_screen.dart` `_glass => false`); Glass is chosen in Settings -> Appearance or on the profile form. Over 45 min.
+- Tablet bands (mobile-45 open issue 4), still accepted in `qa/glass_focus_test.dart`: on the 834 x 1194 frame the Settings, You, Statistics and onboarding panes reach the screen's bottom edge inside the 24 px bottom band, and the series header buttons sit at y 8-52 inside the 76 px top band. No chrome floats in either band on the wide frame and `GlassFocusTraversalPolicy` scrolls a focused control clear where the scroll extent allows. A real fix is per-screen layout (series header top inset, pane bottom padding); over 45 min.
+- The tablet page panel's focus ring clip (mobile-45 open issue 3, second half): grouped cards now host their rows' rings outside the clip; the page panel does not.
+- Search `?scope=ask` still parses to `all`: Search has no ask-results pane. The idle "Describe what you want to read" row now shows when AI is available and hands the words to Picks.
+- Release/01 items not done in this mobile-only release: the cross-skin Flutter suite `cross_skin_release_test.dart` (F3), the icon rule on the arrival toasts' Undo (D2; both skins' Settings switches and the profile forms call `AppIconSwitcher`), web A-C/E/F/G (web postponed), the install-page Glass strip (G, needs the web float frames).
+- Device checks: the alternate icon (iOS `AppIcon-Glass` via Xcode 26 actool, Android `.CinematicIcon`/`.GlassIcon` aliases) has only CI build proof; switch it on a phone once.

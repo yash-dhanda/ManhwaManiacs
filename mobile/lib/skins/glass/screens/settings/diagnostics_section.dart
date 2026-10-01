@@ -5,22 +5,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:manhwamaniacs/app/switch_skin.dart';
 import 'package:manhwamaniacs/core/diagnostics/diagnostics_snapshot.dart';
 import 'package:manhwamaniacs/core/diagnostics/performance_monitor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
-import 'package:manhwamaniacs/skins/contract.g.dart' show Flags, HapticEvent;
-import 'package:manhwamaniacs/skins/glass/haptics.dart' show glassHapticsProvider;
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_row.dart';
-import 'package:manhwamaniacs/skins/glass/shell/melt.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
-import 'package:manhwamaniacs/skins/skin.dart';
 
 /// The calibration page (`mobile/25`), reachable from Diagnostics in every build.
 const String kGlassCalibrationRoute = '/dev/glass/calibration';
@@ -146,22 +140,6 @@ class _DiagnosticsSectionState extends ConsumerState<DiagnosticsSection> {
           _row('diag-layers', 'Glass layers on screen', layers.text, color: layers.over ? gt.colorWarning : null),
         ],),
         SettingsGroup(header: 'Development', children: [
-          if (!Flags.glassAvailable)
-            SettingsBlock(
-              id: 'diag-preview-glass',
-              title: 'Preview Glass skin',
-              child: GlassSegmented<SkinId>(
-                segments: const [GlassSegment(value: SkinId.cinematic, label: 'Cinematic'), GlassSegment(value: SkinId.glass, label: 'Glass')],
-                selected: SkinId.glass,
-                onSelected: (s) async {
-                  if (s == SkinId.glass) return;
-                  // Glass's own exit: the melt, then the debug key (never the profile's skin or mm.skin.active).
-                  unawaited(ref.read(glassHapticsProvider).fire(HapticEvent.skinSwitch)); // the restart is confirmed (5.2)
-                  await playMelt(ref);
-                  if (context.mounted) await debugSwitchSkin(context, ref, SkinId.cinematic);
-                },
-              ),
-            ),
           SettingsRow(id: 'diag-calibration', title: 'Glass calibration', caret: true, onTap: () => GoRouter.of(context).push(kGlassCalibrationRoute)),
           SettingsSwitchRow(
             id: 'diag-motion-timings',

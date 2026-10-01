@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/app/skin_boot.dart' show kSkinDebugKey;
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
@@ -41,13 +40,12 @@ Future<ShellRig> pumpAuth(
   FakeOnboardingRepo? onboardingRepo,
   FakeLibrary? library,
   bool settle = true,
-  bool debugGlass = true,
   Map<String, Object> prefs = const {},
   bool online = true,
 }) {
   FakeProfiles.calls.clear();
   FakeAuth.calls.clear();
-  return _pump(t, start, f, size: size, setupDone: setupDone, sessionReady: sessionReady, reduced: reduced, extra: extra, android: android, onboardingRepo: onboardingRepo, library: library, settle: settle, debugGlass: debugGlass, prefs: prefs, online: online);
+  return _pump(t, start, f, size: size, setupDone: setupDone, sessionReady: sessionReady, reduced: reduced, extra: extra, android: android, onboardingRepo: onboardingRepo, library: library, settle: settle, prefs: prefs, online: online);
 }
 
 Future<ShellRig> _pump(
@@ -63,7 +61,6 @@ Future<ShellRig> _pump(
   required FakeOnboardingRepo? onboardingRepo,
   required FakeLibrary? library,
   required bool settle,
-  required bool debugGlass,
   required Map<String, Object> prefs,
   required bool online,
 }) async {
@@ -75,7 +72,7 @@ Future<ShellRig> _pump(
     size: size,
     platformAndroid: android,
     settle: settle,
-    prefsExtra: {setupCompletedPrefKey: setupDone, if (debugGlass) kSkinDebugKey: 'glass', ...prefs},
+    prefsExtra: {setupCompletedPrefKey: setupDone, ...prefs},
     extra: [
       ...glassAuthFixtureOverrides(f, onboardingRepo: onboardingRepo, library: library),
       activeProfileProvider.overrideWith(() => _Active(f.active)),

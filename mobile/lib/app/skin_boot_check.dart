@@ -15,14 +15,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Boot resolution steps 2-5 (stack §2.4). Null means "stay".
 SkinId? resolveBootRestart({
   required SkinId running,
-  required SkinId? debugOverride,
   required bool profileKnown,
   required String? profileSkin,
   required String? queuedOutboxSkin,
   required bool glassAvailable,
   required SkinId defaultSkin,
 }) {
-  if (debugOverride != null) return null; // S5
   if (!profileKnown) return null; // step 5: keep the mirror
   if (queuedOutboxSkin != null) return null; // S12: the outbox flushes first
   var desired = skinIdFromName(profileSkin) ?? defaultSkin;
@@ -73,7 +71,6 @@ class _SkinBootCheckState extends ConsumerState<SkinBootCheck> {
     final running = ref.read(skinIdProvider);
     final target = resolveBootRestart(
       running: running,
-      debugOverride: skinIdFromName(prefs.getString(kSkinDebugKey)),
       profileKnown: row != null,
       profileSkin: row?.skin,
       queuedOutboxSkin: ref.read(skinOutboxProvider).pendingFor(active.id),

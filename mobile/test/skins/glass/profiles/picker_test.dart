@@ -95,7 +95,7 @@ void main() {
     final asked = <SkinId>[];
     restartIntoSkinTestHook = (skin, route) async => asked.add(skin);
     addTearDown(() => restartIntoSkinTestHook = null);
-    await pumpAuth(t, '/profiles', _fx(profiles: [fixtureProfile(1, 'Yash', skin: 'cinematic'), fixtureProfile(2, 'Sunday')]), debugGlass: false);
+    await pumpAuth(t, '/profiles', _fx(profiles: [fixtureProfile(1, 'Yash', skin: 'cinematic'), fixtureProfile(2, 'Sunday')]));
     await settleFor(t, 2500);
     await t.tap(_orb('Yash'));
     await t.pump();

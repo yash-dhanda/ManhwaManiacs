@@ -83,7 +83,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool _printing = false, _busy = false;
   SwipeablePageRoute<dynamic>? _route;
 
-  bool get _glass => Flags.glassAvailable;
+  // ponytail: step 1 (Edition, cinematic 8.7) is not built, so the flow stays at four steps even with Glass on; Glass is picked
+  // in Settings -> Appearance or on the profile form. Build step 1, then read Flags.glassAvailable here.
+  bool get _glass => false;
 
   @override
   void initState() {

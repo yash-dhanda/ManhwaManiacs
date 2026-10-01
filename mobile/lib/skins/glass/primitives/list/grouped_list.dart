@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
+import 'package:manhwamaniacs/skins/glass/glass/focus_ring.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/list_row.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
@@ -47,9 +48,12 @@ class GlassGroupedList extends StatelessWidget {
                 child: GlassLabel(header!, role: gt.typeFootnote, wght: 600, upper: true, extraTrackingEm: 0.04, color: host ? gt.colorOnGlass.withValues(alpha: 0.72) : gt.colorLabel2, onGlass: host),
               ),
             ),
-          ClipRSuperellipse(
-            borderRadius: BorderRadius.circular(20),
-            child: ColoredBox(color: host ? const Color(0x00000000) : gt.colorSurface1, child: Column(mainAxisSize: MainAxisSize.min, children: glassSeparated(children))),
+          // The rows' focus rings report here and paint outside the card's clip (glass 2.6, 14.4: never masked).
+          GlassFocusRingHost(
+            child: ClipRSuperellipse(
+              borderRadius: BorderRadius.circular(20),
+              child: ColoredBox(color: host ? const Color(0x00000000) : gt.colorSurface1, child: Column(mainAxisSize: MainAxisSize.min, children: glassSeparated(children))),
+            ),
           ),
           if (footer != null)
             Padding(

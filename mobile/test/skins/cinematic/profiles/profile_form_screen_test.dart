@@ -28,14 +28,14 @@ Future<Rig> _open(WidgetTester t, String start, {Size size = const Size(390, 844
 Finder _name() => find.byType(TextField).first;
 
 void main() {
-  testWidgets('New: masthead, the 12/30 name counter, no Edition row, no Delete', (t) async {
+  testWidgets('New: masthead, the 12/30 name counter, the Edition row, no Delete', (t) async {
     await _open(t, '/profiles/new');
     expect(find.text('CASTING'), findsOneWidget);
     expect(find.text('0/30'), findsOneWidget);
     await t.enterText(_name(), 'Hollow Knight');
     await t.pump();
     expect(find.text('13/30'), findsOneWidget);
-    expect(find.text('EDITION'), findsNothing, reason: 'glass_available is false');
+    expect(find.text('EDITION', skipOffstage: false), findsOneWidget, reason: 'glass_available is true');
     expect(find.text('Delete profile'), findsNothing);
     expect(find.text('Create profile'), findsOneWidget);
     expect(find.text('Grades the top of the app while this profile is active. Never the reader.'), findsOneWidget);
@@ -130,6 +130,7 @@ void main() {
     await settle(t, 300);
     expect(find.text('5 profiles is the limit.'), findsOneWidget);
     rig.profiles.failWrite = const ApiError(statusCode: 400, code: 'invalid_mood', message: 'Bad mood');
+    await t.ensureVisible(find.text('Create profile'));
     await t.tap(find.text('Create profile'));
     await settle(t, 300);
     expect(find.text("Couldn't save this profile. Bad mood"), findsOneWidget);

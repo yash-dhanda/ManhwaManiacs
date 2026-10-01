@@ -35,12 +35,29 @@
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
 
+        </activity>
+
+        <!-- The launcher entry is an alias so the icon can follow the skin (brand/glass/icon-registration.md). -->
+        <activity-alias android:name=".CinematicIcon" android:targetActivity=".MainActivity"
+            android:label="Maniacs" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher"
+            android:enabled="true" android:exported="true">
+            <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-        </activity>
+        </activity-alias>
+        <activity-alias android:name=".GlassIcon" android:targetActivity=".MainActivity"
+            android:label="Maniacs" android:icon="@mipmap/ic_launcher_glass" android:roundIcon="@mipmap/ic_launcher_glass"
+            android:enabled="false" android:exported="true">
+            <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <service android:name="com.solusibejo.flutter_dynamic_icon_plus.FlutterDynamicIconPlusService"
+            android:stopWithTask="false" />
 
         <service android:name="com.ryanheise.audioservice.AudioService"
             android:foregroundServiceType="mediaPlayback"

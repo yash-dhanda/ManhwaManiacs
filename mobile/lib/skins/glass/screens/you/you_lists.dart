@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
+import 'package:manhwamaniacs/skins/glass/listen/narrating_chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
@@ -94,19 +95,14 @@ class YouLists extends ConsumerWidget {
             lib,
             () => r.go(Routes.downloads()),
             trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-              // TODO(mobile/37): swap for `listen/narrating_chip.dart` (opens the first job's Audiobook sheet, glass 8.16.8).
-              if (narrating.isNotEmpty)
-                GestureDetector(
-                  onTap: () => r.go(Routes.feature(narrating.first.sourceId, narrating.first.seriesKey, {'sheet': 'audiobook'})),
-                  child: GlassBadge.role('Narrating ${narrating.length}'),
-                ),
+              if (narrating.isNotEmpty) const GlassNarratingChip(),
               if (narrating.isNotEmpty && downloads > 0) const SizedBox(width: 6),
               if (downloads > 0) GlassBadge.count(downloads),
             ],),
             spoken: [
               'Downloads',
               if (downloads > 0) '$downloads in the queue',
-              if (narrating.isNotEmpty) 'Narrating ${narrating.length}',
+              if (narrating.isNotEmpty) narratingLabel(narrating.first.total),
             ].join(', '),
           ),
       ]),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -19,12 +20,19 @@ class _Files extends SoundscapeFiles {
 }
 
 class _Player implements LoopPlayer {
+  _Player({this.looping = false});
+
+  /// just_audio on a looping file: `play()` completes only when playback stops.
+  final bool looping;
   final volumes = <double>[];
   final log = <String>[];
   @override
   Future<void> load(File f) async => log.add('load ${f.uri.pathSegments.last}');
   @override
-  Future<void> play() async => log.add('play');
+  Future<void> play() {
+    log.add('play');
+    return looping ? Completer<void>().future : Future<void>.value();
+  }
   @override
   Future<void> pause() async => log.add('pause');
   @override
@@ -115,6 +123,25 @@ void main() {
       expect(players[1].log, containsAll(['load temple-bells.ogg', 'play', 'dispose']));
       // The house-sound player never activates the session itself.
       expect(cfg.actives.where((a) => a).length, 1);
+    });
+  });
+
+  test('Hear ends and frees the button even though a looping play() never completes; a second Hear plays', () {
+    fakeAsync((async) {
+      final players = <_Player>[];
+      final h = HouseSound(files: _Files(tmp), playerFactory: () => _Player(looping: true)..let(players.add), audio: SkinAudio.forTest(_Cfg(), _NoCues()));
+      h.hear('rain');
+      async.elapse(const Duration(seconds: 6));
+      expect(h.previewing, isFalse, reason: 'the Hear button is enabled again');
+      h.hear('cafe');
+      async.elapse(const Duration(milliseconds: 500));
+      expect(h.previewing, isTrue);
+      async.elapse(const Duration(seconds: 6));
+      expect(h.previewing, isFalse);
+      expect(players.map((p) => p.log.contains('dispose')), [true, true]);
+      h.setLoop('cafe');
+      async.elapse(const Duration(seconds: 3));
+      expect(h.playing, isTrue, reason: 'setLoop does not hang on play() either');
     });
   });
 }

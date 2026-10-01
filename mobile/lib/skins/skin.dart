@@ -30,9 +30,6 @@ SkinId? skinIdFromName(String? name) {
 /// v1 (3.5.0) ships Cinematic as the default; release/00 later deletes legacy.
 const SkinId kDefaultSkin = SkinId.cinematic;
 
-/// release/00 replaces legacy with [SkinId.glass] at the flip; mobile/25 only checks it.
-const List<SkinId> kDebugSkins = [SkinId.legacy, SkinId.cinematic];
-
 abstract interface class Skin {
   SkinId get id;
 

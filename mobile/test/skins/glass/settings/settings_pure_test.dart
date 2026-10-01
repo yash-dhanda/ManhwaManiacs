@@ -41,8 +41,7 @@ void main() {
       expect(_ids('nightly backup', admin: true), contains('backup-nightly'));
       expect(_ids('include 18'), isEmpty);
       expect(_ids('include 18', gate: true), contains('include-mature-activity'));
-      expect(_ids('preview glass skin'), contains('diag-preview-glass'));
-      expect(_ids('preview glass skin', glass: true), isNot(contains('diag-preview-glass')));
+      expect(_ids('preview glass skin', glass: true), isEmpty);
       expect(_ids('app icon'), isEmpty);
       expect(_ids('app icon', glass: true), contains('app-icon-follows-skin'));
     });

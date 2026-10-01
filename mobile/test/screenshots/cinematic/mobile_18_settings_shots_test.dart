@@ -223,7 +223,7 @@ void main() {
 
   testWidgets('the edition picker: flag off, flag on, the sheet and the dialog', (t) async {
     await shot(t, 'settings-edition-off', _phone, _app(_screen('appearance')));
-    Widget picker() => _app(const Scaffold(backgroundColor: Colors.black, body: SafeArea(child: SingleChildScrollView(padding: EdgeInsets.all(16), child: EditionPicker(glassAvailable: true, dryRun: true)))));
+    Widget picker() => _app(const Scaffold(backgroundColor: Colors.black, body: SafeArea(child: SingleChildScrollView(padding: EdgeInsets.all(16), child: EditionPicker(glassAvailable: true)))));
     await shot(t, 'settings-edition-on', _phone, picker());
     await shot(t, 'settings-edition-on', _tablet, picker());
     await shot(t, 'settings-edition-confirm-sheet', _phone, picker(), drive: (t) async {
