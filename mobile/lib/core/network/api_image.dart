@@ -27,6 +27,18 @@ Map<String, String>? apiImageHttpHeaders(String? bearerToken, {int? profileId}) 
   };
 }
 
+/// Whether [url] is served by the API at [apiBaseUrl] (relative paths are).
+///
+/// Load-bearing for [apiImageHttpHeaders]: a source logo or a source's own
+/// CDN cover is an absolute third-party URL, and the session's bearer token
+/// must never travel to it.
+bool isApiResourceUrl(String apiBaseUrl, String url) {
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return true;
+  final u = Uri.tryParse(url);
+  final b = Uri.tryParse(apiBaseUrl);
+  return u != null && b != null && u.hasAuthority && u.origin == b.origin;
+}
+
 /// Resolve a relative API path (e.g. `/sources/.../cover`) to an absolute URL.
 String resolveApiResourceUrl(String apiBaseUrl, String pathOrUrl) {
   if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
