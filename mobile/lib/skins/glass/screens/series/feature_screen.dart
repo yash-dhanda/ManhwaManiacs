@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/downloads/providers/offline_series_provider.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
 import 'package:manhwamaniacs/features/library/providers/series_detail_provider.dart';
@@ -44,6 +45,15 @@ class GlassFeatureScreen extends ConsumerWidget {
     if (mature && !gateOpen) return const SeriesLens(kind: SeriesLensKind.gated);
     final key = (sourceId: sourceId, seriesId: seriesKey);
     final detail = ref.watch(sourceSeriesDetailProvider(key));
+    Widget page(GlassSeriesData d) => GlassSeriesPage(
+          key: ValueKey('series-page-$sourceId-$seriesKey-$novel'),
+          data: d,
+          variant: novel ? BookVariant(mature: mature) : MangaVariant(velocity: velocity, mature: mature),
+          focusChapter: chapter,
+          sheet: sheet,
+          velocity: velocity,
+          mature: mature,
+        );
     return detail.when(
       skipLoadingOnRefresh: true,
       loading: () => SeriesSkeleton(book: novel),
@@ -69,21 +79,21 @@ class GlassFeatureScreen extends ConsumerWidget {
                   },
           );
         }
-        if (e is NetworkError || e is TimeoutError) return SeriesLens(kind: SeriesLensKind.offline, sourceId: sourceId, book: novel);
+        if (e is NetworkError || e is TimeoutError) {
+          // Offline with saved chapters: the page from the device, its saved chapters only.
+          final saved = ref.watch(offlineEditionProvider((sourceId: sourceId, seriesKey: seriesKey))).valueOrNull;
+          if (saved != null) {
+            final f = row;
+            final series = f == null
+                ? saved.series
+                : SourceSeriesSummary(id: seriesKey, sourceId: sourceId, title: f.title, chapterCount: f.chapterCount, genres: const [], coverUrl: f.coverUrl);
+            return page(GlassSeriesData(sourceId: sourceId, seriesKey: seriesKey, series: series, chapters: saved.chapters, followed: row, novel: novel, offline: true));
+          }
+          return SeriesLens(kind: SeriesLensKind.offline, sourceId: sourceId, book: novel);
+        }
         return SeriesLens(kind: SeriesLensKind.error, sourceId: sourceId, book: novel, onRetry: retry);
       },
-      data: (v) {
-        final d = GlassSeriesData(sourceId: sourceId, seriesKey: seriesKey, series: v.series, chapters: v.chapters, followed: row, novel: novel);
-        return GlassSeriesPage(
-          key: ValueKey('series-page-$sourceId-$seriesKey-$novel'),
-          data: d,
-          variant: novel ? BookVariant(mature: mature) : MangaVariant(velocity: velocity, mature: mature),
-          focusChapter: chapter,
-          sheet: sheet,
-          velocity: velocity,
-          mature: mature,
-        );
-      },
+      data: (v) => page(GlassSeriesData(sourceId: sourceId, seriesKey: seriesKey, series: v.series, chapters: v.chapters, followed: row, novel: novel)),
     );
   }
 
