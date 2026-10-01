@@ -8,6 +8,7 @@ from routes.app_media import router as app_media_router
 from routes.auth import router as auth_router
 from routes.backup import router as backup_router
 from routes.circle import router as circle_router
+from routes.discover import router as discover_router
 from routes.home import router as home_router
 from routes.onboarding import router as onboarding_router
 from routes.library import router as library_router
@@ -35,6 +36,7 @@ api_router.include_router(settings_router)
 api_router.include_router(library_router)
 api_router.include_router(home_router)
 api_router.include_router(ai_router)
+api_router.include_router(discover_router)
 api_router.include_router(onboarding_router)
 api_router.include_router(reader_router)
 api_router.include_router(series_router)
