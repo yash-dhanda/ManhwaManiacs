@@ -556,7 +556,7 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
             child: Row(children: [
               if (assistive || _keyboard) ...[
                 _RoundButton(label: 'Previous card', glyph: GlassGlyphIcon.left, hit: hit, onTap: () => _go(-1)),
-                SizedBox(width: math.max(0, 52 - hit)),
+                SizedBox(width: math.max(10, 52 - hit)),
                 _RoundButton(label: 'Next card', glyph: GlassGlyphIcon.right, hit: hit, onTap: () => _go(1)),
               ],
               const Spacer(),
@@ -564,7 +564,7 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
                 setState(() => _paused = !_paused);
                 _syncAuto();
               },),
-              SizedBox(width: math.max(0, 52 - hit)),
+              SizedBox(width: math.max(10, 52 - hit)),
               _RoundButton(label: 'Close', glyph: GlassGlyphIcon.close, hit: hit, onTap: () => unawaited(_closeStory())),
             ],),
           ),
