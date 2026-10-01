@@ -64,6 +64,7 @@ class _GlassShelfPageState extends ConsumerState<GlassShelfPage> {
   final FlipRegistry _flip = FlipRegistry();
   final ShelfWave _wave = ShelfWave();
   final ValueNotifier<PinchState?> _live = ValueNotifier(null);
+  final GlobalKey _toolbarKey = GlobalKey();
   final ValueNotifier<int?> _focused = ValueNotifier(null);
   final ScrollController _scroll = ScrollController();
   final TextEditingController _search = TextEditingController();
@@ -340,7 +341,7 @@ class _GlassShelfPageState extends ConsumerState<GlassShelfPage> {
       for (final g in saved)
         if (g.chapters.any((c) => c.state == DownloadChapterState.complete)) '${g.sourceId}|${g.seriesKey}',
     };
-    final ui = ShelfUi(select: _select, flip: _flip, live: _live, wave: _wave, focused: _focused, downloaded: downloaded, gateOpen: gateOpen);
+    final ui = ShelfUi(select: _select, flip: _flip, live: _live, wave: _wave, focused: _focused, downloaded: downloaded, gateOpen: gateOpen, toolbarKey: _toolbarKey);
     final list = _phone ? density.phone.isList : density.wide == GlassDensityWide.list;
 
     final toolbar = ShelfToolbarSpec(
@@ -400,7 +401,7 @@ class _GlassShelfPageState extends ConsumerState<GlassShelfPage> {
 
     final slivers = <Widget>[
       SliverToBoxAdapter(child: ShelfContinueRail(show: !q.filtering && !offline && !_select.active)),
-      SliverPersistentHeader(pinned: true, delegate: ShelfToolbarDelegate(toolbar, extent: 120 + 18 * (MediaQuery.textScalerOf(context).scale(1) - 1).clamp(0.0, 1.0))),
+      SliverPersistentHeader(pinned: true, delegate: ShelfToolbarDelegate(toolbar, boundary: _toolbarKey, extent: 120 + 18 * (MediaQuery.textScalerOf(context).scale(1) - 1).clamp(0.0, 1.0))),
       if (_select.active)
         SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.only(bottom: 12), child: GlassSelectAssistChips<int>(controller: _select, visible: [for (final r in _rows) r.id]))),
       if (capped)

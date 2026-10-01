@@ -86,6 +86,30 @@ void main() {
     density.setPhone(GlassPhoneDensity.c3);
   });
 
+  testWidgets('mid-pinch the rows are clipped at the pinned toolbar, so no poster shows through it', (t) async {
+    await pumpLibrary(t, _three());
+    final c = t.getCenter(find.text('Beta').first);
+    final a = await t.startGesture(c - const Offset(40, 0), pointer: 7);
+    final b = await t.startGesture(c + const Offset(40, 0), pointer: 8);
+    await t.pump(const Duration(milliseconds: 16));
+    for (var i = 0; i < 6; i++) {
+      await a.moveBy(const Offset(-6, 0));
+      await b.moveBy(const Offset(6, 0));
+      await t.pump(const Duration(milliseconds: 16));
+    }
+    final bar = t.getRect(find.byWidgetPredicate((w) => w is KeyedSubtree && w.key is GlobalKey && w.child.runtimeType.toString() == '_Toolbar'));
+    final clips = find.ancestor(of: find.text('Beta').first, matching: find.byWidgetPredicate((w) => w is ClipRect && w.clipBehavior == Clip.hardEdge && w.clipper != null));
+    expect(clips, findsWidgets);
+    final clip = t.widget<ClipRect>(clips.first);
+    final box = t.renderObject<RenderBox>(clips.first);
+    final top = clip.clipper!.getClip(box.size).top + box.localToGlobal(Offset.zero).dy;
+    expect(top, closeTo(bar.bottom, 0.5));
+    await a.up();
+    await b.up();
+    await _settle(t);
+    expect(find.ancestor(of: find.text('Beta').first, matching: find.byWidgetPredicate((w) => w is ClipRect && w.clipBehavior == Clip.hardEdge)), findsNothing);
+  });
+
   testWidgets('the column slider writes the phone density', (t) async {
     final rig = await pumpLibrary(t, _three(), start: '/library?sheet=density');
     await _settle(t);
