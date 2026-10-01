@@ -13,9 +13,13 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 /// [CineFolioFlip] value in `typeFolioLg`, min width 64. The bounds disable their button; press and
 /// hold repeats every 120 ms after 400 ms; `select` per step.
 class CineStepper extends StatefulWidget {
-  const CineStepper({super.key, required this.value, required this.onChanged, this.min = 0, this.max = 99, this.step = 1, this.label});
+  const CineStepper({super.key, required this.value, required this.onChanged, this.min = 0, this.max = 99, this.step = 1, this.label, this.format});
 
   final int value, min, max, step;
+
+  /// The shown and spoken text for a value; null prints the integer.
+  final String Function(int)? format;
+  String _text(int v) => format?.call(v) ?? '$v';
   final ValueChanged<int> onChanged;
   final String? label;
 
@@ -99,15 +103,15 @@ class _CineStepperState extends State<CineStepper> {
     final c = context.cine;
     return Semantics(
       label: widget.label,
-      value: '$_v',
-      increasedValue: _can(1) ? '${_v + widget.step}' : null,
-      decreasedValue: _can(-1) ? '${_v - widget.step}' : null,
+      value: widget._text(_v),
+      increasedValue: _can(1) ? widget._text(_v + widget.step) : null,
+      decreasedValue: _can(-1) ? widget._text(_v - widget.step) : null,
       onIncrease: _can(1) ? () => _step(1) : null,
       onDecrease: _can(-1) ? () => _step(-1) : null,
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         _btn(context, -1),
         SizedBox(width: c.space2),
-        ConstrainedBox(constraints: const BoxConstraints(minWidth: 64), child: Center(child: CineFolioFlip(value: _v, role: c.typeFolioLg))),
+        ConstrainedBox(constraints: const BoxConstraints(minWidth: 64), child: Center(child: CineFolioFlip(value: _v, role: c.typeFolioLg, format: widget.format))),
         SizedBox(width: c.space2),
         _btn(context, 1),
       ],),

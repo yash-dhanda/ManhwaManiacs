@@ -43,7 +43,9 @@ class AmbientSection extends ConsumerWidget {
       if (g.on) ...[
         segmentedRow('guided-mode', 'Advance', const ['PACE BY WORDS', 'FIXED'], g.mode == 'FIXED' ? 1 : 0, (i) => n.setGuided(mode: i == 1 ? 'FIXED' : 'PACE_BY_WORDS')),
         if (g.mode == 'FIXED')
-          sliderRow('guided-fixed', 'Hold each panel', g.fixedMs / 1000, (v) => n.setGuided(fixedMs: (v * 2).round() * 500), min: 2, max: 10, divisions: 16, flag: (v) => '${v.toStringAsFixed(1)} s'),
+          // Half-second steps over the stored milliseconds: 4..20 is 2-10 s.
+          stepperRow('guided-fixed', 'Hold each panel', (g.fixedMs / 500).round(), (i) => n.setGuided(fixedMs: i * 500),
+              min: 4, max: 20, format: (i) => '${(i / 2).toStringAsFixed(1)} s',),
       ],
     ],);
   }

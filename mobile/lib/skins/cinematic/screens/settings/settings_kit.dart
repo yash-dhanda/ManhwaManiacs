@@ -227,7 +227,7 @@ Widget sliderRow(String id, String label, double value, ValueChanged<double> onC
     );
 
 Widget stepperRow(String id, String label, int value, ValueChanged<int> onChanged,
-        {required int min, required int max, int step = 1, String? description, String? unit, bool disabled = false,}) =>
+        {required int min, required int max, int step = 1, String? description, String? unit, bool disabled = false, String Function(int)? format,}) =>
     JumpRow(
       id: id,
       child: CineSettingsRow(
@@ -237,7 +237,7 @@ Widget stepperRow(String id, String label, int value, ValueChanged<int> onChange
         control: IgnorePointer(
           ignoring: disabled,
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            CineStepper(value: value, min: min, max: max, step: step, label: label, onChanged: onChanged),
+            CineStepper(value: value, min: min, max: max, step: step, label: label, format: format, onChanged: onChanged),
             if (unit != null) Builder(builder: (context) => Padding(padding: EdgeInsets.only(left: context.cine.space2), child: CineRoleText(unit, context.cine.typeFolio, color: context.cine.colorInk60))),
           ],),
         ),

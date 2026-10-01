@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/settings/services/server_switch.dart';
 import 'package:manhwamaniacs/features/setup/utils/server_check.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_stepper.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/next_issue_plate.dart';
@@ -196,6 +197,14 @@ void main() {
       expect(find.text('PACE BY WORDS'), findsOneWidget);
       await tapText(tester, 'FIXED');
       expect(find.text('Hold each panel'), findsOneWidget);
+      // The fixed hold is a 2-10 s stepper in half-second steps over the stored milliseconds.
+      final hold = find.byWidgetPredicate((w) => w is CineStepper && w.label == 'Hold each panel');
+      final stepper = tester.widget<CineStepper>(hold);
+      expect((stepper.value, stepper.min, stepper.max, stepper.step), (7, 4, 20, 1));
+      expect(stepper.format!(7), '3.5 s');
+      expect(find.text('5'), findsOneWidget, reason: 'the folio keeps the formatted text');
+      await tapFinder(tester, find.descendant(of: hold, matching: find.bySemanticsLabel('Increase')));
+      expect(jsonDecode(prefs.getString('mm.reader-settings.u1p1')!)['guidedAutoAdvance']['fixedMs'], 4000);
     });
   });
 
