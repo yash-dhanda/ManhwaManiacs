@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/fill_slider.dart';
@@ -77,6 +78,14 @@ class ReaderSettingsBody extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // At text scale above 1.3 the cruise button has left the bottom capsule: it is the first row here (glass 3.3 rule 4).
+        if (strip && MediaQuery.textScalerOf(context).scale(17) / 17 > 1.3)
+          _SwitchRow(
+            title: 'Cruise',
+            scope: thisSeries,
+            value: ref.watch(cruiseControllerProvider).running,
+            onChanged: (_) => ref.read(cruiseControllerProvider.notifier).toggle(),
+          ),
         const _Section('Layout'),
         if (!readAll)
           _Row(

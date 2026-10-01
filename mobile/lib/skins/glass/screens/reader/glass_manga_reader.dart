@@ -45,6 +45,7 @@ import 'package:manhwamaniacs/features/sources/providers/source_reader_provider.
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
@@ -73,6 +74,7 @@ import 'package:manhwamaniacs/skins/glass/screens/reader/reader_host.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_keys.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_settings_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/side_panels.dart';
+import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show registerMatureStop, registerPlaybackStop;
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 import 'package:share_plus/share_plus.dart';
@@ -167,6 +169,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   double _thumbY = 0;
   String? _openSheet;
   VoidCallback? _releaseClaims;
+  final List<VoidCallback> _stops = [];
 
   ReaderFrameBody get _body => widget.body;
   ({String sourceId, String seriesKey, String chapterKey, ReaderOrigin origin}) get _id =>
@@ -194,6 +197,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       ..add(engine.seamEvents.listen(_onSeam))
       ..add(engine.neighbourEvents.listen(_onNeighbour));
     engine.addListener(_onEngine);
+    _attachCruise();
     if (widget.q != null) unawaited(_prepareHitLens(widget.q!));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -203,6 +207,31 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       _lastParam = sheet;
       if (sheet != null) _pushSheet(sheet);
     });
+  }
+
+  // ── Cruise (glass 9.4.1): the controller owns the speed, the engine owns the ramp and the touch pauses ──
+
+  CruiseController get _cruise => ref.read(cruiseControllerProvider.notifier);
+
+  void _attachCruise() {
+    // Keeps the auto-dispose controller alive for as long as this reader is, and repaints the pill on every change.
+    _keepAlive.add(ref.listenManual(cruiseControllerProvider, (_, __) {
+      if (mounted && !_disposed) setState(() {});
+    }),);
+    // Binding changes the provider's state, which is not allowed while the tree builds: after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _cruise.attach(
+        engine,
+        speed: _settings.cruiseSpeed,
+        persist: (v) => unawaited(GlassReaderSettingsWriter(ref, _seriesRef).series({GlassReaderKeys.cruiseSpeed: v})),
+        reduced: () => ref.read(glassMotionPrefsProvider).reduced,
+      );
+    });
+    _keepAlive.add(ref.listenManual(glassReaderSettingsProvider(_seriesRef), (p, n) => _cruise.follow(_settings.cruiseSpeed)));
+    _stops.add(registerPlaybackStop('cruise', _cruise.stop));
+    final mature = ref.read(sourcesListProvider).valueOrNull?.where((x) => x.id == sourceId).firstOrNull?.mature ?? false;
+    if (mature) _stops.add(registerMatureStop('cruise', _cruise.stop));
   }
 
   /// `?sheet=settings|chapters|note` is this reader's own: the global sheet host steps aside.
@@ -272,6 +301,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     }
     for (final s in _keepAlive) {
       s.close();
+    }
+    for (final stop in _stops) {
+      stop();
     }
     engine.removeListener(_onEngine);
     _zoomChipTimer?.cancel();
@@ -626,17 +658,30 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   @override
   void toggleCruise() {
     glassFire(ref, HapticEvent.autoscrollToggle);
-    if (engine.value.autoScrolling) {
-      engine.toggleAutoScroll();
-    } else {
-      engine.startAutoScroll(_settings.cruiseSpeed * 60);
-    }
+    _cruise.toggle();
   }
 
+  @override
+  CruiseState get cruise => ref.read(cruiseControllerProvider);
+
+  @override
+  bool get cruiseAvailable => !paged;
+
+  @override
+  void cruisePreview(double v) => _cruise.preview(v);
+
+  @override
+  void cruiseCommit(double v) => _cruise.commit(v);
+
+  @override
+  void cruiseStep(double by) => _cruise.step(by);
+
+  @override
+  void cruiseResume() => _cruise.resume();
+
   void _stepCruise(double by) {
-    final v = snapCruise(_settings.cruiseSpeed + by);
-    unawaited(GlassReaderSettingsWriter(ref, _seriesRef).series({GlassReaderKeys.cruiseSpeed: v}));
-    if (engine.value.autoScrolling) engine.setAutoScrollPxPerSecond(v * 60);
+    if (!cruiseAvailable) return;
+    _cruise.step(by);
   }
 
   @override

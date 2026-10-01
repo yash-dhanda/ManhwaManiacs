@@ -8,6 +8,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/cruise.dart' show formatSpeed;
+import 'package:manhwamaniacs/skins/glass/ambient/cruise_pill.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
@@ -235,8 +237,51 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
           height: g.hit,
           child: _live(visible, _materialised(LandscapeScrubRail(host: host, state: s))),
         ),
+      // A running cruise shows its pill above the rail's trailing end (glass 8.14.11).
+      if (host.cruiseAvailable && host.cruise.running)
+        Positioned(
+          right: math.max(g.inset.right, 16),
+          bottom: math.max(g.inset.bottom, 8) + g.hit + 8,
+          child: _live(
+            visible,
+            _LandscapeCruise(host: host, lb: bandLb(Rect.fromLTWH(g.size.width - 140, g.size.height - 120, 124, 44), g.size, s.currentPageSample), tint: t),
+          ),
+        ),
       if (host.goToOpen) Positioned.fill(child: _GoToLayer(host: host, state: s, g: g, tint: t)),
     ];
+  }
+}
+
+/// The landscape cruise pill in its own capsule of glass.
+class _LandscapeCruise extends StatelessWidget {
+  const _LandscapeCruise({required this.host, required this.lb, required this.tint});
+  final GlassReaderHost host;
+  final double lb;
+  final Color? tint;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = formatSpeed(host.cruise.speed);
+    final w = 16 + 20 + 6 + measureText(context, text, roleStyle(context, gt.typeMono, onGlass: true)).width + 16;
+    return SkinGlass(
+      size: Size(w, math.max(44.0, GlassFrame.hitMin(context))),
+      tier: GlassTierId.t3,
+      lb: lb,
+      tint: tint,
+      rimTint: tint == null ? null : rimTint(tint!),
+      debugLabel: 'reader cruise pill',
+      child: CruisePill(
+        state: host.cruise,
+        onToggle: host.toggleCruise,
+        onResume: host.cruiseResume,
+        onPreview: host.cruisePreview,
+        onCommit: host.cruiseCommit,
+        onStep: host.cruiseStep,
+        reduced: host.reducedMotion,
+        lb: lb,
+        tint: tint,
+      ),
+    );
   }
 }
 
@@ -463,6 +508,9 @@ class _PageReadout extends StatelessWidget {
       );
 }
 
+/// At text scale above 1.3 the cruise button leaves the capsule for the first row of the reader settings sheet (glass 3.3 rule 4).
+bool _cruiseInSheet(BuildContext context) => MediaQuery.textScalerOf(context).scale(17) / 17 > 1.3;
+
 /// The bottom capsule (56 tall, at most 520 wide) and the pill it minimises into (32 tall, "18 / 40" only).
 class _BottomCapsule extends StatelessWidget {
   const _BottomCapsule({
@@ -502,13 +550,18 @@ class _BottomCapsule extends StatelessWidget {
               side: side,
             ),
             Expanded(child: _PageReadout(text: text, page: state.page, count: state.pageCount, onTap: () => host.setGoTo(true))),
-            _CapsuleIcon(
-              icon: roleIcon(GlassIconRole.autoScroll),
-              label: state.autoScrolling ? 'Pause cruise' : 'Cruise',
-              onPressed: host.toggleCruise,
-              side: side,
-              selected: state.autoScrolling,
-            ),
+            if (host.cruiseAvailable && !_cruiseInSheet(context))
+              CruisePill(
+                state: host.cruise,
+                onToggle: host.toggleCruise,
+                onResume: host.cruiseResume,
+                onPreview: host.cruisePreview,
+                onCommit: host.cruiseCommit,
+                onStep: host.cruiseStep,
+                reduced: host.reducedMotion,
+                lb: lb,
+                tint: tint,
+              ),
             GlassTooltip(
               message: host.nextChapterLabel ?? 'No next chapter',
               child: _CapsuleIcon(
@@ -560,17 +613,16 @@ class _BottomCapsule extends StatelessWidget {
 }
 
 class _CapsuleIcon extends StatelessWidget {
-  const _CapsuleIcon({required this.icon, required this.label, required this.onPressed, required this.side, this.selected = false});
+  const _CapsuleIcon({required this.icon, required this.label, required this.onPressed, required this.side});
   final GlassButtonIcon icon;
   final String label;
   final VoidCallback? onPressed;
   final double side;
-  final bool selected;
 
   @override
   Widget build(BuildContext context) => Opacity(
         opacity: onPressed == null ? 0.3 : 1,
-        child: SizedBox(width: side, height: side, child: GlassBarIcon(icon: icon, label: label, onPressed: onPressed, toggled: selected ? true : null)),
+        child: SizedBox(width: side, height: side, child: GlassBarIcon(icon: icon, label: label, onPressed: onPressed)),
       );
 }
 
@@ -710,6 +762,20 @@ class _Rail extends StatelessWidget {
   Widget build(BuildContext context) {
     final count = state.pageCount;
     final page = (state.page - 1).clamp(0, count - 1);
+    final rail = _scrubRail(count, page);
+    if (!host.cruise.running) return rail;
+    // While cruising the trailing-edge drag changes the speed instead of scrubbing (glass 9.4.1).
+    return Stack(
+      children: [
+        IgnorePointer(child: rail),
+        Positioned.fill(
+          child: CruiseRailStrip(speed: host.cruise.speed, onPreview: host.cruisePreview, onCommit: host.cruiseCommit, child: const SizedBox.expand()),
+        ),
+      ],
+    );
+  }
+
+  Widget _scrubRail(int count, int page) {
     return Listener(
       onPointerDown: (e) => host.scrubbing(true, thumbY: railTop + e.localPosition.dy),
       onPointerMove: (e) => host.scrubbing(true, thumbY: railTop + e.localPosition.dy),

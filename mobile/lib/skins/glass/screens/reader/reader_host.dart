@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
 
 /// What the reader chrome reads and asks of the Glass manga reader. The reader's `State` implements it; the chrome never
 /// moves the page layer itself, every movement is an engine command issued here.
@@ -58,6 +59,14 @@ abstract interface class GlassReaderHost {
   void previousChapter();
   void nextChapter();
   void toggleCruise();
+
+  /// The cruise pill's state, and whether the layout can cruise at all (a strip does; Single and Double do not).
+  CruiseState get cruise;
+  bool get cruiseAvailable;
+  void cruisePreview(double v);
+  void cruiseCommit(double v);
+  void cruiseStep(double by);
+  void cruiseResume();
 
   /// The scrub rail took or released the finger (the chrome holds while scrubbing).
   void scrubbing(bool active, {double? thumbY});
