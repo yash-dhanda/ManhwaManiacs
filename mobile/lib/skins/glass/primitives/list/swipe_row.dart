@@ -465,7 +465,9 @@ class _GlassSwipeRowState extends ConsumerState<GlassSwipeRow> with TickerProvid
                             ),
                         ],
                       );
+                      // Clips only while the row slides or collapses: an idle row must not cut its own focus ring (glass 14.4).
                       return ClipRect(
+                        clipBehavior: x != 0 || _h.value < 1 ? Clip.hardEdge : Clip.none,
                         child: Align(
                           alignment: Alignment.topCenter,
                           heightFactor: _h.value.clamp(0.0, 1.0),

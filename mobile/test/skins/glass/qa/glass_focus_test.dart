@@ -16,17 +16,9 @@ import 'glass_qa_screens.dart';
 /// the focus policy scrolls, rails and grids take one tab stop each, and a route change leaves focus on the header.
 /// `MM_QA_REPORT=1` lists the findings instead of failing.
 /// Accepted findings, each with the contract reason: a row inside a grouped card paints its ring inside the card's own clip (14.4's
-/// "never clipped" governs free-standing controls); the tablet Settings panes run to the screen's bottom edge, 16 px into the wide frame's
-/// 24 px band, where no chrome floats (open issue in qa.md); the Sources row clip is the row card itself.
-const _accepted = {
-  'feature': ['under the top band'],
-  'featureByFollow': ['under the top band'],
-  'discover': ['under the top band'],
-  'settings': ['under the bottom band', 'under the top band'],
-  'index': ['under the bottom band'],
-  'numbers': ['under the bottom band', 'under the top band'],
-  'onboarding': ['under the bottom band'],
-};
+/// "never clipped" governs free-standing controls). Bands are read on the focused control's surface: a series window and the search page
+/// declare their own (`GlassFocusBandsScope`), every other screen has the frame's 76 / 24 px bands.
+const _accepted = <String, List<String>>{};
 
 const _chrome = {'GlassDock', 'GlassNavRow', 'GlassToolbar', 'GlassSidebar', 'GlassFloatingBar', '_GlassFloatingBarState', 'GlassSearchField'};
 
@@ -58,7 +50,9 @@ String? _clippedBy(Element e, Rect ring) {
       return true;
     }
     final ro = a.renderObject;
-    if (ro is RenderClipRect || ro is RenderClipRRect || ro is RenderClipPath || ro.runtimeType.toString().contains('Clip')) {
+    // A clip with Clip.none (a transparent Material's ClipPath, an idle swipe row) cuts nothing.
+    final none = switch (ro) { RenderClipRect r => r.clipBehavior == Clip.none, RenderClipRRect r => r.clipBehavior == Clip.none, RenderClipPath r => r.clipBehavior == Clip.none, RenderClipRSuperellipse r => r.clipBehavior == Clip.none, _ => false };
+    if (!none && (ro is RenderClipRect || ro is RenderClipRRect || ro is RenderClipPath || ro.runtimeType.toString().contains('Clip'))) {
       if (ro is RenderBox && ro.hasSize && ro.attached) {
         final r = ro.localToGlobal(Offset.zero) & ro.size;
         if (!r.inflate(0.5).contains(ring.topLeft) || !r.inflate(0.5).contains(ring.bottomRight)) {
@@ -80,12 +74,13 @@ void main() {
       await t.sendKeyEvent(LogicalKeyboardKey.tab); // a key press puts focus in the traditional (visible ring) mode
       await t.pump();
       expect(FocusManager.instance.highlightMode, FocusHighlightMode.traditional);
-      final ctx = t.element(find.byType(Navigator).first);
-      final bands = glassFocusBands(ctx);
       final problems = <String>[];
       final stops = <Rect>[];
       for (var i = 0; i < 60; i++) {
         await t.sendKeyEvent(LogicalKeyboardKey.tab);
+        // A frame for the focus change and the band check, one for the settle scroll's first tick, then its 414 ms.
+        await t.pump();
+        await t.pump();
         await t.pump(const Duration(milliseconds: 460));
         final node = FocusManager.instance.primaryFocus;
         if (node == null || node.context == null) continue;
@@ -93,6 +88,8 @@ void main() {
         if (rect.isEmpty || stops.any((r) => r == rect)) continue;
         stops.add(rect);
         final e = node.context! as Element;
+        // The bands of the surface the control is on: a series window or the search page declares its own (GlassFocusBandsScope).
+        final bands = glassFocusBands(e);
         if (_inChrome(e)) continue;
         final screen = Size(834, 1194);
         if (rect.height > 500 || rect.width >= 800) continue; // a page or scroll container, not a control

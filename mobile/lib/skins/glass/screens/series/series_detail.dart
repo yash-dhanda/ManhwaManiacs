@@ -35,6 +35,7 @@ import 'package:manhwamaniacs/skins/glass/screens/series/series_data.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/series_header.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/series_keys.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/series_states.dart';
+import 'package:manhwamaniacs/skins/glass/shell/focus_policy.dart';
 import 'package:manhwamaniacs/skins/glass/transitions/dive.dart';
 
 /// The layout the page takes (glass 8.12 Presentation): the phone sheet, the tablet window (one column, full content width), the
@@ -368,8 +369,12 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
         ),
       ),
     );
-    if (l != SeriesLayout.desktop || route is GlassFormRoute) return page;
-    return Align(alignment: Alignment.topCenter, child: SizedBox(width: math.min(960.0, size.width), child: page));
+    if (l == SeriesLayout.phone) return page;
+    // The tablet and desktop window: its nav row scrolls with the band and nothing floats above it, so focus has no top band; the
+    // selection toolbar floats 24 px above the bottom, 52 tall (glass 8.12, 14.4).
+    final banded = GlassFocusBandsScope(top: 0, bottom: chapters.selection.isActive ? 24 + 52 : 24, child: page);
+    if (l != SeriesLayout.desktop || route is GlassFormRoute) return banded;
+    return Align(alignment: Alignment.topCenter, child: SizedBox(width: math.min(960.0, size.width), child: banded));
   }
 }
 
