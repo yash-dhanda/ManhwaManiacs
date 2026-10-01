@@ -164,3 +164,7 @@ Items only the owner can do, by step.
 ## mobile/34 (reader engine, Glass commands)
 
 - Device check on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-34/device-check.md` (120 Hz, 0 dropped frames on the long strip and on a real 120-page chapter; `mode=single` pull readout; sample turns `decode`).
+
+## mobile/40 (Glass You, About, admin settings, Server, Diagnostics, System status)
+
+- Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-40/device-check.md` (Orb lift at 120 Hz with 0 dropped frames, the 30 min slider magnet, the Sign out everywhere hold, a backup export to Files, Diagnostics while scrolling, the bead pulse, VoiceOver and TalkBack custom actions, Reduce Motion and Reduce Transparency).
