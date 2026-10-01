@@ -40,8 +40,9 @@ class _GlassLargeTitleState extends ConsumerState<GlassLargeTitle> {
     final profile = ref.watch(activeProfileProvider.select((p) => p?.id));
     final reduced =
         ref.watch(glassMotionPrefsProvider.select((m) => m.reduced));
+    // The header node is LetterReveal's (labelled, level 1); an outer header would be a second, empty one (G2).
     return Semantics(
-      header: true,
+      container: true,
       child: Focus(
         focusNode: _focus,
         child: ValueListenableBuilder<double>(

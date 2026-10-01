@@ -94,6 +94,8 @@ class _GlassSearchPageState extends ConsumerState<GlassSearchPage> {
       child: Stack(
       fit: StackFit.expand,
       children: [
+        // The page has no visible title (the field is the page); screen readers get the one level-1 heading (G2).
+        Positioned(left: 0, top: 0, width: 1, height: 1, child: Semantics(header: true, headingLevel: 1, label: 'Search', child: const SizedBox.expand())),
         FadeTransition(
           opacity: widget.animation,
           child: body != null ? body(context, _q.text) : const SizedBox.shrink(),

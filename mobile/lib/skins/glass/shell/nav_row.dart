@@ -255,6 +255,7 @@ class _TitleCapsuleState extends ConsumerState<_TitleCapsule>
             scale: 0.9 + 0.1 * _c.value.clamp(0.0, 1.0),
             child: Semantics(
               header: true,
+              headingLevel: 2, // the compact title echoes the screen's own level-1 title (G2)
               label: widget.title,
               excludeSemantics: true,
               child: Center(
