@@ -65,4 +65,20 @@ void main() {
     expect(prefs.getString(key), contains('"solid":true'));
     expect(prefs.getString(key), contains('"legible":true'));
   });
+
+  test('Glass fields: solid and contrast round trip and leave the others alone', () async {
+    final c = await _c({});
+    final n = c.read(a11yPrefsProvider.notifier);
+    await n.setSolid(true);
+    await n.setContrast(true);
+    await n.setLegible(true);
+    expect(c.read(a11yPrefsProvider).solid, true);
+    expect(c.read(a11yPrefsProvider).contrast, true);
+    final prefs = c.read(sharedPrefsProvider);
+    final key = prefs.getKeys().singleWhere((k) => k.startsWith('mm.boot.a11y.'));
+    expect(prefs.getString(key), allOf(contains('"solid":true'), contains('"contrast":true'), contains('"legible":true')));
+    await n.setSolid(false);
+    expect(prefs.getString(key), isNot(contains('solid')));
+    expect(c.read(a11yPrefsProvider).contrast, true);
+  });
 }

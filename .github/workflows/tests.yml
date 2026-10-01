@@ -144,4 +144,4 @@ jobs:
         run: flutter pub get && flutter pub deps --style=compact
       - name: Release APK (check build)
         working-directory: mobile
-        run: flutter build apk --release
+        run: flutter build apk --release --no-tree-shake-icons

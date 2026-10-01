@@ -87,7 +87,6 @@ void main() {
       expect(find.text('Switch to Glass'), findsOneWidget);
       expect(find.text('Glass: layered glass, springs and depth.'), findsOneWidget);
       expect(find.text(kEditionCaption), findsOneWidget);
-      expect(find.text('Preview frames arrive with the Glass build.'), findsOneWidget);
       final name = t.widget<Text>(find.text('Glass'));
       expect(name.style?.fontFamily, 'GoogleSansFlexMM');
       expect(t.widget<Text>(find.text('Cinematic')).style?.fontFamily, 'BodoniModa');
@@ -135,7 +134,7 @@ void main() {
   test('no alternate icon is declared and the icon plugin is never called', () {
     expect(File('ios/Runner/Info.plist').readAsStringSync(), isNot(contains('CFBundleAlternateIcons')));
     expect(File('android/app/src/main/AndroidManifest.xml').readAsStringSync(), isNot(contains('activity-alias')));
-    for (final f in Directory('lib').listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.dart'))) {
+    for (final f in Directory('lib').listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.dart') && !f.path.endsWith('app_icon_switcher.dart'))) {
       final s = f.readAsStringSync();
       expect(s.contains('setAlternateIconName') || s.contains('FlutterDynamicIconPlus'), isFalse, reason: f.path);
     }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/display/high_refresh_rate.dart';
 import 'package:manhwamaniacs/app/skin_boot_check.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
+import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_lifecycle_gate.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
@@ -43,8 +44,10 @@ class _SkinAppState extends ConsumerState<SkinApp> {
       scrollBehavior: skin is CinematicSkin ? skin.scrollBehavior : null,
       builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
         value: skin.overlayStyle(ref),
-        child: DownloadsLifecycleGate(
-          child: SkinBootCheck(child: skin.wrap(context, child ?? const SizedBox.shrink())),
+        child: AppIconPauseListener(
+          child: DownloadsLifecycleGate(
+            child: SkinBootCheck(child: skin.wrap(context, child ?? const SizedBox.shrink())),
+          ),
         ),
       ),
     );

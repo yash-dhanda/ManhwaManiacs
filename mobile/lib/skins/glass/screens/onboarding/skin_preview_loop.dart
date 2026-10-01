@@ -6,7 +6,7 @@ import 'package:manhwamaniacs/skins/glass/splash/glass_mark.dart';
 
 /// True only when all 36 Glass preview frames (`mobile/assets/skin_previews/glass/000.png` to `035.png`) exist; `mobile/39`
 /// captures them. While false the Glass card shows the neutral mark centred on the brand aurora.
-const bool kGlassPreviewFramesBundled = false;
+const bool kGlassPreviewFramesBundled = true;
 
 /// The looping preview of a skin (glass 8.7, step 2): precaches and plays `assets/skin_previews/{skin}/000.png` to `035.png`, one
 /// frame every 166 ms through a `Ticker` with `gaplessPlayback`, only while visible. Under reduced motion it shows frame 0 with a

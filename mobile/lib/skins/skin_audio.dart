@@ -287,7 +287,7 @@ class SkinAudio {
 
   /// Feedback lab: play [event] from [skin]'s cue set at its default gain,
   /// regardless of the saved preference, suppression or the running skin.
-  Future<void> preview(SkinId skin, SoundEvent event, {int depth = 1}) async {
+  Future<void> preview(SkinId skin, SoundEvent event, {int depth = 1, double? level}) async {
     final names = _events(skin)[event];
     if (names == null || names.isEmpty) return;
     if (!_engineReady) {
@@ -301,7 +301,7 @@ class SkinAudio {
     if (path == null) return;
     final src = cache[name] ??= await _engine.loadAsset(path);
     final d = skin == SkinId.glass ? SoundPrefs.glassDefault : SoundPrefs.cinematicDefault;
-    await _engine.play(src, volume: gainFor(skin, d));
+    await _engine.play(src, volume: gainFor(skin, level == null ? d : SoundPrefs(on: true, level: level)));
   }
 
   Future<void> play(SoundEvent event, {int depth = 1, double rate = 1.0}) async {

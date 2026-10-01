@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/skins/glass/icons/glass_icon.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/search_field.dart';
+import 'package:manhwamaniacs/skins/glass/screens/search/search_page.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_common.dart';
 import 'package:manhwamaniacs/skins/pending_screen.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -17,7 +18,7 @@ import 'package:manhwamaniacs/skins/skins.dart';
 final glassSearchOriginProvider = StateProvider<Rect?>((ref) => null);
 
 /// `mobile/38` fills this with the Discover body; until then the slot shows the shared pending screen.
-final glassDiscoverBodyProvider = StateProvider<Widget Function(BuildContext context, String query)?>((ref) => null);
+final glassDiscoverBodyProvider = StateProvider<Widget Function(BuildContext context, String query)?>((ref) => (context, query) => GlassSearchBody(query: query));
 
 /// The 50 px search orb's content (its glass is a shape of the dock's group). A tap opens `/search`.
 class GlassSearchOrbBody extends StatelessWidget {
@@ -74,7 +75,11 @@ class _GlassSearchPageState extends ConsumerState<GlassSearchPage> {
     super.dispose();
   }
 
-  void _write(String q) => GoRouter.of(context).replace<void>(q.isEmpty ? '/search' : '/search?q=${Uri.encodeQueryComponent(q)}');
+  void _write(String q) {
+    final scope = GoRouter.of(context).state.uri.queryParameters['scope'];
+    final qp = <String, String>{if (q.isNotEmpty) 'q': q, if (scope != null) 'scope': scope};
+    GoRouter.of(context).replace<void>(Uri(path: '/search', queryParameters: qp.isEmpty ? null : qp).toString());
+  }
 
   @override
   Widget build(BuildContext context) {

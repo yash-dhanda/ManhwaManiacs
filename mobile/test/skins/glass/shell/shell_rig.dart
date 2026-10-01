@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.da
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/glass/glass_skin.dart';
+import 'package:manhwamaniacs/skins/glass/shell/glass_migration.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -58,6 +59,7 @@ List<Override> shellTestOverrides({int unread = 0, int downloads = 0}) => [
       authenticatedAuthOverride(),
       activeProfileOverride(),
       profileSessionReadyOverride(),
+      glassPrefsMigrationProvider.overrideWithValue(null),
       unreadNotificationCountProvider.overrideWith(() => _Unread(unread)),
       activeDownloadCountProvider.overrideWithValue(downloads),
       setupCompletedProvider.overrideWithValue(true),

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -104,9 +105,17 @@ abstract final class DownloadsSchema {
   /// Tombstone. NULL = live. Rows are never deleted from this table by the
   /// sync path — a delete a device slept through has to be learnable.
   static const colDeletedAt = 'deleted_at';
+
+  /// The on-device novel-text index (schema v7): an FTS4 table, one row per paragraph of a downloaded novel chapter, and a plain table
+  /// of the chapters already indexed. Neither carries a profile; the read joins `saved_chapters`, which does.
+  static const novelText = 'novel_text';
+  static const novelTextChapters = 'novel_text_chapters';
+  static const colPara = 'para';
+  static const colText = 'text';
+  static const colIndexedAt = 'indexed_at';
 }
 
-const _dbVersion = 6;
+const _dbVersion = 7;
 
 /// The `kind` column's two values. A row's own kind, not a lookup through the
 /// sources listing — the offline path has no listing, and a downloaded
@@ -221,6 +230,7 @@ Future<Database> openDownloadsDatabase({String? overridePath}) async {
       );
       await _createBookmarkTables(db);
       await _createListenSessionTable(db);
+      await createNovelTextTables(db);
     },
   );
 }
@@ -278,6 +288,34 @@ Future<void> _migrate(Database db, int oldVersion) async {
       await db.execute('ALTER TABLE ${DownloadsSchema.savedPages} ADD COLUMN $col TEXT');
     }
   }
+  // v6 → v7: the novel-text FTS4 index. `IF NOT EXISTS` keeps it idempotent for the downgrade-reopen path.
+  await createNovelTextTables(db);
+}
+
+/// Whether the last [createNovelTextTables] fell back to the `simple` tokenizer (a framework SQLite without `unicode61`).
+bool novelTextSimpleTokenizer = false;
+
+/// The novel-text index tables. FTS4, not FTS5: Android's framework SQLite does not guarantee FTS5. `unicode61` with
+/// `remove_diacritics=1` folds "café" to "cafe"; a SQLite without that tokenizer gets `simple` (the query side folds either way).
+Future<void> createNovelTextTables(Database db) async {
+  Future<void> fts(String tokenizer) => db.execute(
+        'CREATE VIRTUAL TABLE IF NOT EXISTS ${DownloadsSchema.novelText} USING fts4('
+        'source, series, chapter, para, text, '
+        'notindexed=source, notindexed=series, notindexed=chapter, notindexed=para, '
+        'tokenize=$tokenizer)',
+      );
+  try {
+    await fts('unicode61 "remove_diacritics=1"');
+  } on DatabaseException {
+    novelTextSimpleTokenizer = true;
+    appLogger.i('novel_text: simple tokenizer');
+    await fts('simple');
+  }
+  await db.execute(
+    'CREATE TABLE IF NOT EXISTS ${DownloadsSchema.novelTextChapters} ('
+    'source TEXT NOT NULL, series TEXT NOT NULL, chapter TEXT NOT NULL, indexed_at INTEGER NOT NULL, '
+    'PRIMARY KEY (source, series, chapter))',
+  );
 }
 
 Future<void> _createListenSessionTable(Database db) async {
