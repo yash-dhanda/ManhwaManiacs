@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass_motion_recorder.dart' show GlassMotionEntry;
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
@@ -45,7 +44,7 @@ class _GlassGoalRingState extends ConsumerState<GlassGoalRing> with SingleTicker
   void didUpdateWidget(GlassGoalRing old) {
     super.didUpdateWidget(old);
     if (_met && !_wasMet) {
-      glassFire(ref, HapticEvent.goalMet);
+      // goal.met fires once from the streak events listener (mobile/42), not once per orb wearing the ring.
       if (!ref.read(glassReducedProvider)) {
         _entry = GlassMotion.recorder.begin(MotionName.goalRingClose.label, 600);
         _close.forward(from: 0).whenComplete(() {

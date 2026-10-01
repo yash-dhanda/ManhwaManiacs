@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/features/auth/repositories/auth_repository.dart';
 import 'package:manhwamaniacs/features/auth/repositories/auth_repository_impl.dart';
 import 'package:manhwamaniacs/features/home/repositories/home_repository.dart';
 import 'package:manhwamaniacs/features/home/repositories/home_repository_impl.dart';
+import 'package:manhwamaniacs/features/library/providers/streak_events_provider.dart';
 import 'package:manhwamaniacs/features/library/repositories/global_search_repository.dart';
 import 'package:manhwamaniacs/features/library/repositories/global_search_repository_impl.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
@@ -52,7 +53,7 @@ final backupRepositoryProvider = Provider<BackupRepository>(
 );
 
 final readerRepositoryProvider = Provider<ReaderRepository>(
-  (ref) => ReaderRepositoryImpl(ref.watch(dioProvider)),
+  (ref) => ReaderRepositoryImpl(ref.watch(dioProvider), onAnswer: (a) => ref.read(progressAnswerHandlerProvider)(a)),
   name: 'readerRepository',
 );
 

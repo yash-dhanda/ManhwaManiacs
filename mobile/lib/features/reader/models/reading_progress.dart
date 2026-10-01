@@ -151,3 +151,28 @@ class ProgressPush {
         manual: manual,
       );
 }
+
+/// The streak half of a progress answer: `{current_days, extended_today}` for the caller's local day.
+class StreakSnapshot {
+  const StreakSnapshot({required this.currentDays, required this.extendedToday});
+  final int currentDays;
+  final bool extendedToday;
+}
+
+/// What `POST /reader/progress` (and the batch) answer beside the saved row: the server's streak and today's reading seconds. Both
+/// are null when the server could not compute them. The app renders these and never infers a streak of its own.
+class ProgressAnswer {
+  const ProgressAnswer({this.streak, this.todaySeconds});
+  final StreakSnapshot? streak;
+  final int? todaySeconds;
+
+  factory ProgressAnswer.fromJson(Map<String, dynamic> json) {
+    final s = json['streak'];
+    return ProgressAnswer(
+      streak: s is Map<String, dynamic>
+          ? StreakSnapshot(currentDays: (s['current_days'] as num?)?.toInt() ?? 0, extendedToday: s['extended_today'] == true)
+          : null,
+      todaySeconds: (json['today_seconds'] as num?)?.toInt(),
+    );
+  }
+}

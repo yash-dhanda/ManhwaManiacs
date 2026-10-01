@@ -38,6 +38,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/search_field.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/split_button.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/text_area.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/text_field.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/tooltip.dart';
@@ -543,7 +544,7 @@ Widget _cards(BuildContext context, GalleryGround g) => Column(
         _title(context, 'result, stat, history'),
         _wrap([
           _Cell('result', GlassResultCard(cover: const GalleryCover(8), title: 'Frost Archive', onTap: () {}, sourceBadge: const GlassSourceMonogram(name: 'Shelf', sourceId: 'shelf', size: 16))),
-          _Cell('stat', SizedBox(width: 150, child: GlassStatCard(icon: GlassGlyph.flame.regular, value: '12', label: 'Day streak', spark: const [1, 3, 2, 5, 4, 6, 7], onTap: () {}))),
+          _Cell('stat', SizedBox(width: 150, child: GlassStatCard(icon: GlassGlyph.star.regular, value: '12', label: 'Day streak', spark: const [1, 3, 2, 5, 4, 6, 7], onTap: () {}))),
           _Cell('history', GlassHistoryTile(cover: const GalleryCover(9), title: 'Blue Hour Duel', when: 'Ch 12 · 3 h ago', position: 'p. 18', progress: 0.45, width: 110, onOpen: () {}, onResume: () {})),
         ]),
         _title(context, 'collection'),
@@ -801,6 +802,16 @@ Widget _avatars(BuildContext context, GalleryGround g) => Column(
           const _Cell('8 of 10', GlassGoalRing(orbSize: 44, minutes: 8, goal: 10, child: GlassProfileOrb(preset: GlassAvatarPreset.emberFlame))),
           const _Cell('met', GlassGoalRing(orbSize: 44, minutes: 12, goal: 10, child: GlassProfileOrb(preset: GlassAvatarPreset.emberFlame))),
           const _Cell('on disc', GlassGoalRing(orbSize: 44, minutes: 4, goal: 10, onDisc: true, child: GlassProfileOrb(preset: GlassAvatarPreset.emberFlame))),
+        ]),
+        _title(context, 'streak flame'),
+        _wrap([
+          for (final size in const [16.0, 20.0, 44.0, 96.0, 220.0]) _Cell('${size.round()}', StreakFlame(size: size, days: 12, state: FlameState.litToday)),
+        ]),
+        _wrap([
+          const _Cell('not yet today', StreakFlame(size: 96, days: 12, state: FlameState.notYetToday)),
+          const _Cell('at risk', StreakFlame(size: 96, days: 12, state: FlameState.atRisk)),
+          const _Cell('no streak', StreakFlame(size: 96, state: FlameState.none)),
+          const _Cell('at rest', StreakFlamePicture(size: 96)),
         ]),
       ],
     );

@@ -8,7 +8,10 @@ import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 /// The reading heatmap (glass 7.39): 10 px cells with 2 px gaps, weeks as columns, Monday at the top; level [heatLevel] colours
 /// `heat0` to `heat4`; today is outlined 1 px in `aurora1`; month labels sit above. A partial cell (today) draws at 60 %.
 class HeatmapPainter extends CustomPainter {
-  const HeatmapPainter({required this.data, required this.label, this.selected, required this.today, this.fade = 1});
+  const HeatmapPainter({required this.data, required this.label, this.selected, required this.today, this.fade = 1, this.levelOf});
+
+  /// Replaces the relative level (value against the max) with a fixed scale (Statistics: pages 0, 1-19, 20-59, 60-149, 150+).
+  final int Function(double value)? levelOf;
   final List<ChartDatum> data;
   final TextStyle label;
   final int? selected;
@@ -53,7 +56,8 @@ class HeatmapPainter extends CustomPainter {
       final d = data[i];
       final r = cellRect(data, i);
       final alpha = (d.partial ? 0.6 : 1.0) * fade;
-      canvas.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(2.5)), Paint()..color = colorFor(heatLevel(d.value, max)).withValues(alpha: colorFor(heatLevel(d.value, max)).a * alpha));
+      final base = colorFor(levelOf?.call(d.value) ?? heatLevel(d.value, max));
+      canvas.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(2.5)), Paint()..color = base.withValues(alpha: base.a * alpha));
       final day = d.day;
       if (day != null && day.month != lastMonth && (heatCell(i, firstWeekday(data)).row == 0 || i == 0)) {
         lastMonth = day.month;

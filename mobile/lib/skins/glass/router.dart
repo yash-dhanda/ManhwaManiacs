@@ -42,9 +42,11 @@ import 'package:manhwamaniacs/skins/glass/screens/recap/recap_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/catalogue_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/sources_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/stats/statistics_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/status/status_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
+import 'package:manhwamaniacs/skins/glass/screens/wrapped/wrapped_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/you/you_screen.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_migration.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
@@ -66,8 +68,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.collection,
   ScreenId.history,
   ScreenId.bookmarks,
-  ScreenId.numbers,
-  ScreenId.annual,
   ScreenId.featureByFollow,
   ScreenId.feature,
   ScreenId.circle,
@@ -340,7 +340,7 @@ GoRouter buildGlassRouter(Ref ref) {
             _screen(ScreenId.settings, (s) => GlassSettingsScreen(row: s.uri.queryParameters['row'])),
             _screen(ScreenId.settings, (s) => GlassSettingsScreen(section: s.pathParameters['section'], row: s.uri.queryParameters['row']), path: Routes.settingsAliases.first),
             _route(ScreenId.circle),
-            _route(ScreenId.numbers),
+            _screen(ScreenId.numbers, (s) => GlassStatisticsScreen(range: s.uri.queryParameters['range'], year: s.uri.queryParameters['year'])),
             _screen(ScreenId.status, (s) => const StatusScreen()),
             _screen(ScreenId.profilesManage, (s) => const GlassProfilesManageScreen()),
           ]),
@@ -352,7 +352,7 @@ GoRouter buildGlassRouter(Ref ref) {
       _screen(ScreenId.register, (s) => const GlassRegisterScreen(), parent: rootKey, takeover: true),
       _screen(ScreenId.profiles, (s) => const GlassProfilePicker(), parent: rootKey, takeover: true),
       _screen(ScreenId.onboarding, (s) => GlassOnboardingScreen(step: int.tryParse(s.uri.queryParameters['step'] ?? '')), parent: rootKey, takeover: true),
-      _route(ScreenId.annual, parent: rootKey, takeover: true),
+      _screen(ScreenId.annual, (s) => GlassWrappedScreen(yearParam: s.pathParameters['year']), parent: rootKey, takeover: true),
       _route(ScreenId.reader, parent: rootKey, reader: true),
       _route(ScreenId.readAll, parent: rootKey, reader: true),
       _route(ScreenId.novel, parent: rootKey, reader: true),

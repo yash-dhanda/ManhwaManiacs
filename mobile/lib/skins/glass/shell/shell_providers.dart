@@ -4,6 +4,7 @@ import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show singleK
 import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/core/network/request_failures.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/daily_goal_provider.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/stack/route_snapshot.dart'
     show GlassTab;
 
@@ -18,7 +19,10 @@ class GoalProgress {
   final int goal;
 }
 
-final glassGoalRingProvider = Provider<GoalProgress?>((ref) => null);
+final glassGoalRingProvider = Provider<GoalProgress?>((ref) {
+  final g = ref.watch(dailyGoalProvider);
+  return g.goalMinutes == null ? null : GoalProgress(minutes: g.minutes, goal: g.goalMinutes!);
+});
 
 /// Incrementing it (with a destination) rebuilds the router: every branch, observer and snapshot resets (profile switch).
 @immutable
