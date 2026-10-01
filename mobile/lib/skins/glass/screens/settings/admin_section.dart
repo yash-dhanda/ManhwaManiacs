@@ -16,7 +16,6 @@ class AdminSection extends StatelessWidget {
     final r = GoRouter.of(context);
     return GlassAdminGate(
       child: SettingsGroup(
-        header: 'Administration',
         children: [
           GlassListRow(title: 'System status', icon: YouGlyphs.pulse.regular, iconColor: GlassColors.surface3, caret: true, onTap: () => r.go(Routes.status())),
           GlassListRow(title: 'Members', icon: YouGlyphs.usersThree.regular, iconColor: GlassColors.surface3, caret: true, onTap: () => r.go(Routes.settings(SettingsSection.members))),

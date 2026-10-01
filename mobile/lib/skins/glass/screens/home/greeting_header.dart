@@ -43,18 +43,20 @@ class GreetingStreakChip extends ConsumerWidget {
           semanticLabel: false,
           state: flameStateOf(days: days, readToday: readToday, atRisk: atRisk),
         );
-    return SizedBox(
-      height: hit,
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: hit),
       child: GlassPressable(
         material: GlassMaterial.content,
         sink: 0.96,
         minHit: false,
         onTap: () => ref.read(skinRouterProvider).push<void>(Routes.numbers()),
         semanticsLabel: '$days-day streak',
+        // Hugs its content (left, under the greeting), and grows with large text instead of clipping it.
         builder: (context, info) => Center(
+          widthFactor: 1,
           child: Container(
-            height: 32,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            constraints: const BoxConstraints(minHeight: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(color: gt.colorFill2, borderRadius: BorderRadius.circular(16)),
             child: GlassPlusOne(child: Row(mainAxisSize: MainAxisSize.min, children: [flame, const SizedBox(width: 6), GlassLabel('$days-day streak', role: gt.typeFootnote, wght: 600, color: gt.colorLabel1)])),
           ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/keycap.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_common.dart';
@@ -26,21 +27,22 @@ class ShortcutsSection extends ConsumerWidget {
       ],),
       SettingsAnchor(
         id: 'shortcuts',
-        child: Column(children: [
+        // Only the groups with live shortcuts: one quiet line when none are, never a stack of empty cards.
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           for (final name in {...kShortcutGroups, ...live.keys})
-            SettingsGroup(header: name, children: [
-              if ((live[name]?.entries ?? const []).isEmpty)
-                Padding(padding: const EdgeInsets.all(16), child: GlassText('No shortcuts are active on this screen', role: gt.typeFootnote, color: gt.colorLabel2))
-              else
+            if ((live[name]?.entries ?? const []).isNotEmpty)
+              SettingsGroup(header: name, children: [
                 for (final e in live[name]!.entries)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     child: Row(children: [
-                      Expanded(child: GlassText(e.description, role: gt.typeBody)),
-                      if (e.keys != null) GlassKeycaps(e.keys!),
+                      Expanded(child: GlassText(e.description, role: gt.typeBody, maxScale: 1.6)),
+                      if (e.keys != null) ...[const SizedBox(width: 12), GlassKeycaps(e.keys!)],
                     ],),
                   ),
-            ],),
+              ],),
+          if (!{...kShortcutGroups, ...live.keys}.any((n) => (live[n]?.entries ?? const []).isNotEmpty))
+            Padding(padding: GlassFrame.gutter(context, top: 8, bottom: 16, inner: 16), child: GlassText('No shortcuts are active on this screen', role: gt.typeFootnote, color: gt.colorLabel2)),
         ],),
       ),
     ],);
