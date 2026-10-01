@@ -153,7 +153,7 @@ List<GlassMenuEntry> shelfMenuEntries(BuildContext context, WidgetRef ref, Follo
     GlassMenuEntry(label: 'Download next 10', onSelected: () => unawaited(downloadNextTen(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, readNumber: r?.chapterNumber, novel: novel))),
     if (target != null) GlassMenuEntry(label: 'Previously on', onSelected: () => unawaited(openRecap(ref, s.sourceId, s.seriesKey, chapterKey!, from: from))),
     // mobile/43 (glass 9.3.4): the recommend sheet over the library's own location.
-    if (recommendSheetRegistered) GlassMenuEntry(label: 'Recommend to…', onSelected: () => recommend.openRecommendSheet(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title)),
+    if (recommend.recommendMenuEntry(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title) case final e?) e,
     GlassMenuEntry(label: 'Remove from library', destructive: true, separatorBefore: true, onSelected: () => unawaited(a.remove(s))),
   ];
 }

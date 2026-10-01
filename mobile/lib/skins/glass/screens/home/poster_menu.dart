@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/features/library/models/collection.dart' show Coll
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_sheet.dart' show recommendMenuEntry;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/context_menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
@@ -77,7 +78,7 @@ List<GlassMenuEntry> seriesMenuEntries(BuildContext context, WidgetRef ref, Seri
     if (s.showDownload) GlassMenuEntry(label: 'Download next 10', onSelected: () => unawaited(downloadNextTen(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, readNumber: s.readNumber, novel: s.novel))),
     if (hasProgress && first.every((e) => e.label != 'Previously on'))
       GlassMenuEntry(label: 'Previously on', onSelected: () => unawaited(openRecap(ref, s.sourceId, s.seriesKey, s.target!.recap?.toKey ?? s.target!.chapterKey, from: from))),
-    if (recommendSheetRegistered) GlassMenuEntry(label: 'Recommend to…', onSelected: () => openRecommendSheet(ref, s.sourceId, s.seriesKey)),
+    if (recommendMenuEntry(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, onSelected: () => openRecommendSheet(ref, s.sourceId, s.seriesKey)) case final e?) e,
     ...extra,
   ];
 }
