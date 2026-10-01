@@ -78,7 +78,7 @@ class GreetingHeader extends ConsumerWidget {
     final lastActive = streak.lastActiveDate;
     final readToday = ref.watch(dailyGoalProvider.select((g) => g.todaySeconds > 0)) ||
         (lastActive != null && lastActive.year == now.year && lastActive.month == now.month && lastActive.day == now.day);
-    final sub = greetingSubline(unread: unread, streak: streak, now: now);
+    final sub = greetingSubline(unread: unread, streak: streak, now: now, readToday: readToday);
     return Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 8),
       child: Column(

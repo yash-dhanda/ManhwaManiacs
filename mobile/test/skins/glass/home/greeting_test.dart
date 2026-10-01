@@ -34,5 +34,8 @@ void main() {
     expect(read.atRisk, isFalse);
     final short = greetingSubline(unread: 0, streak: HomeStreak(currentDays: 1, lastActiveDate: DateTime(2026, 9, 29)), now: night);
     expect(short.atRisk, isFalse);
+    // Read today on this device, before the feed's lastActiveDate catches up.
+    final justRead = greetingSubline(unread: 0, streak: HomeStreak(currentDays: 7, lastActiveDate: DateTime(2026, 9, 29)), now: night, readToday: true);
+    expect((justRead.atRisk, justRead.riskLine), (false, null));
   });
 }
