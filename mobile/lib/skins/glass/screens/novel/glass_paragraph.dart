@@ -62,6 +62,23 @@ double _tightDrop(TextStyle style) {
 
 final Map<TextStyle, double> _drops = {};
 
+/// The paragraph's [RenderParagraph] under [key] (inside a `SelectionArea` a `Text` wraps it in a mouse region).
+RenderParagraph? paragraphUnder(GlobalKey key) {
+  RenderParagraph? found;
+  void visit(RenderObject r) {
+    if (found != null) return;
+    if (r is RenderParagraph) {
+      found = r;
+      return;
+    }
+    r.visitChildren(visit);
+  }
+
+  final ro = key.currentContext?.findRenderObject();
+  if (ro != null) visit(ro);
+  return found;
+}
+
 /// The first-line indent (glass 3.4): 1.3 em, drawn as a leading `WidgetSpan` `SizedBox`, so selection and semantics skip it.
 const double kGlassIndentEm = 1.3;
 
@@ -127,8 +144,8 @@ class _GlassTextPieceState extends State<GlassTextPiece> {
   }
 
   Rect _runRect(SpeakerRun run) {
-    final ro = _key.currentContext?.findRenderObject();
-    if (ro is! RenderParagraph || !ro.hasSize) return Rect.zero;
+    final ro = paragraphUnder(_key);
+    if (ro == null || !ro.hasSize) return Rect.zero;
     final s = math.max(run.start, widget.start), e = math.min(run.end, widget.endOffset);
     final shift = widget.indent ? 1 - widget.start : -widget.start;
     final boxes = ro.getBoxesForSelection(TextSelection(baseOffset: s + shift, extentOffset: e + shift));
@@ -172,8 +189,8 @@ class _GlassTextPieceState extends State<GlassTextPiece> {
     );
     if (widget.decorations.isEmpty) return text;
     GlassParagraphGeometry? geometry() {
-      final ro = _key.currentContext?.findRenderObject();
-      if (ro is! RenderParagraph || !ro.hasSize) return null;
+      final ro = paragraphUnder(_key);
+      if (ro == null || !ro.hasSize) return null;
       return GlassParagraphGeometry._(ro, widget.start, widget.endOffset, widget.indent ? 1 : 0, widget.style.fontSize ?? 16, drop);
     }
 

@@ -241,6 +241,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   Object? _pageKey;
   ProviderSubscription<NovelReaderState>? _sub;
   int _semanticsPercent = 0;
+  bool _programmatic = false;
 
   // -- Lifecycle --------------------------------------------------------------
 
@@ -512,7 +513,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     _ctl.onScrolled();
     if (!_scrollOk) return;
     final p = _scroll.position.pixels;
-    final delta = p - _lastPixels;
+    final delta = _programmatic ? 0.0 : p - _lastPixels;
     _lastPixels = p;
     if (delta > 0) {
       _upAccum = 0;
@@ -534,6 +535,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   /// Back to the book: pop to the entry beneath, or (nothing beneath) the book page in its full-page form with a 200 ms cross-fade.
   void _leave() {
     if (!mounted) return;
+    _ctl.autoNext = false;
     if (_nothingBeneath) {
       GoRouter.maybeOf(context)?.go(Routes.feature(widget.sourceId, widget.seriesKey));
     } else {
@@ -543,7 +545,8 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
 
   /// Seamless: the same page, the location replaced (the page key is the reading session).
   void _replaceLocation(String chapterKey) {
-    if (!mounted) return;
+    // A timer (auto next) can fire while the reader is leaving: never navigate back into it.
+    if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return;
     GoRouter.maybeOf(context)?.go(Routes.novel(widget.sourceId, widget.seriesKey, chapterKey), extra: <String, String>{'nonce': widget.nonce});
   }
 
@@ -611,7 +614,14 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   void jumpEstimate(double fraction) {
     if (!_scrollOk) return;
     final max = _scroll.position.maxScrollExtent;
-    _scroll.jumpTo((max * fraction).clamp(0.0, max));
+    _jump((max * fraction).clamp(0.0, max));
+  }
+
+  /// A jump the reader makes itself (restore, Contents, keys): it never shows or hides the chrome.
+  void _jump(double to) {
+    _programmatic = true;
+    _scroll.jumpTo(to);
+    _programmatic = false;
   }
 
   @override
@@ -627,7 +637,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     if (box == null) return false;
     final anchor = box.localToGlobal(Offset.zero).dy + fraction * box.size.height;
     final target = toReadingLine ? _line() : _viewportTop() + NovelChromeGeometry.of(context).topBand;
-    _scroll.jumpTo((_scroll.position.pixels + anchor - target).clamp(0.0, _scroll.position.maxScrollExtent));
+    _jump((_scroll.position.pixels + anchor - target).clamp(0.0, _scroll.position.maxScrollExtent));
     return true;
   }
 
@@ -649,6 +659,10 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     final h = _boxFor(index)?.size.height ?? 0;
     return (index: index, fraction: h <= 0 ? 0.0 : ((line - offsets[pick]) / h).clamp(0.0, 1.0));
   }
+
+  /// Lands paragraph [index] at the top band (the proof captures; Contents uses the same controller path).
+  @visibleForTesting
+  void jumpToParagraph(int index) => _ctl.jumpToParagraph(index, toReadingLine: false);
 
   // -- Commands ---------------------------------------------------------------
 
@@ -840,6 +854,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   }
 
   Widget _contentsBody(BuildContext c, {bool autofocus = false}) => NovelContentsBody(
+        showTitle: false,
         sourceId: widget.sourceId,
         seriesKey: widget.seriesKey,
         currentChapterKey: _chapterKey.chapterKey,
@@ -1351,7 +1366,8 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
           Positioned(left: 0, right: 0, top: NovelReaderInsets.of(context).top, height: 2, child: NovelProgressHairline(progress: percent / 100, color: colors.muted)),
       ],
     );
-    final framed = PaperFrame(paper: v.paper, colors: colors, spec: spec, child: content);
+    // A transparent Material gives the page its text defaults (no debug underline) and the selection toolbar its ancestor.
+    final framed = Material(type: MaterialType.transparency, child: PaperFrame(paper: v.paper, colors: colors, spec: spec, child: content));
     if (ghost) return framed;
     final label = chapter == null ? 'Chapter loading' : 'Chapter ${_numberText(chapter.chapterNumber)}, $_semanticsPercent percent';
     final bridge = _bridge();
@@ -1518,7 +1534,9 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   /// "✦ ✦ ✦" (D8): centred in muted, 0.5 em tracking, 1.6 em above and below (paged: inside the paginator's fixed band), excluded from
   /// selection and read as "Scene break".
   Widget _sceneBreak(GlassNovelValues v, PaperColors colors, {required bool paged}) {
-    final glyphs = Text('✦ ✦ ✦', textScaler: TextScaler.noScaling, style: TextStyle(fontFamily: 'LiterataMM', fontSize: v.fontSize * 0.8, color: colors.muted, letterSpacing: 0.5 * v.fontSize * 0.8));
+    // "✦ ✦ ✦" drawn as three four-point stars with 0.5 em tracking (not every bundled face carries U+2726).
+    final em = v.fontSize * 0.8;
+    final glyphs = SizedBox(width: 3 * em + 2 * (0.5 * em + em * 0.3), height: em, child: CustomPaint(painter: _SceneStars(colors.muted, em)));
     return SelectionContainer.disabled(
       child: Semantics(
         label: 'Scene break',
@@ -1908,3 +1926,36 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
 
 /// The right panel's tabs in order (D2): this step delivers Aa; `mobile/37` appends Voices and Listen.
 List<NovelPanelTab> novelRightPanelTabs(WidgetBuilder aa) => [NovelPanelTab('Aa', aa)];
+
+/// Three four-point stars (U+2726), [em] each, 0.5 em apart plus a word space.
+class _SceneStars extends CustomPainter {
+  _SceneStars(this.color, this.em);
+  final Color color;
+  final double em;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..color = color;
+    final step = em + 0.5 * em + em * 0.3;
+    for (var i = 0; i < 3; i++) {
+      final c = Offset(em / 2 + i * step, size.height / 2);
+      final r = em * 0.42, w = em * 0.11;
+      canvas.drawPath(
+        Path()
+          ..moveTo(c.dx, c.dy - r)
+          ..lineTo(c.dx + w, c.dy - w)
+          ..lineTo(c.dx + r, c.dy)
+          ..lineTo(c.dx + w, c.dy + w)
+          ..lineTo(c.dx, c.dy + r)
+          ..lineTo(c.dx - w, c.dy + w)
+          ..lineTo(c.dx - r, c.dy)
+          ..lineTo(c.dx - w, c.dy - w)
+          ..close(),
+        p,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SceneStars old) => old.color != color || old.em != em;
+}

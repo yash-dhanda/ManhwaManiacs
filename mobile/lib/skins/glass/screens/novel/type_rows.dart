@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/core/color/cover_palette.dart';
 import 'package:manhwamaniacs/features/novels/models/glass_novel_prefs.dart';
@@ -153,10 +154,13 @@ class NovelTypeBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final all = rows ?? novelTypeRows();
     return GlassHost(
-      child: ListView(
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListView(
         controller: controller,
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
         children: [for (final r in all) KeyedSubtree(key: ValueKey('type-row-${r.id}'), child: Padding(padding: const EdgeInsets.only(bottom: 10), child: r.build(context, context0)))],
+        ),
       ),
     );
   }

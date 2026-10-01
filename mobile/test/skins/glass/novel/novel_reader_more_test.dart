@@ -227,11 +227,14 @@ void main() {
   });
 
   testWidgets('J: a stale saved copy shows its age in the top-left group', (t) async {
+    final handle = t.ensureSemantics();
     await pumpGlassNovel(t, cacheStale: true);
     await settle(t);
     await _showChrome(t);
-    expect(find.textContaining('Saved copy · 3 h'), findsOneWidget);
+    expect(find.bySemanticsLabel('Saved copy · 3 h'), findsOneWidget);
+    expect(find.text('3 h'), findsOneWidget);
     await disposeGlassNovel(t);
+    handle.dispose();
   });
 
   test('controller exposes bookmarkAt for a paragraph', () {

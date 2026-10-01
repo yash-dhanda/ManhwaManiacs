@@ -47,6 +47,7 @@ class GlassChapterHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: _kTop, bottom: _kBottom),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(kicker, style: s.kicker, textScaler: TextScaler.noScaling),

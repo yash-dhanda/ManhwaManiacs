@@ -139,7 +139,10 @@ class NovelChromeTop extends StatelessWidget {
     ];
     final iconsW = icons.length * side + (icons.length - 1) * 4;
     final savedText = staleAge != null ? 'Saved copy · $staleAge' : (savedCopy ? 'Saved copy' : null);
-    final savedW = savedText == null ? 0.0 : statusCapsuleWidth(context, savedText);
+    var savedW = savedText == null ? 0.0 : statusCapsuleWidth(context, savedText);
+    // A narrow phone keeps the title readable: the capsule falls back to its glyph and the age ("2 h"); its name stays in semantics.
+    final compactSaved = savedText != null && avail - side - 8 - iconsW - 8 - savedW - 8 < 120;
+    if (compactSaved) savedW = statusCapsuleWidth(context, staleAge ?? '') - (staleAge == null ? 6 : 0);
     final style = roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600, maxScale: 1.3);
     final textW = measureText(context, title, style).width + 32;
     final maxTitle = math.max(56.0, math.min(avail * (landscape ? 0.4 : 0.6), avail - side - 8 - iconsW - 8 - (savedText == null ? 0 : savedW + 8)));
@@ -148,7 +151,7 @@ class NovelChromeTop extends StatelessWidget {
       SkinGlassShape(size: Size(side, side), shape: const GlassShape.circle(), child: NovelTintedShape(tint: tint, circle: true, child: const GlassBackButton(inGroup: true, showDepth: true))),
       SkinGlassShape(size: Size(titleW, side), child: NovelTintedShape(tint: tint, child: _TitleCapsule(key: titleKey, text: title, onTap: onContents))),
       if (savedText != null)
-        SkinGlassShape(size: Size(savedW, 36), child: staleAge != null ? GlassStatusCapsule(kind: GlassStatusKind.savedCopy, savedAgo: staleAge!, inGroup: true) : const _SavedCopy()),
+        SkinGlassShape(size: Size(savedW, 36), child: compactSaved ? _SavedCopy(text: staleAge, label: savedText) : staleAge != null ? GlassStatusCapsule(kind: GlassStatusKind.savedCopy, savedAgo: staleAge!, inGroup: true) : const _SavedCopy()),
       SkinGlassShape(size: Size(iconsW, side), child: NovelTintedShape(tint: tint, child: Row(mainAxisSize: MainAxisSize.min, children: [for (var i = 0; i < icons.length; i++) ...[if (i > 0) const SizedBox(width: 4), icons[i]]]))),
     ];
     final leftCount = savedText == null ? 2 : 3;
@@ -192,7 +195,18 @@ class _TitleCapsule extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Center(child: GlassText(text, role: gt.typeSubhead, wght: 600, onGlass: true, maxScale: 1.3, maxLines: 1, overflow: TextOverflow.ellipsis)),
+            // The series name gives way first; the chapter always shows.
+            child: Builder(builder: (context) {
+              final cut = text.lastIndexOf(' · ');
+              if (cut < 0) return Center(child: GlassText(text, role: gt.typeSubhead, wght: 600, onGlass: true, maxScale: 1.3, maxLines: 1, overflow: TextOverflow.ellipsis));
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(child: GlassText(text.substring(0, cut), role: gt.typeSubhead, wght: 600, onGlass: true, maxScale: 1.3, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  GlassText(text.substring(cut), role: gt.typeSubhead, wght: 600, onGlass: true, maxScale: 1.3, maxLines: 1),
+                ],
+              );
+            },),
           ),
         ),
       );
@@ -221,11 +235,13 @@ class _Bookmark extends StatelessWidget {
 
 /// "Saved copy" (a downloaded copy, E2): the status capsule's look without an age.
 class _SavedCopy extends StatelessWidget {
-  const _SavedCopy();
+  const _SavedCopy({this.text = 'Saved copy', this.label = 'Saved copy'});
+  final String? text;
+  final String label;
 
   @override
   Widget build(BuildContext context) => Semantics(
-        label: 'Saved copy',
+        label: label,
         excludeSemantics: true,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -233,8 +249,10 @@ class _SavedCopy extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GlassBacking(size: 20, child: GlyphIcon(GlassGlyph.wifiSlash, size: 14, color: gt.colorWarning)),
-              const SizedBox(width: 6),
-              GlassText('Saved copy', role: gt.typeFootnote, wght: 600, onGlass: true, maxScale: 1.5),
+              if (text != null && text!.isNotEmpty) ...[
+                const SizedBox(width: 6),
+                GlassText(text!, role: gt.typeFootnote, wght: 600, onGlass: true, maxScale: 1.5),
+              ],
             ],
           ),
         ),

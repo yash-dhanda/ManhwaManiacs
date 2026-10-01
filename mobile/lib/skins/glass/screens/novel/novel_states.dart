@@ -60,7 +60,7 @@ class _NovelLoadingPageState extends ConsumerState<NovelLoadingPage> with Single
     final colors = PaperScope.of(context);
     if (!_shown) return const SizedBox.expand();
     final reduced = ref.watch(glassReducedProvider);
-    final bar = colors.ink.withValues(alpha: 0.08);
+    final bar = colors.ink.withValues(alpha: 0.14);
     final sheen = colors.ink.withValues(alpha: 0.05);
     return Semantics(
       label: 'Loading the chapter',
