@@ -12,12 +12,32 @@ import 'package:manhwamaniacs/features/sources/utils/source_health.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_poster.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/genre_grid.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
-/// Opens [genre]: straight into the catalogue when one pinned source has it,
-/// else the genre sheet (one row per pinned source exposing it).
+/// Opens [genre] as the endless grid of verified AI picks; its
+/// `On your sources` link opens the pinned sources' catalogues for it.
 Future<void> openGenre(
+  BuildContext context,
+  WidgetRef ref,
+  GenreEntry genre,
+  List<SourcePin> pinned,
+) =>
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => GenreGridScreen(
+          genre: genre.label,
+          onSources: pinned.any((p) => genre.sourceIds.contains(p.sourceId))
+              ? (c, r) => openGenreOnSources(c, r, genre, pinned)
+              : null,
+        ),
+      ),
+    );
+
+/// Straight into the catalogue when one pinned source has [genre], else the
+/// genre sheet (one row per pinned source exposing it).
+Future<void> openGenreOnSources(
   BuildContext context,
   WidgetRef ref,
   GenreEntry genre,
