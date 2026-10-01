@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/skins/glass/glass/sweep.dart';
 import 'package:manhwamaniacs/skins/glass/glass/tier_math.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/scroll_edge.dart' show GlassFastScrollListener;
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 
 export 'package:manhwamaniacs/skins/glass/glass/axes.dart';
@@ -791,7 +792,7 @@ class SkinGlassRoot extends ConsumerWidget {
     return glassAccessibilityScope(
       reduceMotion: reduced,
       child: BackdropGroup(
-        child: GlassMetricsWatcher(child: GlassLightHover(child: child)),
+        child: GlassFastScrollListener(child: GlassMetricsWatcher(child: GlassLightHover(child: child))),
       ),
     );
   }

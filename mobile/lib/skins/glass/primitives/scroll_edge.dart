@@ -8,6 +8,32 @@ import 'package:manhwamaniacs/skins/glass/primitives/scrim.dart';
 
 enum GlassEdge { top, bottom }
 
+/// True while any vertical scroll view moves faster than [kGlassFastScrollPx] per update (a fling). The soft edges drop their
+/// backdrop blur then: their content changes every frame, the blur under a 72 % plateau is invisible at that speed, and two
+/// full-width blur passes per frame are the cost of every scroll.
+final ValueNotifier<bool> glassFastScroll = ValueNotifier(false);
+const double kGlassFastScrollPx = 8;
+
+/// Installed once at the Glass root: feeds [glassFastScroll] from every scroll notification below it.
+class GlassFastScrollListener extends StatelessWidget {
+  const GlassFastScrollListener({super.key, required this.child});
+  final Widget child;
+
+  static bool _on(ScrollNotification n) {
+    if (n.metrics.axis != Axis.vertical) return false;
+    if (n is ScrollUpdateNotification) {
+      final fast = (n.scrollDelta ?? 0).abs() >= kGlassFastScrollPx;
+      if (fast != glassFastScroll.value) glassFastScroll.value = fast;
+    } else if (n is ScrollEndNotification && glassFastScroll.value) {
+      glassFastScroll.value = false;
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) => NotificationListener<ScrollNotification>(onNotification: _on, child: child);
+}
+
 /// The soft scroll edge (glass 7.32, `edgeSoft`): a plateau of `Color(0xB8000000)` from the screen edge to the far edge
 /// of its bar group ([plateau] px: top safe-top + 52, or safe-top + 104 while a toast shows; desktop frames 60; bottom
 /// safe-bottom + 85, + 56 while the accessory shows), then a 24 px linear fade to transparent, under a `BackdropFilter`
@@ -50,12 +76,18 @@ class GlassScrollEdge extends ConsumerWidget {
         child: GlassScrimMark(
           label: 'edgeSoft',
           child: ClipRect(
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+            // No blur on a page covered by another (a push in flight, a page beneath) or during a fling.
+            child: ValueListenableBuilder<bool>(
+              valueListenable: glassFastScroll,
               child: DecoratedBox(
                 key: const ValueKey('glass-edge-soft'),
                 decoration: BoxDecoration(gradient: LinearGradient(begin: begin, end: end, colors: const [c, c, Color(0x00000000)], stops: [0, stopA, 1])),
                 child: const SizedBox.expand(),
+              ),
+              builder: (context, fast, child) => BackdropFilter(
+                enabled: !fast && (ModalRoute.isCurrentOf(context) ?? true),
+                filter: ui.ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                child: child,
               ),
             ),
           ),
