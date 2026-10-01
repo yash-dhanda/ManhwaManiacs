@@ -119,10 +119,28 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
     }
   }
 
+  double _hintRoom = double.infinity;
+
+  /// The placeholder, shortened by whole words (and a dangling "and"/"or"/comma) until it fits the field: "Search series, sources
+  /// and dialogue" reads "Search series, sources" on a narrow field instead of ending in "…".
+  String _fittedHint(TextStyle style) {
+    var words = widget.placeholder.split(' ');
+    String join() => words.join(' ').replaceAll(RegExp(r'[,;:]$'), '');
+    while (words.length > 1 && measureText(context, join(), style).width > _hintRoom) {
+      words = words.sublist(0, words.length - 1);
+      while (words.length > 1 && const {'and', 'or', '&'}.contains(words.last)) {
+        words = words.sublist(0, words.length - 1);
+      }
+    }
+    return join();
+  }
+
   Widget _input(bool onGlass) {
     final legible = ref.watch(glassA11yProvider.select((a) => a.legible));
     final base = roleStyle(context, gt.typeBody, legible: legible, onGlass: onGlass, maxScale: 1.5);
-    return TextSelectionTheme(
+    return LayoutBuilder(builder: (context, box) {
+      _hintRoom = box.maxWidth;
+      return TextSelectionTheme(
       data: TextSelectionThemeData(cursorColor: gt.colorIris400, selectionColor: const Color(0x667563F2)),
       // The styles are already scaled and capped (roleStyle): the field must not scale them again.
       child: MediaQuery.withNoTextScaling(child: TextField(
@@ -134,11 +152,12 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
         cursorColor: gt.colorIris400,
         autocorrect: false,
         style: base.copyWith(color: onGlass ? gt.colorOnGlass : gt.colorLabel1),
-        decoration: InputDecoration.collapsed(hintText: widget.placeholder, hintStyle: base.copyWith(color: gt.colorLabel2)),
+        decoration: InputDecoration.collapsed(hintText: _fittedHint(base), hintStyle: base.copyWith(color: gt.colorLabel2)),
         onChanged: _changed,
         onSubmitted: _submit,
       ),),
     );
+    },);
   }
 
   Widget _clear() {
