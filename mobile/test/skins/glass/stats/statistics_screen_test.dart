@@ -1,8 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'dart:async';
-
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/skins/glass/parts/streak/streak_ui.dart';
 import 'package:manhwamaniacs/skins/glass/screens/stats/statistics_screen.dart';
