@@ -32,6 +32,7 @@ Future<void> continueTo(
   DateTime? lastReadAt,
   RecapAvailability? recap,
   required RecapEntry origin,
+  int? page,
 }) async {
   final setting = ref.read(recapSettingProvider);
   final now = ref.read(clockProvider)();
@@ -54,7 +55,7 @@ Future<void> continueTo(
     openRecap(context, sourceId, seriesKey, chapterKey, origin: origin);
     return;
   }
-  openReaderAt(context, ref, sourceId, seriesKey, chapterKey, entry: origin == RecapEntry.wipe ? ReaderEntry.wipe : ReaderEntry.dip);
+  openReaderAt(context, ref, sourceId, seriesKey, chapterKey, entry: origin == RecapEntry.wipe ? ReaderEntry.wipe : ReaderEntry.dip, page: page);
 }
 
 /// `Routes.feature` with the More like this tab selected.

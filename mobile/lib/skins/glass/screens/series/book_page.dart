@@ -165,19 +165,20 @@ class BookVariant implements SeriesVariant {
     final r = seriesResume(d.readingOrder, ref.read(sourceSeriesProgressProvider(d.progressKey)), novel: true);
     final key = r.chapterKey;
     if (key == null) return;
-    openBook(context, ref, d, key, plateRect: rectOf(page.coverKey.currentContext ?? context));
+    openBook(context, ref, d, key, page: r.page, plateRect: rectOf(page.coverKey.currentContext ?? context));
   }
 }
 
 /// Pushes the novel route with the Book open extra (the plate rotates open while the paper expands).
-void openBook(BuildContext context, WidgetRef ref, GlassSeriesData d, String chapterKey, {required Rect plateRect}) {
+/// [page] is the saved progress bucket of a half-read chapter, so it reopens where it was left.
+void openBook(BuildContext context, WidgetRef ref, GlassSeriesData d, String chapterKey, {required Rect plateRect, int? page}) {
   final appDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
   final paletteId = NovelPalettes.resolveChoice(ref.read(novelPaletteControllerProvider), appIsDark: appDark);
   final paper = NovelPalettes.byId(paletteId)?.bg ?? const Color(0xFFF4EEE2);
   final url = resolveCover(ref, d.series.coverUrl);
   GlassMotionEntry? e;
   if (!ref.read(glassMotionPrefsProvider).reduced) e = GlassMotion.recorder.begin(MotionName.bookOpen.label, kBookOpenDuration.inMilliseconds);
-  unawaited(ref.read(skinRouterProvider).push<void>(Routes.novel(d.sourceId, d.seriesKey, chapterKey), extra: bookOpenExtra(plateRect: plateRect, cover: url.isEmpty ? null : NetworkImage(url), paper: paper)));
+  unawaited(ref.read(skinRouterProvider).push<void>(Routes.novel(d.sourceId, d.seriesKey, chapterKey, {if (page != null && page > 1) 'page': page}), extra: bookOpenExtra(plateRect: plateRect, cover: url.isEmpty ? null : NetworkImage(url), paper: paper)));
   if (e != null) Future<void>.delayed(kBookOpenDuration, () => GlassMotion.recorder.end(e!));
 }
 
@@ -232,7 +233,8 @@ class _BookContentsSliverState extends ConsumerState<BookContentsSliver> {
             saved: statuses[c.id]?.state == DownloadChapterState.complete,
             onTap: () {
               if (sel.isActive) return sel.toggle(c.id);
-              openBook(context, ref, d, c.id, plateRect: rectOf(context));
+              final p = progress[c.id];
+              openBook(context, ref, d, c.id, page: p == null || p.completed ? null : p.page, plateRect: rectOf(context));
             },
             onDownload: () => fire(enqueueSeriesChapters(ref, d, [c.id])),
           );

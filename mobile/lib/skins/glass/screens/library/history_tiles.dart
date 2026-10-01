@@ -60,7 +60,7 @@ class HistoryActions {
       await openSeries(ref, item.sourceId, item.seriesKey, from: from);
       return;
     }
-    final loc = r.isNovel ? Routes.novel(r.sourceId, r.seriesKey, r.chapterKey!) : Routes.reader(r.sourceId, r.seriesKey, r.chapterKey!, {if (r.page != null && r.page! > 1) 'page': r.page});
+    final loc = r.isNovel ? Routes.novel(r.sourceId, r.seriesKey, r.chapterKey!, {if (r.page != null && r.page! > 1) 'page': r.page}) : Routes.reader(r.sourceId, r.seriesKey, r.chapterKey!, {if (r.page != null && r.page! > 1) 'page': r.page});
     await enterReader(context, ref, loc, fromRect: from);
   }
 

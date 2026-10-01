@@ -34,7 +34,7 @@ class HomeContinueTarget {
   String get seriesId => '$sourceId:$seriesKey';
 
   String get readerLocation => isNovel
-      ? Routes.novel(sourceId, seriesKey, chapterKey)
+      ? Routes.novel(sourceId, seriesKey, chapterKey, {if (page != null && page! > 1) 'page': page})
       : Routes.reader(sourceId, seriesKey, chapterKey,
           {if (page != null && page! > 1) 'page': page},);
 

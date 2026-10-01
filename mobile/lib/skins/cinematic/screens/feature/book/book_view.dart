@@ -254,10 +254,16 @@ class _BookViewState extends ConsumerState<BookView> {
 
   /// The split button: a recap first when `mm.recap` asks (novels read their text, `sourced_from: text`).
   void _continue(SourceChapterSummary c) => unawaited(continueTo(context, ref,
-      sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, title: d.title, lastReadAt: d.followed?.readState?.lastReadAt, origin: RecapEntry.wipe,),);
+      sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, title: d.title, lastReadAt: d.followed?.readState?.lastReadAt, origin: RecapEntry.wipe, page: _resumeBucket(c),),);
+
+  /// The saved bucket of a half-read chapter, so the reader reopens where it was left.
+  int? _resumeBucket(SourceChapterSummary c) {
+    final p = ref.read(sourceSeriesProgressProvider((sourceId: d.sourceId, seriesId: d.seriesKey)))[c.id];
+    return p == null || p.completed || p.page <= 1 ? null : p.page;
+  }
 
   void _open(SourceChapterSummary c, {bool listen = false}) {
-    final target = ReaderTarget.novel(d.sourceId, d.seriesKey, c.id, listen: listen);
+    final target = ReaderTarget.novel(d.sourceId, d.seriesKey, c.id, listen: listen, page: _resumeBucket(c));
     readerPrefetchOf(ref).onPress(target);
     enterReader(context, target, entry: ReaderEntry.wipe);
   }

@@ -47,8 +47,9 @@ class SeriesCommands {
 }
 
 /// Where the reader opens for [chapterKey] (manga reader, or the novel reader for books).
+/// [page] is a page for manga and the progress bucket for a novel; both readers take it as `page`.
 String readerLocation(GlassSeriesData d, String chapterKey, {int? page}) => d.novel
-    ? Routes.novel(d.sourceId, d.seriesKey, chapterKey)
+    ? Routes.novel(d.sourceId, d.seriesKey, chapterKey, {if (page != null && page > 1) 'page': page})
     : Routes.reader(d.sourceId, d.seriesKey, chapterKey, {if (page != null && page > 1) 'page': page});
 
 /// Warms the Continue chapter's manifest when the sheet first settles (errors ignored).
