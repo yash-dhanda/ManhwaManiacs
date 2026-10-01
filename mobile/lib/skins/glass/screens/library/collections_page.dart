@@ -18,6 +18,8 @@ import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
+import 'package:manhwamaniacs/skins/glass/motion.dart';
+import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/collection_card.dart' show GlassCollectionCardState;
 import 'package:manhwamaniacs/skins/glass/primitives/list/reorder_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
@@ -48,6 +50,8 @@ class _GlassCollectionsPageState extends ConsumerState<GlassCollectionsPage> {
   final FocusNode _searchFocus = FocusNode(debugLabel: 'collections-search');
   final GlassPullToRefreshController _pull = GlassPullToRefreshController();
   final Map<int, GlobalKey<GlassCollectionCardState>> _keys = {};
+  /// The ids already shown; a card whose id arrives later (a new collection) drops in (Card drop). Null before the first list.
+  Set<int>? _known;
   VoidCallback? _offSearch, _offRefresh;
 
   @override
@@ -121,6 +125,9 @@ class _GlassCollectionsPageState extends ConsumerState<GlassCollectionsPage> {
     final width = MediaQuery.sizeOf(context).width;
     final cols = frame == GlassFrameKind.phone ? 1 : (width >= 1280 ? 3 : 2);
     final all = async.valueOrNull ?? const <Collection>[];
+    final known = _known;
+    if (async.hasValue) _known = {...?known, for (final c in all) c.id};
+    final dropping = known == null ? const <int>{} : {for (final c in all) if (!known.contains(c.id)) c.id};
     final shown = sortCollections(filterCollections(all, query), sort);
     final withMe = shared?.sharedWithMe ?? const <SharedShelf>[];
     final sharedNames = <int, String>{
@@ -156,7 +163,7 @@ class _GlassCollectionsPageState extends ConsumerState<GlassCollectionsPage> {
               items: shown,
               nameOf: (c) => c.name,
               onReorder: (a, b) => unawaited(_reorder(shown, a, b)),
-              itemBuilder: (context, c, i, info) => Padding(padding: const EdgeInsets.only(bottom: 12), child: _card(c, followed, scope, sharedNames, width - 2 * GlassFrame.screenMargin(context))),
+              itemBuilder: (context, c, i, info) => Padding(padding: const EdgeInsets.only(bottom: 12), child: _card(c, followed, scope, sharedNames, width - 2 * GlassFrame.screenMargin(context), dropping)),
             ),
           )
         else
@@ -165,7 +172,7 @@ class _GlassCollectionsPageState extends ConsumerState<GlassCollectionsPage> {
               final w = constraints.crossAxisExtent;
               final cardW = (w - 12 * (cols - 1)) / cols;
               return SliverToBoxAdapter(
-                child: Wrap(spacing: 12, runSpacing: 12, children: [for (final c in shown) _card(c, followed, scope, sharedNames, cardW)]),
+                child: Wrap(spacing: 12, runSpacing: 12, children: [for (final c in shown) _card(c, followed, scope, sharedNames, cardW, dropping)]),
               );
             },
           ),
@@ -220,16 +227,65 @@ class _GlassCollectionsPageState extends ConsumerState<GlassCollectionsPage> {
     );
   }
 
-  Widget _card(Collection c, List<FollowedSeries> followed, ContentModeScope scope, Map<int, String> sharedNames, double width) {
+  Widget _card(Collection c, List<FollowedSeries> followed, ContentModeScope scope, Map<int, String> sharedNames, double width, Set<int> dropping) {
     final key = _keys.putIfAbsent(c.id, GlobalKey<GlassCollectionCardState>.new);
-    return LibraryCollectionCard(
+    return _CardDrop(
       key: ValueKey('collection-${c.id}'),
-      cardKey: key,
-      collection: c,
-      covers: _coversOf(c, followed, scope),
-      sharedWith: sharedNames[c.id],
-      width: width,
-      onTap: () => unawaited(_open(c)),
+      drop: dropping.contains(c.id),
+      child: LibraryCollectionCard(
+        cardKey: key,
+        collection: c,
+        covers: _coversOf(c, followed, scope),
+        sharedWith: sharedNames[c.id],
+        width: width,
+        onTap: () => unawaited(_open(c)),
+      ),
     );
   }
+}
+
+/// Card drop (glass 4.10, 8.18): a new collection card lands in the list from 24 px above at scale 0.9 on `springCelebrate`; under
+/// reduced motion a 150 ms fade. Cards already shown mount at rest.
+class _CardDrop extends StatefulWidget {
+  const _CardDrop({super.key, required this.drop, required this.child});
+  final bool drop;
+  final Widget child;
+
+  @override
+  State<_CardDrop> createState() => _CardDropState();
+}
+
+class _CardDropState extends State<_CardDrop> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController.unbounded(vsync: this, value: widget.drop ? 0 : 1);
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.drop) unawaited(GlassMotion.play(MotionName.cardDrop, controller: _c, target: 1));
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _c,
+        child: widget.child,
+        builder: (context, child) {
+          final t = _c.value;
+          return Opacity(
+            opacity: t.clamp(0.0, 1.0),
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..translateByDouble(0, -24 * (1 - t), 0, 1)
+                ..scaleByDouble(0.9 + 0.1 * t, 0.9 + 0.1 * t, 1, 1),
+              child: child,
+            ),
+          );
+        },
+      );
 }

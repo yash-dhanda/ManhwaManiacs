@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
+import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
@@ -72,6 +74,18 @@ void main() {
     await _settle(t, 10);
     expect(rig.at, '/library/collections/3');
     expect(lib.calls, contains('getCollection:3'));
+  });
+
+  testWidgets('a new collection drops into the list (Card drop); the first list mounts at rest', (t) async {
+    int drops() => GlassMotion.recorder.entries.where((e) => e.label == 'CARD DROP').length;
+    final lib = FakeLib(collections: const [Collection(id: 3, name: 'Weekend reads', seriesCount: 0, sortOrder: 0)]);
+    final rig = await pumpLibrary(t, lib, start: '/library/collections');
+    final before = drops();
+    lib.collections = const [Collection(id: 3, name: 'Weekend reads', seriesCount: 0, sortOrder: 0), Collection(id: 9, name: 'Rainy days', seriesCount: 0, sortOrder: 1)];
+    await rig.container.read(collectionsProvider.notifier).refresh();
+    await _settle(t, 8);
+    expect(find.text('Rainy days'), findsOneWidget);
+    expect(drops(), before + 1);
   });
 
   testWidgets('Add series keeps the sheet open', (t) async {

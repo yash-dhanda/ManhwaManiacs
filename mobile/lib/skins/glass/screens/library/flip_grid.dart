@@ -1,8 +1,9 @@
-import 'package:flutter/physics.dart';
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
+import 'package:manhwamaniacs/skins/glass/motion.dart';
+import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 
 /// Density reflow (glass 4.10, "Density reflow"): each visible tile, keyed by its id, animates from its old rect to its new cell on
 /// `springSnappy`. One controller per tile drives a FLIP offset and scale. [snapshot] is called before the density changes; [play]
@@ -84,7 +85,7 @@ class _FlipTileState extends ConsumerState<FlipTile> with SingleTickerProviderSt
     _delta = was.topLeft - now.topLeft;
     _ratio = Size(now.width == 0 ? 1 : was.width / now.width, now.height == 0 ? 1 : was.height / now.height);
     _c.value = 0;
-    _c.animateWith(SpringSimulation(springOf(gt.springSnappy), 0, 1, 0));
+    unawaited(GlassMotion.play(MotionName.densityReflow, controller: _c, target: 1));
   }
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/features/library/models/shelf_query.dart';
 import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/providers/glass_density_provider.dart';
@@ -81,6 +82,7 @@ void main() {
     await b.up();
     await _settle(t);
     expect(rig.container.read(glassDensityProvider).phone, GlassPhoneDensity.c2);
+    expect(GlassMotion.recorder.entries.any((e) => e.label == 'DENSITY REFLOW'), isTrue, reason: 'the reflow goes through GlassMotion.play');
     density.setPhone(GlassPhoneDensity.c3);
   });
 
