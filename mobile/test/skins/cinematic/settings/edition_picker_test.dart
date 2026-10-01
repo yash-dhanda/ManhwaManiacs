@@ -101,7 +101,7 @@ void main() {
       await settle(t, ms: 700);
       expect(find.text('Restart in Glass?'), findsOneWidget);
       expect(find.textContaining('The app closes and reopens in the Glass edition, on this page.'), findsOneWidget);
-      expect(find.textContaining('The app icon changes after you next close the app from Recents.'), findsOneWidget);
+      expect(find.textContaining('The app icon changes'), findsNothing, reason: 'App icon follows the skin is off by default');
       expect(find.text('Restart in Glass'), findsOneWidget);
       await t.tap(find.text('Stay in Cinematic'));
       await settle(t, ms: 500);
@@ -123,7 +123,8 @@ void main() {
   test('copy of the confirmation body', () {
     expect(restartInGlassBody(downloadsQueued: false, platform: TargetPlatform.iOS), 'The app closes and reopens in the Glass edition, on this page.');
     expect(restartInGlassBody(downloadsQueued: true, platform: TargetPlatform.iOS), contains('Downloads resume after the restart.'));
-    expect(restartInGlassBody(downloadsQueued: false, platform: TargetPlatform.android), contains('Shortcuts on your home screen may need adding again.'));
+    expect(restartInGlassBody(downloadsQueued: false, platform: TargetPlatform.android), isNot(contains('app icon')), reason: 'the icon only moves while it follows the skin');
+    expect(restartInGlassBody(downloadsQueued: false, platform: TargetPlatform.android, iconFollows: true), contains('Shortcuts on your home screen may need adding again.'));
   });
 
   test('the launcher is the .CinematicIcon alias (the only one enabled) and only the switcher calls the icon plugin', () {

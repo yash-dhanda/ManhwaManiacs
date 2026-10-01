@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
+import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/profiles/providers/skin_outbox.dart';
@@ -28,9 +29,14 @@ class EditionPicker extends ConsumerWidget {
 
   Future<void> _switch(BuildContext context, WidgetRef ref) async {
     final queued = ref.read(activeDownloadCountProvider) > 0;
-    final ok = await confirmEditionSwitch(context, downloadsQueued: queued);
+    final icon = ref.read(appIconSwitcherProvider);
+    final ok = await confirmEditionSwitch(context, downloadsQueued: queued, iconFollows: icon.follow);
     if (!ok || !context.mounted) return;
-    await switchSkinFrom(context, ref, to: SkinId.glass, outgoing: () => StopThePress.outgoing(context));
+    await switchSkinFrom(context, ref, to: SkinId.glass, outgoing: () async {
+      await StopThePress.outgoing(context);
+      // An explicit choice on this device: the icon follows only while `mm.icon.follow` is on (glass 12.2).
+      await icon.onExplicitSkinChoice(SkinId.glass);
+    },);
   }
 
   @override

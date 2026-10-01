@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
@@ -153,7 +154,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       if (ok) {
         await notifier.edit(existing!.id, skin: 'glass');
         if (!mounted) return;
-        await switchSkinFrom(context, ref, to: SkinId.glass, outgoing: () async {});
+        await switchSkinFrom(context, ref, to: SkinId.glass, outgoing: () => ref.read(appIconSwitcherProvider).onExplicitSkinChoice(SkinId.glass));
         return;
       }
     }
