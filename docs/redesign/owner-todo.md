@@ -188,3 +188,7 @@ Items only the owner can do, by step.
 ## mobile/44
 - Device pass: docs/redesign/proof/mobile-44/device-checklist.md (shader on Impeller, flick to cruise, audio session, recorded layers).
 - Recorded layers glass-{scene}-{layer}.ogg are not dropped yet; the procedural layers cover them.
+
+## mobile/37 (Glass Listen mode)
+
+- [ ] Run `docs/redesign/proof/mobile-37/device-checklist.md` on the iPhone (SideStore IPA) and an Android flagship (CI APK).

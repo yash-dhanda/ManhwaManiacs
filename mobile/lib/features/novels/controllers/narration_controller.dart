@@ -19,7 +19,9 @@ import 'package:manhwamaniacs/features/novels/utils/listen_sessions.dart';
 import 'package:manhwamaniacs/features/novels/utils/shake_detector.dart';
 import 'package:manhwamaniacs/features/novels/utils/sleep_timer.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/skin.dart' show SkinId;
 import 'package:manhwamaniacs/skins/skin_audio.dart';
+import 'package:manhwamaniacs/skins/skins.dart' show skinIdProvider;
 
 /// What the player is doing, in the terms every screen shows.
 enum NarrationStatus {
@@ -168,6 +170,8 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
   late final ListenSessionTracker _sessions;
   late final SleepTimer _sleep;
   late final ShakeDetector _shake;
+  late final bool _glass;
+  AppLifecycleState _lifecycle = AppLifecycleState.resumed;
   final StreamController<NarrationEnded> _ended = StreamController<NarrationEnded>.broadcast();
   int _loadToken = 0;
   bool _playWhenReady = false;
@@ -187,6 +191,9 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
   /// its novel controller's `next()`.
   VoidCallback? onSkipNext;
 
+  /// The Glass lock screen's previous-chapter button: the reader sets this to its novel controller's `previous()`.
+  VoidCallback? onSkipPrevious;
+
   /// Haptic and toast hooks the mounted reader wires (the controller owns no `BuildContext`).
   void Function(NarrationFeedback)? onFeedback;
 
@@ -201,6 +208,7 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
     try {
       _handler = ref.read(audioHandlerProvider);
       _handler!.attach(this);
+      _handler!.controlSet = ref.read(narrationControlSetProvider);
     } catch (_) {
       // No handler in this tree (a test, or a build without audio_service): foreground only.
       _handler = null;
@@ -215,7 +223,17 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
       pause: () async => pause(),
       onFadeStart: () => onFeedback?.call(NarrationFeedback.sleepFade),
     );
-    _shake = ShakeDetector(onShake: _onShake, source: ref.read(accelerometerSourceProvider));
+    _glass = ref.read(skinIdProvider) == SkinId.glass;
+    _shake = _glass
+        ? ShakeDetector(
+            onShake: _onShake,
+            source: ref.read(glassAccelerometerSourceProvider),
+            thresholdMs2: kGlassShakeThresholdMs2,
+            window: kGlassShakeWindow,
+            samplingPeriod: kGlassShakeSampling,
+          )
+        : ShakeDetector(onShake: _onShake, source: ref.read(accelerometerSourceProvider));
+    ref.listen(listenSettingsValueProvider, (_, __) => _syncShake());
     _sleep.state.addListener(_onSleepState);
     try {
       WidgetsBinding.instance.addObserver(this);
@@ -247,6 +265,8 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _lifecycle = state;
+    _syncShake();
     final outbox = ref.read(listenSessionOutboxControllerProvider);
     switch (state) {
       case AppLifecycleState.detached:
@@ -527,6 +547,9 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
   @override
   Future<void> skipToNext() async => onSkipNext?.call();
 
+  @override
+  Future<void> skipToPrevious() async => onSkipPrevious?.call();
+
   /// Leaving the reader: stops, releases the player, closes the session and removes the
   /// notification.
   @override
@@ -556,8 +579,16 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
 
   void setSleep(SleepChoice choice) => _sleep.set(choice);
 
-  void _onSleepState() {
-    final wanted = ref.read(listenSettingsValueProvider).shakeToExtend && (_sleep.state.value.inLastMinute || _sleep.state.value.fading);
+  void _onSleepState() => _syncShake();
+
+  /// Cinematic listens in the timer's last minute; Glass (8.16.6) listens while a timer runs, the Glass switch is on and the app
+  /// is in the foreground.
+  void _syncShake() {
+    final settings = ref.read(listenSettingsValueProvider);
+    final sleep = _sleep.state.value;
+    final wanted = _glass
+        ? settings.glassShakeToExtend && _sleep.armed && _lifecycle == AppLifecycleState.resumed
+        : settings.shakeToExtend && (sleep.inLastMinute || sleep.fading);
     _shake.setListening(wanted);
   }
 
@@ -622,6 +653,21 @@ final narrationActiveProvider = Provider<bool>((ref) => ref.watch(narrationContr
 
 /// What the controller asks the mounted reader to signal.
 enum NarrationFeedback { sleepFade, shakeExtended }
+
+/// Whether leaving the reader stops narration (A1): Cinematic yes, Glass no (the accessory keeps it going).
+final narrationStopOnReaderExitProvider = Provider<bool>((ref) => ref.watch(skinIdProvider) != SkinId.glass, name: 'narrationStopOnReaderExit');
+
+/// The lock-screen button set of the active skin (A2).
+final narrationControlSetProvider = Provider<NarrationControlSet>(
+  (ref) => ref.watch(skinIdProvider) == SkinId.glass ? NarrationControlSet.glass : NarrationControlSet.cinematic,
+  name: 'narrationControlSet',
+);
+
+/// The Glass accelerometer at 30 Hz (A5), replaceable in tests.
+final glassAccelerometerSourceProvider = Provider<AccelerometerSource>(
+  (ref) => () => platformAccelerometer(samplingPeriod: kGlassShakeSampling),
+  name: 'glassAccelerometerSource',
+);
 
 /// The accelerometer, replaceable in tests.
 final accelerometerSourceProvider = Provider<AccelerometerSource>((ref) => platformAccelerometer, name: 'accelerometerSource');

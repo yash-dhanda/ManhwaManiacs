@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/settings/utils/whats_new_policy.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/skins/glass/listen/listen_sheets.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/how_it_works_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/offer_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/recap_ready_listener.dart';
@@ -38,6 +39,7 @@ void registerGlassGlobalSheets() {
   registerHowItWorksSheet();
   registerGlassNovelSheets();
   registerSoundscapeSheet();
+  registerListenSheets();
 }
 
 Widget _licences(BuildContext _) => const GlassLicencesSheet();

@@ -1,4 +1,4 @@
-import 'dart:ui' show Rect;
+import 'dart:ui' show Color, Rect;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +15,10 @@ class GlassNarrationAccessory {
     this.onNextChapter,
     this.onPreviousChapter,
     this.voiceSeed,
+    this.voiceHue,
+    this.voiceInitial = '',
+    this.onStop,
+    this.phase = 0,
   });
   final String title; // "Chapter 12 · Aurora"
   final bool playing;
@@ -24,6 +28,14 @@ class GlassNarrationAccessory {
   final VoidCallback? onNextChapter;
   final VoidCallback? onPreviousChapter;
   final String? voiceSeed;
+
+  /// The narrating voice's colour and initial (the 32 px orb), and the stop-with-Undo of a downward drag.
+  final Color? voiceHue;
+  final String voiceInitial;
+  final VoidCallback? onStop;
+
+  /// 0 normal, 1 preparing or buffering, 2 failed (the play button's state).
+  final int phase;
 }
 
 /// Continue slot, published by Home (`mobile/31`) once its hero is off-screen.

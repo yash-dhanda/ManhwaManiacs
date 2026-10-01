@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
+import 'package:manhwamaniacs/skins/glass/listen/narrating_chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/lens_glyphs.dart';
@@ -128,6 +129,7 @@ class _GlassDownloadsPageState extends ConsumerState<GlassDownloadsPage> {
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: wide ? 880 : double.infinity),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  const Align(alignment: Alignment.centerLeft, child: GlassNarratingChip()),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: GlassSegmented<DownloadsTab>(
