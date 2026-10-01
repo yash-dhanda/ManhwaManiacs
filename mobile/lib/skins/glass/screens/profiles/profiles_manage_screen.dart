@@ -196,7 +196,9 @@ class _GlassProfilesManageScreenState extends ConsumerState<GlassProfilesManageS
                   minHeight: 68,
                   semanticsLabel: '${p.name}, ${p.mood.label} mood${isActive ? ', active' : ''}',
                   onTap: offline ? null : () => _edit(p),
-                  builder: (context, stacked, _) => Padding(
+                  builder: (context, stacked, _) {
+                    final state = isActive ? _ActiveBadge() : GlassButton(label: 'Use', size: GlassButtonSize.small, onPressed: () => unawaited(_use(p)));
+                    return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       children: [
@@ -207,17 +209,20 @@ class _GlassProfilesManageScreenState extends ConsumerState<GlassProfilesManageS
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              GlassText(p.name, role: gt.typeHeadline, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              GlassText(p.name, role: gt.typeHeadline, maxLines: 2, overflow: TextOverflow.ellipsis),
                               GlassText('${p.mood.label} mood', role: gt.typeFootnote, color: gt.colorLabel2),
+                              // At large text the state moves under the name, so the name keeps the row's width.
+                              if (stacked) Padding(padding: const EdgeInsets.only(top: 6), child: state),
                             ],
                           ),
                         ),
-                        if (isActive) Padding(padding: const EdgeInsets.only(right: 4), child: _ActiveBadge()) else GlassButton(label: 'Use', variant: GlassButtonVariant.plain, onPressed: () => unawaited(_use(p))),
+                        if (!stacked) ...[const SizedBox(width: 8), state],
                         GlassIconButton(icon: GlassButtonIcon.glyph(GlassGlyph30.pencilSimple), label: 'Edit ${p.name}', onPressed: offline ? null : () => _edit(p), tooltip: offline ? 'Needs a connection' : null),
                         info.handle(),
                       ],
                     ),
-                  ),
+                  );
+                  },
                 ),
               );
             },
