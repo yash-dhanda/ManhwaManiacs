@@ -1,5 +1,25 @@
 import 'package:manhwamaniacs/core/storage/json_record.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
+import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
+
+/// The per-series soundscape record `{scene, mix: {bed, detail, tone}}` (glass 15.5); written only while "Remember for this series" is on.
+class SeriesSoundscape {
+  const SeriesSoundscape({required this.scene, this.bed = 0.8, this.detail = 0.5, this.tone = 0.3});
+  final String scene;
+  final double bed, detail, tone;
+
+  static const scenes = ['rain', 'wind', 'ocean', 'hearth', 'stream', 'deep'];
+
+  /// Null when absent or the scene is unknown.
+  static SeriesSoundscape? of(JsonRecord? r) {
+    if (r == null || !scenes.contains(r.data['scene'])) return null;
+    final m = r.child('mix');
+    double v(String k, double d) => m.doubleOf(k, d).clamp(0.0, 1.0);
+    return SeriesSoundscape(scene: r.data['scene'] as String, bed: v('bed', 0.8), detail: v('detail', 0.5), tone: v('tone', 0.3));
+  }
+
+  Map<String, dynamic> toJson() => {'scene': scene, 'mix': {'bed': bed, 'detail': detail, 'tone': tone}};
+}
 
 /// Which of the two side panels are open and which opened last (tablets).
 class ReaderPanels {
@@ -29,6 +49,8 @@ class ReaderPrefs {
     this.fit = 'width',
     this.zoom = 1.0,
     this.autoScrollSpeedX = 1.0,
+    this.cruiseSpeed = 1.0,
+    this.soundscape,
     this.sideMarginPct = 0,
     this.gap = false,
     this.pageTurn = 'cut',
@@ -54,6 +76,12 @@ class ReaderPrefs {
 
   /// Auto-scroll speed as a multiplier, 0.50-3.00.
   final double autoScrollSpeedX;
+
+  /// Glass cruise speed, 0.25-4.00 in 0.05 steps: the series' own, else `glass.cruiseDefault`, else 1.0.
+  final double cruiseSpeed;
+
+  /// Glass per-series soundscape, null until "Remember for this series" saved one.
+  final SeriesSoundscape? soundscape;
   final int sideMarginPct;
   final bool gap;
   final String pageTurn;
@@ -90,6 +118,10 @@ class ReaderPrefs {
       fit: s.fit,
       zoom: (s.zoom / 100).clamp(0.5, 3.0),
       autoScrollSpeedX: s.autoScrollSpeed,
+      cruiseSpeed: series != null && series.data[GlassReaderKeys.cruiseSpeed] is num
+          ? snapCruise(series.doubleOf(GlassReaderKeys.cruiseSpeed, 1.0))
+          : profile.glassCruiseDefault,
+      soundscape: SeriesSoundscape.of(series?.child('soundscape')),
       sideMarginPct: profile.sideMargin,
       gap: profile.gap,
       pageTurn: profile.pageTurn,
