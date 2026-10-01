@@ -34,7 +34,7 @@ class HomeContinueRail extends ConsumerWidget {
       onSeeAll: seeAllOf(ref, rail),
       itemCount: items.length,
       itemWidth: wide ? 320 : 280,
-      itemHeight: (wide ? 148 : 132) * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.5),
+      itemHeight: (wide ? 148 : 132) * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.75),
       itemBuilder: (context, i) => ContinueCard(item: items[i]),
     );
   }

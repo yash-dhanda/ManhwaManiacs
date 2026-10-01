@@ -98,9 +98,10 @@ class GlassContinueStack extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(padding: const EdgeInsets.only(right: 36), child: GlassLabel(title, role: gt.typeHeadline, maxLines: 2)),
+                  // At large text the card is taller (see the continue rail): the title takes a third line, the meta a second.
+                  Padding(padding: const EdgeInsets.only(right: 36), child: GlassLabel(title, role: gt.typeHeadline, maxLines: MediaQuery.textScalerOf(context).scale(1) >= 1.3 ? 3 : 2)),
                   const SizedBox(height: 2),
-                  GlassLabel(meta, role: gt.typeFootnote, color: gt.colorLabel2),
+                  GlassLabel(meta, role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 2),
                   const Spacer(),
                   Row(
                     children: [
