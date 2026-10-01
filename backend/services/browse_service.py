@@ -428,9 +428,32 @@ def _row_visible(series: Series, *, gate_open: bool, source_mature: bool) -> boo
     because the federated fan-out is handed its gate by the route.
     """
     return not hidden_by_gate(
-        resolve_series_rating(None, series.genres, source_mature=source_mature),
+        resolve_series_rating(
+            series.content_rating, series.genres, source_mature=source_mature
+        ),
         gate_open=gate_open,
     )
+
+
+def _genre_key(value: str) -> str:
+    return re.sub(r"[^0-9a-z]+", "-", value.casefold()).strip("-")
+
+
+def _genre_keys(connector: SourceConnector, genre: str) -> set[str]:
+    """``genre`` (the id clients send) plus its advertised label, normalised."""
+    keys = {_genre_key(genre)}
+    try:
+        for mode in connector.list_genres():
+            if mode.id == genre:
+                keys.add(_genre_key(mode.label))
+    except Exception:  # noqa: BLE001 -- a label is a nicety, the id still matches
+        pass
+    return keys - {""}
+
+
+def _in_genre(series: Series, keys: set[str]) -> bool:
+    """Rows that publish no genres cannot be ruled out, so they stay."""
+    return not series.genres or any(_genre_key(g) in keys for g in series.genres)
 
 
 def _serialize_paginated(
@@ -883,16 +906,19 @@ class BrowseService:
         normalized_query = query.strip() if query else None
         normalized_sort = sort.strip() if sort else None
         normalized_genre = genre.strip() if genre else None
+        genre_keys: set[str] | None = None
         if normalized_sort == "default":
             normalized_sort = None
 
         try:
             if normalized_genre and normalized_query:
+                # Sources cannot search inside a genre, and the genre is an id
+                # (`martial-arts`), not text to search for: search the words,
+                # then keep the rows in that genre.
                 listing = connector.search_series(
-                    f"{normalized_genre} {normalized_query}",
-                    page,
-                    sort=normalized_sort,
+                    normalized_query, page, sort=normalized_sort
                 )
+                genre_keys = _genre_keys(connector, normalized_genre)
                 operation = "genre_search"
             elif normalized_genre:
                 try:
@@ -924,6 +950,10 @@ class BrowseService:
             if normalized_query:
                 self._traffic_failed(source_id, exc)
             raise
+        if genre_keys is not None:
+            listing_items = [i for i in listing.items if _in_genre(i, genre_keys)]
+        else:
+            listing_items = list(listing.items)
         if normalized_query:
             # Any answer is the source answering, zero results included --
             # the same rule the federated fan-out records by.
@@ -945,10 +975,10 @@ class BrowseService:
         return _serialize_paginated(
             listing,
             source_id,
-            list(listing.items)
+            listing_items
             if not apply_gate
             else [
-                item for item in listing.items if self._series_visible(item, connector)
+                item for item in listing_items if self._series_visible(item, connector)
             ],
         )
 
