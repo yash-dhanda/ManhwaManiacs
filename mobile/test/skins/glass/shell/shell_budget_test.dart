@@ -42,14 +42,21 @@ void main() {
   });
 
   testWidgets('§15.7 phone search open: at most 3 layers and 3 shapes', (t) async {
-    final rig = await pumpGlassShell(t, start: '/circle'); // a pending page: the budget here is the shell's own
+    // Every shell page has a screen of its own now (`/circle` was the last pending one until mobile/43): the page's nav row group is
+    // the row's "nav row group 1"; the shell's own part (dock, search field) must stay within the rest of the row.
+    final rig = await pumpGlassShell(t, start: '/dev/glass/shell');
     await t.tap(find.byType(GlassSearchOrbBody));
     await _settle(t, 1000);
     final c = _counts(rig);
+    final entries = rig.container.read(glassRegistryProvider).entries.where((e) => !e.exempt && !e.scrim).toList();
+    final page = entries.where((e) => e.label == 'GlassNavRow').toList();
+    final shellLayers = c.layers - page.length;
+    final shellShapes = c.shapes - page.fold<int>(0, (n, e) => n + e.shapes);
     // ignore: avoid_print
-    print('BUDGET phone search: ${c.layers} layers / ${c.shapes} shapes');
-    expect(c.layers, lessThanOrEqualTo(3));
-    expect(c.shapes, lessThanOrEqualTo(3));
+    print('BUDGET phone search: ${c.layers} layers / ${c.shapes} shapes (shell $shellLayers / $shellShapes)');
+    expect(page.length, lessThanOrEqualTo(1));
+    expect(shellLayers, lessThanOrEqualTo(2));
+    expect(shellShapes, lessThanOrEqualTo(3));
   });
 
   testWidgets('§15.7 tablet frame: sidebar, toolbar group, accessory, toast and a window: at most 6 layers and 6 shapes', (t) async {

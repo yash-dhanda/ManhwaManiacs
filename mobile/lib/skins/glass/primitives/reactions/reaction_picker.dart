@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/physics.dart' show SpringSimulation;
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
@@ -46,13 +47,16 @@ int? bubbleAt(List<Offset> centres, Offset p, {double radius = 38}) {
 /// sends it, releasing outside cancels. `Enter` sends Love; `Shift+Enter` opens the picker (arrows choose, `Enter` sends).
 /// Screen readers get six "React with {name}" actions. The send flies to the strip's slot on a ballistic arc.
 class GlassReactionButton extends ConsumerStatefulWidget {
-  const GlassReactionButton({super.key, required this.onSend, required this.onClear, this.mine, this.chapterLabel = 'this chapter'});
+  const GlassReactionButton({super.key, required this.onSend, required this.onClear, this.mine, this.chapterLabel = 'this chapter', this.openRequest});
   final ValueChanged<ReactionKind> onSend;
   final VoidCallback onClear;
 
   /// The viewer's current reaction on the chapter.
   final ReactionKind? mine;
   final String chapterLabel;
+
+  /// Each notification opens the picker from the keyboard (a list's `e` key, anchored to the row).
+  final Listenable? openRequest;
 
   @override
   ConsumerState<GlassReactionButton> createState() => _GlassReactionButtonState();
@@ -70,6 +74,7 @@ class _GlassReactionButtonState extends ConsumerState<GlassReactionButton> with 
   int? _hover;
   int? _keyIndex;
   final FocusNode _bubbleFocus = FocusNode(debugLabel: 'GlassReactionBubbles');
+  bool _mouse = false;
   FocusNode? _prevFocus;
 
   @override
@@ -77,10 +82,23 @@ class _GlassReactionButtonState extends ConsumerState<GlassReactionButton> with 
     super.initState();
     _bloom = AnimationController.unbounded(vsync: this);
     _mag = [for (var i = 0; i < 6; i++) AnimationController.unbounded(vsync: this, value: 1)];
+    widget.openRequest?.addListener(_requested);
+  }
+
+  void _requested() => _openBubbles(keyboard: true);
+
+  @override
+  void didUpdateWidget(GlassReactionButton old) {
+    super.didUpdateWidget(old);
+    if (old.openRequest != widget.openRequest) {
+      old.openRequest?.removeListener(_requested);
+      widget.openRequest?.addListener(_requested);
+    }
   }
 
   @override
   void dispose() {
+    widget.openRequest?.removeListener(_requested);
     _entry?.remove();
     _entry?.dispose();
     _bubbleFocus.dispose();
@@ -163,8 +181,9 @@ class _GlassReactionButtonState extends ConsumerState<GlassReactionButton> with 
     _entry = OverlayEntry(builder: _bubbles);
     Overlay.of(context, rootOverlay: true).insert(_entry!);
     if (keyboard) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _bubbleFocus.requestFocus() : null);
-    unawaited(GlassMotion.play(MotionName.reactionBloomAndArc, controller: _bloom, target: 1));
+    // Reset before playing: setting the value afterwards stopped the bloom at 0 (the bubbles stayed stacked on the button).
     _bloom.value = 0;
+    unawaited(GlassMotion.play(MotionName.reactionBloomAndArc, controller: _bloom, target: 1));
     if (keyboard) _magnify(1);
   }
 
@@ -264,7 +283,7 @@ class _GlassReactionButtonState extends ConsumerState<GlassReactionButton> with 
           onKeyEvent: _bubbleKey,
           child: Stack(
             children: [
-              if (_keyboard) Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => unawaited(_closeBubbles()))),
+              if (_keyboard) Positioned.fill(child: Semantics(label: 'Dismiss', child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => unawaited(_closeBubbles())))),
               Positioned(
                 left: origin.dx,
                 top: origin.dy,
@@ -288,6 +307,35 @@ class _GlassReactionButtonState extends ConsumerState<GlassReactionButton> with 
                   ),
                 ),
               ),
+              // Picked with a pointer after a click or with the keys: each bubble is a selectable button.
+              if (_keyboard)
+                for (var i = 0; i < 6; i++)
+                  Positioned(
+                    left: centres[i].dx - 26,
+                    top: centres[i].dy - 26,
+                    width: 52,
+                    height: 52,
+                    child: MouseRegion(
+                      onEnter: (_) {
+                        _keyIndex = i;
+                        _hover = i;
+                        _magnify(i);
+                        _entry?.markNeedsBuild();
+                      },
+                      child: Semantics(
+                        button: true,
+                        selected: _hover == i,
+                        label: kGlassReactions[i].name,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            unawaited(_closeBubbles());
+                            _send(kGlassReactions[i].kind, from: centres[i]);
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
               for (var i = 0; i < 6; i++)
                 Positioned(
                   left: centres[i].dx - 40,
@@ -317,7 +365,9 @@ class _GlassReactionButtonState extends ConsumerState<GlassReactionButton> with 
         material: GlassMaterial.content,
         sink: 0.92,
         shape: const GlassShape.circle(),
-        onTap: () => _send(kTapReaction),
+        // A touch tap sends Love; a mouse or trackpad click opens the picker (glass 11), its bubbles clickable.
+        onTap: () => _mouse ? _openBubbles(keyboard: true) : _send(kTapReaction),
+        onRawDown: (e) => _mouse = e.kind == PointerDeviceKind.mouse || e.kind == PointerDeviceKind.trackpad,
         onLongPress: () => _openBubbles(keyboard: false),
         longPressDuration: const Duration(milliseconds: 300),
         cancelDistance: double.infinity,
@@ -326,7 +376,10 @@ class _GlassReactionButtonState extends ConsumerState<GlassReactionButton> with 
         onRawCancel: () => unawaited(_closeBubbles()),
         semanticsLabel: 'React to ${widget.chapterLabel}',
         semanticsHint: 'Tap to send Love, hold for more',
-        customActions: {for (final rr in kGlassReactions) CustomSemanticsAction(label: rr.action): () => _send(rr.kind)},
+        customActions: {
+          for (final rr in kGlassReactions) CustomSemanticsAction(label: rr.action): () => _send(rr.kind),
+          if (widget.mine != null) const CustomSemanticsAction(label: 'Remove my reaction'): widget.onClear,
+        },
         builder: (context, info) => SizedBox.square(
           key: _box,
           dimension: 48,

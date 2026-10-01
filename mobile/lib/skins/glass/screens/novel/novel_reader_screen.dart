@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
+import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart' show completedThisSessionProvider;
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart' show DownloadKind;
 import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
@@ -56,6 +57,7 @@ import 'package:manhwamaniacs/skins/glass/listen/paged_follow.dart';
 import 'package:manhwamaniacs/skins/glass/listen/player_column.dart' show GlassPlayerColumn, PlayerForm;
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
+import 'package:manhwamaniacs/skins/glass/parts/reactions/chapter_reactions.dart' show GlassChapterReactions;
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart' show GlassButton, GlassButtonIcon, GlassButtonVariant;
@@ -824,6 +826,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
 
   void _onScroll() {
     _ctl.onScrolled();
+    if (_scrollOk && _scroll.position.extentAfter < 1) _markFinished();
     if (!_scrollOk) return;
     final p = _scroll.position.pixels;
     final delta = _programmatic ? 0.0 : p - _lastPixels;
@@ -878,6 +881,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     glassFire(ref, HapticEvent.chapterNext);
     glassSound(ref, SoundEvent.chapterNext);
     _nextAnim.value = 0;
+    _markFinished();
     _ctl.next();
     unawaited(GlassMotion.play(MotionName.novelNext, controller: _nextAnim, target: 1));
   }
@@ -1077,7 +1081,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     unawaited(_fly(kind, from, to));
     final key = (sourceId: widget.sourceId, seriesKey: widget.seriesKey);
     final notifier = ref.read(chapterReactionsProvider(key).notifier);
-    await notifier.press(c.chapterKey, kind, chapterNumber: c.chapterNumber);
+    await notifier.press(c.chapterKey, kind, chapterNumber: c.chapterNumber, mature: _sourceMature);
     if (!mounted) return;
     final mine = notifier.reactionsOf(c.chapterKey)?.mine;
     if (mine != kind) {
@@ -1134,6 +1138,18 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   }
 
   void _openNote() => unawaited(_present(kNovelSheetNote));
+
+  bool get _sourceMature => ref.read(sourcesListProvider).valueOrNull?.where((x) => x.id == widget.sourceId).firstOrNull?.mature ?? false;
+
+  /// The chapter is finished here: the spoiler guard unseals its reactions (glass 9.3, mobile/43).
+  void _markFinished() {
+    final c = _state.chapter;
+    if (c == null || c.chapterKey == _finishedKey) return;
+    _finishedKey = c.chapterKey;
+    ref.read(completedThisSessionProvider.notifier).markCompleted(widget.sourceId, widget.seriesKey, c.chapterKey);
+  }
+
+  String? _finishedKey;
 
   /// `?sheet=` on the reader's own location at mount (a deep link) opens that sheet.
   void _openSheetFromLocation() {
@@ -1928,6 +1944,13 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       onBackToBook: _leave,
       endOfDownload: endOfDownload,
       onDownloadNext: _downloadNext10,
+      // The finished chapter's reactions (mobile/43, glass 9.3.2); a reaction sent from the menu lands in this strip.
+      reactionSlots: ghost
+          ? const []
+          : [
+              const SizedBox(height: 24),
+              GlassChapterReactions(sourceId: widget.sourceId, seriesKey: widget.seriesKey, chapterKey: chapter.chapterKey, chapterNumber: chapter.chapterNumber, mature: _sourceMature),
+            ],
     );
   }
 
@@ -2067,7 +2090,10 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         _ctl.onPaged(i);
         glassFire(ref, HapticEvent.pageTurn);
         glassSound(ref, SoundEvent.pageTurn);
-        if (i >= pages.length) _ctl.markComplete();
+        if (i >= pages.length) {
+          _ctl.markComplete();
+          _markFinished();
+        }
         setState(() {});
       },
     );

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/circle/utils/dispatch.dart' show chapterLabel;
+import 'package:manhwamaniacs/features/circle/utils/excluded_series.dart';
 import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
@@ -158,7 +159,7 @@ class _BodyState extends ConsumerState<_Body> with SingleTickerProviderStateMixi
                   label: 'Unhide',
                   size: GlassButtonSize.small,
                   variant: GlassButtonVariant.plain,
-                  onPressed: dis ? null : () => unawaited(_patch(s.copyWith(excludedSeries: [for (final x in s.excludedSeries) if (x != e) x]))),
+                  onPressed: dis ? null : () => unawaited(_patch(s.copyWith(excludedSeries: toggleExcluded(s.excludedSeries, e)))),
                 ),
               ],),
             ),

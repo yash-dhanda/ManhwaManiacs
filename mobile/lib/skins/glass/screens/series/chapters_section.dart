@@ -22,6 +22,7 @@ import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
+import 'package:manhwamaniacs/skins/glass/parts/reactions/chapter_reactions.dart' show ChapterReactionSummary;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/download_control.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/download_state.dart';
@@ -271,7 +272,9 @@ class ChapterRowsSliver extends ConsumerWidget {
           },
           trailing: sel.isActive
               ? null
-              : GlassDownloadControl(
+              : Row(mainAxisSize: MainAxisSize.min, children: [
+                  ChapterReactionSummary(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id),
+                  GlassDownloadControl(
                   view: view,
                   chapterLabel: label,
                   onDownload: () => fire(enqueueSeriesChapters(ref, d, [c.id])),
@@ -282,6 +285,7 @@ class ChapterRowsSliver extends ConsumerWidget {
                       : null,
                   onSaveToFiles: glassSheetRegistered('save-files') ? () => _saveToFiles(context, ref, c) : null,
                 ),
+                ],),
         );
         final pulsed = chapters.pulse == c.id;
         final body = pulsed ? _Pulse(key: ValueKey('pulse-${c.id}'), child: row) : row;

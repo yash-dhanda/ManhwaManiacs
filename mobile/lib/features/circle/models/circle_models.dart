@@ -609,3 +609,39 @@ class SharedShelfDetail {
         isSmart: j['rules'] != null,
       );
 }
+
+/// One recipient of a sent letter: "Not opened yet" (`new`) or "Opened" (the server reports nothing finer).
+class SentRecipient extends ProfileRef {
+  const SentRecipient({required super.profileId, required super.name, super.avatarKey, super.username, this.opened = false});
+  final bool opened;
+
+  factory SentRecipient.fromJson(Map<String, dynamic> j) {
+    final p = ProfileRef.fromJson(j);
+    return SentRecipient(profileId: p.profileId, name: p.name, avatarKey: p.avatarKey, username: p.username, opened: j['state'] != 'new');
+  }
+}
+
+/// A row of `GET /circle/letters?box=sent` (glass 9.3.1, 15.5): one send to one or more recipients.
+class SentLetter {
+  const SentLetter({required this.id, required this.to, required this.sourceId, required this.seriesKey, this.title = '', this.coverUrl, this.contentKind, this.note, this.createdAt});
+  final String id;
+  final List<SentRecipient> to;
+  final String sourceId, seriesKey, title;
+  final String? coverUrl, contentKind, note;
+  final DateTime? createdAt;
+
+  factory SentLetter.fromJson(Map<String, dynamic> j) {
+    final s = CircleSeries.fromJson(j);
+    return SentLetter(
+      id: '${j['id']}',
+      to: [for (final e in (j['to'] as List? ?? const [])) if (e is Map) SentRecipient.fromJson(Map<String, dynamic>.from(e))],
+      sourceId: s.sourceId,
+      seriesKey: s.seriesKey,
+      title: s.title,
+      coverUrl: s.coverUrl,
+      contentKind: s.contentKind,
+      note: j['note'] as String?,
+      createdAt: _date(j['created_at']),
+    );
+  }
+}

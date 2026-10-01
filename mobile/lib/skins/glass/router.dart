@@ -14,7 +14,6 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/dev/auth_fixtures.dart';
 import 'package:manhwamaniacs/skins/glass/dev/calibration_page.dart';
-import 'package:manhwamaniacs/skins/glass/dev/dev_controls.dart';
 import 'package:manhwamaniacs/skins/glass/dev/engine_probe_page.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_dev_index.dart';
 import 'package:manhwamaniacs/skins/glass/dev/glass_gallery.dart';
@@ -31,6 +30,8 @@ import 'package:manhwamaniacs/skins/glass/routes/sheet_param_host.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/setup_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/circle/circle_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/circle/friend_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/dialogue/dialogue_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/collection_screen.dart';
@@ -65,16 +66,12 @@ import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/shell/stack_overview_host.dart';
 import 'package:manhwamaniacs/skins/glass/transitions/book_open_page.dart';
 import 'package:manhwamaniacs/skins/pending_routes.dart';
-import 'package:manhwamaniacs/skins/pending_screen.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 // Every id is pending; finishing a screen deletes its line. mobile/45 deletes the set.
 // `readerLanding` is built here: it redirects to the library (glass 8.0.3).
 // ignore: constant_identifier_names
-const Set<ScreenId> PENDING = {
-  ScreenId.circle,
-  ScreenId.circleMember,
-};
+const Set<ScreenId> PENDING = {};
 
 /// The Glass development routes (mobile/25), outside the `ScreenId` map. Settings -> Diagnostics links the calibration page (mobile/40).
 const String kGlassDevPath = '/dev/glass';
@@ -94,23 +91,6 @@ const String kGlassRouteErrorDemoPath = '/dev/glass/route-error';
 
 /// The reader engine probe (`mobile/34`): `?fixture=long-strip` or `?source=&series=&chapter=`, `&mode=continuous|single`.
 const String kGlassReaderEngineProbePath = '/dev/glass/reader-engine';
-
-class _PendingWithDev extends StatelessWidget {
-  const _PendingWithDev({required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => Stack(
-        children: [
-          child,
-          Positioned(
-            right: 16,
-            top: 8,
-            child: SafeArea(child: DevButton(label: 'Glass development', onTap: () => context.push(kGlassDevPath))),
-          ),
-        ],
-      );
-}
 
 /// The development pages sit on the root's black and its ambient field, so they draw no background.
 class _DevScaffold extends StatelessWidget {
@@ -180,32 +160,7 @@ Page<void> glassSheetOrPage(BuildContext context, GoRouterState state, Widget ch
   return glassPage(state, screen ?? child);
 }
 
-Widget _pending(ScreenId id, GoRouterState state) => _PendingWithDev(child: PendingScreen(screenId: id.id, location: state.uri.toString()));
-
 String _nameOf(ScreenId id) => PENDING.contains(id) ? '$kPendingRoutePrefix${id.id}' : id.id;
-
-/// A route for [id] (`path` defaults to its pattern; only the pattern carries the name).
-GoRoute _route(ScreenId id, {String? path, GlobalKey<NavigatorState>? parent, bool reader = false, bool takeover = false}) {
-  final isPattern = path == null || path == id.path;
-  return GoRoute(
-    path: path ?? id.path,
-    name: isPattern ? _nameOf(id) : null,
-    parentNavigatorKey: parent,
-    pageBuilder: (context, state) => glassPage(state, _pending(id, state), reader: reader, takeover: takeover),
-  );
-}
-
-GoRoute _sheetRoute(ScreenId id, GlobalKey<NavigatorState> root, {required String title, List<GlassDetent> detents = const [GlassDetent.medium, GlassDetent.large], GlassWideForm form = GlassWideForm.window, bool numericOnly = false}) => GoRoute(
-      path: id.path,
-      name: _nameOf(id),
-      parentNavigatorKey: root,
-      pageBuilder: (context, state) {
-        if (numericOnly && int.tryParse(state.pathParameters['followedId'] ?? '') == null) {
-          return glassPage(state, GlassNotFound(location: state.uri.toString()));
-        }
-        return glassSheetOrPage(context, state, _pending(id, state), title: title, detents: detents, form: form);
-      },
-    );
 
 /// The series sheet route (glass 8.12 Presentation): a sheet opening at `medium`, or at `large` after a hard throw (the poster's
 /// release velocity in [GlassNavExtra.velocity]); the 960 px detail window on desktop frames; the full page with nothing beneath.
@@ -399,7 +354,7 @@ GoRouter buildGlassRouter(Ref ref) {
             _screen(ScreenId.indexHub, (s) => const YouScreen()),
             _screen(ScreenId.settings, (s) => GlassSettingsScreen(row: s.uri.queryParameters['row'])),
             _screen(ScreenId.settings, (s) => GlassSettingsScreen(section: s.pathParameters['section'], row: s.uri.queryParameters['row']), path: Routes.settingsAliases.first),
-            _route(ScreenId.circle),
+            _screen(ScreenId.circle, (s) => CircleScreen(tab: s.uri.queryParameters['tab'])),
             _screen(ScreenId.numbers, (s) => GlassStatisticsScreen(range: s.uri.queryParameters['range'], year: s.uri.queryParameters['year'])),
             _screen(ScreenId.status, (s) => const StatusScreen()),
             _screen(ScreenId.profilesManage, (s) => const GlassProfilesManageScreen()),
@@ -463,7 +418,17 @@ GoRouter buildGlassRouter(Ref ref) {
           title: 'Recap',
         ),
       ),
-      _sheetRoute(ScreenId.circleMember, rootKey, title: 'Circle', detents: const [GlassDetent.large]),
+      // A friend (mobile/43, glass 9.3.5): a `large` sheet, the 560 px window on wide frames, a full page on a cold deep link.
+      GoRoute(
+        path: ScreenId.circleMember.path,
+        name: _nameOf(ScreenId.circleMember),
+        parentNavigatorKey: rootKey,
+        pageBuilder: (context, state) {
+          final id = int.tryParse(state.pathParameters['profileId'] ?? '');
+          if (id == null) return glassPage(state, GlassNotFound(location: state.uri.toString()));
+          return glassSheetOrPage(context, state, FriendSheet(profileId: id), title: 'Circle', detents: const [GlassDetent.large], screen: FriendScreen(profileId: id));
+        },
+      ),
       _formSheetRoute(ScreenId.profileNew, rootKey, title: 'Add profile'),
       _formSheetRoute(ScreenId.profileEdit, rootKey, title: 'Edit profile', edit: true),
       // `/library/:followedId` after every static /library path (the shell's branches are matched first).

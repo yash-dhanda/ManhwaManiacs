@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show singleKeyShortcutsProvider;
 import 'package:manhwamaniacs/core/platform/mm_platform.dart';
+import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart' show completedThisSessionProvider;
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
@@ -49,6 +50,9 @@ import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
+import 'package:manhwamaniacs/skins/glass/parts/circle/series_circle_row.dart' show SeriesCircleRow;
+import 'package:manhwamaniacs/skins/glass/parts/reactions/chapter_reactions.dart' show GlassChapterReactions, openChapterReactions;
+import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_sheet.dart' show openRecommendSheet;
 import 'package:manhwamaniacs/skins/glass/physics/glass_page_physics.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
@@ -192,7 +196,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     _releaseClaims = _claimSheets();
     _subs
       ..add(engine.seamEvents.listen(_onSeam))
-      ..add(engine.neighbourEvents.listen(_onNeighbour));
+      ..add(engine.neighbourEvents.listen(_onNeighbour))
+      // The spoiler guard unseals a chapter's reactions as soon as it is finished here (glass 9.3, mobile/43).
+      ..add(engine.chapterCompleted.listen((c) => ref.read(completedThisSessionProvider.notifier).markCompleted(c.sourceId, c.seriesKey, c.chapterKey)));
     engine.addListener(_onEngine);
     if (widget.q != null) unawaited(_prepareHitLens(widget.q!));
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -909,6 +915,12 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         GlassMenuEntry(label: 'Bookmark this spot', onSelected: toggleBookmark),
         GlassMenuEntry(label: 'Show dialogue', onSelected: _openDialogue),
         GlassMenuEntry(label: 'Report broken page', onSelected: () => _retryPage(chapterId, page)),
+        GlassMenuEntry(
+          label: 'React to this chapter',
+          separatorBefore: true,
+          onSelected: () => unawaited(openChapterReactions(context, sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterId, chapterNumber: _numberOf(chapterId))),
+        ),
+        GlassMenuEntry(label: 'Recommend to…', onSelected: () => openRecommendSheet(ref, sourceId: sourceId, seriesKey: seriesKey)),
       ],
     );
     _menuOpen = false;
@@ -1317,10 +1329,14 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     return t != null && t.trim().isNotEmpty ? t : 'Page $n of ${chapter.pages.length}';
   }
 
+  /// The printed number of a chapter of the feed (from its title), for the reaction labels.
+  double? _numberOf(String chapterKey) => chapterNumberOf(_body.feed.chapters.where((c) => c.id == chapterKey).firstOrNull?.title);
+
   Widget _caughtUp(ReaderChapter chapter) {
     final n = chapterNumberOf(chapter.title);
     final followed = ref.read(updatesProvider.notifier).followedFor(sourceId: sourceId, seriesKey: seriesKey) != null;
     return CaughtUpCard(
+      reactions: GlassChapterReactions(sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapter.id, chapterNumber: n),
       nextNumber: n == null ? 'the next one' : '${(n + 1).floor()}',
       inLibrary: followed,
       onFollow: () async {
@@ -1523,6 +1539,11 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
                     onTab: (t) => setState(() => _rightTab = t),
                     settings: ReaderSettingsBody(seriesRef: _seriesRef, readAll: widget.readAll),
                     pageText: (ocr ?? const <PageText>[]).where((p) => p.page == engine.value.page).firstOrNull,
+                    circle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      GlassChapterReactions(sourceId: sourceId, seriesKey: seriesKey, chapterKey: _chapterIdentity.chapterKey, chapterNumber: _numberOf(_chapterIdentity.chapterKey)),
+                      const SizedBox(height: 16),
+                      SeriesCircleRow(sourceId: sourceId, seriesKey: seriesKey),
+                    ],),
                   ),
                 )
               : stripArea,
