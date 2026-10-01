@@ -229,7 +229,7 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
     return ValueListenableBuilder<int>(
       valueListenable: GlassMenuBack.open,
       builder: (context, menus, child) => PopScope(
-      canPop: widget.navigationShell.currentIndex == 0 && menus == 0,
+      canPop: widget.navigationShell.currentIndex == 0 && menus == 0 && !plan.overlayOpen,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (GlassMenuBack.closeTop()) return;
