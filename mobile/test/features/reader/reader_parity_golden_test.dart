@@ -15,8 +15,8 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../screenshots/support/shot_harness.dart';
-import 'parity_theme.dart';
 import '../../screenshots/support/shot_network.dart';
+import 'parity_theme.dart';
 
 /// Pixel parity for the reader.
 ///
