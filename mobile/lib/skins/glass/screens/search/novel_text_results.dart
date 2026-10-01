@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs_30.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/lens_glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/object_lens.dart';
+import 'package:manhwamaniacs/skins/glass/screens/search/search_states.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// The Novel text scope (glass 8.9): results from the on-device FTS4 index of downloaded chapters. Never shows an offline state.
@@ -35,6 +36,7 @@ class _NovelTextResultsState extends ConsumerState<NovelTextResults> {
   Widget build(BuildContext context) {
     final async = ref.watch(novelTextSearchProvider(widget.query));
     final s = async.valueOrNull;
+    if (s == null && async.hasError) return SearchErrorLens(onRetry: () => ref.invalidate(novelTextSearchProvider(widget.query)));
     if (s == null) return const SizedBox(height: 120);
     switch (s.status) {
       case NovelTextStatus.noDownloads:
