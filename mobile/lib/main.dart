@@ -92,13 +92,14 @@ Future<void> main() async {
 
   // The builder re-runs on every restart, so boot state (the mm.skin.* keys)
   // is read again and the new ProviderScope starts in the new skin.
+  final apiUrlMemo = ApiUrlMemo(apiUrl);
   runApp(
     AppRestart(
       builder: () {
         final boot = SkinBoot.read(prefs);
         return ProviderScope(
           overrides: [
-            apiBaseUrlProvider.overrideWith((ref) => apiUrl),
+            apiUrlMemo.override,
             authTokenReadTimeoutProvider.overrideWithValue(const Duration(seconds: 4)),
             sharedPrefsProvider.overrideWithValue(prefs),
             skinIdProvider.overrideWithValue(boot.skin),
