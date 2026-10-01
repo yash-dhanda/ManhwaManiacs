@@ -29,11 +29,14 @@ class FakeLib implements LibraryRepository {
   final List<String> calls = [];
   bool down = false;
 
+  /// The server's total (Browse all's "first 200 of 412"); defaults to the rows sent.
+  int? total;
+
   @override
   Future<Result<PagedResult<FollowedSeries>>> listSeries({int page = 1, int perPage = 40, String? sort, String? search, String? readingStatus, bool? isFavorite, List<int>? tagIds, bool? newOnly}) async {
     calls.add('listSeries:${readingStatus ?? ''}:${tagIds?.join(',') ?? ''}:${isFavorite ?? ''}');
     if (down) return const Err(NetworkError(message: 'down'));
-    return Ok(PagedResult(items: series, total: series.length, page: 1, perPage: perPage, hasNext: false));
+    return Ok(PagedResult(items: series, total: total ?? series.length, page: 1, perPage: perPage, hasNext: false));
   }
 
   @override
@@ -53,6 +56,13 @@ class FakeLib implements LibraryRepository {
   Future<Result<void>> reorderCollectionMembers(int collectionId, List<({String sourceId, String seriesKey})> items) async {
     calls.add('reorder:${items.map((e) => e.seriesKey).join(',')}');
     return const Ok(null);
+  }
+
+  @override
+  Future<Result<CollectionDetail>> addSeriesToCollection(int collectionId, {required String sourceId, required String seriesKey}) async {
+    calls.add('addToCollection:$collectionId:$seriesKey');
+    members = [...members, CollectionSeriesRef(sourceId: sourceId, seriesKey: seriesKey, sortOrder: members.length)];
+    return getCollection(collectionId);
   }
 
   @override
