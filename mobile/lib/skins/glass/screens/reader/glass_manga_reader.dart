@@ -598,6 +598,16 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   /// Releasing past the lock zooms the card to full screen on `springZoom` carrying the release velocity, then commits.
   Future<void> _commit(NeighbourDirection d, double velocity) async {
     if (_card == null) setState(() => _card = (direction: d, info: null));
+    // commitNeighbour needs the armed chapter; when it is still loading this waits for it, and when it failed (or there is no
+    // engine) the card goes away and the chapter opens on its own, the reader showing its own loading or error state.
+    final armed = await engine.armNeighbour(d).then((_) => true, onError: (Object _) => false);
+    if (!mounted) return;
+    if (!armed) {
+      _zoom.value = 0;
+      setState(() => _card = null);
+      _switchTo(d == NeighbourDirection.next ? _nextId : _previousId);
+      return;
+    }
     if (reducedMotion) {
       engine.commitNeighbour(d);
       return;
