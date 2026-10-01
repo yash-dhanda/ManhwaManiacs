@@ -111,7 +111,7 @@ void main() {
         await _tap(t, double: true);
         expect(_engine(t).value.chromeVisible, isTrue, reason: '$path: a double tap');
         await _step(t, 'close $path', () => swipe ? _edgeSwipeBack(t) : rig.router.pop());
-        await settle(t, ms: 1000); // the popped reader's own exit
+        await settle(t); // the popped reader's own exit
         expect(find.byType(entry), findsNothing, reason: '$path closed');
         expect(rig.at, Routes.library());
       }
