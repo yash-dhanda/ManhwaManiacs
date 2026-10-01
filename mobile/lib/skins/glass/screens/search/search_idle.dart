@@ -50,7 +50,7 @@ class SearchIdle extends ConsumerWidget {
           GlassTap(
             label: 'Browse sources',
             onTap: () => ref.read(skinRouterProvider).go(Routes.sources()),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(GlassGlyph.globe.regular, size: 20, color: gt.colorInfo), const SizedBox(width: 10), GlassLabel('Browse sources', role: gt.typeBody)]),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(GlassGlyph.globe.regular, size: 20, color: gt.colorInfo), const SizedBox(width: 10), Flexible(child: GlassLabel('Browse sources', role: gt.typeBody, maxLines: 2))]),
           ),
           if (askAvailable) ...[
             const SizedBox(height: 12),
@@ -62,7 +62,7 @@ class SearchIdle extends ConsumerWidget {
               },
               child: DecoratedBox(
                 decoration: BoxDecoration(color: gt.colorSurface1, borderRadius: BorderRadius.circular(26)),
-                child: Padding(padding: const EdgeInsets.all(16), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(GlassGlyph28.sparkle.regular, size: 20, color: gt.colorMachine), const SizedBox(width: 10), GlassLabel('Describe what you want to read', role: gt.typeBody)])),
+                child: Padding(padding: const EdgeInsets.all(16), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(GlassGlyph28.sparkle.regular, size: 20, color: gt.colorMachine), const SizedBox(width: 10), Flexible(child: GlassLabel('Describe what you want to read', role: gt.typeBody, maxLines: 2))])),
               ),
             ),
           ],
