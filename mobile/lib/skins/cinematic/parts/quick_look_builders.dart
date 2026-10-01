@@ -9,7 +9,10 @@ import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
+import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
@@ -19,6 +22,7 @@ import 'package:manhwamaniacs/features/library/providers/library_series_actions.
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
+import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -147,9 +151,18 @@ Future<void> openCuttingQuickLook(BuildContext context, WidgetRef ref, HomeConti
 Future<void> downloadNextFive(BuildContext context, WidgetRef ref, FollowedSeries s, {bool haptic = true}) async {
   final key = (sourceId: s.sourceId, seriesId: s.seriesKey);
   final detail = await ref.read(sourceSeriesDetailProvider(key).future);
-  final progress = ref.read(sourceSeriesProgressProvider(key));
-  final chapters = [...detail.chapters]..sort((a, b) => (a.number ?? 0).compareTo(b.number ?? 0));
-  final unread = chapters.where((c) => !(progress[c.id]?.completed ?? false)).take(5).toList();
+  // Where the server says the reader is (the same readState Glass plans from), not the device-local
+  // Sources-tab map, which the library reader never writes; saved or queued chapters are skipped.
+  final readNumber = s.readState?.chapterNumber;
+  final saved = await savedOrQueuedChapterKeys(ref.read(downloadsStoreProvider), (sourceId: s.sourceId, seriesKey: s.seriesKey));
+  final ordered = sortSeriesChapters(detail.chapters, numberOf: (c) => c.number, order: SeriesChapterSortOrder.oldest);
+  final byKey = {for (final c in ordered) c.id: c};
+  final unread = [
+    for (final k in nextUnreadUndownloadedKeys([
+      for (final c in ordered) (key: c.id, number: c.number, title: c.title, isRead: readNumber != null && c.number != null && c.number! <= readNumber, isDownloaded: saved.contains(c.id)),
+    ], count: 5,))
+      byKey[k]!,
+  ];
   if (unread.isEmpty) return;
   final novel = _novel(ref, s.sourceId);
   if (haptic && context.mounted) cineFeedback(context, HapticEvent.downloadStart);
