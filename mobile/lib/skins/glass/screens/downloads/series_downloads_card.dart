@@ -118,6 +118,12 @@ class GlassSeriesDownloadsCardState extends ConsumerState<GlassSeriesDownloadsCa
 
   void toggle() => setState(() => _open = !_open);
 
+  /// The card's height factor: 1 open, 0 drained.
+  double get collapseValue => _collapse.value;
+
+  /// Drain: the card collapses on `springDismiss` while the meter's level falls.
+  void drain() => unawaited(GlassMotion.play(MotionName.drain, controller: _collapse, target: 0));
+
   List<SavedChapter> get _rows {
     final rows = [...g.chapters];
     rows.sort((a, b) {
@@ -162,7 +168,7 @@ class GlassSeriesDownloadsCardState extends ConsumerState<GlassSeriesDownloadsCa
     if (ok != true || !mounted) return;
     // Drain: the card collapses on springDismiss while the meter's level falls.
     final store = ref.read(downloadsStoreProvider);
-    unawaited(GlassMotion.play(MotionName.drain, controller: _collapse, target: 0));
+    drain();
     for (final c in g.chapters) {
       await store?.deleteDownload(c.identity);
     }
