@@ -67,7 +67,7 @@ class AppearanceSection extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ExcludeSemantics(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Read the next chapter', style: TextStyle(fontFamily: 'GoogleSansFlex', fontSize: 17, color: gt.colorLabel1, decoration: TextDecoration.none)),
+              Text('Read the next chapter', style: TextStyle(fontFamily: 'GoogleSansFlexMM', fontSize: 17, color: gt.colorLabel1, decoration: TextDecoration.none)),
               Text('Read the next chapter', style: TextStyle(fontFamily: 'AtkinsonHyperlegibleNext', fontSize: 17, color: gt.colorLabel1, decoration: TextDecoration.none)),
             ],),
           ),

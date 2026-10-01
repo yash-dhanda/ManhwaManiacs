@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/grouped_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/list_row.dart';
+import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// Anchors for the settings index (glass 8.25): every row registers a key under its index id so a search hit can scroll to it and
 /// flash it with the Row pulse. One object for the whole Settings stack.
@@ -135,8 +137,8 @@ class SettingsBlock extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Semantics(header: false, child: Text(title)),
-            if (caption != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(caption!)),
+            GlassText(title, role: gt.typeBody, maxScale: 1.6),
+            if (caption != null) Padding(padding: const EdgeInsets.only(top: 2), child: GlassText(caption!, role: gt.typeFootnote, color: gt.colorLabel2, maxScale: 1.6)),
             const SizedBox(height: 8),
             child,
           ],),

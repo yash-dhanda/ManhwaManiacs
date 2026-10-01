@@ -202,14 +202,14 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
             left: 0,
             right: 0,
             child: IgnorePointer(
-                child: GlassScrollEdge(edge: GlassEdge.top, plateau: top, solid: safe.top),),),
+                child: GlassScrollEdge(edge: GlassEdge.top, plateau: top),),),
         Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: IgnorePointer(
                 child:
-                    GlassScrollEdge(edge: GlassEdge.bottom, plateau: bottom, solid: safe.bottom),),),
+                    GlassScrollEdge(edge: GlassEdge.bottom, plateau: bottom),),),
         if (phone)
           Positioned(
             top: safe.top + 8,

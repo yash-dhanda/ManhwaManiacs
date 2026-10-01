@@ -167,7 +167,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
       aligns.add(Alignment.center);
     } else if (_showTitle && centreMax >= 56) {
       final style =
-          roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600);
+          roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600, maxScale: kTitleCapsuleMaxScale);
       final tw = (measureText(context, widget.title, style).width + 32)
           .clamp(56.0, math.min(w * 0.6, centreMax)).toDouble();
       shapes.add(SkinGlassShape(
@@ -244,8 +244,20 @@ class _TitleCapsule extends ConsumerStatefulWidget {
   ConsumerState<_TitleCapsule> createState() => _TitleCapsuleState();
 }
 
+/// The compact title stops growing at 1.3x: it lives in a 36 px capsule.
+const double kTitleCapsuleMaxScale = 1.3;
+
 class _TitleCapsuleState extends ConsumerState<_TitleCapsule>
     with SingleTickerProviderStateMixin {
+  /// A title wider than the capsule first sets down to 80 % of its size, and only then ellipsizes; it never touches the rim.
+  Widget _fitted(BuildContext context) {
+    final style = roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600, maxScale: kTitleCapsuleMaxScale).copyWith(color: gt.colorOnGlass);
+    final avail = widget.width - 24;
+    final w = measureText(context, widget.title, style).width;
+    final k = w <= avail ? 1.0 : (avail / w).clamp(0.8, 1.0);
+    return Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, textScaler: TextScaler.noScaling, style: style.copyWith(fontSize: (style.fontSize ?? 15) * k));
+  }
+
   late final AnimationController _c =
       AnimationController(vsync: this, value: 0);
 
@@ -273,14 +285,7 @@ class _TitleCapsuleState extends ConsumerState<_TitleCapsule>
               headingLevel: 2, // the compact title echoes the screen's own level-1 title (G2)
               label: widget.title,
               excludeSemantics: true,
-              child: Center(
-                  child: Text(widget.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textScaler: TextScaler.noScaling,
-                      style: roleStyle(context, gt.typeSubhead,
-                              onGlass: true, wght: 600,)
-                          .copyWith(color: gt.colorOnGlass),),),
+              child: Center(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: _fitted(context))),
             ),
           ),
         ),

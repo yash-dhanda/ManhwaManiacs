@@ -31,6 +31,8 @@ class GlassSkin implements Skin {
   static final ThemeData baseTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+    // Any text without a Glass role still sets in the Glass face, never the platform's system font.
+    fontFamily: glassTokens.typeBody.family,
     scaffoldBackgroundColor: const Color(0xFF000000),
     canvasColor: const Color(0xFF000000),
     colorScheme: const ColorScheme.dark(surface: Color(0xFF000000)),

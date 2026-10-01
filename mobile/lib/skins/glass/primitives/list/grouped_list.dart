@@ -33,8 +33,9 @@ class GlassGroupedList extends StatelessWidget {
   Widget build(BuildContext context) {
     final host = GlassHost.of(context);
     final margin = inset ? GlassFrame.contentMargin(context) : 0.0;
+    // 24 px after every group, so a footer never runs into the next group's header and cards never butt.
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: margin),
+      padding: EdgeInsets.fromLTRB(margin, 0, margin, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -45,14 +46,14 @@ class GlassGroupedList extends StatelessWidget {
               child: Semantics(
                 header: true,
                 headingLevel: 2,
-                child: GlassLabel(header!, role: gt.typeFootnote, wght: 600, upper: true, extraTrackingEm: 0.04, color: host ? gt.colorOnGlass.withValues(alpha: 0.72) : gt.colorLabel2, onGlass: host),
+                child: GlassLabel(header!, role: gt.typeFootnote, wght: 600, upper: true, extraTrackingEm: 0.04, maxLines: 3, color: host ? gt.colorOnGlass.withValues(alpha: 0.72) : gt.colorLabel2, onGlass: host),
               ),
             ),
           // The rows' focus rings report here and paint outside the card's clip (glass 2.6, 14.4: never masked).
           GlassFocusRingHost(
             child: ClipRSuperellipse(
               borderRadius: BorderRadius.circular(20),
-              child: ColoredBox(color: host ? const Color(0x00000000) : gt.colorSurface1, child: Column(mainAxisSize: MainAxisSize.min, children: glassSeparated(children))),
+              child: ColoredBox(color: host ? const Color(0x00000000) : gt.colorSurface1, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: glassSeparated(children))),
             ),
           ),
           if (footer != null)

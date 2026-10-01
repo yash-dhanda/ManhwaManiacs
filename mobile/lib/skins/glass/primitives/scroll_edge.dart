@@ -6,18 +6,17 @@ import 'package:manhwamaniacs/skins/glass/primitives/scrim.dart';
 
 enum GlassEdge { top, bottom }
 
-/// The soft scroll edge (glass 7.32, `edgeSoft`, owner revision 2026-10-02): a tint, never a blur band, no taller than its bar group
-/// plus a 16 px fade. `Color(0xB8000000)` (0.72) over the device inset ([solid]: the status bar or the home indicator), easing to
-/// `Color(0x8C000000)` (0.55, still >= 4.5:1 for a dock label on T3 over white at the floor dim) at the far edge of the bar group
-/// ([plateau]: top safe-top + 52, or safe-top + 104 while a toast shows; desktop frames 60; bottom safe-bottom + 85, + 56 while the
-/// accessory shows), then fading to clear over [fade] px, so content reads right up to the bars. [opacity] follows how much content
-/// is under it. Under Solid glass and Reduce Transparency it becomes the hard edge (`edgeHard`).
+/// The soft scroll edge (glass 7.32, `edgeSoft`, owner revision 2026-10-02): a tint, never a blur band, only as tall as the
+/// status bar (or home indicator) plus its bar group, then a short 16 px fade, so content reads right up to the bars. `Color(0xB8000000)`
+/// (0.72) from the screen edge to the far edge of the bar group ([plateau]: top safe-top + 52, or safe-top + 104 while a toast shows;
+/// wider frames safe-top + 60; bottom safe-bottom + 85, + 56 while the accessory shows), which keeps bar labels at >= 4.5:1 over
+/// white, then [fade] px to clear. [opacity] follows how much content is under it. Under Solid glass and Reduce Transparency it
+/// becomes the hard edge (`edgeHard`).
 class GlassScrollEdge extends ConsumerWidget {
-  const GlassScrollEdge({super.key, required this.edge, required this.plateau, this.opacity = 1, this.solid = 0});
+  const GlassScrollEdge({super.key, required this.edge, required this.plateau, this.opacity = 1});
   final GlassEdge edge;
   final double plateau;
   final double opacity;
-  final double solid;
 
   static const double fade = 16;
 
@@ -40,11 +39,10 @@ class GlassScrollEdge extends ConsumerWidget {
       );
     }
     final total = plateau + fade;
-    final stopA = (solid / total).clamp(0.0, 1.0);
-    final stopB = (plateau / total).clamp(stopA, 1.0);
+    final stopA = plateau / total;
     final begin = top ? Alignment.topCenter : Alignment.bottomCenter;
     final end = top ? Alignment.bottomCenter : Alignment.topCenter;
-    const c = Color(0xB8000000), bar = Color(0x8C000000);
+    const c = Color(0xB8000000);
     return SizedBox(
       height: total,
       child: Opacity(
@@ -53,7 +51,7 @@ class GlassScrollEdge extends ConsumerWidget {
           label: 'edgeSoft',
           child: DecoratedBox(
             key: const ValueKey('glass-edge-soft'),
-            decoration: BoxDecoration(gradient: LinearGradient(begin: begin, end: end, colors: const [c, c, bar, Color(0x00000000)], stops: [0, stopA, stopB, 1])),
+            decoration: BoxDecoration(gradient: LinearGradient(begin: begin, end: end, colors: const [c, c, Color(0x00000000)], stops: [0, stopA, 1])),
             child: const SizedBox.expand(),
           ),
         ),
