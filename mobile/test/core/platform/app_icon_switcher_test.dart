@@ -95,7 +95,7 @@ void main() {
     await t.pumpWidget(ProviderScope(
       overrides: [
         sharedPrefsProvider.overrideWithValue(prefs),
-        appIconSwitcherProvider.overrideWithValue(AppIconSwitcher(prefs: prefs, plugin: fake, glassAvailable: true)),
+        appIconSwitcherProvider.overrideWithValue(AppIconSwitcher(prefs: prefs, plugin: fake)),
       ],
       child: const Directionality(textDirection: TextDirection.ltr, child: AppIconPauseListener(child: SizedBox())),
     ),);

@@ -17,8 +17,8 @@ import '../auth/auth_rig.dart';
 
 GlassAuthFixture _fx({List<Profile>? profiles, ActiveProfile? active}) => GlassAuthFixture(signedIn: true, profiles: profiles ?? fixtureProfiles(), active: active);
 
-Future<void> _open(WidgetTester t, String path, {GlassAuthFixture? f, bool debugGlass = true, List<Override> extra = const []}) async {
-  await pumpAuth(t, path, f ?? _fx(), debugGlass: debugGlass, extra: extra);
+Future<void> _open(WidgetTester t, String path, {GlassAuthFixture? f, List<Override> extra = const []}) async {
+  await pumpAuth(t, path, f ?? _fx(), extra: extra);
   await settleFor(t, 1500);
 }
 
@@ -100,12 +100,7 @@ void main() {
     expect(FakeProfiles.lastExtras!.dailyGoal, isNotNull);
   });
 
-  testWidgets('the Skin row is absent without the flag or the debug override', (t) async {
-    await _open(t, '/profiles/new', debugGlass: false);
-    expect(find.text('Cinematic'), findsNothing);
-  });
-
-  testWidgets('the Skin row is present with the debug override', (t) async {
+  testWidgets('the Skin row is present with the flag on', (t) async {
     await _open(t, '/profiles/new');
     expect(find.text('Cinematic'), findsOneWidget);
   });

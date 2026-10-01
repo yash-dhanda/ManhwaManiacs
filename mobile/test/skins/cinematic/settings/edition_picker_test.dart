@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_dialog.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/confirm_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/edition_picker.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/next_issue_plate.dart';
@@ -20,8 +21,8 @@ String frame(WidgetTester t, {String skin = 'cinematic'}) {
 int indexOf(String path) => int.parse(RegExp(r'(\d{3})\.png$').firstMatch(path)![1]!);
 
 
-Future<void> pumpPicker(WidgetTester t, {bool glass = false, bool dry = false, bool reduced = false, Size size = const Size(390, 844)}) =>
-    pumpPage(t, EditionPicker(glassAvailable: glass, dryRun: dry), size: size, reduced: reduced);
+Future<void> pumpPicker(WidgetTester t, {bool glass = false, bool reduced = false, Size size = const Size(390, 844)}) =>
+    pumpPage(t, EditionPicker(glassAvailable: glass), size: size, reduced: reduced);
 
 void main() {
   group('the loop', () {
@@ -83,7 +84,7 @@ void main() {
 
   group('flag on', () {
     testWidgets('the Glass card set in its own face, with the button and the caption; missing frames say so', (t) async {
-      await pumpPicker(t, glass: true, dry: true);
+      await pumpPicker(t, glass: true);
       expect(find.text('Switch to Glass'), findsOneWidget);
       expect(find.text('Glass: layered glass, springs and depth.'), findsOneWidget);
       expect(find.text(kEditionCaption), findsOneWidget);
@@ -93,7 +94,7 @@ void main() {
     });
 
     testWidgets('below 600 dp the confirmation is a sheet: the copy, and Stay in Cinematic', (t) async {
-      await pumpPicker(t, glass: true, dry: true);
+      await pumpPicker(t, glass: true);
       Scrollable.ensureVisible(t.element(find.text('Switch to Glass')), alignment: 0.5);
       await t.pump();
       await t.tap(find.text('Switch to Glass'));
@@ -107,21 +108,15 @@ void main() {
       expect(find.text('Restart in Glass?'), findsNothing);
     });
 
-    testWidgets('from 600 dp it is a dialog; the dry run plays the press and writes nothing', (t) async {
-      final c = await pumpPicker(t, glass: true, dry: true, size: const Size(834, 1194)).then((_) => null);
-      expect(c, isNull);
+    testWidgets('from 600 dp it is a dialog', (t) async {
+      await pumpPicker(t, glass: true, size: const Size(834, 1194));
       await t.tap(find.text('Switch to Glass'));
       await settle(t, ms: 700);
       expect(find.text('Restart in Glass?'), findsOneWidget);
-      await t.tap(find.text('Restart in Glass'));
-      var seen = false;
-      for (var i = 0; i < 25; i++) {
-        await t.pump(const Duration(milliseconds: 100));
-        seen |= find.byKey(const Key('press-blade-0')).evaluate().isNotEmpty;
-      }
-      expect(seen, isTrue, reason: 'the press played');
-      await settle(t, ms: 1000);
-      expect(find.byKey(const Key('press-blade-0')), findsNothing, reason: 'reversed and gone');
+      expect(find.byType(CineDialog), findsOneWidget);
+      await t.tap(find.text('Stay in Cinematic'));
+      await settle(t, ms: 500);
+      expect(find.text('Restart in Glass?'), findsNothing);
     });
   });
 
@@ -131,9 +126,14 @@ void main() {
     expect(restartInGlassBody(downloadsQueued: false, platform: TargetPlatform.android), contains('Shortcuts on your home screen may need adding again.'));
   });
 
-  test('no alternate icon is declared and the icon plugin is never called', () {
-    expect(File('ios/Runner/Info.plist').readAsStringSync(), isNot(contains('CFBundleAlternateIcons')));
-    expect(File('android/app/src/main/AndroidManifest.xml').readAsStringSync(), isNot(contains('activity-alias')));
+  test('the launcher is the .CinematicIcon alias (the only one enabled) and only the switcher calls the icon plugin', () {
+    final manifest = File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
+    final aliases = RegExp(r'<activity-alias([^>]*)>').allMatches(manifest).map((m) => m[1]!).toList();
+    expect(aliases, hasLength(2));
+    final enabled = aliases.where((a) => a.contains('android:enabled="true"')).toList();
+    expect(enabled, hasLength(1));
+    expect(enabled.single, contains('android:name=".CinematicIcon"'));
+    expect(aliases.firstWhere((a) => a.contains('.GlassIcon')), contains('android:enabled="false"'));
     for (final f in Directory('lib').listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.dart') && !f.path.endsWith('app_icon_switcher.dart'))) {
       final s = f.readAsStringSync();
       expect(s.contains('setAlternateIconName') || s.contains('FlutterDynamicIconPlus'), isFalse, reason: f.path);

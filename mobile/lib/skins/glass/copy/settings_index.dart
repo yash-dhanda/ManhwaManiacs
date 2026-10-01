@@ -85,7 +85,6 @@ const List<SettingsIndexEntry> kSettingsIndex = [
   SettingsIndexEntry('diag-glass', 'Glass renderer', 'diagnostics', SettingsPlatforms.all, false, ['impeller', 'refraction', 'layers']),
   SettingsIndexEntry('diag-motion-timings', 'Show motion timings', 'diagnostics', SettingsPlatforms.all, false, ['animation', 'debug']),
   SettingsIndexEntry('diag-calibration', 'Glass calibration', 'diagnostics', SettingsPlatforms.all, false, ['checkerboard', 'debug']),
-  SettingsIndexEntry('diag-preview-glass', 'Preview Glass skin', 'diagnostics', SettingsPlatforms.all, false, ['debug', 'skin']),
   SettingsIndexEntry('shortcuts', 'Keyboard shortcuts', 'keyboard', SettingsPlatforms.all, false, ['keys', 'hotkeys']),
   SettingsIndexEntry('single-key-shortcuts', 'Single-key shortcuts', 'keyboard', SettingsPlatforms.all, false, ['keys', 'letters']),
   SettingsIndexEntry('account', 'Account', 'profile', SettingsPlatforms.all, false, ['username', 'name']),

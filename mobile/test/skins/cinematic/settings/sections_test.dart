@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/next_issue_plate.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/edition_picker.dart' show kEditionCaption;
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/sections/server_section.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/shared/mature_gate_switch.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -62,12 +63,12 @@ class _FakeSwitch implements ServerSwitch {
 
 void main() {
   group('Appearance', () {
-    testWidgets('the Glass card is the disabled NEXT ISSUE plate, without a button', (tester) async {
+    testWidgets('the Glass card is live: Switch to Glass and the restart caption, no NEXT ISSUE plate', (tester) async {
       await pumpSettings(tester, path: '/settings/appearance');
-      expect(find.byType(NextIssuePlate), findsOneWidget);
-      expect(find.text('NEXT ISSUE'), findsOneWidget);
-      expect(find.text('In preparation. It arrives in a later update.'), findsOneWidget);
-      expect(find.text('Switch to Glass'), findsNothing);
+      expect(find.byType(NextIssuePlate), findsNothing);
+      expect(find.text('NEXT ISSUE'), findsNothing);
+      expect(find.text('Switch to Glass', skipOffstage: false), findsOneWidget);
+      expect(find.text(kEditionCaption, skipOffstage: false), findsOneWidget);
       expect(find.text('THIS EDITION'), findsOneWidget);
       expect(find.text('Two versions of the same app.'), findsOneWidget);
     });
@@ -301,14 +302,12 @@ void main() {
       expect(find.text('Show the layout grid'), findsOneWidget);
       expect(find.text('Show motion timings'), findsOneWidget);
       expect(find.text('Use the highest refresh rate everywhere'), findsOneWidget);
-      expect(find.text('Edition (debug)'), findsOneWidget);
-      expect(find.text('LEGACY'), findsOneWidget);
-      expect(find.text('CINEMATIC'), findsOneWidget);
+      expect(find.text('Edition (debug)'), findsNothing, reason: 'the pre-flip debug row is gone');
+      expect(find.text('LEGACY'), findsNothing);
       // debug builds only
       expect(kDebugMode, isTrue);
       expect(find.text('Stop the press (dry run)'), findsOneWidget);
       expect(find.text('Stop the press (failure)'), findsOneWidget);
-      expect(find.text('Edition picker (flag on)'), findsOneWidget);
     });
 
     testWidgets('Diagnostics on iOS explains that display modes are Android-only', (tester) async {

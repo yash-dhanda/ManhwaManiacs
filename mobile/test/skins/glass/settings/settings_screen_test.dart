@@ -86,7 +86,7 @@ void main() {
     expect(find.text('Cinematic'), findsOneWidget);
     expect(find.text('Current'), findsOneWidget);
     expect(find.text('Liquid glass, springs and depth.'), findsOneWidget);
-    expect(find.text('App icon follows the skin'), findsNothing, reason: 'the flag is false until release/01');
+    expect(find.text('App icon follows the skin', skipOffstage: false), findsOneWidget, reason: 'flag on: phones get the switch');
     for (final label in ['Solid glass', 'Increase contrast', 'Legible text', 'Reduce motion in this app']) {
       await t.ensureVisible(find.text(label));
       await t.pump();

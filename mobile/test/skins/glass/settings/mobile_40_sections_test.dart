@@ -367,11 +367,11 @@ void main() {
   group('Diagnostics', () {
     m40Test('every Flutter row, the preview row and calibration reachable from here', (t) async {
       await pumpSection(t, '/settings/diagnostics');
-      for (final s in ['FPS', 'Jank', 'Worst frame', 'Average frame', 'CPU build', 'GPU raster', 'Samples', 'Platform', 'CPU cores', 'Screen', 'App version', 'Build mode', 'Live images', 'Cached', 'Memory', 'Renderer', 'Glass quality', 'Refraction', 'Glass layers on screen', 'Preview Glass skin', 'Glass calibration', 'Show motion timings']) {
+      for (final s in ['FPS', 'Jank', 'Worst frame', 'Average frame', 'CPU build', 'GPU raster', 'Samples', 'Platform', 'CPU cores', 'Screen', 'App version', 'Build mode', 'Live images', 'Cached', 'Memory', 'Renderer', 'Glass quality', 'Refraction', 'Glass layers on screen', 'Glass calibration', 'Show motion timings']) {
         expect(find.text(s, skipOffstage: false), findsWidgets, reason: s);
       }
       expect(find.text('Refresh rate', skipOffstage: false), findsOneWidget);
-      expect(Flags.glassAvailable, isFalse);
+      expect(find.text('Preview Glass skin', skipOffstage: false), findsNothing, reason: 'the debug row is gone with the flag on');
       expect(glassLayersLine(7, 5, 1).over, isTrue);
       expect(glassLayersLine(4, 9, 0).over, isTrue);
       expect(glassLayersLine(4, 5, 1), (text: '4 / 6 layers · 5 / 8 shapes · 1 scrim', over: false));

@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:manhwamaniacs/app/skin_boot.dart' show kSkinDebugKey;
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
@@ -15,7 +14,6 @@ import 'package:manhwamaniacs/features/profiles/models/profile_extras.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/profiles/utils/daily_goal_options.dart';
 import 'package:manhwamaniacs/features/settings/utils/mature_gate_effects.dart';
-import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/copy/errors.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart' show moodColour;
@@ -48,7 +46,7 @@ import 'package:manhwamaniacs/skins/skins.dart';
 final glassProfileHopProvider = StateProvider<int?>((ref) => null, name: 'glassProfileHop');
 
 /// Whether the Skin row shows: Glass is available, or this device previews it (glass 8.6).
-bool glassSkinRowShown(WidgetRef ref) => Flags.glassAvailable || ref.read(sharedPrefsProvider).getString(kSkinDebugKey) == 'glass';
+bool glassSkinRowShown(WidgetRef ref) => Flags.glassAvailable;
 
 /// The body of the profile form (glass 8.6, mobile S06 and S07): a live orb, the name, the avatar grid with its arc, the mood chips
 /// that retint the sheet's field, the daily goal, the Skin row, the 18+ flow and the save. [profileId] is null for a new profile.

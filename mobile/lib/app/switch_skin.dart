@@ -12,9 +12,6 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Which device key [restartInto] writes.
-enum SkinMirror { active, debug, clearDebug }
-
 /// The one restart path every caller uses: mirror, return route, session flag,
 /// `prepare()`, then [AppRestartState.restart].
 Future<void> restartInto(
@@ -22,18 +19,10 @@ Future<void> restartInto(
   WidgetRef ref, {
   required SkinId skin,
   required String returnRoute,
-  SkinMirror mirror = SkinMirror.active,
 }) async {
   final prefs = ref.read(sharedPrefsProvider);
   final restart = AppRestart.of(context);
-  switch (mirror) {
-    case SkinMirror.active:
-      await prefs.setString(kSkinActiveKey, skin.name);
-    case SkinMirror.debug:
-      await prefs.setString(kSkinDebugKey, skin.name);
-    case SkinMirror.clearDebug:
-      await prefs.remove(kSkinDebugKey);
-  }
+  await prefs.setString(kSkinActiveKey, skin.name);
   await prefs.setString(kSkinReturnKey, returnRoute);
   if (ref.read(profileSessionReadyProvider)) await prefs.setString(kSkinSessionKey, '1');
   await skinFor(skin).prepare();
@@ -111,27 +100,6 @@ String? takeSkinArrival(SharedPreferences prefs) {
   if (from != null) unawaited(prefs.remove(kSkinFromKey));
   return from;
 }
-
-/// The pre-flip debug row (§8.0.7): a device override, never the outbox and
-/// never `reading_profiles.skin`. A null [to] clears the override.
-Future<void> debugSwitchSkin(BuildContext context, WidgetRef ref, SkinId? to) async {
-  final prefs = ref.read(sharedPrefsProvider);
-  await prefs.setInt(kSkinT0Key, DateTime.now().millisecondsSinceEpoch);
-  if (!context.mounted) return;
-  await showRestartCurtain(context);
-  if (!context.mounted) return;
-  await restartInto(
-    context,
-    ref,
-    skin: to ?? SkinBoot.resolveSkinWithoutDebug(prefs),
-    returnRoute: '/settings/diagnostics',
-    mirror: to == null ? SkinMirror.clearDebug : SkinMirror.debug,
-  );
-}
-
-/// The pending screen's button.
-Future<void> leavePreview(BuildContext context, WidgetRef ref) =>
-    debugSwitchSkin(context, ref, null);
 
 /// Full-screen black that fades in over 200 ms (`dur.clip`), linear, absorbing taps.
 class RestartCurtain extends StatefulWidget {

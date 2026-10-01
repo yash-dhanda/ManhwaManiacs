@@ -144,37 +144,6 @@ void main() {
     });
   });
 
-  testWidgets(
-      'debugSwitchSkin writes the override, never the outbox; clear removes it',
-      (tester) async {
-    late SharedPreferences prefs;
-    late int Function() builds;
-    (prefs, _, builds) =
-        await _host(tester, (c, r) => debugSwitchSkin(c, r, SkinId.cinematic));
-    await tester.tap(find.text('go'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
-    await tester.pump();
-    expect(prefs.getString(kSkinDebugKey), 'cinematic');
-    expect(prefs.getString(kSkinReturnKey), '/settings/diagnostics');
-    expect(prefs.getString(kSkinOutboxKey), isNull);
-    expect(builds(), 2);
-  });
-
-  testWidgets('Clear override removes the key', (tester) async {
-    late SharedPreferences prefs;
-    late int Function() builds;
-    (prefs, _, builds) = await _host(
-        tester, (c, r) => debugSwitchSkin(c, r, null),
-        initial: {kSkinDebugKey: 'cinematic'},);
-    await tester.tap(find.text('go'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
-    await tester.pump();
-    expect(prefs.containsKey(kSkinDebugKey), isFalse);
-    expect(builds(), 2);
-  });
-
   testWidgets('the curtain lasts 200 ms and fades linearly', (tester) async {
     var done = false;
     late BuildContext ctx;

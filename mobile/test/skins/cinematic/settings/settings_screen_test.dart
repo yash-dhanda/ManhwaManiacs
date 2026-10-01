@@ -40,7 +40,7 @@ void main() {
       expect(find.text('HAPTICS ON'), findsOneWidget);
       expect(find.text('manhwamaniacs.xyz'), findsOneWidget);
       expect(find.text('3.5.0 (57)'), findsOneWidget);
-      expect(find.text('Settings save as you change them.'), findsOneWidget);
+      expect(find.text(settingsFooter()), findsOneWidget);
     });
 
     testWidgets('a member without novels or downloads gets a shorter list, still gapless', (tester) async {
@@ -224,13 +224,13 @@ void main() {
 
     testWidgets('the footer is under the section', (tester) async {
       await pumpSettings(tester, size: _wide);
-      expect(find.text('Settings save as you change them.'), findsOneWidget);
+      expect(find.text(settingsFooter()), findsOneWidget);
     });
   });
 
   test('the footer only mentions the restart once Glass exists', () {
-    expect(settingsFooter(), 'Settings save as you change them.');
-    expect(settingsFooter(glassAvailable: true), 'Settings save as you change them. Changing the edition restarts the app.');
+    expect(settingsFooter(glassAvailable: false), 'Settings save as you change them.');
+    expect(settingsFooter(), 'Settings save as you change them. Changing the edition restarts the app.');
   });
 
   test('folios are assigned over the visible sections, the slugs stay stable', () {

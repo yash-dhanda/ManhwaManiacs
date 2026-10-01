@@ -2,11 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/app/skin_boot.dart' show kSkinDebugKey;
 import 'package:manhwamaniacs/features/onboarding/store/onboarding_draft.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
-import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/routes/redirect_hold.dart';
@@ -21,8 +19,8 @@ import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/shell/sidebar_geometry.dart';
 import 'package:manhwamaniacs/skins/glass/splash/glass_mark.dart';
 
-/// Whether the Look step shows: Glass is available or this device previews it (glass 8.7).
-bool glassLookShownOf(WidgetRef ref) => Flags.glassAvailable || ref.read(sharedPrefsProvider).getString(kSkinDebugKey) == 'glass';
+/// Whether the Look step shows (glass 8.7).
+bool glassLookShownOf(WidgetRef ref) => Flags.glassAvailable;
 
 /// Where a profile lands: its onboarding step while it needs onboarding, else Home.
 String glassDestinationFor(WidgetRef ref, Profile p) {

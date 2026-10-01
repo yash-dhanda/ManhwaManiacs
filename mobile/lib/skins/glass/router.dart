@@ -3,14 +3,12 @@ import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:manhwamaniacs/app/skin_boot.dart' show kSkinDebugKey;
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/auth/utils/route_guard.dart';
 import 'package:manhwamaniacs/features/onboarding/store/onboarding_draft.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart' show setupCompletedProvider;
-import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/dev/auth_fixtures.dart';
 import 'package:manhwamaniacs/skins/glass/dev/calibration_page.dart';
@@ -244,8 +242,7 @@ String? _onboardingRedirect(Ref ref) {
   if (active == null || profiles == null) return null;
   final p = profiles.where((x) => x.id == active.id).firstOrNull;
   if (p == null || !needsOnboarding(p, ref.read(onboardingStoreProvider).readPending())) return null;
-  final lookShown = Flags.glassAvailable || ref.read(sharedPrefsProvider).getString(kSkinDebugKey) == 'glass';
-  return Routes.onboarding({'step': resumeGlassStep(p.onboarding, lookShown: lookShown) ?? 1});
+  return Routes.onboarding({'step': resumeGlassStep(p.onboarding, lookShown: Flags.glassAvailable) ?? 1});
 }
 
 /// The Glass router (glass 8.0.3): a `StatefulShellRoute.indexedStack` with the four branches, sheet routes and readers on the root

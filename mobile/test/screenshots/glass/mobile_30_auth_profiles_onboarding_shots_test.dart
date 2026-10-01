@@ -10,7 +10,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/app/skin_app.dart';
-import 'package:manhwamaniacs/app/skin_boot.dart' show kSkinDebugKey;
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/auth/models/bootstrap_status.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
@@ -82,7 +81,7 @@ Future<ShotSession> _open(
   const haptics = MethodChannel('gaimon');
   t.binding.defaultBinaryMessenger.setMockMethodCallHandler(haptics, (_) async => null);
   addTearDown(() => t.binding.defaultBinaryMessenger.setMockMethodCallHandler(haptics, null));
-  SharedPreferences.setMockInitialValues(testPrefsDefaults({setupCompletedPrefKey: setupDone, kSkinDebugKey: 'glass', ...prefs}));
+  SharedPreferences.setMockInitialValues(testPrefsDefaults({setupCompletedPrefKey: setupDone, ...prefs}));
   final sp = await SharedPreferences.getInstance();
   FakeProfiles.calls.clear();
   await t.pumpWidget(

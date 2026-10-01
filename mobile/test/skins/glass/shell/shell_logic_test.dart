@@ -145,12 +145,11 @@ void main() {
       expect(both.notes, hasLength(2));
       expect(both.notes.first, contains('Downloads pause'));
     });
-    test('the profile skin: its own choice, the default, Glass falls back while unavailable, a debug override keeps the running skin', () {
-      expect(resolveProfileSkin(profileSkin: 'cinematic', running: SkinId.glass, debugOverride: false, glassAvailable: false), SkinId.cinematic);
-      expect(resolveProfileSkin(profileSkin: 'glass', running: SkinId.cinematic, debugOverride: false, glassAvailable: false), SkinId.cinematic);
-      expect(resolveProfileSkin(profileSkin: 'glass', running: SkinId.cinematic, debugOverride: false, glassAvailable: true), SkinId.glass);
-      expect(resolveProfileSkin(profileSkin: null, running: SkinId.glass, debugOverride: false, glassAvailable: true), kDefaultSkin);
-      expect(resolveProfileSkin(profileSkin: 'cinematic', running: SkinId.glass, debugOverride: true, glassAvailable: true), SkinId.glass);
+    test('the profile skin: its own choice, the default, Glass falls back while unavailable', () {
+      expect(resolveProfileSkin(profileSkin: 'cinematic', glassAvailable: false), SkinId.cinematic);
+      expect(resolveProfileSkin(profileSkin: 'glass', glassAvailable: false), SkinId.cinematic);
+      expect(resolveProfileSkin(profileSkin: 'glass', glassAvailable: true), SkinId.glass);
+      expect(resolveProfileSkin(profileSkin: null, glassAvailable: true), kDefaultSkin);
     });
     test('route focus moves only on a location change, not a query change', () {
       expect(locationChanged(Uri.parse('/a?x=1'), Uri.parse('/a?x=2')), isFalse);

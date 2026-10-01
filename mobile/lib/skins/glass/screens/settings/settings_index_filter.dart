@@ -28,7 +28,6 @@ List<SettingsIndexEntry> filterSettingsIndex(
     if (e.admin && !admin) return false;
     if (offeredSections.isNotEmpty && !offeredSections.contains(e.section)) return false;
     if (e.id == 'include-mature-activity' && !matureGateOpen) return false;
-    if (e.id == 'diag-preview-glass' && glassAvailable) return false;
     if (e.id == 'app-icon-follows-skin' && !glassAvailable) return false;
     return true;
   }
