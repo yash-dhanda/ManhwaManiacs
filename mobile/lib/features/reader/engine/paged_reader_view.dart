@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/core/network/request_limiter.dart';
 import 'package:manhwamaniacs/core/platform/native_bridge.dart';
 import 'package:manhwamaniacs/core/utils/haptics.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_prefetch.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_zoom.dart';
@@ -26,6 +27,7 @@ import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_filter_provider.dart' show ReaderColorMode;
+import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
@@ -319,6 +321,8 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     _view = index;
     if (_zoom > 1) _resetZoom();
     if (widget.options.autoHide != null && ref.read(readerUiProvider).controlsVisible) _hideControls();
+    // The chapter's last page shows the menu (next-chapter controls), unless the profile turned it off.
+    if (index == _views.length - 1 && menuAtChapterEnd(ref.read(readerSettingsProvider))) _showControls();
     if (index > _creditsIndex) {
       // Past the credits: the next chapter opens (by the skin's Dip).
       if (!_sentinelFired && _hasNext) {

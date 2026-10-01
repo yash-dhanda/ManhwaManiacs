@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/features/reader/engine/chapter_end_physics.dart';
 import 'package:manhwamaniacs/features/reader/engine/cruise_engage.dart';
 import 'package:manhwamaniacs/features/reader/engine/engine_live.dart';
 import 'package:manhwamaniacs/features/reader/engine/lens_layout.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/panel_boxes.dart';
@@ -39,6 +40,7 @@ import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_filter_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/auto_scroll_speed.dart';
@@ -384,7 +386,16 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   /// that catches a fling ends that scroll before [_noteTouchDown] runs). It is stopping the scroll,
   /// never a tap.
   bool _touchCaughtScroll = false;
+
+  /// The strip is moving because of the reader's finger (a drag or the fling it started), not the app (auto-scroll,
+  /// tap-to-scroll, a jump). Only that motion makes a touch a scroll stop and starts the cooldown.
+  bool _userScroll = false;
+
+  /// When the last scroll the reader's finger made ended.
   DateTime _lastScrollEnd = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// The strip sat at its very bottom on the last scroll pass (the chapter end shows the menu once per arrival).
+  bool _atBottom = false;
   Offset? _tapDownPosition;
   int _consecutiveCenterTaps = 0;
   DateTime _lastCenterTapTime = DateTime.fromMillisecondsSinceEpoch(0);
@@ -1133,6 +1144,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _scheduleProgressSave(feedPosition);
     _scheduleScrollSave(scrollOffset, feedPosition);
     _maybeAutoNextChapter(atEnd);
+    _showMenuAtBottom(position);
     if (widget.chapterMode == ReaderChapterMode.continuous) _maybeExtendFeed(feedPosition);
     _trackEngine();
     _prefetchUpcoming(flatPage);
@@ -1817,6 +1829,14 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _idle.hold();
   }
 
+  /// Arriving at the very bottom of the strip (the chapter's end) shows the menu, so the next-chapter controls are
+  /// there, unless the profile turned 'Show menu at chapter end' off. The idle hides it again.
+  void _showMenuAtBottom(ScrollPosition position) {
+    final atBottom = position.maxScrollExtent > 0 && position.extentAfter < 1;
+    if (atBottom && !_atBottom && menuAtChapterEnd(ref.read(readerSettingsProvider))) _showControls();
+    _atBottom = atBottom;
+  }
+
   /// [widget.autoHideAfter] untouched, then the menu hides (see [ReaderChromeIdle]).
   void _scheduleHideControls() => _idle.arm();
 
@@ -1828,7 +1848,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   void _noteTouchDown(PointerDownEvent _) {
     _touchCaughtScroll = _isScrolling ||
-        _velocity.velocity() != 0 ||
+        _userScroll ||
         DateTime.now().difference(_lastScrollEnd).inMilliseconds < _postScrollCooldownMs;
   }
 
@@ -1984,6 +2004,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (notification is ScrollStartNotification &&
         notification.dragDetails != null) {
       _isScrolling = true;
+      _userScroll = true;
       _dragging = true;
       _cruiseWatch = false;
       // A manual drag pauses auto-scroll and it stays paused.
@@ -1999,11 +2020,14 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     } else if (notification is ScrollEndNotification) {
       _isScrolling = false;
       _dragging = false;
-      _lastScrollEnd = DateTime.now();
+      if (_userScroll) _lastScrollEnd = DateTime.now();
+      _userScroll = false;
       widget.controller.topPull.value = 0;
       widget.controller.endPull.value = 0;
     } else if (notification is ScrollUpdateNotification) {
       _dragging = notification.dragDetails != null;
+      // A drag that takes over an app-driven scroll starts no new scroll.
+      if (_dragging) _userScroll = true;
       if (autoHide != null) {
         _trackAutoHide(notification.scrollDelta ?? 0, autoHide);
       }
@@ -2035,6 +2059,11 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   /// tap opens the menu.
   void _trackAutoHide(double delta, ReaderAutoHide autoHide) {
     if (delta == 0 || !autoHide.onScroll) return;
+    // At the very bottom a pull is the next-chapter gesture, and the chapter end has just shown the menu.
+    if (_atBottom) {
+      _downAccum = 0;
+      return;
+    }
     if (DateTime.now().isBefore(_suppressAutoHideUntil)) return;
     if (delta < 0) {
       _downAccum = 0;
