@@ -44,4 +44,29 @@ void main() {
     await t.pump(const Duration(milliseconds: 500));
     expect(t.takeException(), isNull);
   });
+
+  testWidgets('the grain steps at 12 fps only while it can be seen: not covered, not backgrounded', (t) async {
+    // The program loads on real async, so the timer the load starts is a real one; a lifecycle round trip restarts it on fake time.
+    Widget host({bool ticking = true}) => TickerMode(enabled: ticking, child: _host());
+    await t.runAsync(() async {
+      await t.pumpWidget(host());
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
+    await t.pump();
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await t.pump();
+    await t.binding.delayed(const Duration(milliseconds: 500));
+    expect(t.binding.hasScheduledFrame, isFalse, reason: 'backgrounded: no steps');
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await t.pump();
+    await t.binding.delayed(const Duration(milliseconds: 90));
+    expect(t.binding.hasScheduledFrame, isTrue, reason: 'resumed: a step landed and asked for a paint');
+    await t.pump();
+
+    await t.pumpWidget(host(ticking: false));
+    await t.pump();
+    await t.binding.delayed(const Duration(milliseconds: 500));
+    expect(t.binding.hasScheduledFrame, isFalse, reason: 'covered (tickers off): no steps');
+    expect(t.takeException(), isNull);
+  });
 }

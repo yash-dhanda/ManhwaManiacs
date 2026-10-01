@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 
@@ -30,21 +30,37 @@ class CineGrain extends StatefulWidget {
   State<CineGrain> createState() => _CineGrainState();
 }
 
-class _CineGrainState extends State<CineGrain> with SingleTickerProviderStateMixin {
-  late final Ticker _ticker;
+class _CineGrainState extends State<CineGrain> with WidgetsBindingObserver {
   final ValueNotifier<int> _step = ValueNotifier(0);
   ui.FragmentShader? _shader;
   ScrollPosition? _pos;
-  bool _failed = false, _reduced = false;
+  bool _failed = false, _reduced = false, _onScreen = true, _tickerOn = true;
+  bool _resumed = WidgetsBinding.instance.lifecycleState != AppLifecycleState.paused &&
+      WidgetsBinding.instance.lifecycleState != AppLifecycleState.hidden;
+
+  /// 12 fps steps from a timer, not a per-vsync ticker: a ticker kept the engine producing frames at the full refresh rate for a
+  /// picture that changes 12 times a second, and kept running while the grain was static, covered or the app was backgrounded.
+  Timer? _timer;
+
+  void _sync() {
+    final run = _shader != null && !_failed && !_reduced && _onScreen && _tickerOn && _resumed;
+    if (run) {
+      _timer ??= Timer.periodic(const Duration(milliseconds: 83), (_) => _step.value = (_step.value + 1) % CineGrain.offsets.length);
+    } else {
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _ticker = createTicker((d) => _step.value = (d.inMilliseconds ~/ 83) % CineGrain.offsets.length);
+    WidgetsBinding.instance.addObserver(this);
     final future = CineGrain._program ??= CineGrain.loader();
     future.then((p) {
       if (!mounted) return;
       setState(() => _shader = p.fragmentShader());
+      _sync();
     }, onError: (Object e) {
       if (!CineGrain._logged) {
         CineGrain._logged = true;
@@ -55,29 +71,37 @@ class _CineGrainState extends State<CineGrain> with SingleTickerProviderStateMix
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _resumed = state == AppLifecycleState.resumed || state == AppLifecycleState.inactive;
+    _sync();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _reduced = CineMotion.reduced(context);
+    // A covered route (and any other offstage subtree) turns its tickers off; the grain follows it.
+    _tickerOn = TickerMode.valuesOf(context).enabled;
     _pos?.removeListener(_visibility);
     _pos = Scrollable.maybeOf(context)?.position;
     _pos?.addListener(_visibility);
-    if (_reduced) {
-      _ticker.stop();
-      _step.value = 0;
-    } else if (!_ticker.isActive) {
-      _ticker.start();
-    }
+    if (_reduced) _step.value = 0;
+    _sync();
   }
 
   void _visibility() {
-    if (!mounted || _reduced) return;
-    _ticker.muted = !cineOnScreen(context);
+    if (!mounted) return;
+    final on = cineOnScreen(context);
+    if (on == _onScreen) return;
+    _onScreen = on;
+    _sync();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pos?.removeListener(_visibility);
-    _ticker.dispose();
+    _timer?.cancel();
     _step.dispose();
     _shader?.dispose();
     super.dispose();
