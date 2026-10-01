@@ -76,7 +76,7 @@ void main() {
 
   test('a paragraph of hard line breaks splits across pages (every line its own box)', () {
     final poem = List.generate(60, (i) => 'Line $i of a poem broken by hand.').join('\n');
-    final l = NovelParagraphLayout(text: poem, type: _type, width: 320, ink: _ink, indent: false, dropCap: false);
+    final l = NovelParagraphLayout(text: poem, type: _type, width: 320, ink: _ink);
     final starts = [for (final x in l.lines) x.start];
     for (var i = 1; i < starts.length; i++) {
       expect(starts[i], greaterThan(starts[i - 1]), reason: 'line $i repeats an earlier box');
@@ -90,7 +90,7 @@ void main() {
       for (final s in page) {
         expect(s.startChar, cursor);
         cursor = s.endChar;
-        final own = NovelParagraphLayout(text: poem.substring(s.startChar, s.endChar), type: _type, width: 320, ink: _ink, indent: false, dropCap: false);
+        final own = NovelParagraphLayout(text: poem.substring(s.startChar, s.endChar), type: _type, width: 320, ink: _ink);
         expect(own.height, lessThanOrEqualTo(480 + 0.5));
         own.dispose();
       }
