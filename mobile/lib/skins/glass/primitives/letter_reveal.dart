@@ -320,11 +320,23 @@ class _LetterRevealState extends ConsumerState<LetterReveal> with SingleTickerPr
     if (_phase == _Phase.done || reduced) {
       body = AnimatedDefaultTextStyle(style: style, duration: gt.curveColorShift.duration, curve: gt.curveColorShift.curve, child: plain);
     } else {
-      body = GestureDetector(
+      final run = GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTapDown: (_) => _complete(),
         child: _Run(plan: _plan, style: style, t: _t, active: _phase == _Phase.running, textAlign: widget.textAlign),
       );
+      final maxLines = widget.maxLines;
+      // The letter run cannot ellipsize: a heading longer than [maxLines] shows settled (with its ellipsis) from the first frame,
+      // so it never flashes a third line that then collapses.
+      body = maxLines == null
+          ? run
+          : LayoutBuilder(builder: (context, c) {
+              final p = TextPainter(text: TextSpan(text: widget.text, style: style), textDirection: TextDirection.ltr, textScaler: TextScaler.noScaling, maxLines: maxLines)
+                ..layout(maxWidth: c.maxWidth);
+              final over = p.didExceedMaxLines;
+              p.dispose();
+              return over ? plain : run;
+            },);
     }
     return Semantics(header: true, headingLevel: widget.headingLevel, label: widget.text, child: ExcludeSemantics(child: body));
   }

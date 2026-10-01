@@ -43,7 +43,7 @@ class HomeRailHeader extends ConsumerWidget {
       child: Row(
         children: [
           if (leading != null) Padding(padding: const EdgeInsets.only(right: 8), child: leading),
-          Flexible(child: LetterReveal(title, role: gt.typeTitle2, revealKey: railRevealKey(ref, railId), screenId: kHomeScreenId, headingLevel: 2)),
+          Flexible(child: LetterReveal(title, role: gt.typeTitle2, revealKey: railRevealKey(ref, railId), screenId: kHomeScreenId, headingLevel: 2, maxLines: 2)),
           if (trailing != null) Padding(padding: const EdgeInsets.only(left: 8), child: trailing),
           const Spacer(),
         ],
@@ -53,4 +53,9 @@ class HomeRailHeader extends ConsumerWidget {
 }
 
 /// The height of one poster card of a rail (poster, title in two lines, one caption line) at the frame's poster width.
-double posterCardHeight(BuildContext context, {double extra = 0}) => math.max(posterWidthFor(GlassFrame.of(context)), 126.0) * 1.5 + 66 + extra;
+/// The text block grows with the text size (the card's labels cap at 1.5x), never less than the 66 px of the default size.
+double posterCardHeight(BuildContext context, {double extra = 0}) {
+  final title = measureText(context, 'Ag', roleStyle(context, gt.typeFootnote, wght: 600, maxScale: 1.5)).height;
+  final meta = measureText(context, 'Ag', roleStyle(context, gt.typeCaption1, maxScale: 1.5)).height;
+  return math.max(posterWidthFor(GlassFrame.of(context)), 126.0) * 1.5 + math.max(66.0, 8 + 2 * title + meta + 4) + extra;
+}

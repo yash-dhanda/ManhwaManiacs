@@ -273,9 +273,15 @@ class _GlassRailState extends ConsumerState<GlassRail> {
     if (widget.state == GlassRailState.empty) {
       return widget.unavailable ?? const SizedBox.shrink();
     }
+    // "See all" sits centred on the title's FIRST line however many lines the title takes (two at most: a long "Because you
+    // read {series}" ellipsizes inside the series name).
+    final lineH = measureText(context, 'Ag', roleStyle(context, gt.typeTitle2)).height;
+    final seeAllH = math.max(GlassFrame.hitMin(context), measureText(context, 'See all', roleStyle(context, gt.typeSubhead, onGlass: true, wght: 660, maxScale: 1.5)).height + 20);
+    final seeAllDy = (lineH - seeAllH) / 2;
     final header = Padding(
       padding: EdgeInsets.symmetric(horizontal: _margin),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
@@ -285,7 +291,7 @@ class _GlassRailState extends ConsumerState<GlassRail> {
                 Row(
                   children: [
                     if (widget.titleLeading != null) Padding(padding: const EdgeInsets.only(right: 8), child: widget.titleLeading),
-                    Flexible(child: LetterReveal(widget.title, role: gt.typeTitle2, revealKey: widget.revealKey ?? widget.title, screenId: widget.screenId, headingLevel: 2)),
+                    Flexible(child: LetterReveal(widget.title, role: gt.typeTitle2, revealKey: widget.revealKey ?? widget.title, screenId: widget.screenId, headingLevel: 2, maxLines: 2)),
                     if (widget.titleTrailing != null) Padding(padding: const EdgeInsets.only(left: 8), child: widget.titleTrailing),
                   ],
                 ),
@@ -294,7 +300,10 @@ class _GlassRailState extends ConsumerState<GlassRail> {
             ),
           ),
           if (widget.onSeeAll != null)
-            GlassButton(label: 'See all', semanticsLabel: 'See all, ${widget.title}', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: widget.onSeeAll),
+            Transform.translate(
+              offset: Offset(0, seeAllDy),
+              child: GlassButton(label: 'See all', semanticsLabel: 'See all, ${widget.title}', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: widget.onSeeAll),
+            ),
         ],
       ),
     );
