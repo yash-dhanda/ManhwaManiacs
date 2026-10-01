@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
+import 'package:manhwamaniacs/features/onboarding/models/taste.dart';
 import 'package:manhwamaniacs/features/onboarding/providers/onboarding_providers.dart';
 import 'package:manhwamaniacs/features/onboarding/utils/onboarding_steps.dart';
 import 'package:manhwamaniacs/features/onboarding/utils/print_run.dart';
@@ -99,19 +100,18 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _page = PageController();
   final Map<int, FocusNode> _heads = {};
-  late final List<int> _stack;
+  /// The steps on the pager; empty until the profiles have loaded.
+  final List<int> _stack = [];
   bool _printing = false, _busy = false;
   SwipeablePageRoute<dynamic>? _route;
 
   bool get _glass => Flags.glassAvailable;
 
-  @override
-  void initState() {
-    super.initState();
-    final activeId = ref.read(activeProfileProvider)?.id;
-    final saved = ref.read(profilesProvider).valueOrNull?.where((p) => p.id == activeId).firstOrNull?.onboarding;
+  /// The entry step waits for the profiles: a cold boot into `/welcome?step=n` (the return route of a skin restart) resumes at
+  /// the saved step instead of clamping to the Edition pick.
+  void _start(OnboardingStep? saved) {
     final entry = entryStep(widget.requestedStep, resumeStep(saved, _glass), _glass);
-    _stack = [entry];
+    _stack.add(entry);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final flow = ref.read(onboardingFlowProvider.notifier)..enter(entry);
@@ -342,6 +342,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_stack.isEmpty) {
+      final profiles = ref.watch(profilesProvider);
+      if (!profiles.hasValue && !profiles.hasError) return const ColoredBox(color: Color(0xFF000000));
+      final activeId = ref.read(activeProfileProvider)?.id;
+      _start(profiles.valueOrNull?.where((p) => p.id == activeId).firstOrNull?.onboarding);
+    }
     final c = context.cine;
     final online = ref.watch(deviceOnlineProvider).valueOrNull ?? true;
     final grid = CineGrid.of(context);
