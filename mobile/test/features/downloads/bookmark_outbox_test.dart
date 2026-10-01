@@ -357,7 +357,7 @@ void main() {
             sourceId: 'asurascans',
             seriesKey: 'solo-leveling',
             chapterKey: '$i',
-            anchorIndex: 1,
+            anchorIndex: 2,
             anchorTotal: 8,
             createdAt: DateTime.utc(2026, 9, 5),
             updatedAt: DateTime.utc(2026, 9, 5),

@@ -21,7 +21,6 @@ import 'package:manhwamaniacs/features/library/utils/manual_order.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
 import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
 import 'package:manhwamaniacs/features/library/utils/series_unread.dart';
-import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart' show isNovelSource;
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
