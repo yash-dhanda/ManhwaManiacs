@@ -3,7 +3,6 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
-import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/copy/settings_index.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/ai_recaps_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/circle_privacy_section.dart';
@@ -68,7 +67,8 @@ void main() {
     final phone = visibleSettingsSections(platform: TargetPlatform.iOS, admin: false, keyboardSeen: true, wide: false);
     expect([for (final s in phone) s.section.slug], isNot(contains('notifications')));
     expect([for (final s in phone) s.section.slug], isNot(contains('keyboard')));
-    expect(sectionsBuiltLater, contains(SettingsSection.diagnostics));
+    // mobile/40 built the last sections.
+    expect(sectionsBuiltLater, isEmpty);
   });
 
   test('the sharing preview line', () {

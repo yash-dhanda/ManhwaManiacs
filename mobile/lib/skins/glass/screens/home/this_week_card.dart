@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
-import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart' show GlassIconWeight;
 import 'package:manhwamaniacs/skins/glass/primitives/cards/slab.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// The "This week" card (glass 8.8): three figures side by side (minutes, chapters, the streak); the whole card links to Statistics.
@@ -47,7 +46,7 @@ class HomeThisWeekCard extends ConsumerWidget {
                   figure(
                     Row(
                       children: [
-                        GlyphIcon(GlassGlyph.flame, size: 16, color: gt.colorStreak, weight: GlassIconWeight.fill),
+                        StreakFlame(size: 16, days: days, state: days > 0 ? FlameState.litToday : FlameState.none, semanticLabel: false),
                         const SizedBox(width: 4),
                         GlassLabel('$days', role: gt.typeTitle2, color: gt.colorLabel1),
                       ],

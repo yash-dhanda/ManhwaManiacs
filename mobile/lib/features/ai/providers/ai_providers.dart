@@ -66,6 +66,8 @@ class AiFeedback {
     return i.anilistId > 0 ? _send('undo', anilistId: i.anilistId) : _send('undo', sourceId: a?.sourceId, seriesKey: a?.seriesKey);
   }
 
+  /// `signal: clear`: forget every Not interested of this profile.
+  Future<bool> clearAll() => _send('clear');
   /// Settings -> AI and recaps -> Clear "Not interested": `POST /ai/feedback {signal: clear}`.
   Future<bool> clear() => _send('clear');
 

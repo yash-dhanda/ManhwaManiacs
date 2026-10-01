@@ -59,6 +59,7 @@ const Map<String, List<String>> _providersByService = {
     'annualProvider',
     'annualIndexProvider',
     'recommendationsProvider',
+    'worldRecommendationsProvider',
     'genreWeightsProvider',
     'readingHistoryProvider',
     'historyPagesProvider',

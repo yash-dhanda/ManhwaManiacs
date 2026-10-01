@@ -17,6 +17,12 @@ int nearestStep(double pos, double spacing, int steps) => (pos / spacing).round(
   return (pos: pos, magnet: false);
 }
 
+/// A value magnet (glass 7.21): within 30 % of one step's [spacing] of [magnetPos] the thumb is held at it.
+({double pos, bool held}) valueMagnet(double pos, double magnetPos, double spacing) {
+  if ((pos - magnetPos).abs() <= glassTokens.physicsValueMagnetStepFraction * spacing) return (pos: magnetPos, held: true);
+  return (pos: pos, held: false);
+}
+
 /// Past min or max the thumb rubber-bands at most 12 px (`rubberband` with d = the track length).
 double sliderRubber(double overshoot, double trackLength) {
   final r = rubberband(overshoot.abs(), trackLength, glassTokens.physicsRubberBandC);

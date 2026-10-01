@@ -10,9 +10,15 @@ import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
 
 class ReaderRepositoryImpl implements ReaderRepository, ReaderAnalysisReports {
-  const ReaderRepositoryImpl(this._dio);
+  const ReaderRepositoryImpl(this._dio, {this.onAnswer});
 
   final Dio _dio;
+
+  /// Called after a successful `POST /reader/progress` or `/batch` with the server's streak answer (mobile/42: the streak events).
+  final void Function(ProgressAnswer answer)? onAnswer;
+
+  /// The device's UTC offset, so `extended_today` and `today_seconds` fall on the local day (clamped to the API's range).
+  static Map<String, Object?> get _tz => {'tz_offset_minutes': DateTime.now().timeZoneOffset.inMinutes.clamp(-720, 840)};
 
   @override
   Future<Result<ChapterManifest>> manifest({
@@ -60,13 +66,25 @@ class ReaderRepositoryImpl implements ReaderRepository, ReaderAnalysisReports {
     }
   }
 
+  void _answered(Map<String, dynamic> data) {
+    final hook = onAnswer;
+    if (hook == null) return;
+    try {
+      hook(ProgressAnswer.fromJson(data));
+    } catch (_) {
+      // A listener must never fail a save.
+    }
+  }
+
   @override
   Future<Result<ReadingProgress>> saveProgress(ProgressPush push) async {
     try {
       final r = await _dio.post<Map<String, dynamic>>(
         '/reader/progress',
         data: push.toJson(),
+        queryParameters: _tz,
       );
+      _answered(r.data!);
       return Ok(ReadingProgress.fromJson(r.data!));
     } on DioException catch (e) {
       return Err(_err(e));
@@ -83,8 +101,10 @@ class ReaderRepositoryImpl implements ReaderRepository, ReaderAnalysisReports {
       final r = await _dio.post<Map<String, dynamic>>(
         '/reader/progress/batch',
         data: [for (final push in pushes) push.toJson()],
+        queryParameters: _tz,
       );
       final data = r.data!;
+      _answered(data);
       return Ok(
         (
           saved: data['saved'] as int,

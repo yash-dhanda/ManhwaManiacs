@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/features/home/models/home_feed.dart' show RecapAvailability;
+import 'package:manhwamaniacs/features/recap/sse.dart';
 
 export 'package:manhwamaniacs/features/home/models/home_feed.dart' show RecapAvailability;
 
@@ -89,6 +90,12 @@ class RecapNone extends RecapOpen {
 class RecapStream extends RecapOpen {
   const RecapStream(this.events);
   final Stream<RecapEvent> events;
+}
+
+/// A deck recap (`shape=deck`): the raw SSE events (`phase`, `section`, `delta`, `done`, `error`) for `deckReducer`.
+class DeckStream extends RecapOpen {
+  const DeckStream(this.events);
+  final Stream<SseEvent> events;
 }
 
 /// `Chapters 131–142` label of an availability range.

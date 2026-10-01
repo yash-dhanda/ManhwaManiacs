@@ -37,15 +37,21 @@ import 'package:manhwamaniacs/skins/glass/screens/library/library_hub.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/glass_steps.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/onboarding_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/picks/for_you_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/recap/recap_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/catalogue_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/sources_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/stats/statistics_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/status/status_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
 import 'package:manhwamaniacs/skins/glass/screens/updates/updates_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/wrapped/wrapped_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/you/you_screen.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_migration.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
 import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
@@ -60,22 +66,16 @@ import 'package:manhwamaniacs/skins/skins.dart';
 // `readerLanding` is built here: it redirects to the library (glass 8.0.3).
 // ignore: constant_identifier_names
 const Set<ScreenId> PENDING = {
-  ScreenId.picks,
-  ScreenId.numbers,
-  ScreenId.annual,
   ScreenId.featureByFollow,
   ScreenId.feature,
-  ScreenId.recap,
   ScreenId.circle,
   ScreenId.circleMember,
   ScreenId.reader,
   ScreenId.readAll,
   ScreenId.novel,
-  ScreenId.indexHub,
-  ScreenId.status,
 };
 
-/// The Glass development routes (mobile/25), outside the `ScreenId` map. `mobile/40` moves them into Glass Diagnostics.
+/// The Glass development routes (mobile/25), outside the `ScreenId` map. Settings -> Diagnostics links the calibration page (mobile/40).
 const String kGlassDevPath = '/dev/glass';
 const String kGlassCalibrationPath = '/dev/glass/calibration';
 
@@ -301,6 +301,8 @@ GoRouter buildGlassRouter(Ref ref) {
       return state.uri.path == Routes.tonightPattern ? _onboardingRedirect(ref) : null;
     },
     routes: [
+      // Mobile's kept `/settings/storage` (glass 8.0.3, 8.25.9): Downloads -> Storage, before any Settings widget builds.
+      _redirect('/settings/storage', (s) => Routes.downloads({'tab': 'storage'})),
       _devRoute(kGlassDevPath, () => const GlassDevIndex()),
       _devRoute(kGlassCalibrationPath, () => const GlassCalibrationPage()),
       _devRoute(kGlassAuthDemoPath, () => const GlassAuthDevPage()),
@@ -323,7 +325,7 @@ GoRouter buildGlassRouter(Ref ref) {
           branch(GlassTab.home, [
             _screen(ScreenId.tonight, (s) => const GlassHomeScreen()),
             _screen(ScreenId.updates, (s) => GlassUpdatesScreen(initialTab: s.uri.queryParameters['tab'])),
-            _route(ScreenId.picks),
+            _screen(ScreenId.picks, (s) => ForYouScreen(genre: s.uri.queryParameters['genre'])),
           ]),
           branch(GlassTab.library, [
             // The Library hub (mobile/32): one page key for every section path, so a pager settle replaces the location and the
@@ -346,12 +348,12 @@ GoRouter buildGlassRouter(Ref ref) {
               path: kGlassShellDemoPath,
               pageBuilder: (context, state) => glassPage(state, GlassShellDemo(level: int.tryParse(state.uri.queryParameters['level'] ?? '') ?? 0)),
             ),
-            _route(ScreenId.indexHub),
+            _screen(ScreenId.indexHub, (s) => const YouScreen()),
             _screen(ScreenId.settings, (s) => GlassSettingsScreen(row: s.uri.queryParameters['row'])),
             _screen(ScreenId.settings, (s) => GlassSettingsScreen(section: s.pathParameters['section'], row: s.uri.queryParameters['row']), path: Routes.settingsAliases.first),
             _route(ScreenId.circle),
-            _route(ScreenId.numbers),
-            _route(ScreenId.status),
+            _screen(ScreenId.numbers, (s) => GlassStatisticsScreen(range: s.uri.queryParameters['range'], year: s.uri.queryParameters['year'])),
+            _screen(ScreenId.status, (s) => const StatusScreen()),
             _screen(ScreenId.profilesManage, (s) => const GlassProfilesManageScreen()),
           ]),
         ],
@@ -362,7 +364,7 @@ GoRouter buildGlassRouter(Ref ref) {
       _screen(ScreenId.register, (s) => const GlassRegisterScreen(), parent: rootKey, takeover: true),
       _screen(ScreenId.profiles, (s) => const GlassProfilePicker(), parent: rootKey, takeover: true),
       _screen(ScreenId.onboarding, (s) => GlassOnboardingScreen(step: int.tryParse(s.uri.queryParameters['step'] ?? '')), parent: rootKey, takeover: true),
-      _route(ScreenId.annual, parent: rootKey, takeover: true),
+      _screen(ScreenId.annual, (s) => GlassWrappedScreen(yearParam: s.pathParameters['year']), parent: rootKey, takeover: true),
       _route(ScreenId.reader, parent: rootKey, reader: true),
       _route(ScreenId.readAll, parent: rootKey, reader: true),
       _route(ScreenId.novel, parent: rootKey, reader: true),
@@ -379,7 +381,17 @@ GoRouter buildGlassRouter(Ref ref) {
         ),
       ),
       _sheetRoute(ScreenId.feature, rootKey, title: 'Series', form: GlassWideForm.detailWindow),
-      _sheetRoute(ScreenId.recap, rootKey, title: 'Recap'),
+      GoRoute(
+        path: ScreenId.recap.path,
+        name: _nameOf(ScreenId.recap),
+        parentNavigatorKey: rootKey,
+        pageBuilder: (context, state) => glassSheetOrPage(
+          context,
+          state,
+          RecapSheet(sourceId: state.pathParameters['sourceId']!, seriesKey: state.pathParameters['seriesKey']!, to: state.uri.queryParameters['to'], scope: state.uri.queryParameters['scope'] == 'chapter' ? 'chapter' : 'series'),
+          title: 'Recap',
+        ),
+      ),
       _sheetRoute(ScreenId.circleMember, rootKey, title: 'Circle', detents: const [GlassDetent.large]),
       _formSheetRoute(ScreenId.profileNew, rootKey, title: 'Add profile'),
       _formSheetRoute(ScreenId.profileEdit, rootKey, title: 'Edit profile', edit: true),

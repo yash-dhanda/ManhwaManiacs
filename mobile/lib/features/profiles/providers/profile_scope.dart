@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/collections/providers/collection_detail_p
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/shared_collections_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/daily_goal_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/history_pages_provider.dart';
@@ -52,10 +53,14 @@ final List<void Function(Ref ref)> profileScopedInvalidators = [
   (ref) => ref.invalidate(numbersScopeProvider),
   (ref) => ref.invalidate(numbersSnapshotProvider),
   (ref) => ref.invalidate(numbersStatisticsProvider),
+  // The You hub's goal ring (glass 8.24).
+  (ref) => ref.invalidate(activeDailyGoalMinutesProvider),
+  (ref) => ref.invalidate(dailyGoalProvider),
   (ref) => ref.invalidate(annualProvider),
   (ref) => ref.invalidate(annualIndexProvider),
   (ref) => ref.invalidate(statsRangeProvider),
   (ref) => ref.invalidate(recommendationsProvider),
+  (ref) => ref.invalidate(worldRecommendationsProvider),
   (ref) => ref.invalidate(readingHistoryProvider),
   (ref) => ref.invalidate(historyPagesProvider),
   (ref) => ref.invalidate(genreWeightsProvider),

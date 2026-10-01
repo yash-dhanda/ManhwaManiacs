@@ -7,17 +7,9 @@ import 'package:manhwamaniacs/skins/glass/primitives/glyphs_more.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 
-/// Sections `mobile/40` builds: their rows and index entries exist, opening one renders the skin's pending body until `mobile/40`
-/// empties this set (glass 8.25).
-const Set<SettingsSection> sectionsBuiltLater = {
-  SettingsSection.notifications,
-  SettingsSection.security,
-  SettingsSection.members,
-  SettingsSection.backup,
-  SettingsSection.server,
-  SettingsSection.diagnostics,
-  SettingsSection.admin,
-};
+/// Sections still to be built: empty since `mobile/40` built Notifications, Security, Members, Backup, Server, Diagnostics and the
+/// Administration list (glass 8.25). Kept so a future section can land behind the pending body the same way.
+const Set<SettingsSection> sectionsBuiltLater = {};
 
 /// One row of the Settings root (glass 8.24 order).
 class SettingsSectionSpec {
