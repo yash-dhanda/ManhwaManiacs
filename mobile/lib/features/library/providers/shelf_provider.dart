@@ -37,7 +37,7 @@ class ShelfNotifier extends AutoDisposeAsyncNotifier<ShelfResult> {
       perPage: 200,
       sort: q.sort.wire,
       search: q.q.trim().isEmpty ? null : q.q.trim(),
-      readingStatus: q.status.wire,
+      readingStatus: q.effectiveStatus.wire,
       isFavorite: q.fav ? true : null,
       tagIds: q.tagIds.isEmpty ? null : q.tagIds,
       newOnly: q.newOnly ? true : null,

@@ -46,7 +46,8 @@ abstract final class GlassOrientation {
 
   static Future<void> widenForReader() => SystemChrome.setPreferredOrientations(const <DeviceOrientation>[]);
 
-  /// Back to portrait on a phone (tablets were never locked).
-  static Future<void> restoreAfterReader() =>
-      SystemChrome.setPreferredOrientations(_phone ? const [DeviceOrientation.portraitUp] : const <DeviceOrientation>[]);
+  /// Back to portrait on a phone (tablets were never locked). [phone] is the reader's own frame when it knows it (the first view
+  /// otherwise).
+  static Future<void> restoreAfterReader({bool? phone}) =>
+      SystemChrome.setPreferredOrientations((phone ?? _phone) ? const [DeviceOrientation.portraitUp] : const <DeviceOrientation>[]);
 }

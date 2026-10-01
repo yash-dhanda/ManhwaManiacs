@@ -11,6 +11,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.provider.Settings
 import android.view.HapticFeedbackConstants
+import android.view.WindowInsets
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -19,7 +20,8 @@ import io.flutter.plugin.common.MethodChannel
  * The one `mm/platform` channel. Glass's haptics vocabulary (glass §5.1) lives
  * here: `performHapticFeedback` constants behind SDK checks, plus a one-shot
  * vibration for velocity-scaled impacts. mobile/25 adds `a11y.*`,
- * `audio.isMusicActive` and `gestures.setExclusionRects` to this same channel.
+ * `audio.isMusicActive` and `gestures.setExclusionRects` to this same channel; mobile/35 adds
+ * `display.stableInsets`.
  */
 class MmPlatformChannel(messenger: BinaryMessenger, private val activity: Activity) {
     private val channel = MethodChannel(messenger, "mm/platform")
@@ -67,6 +69,33 @@ class MmPlatformChannel(messenger: BinaryMessenger, private val activity: Activi
         activity.window.decorView.systemGestureExclusionRects = out
     }
 
+    /**
+     * The stable system-bar and cutout insets in logical px (glass 15.3 `display.stableInsets`): what the bars
+     * take when shown, even while the reader hides them. API 30+ reads `getInsetsIgnoringVisibility`; API 24-29
+     * the deprecated stable insets, raised per side by the display cutout on API 28-29. Null before the window
+     * is attached.
+     */
+    private fun stableInsets(): Map<String, Double>? {
+        val root = activity.window.decorView.rootWindowInsets ?: return null
+        val d = activity.resources.displayMetrics.density.toDouble()
+        val sides: IntArray = if (Build.VERSION.SDK_INT >= 30) {
+            val i = root.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+            intArrayOf(i.left, i.top, i.right, i.bottom)
+        } else {
+            @Suppress("DEPRECATION")
+            val s = intArrayOf(root.stableInsetLeft, root.stableInsetTop, root.stableInsetRight, root.stableInsetBottom)
+            val c = if (Build.VERSION.SDK_INT >= 28) root.displayCutout else null
+            if (c != null) {
+                s[0] = maxOf(s[0], c.safeInsetLeft)
+                s[1] = maxOf(s[1], c.safeInsetTop)
+                s[2] = maxOf(s[2], c.safeInsetRight)
+                s[3] = maxOf(s[3], c.safeInsetBottom)
+            }
+            s
+        }
+        return mapOf("left" to sides[0] / d, "top" to sides[1] / d, "right" to sides[2] / d, "bottom" to sides[3] / d)
+    }
+
     private fun handle(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "haptics.perform" -> result.success(perform(call.argument<String>("pattern")))
@@ -89,6 +118,7 @@ class MmPlatformChannel(messenger: BinaryMessenger, private val activity: Activi
             "audio.isMusicActive" -> result.success(
                 (activity.getSystemService(Context.AUDIO_SERVICE) as? AudioManager)?.isMusicActive ?: false
             )
+            "display.stableInsets" -> result.success(stableInsets())
             "gestures.setExclusionRects" -> {
                 setExclusionRects(call.argument<List<*>>("rects"))
                 result.success(null)

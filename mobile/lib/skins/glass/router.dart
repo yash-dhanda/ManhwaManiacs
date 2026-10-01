@@ -33,12 +33,16 @@ import 'package:manhwamaniacs/skins/glass/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/setup_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/dialogue/dialogue_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/library/collection_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/library/library_hub.dart';
+import 'package:manhwamaniacs/skins/glass/screens/library/library_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/glass_steps.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/onboarding_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/picks/for_you_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/reader_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/recap/recap_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/detent_from_throw.dart';
 import 'package:manhwamaniacs/skins/glass/screens/series/feature_screen.dart';
@@ -49,6 +53,7 @@ import 'package:manhwamaniacs/skins/glass/screens/stats/statistics_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/status/status_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
+import 'package:manhwamaniacs/skins/glass/screens/updates/updates_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/wrapped/wrapped_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/you/you_screen.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_migration.dart';
@@ -66,18 +71,9 @@ import 'package:manhwamaniacs/skins/skins.dart';
 // `readerLanding` is built here: it redirects to the library (glass 8.0.3).
 // ignore: constant_identifier_names
 const Set<ScreenId> PENDING = {
-  ScreenId.library,
-  ScreenId.updates,
-  ScreenId.collections,
-  ScreenId.collection,
-  ScreenId.history,
-  ScreenId.bookmarks,
   ScreenId.circle,
   ScreenId.circleMember,
-  ScreenId.reader,
-  ScreenId.readAll,
   ScreenId.novel,
-  ScreenId.downloads,
 };
 
 /// The Glass development routes (mobile/25), outside the `ScreenId` map. Settings -> Diagnostics links the calibration page (mobile/40).
@@ -127,16 +123,43 @@ class _DevScaffold extends StatelessWidget {
 
 String _keyOf(GoRouterState state) => (state.pageKey).value;
 
+/// The hub for a section path. `/library?tab=history` names another section: the hub shows it and replaces the location.
+Widget _hub(GoRouterState s, LibrarySection section, {bool browse = false}) {
+  final tab = s.uri.queryParameters['tab'];
+  final alias = section == LibrarySection.shelf ? LibrarySection.values.where((x) => x.name == tab).firstOrNull : null;
+  return GlassLibraryHub(
+    initial: alias ?? section,
+    browseAll: browse,
+    downloadsTab: section == LibrarySection.downloads ? tab : null,
+    aliasReplace: alias != null,
+  );
+}
+
 /// A Glass page (glass 8.0.5): iOS pages are [GlassSwipePage] (full-width back swipe), Android pages [GlassMaterialPage] (the Glass
 /// push and predictive-back card). Readers enter instantly (the Dive carries the entrance) and swipe only from a 20 px edge strip;
 /// takeovers have no transition and no back swipe.
-Page<void> glassPage(GoRouterState state, Widget child, {bool reader = false, bool takeover = false}) {
-  final body = GlassRouteFrame(routeKey: _keyOf(state), sheetHost: (c) => GlassSheetParamHost(child: c), child: child);
-  if (takeover) return NoTransitionPage<void>(key: state.pageKey, child: body);
+Page<void> glassPage(GoRouterState state, Widget child, {bool reader = false, bool takeover = false, LocalKey? pageKey}) {
+  final key = pageKey ?? state.pageKey;
+  final body = GlassRouteFrame(routeKey: (key as ValueKey<String>).value, sheetHost: (c) => GlassSheetParamHost(child: c), child: child);
+  if (takeover) return NoTransitionPage<void>(key: key, child: body);
   if (defaultTargetPlatform == TargetPlatform.android) {
-    return GlassMaterialPage<void>(key: state.pageKey, name: state.name, builder: (_) => body, instantEnter: reader);
+    return GlassMaterialPage<void>(key: key, name: state.name, builder: (_) => body, instantEnter: reader);
   }
-  return GlassSwipePage<void>(key: state.pageKey, name: state.name, builder: (_) => body, edgeOnly: reader ? 20 : null, instantEnter: reader);
+  return GlassSwipePage<void>(key: key, name: state.name, builder: (_) => body, edgeOnly: reader ? 20 : null, instantEnter: reader);
+}
+
+/// The manga readers' constant page key (mobile/35): a chapter switch is a `replace` that keeps the page, its `State` and the engine.
+const ValueKey<String> kGlassReaderPageKey = ValueKey<String>('glass.reader');
+
+/// A reader route (`reader`, its two mobile aliases, `readAll`) on the root navigator under [kGlassReaderPageKey].
+GoRoute _readerRoute(ScreenId id, Widget Function(GoRouterState state) build, {String? path, required GlobalKey<NavigatorState> parent}) {
+  final isPattern = path == null || path == id.path;
+  return GoRoute(
+    path: path ?? id.path,
+    name: isPattern ? _nameOf(id) : null,
+    parentNavigatorKey: parent,
+    pageBuilder: (context, state) => glassPage(state, build(state), reader: true, pageKey: kGlassReaderPageKey),
+  );
 }
 
 /// A sheet route (glass 8.0.3): a sheet when opened with a [GlassNavExtra], else the screen as a full page.
@@ -218,13 +241,13 @@ GoRoute _seriesRoute(ScreenId id, GlobalKey<NavigatorState> root, Widget Functio
     );
 
 /// A finished screen (mobile/30 onwards): the route carries the plain id as its name and builds [build].
-GoRoute _screen(ScreenId id, Widget Function(GoRouterState state) build, {String? path, GlobalKey<NavigatorState>? parent, bool takeover = false, bool reader = false}) {
+GoRoute _screen(ScreenId id, Widget Function(GoRouterState state) build, {String? path, GlobalKey<NavigatorState>? parent, bool takeover = false, bool reader = false, LocalKey? pageKey}) {
   final isPattern = path == null || path == id.path;
   return GoRoute(
     path: path ?? id.path,
     name: isPattern ? _nameOf(id) : null,
     parentNavigatorKey: parent,
-    pageBuilder: (context, state) => glassPage(state, build(state), reader: reader, takeover: takeover),
+    pageBuilder: (context, state) => glassPage(state, build(state), reader: reader, takeover: takeover, pageKey: pageKey),
   );
 }
 
@@ -349,17 +372,19 @@ GoRouter buildGlassRouter(Ref ref) {
         branches: [
           branch(GlassTab.home, [
             _screen(ScreenId.tonight, (s) => const GlassHomeScreen()),
-            _route(ScreenId.updates),
+            _screen(ScreenId.updates, (s) => GlassUpdatesScreen(initialTab: s.uri.queryParameters['tab'])),
             _screen(ScreenId.picks, (s) => ForYouScreen(genre: s.uri.queryParameters['genre'])),
           ]),
           branch(GlassTab.library, [
-            _route(ScreenId.library),
-            _route(ScreenId.library, path: Routes.libraryAliases.first),
-            _route(ScreenId.collections),
-            _route(ScreenId.collection),
-            _route(ScreenId.history),
-            _route(ScreenId.bookmarks),
-            _route(ScreenId.downloads),
+            // The Library hub (mobile/32): one page key for every section path, so a pager settle replaces the location and the
+            // Navigator updates the page in place (Page.canUpdate: no transition, the pager and scroll state kept).
+            _screen(ScreenId.library, (s) => _hub(s, LibrarySection.shelf), pageKey: kGlassLibraryHubKey),
+            _screen(ScreenId.library, (s) => _hub(s, LibrarySection.shelf, browse: true), path: Routes.libraryAliases.first, pageKey: kGlassLibraryHubKey),
+            _screen(ScreenId.collections, (s) => _hub(s, LibrarySection.collections), pageKey: kGlassLibraryHubKey),
+            _screen(ScreenId.collection, (s) => GlassCollectionScreen(id: int.tryParse(s.pathParameters['id'] ?? '') ?? 0)),
+            _screen(ScreenId.history, (s) => _hub(s, LibrarySection.history), pageKey: kGlassLibraryHubKey),
+            _screen(ScreenId.bookmarks, (s) => _hub(s, LibrarySection.bookmarks), pageKey: kGlassLibraryHubKey),
+            _screen(ScreenId.downloads, (s) => _hub(s, LibrarySection.downloads), pageKey: kGlassLibraryHubKey),
           ]),
           branch(GlassTab.sources, [
             _screen(ScreenId.sources, (s) => const GlassSourcesScreen()),
@@ -388,8 +413,11 @@ GoRouter buildGlassRouter(Ref ref) {
       _screen(ScreenId.profiles, (s) => const GlassProfilePicker(), parent: rootKey, takeover: true),
       _screen(ScreenId.onboarding, (s) => GlassOnboardingScreen(step: int.tryParse(s.uri.queryParameters['step'] ?? '')), parent: rootKey, takeover: true),
       _screen(ScreenId.annual, (s) => GlassWrappedScreen(yearParam: s.pathParameters['year']), parent: rootKey, takeover: true),
-      _route(ScreenId.reader, parent: rootKey, reader: true),
-      _route(ScreenId.readAll, parent: rootKey, reader: true),
+      _readerRoute(ScreenId.reader, GlassReaderScreen.of, parent: rootKey),
+      // The mobile aliases are reader routes of their own: `/library/read/...` is the library manifest reader (S15),
+      // `/sources/.../read` the source reader with its own progress (S19).
+      for (final a in Routes.readerAliases) _readerRoute(ScreenId.reader, GlassReaderScreen.of, path: a, parent: rootKey),
+      _readerRoute(ScreenId.readAll, GlassReadAllScreen.of, parent: rootKey),
       GoRoute(
         path: ScreenId.novel.path,
         name: _nameOf(ScreenId.novel),
@@ -443,8 +471,6 @@ GoRouter buildGlassRouter(Ref ref) {
       // Mobile aliases (redirects).
       _redirect(Routes.profileNewAliases.first, (s) => Routes.profileNew()),
       _redirect(Routes.profileEditAliases.first, (s) => Routes.profileEdit(s.pathParameters['id']!)),
-      _redirect(Routes.readerAliases[0], (s) => Routes.reader(s.pathParameters['sourceId']!, s.pathParameters['seriesKey']!, s.pathParameters['chapterKey']!)),
-      _redirect(Routes.readerAliases[1], (s) => Routes.reader(s.pathParameters['sourceId']!, s.pathParameters['seriesKey']!, s.pathParameters['chapterKey']!)),
       _redirect(Routes.novelAliases.first, (s) => Routes.novel(s.pathParameters['sourceId']!, s.pathParameters['seriesKey']!, s.pathParameters['chapterKey']!)),
       _redirect(Routes.dialogueAliases.first, (s) => Routes.dialogue({'q': s.uri.queryParameters['q']})),
       _redirect(Routes.collectionsAliases.first, (s) => Routes.collections()),

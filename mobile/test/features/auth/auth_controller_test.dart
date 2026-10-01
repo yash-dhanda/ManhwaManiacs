@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +15,7 @@ import 'package:manhwamaniacs/features/auth/models/auth_user.dart';
 import 'package:manhwamaniacs/features/auth/models/bootstrap_status.dart';
 import 'package:manhwamaniacs/features/auth/models/user_session.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
+import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
 import 'package:manhwamaniacs/features/auth/repositories/auth_repository.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -165,6 +169,21 @@ class _FakeAuthRepository implements AuthRepository {
   }
 }
 
+/// A keychain read that settles after the first frame's requests are already out.
+class _SlowStorage extends _FakeStorage {
+  @override
+  Future<String?> getAuthToken() => Future.delayed(const Duration(milliseconds: 50), () => token);
+}
+
+class _Always401 implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async =>
+      ResponseBody.fromString('{}', 401, headers: {Headers.contentTypeHeader: [Headers.jsonContentType]});
+
+  @override
+  void close({bool force = false}) {}
+}
+
 ProviderContainer _container(
   _FakeAuthRepository repo,
   _FakeStorage storage, {
@@ -206,6 +225,25 @@ Map<String, Object> _prefsWithCachedUser() => {
 
 void main() {
   group('AuthController restore', () {
+    // 3.5.1 on iOS: the skin boot check fetched /profiles on the first frame, before the restore
+    // had read the keychain; that tokenless request answered 401, the interceptor called it
+    // expiry, and the session was signed out with its stored token deleted.
+    test('a 401 for a request sent before the token was restored keeps the session', () async {
+      final storage = _SlowStorage()..token = 'tok';
+      final (container, _) = await _containerWithPrefs(_FakeAuthRepository(meResult: Ok(_user)), storage);
+      final controller = container.read(authControllerProvider.notifier);
+      final dio = container.read(dioProvider)..httpClientAdapter = _Always401();
+      await expectLater(dio.get<dynamic>('/profiles'), throwsA(isA<DioException>()));
+      await controller.restored;
+      // A request under the restored token is still a real expiry.
+      expect(container.read(authControllerProvider), isA<AuthAuthenticated>());
+      expect(container.read(sessionEndReasonProvider), isNull);
+      expect(storage.token, 'tok');
+      await expectLater(dio.get<dynamic>('/profiles'), throwsA(isA<DioException>()));
+      expect(container.read(authControllerProvider), isA<AuthUnauthenticated>());
+      expect(container.read(sessionEndReasonProvider), SessionEndReason.signedOut);
+    });
+
     test('no stored token resolves to unauthenticated', () async {
       final container = _container(_FakeAuthRepository(), _FakeStorage());
       await container.read(authControllerProvider.notifier).restored;

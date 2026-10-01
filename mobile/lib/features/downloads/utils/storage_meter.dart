@@ -77,3 +77,77 @@ String _bytes(int b) {
   if (b >= 1024 * 1024) return '${mb.toStringAsFixed(mb == mb.roundToDouble() ? 0 : 1)} MB';
   return formatDownloadBytes(b);
 }
+
+/// One of the three segments of the Glass storage capsule.
+enum GlassMeterSegment { profile, other, free }
+
+/// The Glass storage meter (glass 8.22): three segments on one scale, the label and the exact semantics value. Skin-neutral.
+class GlassStorageMeter {
+  const GlassStorageMeter({
+    required this.profileFraction,
+    required this.otherFraction,
+    required this.freeFraction,
+    required this.capMarker,
+    required this.label,
+    required this.semanticsValue,
+    required this.capped,
+  });
+
+  /// Fractions of the scale; they sum to 1 (free is 0 when the cap is reached).
+  final double profileFraction;
+  final double otherFraction;
+  final double freeFraction;
+
+  /// `1.0` (the right end) when a cap is set, else null.
+  final double? capMarker;
+
+  /// `1.2 GB of 10 GB`, or `1.2 GB used · 21 GB free on this phone`.
+  final String label;
+
+  /// `1.2 GB of 10 GB used: this profile 1.2 GB, other app data 3.4 GB, 5.4 GB free` (capped) or the unlimited reading.
+  final String semanticsValue;
+  final bool capped;
+}
+
+/// [profileBytes] is this profile's visible downloads (after the mature filter); [appDownloadBytes] every profile's downloads.
+/// Other profiles' bytes, hidden mature ones included, are one anonymous "other app data" segment. With a cap the scale is the cap;
+/// unlimited, the scale is `profile + other + deviceFree`. Null when `deviceFree` is unknown and no cap is set.
+GlassStorageMeter? glassStorageMeter({
+  required int profileBytes,
+  required int appDownloadBytes,
+  required int? capBytes,
+  required int? deviceFree,
+  String deviceNoun = 'phone',
+}) {
+  final profile = profileBytes < 0 ? 0 : profileBytes;
+  final other = (appDownloadBytes - profile) < 0 ? 0 : appDownloadBytes - profile;
+  final cap = capBytes;
+  if (cap != null && cap > 0) {
+    final free = (cap - profile - other) < 0 ? 0 : cap - profile - other;
+    final scale = (profile + other + free).toDouble();
+    double f(int v) => scale <= 0 ? 0 : v / scale;
+    final used = 'of ${_bytes(cap)}';
+    return GlassStorageMeter(
+      profileFraction: f(profile),
+      otherFraction: f(other),
+      freeFraction: f(free),
+      capMarker: 1.0,
+      label: '${_bytes(profile)} $used',
+      semanticsValue: '${_bytes(profile)} $used used: this profile ${_bytes(profile)}, other app data ${_bytes(other)}, ${_bytes(free)} free',
+      capped: true,
+    );
+  }
+  if (deviceFree == null) return null;
+  final free = deviceFree < 0 ? 0 : deviceFree;
+  final scale = (profile + other + free).toDouble();
+  if (scale <= 0) return null;
+  return GlassStorageMeter(
+    profileFraction: profile / scale,
+    otherFraction: other / scale,
+    freeFraction: free / scale,
+    capMarker: null,
+    label: '${_bytes(profile)} used · ${_bytes(free)} free on this $deviceNoun',
+    semanticsValue: '${_bytes(profile)} used: this profile ${_bytes(profile)}, other app data ${_bytes(other)}, ${_bytes(free)} free on this $deviceNoun',
+    capped: false,
+  );
+}

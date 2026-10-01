@@ -250,7 +250,8 @@ class _TonightFeedState extends ConsumerState<TonightFeed> {
       else
         SliverToBoxAdapter(child: _noCover(context, feed, data)),
       if (layout != null && !wide) SliverToBoxAdapter(child: Padding(padding: hPad.copyWith(top: 16), child: CoverActions(data: data!))),
-      SliverToBoxAdapter(child: Padding(padding: hPad.copyWith(top: gap), child: AlsoInThisIssue(env: env))),
+      // An empty Also row kept its 40 px top on top of the first section's own 40.
+      if (feed.also.length >= 2) SliverToBoxAdapter(child: Padding(padding: hPad.copyWith(top: gap), child: AlsoInThisIssue(env: env))),
       for (final p in plans) SliverToBoxAdapter(child: Padding(padding: hPad.copyWith(top: p == plans.first && feed.also.length < 2 ? gap : 0), child: buildSection(p, env))),
       SliverToBoxAdapter(child: Padding(padding: hPad, child: TonightFooter(feed: feed))),
     ];

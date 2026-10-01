@@ -35,6 +35,8 @@ class QueueSummary {
     required this.waitingCount,
     required this.failedCount,
     required this.pauseReason,
+    this.pacedUntil,
+    this.signedOut = false,
   });
 
   final QueueHeadline headline;
@@ -47,6 +49,19 @@ class QueueSummary {
   final int waitingCount;
   final int failedCount;
   final DownloadQueuePauseReason pauseReason;
+
+  /// End of the 30 s cool-down after the bulk bucket refused a request (null when the queue is not being paced).
+  final DateTime? pacedUntil;
+
+  /// There is owed work but no signed-in profile to download into; clears itself on the next sign-in (glass 8.22).
+  final bool signedOut;
+
+  /// Seconds left of the pacing wait at [now], or null when it is over or never started.
+  int? pacedSecondsLeft(DateTime now) {
+    final u = pacedUntil;
+    if (u == null || !u.isAfter(now)) return null;
+    return (u.difference(now).inMilliseconds / 1000).ceil();
+  }
 }
 
 String chapterLabelOf(SavedChapter c) {
@@ -69,8 +84,9 @@ QueueSummary? summariseQueue(
       .where((c) => c.state == DownloadChapterState.queued || (!running && c.state == DownloadChapterState.downloading))
       .length;
   final failed = unfinished.where((c) => c.state == DownloadChapterState.failed).length;
+  final signedOut = state.pauseReason == DownloadQueuePauseReason.noScope && unfinished.isNotEmpty;
   final paused = state.isPaused && state.pauseReason != DownloadQueuePauseReason.noScope;
-  if (!running && !paused && waiting == 0) return null;
+  if (!running && !paused && waiting == 0 && !signedOut) return null;
   if (paused && unfinished.isEmpty && !running) return null;
 
   final id = state.currentChapter;
@@ -112,5 +128,7 @@ QueueSummary? summariseQueue(
     waitingCount: waiting,
     failedCount: failed,
     pauseReason: state.pauseReason,
+    pacedUntil: state.pacedUntil,
+    signedOut: signedOut,
   );
 }

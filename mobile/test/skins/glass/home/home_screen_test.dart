@@ -428,10 +428,15 @@ void main() {
     await pumpFor(t, 900);
     expect(subs(), 1);
     // Backgrounding.
-    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    // The real order (any live text field holds an AppLifecycleListener, which asserts on a skipped step).
+    for (final s in [AppLifecycleState.inactive, AppLifecycleState.hidden, AppLifecycleState.paused]) {
+      t.binding.handleAppLifecycleStateChanged(s);
+    }
     await pumpFor(t, 300);
     expect(subs(), 0);
-    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    for (final s in [AppLifecycleState.hidden, AppLifecycleState.inactive, AppLifecycleState.resumed]) {
+      t.binding.handleAppLifecycleStateChanged(s);
+    }
     await pumpFor(t, 300);
     expect(subs(), 1);
     // Reduced motion.

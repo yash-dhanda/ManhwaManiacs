@@ -426,7 +426,7 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
           (sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapter.id),
       ],
       child: ReaderContent(
-        key: ValueKey('$sourceId:$seriesKey:${widget.chapterKey}'),
+        key: ValueKey(ref.watch(readerFramesProvider).keepAcrossChapters ? '$sourceId:$seriesKey' : '$sourceId:$seriesKey:${widget.chapterKey}'),
         identity: (sourceId: sourceId, seriesKey: seriesKey, chapterKey: widget.chapterKey, origin: ReaderOrigin.manifest),
         feed: _controller.feed,
         scrollStorageKey: '$sourceId:$seriesKey:${widget.chapterKey}',

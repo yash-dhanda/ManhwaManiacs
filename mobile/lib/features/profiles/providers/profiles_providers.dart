@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
+import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
+import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
@@ -30,7 +32,12 @@ final profilesProvider =
 
 class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
   @override
-  Future<List<Profile>> build() => _fetch();
+  Future<List<Profile>> build() {
+    // Nothing to list before the session is known: the skin boot check listens from the first
+    // frame, and a tokenless `/profiles` there only answered 401. Signing in rebuilds this.
+    if (!ref.watch(authControllerProvider.select((s) => s is AuthAuthenticated))) return Future.value(const []);
+    return _fetch();
+  }
 
   Future<void> refresh() async {
     state = const AsyncLoading();

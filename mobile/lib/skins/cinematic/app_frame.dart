@@ -220,7 +220,12 @@ class _CineAppFrameState extends ConsumerState<CineAppFrame> {
     final fatal = appFatalError.value;
     final splashDone = ref.watch(splashDoneProvider);
 
-    return Builder(
+    // The frame sits above the Navigator, so the toasts, the banner and any route without a
+    // Material of its own (sheets, dialogs) found no DefaultTextStyle and drew Flutter's fallback:
+    // red text on a yellow double underline. Every Text under the frame inherits the skin's face.
+    return DefaultTextStyle(
+      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: context.cine.colorInk100, decoration: TextDecoration.none),
+      child: Builder(
       builder: (context) {
         final path = Uri.parse(cineLocationOf(router)).path;
         final inShell = navInfoFor(path).inShell;
@@ -287,6 +292,7 @@ class _CineAppFrameState extends ConsumerState<CineAppFrame> {
           ],),
         );
       },
+      ),
     );
   }
 }

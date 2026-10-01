@@ -154,7 +154,7 @@ class _CineLetterCardState extends State<CineLetterCard> with SingleTickerProvid
                       ),
                     ],),
                     SizedBox(height: c.space1),
-                    CineRoleText(title, c.typeTitle, maxLines: 2, overflow: TextOverflow.ellipsis, decoration: lit ? TextDecoration.underline : null),
+                    CineRoleText(title, c.typeTitle, maxLines: 2, overflow: TextOverflow.ellipsis),
                     SizedBox(height: c.space1),
                     if (note != null && note!.isNotEmpty) CineRoleText('“$note”', c.typeBodyItalic, color: context.cine.colorInk60, maxLines: 3, overflow: TextOverflow.ellipsis),
                     if (actions.isNotEmpty)
