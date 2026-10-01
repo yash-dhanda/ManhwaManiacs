@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/app_restart.dart';
+import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
@@ -136,5 +137,15 @@ void main() {
     expect(prefs.getString('mm.skin.active'), 'glass');
     expect(prefs.containsKey('mm.skin.from'), isFalse, reason: 'undoable: false');
     expect(builds(), 2, reason: 'AppRestart rebuilt the tree');
+  });
+
+  testWidgets('Undo is an explicit choice: a following Android icon queues the Glass alias', (t) async {
+    final (c, _, _) = await pumpApp(t, prefs: {'mm.skin.from': 'glass', kIconFollowKey: true});
+    await t.tap(find.text('Undo'));
+    for (var i = 0; i < 12; i++) {
+      await t.pump(const Duration(milliseconds: 100));
+    }
+    while (t.takeException() != null) {}
+    expect(c.read(sharedPrefsProvider).getString(kIconPendingKey), kAndroidGlassIconAlias);
   });
 }

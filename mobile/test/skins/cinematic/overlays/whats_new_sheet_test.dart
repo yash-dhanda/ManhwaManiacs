@@ -1,6 +1,7 @@
 // ignore_for_file: directives_ordering
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -210,6 +211,24 @@ void main() {
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
     await expectLater(tester, meetsGuideline(textContrastGuideline));
     h.dispose();
+  });
+
+  testWidgets('the sheet meets the iOS 44 pt tap target guideline', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    final h = tester.ensureSemantics();
+    try {
+      await pumpHost(
+        tester,
+        extra: [appChangelogProvider.overrideWith((ref) async => _entries)],
+        home: (context, ref) => TextButton(onPressed: () => unawaited(showWhatsNewSheet(context, ref)), child: const Text('open')),
+      );
+      await tester.tap(find.text('open'));
+      await settle(tester, ms: 900);
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+    } finally {
+      h.dispose();
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 }
 

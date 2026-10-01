@@ -142,7 +142,7 @@ class _ProfilePickerScreenState extends ConsumerState<ProfilePickerScreen> with 
       );
       if (outcome.kind == PickerOutcomeKind.restartSkin) {
         // Inside the black: mirror + return route '/' through mobile/01's restart path, no confirm.
-        await restartInto(context, ref, skin: SkinId.values.byName(p.skin!), returnRoute: '/');
+        await restartInto(context, ref, skin: skinIdFromName(p.skin) ?? kDefaultSkin, returnRoute: '/');
         restarting = true;
         return;
       }

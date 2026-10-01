@@ -109,25 +109,6 @@ void main() {
     await leaveListen(l);
   });
 
-  testWidgets('the legacy skin plays through the same controller', (tester) async {
-    final l = await pumpListen(tester, legacy: true);
-    await settleNovel(tester);
-    // The bar lives with the chrome.
-    await tester.tapAt(const Offset(195, 400));
-    await settleNovel(tester, ms: 600);
-    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.play_arrow));
-    await l.settle();
-    expect(l.players, hasLength(1));
-    expect(l.state.status, NarrationStatus.playing);
-    expect(find.byIcon(Icons.pause), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.pause));
-    await l.settle();
-    expect(l.state.status, NarrationStatus.paused);
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(seconds: 11));
-  });
-
   group('saved audio on the device', () {
     Future<void> pumpRow(WidgetTester tester, SavedAudioState state, {List<Override> extra = const []}) async {
       final harness = (await tester.runAsync(TestDownloadsHarness.create))!;

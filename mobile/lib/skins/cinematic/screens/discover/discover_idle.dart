@@ -12,6 +12,8 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/duotone.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/genre_sheet.dart';
@@ -76,8 +78,16 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
               spacing: CineSpace.s3,
               children: [
                 for (final r in widget.recent)
-                  QuietButton(r, onPressed: () => widget.onRecent(r)),
-                QuietButton('Clear', onPressed: widget.onClearRecent),
+                  CineButton(
+                    label: r,
+                    onPressed: () => widget.onRecent(r),
+                    variant: CineButtonVariant.quiet,
+                  ),
+                CineButton(
+                  label: 'Clear',
+                  onPressed: widget.onClearRecent,
+                  variant: CineButtonVariant.quiet,
+                ),
               ],
             ),
           ),
@@ -92,7 +102,7 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
               children: [
                 const Kicker('Ask the editors'),
                 const SizedBox(height: CineSpace.s2),
-                TypedText(
+                TypedText.plain(
                   'A murim regressor who comes back stronger',
                   style: cineText(context, t.typePull),
                 ),
@@ -101,9 +111,10 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
                   'Describe it in your own words; the editors pick from everywhere.',
                   style: cineText(context, t.typeDeck, color: t.colorInk60),
                 ),
-                QuietButton(
-                  'Ask',
-                  icon: PhosphorRegular.sparkle,
+                CineButton(
+                  label: 'Ask',
+                  leadingGlyph: PhosphorRegular.sparkle.codePoint,
+                  variant: CineButtonVariant.quiet,
                   // Picks focuses its ask field on ?ask=1 (mobile/19).
                   onPressed: () => context.go('${Routes.picks()}?ask=1'),
                 ),
@@ -131,9 +142,11 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
           if (genres.length > 12)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
-              child: QuietButton(
-                _allGenres ? 'Fewer genres' : 'All ${genres.length} genres',
+              child: CineButton(
+                label:
+                    _allGenres ? 'Fewer genres' : 'All ${genres.length} genres',
                 onPressed: () => setState(() => _allGenres = !_allGenres),
+                variant: CineButtonVariant.quiet,
               ),
             ),
           sectionEnd,
@@ -151,9 +164,11 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
             ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
-            child: QuietButton(
-              'All ${sources.isEmpty ? '' : '${sources.length} '}sources',
+            child: CineButton(
+              label:
+                  'All ${sources.isEmpty ? '' : '${sources.length} '}sources',
               onPressed: () => context.push(Routes.sources()),
+              variant: CineButtonVariant.quiet,
             ),
           ),
           sectionEnd,
@@ -182,9 +197,10 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
                         'Find the chapter by a line someone said.',
                         style: cineText(context, t.typeDeck),
                       ),
-                      QuietButton(
-                        'Search dialogue',
+                      CineButton(
+                        label: 'Search dialogue',
                         onPressed: () => context.push(Routes.dialogue()),
+                        variant: CineButtonVariant.quiet,
                       ),
                     ],
                   ),
@@ -202,10 +218,11 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
               spacing: CineSpace.s4,
               children: [
                 for (final tt in trending)
-                  QuietButton(
-                    tt.title,
+                  CineButton(
+                    label: tt.title,
                     onPressed: () =>
                         context.push(Routes.feature(tt.sourceId, tt.seriesKey)),
+                    variant: CineButtonVariant.quiet,
                   ),
               ],
             ),

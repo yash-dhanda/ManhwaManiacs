@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart' show CineNoticeAction;
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart' show RetryCountdown;
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show TypedText;
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
@@ -43,7 +43,7 @@ class RecapSlate extends StatelessWidget {
         SizedBox(height: c.space4),
         CineRoleText(kicker, c.typeKicker, color: error ? c.colorProof : c.colorInk60),
         SizedBox(height: c.space2),
-        TypedText(headline, style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100)),
+        TypedText.plain(headline, key: ValueKey(headline), style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100)),
         if (retryAfter != null) ...[
           SizedBox(height: c.space3),
           CineRoleText('SLOW DOWN', c.typeKicker, color: c.colorInk60),

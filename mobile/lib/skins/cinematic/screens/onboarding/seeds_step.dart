@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/onboarding/providers/onboarding_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
+import 'package:manhwamaniacs/skins/cinematic/flight.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_poster.dart';
@@ -190,6 +191,7 @@ class _Wall extends ConsumerWidget {
     final cols = _cols(context);
     final ui = ref.watch(printUiProvider);
     final picks = ref.watch(onboardingFlowProvider.select((s) => s.picks));
+    final flight = ref.watch(cineFlightProvider);
     final flow = ref.read(onboardingFlowProvider.notifier);
     return FocusScope(
       node: scope,
@@ -204,9 +206,18 @@ class _Wall extends ConsumerWidget {
           final picked = picks.any((p) => p.anilistId == it.anilistId);
           final insertDelay = inserted[it.anilistId];
           final delay = insertDelay ?? (skipSet ? 0 : (32 * (i % cols) + 64 * (i ~/ cols)).clamp(0, 480));
+          final a = it.available.firstOrNull;
           Widget tile = KeyedSubtree(
             key: flow.posterKey(it.anilistId),
             child: _SeedTile(item: it, picked: picked, index: i, scope: scope, onTap: () => onTap(it)),
+          );
+          // The flight layer paints this poster's copy: the wall hides it in the same frame.
+          tile = Visibility(
+            visible: a == null || !flight.hides('${a.sourceId}:${a.seriesKey}'),
+            maintainSize: true,
+            maintainState: true,
+            maintainAnimation: true,
+            child: tile,
           );
           if (ui.printing) {
             tile = AnimatedOpacity(

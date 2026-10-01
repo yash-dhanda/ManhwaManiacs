@@ -125,7 +125,11 @@ class _WipeLayerState extends State<_WipeLayer> with SingleTickerProviderStateMi
   bool _snapped = false;
 
   double get _total => widget.reduced ? _kReducedWipe.inMilliseconds.toDouble() : wipeTotalMs(_blades).toDouble();
-  double get _landedAt => widget.reduced ? 100 : (wipeCloseMs(_blades) + kWipeHoldMs).toDouble();
+  /// The last blade lands at the end of the close: `reader.enter` fires here.
+  double get _landedAt => widget.reduced ? 100 : wipeCloseMs(_blades).toDouble();
+
+  /// The page stays covered through the hold.
+  double get _coveredUntil => widget.reduced ? 100 : (wipeCloseMs(_blades) + kWipeHoldMs).toDouble();
 
   @override
   void dispose() {
@@ -170,7 +174,7 @@ class _WipeLayerState extends State<_WipeLayer> with SingleTickerProviderStateMi
           builder: (context, child) {
             final ms = widget.animation.value * _total;
             if (ms >= _landedAt) _fireOnce();
-            final covered = ms < _landedAt && !_snapped;
+            final covered = ms < _coveredUntil && !_snapped;
             final fade = _snapped ? 1 - _snap.value : 1.0;
             final overlay = widget.reduced
                 ? ColoredBox(color: Color.fromRGBO(0, 0, 0, (ms < 100 ? ms / 100 : (200 - ms) / 100).clamp(0.0, 1.0) * fade))

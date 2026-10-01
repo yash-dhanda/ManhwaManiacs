@@ -6,9 +6,10 @@ import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_rail.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_section_header.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show DelayedShow, LeaderDial, TypedText;
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/because_rails.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_layout.dart' show pickedAgo;
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -55,9 +56,9 @@ class SimilarRails extends ConsumerWidget {
         CineSectionHeader(headingId: 'similar-$seriesKey', heading: heading),
         SizedBox(height: c.space3),
         Row(children: [
-          Expanded(child: TypedText(kAiThinkingSimilar, style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100))),
+          Expanded(child: TypedText.plain(kAiThinkingSimilar, style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100))),
           SizedBox(width: c.space3),
-          const DelayedShow(child: LeaderDial(size: 24)),
+          const CineLeaderDial(size: 24, showAfter: Duration(seconds: 1)),
         ],),
       ],),
       error: (_, __) => const SizedBox.shrink(),

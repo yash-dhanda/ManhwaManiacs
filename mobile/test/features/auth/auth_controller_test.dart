@@ -180,6 +180,26 @@ class _SlowStorage extends _FakeStorage {
   }
 }
 
+/// A keychain whose first [hangs] reads never answer (a stuck platform channel); later reads do.
+class _StuckStorage extends _FakeStorage {
+  _StuckStorage(this.hangs);
+  int hangs;
+  int reads = 0;
+  final stuck = <Completer<String?>>[];
+
+  @override
+  Future<String?> getAuthToken() {
+    reads++;
+    if (hangs > 0) {
+      hangs--;
+      final c = Completer<String?>();
+      stuck.add(c);
+      return c.future;
+    }
+    return Future.value(token);
+  }
+}
+
 /// Answers 401, but only once [hold] (when set) completes.
 class _Always401 implements HttpClientAdapter {
   Future<void>? hold;
@@ -260,6 +280,50 @@ void main() {
       await expectLater(dio.get<dynamic>('/profiles'), throwsA(isA<DioException>()));
       expect(container.read(authControllerProvider), isA<AuthUnauthenticated>());
       expect(container.read(sessionEndReasonProvider), SessionEndReason.signedOut);
+    });
+
+    group('a keychain read that never answers', () {
+      const quick = Duration(milliseconds: 20);
+
+      test('is asked again and the session restores, the token untouched', () async {
+        final storage = _StuckStorage(1)..token = 'tok';
+        final container = _container(
+          _FakeAuthRepository(meResult: Ok(_user)),
+          storage,
+          extra: [authTokenReadTimeoutProvider.overrideWithValue(quick)],
+        );
+        await container.read(authControllerProvider.notifier).restored;
+        expect(storage.reads, 2);
+        expect(container.read(authControllerProvider), isA<AuthAuthenticated>());
+        expect(storage.token, 'tok');
+      });
+
+      test('keeps the session unknown while it hangs, never signs out', () async {
+        final storage = _StuckStorage(1 << 20)..token = 'tok';
+        final container = _container(
+          _FakeAuthRepository(meResult: Ok(_user)),
+          storage,
+          extra: [authTokenReadTimeoutProvider.overrideWithValue(quick)],
+        );
+        final controller = container.read(authControllerProvider.notifier);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        expect(storage.reads, greaterThan(1));
+        expect(container.read(authControllerProvider), isA<AuthUnknown>());
+        expect(storage.token, 'tok');
+        // A late answer from the first read still wins.
+        storage.stuck.first.complete('tok');
+        await controller.restored;
+        expect(container.read(authControllerProvider), isA<AuthAuthenticated>());
+      });
+
+      test('without a timeout (every test binding) it simply waits', () async {
+        final storage = _StuckStorage(1)..token = 'tok';
+        final container = _container(_FakeAuthRepository(meResult: Ok(_user)), storage);
+        container.read(authControllerProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(storage.reads, 1);
+        expect(container.read(authControllerProvider), isA<AuthUnknown>());
+      });
     });
 
     test('no stored token resolves to unauthenticated', () async {

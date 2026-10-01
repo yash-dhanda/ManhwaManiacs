@@ -12,7 +12,11 @@ import 'package:manhwamaniacs/features/sources/utils/browse_freshness.dart';
 import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/book_list_row.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_poster.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/opening_state.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/top_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
@@ -150,39 +154,42 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     Widget content;
     if (code == 'source_not_found' ||
         (sources != null && source == null && err != null)) {
-      content = CineNotice(
-        kicker: 'NOT IN THIS ISSUE',
-        headline: "This source isn't available here any more.",
-        deck: 'It may have been removed from its source.',
-        actions: [
-          QuietButton(
+      content = _notice(
+        CineNotice(
+          tone: CineNoticeTone.empty,
+          kicker: 'NOT IN THIS ISSUE',
+          headline: "This source isn't available here any more.",
+          deck: 'It may have been removed from its source.',
+          primary: CineNoticeAction(
             'Back to Tonight',
-            onPressed: () => context.go(Routes.tonight()),
+            () => context.go(Routes.tonight()),
           ),
-          QuietButton(
+          quiet: CineNoticeAction(
             'Search for it',
-            onPressed: () => context.go(Routes.discover()),
+            () => context.go(Routes.discover()),
           ),
-        ],
+        ),
       );
     } else if (!browsable && !searching) {
-      content = CineNotice(
-        kicker: 'NOTE',
-        headline: 'This source can only be searched, not browsed.',
-        actions: [
-          QuietButton('Search it', onPressed: _searchFocus.requestFocus),
-        ],
+      content = _notice(
+        CineNotice(
+          tone: CineNoticeTone.caution,
+          headline: 'This source can only be searched, not browsed.',
+          quiet: CineNoticeAction('Search it', _searchFocus.requestFocus),
+        ),
       );
     } else if (browse.isLoading && state == null) {
       content = OpeningState(sourceId: id, deck: deck);
     } else if (err != null && state == null) {
       content = _error(context, err, code);
     } else if (state != null && state.items.isEmpty) {
-      content = CineNotice(
-        kicker: 'NOTE',
-        headline: searching
-            ? 'No results for "${query.search}" on this source.'
-            : 'No series found.',
+      content = _notice(
+        CineNotice(
+          tone: CineNoticeTone.caution,
+          headline: searching
+              ? 'No results for "${query.search}" on this source.'
+              : 'No series found.',
+        ),
       );
     } else {
       final cols = tablet ? 5 : 3;
@@ -261,7 +268,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                 children: [
                   Kicker('Loading more'),
                   SizedBox(width: 8),
-                  LeaderDial(),
+                  CineLeaderDial(size: 16),
                 ],
               ),
             )
@@ -273,8 +280,9 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                   "Couldn't load more.",
                   style: cineText(context, t.typeCaption, color: t.colorInk60),
                 ),
-                QuietButton(
-                  'Retry',
+                CineButton(
+                  label: 'Retry',
+                  variant: CineButtonVariant.quiet,
                   onPressed: () => unawaited(
                     ref.read(sourceBrowseProvider(id).notifier).loadMore(),
                   ),
@@ -476,11 +484,13 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                               browse.isLoading && state != null
                                   ? const Padding(
                                       padding: EdgeInsets.all(16),
-                                      child: LeaderDial(),
+                                      child: CineLeaderDial(size: 16),
                                     )
-                                  : QuietButton(
-                                      'Refresh',
-                                      icon: PhosphorRegular.arrowClockwise,
+                                  : CineButton(
+                                      label: 'Refresh',
+                                      variant: CineButtonVariant.quiet,
+                                      leadingGlyph: PhosphorRegular
+                                          .arrowClockwise.codePoint,
                                       onPressed: _refresh,
                                     ),
                             ],
@@ -512,19 +522,27 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                       ),
                     ),
                     if (browsable && !searching && modes.isNotEmpty)
-                      SlugTabs(
-                        folios: false,
-                        labels: [for (final m in modes) m.label],
-                        selected: modeIndex < 0 ? 0 : modeIndex,
-                        onSelected: (i) {
-                          unawaited(
-                            ref
-                                .read(skinHapticsProvider)
-                                .fire(HapticEvent.select),
-                          );
-                          _setQuery((q) => q.copyWith(sort: modes[i].id));
-                          _url(mode: modes[i].id);
-                        },
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: CineSpace.s4,
+                        ),
+                        child: CineSlugLines(
+                          items: [
+                            for (var i = 0; i < modes.length; i++)
+                              CineSlug('$i', modes[i].label),
+                          ],
+                          selected: {'${modeIndex < 0 ? 0 : modeIndex}'},
+                          onChanged: (id) {
+                            final i = int.parse(id);
+                            unawaited(
+                              ref
+                                  .read(skinHapticsProvider)
+                                  .fire(HapticEvent.select),
+                            );
+                            _setQuery((q) => q.copyWith(sort: modes[i].id));
+                            _url(mode: modes[i].id);
+                          },
+                        ),
                       ),
                     if (browsable && genres.isNotEmpty)
                       Align(
@@ -533,10 +551,11 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                           padding: const EdgeInsets.symmetric(
                             horizontal: CineSpace.s4,
                           ),
-                          child: QuietButton(
-                            query.genre == null
+                          child: CineButton(
+                            label: query.genre == null
                                 ? 'Genre'
                                 : 'Genre: ${query.genre}',
+                            variant: CineButtonVariant.quiet,
                             onPressed: () async {
                               final g = await showCineSheet<String>(
                                 context,
@@ -609,21 +628,32 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
 
   Widget _error(BuildContext context, Object err, String? code) {
     if (err is NetworkError || err is TimeoutError) {
-      return CineNotice(
-        kicker: 'OFFLINE EDITION',
-        headline: "Couldn't reach this source.",
-        deck: 'Saved chapters still open.',
-        actions: [QuietButton('Try again', onPressed: _refresh)],
+      return _notice(
+        CineNotice(
+          tone: CineNoticeTone.offline,
+          headline: "Couldn't reach this source.",
+          deck: 'Saved chapters still open.',
+          primary: CineNoticeAction('Try again', _refresh),
+        ),
       );
     }
-    return CineNotice(
-      kicker: 'CORRECTION',
-      kickerColor: context.cine.colorProof,
-      headline: "Couldn't load the catalogue.",
-      deck: err is AppError ? err.userMessage : null,
-      actions: [QuietButton('Try again', onPressed: _refresh)],
+    return _notice(
+      CineNotice(
+        tone: CineNoticeTone.error,
+        headline: "Couldn't load the catalogue.",
+        deck: err is AppError ? err.userMessage : null,
+        primary: CineNoticeAction('Try again', _refresh),
+      ),
     );
   }
+
+  Widget _notice(Widget n) => Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: CineSpace.s4,
+          vertical: CineSpace.s6,
+        ),
+        child: n,
+      );
 
   String _n(int n) {
     final s = n.toString();

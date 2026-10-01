@@ -8,6 +8,10 @@ import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/for_you_grid.dart';
@@ -117,17 +121,26 @@ class _GenreGridScreenState extends ConsumerState<GenreGridScreen> {
                 style: cineText(context, t.typeCaption, color: t.colorProof),
               ),
             ),
-            QuietButton('Retry', onPressed: _load),
+            CineButton(
+              label: 'Retry',
+              onPressed: _load,
+              variant: CineButtonVariant.quiet,
+            ),
           ],
         );
       }
       if (_error != null) {
-        return CineNotice(
-          kicker: 'Correction',
-          kickerColor: t.colorProof,
-          headline: "This genre didn't load.",
-          deck: _error!.userMessage,
-          actions: [QuietButton('Retry', onPressed: _load)],
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: CineSpace.s4,
+            vertical: CineSpace.s6,
+          ),
+          child: CineNotice(
+            tone: CineNoticeTone.error,
+            headline: "This genre didn't load.",
+            deck: _error!.userMessage,
+            primary: CineNoticeAction('Retry', _load),
+          ),
         );
       }
       if (_loading && items.isEmpty) {
@@ -136,23 +149,39 @@ class _GenreGridScreenState extends ConsumerState<GenreGridScreen> {
           child: Column(
             children: [
               for (var i = 0; i < 3; i++) ...[
-                const FlickerPlate(height: 156),
+                const ExcludeSemantics(
+                  child: SizedBox(
+                    height: 156,
+                    child: CinePlate(flicker: true),
+                  ),
+                ),
                 const SizedBox(height: CineSpace.s3),
               ],
             ],
           ),
         );
       }
-      if (_loading) return const Center(child: LeaderDial(size: 24));
+      if (_loading) return const Center(child: CineLeaderDial(size: 24));
       if (_cursor == null) {
         return items.isEmpty
-            ? const CineNotice(
-                kicker: 'Nothing found',
-                headline: 'Nothing more in this genre.',
+            ? const Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: CineSpace.s4,
+                  vertical: CineSpace.s6,
+                ),
+                child: CineNotice(
+                  tone: CineNoticeTone.empty,
+                  kicker: 'NOTHING FOUND',
+                  headline: 'Nothing more in this genre.',
+                ),
               )
             : const Kicker('End of the list');
       }
-      return QuietButton('Load more', onPressed: _load);
+      return CineButton(
+        label: 'Load more',
+        onPressed: _load,
+        variant: CineButtonVariant.quiet,
+      );
     }
 
     return Scaffold(
@@ -205,10 +234,11 @@ class _GenreGridScreenState extends ConsumerState<GenreGridScreen> {
                         ),
                       ),
                       if (widget.onSources != null)
-                        QuietButton(
-                          'On your sources',
+                        CineButton(
+                          label: 'On your sources',
                           onPressed: () =>
                               unawaited(widget.onSources!(context, ref)),
+                          variant: CineButtonVariant.quiet,
                         ),
                     ],
                   ),

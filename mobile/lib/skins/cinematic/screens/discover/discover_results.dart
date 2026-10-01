@@ -14,6 +14,11 @@ import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.da
 import 'package:manhwamaniacs/features/sources/utils/discover_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/group_jump_sheet.dart';
@@ -120,7 +125,13 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
           for (var g = 0; g < 3; g++) ...[
             const Padding(
               padding: EdgeInsets.all(CineSpace.s4),
-              child: FlickerPlate(height: 24, width: 160),
+              child: ExcludeSemantics(
+                child: SizedBox(
+                  width: 160,
+                  height: 24,
+                  child: CinePlate(flicker: true),
+                ),
+              ),
             ),
             SizedBox(
               height: 200,
@@ -131,7 +142,13 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
                   for (var i = 0; i < 4; i++)
                     const Padding(
                       padding: EdgeInsets.only(right: 8),
-                      child: FlickerPlate(width: 110, height: 180),
+                      child: ExcludeSemantics(
+                        child: SizedBox(
+                          width: 110,
+                          height: 180,
+                          child: CinePlate(flicker: true),
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -170,13 +187,18 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
       final ai =
           ref.watch(suggestAvailabilityProvider).valueOrNull?.available ??
               false;
-      return CineNotice(
-        kicker: 'NOTHING FOUND',
-        headline:
-            'No series match "${widget.query}" in your library or sources.',
-        actions: [
-          if (ai) QuietButton('Ask the editors', onPressed: widget.onAsk),
-        ],
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: CineSpace.s4,
+          vertical: CineSpace.s6,
+        ),
+        child: CineNotice(
+          tone: CineNoticeTone.empty,
+          kicker: 'NOTHING FOUND',
+          headline:
+              'No series match "${widget.query}" in your library or sources.',
+          quiet: ai ? CineNoticeAction('Ask the editors', widget.onAsk) : null,
+        ),
       );
     }
 
@@ -187,7 +209,7 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
         if (tier2)
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: CineSpace.s4),
-            child: IndeterminateRule(),
+            child: CineIndeterminateRule(),
           ),
         if (failed > 0)
           Padding(
@@ -210,27 +232,34 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
               ),
             ),
           ),
-        SlugTabs(
-          labels: _filterLabels,
-          folios: false,
-          selected: filter.index == 0
-              ? 0
-              : (filter == SearchGroupFilter.hasResults ? 1 : 2),
-          onSelected: (i) {
-            ref.read(searchGroupFilterProvider.notifier).state = switch (i) {
-              1 => SearchGroupFilter.hasResults,
-              2 => SearchGroupFilter.pinned,
-              _ => SearchGroupFilter.all,
-            };
-            ref.read(skinHapticsProvider).fire(HapticEvent.select);
-          },
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
+          child: CineSlugLines(
+            items: [
+              for (var i = 0; i < _filterLabels.length; i++)
+                CineSlug('$i', _filterLabels[i]),
+            ],
+            selected: {
+              '${filter.index == 0 ? 0 : (filter == SearchGroupFilter.hasResults ? 1 : 2)}',
+            },
+            onChanged: (id) {
+              ref.read(searchGroupFilterProvider.notifier).state =
+                  switch (int.parse(id)) {
+                1 => SearchGroupFilter.hasResults,
+                2 => SearchGroupFilter.pinned,
+                _ => SearchGroupFilter.all,
+              };
+              ref.read(skinHapticsProvider).fire(HapticEvent.select);
+            },
+          ),
         ),
         Align(
           alignment: Alignment.centerLeft,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
-            child: QuietButton(
-              'Jump to source',
+            child: CineButton(
+              label: 'Jump to source',
+              variant: CineButtonVariant.quiet,
               onPressed: withResults.isEmpty
                   ? null
                   : () async {
@@ -255,11 +284,12 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
             alignment: Alignment.centerLeft,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
-              child: QuietButton(
-                _showEmpty
+              child: CineButton(
+                label: _showEmpty
                     ? 'Hide ${empty.length} sources with no matches'
                     : 'Show ${empty.length} sources with no matches',
                 onPressed: () => setState(() => _showEmpty = !_showEmpty),
+                variant: CineButtonVariant.quiet,
               ),
             ),
           ),
@@ -286,11 +316,18 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
     final items = page?.items ?? const <OcrSearchResult>[];
     if (items.isEmpty) {
       return widget.scope == DiscoverScope.dialogue
-          ? CineNotice(
-              kicker: 'NOTHING FOUND',
-              headline: 'Nothing found for "${widget.query}".',
-              deck:
-                  'Only chapters whose dialogue was scanned, in series you follow, can be searched.',
+          ? Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: CineSpace.s4,
+                vertical: CineSpace.s6,
+              ),
+              child: CineNotice(
+                tone: CineNoticeTone.empty,
+                kicker: 'NOTHING FOUND',
+                headline: 'Nothing found for "${widget.query}".',
+                deck:
+                    'Only chapters whose dialogue was scanned, in series you follow, can be searched.',
+              ),
             )
           : const SizedBox.shrink();
     }
@@ -303,48 +340,56 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
           child: Text('IN DIALOGUE', style: cineText(context, t.typeTitle)),
         ),
         for (final r in items.take(limit)) _dialogueRow(context, r),
-        QuietButton(
-          'See all',
+        CineButton(
+          label: 'See all',
           onPressed: () => context.push(Routes.dialogue({'q': widget.query})),
+          variant: CineButtonVariant.quiet,
         ),
       ],
     );
   }
 
   Widget _failure(BuildContext context, Object error, VoidCallback retry) {
+    const pad = EdgeInsets.symmetric(
+      horizontal: CineSpace.s4,
+      vertical: CineSpace.s6,
+    );
     if (error is NetworkError || error is TimeoutError) {
-      return CineNotice(
-        kicker: 'OFFLINE EDITION',
-        headline:
-            'Search needs a connection to reach your library and sources.',
-        deck: 'Saved chapters still open.',
-        actions: [
-          QuietButton('Go to Downloads',
-              onPressed: () => context.go(Routes.downloads()),),
-        ],
+      return Padding(
+        padding: pad,
+        child: CineNotice(
+          tone: CineNoticeTone.offline,
+          headline:
+              'Search needs a connection to reach your library and sources.',
+          deck: 'Saved chapters still open.',
+          quiet: CineNoticeAction(
+            'Go to Downloads',
+            () => context.go(Routes.downloads()),
+          ),
+        ),
       );
     }
     if (error is ApiError && error.code == 'rate_limited') {
       final after = retryAfterSeconds(error);
-      return CineNotice(
-        kicker: 'SLOW DOWN',
-        headline: 'Too many searches at once.',
-        folio: RetryCountdown(
-          seconds: after ?? 12,
-          style: cineText(context, context.cine.typeFolio,
-              color: context.cine.colorSpot,),
-          onZero: retry,
+      return Padding(
+        padding: pad,
+        child: CineNotice(
+          tone: CineNoticeTone.rateLimit,
+          headline: 'Too many searches at once.',
+          retryAfter: Duration(seconds: after ?? 12),
+          onRetry: retry,
+          primary: CineNoticeAction('Try again', retry),
         ),
-        kickerColor: context.cine.colorSpot,
-        actions: [QuietButton('Try again', onPressed: retry)],
       );
     }
-    return CineNotice(
-      kicker: 'CORRECTION',
-      headline: "Search didn't finish.",
-      deck: error is AppError ? error.userMessage : null,
-      kickerColor: context.cine.colorProof,
-      actions: [QuietButton('Try again', onPressed: retry)],
+    return Padding(
+      padding: pad,
+      child: CineNotice(
+        tone: CineNoticeTone.error,
+        headline: "Search didn't finish.",
+        deck: error is AppError ? error.userMessage : null,
+        primary: CineNoticeAction('Try again', retry),
+      ),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
@@ -339,6 +340,7 @@ class _FakeLibraryRepository implements LibraryRepository {
   Future<Result<WorldSuggestResponse>> worldSuggest(
     String prompt, {
     int limit = 12,
+    CancelToken? cancelToken,
   }) async =>
       const Ok(WorldSuggestResponse());
 

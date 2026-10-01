@@ -23,8 +23,7 @@ SkinId? resolveBootRestart({
 }) {
   if (!profileKnown) return null; // step 5: keep the mirror
   if (queuedOutboxSkin != null) return null; // S12: the outbox flushes first
-  var desired = skinIdFromName(profileSkin) ?? defaultSkin;
-  if (desired == SkinId.legacy) desired = defaultSkin; // v1: legacy is retired
+  var desired = skinIdFromName(profileSkin) ?? defaultSkin; // a retired `legacy` parses to null
   if (desired == SkinId.glass && !glassAvailable) desired = SkinId.cinematic;
   return desired == running ? null : desired;
 }

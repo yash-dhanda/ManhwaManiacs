@@ -79,7 +79,6 @@ void mobile14Shots() {
     List<String>? paragraphs,
     bool attribution = false,
     String chapterKey = '1',
-    bool legacy = false,
   }) async {
     final rig = await pumpNovel(
       tester,
@@ -98,7 +97,6 @@ void mobile14Shots() {
       attribution: attribution ? fixtureAttribution() : null,
       series: issue ? withAmbient() : (completed ? withStatus('Completed') : null),
       boundaryKey: kSkinShotKey,
-      legacy: legacy,
     );
     await settleNovel(tester, ms: 800);
     if (settings.isNotEmpty) await rig.settings(settings);
@@ -212,6 +210,5 @@ void mobile14Shots() {
     await show(tester, 'novel-saved-copy', cacheStale: true, offline: true, chrome: true);
     await show(tester, 'novel-rating-card', act: (t, r) => settleNovel(t, ms: 600));
     await show(tester, 'novel-reduced-motion', reduced: true, chrome: true);
-    await show(tester, 'novel-legacy', legacy: true);
   });
 }

@@ -173,11 +173,13 @@ class LibraryRepositoryImpl implements LibraryRepository {
   Future<Result<WorldSuggestResponse>> worldSuggest(
     String prompt, {
     int limit = 12,
+    CancelToken? cancelToken,
   }) =>
       _request(
         () => _dio.post<Map<String, dynamic>>(
           '/library/world/suggest',
           data: {'prompt': prompt, 'limit': limit},
+          cancelToken: cancelToken,
           // The server's own model timeout is 180s (suggestion_service.
           // TIMEOUT_SECONDS — deepseek-flash bills its reasoning as output
           // tokens before any visible answer, so this is a genuinely slow

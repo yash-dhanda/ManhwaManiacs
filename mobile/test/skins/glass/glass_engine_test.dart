@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
 import 'package:manhwamaniacs/skins/glass/glass/liquid.dart';
 import 'package:manhwamaniacs/skins/glass/glass_skin.dart';
-import 'package:manhwamaniacs/skins/legacy/legacy_skin.dart';
 
 void main() {
   late int calls;
@@ -14,9 +13,8 @@ void main() {
     liquidGlassInitializer = () async => calls++;
   });
 
-  test('cinematic and legacy boots never initialise the liquid shaders', () async {
+  test('a cinematic boot never initialises the liquid shaders', () async {
     await const CinematicSkin().prepare();
-    await const LegacySkin().prepare();
     expect(calls, 0);
   });
 

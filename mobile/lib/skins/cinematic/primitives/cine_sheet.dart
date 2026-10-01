@@ -31,6 +31,7 @@ class CineSheet extends StatefulWidget {
     required this.title,
     required this.child,
     this.livePreview = false,
+    this.detents,
     this.state = CineSheetState.ready,
     this.errorHeadline = 'This didn’t load.',
     this.errorDeck,
@@ -48,6 +49,12 @@ class CineSheet extends StatefulWidget {
 
   /// `[0.5, 0.92]` detents so the page stays visible above (reader settings and the like).
   final bool livePreview;
+
+  /// The [livePreview] detents as screen-height fractions, ascending; null keeps `[0.5, 0.92]`.
+  /// The sheet opens at the first (the last under a full-detent reflow).
+  final List<double>? detents;
+
+  List<double> get liveDetents => detents ?? const [0.5, 0.92];
   final CineSheetState state;
   final String errorHeadline;
   final String? errorDeck;
@@ -74,9 +81,9 @@ class _CineSheetState extends State<CineSheet> with SingleTickerProviderStateMix
     super.didChangeDependencies();
     if (_placed) return;
     _placed = true;
-    if (widget.livePreview && !CineReflow.of(context).fullDetent) {
-      final h = MediaQuery.sizeOf(context).height;
-      _raw = h * 0.92 - h * 0.5;
+    if (widget.livePreview) {
+      final h = MediaQuery.sizeOf(context).height, d = widget.liveDetents;
+      _raw = h * 0.92 - h * (CineReflow.of(context).fullDetent ? d.last : d.first);
       _dy.value = _raw;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -118,7 +125,7 @@ class _CineSheetState extends State<CineSheet> with SingleTickerProviderStateMix
       _close();
       return;
     }
-    final detents = widget.livePreview ? [screen * 0.5, h] : [h];
+    final detents = widget.livePreview ? [for (final f in widget.liveDetents) f == 0.92 ? h : screen * f] : [h];
     final target = h - nearestDetent(visible, detents);
     _raw = target;
     if (widget.reduced || CineMotion.reduced(context)) {

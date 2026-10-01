@@ -20,8 +20,8 @@ import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/dialogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/subtitled_still.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_screen.dart';
@@ -192,12 +192,12 @@ void main() {
       expect(sources.tiers, [1, 2]);
       expect(find.text('2 results so far · searching 5 more sources…'),
           findsOneWidget,);
-      expect(find.byType(IndeterminateRule), findsOneWidget);
+      expect(find.byType(CineIndeterminateRule), findsOneWidget);
       expect(find.text('ASURA'), findsOneWidget);
       sources.tier2.complete(Ok(GroupedSearchResult(
           groups: [_group('mangadex', 3)], tier: 2, sourcesFailed: 1,),),);
       await settle(tester, 500);
-      expect(find.byType(IndeterminateRule), findsNothing);
+      expect(find.byType(CineIndeterminateRule), findsNothing);
       expect(find.text('5 results · 2 sources'), findsOneWidget);
       expect(find.text('MANGADEX'), findsOneWidget);
       expect(find.textContaining("1 source didn't answer."), findsOneWidget);
@@ -213,9 +213,14 @@ void main() {
       await settle(tester, 800);
       final c = ProviderScope.containerOf(
           tester.element(find.byType(DiscoverScreen)),);
+      // The slug line scrolls on a phone: PINNED starts past the gutter.
+      await tester.ensureVisible(find.text('PINNED'));
+      await tester.pump();
       await tester.tap(find.text('PINNED'));
       await tester.pump();
       expect(c.read(searchGroupFilterProvider), SearchGroupFilter.pinned);
+      await tester.ensureVisible(find.text('WITH RESULTS'));
+      await tester.pump();
       await tester.tap(find.text('WITH RESULTS'));
       await tester.pump();
       expect(c.read(searchGroupFilterProvider), SearchGroupFilter.hasResults);
@@ -427,9 +432,9 @@ void main() {
       await pumpScreen(tester, const CatalogueScreen(sourceId: 'asura'),
           sources: _Never(),);
       await tester.pump(const Duration(milliseconds: 200));
-      expect(find.byType(LeaderDial), findsNothing);
+      expect(find.byType(CineLeaderDial), findsNothing);
       await tester.pump(const Duration(milliseconds: 300));
-      expect(find.byType(LeaderDial), findsWidgets);
+      expect(find.byType(CineLeaderDial), findsWidgets);
       await tester.pump(const Duration(seconds: 3));
       expect(find.text('This source can take about 10 s.'), findsOneWidget);
     });

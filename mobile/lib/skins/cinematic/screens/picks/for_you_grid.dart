@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show DelayedShow, FlickerPlate;
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show DelayedShow;
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/world_card_tile.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -21,7 +22,7 @@ class ForYouGrid extends StatelessWidget {
       final gap = c.space3;
       final w = (box.maxWidth - gap * (cols - 1)) / cols;
       final children = loading
-          ? [for (var i = 0; i < 6; i++) FlickerPlate(width: w, height: 156)]
+          ? [for (var i = 0; i < 6; i++) ExcludeSemantics(child: SizedBox(width: w, height: 156, child: const CinePlate(flicker: true)))]
           : [for (var i = 0; i < items.length; i++) WorldCardTile(key: ValueKey('fy-${items[i].title}-${items[i].anilistId}'), item: items[i])];
       final grid = Wrap(spacing: gap, runSpacing: gap, children: [for (final ch in children) SizedBox(width: w, child: ch)]);
       return loading ? DelayedShow(delay: const Duration(milliseconds: 120), child: grid) : grid;

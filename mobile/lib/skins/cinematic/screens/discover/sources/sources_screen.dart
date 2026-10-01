@@ -12,6 +12,9 @@ import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -251,7 +254,12 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
               const Padding(
                 padding:
                     EdgeInsets.symmetric(horizontal: CineSpace.s4, vertical: 8),
-                child: FlickerPlate(height: 48),
+                child: ExcludeSemantics(
+                  child: SizedBox(
+                    height: 48,
+                    child: CinePlate(flicker: true),
+                  ),
+                ),
               ),
           ],
         ),
@@ -264,18 +272,21 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
       return scaffold(
         ListView(
           children: [
-            CineNotice(
-              kicker: offline ? 'OFFLINE EDITION' : 'CORRECTION',
-              kickerColor: offline ? null : t.colorProof,
-              headline: offline
-                  ? 'The source list needs a connection.'
-                  : "Couldn't load the sources.",
-              actions: [
-                QuietButton(
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: CineSpace.s4,
+                vertical: CineSpace.s6,
+              ),
+              child: CineNotice(
+                tone: offline ? CineNoticeTone.offline : CineNoticeTone.error,
+                headline: offline
+                    ? 'The source list needs a connection.'
+                    : "Couldn't load the sources.",
+                primary: CineNoticeAction(
                   'Try again',
-                  onPressed: () => ref.invalidate(sourcesListProvider),
+                  () => ref.invalidate(sourcesListProvider),
                 ),
-              ],
+              ),
             ),
             if (offline)
               for (final p in cached)
@@ -400,52 +411,73 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                     ref.read(sourcesFilterQueryProvider.notifier).state = v,
               ),
             ),
-            SlugTabs(
-              folios: false,
-              labels: [
-                'ALL',
-                'PINNED${raisedCount(pinnedRows.length)}',
-                if (gateOpen) '18+',
-              ],
-              selected: switch (filter) {
-                SourcesFilter.all => 0,
-                SourcesFilter.pinned => 1,
-                SourcesFilter.mature => 2,
-              },
-              onSelected: (i) {
-                unawaited(
-                  ref.read(skinHapticsProvider).fire(HapticEvent.select),
-                );
-                ref.read(sourcesFilterProvider.notifier).state = switch (i) {
-                  1 => SourcesFilter.pinned,
-                  2 => SourcesFilter.mature,
-                  _ => SourcesFilter.all,
-                };
-              },
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
+              child: CineSlugLines(
+                items: [
+                  const CineSlug('0', 'ALL'),
+                  CineSlug('1', 'PINNED', count: pinnedRows.length),
+                  if (gateOpen) const CineSlug('2', '18+'),
+                ],
+                selected: {
+                  switch (filter) {
+                    SourcesFilter.all => '0',
+                    SourcesFilter.pinned => '1',
+                    SourcesFilter.mature => '2',
+                  },
+                },
+                onChanged: (id) {
+                  unawaited(
+                    ref.read(skinHapticsProvider).fire(HapticEvent.select),
+                  );
+                  ref.read(sourcesFilterProvider.notifier).state =
+                      switch (int.parse(id)) {
+                    1 => SourcesFilter.pinned,
+                    2 => SourcesFilter.mature,
+                    _ => SourcesFilter.all,
+                  };
+                },
+              ),
             ),
             if (pinsAsync.hasValue && !pinsOk && !pinsAsync.isLoading)
-              CineNotice(
-                kicker: 'NOTE',
-                kickerColor: t.colorSpot,
-                headline: pinReason,
-                actions: [
-                  QuietButton(
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: CineSpace.s4,
+                  vertical: CineSpace.s6,
+                ),
+                child: CineNotice(
+                  tone: CineNoticeTone.caution,
+                  headline: pinReason,
+                  primary: CineNoticeAction(
                     'Try again',
-                    onPressed: () =>
-                        ref.read(sourcePinsProvider.notifier).refresh(),
+                    () => unawaited(
+                      ref.read(sourcePinsProvider.notifier).refresh(),
+                    ),
                   ),
-                ],
+                ),
               ),
             if (!none) const SourceTableHead(),
             if (none)
-              const CineNotice(
-                kicker: 'NOTE',
-                headline: 'No sources installed on this server.',
+              const Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: CineSpace.s4,
+                  vertical: CineSpace.s6,
+                ),
+                child: CineNotice(
+                  tone: CineNoticeTone.caution,
+                  headline: 'No sources installed on this server.',
+                ),
               )
             else if (noMatch)
-              CineNotice(
-                kicker: 'NOTE',
-                headline: 'No sources match "${_filter.text.trim()}".',
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: CineSpace.s4,
+                  vertical: CineSpace.s6,
+                ),
+                child: CineNotice(
+                  tone: CineNoticeTone.caution,
+                  headline: 'No sources match "${_filter.text.trim()}".',
+                ),
               )
             else ...[
               if (filter != SourcesFilter.mature) ...[

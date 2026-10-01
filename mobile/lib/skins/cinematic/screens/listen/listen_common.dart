@@ -22,12 +22,14 @@ Future<T?> showListenSheet<T>(
   required WidgetBuilder builder,
   CineStockColors? stock,
   bool livePreview = false,
+  List<double>? detents,
 }) =>
     showCineSheet<T>(
       context,
       kicker: kicker,
       title: title,
       livePreview: livePreview,
+      detents: detents,
       builder: (sheetContext) {
         final body = Material(type: MaterialType.transparency, child: Builder(builder: builder));
         return stock == null ? body : CineStock.stock(stock, body);

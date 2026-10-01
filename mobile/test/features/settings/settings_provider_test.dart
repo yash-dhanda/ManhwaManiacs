@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/pagination.dart';
@@ -216,6 +217,7 @@ class _EmptyLibraryRepository implements LibraryRepository {
   Future<Result<WorldSuggestResponse>> worldSuggest(
     String prompt, {
     int limit = 12,
+    CancelToken? cancelToken,
   }) async =>
       const Ok(WorldSuggestResponse());
 

@@ -16,9 +16,7 @@ No unresolved items reported by the verifier.
 None reported by the verifier.
 
 ## mobile/06 (cinematic shell, navigation, transitions)
-- Scope 4.4 Match cut: cover Hero with createRectTween RectTween(begin,end) and route animation curved with CineCurves.turn; CineHero wraps this for callers.
-- Scope item 9, command palette: SemanticsService.announce 'Searching...' then 'N results'.
-- Scope 4.8 / acceptance: reader.enter fires when the last blade lands (end of the close).
+- Resolved in 4.0.1 cleanup (redesign/P3): match cut (CineHero's tween runs on CineCurves.turn), palette announces 'Searching…' then the count, reader.enter fires when the last blade lands.
 
 ## web/06 cinematic shell, navigation, transitions (lane L02)
 
@@ -33,93 +31,66 @@ None reported by the verifier.
 None reported by the verifier.
 
 ## mobile/07
-
-None reported by verifier. flutter analyze NOT run at merge (flutter not installed on this host); final audit must run it.
+- Resolved in 4.0.1 cleanup (redesign/P3): flutter analyze is clean.
 
 ## mobile/16 (cinematic discover/search/sources/dialogue, lane L09)
-
-Verifier items (fix attempted, not re-checked):
-- Acceptance: `flutter analyze` reports no issues (post-merge analyze was clean)
-- Section F.3: scan widgets added to the mobile/04 Diagnostics primitives gallery with fixture states
-- Ground rules / scope: use the mobile/04, mobile/05 and mobile/06 primitives and the real SetHeading
-- Screenshots of the states 'Discover searching, group jump, scan block in each phase, reader bubble pulse' and 'Dip into the reader' (E.3)
+- Resolved in 4.0.1 cleanup (redesign/P3): flutter analyze clean; Discover uses the shared primitives (CineButton, CineNotice, TypedText, CineSlugLines, CinePlate, CineLeaderDial, CineIndeterminateRule).
+- Left: F.3 scan widgets in the primitives gallery. The gallery lost its in-app entry with the legacy Diagnostics screen; the widgets are covered by `scan_widgets_test.dart`.
+- Left: the Discover masthead kicker and the idle section heads still use the local Kicker/SectionHead, not SetHeading (a per-screen motion change, over 30 min).
+- Left: 'Dip into the reader' proof needs a device capture (the other states are in proof/mobile-16).
 
 ## mobile/08 (cinematic tonight, lane L06)
-
-- (fix attempted, not re-checked) Acceptance: hardware keyboard `R`, `↓`/`↑`, `C`, `P`, `V`, `Enter` and rail keys work in a widget test with `tester.sendKeyEvent`, and the CineFocusRing double ring shows on keyboard focus only
+- Left: the six keys are wired (`tonight_shortcuts.dart`); the widget test asserts only R and P. V, down/up, Enter, rail keys and the keyboard-only focus ring still need test coverage (about 30 min).
 
 ## mobile/09
 
 No unresolved items.
 
 ## mobile/17 (L09, cinematic downloads/index/status)
-
-- (fix attempted, not re-checked) Acceptance: iOSTapTargetGuideline, androidTapTargetGuideline and labeledTapTargetGuideline pass on the three screens AND the What's new sheet
-- (fix attempted, not re-checked) Acceptance: Save to Files 'CI's APK build and iOS dry run are green for the native commit'
+- Resolved in 4.0.1 cleanup (redesign/P3): tap-target guidelines pass on Status, Index, Downloads and the What's new sheet (iOS check added).
+- Left: Save to Files CI proof (APK build and iOS dry run) needs CI runs.
 
 ## mobile/18 (L09, cinematic settings and edition restart)
-
-- (fix attempted, not re-checked) Acceptance: every baseline-passing test still passes; flutter test 0 failed
-- (fix attempted, not re-checked) C3 Ambient row: guided auto-advance 'fixed-hold stepper 2-10 s step 0.5'
+- Resolved in 4.0.1 cleanup (redesign/P3): full flutter test passes; C3 guided auto-advance is a 2-10 s stepper in 0.5 s steps.
 
 ## mobile/11
 
 None reported by the verifier.
 
 ## mobile/19
-
-- (fix attempted, not re-checked) B4 / acceptance: Try again cancels the running request with a CancelToken
-- (fix attempted, not re-checked) B9 World card widget at mobile/lib/skins/cinematic/primitives/world_card.dart, and B6 rails using it
-- (fix attempted, not re-checked) C5 suggested tags: reject token fades over 160 ms
-- (fix attempted, not re-checked) B1 / G stale badge from world recommendations
+- Resolved in 4.0.1 cleanup (redesign/P3): B4 Try again cancels the running ask with a CancelToken (the From-your-sources ask still only drops a late answer); C5 a rejected tag fades over 160 ms; B1/G stale badge (already built, tested in picks_screen_test).
+- Left: B9/B6 the world card lives at primitives/cards/cine_world_card.dart and has no poster form; Because-you-read rails use CinePoster (over 30 min).
 
 ## mobile/20 (cinematic onboarding, merged from redesign/M20)
-
-- (fix attempted, not re-checked) Acceptance: hardware keyboard, arrows move focus inside roving groups, and the 'Onboarding' group is listed in the ? sheet
-- (fix attempted, not re-checked) E2.2: the wall hides the flying posters in the same frame the flight layer paints copies (Visibility maintainSize/State/Animation)
-- (fix attempted, not re-checked) E2.6: Tonight holds its whole Front page moment (kicker, cover rack, headline, deck) until `landed`
+- Resolved in 4.0.1 cleanup (redesign/P3): E2.2 the wall hides a poster while its flight copy is in the air.
+- Left: keyboard: shortcuts, roving groups and the ? sheet's Onboarding group are wired; only right/left have a widget test.
+- Left: E2.6 Tonight holds only its headline until `landed`, not the kicker, rack and deck (over 30 min across three files).
 
 ## mobile/12 (cinematic manga reader strip, merged from redesign/L01)
-
-- A10: fetchChapterText must return the page texts and boxes, with a repository test on a fake Dio adapter (null on 404)
+- Resolved in 4.0.1 cleanup (redesign/P3): A10 fetchChapterText has repository tests (texts and boxes; null on 404).
 
 ## mobile/21 (cinematic numbers, streak, annual)
-
-- A2: extend LibraryRepository and library_repository_impl.dart with statistics({days}), annual(year) and markMilestoneSeen(days) (fix attempted, not re-checked)
-- Last acceptance item: CI APK build and iOS dry run green, with run links in the report (fix attempted, not re-checked)
-- B6: chapters-per-day date labels must not collide (nothing clips) (fix attempted, not re-checked)
-- Proof: comparison against the web twin's phone captures (fix attempted, not re-checked)
+- Resolved in 4.0.1 cleanup (redesign/P3): A2 (a separate NumbersRepository by design, tested in numbers_data_test); B6 the 30/90-day date labels no longer collide with the last day.
+- Left: CI APK/iOS run links and the web-twin comparison (web postponed).
 
 ## mobile/13
 
 None reported by the verifier.
 
 ## Step mobile/14 (cinematic novel reader)
-
-Each item: fix attempted, not re-checked.
-
-- Acceptance: hardware keyboard, every key of K works in a widget test, and the escape order is exact
-- Acceptance: seamless next, auto next 900 ms, over-scroll 140 px, live-region announcement
-- Acceptance: chrome auto-hide 24/56 px, focus and screen-reader guards, no slide, 240/160 ms fade
-- Acceptance: hit targets in bars, sheets AND panels
-- Acceptance: reduced motion (page turns 150 ms fades, Letter set 200 ms fade, panels fade in place, in-page head scrolls away without fading)
-- Acceptance: per-skin difference, Edition LEGACY legacy reader still reads and writes K25 and K26
-- Acceptance: paged mode (Cut, Slide finger-tracked, Fade turns, three tap-zone presets, re-paginate on Type change keeping the paragraph); the 'p. 7 of 22' folio
-- Acceptance: speaker semantics prefix, drop cap semantics, long-press name popover, end matter Letter set, rating card, stale-anchor toast copy, progress saved at the 38% line, Contents narrated and saved marks, Type sheet half detent
-- Proof deliverables
+- Obsolete: 'Edition LEGACY legacy reader still reads and writes K25 and K26': the legacy reader is deleted. Both skins read and write K25; K26 is a read-only fallback.
+- Left (implemented, widget tests missing; each 30 min or more): the remaining keys of K (h, k, Space, Home, End, =, +, -, 0, comma, o, m, g); over-scroll 140 px and the live-region announcement; chrome auto-hide thresholds, guards and fade timings; hit targets in the Type and Contents sheets and the Margins panel; reduced-motion timings; Slide/Fade turns and re-paginate on a Type change; speaker/drop-cap semantics, name popover, end matter, rating card, stale toast, 38% line, Contents marks, half detent.
+- Left: proof web-twin comparison (web postponed) and the device checklist (owner).
 
 ## mobile/22 (cinematic circle)
-
-- (fix attempted, not re-checked) Acceptance: 18+ and isolation widget test
-- (fix attempted, not re-checked) Acceptance: hit-target test covers every tappable widget on the Circle screen, member page, stamps, sheets and settings section
+- Left: the 18+ and isolation widget test for the Circle screens (about 40 min).
+- Left: hit-target coverage for the Settings Circle and privacy section and the 8 px spacing outside stamps.
 
 ## Step mobile/15 (cinematic listen mode)
-
-Fix attempted, not re-checked:
-- E. Speed ruler sheet: "CineSheetRoute with the single detent [0.5]"
-- Git: "the extraction first as its own no-pixel commit"
-- Report and proof gaps
-- A1: one just_audio AudioPlayer that the audio_service handler wraps
+- Resolved in 4.0.1 cleanup (redesign/P3): E the speed ruler sheet has the single detent [0.5].
+- Obsolete: 'the extraction first as its own no-pixel commit' (history).
+- Accepted: A1 the handler forwards commands and each chapter session owns one player; two never play at once.
+- Left: proof gaps (web-15, device checklist, screenshot map).
 
 ## mobile/23
 
@@ -141,9 +112,7 @@ None reported by the verifier.
 
 No unresolved items reported by the verifier.
 ## mobile/24b (cinematic reconcile)
-
-- `screens/discover/cine_kit.dart` still holds local SlugTabs, CineNotice, TypedText, QuietButton and FlickerPlate (about 170 call sites); the real primitives take tone enums and actions, so the swap is a per-screen rewrite not done here.
-- DialogueLandingHost is kept for its tests; the manga reader lands dialogue jumps itself through its OcrOverlayController.
+- Resolved in 4.0.1 cleanup (redesign/P3): cine_kit's stand-ins are replaced by the shared primitives and deleted; DialogueLandingHost (unused) is deleted, the manga reader lands dialogue jumps itself.
 - Not attempted (need a device, art or owner): all "fix attempted, not re-checked" acceptance items above that name CI runs, proof screenshots, or hardware checks.
 
 ## mobile/24b
@@ -155,7 +124,7 @@ No unresolved items reported by the verifier.
 None reported by the verifier.
 
 ## mobile/v1 leftovers (Cinematic)
-- `mobile/lib/skins/cinematic/screens/discover/cine_kit.dart`: local stand-ins for slug tabs, notice, typed text, quiet button and flicker plate remain. The real primitives (cine_slug_lines, cine_notice, typed_headline, cine_button, CinePlate) have a different API (tone enums, actions), so the swap is a per-screen rewrite (>1h). No `TODO(mobile/0-24)` marker matches the 24b grep (the marker is a prose note, not a matching pattern).
+- Resolved in 4.0.1 cleanup (redesign/P3): cine_kit.dart's local stand-ins are gone.
 
 ## mobile/38
 
@@ -191,5 +160,11 @@ None reported by the verifier.
 - Tablet bands (mobile-45 open issue 4), still accepted in `qa/glass_focus_test.dart`: on the 834 x 1194 frame the Settings, You, Statistics and onboarding panes reach the screen's bottom edge inside the 24 px bottom band, and the series header buttons sit at y 8-52 inside the 76 px top band. No chrome floats in either band on the wide frame and `GlassFocusTraversalPolicy` scrolls a focused control clear where the scroll extent allows. A real fix is per-screen layout (series header top inset, pane bottom padding); over 45 min.
 - The tablet page panel's focus ring clip (mobile-45 open issue 3, second half): grouped cards now host their rows' rings outside the clip; the page panel does not.
 - Search `?scope=ask` still parses to `all`: Search has no ask-results pane. The idle "Describe what you want to read" row now shows when AI is available and hands the words to Picks.
-- Release/01 items not done in this mobile-only release: the cross-skin Flutter suite `cross_skin_release_test.dart` (F3), the icon rule on the arrival toasts' Undo (D2; both skins' Settings switches and the profile forms call `AppIconSwitcher`), web A-C/E/F/G (web postponed), the install-page Glass strip (G, needs the web float frames).
+- Release/01 items not done in this mobile-only release: the cross-skin Flutter suite `cross_skin_release_test.dart` (F3, 60-90 min), web A-C/E/F/G (web postponed), the install-page Glass strip (G, needs the web float frames). D2 resolved in 4.0.1 cleanup: Cinematic's arrival Undo now calls `AppIconSwitcher` like Glass's.
 - Device checks: the alternate icon (iOS `AppIcon-Glass` via Xcode 26 actool, Android `.CinematicIcon`/`.GlassIcon` aliases) has only CI build proof; switch it on a phone once.
+
+## 4.0.1 cleanup (redesign/P3)
+
+- Done: the legacy skin and everything only it used are deleted (a stored or profile `legacy` boots Cinematic); boot awaits in `main.dart` are bounded with fallbacks; the session-token keychain read retries on a timeout and keeps the session unknown (never signs out).
+- Left: `SharedPreferences.getInstance()` stays unbounded at boot: every provider needs it and there is no fallback.
+- Left: release/00 `?scope=ask` on Glass Search is an owner decision (redirect to Picks or build an ask pane); tablet bands and the page-panel ring clip are per-screen layout work (over 30 min).

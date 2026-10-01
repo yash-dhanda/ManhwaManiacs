@@ -125,6 +125,9 @@ class _CinePaletteState extends ConsumerState<CinePalette> {
   List<PaletteItem> _library = const [];
   int _active = 0;
   String _announced = '';
+
+  /// A library search is pending: the count waits for its answer, after "Searching…".
+  bool _searching = false;
   List<(PaletteItem, List<int>)> _rows = const [];
 
   @override
@@ -241,13 +244,21 @@ class _CinePaletteState extends ConsumerState<CinePalette> {
     setState(() => _active = 0);
     if (widget.fixture != null) return;
     if (q.trim().isEmpty) {
-      setState(() => _library = const []);
+      setState(() {
+        _library = const [];
+        _searching = false;
+      });
       return;
     }
+    _searching = true;
     _debounce = Timer(const Duration(milliseconds: 220), () async {
+      if (!mounted) return;
+      _say('Searching…');
       final r = await ref.read(libraryRepositoryProvider).search(q.trim(), perPage: 8);
-      if (!mounted || _ctl.text.trim() != q.trim() || r.isErr) return;
+      if (!mounted || _ctl.text.trim() != q.trim()) return;
       setState(() {
+        _searching = false;
+        if (r.isErr) return;
         _library = [
           for (final s in r.value.items)
             PaletteItem(
@@ -325,7 +336,11 @@ class _CinePaletteState extends ConsumerState<CinePalette> {
   }
 
   void _announce(int n, String q) {
-    final text = q.trim().isEmpty ? '' : (n == 0 ? 'Nothing matches' : '$n results');
+    if (_searching) return;
+    _say(q.trim().isEmpty ? '' : (n == 0 ? 'Nothing matches “${q.trim()}”.' : (n == 1 ? '1 result' : '$n results')));
+  }
+
+  void _say(String text) {
     if (text == _announced) return;
     _announced = text;
     if (text.isEmpty) return;

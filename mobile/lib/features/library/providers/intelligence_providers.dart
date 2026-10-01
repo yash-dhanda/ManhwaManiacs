@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
@@ -72,6 +73,10 @@ class SuggestionsNotifier extends AutoDisposeAsyncNotifier<WorldSuggestResponse?
   /// is the same guard `bookmarks_provider.dart` carries for the same reason.
   bool _disposed = false;
 
+  /// The running ask's token: a new submit (`Try again`) cancels it. The cancelled answer then
+  /// lands as a stale [_requestId] and is dropped, never shown as an error.
+  CancelToken? _cancel;
+
   @override
   Future<WorldSuggestResponse?> build() async {
     ref.onDispose(() => _disposed = true);
@@ -82,8 +87,10 @@ class SuggestionsNotifier extends AutoDisposeAsyncNotifier<WorldSuggestResponse?
     final trimmed = prompt.trim();
     if (trimmed.length < 3) return;
     final id = ++_requestId;
+    _cancel?.cancel();
+    final cancel = _cancel = CancelToken();
     state = const AsyncValue<WorldSuggestResponse?>.loading();
-    final result = await ref.read(libraryRepositoryProvider).worldSuggest(trimmed);
+    final result = await ref.read(libraryRepositoryProvider).worldSuggest(trimmed, cancelToken: cancel);
     if (_disposed || id != _requestId) return;
     if (result.isErr) {
       state = AsyncValue<WorldSuggestResponse?>.error(

@@ -7,8 +7,12 @@ import 'package:manhwamaniacs/skins/cinematic/type.dart';
 /// (`durTick`) `easeSet`, 40 ms apart; old digit -100 % and fading, new one in from +100 %, each
 /// in a clip. One accessible value. Reduced motion: instant.
 class CineFolioFlip extends StatefulWidget {
-  const CineFolioFlip({super.key, required this.value, this.role, this.color});
+  const CineFolioFlip({super.key, required this.value, this.role, this.color, this.format});
   final int value;
+
+  /// The shown text for [value]; null prints the integer.
+  final String Function(int)? format;
+  String text(int v) => format?.call(v) ?? '$v';
   final CineTextRole? role;
   final Color? color;
 
@@ -18,14 +22,14 @@ class CineFolioFlip extends StatefulWidget {
 
 class _CineFolioFlipState extends State<CineFolioFlip> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(vsync: this, value: 1);
-  late String _from = '${widget.value}', _to = '${widget.value}';
+  late String _from = widget.text(widget.value), _to = _from;
 
   @override
   void didUpdateWidget(CineFolioFlip old) {
     super.didUpdateWidget(old);
     if (old.value == widget.value) return;
-    _from = '${old.value}';
-    _to = '${widget.value}';
+    _from = widget.text(old.value);
+    _to = widget.text(widget.value);
     if (CineMotion.reduced(context)) {
       _c.value = 1;
       return;
@@ -55,7 +59,7 @@ class _CineFolioFlipState extends State<CineFolioFlip> with SingleTickerProvider
     final from = _from.padLeft(n), to = _to.padLeft(n);
     final lineH = scaler.scale((style.fontSize ?? 16) * (style.height ?? 1));
     return Semantics(
-      value: '${widget.value}',
+      value: widget.text(widget.value),
       child: ExcludeSemantics(
         child: AnimatedBuilder(
           animation: _c,
@@ -65,7 +69,8 @@ class _CineFolioFlipState extends State<CineFolioFlip> with SingleTickerProvider
             for (var i = 0; i < n; i++) {
               final a = from[i], b = to[i];
               if (a == b || _c.value >= 1) {
-                cells.add(b.trim().isEmpty ? const SizedBox.shrink() : t(b));
+                // Only the left padding collapses; a formatted value keeps its own spaces.
+                cells.add(i < n - _to.length ? const SizedBox.shrink() : t(b));
                 continue;
               }
               // Digit i (from the left) starts 40 ms after the one before it.

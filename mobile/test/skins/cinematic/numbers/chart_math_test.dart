@@ -36,10 +36,21 @@ void main() {
       expect(barLeft(358, n, 1), closeTo(w + 2, 1e-9));
     });
 
-    test('label indices: 4, 6 and 6 labels', () {
+    test('label indices: 4, 5 and 5 labels', () {
       expect(labelIndices(7), [0, 2, 4, 6]);
-      expect(labelIndices(30), [0, 6, 12, 18, 24, 29]);
-      expect(labelIndices(90), [0, 18, 36, 54, 72, 89]);
+      expect(labelIndices(30), [0, 6, 12, 18, 29]);
+      expect(labelIndices(90), [0, 18, 36, 54, 89]);
+    });
+
+    test('label indices never closer than one step (no colliding dates)', () {
+      for (final (n, minGap) in [(7, 2), (30, 6), (90, 18)]) {
+        final idx = labelIndices(n);
+        expect(idx.last, n - 1);
+        for (var k = 1; k < idx.length; k++) {
+          expect(idx[k] - idx[k - 1], greaterThanOrEqualTo(minGap),
+              reason: '$n days: ${idx[k - 1]} and ${idx[k]}',);
+        }
+      }
     });
 
     test('nearest bar and hit column', () {

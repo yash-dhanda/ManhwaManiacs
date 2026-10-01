@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_poster.dart';
@@ -32,13 +36,13 @@ class AskScope extends ConsumerWidget {
         child: Row(
           children: [
             Expanded(
-              child: TypedText(
+              child: TypedText.plain(
                 'Reading your shelf…',
                 style: cineText(context, t.typePull),
               ),
             ),
             const SizedBox(width: CineSpace.s3),
-            const DelayedShow(child: LeaderDial(size: 24)),
+            const CineLeaderDial(size: 24, showAfter: Duration(seconds: 1)),
           ],
         ),
       );
@@ -47,22 +51,24 @@ class AskScope extends ConsumerWidget {
       final copy = aiCopyForError(state.error!);
       final err = state.error;
       final after = err is ApiError ? retryAfterSeconds(err) : null;
-      return CineNotice(
-        kicker: copy.kicker,
-        kickerColor: t.colorSpot,
-        headline: copy.rateLimited ? 'Too many asks at once.' : copy.text,
-        folio: copy.rateLimited
-            ? RetryCountdown(
-                seconds: after ?? 12,
-                style: cineText(context, t.typeFolio, color: t.colorSpot),
-              )
-            : null,
-        actions: [
-          QuietButton(
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: CineSpace.s4,
+          vertical: CineSpace.s6,
+        ),
+        child: CineNotice(
+          tone: copy.rateLimited
+              ? CineNoticeTone.rateLimit
+              : CineNoticeTone.caution,
+          kicker: copy.kicker,
+          headline: copy.rateLimited ? 'Too many asks at once.' : copy.text,
+          retryAfter:
+              copy.rateLimited ? Duration(seconds: after ?? 12) : null,
+          quiet: CineNoticeAction(
             'Search sources for "$query" instead',
-            onPressed: onSearchInstead,
+            onSearchInstead,
           ),
-        ],
+        ),
       );
     }
     final items = state.valueOrNull?.items;
@@ -89,9 +95,10 @@ class AskScope extends ConsumerWidget {
               Routes.discover({'q': items[i].title, 'scope': 'sources'}),
             ),
           ),
-        QuietButton(
-          'Search sources for "$query" instead',
+        CineButton(
+          label: 'Search sources for "$query" instead',
           onPressed: onSearchInstead,
+          variant: CineButtonVariant.quiet,
         ),
       ],
     );

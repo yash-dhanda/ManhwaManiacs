@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.da
 import 'package:manhwamaniacs/features/sources/utils/discover_scope.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/ask_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -25,6 +26,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_results.
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/genre_sheet.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/index_field_header.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/skin_haptics.dart';
 
@@ -323,10 +325,32 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ],
                   ),
                 ),
-                SlugTabs(
-                  labels: [for (final s in scopes) labels[s]!],
-                  selected: scopes.indexOf(scope).clamp(0, scopes.length - 1),
-                  onSelected: (i) => _setScope(scopes[i]),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: CineSpace.s4),
+                  child: CineSlugLines(
+                    items: [
+                      for (var i = 0; i < scopes.length; i++)
+                        CineSlug(
+                          '$i',
+                          labels[scopes[i]]!,
+                          // The scopes are numbered like contents (`01 ALL`); the folio is not spoken.
+                          leading: CineLit(
+                            (i + 1).toString().padLeft(2, '0'),
+                            CineFace.archivo,
+                            12,
+                            16,
+                            wght: 600,
+                            wdth: 75,
+                            color: context.cine.colorInk45,
+                          ),
+                        ),
+                    ],
+                    selected: {
+                      '${scopes.indexOf(scope).clamp(0, scopes.length - 1)}',
+                    },
+                    onChanged: (id) => _setScope(scopes[int.parse(id)]),
+                  ),
                 ),
                 body,
               ],

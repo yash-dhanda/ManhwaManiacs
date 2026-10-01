@@ -241,4 +241,54 @@ void main() {
       });
     });
   });
+
+  group('GET /ocr/chapter', () {
+    test('a 200 parses page texts and their boxes', () async {
+      RequestOptions? captured;
+      when(() => adapter.fetch(any(), any(), any())).thenAnswer((inv) async {
+        captured = inv.positionalArguments[0] as RequestOptions;
+        return _jsonBody({
+          'page_texts': [
+            {
+              'page': 1,
+              'text': 'hello there',
+              'boxes': [
+                {'text': 'hello', 'x': 0.1, 'y': 0.2, 'width': 0.3, 'height': 0.05, 'confidence': 0.9},
+                {'text': 'there', 'left': 0.5, 'top': 0.2, 'right': 0.7, 'bottom': 0.25},
+                {'text': 'no geometry'},
+              ],
+            },
+            {'page': 2, 'text': 'bye'},
+          ],
+        }, 200,);
+      });
+
+      final result = await repository.fetchChapterText(_id);
+
+      expect(captured!.path, '/ocr/chapter');
+      expect(captured!.queryParameters,
+          {'source': 'asura', 'series': 'solo/leveling', 'chapter': 'ch/1'},);
+      expect(result.isOk, isTrue);
+      final pages = result.value!;
+      expect(pages.map((p) => (p.page, p.text)), [(1, 'hello there'), (2, 'bye')]);
+      final boxes = pages.first.boxes;
+      expect(boxes.map((b) => b.text), ['hello', 'there']);
+      expect(boxes.first.confidence, 0.9);
+      expect(boxes.last.x, 0.5);
+      expect(boxes.last.width, closeTo(0.2, 1e-9));
+      expect(boxes.last.height, closeTo(0.05, 1e-9));
+      expect(pages.last.boxes, isEmpty);
+    });
+
+    test('a 404 (nothing contributed yet) is Ok(null), not an error', () async {
+      when(() => adapter.fetch(any(), any(), any())).thenAnswer(
+        (_) async => _jsonBody({'code': 'not_found', 'message': 'No OCR text.'}, 404),
+      );
+
+      final result = await repository.fetchChapterText(_id);
+
+      expect(result.isOk, isTrue);
+      expect(result.value, isNull);
+    });
+  });
 }

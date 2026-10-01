@@ -19,6 +19,7 @@ class CineSheetRoute<T> extends PageRoute<T> {
     required this.kicker,
     required this.title,
     this.livePreview = false,
+    this.detents,
     this.sheetState = CineSheetState.ready,
     this.errorHeadline = 'This didn’t load.',
     this.errorDeck,
@@ -36,6 +37,7 @@ class CineSheetRoute<T> extends PageRoute<T> {
   final WidgetBuilder builder;
   final String kicker, title;
   final bool livePreview, reduced;
+  final List<double>? detents;
   final CineSheetState sheetState;
   final String errorHeadline;
   final String? errorDeck;
@@ -93,6 +95,7 @@ class CineSheetRoute<T> extends PageRoute<T> {
         kicker: kicker,
         title: title,
         livePreview: livePreview,
+        detents: detents,
         state: sheetState,
         errorHeadline: errorHeadline,
         errorDeck: errorDeck,
@@ -124,6 +127,7 @@ Future<T?> showCineSheet<T>(
   required String title,
   required WidgetBuilder builder,
   bool livePreview = false,
+  List<double>? detents,
   CineSheetState state = CineSheetState.ready,
   String errorHeadline = 'This didn’t load.',
   String? errorDeck,
@@ -138,6 +142,7 @@ Future<T?> showCineSheet<T>(
     kicker: kicker,
     title: title,
     livePreview: livePreview,
+    detents: detents,
     sheetState: state,
     errorHeadline: errorHeadline,
     errorDeck: errorDeck,

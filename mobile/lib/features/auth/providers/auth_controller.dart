@@ -30,6 +30,13 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 /// resolves to [AuthAuthenticated] from the cached identity with
 /// `sessionOfflineProvider` raised — the token is never touched, because
 /// signing back in would need the same server that is down.
+/// How long one launch-time keychain read of the session token may take before it is retried.
+///
+/// Null (the default, and every test's) waits for the read however long it takes: a fake keychain
+/// that never answers must not leave a timer pending. `main` sets it for the real app, where a
+/// stuck platform channel would otherwise hold the splash forever.
+final authTokenReadTimeoutProvider = Provider<Duration?>((ref) => null, name: 'authTokenReadTimeout');
+
 class AuthController extends Notifier<AuthState> {
   /// How long the launch-time `/auth/me` probe gets before the app stops
   /// waiting and falls back to the cached session.
@@ -98,7 +105,7 @@ class AuthController extends Notifier<AuthState> {
   Future<void> _restoreSession() async {
     String? token;
     try {
-      token = await ref.read(secureStorageProvider).getAuthToken();
+      token = await _readToken();
     } catch (error, stackTrace) {
       // A secure-storage read can fail (e.g. keystore issues); degrade to
       // logged-out rather than crash the launch.
@@ -142,6 +149,36 @@ class AuthController extends Notifier<AuthState> {
     }
     ref.read(sessionOfflineProvider.notifier).markOffline();
     state = AuthAuthenticated(cached);
+  }
+
+  /// Reads the stored token. With [authTokenReadTimeoutProvider] set, a read that has not answered
+  /// in time is asked again (backing off to 30 s) while the earlier reads stay in the race: the
+  /// first answer wins. A timeout never resolves the session: the state stays [AuthUnknown] and
+  /// the token is never touched, because a slow keychain says nothing about the session.
+  Future<String?> _readToken() async {
+    final storage = ref.read(secureStorageProvider);
+    var wait = ref.read(authTokenReadTimeoutProvider);
+    if (wait == null) return storage.getAuthToken();
+    final answer = Completer<String?>();
+    void ask() => storage.getAuthToken().then(
+          (v) {
+            if (!answer.isCompleted) answer.complete(v);
+          },
+          onError: (Object e, StackTrace st) {
+            if (!answer.isCompleted) answer.completeError(e, st);
+          },
+        );
+    ask();
+    while (true) {
+      try {
+        return await answer.future.timeout(wait!);
+      } on TimeoutException {
+        appLogger.w('Keychain read of the session token took over ${wait!.inSeconds} s; asking again');
+        ask();
+        final next = wait * 2;
+        wait = next > const Duration(seconds: 30) ? const Duration(seconds: 30) : next;
+      }
+    }
   }
 
   /// The launch-time `/auth/me` probe, bounded by [_probeTimeout]. A timeout is

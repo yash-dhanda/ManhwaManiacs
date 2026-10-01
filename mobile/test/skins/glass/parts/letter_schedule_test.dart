@@ -27,6 +27,9 @@ class _Repo implements CircleRepository {
 }
 
 void main() {
+  // Undo fires the skin's haptics (the default skin is Cinematic since legacy went), so the
+  // platform channel needs the test binding.
+  TestWidgetsFlutterBinding.ensureInitialized();
   late SharedPreferences prefs;
   setUp(() async {
     SharedPreferences.setMockInitialValues({});

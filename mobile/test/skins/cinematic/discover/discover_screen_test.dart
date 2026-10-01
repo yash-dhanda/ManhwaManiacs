@@ -39,12 +39,15 @@ void main() {
     );
     await settle(tester);
     expect(find.text('NO. 04 — DISCOVER'), findsOneWidget);
-    expect(find.text('01 ALL'), findsOneWidget);
-    expect(find.text('03 SOURCES'), findsOneWidget);
+    expect(find.text('01'), findsOneWidget);
+    expect(find.text('ALL'), findsOneWidget);
+    expect(find.text('03'), findsOneWidget);
+    expect(find.text('SOURCES'), findsOneWidget);
     expect(find.textContaining('DIALOGUE'),
         findsNothing,); // OCR off, no scope, no entry
     expect(
-        find.text('04 ASK'), findsOneWidget,); // AI available, folios renumber
+        find.text('04'), findsOneWidget,); // AI available, folios renumber
+    expect(find.text('ASK'), findsOneWidget);
     expect(find.bySemanticsLabel('Search every source'), findsWidgets);
     expect(find.text('ASURA'), findsNothing);
     expect(find.text('Asura'), findsOneWidget); // pinned credit
@@ -55,8 +58,10 @@ void main() {
       (tester) async {
     await pumpScreen(tester, const DiscoverScreen());
     await settle(tester);
-    expect(find.text('04 DIALOGUE'), findsOneWidget);
-    expect(find.text('05 ASK'), findsOneWidget);
+    expect(find.text('04'), findsOneWidget);
+    expect(find.text('DIALOGUE'), findsWidgets); // the scope and the section's heading
+    expect(find.text('05'), findsOneWidget);
+    expect(find.text('ASK'), findsOneWidget);
     expect(find.text('Search dialogue'), findsOneWidget);
   });
 

@@ -13,7 +13,7 @@ List<String> boundaryViolations(String path, String source) {
   final out = <String>[];
   final inCine = p.contains('lib/skins/cinematic/');
   final inGlass = p.contains('lib/skins/glass/');
-  final inSkins = p.contains('lib/skins/') && !p.contains('lib/skins/legacy/');
+  final inSkins = p.contains('lib/skins/');
   final bootFile = RegExp(
           r'lib/app/(app_restart|skin_app|skin_boot|skin_boot_check|switch_skin)\.dart$',)
       .hasMatch(p);
@@ -24,8 +24,6 @@ List<String> boundaryViolations(String path, String source) {
         '/widgets/',
         'app/theme/',
         'app/router/',
-        'app/app.dart',
-        'skins/legacy/',
       ]) {
         // A skin's own screens/ and widgets/ folders are its own code.
         final own = (inCine && i.contains('skins/cinematic/')) ||
@@ -60,8 +58,6 @@ void main() {
       'package:manhwamaniacs/features/a/widgets/b.dart',
       'package:manhwamaniacs/app/theme/app_theme.dart',
       'package:manhwamaniacs/app/router/app_router.dart',
-      'package:manhwamaniacs/app/app.dart',
-      'package:manhwamaniacs/skins/legacy/legacy_skin.dart',
       'package:manhwamaniacs/skins/glass/router.dart',
       'package:manhwamaniacs/app/router/routes.dart',
     ]) {
@@ -80,10 +76,6 @@ void main() {
         boundaryViolations('lib/app/switch_skin.dart',
             "import 'package:manhwamaniacs/app/router/routes.dart';",),
         isNotEmpty,);
-    expect(
-        boundaryViolations('lib/skins/legacy/x.dart',
-            "import 'package:manhwamaniacs/app/router/app_router.dart';",),
-        isEmpty,);
   });
 
   test('no file under lib breaks the boundaries', () {
@@ -95,6 +87,12 @@ void main() {
       for (final f in files) ...boundaryViolations(f.path, f.readAsStringSync()),
     ];
     expect(violations, isEmpty);
+  });
+
+  test('the retired legacy skin and its router, theme and app typedef stay deleted', () {
+    for (final gone in ['lib/skins/legacy', 'lib/app/router/app_router.dart', 'lib/app/theme/app_theme.dart', 'lib/app/app.dart']) {
+      expect(FileSystemEntity.typeSync(gone), FileSystemEntityType.notFound, reason: gone);
+    }
   });
 
   test('no file under lib imports package:phosphor_flutter', () {

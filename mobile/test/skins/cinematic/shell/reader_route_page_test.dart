@@ -2,16 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_route_page.dart';
 import 'package:manhwamaniacs/skins/cinematic/wipe_geometry.dart';
+import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/skin_haptics.dart';
 import 'package:swipeable_page_route/swipeable_page_route.dart';
 
-int _enters = 0;
+import '../primitives/cine_harness.dart' show TestHaptics;
+
+final _haptics = <HapticEvent>[];
+int get _enters => _haptics.where((e) => e == HapticEvent.readerEnter).length;
 
 Future<GoRouter> _app(WidgetTester t, {Size size = const Size(390, 844)}) async {
   t.view.physicalSize = size;
@@ -25,7 +30,10 @@ Future<GoRouter> _app(WidgetTester t, {Size size = const Size(390, 844)}) async 
     ),
   ],);
   addTearDown(router.dispose);
-  await t.pumpWidget(MaterialApp.router(routerConfig: router, theme: CinematicSkin.baseTheme));
+  await t.pumpWidget(ProviderScope(
+    overrides: [skinHapticsProvider.overrideWithValue(TestHaptics(_haptics))],
+    child: MaterialApp.router(routerConfig: router, theme: CinematicSkin.baseTheme),
+  ),);
   await t.pumpAndSettle();
   return router;
 }
@@ -33,16 +41,7 @@ Future<GoRouter> _app(WidgetTester t, {Size size = const Size(390, 844)}) async 
 SwipeablePage<void> _top(WidgetTester t) => t.widget<Navigator>(find.byType(Navigator).first).pages.last as SwipeablePage<void>;
 
 void main() {
-  setUp(() {
-    _enters = 0;
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-      const MethodChannel('haptic_feedback'),
-      (call) async {
-        _enters++;
-        return null;
-      },
-    );
-  });
+  setUp(_haptics.clear);
 
   testWidgets('wipe: 616 ms at 390 px, 744 ms at 834 px, every pop 440 ms', (t) async {
     var r = await _app(t);
@@ -148,15 +147,16 @@ void main() {
 
   testWidgets('reader.enter fires once, when the last blade lands', (t) async {
     final r = await _app(t);
-    _enters = 0;
     unawaited(r.push<void>('/reader/x', extra: <String, String>{'entry': 'wipe'}));
     await t.pump();
-    await t.pump(const Duration(milliseconds: 200));
+    await t.pump(Duration(milliseconds: wipeCloseMs(4) - 1));
+    await t.pump();
     expect(_enters, 0);
-    await t.pump(const Duration(milliseconds: 100));
-    await t.pump(const Duration(milliseconds: 100));
+    await t.pump(const Duration(milliseconds: 1));
+    await t.pump();
+    expect(_enters, 1);
     await t.pumpAndSettle();
-    expect(_enters, lessThanOrEqualTo(1));
+    expect(_enters, 1);
   });
 
   testWidgets('an edge swipe on the reader ends its gesture when released (no frozen navigator)', (t) async {

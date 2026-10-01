@@ -67,7 +67,7 @@ void main() {
   });
 
   group('highRefreshRateSyncProvider', () {
-    // Each read below stands in for the `ref.watch` in ManhwaManiacsApp: a
+    // Each read below stands in for the `ref.watch` in SkinApp: a
     // read flushes the dirty element, which is exactly what a root rebuild
     // does after the setting changes.
     test('pushes the current setting to the native window', () async {
