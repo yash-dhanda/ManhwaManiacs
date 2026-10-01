@@ -72,4 +72,12 @@ void main() {
       expect(scrubProjectedPage(0.5, 0.2, 41), greaterThan(20));
     });
   });
+
+  test('value magnet holds within 30 % of one step and releases beyond', () {
+    // 5..120 in steps of 5 over 230 px: spacing 10 px, the 30 min magnet at 50 px.
+    expect(valueMagnet(50, 50, 10), (pos: 50.0, held: true));
+    expect(valueMagnet(52.9, 50, 10), (pos: 50.0, held: true));
+    expect(valueMagnet(53.1, 50, 10).held, isFalse);
+    expect(valueMagnet(46.9, 50, 10).pos, 46.9);
+  });
 }

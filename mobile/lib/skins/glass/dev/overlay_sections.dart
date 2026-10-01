@@ -31,6 +31,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/tab_pager.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/text_field.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/unsaved_changes_bar.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 
 /// The second half of the primitives gallery (`mobile/27`): sheets, alerts, toasts, tabs, sliders, toggles,
@@ -244,7 +245,8 @@ class _Sliders extends StatefulWidget {
 }
 
 class _SlidersState extends State<_Sliders> {
-  double a = 0.5, b = 0.7, dial = 1;
+  double a = 0.5, b = 0.7, dial = 1, interval = 30;
+  bool unsaved = false;
   int page = 12;
 
   @override
@@ -252,6 +254,11 @@ class _SlidersState extends State<_Sliders> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(width: 260, child: GlassSlider(value: a, onChanged: (v) => setState(() => a = v), label: 'Text size', divisions: 8)),
+          const SizedBox(height: 12),
+          // mobile/40: the floating "Unsaved changes" bar (glass 8.25.6) and a value magnet at 30 (detent.magnet).
+          GlassButton(label: unsaved ? 'Hide the Unsaved changes bar' : 'Show the Unsaved changes bar', onPressed: () => setState(() => unsaved = !unsaved)),
+          GlassUnsavedChangesBar(visible: unsaved, onDiscard: () => setState(() => unsaved = false), onSave: () => setState(() => unsaved = false)),
+          SizedBox(width: 260, child: GlassSlider(value: interval, min: 5, max: 120, divisions: 23, magnet: 30, onChanged: (v) => setState(() => interval = v), label: 'Check interval', format: (v) => '${v.round()} min')),
           const SizedBox(height: 12),
           SizedBox(width: 260, child: GlassFillSlider(value: b, onChanged: (v) => setState(() => b = v), label: 'Brightness')),
           const SizedBox(height: 12),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/app/app.dart';
 import 'package:manhwamaniacs/app/app_restart.dart';
@@ -17,6 +18,7 @@ import 'package:manhwamaniacs/core/storage/secure_storage.dart';
 import 'package:manhwamaniacs/features/novels/providers/narration_audio_handler_provider.dart';
 import 'package:manhwamaniacs/features/novels/services/narration_audio_handler.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/settings/utils/licenses.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/skin_audio.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -78,6 +80,7 @@ Future<void> main() async {
   );
 
   registerFontLicenses();
+  await registerArtLicences(rootBundle);
 
   await skinFor(SkinBoot.resolveSkin(prefs)).prepare();
 

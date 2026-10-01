@@ -125,10 +125,11 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
-  testWidgets('sections mobile/40 owns open the pending body; licences registers its sheet id', (t) async {
+  testWidgets('the sections mobile/40 built replace the pending body', (t) async {
     await pumpAuth(t, '/settings/security', _fx(), extra: _auth(false));
     await settleFor(t, 1500);
-    expect(find.text('This section arrives in the next update.'), findsOneWidget);
+    expect(find.text('This section arrives in the next update.'), findsNothing);
+    expect(find.text('Change password', skipOffstage: false), findsWidgets);
   });
 
   testWidgets('tablet: a section list at the left and the section at the right', (t) async {
