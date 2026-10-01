@@ -14,7 +14,7 @@ void main() {
     expect(((c - mid).dx * (b - a).dx + (c - mid).dy * (b - a).dy).abs(),
         lessThan(1e-6),);
   });
-  test('phase lines on the 0 / 1.5 / 4 / 15 s timers, abandon at 40 s', () {
+  test('phase lines on the 0 / 1.5 / 4 / 15 s timers, abandon at 210 s', () {
     expect(phaseLineAt(Duration.zero), 'Reading your library');
     expect(phaseLineAt(const Duration(milliseconds: 1499)),
         'Reading your library',);
@@ -23,7 +23,8 @@ void main() {
         'Checking which of your sources have them',);
     expect(
         phaseLineAt(const Duration(seconds: 15)), startsWith('Still working'),);
-    expect(abandoned(const Duration(seconds: 39)), isFalse);
-    expect(abandoned(const Duration(seconds: 40)), isTrue);
+    expect(abandoned(const Duration(seconds: 60)), isFalse);
+    expect(abandoned(const Duration(seconds: 209)), isFalse);
+    expect(abandoned(const Duration(seconds: 210)), isTrue);
   });
 }

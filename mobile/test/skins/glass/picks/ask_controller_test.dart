@@ -87,7 +87,7 @@ void main() {
     });
   });
 
-  test('Cancel cancels the request; 40 s abandons it with the timeout failure', () {
+  test('Cancel cancels the request; a 60 s answer is still waited for; 210 s abandons it with the timeout failure', () {
     fakeAsync((fa) {
       final a = RoutedAdapter({'/library/world/suggest': (_) => const Reply({}, hang: true)});
       final c = box(a);
@@ -99,7 +99,9 @@ void main() {
       settle(fa);
       expect(c.read(askControllerProvider).phase, AskPhase.idle);
       ctl.ask((prompt: 'p', onlyMine: false, useTaste: true, novels: false));
-      fa.elapse(const Duration(seconds: 39));
+      fa.elapse(const Duration(seconds: 60));
+      expect(c.read(askControllerProvider).phase, AskPhase.asking);
+      fa.elapse(const Duration(seconds: 149));
       expect(c.read(askControllerProvider).phase, AskPhase.asking);
       fa.elapse(const Duration(seconds: 2));
       settle(fa);
