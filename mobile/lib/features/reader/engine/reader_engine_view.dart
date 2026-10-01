@@ -1398,7 +1398,9 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       _autoNextTimer = null;
       return;
     }
-    if (!_defaults.autoNextChapter ||
+    // One at a time (a Glass input) owns its end of chapter: the skin's pull, card and Auto next rule replace this timer.
+    if (_single ||
+        !_defaults.autoNextChapter ||
         !atEnd ||
         widget.onNextChapter == null ||
         _autoNextTriggered) {
