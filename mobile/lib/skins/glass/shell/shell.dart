@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_orbs.dart';
 import 'package:manhwamaniacs/skins/glass/parts/streak/streak_ui.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart' show GlassMenuBack;
@@ -250,7 +251,11 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
           bare: hidesDock(path),
           child: GlassToastHost(
             child: GlassCapsuleHost(
-              child: GlassStreakEventsListener(child: Stack(fit: StackFit.expand, children: children)),
+              // The recommend orbs (mobile/43): one layer above the navigator for every screen's lifted posters.
+              child: GlassRecommendOrbs(
+                registry: ref.read(glassRecommendMagnetsProvider),
+                child: GlassStreakEventsListener(child: Stack(fit: StackFit.expand, children: children)),
+              ),
             ),
           ),
         ),

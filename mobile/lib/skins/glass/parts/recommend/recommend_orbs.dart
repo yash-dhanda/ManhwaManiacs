@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
+import 'package:manhwamaniacs/features/circle/utils/letters_deferred.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recommend/lift_provider.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart' show gt;
@@ -9,11 +12,25 @@ import 'package:manhwamaniacs/skins/glass/primitives/magnet_targets.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/profile_orb.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/spring_value.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/avatar_map.dart';
+import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show registerPurgeHolder;
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart' show glassOfflineProvider;
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 
-/// The friend orbs of the recommend gesture (glass 9.3.4), mounted by the screen that owns posters (Home now; `mobile/43` moves the
-/// mount into the shell). While a poster is lifted and this profile shares activity and someone can receive it, their 56 px orbs
+/// The one magnet registry of the recommend orbs: every screen's posters read their `targets` from it (glass 9.3.4).
+final glassRecommendMagnetsProvider = Provider<GlassMagnetRegistry>((ref) => GlassMagnetRegistry(), name: 'glassRecommendMagnets');
+
+/// Registers the Circle's part of the 18+ purge (glass 8.0.8 step 5): the Circle caches go outright, the reaction outbox drops
+/// its mature entries and every pending letter for a mature series is cancelled.
+void purgeCircleMature(Ref ref) {
+  for (final p in <ProviderOrFamily>[circleMembersProvider, circleMemberProvider, recipientsProvider, seriesMembersProvider, circleFeedProvider, memberFeedProvider, circleSeriesProvider, chapterReactionsProvider, lettersProvider, sentLettersProvider]) {
+    ref.invalidate(p);
+  }
+  unawaited(ref.read(reactionOutboxProvider)?.dropMature());
+  ref.read(pendingLettersProvider.notifier).dropMature();
+}
+
+/// The friend orbs of the recommend gesture (glass 9.3.4), mounted once by the Glass shell above the navigator (it was Home's
+/// until `mobile/43`). While a poster is lifted and this profile shares activity and someone can receive it, their 56 px orbs
 /// materialise along the top, 72 px apart, as one glass layer in a root [OverlayEntry]; each orb is a magnet target of [registry].
 class GlassRecommendOrbs extends ConsumerStatefulWidget {
   const GlassRecommendOrbs({super.key, required this.registry, required this.child});
@@ -28,10 +45,14 @@ class GlassRecommendOrbs extends ConsumerStatefulWidget {
 
 class _GlassRecommendOrbsState extends ConsumerState<GlassRecommendOrbs> {
   OverlayEntry? _entry;
+  late final VoidCallback _offPurge;
 
   @override
   void initState() {
     super.initState();
+    _offPurge = registerPurgeHolder('circle', purgeCircleMature);
+    // Keeps the pending letters alive for the session (their pause flush and the purge).
+    ref.read(pendingLettersProvider);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final overlay = Overlay.maybeOf(context, rootOverlay: true);
@@ -43,6 +64,7 @@ class _GlassRecommendOrbsState extends ConsumerState<GlassRecommendOrbs> {
 
   @override
   void dispose() {
+    _offPurge();
     _entry?.remove();
     _entry?.dispose();
     super.dispose();
