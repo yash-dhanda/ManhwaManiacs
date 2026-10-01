@@ -277,6 +277,10 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   late final GlassRegistryController _registry = ref.read(glassRegistryProvider.notifier);
   late final int _id = _registry.newId();
 
+  /// Holds a lone surface's child across tree-shape changes (materialize fade, solid/live flip, renderer change), so a
+  /// TextField inside keeps its state and keyboard connection instead of being rebuilt as a new field.
+  final GlobalKey _childKey = GlobalKey(debugLabel: 'SkinGlass child');
+
   /// Every mounted surface, so the skin melt can dematerialise them all at once.
   static final Set<SkinGlassState> _mounted = {};
 
@@ -579,7 +583,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
       final dim = env.solid || twinKind != null ? 0.0 : dimFor(lb, highContrast: hc);
       final grad = gradFor(lb, bold: env.a11y.boldText);
       final content = GlassHost(
-        child: GlassTextAxes(rond: look.p.rond, grad: grad, child: spec.child),
+        child: GlassTextAxes(rond: look.p.rond, grad: grad, child: grouped ? spec.child : KeyedSubtree(key: _childKey, child: spec.child)),
       );
       final radius = BorderRadius.circular(shape.radiusFor(size));
       final tint = widget.rimTint;
