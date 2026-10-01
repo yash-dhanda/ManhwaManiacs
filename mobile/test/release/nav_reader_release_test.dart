@@ -94,7 +94,7 @@ void main() {
       await disposeRelease(t);
     });
 
-    releaseWidgets('${skin.name}: the library reader and the source reader open, a double tap (never a single one) opens the menu, and they close', (t) async {
+    releaseWidgets('${skin.name}: the library reader and the source reader open, a tap opens and closes the menu, and they close', (t) async {
       final rig = await pumpRelease(t, skin: skin, route: Routes.library());
       for (final (path, entry, swipe) in [
         (Routes.reader('demo', 'k', 'ch-1'), ReaderScreen, true),
@@ -106,10 +106,13 @@ void main() {
         _engine(t).hideChrome();
         await settle(t, ms: 700);
         expect(_engine(t).value.chromeVisible, isFalse);
+        // 'Open menu with' Tap, the default: one tap opens, another closes, then it opens again.
         await _tap(t, double: false);
-        expect(_engine(t).value.chromeVisible, isFalse, reason: '$path: a single tap');
-        await _tap(t, double: true);
-        expect(_engine(t).value.chromeVisible, isTrue, reason: '$path: a double tap');
+        expect(_engine(t).value.chromeVisible, isTrue, reason: '$path: a tap opens');
+        await _tap(t, double: false);
+        expect(_engine(t).value.chromeVisible, isFalse, reason: '$path: a tap closes');
+        await _tap(t, double: false);
+        expect(_engine(t).value.chromeVisible, isTrue, reason: '$path: a tap opens again');
         await _step(t, 'close $path', () => swipe ? _edgeSwipeBack(t) : rig.router.pop());
         await settle(t); // the popped reader's own exit
         expect(find.byType(entry), findsNothing, reason: '$path closed');
