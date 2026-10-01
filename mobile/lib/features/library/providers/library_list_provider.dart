@@ -172,7 +172,7 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
 
     final nextPage = current.page + 1;
     final result = await _fetchPage(query, nextPage);
-    await _cachePage(query, result.items, isFirstPage: false);
+    await _cachePage(query, result.items, wholeLibrary: false);
 
     state = AsyncData(
       current.copyWith(
@@ -209,7 +209,7 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
         page++;
         final result = await _fetchPage(query, page);
         if (_disposed) return;
-        await _cachePage(query, result.items, isFirstPage: page == 1);
+        await _cachePage(query, result.items, wholeLibrary: page == 1 && !result.hasNext);
         items.addAll(result.items);
         total = result.total;
         hasNext = result.hasNext;
@@ -338,7 +338,7 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
   Future<LibraryListState> _fetchFirstPage(LibraryQuery query) async {
     try {
       final page = await _fetchPage(query, 1);
-      await _cachePage(query, page.items, isFirstPage: true);
+      await _cachePage(query, page.items, wholeLibrary: !page.hasNext);
       return LibraryListState(
         items: page.items,
         total: page.total,
@@ -370,12 +370,14 @@ class LibraryListNotifier extends AutoDisposeAsyncNotifier<LibraryListState> {
   Future<void> _cachePage(
     LibraryQuery query,
     List<FollowedSeries> items, {
-    required bool isFirstPage,
+    required bool wholeLibrary,
   }) async {
     final key = _cacheKey;
     if (key == null) return;
     final prefs = ref.read(sharedPrefsProvider);
-    final authoritative = isFirstPage &&
+    // Replaces the cache only when [items] is the whole library: a first page of 20 from a
+    // search-screen list would otherwise shrink the offline shelf to those 20.
+    final authoritative = wholeLibrary &&
         !query.isSearching &&
         !query.favoritesOnly &&
         query.filter == LibraryFilter.all;
