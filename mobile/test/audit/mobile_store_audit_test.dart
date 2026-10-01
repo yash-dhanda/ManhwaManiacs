@@ -158,8 +158,8 @@ void main() {
     });
 
     testWidgets(
-        'the claim follows the window as it slides, and each chapter that '
-        'ENTERS the feed has its expiry timer cancelled', (tester) async {
+        'the claim follows the window as it slides, and only the route '
+        "chapter's expiry timer is cancelled", (tester) async {
       const c1 = (sourceId: 'asura', seriesKey: 's', chapterKey: 'c1');
       const c2 = (sourceId: 'asura', seriesKey: 's', chapterKey: 'c2');
       const c3 = (sourceId: 'asura', seriesKey: 's', chapterKey: 'c3');
@@ -198,7 +198,9 @@ void main() {
         (scopeId: 'u1p1', id: c1),
         (scopeId: 'u1p1', id: c2),
       });
-      expect(store.cleared, [c1, c2]);
+      // c2 is protected by the claim, not un-stamped: a feed prepending the
+      // chapter just finished must not cancel its expiry.
+      expect(store.cleared, [c1]);
 
       // Two chapters in, the window has released c1 — the route's chapter is
       // no longer on screen, and c3 is.
@@ -208,9 +210,8 @@ void main() {
         (scopeId: 'u1p1', id: c2),
         (scopeId: 'u1p1', id: c3),
       });
-      // Only the newcomer: a window that slides back and forth over the same
-      // chapter must not rewrite its row every frame.
-      expect(store.cleared, [c1, c2, c3]);
+      // Still only the route's chapter, written once.
+      expect(store.cleared, [c1]);
     });
   });
 
