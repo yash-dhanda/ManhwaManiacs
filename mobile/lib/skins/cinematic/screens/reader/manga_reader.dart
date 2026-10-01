@@ -1031,7 +1031,6 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
         ref,
         sourceId: _id.sourceId,
         seriesKey: _id.seriesKey,
-        routeChapterId: _id.chapterKey,
         nextChapterId: nextSummary?.id ?? feedLast?.nextChapterId,
       );
     }

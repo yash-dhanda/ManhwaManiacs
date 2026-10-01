@@ -376,13 +376,6 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
             chapter.previousChapterId ?? neighbours?.previousChapterId;
         final nextChapterId = chapter.nextChapterId ?? neighbours?.nextChapterId;
 
-        _autoQueue.maybeQueue(
-          ref,
-          sourceId: widget.sourceId,
-          seriesKey: widget.seriesId,
-          routeChapterId: widget.chapterId,
-          nextChapterId: nextChapterId,
-        );
 
         final feedController = _feedFor(
           chapter,
@@ -398,6 +391,13 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
         // of a stalled run walks the reader back to where they started.
         final beforeFeed = feedController.previousBeforeFeed;
         final beyondFeed = feedController.nextBeyondFeed;
+        // One chapter past what the feed holds, so reading on across seams keeps saving ahead.
+        _autoQueue.maybeQueue(
+          ref,
+          sourceId: widget.sourceId,
+          seriesKey: widget.seriesId,
+          nextChapterId: beyondFeed ?? nextChapterId,
+        );
 
         return OpenChapterScope(
           chapterId: (
