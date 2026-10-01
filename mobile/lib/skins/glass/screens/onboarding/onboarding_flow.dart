@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/onboarding/models/taste.dart';
@@ -162,6 +163,13 @@ class GlassOnboardingFlow extends AutoDisposeNotifier<GlassOnboardingState> {
       return pick;
     }
     final r = await ref.read(libraryRepositoryProvider).follow(sourceId: source.sourceId, seriesKey: source.seriesKey);
+    // Followed already (picked before a resume, whose draft keeps only the ids): the pick stands.
+    // ponytail: no follow id comes back, so undoing it keeps the follow; a lookup by source and key would fix that.
+    final err = r.isErr ? r.error : null;
+    if (err is ApiError && err.code == 'already_followed') {
+      state = state.copyWith(picks: [...state.picks.where((p) => p.anilistId != item.anilistId), base], everPicked: ever);
+      return base;
+    }
     if (r.isErr) {
       final failed = base.copyWith(failed: true);
       state = state.copyWith(picks: [...state.picks.where((p) => p.anilistId != item.anilistId), failed], everPicked: ever);
