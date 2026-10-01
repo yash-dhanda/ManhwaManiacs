@@ -19,15 +19,18 @@ class FannedStack extends StatelessWidget {
     final opened = fanOpenAngles(n);
     final h = coverWidth * 1.5;
     final step = coverWidth * 0.6;
+    // The outer covers lean up to 8 degrees: their corners reach this far past the box, so the box makes room for them and the fan
+    // never touches the screen edge.
+    final lean = h / 2 * math.sin(8 * math.pi / 180);
     return SizedBox(
-      width: coverWidth + (n == 0 ? 0 : n - 1) * step,
+      width: coverWidth + (n == 0 ? 0 : n - 1) * step + 2 * lean,
       height: h + 16,
       child: AnimatedBuilder(
         animation: open,
         builder: (context, _) => Stack(clipBehavior: Clip.none, children: [
           for (var i = 0; i < n; i++)
             Positioned(
-              left: i * step,
+              left: lean + i * step,
               top: 8,
               width: coverWidth,
               height: h,
