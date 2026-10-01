@@ -1271,7 +1271,7 @@ Every named move below is started through one helper per client (`play(name, …
 | **Genre field** | continuous | position-based dynamics (4 iterations/frame), restitution 0.4, centre pull k 4 | §8.7 step 4 | Onboarding | Bubbles at rest in a grid; taps change size without spring |
 | **Density reflow** | settle 431 ms | `snappy` | Grid items travel to their new cells from their pinched positions | Library pinch density | Instant reflow |
 | **Pin fly** | settle 558 ms | `zoom` | The pinned row travels into its slot in Pinned; the list closes the gap on `snappy` | Sources | Instant move |
-| **Fan open** | settle 643 ms | `celebrate` | The four stacked covers spread to −24°, −8°, 8°, 24° (three covers: −16°, 0°, 16°; two: −8°, 8°; one: 0°) | Collection card → detail | None |
+| **Fan open** | settle 643 ms | `celebrate` | The four stacked covers spread to −24°, −8°, 8°, 24° (three covers: −16°, 0°, 16°; two: −8°, 8°; one: 0°) | Collection card → detail | 150 ms fade: the covers show at their open angles and fade in (step mobile/32's acceptance line) |
 | **Drain** | settle 467 ms | `lens` | A removed series' segment drains out of the liquid meter | Downloads | Value jumps |
 | **Ambient drift** | settle 1,064 ms every 14 s | `drift` | Blobs move within ±6 % of their anchors | Ambient field | Frozen |
 | **Light follow** | per frame | `track` | Specular angle follows device tilt (accelerometer gravity, §2.4.2 rule 5) or pointer (±25°) | Every glass rim | Pinned at 135° |

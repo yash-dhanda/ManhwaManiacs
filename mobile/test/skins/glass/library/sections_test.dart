@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,9 +9,11 @@ import 'package:manhwamaniacs/features/library/models/reading_history_item.dart'
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
+import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/row_shell.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/add_series_sheet.dart';
+import 'package:manhwamaniacs/skins/glass/screens/library/fanned_stack.dart';
 
 import '../../../features/library/shelf_fixtures.dart';
 import '../../../screenshots/support/shot_harness.dart';
@@ -74,6 +78,27 @@ void main() {
     await _settle(t, 10);
     expect(rig.at, '/library/collections/3');
     expect(lib.calls, contains('getCollection:3'));
+  });
+
+  testWidgets('Reduce Motion: Fan open is a 150 ms fade with the covers already at their open angles', (t) async {
+    final was = GlassMotion.isReduced;
+    GlassMotion.isReduced = () => true;
+    addTearDown(() => GlassMotion.isReduced = was);
+    final c = AnimationController(vsync: const TestVSync());
+    addTearDown(c.dispose);
+    await t.pumpWidget(Directionality(
+      textDirection: TextDirection.ltr,
+      child: Center(child: FannedStack(covers: const [SizedBox(), SizedBox(), SizedBox(), SizedBox()], open: c)),
+    ),);
+    final run = GlassMotion.play(MotionName.fanOpen, controller: c, target: 1);
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 75));
+    final angles = [for (final r in t.widgetList<Transform>(find.byType(Transform))) math.atan2(r.transform.entry(1, 0), r.transform.entry(0, 0)) * 180 / math.pi];
+    expect(angles.map((a) => a.roundToDouble()), [-24, -8, 8, 24]);
+    expect(t.widget<Opacity>(find.byType(Opacity)).opacity, closeTo(0.5, 0.1));
+    await t.pump(const Duration(milliseconds: 100));
+    await run;
+    expect(t.widget<Opacity>(find.byType(Opacity)).opacity, 1);
   });
 
   testWidgets('a new collection drops into the list (Card drop); the first list mounts at rest', (t) async {

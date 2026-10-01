@@ -92,8 +92,8 @@ class _GlassCollectionsPageState extends ConsumerState<GlassCollectionsPage> {
 
   Future<void> _open(Collection c) async {
     final key = _keys[c.id];
-    const reduced = false;
-    if (!reduced) unawaited(key?.currentState?.fanOpen());
+    // Reduce Motion: the card stays at rest; the detail's header fades its fan in (Fan open, 150 ms fade).
+    if (!GlassMotion.isReduced()) unawaited(key?.currentState?.fanOpen());
     await GoRouter.of(context).push<void>(Routes.collection(c.id));
     unawaited(key?.currentState?.fanClose());
   }

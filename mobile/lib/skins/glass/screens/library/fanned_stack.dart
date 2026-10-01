@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
+import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/collection_card.dart' show fanOpenAngles, fanRestAngles;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 
@@ -19,12 +20,14 @@ class FannedStack extends StatelessWidget {
     final opened = fanOpenAngles(n);
     final h = coverWidth * 1.5;
     final step = coverWidth * 0.6;
+    // Reduce Motion (Fan open, 150 ms fade): the covers sit at their open angles and [open] fades them in instead of turning them.
+    final reduced = GlassMotion.isReduced();
     return SizedBox(
       width: coverWidth + (n == 0 ? 0 : n - 1) * step,
       height: h + 16,
       child: AnimatedBuilder(
         animation: open,
-        builder: (context, _) => Stack(clipBehavior: Clip.none, children: [
+        builder: (context, _) => Opacity(opacity: reduced ? open.value.clamp(0.0, 1.0) : 1, child: Stack(clipBehavior: Clip.none, children: [
           for (var i = 0; i < n; i++)
             Positioned(
               left: i * step,
@@ -32,11 +35,11 @@ class FannedStack extends StatelessWidget {
               width: coverWidth,
               height: h,
               child: Transform.rotate(
-                angle: (rest[i] + (opened[i] - rest[i]) * open.value) * math.pi / 180,
+                angle: (reduced ? opened[i] : rest[i] + (opened[i] - rest[i]) * open.value) * math.pi / 180,
                 child: ClipRRect(borderRadius: BorderRadius.circular(gt.radiusSm), child: covers[i]),
               ),
             ),
-        ],),
+        ],),),
       ),
     );
   }
