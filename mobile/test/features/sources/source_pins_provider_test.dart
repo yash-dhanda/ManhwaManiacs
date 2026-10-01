@@ -44,6 +44,7 @@ class _FakePinServer implements SourcesRepository {
   List<SourcePin> stored = const [];
   bool listSourcesFails = false;
   bool refuseWrites = false;
+  bool failNextWrite = false;
   final List<List<String>> writes = [];
 
   @override
@@ -69,6 +70,11 @@ class _FakePinServer implements SourcesRepository {
   @override
   Future<Result<List<SourcePin>>> replacePins(List<String> sourceIds) async {
     writes.add(List.of(sourceIds));
+    await Future<void>.delayed(Duration.zero);
+    if (failNextWrite) {
+      failNextWrite = false;
+      return const Err(NetworkError(message: 'offline'));
+    }
     final unknown = sourceIds.where((id) => !installed.contains(id)).toList();
     if (refuseWrites || unknown.isNotEmpty) {
       return const Err(
@@ -175,5 +181,20 @@ void main() {
       expect(state.ids, isEmpty);
       expect(sourcePinsMigrated(prefs), isTrue);
     });
+  });
+
+  test('a failed toggle is not resurrected by a toggle that overlapped it',
+      () async {
+    final server = _FakePinServer({'x', 'y'});
+    final (container, _) = await makeContainer(server, legacy: const []);
+    await container.read(sourcePinsProvider.future);
+    server.failNextWrite = true;
+    final notifier = container.read(sourcePinsProvider.notifier);
+    final a = notifier.toggle('x');
+    final b = notifier.toggle('y');
+    await expectLater(a, throwsA(anything));
+    await b;
+    expect(server.stored.map((p) => p.sourceId), ['y']);
+    expect(container.read(sourcePinsProvider).value!.ids, ['y']);
   });
 }
