@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
+import 'package:manhwamaniacs/features/circle/utils/letters.dart' show noteLength, noteLimit;
 import 'package:manhwamaniacs/features/circle/utils/letters_deferred.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
@@ -91,8 +92,8 @@ class _LetterNoteBodyState extends ConsumerState<LetterNoteBody> {
     return Material(type: MaterialType.transparency, child: ListView(
       padding: EdgeInsets.fromLTRB(m, 4, m, 24),
       children: [
-        GlassTextArea(controller: _c, label: "Why they'll like it", maxLength: kNoteMax, showCounter: false, onChanged: (_) => setState(() {})),
-        Align(alignment: Alignment.centerRight, child: Padding(padding: const EdgeInsets.only(top: 4), child: GlassText('${_c.text.characters.length}/$kNoteMax', role: gt.typeMono, color: gt.colorLabel2))),
+        GlassTextArea(controller: _c, label: "Why they'll like it", maxLength: kNoteMax, inputFormatters: [noteLimit], showCounter: false, onChanged: (_) => setState(() {})),
+        Align(alignment: Alignment.centerRight, child: Padding(padding: const EdgeInsets.only(top: 4), child: GlassText('${noteLength(_c.text)}/$kNoteMax', role: gt.typeMono, color: gt.colorLabel2))),
         const SizedBox(height: 16),
         GlassButton(label: 'Send', variant: GlassButtonVariant.primary, fullWidth: true, loading: _busy, onPressed: _busy ? null : () => unawaited(_send())),
       ],

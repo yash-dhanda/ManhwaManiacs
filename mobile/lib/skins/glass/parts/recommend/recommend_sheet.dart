@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
+import 'package:manhwamaniacs/features/circle/utils/letters.dart' show noteLimit;
 import 'package:manhwamaniacs/features/circle/utils/recommend_targets.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart' show librarySeriesPickerProvider;
@@ -268,7 +269,7 @@ class _RecommendSheetBodyState extends ConsumerState<RecommendSheetBody> with Ti
             for (final x in targets.disabled) _orb(x, enabled: false, reason: "${x.name} isn't taking recommendations"),
           ],),
         const SizedBox(height: 20),
-        GlassTextArea(controller: _note, label: "Why they'll like it", maxLength: kNoteMax, enabled: !offline),
+        GlassTextArea(controller: _note, label: "Why they'll like it", maxLength: kNoteMax, inputFormatters: [noteLimit], enabled: !offline),
         const SizedBox(height: 16),
         GlassButton(
           label: 'Send',

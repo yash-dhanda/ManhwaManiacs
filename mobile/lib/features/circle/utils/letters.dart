@@ -1,7 +1,16 @@
 import 'dart:math' as math;
 import 'dart:ui' show Rect;
 
+import 'package:flutter/services.dart' show TextInputFormatter;
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
+
+/// The server's note limit (`NOTE_MAX`), counted as it counts: code points (Python `len`), not the graphemes Flutter's
+/// `maxLength` counts. A flag or a family emoji is one grapheme but up to eight code points.
+const int kLetterNoteMax = 140;
+int noteLength(String note) => note.runes.length;
+
+/// Stops typing at [kLetterNoteMax] code points, so a note the field accepts is one the server accepts.
+final TextInputFormatter noteLimit = TextInputFormatter.withFunction((old, next) => noteLength(next.text) > kLetterNoteMax ? old : next);
 
 /// Letters in state `new`: the Index folio, the thumb-index badge and the LETTERS tab count.
 int newCount(List<Letter> letters) => letters.where((l) => l.state == LetterState.newLetter).length;
