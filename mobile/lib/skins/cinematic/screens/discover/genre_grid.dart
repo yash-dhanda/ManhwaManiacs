@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
@@ -98,9 +99,11 @@ class _GenreGridScreenState extends ConsumerState<GenreGridScreen> {
   Widget build(BuildContext context) {
     final t = context.cine;
     final dismissed = ref.watch(dismissedPicksProvider);
+    // The server gates on serve; this holds the 18+ gate for a page fetched before it closed.
+    final gateOpen = ref.watch(matureGateOpenProvider);
     final items = [
       for (final i in _items)
-        if (!dismissed.contains(pickId(i))) i,
+        if (!dismissed.contains(pickId(i)) && (gateOpen || !i.isAdult)) i,
     ];
     final cols = forYouColumns(MediaQuery.sizeOf(context).width);
     final rows = (items.length / cols).ceil();
