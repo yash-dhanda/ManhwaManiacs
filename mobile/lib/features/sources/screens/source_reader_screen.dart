@@ -419,7 +419,7 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
           ],
           child: ReaderContent(
             key: ValueKey(
-              '${widget.sourceId}:${widget.seriesId}:${widget.chapterId}',
+              frames.keepAcrossChapters ? '${widget.sourceId}:${widget.seriesId}' : '${widget.sourceId}:${widget.seriesId}:${widget.chapterId}',
             ),
             identity: (
               sourceId: widget.sourceId,
