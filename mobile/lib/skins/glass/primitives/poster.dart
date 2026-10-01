@@ -664,17 +664,25 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
 
     // A narrow poster cannot hold the status tag and "N new" side by side: "N new" drops under the status tag.
     return LayoutBuilder(builder: (context, box) {
-    final stackNew = m.status != null && m.newCount > 0 && box.maxWidth < 150;
+    // The tags grow with the text size (to 1.5x), so the room they need does too.
+    final stackNew = m.status != null && m.newCount > 0 && box.maxWidth < 150 * MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5).scale(1);
     return Stack(
       clipBehavior: Clip.none,
       children: [
         Positioned.fill(child: cover),
         if (sel) Positioned.fill(child: IgnorePointer(child: DecoratedBox(decoration: ShapeDecoration(shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(widget.radius), side: BorderSide(color: gt.colorIris500, width: 2)))))),
         // Top-left: the status tag, or the favourite star on hover and focus.
+        // A tag wider than the cover (large text on a narrow poster) scales down inside it, never past its edge.
         Positioned(
           left: 8,
           top: 8,
-          child: Stack(
+          right: 8,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.topLeft,
+              child: Stack(
             children: [
               if (m.status != null || (m.mature && !cornerVisible)) fade(!hideTags, Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                 if (m.status != null) GlassBadge.status(m.status!, onCover: true),
@@ -683,6 +691,8 @@ class _GlassPosterState extends ConsumerState<GlassPoster> with TickerProviderSt
               ],),),
               fade(cornerVisible && widget.onFavourite != null, cornerButton(GlassGlyph.star.regular, gt.colorStreakCore, 'Favourite', widget.onFavourite, fill: GlassGlyph.star.fill, on: m.favourite)),
             ],
+          ),
+            ),
           ),
         ),
         // Top-right: "N new", or the follow bell on hover and focus; the check orb in select mode.
