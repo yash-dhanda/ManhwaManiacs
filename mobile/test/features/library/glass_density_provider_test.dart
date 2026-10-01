@@ -49,6 +49,16 @@ void main() {
     expect((await _open({})).read(glassDensityProvider), const GlassDensity());
   });
 
+  test('the libraryColumns the settings migration seeded in mm.glass.prefs wins over K15; K16 list still wins', () async {
+    Future<GlassDensity> at(Map<String, Object> p) async => (await _open(p)).read(glassDensityProvider);
+    expect((await at({'mm.glass.prefs.u1p1': '{"libraryColumns":4}', 'settings_library_cover_scale': 1.4})).phone, GlassPhoneDensity.c4);
+    expect((await at({'mm.glass.prefs.u1p1': '{"libraryColumns":2}'})).phone, GlassPhoneDensity.c2);
+    expect((await at({'mm.glass.prefs.u1p1': '{"libraryColumns":9}', 'settings_library_cover_scale': 1.4})).phone, GlassPhoneDensity.c2);
+    expect((await at({'mm.glass.prefs.u1p2': '{"libraryColumns":4}'})).phone, GlassPhoneDensity.c3);
+    final l = await at({'mm.glass.prefs.u1p1': '{"libraryColumns":4}', 'manhwamaniacs:library-query': '{"viewMode":"list"}'});
+    expect(l.phone, GlassPhoneDensity.list);
+  });
+
   test('the derived value is written once, the legacy keys stay, and a change persists per profile', () async {
     var c = await _open({'settings_library_cover_scale': 1.4});
     c.read(glassDensityProvider);
