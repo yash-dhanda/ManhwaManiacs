@@ -168,7 +168,17 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
     return LayoutBuilder(builder: (context, c) {
       var width = contentW + 2 * padH;
       if (widget.fullWidth && c.hasBoundedWidth) width = c.maxWidth;
-      final size = Size(width, isPlain ? math.max(height, hit) : height);
+      // A label wider than the room (large text, a narrow phone) wraps to centred lines (three at most) in a taller capsule
+      // instead of ellipsizing: the button never hides what it does.
+      var lines = 1;
+      var h = height;
+      if (c.hasBoundedWidth && contentW + 2 * padH > c.maxWidth) {
+        width = c.maxWidth;
+        lines = 3;
+        final wrapped = measureText(context, labelFor, style(labelFor), maxWidth: math.max(1.0, width - 2 * padH - iconW), maxLines: lines);
+        h = math.max(m.minHeight, wrapped.height + 20);
+      }
+      final size = Size(width, isPlain ? math.max(h, hit) : h);
 
       final tinted = v == GlassButtonVariant.primary && !_disabled && !suppressed;
       final finish = tinted ? GlassFinishKind.tinted : GlassFinishKind.regular;
@@ -250,7 +260,8 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
                     wght: info.states.pressed ? baseWght + 40 : baseWght,
                     color: col,
                     maxScale: 1.5,
-                    maxLines: 1,
+                    maxLines: lines,
+                    textAlign: lines > 1 ? TextAlign.center : null,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
