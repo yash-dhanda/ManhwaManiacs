@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/physics.dart' show SpringSimulation;
 import 'package:flutter/services.dart';
@@ -232,7 +233,9 @@ class _GlassAlertState<T> extends ConsumerState<GlassAlert<T>> with TickerProvid
   @override
   Widget build(BuildContext context) {
     final phone = _phone;
-    final width = phone ? 300.0 : 420.0;
+    // At large text a phone alert widens (to the screen less 24 px a side) so its title and buttons keep their words.
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    final width = phone ? math.min(MediaQuery.sizeOf(context).width - 48, 300.0 * scale.clamp(1.0, 1.4)) : 420.0;
     final inner = width - 40;
     final actions = widget.actions;
     final stacked = actions.length >= 3 || (actions.length == 2 && actions.any((a) => _labelW(a.label) + 40 > (inner - 8) / 2));
