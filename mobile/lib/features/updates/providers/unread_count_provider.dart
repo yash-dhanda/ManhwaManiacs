@@ -26,7 +26,8 @@ class UnreadCountNotifier extends Notifier<int> with WidgetsBindingObserver {
   @override
   int build() {
     final signedIn = ref.watch(authControllerProvider) is AuthAuthenticated;
-    final hasProfile = ref.watch(activeProfileProvider.select((p) => p != null));
+    // The id, not just presence: a switch from one profile to another starts again from that profile's count.
+    final hasProfile = ref.watch(activeProfileProvider.select((p) => p?.id)) != null;
     final every = ref.watch(unreadPollIntervalProvider);
     _alive = true;
     _foreground = WidgetsBinding.instance.lifecycleState != AppLifecycleState.paused;
