@@ -81,14 +81,16 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
     final f = d.followed;
     if (f == null || !isOnline(ref)) return;
     feedback(ref, HapticEvent.favorite, SoundEvent.favorite);
-    await ref.read(libraryRepositoryProvider).patchSeries(f.id, isFavorite: !f.isFavorite);
+    final err = await ref.read(librarySeriesActionsProvider).setFavorite(f, favorite: !f.isFavorite);
+    if (err != null && mounted) featureToast(context, err.userMessage);
     ref.invalidate(updatesProvider);
   }
 
   Future<void> _notify() async {
     final f = d.followed;
     if (f == null || !isOnline(ref)) return;
-    await ref.read(libraryRepositoryProvider).patchSeries(f.id, notify: !f.notify);
+    final r = await ref.read(libraryRepositoryProvider).patchSeries(f.id, notify: !f.notify);
+    if (r.isErr && mounted) featureToast(context, r.error.userMessage);
     ref.invalidate(updatesProvider);
   }
 
