@@ -103,7 +103,7 @@ class GlassWorldCard extends StatelessWidget {
           else
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [Expanded(child: GlassLabel(title, role: gt.typeHeadline, maxLines: 2)), const SizedBox(width: 4), badge],
+              children: [Expanded(child: GlassLabel(title, role: gt.typeHeadline, maxLines: 2)), const SizedBox(width: 4), ConstrainedBox(constraints: const BoxConstraints(maxWidth: 96), child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.topRight, child: badge))],
             ),
           GlassLabel(kind, role: gt.typeCaption1, color: gt.colorLabel3),
           GlassLabel(stats, role: gt.typeMono, size: 13, height: 16, color: gt.colorLabel2),
