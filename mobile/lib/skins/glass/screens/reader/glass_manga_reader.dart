@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' show PointerScrollEvent;
 import 'package:flutter/material.dart' show Material, MaterialType, TextField, InputDecoration, InputBorder;
 import 'package:flutter/scheduler.dart' show SchedulerBinding, SchedulerPhase;
-import 'package:flutter/semantics.dart' show CustomSemanticsAction;
+import 'package:flutter/semantics.dart' show CustomSemanticsAction, SemanticsService;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -504,6 +504,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       // The engine publishes from inside its own build: never rebuild this reader in that phase.
       SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks ? WidgetsBinding.instance.addPostFrameCallback((_) => apply()) : apply();
     }
+    _announceChapter(s.chapterId);
     _maybeAutoNext(s);
     _syncWake();
     final f = s.furtherElsewhere;
@@ -520,6 +521,19 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   }
 
   FurtherElsewhere? _furtherShown;
+
+  /// The chapter last announced. A chapter change says "Chapter 144" once, politely; a page change says nothing (glass 14.5).
+  String? _announcedChapter;
+
+  void _announceChapter(String chapterId) {
+    if (chapterId.isEmpty) return;
+    final changed = _announcedChapter != null && _announcedChapter != chapterId;
+    _announcedChapter = chapterId;
+    if (!changed || !mounted) return;
+    try {
+      unawaited(SemanticsService.sendAnnouncement(View.of(context), chapterLabel(chapterId), Directionality.of(context)));
+    } catch (_) {}
+  }
 
   /// Fingers on the strip: auto next never fires under a held pull.
   int _down = 0;
