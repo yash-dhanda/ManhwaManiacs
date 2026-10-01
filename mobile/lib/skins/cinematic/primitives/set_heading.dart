@@ -255,7 +255,7 @@ class _SetHeadingState extends ConsumerState<SetHeading> with TickerProviderStat
             opacity: t,
             child: Transform.translate(
               offset: Offset(0, rise * (1 - t)),
-              child: b < 0.05 ? child : ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: b, sigmaY: b), child: child),
+              child: b < 0.05 || !CineMotion.claimBlur() ? child : ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: b, sigmaY: b), child: child),
             ),
           );
         },

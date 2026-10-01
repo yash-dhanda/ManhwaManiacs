@@ -159,6 +159,28 @@ void main() {
     expect(_enters, lessThanOrEqualTo(1));
   });
 
+  testWidgets('an edge swipe on the reader ends its gesture when released (no frozen navigator)', (t) async {
+    final r = await _app(t);
+    final nav = t.state<NavigatorState>(find.byType(Navigator).first);
+    for (final dx in [80.0, 300.0]) {
+      if (find.text('reader').evaluate().isEmpty) {
+        unawaited(r.push<void>('/reader/x'));
+        await t.pumpAndSettle();
+      }
+      final g = await t.startGesture(const Offset(4, 400));
+      await g.moveBy(const Offset(20, 0));
+      await t.pump();
+      await g.moveBy(Offset(dx - 20, 0));
+      await t.pump();
+      expect(nav.userGestureInProgress, isTrue);
+      await g.up();
+      await t.pumpAndSettle();
+      expect(nav.userGestureInProgress, isFalse);
+    }
+    expect(find.text('reader'), findsNothing);
+    expect(find.text('home'), findsOneWidget);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS),);
+
   test('ReaderTarget builds encoded locations', () {
     expect(const ReaderTarget.manifest('s', 'a/b', 'c d', page: 3).location, '/reader/s/a%2Fb/c%20d?page=3');
     expect(const ReaderTarget.readAll('s', 'k', from: '12').location, '/read-all/s/k?from=12');

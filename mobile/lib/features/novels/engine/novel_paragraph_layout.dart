@@ -154,34 +154,37 @@ class NovelParagraphLayout {
   }
 
   /// Line [n] of [tp]: its offsets, extent and baseline, in [tp] coordinates.
-  ({int start, int end, double top, double bottom, double baseline}) _lineBox(TextPainter tp, int n) {
-    final metrics = tp.computeLineMetrics();
-    var start = 0;
-    for (var i = 0; i <= n && i < metrics.length; i++) {
-      final range = tp.getLineBoundary(TextPosition(offset: start));
-      if (i == n) {
-        final boxes = tp.getBoxesForSelection(TextSelection(baseOffset: range.start, extentOffset: math.max(range.start + 1, range.end)));
-        var top = double.infinity, bottom = 0.0;
-        for (final b in boxes) {
-          top = math.min(top, b.top);
-          bottom = math.max(bottom, b.bottom);
-        }
-        if (boxes.isEmpty) {
-          top = metrics[i].baseline - metrics[i].ascent;
-          bottom = metrics[i].baseline + metrics[i].descent;
-        }
-        return (start: range.start, end: range.end, top: top, bottom: bottom, baseline: metrics[i].baseline);
-      }
-      start = range.end;
+  ///
+  /// The line is found from its own baseline. Walking from offset 0 by `getLineBoundary(end)` never
+  /// passed a hard `\n` (the boundary excludes it), so every line after one repeated the same box:
+  /// the paginator kept them all on one overflowing page, and each call re-laid every line before
+  /// it (O(lines²) on the UI isolate, seconds for a chapter sent as one `\n`-broken paragraph).
+  ({int start, int end, double top, double bottom, double baseline}) _lineBox(TextPainter tp, int n, [List<ui.LineMetrics>? lineMetrics]) {
+    final metrics = lineMetrics ?? tp.computeLineMetrics();
+    if (n >= metrics.length) {
+      final end = tp.plainText.length;
+      return (start: end, end: end, top: 0, bottom: tp.height, baseline: tp.height);
     }
-    return (start: start, end: start, top: 0, bottom: tp.height, baseline: tp.height);
+    final m = metrics[n];
+    final range = tp.getLineBoundary(tp.getPositionForOffset(Offset(m.left, m.baseline)));
+    final boxes = tp.getBoxesForSelection(TextSelection(baseOffset: range.start, extentOffset: math.max(range.start + 1, range.end)));
+    var top = double.infinity, bottom = 0.0;
+    for (final b in boxes) {
+      top = math.min(top, b.top);
+      bottom = math.max(bottom, b.bottom);
+    }
+    if (boxes.isEmpty) {
+      top = m.baseline - m.ascent;
+      bottom = m.baseline + m.descent;
+    }
+    return (start: range.start, end: range.end, top: top, bottom: bottom, baseline: m.baseline);
   }
 
   void _addLines(_Block b) {
     final metrics = b.painter.computeLineMetrics();
     final limit = b.clipBottom == null ? metrics.length : math.min(3, metrics.length);
     for (var i = 0; i < limit; i++) {
-      final l = _lineBox(b.painter, i);
+      final l = _lineBox(b.painter, i, metrics);
       lines.add(NovelLine(
         start: math.max(0, l.start + b.globalStart),
         end: math.min(text.length, l.end + b.globalStart),
