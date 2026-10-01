@@ -73,6 +73,7 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
   Offset? _rippleAt;
   bool _rippled = false;
   Timer? _rateTimer;
+  bool _limited = false;
 
   @override
   void initState() {
@@ -190,7 +191,9 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
   void _rateLimit(Duration wait) {
     final n = wait.inSeconds.clamp(1, 3600);
     ref.read(glassRateLimitProvider.notifier).state = GlassRateLimit('Sources are busy. Retrying in $n s', n);
-    glassFire(ref, HapticEvent.warning);
+    // One warning per busy spell, not one per retry.
+    if (!_limited) glassFire(ref, HapticEvent.warning);
+    _limited = true;
     _rateTimer?.cancel();
     _rateTimer = Timer(wait, () {
       if (!mounted) return;
@@ -291,7 +294,10 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
         (ModalRoute.of(context)?.isCurrent ?? true);
     ref.listen<AsyncValue<HomeFeedView>>(homeFeedProvider, (prev, next) {
       final v = next.valueOrNull;
-      if (v != null && v.retryAfter == null) _rateTimer?.cancel();
+      if (v != null && v.retryAfter == null) {
+        _rateTimer?.cancel();
+        _limited = false;
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _syncAccessory();
       });

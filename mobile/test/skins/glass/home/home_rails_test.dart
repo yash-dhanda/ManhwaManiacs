@@ -85,7 +85,7 @@ void main() {
     expect(ids(moved).toSet(), ids(base).toSet());
   });
 
-  test('the AI-off shelf fallback keeps its own title and is not an AI rail', () {
+  test('the AI-off shelf fallback keeps its own title and its cards are not machine picks', () {
     final j = jsonDecode(File('test/fixtures/home/ready.json').readAsStringSync()) as Map<String, dynamic>;
     for (final s in j['sections'] as List) {
       if ((s as Map)['type'] == 'picked') {
@@ -96,7 +96,7 @@ void main() {
       }
     }
     final fy = composeHomeRails(view(HomeFeed.fromJson(j))).firstWhere((x) => x.id == 'picked');
-    expect((fy.title, fy.subtitle, fy.ai), ('From your shelf', null, false));
+    expect((fy.title, fy.subtitle, fy.machine), ('From your shelf', null, false));
   });
 }
 

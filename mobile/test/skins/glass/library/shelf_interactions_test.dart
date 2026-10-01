@@ -107,7 +107,7 @@ void main() {
   });
 
   testWidgets('a later visit with new query params applies them to the kept-alive shelf', (t) async {
-    final rig = await pumpLibrary(t, _three(), start: '/library');
+    final rig = await pumpLibrary(t, _three());
     await _settle(t);
     rig.router.go('/');
     await _settle(t);
