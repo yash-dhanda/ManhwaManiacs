@@ -51,7 +51,7 @@ String? _clippedBy(Element e, Rect ring) {
     }
     final ro = a.renderObject;
     // A clip with Clip.none (a transparent Material's ClipPath, an idle swipe row) cuts nothing.
-    final none = switch (ro) { RenderClipRect r => r.clipBehavior == Clip.none, RenderClipRRect r => r.clipBehavior == Clip.none, RenderClipPath r => r.clipBehavior == Clip.none, RenderClipRSuperellipse r => r.clipBehavior == Clip.none, _ => false };
+    final none = switch (ro) { final RenderClipRect r => r.clipBehavior == Clip.none, final RenderClipRRect r => r.clipBehavior == Clip.none, final RenderClipPath r => r.clipBehavior == Clip.none, final RenderClipRSuperellipse r => r.clipBehavior == Clip.none, _ => false };
     if (!none && (ro is RenderClipRect || ro is RenderClipRRect || ro is RenderClipPath || ro.runtimeType.toString().contains('Clip'))) {
       if (ro is RenderBox && ro.hasSize && ro.attached) {
         final r = ro.localToGlobal(Offset.zero) & ro.size;

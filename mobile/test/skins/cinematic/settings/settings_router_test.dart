@@ -61,7 +61,7 @@ Future<(ProviderContainer, GoRouter, int Function())> pumpApp(WidgetTester t, {S
     unreadNotificationCountProvider.overrideWith(_Unread.new),
     activeDownloadCountProvider.overrideWithValue(0),
     // An Android device with the alternate icons registered: the switch queues the alias in prefs, no platform channel.
-    if (iconFollows) appIconSwitcherProvider.overrideWithValue(AppIconSwitcher(prefs: p, glassAvailable: true, platform: TargetPlatform.android)),
+    if (iconFollows) appIconSwitcherProvider.overrideWithValue(AppIconSwitcher(prefs: p, platform: TargetPlatform.android)),
   ],);
   addTearDown(c.dispose);
   t.view.physicalSize = const Size(390, 844);
