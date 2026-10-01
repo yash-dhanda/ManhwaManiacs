@@ -956,6 +956,13 @@ NOT_SERIES_DERIVED = {
         "the gate is shut, and the 'On: <source>' availability never names a "
         "mature source to a shut gate"
     ),
+    "/discover/genre/{genre}/ai": (
+        "the Discover genre grid: AniList-verified WorldItems built by the "
+        "same WorldRecs path, with isAdult/Hentai entries dropped and mature "
+        "sources left out of availability while the gate is shut; the shared "
+        "per-genre AI cache holds titles only and is gated when served. Walked "
+        "in tests/test_discover_genre.py"
+    ),
 }
 
 #: Every path this file actually drives, taken from the tables above so the
