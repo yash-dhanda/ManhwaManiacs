@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/features/profiles/utils/daily_goal_options.dart';
 import 'package:manhwamaniacs/features/settings/utils/mature_gate_effects.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/copy/errors.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart' show moodColour;
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
@@ -303,8 +304,10 @@ class _GlassProfileFormState extends ConsumerState<GlassProfileForm> with Ticker
     final reason = offline ? 'Profiles need a connection to save' : null;
     final nameLen = _name.text.characters.length;
     final showCounter = nameLen >= 24;
+    // In a sheet the form sits on the sheets' 20 px gutter; as a page the scaffold's margin already applies.
+    final side = GlassFrame.contentMargin(context) == 0 ? 0.0 : 20.0;
     final column = Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+      padding: EdgeInsets.fromLTRB(side, 8, side, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

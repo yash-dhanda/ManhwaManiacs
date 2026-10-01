@@ -116,7 +116,8 @@ class GlassListRow extends ConsumerWidget {
             children: [
               if (tile != null) ...[tile, const SizedBox(width: 12)],
               Expanded(child: texts),
-              if (valueW != null) ...[const SizedBox(width: 12), Flexible(child: valueW)],
+              // The value sits against the trailing edge (beside its caret), never floating mid-row.
+              if (valueW != null) ...[const SizedBox(width: 12), Flexible(child: Align(alignment: AlignmentDirectional.centerEnd, child: valueW))],
               if (trailing != null) ...[const SizedBox(width: 12), trailing!],
               if (caretW != null) ...[const SizedBox(width: 8), caretW],
             ],
