@@ -108,7 +108,8 @@ class GlassBadge extends StatelessWidget {
               ? const GlassSpinner(size: 10, color: Color(0xFF000000))
               : error
                   ? const SizedBox(width: 8, height: 8)
-                  : GlassLabel(_capped(count, max), role: gt.typeCaption1, wght: 700, color: const Color(0xFF000000)),
+                  // Tags on covers and icons stop growing at 1.2x: they decorate, the poster title carries the large text.
+                  : GlassLabel(_capped(count, max), role: gt.typeCaption1, wght: 700, color: const Color(0xFF000000), maxScale: 1.2),
         );
         if (!loading && !error) body = GlassPop(trigger: count, child: body);
       case _Kind.dot:
@@ -119,10 +120,10 @@ class GlassBadge extends StatelessWidget {
           child: DecoratedBox(decoration: BoxDecoration(color: gt.colorIris400, shape: BoxShape.circle)),
         );
       case _Kind.newCh:
-        body = capsule(height: 18, fill: gt.colorIris400, child: GlassLabel('${_capped(count, 99)} NEW', role: gt.typeCaption1, wght: 700, color: const Color(0xFF000000)));
+        body = capsule(height: 18, fill: gt.colorIris400, child: GlassLabel('${_capped(count, 99)} NEW', role: gt.typeCaption1, wght: 700, color: const Color(0xFF000000), maxScale: 1.2));
       case _Kind.status:
         final c = status!.color;
-        final label = GlassLabel(status!.text, role: gt.typeCaption1, wght: 600, extraTrackingEm: 0.06, color: c);
+        final label = GlassLabel(status!.text, role: gt.typeCaption1, wght: 600, extraTrackingEm: 0.06, color: c, maxScale: 1.2);
         body = onCover
             ? capsule(height: 22, fill: gt.colorCoverBacking, rim: c.withValues(alpha: 0.4), child: label)
             : capsule(height: 22, fill: Color.alphaBlend(c.withValues(alpha: 0.18), const Color(0xFF000000)), child: label);
