@@ -60,6 +60,14 @@ List<ChapterQueueRequest> queueRequests(
     ];
 
 /// Toast with an optional Undo (8 s for an Undo, `durHoldToast` otherwise).
+/// The toast for a mark (or its Undo) the server did not take.
+void markFailedToast(BuildContext context) => featureToast(context, 'Could not save that. Try again.');
+
+/// Runs an Undo and says so when it failed.
+Future<void> undoOrToast(BuildContext context, Future<bool> undo) async {
+  if (!await undo && context.mounted) markFailedToast(context);
+}
+
 void featureToast(BuildContext context, String message,
     {String? undoLabel, VoidCallback? onUndo,}) {
   final t = cineOf(context);
@@ -90,35 +98,48 @@ class ChapterMarks {
 
   void _refresh() => ref.invalidate(sourceSeriesServerProgressProvider(_key));
 
-  /// Marks [chapters] read. Returns the keys that were newly marked.
-  Future<List<String>> markRead(
+  Future<bool> _delete(List<String> keys) async {
+    for (final chunk in chunksOf200(keys)) {
+      final r = await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
+      if (r.isErr) return false;
+    }
+    return true;
+  }
+
+  Future<bool> _post(List<ProgressPush> rows) async {
+    for (final chunk in chunksOf200(rows)) {
+      final r = await ref.read(readerRepositoryProvider).saveProgressBatch(chunk);
+      if (r.isErr) return false;
+    }
+    return true;
+  }
+
+  /// Marks [chapters] read. Returns the keys that were newly marked, or null when the server did not take them.
+  Future<List<String>?> markRead(
     List<SourceChapterSummary> chapters, {
     required Set<String> previouslyCompleted,
   }) async {
-    final repo = ref.read(readerRepositoryProvider);
     final rows = manualReadRows([
       for (final c in chapters)
         (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number, pageCount: c.pageCount, completed: false),
     ]);
-    for (final chunk in chunksOf200(rows)) {
-      await repo.saveProgressBatch(chunk);
-    }
+    final ok = await _post(rows);
     _refresh();
-    return [for (final c in chapters) c.id];
+    return ok ? [for (final c in chapters) c.id] : null;
   }
 
-  /// The Undo of [markRead]: deletes only the rows that were not completed before.
-  Future<void> undoMarkRead(Set<String> previouslyCompleted, List<String> marked) async {
+  /// The Undo of [markRead]: deletes only the rows that were not completed before. False when it failed.
+  Future<bool> undoMarkRead(Set<String> previouslyCompleted, List<String> marked) async {
     final keys = undoMarkReadKeys(previouslyCompleted, marked);
-    if (keys.isEmpty) return;
-    for (final chunk in chunksOf200(keys)) {
-      await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
-    }
+    if (keys.isEmpty) return true;
+    final ok = await _delete(keys);
     _refresh();
+    return ok;
   }
 
-  /// Mark unread. Returns what was deleted, for the Undo.
-  Future<Map<String, SourceChapterProgress>> markUnread(List<String> keys) async {
+  /// Mark unread. Returns what was deleted, for the Undo, or null when the
+  /// server delete failed (the phone's progress is then kept).
+  Future<Map<String, SourceChapterProgress>?> markUnread(List<String> keys) async {
     // The merged (phone + server) positions, so an Undo re-posts rows that
     // exist only on the server too.
     final merged = ref.read(sourceSeriesProgressProvider(_key));
@@ -126,22 +147,21 @@ class ChapterMarks {
       for (final k in keys)
         if (merged[k] != null) k: merged[k]!,
     };
-    await ref
-        .read(sourceProgressProvider.notifier)
-        .forget(sourceId: d.sourceId, seriesId: d.seriesKey, chapterIds: keys);
-    for (final chunk in chunksOf200(keys)) {
-      await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
+    final ok = await _delete(keys);
+    if (ok) {
+      await ref
+          .read(sourceProgressProvider.notifier)
+          .forget(sourceId: d.sourceId, seriesId: d.seriesKey, chapterIds: keys);
     }
     _refresh();
-    return prior;
+    return ok ? prior : null;
   }
 
-  /// The Undo of [markUnread]: re-posts the deleted rows.
-  Future<void> undoMarkUnread(
+  /// The Undo of [markUnread]: re-posts the deleted rows. False when it failed.
+  Future<bool> undoMarkUnread(
     Map<String, SourceChapterProgress> deleted,
     Map<String, double?> numbers,
   ) async {
-    final repo = ref.read(readerRepositoryProvider);
     final rows = [
       for (final e in deleted.entries)
         ProgressPush(
@@ -155,15 +175,14 @@ class ChapterMarks {
           lastReadAt: e.value.updatedAt,
         ),
     ];
-    for (final chunk in chunksOf200(rows)) {
-      await repo.saveProgressBatch(chunk);
-    }
+    if (!await _post(rows)) return false;
     await ref.read(sourceProgressProvider.notifier).restoreRecords(
           sourceId: d.sourceId,
           seriesId: d.seriesKey,
           records: deleted,
         );
     _refresh();
+    return true;
   }
 
   /// A bookmark at page 1 of [c], through the bookmark outbox.
@@ -382,19 +401,21 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
     final before = _completed();
     final marked = await _marks.markRead(chapters, previouslyCompleted: before);
     if (!mounted) return;
+    if (marked == null) return markFailedToast(context);
     feedback(ref, HapticEvent.select);
     featureToast(context, message,
-        onUndo: () => unawaited(_marks.undoMarkRead(before, marked)),);
+        onUndo: () => unawaited(undoOrToast(context, _marks.undoMarkRead(before, marked))),);
   }
 
   Future<void> _markUnread(SourceChapterSummary c) async {
     final deleted = await _marks.markUnread([c.id]);
     if (!mounted) return;
+    if (deleted == null) return markFailedToast(context);
     feedback(ref, HapticEvent.select);
     featureToast(
       context,
       'Marked chapter${_num(c)} unread.',
-      onUndo: () => unawaited(_marks.undoMarkUnread(deleted, {c.id: c.number})),
+      onUndo: () => unawaited(undoOrToast(context, _marks.undoMarkUnread(deleted, {c.id: c.number}))),
     );
   }
 

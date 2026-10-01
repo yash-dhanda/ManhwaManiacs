@@ -124,6 +124,9 @@ class Recorder {
   final List<String> bookmarks = [];
   final List<String> following = [];
 
+  /// Progress writes answer with a network error.
+  bool failWrites = false;
+
   List<ProgressPush> get pushedRows => [for (final b in pushed) ...b];
 }
 
@@ -143,6 +146,7 @@ class FakeReader implements ReaderRepository {
   @override
   Future<Result<({int saved, int advanced})>> saveProgressBatch(List<ProgressPush> pushes) async {
     rec.pushed.add(pushes);
+    if (rec.failWrites) return const Err(NetworkError(message: 'offline in test'));
     return Ok((saved: pushes.length, advanced: pushes.length));
   }
 
@@ -170,6 +174,7 @@ class FakeReader implements ReaderRepository {
     required List<String> chapterKeys,
   }) async {
     rec.deleted.add((source: sourceId, series: seriesKey, keys: chapterKeys));
+    if (rec.failWrites) return const Err(NetworkError(message: 'offline in test'));
     return const Ok(null);
   }
 
