@@ -6,10 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
-import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
-import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
@@ -184,10 +183,10 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
     final t = context.cine;
     final sourcesAsync = ref.watch(sourcesListProvider);
     final pinsAsync = ref.watch(sourcePinsProvider);
-    final summary = ref.watch(sourceHealthSummaryProvider).valueOrNull;
     final query = ref.watch(sourcesFilterQueryProvider).trim().toLowerCase();
     final filter = ref.watch(sourcesFilterProvider);
-    final gateOpen = ref.watch(matureContentProvider).valueOrNull ?? false;
+    // The persisted fallback: a slow or failed GET /settings is not 18+ off.
+    final gateOpen = ref.watch(matureGateOpenProvider);
     final scope = ref.watch(contentModeScopeProvider);
     final pinsState = pinsAsync.valueOrNull;
     final pinsOk = pinsState?.synced ?? false;
@@ -330,15 +329,15 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
       for (final s in all)
         if (matches(s) && (filter != SourcesFilter.mature || s.mature)) s,
     ];
-    // After the 18+ gate the server-wide summary would over-count.
-    final rowsHealthy = all.where((s) => s.health?.status.name == 'ok').length;
-    final healthy = gateOpen ? (summary?.ok ?? rowsHealthy) : rowsHealthy;
+    // Over the listed rows: the server-wide summary spans both content modes
+    // and the gate, so it cannot be set against this total.
+    final healthy = all.where((s) => s.health?.status.name == 'ok').length;
     final deck =
         '${all.length} sources · $healthy healthy · ${pinnedRows.length} pinned';
     const pinReason =
         "Pinned sources couldn't be loaded, so pinning is off until they are.";
 
-    SourceRow row(SourceSummary s, {Widget? handle, int index = 0}) {
+    SourceRow row(SourceSummary s, {Widget? handle}) {
       final pinned = pinsState?.contains(s.id) ?? false;
       return SourceRow(
         key: ValueKey('row-${s.id}-${handle != null}'),
@@ -350,7 +349,14 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
         onOpen: () => context.push(Routes.source(s.id)),
         onTogglePin: () => _toggle(s),
         onMenu: () =>
-            _menu(s, pinned: pinned, index: index, last: pinnedRows.length - 1),
+            // Its place in the full pin order, which is what _move works on,
+            // whichever list (or filter) the row is drawn in.
+            _menu(
+              s,
+              pinned: pinned,
+              index: _visible.indexOf(s.id),
+              last: _visible.length - 1,
+            ),
         trailingHandle: handle,
       );
     }
@@ -526,7 +532,6 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen> {
                           key: ValueKey('pinned-${shownPinned[i].id}'),
                           child: row(
                             shownPinned[i],
-                            index: i,
                             handle: ReorderableDragStartListener(
                               index: i,
                               child: SizedBox(
