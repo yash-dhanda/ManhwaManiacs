@@ -45,13 +45,14 @@ class _GlassArrivalRevealState extends ConsumerState<GlassArrivalReveal>
 
   @override
   Widget build(BuildContext context) {
-    final from = _from;
-    if (from == null) return widget.child;
+    // One structure before, during and after the reveal: returning the bare child at either end remounted the dock (its glass
+    // re-materialised, a drag on it died) when the reveal started and again when it settled.
     return AnimatedBuilder(
       animation: _c,
       child: widget.child,
       builder: (context, child) {
-        if (_c.value >= 1) return child!;
+        final from = _from;
+        if (from == null || _c.value >= 1) return ClipPath(clipBehavior: Clip.none, child: child);
         final size = MediaQuery.sizeOf(context);
         final far = math.max(
             math.max(from.distance, (from - Offset(size.width, 0)).distance),
