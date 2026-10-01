@@ -146,7 +146,7 @@ class _ImageCache extends ConsumerWidget {
         data: (b) => GlassLabel(formatDownloadBytes(b), role: gt.typeBody),
       ),
       const SizedBox(height: 8),
-      GlassButton(label: 'Clear image cache', variant: GlassButtonVariant.plain, onPressed: () async {
+      GlassButton(label: 'Clear image cache', variant: GlassButtonVariant.plain, hang: true, onPressed: () async {
         await ref.read(settingsActionsProvider).clearImageCache();
         if (context.mounted) showGlassToast(ref, const GlassToastSpec('Image cache cleared'));
       },),
