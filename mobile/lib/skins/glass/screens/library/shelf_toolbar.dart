@@ -59,7 +59,7 @@ class ShelfToolbarDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(ShelfToolbarDelegate old) => true;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => _Toolbar(spec: spec, stuck: overlapsContent);
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => _Toolbar(spec: spec, stuck: overlapsContent || shrinkOffset > 0);
 }
 
 class _Toolbar extends ConsumerWidget {

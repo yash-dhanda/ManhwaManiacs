@@ -313,7 +313,8 @@ class _PinchRow extends StatelessWidget {
         valueListenable: live,
         child: child,
         builder: (context, p, child) {
-          if (p == null) return child!;
+          // Always a Transform (identity at rest): swapping the subtree's parent would remount every tile mid-gesture.
+          if (p == null) return Transform(transform: Matrix4.identity(), child: child);
           final ro = context.findRenderObject();
           final origin = ro is RenderBox && ro.attached ? ro.localToGlobal(Offset.zero) : Offset.zero;
           final f = p.focal - origin;
