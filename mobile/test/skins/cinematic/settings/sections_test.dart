@@ -5,6 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
+import 'package:manhwamaniacs/features/updates/repositories/updates_repository.dart';
+import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/features/settings/services/server_switch.dart';
 import 'package:manhwamaniacs/features/setup/utils/server_check.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
@@ -252,6 +256,15 @@ void main() {
       expect(find.text('The server enforces a 5-minute floor.'), findsOneWidget);
     });
 
+    testWidgets('Save after a switch flip leaves an interval above 120 min alone', (tester) async {
+      final repo = _RecordingUpdates();
+      await pumpSettings(tester, rig: SettingsRig(checkInterval: 360), path: '/settings/notifications', more: [updatesRepositoryProvider.overrideWithValue(repo)]);
+      await tapFinder(tester, find.text('Check on startup'));
+      await tapFinder(tester, find.widgetWithText(CineButton, 'Save').first);
+      expect(repo.saved, hasLength(1));
+      expect(repo.saved.single, isNull);
+    });
+
     testWidgets('the cache lifetime refuses values under 5 minutes', (tester) async {
       await pumpSettings(tester, path: '/settings/notifications');
       final field = find.descendant(of: find.byKey(const Key('unused')), matching: find.byType(EditableText));
@@ -362,4 +375,16 @@ void main() {
     expect(SoundPrefs.cinematicDefault.on, isFalse);
     expect(SoundPrefs.cinematicDefault.level, 60);
   });
+}
+
+class _RecordingUpdates implements UpdatesRepository {
+  final List<int?> saved = [];
+  @override
+  Future<Result<UpdateSettings>> updateSettings({bool? enabled, int? checkIntervalMinutes, bool? notifyEnabled, bool? checkOnStartup}) async {
+    saved.add(checkIntervalMinutes);
+    return Ok(UpdateSettings(enabled: true, checkIntervalMinutes: checkIntervalMinutes ?? 360, notifyEnabled: true, checkOnStartup: true));
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }

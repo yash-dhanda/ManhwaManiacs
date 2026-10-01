@@ -77,7 +77,8 @@ class _AdminNotificationsState extends ConsumerState<AdminNotifications> {
     _enabled = s.enabled;
     _startup = s.checkOnStartup;
     _notify = s.notifyEnabled;
-    _interval = s.checkIntervalMinutes.clamp(5, 120);
+    // Null until the slider moves, so Save never rewrites an interval the slider cannot show (the server takes any value >= 5).
+    _interval = null;
   }
 
   Future<void> _save() async {
@@ -159,7 +160,7 @@ class _AdminNotificationsState extends ConsumerState<AdminNotifications> {
               ),
             switchRow('check-auto', 'Check automatically', _enabled ?? s.enabled, (v) => setState(() => _enabled = v), disabled: offline),
             switchRow('check-startup', 'Check on startup', _startup ?? s.checkOnStartup, (v) => setState(() => _startup = v), disabled: offline),
-            sliderRow('check-interval', 'Check interval', (_interval ?? s.checkIntervalMinutes).toDouble(), (v) => setState(() => _interval = v.round()),
+            sliderRow('check-interval', 'Check interval', (_interval ?? s.checkIntervalMinutes).clamp(5, 120).toDouble(), (v) => setState(() => _interval = v.round()),
                 min: 5, max: 120, divisions: 23, flag: (v) => '${v.round()} MIN', description: 'The server enforces a 5-minute floor.', disabled: offline,),
             switchRow('notify-master', 'Notify about new chapters', _notify ?? s.notifyEnabled, (v) => setState(() => _notify = v),
                 description: 'The master switch for every profile.', disabled: offline,),

@@ -170,7 +170,8 @@ class _BodyState extends ConsumerState<_Body> {
                 GlassText('Check interval', role: gt.typeBody),
                 GlassSlider(
                   key: const ValueKey('interval-slider'),
-                  value: d.interval.toDouble(),
+                  // The server takes any value >= 5; the slider shows its range, and Save sends the untouched value back as is.
+                  value: d.interval.clamp(5, 120).toDouble(),
                   min: 5,
                   max: 120,
                   divisions: 23,
