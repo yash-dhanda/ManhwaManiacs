@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/circle/utils/recommend_targets.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart' show librarySeriesPickerProvider;
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
@@ -281,7 +282,7 @@ class _RecommendSheetBodyState extends ConsumerState<RecommendSheetBody> with Ti
     ),);
   }
 
-  String? _lookupTitle(({String sourceId, String seriesKey}) s) => (ref.read(libraryListProvider).valueOrNull?.items ?? const <FollowedSeries>[])
+  String? _lookupTitle(({String sourceId, String seriesKey}) s) => [...?ref.read(librarySeriesPickerProvider).valueOrNull, ...?ref.read(libraryListProvider).valueOrNull?.items]
       .where((f) => f.sourceId == s.sourceId && f.seriesKey == s.seriesKey)
       .map((f) => f.title)
       .firstOrNull;
@@ -311,7 +312,8 @@ class _RecommendSheetBodyState extends ConsumerState<RecommendSheetBody> with Ti
 
   Widget _pickStep(double m) {
     final q = _search.text.trim().toLowerCase();
-    final all = ref.watch(libraryListProvider).valueOrNull?.items ?? const <FollowedSeries>[];
+    // The whole library, not the Library screen's filtered first page.
+    final all = ref.watch(librarySeriesPickerProvider).valueOrNull ?? const <FollowedSeries>[];
     final shown = [for (final s in all) if (q.isEmpty || s.title.toLowerCase().contains(q)) s];
     return ListView(
       padding: EdgeInsets.fromLTRB(m, 4, m, 24),
