@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
-import 'package:manhwamaniacs/shared/providers/core_providers.dart';
-import '../../../support/test_overrides.dart';
 import 'package:manhwamaniacs/core/storage/json_record.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_prefs.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../support/test_overrides.dart';
 
 ReaderPrefs resolve({Map<String, dynamic> profile = const {}, Map<String, dynamic>? series}) =>
     ReaderPrefs.resolve(JsonRecord(profile), series == null ? null : JsonRecord(series));

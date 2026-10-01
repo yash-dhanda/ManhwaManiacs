@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' show Rect;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,7 +23,7 @@ import '../reader/demo_pages.dart';
   final panels = <int, List<Rect>>{
     for (final (i, p) in pages.indexed)
       i + 1: [
-        for (final b in p['panels'] as List)
+        for (final b in (p['panels'] as List).cast<Map<String, dynamic>>())
           Rect.fromLTWH((b['x'] as num) / (p['width'] as num), (b['y'] as num) / (p['height'] as num), (b['w'] as num) / (p['width'] as num), (b['h'] as num) / (p['height'] as num)),
       ],
   };
