@@ -30,6 +30,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/hold_to_confirm.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/reorder_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/poster.dart' show GlassCoverImage;
 import 'package:manhwamaniacs/skins/glass/primitives/select/select_mode.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/lens_glyphs.dart';
@@ -47,11 +48,14 @@ import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
 class _Member {
-  const _Member(this.sourceId, this.seriesKey, this.series);
+  const _Member(this.sourceId, this.seriesKey, this.series, {this.sharedTitle, this.coverUrl});
   final String sourceId, seriesKey;
   final FollowedSeries? series;
+
+  /// A shared shelf's row as the server sent it (mobile/43): its own title and cover.
+  final String? sharedTitle, coverUrl;
   String get key => '$sourceId|$seriesKey';
-  String get title => series?.title ?? seriesKey.replaceAll(RegExp(r'[-_]+'), ' ');
+  String get title => series?.title ?? (sharedTitle?.isNotEmpty ?? false ? sharedTitle! : seriesKey.replaceAll(RegExp(r'[-_]+'), ' '));
 }
 
 /// A collection's page (glass 8.18, ScreenId `collection`): the fanned-cover header, Add series, Edit and the menu, the member grid,
@@ -106,6 +110,10 @@ class _GlassCollectionScreenState extends ConsumerState<GlassCollectionScreen> w
   }
 
   Future<void> _remove(_Member m, String collectionName) async {
+    // Someone else's addition to a shared shelf asks first (mobile/43, glass 9.3.3).
+    final row = ref.read(sharedShelfDetailProvider(_id)).valueOrNull?.series.where((r) => r.sourceId == m.sourceId && r.seriesKey == m.seriesKey).firstOrNull;
+    if (!await confirmRemoveAddition(context, title: m.title, adder: row?.addedBy, viewerProfileId: ref.read(activeProfileProvider)?.id)) return;
+    if (!mounted) return;
     final err = await _detail.removeSeries(sourceId: m.sourceId, seriesKey: m.seriesKey);
     if (!mounted) return;
     if (err != null) {
@@ -174,7 +182,7 @@ class _GlassCollectionScreenState extends ConsumerState<GlassCollectionScreen> w
 
     var full = <_Member>[];
     if (readOnlyShared) {
-      full = [for (final r in sd.series) _Member(r.sourceId, r.seriesKey, null)];
+      full = [for (final r in sd.series) _Member(r.sourceId, r.seriesKey, null, sharedTitle: r.title, coverUrl: r.coverUrl)];
     } else if (d != null) {
       final byKey = {for (final s in followed) '${s.sourceId}|${s.seriesKey}': s};
       final byIdentity = {for (final s in followed) '${s.sourceId}|${s.identity}': s};
@@ -199,19 +207,31 @@ class _GlassCollectionScreenState extends ConsumerState<GlassCollectionScreen> w
     final canReorder = canEdit && !smart && visible.length > 1;
 
     Widget plainTile(_Member m, FollowedSeries? s) {
+      // A `can_add` member removes only their own additions (the server's rule); the owner removes any.
+      final ownAddition = readOnlyShared && ShelfRights(sd.shelf.role).canRemove && sd.series.any((r) => r.sourceId == m.sourceId && r.seriesKey == m.seriesKey && r.addedBy?.profileId == ref.read(activeProfileProvider)?.id);
+      final onRemove = (canEdit && !smart) || ownAddition ? () => unawaited(_remove(m, name)) : null;
       if (s == null) {
-        return SizedBox(
-          width: cell,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            AspectRatio(aspectRatio: 2 / 3, child: DecoratedBox(decoration: BoxDecoration(color: gt.colorSurface2, borderRadius: BorderRadius.circular(gt.radiusSm)))),
-            const SizedBox(height: 6),
-            GlassLabel(m.title, role: gt.typeFootnote, maxLines: 2),
-            if (!readOnlyShared) GlassLabel('No longer in your library', role: gt.typeCaption1, color: gt.colorLabel3, maxLines: 2),
-          ],),
+        return GestureDetector(
+          onSecondaryTap: onRemove,
+          child: SizedBox(
+            width: cell,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              AspectRatio(
+                aspectRatio: 2 / 3,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: gt.colorSurface2, borderRadius: BorderRadius.circular(gt.radiusSm)),
+                  child: m.coverUrl == null ? null : ClipRRect(borderRadius: BorderRadius.circular(gt.radiusSm), child: GlassCoverImage(url: m.coverUrl!, width: cell)),
+                ),
+              ),
+              const SizedBox(height: 6),
+              GlassLabel(m.title, role: gt.typeFootnote, maxLines: 2),
+              if (!readOnlyShared) GlassLabel('No longer in your library', role: gt.typeCaption1, color: gt.colorLabel3, maxLines: 2),
+            ],),
+          ),
         );
       }
       return GestureDetector(
-        onSecondaryTap: canEdit && !smart ? () => unawaited(_remove(m, name)) : null,
+        onSecondaryTap: onRemove,
         child: ShelfTile(series: s, ui: ui, width: cell, compact: false),
       );
     }
