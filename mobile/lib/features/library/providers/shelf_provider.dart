@@ -33,27 +33,42 @@ class ShelfNotifier extends AutoDisposeAsyncNotifier<ShelfResult> {
     // Read, not watched: the 18+ toggle drops this provider (`matureScopedInvalidators`).
     final gateOpen = ref.read(matureGateOpenProvider);
     final repo = ref.read(libraryRepositoryProvider);
-    final r = await repo.listSeries(
-      perPage: 200,
-      sort: q.sort.wire,
-      search: q.q.trim().isEmpty ? null : q.q.trim(),
-      readingStatus: q.effectiveStatus.wire,
-      isFavorite: q.fav ? true : null,
-      tagIds: q.tagIds.isEmpty ? null : q.tagIds,
-      newOnly: q.newOnly ? true : null,
-    );
-    if (r.isErr) {
-      final e = r.error;
-      if (e is NetworkError || e is TimeoutError) return _offline(scope, gateOpen);
-      throw e;
+    // Every page, not just the first: the content mode is filtered here on the client, so a
+    // single mixed 200-row page would hide followed series of this mode past it.
+    // Same paging bounds as [listAllFollowed]; a row served twice is kept once.
+    final items = <FollowedSeries>[];
+    final seen = <int>{};
+    var total = 0;
+    for (var page = 1; page <= followedMaxPages; page++) {
+      final r = await repo.listSeries(
+        page: page,
+        perPage: followedPageSize,
+        sort: q.sort.wire,
+        search: q.q.trim().isEmpty ? null : q.q.trim(),
+        readingStatus: q.effectiveStatus.wire,
+        isFavorite: q.fav ? true : null,
+        tagIds: q.tagIds.isEmpty ? null : q.tagIds,
+        newOnly: q.newOnly ? true : null,
+      );
+      if (r.isErr) {
+        final e = r.error;
+        if (page == 1 && (e is NetworkError || e is TimeoutError)) return _offline(scope, gateOpen);
+        throw e;
+      }
+      for (final row in r.value.items) {
+        if (seen.add(row.id)) items.add(row);
+      }
+      total = r.value.total;
+      if (!r.value.hasNext || r.value.items.isEmpty) break;
     }
-    final page = r.value;
     // Everything the cache write needs is read now: after the await, the build may be outdated.
     final key = _cacheKey;
     if (key != null) {
-      unawaited(_cache(ref.read(sharedPrefsProvider), key, ref.read(matureStamperProvider), page.items, authoritative: !q.filtering, total: page.total));
+      unawaited(_cache(ref.read(sharedPrefsProvider), key, ref.read(matureStamperProvider), items, authoritative: !q.filtering, total: total));
     }
-    return (rows: scope.filter(page.items, (s) => s.sourceId), total: page.total, offline: false);
+    final rows = scope.filter(items, (s) => s.sourceId);
+    // [total] is this mode's count: the server's spans both modes.
+    return (rows: rows, total: items.length >= total ? rows.length : total, offline: false);
   }
 
   String? get _cacheKey {
