@@ -526,7 +526,7 @@ void main() {
         await tester.tapAt(const Offset(100, 300));
         await tester.pump(const Duration(milliseconds: 400));
         expect(container.read(readerUiProvider).controlsVisible, isFalse,
-            reason: 'a single tap leaves the controls alone');
+            reason: 'a single tap leaves the controls alone',);
 
         // The double-tap window reads the wall clock.
         await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
