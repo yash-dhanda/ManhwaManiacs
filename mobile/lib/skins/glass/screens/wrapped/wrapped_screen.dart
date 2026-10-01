@@ -277,6 +277,9 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
     if (e != null) GlassMotion.recorder.end(e);
     _stackEntry = null;
     if (_settleDir != 0) _index += _settleDir;
+    // Resetting the controller notifies [_onSettle]; with from = to = 0 it lands on centre, not on the drag offset.
+    _settleFrom = 0;
+    _settleTo = 0;
     setState(() {
       _dx = 0;
       _settleDir = 0;

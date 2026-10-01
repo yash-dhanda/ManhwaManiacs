@@ -79,6 +79,15 @@ void main() {
     await t.pump(const Duration(minutes: 11));
   });
 
+  testWidgets('after a swipe the new card sits centred', (t) async {
+    await _open(t);
+    await t.fling(find.byKey(const ValueKey('wrapped-card-cover')), const Offset(-200, 0), 1200);
+    await settle(t, 4);
+    final shifts = find.ancestor(of: _card(WrappedCard.time), matching: find.byType(Transform)).evaluate().map((e) => (e.widget as Transform).transform.getTranslation().x);
+    expect(shifts.every((x) => x.abs() < 0.5), isTrue, reason: '$shifts');
+    await t.pump(const Duration(minutes: 11));
+  });
+
   testWidgets('a hold pauses at once and a late release does not advance', (t) async {
     await _open(t);
     final g = await t.startGesture(const Offset(300, 420));
