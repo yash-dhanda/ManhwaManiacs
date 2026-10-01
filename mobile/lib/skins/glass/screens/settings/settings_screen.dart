@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -30,6 +29,7 @@ import 'package:manhwamaniacs/skins/glass/screens/settings/settings_sections.dar
 import 'package:manhwamaniacs/skins/glass/screens/settings/shortcuts_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/system/not_found.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart';
+import 'package:manhwamaniacs/skins/glass/shell/global_keys.dart' show registerSearchFocus;
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// True once a hardware key event has been seen this session (the Shortcuts section shows only then).
@@ -84,6 +84,18 @@ class GlassSettingsScreen extends ConsumerStatefulWidget {
 class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
   bool _searching = false;
   final TextEditingController _panelQuery = TextEditingController();
+
+  /// The `/` target (the shell's focus-search key): the wide frames' search capsule, or the phone's search well, whose focus opens the
+  /// overlay. One node; only one of the two is built at a time.
+  final FocusNode _panelFocus = FocusNode(debugLabel: 'settings search');
+  late final VoidCallback _unregisterSearch;
+  final FocusNode _pageFocus = FocusNode(debugLabel: 'settings page', skipTraversal: true);
+
+  /// Closes the phone overlay and parks focus on the page, so the well (focused by `/`) never takes it back and reopens it.
+  void _closeSearch() {
+    setState(() => _searching = false);
+    _pageFocus.requestFocus();
+  }
   String _panelQ = '';
   int _cursor = 0;
 
@@ -98,6 +110,7 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
   void initState() {
     super.initState();
     HardwareKeyboard.instance.addHandler(_hwKey);
+    _unregisterSearch = registerSearchFocus(_panelFocus);
     _scheduleReveal();
   }
 
@@ -111,6 +124,9 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_hwKey);
     _panelQuery.dispose();
+    _unregisterSearch();
+    _panelFocus.dispose();
+    _pageFocus.dispose();
     super.dispose();
   }
 
@@ -146,6 +162,7 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
       _panelQuery.clear();
       _panelQ = '';
     });
+    _pageFocus.requestFocus();
     GoRouter.of(context).go(settingsLocationFor(e));
   }
 
@@ -187,10 +204,10 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
     return PopScope(
       canPop: !_searching,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && _searching) setState(() => _searching = false);
+        if (!didPop && _searching) _closeSearch();
       },
       child: SettingsKeys(
-        onSearch: () => setState(() => _searching = true),
+        onSearch: () => wide ? _panelFocus.requestFocus() : setState(() => _searching = true),
         onMove: (d) {
           if (!wide) return;
           final i = (selectedIndex + d).clamp(0, list.length - 1);
@@ -202,15 +219,27 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
         },
         onEscape: () {
           if (_searching) {
-            setState(() => _searching = false);
+            _closeSearch();
+          } else if (wide && _panelQ.isNotEmpty) {
+            setState(() {
+              _panelQuery.clear();
+              _panelQ = '';
+            });
           } else if (section != null && !wide) {
             GoRouter.of(context).go('/settings');
           }
         },
-        child: Stack(children: [
-          Positioned.fill(child: page),
-          if (_searching && !wide) Positioned.fill(child: GlassSettingsSearchOverlay(filter: _filter, onOpen: _open, onClose: () => setState(() => _searching = false))),
-        ],),
+        // Holds focus when nothing inside has it, so the Settings keys work as soon as the page opens (glass 8.25 M2).
+        child: Focus(
+          focusNode: _pageFocus,
+          autofocus: true,
+          child: Stack(
+            children: [
+              Positioned.fill(child: page),
+              if (_searching && !wide) Positioned.fill(child: GlassSettingsSearchOverlay(filter: _filter, onOpen: _open, onClose: _closeSearch)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -222,9 +251,12 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
           SliverToBoxAdapter(child: _searchWell()),
           SliverToBoxAdapter(child: GlassGroupedList(children: [AccountHeader(onTap: () => GoRouter.of(context).go('/settings/profile'))])),
           SliverToBoxAdapter(
-            child: GlassGroupedList(header: 'Settings', children: [
-              for (final s in specs) _navRow(s),
-            ],),
+            child: GlassGroupedList(
+              header: 'Settings',
+              children: [
+                for (final s in specs) _navRow(s),
+              ],
+            ),
           ),
           SliverToBoxAdapter(child: GlassGroupedList(header: 'About', children: [_navRow(kAboutSection)])),
           SliverToBoxAdapter(
@@ -240,22 +272,30 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
 
   Widget _searchWell() => Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: Semantics(
-          button: true,
-          label: 'Search settings',
-          excludeSemantics: true,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() => _searching = true),
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(color: gt.colorFill3, borderRadius: BorderRadius.circular(22)),
-              child: Row(children: [
-                Icon(const IconData(0xe30c, fontFamily: 'PhosphorRegular'), size: 20, color: gt.colorLabel2),
-                const SizedBox(width: 8),
-                GlassText('Search settings', role: gt.typeBody, color: gt.colorLabel2),
-              ],),
+        child: Focus(
+          focusNode: _panelFocus,
+          onFocusChange: (f) {
+            if (f && !_searching) setState(() => _searching = true);
+          },
+          child: Semantics(
+            button: true,
+            label: 'Search settings',
+            excludeSemantics: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _searching = true),
+              child: Container(
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(color: gt.colorFill3, borderRadius: BorderRadius.circular(22)),
+                child: Row(
+                  children: [
+                    Icon(const IconData(0xe30c, fontFamily: 'PhosphorRegular'), size: 20, color: gt.colorLabel2),
+                    const SizedBox(width: 8),
+                    GlassText('Search settings', role: gt.typeBody, color: gt.colorLabel2),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -265,42 +305,59 @@ class _GlassSettingsScreenState extends ConsumerState<GlassSettingsScreen> {
     final searching = _panelQ.trim().isNotEmpty;
     final left = SizedBox(
       width: 240,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          child: GlassSearchField(
-            variant: GlassSearchVariant.sidebar,
-            controller: _panelQuery,
-            placeholder: 'Search settings',
-            onQuery: (q) => setState(() => _panelQ = q),
-            onSubmitted: (q) {
-              final m = _filter(q);
-              if (m.isNotEmpty) _open(m.first);
-            },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+            child: GlassSearchField(
+              variant: GlassSearchVariant.filter, // a real field: typing filters the list in place (the sidebar variant is the palette launcher)
+              controller: _panelQuery,
+              focusNode: _panelFocus,
+              placeholder: 'Search settings',
+              onQuery: (q) => setState(() => _panelQ = q),
+              onSubmitted: (q) {
+                final m = _filter(q);
+                if (m.isNotEmpty) _open(m.first);
+              },
+            ),
           ),
-        ),
-        if (searching)
-          SettingsResults(query: _panelQ.trim(), matches: _filter(_panelQ), onOpen: _open)
-        else ...[
-          GlassGroupedList(children: [
-            for (final s in list) GlassListRow(title: s.label, icon: s.glyph.regular, iconColor: s.tile, selected: s.section == selected || (readerGroupSections.contains(selected) && s.section == SettingsSection.readingManga), onTap: () => _openSection(s.section)),
-          ],),
-          GlassGroupedList(children: [
-            GlassListRow(title: 'Reading history', caret: true, onTap: () => GoRouter.of(context).go(Routes.history())),
-            if (admin) GlassListRow(title: 'System status', caret: true, onTap: () => GoRouter.of(context).go(Routes.status())),
-          ],),
+          if (searching)
+            SettingsResults(query: _panelQ.trim(), matches: _filter(_panelQ), onOpen: _open)
+          else ...[
+            GlassGroupedList(
+              children: [
+                for (final s in list)
+                  GlassListRow(
+                      title: s.label,
+                      icon: s.glyph.regular,
+                      iconColor: s.tile,
+                      selected: s.section == selected || (readerGroupSections.contains(selected) && s.section == SettingsSection.readingManga),
+                      onTap: () => _openSection(s.section),),
+              ],
+            ),
+            GlassGroupedList(
+              children: [
+                GlassListRow(title: 'Reading history', caret: true, onTap: () => GoRouter.of(context).go(Routes.history())),
+                if (admin) GlassListRow(title: 'System status', caret: true, onTap: () => GoRouter.of(context).go(Routes.status())),
+              ],
+            ),
+          ],
         ],
-      ],),
+      ),
     );
     return GlassScaffold(
       title: 'Settings',
       leading: GlassLeading.back,
       slivers: [
         SliverToBoxAdapter(
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            left,
-            Expanded(child: settingsSectionBody(selected)),
-          ],),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              left,
+              Expanded(child: settingsSectionBody(selected)),
+            ],
+          ),
         ),
       ],
     );

@@ -15,8 +15,9 @@ import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 /// The selected-row fill (`iris600` at 14 %).
 const Color kGlassRowSelectedFill = Color(0x247563F2);
 
-/// True below 360 px of row width or at text scale 1.6 and up: the row stacks (glass 7.17).
-bool glassRowStacks(BuildContext context, double width) => width < 360 || MediaQuery.textScalerOf(context).scale(10) >= 16;
+/// True at text scale 1.6 and up: the row stacks (glass 3.3 rule 1). Row width alone never stacks it: a grouped-list row on a
+/// 390 pt phone is 358 wide, and stacking there wrapped every caret under its title. [width] stays for callers' signatures.
+bool glassRowStacks(BuildContext context, double width) => MediaQuery.textScalerOf(context).scale(10) >= 16;
 
 /// The text tone of a row: `label1..4`, or `onGlass` inside a T4/T5 host (glass 2.1.2).
 Color glassRowTone(BuildContext context, int level, {bool disabled = false}) {

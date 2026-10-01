@@ -1,6 +1,8 @@
 @Tags(['screenshots'])
 library;
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -9,10 +11,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_user.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
+import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart' show hapticFeedbackProvider;
 import 'package:manhwamaniacs/skins/glass/dev/auth_fixtures.dart' show FakeAuth;
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/hold_to_confirm.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/shell/handoff_layer.dart' show glassEffectsProvider;
+import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart' show glassOfflineProvider;
 
 import '../glass_shell_shots_support.dart';
 import '../support/shot_harness.dart';
@@ -96,11 +104,61 @@ void main() {
     await _end(t);
     s = await _open(t, _phone, '/settings/appearance', reduced: true);
     await s.snap('skin-cards-reduced-motion', _phone);
-    await t.tap(find.text('Cinematic'));
-    await s.settle(800);
+    await _end(t);
+  });
+
+  Future<ShotSession> openAlert(WidgetTester t, {List<Override> extra = const []}) async {
+    final s = await _open(t, _phone, '/settings/appearance', extra: extra);
+    await t.tap(find.text('Cinematic').first);
+    for (var i = 0; i < 4; i++) {
+      await s.settle(300);
+    }
+    return s;
+  }
+
+  testWidgets('the switch alert after its bloom, with the downloads and offline notes, the melt at 300 ms', (t) async {
+    var s = await openAlert(t);
     await s.snap('switch-alert', _phone);
     await t.tap(find.text('Stay in Glass'));
     await s.settle(600);
+    await _end(t);
+    s = await openAlert(t, extra: [activeDownloadCountProvider.overrideWith((ref) => 2), glassOfflineProvider.overrideWithValue(true)]);
+    await s.snap('switch-alert-downloads-offline', _phone);
+    await _end(t);
+    // The melt itself, 300 ms in (the confirm path also queues the PATCH through the sqlite outbox, real IO a widget test cannot pump).
+    s = await _open(t, _phone, '/settings/appearance');
+    unawaited(s.container.read(glassEffectsProvider).playMelt());
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 300));
+    await s.snap('melt-mid', _phone);
+    await _end(t);
+  });
+
+  testWidgets('the arriving Glass side: Switched to Glass with Undo', (t) async {
+    final s = await _open(t, _phone, '/settings/appearance');
+    s.container.read(glassToastProvider.notifier).show(GlassToastSpec('Switched to Glass', undo: () {}));
+    await s.settle(900);
+    await s.snap('arrival-toast', _phone);
+    await _end(t);
+  });
+
+  testWidgets('reset hold mid-way, haptics off, circle offline', (t) async {
+    var s = await _open(t, _phone, '/settings/reading-manga');
+    final hold = find.descendant(of: find.byType(HoldToConfirm), matching: find.text('Reset reader settings')).first;
+    await Scrollable.ensureVisible(t.element(hold), alignment: 0.5);
+    await s.settle(300);
+    final g = await t.startGesture(t.getCenter(hold));
+    await t.pump(const Duration(milliseconds: 600));
+    await s.snap('reset-hold-mid', _phone);
+    await g.cancel();
+    await _end(t);
+    s = await _open(t, _phone, '/settings/feedback');
+    await s.container.read(hapticFeedbackProvider.notifier).setEnabled(false);
+    await s.settle(600);
+    await s.snap('feedback-haptics-off', _phone);
+    await _end(t);
+    s = await _open(t, _phone, '/settings/circle', extra: [glassOfflineProvider.overrideWithValue(true)]);
+    await s.snap('circle-privacy-offline', _phone);
     await _end(t);
   });
 
