@@ -37,12 +37,12 @@ ChapterReactions _ch({bool sealed = true, ReactionKind? mine}) => ChapterReactio
       sealed: sealed,
     );
 
-Future<(FakeCircleRepository, ProviderContainer)> pump(WidgetTester t, {bool sealed = true, ReactionKind? mine, bool sharing = true, AppError? fail, ReactionOutbox? outbox, bool offline = false, TargetPlatform platform = TargetPlatform.iOS}) async {
+Future<(FakeCircleRepository, ProviderContainer)> pump(WidgetTester t, {bool sealed = true, ReactionKind? mine, bool sharing = true, AppError? fail, ReactionOutbox? outbox, bool offline = false, TargetPlatform platform = TargetPlatform.iOS, Widget? child}) async {
   final repo = FakeCircleRepository(reactionList: [_ch(sealed: sealed, mine: mine)], sharingValue: Sharing(activity: sharing))..failReact = fail;
   await t.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => t.binding.setSurfaceSize(null));
   await t.pumpWidget(primHost(
-    const Padding(padding: EdgeInsets.only(top: 400, left: 16, right: 16), child: GlassChapterReactions(sourceId: 's', seriesKey: 'or', chapterKey: 'c212', chapterNumber: 212, mature: true)),
+    Padding(padding: const EdgeInsets.only(top: 400, left: 16, right: 16), child: child ?? const GlassChapterReactions(sourceId: 's', seriesKey: 'or', chapterKey: 'c212', chapterNumber: 212, mature: true)),
     align: false,
     platform: platform,
     overrides: [
@@ -54,7 +54,7 @@ Future<(FakeCircleRepository, ProviderContainer)> pump(WidgetTester t, {bool sea
     ],
   ),);
   await pumpFor(t, 300);
-  return (repo, ProviderScope.containerOf(t.element(find.byType(GlassChapterReactions))));
+  return (repo, ProviderScope.containerOf(t.element(find.byType(Padding).first)));
 }
 
 void main() {
@@ -81,6 +81,16 @@ void main() {
       h.dispose();
     });
   }
+
+  testWidgets('chapter rows: a guarded chapter shows the bloom dot and "2 friends reacted"; a finished one the top glyph and the total', (t) async {
+    const row = ChapterReactionSummary(sourceId: 's', seriesKey: 'or', chapterKey: 'c212');
+    final h = t.ensureSemantics();
+    await pump(t, child: row);
+    expect(find.bySemanticsLabel('2 friends reacted'), findsOneWidget);
+    await pump(t, sealed: false, child: row);
+    expect(find.bySemanticsLabel('2 reactions, most Hype'), findsOneWidget);
+    h.dispose();
+  });
 
   testWidgets('a mouse click opens the picker; clicking a bubble sends it', (t) async {
     final (repo, _) = await pump(t);
