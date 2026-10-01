@@ -117,7 +117,7 @@ Page<void> glassNovelPage(GoRouterState state) {
   if (defaultTargetPlatform == TargetPlatform.android) {
     return GlassMaterialPage<void>(key: key, name: state.name, builder: (_) => body, instantEnter: true);
   }
-  // TODO(mobile/33): with `extra: {'entry': 'book', 'plateRect', 'cover'}` return mobile/33's `GlassBookOpenPage` here.
+  // Book open (`extra: {'entry': 'book', ...}`) is routed to mobile/33's `GlassBookOpenPage` in `router.dart`.
   return GlassSwipePage<void>(key: key, name: state.name, builder: (_) => body, edgeOnly: 20, instantEnter: true);
 }
 

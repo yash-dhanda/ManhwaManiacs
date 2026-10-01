@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
+import 'package:manhwamaniacs/skins/glass/screens/series/feature_screen.dart';
 import 'package:manhwamaniacs/skins/glass/shell/accessory_controller.dart';
 import 'package:manhwamaniacs/skins/glass/shell/dock_state.dart';
 import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
@@ -171,7 +172,9 @@ void main() {
 
     testWidgets('a cold go to the same location renders the screen as a full page', (t) async {
       await pumpGlassShell(t, start: '/sources/demo/series/x');
-      expect(find.text('feature'), findsOneWidget);
+      // mobile/33: the series screen itself, as a full page (no sheet route beneath).
+      expect(find.byType(GlassFeatureScreen), findsOneWidget);
+      expect(find.byKey(const ValueKey('glass-sheet-surface')), findsNothing);
     });
 
     testWidgets('an unknown location renders the not-found lens', (t) async {

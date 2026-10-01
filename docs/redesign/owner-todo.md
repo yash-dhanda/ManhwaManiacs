@@ -176,6 +176,10 @@ Items only the owner can do, by step.
 
 - Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-43/device-check.md` (presence drift with and without "Show me in presence", the reaction bloom haptics at 120 Hz, the lift-to-orb magnet and Undo, Orbs fly out, the friend orb flight, the letter dot, the gate-closed profile, VoiceOver and TalkBack, Reduce Motion).
 
+## mobile/33 (Glass series detail and book page)
+
+- Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-33/device-check.md` (cover landing from a throw, sheet tracking and snap at 120 Hz, the 1,000-chapter fling and list-to-sheet hand-off, the hero tilt stopping when covered, Android predictive back, iPad two-column window, VoiceOver/TalkBack select mode, Save to Files, Book open paper).
+
 ## mobile/35 (Glass manga reader)
 
 - Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-35/device-check.md`.

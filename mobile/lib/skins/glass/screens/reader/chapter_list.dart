@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
+import 'package:manhwamaniacs/features/novels/utils/toc_window.dart' show tocWindow;
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -19,15 +20,11 @@ import 'package:manhwamaniacs/skins/glass/type.dart';
 
 const int kChapterWindow = 400;
 
-/// The rows shown of a long list: [window] rows around [current] (glass 8.14.8), widened by the "Show earlier" and "Show more"
-/// rows. TODO(mobile/33): replace with `features/novels/utils/toc_window.dart` once mobile/33 is integrated.
+/// The rows shown of a long list: [window] rows around [current] (glass 8.14.8, mobile/33's `tocWindow`), widened by the
+/// "Show earlier" and "Show more" rows.
 ({int start, int end}) chapterWindow(int total, int current, {int window = kChapterWindow, int extraBefore = 0, int extraAfter = 0}) {
-  if (total <= window) return (start: 0, end: total);
-  var start = (current - window ~/ 2).clamp(0, total - window);
-  var end = start + window;
-  start = math.max(0, start - extraBefore);
-  end = math.min(total, end + extraAfter);
-  return (start: start, end: end);
+  final w = tocWindow(total, current, size: window);
+  return (start: math.max(0, w.start - extraBefore), end: math.min(total, w.end + extraAfter));
 }
 
 /// The in-reader chapter list (glass 8.14.8): a sheet at `large` on phones and tablet frames, the left panel on desktop frames.

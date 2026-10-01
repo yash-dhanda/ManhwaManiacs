@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/skins/glass/screens/home/hero_tilt.dart';
+import 'package:manhwamaniacs/skins/glass/glass/tilt.dart';
 
 void main() {
   const six = 6 * math.pi / 180;

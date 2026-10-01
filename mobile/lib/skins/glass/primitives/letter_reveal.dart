@@ -272,7 +272,14 @@ class _LetterRevealState extends ConsumerState<LetterReveal> with SingleTickerPr
     _entry = GlassMotion.recorder.begin(MotionName.letterReveal.label, total.inMilliseconds);
     _total = total.inMilliseconds.toDouble();
     unawaited(_ticker.start());
-    setState(() {});
+    // A slot handed over while another reveal is torn down arrives mid-frame, when the tree is locked.
+    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    } else {
+      setState(() {});
+    }
   }
 
   double _total = 0;
