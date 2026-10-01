@@ -46,7 +46,7 @@ import '../support/test_overrides.dart';
 /// restart keeps them: prefs, the `/profiles` API, the library, the icon plugin and the download queue's launch counter.
 
 /// A `/profiles` row with a skin.
-Profile releaseProfile(int id, String name, {String? skin, bool mature = false}) => Profile(
+Profile releaseProfile(int id, String name, {String? skin, bool mature = false, String onboardingStep = 'done'}) => Profile(
       id: id,
       name: name,
       avatarKey: 'violet',
@@ -55,7 +55,7 @@ Profile releaseProfile(int id, String name, {String? skin, bool mature = false})
       matureContentEnabled: mature,
       createdAt: DateTime.utc(2026),
       skin: skin,
-      onboardingStep: 'done',
+      onboardingStep: onboardingStep,
     );
 
 /// The server's `/profiles`: `PATCH {skin}` is recorded and stored, as the backend does.
@@ -72,7 +72,7 @@ class FakeProfilesApi implements ProfilesRepository {
     final i = items.indexWhere((p) => p.id == id);
     final o = items[i];
     if (skin != null) skinPatches.add((id, skin));
-    items[i] = releaseProfile(id, name ?? o.name, skin: skin ?? o.skin, mature: matureContentEnabled ?? o.matureContentEnabled);
+    items[i] = releaseProfile(id, name ?? o.name, skin: skin ?? o.skin, mature: matureContentEnabled ?? o.matureContentEnabled, onboardingStep: o.onboardingStep ?? 'done');
     return Ok(items[i]);
   }
 
@@ -178,6 +178,7 @@ Future<ReleaseRig> pumpRelease(
   List<WorldItem> genreItems = const [],
   Map<String, Object> prefs = const {},
   Size size = const Size(390, 844),
+  String onboardingStep = 'done',
 }) async {
   _mockPlugins(t);
   // Glass prepare() initialises the liquid-glass shaders; a test host only needs it to resolve.
@@ -187,7 +188,7 @@ Future<ReleaseRig> pumpRelease(
   // The Cinematic series fixtures reset the mock prefs, so they are built first.
   final feature = await qaFeatureOverrides();
   final skins = profileSkins ?? {1: skin.name, 2: skin.name};
-  final api = FakeProfilesApi([releaseProfile(1, 'Riya', skin: skins[1]), releaseProfile(2, 'Aarav', skin: skins[2])]);
+  final api = FakeProfilesApi([releaseProfile(1, 'Riya', skin: skins[1], onboardingStep: onboardingStep), releaseProfile(2, 'Aarav', skin: skins[2])]);
   final activeRow = api.items.firstWhere((p) => p.id == active);
   SharedPreferences.setMockInitialValues(testPrefsDefaults({
     kSkinActiveKey: skinName ?? skin.name,

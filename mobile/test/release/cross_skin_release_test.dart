@@ -174,6 +174,64 @@ void main() {
       await disposeRelease(t);
     });
 
+    releaseWidgets("Glass profile form: the active profile's Skin row set to Cinematic restarts through the alert, same session", platform: platform, (t) async {
+      final rig = await pumpRelease(t, skin: SkinId.glass, route: '/profiles/1/edit');
+      final cine = find.text('Cinematic');
+      await t.ensureVisible(cine.last);
+      await t.pump();
+      await t.tap(cine.last);
+      await settle(t, ms: 400);
+      await t.ensureVisible(find.text('Save changes'));
+      await t.pump();
+      await t.tap(find.text('Save changes'));
+      await settle(t, ms: 1200);
+      expect(find.text('Stay in Glass'), findsOneWidget);
+      final boots = rig.boots;
+      await t.tap(find.text('Restart in Cinematic'));
+      await pumpUntil(t, () => rig.boots == boots + 1);
+      await settle(t, ms: 3000);
+      expect(rig.skins, [SkinId.glass, SkinId.cinematic]);
+      expect(rig.prefs.getString(kSkinActiveKey), 'cinematic');
+      expect(rig.container.read(activeProfileProvider)?.id, 1, reason: 'the session is kept');
+      expect(rig.api.skinPatches.last, (1, 'cinematic'));
+      expect(_glass, findsNothing);
+      await disposeRelease(t);
+    });
+
+    releaseWidgets("Glass onboarding: picking Cinematic's look restarts into Cinematic's Formats step, same session", platform: platform, (t) async {
+      final rig = await pumpRelease(t, skin: SkinId.glass, route: '/welcome?step=2', onboardingStep: '2');
+      expect(find.text('Pick a look'), findsOneWidget);
+      final boots = rig.boots;
+      await t.tap(find.text('Cinematic'));
+      await pumpUntil(t, () => rig.boots == boots + 1);
+      await settle(t, ms: 3000);
+      expect(rig.skins, [SkinId.glass, SkinId.cinematic]);
+      expect(rig.routes.last, '/welcome?step=2');
+      expect(rig.prefs.getString(kSkinActiveKey), 'cinematic');
+      expect(rig.container.read(activeProfileProvider)?.id, 1, reason: 'the run neither signs out nor repeats the pick');
+      expect(rig.api.skinPatches.last, (1, 'cinematic'));
+      expect(rig.at, startsWith('/welcome'));
+      expect(_glass, findsNothing);
+      await disposeRelease(t);
+    });
+
+    releaseWidgets('Cinematic onboarding: Choose Glass restarts into Glass and carries on, same session', platform: platform, (t) async {
+      final rig = await pumpRelease(t, skin: SkinId.cinematic, route: '/welcome?step=1', onboardingStep: '1');
+      final boots = rig.boots;
+      await t.ensureVisible(find.text('Choose Glass'));
+      await t.pump();
+      await t.tap(find.text('Choose Glass'));
+      await pumpUntil(t, () => rig.boots == boots + 1, maxMs: 8000);
+      await settle(t, ms: 3000);
+      expect(rig.skins, [SkinId.cinematic, SkinId.glass]);
+      expect(rig.prefs.getString(kSkinActiveKey), 'glass');
+      expect(rig.container.read(activeProfileProvider)?.id, 1);
+      expect(rig.api.skinPatches.last, (1, 'glass'));
+      expect(rig.at, startsWith('/welcome'));
+      expect(_cine, findsNothing);
+      await disposeRelease(t);
+    });
+
     releaseWidgets('icon follow off: a switch and its Undo never touch the icon', platform: platform, (t) async {
       final rig = await pumpRelease(t, skin: SkinId.cinematic, route: '/settings/appearance');
       await _switchToGlass(t, rig);
