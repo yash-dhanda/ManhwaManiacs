@@ -8,8 +8,8 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/at_a_glance.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// DETAILS: At a glance, then the synopsis with its drop cap, genres and the
-/// enriched credits.
+/// DETAILS: At a glance, then the synopsis with its drop cap, genres, the
+/// enriched credits and `Open on {source}`.
 class DetailsPanel extends ConsumerWidget {
   const DetailsPanel({super.key, required this.data});
   final FeatureData data;
@@ -81,6 +81,7 @@ class DetailsPanel extends ConsumerWidget {
                     child: Text('Read on ${o.site} ↗'),
                   ),
               ],
+              OpenOnSource(sourceId: d.sourceId, url: d.series.sourceUrl),
             ]),
           ),
         ),

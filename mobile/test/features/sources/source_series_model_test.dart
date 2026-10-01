@@ -11,9 +11,11 @@ void main() {
         'chapter_count': 200,
         'genres': ['Action'],
         'cover_url': '/sources/asurascans/series/solo-leveling/cover',
+        'source_url': 'https://asuracomic.net/series/solo-leveling',
       },
       'https://app.manhwamaniacs.xyz',
     );
+    expect(series.sourceUrl, 'https://asuracomic.net/series/solo-leveling');
 
     expect(
       series.coverUrl,
@@ -34,5 +36,6 @@ void main() {
 
     expect(series.genres, isEmpty);
     expect(series.coverUrl, isEmpty);
+    expect(series.sourceUrl, isNull);
   });
 }

@@ -23,13 +23,14 @@ Future<FeatureRig> _details(
   FeatureRig? rig,
   String fixture = 'manga-long',
   bool wide = false,
+  String? sourceUrl,
 }) async {
   final r = await pumpFeature(
     tester,
     rig: rig ?? FeatureRig(followed: followedRow()),
     wide: wide,
     size: wide ? null : const Size(390, 1800),
-    child: MangaFeatureView(data: fixtureData(fixture, followed: (rig ?? FeatureRig(followed: followedRow())).followed)),
+    child: MangaFeatureView(data: fixtureData(fixture, followed: (rig ?? FeatureRig(followed: followedRow())).followed, sourceUrl: sourceUrl)),
   );
   await tester.tap(find.textContaining('02 DETAILS'));
   await frames(tester, 600);
@@ -38,6 +39,17 @@ Future<FeatureRig> _details(
 }
 
 void main() {
+  testWidgets('Open on {source}: present with a source_url, absent without one', (tester) async {
+    await _details(tester, sourceUrl: 'https://demo.test/manga/k/');
+    await tester.scrollUntilVisible(find.byKey(const Key('open-on-source')), 200, scrollable: find.byType(Scrollable).last);
+    expect(find.textContaining('Open on '), findsOneWidget);
+  });
+
+  testWidgets('no source_url, no Open on {source}', (tester) async {
+    await _details(tester);
+    expect(find.byKey(const Key('open-on-source')), findsNothing);
+  });
+
   testWidgets('At a glance: the Stat block, status, time and OCR coverage', (tester) async {
     await _details(
       tester,

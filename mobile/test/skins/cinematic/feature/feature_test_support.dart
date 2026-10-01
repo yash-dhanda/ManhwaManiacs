@@ -58,11 +58,11 @@ import '../../../screenshots/support/skin_shots.dart' show kSkinShotKey;
 import '../../../support/test_overrides.dart';
 
 /// A fixture from `test/fixtures/series/`: invented series, invented chapters.
-({SourceSeriesSummary series, List<SourceChapterSummary> chapters}) loadSeriesFixture(String name) {
+({SourceSeriesSummary series, List<SourceChapterSummary> chapters}) loadSeriesFixture(String name, {String? sourceUrl}) {
   final j = jsonDecode(File('test/fixtures/series/$name.json').readAsStringSync())
       as Map<String, dynamic>;
   return (
-    series: SourceSeriesSummary.fromJson(j['series'] as Map<String, dynamic>, 'http://example.test'),
+    series: SourceSeriesSummary.fromJson({...j['series'] as Map<String, dynamic>, if (sourceUrl != null) 'source_url': sourceUrl}, 'http://example.test'),
     chapters: [
       for (final c in j['chapters'] as List<dynamic>)
         SourceChapterSummary.fromJson(c as Map<String, dynamic>),
@@ -70,8 +70,8 @@ import '../../../support/test_overrides.dart';
   );
 }
 
-FeatureData fixtureData(String name, {FollowedSeries? followed}) {
-  final f = loadSeriesFixture(name);
+FeatureData fixtureData(String name, {FollowedSeries? followed, String? sourceUrl}) {
+  final f = loadSeriesFixture(name, sourceUrl: sourceUrl);
   return FeatureData(
     sourceId: 'demo',
     seriesKey: 'k',

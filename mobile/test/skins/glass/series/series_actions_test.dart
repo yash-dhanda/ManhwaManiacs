@@ -10,8 +10,8 @@ import 'series_rig.dart';
 
 const _loc = '/sources/demo/series/k1000';
 
-Future<ShellRig> _page(WidgetTester t, {List<dynamic> followed = const [], bool platformAndroid = false, Map<String, SourceChapterProgress> progress = const {}, bool novel = false}) async {
-  final r = await pumpGlassShell(t, start: _loc, platformAndroid: platformAndroid, extra: seriesOverrides(followed: followed.cast(), progress: progress, novel: novel));
+Future<ShellRig> _page(WidgetTester t, {List<dynamic> followed = const [], bool platformAndroid = false, Map<String, SourceChapterProgress> progress = const {}, bool novel = false, String? sourceUrl}) async {
+  final r = await pumpGlassShell(t, start: _loc, platformAndroid: platformAndroid, extra: seriesOverrides(data: sourceUrl == null ? null : loadSeries(sourceUrl: sourceUrl), followed: followed.cast(), progress: progress, novel: novel));
   await t.pump(const Duration(seconds: 1));
   return r;
 }
@@ -40,6 +40,32 @@ void main() {
     await t.tap(find.text('On hold'));
     await _settle(t);
     expect(calls, contains('patch:7:reading_status=on_hold'));
+  });
+
+  testWidgets('Open source page in browser: shown with a source_url, it launches it externally; hidden without one', (t) async {
+    // url_launcher's default (method channel) implementation: an external launch is neither Safari VC nor a web view.
+    final launched = <String>[];
+    const channel = MethodChannel('plugins.flutter.io/url_launcher');
+    t.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (call) async {
+      final a = call.arguments as Map<Object?, Object?>;
+      launched.add('${a['url']} ${a['useSafariVC'] == false && a['useWebView'] == false ? 'external' : 'in-app'}');
+      return true;
+    });
+    addTearDown(() => t.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, null));
+    await _page(t, followed: [followRow()], sourceUrl: 'https://demo.test/manga/k1000/');
+    await t.tap(find.bySemanticsLabel('More').first);
+    await _settle(t);
+    await t.tap(find.text('Open source page in browser'));
+    await _settle(t);
+    expect(launched, ['https://demo.test/manga/k1000/ external']);
+  });
+
+  testWidgets('no source_url, no Open source page entry', (t) async {
+    await _page(t, followed: [followRow()]);
+    await t.tap(find.bySemanticsLabel('More').first);
+    await _settle(t);
+    expect(find.text('Reading status…'), findsOneWidget);
+    expect(find.text('Open source page in browser'), findsNothing);
   });
 
   testWidgets('Content rating shows only with the gate open', (t) async {

@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
+import 'package:manhwamaniacs/features/sources/utils/source_page.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -211,6 +214,32 @@ class FeatureBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(border: Border.all(color: t.colorRule2)),
       child: Text(label, style: kickerStyle(context, color: t.colorInk80)),
+    );
+  }
+}
+
+/// `Open on {source} ↗` (cinematic 8.17 DETAILS): the series' page on its source site, in the system browser. Absent when the
+/// source has no page for it.
+class OpenOnSource extends ConsumerWidget {
+  const OpenOnSource({super.key, required this.sourceId, required this.url});
+  final String sourceId;
+  final String? url;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final u = url;
+    if (u == null) return const SizedBox.shrink();
+    final name = ref.watch(sourcesListProvider).valueOrNull?.where((s) => s.id == sourceId).firstOrNull?.name ?? sourceId;
+    return TextButton(
+      key: const Key('open-on-source'),
+      style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+      onPressed: () async {
+        final ok = await openSourcePage(u);
+        if (!ok && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Couldn't open $name")));
+        }
+      },
+      child: Text('Open on $name ↗'),
     );
   }
 }

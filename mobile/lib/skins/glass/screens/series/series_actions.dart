@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dar
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
+import 'package:manhwamaniacs/features/sources/utils/source_page.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -201,7 +202,7 @@ class SeriesActions extends ConsumerWidget {
 const _statuses = [('unread', 'Unread'), ('reading', 'Reading'), ('completed', 'Completed'), ('on_hold', 'On hold'), ('plan_to_read', 'Plan to read'), ('dropped', 'Dropped')];
 
 /// The ⋯ menu (glass 8.12): Reading status, Add to collection, Tags…, Previously on, Check for new chapters, Move to another source…,
-/// Content rating (gate open only), Recommend to…, Hide from my Circle.
+/// Content rating (gate open only), Recommend to…, Hide from my Circle, Open source page in browser (when the source has one).
 Future<void> showSeriesMenu(BuildContext context, WidgetRef ref, GlassSeriesData d, Rect anchor) {
   final f = d.followed;
   final online = onlineNow(ref);
@@ -223,8 +224,13 @@ Future<void> showSeriesMenu(BuildContext context, WidgetRef ref, GlassSeriesData
       // The Circle (mobile/43, glass 8.12, 8.13, 9.3.4, 9.3.6).
       if (recommendMenuEntry(ref, sourceId: d.sourceId, seriesKey: d.seriesKey, title: d.title, keyHint: const SingleActivator(LogicalKeyboardKey.keyR, shift: true)) case final e?) e,
       if (hideFromCircleEntry(ref, sourceId: d.sourceId, seriesKey: d.seriesKey, title: d.title) case final e?) e,
+      if (d.series.sourceUrl case final url?) GlassMenuEntry(label: 'Open source page in browser', separatorBefore: true, onSelected: () => fire(_openSourcePage(ref, url))),
     ],
   );
+}
+
+Future<void> _openSourcePage(WidgetRef ref, String url) async {
+  if (!await openSourcePage(url)) showGlassToast(ref, const GlassToastSpec("Couldn't open the source page", kind: GlassToastKind.error));
 }
 
 void openTagsSheet(BuildContext context, GlassSeriesData d) => unawaited(pushSeriesSheet(context, title: 'Tags', builder: (_) => SeriesTagsSheet(data: d)));

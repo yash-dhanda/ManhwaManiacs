@@ -534,6 +534,7 @@ class _BookViewState extends ConsumerState<BookView> {
                     blurb: blurb,
                     genres: shelfGenres(s.genres),
                     sourceId: d.sourceId,
+                    sourceUrl: s.sourceUrl,
                     coverUrl: cover,
                     heroTag: heroTag,
                     onCover: _cover,

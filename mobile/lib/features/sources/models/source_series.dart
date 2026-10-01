@@ -18,10 +18,15 @@ class SourceSeriesSummary {
     this.cacheStale = false,
     this.cacheFetchedAt,
     this.ambient,
+    this.sourceUrl,
   });
 
   final String id;
   final String sourceId;
+
+  /// The series' own page on its source site (`source_url` of the series detail); null when the source has none, or from a
+  /// list payload or an older server.
+  final String? sourceUrl;
 
   /// `cache.stale` / `cache.fetched_at` of the payload: a saved copy.
   final bool cacheStale;
@@ -68,6 +73,7 @@ class SourceSeriesSummary {
             )
           : null,
       ambient: Ambient.tryParse(json['ambient']),
+      sourceUrl: json['source_url'] as String?,
     );
   }
 }
