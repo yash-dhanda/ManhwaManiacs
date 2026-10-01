@@ -36,11 +36,16 @@ double barLeft(double plotWidth, int n, int i) =>
     i * (barWidth(plotWidth, n) + 2);
 
 /// Which bars carry a date label: every 2nd for 7 days, every 6th for 30 and
-/// every 18th for 90, counted from the first day, plus the final day.
+/// every 18th for 90, counted from the first day, plus the final day. An
+/// interior label closer than one step to the forced final label is dropped,
+/// so no two labels sit closer than [step] bars (30 days: 24 and 29 collided).
 List<int> labelIndices(int n) {
   final step = n <= 7 ? 2 : (n <= 30 ? 6 : 18);
   final out = <int>[for (var i = 0; i < n; i += step) i];
-  if (n > 0 && out.last != n - 1) out.add(n - 1);
+  if (n > 0 && out.last != n - 1) {
+    if (out.length > 1 && n - 1 - out.last < step) out.removeLast();
+    out.add(n - 1);
+  }
   return out;
 }
 
