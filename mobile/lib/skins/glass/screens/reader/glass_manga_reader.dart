@@ -10,6 +10,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/features/reader/utils/further_elsewhere.dart';
+import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show singleKeyShortcutsProvider;
 import 'package:manhwamaniacs/core/platform/mm_platform.dart';
 import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart' show completedThisSessionProvider;
@@ -219,7 +222,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       ..add(engine.seamEvents.listen(_onSeam))
       ..add(engine.neighbourEvents.listen(_onNeighbour))
       // The spoiler guard unseals a chapter's reactions as soon as it is finished here (glass 9.3, mobile/43).
-      ..add(engine.chapterCompleted.listen((c) => ref.read(completedThisSessionProvider.notifier).markCompleted(c.sourceId, c.seriesKey, c.chapterKey)));
+      ..add(engine.chapterCompleted.listen((c) => ref.read(completedThisSessionProvider.notifier).markCompleted(c.sourceId, c.seriesKey, c.chapterKey)))
+      // A save the server did not advance: another device may be further on (the toast in _onEngine).
+      ..add(ref.read(progressOutboxControllerProvider).notAdvanced.listen((k) => unawaited(_checkFurther(k))));
     engine.addListener(_onEngine);
     _attachCruise();
     if (widget.q != null) unawaited(_prepareHitLens(widget.q!));
@@ -533,6 +538,18 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   }
 
   FurtherElsewhere? _furtherShown;
+
+  Future<void> _checkFurther(({String sourceId, String seriesKey}) k) async {
+    if (k.sourceId != sourceId || k.seriesKey != seriesKey) return;
+    final outbox = ref.read(progressOutboxControllerProvider);
+    final rows = await ref.read(readerRepositoryProvider).seriesProgress(sourceId: k.sourceId, seriesKey: k.seriesKey);
+    if (!mounted || rows.isErr) return;
+    final here = _currentId;
+    if (here == null) return;
+    final far = furtherElsewhere(rows.value, hereKey: here, here: _chapter(here)?.chapterNumber ?? _numberOf(here), own: outbox.ownFurthest(k.sourceId, k.seriesKey));
+    if (far == null) return;
+    engine.reportServerProgress(chapterKey: far.chapterKey, chapterNumber: far.chapterNumber, lastPage: far.lastPage, advanced: false);
+  }
 
   /// The chapter last announced. A chapter change says "Chapter 144" once, politely; a page change says nothing (glass 14.5).
   String? _announcedChapter;

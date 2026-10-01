@@ -21,6 +21,7 @@ import 'package:manhwamaniacs/features/novels/utils/novel_snippet.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
+import 'package:manhwamaniacs/features/reader/utils/further_elsewhere.dart';
 import 'package:manhwamaniacs/features/reader/utils/reading_clock.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -726,12 +727,9 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
     if (chapter == null || k.sourceId != chapter.sourceId || k.seriesKey != chapter.seriesKey) return;
     final rows = await ref.read(readerRepositoryProvider).seriesProgress(sourceId: k.sourceId, seriesKey: k.seriesKey);
     if (_disposed || rows.isErr) return;
-    ReadingProgress? far;
-    for (final r in rows.value) {
-      if ((r.chapterNumber ?? -1) > (far?.chapterNumber ?? -1)) far = r;
-    }
-    final here = state.chapter?.chapterNumber ?? -1;
-    if (far == null || far.chapterKey == chapter.chapterKey || (far.chapterNumber ?? -1) <= here) return;
+    final far = furtherElsewhere(rows.value,
+        hereKey: chapter.chapterKey, here: chapter.chapterNumber, own: ref.read(progressOutboxControllerProvider).ownFurthest(k.sourceId, k.seriesKey),);
+    if (far == null) return;
     state = state.copyWith(furtherElsewhere: NovelFurtherAhead(chapterKey: far.chapterKey, chapterNumber: far.chapterNumber, bucket: far.lastPage));
   }
 

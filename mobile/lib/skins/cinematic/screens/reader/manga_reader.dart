@@ -33,13 +33,13 @@ import 'package:manhwamaniacs/features/reader/engine/zoom_math.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart' show kChapterSeamExtent;
 import 'package:manhwamaniacs/features/reader/models/reader_prefs.dart';
-import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/auto_scroll_speed.dart';
+import 'package:manhwamaniacs/features/reader/utils/further_elsewhere.dart';
 import 'package:manhwamaniacs/features/reader/utils/read_all_feed.dart' show isFailedChapter;
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_factory.dart' show readAllControllerProvider;
 import 'package:manhwamaniacs/features/reader/utils/reader_prefs_migration.dart' show LegacyReaderKeys;
@@ -418,13 +418,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
     if (!mounted || rows.isErr) return;
     final s = _engine.value;
     final here = ref.read(readerSeriesProvider(_seriesKey))?.chapterOf(s.chapterId)?.number;
-    ReadingProgress? far;
-    for (final r in rows.value) {
-      if ((r.chapterNumber ?? -1) > (far?.chapterNumber ?? -1)) far = r;
-    }
-    if (far == null || far.chapterKey == s.chapterId) return;
-    final ahead = (far.chapterNumber ?? -1) > (here ?? -1);
-    if (!ahead) return;
+    final far = furtherElsewhere(rows.value, hereKey: s.chapterId, here: here, own: ref.read(progressOutboxControllerProvider).ownFurthest(k.sourceId, k.seriesKey));
+    if (far == null) return;
     _engine.reportServerProgress(chapterKey: far.chapterKey, chapterNumber: far.chapterNumber, lastPage: far.lastPage, advanced: false);
   }
 
