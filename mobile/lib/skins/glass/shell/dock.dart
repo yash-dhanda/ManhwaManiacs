@@ -153,7 +153,7 @@ class _GlassDockState extends ConsumerState<GlassDock> with TickerProviderStateM
     if (_merge > 0.6) {
       setState(() => _merge = 0);
       _moveTo(widget.selected.index);
-      (widget.onSearch ?? () => openGlassSearch(context, ref))();
+      (widget.onSearch ?? () => openGlassSearch(ref))();
       return;
     }
     final target = dropletTarget(posPx: _pos.value * tabW + tabW / 2, velocityPxPerS: vx, tabWidth: tabW);
@@ -197,7 +197,7 @@ class _GlassDockState extends ConsumerState<GlassDock> with TickerProviderStateM
         if (hideT > 0.98) return const SizedBox.shrink();
         final shapes = <SkinGlassShape>[
           SkinGlassShape(size: Size(dockW, dockH), child: _dockBody(context, dockW, dockH, m, badges, assistive)),
-          SkinGlassShape(size: const Size.square(kSearchOrb), shape: const GlassShape.circle(), child: GlassSearchOrbBody(onTap: widget.onSearch ?? () => openGlassSearch(context, ref))),
+          SkinGlassShape(size: const Size.square(kSearchOrb), shape: const GlassShape.circle(), child: GlassSearchOrbBody(onTap: widget.onSearch ?? () => openGlassSearch(ref))),
           if (showAcc) SkinGlassShape(size: Size(accW, accH), child: GlassAccessoryBody(state: acc, minimised: m > 0.5)),
         ];
         final aligns = <Alignment>[Alignment.bottomLeft, Alignment.bottomRight, if (showAcc) Alignment(0, lerpDouble2(-1, 1, m))];

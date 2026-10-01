@@ -179,7 +179,7 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
     );
     content = GlassDownloadsFeed(child: GlassRecede(child: GlassDiveScope(child: Padding(padding: EdgeInsets.only(left: leftPad), child: content))));
 
-    final hidden = hidesDock(path) || sheetLarge || keyboard || ref.watch(recommendOrbsUpProvider);
+    final hidden = hidesDock(path) || sheetLarge || keyboard || ref.watch(recommendOrbsUpProvider) || ref.watch(glassSearchOpenProvider);
     final children = <Widget>[
       Positioned.fill(child: content),
       if (phone)
@@ -193,7 +193,7 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
                   onReselect: _reselect,
                   minimised: minimised,
                   hidden: hidden,
-                  onSearch: () => openGlassSearch(context, ref),
+                  onSearch: () => openGlassSearch(ref),
                 ),
               ],
             ),

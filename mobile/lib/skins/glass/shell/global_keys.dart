@@ -130,7 +130,7 @@ class _GlassGlobalKeysState extends ConsumerState<GlassGlobalKeys> {
           final ctx = ref.read(glassNavigatorsProvider)?.root.currentContext;
           if (ctx == null) return;
           if (GlassFrame.of(ctx) == GlassFrameKind.phone) {
-            openGlassSearch(ctx, ref);
+            openGlassSearch(ref);
           } else {
             unawaited(openGlassPalette(ctx, ref));
           }
