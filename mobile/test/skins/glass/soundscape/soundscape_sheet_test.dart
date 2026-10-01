@@ -1,5 +1,6 @@
+import 'dart:ui' show CheckedState;
+
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/reader/providers/soundscape_defaults_provider.dart';
@@ -46,8 +47,8 @@ void main() {
     }
     expect(find.bySemanticsLabel('Off'), findsOneWidget);
     final off = t.getSemantics(find.bySemanticsLabel('Off'));
-    expect(off.getSemanticsData().hasFlag(SemanticsFlag.isChecked), isTrue);
-    expect(off.getSemanticsData().hasFlag(SemanticsFlag.isInMutuallyExclusiveGroup), isTrue);
+    expect(off.getSemanticsData().flagsCollection.isChecked, CheckedState.isTrue);
+    expect(off.getSemanticsData().flagsCollection.isInMutuallyExclusiveGroup, isTrue);
     expect(rig.view.state, SoundscapeState.off);
     handle.dispose();
     await t.pumpWidget(const SizedBox.shrink());

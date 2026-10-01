@@ -3,21 +3,21 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/cruise_pill.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class _Log {
+class PillLog {
   final previews = <double>[];
   final commits = <double>[];
   final steps = <double>[];
   int toggles = 0, resumes = 0;
 }
 
-Future<_Log> pumpPill(WidgetTester t, {required CruiseState state, bool reduced = false, TargetPlatform platform = TargetPlatform.iOS}) async {
-  final log = _Log();
+Future<PillLog> pumpPill(WidgetTester t, {required CruiseState state, bool reduced = false, TargetPlatform platform = TargetPlatform.iOS}) async {
+  final log = PillLog();
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   t.view.physicalSize = const Size(1170, 2532);
@@ -76,7 +76,7 @@ void main() {
   });
 
   testWidgets('running it is a pill: 44 tall, the speed in mono with one decimal', (t) async {
-    await pumpPill(t, state: const CruiseState(speed: 1.0, running: true));
+    await pumpPill(t, state: const CruiseState(running: true));
     expect(find.text('1.0×'), findsOneWidget);
     final box = t.getRect(find.byType(CruisePill));
     expect(box.height, greaterThanOrEqualTo(44));
@@ -84,7 +84,7 @@ void main() {
   });
 
   testWidgets('dragging the pill up 80 px adds 0.50x; 8 px is 0.05x', (t) async {
-    final log = await pumpPill(t, state: const CruiseState(speed: 1.0, running: true));
+    final log = await pumpPill(t, state: const CruiseState(running: true));
     final g = await t.startGesture(t.getCenter(find.byType(CruisePill)));
     await g.moveBy(const Offset(0, -20));
     await t.pump();
@@ -98,7 +98,7 @@ void main() {
   });
 
   testWidgets('a drag ending at a raw 1.07 applies 1.0 (the magnet) and one ending at 1.09 applies 1.1', (t) async {
-    var log = await pumpPill(t, state: const CruiseState(speed: 1.0, running: true));
+    var log = await pumpPill(t, state: const CruiseState(running: true));
     var g = await t.startGesture(t.getCenter(find.byType(CruisePill)));
     await g.moveBy(const Offset(0, -20));
     await g.moveBy(const Offset(0, -11.2));
@@ -107,7 +107,7 @@ void main() {
     expect(log.commits.last, 1.0);
     await t.pumpWidget(const SizedBox.shrink());
 
-    log = await pumpPill(t, state: const CruiseState(speed: 1.0, running: true));
+    log = await pumpPill(t, state: const CruiseState(running: true));
     g = await t.startGesture(t.getCenter(find.byType(CruisePill)));
     await g.moveBy(const Offset(0, -20));
     await g.moveBy(const Offset(0, -14.4));
@@ -119,7 +119,7 @@ void main() {
 
   testWidgets('the semantics actions step by 0.25 and a tap stops', (t) async {
     final handle = t.ensureSemantics();
-    final log = await pumpPill(t, state: const CruiseState(speed: 1.0, running: true));
+    final log = await pumpPill(t, state: const CruiseState(running: true));
     final node = t.getSemantics(find.bySemanticsLabel('Cruise'));
     expect(node.value, '1.0 times, playing');
     t.semantics.performAction(find.semantics.byLabel('Cruise'), SemanticsAction.increase);
@@ -133,7 +133,7 @@ void main() {
 
   testWidgets('paused it says so, and under Reduce Motion a tap resumes instead of stopping', (t) async {
     final handle = t.ensureSemantics();
-    final log = await pumpPill(t, state: const CruiseState(speed: 1.0, running: true, paused: true), reduced: true);
+    final log = await pumpPill(t, state: const CruiseState(running: true, paused: true), reduced: true);
     expect(t.getSemantics(find.bySemanticsLabel('Cruise')).value, '1.0 times, paused');
     await t.tap(find.byType(CruisePill));
     expect(log.resumes, 1);
@@ -144,11 +144,11 @@ void main() {
 
   testWidgets('hit targets meet the iOS and Android guidelines', (t) async {
     final handle = t.ensureSemantics();
-    await pumpPill(t, state: const CruiseState(speed: 1.0, running: true));
+    await pumpPill(t, state: const CruiseState(running: true));
     await expectLater(t, meetsGuideline(iOSTapTargetGuideline));
     await expectLater(t, meetsGuideline(labeledTapTargetGuideline));
     await t.pumpWidget(const SizedBox.shrink());
-    await pumpPill(t, state: const CruiseState(speed: 1.0, running: true), platform: TargetPlatform.android);
+    await pumpPill(t, state: const CruiseState(running: true), platform: TargetPlatform.android);
     await expectLater(t, meetsGuideline(androidTapTargetGuideline));
     handle.dispose();
     await t.pumpWidget(const SizedBox.shrink());

@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' show PointerScrollEvent;
 import 'package:flutter/material.dart' show Material, MaterialType, TextField, InputDecoration, InputBorder;
+import 'package:flutter/scheduler.dart' show SchedulerBinding, SchedulerPhase;
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -490,7 +491,12 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     final next = _tintFollower.feed(sample?.tint, s.scrollVelocity);
     if ((next != _tint || (!fling && _lbSample != _lbShown)) && mounted) {
       _lbShown = _lbSample;
-      setState(() => _tint = next);
+      void apply() {
+        if (mounted && !_disposed) setState(() => _tint = next);
+      }
+
+      // The engine publishes from inside its own build: never rebuild this reader in that phase.
+      SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks ? WidgetsBinding.instance.addPostFrameCallback((_) => apply()) : apply();
     }
     _maybeAutoNext(s);
     _syncWake();

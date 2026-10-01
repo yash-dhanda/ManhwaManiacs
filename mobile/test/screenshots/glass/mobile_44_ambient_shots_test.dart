@@ -1,7 +1,6 @@
 // ignore_for_file: require_trailing_commas
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' show Rect;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
