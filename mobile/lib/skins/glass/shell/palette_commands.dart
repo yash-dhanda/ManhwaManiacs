@@ -108,6 +108,7 @@ List<PaletteItem> paletteCommands(WidgetRef ref) {
     if (caps.ocr && !novel) nav('dialogue', 'Dialogue search', '/ocr'),
     nav('profiles', 'Profiles', '/profiles/manage'),
     nav('settings', 'Settings', '/settings'),
+    PaletteItem(id: 'act:ask', group: 'Actions', title: 'Ask for something to read', run: (c, r) async => go('/library/recommendations')),
     PaletteItem(id: 'act:settings', group: 'Actions', title: 'Open settings', run: (c, r) async => go('/settings')),
     PaletteItem(id: 'act:switch', group: 'Actions', title: 'Switch profile', run: (c, r) async => showProfileSwitcher(c, r, Rect.fromLTWH(MediaQuery.sizeOf(c).width / 2, 120, 1, 1))),
     if (ref.read(novelsEnabledProvider))

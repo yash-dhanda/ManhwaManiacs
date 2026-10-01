@@ -47,4 +47,15 @@ void main() {
     expect(got, [(124, 412)]);
     expect(backupProgressLabel(124 * 1024 * 1024, 412 * 1024 * 1024), '124 MB OF 412 MB');
   });
+
+  test('include_cache is sent only when the switch is on', () async {
+    final dir = Directory.systemTemp.createTempSync('bk');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final off = _Dio();
+    await BackupDownloader(off, tempDir: () async => dir).download(includeCaches: false);
+    expect(off.query, isNull);
+    final on = _Dio();
+    await BackupDownloader(on, tempDir: () async => dir).download(includeCaches: true);
+    expect(on.query, {'include_cache': true});
+  });
 }

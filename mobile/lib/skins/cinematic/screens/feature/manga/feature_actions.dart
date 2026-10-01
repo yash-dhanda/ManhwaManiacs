@@ -194,8 +194,9 @@ class _FeatureActionsState extends ConsumerState<FeatureActions> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(icon, color: onTap == null ? t.colorInk30 : (on ? t.colorSpot : t.colorInk100)),
-                if (on)
-                  Container(margin: const EdgeInsets.only(top: 2), height: 2, width: 20, color: t.colorSpot),
+                // Always laid out (clear when off): the bar pushed the lit cell's label 4 px below
+                // its neighbours'.
+                Container(margin: const EdgeInsets.only(top: 2), height: 2, width: 20, color: on ? t.colorSpot : const Color(0x00000000)),
                 if (!wide)
                   MediaQuery(
                     data: MediaQuery.of(context)

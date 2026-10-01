@@ -191,11 +191,12 @@ class _SeriesRow extends StatelessWidget {
                 padding: EdgeInsets.only(right: c.space1, bottom: 2),
                 child: CineIcon(CineIconRole.pin, size: 16, weight: CineIconWeight.fill, color: c.colorInk100),
               ),
-            Flexible(child: CineRoleText(title, c.typeUi, color: c.colorInk80, maxLines: 1, overflow: TextOverflow.ellipsis)),
-            SizedBox(width: c.space2),
-            const Expanded(child: Padding(padding: EdgeInsets.only(bottom: 2), child: CineDotLeader())),
-            SizedBox(width: c.space2),
-            CineRoleText(value, c.typeFolio, color: c.colorInk60),
+            Expanded(
+              child: CineLeaderRow(
+                label: CineRoleText(title, c.typeUi, color: c.colorInk80, maxLines: 1, overflow: TextOverflow.ellipsis),
+                value: CineRoleText(value, c.typeFolio, color: c.colorInk60),
+              ),
+            ),
           ],
         ),
       ),

@@ -37,6 +37,7 @@ class GlassSlider extends ConsumerStatefulWidget {
     this.errorTrigger = 0,
     this.forceStates = GlassWidgetStates.none,
     this.forceDragging = false,
+    this.magnet,
   });
 
   final double value;
@@ -56,6 +57,9 @@ class GlassSlider extends ConsumerStatefulWidget {
   /// For captures: draw the dragging state.
   final bool forceDragging;
 
+  /// A value the thumb is pulled to within 30 % of one step's spacing; reaching it fires `detent.magnet` (glass 7.21).
+  final double? magnet;
+
   @override
   ConsumerState<GlassSlider> createState() => _GlassSliderState();
 }
@@ -69,6 +73,7 @@ class _GlassSliderState extends ConsumerState<GlassSlider> with SingleTickerProv
   double _grab = 0;
   int _lastStep = -1;
   bool _atLimit = false;
+  bool _held = false;
   final FocusNode _focus = FocusNode(debugLabel: 'GlassSlider');
 
   double _frac(double v) => widget.max == widget.min ? 0 : ((v - widget.min) / (widget.max - widget.min)).clamp(0.0, 1.0);
@@ -118,16 +123,27 @@ class _GlassSliderState extends ConsumerState<GlassSlider> with SingleTickerProv
     } else {
       _atLimit = false;
     }
+    final magnetPx = widget.magnet == null ? null : _frac(widget.magnet!) * _trackLen;
+    if (magnetPx != null) {
+      final v = valueMagnet(p, magnetPx, spacing > 0 ? spacing : _trackLen / 100);
+      p = v.pos;
+      if (v.held && !_held) {
+        glassFire(ref, HapticEvent.detentMagnet);
+        if (widget.divisions == null) widget.onChanged?.call(widget.magnet!);
+      }
+      _held = v.held;
+    }
     if (widget.divisions != null) {
       final m = stepMagnet(p, spacing, widget.divisions!);
       p = m.pos;
       final step = nearestStep(p, spacing, widget.divisions!);
       if (m.magnet && step != _lastStep) {
-        glassFire(ref, HapticEvent.detentTick);
+        // The magnet step fires `detent.magnet` above instead of a tick.
+        if (!_held) glassFire(ref, HapticEvent.detentTick);
         _lastStep = step;
         widget.onChanged?.call(_valueOf(step / widget.divisions!));
       }
-    } else {
+    } else if (!_held) {
       widget.onChanged?.call(_valueOf(p / _trackLen));
     }
     _pos.value = p / _trackLen + sliderRubber(overshoot, _trackLen) / _trackLen;
@@ -160,6 +176,7 @@ class _GlassSliderState extends ConsumerState<GlassSlider> with SingleTickerProv
     _springTo(f);
     _lastStep = -1;
     _atLimit = false;
+    _held = false;
     widget.onChangeEnd?.call(_valueOf(f));
   }
 

@@ -82,16 +82,12 @@ class WeekDots extends StatelessWidget {
                             ? null
                             : Border.all(color: CineColors.rule2),),),
                 const SizedBox(height: 4),
-                SizedBox(
-                    width: 8,
-                    height: 14,
-                    child: OverflowBox(
-                        maxWidth: 16,
-                        maxHeight: 14,
-                        child: ExcludeSemantics(
-                            child: CineRoleText(initials[i], micro,
-                                color: context.cine.colorInk45,
-                                textAlign: TextAlign.center,),),),),
+                // The letter sets the column's width and the square centres over it: an 8 px
+                // cell let wider letters (W, M; text scale) run into their neighbours.
+                ExcludeSemantics(
+                    child: CineRoleText(initials[i], micro,
+                        color: context.cine.colorInk45,
+                        textAlign: TextAlign.center,),),
               ],
             ),
           ],

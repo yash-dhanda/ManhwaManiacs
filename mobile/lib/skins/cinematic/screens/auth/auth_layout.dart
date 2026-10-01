@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/auth/auth_copy.dart';
@@ -34,7 +35,7 @@ class AuthFrame extends StatelessWidget {
             constraints: BoxConstraints(maxWidth: maxW),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: tablet ? 0 : grid.left),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: kids),
+              child: CineGutter(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: kids)),
             ),
           ),
         );

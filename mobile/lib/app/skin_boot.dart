@@ -32,7 +32,7 @@ class SkinBoot {
   /// What "Clear override" and "Leave the preview" restart into.
   static SkinId resolveSkinWithoutDebug(SharedPreferences prefs) {
     final active = skinIdFromName(prefs.getString(kSkinActiveKey));
-    if (active == null) return kDefaultSkin;
+    if (active == null || active == SkinId.legacy) return kDefaultSkin;
     return active == SkinId.glass && !Flags.glassAvailable ? SkinId.cinematic : active;
   }
 

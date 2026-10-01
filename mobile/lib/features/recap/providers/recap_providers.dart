@@ -130,6 +130,8 @@ class RecapStreamNotifier extends AutoDisposeFamilyNotifier<RecapStreamState, Re
     switch (open) {
       case RecapNone(:final reason, :final retryAfter):
         _finishNone(reason, retryAfter);
+      case DeckStream():
+        _finishNone('error', null);
       case RecapStream(:final events):
         _sub = events.listen(
           (e) => _onEvent(e, id),

@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_masthead.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_pull_to_reprint.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_search_field.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/pages/licenses_page.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/section_pane.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/settings_contents.dart';
@@ -27,8 +28,7 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 
 /// Footer under the table of contents (one pane) or the section (two panes). The restart sentence
 /// only exists once a second edition does.
-String settingsFooter({bool glassAvailable = Flags.glassAvailable}) =>
-    'Settings save as you change them.${glassAvailable ? ' Changing the edition restarts the app.' : ''}';
+String settingsFooter({bool glassAvailable = Flags.glassAvailable}) => 'Settings save as you change them.${glassAvailable ? ' Changing the edition restarts the app.' : ''}';
 
 /// Settings (`/settings`, `/settings/:section`, cinematic 8.30): a credits-list contents and a
 /// pushed page per section below 900 dp; two panes from 900 dp.
@@ -151,26 +151,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: CineRoleText(settingsFooter(), c.typeCaption, color: c.colorInk60),
     );
 
-    final Widget content;
-    if (two) {
-      content = _twoPane(context, env, sections, side, footer);
-    } else if (widget.slug == null) {
-      content = _contents(context, env, sections, side, footer);
-    } else {
-      final slug = widget.slug!;
-      final scroll = SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(side, CineScaffoldScope.topExtentOf(context) + c.space6, side, c.space12),
-        child: SectionPane(
-          slug: widget.slug!,
-          env: env,
-          twoPane: false,
-          headingFocus: _head,
-          bodyOverride: _licenses && widget.slug == 'about' ? const LicensesPage() : null,
-          overrideTitle: _licenses && widget.slug == 'about' ? 'Licenses' : null,
-        ),
-      );
-      content = settingsPageOf(slug) == null ? scroll : CinePullToReprint(onRefresh: () => refreshSettingsPage(ref, slug), child: scroll);
+    // Built under the scaffold: the running head's extent is only readable there.
+    Widget content(BuildContext context) {
+      if (two) {
+        return _twoPane(context, env, sections, side, footer);
+      } else if (widget.slug == null) {
+        return _contents(context, env, sections, side, footer);
+      } else {
+        final slug = widget.slug!;
+        final scroll = SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(side, CineScaffoldScope.topExtentOf(context) + c.space6, side, c.space12),
+          child: SectionPane(
+            slug: widget.slug!,
+            env: env,
+            twoPane: false,
+            headingFocus: _head,
+            bodyOverride: _licenses && widget.slug == 'about' ? const LicensesPage() : null,
+            overrideTitle: _licenses && widget.slug == 'about' ? 'Licenses' : null,
+          ),
+        );
+        return settingsPageOf(slug) == null ? scroll : CinePullToReprint(onRefresh: () => refreshSettingsPage(ref, slug), child: scroll);
+      }
     }
 
     return SettingsKeys(
@@ -198,10 +200,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           firstRunNote: false,
           mastheadFocusNode: _head,
           back: !two && widget.slug != null ? const CineBack() : null,
-          trailing: !two && widget.slug == null
-              ? [CineHeadAction(role: CineIconRole.search, label: 'Search settings', onPressed: () => unawaited(_openSearchPage(env)))]
-              : const [],
-          body: content,
+          trailing: !two && widget.slug == null ? [CineHeadAction(role: CineIconRole.search, label: 'Search settings', onPressed: () => unawaited(_openSearchPage(env)))] : const [],
+          body: CineGutter(child: Builder(builder: content)),
         ),
       ),
     );
@@ -211,11 +211,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final c = context.cine;
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(side, CineScaffoldScope.topExtentOf(context) + c.space6, side, c.space12),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        CineMasthead(kicker: 'No. 00 — THE HOUSE', title: 'Settings', focusNode: _head, id: 'settings'),
-        SettingsContentsList(sections: sections, onOpen: (slug) => _open(slug, two: false)),
-        footer,
-      ],),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CineMasthead(kicker: 'No. 00 — THE HOUSE', title: 'Settings', focusNode: _head, id: 'settings'),
+          SettingsContentsList(sections: sections, onOpen: (slug) => _open(slug, two: false)),
+          footer,
+        ],
+      ),
     );
   }
 
@@ -286,38 +289,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Padding(
       padding: EdgeInsets.fromLTRB(side, top, side, 0),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: left, child: SingleChildScrollView(padding: EdgeInsets.only(bottom: c.space12), child: toc)),
-        SizedBox(width: gutter),
-        Expanded(
-          child: _reprint(current, SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.only(bottom: c.space12),
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 720),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  parentLink,
-                  SectionPane(
-                    key: ValueKey('pane-$current-$_licenses'),
-                    slug: current,
-                    env: env,
-                    twoPane: true,
-                    headingFocus: _head,
-                    bodyOverride: _licenses && current == 'about' ? const LicensesPage() : null,
-                    overrideTitle: _licenses && current == 'about' ? 'Licenses' : null,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: left, child: SingleChildScrollView(padding: EdgeInsets.only(bottom: c.space12), child: toc)),
+          SizedBox(width: gutter),
+          Expanded(
+            child: _reprint(
+              current,
+              SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.only(bottom: c.space12),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        parentLink,
+                        SectionPane(
+                          key: ValueKey('pane-$current-$_licenses'),
+                          slug: current,
+                          env: env,
+                          twoPane: true,
+                          headingFocus: _head,
+                          bodyOverride: _licenses && current == 'about' ? const LicensesPage() : null,
+                          overrideTitle: _licenses && current == 'about' ? 'Licenses' : null,
+                        ),
+                        footer,
+                      ],
+                    ),
                   ),
-                  footer,
-                ],),
+                ),
               ),
             ),
-          ),),
-        ),
-      ],),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _reprint(String slug, Widget scroll) =>
-      settingsPageOf(slug) == null ? scroll : CinePullToReprint(onRefresh: () => refreshSettingsPage(ref, slug), child: scroll);
+  Widget _reprint(String slug, Widget scroll) => settingsPageOf(slug) == null ? scroll : CinePullToReprint(onRefresh: () => refreshSettingsPage(ref, slug), child: scroll);
 }

@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/alert.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart'
     show glassSound;
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/screens/onboarding/skin_preview_loop.dart';
 import 'package:manhwamaniacs/skins/glass/shell/melt.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/skin.dart';
@@ -46,6 +47,16 @@ Future<void> startSkinSwitch(BuildContext context, WidgetRef ref,
     body: copy.body,
     notes: copy.notes,
     sourceRect: sourceRect,
+    // glass 8.25.2 step 1: the arriving skin's preview loop, small, at the top.
+    leading: const SizedBox(
+      width: double.infinity,
+      child: Center(
+        child: ClipRRect(
+          borderRadius: BorderRadius.all(Radius.circular(14)),
+          child: SizedBox(width: 120, height: 260, child: ExcludeSemantics(child: GlassSkinPreviewLoop(skin: 'cinematic', height: 260))),
+        ),
+      ),
+    ),
     actions: [
       GlassAlertAction<bool>(copy.stay,
           role: GlassAlertRole.cancel, value: false,),

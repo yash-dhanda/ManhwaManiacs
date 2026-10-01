@@ -3,10 +3,8 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/library/models/reading_history_item.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
-import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/copy/settings_index.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/ai_recaps_section.dart';
-import 'package:manhwamaniacs/skins/glass/screens/settings/arrival_toast.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/circle_privacy_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/reader_defaults_section.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_index_filter.dart';
@@ -69,19 +67,8 @@ void main() {
     final phone = visibleSettingsSections(platform: TargetPlatform.iOS, admin: false, keyboardSeen: true, wide: false);
     expect([for (final s in phone) s.section.slug], isNot(contains('notifications')));
     expect([for (final s in phone) s.section.slug], isNot(contains('keyboard')));
-    expect(sectionsBuiltLater, contains(SettingsSection.diagnostics));
-  });
-
-  group('arrival toast condition', () {
-    final now = DateTime(2026, 10, 1, 12);
-    int ago(int ms) => now.millisecondsSinceEpoch - ms;
-    test('fresh', () => expect(glassArrivalToastDue('cinematic', ago(3000), now), isTrue));
-    test('stale', () => expect(glassArrivalToastDue('cinematic', ago(10000), now), isFalse));
-    test('wrong previous skin', () {
-      expect(glassArrivalToastDue('glass', ago(10), now), isFalse);
-      expect(glassArrivalToastDue(null, ago(10), now), isFalse);
-    });
-    test('t0 already consumed by the boot timing log is fresh', () => expect(glassArrivalToastDue('cinematic', null, now), isTrue));
+    // mobile/40 built the last sections.
+    expect(sectionsBuiltLater, isEmpty);
   });
 
   test('the sharing preview line', () {

@@ -159,11 +159,17 @@ Items only the owner can do, by step.
 - mobile/31: device checks in docs/redesign/proof/mobile-31/device-check.md
 - mobile/39: run docs/redesign/proof/mobile-39/device-checklist.md on iPhone and Android; recapture assets/skin_previews/glass once the series sheet and reader exist (MM_WRITE_PREVIEWS=1).
 
+- mobile/41: run the eight device checks in `docs/redesign/proof/mobile-41/device-check.md` (Deal frame timing, throw and Undo, offer bloom, deck swipe and word fade against a real AI key, ready toast and haptic, chapter pill in both readers, VoiceOver and TalkBack, Reduce Motion). The step shipped with fixture-driven captures.
 ## mobile/38 (Glass search, sources, catalogue, dialogue)
 - Device checks: see `docs/redesign/proof/mobile-38/device-checklist.md` (orb morph on both OSs, 120 Hz late groups, jump-bar ticks, pin fly haptics, FTS4 tokenizer log line on the Android flagship, VoiceOver and TalkBack).
 ## mobile/34 (reader engine, Glass commands)
 
 - Device check on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-34/device-check.md` (120 Hz, 0 dropped frames on the long strip and on a real 120-page chapter; `mode=single` pull readout; sample turns `decode`).
+
+## mobile/40 (Glass You, About, admin settings, Server, Diagnostics, System status)
+
+- Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-40/device-check.md` (Orb lift at 120 Hz with 0 dropped frames, the 30 min slider magnet, the Sign out everywhere hold, a backup export to Files, Diagnostics while scrolling, the bead pulse, VoiceOver and TalkBack custom actions, Reduce Motion and Reduce Transparency).
+
 ## mobile/35 (Glass manga reader)
 
 - Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-35/device-check.md`.

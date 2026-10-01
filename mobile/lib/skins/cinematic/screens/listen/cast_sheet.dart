@@ -147,15 +147,22 @@ class _CastListState extends ConsumerState<CastList> {
 
     Widget leader(Widget label, String value, {Color? tint, VoidCallback? onTap, Widget? trailing, String? semantics, bool showRevoicing = false}) {
       final row = Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Flexible(child: label),
-          if (tint != null) ...[SizedBox(width: c.space2), Padding(padding: const EdgeInsets.only(bottom: 4), child: SizedBox(width: 10, height: 10, child: ColoredBox(color: tint)))],
-          SizedBox(width: c.space2),
-          const Expanded(child: Padding(padding: EdgeInsets.only(bottom: 2), child: CineDotLeader())),
-          SizedBox(width: c.space2),
-          if (showRevoicing) Padding(padding: EdgeInsets.only(right: c.space2), child: CineRoleText('RE-VOICING', c.typeMicro, color: c.colorSpot)),
-          Flexible(child: CineRoleText(value, c.typeUi, textAlign: TextAlign.right, maxLines: 1, overflow: TextOverflow.ellipsis)),
+          Expanded(
+            child: CineLeaderRow(
+              label: tint == null
+                  ? label
+                  : Row(mainAxisSize: MainAxisSize.min, children: [
+                      Flexible(child: label),
+                      SizedBox(width: c.space2),
+                      SizedBox(width: 10, height: 10, child: ColoredBox(color: tint)),
+                    ],),
+              value: Row(mainAxisSize: MainAxisSize.min, children: [
+                if (showRevoicing) Padding(padding: EdgeInsets.only(right: c.space2), child: CineRoleText('RE-VOICING', c.typeMicro, color: c.colorSpot)),
+                Flexible(child: CineRoleText(value, c.typeUi, textAlign: TextAlign.right, maxLines: 1, overflow: TextOverflow.ellipsis)),
+              ],),
+            ),
+          ),
           if (trailing != null) trailing,
         ],
       );

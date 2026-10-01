@@ -5,7 +5,7 @@ import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/library/models/ambient.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
-import 'package:manhwamaniacs/skins/glass/screens/home/continue_with_recap.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 
 /// Which of the glass 8.8 candidates a spotlight card is.
 enum SpotlightKind { nextUp, because, letter, newest, previouslyOn, wrapped, caughtUp, start, offline }

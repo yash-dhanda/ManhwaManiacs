@@ -43,6 +43,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/text_field.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/tooltip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/wave.dart';
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show GlassTwin;
 
 enum GalleryGround { black, ambient, white }
 
@@ -553,8 +554,30 @@ Widget _cards(BuildContext context, GalleryGround g) => Column(
         _Cell('working', SizedBox(width: _cardW(context), child: GlassSourceRowCard(sourceId: 'shelf', name: 'Shelf', description: 'Community scans, English', health: GlassSourceHealth.ok, pinned: true, onTap: () {}, onPin: () {}))),
         _Cell('trouble, demoted', SizedBox(width: _cardW(context), child: GlassSourceRowCard(sourceId: 'lantern', name: 'Lantern', description: 'Sometimes slow', health: GlassSourceHealth.failing, demoted: true, mature: true, onTap: () {}, onPin: () {}))),
         _Cell('dead', SizedBox(width: _cardW(context), child: GlassSourceRowCard(sourceId: 'gone', name: 'Gone', description: 'Not answering', health: GlassSourceHealth.dead, enabled: false, disabledReason: 'This source is not working', onTap: () {}, onPin: () {}))),
+        _title(context, 'health beads'),
+        const _Cell('pulse and flicker', _BeadDemo()),
       ],
     );
+
+/// mobile/40: the System status beads; a tap pulses the healthy bead and flickers the failing one.
+class _BeadDemo extends StatefulWidget {
+  const _BeadDemo();
+  @override
+  State<_BeadDemo> createState() => _BeadDemoState();
+}
+
+class _BeadDemoState extends State<_BeadDemo> {
+  int n = 0;
+  @override
+  Widget build(BuildContext context) => Wrap(spacing: 16, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          GlassButton(label: 'Pulse and flicker', size: GlassButtonSize.small, twin: GlassTwin.content, onPressed: () => setState(() => n++)),
+          GlassHealthBead(status: GlassSourceHealth.ok, pulseKey: n),
+          GlassHealthBead(status: GlassSourceHealth.failing, flickerKey: n),
+          GlassHealthBead(status: GlassSourceHealth.dead, flickerKey: n),
+          const GlassHealthBead(status: GlassSourceHealth.failing, demoted: true),
+          const GlassHealthBead(status: GlassSourceHealth.unknown),
+        ],);
+}
 
 // -- I: posters -------------------------------------------------------------------------------------
 

@@ -59,7 +59,7 @@ void main() {
       await createV4(path);
       final upgraded = await openDownloadsDatabase(overridePath: path);
       addTearDown(upgraded.close);
-      expect(await upgraded.getVersion(), 6);
+      expect(await upgraded.getVersion(), 7);
       final cols = (await upgraded.rawQuery('PRAGMA table_info(${DownloadsSchema.listenSessionOutbox})')).map((r) => r['name']).toSet();
       expect(cols, {'id', 'scope_id', 'source_id', 'series_key', 'chapter_key', 'seconds', 'voice_ids', 'started_at', 'created_at'});
       expect(await upgraded.query('progress_outbox'), isEmpty);
@@ -75,7 +75,7 @@ void main() {
       await older.close();
       final reopened = await openDownloadsDatabase(overridePath: path);
       addTearDown(reopened.close);
-      expect(await reopened.getVersion(), 6);
+      expect(await reopened.getVersion(), 7);
       expect(await reopened.query(DownloadsSchema.listenSessionOutbox), hasLength(1));
     });
   });

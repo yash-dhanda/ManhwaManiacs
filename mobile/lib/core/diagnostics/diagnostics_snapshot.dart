@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
+export 'package:manhwamaniacs/core/diagnostics/jank_tone.dart';
+
 /// Device facts shown on the Diagnostics screens (both skins).
 class DeviceFacts {
   const DeviceFacts({required this.platform, required this.osVersion, required this.cores, required this.buildMode});
@@ -51,8 +53,3 @@ class ImageCacheFigures {
 /// "1920 × 1080 @ 2.0x" for [view].
 String screenLabel(Size logical, double dpr) =>
     '${logical.width.toStringAsFixed(0)} × ${logical.height.toStringAsFixed(0)} @ ${dpr.toStringAsFixed(1)}x';
-
-/// The jank tone: `set` below 5 %, `spot` below 15 %, `proof` above.
-enum JankTone { good, warn, bad }
-
-JankTone jankTone(double percent) => percent < 5 ? JankTone.good : (percent < 15 ? JankTone.warn : JankTone.bad);

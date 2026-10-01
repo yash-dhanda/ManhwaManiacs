@@ -32,6 +32,17 @@ class CineScaffoldScope extends InheritedWidget {
   bool updateShouldNotify(CineScaffoldScope o) => o.topExtent != topExtent;
 }
 
+/// Pads [child] down to just below the running head. It reads the extent where it is built, so it
+/// must sit inside [CineScaffold.body]: a screen's own build context is above the scaffold and
+/// sees only the status bar, which put mastheads under the head.
+class CineBelowHead extends StatelessWidget {
+  const CineBelowHead({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Padding(padding: EdgeInsets.only(top: CineScaffoldScope.topExtentOf(context)), child: child);
+}
+
 /// The section folio the previous branch carried, so a new masthead's kicker folio rolls from it
 /// with `CineFolioFlip`.
 class CineSectionFolio extends InheritedWidget {
@@ -218,7 +229,7 @@ class _CineScaffoldState extends ConsumerState<CineScaffold> {
       builder: (ctx) {
         final c = ctx.cine;
         return Padding(
-          padding: EdgeInsets.all(c.space4),
+          padding: EdgeInsets.symmetric(vertical: c.space4), // the sheet body sets the gutter
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             CineRoleText(
               "The server isn't reachable right now. Chapters you saved still open on this device.",

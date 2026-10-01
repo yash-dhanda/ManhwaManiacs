@@ -38,3 +38,27 @@ bool chipVisible({required RecapSetting setting, required DateTime? lastReadAt, 
   final need = setting.mode == RecapMode.ask ? setting.seriesDays : 14;
   return localDaysBetween(lastReadAt, now) >= need;
 }
+
+enum RecapEntryDecision { offer, open, none }
+
+/// What a Continue does (glass 9.1.3): `none` when the mode is off, the series is skipped or never read, or no recap is available;
+/// with `ask` an `offer` once the gap reaches `seriesDays`; with `always` `open` at the same gap.
+RecapEntryDecision recapEntryDecision({
+  required RecapSetting setting,
+  required String seriesId,
+  DateTime? lastReadAt,
+  required DateTime now,
+  required bool available,
+}) {
+  if (!available || _blocked(setting, seriesId) || lastReadAt == null) return RecapEntryDecision.none;
+  if (localDaysBetween(lastReadAt, now) < setting.seriesDays) return RecapEntryDecision.none;
+  return setting.mode == RecapMode.always ? RecapEntryDecision.open : RecapEntryDecision.offer;
+}
+
+/// The reader's "Previously" pill: the mode is not off, the gap reaches `chapterDays`, and the gap is below `seriesDays` or the
+/// series offer was declined.
+bool chapterPillDecision({required RecapSetting setting, DateTime? lastReadAt, required DateTime now, required bool seriesDeclined}) {
+  if (setting.mode == RecapMode.off || lastReadAt == null) return false;
+  final gap = localDaysBetween(lastReadAt, now);
+  return gap >= setting.chapterDays && (gap < setting.seriesDays || seriesDeclined);
+}

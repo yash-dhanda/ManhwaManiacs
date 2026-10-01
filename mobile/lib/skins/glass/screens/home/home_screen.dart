@@ -16,13 +16,13 @@ import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recommend/lift_provider.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_orbs.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/magnet_targets.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/pull_to_refresh.dart';
-import 'package:manhwamaniacs/skins/glass/screens/home/continue_with_recap.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/greeting_header.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/hero_claim.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_actions.dart';
@@ -159,7 +159,7 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
           title: 'Continue ${row.title ?? row.seriesKey}',
           subtitle: chLabelOf(row.chapterNumber),
           coverUrl: row.coverUrl,
-          onOpen: (from) => unawaited(continueWithRecap(context, ref, HomeContinueTarget.fromContinue(item), from)),
+          onOpen: (from) => unawaited(continueSeries(context, ref, HomeContinueTarget.fromContinue(item), from)),
         ),
       );
     } else {
@@ -206,7 +206,7 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
           switch (s.primary) {
             case SpotlightAction.continueReading:
               if (s.target != null) {
-                unawaited(continueWithRecap(context, ref, s.target!, from));
+                unawaited(continueSeries(context, ref, s.target!, from));
               } else if (s.hasSeries) {
                 unawaited(openSeries(ref, s.sourceId!, s.seriesKey!, from: from));
               }
