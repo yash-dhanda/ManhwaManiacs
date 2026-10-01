@@ -21,6 +21,7 @@ import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/collection_card.dart' show GlassCollectionCardState;
+import 'package:manhwamaniacs/skins/glass/primitives/common.dart' show gt;
 import 'package:manhwamaniacs/skins/glass/primitives/list/reorder_list.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/pull_to_refresh.dart';
@@ -35,6 +36,7 @@ import 'package:manhwamaniacs/skins/glass/screens/library/library_keys.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_section.dart';
 import 'package:manhwamaniacs/skins/glass/shell/glass_scaffold.dart' show GlassBarAction;
 import 'package:manhwamaniacs/skins/glass/shell/global_keys.dart' show registerSearchFocus, useGlassRefresh;
+import 'package:manhwamaniacs/skins/glass/type.dart' show GlassText;
 
 /// Collections (glass 8.18): the count line, "+" New collection, a search well, the sort menu, and collection cards (one column on
 /// phones, two on tablet frames, three from 1280 px). Auto shelves are computed on the device; shared shelves carry a friend marker.
@@ -175,6 +177,14 @@ class _GlassCollectionsPageState extends ConsumerState<GlassCollectionsPage> {
                 child: Wrap(spacing: 12, runSpacing: 12, children: [for (final c in shown) _card(c, followed, scope, sharedNames, cardW, dropping)]),
               );
             },
+          ),
+        // Others' shared shelves (mobile/43, glass 8.18, 9.3.3).
+        if (withMe.isNotEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 20, bottom: 4),
+              child: Semantics(header: true, child: GlassText('From your Circle', role: gt.typeTitle3)),
+            ),
           ),
         if (withMe.isNotEmpty)
           SliverLayoutBuilder(

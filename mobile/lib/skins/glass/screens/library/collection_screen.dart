@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/features/circle/models/circle_models.dart' show ProfileRef, SharedShelfDetail, ShelfSeriesRow;
 import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart';
 import 'package:manhwamaniacs/features/collections/providers/collection_order.dart';
 import 'package:manhwamaniacs/features/collections/providers/shared_collections_provider.dart';
@@ -13,12 +14,15 @@ import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.
 import 'package:manhwamaniacs/features/library/models/collection_detail.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart' show activeProfileProvider;
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
+import 'package:manhwamaniacs/skins/glass/parts/collections/adder_orb.dart';
+import 'package:manhwamaniacs/skins/glass/parts/collections/shared_shelf_menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/alert.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -194,8 +198,7 @@ class _GlassCollectionScreenState extends ConsumerState<GlassCollectionScreen> w
     final canEdit = d != null && !readOnlyShared;
     final canReorder = canEdit && !smart && visible.length > 1;
 
-    Widget tile(_Member m) {
-      final s = m.series;
+    Widget plainTile(_Member m, FollowedSeries? s) {
       if (s == null) {
         return SizedBox(
           width: cell,
@@ -211,6 +214,22 @@ class _GlassCollectionScreenState extends ConsumerState<GlassCollectionScreen> w
         onSecondaryTap: canEdit && !smart ? () => unawaited(_remove(m, name)) : null,
         child: ShelfTile(series: s, ui: ui, width: cell, compact: false),
       );
+    }
+
+    // Posters someone else added to a shared shelf carry that person's 20 px orb (glass 9.3.3).
+    final me = ref.watch(activeProfileProvider)?.id;
+    final adders = <String, ProfileRef>{
+      for (final r in sd?.series ?? const <ShelfSeriesRow>[])
+        if (r.addedBy != null && r.addedBy!.profileId != me) '${r.sourceId}|${r.seriesKey}': r.addedBy!,
+    };
+
+    Widget tile(_Member m) {
+      final adder = adders[m.key];
+      if (adder == null) return plainTile(m, m.series);
+      return Stack(clipBehavior: Clip.none, children: [
+        plainTile(m, m.series),
+        Positioned(left: 6, top: cell * 1.5 - 30, child: AdderOrb(member: adder)),
+      ],);
     }
 
     Widget body;
@@ -287,6 +306,8 @@ class _GlassCollectionScreenState extends ConsumerState<GlassCollectionScreen> w
         ambient: palette == null ? null : GlassAmbientSpec.palette(palette, opacity: 0.18),
         trailing: [
           if (canEdit) GlassBarAction(id: 'menu', label: 'More', glyph: roleGlyph(GlassIconRole.overflow), onPress: () => _overflow(d)),
+          // A member of someone's shared shelf (mobile/43, glass 9.3.3): Save a copy, Leave shelf (and Add series with Can add).
+          if (readOnlyShared) GlassBarAction(id: 'menu', label: 'More', glyph: roleGlyph(GlassIconRole.overflow), onPress: () => _sharedMenu(sd)),
         ],
         slivers: [
           SliverToBoxAdapter(child: header),
@@ -310,8 +331,30 @@ class _GlassCollectionScreenState extends ConsumerState<GlassCollectionScreen> w
     unawaited(showGlassMenu(context, anchor: anchor, title: d.name, entries: [
       GlassMenuEntry(label: 'Edit', onSelected: () => _openSheet('collection-edit')),
       if (d.rules == null) GlassMenuEntry(label: 'Add series', onSelected: () => _openSheet('add-series')),
+      GlassMenuEntry(label: 'Share', onSelected: () => _openSheet('collection-share')),
       GlassMenuEntry(label: 'Delete collection', destructive: true, separatorBefore: true, onSelected: () => unawaited(_delete(d, anchor))),
     ],),);
+  }
+}
+
+extension _SharedShelf on _GlassCollectionScreenState {
+  void _sharedMenu(SharedShelfDetail sd) {
+    final w = MediaQuery.sizeOf(context).width;
+    final router = GoRouter.of(context);
+    final entries = [
+      for (final e in sharedShelfMenu(context, ref, sd, onAddSeries: ShelfRights(sd.shelf.role).canAdd ? () => _openSheet('add-series') : null))
+        if (e.label == 'Leave shelf')
+          GlassMenuEntry(
+            label: e.label,
+            destructive: true,
+            onSelected: () async {
+              if (await leaveShelf(context, ref, sd.shelf)) router.go(Routes.collections());
+            },
+          )
+        else
+          e,
+    ];
+    unawaited(showGlassMenu(context, anchor: Rect.fromLTWH(w - 24, 80, 1, 1), title: sd.shelf.name, entries: entries));
   }
 }
 
