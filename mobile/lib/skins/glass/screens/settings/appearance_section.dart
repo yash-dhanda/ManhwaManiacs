@@ -6,7 +6,6 @@ import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/settings/providers/a11y_prefs_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/charts/chart_prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/glass_skin_switch.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_common.dart';
@@ -32,9 +31,8 @@ class AppearanceSection extends ConsumerWidget {
     final n = ref.read(a11yPrefsProvider.notifier);
     final live = ref.read(glassInAppPrefsProvider.notifier);
     final skin = ref.watch(skinIdProvider);
-    ref.watch(glassPrefsRecordProvider);
-    final rec = ref.read(glassPrefsRecordProvider.notifier);
-    final lightOn = rec.lightFollowsDevice;
+    // Per device, as every renderer reads it (`mm.glass.lightFollowsDevice`).
+    final lightOn = ref.watch(glassInAppPrefsProvider.select((p) => p.lightFollowsDevice));
     final switcher = ref.watch(appIconSwitcherProvider);
     FutureOr<void> choose(SkinId t, Rect r) => onChooseSkin != null ? onChooseSkin!(t, r) : GlassSkinSwitch.start(context, ref, t, origin: r);
     return Column(children: [
@@ -78,7 +76,6 @@ class AppearanceSection extends ConsumerWidget {
         },),
         SettingsSwitchRow(id: 'light-follows-device', title: 'Light follows the device', caption: 'Off pins the light at 135°.', value: lightOn, onChanged: (v) {
           live.setLightFollowsDevice(v);
-          unawaited(rec.setLightFollowsDevice(v));
         },),
         if (showIconRow) _IconRow(follow: switcher.follow, onChanged: (v) => unawaited(switcher.setFollow(v))),
       ],),

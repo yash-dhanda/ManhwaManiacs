@@ -1,14 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/core/storage/json_record.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/charts/chart_prefs.dart';
 
-/// `mm.glass.prefs.u{user}p{profile}` (glass 15.5): the Glass profile record. Listen reads and writes `autoPlayPreviews` only; unknown
-/// fields survive every write.
-class GlassPrefsRecordNotifier extends ProfileRecordNotifier {
-  @override
-  String get prefix => 'mm.glass.prefs.';
-}
-
-final glassPrefsRecordProvider = NotifierProvider<GlassPrefsRecordNotifier, JsonRecord>(GlassPrefsRecordNotifier.new, name: 'glassPrefsRecord');
+// One owner of `mm.glass.prefs.u{user}p{profile}` (glass 15.5): a second notifier over the same key merged into its own stale
+// state and wiped the other's fields on every write.
+export 'package:manhwamaniacs/skins/glass/primitives/charts/chart_prefs.dart' show glassPrefsRecordProvider;
 
 /// The voice orbit's "Auto-play previews" switch, default on.
 final glassAutoPlayPreviewsProvider = Provider<bool>((ref) => ref.watch(glassPrefsRecordProvider).boolOf('autoPlayPreviews', true), name: 'glassAutoPlayPreviews');
