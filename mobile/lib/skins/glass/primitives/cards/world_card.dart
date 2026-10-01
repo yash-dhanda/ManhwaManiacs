@@ -86,6 +86,10 @@ class GlassWorldCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The source badge shares the title's row, so a long title wraps before it instead of running under it.
+    final badge = infoOnly
+        ? null
+        : Row(mainAxisSize: MainAxisSize.min, children: [GlassBadge.source(sourceName!, icon: sourceIcon), if (extraSources > 0) ...[const SizedBox(width: 4), GlassBadge.role('+$extraSources')]]);
     final text = Expanded(
       child: ClipRect(
         child: SingleChildScrollView(
@@ -94,7 +98,13 @@ class GlassWorldCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          GlassLabel(title, role: gt.typeHeadline, maxLines: 2),
+          if (badge == null)
+            GlassLabel(title, role: gt.typeHeadline, maxLines: 2)
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [Expanded(child: GlassLabel(title, role: gt.typeHeadline, maxLines: 2)), const SizedBox(width: 4), badge],
+            ),
           GlassLabel(kind, role: gt.typeCaption1, color: gt.colorLabel3),
           GlassLabel(stats, role: gt.typeMono, size: 13, height: 16, color: gt.colorLabel2),
           if (tags.isNotEmpty)
@@ -136,12 +146,7 @@ class GlassWorldCard extends StatelessWidget {
           borderWidth: ai ? 0.5 : 1,
           onTap: onOpen,
           semanticsLabel: '$title, $kind, $why, on $sourceName${extraSources > 0 ? ' and $extraSources more' : ''}',
-          child: Stack(
-            children: [
-              head,
-              Positioned(right: 0, top: 0, child: Row(children: [GlassBadge.source(sourceName!, icon: sourceIcon), if (extraSources > 0) ...[const SizedBox(width: 4), GlassBadge.role('+$extraSources')]])),
-            ],
-          ),
+          child: head,
         ),
       );
     }
