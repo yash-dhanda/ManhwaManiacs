@@ -86,6 +86,10 @@ class PendingLetters extends Notifier<List<PendingLetter>> with WidgetsBindingOb
       try {
         WidgetsBinding.instance.removeObserver(this);
       } catch (_) {}
+      // The container is going away (sign-out, tests): nothing may fire into it afterwards.
+      for (final p in state) {
+        p._timer.cancel();
+      }
     });
     return const [];
   }

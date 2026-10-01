@@ -131,19 +131,21 @@ class _Letters extends LettersNotifier {
   Future<List<Letter>> build() async => (await ref.watch(circleRepositoryProvider).letters()).value;
 }
 
+/// The network-free Circle overrides around [repo] (letters through the repo, Sent letters, the fixed clock).
+List<Override> circleOverrides(CircleFake repo) => [
+      circleRepositoryProvider.overrideWithValue(repo),
+      lettersProvider.overrideWith(_Letters.new),
+      sentLettersProvider.overrideWith((ref) async => circleSent()),
+      circleClockProvider.overrideWithValue(() => circleNow),
+    ];
+
 /// Pumps `/circle…` in the Glass shell with [repo].
 Future<ShellRig> pumpCircle(WidgetTester t, CircleFake repo, {String start = '/circle', Size size = const Size(390, 844), List<Override> extra = const []}) async {
   final rig = await pumpGlassShell(
     t,
     start: start,
     size: size,
-    extra: [
-      circleRepositoryProvider.overrideWithValue(repo),
-      lettersProvider.overrideWith(_Letters.new),
-      sentLettersProvider.overrideWith((ref) async => circleSent()),
-      circleClockProvider.overrideWithValue(() => circleNow),
-      ...extra,
-    ],
+    extra: [...circleOverrides(repo), ...extra],
   );
   for (var i = 0; i < 20; i++) {
     await t.pump(const Duration(milliseconds: 50));

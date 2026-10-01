@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/physics.dart' show SpringSimulation;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -226,17 +227,18 @@ class _RecommendSheetBodyState extends ConsumerState<RecommendSheetBody> with Ti
   Widget build(BuildContext context) {
     final m = GlassFrame.screenMargin(context);
     final s = _series;
-    if (s == null) return _pickStep(m);
+    if (s == null) return Material(type: MaterialType.transparency, child: _pickStep(m));
     final offline = ref.watch(glassOfflineProvider);
     final members = ref.watch(seriesMembersProvider(s));
     final targets = recommendTargets(members.valueOrNull ?? const []);
     final title = _title ?? _lookupTitle(s) ?? 'this series';
-    return ListView(
+    // The note field is a Material text field; global sheets carry no Material of their own.
+    return Material(type: MaterialType.transparency, child: ListView(
       padding: EdgeInsets.fromLTRB(m, 4, m, 24),
       children: [
         Text.rich(
           TextSpan(children: [const TextSpan(text: 'Recommend '), TextSpan(text: title, style: const TextStyle(fontStyle: FontStyle.italic))]),
-          style: roleStyle(context, gt.typeTitle3),
+          style: roleStyle(context, gt.typeTitle3).copyWith(color: gt.colorLabel1),
         ),
         const SizedBox(height: 16),
         if (offline) Padding(padding: const EdgeInsets.only(bottom: 12), child: GlassText('Recommending needs a connection', role: gt.typeFootnote, color: gt.colorLabel2)),
@@ -261,7 +263,7 @@ class _RecommendSheetBodyState extends ConsumerState<RecommendSheetBody> with Ti
           onPressed: offline || _selected.isEmpty || _sending ? null : () => unawaited(_send(targets.selectable)),
         ),
       ],
-    );
+    ),);
   }
 
   String? _lookupTitle(({String sourceId, String seriesKey}) s) => (ref.read(libraryListProvider).valueOrNull?.items ?? const <FollowedSeries>[])

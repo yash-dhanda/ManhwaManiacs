@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
@@ -35,10 +36,17 @@ class LetterNoteBody extends ConsumerStatefulWidget {
 
 class _LetterNoteBodyState extends ConsumerState<LetterNoteBody> {
   final TextEditingController _c = TextEditingController();
-  late final PendingLetter? _held = ref.read(heldLetterProvider);
-  late final ProviderContainer _container = ProviderScope.containerOf(context, listen: false);
+  late final PendingLetter? _held;
+  late final ProviderContainer _container;
   bool _sent = false;
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _held = ref.read(heldLetterProvider);
+    _container = ProviderScope.containerOf(context, listen: false);
+  }
 
   @override
   void dispose() {
@@ -80,7 +88,7 @@ class _LetterNoteBodyState extends ConsumerState<LetterNoteBody> {
   @override
   Widget build(BuildContext context) {
     final m = GlassFrame.screenMargin(context);
-    return ListView(
+    return Material(type: MaterialType.transparency, child: ListView(
       padding: EdgeInsets.fromLTRB(m, 4, m, 24),
       children: [
         GlassTextArea(controller: _c, label: "Why they'll like it", maxLength: kNoteMax, showCounter: false, onChanged: (_) => setState(() {})),
@@ -88,6 +96,6 @@ class _LetterNoteBodyState extends ConsumerState<LetterNoteBody> {
         const SizedBox(height: 16),
         GlassButton(label: 'Send', variant: GlassButtonVariant.primary, fullWidth: true, loading: _busy, onPressed: _busy ? null : () => unawaited(_send())),
       ],
-    );
+    ),);
   }
 }

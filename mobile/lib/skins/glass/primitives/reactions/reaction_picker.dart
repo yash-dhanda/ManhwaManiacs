@@ -181,8 +181,9 @@ class _GlassReactionButtonState extends ConsumerState<GlassReactionButton> with 
     _entry = OverlayEntry(builder: _bubbles);
     Overlay.of(context, rootOverlay: true).insert(_entry!);
     if (keyboard) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _bubbleFocus.requestFocus() : null);
-    unawaited(GlassMotion.play(MotionName.reactionBloomAndArc, controller: _bloom, target: 1));
+    // Reset before playing: setting the value afterwards stopped the bloom at 0 (the bubbles stayed stacked on the button).
     _bloom.value = 0;
+    unawaited(GlassMotion.play(MotionName.reactionBloomAndArc, controller: _bloom, target: 1));
     if (keyboard) _magnify(1);
   }
 

@@ -84,11 +84,11 @@ class ActivityRow extends ConsumerWidget {
     final runs = activitySentence(entry, guarded: guarded);
     final novel = i.contentKind == 'novel';
     final stacked = MediaQuery.textScalerOf(context).scale(10) / 10 >= 1.6;
-    final body = roleStyle(context, gt.typeBody);
+    final body = roleStyle(context, gt.typeBody).copyWith(color: gt.colorLabel1);
     final sentence = Text.rich(
       TextSpan(children: [
         for (final r in runs) ...[
-          TextSpan(text: r.text, style: r.strong ? roleStyle(context, gt.typeHeadline) : (r.italic ? body.copyWith(fontStyle: FontStyle.italic, color: gt.colorBloom) : body)),
+          TextSpan(text: r.text, style: r.strong ? roleStyle(context, gt.typeHeadline).copyWith(color: gt.colorLabel1) : (r.italic ? body.copyWith(fontStyle: FontStyle.italic, color: gt.colorBloom) : body)),
           if (r.glyph != null) WidgetSpan(alignment: PlaceholderAlignment.middle, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: Icon(glassReaction(r.glyph!).fill, size: 18, color: gt.colorBloom))),
         ],
       ],),
