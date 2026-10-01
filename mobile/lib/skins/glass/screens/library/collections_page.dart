@@ -147,7 +147,7 @@ class _GlassCollectionsPageState extends ConsumerState<GlassCollectionsPage> {
     } else if (async.hasError && all.isEmpty) {
       slivers = [_lens(LensSituation.loadError, "Couldn't load your collections", tone: GlassLensTone.error, primary: LensAction('Try again', () => unawaited(ref.read(collectionsProvider.notifier).refresh())))];
     } else if (all.isEmpty && withMe.isEmpty) {
-      slivers = [_lens(LensSituation.collection, 'No collections yet', description: 'Group your series by theme, mood or reading list.', primary: LensAction('Create your first collection', () => _openSheet('collection-new')))];
+      slivers = [_lens(LensSituation.collection, 'No collections yet', description: 'Start one and add series to it from any series menu.', primary: LensAction('Create your first collection', () => _openSheet('collection-new')))];
     } else {
       slivers = [
         if (all.isNotEmpty)

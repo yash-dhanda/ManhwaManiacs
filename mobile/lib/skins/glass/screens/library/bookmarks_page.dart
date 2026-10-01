@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -160,7 +161,7 @@ class _GlassBookmarksPageState extends ConsumerState<GlassBookmarksPage> {
     } else if (async.hasError && !async.hasValue) {
       slivers.add(_lens(LensSituation.loadError, "Couldn't load your bookmarks", tone: GlassLensTone.error, primary: LensAction('Try again', () => ref.invalidate(bookmarksProvider))));
     } else if (filtered.isEmpty) {
-      slivers.add(_lens(LensSituation.bookmarks, 'No bookmarks yet', description: 'Press B while reading, or use the bookmark button, to save the exact spot.', primary: LensAction('Go to library', () => GoRouter.of(context).go(Routes.library()))));
+      slivers.add(_lens(LensSituation.bookmarks, 'No bookmarks yet', description: GlassFrame.of(context) == GlassFrameKind.phone ? 'Tap the bookmark button while reading to save the exact spot.' : 'Press B while reading, or use the bookmark button, to save the exact spot.', primary: LensAction('Go to library', () => GoRouter.of(context).go(Routes.library()))));
     } else {
       slivers.add(SliverToBoxAdapter(
         child: Center(
