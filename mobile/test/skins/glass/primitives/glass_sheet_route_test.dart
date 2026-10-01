@@ -268,6 +268,19 @@ void main() {
     await pumpFor(tester, 900);
   });
 
+  testWidgets('a sheet closing by its button while another route is pushed over it still leaves (no invisible barrier)', (tester) async {
+    final h = OverlayHost(tester);
+    await h.pump();
+    final a = await _open(tester, h);
+    a.buttonDismiss();
+    await tester.pump(const Duration(milliseconds: 16));
+    final b = _route();
+    h.push(b);
+    await pumpFor(tester, 900);
+    expect(a.isActive, isFalse, reason: 'the closed sheet was removed from under the new route');
+    expect(b.isCurrent, isTrue);
+  });
+
   testWidgets('predictive back scales the sheet 1 -> 0.94 and lifts it 12 px by progress', (tester) async {
     final h = OverlayHost(tester);
     await h.pump(platform: TargetPlatform.android);

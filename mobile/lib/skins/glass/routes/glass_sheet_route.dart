@@ -451,14 +451,23 @@ class _GlassSheetBodyState<T> extends ConsumerState<GlassSheetBody<T>> with Tick
     unawaited(ctl.animateTo(const SheetOffset(0), duration: const Duration(milliseconds: 378), curve: SpringCurve(gt.springDismiss)).whenComplete(() {
       _programmatic = false;
       _endRecord();
+      // Interrupted short of closed (a re-settle): the close button and the barrier must work again.
+      if (mounted && !isClosed) _closing = false;
     }),);
   }
 
   void _pop() {
     if (_popped || route.popping || !mounted) return;
-    _popped = true;
     final nav = Navigator.maybeOf(context);
-    if (nav != null && route.isCurrent) nav.pop();
+    if (nav == null) return;
+    _popped = true;
+    // Something was pushed over the sheet while it animated out: remove it from under that route. Latching `_popped` without a
+    // pop left an invisible sheet whose barrier swallowed every tap.
+    if (route.isCurrent) {
+      nav.pop();
+    } else {
+      nav.removeRoute(route);
+    }
   }
 
   void returnBack() {
