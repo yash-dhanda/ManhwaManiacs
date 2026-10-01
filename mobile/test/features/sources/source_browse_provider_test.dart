@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
+import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/repositories/sources_repository.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -32,7 +33,11 @@ class _FakeSourcesRepository implements SourcesRepository {
   Future<Result<List<ReaderPage>>> getChapterPages(String sourceId, String chapterKey) async => const Ok([]);
 
   @override
-  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async => const Ok([]);
+  Future<Result<List<SourceGenre>>> listGenres(String sourceId) async => genresFail
+      ? const Err(NetworkError(message: 'offline'))
+      : const Ok([SourceGenre(id: 'lianai', label: 'Romance')]);
+
+  bool genresFail = false;
 
   @override
   Future<Result<List<SourceSummary>>> listHealth() async => const Ok([]);
@@ -269,5 +274,17 @@ void main() {
     addTearDown(container.dispose);
     final state = await container.read(sourceBrowseProvider('test-source').future);
     expect(state.query, container.read(sourceBrowseQueryProvider('test-source')));
+  });
+
+  test('a failed genre fetch is not cached as an empty list', () async {
+    final repo = _FakeSourcesRepository({})..genresFail = true;
+    final container = ProviderContainer(overrides: [sourcesRepositoryProvider.overrideWithValue(repo)]);
+    addTearDown(container.dispose);
+    final sub = container.listen(sourceGenresProvider('test-source'), (_, __) {});
+    await expectLater(container.read(sourceGenresProvider('test-source').future), throwsA(anything));
+    repo.genresFail = false;
+    container.invalidate(sourceGenresProvider('test-source'));
+    expect((await container.read(sourceGenresProvider('test-source').future)).single.id, 'lianai');
+    sub.close();
   });
 }

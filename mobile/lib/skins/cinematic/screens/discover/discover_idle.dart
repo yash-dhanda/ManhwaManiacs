@@ -316,7 +316,10 @@ class _GenreTile extends ConsumerWidget {
     final cover = ref
         .watch(
           genreCoverProvider(
-            (sourceId: firstSource.sourceId, genre: genre.label),
+            (
+              sourceId: firstSource.sourceId,
+              genre: genre.idFor(firstSource.sourceId),
+            ),
           ),
         )
         .valueOrNull;

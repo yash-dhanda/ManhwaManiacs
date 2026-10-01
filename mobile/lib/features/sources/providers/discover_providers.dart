@@ -15,16 +15,18 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 /// A source's genre list, fetched at most once per source per 24 h (P3).
+/// Only a success is kept: a failure throws, is not held alive, and the
+/// catalogue's pull to refresh retries it.
 final sourceGenresProvider = FutureProvider.autoDispose
     .family<List<SourceGenre>, String>((ref, sourceId) async {
-  final link = ref.keepAlive();
-  final timer = Timer(const Duration(hours: 24), link.close);
-  ref.onDispose(timer.cancel);
   final result = await ref.read(sourcesLimiterProvider).run(
         RequestPriority.p3,
         () => ref.read(sourcesRepositoryProvider).listGenres(sourceId),
       );
-  if (result.isErr) return const [];
+  if (result.isErr) throw result.error;
+  final link = ref.keepAlive();
+  final timer = Timer(const Duration(hours: 24), link.close);
+  ref.onDispose(timer.cancel);
   return result.value;
 });
 
@@ -81,7 +83,8 @@ final genreIndexProvider =
     for (final p in live)
       ref
           .watch(sourceGenresProvider(p.sourceId).future)
-          .then((g) => genres[p.sourceId] = g),
+          .then((g) => genres[p.sourceId] = g)
+          .catchError((Object _) => genres[p.sourceId] = const []),
   ]);
   final weights = await ref.watch(genreWeightsProvider(40).future);
   return buildGenreIndex(live, genres, weights);

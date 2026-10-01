@@ -120,6 +120,19 @@ void main() {
     expect(buildGenreIndex([], {}, []), isEmpty);
   });
 
+  test('buildGenreIndex keeps each source\'s own genre id', () {
+    final idx = buildGenreIndex(
+      [pin('a'), pin('b')],
+      {
+        'a': const [SourceGenre(id: 'lianai', label: 'Romance')],
+        'b': const [SourceGenre(id: 'romance-1', label: 'romance')],
+      },
+      const [],
+    );
+    expect(idx.single.idFor('a'), 'lianai');
+    expect(idx.single.idFor('b'), 'romance-1');
+  });
+
   test('buildTrending caps, dedupes and limits per source', () {
     final pages = {
       'a': [for (var i = 0; i < 5; i++) series('a$i', 'A$i', 'a')],

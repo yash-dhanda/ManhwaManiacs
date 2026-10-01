@@ -2,8 +2,12 @@ import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 
 class GenreEntry {
-  const GenreEntry(
-      {required this.genre, required this.label, required this.sourceIds,});
+  const GenreEntry({
+    required this.genre,
+    required this.label,
+    required this.sourceIds,
+    this.idsBySource = const {},
+  });
 
   /// Case-folded merge key.
   final String genre;
@@ -11,6 +15,12 @@ class GenreEntry {
   /// First spelling seen.
   final String label;
   final List<String> sourceIds;
+
+  /// Each source's own id for this genre (what its browse endpoint takes).
+  final Map<String, String> idsBySource;
+
+  /// The genre id to send to [sourceId]; the label when it is unknown.
+  String idFor(String sourceId) => idsBySource[sourceId] ?? label;
 }
 
 /// Union of the pinned sources' genres, merged case-insensitively, ordered by
@@ -22,6 +32,7 @@ List<GenreEntry> buildGenreIndex(
 ) {
   final labels = <String, String>{};
   final ids = <String, List<String>>{};
+  final genreIds = <String, Map<String, String>>{};
   for (final pin in pinned) {
     for (final g in genresBySource[pin.sourceId] ?? const <SourceGenre>[]) {
       final key = g.label.trim().toLowerCase();
@@ -29,6 +40,7 @@ List<GenreEntry> buildGenreIndex(
       labels.putIfAbsent(key, g.label.trim);
       final list = ids.putIfAbsent(key, () => []);
       if (!list.contains(pin.sourceId)) list.add(pin.sourceId);
+      genreIds.putIfAbsent(key, () => {}).putIfAbsent(pin.sourceId, () => g.id);
     }
   }
   final w = <String, double>{};
@@ -43,6 +55,11 @@ List<GenreEntry> buildGenreIndex(
     });
   return [
     for (final k in keys)
-      GenreEntry(genre: k, label: labels[k]!, sourceIds: ids[k]!),
+      GenreEntry(
+        genre: k,
+        label: labels[k]!,
+        sourceIds: ids[k]!,
+        idsBySource: genreIds[k]!,
+      ),
   ];
 }
