@@ -23,6 +23,7 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/listen/listen_common.dart';
+import 'package:manhwamaniacs/skins/glass/listen/listen_sheets.dart' show registerListenSheets;
 import 'package:manhwamaniacs/skins/glass/listen/post_play_card.dart';
 import 'package:manhwamaniacs/skins/glass/listen/voice_hue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart' show glassFire;
@@ -283,6 +284,8 @@ class _GlassListenLayerState extends ConsumerState<GlassListenLayer> {
   @override
   void initState() {
     super.initState();
+    // A reader opened cold (a restart's return route) never passes the shell's overlays: the listen ids are registered here too.
+    registerListenSheets();
     _narr.onSkipNext = () {
       unawaited(ref.read(glassNarrationActionsProvider).changeChapter(next: true));
     };

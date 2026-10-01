@@ -113,6 +113,51 @@ class GlassListenRig {
 
 List<String> listenParagraphsFixture() => (listenJson('unit-chapter')['paragraphs'] as List).cast<String>();
 
+/// The fakes and overrides every listen test and proof capture shares: a fake player, the scripted probe, no audio session, the
+/// fixture audio for the narrated chapters, the 31 fixture voices and the fixture attribution.
+class ListenFakes {
+  ListenFakes({this.probeStatus = 206, this.failLoad = false}) {
+    repo
+      ..voicesResult = Ok(listenVoices())
+      ..attributionResult = Ok(listenAttributionFixture())
+      ..voiceSampleResult = const Ok(<int>[79, 103, 103, 83]);
+  }
+
+  final List<FakeNarrationPlayer> players = [];
+  final List<AudioSessionState> sessions = [];
+  final FakeNovelsRepository repo = FakeNovelsRepository();
+  final NarrationAudioHandler handler = NarrationAudioHandler();
+  final StubSampleEngine sampler = StubSampleEngine();
+  int probeStatus;
+  bool failLoad;
+
+  List<Override> overrides({bool owner = true, bool online = true, bool stale = false, Set<String> narrated = const {'1', '2', '3'}, bool audio = true}) => [
+        if (owner) authenticatedAuthOverride(),
+        activeDownloadsScopeIdProvider.overrideWithValue(null),
+        novelsRepositoryProvider.overrideWithValue(repo),
+        audioHandlerProvider.overrideWithValue(handler),
+        deviceOnlineProvider.overrideWith((ref) => Stream.value(online)),
+        narrationPlayerFactoryProvider.overrideWithValue(() {
+          final p = FakeNarrationPlayer()..failLoad = failLoad;
+          players.add(p);
+          return p;
+        }),
+        narrationProbeProvider.overrideWithValue((url, headers) async => (status: probeStatus, retryAfter: const Duration(seconds: 2))),
+        narrationSessionProvider.overrideWithValue((s) async => sessions.add(s)),
+        accelerometerSourceProvider.overrideWithValue(() => const Stream<AccelSample>.empty()),
+        glassAccelerometerSourceProvider.overrideWithValue(() => const Stream<AccelSample>.empty()),
+        voiceSampleSessionProvider.overrideWithValue((begin: () async {}, end: () async {})),
+        sampleEngineProvider.overrideWithValue(sampler),
+        gravitySensorProvider.overrideWithValue(() => const Stream<AccelerometerEvent>.empty()),
+        playableNovelAudioProvider.overrideWith((ref, key) async {
+          if (!audio || !narrated.contains(key.chapterKey)) return null;
+          return (audio: listenAudioFixture(stale: stale), file: null);
+        }),
+        novelVoicesProvider.overrideWith((ref) async => listenVoices()),
+        seriesAudioProvider.overrideWith((ref, k) async => (rendered: narrated, narratable: {for (var i = 1; i <= 12; i++) '$i'}, canRender: true)),
+      ];
+}
+
 class _RouterHolder {
   GoRouter? router;
 }
@@ -140,14 +185,7 @@ Future<GlassListenRig> pumpGlassListen(
   const pathChannel = MethodChannel('plugins.flutter.io/path_provider');
   tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(pathChannel, (_) async => Directory.systemTemp.path);
   addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(pathChannel, null));
-  final players = <FakeNarrationPlayer>[];
-  final sessions = <AudioSessionState>[];
-  final repo = FakeNovelsRepository()
-    ..voicesResult = Ok(listenVoices())
-    ..attributionResult = Ok(listenAttributionFixture())
-    ..voiceSampleResult = const Ok(<int>[79, 103, 103, 83]);
-  final handler = NarrationAudioHandler();
-  final sampler = StubSampleEngine();
+  final fakes = ListenFakes();
   final holder = _RouterHolder();
   final novel = await pumpGlassNovel(
     tester,
@@ -162,33 +200,11 @@ Future<GlassListenRig> pumpGlassListen(
     boundaryKey: boundaryKey,
     accessibleNavigation: accessibleNavigation,
     extra: [
-      if (owner) authenticatedAuthOverride(),
-      activeDownloadsScopeIdProvider.overrideWithValue(null),
-      novelsRepositoryProvider.overrideWithValue(repo),
-      audioHandlerProvider.overrideWithValue(handler),
-      deviceOnlineProvider.overrideWith((ref) => Stream.value(online)),
+      ...fakes.overrides(owner: owner, online: online, stale: stale, narrated: narrated, audio: audio),
       skinRouterProvider.overrideWith((ref) => holder.router!),
-      narrationPlayerFactoryProvider.overrideWithValue(() {
-        final p = FakeNarrationPlayer();
-        players.add(p);
-        return p;
-      }),
-      narrationProbeProvider.overrideWithValue((url, headers) async => (status: 206, retryAfter: null)),
-      narrationSessionProvider.overrideWithValue((s) async => sessions.add(s)),
-      accelerometerSourceProvider.overrideWithValue(() => const Stream<AccelSample>.empty()),
-      glassAccelerometerSourceProvider.overrideWithValue(() => const Stream<AccelSample>.empty()),
-      voiceSampleSessionProvider.overrideWithValue((begin: () async {}, end: () async {})),
-      sampleEngineProvider.overrideWithValue(sampler),
-      gravitySensorProvider.overrideWithValue(() => const Stream<AccelerometerEvent>.empty()),
-      playableNovelAudioProvider.overrideWith((ref, key) async {
-        if (!audio || !narrated.contains(key.chapterKey)) return null;
-        return (audio: listenAudioFixture(stale: stale), file: null);
-      }),
-      novelVoicesProvider.overrideWith((ref) async => listenVoices()),
-      seriesAudioProvider.overrideWith((ref, k) async => (rendered: narrated, narratable: {for (var i = 1; i <= 12; i++) '$i'}, canRender: true)),
       ...extra,
     ],
   );
   holder.router = novel.router;
-  return GlassListenRig(novel: novel, players: players, repo: repo, handler: handler, sessions: sessions, sampler: sampler);
+  return GlassListenRig(novel: novel, players: fakes.players, repo: fakes.repo, handler: fakes.handler, sessions: fakes.sessions, sampler: fakes.sampler);
 }

@@ -2,6 +2,8 @@
 /// desktop frame) with filter chips All / Female / Male / In use and counts from the list.
 library;
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
@@ -106,9 +108,10 @@ class _GlassVoiceGridState extends State<GlassVoiceGrid> {
           Expanded(
             child: shown.isEmpty
                 ? Center(child: GlassText('No voices match', role: gt.typeCallout, color: gt.colorLabel2))
-                : GridView.builder(
+                : LayoutBuilder(builder: (context, box) => GridView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: widget.columns, mainAxisSpacing: 12, crossAxisSpacing: 12, mainAxisExtent: kOrbitCardHeight + 52),
+                    // 2 columns in the phone and tablet frames, 4 on the desktop frame, never narrower than a 160 px card.
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: math.max(1, math.min(widget.columns, (box.maxWidth - 32 + 12) ~/ 172)), mainAxisSpacing: 12, crossAxisSpacing: 12, mainAxisExtent: kOrbitCardHeight + 64),
                     itemCount: shown.length,
                     itemBuilder: (context, i) {
                       final v = shown[i];
@@ -132,7 +135,7 @@ class _GlassVoiceGridState extends State<GlassVoiceGrid> {
                         ],
                       );
                     },
-                  ),
+                  ),),
           ),
         ],
       ),
