@@ -384,8 +384,9 @@ class _GlassChartState extends ConsumerState<GlassChart> with TickerProviderStat
   Widget _radarLabel(int i, Size size, TextStyle style) {
     final at = RadarPainter.labelAt(i, widget.data.length, size);
     final name = widget.data[i].label ?? '';
+    // Kept inside the chart (side labels used to hang 28 px past it and get cut), and a long genre sets down to fit its 80 px.
     return Positioned(
-      left: at.dx - 40,
+      left: (at.dx - 40).clamp(0.0, math.max(0.0, size.width - 80)),
       top: at.dy - 24,
       width: 80,
       height: 48,
@@ -395,7 +396,7 @@ class _GlassChartState extends ConsumerState<GlassChart> with TickerProviderStat
         onTap: widget.onLabel == null ? null : () => widget.onLabel!(name),
         enabled: widget.onLabel != null,
         semanticsLabel: name,
-        builder: (context, info) => Center(child: Text(name, style: style, maxLines: 1, overflow: TextOverflow.ellipsis, textScaler: TextScaler.noScaling)),
+        builder: (context, info) => Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(name, style: style, maxLines: 1, textScaler: TextScaler.noScaling))),
       ),
     );
   }
