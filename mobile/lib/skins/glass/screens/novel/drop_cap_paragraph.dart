@@ -64,6 +64,15 @@ class GlassDropCapParagraph extends StatelessWidget {
       ..layout(maxWidth: math.max(1, width - capW - gap));
     final m = narrow.computeLineMetrics();
     final baseline = m.isEmpty ? capBaseline : m[math.min(spec.lines, m.length) - 1].baseline;
+    // The paginator's layout (NovelParagraphLayout): with more lines than the cap spans, the rest starts at the tight bottom of the
+    // last narrow line; otherwise the paragraph is at least as tall as the cap's lines.
+    final double rowHeight;
+    if (split < stop) {
+      final boxes = narrow.getBoxesForSelection(TextSelection(baseOffset: 0, extentOffset: narrow.plainText.length));
+      rowHeight = boxes.isEmpty ? narrow.height : boxes.map((b) => b.bottom).reduce(math.max);
+    } else {
+      rowHeight = math.max(narrow.height, spec.lines * type.fontSize * type.lineHeight);
+    }
     narrow.dispose();
     final align = type.justify ? TextAlign.justify : TextAlign.start;
     return MergeSemantics(
@@ -73,7 +82,9 @@ class GlassDropCapParagraph extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
+              SizedBox(
+                height: rowHeight,
+                child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
@@ -82,7 +93,10 @@ class GlassDropCapParagraph extends StatelessWidget {
                   ),
                   SizedBox(width: gap),
                   Expanded(
-                    child: GlassTextPiece(
+                    child: OverflowBox(
+                      alignment: Alignment.topLeft,
+                      maxHeight: double.infinity,
+                      child: GlassTextPiece(
                       key: const ValueKey('dropcap-beside'),
                       textKey: textKey,
                       paragraph: paragraph,
@@ -95,8 +109,10 @@ class GlassDropCapParagraph extends StatelessWidget {
                       onRunTap: onRunTap,
                       locale: locale,
                     ),
+                    ),
                   ),
                 ],
+              ),
               ),
               if (split < stop)
                 GlassTextPiece(

@@ -114,6 +114,16 @@ class _GlassSelectionMenuState extends ConsumerState<GlassSelectionMenu> with Si
     );
   }
 
+  /// At least 220; wide enough for the longest row, or the six bubbles.
+  double _width(BuildContext context) {
+    if (_reacting) return 6 * 48 + 5 * 4 + 16 + 6;
+    final style = roleStyle(context, gt.typeBody, onGlass: true, maxScale: 1.3);
+    final a = widget.actions;
+    final labels = ['Copy', 'Bookmark this paragraph', if (a.onPlayFrom != null) 'Play from here', 'React to this chapter', if (a.onRecommend != null || a.recommendDisabled) 'Recommend to…'];
+    final longest = labels.map((l) => measureText(context, l, style).width).reduce(math.max);
+    return math.min(MediaQuery.sizeOf(context).width - 16, math.max(kSelectionMenuMinWidth, longest + 32 + 6));
+  }
+
   Widget _rows() {
     final a = widget.actions;
     return Column(
@@ -179,17 +189,15 @@ class _GlassSelectionMenuState extends ConsumerState<GlassSelectionMenu> with Si
         ),
         child: Material(
           type: MaterialType.transparency,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: kSelectionMenuMinWidth),
-            child: IntrinsicWidth(
-              child: SkinGlass(
-                tier: GlassTierId.t4,
-                lb: widget.lb,
-                layer: GlassLayerKind.overlays,
-                shape: const GlassShape.superellipse(kSelectionMenuRadius),
-                debugLabel: 'novel selection menu',
-                child: GlassHost(child: Padding(padding: const EdgeInsets.all(3), child: _reacting ? _bubbles() : _rows())),
-              ),
+          child: SizedBox(
+            width: _width(context),
+            child: SkinGlass(
+              tier: GlassTierId.t4,
+              lb: widget.lb,
+              layer: GlassLayerKind.overlays,
+              shape: const GlassShape.superellipse(kSelectionMenuRadius),
+              debugLabel: 'novel selection menu',
+              child: GlassHost(child: Padding(padding: const EdgeInsets.all(3), child: _reacting ? _bubbles() : _rows())),
             ),
           ),
         ),

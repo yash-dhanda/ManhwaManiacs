@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.d
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/glass/glass_skin.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast_host.dart';
@@ -25,7 +26,7 @@ import '../../cinematic/novel/novel_test_support.dart';
 
 export '../../cinematic/novel/novel_test_support.dart' show FeatureRig, Recorder, fixtureAttribution, fixtureAttributionStale, fixtureChapter, kNovelSeries, kNovelSource, longFixtureParagraphs, novelChapterFor;
 
-class _NoWakelock implements ReaderWakelock {
+class CountingWakelock implements ReaderWakelock {
   int enabled = 0;
   @override
   Future<void> enable() async => enabled++;
@@ -37,7 +38,7 @@ class GlassNovelRig {
   GlassNovelRig(this.tester, this.router, this.wakelock);
   final WidgetTester tester;
   final GoRouter router;
-  final _NoWakelock wakelock;
+  final CountingWakelock wakelock;
 
   ProviderContainer get container => ProviderScope.containerOf(tester.element(find.byType(GlassNovelReader)));
 
@@ -79,6 +80,7 @@ Future<GlassNovelRig> pumpGlassNovel(
   addTearDown(tester.view.reset);
   if (padding != EdgeInsets.zero) {
     tester.view.padding = FakeViewPadding(left: padding.left, top: padding.top, right: padding.right, bottom: padding.bottom);
+    tester.view.viewPadding = FakeViewPadding(left: padding.left, top: padding.top, right: padding.right, bottom: padding.bottom);
   }
   if (android) debugDefaultTargetPlatformOverride = TargetPlatform.android;
   addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -90,7 +92,7 @@ Future<GlassNovelRig> pumpGlassNovel(
       GoRoute(path: '/novels/:sourceId/:seriesKey/:chapterKey', pageBuilder: (context, state) => glassNovelPage(state)),
     ],
   );
-  final wakelock = _NoWakelock();
+  final wakelock = CountingWakelock();
   final fixture = loadSeriesFixture('manga-ongoing');
   await tester.pumpWidget(
     ProviderScope(
@@ -128,7 +130,7 @@ Future<GlassNovelRig> pumpGlassNovel(
               boldText: boldText,
               accessibleNavigation: accessibleNavigation,
             ),
-            child: GlassRoot(child: GlassToastHost(child: c!)),
+            child: GlassRoot(child: Overlay(initialEntries: [OverlayEntry(builder: (_) => GlassToastHost(child: c!))])),
           ),
         ),
       ),
@@ -154,6 +156,10 @@ Future<void> settle(WidgetTester tester, {int ms = 1000}) async {
 Future<void> disposeGlassNovel(WidgetTester tester) async {
   await tester.pumpWidget(const SizedBox());
   await tester.pump(const Duration(seconds: 11));
+  debugDefaultTargetPlatformOverride = null;
 }
 
 List<SourceChapterSummary> glassNovelChapters() => novelChapters();
+
+/// The rig's shared preferences.
+SharedPreferences rigPrefs(WidgetTester t) => ProviderScope.containerOf(t.element(find.byType(GlassNovelReader))).read(sharedPrefsProvider);

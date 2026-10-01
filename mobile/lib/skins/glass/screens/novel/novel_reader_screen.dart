@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Material, MaterialType, SelectionArea, SelectionAreaState, TextMagnifier;
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -207,6 +208,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   final GlobalKey _titleKey = GlobalKey(debugLabel: 'novel title capsule');
   final GlobalKey _nextCardKey = GlobalKey(debugLabel: 'novel next card');
   final GlobalKey _viewportKey = GlobalKey(debugLabel: 'novel viewport');
+  final GlobalKey _headerKey = GlobalKey(debugLabel: 'novel header measure');
   final ChapterEndPull _pull = ChapterEndPull();
   final PinchTracker _pinch = PinchTracker();
   final List<VoidCallback> _releases = [];
@@ -225,8 +227,8 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   int _pinchSteps = 0;
   double _overAccum = 0;
   double _lastPixels = 0, _downAccum = 0, _upAccum = 0;
-  DateTime _chapterStart = DateTime.now();
-  DateTime? _lastKey;
+  Duration _chapterStart = Duration.zero;
+  Duration? _lastKey;
   Timer? _idle, _pressLift, _rateTimer;
   int? _rateLeft;
   Offset? _downAt;
@@ -245,6 +247,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   @override
   void initState() {
     super.initState();
+    _chapterStart = _now;
     _chromeAnim = AnimationController(vsync: this, value: 0);
     _nextAnim = AnimationController(vsync: this, value: 1);
     _pulse = AnimationController(vsync: this, value: 1);
@@ -316,6 +319,9 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   }
 
   // -- Derived values ---------------------------------------------------------
+
+  /// Monotonic time from the frame clock (the test clock under `flutter test`).
+  Duration get _now => SchedulerBinding.instance.currentSystemFrameTimeStamp;
 
   GlassBookRef get _book => (sourceId: widget.sourceId, seriesKey: widget.seriesKey);
   bool get _reduced => GlassMotion.isReduced() || ref.read(glassReducedProvider);
@@ -398,13 +404,13 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       _keys = const [];
       _pageKey = null;
       _pull.reset();
-      _chapterStart = DateTime.now();
+      _chapterStart = _now;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollOk) _scroll.jumpTo(0);
       });
     }
     if (next.chapter != null && next.chapter?.chapterKey != prev?.chapter?.chapterKey) {
-      _chapterStart = DateTime.now();
+      _chapterStart = _now;
       _announce(next);
     }
     if (next.nextState != prev?.nextState) _checkRateLimit(next);
@@ -468,10 +474,10 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     if (_sheets > 0 || _menuOrPopover || _selectionActive) return false;
     if (_chromeScope.hasFocus) return false;
     if (MediaQuery.accessibleNavigationOf(context)) return false;
-    final now = DateTime.now();
-    if (now.difference(_chapterStart) < kChromeChapterGrace) return false;
+    final now = _now;
+    if (now - _chapterStart < kChromeChapterGrace) return false;
     final k = _lastKey;
-    if (k != null && now.difference(k) < kChromeKeyGrace) return false;
+    if (k != null && now - k < kChromeKeyGrace) return false;
     return true;
   }
 
@@ -916,12 +922,18 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     unawaited(GlassMotion.play(MotionName.sheetPresent, controller: _rightAnim, target: _rightPanel ? 1 : 0));
     if (byKey) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final scope = right ? _rightScope : _leftScope;
-        if ((right ? _rightPanel : _leftPanel) && scope.canRequestFocus) {
-          scope.requestFocus();
-          scope.nextFocus();
-        }
+        if (right ? _rightPanel : _leftPanel) _focusFirstIn(right ? _rightScope : _leftScope);
       });
+    }
+  }
+
+  /// Moves focus to the first focusable control inside [scope] (the current row or first control, D4; the chrome's first, E1).
+  void _focusFirstIn(FocusScopeNode scope) {
+    final first = scope.traversalDescendants.where((n) => n.canRequestFocus).firstOrNull;
+    if (first != null) {
+      first.requestFocus();
+    } else if (scope.context != null) {
+      scope.requestFocus();
     }
   }
 
@@ -939,8 +951,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     var at = order.indexWhere((n) => n.hasFocus);
     if (at < 0) at = 0;
     final next = order[(at + dir) % order.length];
-    next.requestFocus();
-    if (next is FocusScopeNode) next.nextFocus();
+    next is FocusScopeNode ? _focusFirstIn(next) : next.requestFocus();
   }
 
   void _setGoTo(bool open) {
@@ -1039,7 +1050,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   }
 
   bool _runKey(NovelKeyAction a) {
-    _lastKey = DateTime.now();
+    _lastKey = _now;
     switch (a) {
       case NovelKeyAction.previousChapter:
         _previous();
@@ -1099,14 +1110,11 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   /// Keys the reader does not bind restore hidden chrome and focus its first control (E1).
   KeyEventResult _onOtherKey(FocusNode node, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
-    _lastKey = DateTime.now();
+    _lastKey = _now;
     if (!_chrome && ![LogicalKeyboardKey.shiftLeft, LogicalKeyboardKey.shiftRight, LogicalKeyboardKey.tab].contains(e.logicalKey)) {
       _setChrome(true);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _chromeScope.canRequestFocus) {
-          _chromeScope.requestFocus();
-          _chromeScope.nextFocus();
-        }
+        if (mounted) _focusFirstIn(_chromeScope);
       });
       return KeyEventResult.handled;
     }
@@ -1621,7 +1629,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     final key = Object.hash(size, type, chapter.chapterKey, _revision, width, v.paper);
     if (!ghost && _pageKey != key) {
       _pageKey = key;
-      final opener = glassHeaderHeight(
+      final estimate = glassHeaderHeight(
         context,
         kicker: chapter.chapterNumber == null ? 'CHAPTER' : 'CHAPTER ${formatChapterNumber(chapter.chapterNumber!)}',
         title: chapter.title,
@@ -1631,6 +1639,9 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       );
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
+        // The header as laid out (the offstage copy below), so page one reserves exactly its height.
+        final measured = _headerKey.currentContext?.size?.height;
+        final opener = measured ?? estimate;
         _ctl.setViewport(size, margin: math.max(20, NovelReaderInsets.of(context).left), bandTop: g.topBand, bandBottom: g.bottomBand, openerHeight: opener);
         _ctl.paginateNovel(type.measure, type);
         if (!_restored) {
@@ -1641,7 +1652,8 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       });
     }
     final pages = _ctl.pages;
-    if (pages.isEmpty) return NovelLoadingPage(lineHeight: type.fontSize * type.lineHeight, width: width, top: g.topBand);
+    final measure = Offstage(child: Center(child: SizedBox(width: width, child: KeyedSubtree(key: ghost ? null : _headerKey, child: header))));
+    if (pages.isEmpty) return Stack(children: [if (!ghost) measure, NovelLoadingPage(lineHeight: type.fontSize * type.lineHeight, width: width, top: g.topBand)]);
     if (!ghost && _keys.length != chapter.paragraphs.length) _keys = List.generate(chapter.paragraphs.length, (_) => GlobalKey());
     final gap = v.paragraphSpacing * v.fontSize;
     Widget page(BuildContext context, int index, bool ghostPage) {
@@ -1657,19 +1669,21 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         final sl = slices[k];
         if (k > 0 && !sl.isContinuation && !sl.sceneBreak && gap > 0) children.add(SizedBox(height: gap));
         final w = _paragraph(context, s, chapter, v, width, sl.paragraphIndex, start: sl.startChar, end: sl.endChar, ghost: ghostPage);
-        final keyed = !ghostPage && k == 0 || (!ghostPage && sl.startChar == 0);
-        children.add(keyed && !ghostPage ? KeyedSubtree(key: _keys[sl.paragraphIndex], child: w) : w);
+        children.add(!ghostPage && sl.startChar == 0 ? KeyedSubtree(key: _keys[sl.paragraphIndex], child: w) : w);
       }
       return Padding(
         padding: EdgeInsets.only(top: g.topBand, bottom: g.bottomBand),
         child: Align(
           alignment: Alignment.topCenter,
-          child: SizedBox(width: width, child: ClipRect(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children))),
+          child: SizedBox(
+            width: width,
+            child: ClipRect(child: OverflowBox(alignment: Alignment.topCenter, maxHeight: double.infinity, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children))),
+          ),
         ),
       );
     }
 
-    return NovelPagedView(
+    final view = NovelPagedView(
       key: ghost ? null : _pagedView,
       count: pages.length + 1,
       initialPage: s.pageIndex.clamp(0, pages.length),
@@ -1685,6 +1699,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         setState(() {});
       },
     );
+    return ghost ? view : Stack(fit: StackFit.expand, children: [measure, view]);
   }
 
   // -- Chrome layers ------------------------------------------------------------

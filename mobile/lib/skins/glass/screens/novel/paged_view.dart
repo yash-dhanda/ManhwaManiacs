@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/features/novels/models/glass_novel_prefs.dart';
-import 'package:manhwamaniacs/skins/glass/glass_motion_recorder.dart' show GlassMotionEntry;
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
@@ -52,6 +51,7 @@ class NovelPagedViewState extends State<NovelPagedView> with TickerProviderState
   int _page = 0;
   int? _liftPage; // the page drawn as the turning copy
   bool _liftForward = true;
+  int _liftFrom = 0, _liftTo = 0;
   double _dragPx = 0;
   int? _fadeFrom;
 
@@ -123,6 +123,8 @@ class NovelPagedViewState extends State<NovelPagedView> with TickerProviderState
     final target = forward ? from + 1 : from - 1;
     if (target < 0 || target >= widget.count) return;
     _liftForward = forward;
+    _liftFrom = from;
+    _liftTo = target;
     // Forward: page n lifts off page n + 1 (already live beneath). Backward: page n - 1 rotates in from -100 degrees over page n.
     _liftPage = forward ? from : target;
     _lift.value = forward ? 0 : 1;
@@ -134,23 +136,17 @@ class NovelPagedViewState extends State<NovelPagedView> with TickerProviderState
     if (_liftPage == null) return;
     final width = context.size?.width ?? 1;
     final forward = _liftForward;
-    final origin = forward ? _page - 1 : _page;
     // Forward: commit lifts to 1; backward: commit lays the page down (0).
     final target = commit ? (forward ? 1.0 : 0.0) : (forward ? 0.0 : 1.0);
-    GlassMotionEntry? e;
-    e = GlassMotion.recorder.begin(MotionName.pageLift.label, 615);
+    final e = GlassMotion.recorder.begin(MotionName.pageLift.label, 615);
     await _lift.animateWith(SpringSimulation(springOf(glassTokens.springPage), _lift.value, target, velocity / width)).orCancel.catchError((Object _) {});
     GlassMotion.recorder.end(e);
     if (!mounted) return;
-    if (forward) {
-      if (commit) {
-        _landed(_page);
-      } else {
-        _pages.jumpToPage(origin);
-      }
-    } else if (commit) {
-      _pages.jumpToPage(origin - 1);
-      _landed(origin - 1);
+    if (commit) {
+      if (!forward) _pages.jumpToPage(_liftTo);
+      _landed(_liftTo);
+    } else if (forward) {
+      _pages.jumpToPage(_liftFrom);
     }
     setState(() => _liftPage = null);
   }
