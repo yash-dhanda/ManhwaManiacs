@@ -1,12 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/providers/dialogue_jump_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
-import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// Where a dialogue hit lands in the reader, and what to tell the reader.
@@ -25,7 +23,7 @@ class DialogueLanding {
 /// Resolves a taken [DialogueJump]: the page it names, else the first page
 /// whose text matches (read from [loadPages], the chapter's OCR text).
 /// Callers `jumpToPage(page)` when [DialogueLanding.found].
-// The reader chrome mounts [DialogueLandingHost], which calls this.
+// The manga reader calls this, then pulses through its OcrOverlayController.
 Future<DialogueLanding> resolveDialogueLanding(
   DialogueJump jump,
   Future<List<PageText>?> Function() loadPages,
@@ -125,78 +123,4 @@ class _BubblePulseState extends State<BubblePulse>
       ),
     );
   }
-}
-
-/// The reader-side hook of a dialogue jump. The Cinematic reader chrome wraps
-/// its page view in this once; on first layout it takes the jump for this
-/// chapter, calls [jumpToPage] (the engine's `jumpToPage`) with the matched
-/// page, shows the toast, and hands [builder] a per-page overlay that draws
-/// the [BubblePulse] on that page only.
-///
-/// The manga reader lands the same jump itself (`resolveDialogueLanding` plus its own
-/// `OcrOverlayController` pulse); this host serves readers without that controller.
-class DialogueLandingHost extends ConsumerStatefulWidget {
-  const DialogueLandingHost({
-    super.key,
-    required this.sourceId,
-    required this.seriesKey,
-    required this.chapterKey,
-    required this.loadPages,
-    required this.jumpToPage,
-    required this.builder,
-  });
-
-  final String sourceId;
-  final String seriesKey;
-  final String chapterKey;
-  final Future<List<PageText>?> Function() loadPages;
-  final void Function(int page) jumpToPage;
-
-  /// `pageOverlay(page)` goes in the reader's per-page overlay slot.
-  final Widget Function(
-      BuildContext context, Widget Function(int page) pageOverlay,) builder;
-
-  @override
-  ConsumerState<DialogueLandingHost> createState() =>
-      _DialogueLandingHostState();
-}
-
-class _DialogueLandingHostState extends ConsumerState<DialogueLandingHost> {
-  DialogueLanding? _landing;
-  bool _pulsing = true;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_land()));
-  }
-
-  Future<void> _land() async {
-    final jump = ref
-        .read(dialogueJumpProvider.notifier)
-        .take(widget.sourceId, widget.seriesKey, widget.chapterKey);
-    if (jump == null) return;
-    final landing = await resolveDialogueLanding(jump, widget.loadPages);
-    if (!mounted) return;
-    if (landing.found) widget.jumpToPage(landing.page!);
-    ref.read(cineToastsProvider.notifier).info(landing.toast);
-    setState(() => _landing = landing);
-  }
-
-  Widget _overlay(int page) {
-    final l = _landing;
-    if (l == null || !_pulsing || !l.found || l.box == null || l.page != page) {
-      return const SizedBox.shrink();
-    }
-    return BubblePulse(
-      key: ValueKey('pulse-$page'),
-      box: l.box!,
-      onDone: () {
-        if (mounted) setState(() => _pulsing = false);
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.builder(context, _overlay);
 }
