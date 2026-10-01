@@ -88,6 +88,7 @@ class FakeSources implements SourcesRepository {
   final AppError? listSourcesError;
   final replaced = <List<String>>[];
   final searched = <String>[];
+  final genresSent = <String?>[];
   int seriesCalls = 0;
 
   @override
@@ -128,6 +129,7 @@ class FakeSources implements SourcesRepository {
     bool refresh = false,
   }) async {
     seriesCalls++;
+    genresSent.add(genre);
     if (listSeriesError != null) {
       return Err(listSeriesError!);
     }
@@ -291,6 +293,7 @@ Future<void> pumpScreen(
   bool reduced = false,
   TargetPlatform platform = TargetPlatform.android,
   List<Override> extra = const [],
+  GoRouter? router,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -313,7 +316,7 @@ Future<void> pumpScreen(
         ...extra,
       ],
       child: MaterialApp.router(
-        routerConfig: discoverRouter(screen),
+        routerConfig: router ?? discoverRouter(screen),
         theme: discoverTheme(platform),
         builder: (c, child) => MediaQuery(
           data: MediaQuery.of(c).copyWith(disableAnimations: reduced),

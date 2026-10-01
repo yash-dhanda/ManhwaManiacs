@@ -103,7 +103,9 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     final m = mode ?? cur.sort;
     final g = genre ?? cur.genre;
     final s = q ?? cur.search;
-    context.go(
+    // replace, not go: go would rebuild the Discover branch as just this
+    // route, dropping Sources/Discover from the back stack.
+    GoRouter.of(context).replace<void>(
       Routes.source(widget.sourceId, {
         'mode': m == 'default' ? null : m,
         'genre': (g == null || g.isEmpty) ? null : g,
@@ -115,9 +117,34 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
   void _setQuery(SourceBrowseQuery Function(SourceBrowseQuery) f) =>
       ref.read(sourceBrowseQueryProvider(widget.sourceId).notifier).update(f);
 
-  void _refresh() => unawaited(
-        ref.read(sourceBrowseProvider(widget.sourceId).notifier).refresh(),
+  void _refresh() => unawaited(_doRefresh());
+
+  Future<void> _doRefresh() async {
+    final id = widget.sourceId;
+    if (ref.read(sourceGenresProvider(id)).hasError) {
+      ref.invalidate(sourceGenresProvider(id));
+    }
+    final ok = await ref.read(sourceBrowseProvider(id).notifier).refresh();
+    if (!ok && mounted) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        const SnackBar(content: Text("Couldn't refresh this source.")),
       );
+    }
+  }
+
+  /// A page shorter than the viewport never scrolls, so it is checked after
+  /// each frame that could have grown or shrunk the grid.
+  void _fillViewport() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      final p = _scroll.position;
+      if (p.hasContentDimensions && p.extentAfter < 600) {
+        unawaited(
+          ref.read(sourceBrowseProvider(widget.sourceId).notifier).loadMore(),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +165,11 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     final modes = ref.watch(sourceBrowseModesProvider(id)).valueOrNull ??
         const <SourceBrowseMode>[];
     final genres = ref.watch(sourceGenresProvider(id)).valueOrNull ?? const [];
-    final state = browse.valueOrNull;
+    // A value left over from the previous query (kept while the new one loads
+    // or fails) is not drawn under the new query's label.
+    final state = browse.valueOrNull?.answers(query) ?? false
+        ? browse.valueOrNull
+        : null;
     final err = browse.hasError ? browse.error : null;
     final code = err is ApiError ? err.code : null;
     final browsable =
@@ -147,9 +178,15 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     final tablet = isTablet(context);
     final searching = query.search.isNotEmpty;
     final fresh = browseFreshness(state?.cache, DateTime.now());
-    final total = state?.total ?? 0;
+    final total = state?.countLabel ?? '0';
     final deck =
         'Catalogue · ${_n(total)} series${searching ? ' · "${query.search}"' : ''}';
+    if (state != null &&
+        state.hasNext &&
+        !state.isLoadingMore &&
+        !state.loadMoreFailed) {
+      _fillViewport();
+    }
 
     Widget content;
     if (code == 'source_not_found' ||
@@ -182,7 +219,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
       content = OpeningState(sourceId: id, deck: deck);
     } else if (err != null && state == null) {
       content = _error(context, err, code);
-    } else if (state != null && state.items.isEmpty) {
+    } else if (state != null && state.items.isEmpty && !state.hasNext) {
       content = _notice(
         CineNotice(
           tone: CineNoticeTone.caution,
@@ -366,9 +403,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
               if (browse.isLoading && state == null && browsable)
                 CatalogueWash(sourceId: id),
               CinePullToReprint(
-                onRefresh: () async {
-                  await ref.read(sourceBrowseProvider(id).notifier).refresh();
-                },
+                onRefresh: _doRefresh,
                 child: ListView(
                   controller: _scroll,
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -554,7 +589,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                           child: CineButton(
                             label: query.genre == null
                                 ? 'Genre'
-                                : 'Genre: ${query.genre}',
+                                : 'Genre: ${genres.where((g) => g.id == query.genre).firstOrNull?.label ?? query.genre}',
                             variant: CineButtonVariant.quiet,
                             onPressed: () async {
                               final g = await showCineSheet<String>(
@@ -566,7 +601,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                                     for (final entry in [
                                       (id: '', label: 'All genres'),
                                       for (final g in genres)
-                                        (id: g.label, label: g.label),
+                                        (id: g.id, label: g.label),
                                     ])
                                       InkWell(
                                         onTap: () =>
@@ -655,13 +690,16 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
         child: n,
       );
 
-  String _n(int n) {
-    final s = n.toString();
+  /// Groups the digits of a count label ('1234+' reads '1,234+').
+  String _n(String label) {
+    final plus = label.endsWith('+');
+    final s = plus ? label.substring(0, label.length - 1) : label;
     final b = StringBuffer();
     for (var i = 0; i < s.length; i++) {
       if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
       b.write(s[i]);
     }
+    if (plus) b.write('+');
     return b.toString();
   }
 }

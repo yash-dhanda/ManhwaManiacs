@@ -155,6 +155,7 @@ class SourceBrowseNotifier
     // field in their query either; a fresh query always restarts pagination.
     final query = ref.watch(sourceBrowseQueryProvider(sourceId));
     final gen = ++_gen;
+    _emptyStreak = 0;
     var page = await _fetchPage(sourceId, query, 1);
     // The 18+ gate can empty a whole page while the source still has more;
     // skip ahead a few pages rather than calling the catalogue empty.
@@ -179,6 +180,11 @@ class SourceBrowseNotifier
   /// Bumped by every [build]; a [loadMore] that started under an older query
   /// drops its page instead of writing it over the new results.
   int _gen = 0;
+
+  /// Pages in a row that added nothing (gated or repeated). Screens load more
+  /// on their own while a page is short, so a source that keeps answering
+  /// has_more with nothing new is cut off here rather than polled forever.
+  int _emptyStreak = 0;
 
   Future<void> loadMore() async {
     final current = state.valueOrNull;
@@ -215,13 +221,14 @@ class SourceBrowseNotifier
       for (final s in page.items)
         if (seen.add(s.id)) s,
     ];
+    _emptyStreak = items.length == current.items.length ? _emptyStreak + 1 : 0;
     state = AsyncData(
       current.copyWith(
         items: items,
         total: [current.total, page.total, items.length]
             .reduce((a, b) => a > b ? a : b),
         page: page.page,
-        hasNext: page.hasNext,
+        hasNext: page.hasNext && _emptyStreak < _maxEmptySkips,
         isLoadingMore: false,
       ),
     );
