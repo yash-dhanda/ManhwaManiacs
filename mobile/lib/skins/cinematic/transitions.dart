@@ -351,7 +351,23 @@ typedef CineSwipeBuilder = Widget Function(
   Widget child,
 );
 
-CineSwipeBuilder cineSwipeBuilder(CineTransitionKind kind) =>
+/// The package's back-gesture detector arrives as `child`. Its parent changes when a swipe starts
+/// (Page/Dip/wipe -> [CineSwipeSlide.top]), which remounted the detector mid-drag: its recognizer
+/// was disposed, `didStopUserGesture` never ran, and `userGestureInProgress` stayed true, so every
+/// route ignored pointers and the page froze where the finger left it. A per-route GlobalKey moves
+/// the detector instead of rebuilding it. Every SwipeablePage transition builder goes through this.
+CineSwipeBuilder keepSwipeDetector(CineSwipeBuilder builder) =>
+    (context, animation, secondaryAnimation, isSwipeGesture, child) {
+      final route = ModalRoute.of(context);
+      return builder(context, animation, secondaryAnimation, isSwipeGesture,
+          route == null ? child : KeyedSubtree(key: _SwipeDetectorKey(route), child: child),);
+    };
+
+class _SwipeDetectorKey extends GlobalObjectKey {
+  const _SwipeDetectorKey(super.value);
+}
+
+CineSwipeBuilder cineSwipeBuilder(CineTransitionKind kind) => keepSwipeDetector(
     (context, animation, secondaryAnimation, isSwipeGesture, child) {
       // `isSwipeGesture` is the navigator's flag in 0.4.8, so the page beneath sees it true too: the
       // current route is the one under the finger.
@@ -369,7 +385,7 @@ CineSwipeBuilder cineSwipeBuilder(CineTransitionKind kind) =>
           return _transitionFor(kind, context, animation, secondaryAnimation, child!);
         },
       );
-    };
+    },);
 
 // ---------------------------------------------------------------------------------------------
 // Android: predictive back

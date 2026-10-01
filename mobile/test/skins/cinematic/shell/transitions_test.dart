@@ -208,7 +208,38 @@ void main() {
       expect(beneathX, greaterThan(-0.3 * w - 1));
       await g.up();
       await t.pumpAndSettle();
+      expect(t.state<NavigatorState>(find.byType(Navigator).first).userGestureInProgress, isFalse);
     }, variant: TargetPlatformVariant.only(TargetPlatform.iOS),);
+
+    // 3.5.3 freeze: the detector remounted when the swipe started, the release never arrived,
+    // and the navigator stayed in a user gesture (every route ignoring pointers) forever.
+    for (final (kind, path) in [('page', '/a'), ('match', '/m'), ('dip', '/d')]) {
+      testWidgets('$kind: a released swipe ends the gesture (pop past half, return before it)', (t) async {
+        final r = await _app(t);
+        final nav = t.state<NavigatorState>(find.byType(Navigator).first);
+        final w = t.getSize(find.byType(MaterialApp)).width;
+        Future<void> swipe(double dx) async {
+          final g = await t.startGesture(const Offset(4, 300));
+          await g.moveBy(const Offset(20, 0));
+          await t.pump();
+          await g.moveBy(Offset(dx - 20, 0));
+          await t.pump();
+          expect(nav.userGestureInProgress, isTrue);
+          await g.up();
+          await t.pumpAndSettle();
+          expect(nav.userGestureInProgress, isFalse);
+        }
+
+        unawaited(r.push<void>(path));
+        await t.pumpAndSettle();
+        await swipe(w * 0.2);
+        expect(find.text('page ${path[1]}'), findsOneWidget);
+        expect(t.getTopLeft(find.ancestor(of: find.text('page ${path[1]}'), matching: find.byType(Scaffold))).dx, 0);
+        await swipe(w * 0.7);
+        expect(find.text('page ${path[1]}'), findsNothing);
+        expect(find.text('home'), findsOneWidget);
+      }, variant: TargetPlatformVariant.only(TargetPlatform.iOS),);
+    }
 
     testWidgets('the slide maths: top follows linearly, beneath -30 % to 0, dim 0.6 to 0', (t) async {
       expect(CineSwipeSlide.topOffset(1), 0);
