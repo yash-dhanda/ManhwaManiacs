@@ -18,7 +18,7 @@ Future<void> showReactSheet(BuildContext context, {required String sourceId, req
     builder: (ctx) => Material(
       type: MaterialType.transparency,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(ctx.cine.space4, ctx.cine.space2, ctx.cine.space4, ctx.cine.space6),
+        padding: EdgeInsets.only(top: ctx.cine.space2, bottom: ctx.cine.space6), // the sheet body sets the gutter
         child: Align(alignment: Alignment.topLeft, child: ReactionStamps(sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterKey, chapterNumber: chapterNumber)),
       ),
     ),

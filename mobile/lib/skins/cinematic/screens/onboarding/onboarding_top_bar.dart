@@ -4,6 +4,7 @@ import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
@@ -24,7 +25,9 @@ class OnboardingTopBar extends StatelessWidget {
     return ColoredBox(
       color: const Color(0xFF000000),
       child: Padding(
-        padding: EdgeInsets.only(top: top),
+        // The running head's inset: Back's glyph and Skip's word land on the page gutter, not
+        // against the screen edge.
+        padding: EdgeInsets.only(top: top, left: CineGrid.of(context).left - 8, right: CineGrid.of(context).right - 8),
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: hit),
           child: Row(children: [

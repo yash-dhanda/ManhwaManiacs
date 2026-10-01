@@ -14,6 +14,21 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 
+/// Marks a subtree whose parent already sets content on the page gutter (a settings column, a
+/// sheet body, a form). Rows inside put their text on that gutter instead of indenting another
+/// 16 px, and their hover / pressed / current grounds and left bar bleed [bleed] px out into it,
+/// so the text never sits on the ground's edge.
+class CineGutter extends InheritedWidget {
+  const CineGutter({super.key, this.bleed = CineSpace.s4, required super.child});
+  final double bleed;
+
+  /// 0 outside a [CineGutter]: the row is edge to edge and pads itself.
+  static double bleedOf(BuildContext context) => context.dependOnInheritedWidgetOfExactType<CineGutter>()?.bleed ?? 0;
+
+  @override
+  bool updateShouldNotify(CineGutter o) => o.bleed != bleed;
+}
+
 /// The shared frame of every row type (cinematic 7.16): a 1 px `rule.1` divider, hover / pressed /
 /// selected / current / error / loading / disabled grounds, the trailing `dots-three` menu button
 /// and the 450 ms long-press that open the same [showCineMenu], a leading select-mode checkbox and
@@ -110,14 +125,20 @@ class _CineRowShellState extends State<CineRowShell> {
               : (widget.error ? c.colorProofWash : (raised ? c.colorPaper3 : null));
           final bar = widget.selected || wash ? c.colorSpot : (st.hovered || st.focused ? c.colorInk100 : null);
           final d = reduced ? Duration.zero : (st.pressed ? const Duration(milliseconds: 80) : c.durSnap);
+          final dur = wash && !reduced ? c.durLine : d;
+          // Inside a CineGutter the text sits on the page gutter and the ground bleeds out.
+          final bleed = CineGutter.bleedOf(context);
+          final pad = bleed > 0 ? 0.0 : c.space4;
+          final rule = BoxDecoration(border: Border(bottom: c.ruleHair));
           Widget body = AnimatedContainer(
-            duration: wash && !reduced ? c.durLine : d,
+            duration: dur,
             constraints: BoxConstraints(minHeight: widget.minHeight),
-            decoration: BoxDecoration(color: fill, border: widget.tight ? null : Border(bottom: c.ruleHair)),
-            foregroundDecoration: widget.tight ? BoxDecoration(border: Border(bottom: c.ruleHair)) : null,
-            child: Stack(children: [
+            decoration: BoxDecoration(color: bleed > 0 ? null : fill, border: widget.tight || bleed > 0 ? null : Border(bottom: c.ruleHair)),
+            foregroundDecoration: widget.tight || bleed > 0 ? rule : null,
+            child: Stack(clipBehavior: Clip.none, children: [
+              if (bleed > 0) Positioned(left: -bleed, right: -bleed, top: 0, bottom: 0, child: AnimatedContainer(duration: dur, color: fill ?? const Color(0x00000000))),
               Padding(
-                padding: EdgeInsets.only(left: c.space4, right: hasMenu || widget.handle != null ? 0 : c.space4),
+                padding: EdgeInsets.only(left: pad, right: hasMenu || widget.handle != null ? 0 : pad),
                 child: Row(children: [
                   if (widget.selectMode) ...[
                     CineCheckbox(value: widget.selected, onChanged: widget.disabled ? null : (v) => widget.onSelectedChanged?.call(v), semanticLabel: widget.semanticLabel),
@@ -135,7 +156,7 @@ class _CineRowShellState extends State<CineRowShell> {
                   if (widget.handle != null) widget.handle!,
                 ],),
               ),
-              Positioned(left: 0, top: 0, bottom: 0, width: 2, child: ColoredBox(color: bar ?? const Color(0x00000000))),
+              Positioned(left: -bleed, top: 0, bottom: 0, width: 2, child: ColoredBox(color: bar ?? const Color(0x00000000))),
             ],),
           );
           if (widget.dim) body = Opacity(opacity: 0.55, child: body);
