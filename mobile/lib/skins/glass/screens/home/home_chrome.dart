@@ -4,6 +4,8 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dart';
+import 'package:manhwamaniacs/features/updates/mark_all_read.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -77,11 +79,18 @@ List<GlassMenuEntry> homeOverflow(WidgetRef ref, {required VoidCallback refresh}
       GlassMenuEntry(label: 'Refresh', onSelected: refresh),
       GlassMenuEntry(label: 'Ask for something to read', onSelected: () => unawaited(ref.read(skinRouterProvider).push<void>(Routes.picks()))),
       GlassMenuEntry(label: 'Updates', onSelected: () => unawaited(ref.read(skinRouterProvider).push<void>(Routes.updates()))),
-      GlassMenuEntry(
-        label: 'Mark all read',
-        onSelected: () => unawaited(() async {
-          final err = await ref.read(updatesProvider.notifier).markAllRead(mode: ref.read(contentModeControllerProvider));
-          showGlassToast(ref, err == null ? const GlassToastSpec('Marked all as read', kind: GlassToastKind.success) : const GlassToastSpec("Couldn't mark those as read", kind: GlassToastKind.error));
-        }()),
-      ),
+      homeMarkAllReadEntry(ref),
     ];
+
+/// "Mark all read" for Home's overflow and the dock: the shared `markAllReadMode` scope (every mode unless novels are on) and a
+/// label that names the mode it clears.
+GlassMenuEntry homeMarkAllReadEntry(WidgetRef ref) {
+  final mode = markAllReadMode(novelsEnabled: ref.read(novelsEnabledProvider), mode: ref.read(contentModeControllerProvider));
+  return GlassMenuEntry(
+    label: markAllReadLabel(mode),
+    onSelected: () => unawaited(() async {
+      final err = await ref.read(updatesProvider.notifier).markAllRead(mode: mode);
+      showGlassToast(ref, err == null ? const GlassToastSpec('Marked all as read', kind: GlassToastKind.success) : const GlassToastSpec("Couldn't mark those as read", kind: GlassToastKind.error));
+    }()),
+  );
+}

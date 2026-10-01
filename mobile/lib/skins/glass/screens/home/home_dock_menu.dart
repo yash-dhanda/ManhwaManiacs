@@ -2,15 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
 import 'package:manhwamaniacs/features/home/utils/offline_edition.dart' show clearLastFeeds;
-import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/screens/home/home_chrome.dart' show homeMarkAllReadEntry;
 import 'package:manhwamaniacs/skins/glass/shell/dock_menus.dart';
 import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show registerPurgeHolder;
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
@@ -30,13 +28,7 @@ HomeContinueItem? firstContinue(HomeFeedView? view, List<HiddenContinue> hidden)
 VoidCallback registerHomeDockMenu() => registerDockMenu(GlassTab.home, (ref) {
       final item = firstContinue(ref.read(homeFeedProvider).valueOrNull, ref.read(continueHiddenProvider));
       return [
-        GlassMenuEntry(
-          label: 'Mark all read',
-          onSelected: () => unawaited(() async {
-            final err = await ref.read(updatesProvider.notifier).markAllRead(mode: ref.read(contentModeControllerProvider));
-            showGlassToast(ref, err == null ? const GlassToastSpec('Marked all as read', kind: GlassToastKind.success) : const GlassToastSpec("Couldn't mark those as read", kind: GlassToastKind.error));
-          }()),
-        ),
+        homeMarkAllReadEntry(ref),
         if (item != null)
           GlassMenuEntry(
             label: 'Continue last read',

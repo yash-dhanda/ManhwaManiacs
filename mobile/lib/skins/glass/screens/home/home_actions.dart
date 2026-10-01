@@ -34,11 +34,6 @@ Future<void> openRecap(WidgetRef ref, String sourceId, String seriesKey, String 
 /// The recommend sheet for a series (shown only when the global sheet is registered).
 bool get recommendSheetRegistered => glassSheetRegistered('recommend');
 
-void openRecommendSheet(WidgetRef ref, String sourceId, String seriesKey) {
-  final uri = '${Routes.tonight({'sheet': 'recommend'})}&series=${Uri.encodeQueryComponent('$sourceId:$seriesKey')}';
-  unawaited(ref.read(skinRouterProvider).push<void>(uri));
-}
-
 /// A poster, card or spotlight cover dropped on a friend orb: `recommend.send` with the `send` sound and the deferred recommendation
 /// with its toast (the shared `pendingLettersProvider`). "Add a note" holds the letter for `?sheet=letter-note`.
 void recommendTo(BuildContext context, WidgetRef ref, {required String sourceId, required String seriesKey, required Object? profileId}) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
@@ -5,6 +7,7 @@ import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/utils/all_followed.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
+import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 class UpdatesState {
@@ -147,6 +150,7 @@ class UpdatesNotifier extends AutoDisposeAsyncNotifier<UpdatesState> {
     final repo = ref.read(updatesRepositoryProvider);
     final result = await repo.markRead(id);
     if (result.isErr) return result.error;
+    _refreshUnread();
     await refresh();
     return null;
   }
@@ -158,8 +162,14 @@ class UpdatesNotifier extends AutoDisposeAsyncNotifier<UpdatesState> {
     final repo = ref.read(updatesRepositoryProvider);
     final result = await repo.markAllRead(contentKind: mode?.wire);
     if (result.isErr) return result.error;
+    _refreshUnread();
     await refresh();
     return null;
+  }
+
+  /// The badge, greeting line and stop-press banner read this count; it would otherwise wait for its 60 s poll.
+  void _refreshUnread() {
+    if (ref.exists(unreadNotificationCountProvider)) unawaited(ref.read(unreadNotificationCountProvider.notifier).refresh());
   }
 
   /// "Check now". When the server runs the check inline the answer already

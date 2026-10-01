@@ -22,6 +22,7 @@ import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
+import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/features/updates/repositories/updates_repository.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -800,4 +801,27 @@ void main() {
       expect(updates.markAllCalls, 2);
     });
   });
+
+  test('Mark read and Mark all read refresh the unread count', () async {
+    final spy = _CountSpy();
+    final container = ProviderContainer(overrides: [
+      updatesRepositoryProvider.overrideWithValue(_FakeUpdatesRepository()),
+      libraryRepositoryProvider.overrideWithValue(_FakeLibraryRepository()),
+      unreadNotificationCountProvider.overrideWith(() => spy),
+    ],);
+    addTearDown(container.dispose);
+    container.read(unreadNotificationCountProvider);
+    await container.read(updatesProvider.future);
+    await container.read(updatesProvider.notifier).markAllRead();
+    await container.read(updatesProvider.notifier).markRead(1);
+    expect(spy.refreshed, 2);
+  });
+}
+
+class _CountSpy extends UnreadCountNotifier {
+  int refreshed = 0;
+  @override
+  int build() => 5;
+  @override
+  Future<void> refresh() async => refreshed++;
 }

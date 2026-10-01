@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/collections/providers/collections_provider.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart' show Collection;
+import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recap/continue_series.dart';
@@ -68,17 +70,20 @@ Future<void> _collectionsMenu(BuildContext context, WidgetRef ref, SeriesMenuSpe
 /// menu opens with "Previously on").
 List<GlassMenuEntry> seriesMenuEntries(BuildContext context, WidgetRef ref, SeriesMenuSpec s, Rect from, {List<GlassMenuEntry> first = const [], List<GlassMenuEntry> extra = const []}) {
   final hasProgress = s.target != null;
+  // The kind by source, whichever rail built the spec: a novel never goes down the manga download path.
+  final novel = s.novel || (isNovelSource(ref.read(contentModeScopeProvider), s.sourceId) ?? false);
   return [
     ...first,
     if (s.showContinue && s.target != null)
       GlassMenuEntry(label: 'Continue', onSelected: () => unawaited(continueSeries(context, ref, s.target!, from))),
     GlassMenuEntry(label: 'Details', onSelected: () => unawaited(openSeries(ref, s.sourceId, s.seriesKey, from: from))),
     GlassMenuEntry(label: 'Add to collection', onSelected: () => unawaited(_collectionsMenu(context, ref, s, from))),
-    if (s.showMarkRead) GlassMenuEntry(label: 'Mark read', onSelected: () => unawaited(markSeriesRead(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, upTo: s.readNumber))),
-    if (s.showDownload) GlassMenuEntry(label: 'Download next 10', onSelected: () => unawaited(downloadNextTen(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, readNumber: s.readNumber, novel: s.novel))),
+    // The whole series, new chapters too: [readNumber] is where the reader already is.
+    if (s.showMarkRead) GlassMenuEntry(label: 'Mark read', onSelected: () => unawaited(markSeriesRead(ref, sourceId: s.sourceId, seriesKey: s.seriesKey))),
+    if (s.showDownload) GlassMenuEntry(label: 'Download next 10', onSelected: () => unawaited(downloadNextTen(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, readNumber: s.readNumber, novel: novel))),
     if (hasProgress && first.every((e) => e.label != 'Previously on'))
       GlassMenuEntry(label: 'Previously on', onSelected: () => unawaited(openRecap(ref, s.sourceId, s.seriesKey, s.target!.chapterKey, from: from))),
-    if (recommendMenuEntry(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, onSelected: () => openRecommendSheet(ref, s.sourceId, s.seriesKey)) case final e?) e,
+    if (recommendMenuEntry(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title) case final e?) e,
     ...extra,
   ];
 }

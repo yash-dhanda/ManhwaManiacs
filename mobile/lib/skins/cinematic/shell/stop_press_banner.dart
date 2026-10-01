@@ -18,10 +18,13 @@ String stopPressLine(int chapters, int series) {
 
 /// The highest notification id the reader dismissed this session; a newer one shows it again.
 /// Per profile: ids are global rows, so another profile's dismissal must not hide this one's banner.
-final stopPressDismissedProvider = StateProvider<int>((ref) {
-  ref.watch(activeProfileProvider.select((p) => p?.id));
-  return 0;
-}, name: 'stopPressDismissed');
+final stopPressDismissedProvider = StateProvider<int>(
+  (ref) {
+    ref.watch(activeProfileProvider.select((p) => p?.id));
+    return 0;
+  },
+  name: 'stopPressDismissed',
+);
 
 enum StopPressPlacement { bottom, top }
 
