@@ -27,7 +27,7 @@ const _slots = ReaderSurfaceSlots(chapterSeam: _seam, brokenPage: _broken, paged
 Widget _seam(BuildContext c, ReaderChapter ch, Axis a) => const SizedBox();
 Widget _broken(BuildContext c, VoidCallback retry) => const SizedBox();
 
-Future<ReaderEngine> _pump(WidgetTester tester, {ReaderChapterMode mode = ReaderChapterMode.single, void Function(dynamic)? onReplace}) async {
+Future<ReaderEngine> _pump(WidgetTester tester, {ReaderChapterMode mode = ReaderChapterMode.single, void Function(dynamic)? onReplace, int pages = 3, List<NeighbourDirection>? loads}) async {
   tester.view
     ..physicalSize = const Size(390, 844)
     ..devicePixelRatio = 1;
@@ -44,12 +44,15 @@ Future<ReaderEngine> _pump(WidgetTester tester, {ReaderChapterMode mode = Reader
         slots: _slots,
         autoHideAfter: const Duration(seconds: 30),
         chromeBuilder: (context, state) => const SizedBox.shrink(),
-        feed: ReaderFeed.of([_chapter('1')]),
+        feed: ReaderFeed.of([_chapter('1', pages: pages)]),
         scrollStorageKey: 'k',
         onBack: () {},
         onOpenSeries: () {},
         chapterMode: mode,
-        loadNeighbour: (d) async => _chapter('2'),
+        loadNeighbour: (d) async {
+          loads?.add(d);
+          return _chapter('2');
+        },
         onReplaceChapter: onReplace,
       ),
     ),
@@ -156,6 +159,32 @@ void main() {
     expect(info.chapter.chapterKey, '2');
     engine.commitNeighbour(NeighbourDirection.next);
     expect(replaced, hasLength(1));
+    await _finish(tester);
+  });
+
+  testWidgets('one at a time loads the next chapter once, at 70 % of this one', (tester) async {
+    final loads = <NeighbourDirection>[];
+    await _pump(tester, pages: 10, loads: loads);
+    final pos = _pos(tester);
+    pos.jumpTo(pos.maxScrollExtent * 0.5);
+    await tester.pump();
+    expect(loads, isEmpty);
+    pos.jumpTo(pos.maxScrollExtent * 0.8);
+    await tester.pump();
+    expect(loads, [NeighbourDirection.next]);
+    pos.jumpTo(pos.maxScrollExtent * 0.9);
+    await tester.pump();
+    expect(loads, hasLength(1));
+    await _finish(tester);
+  });
+
+  testWidgets('continuous mode does not preload through armNeighbour', (tester) async {
+    final loads = <NeighbourDirection>[];
+    await _pump(tester, mode: ReaderChapterMode.continuous, pages: 10, loads: loads);
+    final pos = _pos(tester);
+    pos.jumpTo(pos.maxScrollExtent * 0.9);
+    await tester.pump();
+    expect(loads, isEmpty);
     await _finish(tester);
   });
 }
