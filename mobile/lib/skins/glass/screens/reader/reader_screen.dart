@@ -5,6 +5,8 @@ import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_factory.dart';
+import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
+import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/glass_manga_reader.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_states.dart';
@@ -14,7 +16,10 @@ import 'package:manhwamaniacs/skins/reader_entries.dart';
 /// The Glass reader frames (glass 8.14): the two entry screens resolve the chapter and hand the body here.
 ReaderFrames glassReaderFrames({bool readAll = false, String? q}) => ReaderFrames(
       // A constant key per series: a chapter switch under the constant page key reaches the same State (the engine survives).
-      content: (context, body) => GlassMangaReader(key: ValueKey('glass-manga:${body.identity?.sourceId}:${body.identity?.seriesKey}'), body: body, readAll: readAll, q: q),
+      content: (context, body) => _GateGuard(
+        sourceId: body.identity?.sourceId ?? '',
+        child: GlassMangaReader(key: ValueKey('glass-manga:${body.identity?.sourceId}:${body.identity?.seriesKey}'), body: body, readAll: readAll, q: q),
+      ),
       loading: (context) => const GlassReaderLoading(),
       failure: (context, failure) => GlassReaderFailure(failure: failure),
       keepAcrossChapters: true,
@@ -121,5 +126,23 @@ class GlassReadAllScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+}
+
+/// The 18+ gate (glass 8.0.8): a saved chapter of a mature source opened on a profile whose gate is closed shows the lens "This
+/// isn't available on this profile" with Back home, and no title or cover. The server answers its own reads with the
+/// unavailable codes, so this only catches what the device already holds.
+class _GateGuard extends ConsumerWidget {
+  const _GateGuard({required this.sourceId, required this.child});
+  final String sourceId;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mature = ref.watch(sourcesListProvider).valueOrNull?.where((s) => s.id == sourceId).firstOrNull?.mature ?? false;
+    final open = ref.watch(matureContentProvider).valueOrNull ?? true;
+    if (!mature || open) return child;
+    void home() => GoRouter.maybeOf(context)?.go(Routes.tonight());
+    return GlassReaderFailure(failure: ReaderFailure(error: null, noPages: false, retry: home, back: home), gated: true, onHome: home);
   }
 }

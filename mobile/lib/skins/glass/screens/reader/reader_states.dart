@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
+import 'package:manhwamaniacs/core/error/not_available.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
@@ -89,7 +90,7 @@ class _GlassReaderLoadingState extends State<GlassReaderLoading> {
 }
 
 /// A reader that did not open (glass 8.14.6): the error lens with the server's message, Try again and Go to series; or "This
-/// chapter has no pages" with Go to series; or the gate closed on a mature series.
+/// chapter has no pages" with Go to series; unavailable content (glass 8.0.8); or the gate closed on a mature series.
 class GlassReaderFailure extends StatelessWidget {
   const GlassReaderFailure({super.key, required this.failure, this.gated = false, this.onHome});
   final ReaderFailure failure;
@@ -105,6 +106,18 @@ class GlassReaderFailure extends StatelessWidget {
         title: "This isn't available on this profile",
         tone: GlassLensTone.error,
         primary: LensAction('Back home', onHome ?? failure.back),
+      );
+    } else if (failure.error != null && notAvailableKind(failure.error!) != null) {
+      // Unavailable content (glass 8.0.8): the specific line and Back. Gated 18+ answers the same codes, so nothing reveals it.
+      lens = GlassObjectLens(
+        situation: LensSituation.unavailable,
+        title: "This isn't here any more",
+        description: switch (notAvailableKind(failure.error!)!) {
+          NotAvailableKind.source => 'This source was removed from the server.',
+          NotAvailableKind.series => "The source doesn't have this series any more.",
+          NotAvailableKind.notBrowsable => "This source can't be browsed; open its series from search or your library.",
+        },
+        primary: LensAction('Back', failure.back),
       );
     } else if (failure.noPages) {
       lens = GlassObjectLens(situation: LensSituation.loadError, title: 'This chapter has no pages', primary: LensAction('Go to series', failure.back));
