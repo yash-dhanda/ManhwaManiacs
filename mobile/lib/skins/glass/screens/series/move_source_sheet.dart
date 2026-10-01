@@ -119,8 +119,9 @@ class _MoveSourceSheetState extends ConsumerState<MoveSourceSheet> {
     final picked = _picked;
     final current = _currentNumber();
     final n = chapterNum(current);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    // Scrolls when the candidates and the mapping outgrow the sheet (large text); on the sheets' 20 px gutter.
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
