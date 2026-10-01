@@ -449,6 +449,7 @@ def get_settings() -> Settings:
         # presence rather than truthiness.
         data["trusted_client_ip_header"] = client_ip_header_override.strip()
 
+    data.pop("version", None)  # runtime-only: always the release's own
     return Settings(**data)
 
 
