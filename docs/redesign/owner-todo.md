@@ -196,3 +196,8 @@ Items only the owner can do, by step.
 ## mobile/37 (Glass Listen mode)
 
 - [ ] Run `docs/redesign/proof/mobile-37/device-checklist.md` on the iPhone (SideStore IPA) and an Android flagship (CI APK).
+
+## mobile/45 (Glass QA)
+
+- Device pass rows 1 to 14 at 120 Hz on the iPhone and the Android flagship: `docs/redesign/proof/mobile-45/device-checklist.md`.
+- Drop `calibration-flutter-premium-ios.png` and `calibration-flutter-premium-android.png` into `docs/redesign/proof/mobile-45/` (Settings > Diagnostics > Glass calibration). The harness capture has no refraction, so only these count against the web.
