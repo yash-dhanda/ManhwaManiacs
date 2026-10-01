@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/features/reader/engine/camera.dart';
 import 'package:manhwamaniacs/features/reader/engine/guided.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
@@ -49,7 +50,7 @@ class CineGuidedView extends ConsumerStatefulWidget {
     this.onNextChapter,
     this.onPreviousChapter,
     this.creditsBuilder,
-    this.autoHideAfter = const Duration(milliseconds: 3000),
+    this.autoHideAfter = kReaderChromeIdle,
   });
 
   final ReaderEngine engine;
@@ -94,7 +95,14 @@ class _CineGuidedViewState extends ConsumerState<CineGuidedView> with TickerProv
   bool _reduced = false, _accessible = false;
   bool _chromeVisible = true;
   int _glanceGen = 0;
-  Timer? _hideTimer, _saveTimer, _singleTap;
+  Timer? _saveTimer, _singleTap;
+  late final ReaderChromeIdle _idle = ReaderChromeIdle(
+    this,
+    visible: () => _chromeVisible,
+    hide: _hideChrome,
+    after: () => widget.autoHideAfter,
+    off: () => _reduced,
+  );
   (String, int)? _lastSaved;
   int? _pendingSave;
   final Set<String> _completed = {};
@@ -129,7 +137,7 @@ class _CineGuidedViewState extends ConsumerState<CineGuidedView> with TickerProv
   @override
   void dispose() {
     _flushSave();
-    _hideTimer?.cancel();
+    _idle.dispose();
     _saveTimer?.cancel();
     _singleTap?.cancel();
     _motion?.end(interrupted: true);
@@ -444,16 +452,11 @@ class _CineGuidedViewState extends ConsumerState<CineGuidedView> with TickerProv
 
   void _hideChrome() {
     _chromeVisible = false;
-    _hideTimer?.cancel();
+    _idle.hold();
     _publish();
   }
 
-  void _scheduleHide() {
-    _hideTimer?.cancel();
-    _hideTimer = Timer(widget.autoHideAfter, () {
-      if (mounted && !_accessible) _hideChrome();
-    });
-  }
+  void _scheduleHide() => _idle.arm();
 
   // ── Gestures ─────────────────────────────────────────────────────────────
 
@@ -581,7 +584,7 @@ class _CineGuidedViewState extends ConsumerState<CineGuidedView> with TickerProv
   @override
   void hideChrome() => _hideChrome();
   @override
-  void holdChrome() => _hideTimer?.cancel();
+  void holdChrome() => _idle.hold();
   @override
   void scheduleHideChrome() => _scheduleHide();
   @override
@@ -627,7 +630,7 @@ class _CineGuidedViewState extends ConsumerState<CineGuidedView> with TickerProv
             if (mounted) _refreshStops(keepPose: false);
           });
         }
-        return Stack(
+        return _idle.wrap(Stack(
           children: [
             Positioned.fill(child: ColoredBox(color: widget.ground)),
             Positioned.fill(
@@ -649,7 +652,7 @@ class _CineGuidedViewState extends ConsumerState<CineGuidedView> with TickerProv
               ),
             ),
           ],
-        );
+        ),);
       },
     );
   }

@@ -14,7 +14,7 @@ ScrollPosition _strip(WidgetTester tester) => tester
     .position;
 
 Future<void> _hidden(WidgetTester tester) async {
-  await settleReader(tester, ms: 3500);
+  await settleReader(tester, ms: 5600);
   expect(chromeVisible(tester), isFalse, reason: 'idle-hidden before the taps');
 }
 

@@ -21,6 +21,7 @@ import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
 import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart' show locateGlobalPage, chapterStarts, readAllFlag;
 import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart' show PanelsFound;
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
@@ -1100,11 +1101,13 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
       pageHeroTag: (chapterId, page) => _heroFor?.chapter == chapterId && _heroFor?.page == page ? 'reader-page-$chapterId-$page' : null,
       pageEpoch: (chapterId, page) => _retryEpoch['$chapterId:$page'] ?? 0,
       lifecycleVolumeKeys: true,
+      chromeIdleOff: () => _reduced,
     );
 
     Widget chrome(BuildContext context, ReaderEngineState state) =>
         _chrome(context, state, prefs, series, tablet: tablet, landscape: landscape, reduced: reduced, paged: paged);
-    final autoHideAfter = accessible ? const Duration(days: 1) : const Duration(milliseconds: 3000);
+    // The menu idles out (5 s untouched); never under a screen reader or reduce motion (ReaderChromeIdle).
+    const autoHideAfter = kReaderChromeIdle;
     final Widget view;
     if (layout == ReaderLayout.guided) {
       final chapter = _chapterById(_carryChapterId ?? _id.chapterKey) ?? body.feed.chapters.first;
@@ -1117,7 +1120,6 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
         chromeBuilder: chrome,
         initialPage: _carryPage ?? body.initialPage,
         autoAdvance: settings.guidedAutoAdvance,
-        autoHideAfter: autoHideAfter,
         onSaveProgress: body.onSaveProgress,
         onPreviousChapter: body.onPreviousChapter,
         onNextChapter: body.onNextChapter,
