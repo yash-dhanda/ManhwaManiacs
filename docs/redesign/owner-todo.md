@@ -180,3 +180,8 @@ Items only the owner can do, by step.
 ## mobile/36 (Glass novel reader)
 
 - [ ] Run `docs/redesign/proof/mobile-36/device-checklist.md` on the iPhone (SideStore IPA) and an Android flagship (CI APK): native selection and the Glass menu, Lift/Slide at 120 Hz, Book open, paper ripple, pinch, system UI around the notch and gesture bar, rotation, iOS edge strip, keep awake, VoiceOver/TalkBack, text scale, Bold Text, the 12,000-word pagination time.
+
+## mobile/37 (Glass Listen mode)
+
+- [ ] Run `docs/redesign/proof/mobile-37/device-checklist.md` on the iPhone (SideStore IPA) and an Android flagship (CI APK).
+- [ ] The book page (`mobile/33`) was not integrated when this step ran: `GlassAudiobookButton` (`mobile/lib/skins/glass/listen/audiobook_button.dart`) is built and tested through the sheet, but nothing mounts it on a book page yet. When `mobile/33` lands, put it in the page's action row and add the ⋯ "Voices for this book" entry (`GlassNarrationActions.openSheet('cast')`).

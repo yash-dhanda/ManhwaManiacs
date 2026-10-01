@@ -104,38 +104,51 @@ class _GlassPostPlayCardState extends ConsumerState<GlassPostPlayCard> with Sing
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           padding: const EdgeInsets.all(14),
           decoration: ShapeDecoration(color: gt.colorFill2, shape: const GlassShape.superellipse(24).border(const Size(340, 96))),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              AnimatedBuilder(
-                animation: _c,
-                builder: (context, _) {
-                  final remaining = kPostPlayCountdown * (1 - _c.value);
-                  final secs = postPlaySeconds(remaining);
-                  return SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: reduced
-                        ? Center(child: GlassText('$secs s', role: gt.typeMono, onGlass: onGlass, maxLines: 1))
-                        : CustomPaint(painter: RingPainter(v: 1 - _c.value, stroke: 3, color: gt.colorIris500), child: Center(child: GlassText('$secs', role: gt.typeMono, onGlass: onGlass))),
-                  );
-                },
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: AnimatedBuilder(
-                  animation: _c,
-                  builder: (context, _) => GlassText(
-                    _c.isAnimating || _c.isCompleted ? 'Next chapter in ${postPlaySeconds(kPostPlayCountdown * (1 - _c.value))}' : 'Next chapter',
-                    role: gt.typeHeadline,
-                    onGlass: onGlass,
-                    maxLines: 2,
-                    maxScale: 1.5,
+              Row(
+                children: [
+                  AnimatedBuilder(
+                    animation: _c,
+                    builder: (context, _) {
+                      final remaining = kPostPlayCountdown * (1 - _c.value);
+                      final secs = postPlaySeconds(remaining);
+                      return SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: reduced
+                            ? Center(child: GlassText('$secs s', role: gt.typeMono, onGlass: onGlass, maxLines: 1))
+                            : CustomPaint(painter: RingPainter(v: 1 - _c.value, stroke: 3, color: gt.colorIris500), child: Center(child: GlassText('$secs', role: gt.typeMono, onGlass: onGlass))),
+                      );
+                    },
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AnimatedBuilder(
+                      animation: _c,
+                      builder: (context, _) => GlassText(
+                        _c.isAnimating || _c.isCompleted ? 'Next chapter in ${postPlaySeconds(kPostPlayCountdown * (1 - _c.value))}' : 'Next chapter',
+                        role: gt.typeHeadline,
+                        onGlass: onGlass,
+                        maxLines: 2,
+                        maxScale: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              GlassButton(label: 'Play now', size: GlassButtonSize.small, variant: GlassButtonVariant.primary, onPressed: _advance),
-              const SizedBox(width: 8),
-              GlassButton(label: 'Cancel', size: GlassButtonSize.small, onPressed: _cancel),
+              const SizedBox(height: 8),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  GlassButton(label: 'Cancel', size: GlassButtonSize.small, onPressed: _cancel),
+                  GlassButton(label: 'Play now', size: GlassButtonSize.small, variant: GlassButtonVariant.primary, onPressed: _advance),
+                ],
+              ),
             ],
           ),
         ),

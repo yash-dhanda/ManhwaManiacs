@@ -6,6 +6,7 @@ library;
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
@@ -41,9 +42,10 @@ enum PlayerForm {
 /// "Needs a connection or saved audio" when there is neither.
 const String kNeedsConnectionReason = 'Needs a connection or saved audio';
 
-/// The artwork's side: `min(0.6 x width, 240)` on phones (also kept under 17 % of the height so the transport stays in the medium
-/// detent), 200 on the desktop frame.
-double playerArtSize(PlayerForm form, Size screen) => form == PlayerForm.sheet ? math.min(math.min(0.6 * screen.width, 240), math.max(120, 0.17 * screen.height)) : 200;
+/// The artwork's side: `min(0.6 x width, 240)` on phones, also kept under 13 % of the height so the transport and the tiles stay inside
+/// the `medium` detent (52 % of a phone), 200 on the desktop frame. (glass 8.16.2 lists them all at `medium`; a 240 px plate cannot
+/// share 52 % of a phone with them.)
+double playerArtSize(PlayerForm form, Size screen) => form == PlayerForm.sheet ? math.min(math.min(0.6 * screen.width, 240), math.max(96, 0.13 * screen.height)) : 200;
 
 /// The cast line's inputs from the chapter's attribution and the server's voice order.
 String playerCastLine({required GlassNarrator narrator, required NovelAttribution? attribution, required List<NovelVoice> voices}) {
@@ -66,18 +68,54 @@ class GlassPlayerColumn extends ConsumerStatefulWidget {
 }
 
 class _GlassPlayerColumnState extends ConsumerState<GlassPlayerColumn> {
+  late final StateController<int> _open = ref.read(glassPlayerOpenProvider.notifier);
+
+  /// The Listen keys also work from the full player and the desktop window (glass 8.16.8): `p`, `[` `]`, Shift+`[` `]`, `<` `>`, `v`.
+  bool _onKey(KeyEvent e) {
+    if (e is! KeyDownEvent || !mounted) return false;
+    if (ModalRoute.of(context)?.isCurrent == false) return false;
+    final focus = FocusManager.instance.primaryFocus?.context;
+    if (focus != null && focus.findAncestorWidgetOfExactType<EditableText>() != null) return false;
+    final narr = ref.read(narrationControllerProvider.notifier);
+    final shift = HardwareKeyboard.instance.isShiftPressed;
+    final k = e.logicalKey;
+    if (k == LogicalKeyboardKey.keyP) {
+      unawaited(ref.read(glassNarrationActionsProvider).toggle());
+    } else if (k == LogicalKeyboardKey.bracketLeft) {
+      unawaited(shift ? narr.seekBy(const Duration(seconds: -15)) : narr.stepSentence(-1));
+    } else if (k == LogicalKeyboardKey.bracketRight) {
+      unawaited(shift ? narr.seekBy(const Duration(seconds: 15)) : narr.stepSentence(1));
+    } else if (shift && (k == LogicalKeyboardKey.comma || k == LogicalKeyboardKey.period)) {
+      unawaited(narr.setSpeed(ref.read(narrationControllerProvider).speed + (k == LogicalKeyboardKey.period ? 0.05 : -0.05)));
+    } else if (k == LogicalKeyboardKey.keyV) {
+      ref.read(glassNarrationActionsProvider).openSheet('cast');
+    } else {
+      return false;
+    }
+    return true;
+  }
+
   @override
   void initState() {
     super.initState();
+    HardwareKeyboard.instance.addHandler(_onKey);
+    final open = _open;
     Future<void>.microtask(() {
-      if (mounted) ref.read(glassPlayerOpenProvider.notifier).state++;
+      try {
+        open.state++;
+      } catch (_) {}
     });
   }
 
   @override
   void dispose() {
-    final n = ref.read(glassPlayerOpenProvider.notifier);
-    Future<void>.microtask(() => n.state = n.state > 0 ? n.state - 1 : 0);
+    HardwareKeyboard.instance.removeHandler(_onKey);
+    final open = _open;
+    Future<void>.microtask(() {
+      try {
+        open.state = open.state > 0 ? open.state - 1 : 0;
+      } catch (_) {}
+    });
     super.dispose();
   }
 

@@ -88,13 +88,22 @@ class _GlassVoiceOrbitState extends ConsumerState<GlassVoiceOrbit> {
   bool _keyboard = false, _grid = false, _saving = false;
   final FocusNode _focus = FocusNode(debugLabel: 'GlassVoiceOrbit');
 
+  late final VoiceSamplePlayer _sampler = ref.read(voiceSamplePlayerProvider.notifier);
+
+  @override
+  void initState() {
+    super.initState();
+    _sampler;
+  }
+
   @override
   void dispose() {
     _rest?.cancel();
     _scroll?.dispose();
     _focus.dispose();
-    final p = ref.read(voiceSamplePlayerProvider.notifier);
-    unawaited(p.stop());
+    // Not inside the unmount: the sample's state change would notify cards that are going away.
+    final sampler = _sampler;
+    Future<void>.microtask(sampler.stop);
     super.dispose();
   }
 
@@ -104,6 +113,7 @@ class _GlassVoiceOrbitState extends ConsumerState<GlassVoiceOrbit> {
 
   void _armRest(List<NovelVoice> voices) {
     _rest?.cancel();
+    if (!mounted) return;
     if (!_autoPlayAllowed() || voices.isEmpty) return;
     _rest = Timer(const Duration(milliseconds: 400), () {
       if (!mounted || _centered < 0 || _centered >= voices.length || !_autoPlayAllowed()) return;

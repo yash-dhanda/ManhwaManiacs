@@ -108,7 +108,7 @@ class NovelBottomCapsule extends StatelessWidget {
           SkinGlassShape(size: Size(width, 56), child: content),
         ],
         axis: Axis.vertical,
-        aligns: [listenRowAlign, Alignment.center],
+        offsets: [Offset(listenRowAlign.x * (width - rowW) / 2, 0), Offset.zero],
         lb: lb,
         debugLabel: 'novel bottom capsule and listen row',
       ),

@@ -161,7 +161,7 @@ class _Narrating extends StatelessWidget {
         onTap: () => n.openPlayer(globalRectOf(context)),
         onHorizontalDragEnd: (e) {
           final w = context.size?.width ?? 300;
-          final p = e.velocity.pixelsPerSecond.dx * 0.0555;
+          final p = project(0, e.velocity.pixelsPerSecond.dx);
           if (p.abs() >= 0.3 * w) (p < 0 ? n.onNextChapter : n.onPreviousChapter)?.call();
         },
         child: _Row(

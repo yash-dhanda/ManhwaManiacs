@@ -25,6 +25,7 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/listen/listen_common.dart';
 import 'package:manhwamaniacs/skins/glass/listen/post_play_card.dart';
 import 'package:manhwamaniacs/skins/glass/listen/voice_hue.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/common.dart' show glassFire;
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/screens/novel/listen_bridge.dart';
 import 'package:manhwamaniacs/skins/glass/shell/accessory_controller.dart';
@@ -300,7 +301,14 @@ class _GlassListenLayerState extends ConsumerState<GlassListenLayer> {
   }
 
   void _feedback(NarrationFeedback f) {
-    if (f == NarrationFeedback.shakeExtended) ref.read(glassToastProvider.notifier).show(const GlassToastSpec('Sleep timer +5 min'));
+    if (!mounted) return;
+    switch (f) {
+      case NarrationFeedback.sleepFade:
+        glassFire(ref, HapticEvent.sleepFade);
+      case NarrationFeedback.shakeExtended:
+        glassFire(ref, HapticEvent.select);
+        ref.read(glassToastProvider.notifier).show(const GlassToastSpec('Sleep timer +5 min'));
+    }
   }
 
   void _tick() {

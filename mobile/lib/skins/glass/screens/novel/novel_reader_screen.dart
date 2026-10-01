@@ -45,6 +45,7 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/glass/registry.dart' show GlassLayerKind;
 import 'package:manhwamaniacs/skins/glass/glass/shape.dart' show GlassShape;
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/listen/cast_sheet.dart' show GlassCastBody;
@@ -431,9 +432,11 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   /// `?listen=1`: reads aloud from the resume point once the first frame is laid out; a start that cannot happen (audio focus
   /// refused, still preparing) leaves the listen row up, paused.
   void _bootListen() {
-    if (_listenBooted || !widget.listen) return;
+    if (_listenBooted || !widget.listen || _state.chapter == null) return;
     _listenBooted = true;
-    unawaited(_listenStart());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_listenStart());
+    });
   }
 
   /// The narration moved: when it went on to the neighbouring chapter the text swaps in place (the post-play card, the lock screen),
@@ -459,7 +462,9 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   /// Starts reading aloud at the reading line's paragraph (the header capsule, the listen button, `p`).
   Future<void> _listenStart({bool fromReadingLine = true}) async {
     final b = _bridge();
-    if (b == null || !b.available) return;
+    if (b == null) return;
+    // The audio answer may still be on its way (a deep link starts narration at the first frame).
+    if (await ref.read(playableNovelAudioProvider(_chapterKey).future) == null || !mounted) return;
     glassFire(ref, HapticEvent.listenToggle);
     final para = fromReadingLine ? (anchorAtReadingLine()?.index ?? (_paged ? paragraphOfPage(_ctl.pages, _pagedView.currentState?.page ?? 0) : 0)) : 0;
     _voiceDecoupled = false;
@@ -722,6 +727,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       _announce(next);
     }
     if (next.nextState != prev?.nextState) _checkRateLimit(next);
+    if (next.chapter != null && prev?.chapter == null) _bootListen();
   }
 
   void _announce(NovelReaderState s) {
@@ -1607,6 +1613,8 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       ..watch(glassNovelPrefsProvider(_book))
       ..watch(sourceSeriesDetailProvider((sourceId: widget.sourceId, seriesId: widget.seriesKey)))
       ..watch(playableNovelAudioProvider(_chapterKey))
+      ..watch(seriesAudioProvider((sourceId: widget.sourceId, seriesKey: widget.seriesKey)))
+      ..watch(glassIsOwnerProvider)
       ..watch(narrationControllerProvider.select((n) => (n.key, n.status)))
       ..watch(glassReducedProvider);
     final narration = ref.watch(narrationControllerProvider);
@@ -2243,7 +2251,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     final left = _rateLeft;
     if (left != null) return NovelTopCapsule(key: const ValueKey('rate'), text: 'The source is busy; the next chapter will load in $left s', warning: true, lb: lb);
     final n = ref.read(narrationControllerProvider);
-    if (n.key == _chapterKey && n.target != null && n.active && !n.highlightSafe) return NovelTopCapsule(key: const ValueKey('highlight-paused'), text: 'Highlight paused: the text changed', lb: lb);
+    if (n.key == _chapterKey && n.target != null && n.active && !n.highlightSafe) return _HighlightPaused(key: const ValueKey('highlight-paused'), lb: lb);
     return widget.topCentreSlots.isEmpty ? null : widget.topCentreSlots.last;
   }
 
@@ -2318,6 +2326,27 @@ List<NovelPanelTab> novelRightPanelTabs(WidgetBuilder aa, {WidgetBuilder? voices
       if (voices != null) NovelPanelTab('Voices', voices),
       if (listen != null) NovelPanelTab('Listen', listen),
     ];
+
+/// "Highlight paused: the text changed" (glass 8.16.7, J3): a quiet `glassThin` capsule in the top-centre slot.
+class _HighlightPaused extends StatelessWidget {
+  const _HighlightPaused({super.key, required this.lb});
+  final double lb;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        liveRegion: true,
+        label: 'Highlight paused: the text changed',
+        excludeSemantics: true,
+        child: SkinGlass(
+          size: Size(math.min(MediaQuery.sizeOf(context).width - 48, 280), 32),
+          tier: GlassTierId.t2,
+          lb: lb,
+          layer: GlassLayerKind.hud,
+          debugLabel: 'highlight paused capsule',
+          child: Center(child: GlassText('Highlight paused: the text changed', role: gt.typeFootnote, wght: 600, onGlass: true, maxScale: 1.3, maxLines: 1, overflow: TextOverflow.ellipsis)),
+        ),
+      );
+}
 
 /// "Back to the voice": a `fill2` twin capsule above the listen row after a manual scroll or turn.
 class _BackToTheVoice extends StatelessWidget {

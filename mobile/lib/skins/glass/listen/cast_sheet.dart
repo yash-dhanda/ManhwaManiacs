@@ -172,39 +172,51 @@ class _Row extends StatelessWidget {
   final Widget? gender, trailing;
   final VoidCallback onTap;
 
+  /// The row's own control is its left part (the swatch, the name and the voice): the gender capsule and the ⋯ sit beside it, never
+  /// inside its press, so each keeps its own tap.
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(top: 8),
-        child: GlassPressable(
-          material: GlassMaterial.content,
-          sink: 0.99,
-          shape: const GlassShape.superellipse(20),
-          minHit: false,
-          onTap: onTap,
-          semanticsLabel: semantics,
-          builder: (context, info) => Container(
-            constraints: const BoxConstraints(minHeight: 56),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: ShapeDecoration(color: gt.colorFill2, shape: const GlassShape.superellipse(20).border(const Size(340, 56))),
-            child: Row(
-              children: [
-                leading,
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GlassText(title, role: gt.typeSubhead, wght: 600, onGlass: onGlass, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.5),
-                      GlassText(subtitle, role: gt.typeFootnote, onGlass: onGlass, color: gt.colorLabel2, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.5),
-                    ],
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 56),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: ShapeDecoration(color: gt.colorFill2, shape: const GlassShape.superellipse(20).border(const Size(340, 56))),
+          child: Row(
+            children: [
+              Expanded(
+                child: GlassPressable(
+                  material: GlassMaterial.content,
+                  sink: 0.99,
+                  shape: const GlassShape.superellipse(14),
+                  minHit: false,
+                  onTap: onTap,
+                  semanticsLabel: semantics,
+                  builder: (context, info) => ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    child: Row(
+                      children: [
+                        leading,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              GlassText(title, role: gt.typeSubhead, wght: 600, onGlass: onGlass, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.5),
+                              GlassText(subtitle, role: gt.typeFootnote, onGlass: onGlass, color: gt.colorLabel2, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.5),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                if (gender != null) ...[gender!, const SizedBox(width: 8)],
-                if (meta != null) GlassText(meta!, role: gt.typeMono, size: 12, onGlass: onGlass, color: gt.colorLabel2, maxLines: 1),
-                if (locked) Padding(padding: const EdgeInsets.only(left: 6), child: Icon(PhosphorRegular.pushPin, size: 14, color: gt.colorLabel2, semanticLabel: 'Set by hand')),
-                if (trailing != null) ...[const SizedBox(width: 4), trailing!],
-              ],
-            ),
+              ),
+              if (gender != null) ...[const SizedBox(width: 8), gender!],
+              if (meta != null) ...[const SizedBox(width: 8), GlassText(meta!, role: gt.typeMono, size: 12, onGlass: onGlass, color: gt.colorLabel2, maxLines: 1)],
+              if (locked) Padding(padding: const EdgeInsets.only(left: 6), child: Icon(PhosphorRegular.pushPin, size: 14, color: gt.colorLabel2, semanticLabel: 'Set by hand')),
+              if (trailing != null) ...[const SizedBox(width: 4), trailing!],
+            ],
           ),
         ),
       );
