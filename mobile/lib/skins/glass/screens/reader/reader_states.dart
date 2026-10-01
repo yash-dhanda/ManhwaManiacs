@@ -4,12 +4,25 @@ import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/core/error/not_available.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
+import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/lens_glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/states/object_lens.dart';
+import 'package:manhwamaniacs/skins/glass/shell/glass_back_button.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
+
+/// The loading and failure states stand in for the reader's chrome: the nav row's Back at safe-top + 8, and Android back to the
+/// series on a cold open (nothing beneath).
+Widget _withBack(BuildContext context, Widget child) => SkinBackFallback(
+      glass: true,
+      child: Stack(children: [
+        Positioned.fill(child: child),
+        Positioned(top: MediaQuery.viewPaddingOf(context).top + 8, left: GlassFrame.screenMargin(context), child: const GlassBackButton()),
+      ],),
+    );
 
 /// Loading a chapter (glass 8.14.6): three page-shaped skeletons (2:3, at most 420 wide) with the sheen and a `glassThin` capsule
 /// "Loading chapter 143"; after 3 s it adds "This source can be slow".
@@ -47,7 +60,7 @@ class _GlassReaderLoadingState extends State<GlassReaderLoading> {
     final label = widget.chapterLabel == null ? 'Loading chapter' : 'Loading ${widget.chapterLabel!.toLowerCase()}';
     final text = _isSlow ? '$label · This source can be slow' : label;
     final capW = measureText(context, text, roleStyle(context, gt.typeFootnote, onGlass: true, wght: 600)).width + 32;
-    return ColoredBox(
+    return _withBack(context, ColoredBox(
       color: const Color(0xFF000000),
       child: Stack(
         children: [
@@ -85,7 +98,7 @@ class _GlassReaderLoadingState extends State<GlassReaderLoading> {
           ),
         ],
       ),
-    );
+    ),);
   }
 }
 
@@ -132,6 +145,6 @@ class GlassReaderFailure extends StatelessWidget {
         secondary: LensAction('Go to series', failure.back),
       );
     }
-    return ColoredBox(color: const Color(0xFF000000), child: Center(child: lens));
+    return _withBack(context, ColoredBox(color: const Color(0xFF000000), child: Center(child: lens)));
   }
 }
