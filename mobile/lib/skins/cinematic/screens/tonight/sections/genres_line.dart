@@ -69,7 +69,6 @@ class _Genre extends StatelessWidget {
               wdth: 75,
               tracking: 0.10,
               color: st.hovered || st.focused ? c.colorInk100 : c.colorInk80,
-              decoration: st.hovered ? TextDecoration.underline : null,
             ),
           ),
         ),

@@ -280,7 +280,7 @@ class _CinePosterState extends State<CinePoster> {
       padding: const EdgeInsets.only(top: 8),
       child: CineStock.raised(Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
         Builder(
-          builder: (context) => CineRoleText(widget.title, c.typeTitle, maxLines: compact ? 2 : 1, overflow: TextOverflow.ellipsis, decoration: lit ? TextDecoration.underline : null),
+          builder: (context) => CineRoleText(widget.title, c.typeTitle, maxLines: compact ? 2 : 1, overflow: TextOverflow.ellipsis),
         ),
         if (folio != null)
           Padding(

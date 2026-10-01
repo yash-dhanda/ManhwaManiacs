@@ -327,7 +327,7 @@ class _ToastSlotState extends State<_ToastSlot> with SingleTickerProviderStateMi
                   CinePressable(
                     focusNode: _action,
                     onTap: _act,
-                    builder: (context, st) => CineRoleText(t.actionLabel!, c.typeUi, color: ink, decoration: TextDecoration.underline),
+                    builder: (context, st) => CineRoleText(t.actionLabel!, c.typeLabel, color: ink),
                   ),
                 ],
               ],),

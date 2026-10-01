@@ -77,7 +77,7 @@ class CineFeatureCard extends StatelessWidget {
                   if (kicker != null)
                     CineRoleText(kicker!, tokens.typeKicker, color: ambientKicker ? CineAmbient.of(context).ink : context.cine.colorInk45, maxLines: 1, overflow: TextOverflow.ellipsis),
                   SizedBox(height: tokens.space1),
-                  CineRoleText(title, tokens.typeSubhead, maxLines: 2, overflow: TextOverflow.ellipsis, decoration: lit ? TextDecoration.underline : null),
+                  CineRoleText(title, tokens.typeSubhead, maxLines: 2, overflow: TextOverflow.ellipsis),
                   if (deck != null) ...[
                     SizedBox(height: tokens.space1),
                     CineRoleText(deck!, tokens.typeBodyItalic, color: context.cine.colorInk60, maxLines: 2, overflow: TextOverflow.ellipsis),
