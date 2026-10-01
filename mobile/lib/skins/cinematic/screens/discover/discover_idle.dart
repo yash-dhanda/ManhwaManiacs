@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/genre_index.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_health.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/duotone.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
@@ -56,6 +58,11 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
     final tablet = isTablet(context);
     var n = 0;
     String folio() => (++n).toString().padLeft(2, '0');
+    // Rhythm (DESIGN.md 2.2): content, then 40 (phone) / 64 to the next
+    // section rule; SectionHead already sets 12 of it above its rule.
+    final sectionEnd = SizedBox(
+      height: (tablet ? CineSpace.s16 : CineSpace.s10) - CineSpace.s3,
+    );
 
     final shownGenres = _allGenres ? genres : genres.take(12).toList();
     return Column(
@@ -74,6 +81,7 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
               ],
             ),
           ),
+          sectionEnd,
         ],
         if (widget.aiAvailable) ...[
           const SectionHead(null, 'Ask the editors'),
@@ -102,6 +110,7 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
               ],
             ),
           ),
+          sectionEnd,
         ],
         if (pins.isNotEmpty && genres.isNotEmpty) ...[
           SectionHead(folio(), 'Browse by genre'),
@@ -127,6 +136,7 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
                 onPressed: () => setState(() => _allGenres = !_allGenres),
               ),
             ),
+          sectionEnd,
         ],
         if (pins.isNotEmpty) ...[
           SectionHead(folio(), 'Sources'),
@@ -146,6 +156,7 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
               onPressed: () => context.push(Routes.sources()),
             ),
           ),
+          sectionEnd,
         ],
         if (widget.dialogueAvailable) ...[
           SectionHead(folio(), 'Search what they said'),
@@ -181,6 +192,7 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
               ],
             ),
           ),
+          sectionEnd,
         ],
         if (trending.isNotEmpty) ...[
           SectionHead(folio(), 'Trending on your sources'),
@@ -205,7 +217,7 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
   }
 }
 
-class _PinnedCredit extends StatelessWidget {
+class _PinnedCredit extends ConsumerWidget {
   const _PinnedCredit({
     required this.pin,
     required this.mature,
@@ -217,7 +229,7 @@ class _PinnedCredit extends StatelessWidget {
   final HealthDescription health;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = context.cine;
     return InkWell(
       onTap: () => context.push(Routes.source(pin.sourceId)),
@@ -231,6 +243,20 @@ class _PinnedCredit extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: CineSpace.s4),
             child: Row(
               children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: pin.iconUrl == null
+                      ? ColoredBox(color: t.colorPaper1)
+                      : CineCover(
+                          url: resolveApiResourceUrl(
+                            ref.watch(apiBaseUrlProvider),
+                            pin.iconUrl!,
+                          ),
+                          displayWidth: 24,
+                        ),
+                ),
+                const SizedBox(width: CineSpace.s3),
                 Expanded(
                   child: Text(pin.name, style: cineText(context, t.typeTitle)),
                 ),
