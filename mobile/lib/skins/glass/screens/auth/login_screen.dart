@@ -365,19 +365,19 @@ class _ServerRow extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Flexible(child: GlassText('Server: $host', role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  Flexible(child: GlassText('Server: $host', role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 2, overflow: TextOverflow.ellipsis)),
                   const SizedBox(width: 6),
                   GlyphIcon(GlassGlyph30.copy, size: 16, color: gt.colorLabel2),
                 ],
               ),
             ),
           );
-    final change = GlassButton(label: 'Change server', variant: GlassButtonVariant.plain, onPressed: onChange);
-    // From 1.6 the two no longer fit side by side (3.3 rule 4: rows stack).
-    if (MediaQuery.textScalerOf(context).scale(1) >= 1.6) {
-      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [server, change]);
+    // From 1.3 the address and the link no longer fit side by side: they stack, the link hanging on the address's left edge.
+    if (MediaQuery.textScalerOf(context).scale(1) >= 1.3) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [server, GlassButton(label: 'Change server', variant: GlassButtonVariant.plain, hang: true, onPressed: onChange)]);
     }
-    return Row(children: [Expanded(child: server), change]);
+    // The address starts on the form's left edge (the pressable would centre it in the row).
+    return Row(children: [Expanded(child: Align(alignment: Alignment.centerLeft, child: server)), GlassButton(label: 'Change server', variant: GlassButtonVariant.plain, onPressed: onChange)]);
   }
 }
 

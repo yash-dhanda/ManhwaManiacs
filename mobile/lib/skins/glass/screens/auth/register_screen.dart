@@ -242,7 +242,7 @@ class _GlassRegisterScreenState extends ConsumerState<GlassRegisterScreen> with 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Semantics(header: true, child: GlassText(title, role: gt.typeLargeTitle, textAlign: TextAlign.center)),
+              Semantics(header: true, child: GlassText(title, role: gt.typeLargeTitle, textAlign: TextAlign.center, fitWords: true)),
               const SizedBox(height: 8),
               GlassText(subtitle, role: gt.typeBody, color: unreachable ? gt.colorDanger : gt.colorLabel2, textAlign: TextAlign.center),
               const SizedBox(height: 24),

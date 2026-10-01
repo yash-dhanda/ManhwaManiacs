@@ -48,11 +48,12 @@ class _GlassSkinCardState extends State<GlassSkinCard> {
     );
     final text = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
       Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, children: [
-        GlassText(name, role: gt.typeTitle2),
+        GlassText(name, role: gt.typeTitle2, fitWords: true),
         if (current)
+          // The badge grows with its text (never clips it at large sizes).
           Container(
-            height: 20,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            constraints: const BoxConstraints(minHeight: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(color: gt.colorFill2, borderRadius: BorderRadius.circular(10)),
             child: Center(widthFactor: 1, child: GlassText('Current', role: gt.typeCaption1, wght: 600)),
           ),

@@ -65,7 +65,7 @@ class ProfileBlock extends ConsumerWidget {
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Semantics(label: name, excludeSemantics: true, child: GlassText(name, role: gt.typeTitle1, maxLines: 1, overflow: TextOverflow.ellipsis)),
-            if (handle.isNotEmpty) GlassText(handle, role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 1, overflow: TextOverflow.ellipsis),
+            if (handle.isNotEmpty) GlassText(handle, role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 2, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 8),
             GlassButton(label: 'Switch profile', onPressed: () => GoRouter.of(context).go(Routes.profiles())),
           ],),

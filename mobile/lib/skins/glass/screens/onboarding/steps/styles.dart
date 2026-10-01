@@ -82,7 +82,7 @@ class _Tile extends StatelessWidget {
                     color: gt.colorSurface1,
                     child: kGlassStyleArtBundled
                         ? Image.asset(style.assetPath(index), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink())
-                        : Padding(padding: const EdgeInsets.all(8), child: Center(child: GlassText(style.label, role: gt.typeTitle3, textAlign: TextAlign.center, maxLines: 3, maxScale: 1.3))),
+                        : Padding(padding: const EdgeInsets.all(12), child: Center(child: GlassText(style.label, role: gt.typeTitle3, textAlign: TextAlign.center, maxLines: 3, maxScale: 1.3, fitWords: true))),
                   ),
                 ),
                 if (on) Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: gt.colorIris500, width: 2)))),

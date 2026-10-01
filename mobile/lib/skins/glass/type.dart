@@ -87,6 +87,7 @@ class GlassText extends ConsumerWidget {
     this.maxLines,
     this.textAlign,
     this.overflow,
+    this.fitWords = false,
   });
 
   final String text;
@@ -101,6 +102,10 @@ class GlassText extends ConsumerWidget {
   final TextAlign? textAlign;
   final TextOverflow? overflow;
 
+  /// Never break inside a word: when the longest word is wider than the line (a brand name in a large title, a long label in a
+  /// narrow tile at large text), the text sets down until it fits. Uses a `LayoutBuilder`: not inside intrinsic sizing.
+  final bool fitWords;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final legible = ref.watch(glassA11yProvider.select((a) => a.legible));
@@ -114,14 +119,27 @@ class GlassText extends ConsumerWidget {
       height: height,
       maxScale: maxScale,
     ).copyWith(color: color ?? (onGlass ? glassTokens.colorOnGlass : glassTokens.colorLabel1));
-    return Text(
-      text,
-      style: style,
-      maxLines: maxLines,
-      textAlign: textAlign,
-      overflow: overflow,
-      // The size is already scaled and capped above; the framework scaler must not apply again.
-      textScaler: TextScaler.noScaling,
-    );
+    Text build(TextStyle st) => Text(
+          text,
+          style: st,
+          maxLines: maxLines,
+          textAlign: textAlign,
+          overflow: overflow,
+          // The size is already scaled and capped above; the framework scaler must not apply again.
+          textScaler: TextScaler.noScaling,
+        );
+    if (!fitWords) return build(style);
+    return LayoutBuilder(builder: (context, box) {
+      if (!box.hasBoundedWidth) return build(style);
+      var longest = 0.0;
+      for (final w in text.split(RegExp(r'\s+'))) {
+        if (w.isEmpty) continue;
+        final p = TextPainter(text: TextSpan(text: w, style: style), textDirection: TextDirection.ltr, textScaler: TextScaler.noScaling)..layout();
+        if (p.width > longest) longest = p.width;
+        p.dispose();
+      }
+      if (longest <= box.maxWidth) return build(style);
+      return build(style.copyWith(fontSize: (style.fontSize ?? 17) * box.maxWidth / longest * 0.98));
+    },);
   }
 }
