@@ -179,8 +179,10 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
       );
 
   Future<void> _shareRange() async {
-    final s = _last;
-    if (s == null || !mounted) return;
+    // The current range's own payload, gated like the bar button (not [_last], which may be another range's).
+    final load = ref.read(numbersStatisticsProvider(_days)).valueOrNull;
+    final s = load?.data;
+    if (s == null || load!.offline || !s.hasReadingHistory || !mounted) return;
     await openShare(context, ref, _rangeSpec(s));
   }
 
@@ -198,6 +200,10 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
     final load = async.valueOrNull;
     final s = load?.data;
     if (s != null) _last = s;
+    // The intent set before a fresh push lands while the payload is still loading: consume it once data is here.
+    if (s != null && ref.read(statsShareIntentProvider) == 'streak') {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _consumeShareIntent());
+    }
     ref.listen(statsShareIntentProvider, (_, v) {
       if (v == 'streak') WidgetsBinding.instance.addPostFrameCallback((_) => _consumeShareIntent());
     });
