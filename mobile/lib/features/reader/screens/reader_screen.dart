@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/router/routes.dart';
-import 'package:manhwamaniacs/skins/contract.g.dart' as contract show Routes;
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
@@ -29,6 +28,7 @@ import 'package:manhwamaniacs/features/reader/utils/reading_clock.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_content.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_error_state.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_skeleton.dart';
+import 'package:manhwamaniacs/skins/contract.g.dart' as contract show Routes;
 
 /// The manifest-driven reader for a followed series' chapter — the one
 /// reader every non-source-browsing entry point (series detail, continue

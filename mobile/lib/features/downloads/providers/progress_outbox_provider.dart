@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
@@ -13,6 +12,7 @@ import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/utils/further_elsewhere.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Saves reading progress the offline-safe way: write locally first, flush
 /// to the server later. Every call resolves immediately regardless of

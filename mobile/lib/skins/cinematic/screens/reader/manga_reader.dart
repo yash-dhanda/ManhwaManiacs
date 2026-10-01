@@ -459,7 +459,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
 
   /// A paged view steps from the chapter it shows: the body's prompts point past the FEED's edges,
   /// which a strip session may already have extended by a chapter each way.
-  VoidCallback? _pagedStep(String? neighbour, VoidCallback? fallback) => neighbour == null ? fallback : () => _goToChapter(neighbour);
+  VoidCallback? _pagedChapterStep(String? neighbour, VoidCallback? fallback) => neighbour == null ? fallback : () => _goToChapter(neighbour);
 
   /// Between chapters is a Dip, never a wipe.
   void _goToChapter(String chapterKey, {int? page}) {
@@ -1122,8 +1122,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
         autoAdvance: settings.guidedAutoAdvance,
         autoHideAfter: autoHideAfter,
         onSaveProgress: body.onSaveProgress,
-        onPreviousChapter: _pagedStep(chapter.previousChapterId, body.onPreviousChapter),
-        onNextChapter: _pagedStep(chapter.nextChapterId, body.onNextChapter),
+        onPreviousChapter: _pagedChapterStep(chapter.previousChapterId, body.onPreviousChapter),
+        onNextChapter: _pagedChapterStep(chapter.nextChapterId, body.onNextChapter),
         creditsBuilder: (context) => ColoredBox(color: ground, child: SingleChildScrollView(child: _credits(context, chapter, null, CreditsMode.compact))),
       );
     } else if (paged) {
@@ -1152,8 +1152,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
         bookmarkAnchors: body.bookmarkAnchors,
         onSaveProgress: body.onSaveProgress,
         onAddBookmark: body.onAddBookmark,
-        onPreviousChapter: _pagedStep(chapter.previousChapterId, body.onPreviousChapter),
-        onNextChapter: _pagedStep(chapter.nextChapterId, body.onNextChapter),
+        onPreviousChapter: _pagedChapterStep(chapter.previousChapterId, body.onPreviousChapter),
+        onNextChapter: _pagedChapterStep(chapter.nextChapterId, body.onNextChapter),
         options: options,
         style: PagedStageStyle(centreLine: context.cine.colorRule1),
       );
