@@ -156,7 +156,8 @@ class GlassSheetScaffold extends ConsumerWidget {
     final header = SizedBox(
       height: 56,
       child: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 8, top: 10),
+        // The title starts on the 20 px gutter every sheet body uses.
+        padding: const EdgeInsets.only(left: 20, right: 8, top: 10),
         child: Row(
           children: [
             if (leading != null) ...[leading!, const SizedBox(width: 8)],

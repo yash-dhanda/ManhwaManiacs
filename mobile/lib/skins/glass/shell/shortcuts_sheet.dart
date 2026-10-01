@@ -17,7 +17,7 @@ class GlassShortcutsBody extends ConsumerWidget {
     final groups = ref.read(shortcutRegistryProvider.notifier).registeredGroups();
     final wide = GlassFrame.of(context) != GlassFrameKind.phone;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
         GlassText('Only what works here is listed. Shortcuts pause while you type. Press ? to reopen, Esc to close.', role: gt.typeCallout, onGlass: wide),
         const SizedBox(height: 16),
