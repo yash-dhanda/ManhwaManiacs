@@ -147,7 +147,7 @@ class _GlassNavRowState extends ConsumerState<GlassNavRow> {
     final actionsW = n == 0 ? 0.0 : n * side + (n - 1) * 8;
     final showSwitch = widget.contentModeSwitch && ref.watch(novelsEnabledProvider);
     final switchW = showSwitch
-        ? measureText(context, ref.watch(contentModeControllerProvider).label, roleStyle(context, gt.typeSubhead, onGlass: true, wght: 620)).width + 42
+        ? measureText(context, ref.watch(contentModeControllerProvider).label, roleStyle(context, gt.typeSubhead, onGlass: true, wght: 620, maxScale: 1.3)).width + 42
         : 0.0;
     final trailingW = actionsW + (showSwitch ? switchW + (n == 0 ? 0 : 8) : 0);
     final leadingW = widget.leading == GlassLeading.none ? 0.0 : side;

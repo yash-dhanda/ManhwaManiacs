@@ -88,6 +88,7 @@ class GlassText extends ConsumerWidget {
     this.textAlign,
     this.overflow,
     this.fitWords = false,
+    this.shrink = 1,
   });
 
   final String text;
@@ -106,10 +107,13 @@ class GlassText extends ConsumerWidget {
   /// narrow tile at large text), the text sets down until it fits. Uses a `LayoutBuilder`: not inside intrinsic sizing.
   final bool fitWords;
 
+  /// A factor on the final (scaled, capped) size: a control that sets its label down a little to keep it on one line.
+  final double shrink;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final legible = ref.watch(glassA11yProvider.select((a) => a.legible));
-    final style = GlassTypeStyle.style(
+    final base = GlassTypeStyle.style(
       context,
       role,
       onGlass: onGlass,
@@ -119,6 +123,7 @@ class GlassText extends ConsumerWidget {
       height: height,
       maxScale: maxScale,
     ).copyWith(color: color ?? (onGlass ? glassTokens.colorOnGlass : glassTokens.colorLabel1));
+    final style = shrink == 1 ? base : base.copyWith(fontSize: (base.fontSize ?? 17) * shrink);
     Text build(TextStyle st) => Text(
           text,
           style: st,

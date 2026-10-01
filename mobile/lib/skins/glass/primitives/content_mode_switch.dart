@@ -124,14 +124,15 @@ class _GlassContentModeSwitchState extends ConsumerState<GlassContentModeSwitch>
                       height: GlassFrame.hitMin(context),
                       child: Center(
                         child: SkinGlass(
-                          size: Size(measureText(context, mode.label, roleStyle(context, gt.typeSubhead, onGlass: true, wght: 620)).width + 14 + 4 + 24, 32),
+                          size: Size(measureText(context, mode.label, roleStyle(context, gt.typeSubhead, onGlass: true, wght: 620, maxScale: 1.3)).width + 14 + 4 + 24, 32),
                           tier: GlassTierId.t2,
                           glow: info.glow,
                           debugLabel: 'GlassContentModeSwitch',
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              GlassText(mode.label, role: gt.typeSubhead, wght: 620, onGlass: true),
+                              // Chrome text: capped at 1.3x so it stays inside the 32 px capsule.
+                              GlassText(mode.label, role: gt.typeSubhead, wght: 620, onGlass: true, maxScale: 1.3),
                               const SizedBox(width: 4),
                               GlyphIcon(GlassGlyph.caretDown, size: 14, color: gt.colorOnGlass),
                             ],

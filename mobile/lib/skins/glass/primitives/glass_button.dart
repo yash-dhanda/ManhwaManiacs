@@ -175,13 +175,21 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
       if (widget.fullWidth && c.hasBoundedWidth) width = c.maxWidth;
       // A label wider than the room (large text, a narrow phone) wraps to centred lines (three at most) in a taller capsule
       // instead of ellipsizing: the button never hides what it does.
+      // A label a little too wide first sets down (to 85 %) on one line.
       var lines = 1;
       var h = height;
+      var shrink = 1.0;
       if (c.hasBoundedWidth && contentW + 2 * padH > c.maxWidth) {
         width = c.maxWidth;
-        lines = 3;
-        final wrapped = measureText(context, labelFor, style(labelFor), maxWidth: math.max(1.0, width - 2 * padH - iconW), maxLines: lines);
-        h = math.max(m.minHeight, wrapped.height + 20);
+        final room = math.max(1.0, width - 2 * padH - iconW);
+        final k = room / math.max(1.0, contentW - iconW);
+        if (k >= 0.85) {
+          shrink = k * 0.99;
+        } else {
+          lines = 3;
+          final wrapped = measureText(context, labelFor, style(labelFor), maxWidth: room, maxLines: lines);
+          h = math.max(m.minHeight, wrapped.height + 20);
+        }
       }
       final size = Size(width, isPlain ? math.max(h, hit) : h);
 
@@ -265,6 +273,7 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
                     wght: info.states.pressed ? baseWght + 40 : baseWght,
                     color: col,
                     maxScale: 1.5,
+                    shrink: shrink,
                     maxLines: lines,
                     textAlign: lines > 1 ? TextAlign.center : null,
                     overflow: TextOverflow.ellipsis,

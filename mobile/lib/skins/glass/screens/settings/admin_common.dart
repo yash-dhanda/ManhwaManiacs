@@ -92,7 +92,8 @@ class GlassInlineError extends StatelessWidget {
   Widget build(BuildContext context) => ConstrainedBox(
         constraints: BoxConstraints(minHeight: height ?? 0),
         child: Padding(
-          padding: GlassFrame.gutter(context, top: 16, bottom: 16, inner: 16),
+          // On the page gutter, like the title and the cards around it.
+          padding: GlassFrame.gutter(context, top: 16, bottom: 16),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Semantics(liveRegion: true, child: GlassText(message, role: gt.typeCallout, color: gt.colorLabel2)),
             const SizedBox(height: 8),
