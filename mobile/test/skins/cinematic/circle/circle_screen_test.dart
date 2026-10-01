@@ -64,6 +64,14 @@ void main() {
     expect(find.text('LETTERS'), findsOneWidget);
     expect(find.text('2'), findsWidgets);
   });
+
+  testWidgets('wide aside: only letters on screen turn read', (tester) async {
+    final repo = _repo().._letters([for (var i = 1; i <= 8; i++) letter(i)]);
+    await pumpCircle(tester, repo, size: const Size(1200, 800));
+    await settle(tester, 4000);
+    final read = repo.log.where((l) => l.startsWith('patchLetter') && l.endsWith(' read')).length;
+    expect(read, lessThan(8));
+  });
 }
 
 extension on FakeCircleRepository {
