@@ -22,6 +22,8 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/skin.dart' show SkinId;
 import 'package:manhwamaniacs/skins/skin_audio.dart';
 import 'package:manhwamaniacs/skins/skins.dart' show skinIdProvider;
+import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
+import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 
 /// What the player is doing, in the terms every screen shows.
 enum NarrationStatus {
@@ -234,6 +236,14 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
           )
         : ShakeDetector(onShake: _onShake, source: ref.read(accelerometerSourceProvider));
     ref.listen(listenSettingsValueProvider, (_, __) => _syncShake());
+    try {
+      // Signing out (a server switch signs out too) ends the previous account's narration and its media session.
+      ref.listen<bool>(authControllerProvider.select((a) => a is AuthUnauthenticated), (was, out) {
+        if (out && !(was ?? false)) unawaited(stop());
+      });
+    } catch (_) {
+      // No auth in this tree (a test).
+    }
     _sleep.state.addListener(_onSleepState);
     try {
       WidgetsBinding.instance.addObserver(this);
