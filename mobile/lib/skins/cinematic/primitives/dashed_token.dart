@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// A suggestion token: a 1 px dashed `rule.2` outline (3 px dash, 2 px gap),
 /// label in `micro`, with `+` accept and `x` reject buttons (44 pt hit).
-class DashedToken extends StatelessWidget {
+/// Reject fades the token out over `beat` (instant under reduced motion), then calls [onReject].
+class DashedToken extends StatefulWidget {
   const DashedToken({super.key, required this.label, this.onAccept, this.onReject});
 
   final String label;
@@ -12,20 +14,46 @@ class DashedToken extends StatelessWidget {
   final VoidCallback? onReject;
 
   @override
+  State<DashedToken> createState() => _DashedTokenState();
+}
+
+class _DashedTokenState extends State<DashedToken> {
+  bool _leaving = false;
+  bool _gone = false;
+
+  void _left() {
+    if (_gone) return;
+    setState(() => _gone = true);
+    widget.onReject?.call();
+  }
+
+  void _reject() {
+    if (_leaving) return;
+    if (CineMotion.reduced(context)) return _left();
+    setState(() => _leaving = true);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_gone) return const SizedBox.shrink();
     final t = Theme.of(context).extension<CineTokens>()!;
-    return CustomPaint(
-      painter: DashedBorderPainter(t.colorRule2),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 10),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(label.toUpperCase(),
-                style: TextStyle(fontSize: 10, letterSpacing: 1, color: t.colorInk80),),
-            _Btn(icon: PhosphorRegular.plus, tooltip: 'Add tag $label', onTap: onAccept),
-            _Btn(icon: PhosphorRegular.x, tooltip: 'Reject tag $label', onTap: onReject),
-          ],
+    return AnimatedOpacity(
+      opacity: _leaving ? 0 : 1,
+      duration: CineDur.beat,
+      onEnd: _leaving ? _left : null,
+      child: CustomPaint(
+        painter: DashedBorderPainter(t.colorRule2),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(widget.label.toUpperCase(),
+                  style: TextStyle(fontSize: 10, letterSpacing: 1, color: t.colorInk80),),
+              _Btn(icon: PhosphorRegular.plus, tooltip: 'Add tag ${widget.label}', onTap: widget.onAccept),
+              _Btn(icon: PhosphorRegular.x, tooltip: 'Reject tag ${widget.label}', onTap: widget.onReject == null ? null : _reject),
+            ],
+          ),
         ),
       ),
     );
