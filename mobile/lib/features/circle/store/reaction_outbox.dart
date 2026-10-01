@@ -52,6 +52,13 @@ class ReactionOutbox {
   /// Queue [e], replacing an earlier entry for the same chapter.
   Future<void> enqueue(OutboxEntry e) => _save([...entries().where((x) => x.chapter != e.chapter), e]);
 
+  /// Drops the queued reaction for one chapter (a newer press was sent online).
+  Future<void> forget(String sourceId, String seriesKey, String chapterKey) async {
+    final list = entries();
+    final keep = [...list.where((e) => e.chapter != '$sourceId:$seriesKey:$chapterKey')];
+    if (keep.length != list.length) await _save(keep);
+  }
+
   /// Drops every queued reaction on an 18+ series (the gate closed).
   Future<void> dropMature() => _save([...entries().where((e) => !e.mature)]);
 

@@ -16,6 +16,7 @@ import 'package:manhwamaniacs/features/circle/utils/reaction_kinds.dart';
 import 'package:manhwamaniacs/features/circle/utils/sharing_patch.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 
 final circleRepositoryProvider = Provider<CircleRepository>((ref) => CircleRepositoryImpl(ref.watch(dioProvider)), name: 'circleRepository');
@@ -85,25 +86,24 @@ class CircleFeedState {
   bool get hasMore => nextCursor != null;
 }
 
-/// The feed for a kind (`null` all, `reading`, `reaction`), paging on `next_cursor`.
-class CircleFeedNotifier extends FamilyAsyncNotifier<CircleFeedState, String?> {
-  @override
-  Future<CircleFeedState> build(String? arg) async {
-    final p = _ok(await ref.watch(circleRepositoryProvider).feed(kind: arg));
-    return CircleFeedState(items: p.items, nextCursor: p.nextCursor);
-  }
+/// Paging and follow marks shared by the Circle feed and a member's feed.
+mixin _PagedFeed<A> on FamilyAsyncNotifier<CircleFeedState, A> {
+  Future<Result<FeedPage>> _page(String cursor);
 
   Future<void> loadMore() async {
     final s = state.valueOrNull;
     if (s == null || !s.hasMore || s.loadingMore) return;
     state = AsyncData(CircleFeedState(items: s.items, nextCursor: s.nextCursor, loadingMore: true));
-    final r = await ref.read(circleRepositoryProvider).feed(kind: arg, cursor: s.nextCursor);
+    final r = await _page(s.nextCursor!);
+    // A refresh (invalidate) landed meanwhile: its fresh first page wins over this stale one.
+    final cur = state.valueOrNull;
+    if (state.isLoading || cur == null || !cur.loadingMore || cur.nextCursor != s.nextCursor) return;
     if (r.isErr) {
-      state = AsyncData(CircleFeedState(items: s.items, nextCursor: s.nextCursor));
+      state = AsyncData(CircleFeedState(items: cur.items, nextCursor: cur.nextCursor));
       return;
     }
-    final seen = {for (final i in s.items) i.id};
-    state = AsyncData(CircleFeedState(items: [...s.items, for (final i in r.value.items) if (!seen.contains(i.id)) i], nextCursor: r.value.nextCursor));
+    final seen = {for (final i in cur.items) i.id};
+    state = AsyncData(CircleFeedState(items: [...cur.items, for (final i in r.value.items) if (!seen.contains(i.id)) i], nextCursor: r.value.nextCursor));
   }
 
   /// After the viewer follows a series from a dispatch.
@@ -116,6 +116,18 @@ class CircleFeedNotifier extends FamilyAsyncNotifier<CircleFeedState, String?> {
       loadingMore: s.loadingMore,
     ),);
   }
+}
+
+/// The feed for a kind (`null` all, `reading`, `reaction`), paging on `next_cursor`.
+class CircleFeedNotifier extends FamilyAsyncNotifier<CircleFeedState, String?> with _PagedFeed<String?> {
+  @override
+  Future<CircleFeedState> build(String? arg) async {
+    final p = _ok(await ref.watch(circleRepositoryProvider).feed(kind: arg));
+    return CircleFeedState(items: p.items, nextCursor: p.nextCursor);
+  }
+
+  @override
+  Future<Result<FeedPage>> _page(String cursor) => ref.read(circleRepositoryProvider).feed(kind: arg, cursor: cursor);
 }
 
 final circleFeedProvider = AsyncNotifierProvider.family<CircleFeedNotifier, CircleFeedState, String?>(CircleFeedNotifier.new, name: 'circleFeed');
@@ -131,16 +143,20 @@ bool _isNetwork(Object e) => e is NetworkError || e is TimeoutError;
 
 /// Sends queued reactions when the connection is back and when the app resumes; refetches after.
 final circleOutboxFlusherProvider = Provider<Future<void> Function()>((ref) {
-  Future<void> flush() async {
+  Future<void>? running;
+  Future<void> run() async {
     final box = ref.read(reactionOutboxProvider);
     if (box == null || box.entries().isEmpty) return;
     final sent = await box.flush(ref.read(circleRepositoryProvider), isNetwork: _isNetwork);
     if (sent > 0) ref.invalidate(chapterReactionsProvider);
   }
 
+  Future<void> flush() => running ??= run().whenComplete(() => running = null);
+
+  // Any arrival at online, including the first answer of a cold start (loading -> true).
   ref.listen<AsyncValue<bool>>(deviceOnlineProvider, (prev, next) {
-    if ((next.valueOrNull ?? false) && prev?.valueOrNull == false) unawaited(flush());
-  });
+    if ((next.valueOrNull ?? false) && prev?.valueOrNull != true) unawaited(flush());
+  }, fireImmediately: true,);
   final observer = _ResumeObserver(() => unawaited(flush()));
   try {
     WidgetsBinding.instance.addObserver(observer);
@@ -167,7 +183,28 @@ class ChapterReactionsNotifier extends FamilyAsyncNotifier<List<ChapterReactions
   @override
   Future<List<ChapterReactions>> build(CircleSeriesKey arg) async {
     ref.watch(circleOutboxFlusherProvider);
-    return _ok(await ref.watch(circleRepositoryProvider).reactions(sourceId: arg.sourceId, seriesKey: arg.seriesKey));
+    final list = _ok(await ref.watch(circleRepositoryProvider).reactions(sourceId: arg.sourceId, seriesKey: arg.seriesKey));
+    // Reactions still queued offline are drawn over the server's answer until they are sent.
+    final queued = [
+      for (final e in ref.read(reactionOutboxProvider)?.entries() ?? const <OutboxEntry>[])
+        if (e.sourceId == arg.sourceId && e.seriesKey == arg.seriesKey) e,
+    ];
+    if (queued.isEmpty) return list;
+    final byKey = {for (final c in list) c.chapterKey: c};
+    final me = _me();
+    for (final e in queued) {
+      final cur = byKey[e.chapterKey] ?? ChapterReactions(chapterKey: e.chapterKey, counts: {for (final k in ReactionKind.values) k: 0}, sealed: false);
+      if (cur.mine != e.kind) byKey[e.chapterKey] = _apply(cur, e.kind, me);
+    }
+    return byKey.values.toList()..sort(_byNumber);
+  }
+
+  int? _me() {
+    try {
+      return ref.read(activeProfileProvider)?.id;
+    } catch (_) {
+      return null; // No prefs in a bare container: nothing to move in `by`.
+    }
   }
 
   ChapterReactions? reactionsOf(String chapterKey) {
@@ -177,13 +214,18 @@ class ChapterReactionsNotifier extends FamilyAsyncNotifier<List<ChapterReactions
     return null;
   }
 
-  static ChapterReactions _apply(ChapterReactions base, ReactionKind? next) {
+  /// [me] is the viewer's profile id: their entry in `by` moves to [next] or goes.
+  static ChapterReactions _apply(ChapterReactions base, ReactionKind? next, int? me) {
     final counts = {...base.counts};
     final prev = base.mine;
     if (prev != null) counts[prev] = ((counts[prev] ?? 1) - 1).clamp(0, 1 << 30);
     if (next != null) counts[next] = (counts[next] ?? 0) + 1;
     final total = (base.total + (next != null ? 1 : 0) - (prev != null ? 1 : 0)).clamp(0, 1 << 30);
-    return base.copyWith(counts: counts, total: total, mine: next, clearMine: next == null);
+    final by = [
+      for (final b in base.by)
+        if (b.profileId != me) b else if (next != null) ReactionBy.of(b.member, next, createdAt: b.createdAt),
+    ];
+    return base.copyWith(counts: counts, total: total, by: by, mine: next, clearMine: next == null);
   }
 
   /// Press a stamp: sets, moves or clears the viewer's reaction on [chapterKey]. Drawn at once;
@@ -193,7 +235,7 @@ class ChapterReactionsNotifier extends FamilyAsyncNotifier<List<ChapterReactions
     final cur = reactionsOf(chapterKey) ?? ChapterReactions(chapterKey: chapterKey, chapterNumber: chapterNumber, counts: {for (final k in ReactionKind.values) k: 0}, sealed: false);
     final action = pressReaction(cur.mine, kind);
     final next = action is SetReaction ? action.kind : null;
-    final drawn = _apply(cur, next);
+    final drawn = _apply(cur, next, _me());
     state = AsyncData([for (final c in before) if (c.chapterKey != chapterKey) c, drawn]..sort(_byNumber));
     final repo = ref.read(circleRepositoryProvider);
     final Result<Object?> r;
@@ -202,18 +244,25 @@ class ChapterReactionsNotifier extends FamilyAsyncNotifier<List<ChapterReactions
     } else {
       final sent = await repo.react(sourceId: arg.sourceId, seriesKey: arg.seriesKey, chapterKey: chapterKey, kind: next);
       if (sent.isOk) {
+        await _forgetQueued(chapterKey);
         state = AsyncData([for (final c in state.valueOrNull ?? const <ChapterReactions>[]) if (c.chapterKey != chapterKey) c, sent.value]..sort(_byNumber));
         return;
       }
       r = Err(sent.error);
     }
-    if (r.isOk) return;
+    if (r.isOk) {
+      await _forgetQueued(chapterKey);
+      return;
+    }
     if (_isNetwork(r.error)) {
       await ref.read(reactionOutboxProvider)?.enqueue(OutboxEntry(sourceId: arg.sourceId, seriesKey: arg.seriesKey, chapterKey: chapterKey, kind: next, at: DateTime.now().toUtc(), mature: mature));
       return;
     }
     state = AsyncData(before);
   }
+
+  /// An older offline press on this chapter must not be replayed over the one just sent.
+  Future<void> _forgetQueued(String chapterKey) async => ref.read(reactionOutboxProvider)?.forget(arg.sourceId, arg.seriesKey, chapterKey);
 
   static int _byNumber(ChapterReactions a, ChapterReactions b) {
     final x = a.chapterNumber, y = b.chapterNumber;
@@ -295,7 +344,9 @@ class CircleActions {
   /// `POST /circle/letters`; on success the sent letters are the recipients' business.
   Future<Object?> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note}) async {
     final r = await _repo.sendLetter(toProfileIds: toProfileIds, sourceId: sourceId, seriesKey: seriesKey, note: note);
-    return r.isErr ? r.error : null;
+    if (r.isErr) return r.error;
+    _ref.invalidate(sentLettersProvider);
+    return null;
   }
 
   /// `DELETE /circle/activity`; true on success.
@@ -326,25 +377,15 @@ final sentLettersProvider = FutureProvider.autoDispose<List<SentLetter>>((ref) a
 }, name: 'sentLetters',);
 
 /// One member's activity (`GET /circle/feed?profile_id=`), the friend sheet's Recent; pages on `next_cursor`.
-class MemberFeedNotifier extends FamilyAsyncNotifier<CircleFeedState, int> {
+class MemberFeedNotifier extends FamilyAsyncNotifier<CircleFeedState, int> with _PagedFeed<int> {
   @override
   Future<CircleFeedState> build(int arg) async {
     final p = _ok(await ref.watch(circleRepositoryProvider).feed(profileId: arg));
     return CircleFeedState(items: p.items, nextCursor: p.nextCursor);
   }
 
-  Future<void> loadMore() async {
-    final s = state.valueOrNull;
-    if (s == null || !s.hasMore || s.loadingMore) return;
-    state = AsyncData(CircleFeedState(items: s.items, nextCursor: s.nextCursor, loadingMore: true));
-    final r = await ref.read(circleRepositoryProvider).feed(profileId: arg, cursor: s.nextCursor);
-    if (r.isErr) {
-      state = AsyncData(CircleFeedState(items: s.items, nextCursor: s.nextCursor));
-      return;
-    }
-    final seen = {for (final i in s.items) i.id};
-    state = AsyncData(CircleFeedState(items: [...s.items, for (final i in r.value.items) if (!seen.contains(i.id)) i], nextCursor: r.value.nextCursor));
-  }
+  @override
+  Future<Result<FeedPage>> _page(String cursor) => ref.read(circleRepositoryProvider).feed(profileId: arg, cursor: cursor);
 }
 
 final memberFeedProvider = AsyncNotifierProvider.family<MemberFeedNotifier, CircleFeedState, int>(MemberFeedNotifier.new, name: 'memberFeed');
