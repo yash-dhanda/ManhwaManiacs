@@ -14,6 +14,9 @@ import 'package:manhwamaniacs/features/ocr/providers/dialogue_jump_provider.dart
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/transcript_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
@@ -99,26 +102,30 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
     Widget? footer;
     FollowedSeries? Function(OcrSearchResult) seriesOf = (_) => null;
     if (mode == ContentMode.novel) {
-      body = CineNotice(
-        kicker: 'NOTE',
-        headline:
-            "Dialogue search is for manga. Switch to Manga, or search the novels' text.",
-        actions: [
-          QuietButton(
+      body = _padded(
+        CineNotice(
+          tone: CineNoticeTone.caution,
+          headline:
+              "Dialogue search is for manga. Switch to Manga, or search the novels' text.",
+          quiet: CineNoticeAction(
             'Search novels',
-            onPressed: () => context.go(Routes.discover()),
+            () => context.go(Routes.discover()),
           ),
-        ],
+        ),
       );
     } else if (!visible) {
-      body = const CineNotice(
-        kicker: 'NOTE',
-        headline: "Dialogue search isn't available on this device.",
+      body = _padded(
+        const CineNotice(
+          tone: CineNoticeTone.caution,
+          headline: "Dialogue search isn't available on this device.",
+        ),
       );
     } else if (!(ref.watch(serverOcrCapabilityProvider).valueOrNull ?? true)) {
-      body = const CineNotice(
-        kicker: 'NOTE',
-        headline: "Dialogue search isn't available on this server.",
+      body = _padded(
+        const CineNotice(
+          tone: CineNoticeTone.caution,
+          headline: "Dialogue search isn't available on this server.",
+        ),
       );
     } else if (_q.isEmpty) {
       body = Padding(
@@ -147,46 +154,63 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    FlickerPlate(aspect: 16 / 9),
+                    ExcludeSemantics(
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: CinePlate(flicker: true),
+                      ),
+                    ),
                     SizedBox(height: 8),
-                    FlickerPlate(height: 14),
+                    ExcludeSemantics(
+                      child: SizedBox(
+                        height: 14,
+                        child: CinePlate(flicker: true),
+                      ),
+                    ),
                     SizedBox(height: 6),
-                    FlickerPlate(height: 14, width: 200),
+                    ExcludeSemantics(
+                      child: SizedBox(
+                        width: 200,
+                        height: 14,
+                        child: CinePlate(flicker: true),
+                      ),
+                    ),
                   ],
                 ),
               ),
           ],
         ),
         error: (e, _) => e is NetworkError || e is TimeoutError
-            ? CineNotice(
-                kicker: 'OFFLINE EDITION',
-                headline: 'Dialogue search needs a connection.',
-                actions: [
-                  QuietButton(
+            ? _padded(
+                CineNotice(
+                  tone: CineNoticeTone.offline,
+                  headline: 'Dialogue search needs a connection.',
+                  quiet: CineNoticeAction(
                     'Go to Downloads',
-                    onPressed: () => context.go(Routes.downloads()),
+                    () => context.go(Routes.downloads()),
                   ),
-                ],
+                ),
               )
-            : CineNotice(
-                kicker: 'CORRECTION',
-                kickerColor: t.colorProof,
-                headline: "Dialogue search didn't finish.",
-                deck: e is AppError ? e.userMessage : null,
-                actions: [
-                  QuietButton(
+            : _padded(
+                CineNotice(
+                  tone: CineNoticeTone.error,
+                  headline: "Dialogue search didn't finish.",
+                  deck: e is AppError ? e.userMessage : null,
+                  primary: CineNoticeAction(
                     'Try again',
-                    onPressed: () => ref.invalidate(ocrSearchProvider(_q)),
+                    () => ref.invalidate(ocrSearchProvider(_q)),
                   ),
-                ],
+                ),
               ),
         data: (page) {
           final items = [...page.items, ..._more];
           if (items.isEmpty) {
-            return CineNotice(
-              kicker: 'NOTE',
-              headline:
-                  'Nothing found for "$_q". Only chapters whose dialogue was scanned, in series you follow, can be searched.',
+            return _padded(
+              CineNotice(
+                tone: CineNoticeTone.caution,
+                headline:
+                    'Nothing found for "$_q". Only chapters whose dialogue was scanned, in series you follow, can be searched.',
+              ),
             );
           }
           final canMore = items.length < page.total;
@@ -213,8 +237,9 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
                               padding: EdgeInsets.all(16),
                               child: LeaderDial(),
                             )
-                          : QuietButton(
-                              'Show more',
+                          : CineButton(
+                              label: 'Show more',
+                              variant: CineButtonVariant.quiet,
                               onPressed: () => _showMore(items.length),
                             ),
                     ],
@@ -268,8 +293,9 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
                     style:
                         cineText(context, t.typeCaption, color: t.colorInk60),
                   ),
-                  QuietButton(
-                    'Downloads',
+                  CineButton(
+                    label: 'Downloads',
+                    variant: CineButtonVariant.quiet,
                     onPressed: () => context.go(Routes.downloads()),
                   ),
                 ],
@@ -325,3 +351,12 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
     );
   }
 }
+
+/// The page margin the notices sat in before the shared [CineNotice].
+Widget _padded(Widget notice) => Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: CineSpace.s4,
+        vertical: CineSpace.s6,
+      ),
+      child: notice,
+    );

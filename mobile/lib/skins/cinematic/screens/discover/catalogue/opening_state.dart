@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_wash.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -85,7 +87,7 @@ class _OpeningStateState extends State<OpeningState> {
               ),
               if (_slow) ...[
                 const SizedBox(height: CineSpace.s3),
-                TypedText(
+                TypedText.plain(
                   kCatalogueTips[_tip],
                   key: ValueKey(_tip),
                   style: cineText(context, t.typeCaption, color: t.colorInk60),
@@ -99,7 +101,10 @@ class _OpeningStateState extends State<OpeningState> {
                 mainAxisSpacing: CineSpace.s3,
                 crossAxisSpacing: CineSpace.s3,
                 childAspectRatio: 2 / 3.6,
-                children: [for (var i = 0; i < 9; i++) const FlickerPlate()],
+                children: [
+                  for (var i = 0; i < 9; i++)
+                    const ExcludeSemantics(child: CinePlate(flicker: true)),
+                ],
               ),
             ],
           ),

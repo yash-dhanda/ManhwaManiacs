@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -80,7 +81,9 @@ class DialogueScanBlock extends ConsumerWidget {
           Semantics(
               liveRegion: true,
               child: line('${s.wordCount} words are now searchable.'),),
-          QuietButton('Search dialogue',
+          CineButton(
+              label: 'Search dialogue',
+              variant: CineButtonVariant.quiet,
               onPressed: () => context.go(Routes.dialogue()),),
         ]);
       case OcrRunPhase.cancelled:
@@ -102,8 +105,9 @@ class DialogueScanBlock extends ConsumerWidget {
             ),
           ),
           if (s.chapter != null)
-            QuietButton(
-              'Try again',
+            CineButton(
+              label: 'Try again',
+              variant: CineButtonVariant.quiet,
               onPressed: () => ref
                   .read(ocrRunControllerProvider.notifier)
                   .runChapter(id: s.chapter!),
@@ -113,7 +117,9 @@ class DialogueScanBlock extends ConsumerWidget {
         break;
     }
     if (s.isBusy) {
-      children.add(QuietButton('Cancel',
+      children.add(CineButton(
+          label: 'Cancel',
+          variant: CineButtonVariant.quiet,
           onPressed: () =>
               ref.read(ocrRunControllerProvider.notifier).cancel(),),);
     }

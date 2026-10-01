@@ -7,6 +7,8 @@ import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_health.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -106,9 +108,23 @@ class ResultGroup extends ConsumerWidget {
               child: retrying
                   ? Row(
                       children: [
-                        Expanded(child: FlickerPlate(height: posterW * 1.5)),
+                        Expanded(
+                          child: ExcludeSemantics(
+                            child: SizedBox(
+                              height: posterW * 1.5,
+                              child: const CinePlate(flicker: true),
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: FlickerPlate(height: posterW * 1.5)),
+                        Expanded(
+                          child: ExcludeSemantics(
+                            child: SizedBox(
+                              height: posterW * 1.5,
+                              child: const CinePlate(flicker: true),
+                            ),
+                          ),
+                        ),
                       ],
                     )
                   : Row(
@@ -121,7 +137,11 @@ class ResultGroup extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(width: CineSpace.s3),
-                        QuietButton('Retry', onPressed: onRetry),
+                        CineButton(
+                          label: 'Retry',
+                          onPressed: onRetry,
+                          variant: CineButtonVariant.quiet,
+                        ),
                       ],
                     ),
             )

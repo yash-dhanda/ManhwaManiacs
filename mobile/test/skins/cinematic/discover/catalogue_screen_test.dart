@@ -72,7 +72,7 @@ void main() {
       ),
     );
     await settle(tester, 4000);
-    expect(find.text('This source can only be searched, not browsed.'),
+    expect(find.textContaining('This source can only be searched, not browsed.'),
         findsOneWidget,);
     expect(find.text('POPULAR'), findsNothing);
     expect(find.text('Genre'), findsNothing);

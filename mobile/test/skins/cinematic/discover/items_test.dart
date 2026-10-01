@@ -213,9 +213,14 @@ void main() {
       await settle(tester, 800);
       final c = ProviderScope.containerOf(
           tester.element(find.byType(DiscoverScreen)),);
+      // The slug line scrolls on a phone: PINNED starts past the gutter.
+      await tester.ensureVisible(find.text('PINNED'));
+      await tester.pump();
       await tester.tap(find.text('PINNED'));
       await tester.pump();
       expect(c.read(searchGroupFilterProvider), SearchGroupFilter.pinned);
+      await tester.ensureVisible(find.text('WITH RESULTS'));
+      await tester.pump();
       await tester.tap(find.text('WITH RESULTS'));
       await tester.pump();
       expect(c.read(searchGroupFilterProvider), SearchGroupFilter.hasResults);

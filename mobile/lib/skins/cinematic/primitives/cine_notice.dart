@@ -135,7 +135,11 @@ class _CineNoticeState extends State<CineNotice> {
           ],
           CineRoleText(_kicker(), c.typeKicker, color: kickerColor),
           SizedBox(height: c.space2),
-          TypedHeadline(widget.headline, style: CineText.style(context, c.typeSubhead), cap: c.typeSubhead.cap, level: widget.wholeScreen ? 1 : 2),
+          // TypedHeadline types headlines only (<= 60 graphemes); a longer line (a quoted query) is set whole.
+          if (widget.headline.characters.length <= 60)
+            TypedHeadline(widget.headline, style: CineText.style(context, c.typeSubhead), cap: c.typeSubhead.cap, level: widget.wholeScreen ? 1 : 2)
+          else
+            Semantics(header: true, headingLevel: widget.wholeScreen ? 1 : 2, child: CineRoleText(widget.headline, c.typeSubhead)),
           if (deck != null) ...[
             SizedBox(height: c.space3),
             CineMeasure(ch: 48, style: deckStyle, child: CineRoleText(deck, c.typeDeck, color: c.colorInk60)),

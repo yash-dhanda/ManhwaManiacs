@@ -4,8 +4,9 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart' show RetryCountdown;
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show DelayedShow, LeaderDial, TypedText;
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show DelayedShow, LeaderDial;
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/world_card_tile.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -31,7 +32,7 @@ class PicksNotice extends StatelessWidget {
         if (retryAfter != null)
           RetryCountdown(seconds: retryAfter!, prefix: 'Too many asks at once. Try again in', style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100))
         else
-          TypedText(text, style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100)),
+          TypedText.plain(text, key: ValueKey(text), style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100)),
         if (actions.isNotEmpty) ...[SizedBox(height: c.space3), Wrap(spacing: c.space3, runSpacing: c.space1, children: actions)],
       ],),
     );
@@ -68,7 +69,7 @@ class EditorsSuggest extends StatelessWidget {
         );
       }
       return Row(children: [
-        Expanded(child: TypedText(kAiThinkingPicks, style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100))),
+        Expanded(child: TypedText.plain(kAiThinkingPicks, style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100))),
         SizedBox(width: c.space3),
         const DelayedShow(child: LeaderDial(size: 24)),
       ],);

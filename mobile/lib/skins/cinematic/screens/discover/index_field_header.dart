@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -69,8 +71,9 @@ class _IndexFieldState extends State<IndexField> {
             if (empty && !focused && !widget.compact)
               IgnorePointer(
                 child: ExcludeSemantics(
-                  child: TypedText(
+                  child: TypedText.plain(
                     widget.hint,
+                    key: ValueKey(widget.hint),
                     style: base.copyWith(color: t.colorInk45),
                     maxLines: 1,
                   ),
@@ -112,7 +115,11 @@ class _IndexFieldState extends State<IndexField> {
                   ),
                 ),
                 if (!empty && widget.onClear != null)
-                  QuietButton('Clear', onPressed: widget.onClear),
+                  CineButton(
+                    label: 'Clear',
+                    onPressed: widget.onClear,
+                    variant: CineButtonVariant.quiet,
+                  ),
               ],
             ),
           ],

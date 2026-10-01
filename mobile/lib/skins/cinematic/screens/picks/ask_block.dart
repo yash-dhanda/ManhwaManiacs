@@ -6,7 +6,7 @@ import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/glyphs.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show TypedText;
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
@@ -118,7 +118,7 @@ class _PicksAskBlockState extends State<PicksAskBlock> {
                 padding: EdgeInsets.symmetric(vertical: c.space3),
                 child: reduced
                     ? Text(kAskExamples[_example], style: field.copyWith(fontStyle: FontStyle.italic, color: c.colorInk45), textScaler: scaler)
-                    : TypedText(kAskExamples[_example], key: ValueKey(_example), style: field.copyWith(fontStyle: FontStyle.italic, color: c.colorInk45)),
+                    : TypedText.plain(kAskExamples[_example], key: ValueKey(_example), style: field.copyWith(fontStyle: FontStyle.italic, color: c.colorInk45)),
               ),
             ),
           ),

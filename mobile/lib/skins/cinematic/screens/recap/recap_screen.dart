@@ -33,8 +33,9 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_not_available_noti
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart' show CineNoticeAction;
 import 'package:manhwamaniacs/skins/cinematic/primitives/set_heading.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/recap/continue_to.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show DelayedShow, LeaderDial, TypedText;
+import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show DelayedShow, LeaderDial;
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/scan/dialogue_scan_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/recap/cast_list.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/recap/cover_band.dart';
@@ -292,7 +293,7 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
           return Padding(
             padding: EdgeInsets.only(top: c.space4),
             child: Row(children: [
-              Expanded(child: TypedText('Writing the recap…', style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100))),
+              Expanded(child: TypedText.plain('Writing the recap…', style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100))),
               SizedBox(width: c.space3),
               const DelayedShow(child: LeaderDial(size: 24)),
             ],),

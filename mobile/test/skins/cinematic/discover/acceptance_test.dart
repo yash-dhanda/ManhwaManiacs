@@ -7,10 +7,9 @@ import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart'
-    show TypedText;
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/dialogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_results.dart';
@@ -207,10 +206,18 @@ void main() {
       expect(least(), 1);
     });
 
-    String typed(WidgetTester tester) => tester
-        .widget<Text>(find.descendant(
-            of: find.byType(TypedText).first, matching: find.byType(Text),),)
-        .data!;
+    // The typed graphemes: TypedText lays out the whole line and paints the
+    // untyped tail transparent.
+    String typed(WidgetTester tester) => [
+          for (final s in (tester
+                      .widget<Text>(find.descendant(
+                          of: find.byType(TypedText).first,
+                          matching: find.byType(Text),),)
+                      .textSpan! as TextSpan)
+                  .children!
+                  .cast<TextSpan>())
+            if (s.style?.color?.a != 0) s.text!,
+        ].join();
 
     testWidgets('the typed hint is complete at once', (tester) async {
       await pumpScreen(tester, const DiscoverScreen(), reduced: true);

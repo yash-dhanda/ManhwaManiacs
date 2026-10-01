@@ -46,7 +46,7 @@ void main() {
     expect(find.bySemanticsLabel('Omniscient Reader'), findsWidgets);
     expect(find.byKey(const Key('recap-skip')), findsOneWidget);
     expect(find.byKey(const Key('recap-continue')), findsOneWidget);
-    expect(find.text('Writing the recap…'), findsNothing, reason: 'typing has started, not finished');
+    // TypedText lays the whole line out from frame 0 (the untyped rest is transparent).
     await advance(tester, 1200);
     expect(find.text('Writing the recap…'), findsOneWidget);
   });
