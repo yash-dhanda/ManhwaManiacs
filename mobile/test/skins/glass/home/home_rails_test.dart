@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
@@ -80,6 +83,20 @@ void main() {
     expect(moved.first.id, 'continue');
     expect(ids(moved).indexOf(ai.last.id), lessThanOrEqualTo(ids(base).indexOf(ai.last.id)));
     expect(ids(moved).toSet(), ids(base).toSet());
+  });
+
+  test('the AI-off shelf fallback keeps its own title and is not an AI rail', () {
+    final j = jsonDecode(File('test/fixtures/home/ready.json').readAsStringSync()) as Map<String, dynamic>;
+    for (final s in j['sections'] as List) {
+      if ((s as Map)['type'] == 'picked') {
+        s
+          ..['title'] = 'From your shelf'
+          ..['fallback'] = 'shelf'
+          ..['state'] = 'unavailable';
+      }
+    }
+    final fy = composeHomeRails(view(HomeFeed.fromJson(j))).firstWhere((x) => x.id == 'picked');
+    expect((fy.title, fy.subtitle, fy.ai), ('From your shelf', null, false));
   });
 }
 

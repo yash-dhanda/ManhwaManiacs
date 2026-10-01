@@ -159,7 +159,9 @@ List<HomeRailSpec> composeHomeRails(
     if (s == null) return null;
     final unavailable = s.state == HomeSectionState.unavailable;
     if (s.items.isEmpty && !unavailable) return null;
-    return HomeRailSpec(id: id, kind: HomeRailKind.ai, title: title, subtitle: subtitle, items: s.items.whereType<HomePickItem>().toList(), state: s.state, ai: true, seeAll: seeAll, generatedAt: s.generatedAt, fallbackNote: s.fallback, seedTitle: s.seed?.title);
+    // The AI-off fallback is the reader's own favourites: its own title, no machine badge, no "Not interested".
+    final shelf = s.fallback == 'shelf';
+    return HomeRailSpec(id: id, kind: HomeRailKind.ai, title: shelf && s.title.isNotEmpty ? s.title : title, subtitle: shelf ? null : subtitle, items: s.items.whereType<HomePickItem>().toList(), state: s.state, ai: !shelf, seeAll: seeAll, generatedAt: s.generatedAt, fallbackNote: s.fallback, seedTitle: s.seed?.title);
   }
 
   // 1
