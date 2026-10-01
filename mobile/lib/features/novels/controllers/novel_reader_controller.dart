@@ -89,10 +89,16 @@ enum NovelNextState { none, loading, ready, failed }
 
 /// The reader is behind another device: the chapter and bucket the server holds.
 class NovelFurtherAhead {
-  const NovelFurtherAhead({required this.chapterKey, required this.chapterNumber, required this.bucket});
+  const NovelFurtherAhead({required this.chapterKey, required this.chapterNumber, required this.bucket, this.buckets = 100});
   final String chapterKey;
   final double? chapterNumber;
   final int bucket;
+
+  /// The row's bucket count (`page_count`): fewer than 100 for a chapter under 100 paragraphs.
+  final int buckets;
+
+  /// How far through the chapter the other device is, for the toast.
+  int get percent => chapterPercent(bucket, buckets);
 
   @override
   bool operator ==(Object other) => other is NovelFurtherAhead && other.chapterKey == chapterKey && other.bucket == bucket;
@@ -730,7 +736,7 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
     final far = furtherElsewhere(rows.value,
         hereKey: chapter.chapterKey, here: chapter.chapterNumber, own: ref.read(progressOutboxControllerProvider).ownFurthest(k.sourceId, k.seriesKey),);
     if (far == null) return;
-    state = state.copyWith(furtherElsewhere: NovelFurtherAhead(chapterKey: far.chapterKey, chapterNumber: far.chapterNumber, bucket: far.lastPage));
+    state = state.copyWith(furtherElsewhere: NovelFurtherAhead(chapterKey: far.chapterKey, chapterNumber: far.chapterNumber, bucket: far.lastPage, buckets: far.pageCount > 0 ? far.pageCount : 100));
   }
 
   /// The reader dismissed or took the jump offer.

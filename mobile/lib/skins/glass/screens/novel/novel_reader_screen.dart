@@ -731,7 +731,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       final ch = far.chapterNumber == null ? 'a later chapter' : 'Ch ${formatChapterNumber(far.chapterNumber!)}';
       showGlassToast(
         ref,
-        GlassToastSpec("You're further ahead on another device: $ch, ${far.bucket} %", actionLabel: 'Jump there', onAction: () {
+        GlassToastSpec("You're further ahead on another device: $ch, ${far.percent} %", actionLabel: 'Jump there', onAction: () {
           _ctl.clearFurther();
           _openChapter(far.chapterKey, bucket: far.bucket);
         },),
