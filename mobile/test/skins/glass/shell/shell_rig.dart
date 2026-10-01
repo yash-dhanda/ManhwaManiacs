@@ -99,7 +99,6 @@ Future<ShellRig> pumpGlassShell(
   int downloads = 0,
   List<Override> extra = const [],
   bool platformAndroid = false,
-  TargetPlatform? platform,
   bool settle = true,
   Map<String, Object> prefsExtra = const {},
 }) async {
@@ -118,7 +117,6 @@ Future<ShellRig> pumpGlassShell(
   t.view.devicePixelRatio = 1;
   addTearDown(t.view.reset);
   if (platformAndroid) debugDefaultTargetPlatformOverride = TargetPlatform.android;
-  if (platform != null) debugDefaultTargetPlatformOverride = platform;
   addTearDown(() => debugDefaultTargetPlatformOverride = null);
   final router = c.read(skinRouterProvider);
   if (start != '/') router.go(start);
