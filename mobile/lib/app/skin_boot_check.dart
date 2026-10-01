@@ -50,22 +50,37 @@ class _SkinBootCheckState extends ConsumerState<SkinBootCheck> {
   bool _curtain = false;
   bool _restarting = false;
 
+  /// A boot check: it judges only the profile this launch restored, once. A profile chosen
+  /// later (picker, switcher, a form's edition change) restarts through its own flow, which
+  /// owns the return route and the hand-off; racing it here restarted twice or onto the picker.
+  int? _bootProfileId;
+  bool _settled = false;
+
   @override
   void initState() {
     super.initState();
+    _bootProfileId = ref.read(activeProfileProvider)?.id;
     ref.listenManual<ActiveProfile?>(activeProfileProvider, (_, __) => _check(), fireImmediately: true);
     ref.listenManual<AsyncValue<List<Profile>>>(profilesProvider, (_, __) => _check());
   }
 
   void _check() {
-    if (_restarting) return;
+    if (_restarting || _settled) return;
     final active = ref.read(activeProfileProvider);
+    if (active == null || active.id != _bootProfileId) {
+      _settled = true;
+      return;
+    }
     final profiles = ref.read(profilesProvider).valueOrNull;
-    if (active == null || profiles == null) return;
+    if (profiles == null) return;
     Profile? row;
     for (final p in profiles) {
       if (p.id == active.id) row = p;
     }
+    // Not listed yet (the empty pre-sign-in list): wait. A profile deleted elsewhere is cleared by
+    // reconcile, which settles the check above.
+    if (row == null) return;
+    _settled = true;
     final prefs = ref.read(sharedPrefsProvider);
     final running = ref.read(skinIdProvider);
     final target = resolveBootRestart(

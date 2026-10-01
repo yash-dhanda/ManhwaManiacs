@@ -201,6 +201,9 @@ class OnboardingFlow extends AutoDisposeNotifier<OnboardingState> {
       if (r.isOk) {
         await store.clearDraft();
         await store.clearPending();
+        // The kept-alive list still says the old step: the picker would send the profile back
+        // into onboarding and credit it NEW.
+        await ref.read(profilesProvider.notifier).refresh();
         return true;
       }
     }
