@@ -23,6 +23,7 @@ import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/lens_layout.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_sample.dart' show PageSample;
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
@@ -37,12 +38,12 @@ import 'package:manhwamaniacs/features/reader/engine/reader_layout.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_surface_slots.dart';
 import 'package:manhwamaniacs/features/reader/engine/seam.dart';
 import 'package:manhwamaniacs/features/reader/engine/swipe_neighbour.dart' show ReadingDirection, SwipeRelease;
-import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart' show kChapterSeamExtent;
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
@@ -1256,11 +1257,13 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         : _settings.values.tapToScroll
             ? stripScrollTapAction(info.position, info.size)
             : TapZoneAction.menu;
+    // 'Open menu with' (Tap, Double tap, Top or bottom edge; Tap under a screen reader). Pinch zooms.
+    final mode = MenuOpen.of(ref.read(readerSettingsProvider)).forScreenReader(accessible);
+    final edge = inMenuEdge(info.position, info.size, padding: MediaQuery.paddingOf(context));
+    if (mode.toggles(info.kind, inMenuZone: action == TapZoneAction.menu, inEdge: edge)) return _toggleChrome();
     switch (action) {
-      // A double tap opens or closes the chrome; a single touch here is too often the end of a scroll.
-      // Pinch zooms.
       case TapZoneAction.menu:
-        if (info.kind == TapKind.double) _toggleChrome();
+        break;
       case TapZoneAction.previous || TapZoneAction.next when paged:
         _turn(action == TapZoneAction.next ? 1 : -1);
       case TapZoneAction.previous || TapZoneAction.next:
@@ -1822,7 +1825,10 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         onKeyEvent: _onKey,
         child: Semantics(
           container: true,
-          customSemanticsActions: locked ? {const CustomSemanticsAction(label: 'Unlock controls'): _doUnlock} : const {},
+          // Whatever opens the menu by touch, a screen reader reaches it here.
+          customSemanticsActions: locked
+              ? {const CustomSemanticsAction(label: 'Unlock controls'): _doUnlock}
+              : {CustomSemanticsAction(label: engine.value.chromeVisible ? 'Hide menu' : 'Show menu'): _toggleChrome},
           child: Material(
             type: MaterialType.transparency,
             child: ColoredBox(

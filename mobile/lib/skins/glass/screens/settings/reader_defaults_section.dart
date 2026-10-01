@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
@@ -118,10 +119,23 @@ class _MangaGroup extends ConsumerWidget {
         selected: sd.fit,
         onSelected: (v) => unawaited(n.setSeriesDefaults(sd.copyWith(fit: v))),
       ),
+      SettingsSegmentedBlock<MenuOpen>(
+        id: 'reader-menu-open',
+        title: 'Open menu with',
+        caption: 'Edge: a tap along the top or bottom of the page. Manga and novels.',
+        segments: const [
+          GlassSegment(value: MenuOpen.tap, label: 'Tap'),
+          GlassSegment(value: MenuOpen.doubleTap, label: 'Double tap'),
+          GlassSegment(value: MenuOpen.edge, label: 'Edge'),
+        ],
+        selected: MenuOpen.of(r),
+        onSelected: (m) => unawaited(n.put({'menuOpen': m.name})),
+      ),
+      SettingsSwitchRow(id: 'reader-menu-at-end', title: 'Show menu at chapter end', value: menuAtChapterEnd(r), onChanged: (v) => unawaited(n.put({'menuAtChapterEnd': v}))),
       SettingsBlock(
         id: 'reader-tap-zones',
         title: 'Tap zones',
-        caption: 'Tap a band to cycle Previous, Menu, Next. Double-tap Menu to show the controls.',
+        caption: 'Tap a band to cycle Previous, Menu, Next. ${MenuOpen.of(r).help}',
         child: _TapZones(config: dev.tapZones ?? TapZoneConfig.defaultFor(dev.direction), custom: dev.tapZones != null, onChanged: (c) => unawaited(devN.setTapZones(c))),
       ),
       SettingsSegmentedBlock<String>(

@@ -5,7 +5,7 @@ import 'package:manhwamaniacs/skins/glass/screens/reader/glass_manga_reader.dart
 
 import 'glass_reader_rig.dart';
 
-// The owner's rule on Glass: the reading menu a double tap opens stays 5 s untouched, then hides.
+// The owner's rule on Glass: the reading menu, once open, stays 5 s untouched, then hides.
 // Touching it restarts the 5 s; the scrubber in a drag, a sheet or the go-to popover hold it; scrolling
 // hides it at once; a screen reader keeps it up. Both entry points (library and source reader).
 
@@ -20,16 +20,14 @@ Future<void> _after(WidgetTester t, int ms) async {
   }
 }
 
-/// Waits out the menu shown at open, then double taps it open; the clock starts on return.
+/// Waits out the menu shown at open, then taps it open; the clock starts on return.
 Future<void> _open(WidgetTester t) async {
   await _after(t, 5600);
   expect(_up(t), isFalse, reason: 'idle-hidden after open');
   await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
   await t.tapAt(_centre);
-  await t.pump(const Duration(milliseconds: 60));
-  await t.tapAt(_centre);
   await t.pump();
-  expect(_up(t), isTrue, reason: 'a double tap opens');
+  expect(_up(t), isTrue, reason: 'a tap opens (Open menu with: Tap)');
 }
 
 Future<void> _idlesFromNow(WidgetTester t, String why) async {

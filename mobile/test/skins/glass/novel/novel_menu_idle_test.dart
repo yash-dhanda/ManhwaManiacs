@@ -23,7 +23,48 @@ Future<void> _open(WidgetTester t) async {
   expect(_live(t), isTrue, reason: 'a tap opens');
 }
 
+Future<void> _tap(WidgetTester t, Offset at) async {
+  await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
+  await t.tapAt(at);
+  await settle(t, ms: 500);
+}
+
 void main() {
+  testWidgets("Open menu with 'Double tap': a single tap does nothing, a double tap opens", (t) async {
+    await pumpGlassNovel(t, prefs: {'mm.reader-settings.device': '{"menuOpen":"doubleTap"}', 'mm.glass.lightFollowsDevice': false});
+    await settle(t);
+    await _tap(t, const Offset(195, 500));
+    expect(_live(t), isFalse);
+    await t.tapAt(const Offset(195, 500));
+    await t.pump(const Duration(milliseconds: 60));
+    await t.tapAt(const Offset(195, 500));
+    await settle(t, ms: 500);
+    expect(_live(t), isTrue);
+    await disposeGlassNovel(t);
+  });
+
+  testWidgets("Open menu with 'Top or bottom edge': the centre does nothing, the bottom band opens", (t) async {
+    await pumpGlassNovel(t, prefs: {'mm.reader-settings.device': '{"menuOpen":"edge"}', 'mm.glass.lightFollowsDevice': false});
+    await settle(t);
+    await _tap(t, const Offset(195, 500));
+    expect(_live(t), isFalse);
+    await _tap(t, const Offset(195, 780));
+    expect(_live(t), isTrue);
+    await disposeGlassNovel(t);
+  });
+
+  testWidgets('the chapter end shows the menu', (t) async {
+    await pumpGlassNovel(t);
+    await settle(t);
+    final pos = t.state<ScrollableState>(find.byType(Scrollable).first).position;
+    pos.jumpTo(pos.maxScrollExtent);
+    await settle(t, ms: 300);
+    expect(_live(t), isTrue);
+    // Let the progress save land before teardown.
+    await settle(t, ms: 4000);
+    await disposeGlassNovel(t);
+  });
+
   testWidgets('opened, it is up at 4.9 s and hidden at 5.1 s', (t) async {
     await pumpGlassNovel(t);
     await _open(t);

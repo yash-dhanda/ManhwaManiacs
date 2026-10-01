@@ -41,7 +41,9 @@ import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
+import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
@@ -850,9 +852,24 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   }
 
   /// Shows the chrome for a sheet opened from it; the idle waits for the sheet to close.
+  final TapClassifier _menuTaps = TapClassifier(doubleTapWindow: const Duration(milliseconds: 300), doubleTapSlop: 24);
+
+  /// 'Open menu with' (Tap, Double tap, Top or bottom edge; Tap under a screen reader): true when this tap at the
+  /// global [position] opened or closed the chrome.
+  bool _menuTap(Offset position, {required bool inMenuZone}) {
+    final kind = _menuTaps.classify(position, DateTime.now());
+    final mode = MenuOpen.of(ref.read(readerSettingsProvider)).forScreenReader(MediaQuery.accessibleNavigationOf(context));
+    final edge = inMenuEdge(position, MediaQuery.sizeOf(context), padding: MediaQuery.paddingOf(context));
+    if (!mode.toggles(kind, inMenuZone: inMenuZone, inEdge: edge)) return false;
+    _toggleChrome();
+    return true;
+  }
+
   void _holdChrome() {
     if (!_chrome) _setChrome(true);
   }
+
+  bool _atBottom = false;
 
   void _onScroll() {
     _ctl.onScrolled();
@@ -870,6 +887,10 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       _upAccum += -delta;
       if (_upAccum >= kChromeShowUp && !_chrome) _setChrome(true);
     }
+    // Arriving at the chapter's end shows the menu (next-chapter controls), unless the profile turned it off.
+    final atBottom = _scroll.position.maxScrollExtent > 0 && _scroll.position.extentAfter < 1;
+    if (atBottom && !_atBottom && !_chrome && menuAtChapterEnd(ref.read(readerSettingsProvider))) _setChrome(true);
+    _atBottom = atBottom;
     final percent = _state.chapterPercent ~/ 5 * 5;
     if (percent != _semanticsPercent) setState(() => _semanticsPercent = percent);
   }
@@ -1698,17 +1719,19 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       if (_paged) {
         final box = _viewportKey.currentContext?.findRenderObject();
         if (box is! RenderBox) return;
-        switch (tapBand(_values().tapZones, box.globalToLocal(e.position), box.size)) {
+        final band = tapBand(_values().tapZones, box.globalToLocal(e.position), box.size);
+        if (_menuTap(e.position, inMenuZone: band == PageTapAction.menu)) return;
+        switch (band) {
           case PageTapAction.back:
             _step(forward: false);
           case PageTapAction.forward:
             _step(forward: true);
           case PageTapAction.menu:
-            _toggleChrome();
+            break;
         }
         return;
       }
-      _toggleChrome();
+      _menuTap(e.position, inMenuZone: true);
     });
   }
 
@@ -1880,7 +1903,13 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         child: Focus(
           focusNode: _surfaceFocus,
           autofocus: true,
-          child: Semantics(container: true, label: label, child: OpenChapterScope(chapterId: _chapterKey, child: _idle.wrap(framed))),
+          child: Semantics(
+            container: true,
+            label: label,
+            // Whatever opens the menu by touch, a screen reader reaches it here.
+            customSemanticsActions: {CustomSemanticsAction(label: _chrome ? 'Hide menu' : 'Show menu'): _toggleChrome},
+            child: OpenChapterScope(chapterId: _chapterKey, child: _idle.wrap(framed)),
+          ),
         ),
       ),
     );
@@ -2249,6 +2278,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         if (i >= pages.length) {
           _ctl.markComplete();
           _markFinished();
+          if (!_chrome && menuAtChapterEnd(ref.read(readerSettingsProvider))) _setChrome(true);
         }
         setState(() {});
       },
