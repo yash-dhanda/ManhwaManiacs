@@ -123,31 +123,36 @@ class _GlassRootState extends ConsumerState<GlassRoot> {
   @override
   Widget build(BuildContext context) {
     final showTimings = ref.watch(glassShowMotionTimingsProvider);
-    return GlassPrefsBridge(
-      child: GlassOrientationScope(
-        child: SkinGlassRoot(
-          child: Stack(
-            children: [
-              const Positioned.fill(child: ColoredBox(color: Color(0xFF000000))),
-              const Positioned.fill(child: GlassAmbientField()),
-              Positioned.fill(
-                child: ScrollConfiguration(
-                  behavior: const GlassScrollBehavior(),
-                  child: FocusTraversalGroup(
-                    policy: _focusPolicy,
-                    child: GlassRecedeScope(
-                      child: GlassLastSeenWriter(
-                        child: GlassEffectsLayer(
-                          child: GlassSessionLoss(child: GlassListenLayer(child: GlassGlobalKeys(child: widget.child))),
+    // The root sits above the Navigator: the dock, the toasts and any route without a Material inherit this rather than
+    // Flutter's fallback (red 48 px monospace on a yellow double underline).
+    return DefaultTextStyle(
+      style: TextStyle(fontFamily: glassTokens.typeBody.family, color: glassTokens.colorLabel1, decoration: TextDecoration.none),
+      child: GlassPrefsBridge(
+        child: GlassOrientationScope(
+          child: SkinGlassRoot(
+            child: Stack(
+              children: [
+                const Positioned.fill(child: ColoredBox(color: Color(0xFF000000))),
+                const Positioned.fill(child: GlassAmbientField()),
+                Positioned.fill(
+                  child: ScrollConfiguration(
+                    behavior: const GlassScrollBehavior(),
+                    child: FocusTraversalGroup(
+                      policy: _focusPolicy,
+                      child: GlassRecedeScope(
+                        child: GlassLastSeenWriter(
+                          child: GlassEffectsLayer(
+                            child: GlassSessionLoss(child: GlassListenLayer(child: GlassGlobalKeys(child: widget.child))),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const Positioned.fill(child: GlassSplash()),
-              if (showTimings) const GlassMotionTimingsOverlay(),
-            ],
+                const Positioned.fill(child: GlassSplash()),
+                if (showTimings) const GlassMotionTimingsOverlay(),
+              ],
+            ),
           ),
         ),
       ),
