@@ -41,6 +41,7 @@ import 'package:manhwamaniacs/skins/glass/screens/picks/for_you_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/picker_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profile_form.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/profiles_manage_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/reader_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/recap/recap_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/sources/catalogue_screen.dart';
@@ -70,8 +71,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.feature,
   ScreenId.circle,
   ScreenId.circleMember,
-  ScreenId.reader,
-  ScreenId.readAll,
   ScreenId.novel,
 };
 
@@ -145,6 +144,20 @@ Page<void> glassPage(GoRouterState state, Widget child, {bool reader = false, bo
     return GlassMaterialPage<void>(key: key, name: state.name, builder: (_) => body, instantEnter: reader);
   }
   return GlassSwipePage<void>(key: key, name: state.name, builder: (_) => body, edgeOnly: reader ? 20 : null, instantEnter: reader);
+}
+
+/// The manga readers' constant page key (mobile/35): a chapter switch is a `replace` that keeps the page, its `State` and the engine.
+const ValueKey<String> kGlassReaderPageKey = ValueKey<String>('glass.reader');
+
+/// A reader route (`reader`, its two mobile aliases, `readAll`) on the root navigator under [kGlassReaderPageKey].
+GoRoute _readerRoute(ScreenId id, Widget Function(GoRouterState state) build, {String? path, required GlobalKey<NavigatorState> parent}) {
+  final isPattern = path == null || path == id.path;
+  return GoRoute(
+    path: path ?? id.path,
+    name: isPattern ? _nameOf(id) : null,
+    parentNavigatorKey: parent,
+    pageBuilder: (context, state) => glassPage(state, build(state), reader: true, pageKey: kGlassReaderPageKey),
+  );
 }
 
 /// A sheet route (glass 8.0.3): a sheet when opened with a [GlassNavExtra], else the screen as a full page.
@@ -365,8 +378,11 @@ GoRouter buildGlassRouter(Ref ref) {
       _screen(ScreenId.profiles, (s) => const GlassProfilePicker(), parent: rootKey, takeover: true),
       _screen(ScreenId.onboarding, (s) => GlassOnboardingScreen(step: int.tryParse(s.uri.queryParameters['step'] ?? '')), parent: rootKey, takeover: true),
       _screen(ScreenId.annual, (s) => GlassWrappedScreen(yearParam: s.pathParameters['year']), parent: rootKey, takeover: true),
-      _route(ScreenId.reader, parent: rootKey, reader: true),
-      _route(ScreenId.readAll, parent: rootKey, reader: true),
+      _readerRoute(ScreenId.reader, GlassReaderScreen.of, parent: rootKey),
+      // The mobile aliases are reader routes of their own: `/library/read/...` is the library manifest reader (S15),
+      // `/sources/.../read` the source reader with its own progress (S19).
+      for (final a in Routes.readerAliases) _readerRoute(ScreenId.reader, GlassReaderScreen.of, path: a, parent: rootKey),
+      _readerRoute(ScreenId.readAll, GlassReadAllScreen.of, parent: rootKey),
       _route(ScreenId.novel, parent: rootKey, reader: true),
       GoRoute(
         path: ScreenId.discover.path,
@@ -402,8 +418,6 @@ GoRouter buildGlassRouter(Ref ref) {
       // Mobile aliases (redirects).
       _redirect(Routes.profileNewAliases.first, (s) => Routes.profileNew()),
       _redirect(Routes.profileEditAliases.first, (s) => Routes.profileEdit(s.pathParameters['id']!)),
-      _redirect(Routes.readerAliases[0], (s) => Routes.reader(s.pathParameters['sourceId']!, s.pathParameters['seriesKey']!, s.pathParameters['chapterKey']!)),
-      _redirect(Routes.readerAliases[1], (s) => Routes.reader(s.pathParameters['sourceId']!, s.pathParameters['seriesKey']!, s.pathParameters['chapterKey']!)),
       _redirect(Routes.novelAliases.first, (s) => Routes.novel(s.pathParameters['sourceId']!, s.pathParameters['seriesKey']!, s.pathParameters['chapterKey']!)),
       _redirect(Routes.dialogueAliases.first, (s) => Routes.dialogue({'q': s.uri.queryParameters['q']})),
       _redirect(Routes.collectionsAliases.first, (s) => Routes.collections()),

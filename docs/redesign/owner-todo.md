@@ -171,3 +171,8 @@ Items only the owner can do, by step.
 ## mobile/40 (Glass You, About, admin settings, Server, Diagnostics, System status)
 
 - Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-40/device-check.md` (Orb lift at 120 Hz with 0 dropped frames, the 30 min slider magnet, the Sign out everywhere hold, a backup export to Files, Diagnostics while scrolling, the bead pulse, VoiceOver and TalkBack custom actions, Reduce Motion and Reduce Transparency).
+
+## mobile/35 (Glass manga reader)
+
+- Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-35/device-check.md`.
+- CI for the `display.stableInsets` commit (APK job and the iOS dry run): lanes do not push; the integrator runs `gh run watch` on the integration push.

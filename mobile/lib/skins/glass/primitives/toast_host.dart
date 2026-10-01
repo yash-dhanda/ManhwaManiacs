@@ -103,7 +103,11 @@ class _GlassToastHostState extends ConsumerState<GlassToastHost> {
     final stack = Stack(alignment: Alignment.topCenter, clipBehavior: Clip.none, children: children);
     if (reader || phone) {
       return Positioned.fill(
-        child: Align(alignment: Alignment.topCenter, child: Padding(padding: EdgeInsets.only(top: reader ? 60 : top + 60), child: stack)),
+        // Readers hide the status bar, so their line is the view padding (safe-top + 60, under the 8 + 44 px chrome band).
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Padding(padding: EdgeInsets.only(top: (reader ? MediaQuery.viewPaddingOf(context).top : top) + 60), child: stack),
+        ),
       );
     }
     return Positioned.fill(

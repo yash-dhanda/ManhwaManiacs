@@ -142,6 +142,7 @@ class SkinGlass extends ConsumerStatefulWidget {
     this.debugLabel,
     this.size,
     this.rimTint,
+    this.tint,
   })  : groupShapes = null,
         groupAxis = Axis.horizontal,
         groupGap = 8,
@@ -163,6 +164,7 @@ class SkinGlass extends ConsumerStatefulWidget {
     required this.groupAxis,
     required this.groupGap,
     required this.rimTint,
+    this.tint,
     this.groupOffsets,
     this.groupAligns,
     this.groupHeight,
@@ -199,6 +201,10 @@ class SkinGlass extends ConsumerStatefulWidget {
 
   /// The field's rim tint (glass 2.1.8), mixed into the specular gradient at 18 %.
   final Color? rimTint;
+
+  /// A tint layer inside the surface at 18 % (the reader's page-tinted chrome, glass 9.4.4). On the solid path (Solid glass,
+  /// Reduce Transparency) only the rim keeps [rimTint].
+  final Color? tint;
 
   final List<SkinGlassShape>? groupShapes;
   final Axis groupAxis;
@@ -245,6 +251,7 @@ class SkinGlassGroup extends SkinGlass {
     Axis axis = Axis.horizontal,
     double gap = 8,
     super.rimTint,
+    super.tint,
     List<Offset>? offsets,
     List<Alignment>? aligns,
     double? height,
@@ -584,7 +591,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
                   angle: env.angle,
                   specular: look.specular,
                   devicePixelRatio: env.dpr,
-                  rimTint: solidPath || flat != null ? null : tint,
+                  rimTint: flat != null || (solidPath && widget.tint == null) ? null : tint,
                   specularColor: specColor ?? look.specularColor ?? const Color(0xFFFFFFFF),
                   innerLight: light,
                   solid: solidPath,
@@ -655,7 +662,8 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
         ],);
       }
 
-      final fill = foldDim(look.fill, dim);
+      final layer = widget.tint;
+      final fill = foldDim(layer == null ? look.fill : Color.alphaBlend(layer.withValues(alpha: 0.18), look.fill), dim);
 
       if (env.renderer == GlassRenderer.liquid) {
         final settings = liquidSettingsFor(
