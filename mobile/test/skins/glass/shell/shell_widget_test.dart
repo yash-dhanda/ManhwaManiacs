@@ -97,7 +97,7 @@ void main() {
       await t.dragFrom(const Offset(200, 640), const Offset(0, -80));
       await _settle(t);
       expect(rig.container.read(glassDockMinimisedProvider), isTrue);
-      expect(find.textContaining('Saving 3 chapters'), findsNothing); // inline: glyph and play control only
+      expect(find.textContaining('Saving 3 chapters'), findsOneWidget); // minimised it keeps its title: never an empty player
       acc.hideForSession();
       await _settle(t);
       expect(rig.container.read(glassAccessoryVisibleProvider), isFalse);

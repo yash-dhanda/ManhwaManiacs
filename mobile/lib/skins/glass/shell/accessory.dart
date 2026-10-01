@@ -98,20 +98,19 @@ class _Row extends StatelessWidget {
           child: Row(
             children: [
               leading,
-              if (!minimised) ...[
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GlassText(title, role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      if (subtitle != null) GlassText(subtitle!, role: gt.typeCaption1, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    ],
-                  ),
+              // Minimised beside the small dock the capsule is still ~230 px wide: the title stays, so it never reads as an empty
+              // player (a cover slab and a play glyph with nothing to say what they are).
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GlassText(title, role: gt.typeSubhead, wght: 600, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.3),
+                    if (subtitle != null && !minimised) GlassText(subtitle!, role: gt.typeCaption1, onGlass: true, maxLines: 1, overflow: TextOverflow.ellipsis, maxScale: 1.3),
+                  ],
                 ),
-              ] else
-                const Spacer(),
+              ),
               if (trailing != null) trailing!,
             ],
           ),
@@ -206,13 +205,16 @@ class _Continue extends StatelessWidget {
           minimised: minimised,
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: SizedBox(width: 24, height: 32, child: c.coverUrl == null ? ColoredBox(color: gt.colorFill3) : Image.network(c.coverUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => ColoredBox(color: gt.colorFill3))),
+            child: SizedBox(width: 24, height: 32, child: (c.coverUrl ?? '').isEmpty ? _noCover() : Image.network(c.coverUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _noCover())),
           ),
           title: '${c.title} · ${c.subtitle}',
           trailing: SizedBox(width: 44, height: 44, child: Center(child: Icon(roleIcon(GlassIconRole.play).fill, size: 22, color: gt.colorOnGlass))),
         ),
       );
 }
+
+/// A missing cover is a book glyph on the fill slab, never a blank tile.
+Widget _noCover() => ColoredBox(color: gt.colorFill3, child: Center(child: Icon(roleIcon(GlassIconRole.library).regular, size: 14, color: gt.colorLabel2)));
 
 class _RingPainter extends CustomPainter {
   const _RingPainter(this.progress, this.color);
