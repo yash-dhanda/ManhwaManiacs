@@ -114,10 +114,23 @@ void main() {
   test('Lb sources', () {
     expect(Lb.unknown, 1.0);
     expect(Lb.field(0.5, 0.26), closeTo(0.5 * 0.26 + 0.02, 1e-9));
-    expect(Lb.page(const PageSample(pTop: 0.2, pMid: 0.9, pBottom: 0.4)), 0.9);
-    expect(Lb.page(const PageSample(pTop: 0.2, pMid: 0.9, pBottom: 0.4), bands: {PageBand.top, PageBand.bottom}), 0.4);
+    expect(Lb.page(_sample(0.2, 0.9, 0.4)), 0.9);
+    expect(Lb.page(_sample(0.2, 0.9, 0.4), bands: {PageBand.top, PageBand.bottom}), 0.4);
     expect(Lb.bar(0.3, 0.8), 0.8);
     expect(Lb.bar(0.9, 0.2), 0.9);
     expect(Lb.paper(0.55), 0.55);
   });
 }
+
+PageSample _sample(double t, double m, double b) => PageSample(
+      tint: null,
+      top: const Color(0xFF000000),
+      bottom: const Color(0xFF000000),
+      lTop: t,
+      lMid: m,
+      lBottom: b,
+      pTop: t,
+      pMid: m,
+      pBottom: b,
+      source: PageSampleSource.decode,
+    );

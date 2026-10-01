@@ -1,16 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_sample.dart';
 
-/// TODO(mobile/35): the reader engine's `PageSample` (glass 2.1.8 step 3) does not exist yet; this is the
-/// smallest stand-in for the three 95th-percentile band luminances `Lb` reads. Replace it with the engine's.
-@immutable
-class PageSample {
-  const PageSample({required this.pTop, required this.pMid, required this.pBottom});
-  final double pTop;
-  final double pMid;
-  final double pBottom;
-}
+export 'package:manhwamaniacs/features/reader/engine/page_sample.dart' show PageSample, PageSampleSource;
 
 enum PageBand { top, mid, bottom }
 
