@@ -55,6 +55,9 @@ class StreakFlame extends ConsumerStatefulWidget {
   final int sparks;
   final bool semanticLabel;
 
+  /// The embers the last flare spawned (8), for tests.
+  static int debugEmbers = 0;
+
   @override
   ConsumerState<StreakFlame> createState() => _StreakFlameState();
 }
@@ -136,6 +139,7 @@ class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProv
   void _startFlare() {
     _flareT = 0;
     _embers = spawnEmbers(Offset(widget.size / 2, 0), _rng);
+    StreakFlame.debugEmbers = _embers.length;
     _flareEntry = GlassMotion.recorder.begin(MotionName.streakFlare.label, 643);
     _sync();
   }
@@ -157,10 +161,24 @@ class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProv
     if (vp is! RenderBox || !vp.attached) return true;
     final a = ro.localToGlobal(Offset.zero) & ro.size;
     final b = vp.localToGlobal(Offset.zero) & vp.size;
-    return a.overlaps(b);
+    // The window as well: a scrollable laid out taller than the screen still leaves the flame off screen.
+    return a.overlaps(b) && a.overlaps(Offset.zero & MediaQuery.sizeOf(context));
   }
 
+  bool _checkQueued = false;
+
+  /// A scroll moves the flame only at the next layout, so visibility is read after that frame.
   void _onScroll() {
+    if (_checkQueued) return;
+    _checkQueued = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _checkQueued = false;
+      if (mounted) _checkVisible();
+    });
+    SchedulerBinding.instance.ensureVisualUpdate();
+  }
+
+  void _checkVisible() {
     final v = _onScreen();
     if (v != _visible) {
       _visible = v;
@@ -204,6 +222,7 @@ class _StreakFlameState extends ConsumerState<StreakFlame> with SingleTickerProv
     _lastPx = px;
     _lastVel = vel;
     _tip.step(dt, flameLean(gravity: _gravity, scrollAccel: _accel, height: widget.size));
+    _checkVisible(); // last frame's layout: stops the ticker and the tilt once the flame has left the screen
     if (_flareT < 0.9) {
       _flareT += dt;
       for (final e in _embers) {

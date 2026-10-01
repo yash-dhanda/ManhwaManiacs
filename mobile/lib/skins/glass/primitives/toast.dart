@@ -26,8 +26,11 @@ enum GlassToastKind { info, success, warning, error }
 
 /// One toast (glass 7.12): a message, an optional plain action and an optional Undo.
 class GlassToastSpec {
-  const GlassToastSpec(this.message, {this.kind = GlassToastKind.info, this.actionLabel, this.onAction, this.undo, this.duration, this.tag});
+  const GlassToastSpec(this.message, {this.kind = GlassToastKind.info, this.actionLabel, this.onAction, this.undo, this.duration, this.tag, this.leading});
   final String message;
+
+  /// Replaces the kind glyph (the 20 px streak flame on the streak and milestone toasts, glass 9.2.2).
+  final Widget? leading;
   final GlassToastKind kind;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -337,7 +340,7 @@ class _GlassToastViewState extends ConsumerState<GlassToastView> with TickerProv
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            GlassBacking(size: 28, child: Icon(_glyph, size: 20, color: _color)),
+            GlassBacking(size: 28, child: spec.leading ?? Icon(_glyph, size: 20, color: _color)),
             const SizedBox(width: 10),
             Flexible(child: GlassText(spec.message, role: gt.typeCallout, onGlass: true, maxScale: 1.5)),
             if (spec.undo != null || spec.actionLabel != null) ...[

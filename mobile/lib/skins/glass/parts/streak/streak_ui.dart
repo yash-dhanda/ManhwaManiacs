@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/library/utils/progress_streak.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart' show sharedPrefsProvider;
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show registerPurgeHolder;
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -16,18 +17,25 @@ import 'package:manhwamaniacs/skins/skins.dart';
 /// What the streak events changed on screen: the flare and spark counters every `StreakFlame` watches, the "+1" for Home's chip and the
 /// record caption. Session state only (in memory), so each plays once.
 class StreakUiState {
-  const StreakUiState({this.flare = 0, this.sparks = 0, this.plusOne = 0, this.recordDays});
+  const StreakUiState({this.flare = 0, this.sparks = 0, this.plusOne = 0, this.plusOneShown = 0, this.recordDays});
   final int flare;
   final int sparks;
 
   /// Increments with each flare; Home's chip shows "+1" when this is above what it already played.
   final int plusOne;
 
+  /// The flares Home's chip already played "+1" for: a flare while Home was away plays on its next build, once.
+  final int plusOneShown;
+
   /// "New longest streak: N days" while set.
   final int? recordDays;
 
-  StreakUiState copyWith({int? flare, int? sparks, int? plusOne, int? recordDays}) =>
-      StreakUiState(flare: flare ?? this.flare, sparks: sparks ?? this.sparks, plusOne: plusOne ?? this.plusOne, recordDays: recordDays ?? this.recordDays);
+  StreakUiState copyWith({int? flare, int? sparks, int? plusOne, int? plusOneShown, int? recordDays}) => StreakUiState(
+      flare: flare ?? this.flare,
+      sparks: sparks ?? this.sparks,
+      plusOne: plusOne ?? this.plusOne,
+      plusOneShown: plusOneShown ?? this.plusOneShown,
+      recordDays: recordDays ?? this.recordDays,);
 }
 
 class StreakUiNotifier extends Notifier<StreakUiState> {
@@ -35,6 +43,10 @@ class StreakUiNotifier extends Notifier<StreakUiState> {
   StreakUiState build() => const StreakUiState();
 
   void flare() => state = state.copyWith(flare: state.flare + 1, plusOne: state.plusOne + 1);
+  void plusOnePlayed() {
+    if (state.plusOneShown != state.plusOne) state = state.copyWith(plusOneShown: state.plusOne);
+  }
+
   void record(int days) => state = state.copyWith(sparks: state.sparks + 1, recordDays: days);
 }
 
@@ -82,8 +94,9 @@ class _GlassStreakEventsListenerState extends ConsumerState<GlassStreakEventsLis
         case StreakFlare(:final currentDays):
           unawaited(_flare(currentDays));
         case GoalMet():
-          // The ring closes itself (GlassGoalRing) and fires goal.met.
-          break;
+          // Every orb's ring closes itself (GlassGoalRing); the haptic and the cue fire once, here.
+          glassFire(ref, HapticEvent.goalMet);
+          glassSound(ref, SoundEvent.goalMet);
         case StreakToday():
           break;
       }
@@ -102,8 +115,14 @@ class _GlassStreakEventsListenerState extends ConsumerState<GlassStreakEventsLis
     final ui = ref.read(streakUiProvider.notifier)..flare();
     glassFire(ref, HapticEvent.streakExtend);
     glassSound(ref, SoundEvent.streakExtend);
-    showGlassToast(ref, GlassToastSpec('$days-day streak', kind: GlassToastKind.success));
-    final before = ref.read(numbersStatisticsProvider(1)).valueOrNull?.data.streak.longestDays;
+    showGlassToast(ref, GlassToastSpec('$days-day streak', kind: GlassToastKind.success, leading: _flame20(days)));
+    // The longest streak known before this answer: the cached payloads (memory, else the saved snapshots of every range).
+    final snap = ref.read(numbersSnapshotProvider);
+    int? before = ref.read(numbersStatisticsProvider(1)).valueOrNull?.data.streak.longestDays;
+    for (final d in const [1, 7, 30, 90, 365]) {
+      final l = ((snap.readNumbers(d)?['streak'] as Map?)?['longest_days'] as num?)?.toInt();
+      if (l != null && (before == null || l > before)) before = l;
+    }
     try {
       final fresh = (await ref.refresh(numbersStatisticsProvider(1).future)).data.streak;
       if (!mounted) return;
@@ -117,6 +136,7 @@ class _GlassStreakEventsListenerState extends ConsumerState<GlassStreakEventsLis
         GlassToastSpec(
           '$m days in a row',
           kind: GlassToastKind.success,
+          leading: _flame20(fresh.currentDays),
           actionLabel: 'Share',
           onAction: () {
             ref.read(statsShareIntentProvider.notifier).state = 'streak';
@@ -136,3 +156,5 @@ class _GlassStreakEventsListenerState extends ConsumerState<GlassStreakEventsLis
   @override
   Widget build(BuildContext context) => widget.child;
 }
+
+Widget _flame20(int days) => StreakFlame(size: 20, state: FlameState.litToday, days: days, semanticLabel: false);

@@ -18,13 +18,22 @@ class GlassPlusOne extends ConsumerStatefulWidget {
 
 class _GlassPlusOneState extends ConsumerState<GlassPlusOne> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 643 + 1200 + 120));
-  int _played = 0;
   GlassMotionEntry? _entry;
 
   @override
   void initState() {
     super.initState();
-    _played = ref.read(streakUiProvider).plusOne;
+    // A flare while Home was not mounted plays on this build (once: the shown count is session state).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _check());
+  }
+
+  void _check() {
+    if (!mounted) return;
+    final ui = ref.read(streakUiProvider);
+    if (ui.plusOne > ui.plusOneShown) {
+      ref.read(streakUiProvider.notifier).plusOnePlayed();
+      _play();
+    }
   }
 
   @override
@@ -42,12 +51,7 @@ class _GlassPlusOneState extends ConsumerState<GlassPlusOne> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(streakUiProvider.select((s) => s.plusOne), (_, n) {
-      if (n > _played) {
-        _played = n;
-        _play();
-      }
-    });
+    ref.listen(streakUiProvider.select((s) => s.plusOne), (_, __) => _check());
     final reduced = ref.watch(glassReducedProvider);
     return Stack(
       clipBehavior: Clip.none,
