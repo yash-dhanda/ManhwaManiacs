@@ -146,7 +146,8 @@ class _GlassSpeedDialState extends ConsumerState<GlassSpeedDial> with TickerProv
     if (commit) widget.onCommit(c);
   }
 
-  String get _label => '${_fmt(_shown)} times, about ${widget.wpmAt(_shown)} words a minute';
+  /// Flutter's slider value is "1.25 times" (glass 8.15.5); the words-per-minute equivalent rides in the hint.
+  String get _label => '${_fmt(_shown)} times';
   static String _fmt(double v) => v == v.roundToDouble() ? v.toStringAsFixed(0) : (v * 100 % 10 == 0 ? v.toStringAsFixed(1) : v.toStringAsFixed(2));
 
   @override
@@ -158,6 +159,7 @@ class _GlassSpeedDialState extends ConsumerState<GlassSpeedDial> with TickerProv
       explicitChildNodes: true,
       label: 'Speed',
       value: _label,
+      hint: 'about ${widget.wpmAt(_shown)} words a minute',
       increasedValue: '${_fmt((_shown + kDialStep).clamp(kDialMin, kDialMax))} times',
       decreasedValue: '${_fmt((_shown - kDialStep).clamp(kDialMin, kDialMax))} times',
       onIncrease: () => _set(_shown + kDialStep),
