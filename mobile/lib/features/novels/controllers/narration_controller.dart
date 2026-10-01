@@ -504,6 +504,8 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
     final total = t?.audio.totalMs ?? 0;
     final ms = position.inMilliseconds.clamp(0, total > 0 ? total : position.inMilliseconds);
     this.position.value = ms;
+    // Back from the end, the chapter can finish again and must be announced again (auto-next, sleep).
+    if (total <= 0 || ms < total) _completedHandled = false;
     if (t != null && state.highlightSafe) segment.value = t.audio.segmentAt(ms);
     await _player?.seek(Duration(milliseconds: ms));
     _publishPlayback();
