@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart' show contentModeScopeProvider;
+import 'package:manhwamaniacs/features/library/utils/bulk_runner.dart';
 import 'package:manhwamaniacs/features/library/utils/relative_read_time.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/features/updates/utils/notification_grouping.dart';
@@ -17,6 +18,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/context_menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/swipe_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_actions.dart' show openSeries;
 import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart' show globalRectOf, roleIcon;
@@ -49,10 +51,16 @@ class GlassNotificationList extends ConsumerWidget {
       );
 }
 
+/// Marks a series' unread chapters read: the requests run together and the list reloads once; any failure says so.
 Future<void> markGroupRead(WidgetRef ref, SeriesUpdate g) async {
-  for (final c in g.chapters) {
-    if (!c.read) await ref.read(updatesProvider.notifier).markRead(c.notificationId);
-  }
+  final ids = [for (final c in g.chapters) if (!c.read) c.notificationId];
+  if (ids.isEmpty) return;
+  final repo = ref.read(updatesRepositoryProvider);
+  final updates = ref.read(updatesProvider.notifier);
+  final toasts = ref.read(glassToastProvider.notifier);
+  final out = await runBulk<int>(ids, repo.markRead);
+  await updates.refresh();
+  if (out.failed > 0) toasts.show(const GlassToastSpec("Couldn't mark them all read", kind: GlassToastKind.error));
 }
 
 /// One series' new chapters: cover, title, the summary, the time, and chapter chips. Unread carries an 8 px `iris400` dot and a 2 px
@@ -104,7 +112,7 @@ class UpdateCard extends ConsumerWidget {
                 entries: [
                   if (!read) GlassMenuEntry(label: 'Mark read', run: () => markGroupRead(ref, g)),
                   GlassMenuEntry(label: 'Open series', onSelected: () => unawaited(openSeries(ref, g.sourceId, g.seriesKey, from: rect()))),
-                  if (g.followedId != null) GlassMenuEntry(label: 'Turn off notifications for this series', onSelected: () => unawaited(ref.read(glassUpdatesNotifyProvider)(g.followedId!, false))),
+                  if (g.followedId != null) GlassMenuEntry(label: 'Turn off notifications for this series', onSelected: () => unawaited(ref.read(glassUpdatesNotifyProvider)(g.followedId!, false, confirm: 'Notifications off for ${g.title}'))),
                 ],
               ),),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -136,8 +144,15 @@ class UpdateCard extends ConsumerWidget {
   }
 }
 
-/// `PATCH /library/series/{id} {notify}`.
-final glassUpdatesNotifyProvider = Provider<Future<void> Function(int, bool)>((ref) => (id, on) async {
-      await ref.read(libraryRepositoryProvider).patchSeries(id, notify: on);
+/// `PATCH /library/series/{id} {notify}`. A failure shows an error toast; [confirm] is shown on success. True when it worked.
+final glassUpdatesNotifyProvider = Provider<Future<bool> Function(int, bool, {String? confirm})>((ref) => (id, on, {confirm}) async {
+      final toasts = ref.read(glassToastProvider.notifier);
+      final r = await ref.read(libraryRepositoryProvider).patchSeries(id, notify: on);
+      if (r.isErr) {
+        toasts.show(const GlassToastSpec("Couldn't update notifications", kind: GlassToastKind.error));
+        return false;
+      }
       await ref.read(updatesProvider.notifier).refresh();
+      if (confirm != null) toasts.show(GlassToastSpec(confirm, kind: GlassToastKind.success));
+      return true;
     },);
