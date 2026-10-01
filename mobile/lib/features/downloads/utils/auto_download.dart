@@ -85,10 +85,15 @@ class AutoDownloadRunner {
     final saved = await store.listChapters();
     final scope = _ref.read(contentModeScopeProvider);
     final wifi = _ref.read(wifiOnlyDownloadsProvider);
+    final queue = _ref.read(downloadQueueControllerProvider.notifier);
     final plan = planAutoDownload(
       unread: [for (final n in updates.notifications) if (!n.isRead) n],
       follows: updates.followed,
-      savedKeys: {for (final c in saved) '${c.sourceId} ${c.seriesKey} ${c.chapterKey}'},
+      // Plus everything auto-queued before: a chapter the user removed or cancelled stays gone.
+      savedKeys: {
+        for (final c in saved) '${c.sourceId} ${c.seriesKey} ${c.chapterKey}',
+        ...queue.autoQueuedKeys(),
+      },
       freeBytes: await _ref.read(deviceStorageInfoProvider).freeSpaceBytes(),
       capBytes: _ref.read(storageCapProvider).bytes,
       usedBytes: await _ref.read(totalDeviceDownloadBytesProvider.future),
@@ -100,7 +105,7 @@ class AutoDownloadRunner {
       },
     );
     if (plan.isEmpty) return 0;
-    await _ref.read(downloadQueueControllerProvider.notifier).enqueueChapters(plan);
+    await queue.enqueueChapters(plan, automatic: true);
     return plan.length;
   }
 }

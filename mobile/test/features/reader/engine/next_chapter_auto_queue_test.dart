@@ -23,6 +23,7 @@ class _RecordingQueue extends DownloadQueueController {
     String? title,
     String? seriesTitle,
     DownloadKind kind = DownloadKind.manga,
+    bool automatic = false,
   }) async =>
       enqueued.add(id);
 }

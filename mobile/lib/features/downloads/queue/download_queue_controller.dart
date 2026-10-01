@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
@@ -18,6 +19,7 @@ import 'package:manhwamaniacs/features/downloads/services/chapter_page_fetcher.d
 import 'package:manhwamaniacs/features/downloads/services/device_storage_info.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio_format.dart';
+import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart' show wifiOnlyDownloadsProvider;
 import 'package:manhwamaniacs/features/novels/models/novel_chapter.dart';
 import 'package:manhwamaniacs/features/novels/novel_text/novel_text_index.dart';
 import 'package:manhwamaniacs/features/novels/providers/saved_audio_provider.dart';
@@ -279,6 +281,10 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     ref.listen<StorageCap>(storageCapProvider, (previous, next) {
       if (previous != next) retryAfterStorageChange();
     });
+    // Back online (or onto Wi-Fi): queued rows held by either start again.
+    ref.listen<AsyncValue<bool>>(networkOnlineChangesProvider, (previous, next) {
+      if (next.valueOrNull == true && _foreground && !_userPaused) unawaited(_kick());
+    });
     return const DownloadQueueState();
   }
 
@@ -310,9 +316,11 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     String? title,
     String? seriesTitle,
     DownloadKind kind = DownloadKind.manga,
+    bool automatic = false,
   }) async {
     final store = ref.read(downloadsStoreProvider);
     if (store == null) return;
+    _markAutomatic([id], automatic: automatic);
     await store.ensureQueued(
       id: id,
       chapterNumber: chapterNumber,
@@ -332,9 +340,10 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   ///
   /// One revision bump for the whole batch, not one per chapter: queueing a
   /// 200-chapter series must cost the store-backed lists a single refresh.
-  Future<void> enqueueChapters(Iterable<ChapterQueueRequest> chapters) async {
+  Future<void> enqueueChapters(Iterable<ChapterQueueRequest> chapters, {bool automatic = false}) async {
     final store = ref.read(downloadsStoreProvider);
     if (store == null) return;
+    _markAutomatic([for (final c in chapters) c.id], automatic: automatic);
     for (final chapter in chapters) {
       await store.ensureQueued(
         id: chapter.id,
@@ -493,6 +502,64 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     }
   }
 
+  // Chapters queued automatically (new-chapter auto-download, "Save the next chapter"), per scope.
+  // They wait for Wi-Fi while "Download on Wi-Fi only" is on, and auto-download never queues
+  // one of them twice, so removing or cancelling it sticks. A manual queue takes a key out.
+  String? _autoKeyPrefs() {
+    try {
+      final scope = ref.read(activeDownloadsScopeIdProvider);
+      return scope == null ? null : 'mm.downloads.auto-queued.$scope';
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// `'source series chapter'` keys of every chapter queued automatically in this scope.
+  Set<String> autoQueuedKeys() {
+    final key = _autoKeyPrefs();
+    if (key == null) return const {};
+    try {
+      return {...?ref.read(sharedPrefsProvider).getStringList(key)};
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  static String autoQueuedKey(ChapterIdentity id) => '${id.sourceId} ${id.seriesKey} ${id.chapterKey}';
+
+  void _markAutomatic(Iterable<ChapterIdentity> ids, {required bool automatic}) {
+    final key = _autoKeyPrefs();
+    if (key == null) return;
+    final SharedPreferences prefs;
+    try {
+      prefs = ref.read(sharedPrefsProvider);
+    } catch (_) {
+      return;
+    }
+    final list = [...?prefs.getStringList(key)];
+    var changed = false;
+    for (final id in ids) {
+      changed = list.remove(autoQueuedKey(id)) || changed;
+      if (automatic) {
+        list.add(autoQueuedKey(id));
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    // ponytail: bounded list, oldest dropped; 500 is far past what auto-download queues between reads.
+    prefs.setStringList(key, list.length > 500 ? list.sublist(list.length - 500) : list);
+  }
+
+  /// Online and on Wi-Fi, best effort: a platform without the plugin (tests) counts as both.
+  Future<({bool online, bool wifi})> _network() async {
+    try {
+      final c = ref.read(networkConnectivityProvider);
+      return (online: await c.isOnline(), wifi: await c.isOnWifi());
+    } catch (_) {
+      return (online: true, wifi: true);
+    }
+  }
+
   void _dropOrderKey(ChapterIdentity id) {
     final order = _readOrder();
     if (order.contains(_orderKey(id))) _writeOrder([for (final k in order) if (k != _orderKey(id)) k]);
@@ -620,11 +687,30 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
         return;
       }
 
+      // Offline, or only automatic chapters left while "Wi-Fi only" is on and the phone is not:
+      // the rows stay queued (no retries burnt) and the loop idles until a connection change,
+      // a resume or a new queue kicks it again.
+      final network = await _network();
+      var runnable = pending;
+      if (network.online && !network.wifi && ref.read(wifiOnlyDownloadsProvider)) {
+        final auto = autoQueuedKeys();
+        runnable = [for (final c in pending) if (!auto.contains(autoQueuedKey(c.identity))) c];
+      }
+      if (!network.online || runnable.isEmpty) {
+        state = state.copyWith(
+          isDownloading: false,
+          pauseReason: DownloadQueuePauseReason.none,
+          clearCurrentChapter: true,
+          activeChapterCount: 0,
+        );
+        return;
+      }
+
       // The user's setting is read fresh each pass rather than watched: a
       // change takes effect on the next batch instead of disturbing chapters
       // already in flight.
       final width = ref.read(downloadConcurrencyProvider).chapters;
-      final batch = pending.take(width).toList();
+      final batch = runnable.take(width).toList();
       final lead = batch.first;
 
       // Claimed before the priming awaits below, not after: a cancel that
@@ -1247,6 +1333,8 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     SavedChapter chapter,
     String error,
   ) async {
+    // Lost the connection: not this chapter's fault. Left queued; the next pass sees offline and idles.
+    if (!(await _network()).online) return _ChapterOutcome.failed;
     await store.incrementRetry(chapter.rowId);
     final updated = await store.getChapter(chapter.identity);
     final retryCount = updated?.retryCount ?? kMaxChapterManifestRetries;
