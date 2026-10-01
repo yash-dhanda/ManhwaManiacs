@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
+import 'package:manhwamaniacs/features/sources/utils/resume_order.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 /// Everything the Glass series page renders (glass 8.12, 8.13): one shape for both routes.
@@ -35,10 +36,7 @@ class GlassSeriesData {
   bool get isFollowed => followed != null;
 
   /// Oldest to newest, unnumbered last (the reading order).
-  List<SourceChapterSummary> get readingOrder {
-    final numbered = chapters.where((c) => c.number != null).toList()..sort((a, b) => a.number!.compareTo(b.number!));
-    return [...numbered, ...chapters.where((c) => c.number == null)];
-  }
+  List<SourceChapterSummary> get readingOrder => readingOrderOf(chapters);
 }
 
 /// "142", "12.5", or null.
@@ -49,21 +47,14 @@ typedef SeriesResume = ({String label, String? chapterKey, int? page, double? nu
 
 SeriesResume seriesResume(List<SourceChapterSummary> order, Map<String, SourceChapterProgress> progress, {bool novel = false}) {
   if (order.isEmpty) return (label: 'Start reading', chapterKey: null, page: null, number: null, caughtUp: false, started: false);
-  String? last;
-  DateTime? at;
-  for (final e in progress.entries) {
-    if (at == null || e.value.updatedAt.isAfter(at)) {
-      last = e.key;
-      at = e.value.updatedAt;
-    }
-  }
+  final last = lastTouchedKey(order, progress);
   final i = last == null ? -1 : order.indexWhere((c) => c.id == last);
   String ch(int k) => 'Ch ${chapterNum(order[k].number) ?? '${k + 1}'}';
   final cont = novel ? 'Continue reading' : 'Continue';
   if (i < 0) return (label: 'Start reading', chapterKey: order.first.id, page: null, number: order.first.number, caughtUp: false, started: false);
   final p = progress[last]!;
   if (!p.completed) return (label: '$cont · ${ch(i)}', chapterKey: last, page: p.page, number: order[i].number, caughtUp: false, started: true);
-  if (i + 1 < order.length) return (label: '$cont · ${ch(i + 1)}', chapterKey: order[i + 1].id, page: null, number: order[i + 1].number, caughtUp: false, started: true);
+  if (nextUnreadAfter(order, i, progress) case final j?) return (label: '$cont · ${ch(j)}', chapterKey: order[j].id, page: null, number: order[j].number, caughtUp: false, started: true);
   return (label: 'All caught up', chapterKey: null, page: null, number: null, caughtUp: true, started: true);
 }
 
@@ -103,7 +94,7 @@ class SeriesMarks {
     final repo = ref.read(readerRepositoryProvider);
     final rows = manualReadRows([
       for (final c in chapters) (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number, pageCount: c.pageCount, completed: false),
-    ]);
+    ], at: manualMarkStamp(ref.read(sourceSeriesProgressProvider(d.progressKey))));
     for (final chunk in chunksOf200(rows)) {
       await repo.saveProgressBatch(chunk);
     }

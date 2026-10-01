@@ -38,7 +38,13 @@ Iterable<List<T>> chunksOf200<T>(List<T> items) sync* {
 /// The `manual: true` progress rows for [chapters] (the 8.17 one-chapter call): completed at their
 /// last page, zero time spent, so marking never moves statistics or streaks. Goes straight to the
 /// server, never the progress outbox.
-List<ProgressPush> manualReadRows(List<ChapterRef> chapters) => [
+///
+/// Every row carries one stamp, [at] (now by default): unstamped, the server dated each row as it
+/// applied it, so the LAST row of a batch became the newest-touched chapter that Continue resumes
+/// from. A series page passes `manualMarkStamp` so a mark never outranks the chapter being read.
+List<ProgressPush> manualReadRows(List<ChapterRef> chapters, {DateTime? at}) {
+  final stamp = (at ?? DateTime.now()).toUtc();
+  return [
       for (final c in chapters)
         ProgressPush(
           sourceId: c.sourceId,
@@ -49,5 +55,7 @@ List<ProgressPush> manualReadRows(List<ChapterRef> chapters) => [
           pageCount: math.max(c.pageCount, 1),
           isCompleted: true,
           manual: true,
+          lastReadAt: stamp,
         ),
     ];
+}

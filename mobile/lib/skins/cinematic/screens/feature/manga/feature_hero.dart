@@ -19,6 +19,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_acti
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_hero_phone.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_spread.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
+import 'package:manhwamaniacs/features/sources/utils/resume_order.dart';
 
 export 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/feature_actions.dart' show ResumePoint;
 
@@ -28,22 +29,15 @@ ResumePoint resumePoint(FeatureData d, WidgetRef ref) {
   if (order.isEmpty) return (label: 'Read', chapter: null, sub: null);
   final progress =
       ref.watch(sourceSeriesProgressProvider((sourceId: d.sourceId, seriesId: d.seriesKey)));
-  String? lastKey;
-  DateTime? at;
-  for (final e in progress.entries) {
-    if (at == null || e.value.updatedAt.isAfter(at)) {
-      lastKey = e.key;
-      at = e.value.updatedAt;
-    }
-  }
+  final lastKey = lastTouchedKey(order, progress);
   String num(int i) => order[i].number?.toString().replaceAll(RegExp(r'\.0$'), '') ?? '${i + 1}';
   if (lastKey == null) return (label: 'Read', chapter: order.first.id, sub: 'CH ${num(0)}');
   final i = order.indexWhere((c) => c.id == lastKey);
   if (i < 0) return (label: 'Read', chapter: order.first.id, sub: 'CH ${num(0)}');
   final p = progress[lastKey]!;
   if (!p.completed) return (label: 'Continue', chapter: lastKey, sub: 'CH ${num(i)} · p.${p.page}');
-  if (i + 1 < order.length) {
-    return (label: 'Continue', chapter: order[i + 1].id, sub: 'CH ${num(i + 1)}');
+  if (nextUnreadAfter(order, i, progress) case final j?) {
+    return (label: 'Continue', chapter: order[j].id, sub: 'CH ${num(j)}');
   }
   return (label: 'All caught up', chapter: null, sub: null);
 }

@@ -1,6 +1,7 @@
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
+import 'package:manhwamaniacs/features/sources/utils/resume_order.dart';
 
 /// Everything the series page renders, resolved once by [FeatureView].
 class FeatureData {
@@ -32,9 +33,5 @@ class FeatureData {
   String get title => series.title;
 
   /// Chapters oldest to newest, unnumbered ones last (the reading order).
-  List<SourceChapterSummary> get readingOrder {
-    final numbered = chapters.where((c) => c.number != null).toList()
-      ..sort((a, b) => a.number!.compareTo(b.number!));
-    return [...numbered, ...chapters.where((c) => c.number == null)];
-  }
+  List<SourceChapterSummary> get readingOrder => readingOrderOf(chapters);
 }

@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/library/models/global_search_result.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
+import 'package:manhwamaniacs/features/sources/utils/resume_order.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -81,16 +83,9 @@ class _MoveSourceSheetState extends ConsumerState<MoveSourceSheet> {
   }
 
   double? _currentNumber() {
-    final progress = ref.read(sourceSeriesProgressProvider(d.progressKey));
-    String? key;
-    DateTime? at;
-    for (final e in progress.entries) {
-      if (at == null || e.value.updatedAt.isAfter(at)) {
-        key = e.key;
-        at = e.value.updatedAt;
-      }
-    }
-    return d.chapters.where((c) => c.id == key).firstOrNull?.number;
+    final key = lastTouchedKey(d.readingOrder, ref.read(sourceSeriesProgressProvider(d.progressKey)));
+    // From the unavailable lens the page has no chapter list; the follow row still knows the furthest one.
+    return d.chapters.where((c) => c.id == key).firstOrNull?.number ?? d.followed?.readState?.chapterNumber;
   }
 
   Future<void> _move() async {
@@ -101,11 +96,14 @@ class _MoveSourceSheetState extends ConsumerState<MoveSourceSheet> {
     if (!mounted) return;
     setState(() => _moving = false);
     if (r.isErr) {
-      showGlassToast(ref, const GlassToastSpec("Couldn't move it. Try again", kind: GlassToastKind.error));
+      final e = r.error;
+      final already = e is ApiError && e.code == 'already_followed';
+      showGlassToast(ref, GlassToastSpec(already ? 'That series is already in your library on ${p.sourceName}' : "Couldn't move it. Try again", kind: GlassToastKind.error));
       return;
     }
     ref.invalidate(updatesProvider);
-    showGlassToast(ref, GlassToastSpec('Moved to ${p.sourceName}', kind: GlassToastKind.success));
+    final mapped = chapterNum(r.value.mappedChapterNumber);
+    showGlassToast(ref, GlassToastSpec(mapped == null ? 'Moved to ${p.sourceName}' : 'Moved to ${p.sourceName}. You pick up at chapter $mapped', kind: GlassToastKind.success));
     final router = ref.read(skinRouterProvider);
     Navigator.of(context).pop();
     unawaited(router.pushReplacement<void>(Routes.feature(p.item.source!, p.item.seriesId), extra: const GlassNavExtra()));

@@ -38,6 +38,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_states.dar
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/schedule_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/features/sources/utils/resume_order.dart';
 
 const kNeedsConnection = 'Needs a connection.';
 
@@ -99,7 +100,7 @@ class ChapterMarks {
     final rows = manualReadRows([
       for (final c in chapters)
         (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number, pageCount: c.pageCount, completed: false),
-    ]);
+    ], at: manualMarkStamp(ref.read(sourceSeriesProgressProvider(_key))));
     for (final chunk in chunksOf200(rows)) {
       await repo.saveProgressBatch(chunk);
     }
