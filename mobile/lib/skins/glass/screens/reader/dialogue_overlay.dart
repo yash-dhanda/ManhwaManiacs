@@ -205,13 +205,18 @@ class _NoticeCapsule extends StatelessWidget {
 /// The T1 hit lens (glass 8.14.9): `glassFilm`, radius 6, a 2 px specular rim over the current match; the page layer itself is
 /// magnified 1.12x by the engine's `pageLayerTransform`, never by the skin.
 class HitLens extends StatelessWidget {
-  const HitLens({super.key, required this.rect});
+  const HitLens({super.key, required this.rect, this.opacity = 1});
   final Rect rect;
+
+  /// Reduced motion: the 120 ms fade at the new bubble.
+  final double opacity;
 
   @override
   Widget build(BuildContext context) => Positioned.fromRect(
         rect: rect,
         child: IgnorePointer(
+          child: Opacity(
+          opacity: opacity,
           child: SkinGlass(
             size: rect.size,
             tier: GlassTierId.t1,
@@ -222,6 +227,7 @@ class HitLens extends StatelessWidget {
               decoration: BoxDecoration(border: Border.all(color: const Color(0xCCFFFFFF), width: 2), borderRadius: BorderRadius.circular(6)),
               child: const SizedBox.expand(),
             ),
+          ),
           ),
         ),
       );

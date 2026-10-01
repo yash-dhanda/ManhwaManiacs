@@ -144,7 +144,11 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
             if (host.zoomChipPercent != null)
               Positioned(top: g.top, left: 0, right: 0, child: Center(child: _Chip(text: '${host.zoomChipPercent} %', lb: _lb(g, Rect.fromLTWH(0, g.top, 100, 32), s), tint: t))),
             if (host.seamChip != null)
-              Positioned(top: g.top + g.side + 8, left: 0, right: 0, child: Center(child: _Chip(text: host.seamChip!, lb: _lb(g, Rect.fromLTWH(0, g.top + g.side + 8, 100, 32), s), tint: t))),
+              Positioned(top: g.top + g.side + 8, left: 0, right: 0, child: Center(
+                  child: _SeamChip(
+                      key: ValueKey(host.seamChip),
+                      reduced: host.reducedMotion,
+                      child: _Chip(text: host.seamChip!, lb: _lb(g, Rect.fromLTWH(0, g.top + g.side + 8, 100, 32), s), tint: t),),),),
             if (host.cinema && !host.hideCinemaProgress && !visible)
               Positioned(left: 0, right: 0, bottom: 0, height: 2, child: _MicroProgress(progress: s.progress, tint: t)),
             if (host.lockPulse > 0) Center(child: _LockPulse(key: ValueKey(host.lockPulse))),
@@ -625,6 +629,49 @@ class _Chip extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The Seam chip move (glass 4.10): materialises on `seamChip`, holds, and dematerialises so it is gone at 1,200 ms, when the
+/// host removes it; reduced motion swaps both for 150 ms fades.
+class _SeamChip extends StatefulWidget {
+  const _SeamChip({super.key, required this.reduced, required this.child});
+  final bool reduced;
+  final Widget child;
+
+  @override
+  State<_SeamChip> createState() => _SeamChipState();
+}
+
+class _SeamChipState extends State<_SeamChip> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this);
+  Timer? _out;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(GlassMotion.play(MotionName.seamChip, controller: _c, target: 1));
+    _out = Timer(Duration(milliseconds: widget.reduced ? 1050 : 850), () {
+      if (mounted) unawaited(GlassMotion.play(MotionName.dematerialise, controller: _c, target: 0));
+    });
+  }
+
+  @override
+  void dispose() {
+    _out?.cancel();
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _c,
+        child: widget.child,
+        builder: (context, child) {
+          final t = _c.value.clamp(0.0, 1.0);
+          if (widget.reduced) return Opacity(opacity: t, child: child);
+          return Opacity(opacity: t, child: Transform.scale(scale: 0.92 + 0.08 * t, child: child));
+        },
+      );
 }
 
 class _LockPulse extends StatefulWidget {

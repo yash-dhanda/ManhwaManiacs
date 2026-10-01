@@ -133,6 +133,11 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   late final ReaderWakelock _wakelock = ref.read(readerWakelockProvider);
   late final ReaderExclusionSync _exclusion = ReaderExclusionSync((r) => _platform.setExclusionRects(r));
   late final AnimationController _zoom = AnimationController(vsync: this);
+
+  /// The hit lens's step (glass 8.14.9): slides to the next match and re-magnifies 1.0 -> 1.12 (`hitLens`, springCamera).
+  late final AnimationController _lensMotion = AnimationController(vsync: this);
+  Rect? _lensFrom, _lensTo;
+  Offset? _centreFrom, _centreTo;
   final List<StreamSubscription<Object>> _subs = [];
   final List<ProviderSubscription<Object?>> _keepAlive = [];
 
@@ -182,6 +187,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     _wakelock;
     // Eager: a late controller first touched in dispose() would look up a deactivated ancestor.
     _zoom.value;
+    _lensMotion.addListener(_applyLens);
     WidgetsBinding.instance.addObserver(this);
     _releaseClaims = _claimSheets();
     _subs
@@ -277,6 +283,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     _exclusion.clear();
     if (_wakeHeld) unawaited(_wakelock.disable());
     _zoom.dispose();
+    _lensMotion.dispose();
     _focus.dispose();
     engine.dispose();
     super.dispose();
@@ -947,6 +954,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       _dialogue = false;
       _hitShown = false;
     });
+    _lensMotion.stop();
+    _lensFrom = _lensTo = null;
+    _centreFrom = _centreTo = null;
     engine.pageLayerTransform(null, null);
     engine.scheduleHideChrome();
   }
@@ -990,9 +1000,26 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       r = boxInViewport(engine, m);
       if (r == null) return;
       final lens = hitLensRect(r!);
-      engine.pageLayerTransform(LensTransform(1.12, r!.center), LensClip(lens, 6));
-      setState(() {});
+      _lensFrom = _lensTo ?? lens;
+      _lensTo = lens;
+      _centreFrom = _centreTo ?? r!.center;
+      _centreTo = r!.center;
+      _lensMotion.value = 0;
+      unawaited(GlassMotion.play(MotionName.hitLens, controller: _lensMotion, target: 1));
     });
+  }
+
+  /// One frame of the lens step, through the engine's page-layer command. Reduced motion: the lens sits on the new bubble at
+  /// full magnification and only fades in (the 120 ms fade is the overlay's opacity).
+  void _applyLens() {
+    final to = _lensTo, c = _centreTo;
+    if (to == null || c == null || !_hitShown || !mounted) return;
+    final v = _lensMotion.value.clamp(0.0, 1.0);
+    final reduced = reducedMotion;
+    final rect = reduced ? to : Rect.lerp(_lensFrom, to, v)!;
+    final centre = reduced ? c : Offset.lerp(_centreFrom, c, v)!;
+    engine.pageLayerTransform(LensTransform(reduced ? 1.12 : 1 + 0.12 * v, centre), LensClip(rect, 6));
+    setState(() {});
   }
 
   // ── Taps, keys, gestures ───────────────────────────────────────────────
@@ -1637,7 +1664,11 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     final r = boxInViewport(engine, m);
     final g = ReaderChromeGeometry.of(context, column: Offset.zero & size);
     return [
-      if (r != null) HitLens(rect: hitLensRect(r)),
+      if (r != null)
+        HitLens(
+          rect: _lensMotion.value >= 1 || _lensFrom == null || reducedMotion ? hitLensRect(r) : Rect.lerp(_lensFrom, hitLensRect(r), _lensMotion.value)!,
+          opacity: reducedMotion ? _lensMotion.value.clamp(0.0, 1.0) : 1,
+        ),
       Positioned(
         left: 0,
         right: 0,
