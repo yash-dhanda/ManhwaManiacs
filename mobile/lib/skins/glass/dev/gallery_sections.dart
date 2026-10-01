@@ -43,6 +43,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/text_field.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/tooltip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/wave.dart';
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart' show GlassTwin;
 
 enum GalleryGround { black, ambient, white }
 
@@ -569,7 +570,7 @@ class _BeadDemoState extends State<_BeadDemo> {
   int n = 0;
   @override
   Widget build(BuildContext context) => Wrap(spacing: 16, crossAxisAlignment: WrapCrossAlignment.center, children: [
-          GlassButton(label: 'Pulse and flicker', size: GlassButtonSize.small, onPressed: () => setState(() => n++)),
+          GlassButton(label: 'Pulse and flicker', size: GlassButtonSize.small, twin: GlassTwin.content, onPressed: () => setState(() => n++)),
           GlassHealthBead(status: GlassSourceHealth.ok, pulseKey: n),
           GlassHealthBead(status: GlassSourceHealth.failing, flickerKey: n),
           GlassHealthBead(status: GlassSourceHealth.dead, flickerKey: n),

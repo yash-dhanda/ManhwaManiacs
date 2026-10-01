@@ -15,18 +15,36 @@ final youOrbLiftShownProvider = StateProvider<Set<int>>((ref) => <int>{}, name: 
 /// per-tab key is needed.
 Rect dockTabRect(BuildContext context, GlassTab tab) => GlassDockGeometry.of(MediaQuery.sizeOf(context), MediaQuery.paddingOf(context)).tabRect(tab);
 
+/// A running Orb lift. [cancel] (the screen leaving mid-flight) stops it and frees its entry and controllers.
+class OrbLift {
+  OrbLift._(this._entry, this._progress, this._size);
+  final OverlayEntry _entry;
+  final SingleMotionController _progress, _size;
+  late final Future<void> done;
+  bool _closed = false;
+
+  void cancel() {
+    if (_closed) return;
+    _closed = true;
+    _entry.remove();
+    _entry.dispose();
+    _progress.dispose();
+    _size.dispose();
+  }
+}
+
 /// The Orb lift (glass 8.24, 4.10): a copy of the orb leaves the dock's You tab and lands in the profile block on `springZoom`,
-/// scaling 24 -> 72. [progress] carries the recorded move (`GlassMotion.playMotor(MotionName.orbLift)`); [size] follows on the same
-/// spring. Returns when the copy has landed and its entry is gone.
-Future<void> runOrbLift({
+/// scaling 24 -> 72. The progress carries the recorded move (`GlassMotion.playMotor(MotionName.orbLift)`); the size follows on the same
+/// spring. [OrbLift.done] completes when the copy has landed and its entry is gone. Null without an overlay.
+OrbLift? startOrbLift({
   required BuildContext context,
   required TickerProvider vsync,
   required Rect from,
   required Rect to,
   required Widget Function(double size) orb,
-}) async {
+}) {
   final overlay = Overlay.maybeOf(context, rootOverlay: true);
-  if (overlay == null) return;
+  if (overlay == null) return null;
   final progress = SingleMotionController(motion: SpringMotion(springOf(GlassSprings.zoom)), vsync: vsync);
   final size = SingleMotionController(motion: SpringMotion(springOf(GlassSprings.zoom)), vsync: vsync, initialValue: 24);
   final entry = OverlayEntry(
@@ -41,14 +59,15 @@ Future<void> runOrbLift({
     ),
   );
   overlay.insert(entry);
-  try {
-    final scale = size.animateTo(to.width);
-    await GlassMotion.playMotor(MotionName.orbLift, progress, 1);
-    await scale.orCancel.catchError((Object _) {});
-  } finally {
-    entry.remove();
-    entry.dispose();
-    progress.dispose();
-    size.dispose();
-  }
+  final lift = OrbLift._(entry, progress, size);
+  lift.done = () async {
+    try {
+      final scale = size.animateTo(to.width);
+      await GlassMotion.playMotor(MotionName.orbLift, progress, 1);
+      await scale.orCancel.catchError((Object _) {});
+    } finally {
+      lift.cancel();
+    }
+  }();
+  return lift;
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show TextField;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/search_field.dart';
 import 'package:manhwamaniacs/skins/glass/screens/you/you_screen.dart';
 
 import '../../../screenshots/support/shot_harness.dart';
@@ -50,7 +50,7 @@ void main() {
       await pumpGlassShell(t, start: '/settings/about?sheet=licenses', platformAndroid: platform == TargetPlatform.android, extra: [...adminOverrides(), ...youOverrides(withAuth: false)]);
       await m40Settle(t, 1500);
       final min = platform == TargetPlatform.iOS ? 44.0 : 48.0;
-      expect(t.getSize(find.byType(TextField).last).height, greaterThanOrEqualTo(min));
+      expect(t.getSize(find.byType(GlassSearchField).last).height, greaterThanOrEqualTo(min));
       for (final name in ['Google Sans Flex', 'dio', 'go_router', 'Glass UI sounds']) {
         final row = find.ancestor(of: find.text(name), matching: find.byType(GestureDetector)).first;
         expect(t.getSize(row).height, greaterThanOrEqualTo(52), reason: name);

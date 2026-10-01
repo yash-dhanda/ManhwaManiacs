@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/settings/models/backup_status.dart';
@@ -293,9 +294,13 @@ class _TypedPhraseConfirmState extends State<TypedPhraseConfirm> {
   }
 
   @override
-  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+  // The alert has no Material ancestor; the field needs one.
+  Widget build(BuildContext context) => Material(
+        type: MaterialType.transparency,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         GlassTextField(controller: _c, label: 'Type RESTORE to confirm', onSheet: true, autofocus: true, onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
         GlassButton(label: 'Restore', variant: GlassButtonVariant.destructive, fullWidth: true, onPressed: restorePhraseMatches(_c.text) ? () => Navigator.of(context).pop(true) : null),
-      ],);
+      ],),
+      );
 }

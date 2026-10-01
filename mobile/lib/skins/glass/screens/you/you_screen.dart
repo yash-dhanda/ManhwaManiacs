@@ -47,6 +47,7 @@ class _YouScreenState extends ConsumerState<YouScreen> with TickerProviderStateM
   late final VoidCallback _offRefresh;
   late final SingleMotionController _fade = SingleMotionController(motion: const Motion.linear(Duration(milliseconds: 200)), vsync: this, initialValue: 1);
   bool _lifting = false;
+  OrbLift? _lift;
 
   @override
   void initState() {
@@ -58,14 +59,20 @@ class _YouScreenState extends ConsumerState<YouScreen> with TickerProviderStateM
   @override
   void dispose() {
     _offRefresh();
+    _lift?.cancel();
     _refresh.dispose();
     _fade.dispose();
     super.dispose();
   }
 
+  /// The orb slot's global rect; null when it is not laid out (or its element is not active this frame, a route rebuild).
   Rect? _rectOf(GlobalKey k) {
-    final box = k.currentContext?.findRenderObject() as RenderBox?;
-    return box == null || !box.hasSize ? null : box.localToGlobal(Offset.zero) & box.size;
+    try {
+      final box = k.currentContext?.findRenderObject() as RenderBox?;
+      return box == null || !box.hasSize || !box.attached ? null : box.localToGlobal(Offset.zero) & box.size;
+    } on FlutterError {
+      return null;
+    }
   }
 
   /// The first arrival per app session per profile on the phone frame lifts the orb out of the dock; later ones (and other frames)
@@ -86,7 +93,9 @@ class _YouScreenState extends ConsumerState<YouScreen> with TickerProviderStateM
       await GlassMotion.playMotor(MotionName.orbLift, _fade, 1);
       return;
     }
-    await runOrbLift(context: context, vsync: this, from: dockTabRect(context, GlassTab.you), to: to, orb: (s) => YouOrb(size: s));
+    _lift = startOrbLift(context: context, vsync: this, from: dockTabRect(context, GlassTab.you), to: to, orb: (s) => YouOrb(size: s));
+    await _lift?.done;
+    _lift = null;
     if (mounted) setState(() => _lifting = false);
   }
 

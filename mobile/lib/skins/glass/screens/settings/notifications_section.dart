@@ -166,10 +166,8 @@ class _BodyState extends ConsumerState<_Body> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  Expanded(child: GlassText('Check interval', role: gt.typeBody)),
-                  GlassText('${d.interval} min', role: gt.typeMono, color: gt.colorLabel2),
-                ],),
+                // The slider prints the value in `mono` on its trailing edge.
+                GlassText('Check interval', role: gt.typeBody),
                 GlassSlider(
                   key: const ValueKey('interval-slider'),
                   value: d.interval.toDouble(),

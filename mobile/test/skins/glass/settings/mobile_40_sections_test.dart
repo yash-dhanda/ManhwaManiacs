@@ -319,6 +319,28 @@ void main() {
     });
   });
 
+  m40Test('Backup: a chosen file opens the restore alert, whose Restore waits for the RESTORE phrase (any case)', (t) async {
+    await pumpSection(t, '/settings/backup', extra: [
+      backupFilePickProvider.overrideWithValue(() async => (path: '/tmp/x.db', name: 'manhwamaniacs-2026-09-28.db', size: 42 * 1024 * 1024)),
+    ],);
+    await t.scrollUntilVisible(find.text('Choose backup file'), 200, scrollable: find.byType(Scrollable).first);
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -400));
+    await m40Settle(t, 300);
+    await t.tap(find.text('Choose backup file'));
+    await m40Settle(t, 300);
+    expect(find.text('manhwamaniacs-2026-09-28.db · 42.0 MB'), findsOneWidget);
+    await t.tap(find.text('Restore from this file…'));
+    await m40Settle(t, 800);
+    expect(find.text('Restore from “manhwamaniacs-2026-09-28.db”?'), findsOneWidget);
+    Finder restore() => find.widgetWithText(GlassButton, 'Restore').last;
+    expect(t.widget<GlassButton>(restore()).onPressed, isNull);
+    await t.enterText(find.byType(EditableText).last, 'restore');
+    await t.pump();
+    expect(t.widget<GlassButton>(restore()).onPressed, isNotNull);
+    await t.tap(find.text('Cancel'));
+    await m40Settle(t, 600);
+  });
+
   group('Server', () {
     m40Test('an invalid address shows the Setup line; a valid one asks, switches and toasts', (t) async {
       late _Switch sw;
