@@ -72,15 +72,15 @@ void main() {
   });
 
   testWidgets('a long world-card title wraps before the source badge instead of running under it', (tester) async {
-    await tester.pumpWidget(primHost(GlassWorldCard.available(
-      cover: const SizedBox(),
+    await tester.pumpWidget(primHost(const GlassWorldCard.available(
+      cover: SizedBox(),
       title: 'The Extraordinarily Long Title Of A Series That Never Ends',
       kind: 'Manhwa · Ongoing',
       stats: '120 ch · 8.4',
       why: 'Because you read Solo Leveling',
       source: 'MangaSource',
       extraSources: 2,
-    ), size: const Size(834, 1194)));
+    ), size: const Size(834, 1194),),);
     await tester.pump(const Duration(milliseconds: 300));
     final title = tester.getRect(find.textContaining('Extraordinarily'));
     final badge = tester.getRect(find.byType(GlassBadge).first);
