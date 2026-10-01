@@ -17,6 +17,10 @@ class MmPlatform {
   final MethodChannel _channel;
   final _reduceTransparency = StreamController<bool>.broadcast();
   final _contrast = StreamController<double>.broadcast();
+  final _lowPower = StreamController<bool>.broadcast();
+
+  /// `power.lowPowerChanged {value}`: iOS Low Power Mode, Android Battery Saver.
+  Stream<bool> get lowPowerChanges => _lowPower.stream;
 
   /// `a11y.reduceTransparencyChanged {value}` (iOS).
   Stream<bool> get reduceTransparencyChanges => _reduceTransparency.stream;
@@ -31,6 +35,8 @@ class MmPlatform {
         _reduceTransparency.add(v == true);
       case 'a11y.contrastLevelChanged':
         _contrast.add((v as num?)?.toDouble() ?? 0.0);
+      case 'power.lowPowerChanged':
+        _lowPower.add(v == true);
     }
     return null;
   }
@@ -50,6 +56,9 @@ class MmPlatform {
 
   /// Android 14+ `UiModeManager.getContrast()` in -1..1; 0.0 elsewhere.
   Future<double> contrastLevel() async => (await _call<num>('a11y.contrastLevel'))?.toDouble() ?? 0.0;
+
+  /// iOS Low Power Mode or Android Battery Saver; false where unknown.
+  Future<bool> lowPower() async => await _call<bool>('power.lowPower') ?? false;
 
   /// Android `AudioManager.isMusicActive()`; iOS `isOtherAudioPlaying`.
   Future<bool> isMusicActive() async => await _call<bool>('audio.isMusicActive') ?? false;
@@ -74,6 +83,7 @@ class MmPlatform {
     _channel.setMethodCallHandler(null);
     _reduceTransparency.close();
     _contrast.close();
+    _lowPower.close();
   }
 }
 

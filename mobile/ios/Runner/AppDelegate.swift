@@ -87,8 +87,21 @@ import Vision
         arguments: ["value": UIAccessibility.isReduceTransparencyEnabled]
       )
     }
+    // Low Power Mode: Dart drops Glass refraction and blur to tinted solid while it is on.
+    NotificationCenter.default.addObserver(
+      forName: Notification.Name.NSProcessInfoPowerStateDidChange,
+      object: nil,
+      queue: .main
+    ) { _ in
+      platformChannel.invokeMethod(
+        "power.lowPowerChanged",
+        arguments: ["value": ProcessInfo.processInfo.isLowPowerModeEnabled]
+      )
+    }
     platformChannel.setMethodCallHandler { call, result in
       switch call.method {
+      case "power.lowPower":
+        result(ProcessInfo.processInfo.isLowPowerModeEnabled)
       case "a11y.reduceTransparency":
         result(UIAccessibility.isReduceTransparencyEnabled)
       case "a11y.contrastLevel":
