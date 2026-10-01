@@ -110,6 +110,8 @@ TRENDING_FORMATS: dict[str, tuple[str | None, list[str]]] = {
     "novel": (None, ["NOVEL"]),
 }
 TRENDING_TTL = timedelta(hours=24)
+#: Titles per page of a genre listing (the AI's batch and the fallback's).
+GENRE_PAGE_SIZE = 40
 #: AniList's fixed genre facet (``genre_in`` accepts only these).
 ANILIST_GENRES = (
     "Action", "Adventure", "Comedy", "Drama", "Ecchi", "Fantasy", "Hentai", "Horror",
@@ -349,6 +351,31 @@ class WorldCatalog:
         if not adult:
             args["adult"] = False
         return self._lookup({key: args}, self._anilist_page, TRENDING_TTL).get(key) or []
+
+    @staticmethod
+    def _anilist_list(client: httpx.Client, arg: tuple[str, dict[str, Any]]) -> Any:
+        query, variables = arg
+        response = client.post(ANILIST_URL, json={"query": query, "variables": variables})
+        response.raise_for_status()
+        return response.json()["data"]["Page"]["media"] or []
+
+    def genre_listing(self, genre: str, page: int, *, adult: bool) -> list[dict[str, Any]]:
+        """One page (1-based) of the most popular manhwa in ``genre``, cached a
+        day. An AniList genre goes through ``genre_in``; anything else
+        ("Murim", "Regression") is tried as an AniList tag."""
+        name = next((g for g in ANILIST_GENRES if g.casefold() == genre.strip().casefold()), None)
+        facet, value = ("genre_in", name) if name else ("tag_in", genre.strip().title())
+        query = (
+            "query($p:Int,$v:[String]" + ("" if adult else ",$a:Boolean")
+            + "){Page(page:$p,perPage:" + str(GENRE_PAGE_SIZE) + "){media(type:MANGA,"
+            + "sort:POPULARITY_DESC,countryOfOrigin:KR," + facet + ":$v"
+            + ("" if adult else ",isAdult:$a") + "){" + _MEDIA_FIELDS + "}}}"
+        )
+        variables: dict[str, Any] = {"p": page, "v": [value]}
+        if not adult:
+            variables["a"] = False
+        key = f"al:genre:{facet}:{match_key(value)}:{page}:{int(adult)}"
+        return self._lookup({key: (query, variables)}, self._anilist_list, TRENDING_TTL).get(key) or []
 
     # --- MangaUpdates -----------------------------------------------------
 
@@ -627,6 +654,18 @@ class WorldRecs:
                 else None
             ),
         }
+
+    def genre_listing(self, genre: str, page: int, *, gate_open: bool) -> list[dict[str, Any]]:
+        """WorldItems for one page of the catalogue's own genre listing: the
+        fallback when the AI cannot answer."""
+        _, excluded, preferred = self._context()
+        medias = [
+            (m, None)
+            for m in self.catalog.genre_listing(genre, page, adult=gate_open)
+            if not self._hidden(m, gate_open) and not self._is_excluded(m, excluded)
+        ]
+        index = self._availability_index(gate_open)
+        return self._items(medias, gate_open=gate_open, index=index, preferred=preferred)
 
     def verify(
         self, entries: list[tuple[str, str]], *, gate_open: bool, limit: int
