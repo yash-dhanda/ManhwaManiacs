@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/onboarding/store/onboarding_draft.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/onboarding_screen.dart';
 import 'package:swipeable_page_route/swipeable_page_route.dart';
 
 import 'onboarding_test_support.dart';
@@ -13,13 +14,65 @@ import 'onboarding_test_support.dart';
 Finder _headline(String text) => find.byWidgetPredicate((w) => w is TypedHeadline && w.text == text);
 
 void main() {
-  testWidgets('a deep link to step 1 opens step 2; the folio reads 1 / 4 with four rules', (tester) async {
-    await pumpOnboarding(tester, step: 1);
+  testWidgets('step 1 shows both editions with live previews; the folio reads 1 / 5', (tester) async {
+    await pumpOnboarding(tester, step: 1, profileStep: null);
     await settleFor(tester, 300);
-    expect(find.text('1 / 4'), findsOneWidget);
+    expect(find.text('1 / 5'), findsOneWidget);
+    expect(find.bySemanticsLabel('Step 1 of 5'), findsOneWidget);
+    expect(find.text('YOUR EDITION'), findsOneWidget);
+    expect(_headline('Pick how the app looks.'), findsOneWidget);
+    expect(find.byKey(const Key('preview-frame-cinematic')), findsOneWidget);
+    expect(find.byKey(const Key('preview-frame-glass'), skipOffstage: false), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp(r'^Cinematic\. .*This edition\.')), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp(r'^Glass\.')), findsOneWidget);
+    expect(find.text('Choose Glass', skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('step 1: keeping Cinematic advances to Formats without a restart', (tester) async {
+    final asked = <String>[];
+    final prev = OnboardingScreen.restartIntoGlass;
+    OnboardingScreen.restartIntoGlass = (_, __, route) async => asked.add(route);
+    addTearDown(() => OnboardingScreen.restartIntoGlass = prev);
+    final rig = await pumpOnboarding(tester, step: 1, profileStep: null);
+    await settleFor(tester, 300);
+    await tester.tap(find.text('Continue in Cinematic'));
+    await settleFor(tester, 900);
+    expect(find.text('2 / 5'), findsOneWidget);
     expect(_headline('What do you read?'), findsOneWidget);
-    expect(find.bySemanticsLabel('Step 1 of 4'), findsOneWidget);
-    expect(find.text('FORMATS'), findsOneWidget);
+    expect(rig.repo.puts.single, {'step': 2});
+    expect(asked, isEmpty);
+  });
+
+  testWidgets('step 1: Choose Glass saves the run at Glass\'s Formats and restarts there', (tester) async {
+    final asked = <String>[];
+    final prev = OnboardingScreen.restartIntoGlass;
+    OnboardingScreen.restartIntoGlass = (_, __, route) async => asked.add(route);
+    addTearDown(() => OnboardingScreen.restartIntoGlass = prev);
+    final rig = await pumpOnboarding(tester, step: 1, profileStep: null);
+    await settleFor(tester, 300);
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -900));
+    await settleFor(tester, 600);
+    await tester.tap(find.text('Choose Glass'));
+    await settleFor(tester, 300);
+    expect(rig.repo.puts, [{'step': 3}]);
+    expect(asked, ['/welcome?step=3']);
+    expect(rig.repo.puts.single, {'step': 3});
+  });
+
+  testWidgets('after the restart from Glass the run resumes at step 2, not the edition pick', (tester) async {
+    await pumpOnboarding(tester, step: 2, profileStep: 2);
+    await settleFor(tester, 300);
+    expect(find.text('2 / 5'), findsOneWidget);
+    expect(_headline('What do you read?'), findsOneWidget);
+    expect(find.text('YOUR EDITION'), findsNothing);
+  });
+
+  testWidgets('step 1 works offline: its previews are bundled', (tester) async {
+    final repo = FakeOnboardingRepo()..error = const NetworkError(message: 'x');
+    await pumpOnboarding(tester, step: 1, profileStep: null, repo: repo);
+    await settleFor(tester, 300);
+    expect(find.text('Continue in Cinematic'), findsOneWidget);
+    expect(find.text('OFFLINE EDITION'), findsNothing);
   });
 
   testWidgets('the headline types at 50 ms per grapheme, is a level-1 heading and completes on a tap', (tester) async {
@@ -48,7 +101,7 @@ void main() {
     await tester.pump();
     expect(rig.repo.puts.single, {'step': 3, 'formats': ['manga']});
     await settleFor(tester, 1500);
-    expect(find.text('2 / 4'), findsOneWidget);
+    expect(find.text('3 / 5'), findsOneWidget);
     expect(rig.container.read(onboardingStoreProvider).readDraft().touched.length, 1);
   });
 
@@ -66,16 +119,16 @@ void main() {
       await tester.tap(find.text('Next'));
       await settleFor(tester, 900);
     }
-    expect(find.text('3 / 4'), findsOneWidget);
+    expect(find.text('4 / 5'), findsOneWidget);
     await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000);
     await settleFor(tester, 800);
-    expect(find.text('3 / 4'), findsOneWidget);
+    expect(find.text('4 / 5'), findsOneWidget);
     await tester.binding.handlePopRoute();
     await settleFor(tester, 900);
-    expect(find.text('2 / 4'), findsOneWidget);
+    expect(find.text('3 / 5'), findsOneWidget);
     await tester.binding.handlePopRoute();
     await settleFor(tester, 900);
-    expect(find.text('1 / 4'), findsOneWidget);
+    expect(find.text('2 / 5'), findsOneWidget);
     await tester.binding.handlePopRoute();
     await settleFor(tester, 1000);
     expect(rig.at, '/profiles');
@@ -86,10 +139,10 @@ void main() {
     await settleFor(tester, 300);
     await tester.tap(find.text('Next'));
     await settleFor(tester, 900);
-    expect(find.text('2 / 4'), findsOneWidget);
+    expect(find.text('3 / 5'), findsOneWidget);
     await tester.fling(find.byType(PageView), const Offset(300, 0), 1000);
     await settleFor(tester, 1500);
-    expect(find.text('1 / 4'), findsOneWidget);
+    expect(find.text('2 / 5'), findsOneWidget);
   });
 
   testWidgets('on iOS the route cannot be swiped and the pop is blocked', (tester) async {
@@ -104,7 +157,7 @@ void main() {
       await tester.binding.handlePopRoute();
       await settleFor(tester, 900);
       expect(rig.at, startsWith('/welcome'), reason: 'PopScope turns the pop into a step back');
-      expect(find.text('1 / 4'), findsOneWidget);
+      expect(find.text('2 / 5'), findsOneWidget);
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
@@ -113,7 +166,7 @@ void main() {
   testWidgets('resume: a profile stopped at step 4 opens there; a hand-typed step above it is capped', (tester) async {
     await pumpOnboarding(tester, step: 5, profileStep: 4);
     await settleFor(tester, 300);
-    expect(find.text('3 / 4'), findsOneWidget);
+    expect(find.text('4 / 5'), findsOneWidget);
     expect(_headline('Which of these do you like the look of?'), findsOneWidget);
   });
 
@@ -152,10 +205,10 @@ void main() {
     await settleFor(tester, 300);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
     await settleFor(tester, 900);
-    expect(find.text('2 / 4'), findsOneWidget);
+    expect(find.text('3 / 5'), findsOneWidget);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
     await settleFor(tester, 900);
-    expect(find.text('1 / 4'), findsOneWidget);
+    expect(find.text('2 / 5'), findsOneWidget);
   });
 
   testWidgets('reduced motion: steps change at once', (tester) async {
@@ -164,7 +217,7 @@ void main() {
     await tester.tap(find.text('Next'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
-    expect(find.text('2 / 4'), findsOneWidget);
+    expect(find.text('3 / 5'), findsOneWidget);
     expect(_headline('Tap once to like, twice to love, hold to skip.'), findsOneWidget);
   });
 }

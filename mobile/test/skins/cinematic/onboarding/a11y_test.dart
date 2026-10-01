@@ -9,7 +9,7 @@ import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'onboarding_test_support.dart';
 
 void main() {
-  for (final step in [2, 3, 4, 5]) {
+  for (final step in [1, 2, 3, 4, 5]) {
     for (final scale in [1.3, 2.0]) {
       testWidgets('step $step renders at text scale $scale without overflow', (t) async {
         await pumpOnboarding(t, step: step, profileStep: step, scale: scale);

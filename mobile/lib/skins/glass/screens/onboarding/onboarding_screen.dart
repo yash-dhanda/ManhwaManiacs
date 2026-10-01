@@ -7,10 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/core/network/network_connectivity.dart';
+import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/onboarding/store/onboarding_draft.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
-import 'package:manhwamaniacs/features/profiles/models/profile_extras.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/profiles/providers/skin_outbox.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
@@ -145,14 +146,8 @@ class _GlassOnboardingScreenState extends ConsumerState<GlassOnboardingScreen> w
     if (_leaving) return;
     _leaving = true;
     final reduced = glassReduced(ref);
-    final skin = ref.read(glassOnboardingFlowProvider).skin;
     await Future<void>.delayed(Duration(milliseconds: reduced ? 200 : 900));
     if (!mounted) return;
-    if (skin == 'cinematic') {
-      await playMelt(ref);
-      if (mounted) await restartIntoSkin(context, ref, SkinId.cinematic);
-      return;
-    }
     final target = glassFlightTarget(context, tab: GlassTab.home, sidebarHome: true);
     final from = globalRectOfKey(_dotsKey);
     if (reduced || from == null) {
@@ -174,9 +169,25 @@ class _GlassOnboardingScreenState extends ConsumerState<GlassOnboardingScreen> w
     context.go(Routes.tonight());
   }
 
+  /// Look: Glass carries on to Formats. Cinematic queues the profile's skin (the outbox wins at boot), saves the answers with
+  /// Cinematic's Formats step (Cinematic numbers 1 Edition, 2 Formats), melts and restarts into Cinematic at that step with the
+  /// session carried, so the run neither signs out nor repeats the pick.
   Future<void> _chooseLook(String skin, Profile p) async {
-    ref.read(glassOnboardingFlowProvider.notifier).setSkin(skin);
-    await ref.read(profilesProvider.notifier).edit(p.id, extras: ProfileExtras(skin: skin));
+    if (_leaving) return;
+    final flow = ref.read(glassOnboardingFlowProvider.notifier)..setSkin(skin);
+    if (skin == 'glass') return _next();
+    _leaving = true;
+    const cinematicFormats = 2;
+    final outbox = ref.read(skinOutboxProvider);
+    await outbox.enqueue(p.id, SkinId.cinematic);
+    unawaited(outbox.flush());
+    flow.commit(cinematicFormats);
+    await flow.flush();
+    if (!mounted) return;
+    await playMelt(ref);
+    // An explicit choice on this device: the icon follows only while `mm.icon.follow` is on (glass 12.2).
+    await ref.read(appIconSwitcherProvider).onExplicitSkinChoice(SkinId.cinematic);
+    if (mounted) await restartIntoSkin(context, ref, SkinId.cinematic, returnRoute: Routes.onboarding({'step': cinematicFormats}));
   }
 
   @override

@@ -8,7 +8,8 @@ import 'package:manhwamaniacs/skins/glass/primitives/spring_value.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/skin_preview_loop.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
-/// Step 2, Look (only when Glass is available): the two skins as preview cards, a radio group with Glass selected.
+/// Step 2, Look (only when Glass is available): the two skins as preview cards, a radio group with Glass selected. Choosing
+/// Glass carries on; choosing Cinematic restarts into Cinematic at its Formats step.
 class GlassLookStep extends ConsumerWidget {
   const GlassLookStep({super.key, required this.skin, required this.onChoose, required this.profileId});
   final String skin;
@@ -34,10 +35,8 @@ class GlassLookStep extends ConsumerWidget {
               ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: cards[0]), const SizedBox(width: 16), Expanded(child: cards[1])])
               : Column(children: [cards[0], const SizedBox(height: 16), cards[1]]),
         ),
-        if (skin == 'cinematic') ...[
-          const SizedBox(height: 16),
-          GlassText('The app will restart in Cinematic after the last step.', role: gt.typeFootnote, color: gt.colorLabel2),
-        ],
+        const SizedBox(height: 16),
+        GlassText('Choosing Cinematic restarts the app in Cinematic and carries on from here.', role: gt.typeFootnote, color: gt.colorLabel2),
       ],
     );
   }

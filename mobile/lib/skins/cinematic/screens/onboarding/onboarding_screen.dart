@@ -7,10 +7,13 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/app/switch_skin.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
+import 'package:manhwamaniacs/features/onboarding/models/taste.dart';
 import 'package:manhwamaniacs/features/onboarding/providers/onboarding_providers.dart';
 import 'package:manhwamaniacs/features/onboarding/utils/onboarding_steps.dart';
 import 'package:manhwamaniacs/features/onboarding/utils/print_run.dart';
@@ -18,10 +21,12 @@ import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dar
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/flight.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
+import 'package:manhwamaniacs/skins/cinematic/overlays/stop_the_press.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_grid.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/art_style_step.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/edition_step.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/formats_step.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/genres_step.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/onboarding/onboarding_flow.dart';
@@ -33,16 +38,18 @@ import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_page_physics.d
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/skin.dart';
 import 'package:swipeable_page_route/swipeable_page_route.dart';
 
-const _kickers = {2: 'FORMATS', 3: 'GENRES', 4: 'ART STYLE', 5: 'YOUR FIRST ISSUE'};
+const _kickers = {1: 'YOUR EDITION', 2: 'FORMATS', 3: 'GENRES', 4: 'ART STYLE', 5: 'YOUR FIRST ISSUE'};
 const _headlines = {
+  1: 'Pick how the app looks.',
   2: 'What do you read?',
   3: 'Tap once to like, twice to love, hold to skip.',
   4: 'Which of these do you like the look of?',
   5: 'Choose three or more to start.',
 };
-const _names = {2: 'Formats', 3: 'Genres', 4: 'Art style', 5: 'Seeds'};
+const _names = {1: 'Edition', 2: 'Formats', 3: 'Genres', 4: 'Art style', 5: 'Seeds'};
 
 Future<ui.Image?> _resolveImage(String url) {
   final done = Completer<ui.Image?>();
@@ -62,7 +69,7 @@ Future<ui.Image?> _resolveImage(String url) {
 /// How a step's catalog stands: what the page shows.
 enum _Mode { normal, offline, unreachable }
 
-/// "The first issue" (cinematic 8.7): the takeover that sets a new profile's taste in four steps
+/// "The first issue" (cinematic 8.7): the takeover that picks a new profile's edition and sets its taste in five steps
 /// and plays Cut to home. Reads `step` once; from then on the step lives here.
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key, this.requestedStep});
@@ -72,6 +79,20 @@ class OnboardingScreen extends ConsumerStatefulWidget {
   @visibleForTesting
   static Future<ui.Image?> Function(String url) imageLoader = _resolveImage;
 
+  /// The restart into Glass from step 1 (tests record it: there is no `AppRestart` above a widget test).
+  @visibleForTesting
+  static Future<void> Function(BuildContext context, WidgetRef ref, String returnRoute) restartIntoGlass = _restartIntoGlass;
+
+  static Future<void> _restartIntoGlass(BuildContext context, WidgetRef ref, String returnRoute) {
+    final icon = ref.read(appIconSwitcherProvider);
+    // The PATCH of the profile's skin is queued by the switch; no confirm and no Undo, nothing is lost mid-onboarding.
+    return switchSkinFrom(context, ref, to: SkinId.glass, undoable: false, returnRoute: returnRoute, outgoing: () async {
+      await StopThePress.outgoing(context);
+      // An explicit choice on this device: the icon follows only while `mm.icon.follow` is on (glass 12.2).
+      await icon.onExplicitSkinChoice(SkinId.glass);
+    },);
+  }
+
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
@@ -79,21 +100,18 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _page = PageController();
   final Map<int, FocusNode> _heads = {};
-  late final List<int> _stack;
+  /// The steps on the pager; empty until the profiles have loaded.
+  final List<int> _stack = [];
   bool _printing = false, _busy = false;
   SwipeablePageRoute<dynamic>? _route;
 
-  // ponytail: step 1 (Edition, cinematic 8.7) is not built, so the flow stays at four steps even with Glass on; Glass is picked
-  // in Settings -> Appearance or on the profile form. Build step 1, then read Flags.glassAvailable here.
-  bool get _glass => false;
+  bool get _glass => Flags.glassAvailable;
 
-  @override
-  void initState() {
-    super.initState();
-    final activeId = ref.read(activeProfileProvider)?.id;
-    final saved = ref.read(profilesProvider).valueOrNull?.where((p) => p.id == activeId).firstOrNull?.onboarding;
+  /// The entry step waits for the profiles: a cold boot into `/welcome?step=n` (the return route of a skin restart) resumes at
+  /// the saved step instead of clamping to the Edition pick.
+  void _start(OnboardingStep? saved) {
     final entry = entryStep(widget.requestedStep, resumeStep(saved, _glass), _glass);
-    _stack = [entry];
+    _stack.add(entry);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final flow = ref.read(onboardingFlowProvider.notifier)..enter(entry);
@@ -167,6 +185,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() => _stack.removeRange(i + 1, _stack.length));
     ref.read(onboardingFlowProvider.notifier).enter(_stack.last);
     _arrived(_stack.last);
+  }
+
+  /// Step 1's `Choose Glass`: save the answers with Glass's Formats step (Glass numbers 1 Welcome, 2 Look, 3 Formats), then
+  /// restart into Glass at that step with the session carried, so the run neither signs out nor repeats the pick.
+  Future<void> _chooseGlass() async {
+    if (_busy) return;
+    _busy = true;
+    const glassFormats = 3;
+    cineFeedback(context, HapticEvent.tapPrimary, sound: SoundEvent.tapPrimary);
+    await ref.read(onboardingFlowProvider.notifier).handOff(glassFormats);
+    if (!mounted) return;
+    await OnboardingScreen.restartIntoGlass(context, ref, Routes.onboarding({'step': glassFormats}));
   }
 
   void _leaveToTonight({String transition = 'dip'}) => context.go(Routes.tonight(), extra: {'transition': transition});
@@ -258,6 +288,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // --- pages ---------------------------------------------------------------------------------
 
   _Mode _mode(int step, bool online) {
+    // Step 1's previews are bundled: it works offline.
+    if (step == 1) return _Mode.normal;
     if (!online) return _Mode.offline;
     if (step == 4) return _Mode.normal;
     final async = ref.watch(onboardingCatalogProvider(ref.read(onboardingFlowProvider.notifier).keyFor(step)));
@@ -269,6 +301,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _stepSliver(int step) {
     final key = ref.read(onboardingFlowProvider.notifier).keyFor(step);
     return switch (step) {
+      1 => SliverToBoxAdapter(child: EditionStep(onGlass: () => unawaited(_chooseGlass()))),
       2 => FormatsStep(catalogKey: key),
       3 => GenresStep(catalogKey: key),
       4 => const ArtStyleStep(),
@@ -309,6 +342,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_stack.isEmpty) {
+      final profiles = ref.watch(profilesProvider);
+      if (!profiles.hasValue && !profiles.hasError) return const ColoredBox(color: Color(0xFF000000));
+      final activeId = ref.read(activeProfileProvider)?.id;
+      _start(profiles.valueOrNull?.where((p) => p.id == activeId).firstOrNull?.onboarding);
+    }
     final c = context.cine;
     final online = ref.watch(deviceOnlineProvider).valueOrNull ?? true;
     final grid = CineGrid.of(context);
@@ -331,6 +370,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       label = 'Print my first issue';
       onPressed = picks >= 3 && !_printing ? _print : null;
       why = 'Pick three or more first.';
+    } else if (cur == 1) {
+      label = 'Continue in Cinematic';
+      onPressed = _next;
     } else {
       label = 'Next';
       onPressed = _next;
