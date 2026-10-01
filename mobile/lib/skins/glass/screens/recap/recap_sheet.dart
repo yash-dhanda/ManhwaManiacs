@@ -20,6 +20,7 @@ import 'package:manhwamaniacs/features/recap/sse.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/machine_badge.dart';
@@ -243,7 +244,7 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
   }
 
   void _close() {
-    if (mounted) Navigator.of(context).maybePop();
+    if (mounted) skinBack(context, glass: true);
   }
 
   Future<void> _continue([String? chapterKey]) async {
@@ -260,7 +261,8 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
         : const Rect.fromLTWH(0, 0, 1, 1);
     final nav = Navigator.of(context);
     final ctx = nav.context;
-    nav.pop();
+    // The full page (a cold deep link) is the only route: keep it beneath the reader.
+    if (nav.canPop()) nav.pop();
     if (ctx.mounted) await enterReader(ctx, ref, loc, fromRect: from);
   }
 

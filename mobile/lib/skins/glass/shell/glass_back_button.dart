@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
@@ -23,7 +24,8 @@ String backLabel(
       : 'Back to $previousTitle';
 }
 
-/// Back: `caret-left`, or the strata glyph in readers and full-height sheets. A tap pops; a long-press (450 ms) or `Ctrl+\` opens the
+/// Back: `caret-left`, or the strata glyph in readers and full-height sheets. A tap pops (with nothing beneath, goes to the page's
+/// parent, `backParentOf`); a long-press (450 ms) or `Ctrl+\` opens the
 /// stack overview; every back button carries the "All levels" custom semantics action.
 class GlassBackButton extends ConsumerWidget {
   const GlassBackButton(
@@ -63,7 +65,7 @@ class GlassBackButton extends ConsumerWidget {
         child: showDepth && depth > 0
             ? _DepthBack(
                 label: label,
-                onPressed: () => Navigator.of(context).maybePop(),
+                onPressed: () => skinBack(context, glass: true),
                 onLongPress: open,
                 depth: depth,
                 tints: [for (final l in levels) l.rimTint],)
@@ -71,13 +73,13 @@ class GlassBackButton extends ConsumerWidget {
                 ? GlassBarIcon(
                     icon: roleIcon(GlassIconRole.back),
                     label: label,
-                    onPressed: () => Navigator.of(context).maybePop(),
+                    onPressed: () => skinBack(context, glass: true),
                     onLongPress: open,)
                 : GlassIconButton(
                     icon: roleIcon(GlassIconRole.back),
                     label: label,
                     kind: GlassIconButtonKind.nav,
-                    onPressed: () => Navigator.of(context).maybePop(),
+                    onPressed: () => skinBack(context, glass: true),
                     onLongPress: open,
                     haptic: HapticEvent.navPop,
                   ),

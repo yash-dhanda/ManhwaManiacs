@@ -9,6 +9,7 @@ import 'package:manhwamaniacs/features/auth/utils/route_guard.dart';
 import 'package:manhwamaniacs/features/onboarding/store/onboarding_draft.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart' show setupCompletedProvider;
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/dev/auth_fixtures.dart';
 import 'package:manhwamaniacs/skins/glass/dev/calibration_page.dart';
@@ -113,7 +114,8 @@ Widget _hub(GoRouterState s, LibrarySection section, {bool browse = false}) {
 /// takeovers have no transition and no back swipe.
 Page<void> glassPage(GoRouterState state, Widget child, {bool reader = false, bool takeover = false, LocalKey? pageKey}) {
   final key = pageKey ?? state.pageKey;
-  final body = GlassRouteFrame(routeKey: (key as ValueKey<String>).value, sheetHost: (c) => GlassSheetParamHost(child: c), child: child);
+  // Readers leave to the book page on their own; every other page backs to its parent when nothing is beneath it.
+  final body = GlassRouteFrame(routeKey: (key as ValueKey<String>).value, sheetHost: (c) => GlassSheetParamHost(child: c), child: reader ? child : SkinBackFallback(glass: true, child: child));
   if (takeover) return NoTransitionPage<void>(key: key, child: body);
   if (defaultTargetPlatform == TargetPlatform.android) {
     return GlassMaterialPage<void>(key: key, name: state.name, builder: (_) => body, instantEnter: reader);
@@ -396,7 +398,7 @@ GoRouter buildGlassRouter(Ref ref) {
           transitionDuration: kGlassSearchDuration,
           reverseTransitionDuration: kGlassSearchDuration,
           child: const SizedBox.shrink(),
-          transitionsBuilder: (context, animation, secondary, child) => GlassRouteFrame(routeKey: _keyOf(state), child: GlassSearchPage(animation: animation)),
+          transitionsBuilder: (context, animation, secondary, child) => GlassRouteFrame(routeKey: _keyOf(state), child: SkinBackFallback(glass: true, child: GlassSearchPage(animation: animation))),
         ),
       ),
       _seriesRoute(ScreenId.feature, rootKey, (s) => GlassFeatureScreen(sourceId: s.pathParameters['sourceId']!, seriesKey: s.pathParameters['seriesKey']!, chapter: s.uri.queryParameters['chapter'], sheet: s.uri.queryParameters['sheet'], velocity: s.extra is GlassNavExtra ? (s.extra! as GlassNavExtra).velocity : null)),
@@ -404,12 +406,11 @@ GoRouter buildGlassRouter(Ref ref) {
         path: ScreenId.recap.path,
         name: _nameOf(ScreenId.recap),
         parentNavigatorKey: rootKey,
-        pageBuilder: (context, state) => glassSheetOrPage(
-          context,
-          state,
-          RecapSheet(sourceId: state.pathParameters['sourceId']!, seriesKey: state.pathParameters['seriesKey']!, to: state.uri.queryParameters['to'], scope: state.uri.queryParameters['scope'] == 'chapter' ? 'chapter' : 'series'),
-          title: 'Recap',
-        ),
+        pageBuilder: (context, state) {
+          Widget recap() => RecapSheet(sourceId: state.pathParameters['sourceId']!, seriesKey: state.pathParameters['seriesKey']!, to: state.uri.queryParameters['to'], scope: state.uri.queryParameters['scope'] == 'chapter' ? 'chapter' : 'series');
+          // The full page (a cold deep link) carries the nav bar's Back.
+          return glassSheetOrPage(context, state, recap(), title: 'Recap', screen: GlassScaffold(title: 'Recap', leading: GlassLeading.back, slivers: [SliverToBoxAdapter(child: recap())]));
+        },
       ),
       // A friend (mobile/43, glass 9.3.5): a `large` sheet, the 560 px window on wide frames, a full page on a cold deep link.
       GoRoute(
