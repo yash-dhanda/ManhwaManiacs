@@ -4,6 +4,7 @@ library;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/active_download_queue_provider.dart';
@@ -16,6 +17,7 @@ import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart
 import 'package:manhwamaniacs/features/library/providers/glass_density_provider.dart';
 import 'package:manhwamaniacs/features/library/utils/glass_density.dart';
 import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
+import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/screens/downloads/series_downloads_card.dart';
@@ -65,12 +67,20 @@ List<Override> _downloads() => [
             chapter(11, title: 'Salt and Iron', state: DownloadChapterState.downloading),
             chapter(12, title: 'Salt and Iron', state: DownloadChapterState.queued),
             chapter(13, series: 'series-3', title: 'Moonlit Bakery', state: DownloadChapterState.failed),
+            // The 18+ fixture: the gate is closed in every capture, so it must appear in no row, count, badge or meter.
+            chapter(14, series: 'series-9', title: 'Velvet Knife', state: DownloadChapterState.queued, mature: true),
           ],),
     ];
 
 List<Override> _bookmarks() => [
       bookmarksProvider.overrideWith(() => FakeBookmarks([bookmark('a', title: 'Salt and Iron'), bookmark('b', series: 'series-2', title: 'Ember Ledger'), bookmark('c', series: 'series-3', title: 'Moonlit Bakery')])),
     ];
+
+class _RunRepo extends FakeUpdatesRepo {
+  _RunRepo() : super(notifications: [notification(1, 1, 141)]);
+  @override
+  Future<Result<UpdateRun>> getRun(int runId) async => Ok(UpdateRun(id: runId, trigger: 'schedule', status: 'failed', seriesChecked: 41, newChaptersFound: 3, error: 'shelf: timed out after 30 s', startedAt: DateTime.utc(2026, 9, 30, 6), finishedAt: DateTime.utc(2026, 9, 30, 6, 2)));
+}
 
 enum _Look { normal, reduced, solid, contrast }
 
@@ -113,6 +123,14 @@ Future<void> _shot(WidgetTester t, String name, String route, {List<SkinShotSize
   }
 }
 
+/// A frame captured while a gesture is held: [act] snaps it itself, then releases.
+Future<void> _held(WidgetTester t, String route, Future<void> Function(ShotSession s) act) async {
+  final s = await _open(t, _phone, route);
+  await act(s);
+  await s.settle(400);
+  await _end(t);
+}
+
 void main() {
   setUpAll(loadAppFonts);
   final all = [_phone, _tablet, _desktop];
@@ -148,6 +166,22 @@ void main() {
     testWidgets('empty', (t) => _shot(t, 'shelf-empty', '/library', lib: FakeLib.new));
     testWidgets('error', (t) => _shot(t, 'shelf-error', '/library', lib: () => _lib()..down = true));
     testWidgets('offline', (t) => _shot(t, 'shelf-offline', '/library', lib: () => _lib()..down = true, extra: [glassOfflineProvider.overrideWithValue(true)]));
+    testWidgets('mid-pinch', (t) => _held(t, '/library', (s) async {
+          final c = t.getCenter(find.text('Ember Ledger').first);
+          final a = await t.startGesture(c - const Offset(40, 60), pointer: 7);
+          final b = await t.startGesture(c + const Offset(40, -60), pointer: 8);
+          await s.settle(16);
+          await a.moveBy(const Offset(-30, 0));
+          await b.moveBy(const Offset(30, 0));
+          await s.settle(16);
+          await s.snap('shelf-pinch-mid', _phone);
+          await a.up();
+          await b.up();
+        },),);
+    testWidgets('Downloading accessory over a scrolled shelf', (t) => _shot(t, 'dock-downloading-accessory', '/library', extra: [glassActiveDownloadCountProvider.overrideWithValue(3)], act: (s) async {
+          await t.drag(find.text('Ember Ledger').first, const Offset(0, -300));
+          await s.settle(600);
+        },),);
     testWidgets('dock badge', (t) async {
       final s = await _open(t, _phone, '/library', extra: [glassActiveDownloadCountProvider.overrideWithValue(12)]);
       await s.snap('dock-library-badge', _phone);
@@ -187,6 +221,8 @@ void main() {
     testWidgets('history empty', (t) => _shot(t, 'history-empty', '/library/history', lib: FakeLib.new));
     testWidgets('bookmarks default', (t) => _shot(t, 'bookmarks-default', '/library/bookmarks', sizes: all));
     testWidgets('bookmarks filtered', (t) => _shot(t, 'bookmarks-filtered', '/library/bookmarks?source=shelf&series=series-1'));
+    testWidgets('history offline', (t) => _shot(t, 'history-offline', '/library/history', lib: () => _lib()..down = true, extra: [glassOfflineProvider.overrideWithValue(true)]));
+    testWidgets('bookmarks offline', (t) => _shot(t, 'bookmarks-offline', '/library/bookmarks', extra: [glassOfflineProvider.overrideWithValue(true)]));
     testWidgets('bookmarks empty', (t) => _shot(t, 'bookmarks-empty', '/library/bookmarks', extra: [bookmarksProvider.overrideWith(() => FakeBookmarks(const []))]));
   });
 
@@ -194,6 +230,7 @@ void main() {
     testWidgets('all', (t) => _shot(t, 'updates-all', '/updates', sizes: all));
     testWidgets('unread', (t) => _shot(t, 'updates-unread', '/updates?tab=unread'));
     testWidgets('followed', (t) => _shot(t, 'updates-followed', '/updates?tab=followed'));
+    testWidgets('run sheet', (t) => _shot(t, 'updates-run-sheet', '/updates?sheet=run&run=7', extra: [updatesRepositoryProvider.overrideWithValue(_RunRepo())]));
     testWidgets('all read', (t) => _shot(t, 'updates-all-read', '/updates', extra: [updatesRepositoryProvider.overrideWithValue(FakeUpdatesRepo(notifications: [notification(5, 2, 77, read: true)]))]));
   });
 
@@ -208,6 +245,14 @@ void main() {
     testWidgets('queue paused by you', (t) => _shot(t, 'downloads-queue-paused', '/downloads?tab=queue', act: (s) async {
           s.container.read(downloadQueueControllerProvider.notifier).pause();
           await s.settle(600);
+        },),);
+    testWidgets('queue reorder lift', (t) => _held(t, '/downloads?tab=queue', (s) async {
+          final g = await t.startGesture(t.getCenter(find.textContaining('Chapter 12').last));
+          await s.settle();
+          await g.moveBy(const Offset(0, 24));
+          await s.settle(100);
+          await s.snap('downloads-queue-reorder-lift', _phone);
+          await g.up();
         },),);
     testWidgets('Save to Files sheet', (t) => _shot(t, 'downloads-save-files-sheet', '/downloads?sheet=save-files&series=shelf:series-1'));
     testWidgets('empty', (t) => _shot(t, 'downloads-empty', '/downloads', extra: downloadOverrides(const [])));
