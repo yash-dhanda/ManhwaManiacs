@@ -409,7 +409,7 @@ GoRouter buildGlassRouter(Ref ref) {
         pageBuilder: (context, state) {
           Widget recap() => RecapSheet(sourceId: state.pathParameters['sourceId']!, seriesKey: state.pathParameters['seriesKey']!, to: state.uri.queryParameters['to'], scope: state.uri.queryParameters['scope'] == 'chapter' ? 'chapter' : 'series');
           // The full page (a cold deep link) carries the nav bar's Back.
-          return glassSheetOrPage(context, state, recap(), title: 'Recap', screen: GlassScaffold(title: 'Recap', leading: GlassLeading.back, slivers: [SliverToBoxAdapter(child: recap())]));
+          return glassSheetOrPage(context, state, recap(), title: 'Recap', screen: GlassScaffold(title: 'Recap', largeTitle: false, leading: GlassLeading.back, insetSlivers: false, slivers: [SliverToBoxAdapter(child: recap())]));
         },
       ),
       // A friend (mobile/43, glass 9.3.5): a `large` sheet, the 560 px window on wide frames, a full page on a cold deep link.
