@@ -281,6 +281,21 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
 
   bool _registered = false;
   bool _disposed = false;
+
+  /// Deactivated (moving in the tree or about to be disposed): the render object may not be read.
+  bool _inactive = false;
+
+  @override
+  void deactivate() {
+    _inactive = true;
+    super.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _inactive = false;
+  }
   Offset _glowAt = Offset.zero;
   LiquidGlassSettings? _held;
 
@@ -367,7 +382,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   // -- registry ----------------------------------------------------------------
 
   Rect? _globalRect() {
-    if (_disposed || !mounted) return null;
+    if (_disposed || !mounted || _inactive) return null;
     final box = context.findRenderObject();
     if (box is! RenderBox || !box.attached || !box.hasSize) return null;
     return box.localToGlobal(Offset.zero) & box.size;

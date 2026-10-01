@@ -162,9 +162,14 @@ class GlassMetricsWatcher extends ConsumerStatefulWidget {
 }
 
 class _GlassMetricsWatcherState extends ConsumerState<GlassMetricsWatcher> with WidgetsBindingObserver {
+  // Read once: a metrics change can arrive while this element is deactivated (a window resize during a tree swap), when an
+  // ancestor lookup through `ref` would assert.
+  late final GlassRegistryController _registry = ref.read(glassRegistryProvider.notifier);
+
   @override
   void initState() {
     super.initState();
+    _registry;
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -175,7 +180,7 @@ class _GlassMetricsWatcherState extends ConsumerState<GlassMetricsWatcher> with 
   }
 
   @override
-  void didChangeMetrics() => ref.read(glassRegistryProvider.notifier).scheduleRecompute();
+  void didChangeMetrics() => _registry.scheduleRecompute();
 
   @override
   Widget build(BuildContext context) => widget.child;
