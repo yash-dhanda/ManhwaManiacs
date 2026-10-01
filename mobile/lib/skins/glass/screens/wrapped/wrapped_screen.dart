@@ -121,11 +121,11 @@ class _StoryState extends ConsumerState<_Story> with TickerProviderStateMixin, W
   double _settleFrom = 0;
   double _settleTo = 0;
   int _settleDir = 0;
-  late final AnimationController _settle = AnimationController(vsync: this, duration: const Duration(milliseconds: 615));
-  late final AnimationController _auto = AnimationController(vsync: this, duration: const Duration(milliseconds: 6000));
-  late final AnimationController _flip = AnimationController(vsync: this, duration: const Duration(milliseconds: 436));
-  late final AnimationController _closeC = AnimationController(vsync: this, duration: const Duration(milliseconds: 558));
-  late final AnimationController _fade = AnimationController(vsync: this, duration: const Duration(milliseconds: 200), value: 1);
+  late final AnimationController _settle = AnimationController(vsync: this, animationBehavior: AnimationBehavior.preserve, duration: const Duration(milliseconds: 615));
+  late final AnimationController _auto = AnimationController(vsync: this, animationBehavior: AnimationBehavior.preserve, duration: const Duration(milliseconds: 6000));
+  late final AnimationController _flip = AnimationController(vsync: this, animationBehavior: AnimationBehavior.preserve, duration: const Duration(milliseconds: 436));
+  late final AnimationController _closeC = AnimationController(vsync: this, animationBehavior: AnimationBehavior.preserve, duration: const Duration(milliseconds: 558));
+  late final AnimationController _fade = AnimationController(vsync: this, animationBehavior: AnimationBehavior.preserve, duration: const Duration(milliseconds: 200), value: 1);
   final FocusNode _focus = FocusNode(debugLabel: 'wrapped');
   final Object _token = Object();
   late final ShortcutRegistry _shortcuts = ref.read(shortcutRegistryProvider.notifier);

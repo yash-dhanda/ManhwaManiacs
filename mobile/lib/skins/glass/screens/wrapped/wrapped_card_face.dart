@@ -147,7 +147,7 @@ class _WrappedCardFaceState extends ConsumerState<WrappedCardFace> with SingleTi
     final foot = copy.footnote.isEmpty ? const SizedBox.shrink() : GlassLabel(copy.footnote, role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 2, textAlign: TextAlign.center);
     final export = widget.onExport == null
         ? null
-        : SizedBox(width: 104, height: 44, child: GlassButton(label: widget.card == WrappedCard.summary ? 'Share your year' : 'Export', size: GlassButtonSize.small, onPressed: widget.onExport));
+        : SizedBox(width: 104, height: 44, child: GlassButton(label: widget.card == WrappedCard.summary ? 'Share your year' : 'Export', size: GlassButtonSize.small, twin: GlassTwin.onGlass, onPressed: widget.onExport));
     if (widget.reflow) {
       return _Column(ground: cardGround(a), eyebrow: eyebrow, headline: headline, figure: figure, foot: foot, export: export);
     }
