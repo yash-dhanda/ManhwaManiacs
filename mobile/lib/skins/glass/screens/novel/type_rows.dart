@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/novels/providers/glass_novel_prefs_provid
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/stepper.dart';
@@ -28,6 +29,11 @@ class NovelTypeContext {
     required this.onReset,
     this.palette,
     this.phone = true,
+    this.soundscapeSummary = 'Off',
+    this.onSoundscape,
+    this.cruiseOffered = false,
+    this.cruiseRunning = false,
+    this.onToggleCruise,
   });
   final GlassNovelValues values;
   final GlassNovelPrefs prefs;
@@ -37,6 +43,14 @@ class NovelTypeContext {
   final VoidCallback onReset;
   final CoverPalette? palette;
   final bool phone;
+
+  /// The Ambient group's Soundscape row (glass 8.15.5): its state, and what it opens.
+  final String soundscapeSummary;
+  final VoidCallback? onSoundscape;
+
+  /// Text scale above 1.3 moves the cruise button here, as the group's first row (glass 3.3 rule 4).
+  final bool cruiseOffered, cruiseRunning;
+  final VoidCallback? onToggleCruise;
 }
 
 /// One row of the Aa sheet.
@@ -138,7 +152,9 @@ List<NovelTypeRow> novelTypeRows() => [
             ),),
       NovelTypeRow('papers', (context, c) => _Labelled('Paper', NovelPaperOrbs(selected: c.values.paper, onSelected: c.onPaper, palette: c.palette))),
       NovelTypeRow('caption-ambient', (context, c) => const _Caption('Ambient · All books')),
+      NovelTypeRow('cruise', (context, c) => c.cruiseOffered ? _Switch('Cruise', c.cruiseRunning, (_) => c.onToggleCruise?.call()) : const SizedBox.shrink()),
       NovelTypeRow('page-tinted', (context, c) => _Switch('Page-tinted chrome', c.pageTinted, c.setPageTinted)),
+      NovelTypeRow('soundscape', (context, c) => _NavRow('Soundscape', c.soundscapeSummary, c.onSoundscape)),
       NovelTypeRow('caption-screen', (context, c) => c.phone ? const _Caption('Screen · All books') : const SizedBox.shrink()),
       NovelTypeRow('keep-awake', (context, c) => c.phone ? _Switch('Keep screen awake', c.keepAwake, c.setKeepAwake) : const SizedBox.shrink()),
     ];
@@ -219,6 +235,36 @@ class _Switch extends StatelessWidget {
             Expanded(child: GlassText(label, role: gt.typeBody, onGlass: true, maxScale: 1.3)),
             GlassSwitch(value: value, label: label, onChanged: onChanged),
           ],
+        ),
+      );
+}
+
+class _NavRow extends StatelessWidget {
+  const _NavRow(this.label, this.value, this.onTap);
+  final String label, value;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: label,
+        value: value,
+        excludeSemantics: true,
+        onTap: onTap,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: GlassFrame.hitMin(context)),
+            child: Row(
+              children: [
+                Expanded(child: GlassText(label, role: gt.typeBody, onGlass: true, maxScale: 1.3)),
+                GlassText(value, role: gt.typeFootnote, onGlass: true, maxScale: 1.3),
+                const SizedBox(width: 6),
+                Icon(GlassGlyph.caretRight.regular, size: 16, color: gt.colorOnGlass),
+              ],
+            ),
+          ),
         ),
       );
 }

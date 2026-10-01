@@ -16,6 +16,13 @@ class ReaderSeriesPrefsNotifier extends ProfileRecordNotifier {
   /// Merges [patch] into the entry of [seriesRef] (`source:series`) and saves the map.
   Future<void> setFor(String seriesRef, Map<String, dynamic> patch) =>
       put({seriesRef: state.child(seriesRef).merge(patch).data});
+
+  /// Saves (or, with null, removes) this series' Glass soundscape; the rest of its entry is untouched.
+  Future<void> setSoundscape(String seriesRef, SeriesSoundscape? s) {
+    final own = {...state.child(seriesRef).data};
+    s == null ? own.remove('soundscape') : own['soundscape'] = s.toJson();
+    return put({seriesRef: own});
+  }
 }
 
 final readerSeriesPrefsProvider = NotifierProvider<ReaderSeriesPrefsNotifier, JsonRecord>(

@@ -8,7 +8,11 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/cruise.dart' show formatSpeed;
+import 'package:manhwamaniacs/skins/glass/ambient/cruise_pill.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/rain_on_glass.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
+import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
@@ -128,11 +132,15 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
     // One tween per chrome root; transparent stands for "no tint" (a tween needs an end).
     return TweenAnimationBuilder<Color?>(
       tween: ColorTween(end: host.tint ?? const Color(0x00000000)),
-      duration: gt.curveTintShift.duration,
-      curve: gt.curveTintShift.curve,
+      // Reduce Motion: tint changes cross-fade over 200 ms linear (glass 4.11).
+      duration: host.reducedMotion ? const Duration(milliseconds: 200) : gt.curveTintShift.duration,
+      curve: host.reducedMotion ? Curves.linear : gt.curveTintShift.curve,
       builder: (context, tint, _) {
         final t = host.pageTinted && tint != null && tint.a > 0.01 ? tint.withValues(alpha: 1) : null;
-        return Stack(
+        return RainOnGlassHost(
+          active: host.rainOn && visible,
+          light: ref.watch(glassLightAngleProvider).valueOrNull ?? kLightAngleRest,
+          child: Stack(
           clipBehavior: Clip.none,
           children: [
             // Soft edges, fading with the chrome, tinted at 30 %.
@@ -153,12 +161,13 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
               Positioned(left: 0, right: 0, bottom: 0, height: 2, child: _MicroProgress(progress: s.progress, tint: t)),
             if (host.lockPulse > 0) Center(child: _LockPulse(key: ValueKey(host.lockPulse))),
           ],
+          ),
         );
       },
     );
   }
 
-  double _lb(ReaderChromeGeometry g, Rect r, ReaderEngineState s) => bandLb(r, g.size, s.currentPageSample);
+  double _lb(ReaderChromeGeometry g, Rect r, ReaderEngineState s) => bandLb(r, g.size, widget.host.lbSample);
 
   /// Hidden chrome is out of focus, semantics and pointers (glass 8.14.2).
   Widget _live(bool visible, Widget child) =>
@@ -183,9 +192,9 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
 
   List<Widget> _portrait(BuildContext context, ReaderChromeGeometry g, ReaderEngineState s, Color? t, bool visible) {
     final host = widget.host;
-    final topLb = bandLb(Rect.fromLTWH(0, g.top, g.size.width, g.side), g.size, s.currentPageSample);
+    final topLb = bandLb(Rect.fromLTWH(0, g.top, g.size.width, g.side), g.size, host.lbSample);
     final bottomRect = Rect.fromLTWH(0, g.size.height - g.bottom - 56, g.size.width, 56);
-    final bottomLb = bandLb(bottomRect, g.size, s.currentPageSample);
+    final bottomLb = bandLb(bottomRect, g.size, host.lbSample);
     final railTop = g.top + g.side + 16;
     final railBottom = g.bottom + 56 + 16;
     final railH = math.max(0.0, g.size.height - railTop - railBottom);
@@ -204,7 +213,7 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
           child: _live(visible, _materialised(_Rail(host: host, state: s, height: railH, railTop: railTop))),
         ),
       // The match capsule takes the bottom line while the hit lens shows.
-      if (!_pillGone && !host.matchesShown)
+      if (!_pillGone && !host.matchesShown && !host.guidedOn)
         Positioned(
           left: widget.column.left,
           width: widget.column.width,
@@ -219,7 +228,7 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
 
   List<Widget> _landscape(BuildContext context, ReaderChromeGeometry g, ReaderEngineState s, Color? t, bool visible) {
     final host = widget.host;
-    final topLb = bandLb(Rect.fromLTWH(0, g.top, g.size.width, g.side), g.size, s.currentPageSample);
+    final topLb = bandLb(Rect.fromLTWH(0, g.top, g.size.width, g.side), g.size, host.lbSample);
     return [
       Positioned(
         left: g.left,
@@ -235,8 +244,51 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
           height: g.hit,
           child: _live(visible, _materialised(LandscapeScrubRail(host: host, state: s))),
         ),
+      // A running cruise shows its pill above the rail's trailing end (glass 8.14.11).
+      if (host.cruiseAvailable && host.cruise.running)
+        Positioned(
+          right: math.max(g.inset.right, 16),
+          bottom: math.max(g.inset.bottom, 8) + g.hit + 8,
+          child: _live(
+            visible,
+            _LandscapeCruise(host: host, lb: bandLb(Rect.fromLTWH(g.size.width - 140, g.size.height - 120, 124, 44), g.size, host.lbSample), tint: t),
+          ),
+        ),
       if (host.goToOpen) Positioned.fill(child: _GoToLayer(host: host, state: s, g: g, tint: t)),
     ];
+  }
+}
+
+/// The landscape cruise pill in its own capsule of glass.
+class _LandscapeCruise extends StatelessWidget {
+  const _LandscapeCruise({required this.host, required this.lb, required this.tint});
+  final GlassReaderHost host;
+  final double lb;
+  final Color? tint;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = formatSpeed(host.cruise.speed);
+    final w = 16 + 20 + 6 + measureText(context, text, roleStyle(context, gt.typeMono, onGlass: true)).width + 16;
+    return SkinGlass(
+      size: Size(w, math.max(44.0, GlassFrame.hitMin(context))),
+      tier: GlassTierId.t3,
+      lb: lb,
+      tint: tint,
+      rimTint: tint == null ? null : rimTint(tint!),
+      debugLabel: 'reader cruise pill',
+      child: CruisePill(
+        state: host.cruise,
+        onToggle: host.toggleCruise,
+        onResume: host.cruiseResume,
+        onPreview: host.cruisePreview,
+        onCommit: host.cruiseCommit,
+        onStep: host.cruiseStep,
+        reduced: host.reducedMotion,
+        lb: lb,
+        tint: tint,
+      ),
+    );
   }
 }
 
@@ -286,7 +338,8 @@ class _TopGroups extends ConsumerWidget {
     final style = roleStyle(context, gt.typeSubhead, onGlass: true, wght: 600);
     final mono = roleStyle(context, gt.typeMono, onGlass: true);
     final textW = measureText(context, title, style).width + (readAllText == null ? 0 : measureText(context, readAllText, mono).width + 8);
-    final trailingCount = landscape ? 3 : 2;
+    final focus = host.guidedAvailable || host.guidedOn;
+    final trailingCount = (landscape ? 3 : 2) + (focus ? 1 : 0);
     // The chapter part of the title always shows; on a narrow phone the download control gives way first.
     final chapterW = measureText(context, ' · ${host.chapterShort(state.chapterId)}', style).width;
     final minTitle = chapterW + 32 + 48;
@@ -316,6 +369,10 @@ class _TopGroups extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (focus) ...[
+              GlassBarIcon(icon: roleIcon(GlassIconRole.guidedView), label: host.guidedOn ? 'Close guided view' : 'Guided view', toggled: host.guidedOn, onPressed: host.toggleGuided),
+              const SizedBox(width: 8),
+            ],
             _BookmarkButton(saved: state.bookmarks.isNotEmpty, onPressed: host.toggleBookmark),
             const SizedBox(width: 8),
             GlassBarIcon(icon: roleIcon(GlassIconRole.readerSettings), label: 'Reader settings', onPressed: host.openSettings),
@@ -335,14 +392,17 @@ class _TopGroups extends ConsumerWidget {
       if (download != null) Alignment.centerRight,
       Alignment.centerRight,
     ];
-    return SizedBox(
-      height: side,
-      child: _GroupRow(
-        shapes: shapes,
-        aligns: aligns,
-        lb: lb,
-        tint: tint,
-        leftCount: host.offline ? 3 : 2,
+    return RainOnGlass(
+      radius: BorderRadius.circular(side / 2),
+      child: SizedBox(
+        height: side,
+        child: _GroupRow(
+          shapes: shapes,
+          aligns: aligns,
+          lb: lb,
+          tint: tint,
+          leftCount: host.offline ? 3 : 2,
+        ),
       ),
     );
   }
@@ -463,6 +523,9 @@ class _PageReadout extends StatelessWidget {
       );
 }
 
+/// At text scale above 1.3 the cruise button leaves the capsule for the first row of the reader settings sheet (glass 3.3 rule 4).
+bool _cruiseInSheet(BuildContext context) => MediaQuery.textScalerOf(context).scale(17) / 17 > 1.3;
+
 /// The bottom capsule (56 tall, at most 520 wide) and the pill it minimises into (32 tall, "18 / 40" only).
 class _BottomCapsule extends StatelessWidget {
   const _BottomCapsule({
@@ -502,13 +565,18 @@ class _BottomCapsule extends StatelessWidget {
               side: side,
             ),
             Expanded(child: _PageReadout(text: text, page: state.page, count: state.pageCount, onTap: () => host.setGoTo(true))),
-            _CapsuleIcon(
-              icon: roleIcon(GlassIconRole.autoScroll),
-              label: state.autoScrolling ? 'Pause cruise' : 'Cruise',
-              onPressed: host.toggleCruise,
-              side: side,
-              selected: state.autoScrolling,
-            ),
+            if (host.cruiseAvailable && !_cruiseInSheet(context))
+              CruisePill(
+                state: host.cruise,
+                onToggle: host.toggleCruise,
+                onResume: host.cruiseResume,
+                onPreview: host.cruisePreview,
+                onCommit: host.cruiseCommit,
+                onStep: host.cruiseStep,
+                reduced: host.reducedMotion,
+                lb: lb,
+                tint: tint,
+              ),
             GlassTooltip(
               message: host.nextChapterLabel ?? 'No next chapter',
               child: _CapsuleIcon(
@@ -520,7 +588,9 @@ class _BottomCapsule extends StatelessWidget {
             ),
           ],
         );
-        return SkinGlass(
+        return RainOnGlass(
+          radius: BorderRadius.circular(h / 2),
+          child: SkinGlass(
           size: Size(w, h),
           tier: GlassTierId.t3,
           lb: lb,
@@ -538,6 +608,8 @@ class _BottomCapsule extends StatelessWidget {
                     child: ExcludeSemantics(excluding: !visible, child: IgnorePointer(ignoring: !visible, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: full))),
                   ),
                 ),
+              // The minimised pill's inner glow: a 12 px blurred inset glow of the tint at 30 % (glass 9.4.4).
+              if (m > 0 && tint != null) Positioned.fill(child: IgnorePointer(child: Opacity(opacity: m, child: CustomPaint(painter: _InnerGlow(tint!.withValues(alpha: PageTint.edge)))))),
               if (m > 0)
                 Opacity(
                   opacity: ((m - 0.5) * 2).clamp(0.0, 1.0),
@@ -553,24 +625,43 @@ class _BottomCapsule extends StatelessWidget {
               ),
             ],
           ),
+          ),
         );
       },
     );
   }
 }
 
+/// A 12 px blurred inset glow along the capsule's edge.
+class _InnerGlow extends CustomPainter {
+  const _InnerGlow(this.color);
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rr = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(size.height / 2));
+    canvas
+      ..save()
+      ..clipRRect(rr)
+      ..drawRRect(rr, Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 12..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6))
+      ..restore();
+  }
+
+  @override
+  bool shouldRepaint(_InnerGlow old) => old.color != color;
+}
+
 class _CapsuleIcon extends StatelessWidget {
-  const _CapsuleIcon({required this.icon, required this.label, required this.onPressed, required this.side, this.selected = false});
+  const _CapsuleIcon({required this.icon, required this.label, required this.onPressed, required this.side});
   final GlassButtonIcon icon;
   final String label;
   final VoidCallback? onPressed;
   final double side;
-  final bool selected;
 
   @override
   Widget build(BuildContext context) => Opacity(
         opacity: onPressed == null ? 0.3 : 1,
-        child: SizedBox(width: side, height: side, child: GlassBarIcon(icon: icon, label: label, onPressed: onPressed, toggled: selected ? true : null)),
+        child: SizedBox(width: side, height: side, child: GlassBarIcon(icon: icon, label: label, onPressed: onPressed)),
       );
 }
 
@@ -601,7 +692,7 @@ class _MicroProgress extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: FractionallySizedBox(
             widthFactor: progress.clamp(0.0, 1.0),
-            child: ColoredBox(color: Color.lerp(gt.colorIris500, tint ?? gt.colorIris500, PageTint.edge)!.withValues(alpha: 0.8)),
+            child: ColoredBox(color: (tint == null ? gt.colorIris500 : rimTint(tint!)).withValues(alpha: 0.8)),
           ),
         ),
       );
@@ -710,6 +801,20 @@ class _Rail extends StatelessWidget {
   Widget build(BuildContext context) {
     final count = state.pageCount;
     final page = (state.page - 1).clamp(0, count - 1);
+    final rail = _scrubRail(count, page);
+    if (!host.cruise.running) return rail;
+    // While cruising the trailing-edge drag changes the speed instead of scrubbing (glass 9.4.1).
+    return Stack(
+      children: [
+        IgnorePointer(child: rail),
+        Positioned.fill(
+          child: CruiseRailStrip(speed: host.cruise.speed, onPreview: host.cruisePreview, onCommit: host.cruiseCommit, child: const SizedBox.expand()),
+        ),
+      ],
+    );
+  }
+
+  Widget _scrubRail(int count, int page) {
     return Listener(
       onPointerDown: (e) => host.scrubbing(true, thumbY: railTop + e.localPosition.dy),
       onPointerMove: (e) => host.scrubbing(true, thumbY: railTop + e.localPosition.dy),

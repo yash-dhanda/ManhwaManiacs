@@ -47,6 +47,18 @@ class AutoScrollController extends ChangeNotifier {
   bool get paced => paceByDialogue && _words != null;
 
   bool get userPaused => _userPaused;
+  bool get touching => _touching;
+
+  /// A manual drag paused auto-scroll and it stays paused until [resumeAfterMomentum] or the user resumes.
+  bool get dragged => _dragged;
+
+  /// Glass cruise (glass 9.4.1): the momentum of a flick settled, so the drag latch lifts and the normal resume delay runs.
+  void resumeAfterMomentum() {
+    if (!_dragged || _touching) return;
+    _dragged = false;
+    _scheduleResume();
+  }
+
   bool get held => _held;
   bool get moving => !_userPaused && !_held;
 

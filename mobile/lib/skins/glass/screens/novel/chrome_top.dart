@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/rain_on_glass.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -158,7 +159,9 @@ class NovelChromeTop extends StatelessWidget {
       SkinGlassShape(size: Size(iconsW, side), child: NovelTintedShape(tint: tint, child: Row(mainAxisSize: MainAxisSize.min, children: [for (var i = 0; i < icons.length; i++) ...[if (i > 0) const SizedBox(width: 4), icons[i]]]))),
     ];
     final leftCount = savedText == null ? 2 : 3;
-    return SizedBox(
+    return RainOnGlass(
+      radius: BorderRadius.circular(side / 2),
+      child: SizedBox(
       height: side,
       child: LayoutBuilder(builder: (context, c) {
         final w = c.maxWidth;
@@ -177,6 +180,7 @@ class NovelChromeTop extends StatelessWidget {
           debugLabel: 'novel top groups',
         );
       },),
+      ),
     );
   }
 }
