@@ -25,6 +25,7 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/chip_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs_more.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
@@ -311,12 +312,14 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
         queried: result.sourcesQueried,
       ),
       const SizedBox(height: 8),
-      GlassChoiceChips<SearchGroupFilter>(
-        options: const [SearchGroupFilter.all, SearchGroupFilter.hasResults, SearchGroupFilter.pinned],
-        selected: filter,
-        labelOf: (f) => switch (f) { SearchGroupFilter.all => 'All', SearchGroupFilter.hasResults => 'With results', SearchGroupFilter.pinned => 'Pinned' },
-        onSelected: (f) => ref.read(searchGroupFilterProvider.notifier).state = f,
-      ),
+      GlassChipRow(padding: EdgeInsets.zero, children: [
+        GlassChoiceChips<SearchGroupFilter>(
+          options: const [SearchGroupFilter.all, SearchGroupFilter.hasResults, SearchGroupFilter.pinned],
+          selected: filter,
+          labelOf: (f) => switch (f) { SearchGroupFilter.all => 'All', SearchGroupFilter.hasResults => 'With results', SearchGroupFilter.pinned => 'Pinned' },
+          onSelected: (f) => ref.read(searchGroupFilterProvider.notifier).state = f,
+        ),
+      ],),
     ];
     if (shown.isEmpty && !tier2) {
       if (filter == SearchGroupFilter.pinned) {

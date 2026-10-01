@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/chip_row.dart' show glassTrailingFade;
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/drag_owner.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
@@ -168,7 +169,8 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
   ({List<double> lefts, List<double> widths}) _layout(BuildContext context) {
     final lefts = <double>[];
     final widths = <double>[];
-    var x = 8.0;
+    // The first label's text sits on the screen gutter's inner edge + 8 (its capsule 8 px outside it).
+    var x = GlassFrame.screenMargin(context) - 8;
     for (final t in widget.tabs) {
       final w = measureText(context, t.label, roleStyle(context, gt.typeSubhead, onGlass: true, wght: 620, maxScale: 1.5)).width + 32;
       lefts.add(x);
@@ -182,7 +184,8 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
   Widget build(BuildContext context) {
     final reduced = ref.watch(glassMotionPrefsProvider.select((m) => m.reduced));
     final l = _layout(context);
-    final total = l.lefts.last + l.widths.last + 8;
+    final screenW = MediaQuery.sizeOf(context).width;
+    final total = l.lefts.last + l.widths.last + GlassFrame.screenMargin(context);
     final hit = GlassFrame.hitMin(context);
     final stripHeight = math.max(hit, 44.0);
 
@@ -227,14 +230,12 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
           },
         );
 
-    final strip = SizedBox(
-      height: stripHeight,
-      child: SingleChildScrollView(
+    Widget strip = SingleChildScrollView(
         controller: _strip,
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         child: SizedBox(
-          width: math.max(total, MediaQuery.sizeOf(context).width),
+          width: math.max(total, screenW),
           height: stripHeight,
           child: Stack(
             children: [
@@ -258,8 +259,10 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
             ],
           ),
         ),
-      ),
-    );
+      );
+    // Labels that run past the screen fade over the trailing 24 px (as the chip rows), never a hard cut mid-word.
+    if (total > screenW) strip = glassTrailingFade(strip);
+    strip = SizedBox(height: stripHeight, child: strip);
 
     return GlassDragOwner(
       kind: GlassDragOwnerKind.pager,

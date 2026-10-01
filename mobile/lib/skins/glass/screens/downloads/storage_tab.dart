@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/downloads/utils/format_bytes.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/settings/services/metadata_cache.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/chip_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
@@ -44,17 +45,17 @@ class GlassStorageTab extends ConsumerWidget {
           ],),
         );
     // The choice group draws the sliding selection capsule behind its chips (glass 7.5).
-    Widget chips<T>(List<(T, String)> items, T selected, void Function(T) onPick) => Align(
-          alignment: Alignment.centerLeft,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: GlassChoiceChips<T>(
+    // A group wider than the page scrolls to the screen edge under the row's trailing fade ("Unlimited" never cut at the gutter).
+    Widget chips<T>(List<(T, String)> items, T selected, void Function(T) onPick) => GlassChipRow(
+          padding: EdgeInsets.zero,
+          children: [
+            GlassChoiceChips<T>(
               options: [for (final i in items) i.$1],
               selected: selected,
               onSelected: onPick,
               labelOf: (v) => items.firstWhere((i) => i.$1 == v).$2,
             ),
-          ),
+          ],
         );
     Widget toggle(String label, String? hint, bool v, ValueChanged<bool> on) => ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 56),

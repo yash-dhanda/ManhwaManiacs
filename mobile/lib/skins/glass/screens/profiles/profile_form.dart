@@ -20,6 +20,7 @@ import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart' show moodCol
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/chip_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/gate/mature_gate_switch.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
@@ -376,9 +377,9 @@ class _GlassProfileFormState extends ConsumerState<GlassProfileForm> with Ticker
           Semantics(
             container: true,
             label: 'Mood',
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: GlassChoiceChips<Mood>(
+            child: GlassChipRow(
+              padding: EdgeInsets.zero,
+              children: [GlassChoiceChips<Mood>(
                 options: Mood.values,
                 selected: _mood,
                 onSelected: (m) {
@@ -387,7 +388,7 @@ class _GlassProfileFormState extends ConsumerState<GlassProfileForm> with Ticker
                 },
                 labelOf: (m) => m.label,
                 dotOf: moodColour,
-              ),
+              ),],
             ),
           ),
           const SizedBox(height: 20),
