@@ -351,7 +351,7 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
                                     Tab(
                                       height: 48,
                                       text: '${_tabs[i].folio(i)} ${_tabs[i].label}'
-                                          '${_countOf(_tabs[i]) case final n? ? superscript(n) : ''}',
+                                          '${_countOf(_tabs[i]) == null ? '' : superscript(_countOf(_tabs[i])!)}',
                                     ),
                               ],
                             ),
