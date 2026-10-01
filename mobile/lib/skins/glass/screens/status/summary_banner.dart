@@ -58,8 +58,9 @@ class StatusCard extends StatelessWidget {
         decoration: BoxDecoration(color: gt.colorSurface1, borderRadius: BorderRadius.circular(26), border: Border.all(color: gt.colorSeparator)),
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-          Row(children: [
-            Expanded(child: Semantics(header: true, headingLevel: 2, child: GlassText(title, role: gt.typeHeadline))),
+          // Title and action share a line while they fit; the action drops under the title when they don't (large text).
+          Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, spacing: 12, runSpacing: 8, children: [
+            Semantics(header: true, headingLevel: 2, child: GlassText(title, role: gt.typeHeadline)),
             if (trailing != null) trailing!,
           ],),
           const SizedBox(height: 12),
