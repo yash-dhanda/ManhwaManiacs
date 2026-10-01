@@ -98,8 +98,9 @@ Future<void> main() async {
       builder: () {
         final boot = SkinBoot.read(prefs);
         return ProviderScope(
+          observers: [apiUrlMemo],
           overrides: [
-            apiUrlMemo.override,
+            apiUrlMemo.scopeOverride,
             authTokenReadTimeoutProvider.overrideWithValue(const Duration(seconds: 4)),
             sharedPrefsProvider.overrideWithValue(prefs),
             skinIdProvider.overrideWithValue(boot.skin),

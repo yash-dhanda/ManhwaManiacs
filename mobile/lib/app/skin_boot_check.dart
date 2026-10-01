@@ -85,8 +85,8 @@ class _SkinBootCheckState extends ConsumerState<SkinBootCheck> {
     final running = ref.read(skinIdProvider);
     final target = resolveBootRestart(
       running: running,
-      profileKnown: row != null,
-      profileSkin: row?.skin,
+      profileKnown: true,
+      profileSkin: row.skin,
       queuedOutboxSkin: ref.read(skinOutboxProvider).pendingFor(active.id),
       glassAvailable: Flags.glassAvailable,
       defaultSkin: kDefaultSkin,

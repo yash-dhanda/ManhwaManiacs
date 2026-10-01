@@ -10,7 +10,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('a saved done refreshes the profile list, so the picker no longer resumes onboarding', () async {
-    final parts = await onboardingParts(profileStep: 2);
+    final parts = await onboardingParts();
     final c = ProviderContainer(overrides: parts.overrides);
     addTearDown(c.dispose);
     final repo = c.read(profilesRepositoryProvider) as FakeProfiles;

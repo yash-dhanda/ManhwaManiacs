@@ -7,11 +7,10 @@ import 'package:manhwamaniacs/features/downloads/providers/downloads_lifecycle_g
 import 'package:manhwamaniacs/features/downloads/providers/retention_maintenance_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/services/retention_maintenance.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profile_queues.dart';
 import 'package:manhwamaniacs/features/profiles/providers/skin_outbox.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:manhwamaniacs/features/profiles/providers/profile_queues.dart';
 
 import '../support/test_overrides.dart';
 

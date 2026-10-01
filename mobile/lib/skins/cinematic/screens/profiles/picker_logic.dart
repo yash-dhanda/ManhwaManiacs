@@ -43,7 +43,7 @@ PickerOutcome decidePickerOutcome({
 /// Glass) both read it.
 String? onboardingResumeRoute(Profile profile, {required bool glassAvailable, required bool onboardingBuilt, bool pendingDone = false}) {
   final step = profile.onboarding;
-  if (step?.isDone == true || pendingDone || !onboardingBuilt) return null;
+  if ((step?.isDone ?? false) || pendingDone || !onboardingBuilt) return null;
   return Routes.onboarding({'step': resumeStep(step, glassAvailable).n});
 }
 
