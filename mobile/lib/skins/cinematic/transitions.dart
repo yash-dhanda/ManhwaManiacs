@@ -304,7 +304,8 @@ class CineSwipeSlide extends StatelessWidget {
 // iOS: SwipeablePage
 
 Page<void> _swipeablePage(GoRouterState state, Widget child, CineTransitionKind kind, {bool canSwipe = true}) {
-  return SwipeablePage<void>(
+  return _CineSwipeablePage(
+    child: child,
     key: state.pageKey,
     name: state.name,
     // A Cut page (a branch root or a shell) has nothing to swipe back to, but it stays a
@@ -315,8 +316,28 @@ Page<void> _swipeablePage(GoRouterState state, Widget child, CineTransitionKind 
     transitionDuration: CineRouteMotion.forward(kind),
     reverseTransitionDuration: CineRouteMotion.reverse(kind),
     transitionBuilder: cineSwipeBuilder(kind),
-    builder: (_) => child,
   );
+}
+
+/// `SwipeablePageRoute` keeps the builder of the page that created it, so a page updated in place
+/// (same key: the shell on every section change) kept its first child on iOS and a thumb-index
+/// tap moved the router but not the screen. The builder reads the route's current page instead.
+class _CineSwipeablePage extends SwipeablePage<void> {
+  _CineSwipeablePage({
+    required this.child,
+    super.key,
+    super.name,
+    super.canSwipe,
+    super.canOnlySwipeFromEdge,
+    super.backGestureDetectionWidth,
+    super.transitionDuration,
+    super.reverseTransitionDuration,
+    super.transitionBuilder,
+  }) : super(builder: _current);
+
+  final Widget child;
+
+  static Widget _current(BuildContext context) => (ModalRoute.settingsOf(context)! as _CineSwipeablePage).child;
 }
 
 /// The `SwipeableTransitionBuilder` (0.4.8's shape) of a kind: the page's move, or the finger-tracked slide while
