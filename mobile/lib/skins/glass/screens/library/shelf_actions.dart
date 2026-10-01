@@ -157,7 +157,9 @@ class GlassShelfActions {
   List<KnownChapter> _chapters(SeriesDetail d) => d.chapters.isNotEmpty ? d.chapters : d.knownChapters;
 
   /// Keys each `markRead` run posted, by series id, so its Undo deletes only what was not completed before.
-  final Map<int, List<String>> _marked = {};
+  /// Series id -> its identity and the keys [markRead] posted. The identity is kept here because
+  /// the series may have left the (filtered) shelf by the time Undo runs.
+  final Map<int, ({String sourceId, String seriesKey, List<String> keys})> _marked = {};
 
   /// Every not-yet-completed chapter of each series, posted `manual: true` in chunks of 200 (`POST /reader/progress/batch`).
   Future<BulkResult> markRead(Set<int> ids, {BulkCancel? cancel}) async {
@@ -183,7 +185,7 @@ class GlassShelfActions {
             return Err(r.error);
           }
         }
-        _marked[s.id] = [for (final k in todo) k.key];
+        _marked[s.id] = (sourceId: s.sourceId, seriesKey: s.seriesKey, keys: [for (final k in todo) k.key]);
       }
       ok++;
       return const Ok(null);
@@ -196,11 +198,11 @@ class GlassShelfActions {
   /// `DELETE /reader/progress` of only the keys the last [markRead] posted for [ids].
   Future<void> undoMarkRead(Set<int> ids) async {
     final reader = _c.read(readerRepositoryProvider);
-    for (final s in rowsOf(ids)) {
-      final keys = _marked.remove(s.id);
-      if (keys == null) continue;
-      for (final chunk in chunksOf200(keys)) {
-        await reader.deleteProgress(sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKeys: chunk);
+    for (final id in ids) {
+      final m = _marked.remove(id);
+      if (m == null) continue;
+      for (final chunk in chunksOf200(m.keys)) {
+        await reader.deleteProgress(sourceId: m.sourceId, seriesKey: m.seriesKey, chapterKeys: chunk);
       }
     }
     _c.invalidate(shelfProvider);
