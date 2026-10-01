@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/reactions/reaction_picker.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/reactions/reaction_strip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/avatar_map.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart' show glassOfflineProvider;
 import 'package:manhwamaniacs/skins/glass/type.dart';
@@ -155,4 +156,17 @@ class ChapterReactionSummary extends ConsumerWidget {
       ],),
     );
   }
+}
+
+/// "React to this chapter" from a reader menu (glass 8.14, 9.3.2): the chapter's button and strip in a `medium` sheet.
+Future<void> openChapterReactions(BuildContext context, {required String sourceId, required String seriesKey, required String chapterKey, double? chapterNumber, bool mature = false}) {
+  final page = GlassSheetPage<void>(
+    title: 'React to ${chLabel(chapterNumber)}',
+    detents: const [GlassDetent.medium],
+    builder: (_) => Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      child: Align(alignment: Alignment.topLeft, child: GlassChapterReactions(sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterKey, chapterNumber: chapterNumber, mature: mature)),
+    ),
+  );
+  return Navigator.of(context, rootNavigator: true).push(page.createRoute(context));
 }

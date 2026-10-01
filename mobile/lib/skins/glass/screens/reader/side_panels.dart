@@ -46,17 +46,21 @@ class ReaderPanelSurface extends StatelessWidget {
       );
 }
 
-enum RightPanelTab { settings, dialogue }
+enum RightPanelTab { settings, dialogue, circle }
 
-/// The right panel's body: tabs Settings and Dialogue (the Circle tab joins in mobile/43).
+/// The right panel's body: tabs Settings, Dialogue and, with [circle], Circle (mobile/43: the chapter's reactions and the series'
+/// Circle row).
 class ReaderRightPanel extends StatelessWidget {
-  const ReaderRightPanel({super.key, required this.tab, required this.onTab, required this.settings, required this.pageText});
+  const ReaderRightPanel({super.key, required this.tab, required this.onTab, required this.settings, required this.pageText, this.circle});
   final RightPanelTab tab;
   final ValueChanged<RightPanelTab> onTab;
   final Widget settings;
 
   /// The overlay's text list for the current page (null while it has none).
   final PageText? pageText;
+
+  /// The Circle tab's body; the tab is absent without it.
+  final Widget? circle;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -65,13 +69,19 @@ class ReaderRightPanel extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: GlassSegmented<RightPanelTab>(
               asTabs: true,
-              segments: const [GlassSegment(value: RightPanelTab.settings, label: 'Settings'), GlassSegment(value: RightPanelTab.dialogue, label: 'Dialogue')],
-              selected: tab,
+              segments: [
+                const GlassSegment(value: RightPanelTab.settings, label: 'Settings'),
+                const GlassSegment(value: RightPanelTab.dialogue, label: 'Dialogue'),
+                if (circle != null) const GlassSegment(value: RightPanelTab.circle, label: 'Circle'),
+              ],
+              selected: tab == RightPanelTab.circle && circle == null ? RightPanelTab.settings : tab,
               onSelected: onTab,
             ),
           ),
           Expanded(
-            child: tab == RightPanelTab.settings
+            child: tab == RightPanelTab.circle && circle != null
+                ? SingleChildScrollView(padding: const EdgeInsets.all(16), child: circle)
+                : tab != RightPanelTab.dialogue
                 ? SingleChildScrollView(child: settings)
                 : ListView(
                     padding: const EdgeInsets.all(16),
