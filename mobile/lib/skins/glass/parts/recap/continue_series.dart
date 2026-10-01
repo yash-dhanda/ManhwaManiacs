@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/recap/recap_setting.dart';
 import 'package:manhwamaniacs/features/recap/utils/should_open_recap.dart';
+import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/routes/nav_extra.dart';
 import 'package:manhwamaniacs/skins/glass/transitions/dive.dart';
@@ -38,6 +40,12 @@ class HomeContinueTarget {
       : Routes.reader(sourceId, seriesKey, chapterKey,
           {if (page != null && page! > 1) 'page': page},);
 
+  /// This target with [isNovel] read off the source, so every Continue opens the right reader
+  /// whichever Home row built it.
+  HomeContinueTarget ofKind(ContentModeScope scope) => isNovel || !(isNovelSource(scope, sourceId) ?? false)
+      ? this
+      : HomeContinueTarget(sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterKey, isNovel: true, recap: recap, lastReadAt: lastReadAt, chapterNumber: chapterNumber, page: page);
+
   factory HomeContinueTarget.fromContinue(HomeContinueItem i) =>
       HomeContinueTarget(
         sourceId: i.row.sourceId,
@@ -59,7 +67,8 @@ final offerContinueProvider = StateProvider<VoidCallback?>((ref) => null);
 /// Every Glass Continue goes through here (glass 9.1.3): the recap setting decides between the offer sheet (`ask`), the recap deck
 /// (`always`) and the Dive into the reader.
 Future<void> continueSeries(BuildContext context, WidgetRef ref,
-    HomeContinueTarget item, Rect originRect,) async {
+    HomeContinueTarget target, Rect originRect,) async {
+  final item = target.ofKind(ref.read(contentModeScopeProvider));
   final decision = recapEntryDecision(
     setting: ref.read(recapSettingProvider),
     seriesId: item.seriesId,
@@ -88,7 +97,9 @@ Future<void> continueSeries(BuildContext context, WidgetRef ref,
 /// Opens the recap deck for [item] up to its continue chapter (the explicit entries and "Show recap" share it).
 Future<void> openRecapFor(WidgetRef ref, HomeContinueTarget item,
     {Rect? originRect, bool chapter = false,}) {
-  final to = item.recap?.toKey ?? item.chapterKey;
+  // The continue chapter, not recap.toKey (the last finished one before it): the server's range
+  // and cached recap are for `to` = the chapter Continue opens.
+  final to = item.chapterKey;
   return ref.read(skinRouterProvider).push<void>(
       Routes.recap(item.sourceId, item.seriesKey,
           {'to': to, if (chapter) 'scope': 'chapter'},),

@@ -60,7 +60,7 @@ class ContinueCard extends ConsumerWidget {
         ref,
         SeriesMenuSpec(sourceId: row.sourceId, seriesKey: row.seriesKey, title: row.title ?? row.seriesKey, coverUrl: row.coverUrl, target: target, readNumber: row.chapterNumber),
         from,
-        first: [GlassMenuEntry(label: 'Previously on', onSelected: () => unawaited(openRecap(ref, row.sourceId, row.seriesKey, item.recap?.toKey ?? row.chapterKey, from: from)))],
+        first: [GlassMenuEntry(label: 'Previously on', onSelected: () => unawaited(openRecap(ref, row.sourceId, row.seriesKey, row.chapterKey, from: from)))],
         extra: [
           GlassMenuEntry(
             label: 'Remove from row',
@@ -80,13 +80,13 @@ class ContinueCard extends ConsumerWidget {
       child: GlassContinueStack(
         cover: HomeHero(sourceId: row.sourceId, seriesKey: row.seriesKey, child: HomeCoverImage(url: row.coverUrl, width: 88)),
         title: row.title ?? row.seriesKey,
-        chapter: (row.chapterNumber ?? 0).round(),
+        chapter: row.chapterNumber,
         page: row.lastPage,
         pageCount: row.pageCount,
         onOpen: () => unawaited(openSeries(ref, row.sourceId, row.seriesKey, from: rectOf())),
         onContinue: () => unawaited(continueSeries(context, ref, target, rectOf())),
         onMore: menu,
-        onPreviouslyOn: () => unawaited(openRecap(ref, row.sourceId, row.seriesKey, item.recap?.toKey ?? row.chapterKey, from: rectOf())),
+        onPreviouslyOn: () => unawaited(openRecap(ref, row.sourceId, row.seriesKey, row.chapterKey, from: rectOf())),
       ),
     );
   }

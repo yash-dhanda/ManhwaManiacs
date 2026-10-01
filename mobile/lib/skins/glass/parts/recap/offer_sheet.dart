@@ -53,7 +53,7 @@ class _RecapOfferBodyState extends ConsumerState<RecapOfferBody> {
     final skip = _skipSave(t);
     Navigator.of(context).pop();
     await skip;
-    if (t != null) unawaited(router.push<void>(Routes.recap(t.sourceId, t.seriesKey, {'to': t.recap?.toKey ?? t.chapterKey}), extra: const GlassNavExtra()));
+    if (t != null) unawaited(router.push<void>(Routes.recap(t.sourceId, t.seriesKey, {'to': t.chapterKey}), extra: const GlassNavExtra()));
   }
 
   Future<void> _justContinue() async {

@@ -219,13 +219,13 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
               ref.read(wrappedOriginProvider.notifier).state = from;
               unawaited(ref.read(skinRouterProvider).push<void>(Routes.annual(s.year ?? ref.read(clockProvider)().year)));
             case SpotlightAction.previouslyOn:
-              if (s.hasSeries) unawaited(openRecap(ref, s.sourceId!, s.seriesKey!, s.target?.recap?.toKey ?? s.recap?.toKey ?? s.target?.chapterKey ?? '', from: from));
+              if (s.hasSeries) unawaited(openRecap(ref, s.sourceId!, s.seriesKey!, s.target?.chapterKey ?? s.recap?.toKey ?? '', from: from));
           }
         },
         onSecondary: (s, from) {
           if (!s.hasSeries) return;
           if (s.secondaryIsRecap) {
-            unawaited(openRecap(ref, s.sourceId!, s.seriesKey!, s.target?.recap?.toKey ?? s.recap?.toKey ?? s.target?.chapterKey ?? '', from: from));
+            unawaited(openRecap(ref, s.sourceId!, s.seriesKey!, s.target?.chapterKey ?? s.recap?.toKey ?? '', from: from));
           } else {
             unawaited(openSeries(ref, s.sourceId!, s.seriesKey!, from: from));
           }

@@ -4,8 +4,11 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/recap/background_recaps.dart';
 import 'package:manhwamaniacs/features/recap/recap_cache.dart';
@@ -42,6 +45,24 @@ class _Online implements NetworkConnectivity {
 
 void main() {
   setUpAll(loadAppFonts);
+
+  test('a Continue target reads its reader off the source, whichever row built it', () {
+    const scope = ContentModeScope(mode: ContentMode.novel, index: {'n': ContentMode.novel, 'm': ContentMode.manga}, novelsEnabled: true);
+    expect(const HomeContinueTarget(sourceId: 'n', seriesKey: 'k', chapterKey: 'c1').ofKind(scope).readerLocation, startsWith('/novel'));
+    expect(const HomeContinueTarget(sourceId: 'm', seriesKey: 'k', chapterKey: 'c1').ofKind(scope).readerLocation, startsWith('/reader'));
+  });
+
+  testWidgets('a recap opens up to the continue chapter, not the last finished one', (t) async {
+    final rig = await pumpGlassShell(t, settle: false);
+    await t.pump(const Duration(milliseconds: 600));
+    final ref = t.element(find.byWidgetPredicate((w) => w is ConsumerWidget || w is ConsumerStatefulWidget).first) as WidgetRef;
+    unawaited(openRecapFor(ref, const HomeContinueTarget(sourceId: 's', seriesKey: 'k', chapterKey: 'c11', recap: RecapAvailability(available: true, toKey: 'c10'))));
+    await t.pump(const Duration(milliseconds: 300));
+    final cfg = rig.router.routerDelegate.currentConfiguration;
+    final last = cfg.last;
+    expect((last is ImperativeRouteMatch ? last.matches.uri : cfg.uri).queryParameters['to'], 'c11');
+    await pumpFor(t, 1200);
+  });
 
   test('the deck maths: depth 0.94 and 0.89, dim 40 and 60 percent, the swipe threshold', () {
     expect(deckScale(0), 1);

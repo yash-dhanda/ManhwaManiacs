@@ -77,7 +77,7 @@ List<GlassMenuEntry> seriesMenuEntries(BuildContext context, WidgetRef ref, Seri
     if (s.showMarkRead) GlassMenuEntry(label: 'Mark read', onSelected: () => unawaited(markSeriesRead(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, upTo: s.readNumber))),
     if (s.showDownload) GlassMenuEntry(label: 'Download next 10', onSelected: () => unawaited(downloadNextTen(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, readNumber: s.readNumber, novel: s.novel))),
     if (hasProgress && first.every((e) => e.label != 'Previously on'))
-      GlassMenuEntry(label: 'Previously on', onSelected: () => unawaited(openRecap(ref, s.sourceId, s.seriesKey, s.target!.recap?.toKey ?? s.target!.chapterKey, from: from))),
+      GlassMenuEntry(label: 'Previously on', onSelected: () => unawaited(openRecap(ref, s.sourceId, s.seriesKey, s.target!.chapterKey, from: from))),
     if (recommendMenuEntry(ref, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, onSelected: () => openRecommendSheet(ref, s.sourceId, s.seriesKey)) case final e?) e,
     ...extra,
   ];

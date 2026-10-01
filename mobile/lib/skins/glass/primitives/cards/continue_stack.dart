@@ -36,8 +36,10 @@ class GlassContinueStack extends StatelessWidget {
   final Widget? nextThumb;
   final String title;
 
-  /// The chapter number as printed.
-  final int chapter;
+  /// The chapter number as printed (12.5 stays 12.5); null when the source does not number it.
+  final num? chapter;
+
+  String get _ch => chapter == null ? '' : (chapter! % 1 == 0 ? '${chapter!.toInt()}' : '$chapter');
 
   /// The 1-based current page; ignored when [pageCount] is 0.
   final int page;
@@ -59,7 +61,8 @@ class GlassContinueStack extends StatelessWidget {
     final h = (wide ? 148.0 : 132.0) * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.5);
     const coverW = 88.0;
     final ratio = unopened ? 0.0 : (page / pageCount).clamp(0.0, 1.0);
-    final meta = unopened ? 'Up next · Ch $chapter' : 'Ch $chapter · p. $page of $pageCount';
+    final ch = chapter == null ? null : 'Ch $_ch';
+    final meta = unopened ? (ch == null ? 'Up next' : 'Up next · $ch') : '${ch == null ? '' : '$ch · '}p. $page of $pageCount';
     return SizedBox(
       width: w,
       height: h,
@@ -104,7 +107,7 @@ class GlassContinueStack extends StatelessWidget {
                   const Spacer(),
                   Row(
                     children: [
-                      GlassRingProgress(value: ratio, child: GlassLabel('$chapter', role: gt.typeMono, size: 9, height: 12, color: gt.colorLabel1, maxScale: 1.2)),
+                      GlassRingProgress(value: ratio, child: GlassLabel(_ch, role: gt.typeMono, size: 9, height: 12, color: gt.colorLabel1, maxScale: 1.2)),
                       const Spacer(),
                       Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: GlassButton(label: unopened ? 'Start' : 'Continue', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: onContinue))),
                     ],
