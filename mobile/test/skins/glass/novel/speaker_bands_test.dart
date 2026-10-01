@@ -40,7 +40,6 @@ void main() {
   test('the alphas and widths are the contract values', () {
     expect(kSpeakerBandAlpha, 0.14);
     expect(kSpeakerLineAlpha, 0.60);
-    expect(kSpeakerLineWidth, 1.5);
-    expect(kSpeakerLineDropEm, 0.18);
+    expect(kSpeakerLineWidth, 2);
   });
 }

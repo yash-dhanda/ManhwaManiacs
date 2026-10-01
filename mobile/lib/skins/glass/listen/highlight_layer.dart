@@ -1,7 +1,7 @@
 /// Highlight-as-read on the page (glass 8.16.7, J): while narrating with `highlightSafe` true the active sentence wears a band at 14 %
 /// of its speaker's `spk` hue (narration: `iris500`), radius 6, padding 2 x 4 px, that SLIDES between sentences on `springSnappy` (never
-/// a cross-fade), across line breaks and across paragraphs; the current word gets a 2 px underline in the tint, stepping with the word
-/// estimate and never animated. A spring-driven value outside the named moves of glass 4.10 (like the sentence lozenge). Reduced motion:
+/// a cross-fade), across line breaks and across paragraphs; the current word gets a denser lozenge of the tint (32 %, radius 4) behind
+/// it, stepping with the word estimate and never animated (no text underlines in Glass: owner rule). A spring-driven value outside the named moves of glass 4.10 (like the sentence lozenge). Reduced motion:
 /// the band jumps with a 120 ms cross-fade.
 library;
 
@@ -150,7 +150,7 @@ class GlassListenBand extends ChangeNotifier {
   NovelChapterKey? get chapter => _key;
 }
 
-/// The band and the word underline of one paragraph (appended to `GlassParagraph`'s ordered decoration list).
+/// The band and the word lozenge of one paragraph (appended to `GlassParagraph`'s ordered decoration list).
 class ListenBandDecoration extends GlassParagraphDecoration {
   const ListenBandDecoration(this.band, this.paragraph);
   final GlassListenBand band;
@@ -161,6 +161,11 @@ class ListenBandDecoration extends GlassParagraphDecoration {
   @override
   void paintBehind(Canvas canvas, GlassParagraphGeometry g) {
     if (!band.enabled) return;
+    _paintSentence(canvas, g);
+    _paintWord(canvas, g);
+  }
+
+  void _paintSentence(Canvas canvas, GlassParagraphGeometry g) {
     final n = band.next, p = band.prev;
     final t = band.t;
     final fill = Paint();
@@ -196,16 +201,13 @@ class ListenBandDecoration extends GlassParagraphDecoration {
     }
   }
 
-  @override
-  void paintFront(Canvas canvas, GlassParagraphGeometry g) {
+  /// The word being read: a denser lozenge behind it (drawn after the sentence band so it sits on top of it).
+  void _paintWord(Canvas canvas, GlassParagraphGeometry g) {
     final w = band.word;
     if (!band.enabled || w == null || w.paragraph != paragraph) return;
-    final line = Paint()
-      ..color = band.tint
-      ..strokeWidth = 2;
-    for (final b in g.boxes(w.start, w.end)) {
-      final y = g.baselineOf(b) + 0.18 * g.fontSize + 1;
-      canvas.drawLine(Offset(b.left, y), Offset(b.right, y), line);
+    final fill = Paint()..color = band.tint.withValues(alpha: 0.32);
+    for (final r in bandRectsOf(g.boxes(w.start, w.end))) {
+      canvas.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(4)), fill);
     }
   }
 
