@@ -36,7 +36,11 @@ class FigureInput {
     this.togetherTitle,
     this.onText,
     this.share = false,
+    this.lens,
   });
+
+  /// Card 10 on screen: wraps the logo in the one live T2 glass lens (glass 9.2.3). Null on the share side, which draws the flat circle.
+  final Widget Function(Widget logo)? lens;
 
   final WrappedCard card;
   final Annual annual;
@@ -267,10 +271,12 @@ Widget _source(FigureInput i) {
       top: 0,
       width: 96,
       height: 96,
-      child: DecoratedBox(
-        decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFF1A1A20), border: Border.all(color: const Color(0x38FFFFFF))),
-        child: Center(child: src == null ? const SizedBox.shrink() : GlassSourceMonogram(name: src.name, sourceId: src.sourceId, size: 64)),
-      ),
+      child: i.lens != null && !i.share
+          ? i.lens!(Center(child: src == null ? const SizedBox.shrink() : GlassSourceMonogram(name: src.name, sourceId: src.sourceId, size: 64)))
+          : DecoratedBox(
+              decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFF1A1A20), border: Border.all(color: const Color(0x38FFFFFF))),
+              child: Center(child: src == null ? const SizedBox.shrink() : GlassSourceMonogram(name: src.name, sourceId: src.sourceId, size: 64)),
+            ),
     ),
     for (var k = 0; k < rows.length; k++)
       Positioned(

@@ -116,3 +116,36 @@ String _name(WrappedCard c) => switch (c) {
       WrappedCard.together => 'together',
       WrappedCard.summary => 'summary',
     };
+
+/// The words of [card]'s share side: the same table, but every title, source and genre word comes from [d] (the card's
+/// `shareEligible` data, drawn from `shareable` only), never from the on-screen lists (glass 9.2.4, 14.11).
+WrappedCopy shareCopy(WrappedCard card, Annual a, ShareData d) {
+  final base = wrappedCopy(card, a);
+  switch (card) {
+    case WrappedCard.topFive:
+      final top = d.series.firstOrNull;
+      return WrappedCopy(eyebrow: base.eyebrow, headline: top?.title ?? '', footnote: top == null || top.secondsRead <= 0 ? '' : '${(top.secondsRead / 3600).round()} h with ${top.title}');
+    case WrappedCard.genres:
+      final words = d.genres.take(2).map((x) => _lower(x.genre)).toList();
+      return WrappedCopy(
+        eyebrow: base.eyebrow,
+        headline: words.isEmpty ? '' : (words.length == 1 ? 'Mostly ${words[0]}' : 'Mostly ${words[0]} and ${words[1]}'),
+        footnote: d.genres.take(3).map((x) => '${_cap(x.genre)} ${_pct(x.weight)}').join(' · '),
+      );
+    case WrappedCard.firstsLasts:
+      final f = d.first?.title, l = d.last?.title;
+      return WrappedCopy(eyebrow: base.eyebrow, headline: f != null && l != null ? 'From $f to $l' : (f ?? l ?? ''));
+    case WrappedCard.topSource:
+      return WrappedCopy(eyebrow: base.eyebrow, headline: d.source == null ? '' : 'Most of it came from ${d.source!.name}');
+    case WrappedCard.cover:
+    case WrappedCard.time:
+    case WrappedCard.volume:
+    case WrappedCard.when:
+    case WrappedCard.streak:
+    case WrappedCard.busiestDay:
+    case WrappedCard.summary:
+      return base;
+    case WrappedCard.together:
+      return const WrappedCopy(eyebrow: '', headline: '');
+  }
+}

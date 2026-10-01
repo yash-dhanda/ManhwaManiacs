@@ -43,7 +43,7 @@ class ShareSpec {
   static ShareSpec? forCard(WrappedCard card, Annual a, {Set<String> matureSources = const {}}) {
     final data = shareEligible(card, a, matureSources: matureSources);
     if (data == null) return null;
-    final copy = wrappedCopy(card, a);
+    final copy = shareCopy(card, a, data);
     return ShareSpec(
       id: 'wrapped-${a.year}-${card.number}',
       eyebrow: copy.eyebrow,
