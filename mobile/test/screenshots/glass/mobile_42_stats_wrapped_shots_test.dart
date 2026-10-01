@@ -9,8 +9,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/platform/gravity.dart';
 import 'package:manhwamaniacs/features/library/models/annual.dart';
+import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
+import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
+import 'package:manhwamaniacs/features/library/providers/streak_events_provider.dart';
 import 'package:manhwamaniacs/features/library/utils/wrapped_cards.dart';
+import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
+import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/charts/glass_chart.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/glass/wrapped/share_card.dart';
 
 import '../../skins/glass/stats/stats_rig.dart';
@@ -27,8 +35,10 @@ import '../support/skin_shots.dart';
 const _phone = SkinShotSize('phone', Size(390, 844), 3.0, EdgeInsets.only(top: 47, bottom: 34));
 const _sizes = [_phone, SkinShotSize('tablet', Size(834, 1194), 2.0, EdgeInsets.only(top: 24, bottom: 20)), kSkinShotTabletWide];
 
+final _coverBytes = <String, Uint8List>{};
+
 Future<void> _covers(WidgetTester t) async {
-  final out = <String, Uint8List>{};
+  final out = _coverBytes;
   await t.runAsync(() async {
     for (var i = 0; i < 9; i++) {
       out['/sources/shelf/series/series-$i/cover'] = await ShotCoverArt(title: 'Series ${i + 1}', seed: i).toPng(width: 240, height: 360);
@@ -158,17 +168,24 @@ void main() {
   testWidgets('share: rendered PNG files', (t) async {
     await _covers(t);
     final repo = FakeNumbers(annuals: {2026: _annual()});
-    final s = await _open(t, _phone, repo);
-    final ctx = t.element(find.byType(Text).first);
+    final px = _coverBytes.values.first;
+    final s = await _open(t, _phone, repo, extra: [glassShareImageProvider.overrideWithValue((url) => MemoryImage(_coverBytes[url] ?? px))]);
     Future<void> write(String name, ShareSpec spec, ShareFormat f) async {
-      final fut = renderShareCard(ctx, spec, f);
-      await t.pump();
-      await t.pump();
-      final bytes = await t.runAsync(() => fut);
+      final ctx = t.element(find.byType(Text).first);
+      Uint8List? bytes;
+      Object? err;
+      unawaited(renderShareCard(ctx, spec, f).then((b) => bytes = b, onError: (Object e) => err = e));
+      for (var i = 0; i < 600 && bytes == null && err == null; i++) {
+        await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 5)));
+        await t.pump();
+      }
+      if (err != null) throw err!;
       final dir = proofDir;
       if (dir != null) {
-        await Directory(dir).create(recursive: true);
-        await File('$dir/$name.png').writeAsBytes(bytes!);
+        await t.runAsync(() async {
+          await Directory(dir).create(recursive: true);
+          await File('$dir/$name.png').writeAsBytes(bytes!);
+        });
       }
     }
 
@@ -176,9 +193,156 @@ void main() {
     await write('card-02-time-story', ShareSpec.forCard(WrappedCard.time, a)!, ShareFormat.story);
     await write('card-04-top-five-post', ShareSpec.forCard(WrappedCard.topFive, a)!, ShareFormat.post);
     await write('card-12-summary-story', ShareSpec.forCard(WrappedCard.summary, a)!, ShareFormat.story);
+    final st = statisticsFixture();
+    await write('share-range-story', ShareSpec.stat(id: 'range-30', eyebrow: 'Your reading', numeral: '${st.window.chaptersRead}', unit: 'chapters', contextLine: 'Last 30 days', bars: st.daily), ShareFormat.story);
     await write('share-streak-story', ShareSpec.stat(id: 'streak', eyebrow: 'Streak', numeral: '12', unit: 'day streak', contextLine: 'Longest: 31 days', flame: true), ShareFormat.story);
     await s.settle(100);
     await _end(t);
   });
-}
 
+  testWidgets('stats: table view, scrub, offline, goal menu, flare and milestone', (t) async {
+    var s = await _open(t, _phone, FakeNumbers());
+    await t.tap(find.text('Show as table').first);
+    await s.settle(600);
+    await s.snap('stats-table-view', _phone);
+
+    s = await _open(t, _phone, FakeNumbers(), start: '/library/statistics?range=30');
+    final chart = find.byType(GlassChart).first;
+    await t.ensureVisible(chart);
+    await s.settle(300);
+    final r = t.getRect(chart);
+    final g = await t.startGesture(Offset(r.left + 20, r.center.dy));
+    for (var x = r.left + 20; x < r.center.dx; x += 10) {
+      await g.moveTo(Offset(x, r.center.dy));
+      await t.pump(const Duration(milliseconds: 16));
+    }
+    await s.snap('stats-scrub', _phone);
+    await g.up();
+
+    for (final size in _sizes) {
+      final repo = FakeNumbers();
+      s = await _open(t, size, repo);
+      repo.failWith = const NetworkError(message: 'offline');
+      s.container.invalidate(numbersStatisticsProvider(30));
+      await s.settle(800);
+      await s.settle(800);
+      await s.snap('stats-offline', size);
+    }
+
+    s = await _open(t, _phone, FakeNumbers());
+    await t.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await t.sendKeyEvent(LogicalKeyboardKey.keyG);
+    await t.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await s.settle(500);
+    await s.snap('goal-menu', _phone);
+
+    final repo = FakeNumbers()..stats[1] = LibraryStatistics.fromJson(statisticsJson(days: 1, currentDays: 30, milestonesSeen: const []));
+    s = await _open(t, _phone, repo);
+    final handle = s.container.read(progressAnswerHandlerProvider);
+    handle(const ProgressAnswer(streak: StreakSnapshot(currentDays: 29, extendedToday: false), todaySeconds: 300));
+    handle(const ProgressAnswer(streak: StreakSnapshot(currentDays: 30, extendedToday: true), todaySeconds: 900));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 300));
+    await s.snap('flare', _phone);
+    await s.settle(900);
+    await s.snap('milestone-toast', _phone);
+    await _end(t);
+  });
+
+  testWidgets('stats: the states at tablet and the wide frame', (t) async {
+    for (final size in _sizes.skip(1)) {
+      var s = await _open(t, size, FakeNumbers(), start: '/library/statistics?range=7');
+      await s.snap('stats-7', size);
+      s = await _open(t, size, FakeNumbers(), start: '/library/statistics?range=90');
+      await s.snap('stats-90', size);
+      s = await _open(t, size, FakeNumbers(stats: {30: statisticsFixture(empty: true)}));
+      await s.snap('stats-empty', size);
+      s = await _open(t, size, FakeNumbers(stats: {30: statisticsFixture(neverRead: true)}));
+      await s.snap('stats-never-read', size);
+      s = await _open(t, size, FakeNumbers(failWith: const UnknownError(message: 'boom')));
+      await s.snap('stats-error', size);
+      final gated = FakeNumbers()..gate = Completer<void>();
+      s = await _open(t, size, gated, settleMs: 1);
+      await s.snap('stats-loading', size);
+      gated.gate!.complete();
+    }
+    await _end(t);
+  });
+
+  testWidgets('accessibility: reduced motion, solid glass, increased contrast', (t) async {
+    t.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
+    var s = await _open(t, _phone, FakeNumbers());
+    await s.snap('reduced-motion-stats', _phone);
+    s = await _open(t, _phone, FakeNumbers(annuals: {2026: _annual()}), start: '/library/statistics/annual/2026');
+    await s.snap('reduced-motion-wrapped', _phone);
+    t.platformDispatcher.clearAccessibilityFeaturesTestValue();
+    s = await _open(t, _phone, FakeNumbers());
+    s.container.read(glassInAppPrefsProvider.notifier).setSolidGlass(true);
+    await s.settle(600);
+    await s.snap('stats-solid', _phone);
+    s.container.read(glassInAppPrefsProvider.notifier)
+      ..setSolidGlass(false)
+      ..setIncreaseContrast(true);
+    await s.settle(600);
+    await s.snap('stats-contrast', _phone);
+    await _end(t);
+  });
+
+  testWidgets('flame states, the pile, the podium mid-drop and the share flip', (t) async {
+    for (final size in _sizes) {
+      await captureSkinWidget(
+        t,
+        name: 'flame-states',
+        size: size,
+        overrides: [gravitySensorProvider.overrideWithValue(() => const Stream.empty())],
+        settle: (t) async => t.pump(const Duration(milliseconds: 400)),
+        child: ColoredBox(
+          color: const Color(0xFF000000),
+          child: Center(
+            child: Wrap(
+              spacing: 24,
+              runSpacing: 24,
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                for (final px in const [16.0, 20.0, 44.0, 96.0, 220.0]) StreakFlame(size: px, days: 12, state: FlameState.litToday),
+                const StreakFlame(size: 96, days: 12, state: FlameState.notYetToday),
+                const StreakFlame(size: 96, days: 12, state: FlameState.atRisk),
+                const StreakFlame(size: 96, state: FlameState.none),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    final repo = FakeNumbers(annuals: {2026: _annual()});
+    final cards = wrappedCards(_annual(), profileShares: true);
+    final s = await _open(t, _phone, repo, start: '/library/statistics/annual/2026');
+    await t.sendKeyEvent(LogicalKeyboardKey.space); // paused: the keys move
+    Future<void> goTo(WrappedCard c) async {
+      for (var i = 0; i < cards.length && find.byKey(ValueKey('wrapped-card-${c.name}')).evaluate().isEmpty; i++) {
+        await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await t.pump();
+        await t.pump(const Duration(milliseconds: 700));
+      }
+    }
+
+    await goTo(WrappedCard.time);
+    await s.settle(1600);
+    await t.sendKeyEvent(LogicalKeyboardKey.keyE);
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 200));
+    await s.snap('share-flip', _phone);
+    await t.sendKeyEvent(LogicalKeyboardKey.escape);
+    await s.settle(800);
+    await goTo(WrappedCard.volume);
+    await s.settle(2600);
+    await s.settle(2600);
+    await s.snap('wrapped-pile', _phone);
+    await goTo(WrappedCard.topFive);
+    await t.pump(const Duration(milliseconds: 650));
+    await t.pump(const Duration(milliseconds: 120));
+    await s.snap('wrapped-podium-drop', _phone);
+    await _end(t);
+  });
+}
