@@ -3,14 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/daily_goal_provider.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
-import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart' show GlassIconWeight;
+import 'package:manhwamaniacs/skins/glass/parts/streak/plus_one.dart';
+import 'package:manhwamaniacs/skins/glass/parts/streak/streak_ui.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
-import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/streak_flame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/greeting.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
@@ -19,9 +21,12 @@ import 'package:manhwamaniacs/skins/skins.dart';
 /// `streak` and the label, linking to Statistics. At risk the glyph shrinks to 0.8 and is the outlined flame with no core colour.
 /// `mobile/42` replaces [glyph] with `StreakFlame` at 16 px and mounts its Plus one over this chip.
 class GreetingStreakChip extends ConsumerWidget {
-  const GreetingStreakChip({super.key, required this.days, this.atRisk = false, this.glyph});
+  const GreetingStreakChip({super.key, required this.days, this.atRisk = false, this.readToday = false, this.glyph});
   final int days;
   final bool atRisk;
+
+  /// Whether today already has reading (full colour flame); else the dimmer not-yet-today flame.
+  final bool readToday;
 
   /// The flame (mobile/42 passes `StreakFlame`); null draws the default glyph.
   final Widget? glyph;
@@ -29,10 +34,14 @@ class GreetingStreakChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hit = GlassFrame.hitMin(context);
+    final ui = ref.watch(streakUiProvider);
     final flame = glyph ??
-        Transform.scale(
-          scale: atRisk ? 0.8 : 1,
-          child: GlyphIcon(GlassGlyph.flame, size: 16, color: gt.colorStreak, weight: atRisk ? GlassIconWeight.regular : GlassIconWeight.fill),
+        StreakFlame(
+          size: 16,
+          days: days,
+          flare: ui.flare,
+          semanticLabel: false,
+          state: flameStateOf(days: days, readToday: readToday, atRisk: atRisk),
         );
     return SizedBox(
       height: hit,
@@ -47,7 +56,7 @@ class GreetingStreakChip extends ConsumerWidget {
             height: 32,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(color: gt.colorFill2, borderRadius: BorderRadius.circular(16)),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [flame, const SizedBox(width: 6), GlassLabel('$days-day streak', role: gt.typeFootnote, wght: 600, color: gt.colorLabel1)]),
+            child: GlassPlusOne(child: Row(mainAxisSize: MainAxisSize.min, children: [flame, const SizedBox(width: 6), GlassLabel('$days-day streak', role: gt.typeFootnote, wght: 600, color: gt.colorLabel1)])),
           ),
         ),
       ),
@@ -66,6 +75,9 @@ class GreetingHeader extends ConsumerWidget {
     final now = ref.watch(clockProvider)();
     final streak = ref.watch(homeFeedProvider.select((v) => v.valueOrNull?.feed?.streak)) ?? const HomeStreak();
     final unread = ref.watch(unreadNotificationCountProvider);
+    final lastActive = streak.lastActiveDate;
+    final readToday = ref.watch(dailyGoalProvider.select((g) => g.todaySeconds > 0)) ||
+        (lastActive != null && lastActive.year == now.year && lastActive.month == now.month && lastActive.day == now.day);
     final sub = greetingSubline(unread: unread, streak: streak, now: now);
     return Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 8),
@@ -92,7 +104,7 @@ class GreetingHeader extends ConsumerWidget {
                       GlassLabel(sub.newChapters!, role: gt.typeFootnote, color: gt.colorLabel2),
                       if (sub.streakDays > 0) GlassLabel('·', role: gt.typeFootnote, color: gt.colorLabel2),
                     ],
-                    if (sub.streakDays > 0 && sub.riskLine == null) GreetingStreakChip(days: sub.streakDays),
+                    if (sub.streakDays > 0 && sub.riskLine == null) GreetingStreakChip(days: sub.streakDays, readToday: readToday),
                     if (sub.riskLine != null) GreetingStreakChip(days: sub.streakDays, atRisk: true),
                   ],
                 ),

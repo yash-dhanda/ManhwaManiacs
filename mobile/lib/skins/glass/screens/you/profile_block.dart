@@ -1,3 +1,5 @@
+import 'dart:math' show max;
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,9 +29,11 @@ class YouOrb extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final p = ref.watch(activeProfileProvider);
     final orb = GlassProfileOrb(preset: avatarPresetFor(p?.avatarKey), size: size, mood: p == null ? null : moodColour(p.mood), name: p?.name);
-    final goal = ref.watch(dailyGoalProvider).valueOrNull;
-    if (goal == null || goal.goalMinutes == null) return orb;
-    return GlassGoalRing(orbSize: size, minutes: goal.todayMinutes, goal: goal.goalMinutes!, child: orb);
+    final goal = ref.watch(dailyGoalProvider);
+    if (goal.goalMinutes == null) return orb;
+    // The live progress answers, or the 1-day statistics on a cold start, whichever knows more.
+    final seconds = max(goal.todaySeconds, ref.watch(statsTodaySecondsProvider) ?? 0);
+    return GlassGoalRing(orbSize: size, minutes: seconds ~/ 60, goal: goal.goalMinutes!, child: orb);
   }
 }
 
