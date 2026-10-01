@@ -141,7 +141,7 @@ class ChaptersHeader extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Expanded(child: Semantics(header: true, child: GlassLabel(d.novel ? 'Contents' : 'Chapters', role: gt.typeTitle2, wght: 700))),
+                Expanded(child: Semantics(header: true, headingLevel: 2, child: GlassLabel(d.novel ? 'Contents' : 'Chapters', role: gt.typeTitle2, wght: 700))),
                 GlassButton(
                     key: const ValueKey('chapters-select'),
                     label: chapters.selection.isActive ? 'Done' : 'Select',
@@ -159,7 +159,7 @@ class ChaptersHeader extends ConsumerWidget {
             ),
             if (!profile) GlassLabel('Downloads belong to a reading profile. Choose one to save chapters here.', role: gt.typeCaption1, color: gt.colorLabel3, maxLines: 2),
             if (indexed > 0) GlassLabel('Dialogue indexed for $indexed chapters', key: const ValueKey('chapters-ocr'), role: gt.typeCaption1, color: gt.colorLabel3),
-            const SizedBox(height: 6),
+            const SizedBox(height: 10), // 8 px clear of the Download button's hit rect (14.6)
             GlassSegmented<String>(
               key: const ValueKey('chapters-order'),
               compact: true,

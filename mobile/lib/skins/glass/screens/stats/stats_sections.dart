@@ -40,7 +40,7 @@ class StatsPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(children: [Expanded(child: Semantics(header: true, child: GlassLabel(title, role: gt.typeHeadline, color: gt.colorLabel1))), if (trailing != null) trailing!]),
+            Row(children: [Expanded(child: Semantics(header: true, headingLevel: 2, child: GlassLabel(title, role: gt.typeHeadline, color: gt.colorLabel1))), if (trailing != null) trailing!]),
             const SizedBox(height: 12),
             child,
           ],

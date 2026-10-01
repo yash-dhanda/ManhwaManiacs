@@ -127,6 +127,7 @@ class DeckCardFrame extends StatelessWidget {
                   children: [
                     Semantics(
                         header: true,
+                        headingLevel: 2,
                         child: GlassText(title, role: gt.typeTitle3),),
                     const SizedBox(height: 12),
                     child,

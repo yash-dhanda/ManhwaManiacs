@@ -167,7 +167,7 @@ class _GlassHistoryPageState extends ConsumerState<GlassHistoryPage> {
         groups.last.$2.add(r);
       }
       for (final g in groups) {
-        slivers.add(SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.only(top: 12, bottom: 8), child: Semantics(header: true, child: GlassLabel(g.$1, role: gt.typeFootnote, wght: 600, upper: true, color: gt.colorLabel2)))));
+        slivers.add(SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.only(top: 12, bottom: 8), child: Semantics(header: true, headingLevel: 2, child: GlassLabel(g.$1, role: gt.typeFootnote, wght: 600, upper: true, color: gt.colorLabel2)))));
         if (_bySeries) {
           slivers.add(SliverLayoutBuilder(builder: (context, c) {
             const gap = 12.0;
