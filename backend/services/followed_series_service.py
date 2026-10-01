@@ -568,6 +568,12 @@ class FollowedSeriesService:
 
     # --- CRUD --------------------------------------------------------
 
+    def _home_stale(self) -> None:
+        """Drop this profile's composed Home (cached 10 min): Continue, the cover story and the new-chapter sections read the follows."""
+        from services.home_service import invalidate_profile
+
+        invalidate_profile(self._profile_id)
+
     def follow(self, source_id: str, series_key: str) -> dict[str, Any]:
         self._require_profile()
         # The source gate first, and outside the try below: a source this
@@ -636,6 +642,7 @@ class FollowedSeriesService:
             )
         self._db.add(row)
         self._db.commit()
+        self._home_stale()
         self._db.refresh(row)
         if meta or chapters:
             self._cache.write_through(source_id, series_key, meta, chapters)
@@ -810,6 +817,7 @@ class FollowedSeriesService:
         target_row.updated_at = now
         self._carry_shelves(old_pair, (source_id, series_key), move=not keep_old)
         self._db.commit()
+        self._home_stale()
         self._db.refresh(target_row)
         if meta or chapters:
             self._cache.write_through(source_id, series_key, meta, chapters)
@@ -946,6 +954,7 @@ class FollowedSeriesService:
         row = self._get_visible(followed_id)
         self._db.delete(row)
         self._db.commit()
+        self._home_stale()
 
     def patch(self, followed_id: int, **changes: Any) -> dict[str, Any]:
         self._require_owner()
@@ -981,6 +990,7 @@ class FollowedSeriesService:
             row.sort_order = int(changes["sort_order"])
         row.updated_at = utcnow()
         self._db.commit()
+        self._home_stale()
         self._db.refresh(row)
         return self._serialize_with_state(row)
 

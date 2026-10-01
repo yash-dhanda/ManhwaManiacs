@@ -1297,7 +1297,7 @@ class ProgressService:
         """
         for attempt in range(_WRITE_ATTEMPTS):
             try:
-                return apply()
+                result = apply()
             except OperationalError as exc:
                 if "locked" not in str(exc.orig or exc).lower():
                     raise
@@ -1310,6 +1310,12 @@ class ProgressService:
                         details={"retry_after_seconds": RETRY_AFTER_SECONDS},
                     ) from exc
                 sleep(_WRITE_RETRY_DELAY)
+                continue
+            # Home's composed issue (cached 10 min) reads these positions for Continue and the cover story.
+            from services.home_service import invalidate_profile
+
+            invalidate_profile(self._profile_id)
+            return result
         raise AssertionError("unreachable: the last attempt returns or raises")
 
     def save_one(self, payload: ProgressInput) -> dict[str, Any]:
