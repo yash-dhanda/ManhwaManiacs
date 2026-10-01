@@ -52,7 +52,7 @@ class _Dots extends CustomPainter {
 }
 
 /// Label → dot leaders → value on one baseline (cinematic 7.16). The value keeps its own width
-/// (at most half the row), the label wraps only when the two cannot share the line, and the
+/// (up to 70 % of the row), the label wraps only when the two cannot share the line, and the
 /// leaders take exactly what is left, so every value and trailing mark ends on the row's edge.
 /// The value sits on the label's last line.
 ///
@@ -86,7 +86,7 @@ class _RenderLeaderRow extends RenderBox
     markNeedsLayout();
   }
 
-  static const _minLeader = 16.0;
+  static const _minLeader = 24.0; // at least three dots, so a leader reads as one
   static const _a = TextBaseline.alphabetic;
 
   @override
@@ -106,7 +106,9 @@ class _RenderLeaderRow extends RenderBox
     Size lay(RenderBox c, BoxConstraints k) => dry ? c.getDryLayout(k) : (c..layout(k, parentUsesSize: true)).size;
     double base(RenderBox c, BoxConstraints k, Size s) => (dry ? c.getDryBaseline(k, _a) : c.getDistanceToBaseline(_a, onlyReal: true)) ?? s.height;
 
-    final vk = BoxConstraints(maxWidth: w / 2);
+    // Its own width up to half the row, more (to 70 %) rather than wrap or overflow a value.
+    final vNat = value?.getMaxIntrinsicWidth(double.infinity) ?? 0;
+    final vk = BoxConstraints(maxWidth: math.max(0, math.min(math.max(w / 2, vNat), w * 0.7 - 2 * _gap - _minLeader)));
     final vs = value == null ? Size.zero : lay(value, vk);
     final vRun = value == null ? 0.0 : _gap + vs.width;
     final lk = BoxConstraints(maxWidth: math.max(0, w - vRun - _gap - _minLeader));
@@ -114,10 +116,10 @@ class _RenderLeaderRow extends RenderBox
     final dk = BoxConstraints.tightFor(width: math.max(0, w - ls.width - _gap - vRun));
     final ds = lay(leader, dk);
 
-    // The label's last baseline: its height less what one line carries below the baseline.
-    const one = BoxConstraints(maxWidth: 1e5); // one line, but finite for a Row with flex children
-    final oneSize = label.getDryLayout(one);
-    final labelLast = ls.height - (oneSize.height - (label.getDryBaseline(one, _a) ?? oneSize.height));
+    // The label's last baseline: its first baseline plus the height wrapping added (its height
+    // less its one-line height, an intrinsic: dry baselines fail on plain boxes like ColoredBox).
+    final oneHeight = label.getMinIntrinsicHeight(1e5);
+    final labelLast = base(label, lk, ls) + math.max(0, ls.height - oneHeight);
     final vb = value == null ? 0.0 : base(value, vk, vs);
     final db = base(leader, dk, ds);
     final line = math.max(labelLast, math.max(vb, db));

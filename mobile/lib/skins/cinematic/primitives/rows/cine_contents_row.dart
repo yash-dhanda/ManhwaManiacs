@@ -44,9 +44,6 @@ class CineContentsRow extends StatelessWidget {
       if (narrated) CineGlyphIcon(CineGlyph.headphones, size: 16, color: c.colorInk60),
       if (downloadMark != null) downloadMark!,
     ];
-    for (var i = marks.length - 1; i > 0; i--) {
-      marks.insert(i, SizedBox(width: c.space2));
-    }
     return CineRowShell(
       minHeight: 48,
       onTap: onTap,
@@ -65,7 +62,7 @@ class CineContentsRow extends StatelessWidget {
         Expanded(
           child: CineLeaderRow(
             label: CineLit(title, CineFace.newsreader, 16, 24, color: ink),
-            value: marks.isEmpty ? null : Row(mainAxisSize: MainAxisSize.min, children: marks),
+            value: marks.isEmpty ? null : Wrap(spacing: c.space2, alignment: WrapAlignment.end, crossAxisAlignment: WrapCrossAlignment.center, children: marks), // wraps at large text, never overflows
           ),
         ),
       ],),
