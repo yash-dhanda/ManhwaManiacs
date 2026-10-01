@@ -89,14 +89,18 @@ class SeriesMarks {
           if (e.value.completed) e.key,
       };
 
-  /// Returns the keys that were marked.
-  Future<List<String>> markRead(List<SourceChapterSummary> chapters) async {
+  /// Returns the keys that were marked, or null when the server refused.
+  Future<List<String>?> markRead(List<SourceChapterSummary> chapters) async {
     final repo = ref.read(readerRepositoryProvider);
     final rows = manualReadRows([
       for (final c in chapters) (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number, pageCount: c.pageCount, completed: false),
     ], at: manualMarkStamp(ref.read(sourceSeriesProgressProvider(d.progressKey))));
     for (final chunk in chunksOf200(rows)) {
-      await repo.saveProgressBatch(chunk);
+      final r = await repo.saveProgressBatch(chunk);
+      if (r.isErr) {
+        _refresh();
+        return null;
+      }
     }
     _refresh();
     return [for (final c in chapters) c.id];
@@ -111,17 +115,19 @@ class SeriesMarks {
     if (keys.isNotEmpty) _refresh();
   }
 
-  /// Returns what was deleted, for the Undo.
-  Future<Map<String, SourceChapterProgress>> markUnread(List<String> keys) async {
+  /// Returns what was deleted, for the Undo, or null when the server refused.
+  Future<Map<String, SourceChapterProgress>?> markUnread(List<String> keys) async {
     final merged = ref.read(sourceSeriesProgressProvider(d.progressKey));
     final prior = {
       for (final k in keys)
         if (merged[k] != null) k: merged[k]!,
     };
-    await ref.read(sourceProgressProvider.notifier).forget(sourceId: d.sourceId, seriesId: d.seriesKey, chapterIds: keys);
+    // Server first: the local position is dropped only once the server row is gone too.
     for (final chunk in chunksOf200(keys)) {
-      await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
+      final r = await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
+      if (r.isErr) return null;
     }
+    await ref.read(sourceProgressProvider.notifier).forget(sourceId: d.sourceId, seriesId: d.seriesKey, chapterIds: keys);
     _refresh();
     return prior;
   }

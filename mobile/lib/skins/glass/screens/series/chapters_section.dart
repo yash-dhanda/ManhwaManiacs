@@ -364,6 +364,7 @@ Future<void> markChaptersRead(WidgetRef ref, GlassSeriesData d, List<SourceChapt
   final marks = SeriesMarks(ref, d);
   final before = marks.completed();
   final marked = await marks.markRead(cs);
+  if (marked == null) return showGlassToast(ref, const GlassToastSpec("Couldn't mark them read. Try again", kind: GlassToastKind.error));
   fire(ref.read(glassHapticsProvider).fire(HapticEvent.select));
   final msg = cs.length == 1 ? 'Marked chapter ${chapterNum(cs.first.number) ?? ''} read'.replaceAll('  ', ' ') : 'Marked ${cs.length} chapters read';
   showGlassToast(ref, GlassToastSpec(msg, undo: () => fire(marks.undoMarkRead(before, marked))));
@@ -374,6 +375,7 @@ Future<void> markChapterUnread(WidgetRef ref, GlassSeriesData d, SourceChapterSu
   if (!onlineNow(ref)) return;
   final marks = SeriesMarks(ref, d);
   final deleted = await marks.markUnread([c.id]);
+  if (deleted == null) return showGlassToast(ref, const GlassToastSpec("Couldn't mark it unread. Try again", kind: GlassToastKind.error));
   fire(ref.read(glassHapticsProvider).fire(HapticEvent.select));
   showGlassToast(ref, GlassToastSpec('Marked chapter ${chapterNum(c.number) ?? ''} unread', undo: () => fire(marks.undoMarkUnread(deleted))));
 }

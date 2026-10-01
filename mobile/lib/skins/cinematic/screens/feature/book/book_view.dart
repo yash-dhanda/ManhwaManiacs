@@ -329,6 +329,7 @@ class _BookViewState extends ConsumerState<BookView> {
     final before = _completed();
     final marked = await _marks.markRead(chapters, previouslyCompleted: before);
     if (!mounted) return;
+    if (marked == null) return featureToast(context, "Couldn't mark them read. Try again.");
     feedback(ref, HapticEvent.select);
     featureToast(context, message, onUndo: () => unawaited(_marks.undoMarkRead(before, marked)));
   }
@@ -352,6 +353,7 @@ class _BookViewState extends ConsumerState<BookView> {
       case 'unread':
         final deleted = await _marks.markUnread([c.id]);
         if (!mounted) return;
+        if (deleted == null) return featureToast(context, "Couldn't mark it unread. Try again.");
         feedback(ref, HapticEvent.select);
         featureToast(
           context,
