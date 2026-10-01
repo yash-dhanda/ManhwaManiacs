@@ -1,5 +1,6 @@
 // ignore_for_file: require_trailing_commas
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +68,13 @@ class GlassReaderRig {
   /// `SystemChrome` messages on `SystemChannels.platform`.
   final List<MethodCall> systemCalls;
 
+  /// The location of the top route (a pushed reader is an imperative match over `/`).
+  Uri get at {
+    final cfg = router.routerDelegate.currentConfiguration;
+    final last = cfg.last;
+    return last is ImperativeRouteMatch ? last.matches.uri : cfg.uri;
+  }
+
   GlassMangaReaderState state(WidgetTester t) => t.state<GlassMangaReaderState>(find.byType(GlassMangaReader));
 }
 
@@ -89,6 +97,7 @@ Future<GlassReaderRig> pumpGlassReader(
   bool accessible = false,
   Map<String, ReaderChapter> chapters = const {},
   List<PageText>? ocr,
+  bool mockPathProvider = true,
 }) async {
   final r = FeatureRig();
   SharedPreferences.setMockInitialValues(prefsValues);
@@ -107,11 +116,20 @@ Future<GlassReaderRig> pumpGlassReader(
     return null;
   });
   addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+  // Plugins the app's providers reach while real async runs (the auth restore, the image cache).
+  // The screenshot suite installs its own path_provider (the cover cache lives there): it passes false.
+  if (mockPathProvider) {
+    final temp = Directory.systemTemp.createTempSync('mm-glass-reader-');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('plugins.flutter.io/path_provider'), (c) async => temp.path);
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('plugins.flutter.io/path_provider'), null));
+  }
+  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'), (c) async => null);
+  addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'), null));
   final wakelock = FakeWakelock();
   final mm = RecordingPlatform();
   final fixture = loadSeriesFixture('manga-ongoing');
-  ReaderChapter chapterFor(String k) => chapters[k] ?? readerChapter(k, pages: pages);
   ({String? prev, String? next}) n(String k) => k == 'c1' ? (prev: null, next: 'c2') : k == 'c2' ? (prev: 'c1', next: 'c3') : (prev: 'c2', next: null);
+  ReaderChapter chapterFor(String k) => chapters[k] ?? readerChapter(k, pages: pages, prev: n(k).prev, next: n(k).next);
   final readerPath = origin == GlassReaderOrigin.source
       ? '/sources/$kReaderSource/series/$kReaderSeries/chapters/$chapterKey/read$query'
       : origin == GlassReaderOrigin.readAll
@@ -123,6 +141,7 @@ Future<GlassReaderRig> pumpGlassReader(
     routes: [
       GoRoute(path: '/', builder: (context, state) => const ColoredBox(color: Colors.black, child: Center(child: Text('series page')))),
       GoRoute(path: '/reader/:sourceId/:seriesKey/:chapterKey', pageBuilder: (c, s) => page(s, GlassReaderScreen.of(s))),
+      GoRoute(path: '/library/read/:sourceId/:seriesKey/:chapterKey', pageBuilder: (c, s) => page(s, GlassReaderScreen.of(s))),
       GoRoute(path: '/sources/:sourceId/series/:seriesKey/chapters/:chapterKey/read', pageBuilder: (c, s) => page(s, GlassReaderScreen.of(s))),
       GoRoute(path: '/read-all/:sourceId/:seriesKey', pageBuilder: (c, s) => page(s, GlassReadAllScreen.of(s))),
       GoRoute(path: '/sources/:sourceId/series/:seriesKey', builder: (c, s) => const Text('feature page')),
