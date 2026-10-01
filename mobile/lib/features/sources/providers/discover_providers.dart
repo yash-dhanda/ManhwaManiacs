@@ -3,10 +3,12 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/request_limiter.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
+import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/genre_index.dart';
@@ -71,13 +73,22 @@ final popularFirstPageProvider = FutureProvider.autoDispose
 });
 
 /// The genre tiles: union of the pinned sources' genres by profile weight.
+/// The available pins of the current content mode (Manga or Novels): what
+/// Discover's idle page builds from.
+final discoverPinsProvider = Provider.autoDispose<List<SourcePin>>((ref) {
+  final pins = ref.watch(sourcePinsProvider).valueOrNull?.pins ?? const [];
+  return ref.watch(contentModeScopeProvider).filter(
+    [
+      for (final p in pins)
+        if (p.available) p,
+    ],
+    (p) => p.sourceId,
+  );
+});
+
 final genreIndexProvider =
     FutureProvider.autoDispose<List<GenreEntry>>((ref) async {
-  final pins = ref.watch(sourcePinsProvider).valueOrNull?.pins ?? const [];
-  final live = [
-    for (final p in pins)
-      if (p.available) p,
-  ];
+  final live = ref.watch(discoverPinsProvider);
   final genres = <String, List<SourceGenre>>{};
   await Future.wait([
     for (final p in live)
@@ -92,11 +103,7 @@ final genreIndexProvider =
 
 final trendingProvider =
     FutureProvider.autoDispose<List<TrendingTitle>>((ref) async {
-  final pins = ref.watch(sourcePinsProvider).valueOrNull?.pins ?? const [];
-  final live = [
-    for (final p in pins)
-      if (p.available) p,
-  ];
+  final live = ref.watch(discoverPinsProvider);
   final pages = <String, List<SourceSeriesSummary>>{};
   await Future.wait([
     for (final p in live)
