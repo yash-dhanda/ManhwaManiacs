@@ -66,7 +66,8 @@ import 'package:manhwamaniacs/skins/glass/transitions/book_open_page.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 // `readerLanding` is built here: it redirects to the library (glass 8.0.3).
-/// The Glass development routes (mobile/25), outside the `ScreenId` map. Settings -> Diagnostics links the calibration page (mobile/40).
+/// The Glass development routes (mobile/25), outside the `ScreenId` map, registered in debug builds only ([glassDevRoutesProvider]).
+/// Settings -> Diagnostics links the calibration page there (mobile/40).
 const String kGlassDevPath = '/dev/glass';
 const String kGlassCalibrationPath = '/dev/glass/calibration';
 
@@ -272,8 +273,11 @@ GoRouter buildGlassRouter(Ref ref) {
     ref.read(glassNavigatorsProvider.notifier).state = GlassNavigatorsRef(root: rootKey, branch: (t) => branchKeys[t]!);
   });
 
+  // A branch opens at its first GoRoute (go_router's `defaultRoute`): the dock's `goBranch` lands there, so it must be the real tab root.
   StatefulShellBranch branch(GlassTab t, List<RouteBase> routes) =>
       StatefulShellBranch(navigatorKey: branchKeys[t], observers: [GlassDepthObserver(depth, tab: t)], routes: routes);
+  // The development pages exist in debug builds only (`kDebugMode` first, so release builds drop them and their fixtures).
+  final dev = kDebugMode && ref.read(glassDevRoutesProvider);
 
   final router = GoRouter(
     navigatorKey: rootKey,
@@ -299,22 +303,24 @@ GoRouter buildGlassRouter(Ref ref) {
     routes: [
       // Mobile's kept `/settings/storage` (glass 8.0.3, 8.25.9): Downloads -> Storage, before any Settings widget builds.
       _redirect('/settings/storage', (s) => Routes.downloads({'tab': 'storage'})),
-      _devRoute(kGlassDevPath, () => const GlassDevIndex()),
-      _devRoute(kGlassCalibrationPath, () => const GlassCalibrationPage()),
-      _devRoute(kGlassAuthDemoPath, () => const GlassAuthDevPage()),
-      GoRoute(
-        path: kGlassReaderEngineProbePath,
-        builder: (context, state) => _DevScaffold(child: EngineProbePage(params: state.uri.queryParameters)),
-      ),
-      _devRoute(kGlassRouteErrorDemoPath, () => GlassRouteError(error: StateError('demo'))),
-      GoRoute(
-        path: kGlassPrimitivesPath,
-        builder: (context, state) => _DevScaffold(child: GlassGallery(section: state.uri.queryParameters['section'])),
-      ),
-      GoRoute(
-        path: '$kGlassPrimitivesPath/sheet/:id',
-        pageBuilder: (context, state) => glassDemoSheetPage(state.pathParameters['id']!, key: state.pageKey),
-      ),
+      if (dev) ...[
+        _devRoute(kGlassDevPath, () => const GlassDevIndex()),
+        _devRoute(kGlassCalibrationPath, () => const GlassCalibrationPage()),
+        _devRoute(kGlassAuthDemoPath, () => const GlassAuthDevPage()),
+        GoRoute(
+          path: kGlassReaderEngineProbePath,
+          builder: (context, state) => _DevScaffold(child: EngineProbePage(params: state.uri.queryParameters)),
+        ),
+        _devRoute(kGlassRouteErrorDemoPath, () => GlassRouteError(error: StateError('demo'))),
+        GoRoute(
+          path: kGlassPrimitivesPath,
+          builder: (context, state) => _DevScaffold(child: GlassGallery(section: state.uri.queryParameters['section'])),
+        ),
+        GoRoute(
+          path: '$kGlassPrimitivesPath/sheet/:id',
+          pageBuilder: (context, state) => glassDemoSheetPage(state.pathParameters['id']!, key: state.pageKey),
+        ),
+      ],
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => GlassShell(navigationShell: shell, location: glassShellLocation(GoRouter.of(context))),
         branches: [
@@ -340,10 +346,6 @@ GoRouter buildGlassRouter(Ref ref) {
             _screen(ScreenId.dialogue, (s) => GlassDialogueScreen(q: s.uri.queryParameters['q'])),
           ]),
           branch(GlassTab.you, [
-            GoRoute(
-              path: kGlassShellDemoPath,
-              pageBuilder: (context, state) => glassPage(state, GlassShellDemo(level: int.tryParse(state.uri.queryParameters['level'] ?? '') ?? 0)),
-            ),
             _screen(ScreenId.indexHub, (s) => const YouScreen()),
             _screen(ScreenId.settings, (s) => GlassSettingsScreen(row: s.uri.queryParameters['row'])),
             _screen(ScreenId.settings, (s) => GlassSettingsScreen(section: s.pathParameters['section'], row: s.uri.queryParameters['row']), path: Routes.settingsAliases.first),
@@ -351,6 +353,12 @@ GoRouter buildGlassRouter(Ref ref) {
             _screen(ScreenId.numbers, (s) => GlassStatisticsScreen(range: s.uri.queryParameters['range'], year: s.uri.queryParameters['year'])),
             _screen(ScreenId.status, (s) => const StatusScreen()),
             _screen(ScreenId.profilesManage, (s) => const GlassProfilesManageScreen()),
+            // The shell demo (mobile/29) sits inside the shell for its dock and depth tests; never first, or the You tab opens it.
+            if (dev)
+              GoRoute(
+                path: kGlassShellDemoPath,
+                pageBuilder: (context, state) => glassPage(state, GlassShellDemo(level: int.tryParse(state.uri.queryParameters['level'] ?? '') ?? 0)),
+              ),
           ]),
         ],
       ),

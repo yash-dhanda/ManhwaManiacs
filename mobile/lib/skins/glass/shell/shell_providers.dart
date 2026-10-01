@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show singleKeyShortcutsProvider;
@@ -10,6 +11,11 @@ import 'package:manhwamaniacs/skins/glass/primitives/stack/route_snapshot.dart'
 
 export 'package:manhwamaniacs/skins/glass/primitives/stack/route_snapshot.dart'
     show GlassTab;
+
+/// Whether the `/dev/glass/*` development pages (calibration, gallery, shell demo, fixtures, probes) are registered and linked.
+/// Debug builds only: release and profile builds never register them (the router also checks `kDebugMode`, so they tree-shake).
+/// Tests override it to false to see the release route table.
+final glassDevRoutesProvider = Provider<bool>((ref) => kDebugMode);
 
 /// Today's reading goal; `mobile/42` feeds [glassGoalRingProvider]. `null` draws no ring.
 @immutable
