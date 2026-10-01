@@ -300,7 +300,7 @@ List<Float64List> renderEventBank(SoundScene scene, {int seed = 11}) {
       return [
         for (var k = 0; k < 12; k++) () {
           final f = 2000 + 2000 * k / 11;
-          final len = kSampleRate * 4 ~/ 1000, attack = kSampleRate ~/ 1000;
+          const len = kSampleRate * 4 ~/ 1000, attack = kSampleRate ~/ 1000;
           final o = Float64List(len);
           for (var i = 0; i < len; i++) {
             final env = i < attack ? i / attack : math.exp(-(i - attack) / (kSampleRate * 0.001));
