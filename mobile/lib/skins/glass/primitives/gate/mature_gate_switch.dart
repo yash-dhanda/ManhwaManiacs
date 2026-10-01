@@ -115,7 +115,7 @@ class _GlassMatureGateState extends ConsumerState<GlassMatureGate> {
     }
     // Only a settled value is shown as the profile's: a refresh after a profile switch still carries the previous profile's.
     final fresh = async is AsyncData<bool>;
-    final value = _settings ? (fresh && (async?.valueOrNull ?? false)) : widget.value;
+    final value = _settings ? (fresh && (async.valueOrNull ?? false)) : widget.value;
     final loading = _pending || (_settings && !fresh);
     return GlassListRow(
       title: title,

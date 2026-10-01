@@ -63,7 +63,10 @@ class _Switch extends ServerSwitch {
   }
 
   @override
-  Future<void> reset() async => didReset = true;
+  Future<AppError?> reset() async {
+    didReset = true;
+    return null;
+  }
 }
 
 void main() {

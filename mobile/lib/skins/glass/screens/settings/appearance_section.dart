@@ -74,9 +74,7 @@ class AppearanceSection extends ConsumerWidget {
           live.setReduceMotion(v);
           unawaited(n.setMotion(v ? 'reduced' : 'system'));
         },),
-        SettingsSwitchRow(id: 'light-follows-device', title: 'Light follows the device', caption: 'Off pins the light at 135°.', value: lightOn, onChanged: (v) {
-          live.setLightFollowsDevice(v);
-        },),
+        SettingsSwitchRow(id: 'light-follows-device', title: 'Light follows the device', caption: 'Off pins the light at 135°.', value: lightOn, onChanged: live.setLightFollowsDevice),
         if (showIconRow) _IconRow(follow: switcher.follow, onChanged: (v) => unawaited(switcher.setFollow(v))),
       ],),
     ],);

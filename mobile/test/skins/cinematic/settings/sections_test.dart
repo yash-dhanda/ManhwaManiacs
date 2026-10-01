@@ -59,7 +59,10 @@ class _FakeSwitch implements ServerSwitch {
   }
 
   @override
-  Future<void> reset() async => calls.add('reset');
+  Future<AppError?> reset() async {
+    calls.add('reset');
+    return null;
+  }
 }
 
 void main() {

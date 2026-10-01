@@ -18,7 +18,6 @@ import 'package:manhwamaniacs/skins/glass/primitives/stepper.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_settings_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_row.dart';
-import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// Direction control of the manga group: Vertical is the strip layout, the other two open Single paged in that direction (glass 8.14.1).
 enum MangaDirection { ltr, rtl, vertical }
