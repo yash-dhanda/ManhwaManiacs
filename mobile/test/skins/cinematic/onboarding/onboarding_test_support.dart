@@ -144,7 +144,7 @@ class OnboardingParts {
 
 Future<OnboardingParts> onboardingParts({
   int? step = 2,
-  Object? profileStep,
+  Object? profileStep = 2,
   FakeOnboardingRepo? repo,
   FakeLib? lib,
   bool novels = true,
@@ -206,7 +206,7 @@ void stubCovers() {
 Future<OnboardingRig> pumpOnboarding(
   WidgetTester t, {
   int? step = 2,
-  Object? profileStep,
+  Object? profileStep = 2,
   FakeOnboardingRepo? repo,
   FakeLib? lib,
   bool reduced = false,
