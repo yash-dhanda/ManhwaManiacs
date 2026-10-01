@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/skins/glass/parts/ai/not_interested.dart';
 import 'package:manhwamaniacs/skins/glass/parts/ai/world_card_for.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/machine_badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/thinking_orbit.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/cards/world_card.dart' show glassWorldCardExtra;
 import 'package:manhwamaniacs/skins/glass/primitives/rail.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_rail_common.dart' show posterCardHeight;
 
@@ -62,7 +63,7 @@ class MoreLikeThisRail extends ConsumerWidget {
         screenId: 'series',
         itemCount: shown.length,
         itemWidth: 300,
-        itemHeight: 140,
+        itemHeight: 140 + glassWorldCardExtra(context),
         titleLeading: machine ? const MachineBadge() : null,
         itemBuilder: (c, i) {
           final w = shown[i];
