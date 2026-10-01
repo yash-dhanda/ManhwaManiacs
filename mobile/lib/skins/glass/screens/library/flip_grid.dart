@@ -47,7 +47,7 @@ class FlipTile extends ConsumerStatefulWidget {
 }
 
 class _FlipTileState extends ConsumerState<FlipTile> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController.unbounded(vsync: this, value: 1);
+  late final AnimationController _c;
   Offset _delta = Offset.zero;
   Size _ratio = const Size(1, 1);
 
@@ -59,6 +59,7 @@ class _FlipTileState extends ConsumerState<FlipTile> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+    _c = AnimationController.unbounded(vsync: this, value: 1);
     widget.registry._tiles[widget.id] = this;
   }
 

@@ -73,7 +73,7 @@ class _WaveTile extends ConsumerStatefulWidget {
 }
 
 class _WaveTileState extends ConsumerState<_WaveTile> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController.unbounded(vsync: this, value: 1);
+  late final AnimationController _c;
   Offset _dir = Offset.zero;
   bool _fade = false;
   int _seen = -1;
@@ -81,6 +81,7 @@ class _WaveTileState extends ConsumerState<_WaveTile> with SingleTickerProviderS
   @override
   void initState() {
     super.initState();
+    _c = AnimationController.unbounded(vsync: this, value: 1);
     if (widget.wave.running) {
       _seen = widget.wave.epoch;
       _c.value = 0;
