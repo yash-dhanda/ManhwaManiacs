@@ -46,6 +46,7 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
+import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_page_physics.dart';
@@ -1514,7 +1515,11 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
               direction: _card!.direction,
               label: chapterLabel((_card!.direction == NeighbourDirection.next ? _nextId : _previousId) ?? ''),
               info: _card!.info,
-              firstPage: null,
+              firstPage: _card!.info == null || _card!.info!.firstPageUrl.isEmpty
+                  ? null
+                  : ReaderPage(id: 'neighbour-first', number: 1, imageUrl: _card!.info!.firstPageUrl),
+              // Device tilt +-4 degrees through the light angle (pinned at rest under reduced motion).
+              tilt: ((ref.watch(glassLightAngleProvider).valueOrNull ?? kLightAngleRest) - kLightAngleRest) / (25 * math.pi / 180),
               overscroll: engine.live.overscrollExtent,
               zoom: _zoom,
               reduced: reducedMotion,

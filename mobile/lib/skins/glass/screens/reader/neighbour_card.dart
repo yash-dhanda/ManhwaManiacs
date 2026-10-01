@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/lit.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/page_thumb.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
@@ -75,7 +76,8 @@ class NeighbourCard extends StatelessWidget {
           final top = next ? size.height - cardH - 8 * (1 - z) + travel : 8 * (1 - z) - travel;
           final locked = o.abs() >= commitPx;
           final minutes = info?.minutes;
-          return Stack(
+          // The card rises like a partial sheet: an overlay, so its tinted "Read next" is not a second lit object on the screen.
+          return GlassLitOverlay(child: Stack(
             children: [
               Positioned(
                 left: (size.width - cardW) / 2,
@@ -132,7 +134,7 @@ class NeighbourCard extends StatelessWidget {
                 ),
               ),
             ],
-          );
+          ),);
         },
       ),
     );
