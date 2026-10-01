@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/features/library/providers/shelf_query_provider.da
 import 'package:manhwamaniacs/features/library/utils/bulk_runner.dart';
 import 'package:manhwamaniacs/features/library/utils/manual_order.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
+import 'package:manhwamaniacs/features/library/utils/series_unread.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
@@ -211,42 +212,21 @@ class ShelfActions {
   /// Deletes the progress of every known chapter of each series; the Undo re-posts the rows that
   /// were deleted, kept in memory until the toast closes.
   Future<BulkResult> markUnread(List<FollowedSeries> rows, {BulkCancel? cancel, void Function(int, int)? onProgress}) async {
-    final reader = _c.read(readerRepositoryProvider);
-    final removed = <List<ProgressPush>>[];
+    final undos = <Future<void> Function()>[];
     final o = await runBulk<FollowedSeries>(rows, (s) async {
       final Result<SeriesDetail> d = await _c.read(libraryRepositoryProvider).getSeries(s.id);
       if (d.isErr) return Err(d.error);
-      final detail = d.value;
-      final keys = [for (final k in _chapters(detail)) k.key];
-      final restore = [
-        for (final k in _chapters(detail))
-          if (detail.progress[k.key] != null)
-            ProgressPush(
-              sourceId: s.sourceId,
-              seriesKey: s.seriesKey,
-              chapterKey: k.key,
-              chapterNumber: k.number,
-              lastPage: detail.progress[k.key]!.lastPage,
-              pageCount: k.pageCount ?? 0,
-              isCompleted: detail.progress[k.key]!.isCompleted,
-              manual: true,
-            ),
-      ];
-      for (final chunk in chunksOf200(keys)) {
-        final r = await reader.deleteProgress(sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKeys: chunk);
-        if (r.isErr) return Err(r.error);
-      }
-      removed.add(restore);
+      final r = await markSeriesUnread(_c, sourceId: s.sourceId, seriesKey: s.seriesKey, keys: [for (final k in _chapters(d.value)) k.key]);
+      if (r.isErr) return Err(r.error);
+      undos.add(r.value);
       return const Ok(null);
     }, cancel: cancel, onProgress: onProgress,);
     _c.invalidate(shelfProvider);
     _touch();
     final message = o.failed > 0 || o.stopped ? summarizeBulkOutcome(o, verb: 'Marked') : 'Marked ${o.done} series unread.';
     Future<void> undo() async {
-      for (final rows in removed) {
-        for (final chunk in chunksOf200(rows)) {
-          await reader.saveProgressBatch(chunk);
-        }
+      for (final u in undos) {
+        await u();
       }
       _c.invalidate(shelfProvider);
     }
