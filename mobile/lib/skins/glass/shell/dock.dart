@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/list/row_shell.dart' show glassRowStacks;
 import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
@@ -326,6 +327,8 @@ class _DockTab extends ConsumerWidget {
           return child;
         }
 
+        // From text scale 1.6 the labels move to semantics only (glass 3.3 rule 1): icons stay, the long-press menu names the tab.
+        if (glassRowStacks(context, 0)) return Center(child: badge(SizedBox(width: 24, height: 24, child: Center(child: icon))));
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
