@@ -159,7 +159,8 @@ void main() {
     await scrollBy(t, -300, chrome: false);
     await shot(t, 'seam');
     st(t).engine.emitSeam(const SeamEvent.top('c3'));
-    await settleReader(t, ms: 300);
+    // Mid-hold of the 1,200 ms Seam chip move.
+    await settleReader(t, ms: 600);
     await shot(t, 'seam-chip');
     await disposeGlassReader(t);
 
