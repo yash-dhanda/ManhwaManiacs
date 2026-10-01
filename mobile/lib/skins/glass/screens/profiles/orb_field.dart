@@ -312,7 +312,8 @@ class _OrbFieldState extends ConsumerState<OrbField> with SingleTickerProviderSt
         SizedBox(
           width: s + widget.spacing - 4,
           child: ExcludeSemantics(
-            child: GlassText(widget.singleLabel ?? e.name, role: gt.typeHeadline, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, color: e.add ? gt.colorLabel2 : gt.colorLabel1),
+            // Two lines: "Late-night reader", "Add profile" at large text keep their words.
+            child: GlassText(widget.singleLabel ?? e.name, role: gt.typeHeadline, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, color: e.add ? gt.colorLabel2 : gt.colorLabel1),
           ),
         ),
       ],
