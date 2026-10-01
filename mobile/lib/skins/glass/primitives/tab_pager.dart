@@ -169,8 +169,8 @@ class _GlassTabPagerState extends ConsumerState<GlassTabPager> {
   ({List<double> lefts, List<double> widths}) _layout(BuildContext context) {
     final lefts = <double>[];
     final widths = <double>[];
-    // The first label's text sits on the screen gutter's inner edge + 8 (its capsule 8 px outside it).
-    var x = GlassFrame.screenMargin(context) - 8;
+    // The first tab's capsule starts on the screen gutter, as every block below it does.
+    var x = GlassFrame.screenMargin(context);
     for (final t in widget.tabs) {
       final w = measureText(context, t.label, roleStyle(context, gt.typeSubhead, onGlass: true, wght: 620, maxScale: 1.5)).width + 32;
       lefts.add(x);

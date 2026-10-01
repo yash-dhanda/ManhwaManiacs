@@ -17,15 +17,16 @@ class GlassInsets {
     required bool accessory,
   }) {
     final phone = frame == GlassFrameKind.phone;
-    final top = phone ? safe.top + 60 : 76.0;
+    // Wider frames clear the status bar too (an iPad's 24 px).
+    final top = phone ? safe.top + 60 : safe.top + 76;
     double bottom = phone ? safe.bottom + 85 + (accessory ? 56 : 0) : 24;
     if (keyboard > 0) bottom = safe.bottom + 16;
     return GlassInsets(top: top, bottom: bottom);
   }
 
-  /// The plateau of the top `GlassScrollEdge`: safe-top + 52 (+ 104 while a toast shows) on phones, 60 on wider frames.
+  /// The plateau of the top `GlassScrollEdge`: safe-top + 52 (+ 104 while a toast shows) on phones, safe-top + 60 on wider frames.
   static double topPlateau({required GlassFrameKind frame, required double safeTop, required bool toast}) =>
-      frame == GlassFrameKind.phone ? safeTop + 52 + (toast ? 104 : 0) : 60;
+      frame == GlassFrameKind.phone ? safeTop + 52 + (toast ? 104 : 0) : safeTop + 60;
 
   static double bottomPlateau({required GlassFrameKind frame, required double safeBottom, required bool accessory}) =>
       frame == GlassFrameKind.phone ? safeBottom + 85 + (accessory ? 56 : 0) : 24;

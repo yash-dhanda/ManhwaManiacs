@@ -231,7 +231,7 @@ class _GlassScaffoldState extends ConsumerState<GlassScaffold> {
           )
         else
           Positioned(
-            top: 12,
+            top: safe.top + 12,
             left: margin,
             right: margin,
             height: 48,

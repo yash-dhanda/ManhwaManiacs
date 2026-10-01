@@ -29,15 +29,15 @@ void main() {
       expect((a.top, a.bottom), (107.0, 119.0));
       expect(GlassInsets.compute(frame: GlassFrameKind.phone, safe: safe, keyboard: 0, accessory: true).bottom, 175);
     });
-    test('wider frames: 76 and 24; the keyboard leaves safeBottom + 16', () {
+    test('wider frames: safe-top + 76 and 24; the keyboard leaves safeBottom + 16', () {
       final a = GlassInsets.compute(frame: GlassFrameKind.desktop, safe: safe, keyboard: 0, accessory: false);
-      expect((a.top, a.bottom), (76.0, 24.0));
+      expect((a.top, a.bottom), (123.0, 24.0));
       expect(GlassInsets.compute(frame: GlassFrameKind.phone, safe: safe, keyboard: 300, accessory: true).bottom, 50);
     });
     test('edge plateaus', () {
       expect(GlassInsets.topPlateau(frame: GlassFrameKind.phone, safeTop: 47, toast: false), 99);
       expect(GlassInsets.topPlateau(frame: GlassFrameKind.phone, safeTop: 47, toast: true), 203);
-      expect(GlassInsets.topPlateau(frame: GlassFrameKind.tablet, safeTop: 47, toast: true), 60);
+      expect(GlassInsets.topPlateau(frame: GlassFrameKind.tablet, safeTop: 47, toast: true), 107); // wider frames clear the status bar too
       expect(GlassInsets.bottomPlateau(frame: GlassFrameKind.phone, safeBottom: 34, accessory: true), 175);
       expect(GlassInsets.bottomPlateau(frame: GlassFrameKind.desktop, safeBottom: 34, accessory: true), 24);
     });

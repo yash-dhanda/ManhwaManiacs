@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/rendering.dart' show OverflowBoxFit;
 import 'package:flutter/widgets.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
@@ -19,10 +17,10 @@ Widget glassTrailingFade(Widget child) => ShaderMask(
 /// ends), the trailing 24 px masked by a gradient to hint at more, never snapping, 8 px of vertical
 /// padding so focus rings are never clipped. Removals close the gap on `springSnappy`.
 ///
-/// The row always scrolls edge to edge of the screen: inside content that already sits on the screen margin it bleeds out
-/// over the margin (its first chip still on the gutter), so a chip that does not fit runs under the trailing fade at the
-/// screen edge instead of being cut at the gutter.
-class GlassChipRow extends StatelessWidget {
+/// The row always scrolls edge to edge of the screen: wherever it sits (a page gutter, a card, a sheet) it measures how far its box
+/// is from the screen's sides and bleeds out over that distance, its first chip staying where it was, so a chip that does not fit
+/// runs under the trailing fade at the screen edge instead of being cut mid-word at a gutter.
+class GlassChipRow extends StatefulWidget {
   const GlassChipRow({super.key, required this.children, this.gap = 8, this.controller, this.padding});
   final List<Widget> children;
   final double gap;
@@ -30,11 +28,28 @@ class GlassChipRow extends StatelessWidget {
   final EdgeInsets? padding;
 
   @override
+  State<GlassChipRow> createState() => _GlassChipRowState();
+}
+
+class _GlassChipRowState extends State<GlassChipRow> {
+  double _left = 0, _right = 0;
+
+  /// Measures the box's distance to the screen sides after layout; rebuilds only when it changed.
+  void _measure(Duration _) {
+    if (!mounted) return;
+    final box = context.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) return;
+    final x = box.localToGlobal(Offset.zero).dx;
+    final w = MediaQuery.sizeOf(context).width;
+    final l = x.clamp(0.0, w), r = (w - x - box.size.width).clamp(0.0, w);
+    if ((l - _left).abs() > 0.5 || (r - _right).abs() > 0.5) setState(() => (_left, _right) = (l, r));
+  }
+
+  @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback(_measure);
     final margin = GlassFrame.contentMargin(context);
-    final pad = padding ?? EdgeInsets.symmetric(horizontal: margin, vertical: 8);
-    // ponytail: assumes a row with less than a screen margin of its own padding sits on the gutter (every caller does).
-    final bleed = math.max(0.0, GlassFrame.screenMargin(context) - pad.left);
+    final pad = widget.padding ?? EdgeInsets.symmetric(horizontal: margin, vertical: 8);
     final row = AnimatedSize(
       duration: Duration(milliseconds: gt.springSnappy.ms),
       curve: Curves.easeOutCubic,
@@ -42,27 +57,30 @@ class GlassChipRow extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          for (var i = 0; i < children.length; i++) ...[
-            if (i > 0) SizedBox(width: gap),
-            children[i],
+          for (var i = 0; i < widget.children.length; i++) ...[
+            if (i > 0) SizedBox(width: widget.gap),
+            widget.children[i],
           ],
         ],
       ),
     );
     final scroller = glassTrailingFade(
       SingleChildScrollView(
-        controller: controller,
+        controller: widget.controller,
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: pad + EdgeInsets.symmetric(horizontal: bleed),
+        padding: pad + EdgeInsets.only(left: _left, right: _right),
         child: row,
       ),
     );
-    if (bleed == 0) return scroller;
+    if (_left == 0 && _right == 0) return scroller;
     return LayoutBuilder(
-      builder: (context, c) => c.hasBoundedWidth
-          ? OverflowBox(minWidth: c.maxWidth + 2 * bleed, maxWidth: c.maxWidth + 2 * bleed, fit: OverflowBoxFit.deferToChild, child: scroller)
-          : scroller,
+      builder: (context, c) => !c.hasBoundedWidth
+          ? scroller
+          : Transform.translate(
+              offset: Offset((_right - _left) / 2, 0),
+              child: OverflowBox(minWidth: c.maxWidth + _left + _right, maxWidth: c.maxWidth + _left + _right, fit: OverflowBoxFit.deferToChild, child: scroller),
+            ),
     );
   }
 }
