@@ -81,7 +81,8 @@ class _GlassSkinCardState extends State<GlassSkinCard> {
             onTap: () => unawaited(_tap(context)),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: wide
+              // At large text the copy goes under the preview (beside it, an 80 px column set one word a line).
+              child: wide || MediaQuery.textScalerOf(context).scale(1) >= 1.3
                   ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [preview, const SizedBox(height: 12), text])
                   : Row(children: [preview, const SizedBox(width: 16), Expanded(child: text)]),
             ),
