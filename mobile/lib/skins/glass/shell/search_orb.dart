@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/search_field.dart';
 import 'package:manhwamaniacs/skins/glass/screens/search/search_page.dart';
+import 'package:manhwamaniacs/skins/glass/shell/focus_policy.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_common.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
@@ -91,6 +92,9 @@ class _GlassSearchPageState extends ConsumerState<GlassSearchPage> {
     final orb = origin ?? Rect.fromLTWH(size.width - kFieldInset - 50, fieldRect.top, 50, 50);
     return Material(
       type: MaterialType.transparency,
+      child: GlassFocusBandsScope(
+      top: MediaQuery.paddingOf(context).top,
+      bottom: size.height - fieldRect.top,
       child: Stack(
       fit: StackFit.expand,
       children: [
@@ -121,6 +125,7 @@ class _GlassSearchPageState extends ConsumerState<GlassSearchPage> {
           ),
         ),
       ],
+    ),
     ),
     );
   }

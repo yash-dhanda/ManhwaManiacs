@@ -265,7 +265,8 @@ class _GlassOnboardingScreenState extends ConsumerState<GlassOnboardingScreen> w
           Positioned(
             left: wide ? (mq.size.width - 320) / 2 : margin,
             right: wide ? (mq.size.width - 320) / 2 : margin,
-            bottom: mq.padding.bottom + 16,
+            // Wide frames keep floating controls out of the 24 px bottom band (glass 2.2, 14.4), as the floating bar does.
+            bottom: mq.padding.bottom + (wide ? 24 : 16),
             child: GlassButton(label: label, variant: GlassButtonVariant.primary, size: GlassButtonSize.large, fullWidth: true, onPressed: canContinue ? _next : null),
           ),
       ],

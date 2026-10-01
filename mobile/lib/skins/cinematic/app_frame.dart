@@ -28,6 +28,7 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/cine_reader_route.dart' show cineReaderOwnsToastsProvider;
 import 'package:manhwamaniacs/skins/cinematic/screens/system/cine_broken_part.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/system/cine_error_screen.dart';
+import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart' show cineRevealFocus;
 import 'package:manhwamaniacs/skins/cinematic/shell/global_keys.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/rating_card_slot.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/stop_press_banner.dart';
@@ -155,9 +156,21 @@ class _CineAppFrameState extends ConsumerState<CineAppFrame> {
   double _bannerHeight = 0;
   late final GoRouter _router = ref.read(skinRouterProvider);
 
+  FocusNode? _lastFocus;
+
+  /// Every keyboard focus change is cut into view below the running head (cinematic 14.4).
+  void _onFocus() {
+    final node = FocusManager.instance.primaryFocus;
+    if (node == _lastFocus) return;
+    _lastFocus = node;
+    if (node == null || !mounted || FocusManager.instance.highlightMode != FocusHighlightMode.traditional) return;
+    cineRevealFocus(node);
+  }
+
   @override
   void initState() {
     super.initState();
+    FocusManager.instance.addListener(_onFocus);
     _router.routerDelegate.addListener(_routeChanged);
     applyCineRestingSystemUi();
     _ErrorHooks.install(release: widget.releaseErrorWidget);
@@ -187,6 +200,7 @@ class _CineAppFrameState extends ConsumerState<CineAppFrame> {
 
   @override
   void dispose() {
+    FocusManager.instance.removeListener(_onFocus);
     _router.routerDelegate.removeListener(_routeChanged);
     appFatalError.removeListener(_fatalChanged);
     cineTopRouteObserver.lightboxOnTop.removeListener(_lightboxChanged);

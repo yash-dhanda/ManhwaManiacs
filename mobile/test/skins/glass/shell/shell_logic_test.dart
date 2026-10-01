@@ -1,6 +1,5 @@
-import 'package:flutter/painting.dart' show EdgeInsets;
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart' show FocusNode;
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/library/utils/recent_searches.dart';
 import 'package:manhwamaniacs/features/settings/models/app_changelog.dart';
@@ -46,6 +45,43 @@ void main() {
       expect(focusOverlapShift(focused: const Rect.fromLTWH(0, 50, 100, 40), viewportHeight: 800, topBand: 107, bottomBand: 119), 50 - 107 - 8);
       expect(focusOverlapShift(focused: const Rect.fromLTWH(0, 700, 100, 40), viewportHeight: 800, topBand: 107, bottomBand: 119), 740 - (800 - 119) + 8);
       expect(focusOverlapShift(focused: const Rect.fromLTWH(0, 300, 100, 40), viewportHeight: 800, topBand: 107, bottomBand: 119), 0);
+    });
+    testWidgets('a surface can declare its own bands, and a control in a horizontal rail scrolls the page, not the rail', (t) async {
+      t.view.physicalSize = const Size(834, 1194);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      final node = FocusNode();
+      addTearDown(node.dispose);
+      final page = ScrollController();
+      addTearDown(page.dispose);
+      late BuildContext inScope;
+      await t.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: MediaQuery(
+          data: const MediaQueryData(size: Size(834, 1194)),
+          child: Column(children: [
+            GlassFocusBandsScope(top: 0, bottom: 76, child: Builder(builder: (c) {
+              inScope = c;
+              return const SizedBox(height: 1);
+            },),),
+            Expanded(
+              child: ListView(controller: page, children: [
+                const SizedBox(height: 1150),
+                SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [Focus(focusNode: node, child: const SizedBox(width: 100, height: 40))])),
+                const SizedBox(height: 400),
+              ],),
+            ),
+          ],),
+        ),
+      ),);
+      expect(glassFocusBands(inScope), (top: 0.0, bottom: 76.0));
+      expect(glassFocusBands(node.context!), (top: 76.0, bottom: 24.0));
+      scrollFocusClearOfBands(node, glassFocusBands);
+      await t.pump();
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 460));
+      // The control ends at 1190 in a 1193 px viewport: the page moves by the overlap with the 24 px band plus 8.
+      expect(page.offset, closeTo(1190 - (1193 - 24) + 8, 0.5));
     });
   });
 

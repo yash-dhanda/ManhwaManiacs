@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import importlib
+from urllib.parse import urljoin, urlsplit
 
 from connectors.base import SourceConnector
+from connectors.models import Series
 
 # Hand-crafted connectors whose favicon does not live on their API host.
 _SITE_ORIGINS: dict[str, str] = {
@@ -55,3 +57,23 @@ def connector_icon_url(connector_cls: type[SourceConnector]) -> str | None:
     if site_base:
         return f"{site_base}/favicon.ico"
     return None
+
+
+def series_page_url(connector_cls: type[SourceConnector], series: Series) -> str | None:
+    """The series' own page on its source site, from the connector's ``canonical_path``.
+
+    Absolute paths pass through; relative ones join the connector's site base. ``None`` when the connector
+    gives no path, has no site (the local library) or the result is not an http(s) URL.
+    """
+    path = (series.canonical_path or "").strip()
+    if not path:
+        return None
+    if urlsplit(path).scheme:
+        url = path
+    else:
+        base = _site_base_for(connector_cls)
+        if not base:
+            return None
+        url = urljoin(f"{base}/", path)
+    parts = urlsplit(url)
+    return url if parts.scheme in ("http", "https") and parts.netloc else None

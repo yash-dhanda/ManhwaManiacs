@@ -36,9 +36,9 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 /// The calls the fakes saw, in order.
 final List<String> calls = [];
 
-SourceSeriesDetailData loadSeries({int n = 1000, String sourceId = 'demo'}) {
+SourceSeriesDetailData loadSeries({int n = 1000, String sourceId = 'demo', String? sourceUrl}) {
   final j = jsonDecode(File('test/fixtures/series/series_1000.json').readAsStringSync()) as Map<String, dynamic>;
-  final s = SourceSeriesSummary.fromJson({...(j['series'] as Map<String, dynamic>), 'source_id': sourceId}, 'http://127.0.0.1:8000');
+  final s = SourceSeriesSummary.fromJson({...(j['series'] as Map<String, dynamic>), 'source_id': sourceId, 'source_url': sourceUrl}, 'http://127.0.0.1:8000');
   final chapters = [
     for (final c in (j['chapters'] as List).take(n)) SourceChapterSummary.fromJson({...(c as Map<String, dynamic>), 'source_id': sourceId}),
   ];

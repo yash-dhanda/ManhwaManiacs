@@ -72,6 +72,7 @@ class BookFrontMatter extends StatefulWidget {
     required this.onCover,
     this.coverUrl,
     this.heroTag,
+    this.sourceUrl,
   });
 
   final String kicker;
@@ -85,6 +86,9 @@ class BookFrontMatter extends StatefulWidget {
   final String? coverUrl;
   final Object? heroTag;
   final VoidCallback onCover;
+
+  /// The series' page on its source site: `Open on {source} ↗` under the genres when set.
+  final String? sourceUrl;
 
   @override
   State<BookFrontMatter> createState() => _BookFrontMatterState();
@@ -262,6 +266,7 @@ class _BookFrontMatterState extends State<BookFrontMatter> with SingleTickerProv
               ),
           ],
         ),
+        OpenOnSource(sourceId: widget.sourceId, url: widget.sourceUrl),
       ],
     );
   }

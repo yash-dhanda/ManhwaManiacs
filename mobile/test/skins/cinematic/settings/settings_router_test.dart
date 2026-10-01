@@ -46,8 +46,8 @@ class _Engine implements CueEngine {
   void setRelativePlaySpeed(dynamic handle, double rate) {}
 }
 
-Future<(ProviderContainer, GoRouter, int Function())> pumpApp(WidgetTester t, {String start = '/', Map<String, Object> prefs = const {}, bool admin = true}) async {
-  final rig = SettingsRig(admin: admin, prefs: prefs);
+Future<(ProviderContainer, GoRouter, int Function())> pumpApp(WidgetTester t, {String start = '/', Map<String, Object> prefs = const {}, bool admin = true, bool iconFollows = false}) async {
+  final rig = SettingsRig(admin: admin, prefs: {...prefs, if (iconFollows) kIconFollowKey: true});
   SharedPreferences.setMockInitialValues(rig.prefs);
   final p = await SharedPreferences.getInstance();
   final audio = SkinAudio.forTest(_Configurator(), _Engine())..bind(skin: SkinId.cinematic, userId: 1, profileId: 1, prefs: p);
@@ -60,6 +60,8 @@ Future<(ProviderContainer, GoRouter, int Function())> pumpApp(WidgetTester t, {S
     splashDoneProvider.overrideWith((ref) => true),
     unreadNotificationCountProvider.overrideWith(_Unread.new),
     activeDownloadCountProvider.overrideWithValue(0),
+    // An Android device with the alternate icons registered: the switch queues the alias in prefs, no platform channel.
+    if (iconFollows) appIconSwitcherProvider.overrideWithValue(AppIconSwitcher(prefs: p, platform: TargetPlatform.android)),
   ],);
   addTearDown(c.dispose);
   t.view.physicalSize = const Size(390, 844);
@@ -125,8 +127,9 @@ void main() {
     expect(find.text('Now in the Cinematic edition.'), findsNothing);
   });
 
-  testWidgets('Undo plays Stop the press and switches back without writing mm.skin.from', (t) async {
-    final (c, _, builds) = await pumpApp(t, prefs: {'mm.skin.from': 'glass'});
+  // One switch per file: Glass's prepare() caches its first attempt, so a second restart in the same isolate never completes.
+  testWidgets('Undo plays Stop the press and switches back without writing mm.skin.from; the icon follows (release/01 D2)', (t) async {
+    final (c, _, builds) = await pumpApp(t, prefs: {'mm.skin.from': 'glass'}, iconFollows: true);
     await t.tap(find.text('Undo'));
     for (var i = 0; i < 12; i++) {
       await t.pump(const Duration(milliseconds: 100));
@@ -136,6 +139,7 @@ void main() {
     final prefs = c.read(sharedPrefsProvider);
     expect(prefs.getString('mm.skin.active'), 'glass');
     expect(prefs.containsKey('mm.skin.from'), isFalse, reason: 'undoable: false');
+    expect(prefs.getString(kIconPendingKey), kAndroidGlassIconAlias, reason: 'Undo is an explicit choice: the icon follows the skin back');
     expect(builds(), 2, reason: 'AppRestart rebuilt the tree');
   });
 

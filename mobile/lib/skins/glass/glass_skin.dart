@@ -104,9 +104,21 @@ class _GlassRootState extends ConsumerState<GlassRoot> {
 
   bool _reducedProbe() => ref.read(glassMotionPrefsProvider).reduced;
 
+  FocusNode? _lastFocus;
+
+  /// Every keyboard focus change, whichever traversal group made it, is scrolled clear of the floating bands (glass 2.2).
+  void _onFocus() {
+    final node = FocusManager.instance.primaryFocus;
+    if (node == _lastFocus) return;
+    _lastFocus = node;
+    if (node == null || !mounted || FocusManager.instance.highlightMode != FocusHighlightMode.traditional) return;
+    scrollFocusClearOfBands(node, _focusPolicy.bands);
+  }
+
   @override
   void initState() {
     super.initState();
+    FocusManager.instance.addListener(_onFocus);
     GlassMotion.isReduced = _reducedProbe;
     GlassMotion.recorder.attach();
     GlassMotionRecorder.instance.mark('SKIN RESTART');
@@ -114,6 +126,7 @@ class _GlassRootState extends ConsumerState<GlassRoot> {
 
   @override
   void dispose() {
+    FocusManager.instance.removeListener(_onFocus);
     // The static probe must not outlive the ref it reads (a later move would throw "Cannot use ref after the widget was disposed"). After a
     // skin restart the new root has already installed its own probe, which this check leaves alone.
     if (GlassMotion.isReduced == _reducedProbe) GlassMotion.isReduced = () => false;

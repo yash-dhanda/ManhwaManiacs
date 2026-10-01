@@ -86,10 +86,10 @@ class _CineShellState extends ConsumerState<CineShell> with WidgetsBindingObserv
       onUndo: () {
         if (!mounted) return;
         cineFeedback(context, HapticEvent.undo);
+        // Undo is an explicit choice on this device, so the icon follows the skin back when that is on (glass 12.2, release/01 D2).
         final icon = ref.read(appIconSwitcherProvider);
         unawaited(switchSkinFrom(context, ref, to: SkinId.glass, undoable: false, outgoing: () async {
           await StopThePress.outgoing(context);
-          // An undo is an explicit choice too: the icon follows it like a Settings switch (D2).
           await icon.onExplicitSkinChoice(SkinId.glass);
         },),);
       },

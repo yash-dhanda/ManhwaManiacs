@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/app/app_restart.dart';
 import 'package:manhwamaniacs/app/skin_app.dart';
 import 'package:manhwamaniacs/app/skin_boot.dart';
 import 'package:manhwamaniacs/app/switch_skin.dart';
+import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart' show skinRestartCarriesSessionProvider;
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -133,7 +134,8 @@ void main() {
   });
 
   testWidgets('Glass to Cinematic: the switch leaves through the Skin melt (615 ms), fires skin.switch, restores /settings/diagnostics and leaves no Glass widget', (t) async {
-    final rig = await _pump(t, start: SkinId.glass, route: '/settings/diagnostics');
+    // "App icon follows the skin" on: runSkinSwitch (also the arrival toast's Undo) moves the icon (release/01 D2).
+    final rig = await _pump(t, start: SkinId.glass, route: '/settings/diagnostics', prefs0: {kIconFollowKey: true});
     expect(rig.skins, [SkinId.glass]);
     final (ref, ctx) = await _ref(t);
     unawaited(runSkinSwitch(ctx, ref, SkinId.cinematic));
@@ -153,6 +155,7 @@ void main() {
     expect(rig.prefs.getString(kSkinActiveKey), 'cinematic');
     expect(rig.skins.last, SkinId.cinematic);
     expect(rig.routes.last, '/settings/diagnostics');
+    expect(rig.prefs.getString(kIconPendingKey), kAndroidCinematicIconAlias, reason: 'the icon follows an explicit switch');
     await t.pump(const Duration(milliseconds: 600));
     expect(find.byWidgetPredicate((w) => RegExp(r'^_?Glass').hasMatch(w.runtimeType.toString())), findsNothing, reason: 'nothing of Glass remains');
     await t.pumpWidget(const SizedBox());
