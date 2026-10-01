@@ -98,10 +98,12 @@ Future<void> runSaveToFiles(BuildContext context, WidgetRef ref, {required Strin
   ExportDestination? destination;
   var failed = false;
   try {
-    result = await exporter.export(store: store, seriesLabel: seriesLabel, chapters: chapters, format: format);
     destination = await media.destination();
+    result = await exporter.export(store: store, seriesLabel: seriesLabel, chapters: chapters, format: format, fresh: destination != ExportDestination.iosFiles);
     if (destination == ExportDestination.mediaStoreDownloads && !result.isEmpty) {
       await media.saveExport(seriesDirectory: result.directory, seriesFolderName: result.seriesFolderName);
+      // The copy in MediaStore is the user's; the private staging copy would only double the size.
+      await result.directory.delete(recursive: true).then((_) {}, onError: (Object _) {});
     }
   } catch (_) {
     failed = true;

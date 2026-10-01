@@ -87,12 +87,20 @@ class ChapterExporter {
     required String seriesLabel,
     required List<SavedChapter> chapters,
     required ChapterExportFormat format,
+    bool fresh = false,
   }) async {
     final documents = await documentsDirectory;
     final folderName = sanitizeExportName(seriesLabel);
     final seriesDirectory =
         Directory(p.join(documents.path, exportsFolderName, folderName));
+    // [fresh]: the folder is only a staging area (Android copies it into
+    // MediaStore or shares it), so it must hold this export alone, never
+    // earlier ones that would be copied or shared again.
+    if (fresh && seriesDirectory.existsSync()) {
+      await seriesDirectory.delete(recursive: true);
+    }
     await seriesDirectory.create(recursive: true);
+    final usedStems = <String>{};
 
     var exported = 0;
     var pages = 0;
@@ -115,9 +123,15 @@ class ChapterExporter {
         continue;
       }
 
-      final stem = sanitizeExportName(
+      final base = sanitizeExportName(
         chapterLabel(number: chapter.chapterNumber, title: chapter.title).primary,
       );
+      // Two chapters with the same label (duplicate uploads, or no number
+      // and no title) must not overwrite each other.
+      var stem = base;
+      for (var n = 2; !usedStems.add(stem.toLowerCase()); n++) {
+        stem = '$base ($n)';
+      }
       pages += switch (format) {
         ChapterExportFormat.images =>
           await _writeImageFolder(seriesDirectory, stem, chapter, files),

@@ -59,10 +59,12 @@ Future<void> showSaveToFilesSheet(
   ExportDestination? destination;
   var failed = false;
   try {
-    result = await exporter.export(store: store, seriesLabel: seriesLabel, chapters: ready, format: chosen);
     destination = await media.destination();
+    result = await exporter.export(store: store, seriesLabel: seriesLabel, chapters: ready, format: chosen, fresh: destination != ExportDestination.iosFiles);
     if (destination == ExportDestination.mediaStoreDownloads && !result.isEmpty) {
       await media.saveExport(seriesDirectory: result.directory, seriesFolderName: result.seriesFolderName);
+      // The copy in MediaStore is the user's; the private staging copy would only double the size.
+      await result.directory.delete(recursive: true).then((_) {}, onError: (Object _) {});
     }
   } catch (_) {
     failed = true;
