@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/services.dart';
@@ -233,7 +234,9 @@ class _GlassOnboardingScreenState extends ConsumerState<GlassOnboardingScreen> w
         6 => const GlassSeedsStep(),
         _ => const GlassDoneStep(),
       };
-      final pad = EdgeInsets.fromLTRB(margin, mq.padding.top + 104, margin, mq.padding.bottom + 96);
+      // The page clears the pinned button at its real height (it grows with large text), 16 px above it.
+      final buttonH = math.max(50.0, measureText(context, 'Continue', roleStyle(context, gt.typeHeadline, onGlass: true, maxScale: 1.5)).height + 20);
+      final pad = EdgeInsets.fromLTRB(margin, mq.padding.top + 104, margin, mq.padding.bottom + (wide ? 24 : 16) + buttonH + 16);
       final Widget body = scroll || s == 6 ? SingleChildScrollView(padding: pad, child: Center(child: ConstrainedBox(constraints: BoxConstraints(maxWidth: wide ? 640 : double.infinity), child: child))) : Padding(padding: pad, child: Center(child: ConstrainedBox(constraints: BoxConstraints(maxWidth: wide ? 720 : double.infinity), child: child)));
       return body;
     }
