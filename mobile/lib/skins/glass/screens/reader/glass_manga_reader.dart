@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show singleK
 import 'package:manhwamaniacs/core/platform/mm_platform.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
+import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/store/bookmarks_dao.dart';
@@ -72,6 +73,7 @@ import 'package:manhwamaniacs/skins/glass/screens/reader/reader_keys.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_settings_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/side_panels.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
+import 'package:manhwamaniacs/skins/glass/type.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// The most `BackdropFilter.grouped` members the reader's one `BackdropGroup` may hold on the frost path (glass 2.5, 15.7).
@@ -81,9 +83,19 @@ const int kReaderBackdropBudget = 8;
 List<String> readerBackdropMembers(Element root) {
   final out = <String>[];
   void visit(Element e) {
+    // The side panels' material is a plain content-layer blur, not a member of the group.
+    if (e.widget is ReaderPanelSurface) return;
     if (e.widget is BackdropFilter) {
-      final glass = e.findAncestorWidgetOfExactType<SkinGlass>();
-      out.add(glass?.debugLabel ?? 'BackdropFilter');
+      String? label;
+      e.visitAncestorElements((a) {
+        final w = a.widget;
+        if (w is SkinGlass) {
+          label = w.debugLabel;
+          return false;
+        }
+        return true;
+      });
+      out.add(label ?? 'BackdropFilter');
     }
     e.visitChildElements(visit);
   }
@@ -181,7 +193,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       glassFire(ref, HapticEvent.readerEnter);
       _syncWake();
       final sheet = _sheetParam();
-      if (sheet != null) _presentSheet(sheet);
+      _lastParam = sheet;
+      if (sheet != null) _pushSheet(sheet);
     });
   }
 
@@ -193,6 +206,16 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         f();
       }
     };
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final r = _router;
+    if (!identical(r, _listened)) {
+      _listened?.routerDelegate.removeListener(_onRoute);
+      _listened = r?..routerDelegate.addListener(_onRoute);
+    }
   }
 
   @override
@@ -233,6 +256,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _listened?.routerDelegate.removeListener(_onRoute);
     _releaseClaims?.call();
     for (final s in _subs) {
       unawaited(s.cancel());
@@ -246,6 +270,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     _wakeRelease?.cancel();
     _autoNext?.cancel();
     _idleHide?.cancel();
+    _tapsTimer?.cancel();
     _exclusion.clear();
     if (_wakeHeld) unawaited(_wakelock.disable());
     _zoom.dispose();
@@ -296,8 +321,18 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     return 'Ch ${n == n.roundToDouble() ? n.round() : n}';
   }
 
-  String? get _nextId => _body.feed.chapters.lastOrNull?.nextChapterId;
-  String? get _previousId => _body.feed.chapters.firstOrNull?.previousChapterId;
+  String? get _nextId => _body.feed.chapters.lastOrNull?.nextChapterId ?? _neighbourInList(_body.feed.chapters.lastOrNull?.id, 1);
+  String? get _previousId => _body.feed.chapters.firstOrNull?.previousChapterId ?? _neighbourInList(_body.feed.chapters.firstOrNull?.id, -1);
+
+  /// The series list's neighbour of [id] (oldest first) when the manifest did not name one.
+  String? _neighbourInList(String? id, int by) {
+    if (id == null) return null;
+    final list = ref.read(sourceSeriesDetailProvider((sourceId: sourceId, seriesId: seriesKey))).valueOrNull?.chapters;
+    if (list == null) return null;
+    final i = list.indexWhere((c) => c.id == id);
+    final j = i + by;
+    return i < 0 || j < 0 || j >= list.length ? null : list[j].id;
+  }
 
   @override
   String? get nextChapterLabel => _nextId == null ? null : chapterLabel(_nextId!);
@@ -318,9 +353,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   bool get locked => _locked ?? _settings.values.lockControls;
 
   @override
-  bool get offline => _body.feed.chapters.isNotEmpty && _body.feed.chapters.every((c) => c.pages.isNotEmpty && c.pages.every((p) => p.localFile != null)) && _isOfflineHint;
-
-  bool get _isOfflineHint => _body.onReachedFeedEnd == null && _body.onSaveProgress == null;
+  bool get offline => ref.read(deviceOnlineProvider).valueOrNull == false;
 
   @override
   bool get accessible => MediaQuery.accessibleNavigationOf(context);
@@ -346,6 +379,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   @override
   int get lockPulse => _lockPulse;
 
+  @override
+  bool get matchesShown => _hitShown && _matches.isNotEmpty;
+
   // ── Engine events ──────────────────────────────────────────────────────
 
   void _onEngine() {
@@ -356,7 +392,22 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     if (next != _tint && mounted) setState(() => _tint = next);
     _maybeAutoNext(s);
     _syncWake();
+    final f = s.furtherElsewhere;
+    if (f != null && f != _furtherShown) {
+      _furtherShown = f;
+      final n = f.chapterNumber;
+      final ch = n == null ? chapterShort(f.chapterKey) : 'Ch ${n == n.roundToDouble() ? n.round() : n}';
+      showGlassToast(
+        ref,
+        GlassToastSpec("You're further ahead on another device: $ch, p. ${f.lastPage}", actionLabel: 'Jump there', onAction: () => _switchTo(f.chapterKey)),
+      );
+    }
   }
+
+  FurtherElsewhere? _furtherShown;
+
+  /// Fingers on the strip: auto next never fires under a held pull.
+  int _down = 0;
 
   void _onSeam(SeamEvent e) {
     if (e.kind == SeamEventKind.readingLine) {
@@ -378,7 +429,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       case NeighbourPhase.idle:
         if (_zoom.value == 0 && mounted) setState(() => _card = null);
       case NeighbourPhase.armed:
-        if (prev == NeighbourPhase.idle) {
+        if (_card == null || prev == NeighbourPhase.idle) {
           glassFire(ref, HapticEvent.chapterArm);
           setState(() => _card = (direction: e.direction, info: null));
           try {
@@ -387,6 +438,13 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
           } catch (_) {}
         }
       case NeighbourPhase.locked:
+        // A fast pull can reach the lock without an armed event in between.
+        if (_card == null) {
+          setState(() => _card = (direction: e.direction, info: null));
+          unawaited(engine.armNeighbour(e.direction).then((info) {
+            if (mounted && _card?.direction == e.direction) setState(() => _card = (direction: e.direction, info: info));
+          }, onError: (_) {}),);
+        }
         glassFire(ref, HapticEvent.chapterNext);
         if (e.via == NeighbourVia.wheel) unawaited(_commit(e.direction, 0));
     }
@@ -412,7 +470,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   /// One at a time with Auto next on: reaching the end with the chrome hidden commits the next chapter after 900 ms unless the
   /// reader scrolls back.
   void _maybeAutoNext(ReaderEngineState s) {
-    final want = _settings.values.oneAtATime && _settings.prefs.autoNextChapter && s.atEnd && !s.chromeVisible && s.hasNext;
+    final want = _settings.values.oneAtATime && _settings.prefs.autoNextChapter && s.atEnd && !s.chromeVisible && s.hasNext && _down == 0;
     if (!want) {
       _autoNext?.cancel();
       _autoNext = null;
@@ -668,23 +726,23 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
   // ── Sheets (`?sheet=`), panels, the page menu ──────────────────────────
 
-  String? _sheetParam() {
-    try {
-      return GoRouterState.of(context).uri.queryParameters['sheet'];
-    } catch (_) {
-      return null;
-    }
+  /// The location's `?sheet=`, read from the router (the reader's own route is the top one while it shows).
+  Uri? get _location {
+    final r = _router;
+    if (r == null) return null;
+    final cfg = r.routerDelegate.currentConfiguration;
+    if (cfg.isEmpty) return null;
+    // A pushed reader is an imperative match on top of the base location: its own uri is the reader's.
+    final last = cfg.last;
+    return last is ImperativeRouteMatch ? last.matches.uri : cfg.uri;
   }
+
+  String? _sheetParam() => _location?.queryParameters['sheet'];
 
   void _setSheetParam(String? id) {
     final router = _router;
-    if (router == null) return;
-    Uri uri;
-    try {
-      uri = GoRouterState.of(context).uri;
-    } catch (_) {
-      return;
-    }
+    final uri = _location;
+    if (router == null || uri == null) return;
     final q = {...uri.queryParameters};
     if (id == null) {
       if (!q.containsKey('sheet')) return;
@@ -693,10 +751,39 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       if (q['sheet'] == id) return;
       q['sheet'] = id;
     }
-    router.replace<void>(uri.replace(queryParameters: q.isEmpty ? null : q).toString());
+    router.replace<void>(Uri(path: uri.path, queryParameters: q.isEmpty ? null : q).toString());
   }
 
+  /// Opens sheet [id]: with a router the location gains `?sheet=id` and the route listener pushes the sheet once the replace
+  /// has landed (a replace would drop a sheet pushed before it); without one it is pushed at once.
   void _presentSheet(String id) {
+    if (_openSheet != null) return;
+    if (_router != null && _location != null) {
+      _setSheetParam(id);
+      return;
+    }
+    _pushSheet(id);
+  }
+
+  GoRouter? _listened;
+
+  String? _lastParam;
+
+  /// Pushes a sheet when `?sheet=` appears (a transition from none or another id), never again for the same value: a sheet
+  /// that just closed must not reopen before its parameter is removed.
+  void _onRoute() {
+    if (!mounted || _disposed) return;
+    final id = _sheetParam();
+    final appeared = id != _lastParam;
+    _lastParam = id;
+    if (appeared && id != null && _openSheet == null && const {'settings', 'chapters', 'note'}.contains(id)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _openSheet == null && _sheetParam() == id) _pushSheet(id);
+      });
+    }
+  }
+
+  void _pushSheet(String id) {
     if (_openSheet != null) return;
     final landscapePhone = MediaQuery.sizeOf(context).shortestSide < 600 && MediaQuery.sizeOf(context).width > MediaQuery.sizeOf(context).height;
     final GlassSheetPage<void> page = switch (id) {
@@ -735,7 +822,6 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     };
     _openSheet = id;
     engine.holdChrome();
-    _setSheetParam(id);
     unawaited(Navigator.of(context, rootNavigator: true).push<void>(page.createRoute(context)).whenComplete(() {
       _openSheet = null;
       if (!mounted) return;
@@ -985,6 +1071,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
     if (e is! KeyDownEvent && e is! KeyRepeatEvent) return KeyEventResult.ignored;
+    // Typing in a field (the go-to well, the note) is never a reader binding.
+    final typing = FocusManager.instance.primaryFocus?.context?.findAncestorWidgetOfExactType<EditableText>() != null;
+    if (typing && e.logicalKey != LogicalKeyboardKey.escape) return KeyEventResult.ignored;
     final hw = HardwareKeyboard.instance;
     final action = readerKeyAction(e.logicalKey, e.character, shift: hw.isShiftPressed, ctrl: hw.isControlPressed || hw.isMetaPressed, singleKeys: ref.read(singleKeyShortcutsProvider));
     final s = engine.value;
@@ -1095,7 +1184,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   // ── Exclusion rects (Android) ──────────────────────────────────────────
 
   void _syncExclusion() {
-    if (!mounted) return;
+    if (!mounted || _disposed) return;
     final size = MediaQuery.sizeOf(context);
     final shown = engine.value.chromeVisible;
     if (!shown) {
@@ -1191,7 +1280,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   Widget build(BuildContext context) {
     final v = ref.watch(glassReaderSettingsProvider(_seriesRef));
     ref.watch(sourceSeriesDetailProvider((sourceId: sourceId, seriesId: seriesKey)));
-    ref.watch(glassMotionPrefsProvider);
+    ref
+      ..watch(glassMotionPrefsProvider)
+      ..watch(deviceOnlineProvider);
     final ocr = ref.watch(ocrChapterTextProvider(_chapterIdentity)).valueOrNull;
     _ocrText = {for (final p in ocr ?? const <PageText>[]) p.page: p.text};
     final size = MediaQuery.sizeOf(context);
@@ -1200,6 +1291,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     final portraitPhone = size.shortestSide < 600 && size.height >= size.width;
     final layout = widget.readAll ? 'strip' : v.prefs.layout;
     final isPaged = layout == 'single' || layout == 'double';
+    if (_lastLayout != null && _lastLayout != layout) _showTapsOverlay();
+    _lastLayout = layout;
     final column = desktop ? stripWithPanels(size.width, left: _leftPanel, right: _rightPanel) : null;
     final options = _options(v, column: column, accessibleNav: accessibleNav);
     // Idle hide after 3,000 ms only when a tap opened the chrome (glass 8.14.2): the skin's timer, not the engine's.
@@ -1261,8 +1354,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         showBookmark: _body.showBookmark,
         onSaveProgress: _body.onSaveProgress,
         onAddBookmark: _body.onAddBookmark,
-        onPreviousChapter: _body.onPreviousChapter,
-        onNextChapter: _body.onNextChapter,
+        // Chapter switches go through the reader (a replace under the constant page key), never the entry screen's own push.
+        onPreviousChapter: _body.onPreviousChapter == null ? null : previousChapter,
+        onNextChapter: _body.onNextChapter == null ? null : () => _switchTo(_nextId),
         onReachedFeedEnd: v.values.oneAtATime && !widget.readAll ? null : _body.onReachedFeedEnd,
         onReachedFeedStart: v.values.oneAtATime && !widget.readAll ? null : _body.onReachedFeedStart,
         pageExtents: _body.pageExtents,
@@ -1276,8 +1370,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _disposed) return;
       _syncExclusion();
-      if (!kReleaseMode && mounted) {
+      if (!kReleaseMode) {
         final members = readerBackdropMembers(context as Element);
         assert(
           members.length <= kReaderBackdropBudget || !_frostPath,
@@ -1288,7 +1383,13 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
     final stripArea = Listener(
       behavior: HitTestBehavior.translucent,
-      onPointerUp: (_) => _onPointerUp(),
+      onPointerDown: (_) => _down++,
+      onPointerCancel: (_) => _down = math.max(0, _down - 1),
+      onPointerUp: (_) {
+        _down = math.max(0, _down - 1);
+        _onPointerUp();
+        _maybeAutoNext(engine.value);
+      },
       onPointerSignal: (e) {
         if (e is PointerScrollEvent && (HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isMetaPressed)) {
           final z = (engine.value.zoom * (e.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1)).clamp(1.0, isPaged ? 4.0 : 3.0);
@@ -1395,6 +1496,16 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
             ),
           ),
         if (_hitShown && _matches.isNotEmpty) ..._hitLayer(size),
+        if (_tapsMounted)
+          Positioned.fill(
+          child: IgnorePointer(
+            child: AnimatedOpacity(
+              opacity: _taps ? 1 : 0,
+              duration: Duration(milliseconds: _taps ? 150 : 1000),
+              child: _TapPanes(rtl: v.prefs.rtl, zones: v.prefs.tapZones),
+            ),
+          ),
+        ),
       ],
     );
 
@@ -1435,6 +1546,30 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     );
   }
 
+  /// The desktop frame's panels.
+  ({bool left, bool right}) get panelsOpen => (left: _leftPanel, right: _rightPanel);
+
+  String? _lastLayout;
+  bool _taps = false, _tapsMounted = false;
+  Timer? _tapsTimer;
+
+  /// The first-run overlay of three panes (Back, Menu, Next) whenever the layout changes: 1.5 s, then a 1,000 ms fade.
+  void _showTapsOverlay() {
+    _tapsTimer?.cancel();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _taps = _tapsMounted = true);
+      _tapsTimer = Timer(const Duration(milliseconds: 1500), () {
+        if (!mounted) return;
+        setState(() => _taps = false);
+        // The panes leave the tree after the fade, so they never count against the budget while invisible.
+        _tapsTimer = Timer(const Duration(milliseconds: 1000), () {
+          if (mounted && !_taps) setState(() => _tapsMounted = false);
+        });
+      });
+    });
+  }
+
   bool get cinemaHidden => cinema && !engine.value.chromeVisible;
 
   bool get _frostPath => ref.read(glassRendererProvider) == GlassRenderer.frosted;
@@ -1465,6 +1600,37 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         ),
       ),
     ];
+  }
+}
+
+/// Three glass panes labelled Back, Menu and Next over the 30 / 40 / 30 bands.
+class _TapPanes extends StatelessWidget {
+  const _TapPanes({required this.rtl, this.zones});
+  final bool rtl;
+  final List<String>? zones;
+
+  static String _label(String z) => switch (z) { 'previous' => 'Back', 'next' => 'Next', _ => 'Menu' };
+
+  @override
+  Widget build(BuildContext context) {
+    final z = zones ?? (rtl ? const ['next', 'menu', 'previous'] : const ['previous', 'menu', 'next']);
+    Widget pane(int i, int flex) => Expanded(
+          flex: flex,
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: LayoutBuilder(
+              builder: (context, c) => SkinGlass(
+                size: c.biggest,
+                tier: GlassTierId.t2,
+                shape: const GlassShape.superellipse(22),
+                layer: GlassLayerKind.overlays,
+                debugLabel: 'reader tap pane',
+                child: Center(child: GlassText(_label(z[i]), role: gt.typeHeadline, onGlass: true)),
+              ),
+            ),
+          ),
+        );
+    return SafeArea(child: Row(children: [pane(0, 3), pane(1, 4), pane(2, 3)]));
   }
 }
 

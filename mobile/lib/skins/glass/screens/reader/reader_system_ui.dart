@@ -24,10 +24,10 @@ Future<void> enterGlassReaderUi() async {
   await GlassOrientation.widenForReader();
 }
 
-Future<void> exitGlassReaderUi() async {
+Future<void> exitGlassReaderUi({bool? phone}) async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(kGlassReaderExitStyle);
-  await GlassOrientation.restoreAfterReader();
+  await GlassOrientation.restoreAfterReader(phone: phone);
 }
 
 /// The reader's insets (glass 8.14.11): iOS the view padding; Android the stable insets of `display.stableInsets` (what the bars
@@ -55,6 +55,7 @@ class GlassReaderSystemUi extends ConsumerStatefulWidget {
 
 class _GlassReaderSystemUiState extends ConsumerState<GlassReaderSystemUi> with WidgetsBindingObserver {
   EdgeInsets? _stable;
+  bool? _phone;
   late final MmPlatform _platform = ref.read(mmPlatformProvider);
 
   bool get _android => defaultTargetPlatform == TargetPlatform.android;
@@ -81,13 +82,14 @@ class _GlassReaderSystemUiState extends ConsumerState<GlassReaderSystemUi> with 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    unawaited(exitGlassReaderUi());
+    unawaited(exitGlassReaderUi(phone: _phone));
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final pad = MediaQuery.viewPaddingOf(context);
+    _phone = MediaQuery.sizeOf(context).shortestSide < 600;
     return GlassReaderInsets(insets: _android ? (_stable ?? pad) : pad, child: widget.child);
   }
 }

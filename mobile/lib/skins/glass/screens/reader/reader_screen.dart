@@ -17,6 +17,7 @@ ReaderFrames glassReaderFrames({bool readAll = false, String? q}) => ReaderFrame
       content: (context, body) => GlassMangaReader(key: ValueKey('glass-manga:${body.identity?.sourceId}:${body.identity?.seriesKey}'), body: body, readAll: readAll, q: q),
       loading: (context) => const GlassReaderLoading(),
       failure: (context, failure) => GlassReaderFailure(failure: failure),
+      keepAcrossChapters: true,
     );
 
 /// ScreenId `reader` (`/reader/:sourceId/:seriesKey/:chapterKey?page&at&all&q`) and its two mobile aliases: the library manifest

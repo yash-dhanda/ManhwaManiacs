@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/page_tint_chrome.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/panel_fit.dart';
+import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// The desktop frame (glass 8.14.11): a window at least 1024 wide whose shorter side is at least 600.
@@ -37,7 +38,8 @@ class ReaderPanelSurface extends StatelessWidget {
                 borderRadius: BorderRadius.circular(26),
                 border: Border.all(color: tint == null ? const Color(0x38FFFFFF) : rimTint(tint!).withValues(alpha: PageTint.rim)),
               ),
-              child: child,
+              // Controls on the panel material are on-glass twins: no glass reads the backdrop inside a panel.
+              child: GlassHost(child: child),
             ),
           ),
         ),

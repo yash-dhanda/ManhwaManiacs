@@ -45,6 +45,9 @@ abstract interface class GlassReaderHost {
   String? get seamChip;
   int get lockPulse;
 
+  /// The hit lens and its match capsule are up.
+  bool get matchesShown;
+
   void back();
   void openSeries();
   void openChapterList({bool byKey = false});

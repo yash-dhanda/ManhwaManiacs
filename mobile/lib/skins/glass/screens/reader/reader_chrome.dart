@@ -199,7 +199,8 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
           height: railH,
           child: _live(visible, _materialised(_Rail(host: host, state: s, height: railH, railTop: railTop))),
         ),
-      if (!_pillGone)
+      // The match capsule takes the bottom line while the hit lens shows.
+      if (!_pillGone && !host.matchesShown)
         Positioned(
           left: widget.column.left,
           width: widget.column.width,
@@ -282,12 +283,17 @@ class _TopGroups extends ConsumerWidget {
     final mono = roleStyle(context, gt.typeMono, onGlass: true);
     final textW = measureText(context, title, style).width + (readAllText == null ? 0 : measureText(context, readAllText, mono).width + 8);
     final trailingCount = landscape ? 3 : 2;
-    final download = landscape ? null : ReaderDownloadControl.widthFor(context, ref, host, state.chapterId, side);
+    // The chapter part of the title always shows; on a narrow phone the download control gives way first.
+    final chapterW = measureText(context, ' · ${host.chapterShort(state.chapterId)}', style).width;
+    final minTitle = chapterW + 32 + 48;
+    var download = landscape ? null : ReaderDownloadControl.widthFor(context, ref, host, state.chapterId, side);
+    final fixedW = side + 8 + (2 * side + 8) + 8 + (host.offline ? 88 : 0);
+    if (download != null && avail - fixedW - download - 8 < minTitle) download = null;
     final pageText = '${state.page} / ${state.pageCount}';
     final pageW = landscape ? measureText(context, pageText, mono).width + 32 : 0.0;
     final trailingW = trailingCount * side + (trailingCount - 1) * 8 + (download ?? 0) + (download == null ? 0 : 8);
     final maxTitle = landscape ? avail * 0.4 : avail - side - 8 - trailingW - 8 - (host.offline ? 88 : 0);
-    final titleW = (textW + 32).clamp(56.0, math.max(56.0, maxTitle)).toDouble();
+    final titleW = (textW + 32).clamp(math.min(minTitle, math.max(56.0, maxTitle)), math.max(56.0, maxTitle)).toDouble();
 
     final shapes = <SkinGlassShape>[
       SkinGlassShape(size: Size(side, side), shape: const GlassShape.circle(), child: const GlassBackButton(inGroup: true, showDepth: true)),
@@ -367,28 +373,19 @@ class _GroupRow extends StatelessWidget {
           r -= 8;
         }
         offsets.addAll(right);
-        return SizedBox(
-          width: c.maxWidth,
+        // One layer for both groups (glass 2.4.1): each shape placed by its alignment inside the full-width group.
+        final w = c.maxWidth;
+        return SkinGlassGroup(
+          shapes: shapes,
+          aligns: [
+            for (var i = 0; i < shapes.length; i++)
+              Alignment(w - shapes[i].size.width <= 0 ? -1 : offsets[i].dx / (w - shapes[i].size.width) * 2 - 1, 0),
+          ],
           height: c.maxHeight,
-          child: Stack(
-            children: [
-              for (var i = 0; i < shapes.length; i++)
-                Positioned(
-                  left: offsets[i].dx,
-                  top: offsets[i].dy,
-                  child: SkinGlass(
-                    size: shapes[i].size,
-                    shape: shapes[i].shape,
-                    tier: GlassTierId.t3,
-                    lb: lb,
-                    tint: tint,
-                    rimTint: tint == null ? null : rimTint(tint!),
-                    debugLabel: 'reader top ${i < leftCount ? 'left' : 'right'}',
-                    child: shapes[i].child,
-                  ),
-                ),
-            ],
-          ),
+          lb: lb,
+          tint: tint,
+          rimTint: tint == null ? null : rimTint(tint!),
+          debugLabel: 'reader top groups',
         );
       },);
 }
@@ -718,6 +715,8 @@ class _LandscapeScrubRailState extends ConsumerState<LandscapeScrubRail> {
         slider: true,
         label: 'Page scrubber',
         value: 'Page ${shown + 1} of ${s.pageCount}',
+        increasedValue: 'Page ${math.min(shown + 2, s.pageCount)} of ${s.pageCount}',
+        decreasedValue: 'Page ${math.max(shown, 1)} of ${s.pageCount}',
         onIncrease: () => widget.host.jumpTo(math.min(s.pageCount, s.page + 1)),
         onDecrease: () => widget.host.jumpTo(math.max(1, s.page - 1)),
         child: GestureDetector(
