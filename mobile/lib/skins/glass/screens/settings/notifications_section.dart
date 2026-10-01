@@ -241,7 +241,9 @@ class _ScheduleStrip extends StatelessWidget {
             : overdue
                 ? 'Overdue by ${sch.overdueByMinutes} min'
                 : 'Next check ${glassIn(sch.estimatedNextRunAt!, now)}';
-    Widget cell(Widget child) => Expanded(child: Padding(padding: const EdgeInsets.all(12), child: child));
+    // Three columns while they fit; from text scale 1.3 they stack as rows (one phrase a line, never one word a line).
+    final stack = MediaQuery.textScalerOf(context).scale(1) >= 1.3;
+    Widget cell(Widget child) => stack ? Padding(padding: const EdgeInsets.fromLTRB(12, 10, 12, 0), child: child) : Expanded(child: Padding(padding: const EdgeInsets.all(12), child: child));
     return SettingsAnchor(
       id: 'updates-schedule',
       child: Padding(
@@ -249,7 +251,7 @@ class _ScheduleStrip extends StatelessWidget {
         child: GlassSlab(
           radius: 20,
           padding: EdgeInsets.zero,
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child: Flex(direction: stack ? Axis.vertical : Axis.horizontal, crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               cell(GlassText(last, role: gt.typeFootnote, color: gt.colorLabel1)),
               cell(Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                 GlassText(next, role: gt.typeFootnote, color: overdue ? gt.colorWarning : gt.colorLabel1),
@@ -257,6 +259,7 @@ class _ScheduleStrip extends StatelessWidget {
                   GlassButton(label: 'See System status', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () => GoRouter.of(context).go(Routes.status())),
               ],),),
               cell(GlassText('Every ${glassInterval(settings.checkIntervalMinutes)}', role: gt.typeFootnote, color: gt.colorLabel1)),
+              if (stack) const SizedBox(height: 10),
             ],),
         ),
       ),
