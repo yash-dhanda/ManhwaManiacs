@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 
 import '../skin_glass_test.dart' show containerOf, host;
@@ -59,4 +60,30 @@ void main() {
     expect(s.layers, kGlassLayerBudget);
     expect(countGpuPasses(t).backdrop, kGlassLayerBudget);
   });
+
+  testWidgets('content keeps its state when the surface flips between live, solid and back (a drag on it survives)', (t) async {
+    await t.pumpWidget(host(const SkinGlass(size: Size(200, 60), child: _Probe())));
+    for (var i = 0; i < 30; i++) {
+      await t.pump(const Duration(milliseconds: 16)); // through the materialise, whose end used to rebuild the content too
+    }
+    final probe = t.state(find.byType(_Probe));
+    final a11y = containerOf(t).read(glassA11yProvider.notifier);
+    a11y.state = const GlassA11y(solid: true);
+    await t.pump();
+    expect(identical(t.state(find.byType(_Probe)), probe), isTrue, reason: 'live -> solid');
+    a11y.state = const GlassA11y();
+    await t.pump();
+    expect(identical(t.state(find.byType(_Probe)), probe), isTrue, reason: 'solid -> live');
+  });
+}
+
+class _Probe extends StatefulWidget {
+  const _Probe();
+  @override
+  State<_Probe> createState() => _ProbeState();
+}
+
+class _ProbeState extends State<_Probe> {
+  @override
+  Widget build(BuildContext context) => const SizedBox.expand();
 }
