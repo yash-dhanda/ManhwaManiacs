@@ -1808,6 +1808,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
                 setState(() => _guided = false);
                 previousChapter();
               },
+              chapterLabelOf: (next) => chapterLabel((next ? _nextId : _previousId) ?? ''),
               lb: bandLb(Rect.fromLTWH(0, 0, size.width, size.height), size, engine.value.currentPageSample),
               tint: pageTinted ? _tint : null,
               bottomInset: math.max(GlassReaderInsets.of(context).bottom, MediaQuery.systemGestureInsetsOf(context).bottom) + 16,
