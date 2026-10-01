@@ -15,6 +15,7 @@ import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart' show GlassCoverImage;
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/profile_orb.dart';
@@ -166,10 +167,10 @@ class _HeaderOrb extends StatelessWidget {
       );
 }
 
-/// The poster, its title line and "Add to library" (two centred lines when the text is large) at the current text scale.
+/// The poster, its title (two lines) and "Add" at the current text scale.
 double readingPosterHeight(BuildContext context) {
-  final title = measureText(context, 'Ag', roleStyle(context, gt.typeFootnote)).height;
-  final button = measureText(context, 'Add to library', roleStyle(context, gt.typeSubhead, onGlass: true, wght: 660, maxScale: 1.5), maxWidth: 112 - 16, maxLines: 2).height + 20;
+  final title = measureText(context, 'Ag\nAg', roleStyle(context, gt.typeFootnote), maxLines: 2).height;
+  final button = measureText(context, 'Add', roleStyle(context, gt.typeSubhead, onGlass: true, wght: 660, maxScale: 1.5)).height + 20;
   return 168 + 4 + title + math.max(GlassFrame.hitMin(context), button) + 4;
 }
 
@@ -192,8 +193,9 @@ class _ReadingPoster extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 4),
-          GlassText(series.title, role: gt.typeFootnote, maxLines: 1, overflow: TextOverflow.ellipsis),
-          GlassButton(label: 'Add to library', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () => unawaited(followFromCircle(ref, sourceId: series.sourceId, seriesKey: series.seriesKey, title: series.title))),
+          GlassText(series.title, role: gt.typeFootnote, maxLines: 2, overflow: TextOverflow.ellipsis),
+          // "Add" with the plus glyph fits the 112 px column on one line at any text size; the full action is in its name.
+          GlassButton(label: 'Add', icon: GlassButtonIcon.glyph(GlassGlyph.plus), semanticsLabel: 'Add ${series.title} to library', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, hang: true, onPressed: () => unawaited(followFromCircle(ref, sourceId: series.sourceId, seriesKey: series.seriesKey, title: series.title))),
         ],),
       );
 }

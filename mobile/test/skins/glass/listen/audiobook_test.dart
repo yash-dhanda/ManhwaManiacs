@@ -74,6 +74,8 @@ void main() {
     await settle(t, ms: 400);
     await l.settle();
     expect(l.repo.renderCalls.last.force, isTrue);
+    // The "Queued" toast (on the gutter now, so taller with the test font) leaves before the row under it is tapped.
+    await settle(t, ms: 8000);
     await t.tap(find.text('Cancel').first);
     await settle(t, ms: 400);
     await l.settle();

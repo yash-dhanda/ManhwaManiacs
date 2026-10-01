@@ -177,13 +177,16 @@ class GlassLabel extends ConsumerWidget {
       letterSpacing: (style.letterSpacing ?? 0) + extraTrackingEm * (style.fontSize ?? 12),
       fontStyle: italic ? FontStyle.italic : null,
     );
-    return Text(
-      upper ? text.toUpperCase() : text,
+    final shown = upper ? text.toUpperCase() : text;
+    final t = Text(
+      shown,
       style: style,
       maxLines: maxLines,
       overflow: overflow,
       textAlign: textAlign,
       textScaler: TextScaler.noScaling,
     );
+    // Multi-line labels never break inside a word (see GlassWordFit); one-line labels keep their ellipsis.
+    return maxLines == 1 ? t : GlassWordFit(text: shown, style: style, child: t);
   }
 }
