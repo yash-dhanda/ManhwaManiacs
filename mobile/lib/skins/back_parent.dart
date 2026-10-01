@@ -35,7 +35,7 @@ String? backParentOf(String location, {required bool glass}) {
     case 'read-all':
       return n >= 3 ? feature(s[1], s[2]) : null;
     case 'reader':
-      return n >= 3 ? feature(s[1], s[2]) : '/library';
+      return n >= 3 ? feature(s[1], s[2]) : null; // `/reader` redirects to the library
     case 'novels':
       final o = s.length > 1 && s[1] == 'read' ? 1 : 0;
       return n >= 3 + o ? feature(s[1 + o], s[2 + o]) : null;
