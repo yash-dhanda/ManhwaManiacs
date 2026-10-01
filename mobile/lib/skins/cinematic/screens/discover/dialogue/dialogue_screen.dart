@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/dialogue/transcript_block.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
@@ -235,7 +236,7 @@ class _DialogueScreenState extends ConsumerState<DialogueScreen> {
                       _loadingMore
                           ? const Padding(
                               padding: EdgeInsets.all(16),
-                              child: LeaderDial(),
+                              child: CineLeaderDial(size: 16),
                             )
                           : CineButton(
                               label: 'Show more',

@@ -4,9 +4,9 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart' show RetryCountdown;
-import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart' show DelayedShow, LeaderDial;
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/world_card_tile.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -71,7 +71,7 @@ class EditorsSuggest extends StatelessWidget {
       return Row(children: [
         Expanded(child: TypedText.plain(kAiThinkingPicks, style: CineText.style(context, c.typePull).copyWith(color: c.colorInk100))),
         SizedBox(width: c.space3),
-        const DelayedShow(child: LeaderDial(size: 24)),
+        const CineLeaderDial(size: 24, showAfter: Duration(seconds: 1)),
       ],);
     }
     if (value.hasError) return _error(context, value.error!);

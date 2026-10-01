@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -74,7 +75,7 @@ class DialogueScanBlock extends ConsumerWidget {
         children.addAll([
           Semantics(liveRegion: true, child: line('Saving the transcript…')),
           const SizedBox(height: CineSpace.s2),
-          const IndeterminateRule(),
+          const CineIndeterminateRule(),
         ]);
       case OcrRunPhase.done:
         children.addAll([
@@ -140,7 +141,7 @@ class _Rule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.cine;
-    if (progress == null) return const IndeterminateRule();
+    if (progress == null) return const CineIndeterminateRule();
     return SizedBox(
       height: 2,
       child: LayoutBuilder(

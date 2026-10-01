@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_confirm_dialog.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -62,7 +63,7 @@ class ScanDialogueButton extends ConsumerWidget {
             width: 48,
             height: 48,
             child: scanning
-                ? const Center(child: LeaderDial())
+                ? const Center(child: CineLeaderDial(size: 16))
                 : IconButton(
                     onPressed: run.isBusy ? null : scan,
                     icon: Icon(CineGlyphs.bubbleSearchRegular,

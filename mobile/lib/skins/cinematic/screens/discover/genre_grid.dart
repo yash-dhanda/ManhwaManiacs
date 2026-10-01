@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/for_you_grid.dart';
@@ -160,7 +161,7 @@ class _GenreGridScreenState extends ConsumerState<GenreGridScreen> {
           ),
         );
       }
-      if (_loading) return const Center(child: LeaderDial(size: 24));
+      if (_loading) return const Center(child: CineLeaderDial(size: 24));
       if (_cursor == null) {
         return items.isEmpty
             ? const Padding(

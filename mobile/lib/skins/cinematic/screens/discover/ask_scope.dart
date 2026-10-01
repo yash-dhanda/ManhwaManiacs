@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/library/providers/intelligence_providers.
 import 'package:manhwamaniacs/skins/cinematic/ai_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -41,7 +42,7 @@ class AskScope extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: CineSpace.s3),
-            const DelayedShow(child: LeaderDial(size: 24)),
+            const CineLeaderDial(size: 24, showAfter: Duration(seconds: 1)),
           ],
         ),
       );

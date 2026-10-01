@@ -15,6 +15,7 @@ import 'package:manhwamaniacs/skins/cinematic/parts/book_list_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_poster.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/opening_state.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/top_button.dart';
@@ -267,7 +268,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                 children: [
                   Kicker('Loading more'),
                   SizedBox(width: 8),
-                  LeaderDial(),
+                  CineLeaderDial(size: 16),
                 ],
               ),
             )
@@ -483,7 +484,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                               browse.isLoading && state != null
                                   ? const Padding(
                                       padding: EdgeInsets.all(16),
-                                      child: LeaderDial(),
+                                      child: CineLeaderDial(size: 16),
                                     )
                                   : CineButton(
                                       label: 'Refresh',

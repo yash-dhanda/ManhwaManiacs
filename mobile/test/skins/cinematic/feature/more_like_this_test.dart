@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/ai/models/similar_result.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/manga/manga_view.dart';
 
 import 'feature_test_support.dart';
@@ -73,7 +74,7 @@ void main() {
     await scrollToPanels(tester);
     await settleFeature(tester, by: const Duration(seconds: 3));
     expect(find.text('Finding series like this one…'), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsWidgets);
+    expect(find.descendant(of: find.byType(CineLeaderDial), matching: find.byType(CustomPaint)), findsWidgets);
     gate.complete(SimilarResult(items: [_w('Night Ward')]));
     await settleFeature(tester, by: const Duration(seconds: 1));
     expect(find.text('Finding series like this one…'), findsNothing);

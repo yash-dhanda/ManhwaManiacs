@@ -17,6 +17,7 @@ import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_slug_lines.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_extras.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -208,7 +209,7 @@ class DiscoverResultsState extends ConsumerState<DiscoverResults> {
         if (tier2)
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: CineSpace.s4),
-            child: IndeterminateRule(),
+            child: CineIndeterminateRule(),
           ),
         if (failed > 0)
           Padding(

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_wash.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_image.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/typed_text.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
@@ -82,7 +83,7 @@ class _OpeningStateState extends State<OpeningState> {
                       ),
                     ),
                   ),
-                  if (_dial) const LeaderDial(size: 32),
+                  if (_dial) const CineLeaderDial(),
                 ],
               ),
               if (_slow) ...[

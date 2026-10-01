@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/ocr/models/ocr_search_result.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_search_group.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/ask_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/catalogue/catalogue_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -399,9 +400,10 @@ void main() {
     testWidgets('the dial appears after 1 s, not at once', (tester) async {
       await pumpAsk(tester, _Thinks.new);
       await tester.pump(const Duration(milliseconds: 500));
-      expect(find.byType(LeaderDial), findsNothing);
+      // The dial holds its box from the start and paints after 1 s.
+      expect(find.descendant(of: find.byType(CineLeaderDial), matching: find.byType(CustomPaint)), findsNothing);
       await tester.pump(const Duration(milliseconds: 600));
-      expect(find.byType(LeaderDial), findsOneWidget);
+      expect(find.descendant(of: find.byType(CineLeaderDial), matching: find.byType(CustomPaint)), findsOneWidget);
     });
 
     testWidgets('World cards fade in staggered', (tester) async {

@@ -10,6 +10,7 @@ import 'package:manhwamaniacs/features/library/models/suggestion.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/picks_screen.dart';
 
 import '../discover/harness.dart';
@@ -139,7 +140,7 @@ void main() {
     expect(find.textContaining('Reading'), findsWidgets);
     await advance(tester, 1500);
     expect(find.text('Reading your shelf…'), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsWidgets);
+    expect(find.descendant(of: find.byType(CineLeaderDial), matching: find.byType(CustomPaint)), findsWidgets);
     t.lib.gate!.complete(t.lib.answer);
     await advance(tester, 600);
     expect(find.text('THE EDITORS SUGGEST'), findsOneWidget);
