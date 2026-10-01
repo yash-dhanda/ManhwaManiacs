@@ -86,12 +86,15 @@ class _ServerSectionState extends ConsumerState<ServerSection> {
 
   Future<void> _reset() async {
     final sw = ref.read(serverSwitchProvider);
-    if (!sw.isSame(Env.defaultApiUrl)) {
-      if (!await _confirm()) return;
-      await sw.confirm(Env.defaultApiUrl);
-    }
-    await sw.reset();
+    final switching = !sw.isSame(Env.defaultApiUrl);
+    if (switching && !await _confirm()) return;
+    final err = await sw.reset();
     if (!mounted) return;
+    if (err != null) return _fail(err.userMessage);
+    if (!switching) {
+      _c.text = Env.defaultApiUrl;
+      return settingsToast(ref, 'Already on the default address');
+    }
     settingsToast(ref, 'Reset to the default address', kind: GlassToastKind.success);
     GoRouter.of(context).go(Routes.login());
   }

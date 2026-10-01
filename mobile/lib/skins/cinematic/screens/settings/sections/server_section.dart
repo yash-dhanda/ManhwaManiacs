@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/config/env.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/settings/services/server_switch.dart';
 import 'package:manhwamaniacs/features/setup/utils/server_check.dart';
@@ -73,6 +74,33 @@ class _ServerSectionState extends ConsumerState<ServerSection> {
     if (ok) toasts.info('Signed out: new server.');
   }
 
+  Future<void> _reset() async {
+    final sw = ref.read(serverSwitchProvider);
+    final toasts = ref.read(cineToastsProvider.notifier);
+    setState(() => _error = null);
+    if (sw.isSame(Env.defaultApiUrl)) {
+      await sw.reset();
+      if (!mounted) return;
+      setState(() => _url.text = Env.defaultApiUrl);
+      toasts.info('Already on the default server.');
+      return;
+    }
+    final ok = await showCineConfirm(
+      context,
+      title: 'Switch servers?',
+      body: kSwitchServersBody,
+      confirmLabel: 'Switch servers',
+      destructive: true,
+      onConfirm: () async {
+        final err = await sw.reset();
+        if (err != null) throw err;
+      },
+    );
+    if (!mounted || !ok) return;
+    setState(() => _url.text = Env.defaultApiUrl);
+    toasts.info('Signed out: default server.');
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
@@ -106,11 +134,7 @@ class _ServerSectionState extends ConsumerState<ServerSection> {
             size: CineButtonSize.sm,
             onPressed: _busy
                 ? null
-                : () async {
-                    await ref.read(serverSwitchProvider).reset();
-                    _seeded = false;
-                    setState(() => _error = null);
-                  },
+                : () => unawaited(_reset()),
           ),
         ],),
       ],),
