@@ -625,7 +625,11 @@ class _BookViewState extends ConsumerState<BookView> {
                     selecting: _selection.isActive,
                     onPick: _selection.isActive ? _selection.end : _selection.begin,
                     narratedOnly: _narratedOnly,
-                    onNarrated: (v) => setState(() => _narratedOnly = v),
+                    onNarrated: (v) => setState(() {
+                      _narratedOnly = v;
+                      // The window indexes the list it was taken on; the filter changes that list.
+                      _window = null;
+                    }),
                     onGoTo: _goTo,
                     wide: wide,
                     goToController: _goToCtl,
