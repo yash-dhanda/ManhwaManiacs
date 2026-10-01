@@ -212,11 +212,14 @@ class CoverActions extends StatelessWidget {
       primary,
       if (recap != null || details != null) ...[
         SizedBox(height: c.space3),
-        Row(children: [
-          if (recap != null) Expanded(child: recap),
-          if (recap != null && details != null) SizedBox(width: c.space3),
-          if (details != null) Expanded(child: recap == null ? Align(alignment: Alignment.centerLeft, child: details) : details),
-        ],),
+        // Alone, `Details` centres under the full-width `Continue` instead of hugging the gutter.
+        if (recap == null)
+          Center(child: details)
+        else
+          Row(children: [
+            Expanded(child: recap),
+            if (details != null) ...[SizedBox(width: c.space3), Expanded(child: details)],
+          ],),
       ],
     ],);
   }
