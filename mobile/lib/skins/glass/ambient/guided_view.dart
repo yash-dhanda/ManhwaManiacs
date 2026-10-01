@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/gestures.dart' show kDoubleTapSlop;
+import 'package:flutter/gestures.dart' show DeviceGestureSettings, ScaleGestureRecognizer, ScaleStartDetails, ScaleUpdateDetails, ScaleEndDetails, TapGestureRecognizer, TapUpDetails, kDoubleTapSlop;
 import 'package:flutter/physics.dart' show SpringSimulation;
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -132,14 +132,13 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
   // ── Geometry ────────────────────────────────────────────────────────────
 
   double _aspectOf(int page) {
-    final s = _learned[page];
-    if (s != null && s.height > 0) return s.width / s.height;
     if (page >= 1 && page <= _pages) {
       final p = _chapter.pages[page - 1];
       if (p.width != null && p.height != null && p.height! > 0) return p.width! / p.height!;
-      return p.aspectRatio ?? 0.7;
     }
-    return 0.7;
+    final s = _learned[page];
+    if (s != null && s.height > 0) return s.width / s.height;
+    return page >= 1 && page <= _pages ? (_chapter.pages[page - 1].aspectRatio ?? 0.7) : 0.7;
   }
 
   /// The page laid out at pose identity: contained in the viewport and centred.
@@ -166,13 +165,15 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
     for (var i = 0; i < st.fractions.length; i++) {
       final f = st.fractions[i];
       final px = Rect.fromLTWH(r.left + f.left * r.width, r.top + f.top * r.height, f.width * r.width, f.height * r.height);
-      final base = frameRect(px, _viewport);
-      final framedH = px.height * base.scale;
-      if (framedH <= _viewport.height - 48) {
+      // Fitted by width (the webtoon panel); one that is then taller than the viewport minus its padding is walked.
+      final wScale = math.min((_viewport.width - 48) / px.width, 3.0);
+      if (px.height * wScale <= _viewport.height - 48) {
+        final base = frameRect(px, _viewport);
         out.add(_Stop(i, base, _apply(base, px)));
         continue;
       }
-      // Taller than the viewport at the scale it is fitted at (width): walk it.
+      final base = CameraPose(wScale, 0, 0);
+      final framedH = px.height * wScale;
       for (final off in walkSteps(framedH, _viewport.height)) {
         final top = px.top + off / base.scale;
         final slice = Rect.fromLTWH(px.left, top, px.width, _viewport.height / base.scale);
@@ -439,7 +440,8 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
         _go(_to, _lensTo);
         return;
       }
-      final dir = swipeStep(_drag.dx, v.dx, rtl: widget.rtl);
+      // The recogniser starts after the 10 px slop: the finger has travelled that much more.
+      final dir = swipeStep(_drag.dx + _drag.dx.sign * 10, v.dx, rtl: widget.rtl);
       if (dir != 0) {
         _step(dir, velocity: v.dx.abs());
       } else {
@@ -447,7 +449,7 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
       }
       return;
     }
-    if (_horizontal == false && exitByProjection(_drag.dy, v.dy)) {
+    if (_horizontal == false && exitByProjection(_drag.dy + 10, v.dy)) {
       _close();
       return;
     }
@@ -522,12 +524,19 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
                 children: [
                   const Positioned.fill(child: ColoredBox(color: Color(0xFF000000))),
                   Positioned.fill(
-                    child: GestureDetector(
+                    child: RawGestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTapUp: _onTapUp,
-                      onScaleStart: _scaleStart,
-                      onScaleUpdate: _scaleUpdate,
-                      onScaleEnd: _scaleEnd,
+                      gestures: {
+                        TapGestureRecognizer: GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(TapGestureRecognizer.new, (r) => r.onTapUp = _onTapUp),
+                        ScaleGestureRecognizer: GestureRecognizerFactoryWithHandlers<ScaleGestureRecognizer>(
+                          ScaleGestureRecognizer.new,
+                          (r) => r
+                            ..gestureSettings = const DeviceGestureSettings(touchSlop: 10)
+                            ..onStart = _scaleStart
+                            ..onUpdate = _scaleUpdate
+                            ..onEnd = _scaleEnd,
+                        ),
+                      },
                       child: AnimatedBuilder(animation: _fade, builder: (context, child) => Opacity(opacity: _fade.value.clamp(0.0, 1.0), child: child), child: _stage()),
                     ),
                   ),

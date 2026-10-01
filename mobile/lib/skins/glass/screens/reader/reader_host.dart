@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_sample.dart' show PageSample;
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
@@ -36,6 +37,9 @@ abstract interface class GlassReaderHost {
 
   /// The Rain scene is playing and nothing switches the shader off (Reduce Motion, Reduce Transparency, Solid glass).
   bool get rainOn;
+
+  /// The page sample the chrome's legibility follows: the engine's, held through a fling above 3000 px/s.
+  PageSample? get lbSample;
 
   /// The chrome's current page tint (already gated and held), null for neutral glass.
   Color? get tint;

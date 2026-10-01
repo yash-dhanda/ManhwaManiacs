@@ -132,8 +132,9 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
     // One tween per chrome root; transparent stands for "no tint" (a tween needs an end).
     return TweenAnimationBuilder<Color?>(
       tween: ColorTween(end: host.tint ?? const Color(0x00000000)),
-      duration: gt.curveTintShift.duration,
-      curve: gt.curveTintShift.curve,
+      // Reduce Motion: tint changes cross-fade over 200 ms linear (glass 4.11).
+      duration: host.reducedMotion ? const Duration(milliseconds: 200) : gt.curveTintShift.duration,
+      curve: host.reducedMotion ? Curves.linear : gt.curveTintShift.curve,
       builder: (context, tint, _) {
         final t = host.pageTinted && tint != null && tint.a > 0.01 ? tint.withValues(alpha: 1) : null;
         return RainOnGlassHost(
@@ -166,7 +167,7 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
     );
   }
 
-  double _lb(ReaderChromeGeometry g, Rect r, ReaderEngineState s) => bandLb(r, g.size, s.currentPageSample);
+  double _lb(ReaderChromeGeometry g, Rect r, ReaderEngineState s) => bandLb(r, g.size, widget.host.lbSample);
 
   /// Hidden chrome is out of focus, semantics and pointers (glass 8.14.2).
   Widget _live(bool visible, Widget child) =>
@@ -191,9 +192,9 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
 
   List<Widget> _portrait(BuildContext context, ReaderChromeGeometry g, ReaderEngineState s, Color? t, bool visible) {
     final host = widget.host;
-    final topLb = bandLb(Rect.fromLTWH(0, g.top, g.size.width, g.side), g.size, s.currentPageSample);
+    final topLb = bandLb(Rect.fromLTWH(0, g.top, g.size.width, g.side), g.size, host.lbSample);
     final bottomRect = Rect.fromLTWH(0, g.size.height - g.bottom - 56, g.size.width, 56);
-    final bottomLb = bandLb(bottomRect, g.size, s.currentPageSample);
+    final bottomLb = bandLb(bottomRect, g.size, host.lbSample);
     final railTop = g.top + g.side + 16;
     final railBottom = g.bottom + 56 + 16;
     final railH = math.max(0.0, g.size.height - railTop - railBottom);
@@ -227,7 +228,7 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
 
   List<Widget> _landscape(BuildContext context, ReaderChromeGeometry g, ReaderEngineState s, Color? t, bool visible) {
     final host = widget.host;
-    final topLb = bandLb(Rect.fromLTWH(0, g.top, g.size.width, g.side), g.size, s.currentPageSample);
+    final topLb = bandLb(Rect.fromLTWH(0, g.top, g.size.width, g.side), g.size, host.lbSample);
     return [
       Positioned(
         left: g.left,
@@ -250,7 +251,7 @@ class _GlassReaderChromeState extends ConsumerState<GlassReaderChrome> with Tick
           bottom: math.max(g.inset.bottom, 8) + g.hit + 8,
           child: _live(
             visible,
-            _LandscapeCruise(host: host, lb: bandLb(Rect.fromLTWH(g.size.width - 140, g.size.height - 120, 124, 44), g.size, s.currentPageSample), tint: t),
+            _LandscapeCruise(host: host, lb: bandLb(Rect.fromLTWH(g.size.width - 140, g.size.height - 120, 124, 44), g.size, host.lbSample), tint: t),
           ),
         ),
       if (host.goToOpen) Positioned.fill(child: _GoToLayer(host: host, state: s, g: g, tint: t)),
@@ -607,6 +608,8 @@ class _BottomCapsule extends StatelessWidget {
                     child: ExcludeSemantics(excluding: !visible, child: IgnorePointer(ignoring: !visible, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: full))),
                   ),
                 ),
+              // The minimised pill's inner glow: a 12 px blurred inset glow of the tint at 30 % (glass 9.4.4).
+              if (m > 0 && tint != null) Positioned.fill(child: IgnorePointer(child: Opacity(opacity: m, child: CustomPaint(painter: _InnerGlow(tint!.withValues(alpha: PageTint.edge)))))),
               if (m > 0)
                 Opacity(
                   opacity: ((m - 0.5) * 2).clamp(0.0, 1.0),
@@ -627,6 +630,25 @@ class _BottomCapsule extends StatelessWidget {
       },
     );
   }
+}
+
+/// A 12 px blurred inset glow along the capsule's edge.
+class _InnerGlow extends CustomPainter {
+  const _InnerGlow(this.color);
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rr = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(size.height / 2));
+    canvas
+      ..save()
+      ..clipRRect(rr)
+      ..drawRRect(rr, Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 12..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6))
+      ..restore();
+  }
+
+  @override
+  bool shouldRepaint(_InnerGlow old) => old.color != color;
 }
 
 class _CapsuleIcon extends StatelessWidget {
@@ -670,7 +692,7 @@ class _MicroProgress extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: FractionallySizedBox(
             widthFactor: progress.clamp(0.0, 1.0),
-            child: ColoredBox(color: Color.lerp(gt.colorIris500, tint ?? gt.colorIris500, PageTint.edge)!.withValues(alpha: 0.8)),
+            child: ColoredBox(color: (tint == null ? gt.colorIris500 : rimTint(tint!)).withValues(alpha: 0.8)),
           ),
         ),
       );

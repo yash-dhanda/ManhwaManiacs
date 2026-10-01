@@ -22,6 +22,7 @@ import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/lens_layout.dart';
 import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
+import 'package:manhwamaniacs/features/reader/engine/page_sample.dart' show PageSample;
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
@@ -49,6 +50,7 @@ import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/glass_ambient_bridge.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/guided_view.dart';
+import 'package:manhwamaniacs/skins/glass/ambient/page_tint.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/glass/light_angle.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
@@ -62,6 +64,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/menu.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/routes/glass_sheet_route.dart';
 import 'package:manhwamaniacs/skins/glass/routes/sheet_registry.dart';
+import 'package:manhwamaniacs/skins/glass/screens/home/home_common.dart' show paletteOf;
 import 'package:manhwamaniacs/skins/glass/screens/reader/band_lb.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/brightness_band.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/chapter_list.dart';
@@ -69,7 +72,6 @@ import 'package:manhwamaniacs/skins/glass/screens/reader/chapter_seam.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/dialogue_overlay.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/light_layers.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/neighbour_card.dart';
-import 'package:manhwamaniacs/skins/glass/screens/reader/page_tint_chrome.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/panel_fit.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_chrome.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/reader_exclusion_rects.dart';
@@ -182,6 +184,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   SoundscapeController? _soundscape;
   String? _pendingSheet;
   bool _guided = false;
+  final TintFollower _tintFollower = TintFollower();
+  PageSample? _lbSample, _lbShown;
   late final GlassAmbientBridge _ambientBridge = GlassAmbientBridge(ref: ref, engine: engine, sourceId: sourceId, seriesKey: seriesKey);
 
   ReaderFrameBody get _body => widget.body;
@@ -450,6 +454,14 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   Color? get tint => _tint;
 
   @override
+  PageSample? get lbSample => _lbSample ?? engine.value.currentPageSample;
+
+  Color? get _coverTint {
+    final a = paletteOf(null, ref.read(sourceSeriesDetailProvider((sourceId: sourceId, seriesId: seriesKey))).valueOrNull?.series.ambient)?.a;
+    return a == null || a.isEmpty ? null : a.first;
+  }
+
+  @override
   bool get goToOpen => _goTo;
 
   @override
@@ -470,8 +482,16 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     if (_disposed) return;
     final s = engine.value;
     final sample = s.currentPageSample;
-    final next = gatedTint(_tint, sample?.tint == null ? null : clampTint(sample!.tint!));
-    if (next != _tint && mounted) setState(() => _tint = next);
+    // Glass 9.4.4: the clamped tint, moved only past a Delta E of 0.04 and never during a fling above 3000 px/s; a greyscale page keeps
+    // it and six in a row fall back to the cover. The legibility sample is held through a fling the same way.
+    _tintFollower.cover = _coverTint;
+    final fling = s.scrollVelocity.abs() > kTintFlingHold;
+    if (!fling) _lbSample = sample;
+    final next = _tintFollower.feed(sample?.tint, s.scrollVelocity);
+    if ((next != _tint || (!fling && _lbSample != _lbShown)) && mounted) {
+      _lbShown = _lbSample;
+      setState(() => _tint = next);
+    }
     _maybeAutoNext(s);
     _syncWake();
     final f = s.furtherElsewhere;
