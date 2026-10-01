@@ -90,11 +90,11 @@ Annual _annual() => Annual.fromJson({
       'firsts_lasts': {
         'first': {
           'series': {'source_id': 'shelf', 'series_key': 'series-1', 'title': 'Tower of God', 'cover_url': '/sources/shelf/series/series-1/cover'},
-          'read_at': '2026-01-05T10:00:00Z'
+          'read_at': '2026-01-05T10:00:00Z',
         },
         'last': {
           'series': {'source_id': 'shelf', 'series_key': 'series-4', 'title': 'Lookism', 'cover_url': '/sources/shelf/series/series-4/cover'},
-          'read_at': '2026-09-20T10:00:00Z'
+          'read_at': '2026-09-20T10:00:00Z',
         },
       },
     });
@@ -242,7 +242,7 @@ void main() {
     await write('card-12-summary-story', ShareSpec.forCard(WrappedCard.summary, a)!, ShareFormat.story);
     final st = statisticsFixture();
     await write('share-range-story', ShareSpec.stat(id: 'range-30', eyebrow: 'Your reading', numeral: '${st.window.chaptersRead}', unit: 'chapters', contextLine: 'Last 30 days', bars: st.daily),
-        ShareFormat.story);
+        ShareFormat.story,);
     await write('share-streak-story', ShareSpec.stat(id: 'streak', eyebrow: 'Streak', numeral: '12', unit: 'day streak', contextLine: 'Longest: 31 days', flame: true), ShareFormat.story);
     await s.settle(100);
     await _end(t);
