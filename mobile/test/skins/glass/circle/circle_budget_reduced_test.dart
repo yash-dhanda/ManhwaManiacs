@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/lift_store.dart';
+import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_orbs.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/profile_orb.dart';
 import 'package:manhwamaniacs/skins/glass/screens/circle/circle_orb.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 
@@ -47,6 +49,12 @@ void main() {
     expect(orbs.single.shapes, 4);
     expect(r.layers, lessThanOrEqualTo(6));
     expect(r.shapes, lessThanOrEqualTo(8));
+    // Hit targets: each recommend orb is at least 48 x 48 (Android; iOS needs 44).
+    final orbWidgets = find.descendant(of: find.byType(RecommendOrbLayer), matching: find.byType(GlassProfileOrb));
+    expect(orbWidgets, findsNWidgets(4));
+    for (final e in orbWidgets.evaluate()) {
+      expect(e.size!.shortestSide, greaterThanOrEqualTo(48));
+    }
     rig.container.read(liftProvider.notifier).state = null;
     await t.pump(const Duration(milliseconds: 300));
   });

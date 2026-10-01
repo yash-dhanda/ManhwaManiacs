@@ -23,7 +23,7 @@ class _NoProgress extends SourceProgressNotifier {
   Map<String, SourceChapterProgress> build() => const {};
 }
 
-Future<FakeCircleRepository> pumpShare(WidgetTester t, {bool sharing = true, List<CircleMember>? members, bool offline = false}) async {
+Future<FakeCircleRepository> pumpShare(WidgetTester t, {bool sharing = true, List<CircleMember>? members, bool offline = false, TargetPlatform platform = TargetPlatform.iOS}) async {
   final repo = FakeCircleRepository(
     membersList: members ?? const [CircleMember(profileId: 2, name: 'Aarav', shares: _shelvesOn), CircleMember(profileId: 3, name: 'Mira', shares: _shelvesOff)],
     sharingValue: Sharing(activity: sharing),
@@ -34,6 +34,7 @@ Future<FakeCircleRepository> pumpShare(WidgetTester t, {bool sharing = true, Lis
   await t.pumpWidget(primHost(
     Navigator(onGenerateRoute: (_) => MaterialPageRoute<void>(builder: (_) => const CollectionShareBody(collectionId: 7))),
     align: false,
+    platform: platform,
     overrides: [circleRepositoryProvider.overrideWithValue(repo), activeProfileOverride(), glassOfflineProvider.overrideWithValue(offline)],
   ),);
   await pumpFor(t, 300);
@@ -60,6 +61,16 @@ void main() {
     expect(find.textContaining("doesn't share yet"), findsOneWidget);
     await pumpShare(t, offline: true);
     expect(find.text('Sharing needs a connection'), findsOneWidget);
+  });
+
+  testWidgets('hit targets on the share sheet at 390 x 844', (t) async {
+    final h = t.ensureSemantics();
+    await pumpShare(t);
+    await expectLater(t, meetsGuideline(iOSTapTargetGuideline));
+    await expectLater(t, meetsGuideline(labeledTapTargetGuideline));
+    await pumpShare(t, platform: TargetPlatform.android);
+    await expectLater(t, meetsGuideline(androidTapTargetGuideline));
+    h.dispose();
   });
 
   test('rights: view only has no Add, Edit, Reorder, Remove or Delete; can add adds and removes; the owner keeps the rest', () {

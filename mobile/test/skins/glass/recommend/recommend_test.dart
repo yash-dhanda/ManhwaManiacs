@@ -31,13 +31,14 @@ List<CircleMember> _members() => const [
       CircleMember(profileId: 4, name: 'Kai', shares: _on, canReceive: false),
     ];
 
-Future<(FakeCircleRepository, ProviderContainer)> pumpSheet(WidgetTester t, {int? to, AppError? fail, bool offline = false}) async {
+Future<(FakeCircleRepository, ProviderContainer)> pumpSheet(WidgetTester t, {int? to, AppError? fail, bool offline = false, TargetPlatform platform = TargetPlatform.iOS}) async {
   final repo = FakeCircleRepository(membersList: _members())..failSend = fail;
   await t.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => t.binding.setSurfaceSize(null));
   await t.pumpWidget(primHost(
     Navigator(onGenerateRoute: (_) => MaterialPageRoute<void>(builder: (_) => RecommendSheetBody(series: 's:solo', title: 'Solo Leveling', to: to))),
     align: false,
+    platform: platform,
     overrides: [circleRepositoryProvider.overrideWithValue(repo), glassOfflineProvider.overrideWithValue(offline)],
   ),);
   await pumpFor(t, 300);
@@ -74,6 +75,16 @@ void main() {
     final h = t.ensureSemantics();
     await pumpSheet(t, to: 2);
     expect(t.getSemantics(find.bySemanticsLabel('Aarav')).getSemanticsData().flagsCollection.isToggled, Tristate.isTrue);
+    h.dispose();
+  });
+
+  testWidgets('hit targets on the recommend sheet at 390 x 844', (t) async {
+    final h = t.ensureSemantics();
+    await pumpSheet(t, to: 2);
+    await expectLater(t, meetsGuideline(iOSTapTargetGuideline));
+    await expectLater(t, meetsGuideline(labeledTapTargetGuideline));
+    await pumpSheet(t, to: 2, platform: TargetPlatform.android);
+    await expectLater(t, meetsGuideline(androidTapTargetGuideline));
     h.dispose();
   });
 

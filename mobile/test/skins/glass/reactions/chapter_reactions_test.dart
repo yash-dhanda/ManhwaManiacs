@@ -37,13 +37,14 @@ ChapterReactions _ch({bool sealed = true, ReactionKind? mine}) => ChapterReactio
       sealed: sealed,
     );
 
-Future<(FakeCircleRepository, ProviderContainer)> pump(WidgetTester t, {bool sealed = true, ReactionKind? mine, bool sharing = true, AppError? fail, ReactionOutbox? outbox, bool offline = false}) async {
+Future<(FakeCircleRepository, ProviderContainer)> pump(WidgetTester t, {bool sealed = true, ReactionKind? mine, bool sharing = true, AppError? fail, ReactionOutbox? outbox, bool offline = false, TargetPlatform platform = TargetPlatform.iOS}) async {
   final repo = FakeCircleRepository(reactionList: [_ch(sealed: sealed, mine: mine)], sharingValue: Sharing(activity: sharing))..failReact = fail;
   await t.binding.setSurfaceSize(const Size(390, 844));
   addTearDown(() => t.binding.setSurfaceSize(null));
   await t.pumpWidget(primHost(
     const Padding(padding: EdgeInsets.only(top: 400, left: 16, right: 16), child: GlassChapterReactions(sourceId: 's', seriesKey: 'or', chapterKey: 'c212', chapterNumber: 212, mature: true)),
     align: false,
+    platform: platform,
     overrides: [
       circleRepositoryProvider.overrideWithValue(repo),
       activeProfileOverride(),
@@ -66,6 +67,20 @@ void main() {
     await pumpFor(t, 400);
     expect(repo.log, contains('unreact c212'));
   });
+
+  for (final (platform, guideline) in [(TargetPlatform.iOS, iOSTapTargetGuideline), (TargetPlatform.android, androidTapTargetGuideline)]) {
+    testWidgets('hit targets: the strip and the open bubbles at 390 x 844 (${platform.name})', (t) async {
+      final h = t.ensureSemantics();
+      await pump(t, sealed: false, platform: platform);
+      await expectLater(t, meetsGuideline(guideline));
+      await t.tap(find.bySemanticsLabel('React to Ch 212'), kind: PointerDeviceKind.mouse);
+      await pumpFor(t, 500);
+      expect(find.byKey(const ValueKey('glass-reaction-bubbles')), findsOneWidget);
+      await expectLater(t, meetsGuideline(guideline));
+      await expectLater(t, meetsGuideline(labeledTapTargetGuideline));
+      h.dispose();
+    });
+  }
 
   testWidgets('a mouse click opens the picker; clicking a bubble sends it', (t) async {
     final (repo, _) = await pump(t);

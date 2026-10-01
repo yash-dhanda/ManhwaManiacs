@@ -283,7 +283,7 @@ class _GlassReactionButtonState extends ConsumerState<GlassReactionButton> with 
           onKeyEvent: _bubbleKey,
           child: Stack(
             children: [
-              if (_keyboard) Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => unawaited(_closeBubbles()))),
+              if (_keyboard) Positioned.fill(child: Semantics(label: 'Dismiss', child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => unawaited(_closeBubbles())))),
               Positioned(
                 left: origin.dx,
                 top: origin.dy,
