@@ -1,4 +1,6 @@
 // ignore_for_file: require_trailing_commas
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -151,16 +153,14 @@ void main() {
       final events = <NeighbourEvent>[];
       final sub = before.engine.neighbourEvents.listen(events.add);
       await pull(t, -144);
-      await settleReader(t, ms: 2000);
-      await sub.cancel();
+      await settleReader(t, ms: 3000);
+      // Not awaited: the engine's broadcast controller completes the cancel on a later microtask turn the fake clock never runs.
+      unawaited(sub.cancel());
       expect(events.map((e) => e.phase), contains(NeighbourPhase.locked));
       expect(rig.at.path, '/reader/demo/k/c3');
       expect(identical(t.state<GlassMangaReaderState>(find.byType(GlassMangaReader)), before), isTrue);
-      debugDefaultTargetPlatformOverride = null;
+      await disposeGlassReader(t);
     },
-    // Open issue: after the in-place replace (path c3, the same State, both asserted above when run alone) the next pump never
-    // returns under the test binding, so the suite would stall for the timeout. Run with --run-skipped to see it.
-    skip: true,
   );
 
   testWidgets('SystemChrome: immersiveSticky on enter, edgeToEdge on exit; orientations widen then restore', (t) async {
