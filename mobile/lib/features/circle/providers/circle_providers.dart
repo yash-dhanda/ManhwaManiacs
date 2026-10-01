@@ -349,3 +349,32 @@ class MemberFeedNotifier extends FamilyAsyncNotifier<CircleFeedState, int> {
 
 final memberFeedProvider = AsyncNotifierProvider.family<MemberFeedNotifier, CircleFeedState, int>(MemberFeedNotifier.new, name: 'memberFeed');
 
+
+/// Registers a visible Circle surface with the one 60 s poll (Glass's; Cinematic keeps its own copy in its skin).
+class GlassCirclePollScope extends ConsumerStatefulWidget {
+  const GlassCirclePollScope({super.key, required this.child});
+  final Widget child;
+
+  @override
+  ConsumerState<GlassCirclePollScope> createState() => _GlassCirclePollScopeState();
+}
+
+class _GlassCirclePollScopeState extends ConsumerState<GlassCirclePollScope> {
+  final Object _token = Object();
+  late final CirclePollController _controller = ref.read(circlePollControllerProvider);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller.register(_token, visible: TickerMode.valuesOf(context).enabled);
+  }
+
+  @override
+  void dispose() {
+    _controller.unregister(_token);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}

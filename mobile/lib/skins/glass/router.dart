@@ -30,6 +30,8 @@ import 'package:manhwamaniacs/skins/glass/routes/sheet_param_host.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/login_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/register_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/auth/setup_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/circle/circle_screen.dart';
+import 'package:manhwamaniacs/skins/glass/screens/circle/friend_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/dialogue/dialogue_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/home_screen.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/glass_steps.dart';
@@ -70,8 +72,6 @@ const Set<ScreenId> PENDING = {
   ScreenId.bookmarks,
   ScreenId.featureByFollow,
   ScreenId.feature,
-  ScreenId.circle,
-  ScreenId.circleMember,
   ScreenId.reader,
   ScreenId.readAll,
   ScreenId.novel,
@@ -339,7 +339,7 @@ GoRouter buildGlassRouter(Ref ref) {
             _screen(ScreenId.indexHub, (s) => const YouScreen()),
             _screen(ScreenId.settings, (s) => GlassSettingsScreen(row: s.uri.queryParameters['row'])),
             _screen(ScreenId.settings, (s) => GlassSettingsScreen(section: s.pathParameters['section'], row: s.uri.queryParameters['row']), path: Routes.settingsAliases.first),
-            _route(ScreenId.circle),
+            _screen(ScreenId.circle, (s) => CircleScreen(tab: s.uri.queryParameters['tab'])),
             _screen(ScreenId.numbers, (s) => GlassStatisticsScreen(range: s.uri.queryParameters['range'], year: s.uri.queryParameters['year'])),
             _screen(ScreenId.status, (s) => const StatusScreen()),
             _screen(ScreenId.profilesManage, (s) => const GlassProfilesManageScreen()),
@@ -380,7 +380,17 @@ GoRouter buildGlassRouter(Ref ref) {
           title: 'Recap',
         ),
       ),
-      _sheetRoute(ScreenId.circleMember, rootKey, title: 'Circle', detents: const [GlassDetent.large]),
+      // A friend (mobile/43, glass 9.3.5): a `large` sheet, the 560 px window on wide frames, a full page on a cold deep link.
+      GoRoute(
+        path: ScreenId.circleMember.path,
+        name: _nameOf(ScreenId.circleMember),
+        parentNavigatorKey: rootKey,
+        pageBuilder: (context, state) {
+          final id = int.tryParse(state.pathParameters['profileId'] ?? '');
+          if (id == null) return glassPage(state, GlassNotFound(location: state.uri.toString()));
+          return glassSheetOrPage(context, state, FriendSheet(profileId: id), title: 'Circle', detents: const [GlassDetent.large], screen: FriendScreen(profileId: id));
+        },
+      ),
       _formSheetRoute(ScreenId.profileNew, rootKey, title: 'Add profile'),
       _formSheetRoute(ScreenId.profileEdit, rootKey, title: 'Edit profile', edit: true),
       // `/library/:followedId` after every static /library path (the shell's branches are matched first).
