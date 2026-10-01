@@ -1,3 +1,4 @@
+// ignore_for_file: require_trailing_commas
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
