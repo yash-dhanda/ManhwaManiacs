@@ -14,6 +14,7 @@ import 'package:manhwamaniacs/features/onboarding/models/onboarding_catalog.dart
 import 'package:manhwamaniacs/features/onboarding/models/taste.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
+import 'package:manhwamaniacs/features/profiles/providers/skin_outbox.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/dev/auth_fixtures.dart';
@@ -22,6 +23,7 @@ import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/poster.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/genre_field_view.dart';
+import 'package:manhwamaniacs/skins/glass/screens/onboarding/skin_preview_loop.dart';
 import 'package:manhwamaniacs/skins/glass/screens/profiles/restart_into.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -176,25 +178,48 @@ void main() {
     expect(find.text('Your home has 1 title to start with'), findsOneWidget);
   });
 
-  testWidgets('Finish with the Cinematic choice melts and restarts', (t) async {
-    final asked = <SkinId>[];
-    restartIntoSkinTestHook = (skin, route) async => asked.add(skin);
+  testWidgets('Look shows both looks as live previews in one radio group', (t) async {
+    final h = t.ensureSemantics();
+    await pumpAuth(t, '/welcome?step=2', _fx(step: '2'));
+    await settleFor(t, 2500);
+    expect(find.byType(GlassSkinPreviewLoop), findsNWidgets(2));
+    expect(t.getSemantics(find.bySemanticsLabel(RegExp(r'^Glass\. '))), isSemantics(isChecked: true, hasCheckedState: true, isInMutuallyExclusiveGroup: true, isButton: true, hasTapAction: true));
+    expect(t.getSemantics(find.bySemanticsLabel(RegExp(r'^Cinematic\. '))), isSemantics(isChecked: false, hasCheckedState: true, isInMutuallyExclusiveGroup: true, isButton: true, hasTapAction: true));
+    h.dispose();
+  });
+
+  testWidgets('Look: picking Glass carries on to Formats without a restart', (t) async {
+    final asked = <String>[];
+    restartIntoSkinTestHook = (skin, route) async => asked.add(route);
     addTearDown(() => restartIntoSkinTestHook = null);
     await pumpAuth(t, '/welcome?step=2', _fx(step: '2'));
     await settleFor(t, 2500);
+    await t.tap(find.text('Glass'));
+    await settleFor(t, 2000);
+    expect(find.text('What do you read?'), findsWidgets);
+    expect(asked, isEmpty);
+  });
+
+  testWidgets("Look: picking Cinematic queues the skin, saves Cinematic's Formats step and restarts there", (t) async {
+    final asked = <(SkinId, String)>[];
+    restartIntoSkinTestHook = (skin, route) async => asked.add((skin, route));
+    addTearDown(() => restartIntoSkinTestHook = null);
+    final repo = FakeOnboardingRepo(Ok(OnboardingCatalog(seeds: fixtureSeeds())));
+    final rig = await pumpAuth(t, '/welcome?step=2', _fx(step: '2'), onboardingRepo: repo);
+    await settleFor(t, 2500);
     await t.tap(find.text('Cinematic'));
-    await settleFor(t, 400);
-    expect(find.text('The app will restart in Cinematic after the last step.'), findsOneWidget);
-    for (final label in ['Continue', 'Continue', 'Continue', 'Continue']) {
-      await _cont(t, label);
-    }
-    await t.tap(find.byType(GlassPoster).first);
-    await t.pump();
-    await settleFor(t, 500);
-    await t.tap(find.widgetWithText(GlassButton, 'Finish'));
-    await t.pump();
     await settleFor(t, 3000);
-    expect(asked, [SkinId.cinematic]);
+    expect(asked, [(SkinId.cinematic, '/welcome?step=2')]);
+    expect(repo.saved.last.step, OnboardingStep.at(2));
+    final outbox = rig.container.read(sharedPrefsProvider).getString(kSkinOutboxKey);
+    expect(outbox == null || outbox.contains('cinematic'), isTrue, reason: 'queued, or already flushed to the profile');
+  });
+
+  testWidgets('after the restart from Cinematic the run resumes at Formats, not the Look pick', (t) async {
+    await pumpAuth(t, '/welcome?step=3', _fx(step: '3'));
+    await settleFor(t, 2500);
+    expect(find.text('What do you read?'), findsWidgets);
+    expect(find.text('Pick a look'), findsNothing);
   });
 
   testWidgets('reduced motion: the genre field is a grid and the tilt subscription is never opened', (t) async {
