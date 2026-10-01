@@ -174,6 +174,14 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
 
   @override
   Widget build(BuildContext context) {
+    // The scope getters `ref.read`; watching here keeps them live and holds the autoDispose availability probe open (a bare read
+    // disposes it straight away, so `aiAvailable` never saw its value and every build refetched).
+    ref
+      ..watch(suggestAvailabilityProvider)
+      ..watch(ocrFeatureVisibleProvider)
+      ..watch(serverOcrCapabilityProvider)
+      ..watch(contentModeControllerProvider)
+      ..watch(novelsEnabledProvider);
     final scope = _scope();
     final scopes = _scopes();
     final phone = GlassFrame.of(context) == GlassFrameKind.phone;
