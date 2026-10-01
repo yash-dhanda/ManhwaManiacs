@@ -77,6 +77,13 @@ Annual _annual() => Annual.fromJson({
       },
     });
 
+bool _only(WrappedCard c) {
+  final keys = [
+    for (final e in find.byWidgetPredicate((w) => w.key is ValueKey<String> && (w.key! as ValueKey<String>).value.startsWith('wrapped-card-')).evaluate()) (e.widget.key! as ValueKey<String>).value,
+  ];
+  return keys.length == 1 && keys.single == 'wrapped-card-${c.name}';
+}
+
 void main() {
   setUpAll(loadAppFonts);
   setUpAll(setUpShotCoverCache);
@@ -123,9 +130,17 @@ void main() {
       await s.snap('wrapped-01-cover', size);
       if (size != _phone) continue;
       for (var i = 1; i < cards.length; i++) {
-        await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-        await s.settle();
-        await s.settle(2600);
+        // Step until this card is the only one up (the file name always matches what is shown).
+        for (var k = 0; k < 3 && !_only(cards[i]); k++) {
+          await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+          await s.settle();
+          await s.settle(1200);
+        }
+        if (!_only(cards[i])) continue;
+        for (var f = 0; f < 30; f++) {
+          await t.pump(const Duration(milliseconds: 100));
+        }
+        await pumpUntilCoversLoad(t, rounds: 6);
         await s.snap('wrapped-${cards[i].number.toString().padLeft(2, '0')}-${cards[i].name}', size);
       }
     }
