@@ -123,6 +123,8 @@ class ReaderEngineOptions {
     this.pinchMax,
     this.rubberBandMax,
     this.legacyWakeAndLock = true,
+    this.chromeHeld,
+    this.chromeIdleOff,
   });
 
   /// The colour behind and between pages; null follows the legacy backdrop setting.
@@ -202,6 +204,13 @@ class ReaderEngineOptions {
   /// The engine keeps the screen awake from the device value K05 and seeds the lock from K07. A skin that owns both (Glass
   /// reads its per-profile `glass.keepAwake` and `glass.lockControls`) passes false; refresh rate and volume keys stay.
   final bool legacyWakeAndLock;
+
+  /// True while something the skin opened from the menu in its own tree (a popover, a scrub) is up: the menu's idle
+  /// countdown (`ReaderChromeIdle`) waits for it. Routes over the reader (sheets, dialogs) are seen without it.
+  final bool Function()? chromeHeld;
+
+  /// True when the menu should never hide by itself beyond what the engine sees (the skin's own reduce motion).
+  final bool Function()? chromeIdleOff;
 }
 
 /// See [ReaderEngineOptions.pageOverlayBuilder].

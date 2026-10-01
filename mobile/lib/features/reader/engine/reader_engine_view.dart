@@ -22,6 +22,7 @@ import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/panel_boxes.dart';
 import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_provider.dart';
@@ -263,7 +264,14 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   Timer? _scrollSaveTimer;
   Timer? _progressSaveTimer;
   Timer? _autoNextTimer;
-  Timer? _hideControlsTimer;
+  late final ReaderChromeIdle _idle = ReaderChromeIdle(
+    this,
+    visible: () => ref.read(readerUiProvider).controlsVisible,
+    hide: () => ref.read(readerUiProvider.notifier).setControlsVisible(false),
+    after: () => widget.autoHideAfter,
+    held: () => widget.options.chromeHeld?.call() ?? false,
+    off: () => widget.options.chromeIdleOff?.call() ?? false,
+  );
 
   // Scroll-driven state — published through the controller, never setState,
   // so a scroll rebuilds only the chrome and only when the state changed.
@@ -629,7 +637,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _progressSaveTimer?.cancel();
     _autoNextTimer?.cancel();
     _autoNextTimer = null;
-    _hideControlsTimer?.cancel();
+    _idle.dispose();
     unawaited(_releaseWakelock());
     unawaited(_displayMode?.reset());
     unawaited(_syncVolumeKeyNav(false));
@@ -1806,23 +1814,11 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   void _hideControls() {
     ref.read(readerUiProvider.notifier).setControlsVisible(false);
-    _hideControlsTimer?.cancel();
+    _idle.hold();
   }
 
-  void _scheduleHideControls() {
-    _hideControlsTimer?.cancel();
-    // How long the bars stay up is the design preset's call: Cinema retires
-    // them in 1.2s so the page owns the screen, everything else keeps the 3s
-    // the reader has always used.
-    _hideControlsTimer = Timer(
-      widget.autoHideAfter,
-      () {
-        if (mounted) {
-          ref.read(readerUiProvider.notifier).setControlsVisible(false);
-        }
-      },
-    );
-  }
+  /// [widget.autoHideAfter] untouched, then the menu hides (see [ReaderChromeIdle]).
+  void _scheduleHideControls() => _idle.arm();
 
   // ── Tap handling ──────────────────────────────────────────────────────────
 
@@ -2566,7 +2562,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   void hideChrome() => _hideControls();
 
   @override
-  void holdChrome() => _hideControlsTimer?.cancel();
+  void holdChrome() => _idle.hold();
 
   @override
   void scheduleHideChrome() {
@@ -3014,7 +3010,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       overrides: [readerEngineProvider.overrideWithValue(widget.controller)],
       child: NotificationListener<ScrollNotification>(
         onNotification: _onScrollNotification,
-        child: Listener(
+        child: _idle.wrap(Listener(
           // An ancestor of the strip, so the strip's own pointer-down (which catches a fling and
           // ends the scroll) has run by the time this one asks whether it was moving.
           behavior: HitTestBehavior.translucent,
@@ -3051,7 +3047,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
             ],
           ),),
         ),
-        ),
+        ),),
       ),
     );
   }
