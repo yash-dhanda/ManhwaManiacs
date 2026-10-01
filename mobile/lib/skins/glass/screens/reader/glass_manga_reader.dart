@@ -407,8 +407,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     return 'Ch ${n == n.roundToDouble() ? n.round() : n}';
   }
 
-  String? get _nextId => _body.feed.chapters.lastOrNull?.nextChapterId ?? _neighbourInList(_body.feed.chapters.lastOrNull?.id, 1);
-  String? get _previousId => _body.feed.chapters.firstOrNull?.previousChapterId ?? _neighbourInList(_body.feed.chapters.firstOrNull?.id, -1);
+  String? get _currentId => engine.value.chapterId.isEmpty ? _id.chapterKey : engine.value.chapterId;
+  String? get _nextId => feedNeighbour(_body.feed.chapters, _currentId, 1) ?? _neighbourInList(_currentId, 1);
+  String? get _previousId => feedNeighbour(_body.feed.chapters, _currentId, -1) ?? _neighbourInList(_currentId, -1);
 
   /// The series list's neighbour of [id] (oldest first) when the manifest did not name one.
   String? _neighbourInList(String? id, int by) {
@@ -836,12 +837,15 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   /// page key so the `State` and the engine survive (the pages cross-fade, no route animation).
   void _switchTo(String? chapterKey) {
     if (chapterKey == null) return;
+    final i = _body.feed.chapters.indexWhere((c) => c.id == chapterKey);
+    if (i >= 0) {
+      engine.seekToChapter(i);
+      return;
+    }
     if (widget.readAll) {
-      final i = _body.feed.chapters.indexWhere((c) => c.id == chapterKey);
-      if (i >= 0) {
-        engine.seekToChapter(i);
-        return;
-      }
+      // Outside the loaded window: restart Read-all there rather than dropping into the plain reader.
+      _router?.replace<void>(Routes.readAll(sourceId, seriesKey, {'from': chapterKey}));
+      return;
     }
     _keepResolved(chapterKey);
     _replace(chapterKey);
@@ -2045,4 +2049,16 @@ Future<void> _sharePage(String path, Rect anchor, {required void Function(bool s
     if (r.status != ShareResultStatus.success) return;
     onResult(r.raw == 'com.apple.UIKit.activity.SaveToCameraRoll');
   } catch (_) {}
+}
+
+/// The chapter [by] steps from [currentId] in the feed, or the manifest's neighbour of [currentId]
+/// when the feed has not loaded it. Measured from the chapter being read, never from the feed's
+/// edges: a continuous feed prepends and appends neighbours as soon as you near a seam.
+@visibleForTesting
+String? feedNeighbour(List<ReaderChapter> chapters, String? currentId, int by) {
+  final i = chapters.indexWhere((c) => c.id == currentId);
+  if (i < 0) return null;
+  final j = i + by;
+  if (j >= 0 && j < chapters.length) return chapters[j].id;
+  return by > 0 ? chapters[i].nextChapterId : chapters[i].previousChapterId;
 }

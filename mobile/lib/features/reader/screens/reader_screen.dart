@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/router/routes.dart';
+import 'package:manhwamaniacs/skins/contract.g.dart' as contract show Routes;
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
@@ -324,6 +325,11 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
     if (mounted) setState(() {});
   }
 
+  /// An edge prompt stays in Read-all when the reader is in Read-all.
+  String _edgeLocation(String chapterKey) => widget.readAllOrder != null
+      ? contract.Routes.readAll(widget.sourceId, widget.seriesKey, {'from': chapterKey})
+      : RoutePaths.reader(widget.sourceId, widget.seriesKey, chapterKey);
+
   String? get _prev => widget.resolved.prev ?? widget.neighbours?.prev;
   String? get _next => widget.resolved.next ?? widget.neighbours?.next;
 
@@ -449,10 +455,10 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
         // ends of the series, or a chapter that would not load. Crossing a
         // loaded boundary is scrolling, and never navigation.
         onPreviousChapter: beforeFeed != null
-            ? () => context.go(RoutePaths.reader(sourceId, seriesKey, beforeFeed))
+            ? () => context.go(_edgeLocation(beforeFeed))
             : null,
         onNextChapter: beyondFeed != null
-            ? () => context.go(RoutePaths.reader(sourceId, seriesKey, beyondFeed))
+            ? () => context.go(_edgeLocation(beyondFeed))
             : null,
         onReachedFeedEnd: _controller.extendForward,
         onReachedFeedStart: _controller.extendBackward,
