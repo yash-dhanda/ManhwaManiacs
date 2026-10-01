@@ -13,10 +13,10 @@ import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show singleK
 import 'package:manhwamaniacs/core/platform/mm_platform.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
-import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/store/bookmarks_dao.dart';
+import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
@@ -200,7 +200,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
   /// `?sheet=settings|chapters|note` is this reader's own: the global sheet host steps aside.
   VoidCallback _claimSheets() {
-    final r = [for (final id in const ['settings', 'chapters', 'note']) glassClaimSheet(id)];
+    final r = [
+      for (final id in const ['settings', 'chapters', 'note']) glassClaimSheet(id),
+    ];
     return () {
       for (final f in r) {
         f();
@@ -219,9 +221,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   }
 
   @override
-  void didUpdateWidget(GlassMangaReader old) {
-    super.didUpdateWidget(old);
-    if (old.body.identity?.chapterKey != widget.body.identity?.chapterKey) {
+  void didUpdateWidget(GlassMangaReader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.body.identity?.chapterKey != widget.body.identity?.chapterKey) {
       _card = null;
       _phase = NeighbourPhase.idle;
       _zoom.value = 0;
@@ -399,7 +401,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       final ch = n == null ? chapterShort(f.chapterKey) : 'Ch ${n == n.roundToDouble() ? n.round() : n}';
       showGlassToast(
         ref,
-        GlassToastSpec("You're further ahead on another device: $ch, p. ${f.lastPage}", actionLabel: 'Jump there', onAction: () => _switchTo(f.chapterKey)),
+        GlassToastSpec("You're further ahead on another device: $ch, p. ${f.lastPage}",
+            actionLabel: 'Jump there', onAction: () => _switchTo(f.chapterKey),),
       );
     }
   }
@@ -441,9 +444,14 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         // A fast pull can reach the lock without an armed event in between.
         if (_card == null) {
           setState(() => _card = (direction: e.direction, info: null));
-          unawaited(engine.armNeighbour(e.direction).then((info) {
-            if (mounted && _card?.direction == e.direction) setState(() => _card = (direction: e.direction, info: info));
-          }, onError: (_) {}),);
+          unawaited(
+            engine.armNeighbour(e.direction).then(
+              (info) {
+                if (mounted && _card?.direction == e.direction) setState(() => _card = (direction: e.direction, info: info));
+              },
+              onError: (_) {},
+            ),
+          );
         }
         glassFire(ref, HapticEvent.chapterNext);
         if (e.via == NeighbourVia.wheel) unawaited(_commit(e.direction, 0));
@@ -561,9 +569,13 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
 
   @override
   void toggleBookmark() {
-    unawaited(engine.bookmark().then((ok) {
-      if (!ok && mounted && _body.onAddBookmark != null) showGlassToast(ref, const GlassToastSpec("Couldn't save that spot", kind: GlassToastKind.error));
-    }),);
+    unawaited(
+      engine.bookmark().then((ok) {
+        if (!ok && mounted && _body.onAddBookmark != null) {
+          showGlassToast(ref, const GlassToastSpec("Couldn't save that spot", kind: GlassToastKind.error));
+        }
+      }),
+    );
   }
 
   @override
@@ -579,7 +591,11 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     final s = engine.value;
     final glide = (page - s.page).abs() <= 5;
     if (paged) {
-      engine.turnTo(page, kind: glide ? PageTurn.slide : PageTurn.fade, slideDuration: _pageSettle, slideCurve: const Cubic(0.2, 0.9, 0.3, 1), fadeDuration: const Duration(milliseconds: 120));
+      engine.turnTo(page,
+          kind: glide ? PageTurn.slide : PageTurn.fade,
+          slideDuration: _pageSettle,
+          slideCurve: const Cubic(0.2, 0.9, 0.3, 1),
+          fadeDuration: const Duration(milliseconds: 120),);
     } else {
       engine.jumpToPage(page, glide: glide);
     }
@@ -667,7 +683,10 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     final router = _router;
     if (router == null) return;
     final path = _id.origin == ReaderOrigin.source
-        ? Routes.readerAliases[1].replaceFirst(':sourceId', Uri.encodeComponent(sourceId)).replaceFirst(':seriesKey', Uri.encodeComponent(seriesKey)).replaceFirst(':chapterKey', Uri.encodeComponent(chapterKey))
+        ? Routes.readerAliases[1]
+            .replaceFirst(':sourceId', Uri.encodeComponent(sourceId))
+            .replaceFirst(':seriesKey', Uri.encodeComponent(seriesKey))
+            .replaceFirst(':chapterKey', Uri.encodeComponent(chapterKey))
         : Routes.reader(sourceId, seriesKey, chapterKey);
     router.replace<void>(path);
   }
@@ -807,10 +826,12 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
           key: const ValueKey('reader-sheet-note'),
           title: 'Add note',
           detents: const [GlassDetent.medium],
-          builder: (c) => _NoteSheet(onSave: (text) async {
-            Navigator.of(c).maybePop();
-            await _saveNote(text);
-          },),
+          builder: (c) => _NoteSheet(
+            onSave: (text) async {
+              unawaited(Navigator.of(c).maybePop());
+              await _saveNote(text);
+            },
+          ),
         ),
       _ => GlassSheetPage<void>(
           key: const ValueKey('reader-sheet-settings'),
@@ -822,12 +843,14 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     };
     _openSheet = id;
     engine.holdChrome();
-    unawaited(Navigator.of(context, rootNavigator: true).push<void>(page.createRoute(context)).whenComplete(() {
-      _openSheet = null;
-      if (!mounted) return;
-      engine.scheduleHideChrome();
-      _setSheetParam(null);
-    }),);
+    unawaited(
+      Navigator.of(context, rootNavigator: true).push<void>(page.createRoute(context)).whenComplete(() {
+        _openSheet = null;
+        if (!mounted) return;
+        engine.scheduleHideChrome();
+        _setSheetParam(null);
+      }),
+    );
   }
 
   Future<void> _saveNote(String text) async {
@@ -989,7 +1012,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       // A double tap never changes chrome visibility: the first tap's toggle is reverted at once.
       s.chromeVisible ? engine.hideChrome() : engine.showChrome();
       final target = s.zoom > 1.05 ? 1.0 : 2.0;
-      engine.zoomAt(info.position, target, duration: const Duration(milliseconds: 380), curve: const Cubic(0.2, 0.9, 0.3, 1), spring: springOf(gt.springCamera));
+      engine.zoomAt(info.position, target,
+          duration: const Duration(milliseconds: 380), curve: const Cubic(0.2, 0.9, 0.3, 1), spring: springOf(gt.springCamera),);
       glassFire(ref, HapticEvent.zoomSnap);
       _showZoomChip((target * 100).round());
       return;
@@ -1043,7 +1067,11 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     final to = (s.page + by).clamp(1, s.pageCount);
     if (to == s.page) return;
     final kind = switch (_settings.values.pageTransition) { 'slide' => PageTurn.slide, 'fade' => PageTurn.fade, _ => PageTurn.cut };
-    engine.turnTo(to, kind: reducedMotion && kind == PageTurn.slide ? PageTurn.fade : kind, slideDuration: _pageSettle, slideCurve: const Cubic(0.2, 0.9, 0.3, 1), fadeDuration: const Duration(milliseconds: 160));
+    engine.turnTo(to,
+        kind: reducedMotion && kind == PageTurn.slide ? PageTurn.fade : kind,
+        slideDuration: _pageSettle,
+        slideCurve: const Cubic(0.2, 0.9, 0.3, 1),
+        fadeDuration: const Duration(milliseconds: 160),);
     glassFire(ref, HapticEvent.pageTurn);
   }
 
@@ -1075,7 +1103,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     final typing = FocusManager.instance.primaryFocus?.context?.findAncestorWidgetOfExactType<EditableText>() != null;
     if (typing && e.logicalKey != LogicalKeyboardKey.escape) return KeyEventResult.ignored;
     final hw = HardwareKeyboard.instance;
-    final action = readerKeyAction(e.logicalKey, e.character, shift: hw.isShiftPressed, ctrl: hw.isControlPressed || hw.isMetaPressed, singleKeys: ref.read(singleKeyShortcutsProvider));
+    final action = readerKeyAction(e.logicalKey, e.character,
+        shift: hw.isShiftPressed, ctrl: hw.isControlPressed || hw.isMetaPressed, singleKeys: ref.read(singleKeyShortcutsProvider),);
     final s = engine.value;
     if (action == null) {
       // A key that is not a reader binding, or Tab, restores hidden chrome first.
@@ -1193,13 +1222,15 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     }
     final phonePortrait = size.shortestSide < 600 && size.height >= size.width;
     final landscapePhone = size.shortestSide < 600 && size.width > size.height;
-    _exclusion.apply(readerExclusionRects(
-      size: size,
-      thumbY: _thumbY == 0 ? size.height / 2 : _thumbY,
-      railWidth: GlassFrame.hitMin(context),
-      portraitPhone: phonePortrait,
-      railShown: engine.value.pageCount > 1 && !landscapePhone,
-    ),);
+    _exclusion.apply(
+      readerExclusionRects(
+        size: size,
+        thumbY: _thumbY == 0 ? size.height / 2 : _thumbY,
+        railWidth: GlassFrame.hitMin(context),
+        portraitPhone: phonePortrait,
+        railShown: engine.value.pageCount > 1 && !landscapePhone,
+      ),
+    );
   }
 
   // ── Build ──────────────────────────────────────────────────────────────
@@ -1210,7 +1241,11 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         ground: _ground,
         gapPx: v.prefs.gap ? 8 : 0,
         columnWidth: column,
-        colourFilter: switch (v.prefs.colour) { 'sepia' => ReaderColourFilter.sepia, 'grey' => ReaderColourFilter.grey, _ => ReaderColourFilter.none },
+        colourFilter: switch (v.prefs.colour) {
+          'sepia' => ReaderColourFilter.sepia,
+          'grey' => ReaderColourFilter.grey,
+          _ => ReaderColourFilter.none
+        },
         doubleTapSlop: kGlassDoubleTapSlop,
         tapSlop: 8,
         tapHandler: _onTap,
@@ -1235,7 +1270,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         footerExtent: 220,
         seamExtent: widget.readAll ? 48 : kChapterSeamExtent,
         offline: offline,
-        pageLayerBuilder: (context, pages) => ReaderLightLayers(brightness: _liveBrightness ?? v.values.brightness, warmth: v.values.warmth, child: pages),
+        pageLayerBuilder: (context, pages) =>
+            ReaderLightLayers(brightness: _liveBrightness ?? v.values.brightness, warmth: v.values.warmth, child: pages),
         pageSemantics: (context, chapter, n, page) => Semantics(label: _pageLabel(chapter, n), image: true, child: page),
         slotSignature: (_nextId, _previousId, v.values.brightness, v.values.warmth, _liveBrightness, Object.hashAll(_epochs.values)),
         onPageLongPress: (chapterId, page) {
@@ -1313,7 +1349,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         key: const ValueKey('glass-paged'),
         controller: engine,
         chapter: chapter,
-        spec: ReaderLayoutSpec(layout: layout == 'double' ? ReaderLayout.double : ReaderLayout.single, rtl: v.prefs.rtl, pagePhysics: const GlassPagePhysics()),
+        spec: ReaderLayoutSpec(
+            layout: layout == 'double' ? ReaderLayout.double : ReaderLayout.single, rtl: v.prefs.rtl, pagePhysics: const GlassPagePhysics(),),
         chromeBuilder: chrome,
         autoHideAfter: autoHideAfter,
         fit: switch (v.prefs.fit) { 'height' => ReaderPageFit.height, 'original' => ReaderPageFit.original, _ => ReaderPageFit.width },
@@ -1399,14 +1436,16 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       },
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onHorizontalDragUpdate: v.values.swipeChapter && !isPaged && engine.value.zoom <= 1 ? (d) => setState(() => _swipeDx = (_swipeDx ?? 0) + d.delta.dx) : null,
+        onHorizontalDragUpdate:
+            v.values.swipeChapter && !isPaged && engine.value.zoom <= 1 ? (d) => setState(() => _swipeDx = (_swipeDx ?? 0) + d.delta.dx) : null,
         onHorizontalDragEnd: v.values.swipeChapter && !isPaged
             ? (d) {
                 final dx = _swipeDx ?? 0;
                 setState(() => _swipeDx = null);
                 final dir = v.prefs.rtl ? ReadingDirection.rtl : ReadingDirection.ltr;
                 final toNext = engine.swipeNeighbour(dx, viewportWidth: size.width, direction: dir).direction == NeighbourDirection.next;
-                final r = engine.releaseSwipeNeighbour(dx, d.velocity.pixelsPerSecond.dx, viewportWidth: size.width, direction: dir, hasNeighbour: toNext ? _nextId != null : _previousId != null);
+                final r = engine.releaseSwipeNeighbour(dx, d.velocity.pixelsPerSecond.dx,
+                    viewportWidth: size.width, direction: dir, hasNeighbour: toNext ? _nextId != null : _previousId != null,);
                 if (r == SwipeRelease.committed) glassFire(ref, HapticEvent.chapterNext);
               }
             : null,
@@ -1463,7 +1502,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         for (final p in _lights) Positioned(left: p.dx - 60, top: p.dy - 60, child: const _TapLight()),
         if (_swipeDx != null && _swipeDx!.abs() > 4)
           SwipeNeighbourCard(
-            displayed: engine.swipeNeighbour(_swipeDx!, viewportWidth: size.width, direction: v.prefs.rtl ? ReadingDirection.rtl : ReadingDirection.ltr).displayed,
+            displayed: engine
+                .swipeNeighbour(_swipeDx!, viewportWidth: size.width, direction: v.prefs.rtl ? ReadingDirection.rtl : ReadingDirection.ltr)
+                .displayed,
             label: _swipeDx! < 0 ? (nextChapterLabel ?? '') : (_previousId == null ? '' : chapterLabel(_previousId!)),
             fromRight: _swipeDx! < 0,
           ),
@@ -1498,14 +1539,14 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         if (_hitShown && _matches.isNotEmpty) ..._hitLayer(size),
         if (_tapsMounted)
           Positioned.fill(
-          child: IgnorePointer(
-            child: AnimatedOpacity(
-              opacity: _taps ? 1 : 0,
-              duration: Duration(milliseconds: _taps ? 150 : 1000),
-              child: _TapPanes(rtl: v.prefs.rtl, zones: v.prefs.tapZones),
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _taps ? 1 : 0,
+                duration: Duration(milliseconds: _taps ? 150 : 1000),
+                child: _TapPanes(rtl: v.prefs.rtl, zones: v.prefs.tapZones),
+              ),
             ),
           ),
-        ),
       ],
     );
 
@@ -1534,7 +1575,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
                       top: 0,
                       width: 1,
                       height: 1,
-                      child: Semantics(header: true, label: '$seriesTitle, ${chapterLabel(engine.value.chapterId).toLowerCase()}', child: const SizedBox.shrink()),
+                      child: Semantics(
+                          header: true, label: '$seriesTitle, ${chapterLabel(engine.value.chapterId).toLowerCase()}', child: const SizedBox.shrink(),),
                     ),
                   ],
                 ),
@@ -1700,7 +1742,11 @@ class _NoteSheetState extends State<_NoteSheet> {
                   autofocus: true,
                   textInputAction: TextInputAction.done,
                   style: roleStyle(context, gt.typeBody, onGlass: true),
-                  decoration: InputDecoration(isCollapsed: true, border: InputBorder.none, hintText: 'A note for this spot', hintStyle: roleStyle(context, gt.typeBody, onGlass: true).copyWith(color: gt.colorLabel3)),
+                  decoration: InputDecoration(
+                      isCollapsed: true,
+                      border: InputBorder.none,
+                      hintText: 'A note for this spot',
+                      hintStyle: roleStyle(context, gt.typeBody, onGlass: true).copyWith(color: gt.colorLabel3),),
                   onSubmitted: (t) => unawaited(widget.onSave(t)),
                 ),
               ),

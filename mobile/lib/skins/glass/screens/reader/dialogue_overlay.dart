@@ -111,7 +111,7 @@ class DialoguePainter extends CustomPainter {
   bool shouldRepaint(DialoguePainter old) => old.boxes != boxes || old.matches != matches || old.dim != dim;
 
   @override
-  bool shouldRebuildSemantics(DialoguePainter old) => true;
+  bool shouldRebuildSemantics(DialoguePainter oldDelegate) => true;
 }
 
 /// The overlay's layer: the painter and the tap that copies a box; when the chapter has no text, the notice and Extract text.

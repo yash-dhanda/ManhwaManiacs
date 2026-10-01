@@ -137,7 +137,10 @@ void main() {
     final pos = t.state<ScrollableState>(find.byType(Scrollable).first).position;
     pos.jumpTo(pos.maxScrollExtent);
     await art(t);
-    await scrollBy(t, -400, chrome: false);
+    // The seam between chapter 143 and 144 a little above the middle of the screen.
+    st(t).engine.seekToChapter(1);
+    await art(t);
+    await scrollBy(t, -300, chrome: false);
     await shot(t, 'seam');
     st(t).engine.emitSeam(const SeamEvent.top('c3'));
     await settleReader(t, ms: 300);
@@ -153,11 +156,11 @@ void main() {
   });
 
   testWidgets('one at a time: the next-chapter card armed and locked', (t) async {
-    await open(t, pages: 4, prefs: {'mm.reader-settings.device': '{"glass":{"chapters":"single"}}'});
+    await open(t, pages: 4, prefs: {'mm.reader-settings.device': '{"autoNextChapter":false,"glass":{"chapters":"single"}}'});
     final pos = t.state<ScrollableState>(find.byType(Scrollable).first).position;
     pos.jumpTo(pos.maxScrollExtent);
     st(t).engine.showChrome();
-    await art(t);
+    await settleReader(t, ms: 300);
     final g = await t.startGesture(const Offset(200, 420));
     await g.moveBy(const Offset(0, -20));
     await t.pump();

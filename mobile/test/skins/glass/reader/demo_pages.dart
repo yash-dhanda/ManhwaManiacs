@@ -21,7 +21,8 @@ class DemoPages {
   List<Map<String, dynamic>> _of(int chapter) => _pages.where((p) => p['chapter'] == chapter).toList();
 
   /// Chapter [id] drawn from demo chapter [demo] (1 or 2), titled [title].
-  ReaderChapter chapter(String id, {int demo = 1, String? title, String? prev, String? next, int? pages}) {
+  /// [onDisk] serves the pages from `brand/demo` files (the saved-chapter path), so no network cache is involved.
+  ReaderChapter chapter(String id, {int demo = 1, String? title, String? prev, String? next, int? pages, bool onDisk = true}) {
     final ps = _of(demo).take(pages ?? 20).toList();
     return ReaderChapter(
       id: id,
@@ -34,7 +35,14 @@ class DemoPages {
       nextChapterId: next,
       pages: [
         for (var i = 0; i < ps.length; i++)
-          ReaderPage(id: '$id-${i + 1}', number: i + 1, imageUrl: 'http://example.test/reader/page/$id-${i + 1}/image', width: ps[i]['width'] as int, height: ps[i]['height'] as int),
+          ReaderPage(
+            id: '$id-${i + 1}',
+            number: i + 1,
+            imageUrl: 'http://example.test/reader/page/$id-${i + 1}/image',
+            width: ps[i]['width'] as int,
+            height: ps[i]['height'] as int,
+            localFile: onDisk ? File(File('../brand/demo/${ps[i]['file']}').absolute.path) : null,
+          ),
       ],
     );
   }

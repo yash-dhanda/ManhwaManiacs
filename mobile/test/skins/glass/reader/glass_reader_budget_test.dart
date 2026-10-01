@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/reader/engine/seam.dart';
-import 'package:manhwamaniacs/skins/glass/glass/registry.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/scrub_rail.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/glass_manga_reader.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
@@ -19,7 +18,7 @@ const _ocr = [
 void main() {
   testWidgets('15.7: the manga-reader case stays inside the budget and the frost-path BackdropGroup holds at most 8 members', (t) async {
     await pumpGlassReader(t, ocr: _ocr, query: '?q=gate', extra: [glassRendererOverrideProvider.overrideWith((ref) => GlassRenderer.frosted)]);
-    await settleReader(t, ms: 1500);
+    await settleReader(t);
     final s = t.state<GlassMangaReaderState>(find.byType(GlassMangaReader));
     // Chrome shown, the seam chip, the hit lens (from ?q=), the scrub lens held, the settings sheet at medium.
     s.engine.showChrome();
