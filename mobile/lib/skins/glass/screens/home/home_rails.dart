@@ -88,9 +88,9 @@ HomePoster _fromSeries(HomeSeriesItem i, {String? badge, String? caption}) => Ho
       caption: caption,
       hasProgress: i.series.readState?.started ?? false,
       readNumber: i.series.readState?.chapterNumber,
-      target: i.series.readState?.chapterKey == null || !(i.series.readState?.started ?? false)
+      target: i.series.readState?.resumeKey == null || !(i.series.readState?.started ?? false)
           ? null
-          : HomeContinueTarget(sourceId: i.series.sourceId, seriesKey: i.series.seriesKey, chapterKey: i.series.readState!.chapterKey!, chapterNumber: i.series.readState!.chapterNumber, recap: i.recap, lastReadAt: i.series.readState!.lastReadAt),
+          : HomeContinueTarget(sourceId: i.series.sourceId, seriesKey: i.series.seriesKey, chapterKey: i.series.readState!.resumeKey!, chapterNumber: i.series.readState!.resumeNumber, recap: i.recap, lastReadAt: i.series.readState!.lastReadAt),
     );
 
 String? _topGenre(HomeRailSpec r) {

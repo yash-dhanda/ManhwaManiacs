@@ -48,8 +48,8 @@ Widget _cover(WidgetRef ref, String? url, String title) => CineImage(url: _abs(r
 
 String _chapterLabel(double? n) => n == null ? '' : ' ${n % 1 == 0 ? n.toInt() : n}';
 
-/// The chapter `Continue` opens for a followed series: the furthest one opened, else the first.
-String? continueChapterKey(FollowedSeries s) => s.readState?.chapterKey ?? (s.knownChapters.isEmpty ? null : s.knownChapters.first.key);
+/// The chapter `Continue` opens for a followed series: the one after a finished furthest chapter, the furthest one opened, else the first.
+String? continueChapterKey(FollowedSeries s) => s.readState?.resumeKey ?? (s.knownChapters.isEmpty ? null : s.knownChapters.first.key);
 
 /// The reader target of [chapterKey] for a source of [kind] (manga reader or novel reader).
 ReaderTarget readerTargetFor(String sourceId, String seriesKey, String chapterKey, {required bool novel}) =>

@@ -245,3 +245,19 @@ def test_the_list_endpoint_carries_read_state(
     assert by_key["s1"]["position"] == 5
     assert by_key["s1"]["new_count"] == 0
     assert by_key["s2"]["started"] is False
+
+
+def test_continue_moves_past_a_finished_furthest_chapter(
+    db_session, owner, seed_follow, seed_progress
+):
+    user_id, profile_id = owner
+    seed_follow(user_id, profile_id, series_key="done", known_chapters=FIVE)
+    seed_follow(user_id, profile_id, series_key="mid", known_chapters=FIVE)
+    seed_progress(user_id, profile_id, series_key="done", chapter_key="ch-2.0", chapter_number=2.0, is_completed=True)
+    seed_progress(user_id, profile_id, series_key="mid", chapter_key="ch-2.0", chapter_number=2.0, is_completed=False)
+
+    states = _states(db_session, user_id, profile_id)
+
+    assert states["done"]["chapter_key"] == "ch-2.0"
+    assert (states["done"]["continue_key"], states["done"]["continue_number"]) == ("ch-3.0", 3.0)
+    assert "continue_key" not in states["mid"]
