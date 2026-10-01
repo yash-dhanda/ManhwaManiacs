@@ -119,10 +119,11 @@ final List<_State> _states = [
     _State('onboarding-$step', GlassQaScreen(ScreenId.onboarding, Routes.onboarding({'step': step}), more: () => qaProfileList(step: '7'))),
   _State('sources-error', GlassQaScreen(ScreenId.sources, Routes.sources(), extra: [sourcesListProvider.overrideWith((ref) async => throw StateError('offline'))])),
   _State('sources-loading', GlassQaScreen(ScreenId.sources, Routes.sources(), extra: [sourcesListProvider.overrideWith((ref) => Completer<List<SourceSummary>>().future)])),
+  // A sheet presents after the route's first frame and then materializes: give it time to settle.
   for (final sheet in ['filters', 'density', 'add-series', 'collection-new'])
-    _State('sheet-$sheet', GlassQaScreen(ScreenId.library, Routes.library({'sheet': sheet}))),
+    _State('sheet-$sheet', GlassQaScreen(ScreenId.library, Routes.library({'sheet': sheet})), act: (t, rig) => _settle(t, 3000)),
   for (final sheet in ['whats-new', 'shortcuts', 'app-update'])
-    _State('sheet-$sheet', GlassQaScreen(ScreenId.tonight, Routes.tonight({'sheet': sheet}))),
+    _State('sheet-$sheet', GlassQaScreen(ScreenId.tonight, Routes.tonight({'sheet': sheet})), act: (t, rig) => _settle(t, 3000)),
   _State('alert', GlassQaScreen(ScreenId.library, Routes.library()), act: (t, rig) async {
     unawaited(showGlassAlert<bool>(_nav(rig),
         title: 'Remove "Surviving as a Genius on Borrowed Time" from your library?',

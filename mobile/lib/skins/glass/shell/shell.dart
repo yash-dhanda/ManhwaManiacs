@@ -62,6 +62,23 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
   int _index = 0;
   VoidCallback? _homeHooks;
 
+  /// The sheet stack this shell sits under: the dock leaves while any sheet is up, so it never covers a sheet's controls.
+  GlassRecedeController? _recede;
+
+  void _onSheets() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final r = GlassRecedeScope.maybeOf(context);
+    if (r != _recede) {
+      _recede?.count.removeListener(_onSheets);
+      _recede = r?..count.addListener(_onSheets);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +108,7 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
 
   @override
   void dispose() {
+    _recede?.count.removeListener(_onSheets);
     _homeHooks?.call();
     _fade.dispose();
     _overlayFocus.dispose();
@@ -179,7 +197,8 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
     );
     content = GlassDownloadsFeed(child: GlassRecede(child: GlassDiveScope(child: Padding(padding: EdgeInsets.only(left: leftPad), child: content))));
 
-    final hidden = hidesDock(path) || sheetLarge || keyboard || ref.watch(recommendOrbsUpProvider);
+    final sheetUp = (_recede?.count.value ?? 0) > 0;
+    final hidden = hidesDock(path) || sheetLarge || sheetUp || keyboard || ref.watch(recommendOrbsUpProvider);
     final children = <Widget>[
       Positioned.fill(child: content),
       if (phone)
