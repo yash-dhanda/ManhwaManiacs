@@ -131,10 +131,12 @@ class AskFailureNote extends StatelessWidget {
                 liveRegion: true,
                 child: GlassText(text,
                     role: gt.typeCallout, color: gt.colorLabel2,),),
-            if (action != null)
+            if (action != null) ...[
+              const SizedBox(height: 12),
               GlassButton(
                   label: action!,
                   onPressed: onAction,),
+            ],
           ],
         ),
       );
