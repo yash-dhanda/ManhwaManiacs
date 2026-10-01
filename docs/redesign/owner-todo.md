@@ -170,3 +170,7 @@ Items only the owner can do, by step.
 ## mobile/40 (Glass You, About, admin settings, Server, Diagnostics, System status)
 
 - Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-40/device-check.md` (Orb lift at 120 Hz with 0 dropped frames, the 30 min slider magnet, the Sign out everywhere hold, a backup export to Files, Diagnostics while scrolling, the bead pulse, VoiceOver and TalkBack custom actions, Reduce Motion and Reduce Transparency).
+
+## mobile/43 (Glass Circle)
+
+- Device checks on the iPhone (SideStore) and the Android flagship: see `docs/redesign/proof/mobile-43/device-check.md` (presence drift with and without "Show me in presence", the reaction bloom haptics at 120 Hz, the lift-to-orb magnet and Undo, Orbs fly out, the friend orb flight, the letter dot, the gate-closed profile, VoiceOver and TalkBack, Reduce Motion).
