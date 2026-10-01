@@ -191,6 +191,8 @@ Future<GlassQaRig> pumpGlassQa(
     ...s.extra,
     ...(await s.more?.call() ?? const <Override>[]),
     ...extra,
+    // Last: the Cinematic fixtures' `featureOverrides` swap in an empty prefs instance, which would drop the caller's prefs.
+    sharedPrefsProvider.overrideWithValue(p),
   ];
   final c = ProviderContainer(overrides: overrides);
   addTearDown(c.dispose);
