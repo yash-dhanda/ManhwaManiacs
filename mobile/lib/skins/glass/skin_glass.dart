@@ -427,7 +427,9 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
     final wantsTwin = widget.twin != null || inHost || (widget.groupShapes?.every((s) => s.twin != null) ?? false);
     final solid = !wantsTwin && (a11y.solid || forcedSolid);
     final live = !wantsTwin && !solid;
-    _syncRegistration(live, budget?.exempt ?? false);
+    // A surface the registry forced solid stays registered: unregistering cleared its force, it went live, re-registered and was
+    // forced again, a three-frame rebuild loop of every stacked surface.
+    _syncRegistration(!wantsTwin && !a11y.solid, budget?.exempt ?? false);
 
     final env = _Env(
       live: live,
