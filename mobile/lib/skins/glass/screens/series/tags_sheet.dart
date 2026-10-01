@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +21,7 @@ import 'package:manhwamaniacs/skins/glass/screens/series/series_data.dart';
 
 /// Pushes an inner sheet over the series page (the two-sheet rule, glass 7.10 stacking).
 Future<void> pushSeriesSheet(BuildContext context, {required String title, required WidgetBuilder builder, List<GlassDetent> detents = const [GlassDetent.medium, GlassDetent.large], GlassDetent opening = GlassDetent.medium}) {
-  final page = GlassSheetPage<void>(key: ValueKey('series-sheet:$title'), title: title, builder: builder, detents: detents, opening: opening, wideForm: GlassWideForm.window);
+  final page = GlassSheetPage<void>(key: ValueKey('series-sheet:$title'), title: title, builder: (c) => Material(type: MaterialType.transparency, child: builder(c)), detents: detents, opening: opening, wideForm: GlassWideForm.window);
   return Navigator.of(context, rootNavigator: true).push<void>(page.createRoute(context));
 }
 

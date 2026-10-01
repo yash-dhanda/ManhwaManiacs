@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' as keys show ShortcutRegistry, shortcutRegistryProvider;
@@ -79,6 +80,7 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
   final Object _shortcutToken = Object();
   late final keys.ShortcutRegistry _shortcuts;
   GlassAmbientSpec? _prevAmbient;
+  StateController<GlassAmbientSpec?>? _amb;
   bool _warmed = false;
 
   GlassSeriesData get data => widget.data;
@@ -118,6 +120,7 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
   void _ambient() {
     final pal = paletteOf(null, data.series.ambient);
     final notifier = ref.read(glassAmbientProvider.notifier);
+    _amb = notifier;
     _prevAmbient = notifier.state;
     if (pal != null) notifier.state = GlassAmbientSpec.palette(pal, opacity: 0.28);
   }
@@ -125,11 +128,11 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
   @override
   void dispose() {
     final reg = _shortcuts, t = _shortcutToken, prev = _prevAmbient;
-    final amb = ref.read(glassAmbientProvider.notifier);
+    final amb = _amb;
     Future.microtask(() {
       reg.unregister(t);
       try {
-        amb.state = prev;
+        if (amb != null && prev != null) amb.state = prev;
       } catch (_) {}
     });
     chapters.dispose();
@@ -337,14 +340,17 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
     final page = SeriesKeys(
       commands: commands,
       onEscape: escape,
-      child: Stack(
-        children: [
-          Positioned.fill(child: scroll),
-          if (left != null) left,
-          if (inSheet) Positioned(top: 0, left: 0, right: 0, child: CollapseCapsule(data: data)),
-          if (offline) const Positioned(top: 12, left: 0, right: 0, child: Center(child: SeriesOfflineCapsule())),
-          ChapterSelectToolbar(data: data, chapters: chapters),
-        ],
+      child: Material(
+        type: MaterialType.transparency,
+        child: Stack(
+          children: [
+            Positioned.fill(child: scroll),
+            if (left != null) left,
+            if (inSheet) Positioned(top: 0, left: 0, right: 0, child: CollapseCapsule(data: data)),
+            if (offline) const Positioned(top: 12, left: 0, right: 0, child: Center(child: SeriesOfflineCapsule())),
+            ChapterSelectToolbar(data: data, chapters: chapters),
+          ],
+        ),
       ),
     );
     if (l != SeriesLayout.desktop || route is GlassFormRoute) return page;

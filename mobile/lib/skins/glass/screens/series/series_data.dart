@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart' show DownloadKind;
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
+import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
@@ -156,5 +159,8 @@ class SeriesMarks {
   }
 }
 
+/// Whether the device is online, read (not watched) for callbacks.
+bool onlineNow(WidgetRef ref) => ref.read(deviceOnlineProvider).valueOrNull ?? true;
+
 /// Fire-and-forget helper for callbacks.
-void fire(Future<void> f) => unawaited(f.catchError((Object _) {}));
+void fire(Future<void> f) => unawaited(f.catchError((Object e) => debugPrint('series: $e')));

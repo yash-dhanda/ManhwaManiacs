@@ -87,12 +87,14 @@ List<SourceChapterSummary> shownChapters(GlassSeriesData d, String order) {
 /// The facts of one row's download control.
 ChapterDownloadView rowDownloadView(ChapterDownloadStatus? s, ({String chapterKey, ChapterDownloadProgress progress})? active, String key, bool paused) {
   final isActive = active?.chapterKey == key;
-  return chapterDownloadView(ChapterDownloadFacts(
-    row: s?.state,
-    pagesDone: isActive ? active!.progress.pagesDone : 0,
-    pagesTotal: isActive ? active!.progress.pageTotal : 0,
-    pauseReason: paused && (s?.state == DownloadChapterState.queued || s?.state == DownloadChapterState.downloading) ? DownloadPauseReason.userPaused : null,
-  ),);
+  return chapterDownloadView(
+    ChapterDownloadFacts(
+      row: s?.state,
+      pagesDone: isActive ? active!.progress.pagesDone : 0,
+      pagesTotal: isActive ? active!.progress.pageTotal : 0,
+      pauseReason: paused && (s?.state == DownloadChapterState.queued || s?.state == DownloadChapterState.downloading) ? DownloadPauseReason.userPaused : null,
+    ),
+  );
 }
 
 /// Scrolls the sheet's list so [index] of the rows sliver sits near the top third (springCamera), then focuses it.
@@ -136,14 +138,24 @@ class ChaptersHeader extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(children: [
-              Expanded(child: Semantics(header: true, child: GlassLabel(d.novel ? 'Contents' : 'Chapters', role: gt.typeTitle2, wght: 700))),
-              GlassButton(key: const ValueKey('chapters-select'), label: chapters.selection.isActive ? 'Done' : 'Select', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: onSelect),
-            ],),
-            Row(children: [
-              Expanded(child: GlassLabel('$saved of ${d.chapters.length} downloaded', key: const ValueKey('chapters-count'), role: gt.typeFootnote, color: gt.colorLabel2)),
-              if (profile) GlassButton(label: 'Download', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, icon: GlassButtonIcon(GlassGlyph.cloudArrowDown.regular), onPressed: onSelect),
-            ],),
+            Row(
+              children: [
+                Expanded(child: Semantics(header: true, child: GlassLabel(d.novel ? 'Contents' : 'Chapters', role: gt.typeTitle2, wght: 700))),
+                GlassButton(
+                    key: const ValueKey('chapters-select'),
+                    label: chapters.selection.isActive ? 'Done' : 'Select',
+                    variant: GlassButtonVariant.plain,
+                    size: GlassButtonSize.small,
+                    onPressed: onSelect),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(child: GlassLabel('$saved of ${d.chapters.length} downloaded', key: const ValueKey('chapters-count'), role: gt.typeFootnote, color: gt.colorLabel2)),
+                if (profile)
+                  GlassButton(label: 'Download', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, icon: GlassButtonIcon(GlassGlyph.cloudArrowDown.regular), onPressed: onSelect),
+              ],
+            ),
             if (!profile) GlassLabel('Downloads belong to a reading profile. Choose one to save chapters here.', role: gt.typeCaption1, color: gt.colorLabel3, maxLines: 2),
             if (indexed > 0) GlassLabel('Dialogue indexed for $indexed chapters', key: const ValueKey('chapters-ocr'), role: gt.typeCaption1, color: gt.colorLabel3),
             const SizedBox(height: 6),
@@ -265,7 +277,9 @@ class ChapterRowsSliver extends ConsumerWidget {
                   onDownload: () => fire(enqueueSeriesChapters(ref, d, [c.id])),
                   onCancel: () => fire(ref.read(downloadQueueControllerProvider.notifier).cancelChapter((sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id))),
                   onRemove: () => fire(_remove(ref, c)),
-                  onExtractText: ocr && !d.novel ? () => fire(ref.read(ocrRunControllerProvider.notifier).runChapter(id: (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id), chapterNumber: c.number)) : null,
+                  onExtractText: ocr && !d.novel
+                      ? () => fire(ref.read(ocrRunControllerProvider.notifier).runChapter(id: (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id), chapterNumber: c.number))
+                      : null,
                   onSaveToFiles: glassSheetRegistered('save-files') ? () => _saveToFiles(context, c) : null,
                 ),
         );
@@ -316,22 +330,36 @@ class ChapterRowsSliver extends ConsumerWidget {
 
   void _rowMenu(BuildContext context, WidgetRef ref, SourceChapterSummary c, {required bool read, required bool saved}) {
     fire(ref.read(glassHapticsProvider).fire(HapticEvent.longpressOpen));
-    final online = isOnline(ref);
-    unawaited(showGlassMenu(context, anchor: rectOf(context), title: 'Chapter ${chapterNum(c.number) ?? ''}', entries: [
-      GlassMenuEntry(label: 'Mark read', enabled: online && !read, onSelected: () => fire(_read(ref, [c]))),
-      GlassMenuEntry(label: 'Mark unread', enabled: online && read, onSelected: () => fire(_unread(ref, c))),
-      if (saved) GlassMenuEntry(label: 'Remove download', onSelected: () => fire(_remove(ref, c))) else GlassMenuEntry(label: 'Download', onSelected: () => fire(enqueueSeriesChapters(ref, data, [c.id]))),
-      GlassMenuEntry(label: 'Select', separatorBefore: true, onSelected: () {
-        if (saved) return chapters.selection.begin();
-        chapters.selection.replaceWith([c.id]);
-      },),
-    ],),);
+    final online = onlineNow(ref);
+    unawaited(
+      showGlassMenu(
+        context,
+        anchor: rectOf(context),
+        title: 'Chapter ${chapterNum(c.number) ?? ''}',
+        entries: [
+          GlassMenuEntry(label: 'Mark read', enabled: online && !read, onSelected: () => fire(_read(ref, [c]))),
+          GlassMenuEntry(label: 'Mark unread', enabled: online && read, onSelected: () => fire(_unread(ref, c))),
+          if (saved)
+            GlassMenuEntry(label: 'Remove download', onSelected: () => fire(_remove(ref, c)))
+          else
+            GlassMenuEntry(label: 'Download', onSelected: () => fire(enqueueSeriesChapters(ref, data, [c.id]))),
+          GlassMenuEntry(
+            label: 'Select',
+            separatorBefore: true,
+            onSelected: () {
+              if (saved) return chapters.selection.begin();
+              chapters.selection.replaceWith([c.id]);
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
 
 /// Mark read: the batch call, "Marked 42 chapters read · Undo" (Undo deletes only the keys that were not completed before).
 Future<void> markChaptersRead(WidgetRef ref, GlassSeriesData d, List<SourceChapterSummary> cs) async {
-  if (!isOnline(ref)) return;
+  if (!onlineNow(ref)) return;
   final marks = SeriesMarks(ref, d);
   final before = marks.completed();
   final marked = await marks.markRead(cs);
@@ -342,7 +370,7 @@ Future<void> markChaptersRead(WidgetRef ref, GlassSeriesData d, List<SourceChapt
 
 /// Mark unread: the delete call, "Marked chapter 142 unread · Undo" (Undo re-posts the deleted rows).
 Future<void> markChapterUnread(WidgetRef ref, GlassSeriesData d, SourceChapterSummary c) async {
-  if (!isOnline(ref)) return;
+  if (!onlineNow(ref)) return;
   final marks = SeriesMarks(ref, d);
   final deleted = await marks.markUnread([c.id]);
   fire(ref.read(glassHapticsProvider).fire(HapticEvent.select));
@@ -390,7 +418,10 @@ class SelectHelpers extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final d = data;
     final statuses = ref.watch(seriesChapterDownloadStatusProvider(d.identity)).valueOrNull ?? const {};
-    final saved = {for (final e in statuses.entries) if (e.value.state == DownloadChapterState.complete) e.key};
+    final saved = {
+      for (final e in statuses.entries)
+        if (e.value.state == DownloadChapterState.complete) e.key
+    };
     final rows = selectableChapters(d.readingOrder, ref.watch(sourceSeriesProgressProvider(d.progressKey)), saved);
     final unread = unreadUndownloadedKeys(rows), all = undownloadedKeys(rows);
     final sel = chapters.selection;
@@ -400,12 +431,16 @@ class SelectHelpers extends ConsumerWidget {
       label: 'Select chapters',
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-        child: Wrap(spacing: 8, runSpacing: 8, children: [
-          chip('Next 10', nextUnreadUndownloadedKeys(rows)),
-          chip('All unread (${unread.length})', unread),
-          if (d.novel) chip('Whole book', all) else chip('All (${all.length})', all),
-          chip('None', const []),
-        ],),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            chip('Next 10', nextUnreadUndownloadedKeys(rows)),
+            chip('All unread (${unread.length})', unread),
+            if (d.novel) chip('Whole book', all) else chip('All (${all.length})', all),
+            chip('None', const []),
+          ],
+        ),
       ),
     );
   }
@@ -436,30 +471,70 @@ class ChapterSelectToolbar extends ConsumerWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: running
-            ? Row(children: [
-                Expanded(
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    GlassLabel('Downloading ${done + 1 > run.length ? run.length : done + 1} of ${run.length}', key: const ValueKey('select-running'), role: gt.typeFootnote, onGlass: true),
-                    const SizedBox(height: 4),
-                    LiquidProgress(value: run.isEmpty ? 0 : done / run.length, height: 6, meniscus: false),
-                  ],),
-                ),
-                GlassButton(label: 'Stop', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () => fire(_stop(ref))),
-              ],)
-            : Row(children: [
-                Expanded(child: GlassLabel('${picked.length} selected${already > 0 ? ' · $already already saved' : ''}', key: const ValueKey('select-count'), role: gt.typeFootnote, onGlass: true)),
-                GlassButton(key: const ValueKey('select-download'), label: 'Download $n', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: n == 0 || ref.read(activeProfileProvider) == null ? null : () => fire(_download(ref, picked)),),
-                GlassButton(key: const ValueKey('select-read'), label: 'Mark read', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, disabledReason: online ? null : 'Needs a connection', onPressed: picked.isEmpty || !online ? null : () => fire(markChaptersRead(ref, d, picked).then((_) => sel.end()))),
-                GlassButton(key: const ValueKey('select-unread'), label: 'Mark unread', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, disabledReason: online ? null : 'Needs a connection', onPressed: picked.length != 1 || !online ? null : () => fire(markChapterUnread(ref, d, picked.first).then((_) => sel.end()))),
-                GlassButton(key: const ValueKey('select-done'), label: 'Done', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: sel.end),
-              ],),
+            ? Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GlassLabel('Downloading ${done + 1 > run.length ? run.length : done + 1} of ${run.length}', key: const ValueKey('select-running'), role: gt.typeFootnote, onGlass: true),
+                        const SizedBox(height: 4),
+                        LiquidProgress(value: run.isEmpty ? 0 : done / run.length, height: 6, meniscus: false),
+                      ],
+                    ),
+                  ),
+                  GlassButton(label: 'Stop', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: () => fire(_stop(ref))),
+                ],
+              )
+            : Row(
+                children: [
+                  Flexible(child: GlassLabel('${picked.length} selected${already > 0 ? ' · $already already saved' : ''}', key: const ValueKey('select-count'), role: gt.typeFootnote, onGlass: true)),
+                  Expanded(
+                    flex: 3,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      reverse: true,
+                      child: Row(
+                        children: [
+                          GlassButton(
+                            key: const ValueKey('select-download'),
+                            label: 'Download $n',
+                            variant: GlassButtonVariant.plain,
+                            size: GlassButtonSize.small,
+                            onPressed: n == 0 || ref.read(activeProfileProvider) == null ? null : () => fire(_download(ref, picked)),
+                          ),
+                          GlassButton(
+                              key: const ValueKey('select-read'),
+                              label: 'Mark read',
+                              variant: GlassButtonVariant.plain,
+                              size: GlassButtonSize.small,
+                              disabledReason: online ? null : 'Needs a connection',
+                              onPressed: picked.isEmpty || !online ? null : () => fire(markChaptersRead(ref, d, picked).then((_) => sel.end()))),
+                          GlassButton(
+                              key: const ValueKey('select-unread'),
+                              label: 'Mark unread',
+                              variant: GlassButtonVariant.plain,
+                              size: GlassButtonSize.small,
+                              disabledReason: online ? null : 'Needs a connection',
+                              onPressed: picked.length != 1 || !online ? null : () => fire(markChapterUnread(ref, d, picked.first).then((_) => sel.end()))),
+                          GlassButton(key: const ValueKey('select-done'), label: 'Done', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: sel.end),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
 
   Future<void> _download(WidgetRef ref, List<SourceChapterSummary> picked) async {
     final statuses = ref.read(seriesChapterDownloadStatusProvider(data.identity)).valueOrNull ?? const {};
-    final keys = [for (final c in picked) if (statuses[c.id]?.state != DownloadChapterState.complete) c.id];
+    final keys = [
+      for (final c in picked)
+        if (statuses[c.id]?.state != DownloadChapterState.complete) c.id
+    ];
     chapters.run = keys.toSet();
     chapters.runAlreadySaved = picked.length - keys.length;
     chapters.selection.end();

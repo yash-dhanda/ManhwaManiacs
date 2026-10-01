@@ -197,7 +197,7 @@ const _statuses = [('unread', 'Unread'), ('reading', 'Reading'), ('completed', '
 /// Content rating (gate open only).
 Future<void> showSeriesMenu(BuildContext context, WidgetRef ref, GlassSeriesData d, Rect anchor) {
   final f = d.followed;
-  final online = isOnline(ref);
+  final online = onlineNow(ref);
   final hasProgress = ref.read(sourceSeriesProgressProvider(d.progressKey)).isNotEmpty;
   final gateOpen = ref.read(matureContentProvider).valueOrNull ?? false;
   return showGlassMenu(
