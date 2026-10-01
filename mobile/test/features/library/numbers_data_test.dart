@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
@@ -247,6 +249,27 @@ void main() {
   });
 
   group('snapshot and range persistence', () {
+    test('a timeout falls back to the saved snapshot', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final c = ProviderContainer(overrides: [
+        sharedPrefsProvider.overrideWithValue(prefs),
+        authenticatedAuthOverride(),
+        activeProfileOverride(),
+        numbersRepositoryProvider.overrideWithValue(_TimeoutRepo()),
+      ],);
+      addTearDown(c.dispose);
+      final snap = c.read(numbersSnapshotProvider);
+      await snap.writeNumbers(30, statisticsJson());
+      await snap.writeAnnual(2026, annualJson());
+      final sub = c.listen(numbersStatisticsProvider(30), (_, __) {});
+      addTearDown(sub.close);
+      final sub2 = c.listen(annualProvider(2026), (_, __) {});
+      addTearDown(sub2.close);
+      expect((await c.read(numbersStatisticsProvider(30).future)).offline, isTrue);
+      expect((await c.read(annualProvider(2026).future)).offline, isTrue);
+    });
+
     test('snapshot round trip and profile isolation', () async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -291,4 +314,15 @@ void main() {
       expect(prefs.getInt(key), 365);
     });
   });
+}
+
+class _TimeoutRepo implements NumbersRepository {
+  @override
+  Future<Result<LibraryStatistics>> statistics({required int days}) async =>
+      const Err(TimeoutError());
+  @override
+  Future<Result<Annual>> annual(int year) async => const Err(TimeoutError());
+  @override
+  Future<Result<void>> markMilestoneSeen(int days) async =>
+      const Err(TimeoutError());
 }

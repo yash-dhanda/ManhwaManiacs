@@ -47,7 +47,7 @@ class NumbersLoad<T> {
   final DateTime? savedAt;
 }
 
-bool _isOffline(Object e) => e is NetworkError;
+bool _isOffline(Object e) => e is NetworkError || e is TimeoutError;
 
 final numbersStatisticsProvider = FutureProvider.autoDispose
     .family<NumbersLoad<LibraryStatistics>, int>((ref, days) async {
