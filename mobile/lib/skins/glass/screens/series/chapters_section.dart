@@ -376,10 +376,17 @@ Future<void> markChaptersRead(WidgetRef ref, GlassSeriesData d, List<SourceChapt
   final marks = SeriesMarks(ref, d);
   final before = marks.completed();
   final marked = await marks.markRead(cs);
-  if (marked == null) return showGlassToast(ref, const GlassToastSpec("Couldn't mark them read. Try again", kind: GlassToastKind.error));
+  if (marked == null) return _markFailed(ref);
   fire(ref.read(glassHapticsProvider).fire(HapticEvent.select));
   final msg = cs.length == 1 ? 'Marked chapter ${chapterNum(cs.first.number) ?? ''} read'.replaceAll('  ', ' ') : 'Marked ${cs.length} chapters read';
-  showGlassToast(ref, GlassToastSpec(msg, undo: () => fire(marks.undoMarkRead(before, marked))));
+  showGlassToast(ref, GlassToastSpec(msg, undo: () => fire(_undo(ref, marks.undoMarkRead(before, marked)))));
+}
+
+void _markFailed(WidgetRef ref) =>
+    showGlassToast(ref, const GlassToastSpec('Could not save that. Try again.', kind: GlassToastKind.error));
+
+Future<void> _undo(WidgetRef ref, Future<bool> f) async {
+  if (!await f) _markFailed(ref);
 }
 
 /// Mark unread: the delete call, "Marked chapter 142 unread · Undo" (Undo re-posts the deleted rows).
@@ -387,9 +394,9 @@ Future<void> markChapterUnread(WidgetRef ref, GlassSeriesData d, SourceChapterSu
   if (!onlineNow(ref)) return;
   final marks = SeriesMarks(ref, d);
   final deleted = await marks.markUnread([c.id]);
-  if (deleted == null) return showGlassToast(ref, const GlassToastSpec("Couldn't mark it unread. Try again", kind: GlassToastKind.error));
+  if (deleted == null) return _markFailed(ref);
   fire(ref.read(glassHapticsProvider).fire(HapticEvent.select));
-  showGlassToast(ref, GlassToastSpec('Marked chapter ${chapterNum(c.number) ?? ''} unread', undo: () => fire(marks.undoMarkUnread(deleted))));
+  showGlassToast(ref, GlassToastSpec('Marked chapter ${chapterNum(c.number) ?? ''} unread', undo: () => fire(_undo(ref, marks.undoMarkUnread(deleted)))));
 }
 
 /// Row pulse (glass 4.10): `iris600` at 14 % fading over 900 ms; reduced motion shows it 900 ms, then removes it.

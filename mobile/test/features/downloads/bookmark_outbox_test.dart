@@ -65,9 +65,10 @@ class _ScriptedReaderRepository implements ReaderRepository {
     DateTime? since,
     bool includeDeleted = false,
     int? limit,
+    int offset = 0,
   }) async {
     pulls++;
-    return Ok(remote);
+    return Ok(remote.skip(offset).take(limit ?? remote.length).toList());
   }
 
   @override
@@ -343,6 +344,27 @@ void main() {
         (await store.listBookmarks()).map((b) => b.clientId),
         contains('from-the-web'),
       );
+    });
+
+    test('pages past 500 rows, so older bookmarks reach a new device', () async {
+      final repo = _ScriptedReaderRepository();
+      final controller = controllerFor(repo);
+      repo.remote = [
+        for (var i = 0; i < 501; i++)
+          Bookmark(
+            id: i + 1,
+            clientId: 'b$i',
+            sourceId: 'asurascans',
+            seriesKey: 'solo-leveling',
+            chapterKey: '$i',
+            anchorIndex: 2,
+            anchorTotal: 8,
+            createdAt: DateTime.utc(2026, 9, 5),
+            updatedAt: DateTime.utc(2026, 9, 5),
+          ),
+      ];
+      await controller.sync();
+      expect((await store.listBookmarks()).map((b) => b.clientId), contains('b500'));
     });
 
     test('a pull with nothing new reports no change, so no needless re-read',

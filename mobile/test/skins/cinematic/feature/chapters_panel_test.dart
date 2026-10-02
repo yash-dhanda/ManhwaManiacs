@@ -121,6 +121,23 @@ void main() {
     expect(r.rec.pushedRows.single.manual, isFalse);
   });
 
+  testWidgets('a Mark read the server refuses says so instead of the success toast', (tester) async {
+    final r = await _pump(tester, rig: FeatureRig(recorder: Recorder()..failWrites = true));
+    await _menu(tester, 'Mark read');
+    expect(r.rec.pushedRows.length, 1);
+    expect(find.text('Marked chapter 201 read.'), findsNothing);
+    expect(find.text('Could not save that. Try again.'), findsOneWidget);
+  });
+
+  testWidgets('a Mark unread the server refuses says so instead of the success toast', (tester) async {
+    final r = await _pump(tester, rig: FeatureRig(recorder: Recorder()..failWrites = true, serverProgress: {'c201': _p(20, 20, done: true)}));
+    await tester.pump();
+    await _menu(tester, 'Mark unread');
+    expect(r.rec.deleted.single.keys, ['c201']);
+    expect(find.text('Marked chapter 201 unread.'), findsNothing);
+    expect(find.text('Could not save that. Try again.'), findsOneWidget);
+  });
+
   testWidgets('offline every mark item is disabled with Needs a connection', (tester) async {
     final r = await _pump(tester, rig: FeatureRig(online: false));
     await tester.pump();

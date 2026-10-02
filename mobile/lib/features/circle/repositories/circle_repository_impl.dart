@@ -56,7 +56,9 @@ class CircleRepositoryImpl implements CircleRepository {
 
   @override
   Future<Result<MemberPage>> member(int profileId) => _run(() async {
-        final r = await _dio.get<Map<String, dynamic>>('/circle/members/$profileId');
+        final r = await _dio.get<Map<String, dynamic>>('/circle/members/$profileId', queryParameters: {
+          'tz_offset_minutes': DateTime.now().timeZoneOffset.inMinutes,
+        },);
         return MemberPage.fromJson(r.data ?? const {});
       });
 

@@ -112,4 +112,11 @@ void main() {
     await c.read(profilesProvider.notifier).edit(1, name: 'X', extras: const ProfileExtras(dailyGoal: (minutes: 15)));
     expect(a.calls.single.body, {'name': 'X', 'daily_goal_minutes': 15});
   });
+
+  test('reorder patches a profile that keeps its position when its stored sort_order has a gap', () async {
+    // A0, C2, D3 (B was deleted) dragged to D, C, A: C stays at index 1 but stores 2.
+    final (c, _, a) = await _rig(items: [_p(1, 0), _p(3, 2), _p(4, 3)]);
+    await c.read(profilesProvider.notifier).reorder([4, 3, 1]);
+    expect({for (final x in a.calls) x.path: (x.body as Map)['sort_order']}, {'/profiles/4': 0, '/profiles/3': 1, '/profiles/1': 2});
+  });
 }

@@ -231,6 +231,7 @@ class ReaderRepositoryImpl implements ReaderRepository, ReaderAnalysisReports {
     DateTime? since,
     bool includeDeleted = false,
     int? limit,
+    int offset = 0,
   }) async {
     try {
       final r = await _dio.get<List<dynamic>>(
@@ -241,6 +242,7 @@ class ReaderRepositoryImpl implements ReaderRepository, ReaderAnalysisReports {
           if (since != null) 'since': since.toUtc().toIso8601String(),
           if (includeDeleted) 'include_deleted': true,
           if (limit != null) 'limit': limit,
+          if (offset > 0) 'offset': offset,
         },
       );
       final items = (r.data ?? [])

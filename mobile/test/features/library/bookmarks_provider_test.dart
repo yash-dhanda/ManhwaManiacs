@@ -56,6 +56,7 @@ class _FakeReaderRepository implements ReaderRepository {
     DateTime? since,
     bool includeDeleted = false,
     int? limit,
+    int offset = 0,
   }) async {
     listCallCount++;
     return Ok(remote);

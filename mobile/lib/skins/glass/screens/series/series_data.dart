@@ -89,51 +89,56 @@ class SeriesMarks {
           if (e.value.completed) e.key,
       };
 
-  /// Returns the keys that were marked, or null when the server refused.
+  Future<bool> _delete(List<String> keys) async {
+    for (final chunk in chunksOf200(keys)) {
+      final r = await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
+      if (r.isErr) return false;
+    }
+    return true;
+  }
+
+  Future<bool> _post(List<ProgressPush> rows) async {
+    for (final chunk in chunksOf200(rows)) {
+      final r = await ref.read(readerRepositoryProvider).saveProgressBatch(chunk);
+      if (r.isErr) return false;
+    }
+    return true;
+  }
+
+  /// Returns the keys that were marked, or null when the server did not take them.
   Future<List<String>?> markRead(List<SourceChapterSummary> chapters) async {
-    final repo = ref.read(readerRepositoryProvider);
     final rows = manualReadRows([
       for (final c in chapters) (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number, pageCount: c.pageCount, completed: false),
     ], at: manualMarkStamp(ref.read(sourceSeriesProgressProvider(d.progressKey))),);
-    for (final chunk in chunksOf200(rows)) {
-      final r = await repo.saveProgressBatch(chunk);
-      if (r.isErr) {
-        _refresh();
-        return null;
-      }
-    }
+    final ok = await _post(rows);
     _refresh();
-    return [for (final c in chapters) c.id];
+    return ok ? [for (final c in chapters) c.id] : null;
   }
 
-  /// Undo of [markRead]: deletes only the keys that were not completed before.
-  Future<void> undoMarkRead(Set<String> before, List<String> marked) async {
+  /// Undo of [markRead]: deletes only the keys that were not completed before. False when it failed.
+  Future<bool> undoMarkRead(Set<String> before, List<String> marked) async {
     final keys = undoMarkReadKeys(before, marked);
-    for (final chunk in chunksOf200(keys)) {
-      await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
-    }
-    if (keys.isNotEmpty) _refresh();
+    if (keys.isEmpty) return true;
+    final ok = await _delete(keys);
+    _refresh();
+    return ok;
   }
 
-  /// Returns what was deleted, for the Undo, or null when the server refused.
+  /// Returns what was deleted, for the Undo, or null when the server delete failed (device progress is then kept).
   Future<Map<String, SourceChapterProgress>?> markUnread(List<String> keys) async {
     final merged = ref.read(sourceSeriesProgressProvider(d.progressKey));
     final prior = {
       for (final k in keys)
         if (merged[k] != null) k: merged[k]!,
     };
-    // Server first: the local position is dropped only once the server row is gone too.
-    for (final chunk in chunksOf200(keys)) {
-      final r = await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
-      if (r.isErr) return null;
-    }
-    await ref.read(sourceProgressProvider.notifier).forget(sourceId: d.sourceId, seriesId: d.seriesKey, chapterIds: keys);
+    final ok = await _delete(keys);
+    if (ok) await ref.read(sourceProgressProvider.notifier).forget(sourceId: d.sourceId, seriesId: d.seriesKey, chapterIds: keys);
     _refresh();
-    return prior;
+    return ok ? prior : null;
   }
 
-  /// Undo of [markUnread]: re-posts the deleted rows.
-  Future<void> undoMarkUnread(Map<String, SourceChapterProgress> deleted) async {
+  /// Undo of [markUnread]: re-posts the deleted rows. False when it failed.
+  Future<bool> undoMarkUnread(Map<String, SourceChapterProgress> deleted) async {
     final numbers = {for (final c in d.chapters) c.id: c.number};
     final rows = [
       for (final e in deleted.entries)
@@ -148,11 +153,10 @@ class SeriesMarks {
           lastReadAt: e.value.updatedAt,
         ),
     ];
-    for (final chunk in chunksOf200(rows)) {
-      await ref.read(readerRepositoryProvider).saveProgressBatch(chunk);
-    }
+    if (!await _post(rows)) return false;
     await ref.read(sourceProgressProvider.notifier).restoreRecords(sourceId: d.sourceId, seriesId: d.seriesKey, records: deleted);
     _refresh();
+    return true;
   }
 }
 

@@ -168,6 +168,7 @@ class _ChapterCountingReaderRepository implements ReaderRepository {
     DateTime? since,
     bool includeDeleted = false,
     int? limit,
+    int offset = 0,
   }) =>
       throw UnimplementedError();
 

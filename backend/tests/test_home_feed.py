@@ -552,3 +552,29 @@ def test_cache_misses_after_follow_or_reading(
     read(seed_progress, acct, "fresh", 1)
     get(client, as_user, acct)
     assert len(builds) == 3
+
+
+def test_progress_and_follow_writes_drop_the_composed_issue(client, as_user, acct, rich, monkeypatch):
+    builds = []
+    real = HomeService._build
+
+    def counting(self, *a, **k):
+        builds.append(1)
+        return real(self, *a, **k)
+
+    monkeypatch.setattr(HomeService, "_build", counting)
+    uid, pid = acct
+    h = as_user(uid, pid)
+    get(client, as_user, acct)
+    get(client, as_user, acct)
+    assert len(builds) == 1
+    r = client.post("/reader/progress", json={"source_id": SRC, "series_key": "new-one",
+                    "chapter_key": "c3", "last_page": 1, "page_count": 10}, headers=h)
+    assert r.status_code == 200, r.text
+    get(client, as_user, acct)
+    assert len(builds) == 2
+    new, _, _ = rich
+    r = client.delete(f"/library/follow/{new.id}", headers=h)
+    assert r.status_code == 204, r.text
+    get(client, as_user, acct)
+    assert len(builds) == 3

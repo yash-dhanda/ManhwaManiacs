@@ -84,6 +84,12 @@ void main() {
     expect(e.statusCode, 404);
   });
 
+  test('member sends the device tz offset, like members', () async {
+    final a = FakeAdapter((_) => (404, {'code': 'circle_member_not_sharing', 'message': 'x'}));
+    await _repo(a).member(2);
+    expect(a.calls.single.query['tz_offset_minutes'], DateTime.now().timeZoneOffset.inMinutes);
+  });
+
   test('members with a series asks for can_receive', () async {
     final a = FakeAdapter((_) => (200, [
           {'profile_id': 2, 'name': 'Riya', 'shares': {'activity': true}, 'can_receive': true, 'now': null},

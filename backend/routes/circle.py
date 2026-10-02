@@ -12,6 +12,7 @@ from core.profile_context import require_profile_context
 from services.circle_service import (
     NOTE_MAX,
     CircleService,
+    note_length,
     _home_builder,
     _letters_builder,
     get_circle_service,
@@ -62,7 +63,8 @@ class LetterBody(BaseModel):
     @classmethod
     def _note(cls, note: str | None) -> str | None:
         note = (note or "").strip()
-        if len(note) > NOTE_MAX:
+        # Counted the way the apps count it; the code-point cap only stops a pile of combining marks.
+        if note_length(note) > NOTE_MAX or len(note) > NOTE_MAX * 8:
             raise ValueError(f"note is at most {NOTE_MAX} characters")
         return note or None
 

@@ -161,14 +161,13 @@ class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
     return CreateProfileOutcome(created: created, extrasFailed: failed);
   }
 
-  /// Rewrites `sort_order` for the profiles whose index changed, one after another, then refreshes.
+  /// Rewrites `sort_order` for every profile whose stored value is not its new index (stored values can have gaps), then refreshes.
   Future<AppError?> reorder(List<int> idsInOrder) async {
     final current = [...(state.valueOrNull ?? const <Profile>[])];
     for (var i = 0; i < idsInOrder.length; i++) {
       final p = current.where((x) => x.id == idsInOrder[i]).firstOrNull;
       if (p == null) continue;
-      final index = current.indexOf(p);
-      if (index == i) continue;
+      if (p.sortOrder == i) continue;
       final r = await _patch(p.id, {'sort_order': i});
       if (r.error != null) {
         await refresh();

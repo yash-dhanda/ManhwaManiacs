@@ -336,9 +336,9 @@ class _BookViewState extends ConsumerState<BookView> {
     final before = _completed();
     final marked = await _marks.markRead(chapters, previouslyCompleted: before);
     if (!mounted) return;
-    if (marked == null) return featureToast(context, "Couldn't mark them read. Try again.");
+    if (marked == null) return markFailedToast(context);
     feedback(ref, HapticEvent.select);
-    featureToast(context, message, onUndo: () => unawaited(_marks.undoMarkRead(before, marked)));
+    featureToast(context, message, onUndo: () => unawaited(undoOrToast(context, _marks.undoMarkRead(before, marked))));
   }
 
   Future<void> _rowMenu(SourceChapterSummary c) async {
@@ -360,12 +360,12 @@ class _BookViewState extends ConsumerState<BookView> {
       case 'unread':
         final deleted = await _marks.markUnread([c.id]);
         if (!mounted) return;
-        if (deleted == null) return featureToast(context, "Couldn't mark it unread. Try again.");
+        if (deleted == null) return markFailedToast(context);
         feedback(ref, HapticEvent.select);
         featureToast(
           context,
           'Marked chapter${_num(c)} unread.',
-          onUndo: () => unawaited(_marks.undoMarkUnread(deleted, {c.id: c.number})),
+          onUndo: () => unawaited(undoOrToast(context, _marks.undoMarkUnread(deleted, {c.id: c.number}))),
         );
       case 'download':
         _startRun([c]);

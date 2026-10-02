@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/store/bookmarks_dao.dart';
@@ -248,6 +249,20 @@ class BookmarkOutboxController {
     return refused;
   }
 
+  /// The server's whole listing, tombstones included, 500 a page. Without
+  /// `since` it is newest change first and tombstones are kept forever, so one
+  /// page would leave every older bookmark off a new device.
+  Future<Result<List<Bookmark>>> _pullAll() async {
+    const page = 500;
+    final all = <Bookmark>[];
+    while (true) {
+      final r = await repository.listBookmarks(includeDeleted: true, limit: page, offset: all.length);
+      if (r.isErr) return r;
+      all.addAll(r.value);
+      if (r.value.length < page) return Ok(all);
+    }
+  }
+
   /// Replaces whatever this device thinks with the server's answer. Only worth
   /// the round trip after a refusal — [sync] already pulls unconditionally.
   Future<void> _reconcile() async {
@@ -255,10 +270,7 @@ class BookmarkOutboxController {
     if (store == null) return;
     final startedIn = activeScopeId();
     try {
-      final result = await repository.listBookmarks(
-        includeDeleted: true,
-        limit: 500,
-      );
+      final result = await _pullAll();
       if (_switchedAwayFrom(startedIn)) return;
       if (result.isOk) await store.mergeServerBookmarks(result.value);
     } catch (_) {
@@ -285,10 +297,7 @@ class BookmarkOutboxController {
     final startedIn = activeScopeId();
     await flush();
     try {
-      final result = await repository.listBookmarks(
-        includeDeleted: true,
-        limit: 500,
-      );
+      final result = await _pullAll();
       if (result.isErr || _switchedAwayFrom(startedIn)) return false;
       return await store.mergeServerBookmarks(result.value) > 0;
     } catch (_) {

@@ -105,12 +105,14 @@ class SettingsRig {
     this.sessionsError = false,
     this.members,
     this.backup = const BackupStatus(restorePending: false),
+    this.checkInterval = 30,
     Map<String, Object> prefs = const {},
   }) : prefs = testPrefsDefaults(prefs);
 
   final bool admin, profile, novels, clientDownloads, online, sessionsError;
   final List<Account>? members;
   final BackupStatus backup;
+  final int checkInterval;
   final Map<String, Object> prefs;
   final List<String> haptics = [];
   final _Engine engine = _Engine();
@@ -146,7 +148,7 @@ List<Override> settingsOverrides(SettingsRig r, SharedPreferences prefs, SkinAud
       seriesStorageBreakdownProvider.overrideWith((ref) async => const []),
       deviceOnlineProvider.overrideWith((ref) => Stream.value(r.online)),
       updateSettingsProvider.overrideWith(
-        (ref) async => UpdateSettings(enabled: true, checkIntervalMinutes: 30, notifyEnabled: true, checkOnStartup: false, lastRunAt: DateTime.now().subtract(const Duration(minutes: 45))),
+        (ref) async => UpdateSettings(enabled: true, checkIntervalMinutes: r.checkInterval, notifyEnabled: true, checkOnStartup: false, lastRunAt: DateTime.now().subtract(const Duration(minutes: 45))),
       ),
       updateRunsProvider.overrideWith((ref) async => const []),
       sourceCacheTtlProvider.overrideWith(_Ttl.new),

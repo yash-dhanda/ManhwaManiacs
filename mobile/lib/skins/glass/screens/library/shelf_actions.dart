@@ -22,7 +22,7 @@ import 'package:manhwamaniacs/features/library/utils/bulk_runner.dart';
 import 'package:manhwamaniacs/features/library/utils/manual_order.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
 import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
-import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
+import 'package:manhwamaniacs/features/library/utils/series_unread.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart' show isNovelSource;
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -209,11 +209,10 @@ class GlassShelfActions {
     _fire(HapticEvent.undo);
   }
 
-  final Map<int, List<ProgressPush>> _unmarked = {};
+  final Map<int, Future<void> Function()> _unmarked = {};
 
-  /// Deletes the progress of every known chapter of each series; Undo re-posts the rows that were deleted.
+  /// Deletes the progress of every known chapter of each series, on the server and on this phone; Undo re-posts what was deleted.
   Future<BulkResult> markUnread(Set<int> ids, {BulkCancel? cancel}) async {
-    final reader = _c.read(readerRepositoryProvider);
     final failed = <String>[];
     var ok = 0;
     await runBulk<FollowedSeries>(rowsOf(ids), (s) async {
@@ -222,30 +221,12 @@ class GlassShelfActions {
         failed.add('${s.id}');
         return Err(d.error);
       }
-      final detail = d.value;
-      final keys = [for (final k in _chapters(detail)) k.key];
-      final restore = [
-        for (final k in _chapters(detail))
-          if (detail.progress[k.key] != null)
-            ProgressPush(
-              sourceId: s.sourceId,
-              seriesKey: s.seriesKey,
-              chapterKey: k.key,
-              chapterNumber: k.number,
-              lastPage: detail.progress[k.key]!.lastPage,
-              pageCount: k.pageCount ?? 0,
-              isCompleted: detail.progress[k.key]!.isCompleted,
-              manual: true,
-            ),
-      ];
-      for (final chunk in chunksOf200(keys)) {
-        final r = await reader.deleteProgress(sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKeys: chunk);
-        if (r.isErr) {
-          failed.add('${s.id}');
-          return Err(r.error);
-        }
+      final r = await markSeriesUnread(_c, sourceId: s.sourceId, seriesKey: s.seriesKey, keys: [for (final k in _chapters(d.value)) k.key]);
+      if (r.isErr) {
+        failed.add('${s.id}');
+        return Err(r.error);
       }
-      _unmarked[s.id] = restore;
+      _unmarked[s.id] = r.value;
       ok++;
       return const Ok(null);
     }, cancel: cancel,);
@@ -255,13 +236,8 @@ class GlassShelfActions {
   }
 
   Future<void> undoMarkUnread(Set<int> ids) async {
-    final reader = _c.read(readerRepositoryProvider);
     for (final id in ids) {
-      final rows = _unmarked.remove(id);
-      if (rows == null) continue;
-      for (final chunk in chunksOf200(rows)) {
-        await reader.saveProgressBatch(chunk);
-      }
+      await _unmarked.remove(id)?.call();
     }
     _c.invalidate(shelfProvider);
     _fire(HapticEvent.undo);
