@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/onboarding/models/taste.dart';
@@ -162,6 +163,13 @@ class GlassOnboardingFlow extends AutoDisposeNotifier<GlassOnboardingState> {
       return pick;
     }
     final r = await ref.read(libraryRepositoryProvider).follow(sourceId: source.sourceId, seriesKey: source.seriesKey);
+    // Followed already (picked before a resume, whose draft keeps only the ids): the pick stands.
+    // ponytail: no follow id comes back, so undoing it keeps the follow; a lookup by source and key would fix that.
+    final err = r.isErr ? r.error : null;
+    if (err is ApiError && err.code == 'already_followed') {
+      state = state.copyWith(picks: [...state.picks.where((p) => p.anilistId != item.anilistId), base], everPicked: ever);
+      return base;
+    }
     if (r.isErr) {
       final failed = base.copyWith(failed: true);
       state = state.copyWith(picks: [...state.picks.where((p) => p.anilistId != item.anilistId), failed], everPicked: ever);
@@ -224,17 +232,20 @@ class GlassOnboardingFlow extends AutoDisposeNotifier<GlassOnboardingState> {
       final d = _draft();
       if (id == null) return false;
       final body = tasteBody(d, OnboardingStep.done);
+      // Pending from the first moment: the screen leaves for Home before the save settles, and the
+      // onboarding redirect must already count the profile as done (else it bounces to /welcome).
+      await store.writePending(d);
       for (var attempt = 0; attempt < 3; attempt++) {
         if (attempt > 0) await Future<void>.delayed(spacing);
         final r = await ref.read(onboardingRepositoryProvider).saveTaste(id, body);
         if (r.isOk) {
           await store.clearDraft();
-          await store.clearPending();
+          // The list says done before the pending marker goes.
           await ref.read(profilesProvider.notifier).refresh();
+          await store.clearPending();
           return true;
         }
       }
-      await store.writePending(d);
       return false;
     } finally {
       link.close();

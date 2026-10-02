@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/features/downloads/providers/downloads_lifecycle_g
 import 'package:manhwamaniacs/features/downloads/providers/retention_maintenance_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/services/retention_maintenance.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profile_queues.dart';
 import 'package:manhwamaniacs/features/profiles/providers/skin_outbox.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,7 +37,10 @@ class _Retention extends Fake implements RetentionMaintenance {}
 
 class _Outbox extends Fake implements SkinOutbox {
   @override
-  Future<void> flush() async => _flushes++;
+  Future<bool> flush() async {
+    _flushes++;
+    return false;
+  }
 }
 
 void main() {
@@ -57,6 +61,8 @@ void main() {
           retentionMaintenanceProvider.overrideWithValue(_Retention()),
           downloadQueueControllerProvider.overrideWith(_Queue.new),
           skinOutboxProvider.overrideWithValue(_Outbox()),
+          // The skin outbox goes out through the profile queues flush (signed in only).
+          profileQueuesFlushProvider.overrideWithValue(() => _Outbox().flush()),
         ],
         child: Builder(builder: (c) {
           ctx = c;

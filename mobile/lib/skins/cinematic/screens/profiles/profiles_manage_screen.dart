@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/app/switch_skin.dart' show restartInto;
+import 'package:manhwamaniacs/features/onboarding/store/onboarding_draft.dart';
 import 'package:manhwamaniacs/features/profiles/models/profile.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
@@ -16,11 +18,14 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_reorderable_list.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_logic.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart' show onboardingBuiltProvider;
 import 'package:manhwamaniacs/skins/cinematic/screens/profiles/profiles_copy.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
 
 /// Manage profiles (cinematic 8.6): the account's profiles as reorderable rows with `Use`, edit,
 /// delete (armed) and a Move menu; `New profile` is disabled at five.
@@ -54,8 +59,26 @@ class _ProfilesManageScreenState extends ConsumerState<ProfilesManageScreen> {
 
   Future<void> _use(Profile p) async {
     await ref.read(activeProfileProvider.notifier).select(p);
+    if (!mounted) return;
+    // The picker's decision: a profile in the other edition restarts into it, one that has not
+    // finished onboarding resumes it.
+    final outcome = decidePickerOutcome(
+      profile: p,
+      runningSkin: ref.read(skinIdProvider).name,
+      glassAvailable: Flags.glassAvailable,
+      onboardingBuilt: ref.read(onboardingBuiltProvider),
+      pendingDone: ref.read(onboardingStoreProvider).readPending() != null,
+    );
+    if (outcome.kind == PickerOutcomeKind.restartSkin) {
+      await restartInto(context, ref, skin: skinIdFromName(p.skin) ?? kDefaultSkin, returnRoute: '/');
+      return;
+    }
     ref.read(profileSessionReadyProvider.notifier).enter();
-    if (mounted) ref.read(cineToastsProvider.notifier).info(readingAsToast(p.name));
+    if (outcome.kind == PickerOutcomeKind.onboarding) {
+      context.go(outcome.route);
+      return;
+    }
+    ref.read(cineToastsProvider.notifier).info(readingAsToast(p.name));
   }
 
   Future<void> _delete(Profile p) async {
@@ -85,7 +108,11 @@ class _ProfilesManageScreenState extends ConsumerState<ProfilesManageScreen> {
     final profiles = ref.watch(profilesProvider);
     final active = ref.watch(activeProfileProvider);
     final list = profiles.valueOrNull;
-    final rows = _order != null && list != null && _order!.length == list.length ? _order! : list;
+    // The local order only bridges a drag until the list refreshes; the rows themselves always come
+    // from the list, so an edit made after a reorder shows.
+    final rows = _order != null && list != null && _order!.length == list.length
+        ? [for (final o in _order!) list.firstWhere((p) => p.id == o.id, orElse: () => o)]
+        : list;
     final atLimit = (rows?.length ?? 0) >= kMaxProfiles;
 
     Widget body;

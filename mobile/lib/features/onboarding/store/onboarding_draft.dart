@@ -93,10 +93,13 @@ class OnboardingStore {
   Future<void> clearPending() => _p.remove(_key(_pendingPrefix));
 
   /// Sends a waiting `step: done` save for [profileId] in the background; clears it on success.
-  Future<void> flushPending(int profileId, OnboardingRepository repo) async {
+  /// True when the server took it.
+  Future<bool> flushPending(int profileId, OnboardingRepository repo) async {
     final pending = readPending();
-    if (pending == null) return;
-    if ((await repo.saveTaste(profileId, pending)).isOk) await clearPending();
+    if (pending == null) return false;
+    if (!(await repo.saveTaste(profileId, pending)).isOk) return false;
+    await clearPending();
+    return true;
   }
 }
 

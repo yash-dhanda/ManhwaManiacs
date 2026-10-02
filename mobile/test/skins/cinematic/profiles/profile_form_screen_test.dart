@@ -116,7 +116,7 @@ void main() {
     await t.ensureVisible(find.text('Create profile'));
     await t.tap(find.text('Create profile'));
     await settle(t, 700);
-    expect(rig.profiles.calls.single, startsWith('create:Nova:default:false'));
+    expect(rig.profiles.calls.first, startsWith('create:Nova:default:false'));
     expect(find.text('Saved Nova'), findsOneWidget);
     expect(rig.at, '/');
   });

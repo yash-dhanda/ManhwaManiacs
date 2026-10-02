@@ -195,16 +195,21 @@ class OnboardingFlow extends AutoDisposeNotifier<OnboardingState> {
     final d = _draft();
     if (id == null) return false;
     final body = tasteBody(d, OnboardingStep.done);
+    // Pending from the first moment: Tonight opens before the save settles, and the onboarding
+    // redirect must already count the profile as done.
+    await store.writePending(d);
     for (var attempt = 0; attempt < 3; attempt++) {
       if (attempt > 0) await Future<void>.delayed(spacing);
       final r = await ref.read(onboardingRepositoryProvider).saveTaste(id, body);
       if (r.isOk) {
         await store.clearDraft();
+        // The kept-alive list still says the old step: the picker would send the profile back
+        // into onboarding and credit it NEW. It says done before the pending marker goes.
+        await ref.read(profilesProvider.notifier).refresh();
         await store.clearPending();
         return true;
       }
     }
-    await store.writePending(d);
     return false;
   }
 

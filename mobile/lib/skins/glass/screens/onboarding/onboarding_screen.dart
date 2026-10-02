@@ -41,6 +41,7 @@ import 'package:manhwamaniacs/skins/glass/shell/melt.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_common.dart';
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
+import 'package:manhwamaniacs/skins/glass/type.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// Onboarding at `/welcome?step=1..7` (glass 8.7, mobile S06 and S07): a takeover on the brand aurora with seven droplet dots, a
@@ -194,9 +195,14 @@ class _GlassOnboardingScreenState extends ConsumerState<GlassOnboardingScreen> w
   @override
   Widget build(BuildContext context) {
     final active = ref.watch(activeProfileProvider);
-    final profiles = ref.watch(profilesProvider).valueOrNull;
+    final list = ref.watch(profilesProvider);
+    final profiles = list.valueOrNull;
     final profile = profiles?.where((p) => p.id == active?.id).firstOrNull;
     if (profile == null) {
+      // The list failed (a restart in from Cinematic refetches it): a way forward, never a blank takeover.
+      if (list.hasError && !list.isLoading) {
+        return _ProfilesFailed(onRetry: () => ref.invalidate(profilesProvider), onLeave: () => context.go(Routes.tonight()));
+      }
       // The profile is still loading, or there is none: the guard routes a signed-in reader without one to the picker.
       return const SizedBox.shrink();
     }
@@ -316,4 +322,31 @@ class _GlassOnboardingScreenState extends ConsumerState<GlassOnboardingScreen> w
       ),
     );
   }
+}
+
+/// The profile list did not load: Retry, or leave for Home (Home's redirect resumes onboarding once the list arrives).
+class _ProfilesFailed extends StatelessWidget {
+  const _ProfilesFailed({required this.onRetry, required this.onLeave});
+  final VoidCallback onRetry;
+  final VoidCallback onLeave;
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Semantics(
+            liveRegion: true,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GlassText("We couldn't load this profile.", role: gt.typeCallout, onGlass: true, textAlign: TextAlign.center),
+                const SizedBox(height: 12),
+                GlassButton(label: 'Retry', onPressed: onRetry, size: GlassButtonSize.small),
+                const SizedBox(height: 8),
+                GlassButton(label: 'Not now', variant: GlassButtonVariant.plain, size: GlassButtonSize.small, onPressed: onLeave),
+              ],
+            ),
+          ),
+        ),
+      );
 }

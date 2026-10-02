@@ -62,3 +62,7 @@ final similarSeedsProvider = FutureProvider.autoDispose.family<SimilarResult, in
 },
     name: 'similarSeeds',
 );
+
+/// The profile whose unfinished onboarding was put off for this app session ('Skip for now' while
+/// offline): Tonight's resume redirect leaves it alone until the next launch.
+final onboardingDeferredProvider = StateProvider<int?>((ref) => null, name: 'onboardingDeferred');

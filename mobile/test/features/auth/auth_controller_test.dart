@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_offline_provider.dart';
 import 'package:manhwamaniacs/features/auth/repositories/auth_repository.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -363,6 +364,20 @@ void main() {
       expect(prefs.getString(_cachedUserKey), isNull);
     });
 
+    test('a rejected token also drops the remembered profile', () async {
+      final storage = _FakeStorage()..token = 'stale';
+      final (container, prefs) = await _containerWithPrefs(
+        _FakeAuthRepository(meResult: const Err<AuthUser>(_rejected)),
+        storage,
+        prefs: {'mm.active_profile': '{"id":4,"name":"P","avatar_key":null,"mood":"default"}'},
+      );
+      await container.read(authControllerProvider.notifier).restored;
+
+      expect(container.read(authControllerProvider), isA<AuthUnauthenticated>());
+      expect(prefs.getString('mm.active_profile'), isNull);
+      expect(container.read(activeProfileProvider), isNull);
+    });
+
     test('a confirmed session is cached for the next cold start', () async {
       final (container, prefs) = await _containerWithPrefs(
         _FakeAuthRepository(meResult: Ok(_user)),
@@ -501,6 +516,31 @@ void main() {
       expect(container.read(authControllerProvider), isA<AuthAuthenticated>());
       expect(storage.token, 'fresh');
       expect(container.read(authTokenStoreProvider).token, 'fresh');
+    });
+
+    test('"Keep me signed in" off keeps the token out of the keychain', () async {
+      addTearDown(AuthController.forgetSessionOnlyToken);
+      final storage = _FakeStorage()..token = 'older';
+      final repo = _FakeAuthRepository(
+        loginResult: Ok(AuthResponse(user: _user, token: 'fresh')),
+        meResult: Ok(_user),
+      );
+      final c2 = _container(repo, storage);
+      await c2.read(authControllerProvider.notifier).restored;
+
+      final error = await c2
+          .read(authControllerProvider.notifier)
+          .login(username: 'tester', password: 'pw', remember: false);
+
+      expect(error, isNull);
+      expect(c2.read(authControllerProvider), isA<AuthAuthenticated>());
+      expect(c2.read(authTokenStoreProvider).token, 'fresh');
+      expect(storage.token, isNull);
+      // A skin restart (a new scope in the same process) keeps the session.
+      final restarted = _container(repo, storage);
+      await restarted.read(authControllerProvider.notifier).restored;
+      expect(restarted.read(authControllerProvider), isA<AuthAuthenticated>());
+      expect(restarted.read(authTokenStoreProvider).token, 'fresh');
     });
 
     test('success caches the user so the next cold start can run offline',

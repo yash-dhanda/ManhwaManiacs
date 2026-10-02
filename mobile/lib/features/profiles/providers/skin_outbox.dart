@@ -20,7 +20,7 @@ class SkinOutbox {
 
   final SharedPreferences _prefs;
   final ProfilesRepository _repo;
-  Future<void>? _inFlight;
+  Future<bool>? _inFlight;
 
   Future<void> enqueue(int profileId, SkinId skin) =>
       _prefs.setString(kSkinOutboxKey, jsonEncode({'profileId': profileId, 'skin': skin.name}));
@@ -41,13 +41,13 @@ class SkinOutbox {
     return e != null && e['profileId'] == profileId ? e['skin'] as String : null;
   }
 
-  /// A second call while one runs joins it.
-  Future<void> flush() => _inFlight ??= _flush().whenComplete(() => _inFlight = null);
+  /// A second call while one runs joins it. True when the server took the switch.
+  Future<bool> flush() => _inFlight ??= _flush().whenComplete(() => _inFlight = null);
 
-  Future<void> _flush() async {
+  Future<bool> _flush() async {
     final sent = _prefs.getString(kSkinOutboxKey);
     final e = _entry();
-    if (e == null) return;
+    if (e == null) return false;
     final result = await _repo.update(e['profileId'] as int, skin: e['skin'] as String);
     var drop = !result.isErr;
     if (result.isErr) {
@@ -61,6 +61,7 @@ class SkinOutbox {
     if (drop && _prefs.getString(kSkinOutboxKey) == sent) {
       await _prefs.remove(kSkinOutboxKey);
     }
+    return !result.isErr;
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/auth/providers/session_end_reason_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/haptics.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/alert.dart';
@@ -104,8 +105,11 @@ class _GlassSessionLossState extends ConsumerState<GlassSessionLoss> {
 }
 
 /// The profile disappeared (`profile_required`, `profile_not_found`): a toast, playback stops, the app returns to the picker.
+/// The dead selection goes (X-Profile-Id with it) and the kept-alive list refetches, so the picker never offers it again.
 void handleProfileGone(WidgetRef ref) {
   GlassStops.stopAllPlayback();
   showGlassToast(ref, const GlassToastSpec('That profile is no longer available', kind: GlassToastKind.warning));
+  unawaited(ref.read(activeProfileProvider.notifier).clear());
+  ref.invalidate(profilesProvider);
   ref.read(skinRouterProvider).go('/profiles');
 }

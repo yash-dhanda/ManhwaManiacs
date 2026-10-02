@@ -49,6 +49,21 @@ final apiBaseUrlProvider = StateProvider<String>(
   name: 'apiBaseUrl',
 );
 
+/// Carries [apiBaseUrlProvider] across skin restarts: every new ProviderScope starts on the last
+/// address the one before it was set to (a Settings server change), not the one read at launch.
+/// Pass it as the scope's override and as one of its observers.
+class ApiUrlMemo extends ProviderObserver {
+  ApiUrlMemo(this.value);
+  String value;
+
+  Override get scopeOverride => apiBaseUrlProvider.overrideWith((ref) => value);
+
+  @override
+  void didUpdateProvider(ProviderBase<Object?> provider, Object? previousValue, Object? newValue, ProviderContainer container) {
+    if (provider == apiBaseUrlProvider && newValue is String) value = newValue;
+  }
+}
+
 // ── Dio ───────────────────────────────────────────────────────────────────
 
 final dioProvider = Provider<Dio>(

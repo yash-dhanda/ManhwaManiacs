@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
+import 'package:manhwamaniacs/features/onboarding/providers/onboarding_providers.dart';
+import 'package:manhwamaniacs/features/onboarding/store/onboarding_draft.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/skins/back_parent.dart';
@@ -10,6 +12,8 @@ import 'package:manhwamaniacs/skins/cinematic/app_frame.dart';
 import 'package:manhwamaniacs/skins/cinematic/router_gate.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/novel/novel_route.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_logic.dart';
+import 'package:manhwamaniacs/skins/cinematic/screens/profiles/picker_screen.dart' show onboardingBuiltProvider;
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_route_page.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/system/cine_error_screen.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell.dart';
@@ -155,6 +159,22 @@ CineGateState _gateState(Ref ref) {
   );
 }
 
+/// The step to resume at while the active profile has not finished onboarding; null when it has, the
+/// list has not loaded, or the user put it off this session.
+String? _onboardingRedirect(Ref ref) {
+  final active = ref.read(activeProfileProvider);
+  final profiles = ref.read(profilesProvider).valueOrNull;
+  if (active == null || profiles == null || ref.read(onboardingDeferredProvider) == active.id) return null;
+  final p = profiles.where((x) => x.id == active.id).firstOrNull;
+  if (p == null) return null;
+  return onboardingResumeRoute(
+    p,
+    glassAvailable: Flags.glassAvailable,
+    onboardingBuilt: ref.read(onboardingBuiltProvider),
+    pendingDone: ref.read(onboardingStoreProvider).readPending() != null,
+  );
+}
+
 /// One `GoRouter` per boot (cinematic 8.0.3, 8.2).
 GoRouter buildCinematicRouter(Ref ref) {
   final bridge = _GateBridge();
@@ -164,6 +184,8 @@ GoRouter buildCinematicRouter(Ref ref) {
     ..listen<AuthState>(authControllerProvider, (_, __) => bridge.poke())
     ..listen(activeProfileProvider, (_, __) => bridge.poke())
     ..listen<bool>(profileSessionReadyProvider, (_, __) => bridge.poke())
+    // The list arriving after a cold start decides whether Tonight resumes onboarding.
+    ..listen(profilesProvider, (_, __) => bridge.poke())
     // Keeps the X-Profile-Id header installed for the app's lifetime without rebuilding the router.
     ..listen(profileHeaderSyncProvider, (_, __) {});
 
@@ -181,7 +203,11 @@ GoRouter buildCinematicRouter(Ref ref) {
           if (!ref.read(profileSessionReadyProvider)) ref.read(profileSessionReadyProvider.notifier).enter();
         });
       }
-      return cineRedirect(gate, state.uri);
+      final to = cineRedirect(gate, state.uri);
+      if (to != null) return to;
+      // A remembered profile that has not finished onboarding never lands on Tonight: a cold start,
+      // Manage's Use and a restart in from Glass all resume it, like the picker does.
+      return state.uri.path == Routes.tonightPattern ? _onboardingRedirect(ref) : null;
     },
     routes: [
       ..._shellRoutes(),
