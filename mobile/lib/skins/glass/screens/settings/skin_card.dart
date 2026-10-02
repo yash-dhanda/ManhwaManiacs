@@ -44,7 +44,7 @@ class _GlassSkinCardState extends State<GlassSkinCard> {
     final (w, h) = wide ? (240.0, 520.0) : (160.0, 347.0);
     final preview = ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: SizedBox(width: w, height: h, child: ExcludeSemantics(child: GlassSkinPreviewLoop(skin: skin.name, height: h))),
+      child: SizedBox(width: w, height: h, child: ExcludeSemantics(child: GlassSkinPreviewLoop(skin: skin.name))),
     );
     final text = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
       Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, children: [

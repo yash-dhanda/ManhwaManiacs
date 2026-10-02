@@ -21,8 +21,8 @@ void main() {
     expect(find.bySemanticsLabel('Step 1 of 5'), findsOneWidget);
     expect(find.text('YOUR EDITION'), findsOneWidget);
     expect(_headline('Pick how the app looks.'), findsOneWidget);
-    expect(find.byKey(const Key('preview-frame-cinematic')), findsOneWidget);
-    expect(find.byKey(const Key('preview-frame-glass'), skipOffstage: false), findsOneWidget);
+    expect(find.byKey(const Key('edition-preview-cinematic')), findsOneWidget);
+    expect(find.byKey(const Key('edition-preview-glass'), skipOffstage: false), findsOneWidget);
     expect(find.bySemanticsLabel(RegExp(r'^Cinematic\. .*This edition\.')), findsOneWidget);
     expect(find.bySemanticsLabel(RegExp(r'^Glass\.')), findsOneWidget);
     expect(find.text('Choose Glass', skipOffstage: false), findsOneWidget);

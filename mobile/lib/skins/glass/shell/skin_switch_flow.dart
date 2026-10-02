@@ -53,7 +53,7 @@ Future<void> startSkinSwitch(BuildContext context, WidgetRef ref,
       child: Center(
         child: ClipRRect(
           borderRadius: BorderRadius.all(Radius.circular(14)),
-          child: SizedBox(width: 120, height: 260, child: ExcludeSemantics(child: GlassSkinPreviewLoop(skin: 'cinematic', height: 260))),
+          child: SizedBox(width: 120, height: 260, child: ExcludeSemantics(child: GlassSkinPreviewLoop(skin: 'cinematic'))),
         ),
       ),
     ),

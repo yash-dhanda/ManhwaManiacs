@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/letter_reveal.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/spring_value.dart';
 import 'package:manhwamaniacs/skins/glass/screens/onboarding/skin_preview_loop.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
+import 'package:manhwamaniacs/skins/skin_preview.dart';
 
 /// Step 2, Look (only when Glass is available): the two skins as preview cards, a radio group with Glass selected. Choosing
 /// Glass carries on; choosing Cinematic restarts into Cinematic at its Formats step.
@@ -69,19 +70,27 @@ class _Card extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               child: Stack(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                  // The whole phone at its own 390:844 ratio beside the text, so nothing in the miniature is cropped.
+                  Row(
                     children: [
-                      GlassSkinPreviewLoop(skin: skin, height: 150),
                       Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GlassText(title, role: gt.typeTitle2),
-                            const SizedBox(height: 4),
-                            GlassText(line, role: gt.typeFootnote, color: gt.colorLabel2),
-                          ],
+                        padding: const EdgeInsets.all(12),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: SizedBox(width: 104, height: 104 / kSkinPreviewAspect, child: GlassSkinPreviewLoop(skin: skin)),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(4, 16, 44, 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              GlassText(title, role: gt.typeTitle2),
+                              const SizedBox(height: 4),
+                              GlassText(line, role: gt.typeFootnote, color: gt.colorLabel2),
+                            ],
+                          ),
                         ),
                       ),
                     ],

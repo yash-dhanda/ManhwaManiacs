@@ -8,54 +8,48 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/cine_dialog.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/confirm_switch.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/edition_picker.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/next_issue_plate.dart';
-import 'package:manhwamaniacs/skins/cinematic/screens/settings/edition/preview_loop.dart';
+import 'package:manhwamaniacs/skins/skin_preview.dart';
 
 import '../downloads/downloads_rig.dart' show settle;
 import 'settings_rig.dart';
 
-String frame(WidgetTester t, {String skin = 'cinematic'}) {
-  final img = t.widget<Image>(find.byKey(Key('preview-frame-$skin'), skipOffstage: false));
-  return (img.image as AssetImage).assetName;
-}
-
-int indexOf(String path) => int.parse(RegExp(r'(\d{3})\.png$').firstMatch(path)![1]!);
+AnimationController preview(WidgetTester t, {String skin = 'cinematic'}) =>
+    (t.state(find.descendant(of: find.byKey(Key('edition-preview-$skin'), skipOffstage: false), matching: find.byType(SkinPreview), skipOffstage: false).first) as dynamic).controller as AnimationController;
 
 
 Future<void> pumpPicker(WidgetTester t, {bool glass = false, bool reduced = false, Size size = const Size(390, 844)}) =>
     pumpPage(t, EditionPicker(glassAvailable: glass), size: size, reduced: reduced);
 
 void main() {
-  group('the loop', () {
-    testWidgets('plays the 36 frames at 6 fps and wraps after 6 s', (t) async {
+  group('the live preview', () {
+    testWidgets('scrolls every frame on one controller', (t) async {
       await pumpPicker(t);
-      final f0 = indexOf(frame(t));
-      await t.pump(const Duration(milliseconds: 500));
-      expect(indexOf(frame(t)), (f0 + 3) % 36, reason: '6 fps: three frames in 500 ms');
-      await t.pump(const Duration(milliseconds: 6000));
-      expect(indexOf(frame(t)), (f0 + 3) % 36, reason: '36 frames at 6 fps is 6 s');
+      final c = preview(t);
+      expect(c.isAnimating, isTrue);
+      final v0 = c.value;
+      await t.pump(const Duration(milliseconds: 16));
+      expect(c.value, greaterThan(v0));
     });
 
-    testWidgets('reduced motion shows frame 000 only', (t) async {
+    testWidgets('reduced motion holds the top, still', (t) async {
       await pumpPicker(t, reduced: true);
       await t.pump(const Duration(seconds: 2));
-      expect(frame(t), previewFramePath('cinematic', 0));
+      expect(preview(t).value, 0);
+      expect(preview(t).isAnimating, isFalse);
     });
 
-    testWidgets('the ticker stops while another route covers the page', (t) async {
+    testWidgets('the preview stops while another route covers the page', (t) async {
       await pumpPicker(t);
-      final nav = Navigator.of(t.element(find.byType(PreviewLoop)));
+      final nav = Navigator.of(t.element(find.byType(SkinPreview).first));
       nav.push(MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('on top'))));
       await settle(t, ms: 1200);
-      final at = frame(t);
+      final at = preview(t).value;
       await t.pump(const Duration(seconds: 2));
-      expect(frame(t), at);
+      expect(preview(t).value, at);
     });
 
-    test('the 36 frames are bundled and declared', () {
-      for (var i = 0; i < 36; i++) {
-        expect(File(previewFramePath('cinematic', i)).existsSync(), isTrue, reason: '$i');
-      }
-      expect(File('pubspec.yaml').readAsStringSync(), contains('- assets/skin_previews/cinematic/'));
+    test('no PNG frames are bundled any more', () {
+      expect(File('pubspec.yaml').readAsStringSync(), isNot(contains('skin_previews')));
     });
   });
 
@@ -64,7 +58,7 @@ void main() {
       await pumpPicker(t);
       expect(find.text('THIS EDITION'), findsOneWidget);
       expect(find.byType(NextIssuePlate), findsOneWidget);
-      expect(find.byKey(const Key('preview-frame-glass')), findsNothing, reason: 'no frames, no loop');
+      expect(find.byKey(const Key('edition-preview-glass')), findsNothing, reason: 'no Glass card, no preview');
       expect(find.byType(CineButton), findsNothing);
       expect(find.text(kEditionCaption), findsNothing);
       final semantics = t.widget<Semantics>(find.descendant(of: find.byType(NextIssuePlate), matching: find.byType(Semantics)).first);
@@ -74,11 +68,11 @@ void main() {
     testWidgets('two cards side by side from 600 dp, stacked below', (t) async {
       await pumpPicker(t);
       final phoneGlass = t.getTopLeft(find.byType(NextIssuePlate));
-      final phoneCine = t.getTopLeft(find.byKey(const Key('preview-frame-cinematic')));
+      final phoneCine = t.getTopLeft(find.byKey(const Key('edition-preview-cinematic')));
       expect(phoneGlass.dy, greaterThan(phoneCine.dy));
       await t.pumpWidget(const SizedBox());
       await pumpPicker(t, size: const Size(834, 1194));
-      expect(t.getTopLeft(find.byType(NextIssuePlate)).dy, lessThan(t.getBottomLeft(find.byKey(const Key('preview-frame-cinematic'))).dy));
+      expect(t.getTopLeft(find.byType(NextIssuePlate)).dy, lessThan(t.getBottomLeft(find.byKey(const Key('edition-preview-cinematic'))).dy));
     });
   });
 

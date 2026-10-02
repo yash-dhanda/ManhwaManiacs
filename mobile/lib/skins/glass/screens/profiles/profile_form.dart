@@ -40,8 +40,8 @@ import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show glassPurgeProbe
 import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart' show glassOfflineProvider;
 import 'package:manhwamaniacs/skins/glass/shell/skin_switch_flow.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
-import 'package:manhwamaniacs/skins/glass/splash/glass_mark.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
+import 'package:manhwamaniacs/skins/skin_preview.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// The picker's orb for a saved profile hops once (glass 8.6); the form writes the id, the picker reads and clears it.
@@ -647,28 +647,12 @@ class _SkinSegment extends StatelessWidget {
       );
 }
 
-/// A 32 px circular mini preview of a skin: frame `000.png` of its preview loop, else the neutral mark on the brand aurora.
+/// A 32 px circular mini preview of a skin: its [SkinPreview] miniature, still, cropped to the circle.
 class SkinMiniPreview extends StatelessWidget {
   const SkinMiniPreview({super.key, required this.skin, this.size = 32});
   final String skin;
   final double size;
 
-  /// Both skins' frames ship (`mobile/39` captured Glass's).
-  static const bool glassFramesBundled = true;
-
   @override
-  Widget build(BuildContext context) {
-    final bundled = skin == 'cinematic' || glassFramesBundled;
-    return ClipOval(
-      child: SizedBox.square(
-        dimension: size,
-        child: bundled
-            ? Image.asset('assets/skin_previews/$skin/000.png', fit: BoxFit.cover, gaplessPlayback: true, errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF131317)))
-            : DecoratedBox(
-                decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [gt.colorAurora1.withValues(alpha: 0.5), gt.colorAurora2.withValues(alpha: 0.5), gt.colorAurora3.withValues(alpha: 0.5)])),
-                child: Center(child: GlassMark(height: size * 0.5)),
-              ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => ClipOval(child: SizedBox.square(dimension: size, child: SkinPreview(skin: skin, play: false, fit: BoxFit.cover)));
 }
