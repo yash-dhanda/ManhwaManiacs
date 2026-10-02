@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/glass/glass/shape.dart';
 import 'package:manhwamaniacs/skins/glass/icons/glass_icon.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
@@ -120,8 +121,9 @@ class _GlassSearchPageState extends ConsumerState<GlassSearchPage> {
               _debounce = Timer(const Duration(milliseconds: 300), () => _write(q));
             },
             onSubmitted: _write,
-            onCancel: () => Navigator.of(context).maybePop(),
-            onCollapse: () => Navigator.of(context).maybePop(),
+            // A cold deep link has nothing beneath: Home.
+            onCancel: () => skinBack(context, glass: true),
+            onCollapse: () => skinBack(context, glass: true),
           ),
         ),
       ],

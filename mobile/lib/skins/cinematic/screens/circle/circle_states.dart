@@ -28,15 +28,18 @@ abstract final class CircleCopy {
 
 /// A notice across four columns (phones) or six of eight (tablets).
 class CircleNoticeBox extends StatelessWidget {
-  const CircleNoticeBox({super.key, required this.notice});
+  const CircleNoticeBox({super.key, required this.notice, this.top = 32});
   final Widget notice;
+
+  /// Space above the notice's own rule.
+  final double top;
 
   @override
   Widget build(BuildContext context) {
     final grid = CineGrid.of(context);
     final wide = MediaQuery.sizeOf(context).width >= 600;
     return Padding(
-      padding: EdgeInsets.fromLTRB(grid.left, 32, grid.right, 48),
+      padding: EdgeInsets.fromLTRB(grid.left, top, grid.right, 48),
       child: Align(alignment: Alignment.topLeft, child: SizedBox(width: wide ? grid.span(6) : double.infinity, child: notice)),
     );
   }
@@ -100,15 +103,17 @@ class CircleGalley extends StatelessWidget {
 
 /// The correction for a failed load: `CORRECTION` "The circle didn't load." + `Try again`.
 class CircleErrorNotice extends StatelessWidget {
-  const CircleErrorNotice({super.key, required this.error, required this.onRetry});
+  const CircleErrorNotice({super.key, required this.error, required this.onRetry, this.top = 32});
   final Object error;
   final VoidCallback onRetry;
+  final double top;
 
   @override
   Widget build(BuildContext context) {
     final e = error;
     if (e is NetworkError) {
       return CircleNoticeBox(
+        top: top,
         notice: CineNotice(
           key: const Key('circle-offline'),
           tone: CineNoticeTone.offline,
@@ -119,6 +124,7 @@ class CircleErrorNotice extends StatelessWidget {
       );
     }
     return CircleNoticeBox(
+      top: top,
       notice: CineNotice(
         key: const Key('circle-error'),
         tone: CineNoticeTone.error,

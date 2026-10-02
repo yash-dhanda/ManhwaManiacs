@@ -146,7 +146,8 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
     final quiet = members != null && members.isEmpty;
     final viewerShares = sharing?.activity ?? false;
 
-    Widget header() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    // [rule] off when a notice follows: it brings its own heavy rule, and two made an empty band.
+    Widget header({bool rule = true}) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(
             padding: EdgeInsets.fromLTRB(pad, t.space4, pad, 0),
             child: Row(children: [
@@ -167,7 +168,7 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
             child: SetHeading('The Circle', id: 'masthead-circle', style: CineText.style(context, t.typeMasthead).copyWith(color: t.colorInk100), cap: t.typeMasthead.cap, level: 1, trigger: SetTrigger.mount, focusNode: _mastheadFocus),
           ),
           Padding(padding: EdgeInsets.fromLTRB(pad, t.space2, pad, 0), child: CineRoleText('What the other readers on this server are reading.', t.typeDeck, color: t.colorInk60)),
-          Padding(padding: EdgeInsets.fromLTRB(pad, t.space4, pad, t.space4), child: const CineRuleDraw(kind: CineRuleKind.heavy, delay: Duration(milliseconds: 1200))),
+          if (rule) Padding(padding: EdgeInsets.fromLTRB(pad, t.space4, pad, t.space4), child: const CineRuleDraw(kind: CineRuleKind.heavy, delay: Duration(milliseconds: 1200))),
           if (members != null && members.isNotEmpty) ReadersStrip(members: members),
           if (members != null && members.isNotEmpty && sharing != null && !sharing.activity && profileId != null)
             Padding(
@@ -180,14 +181,15 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
 
     Widget body() {
       if (members == null) {
-        if (membersAsync.hasError) return SingleChildScrollView(child: Column(children: [header(), CircleErrorNotice(error: membersAsync.error!, onRetry: () => ref.invalidate(circleMembersProvider))]));
+        if (membersAsync.hasError) return SingleChildScrollView(child: Column(children: [header(rule: false), CircleErrorNotice(error: membersAsync.error!, onRetry: () => ref.invalidate(circleMembersProvider), top: t.space4)]));
         return SingleChildScrollView(child: Column(children: [header(), const CircleGalley()]));
       }
       if (quiet && !viewerShares) {
         return SingleChildScrollView(
           child: Column(children: [
-            header(),
+            header(rule: false),
             CircleNoticeBox(
+              top: t.space4,
               notice: CineNotice(
                 key: const Key('circle-quiet'),
                 tone: CineNoticeTone.empty,

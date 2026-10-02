@@ -198,6 +198,8 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
     Widget onArt(IconData icon, String tip, VoidCallback onTap) => Semantics(
           button: true,
           label: tip,
+          // The excluded InkResponse's tap, so VoiceOver can activate it.
+          onTap: onTap,
           excludeSemantics: true,
           child: Tooltip(
             message: tip,

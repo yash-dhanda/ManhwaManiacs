@@ -5,6 +5,7 @@ import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/cinematic/app_frame.dart';
 import 'package:manhwamaniacs/skins/cinematic/router_gate.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens.dart';
@@ -38,8 +39,13 @@ GoRoute _route(ScreenId id, _Move move, {String? path, GlobalKey<NavigatorState>
     path: path ?? id.path,
     name: isPattern ? id.id : null,
     parentNavigatorKey: parent,
-    pageBuilder: (context, state) =>
-        _page(move, context, state, cineScreenFor(context, id, state)),
+    pageBuilder: (context, state) => _page(
+          move,
+          context,
+          state,
+          // Readers leave to the book page on their own.
+          move == _Move.reader ? cineScreenFor(context, id, state) : SkinBackFallback(glass: false, child: cineScreenFor(context, id, state)),
+        ),
   );
 }
 

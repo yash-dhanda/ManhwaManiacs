@@ -24,6 +24,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_poster.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/discover_keys.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/index_field_header.dart';
+import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/skin_haptics.dart';
@@ -358,7 +359,10 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
             whenTextFieldFree: true,
           ),
       ],
-      child: Scaffold(
+      // The running head carries Back (to Sources when nothing is beneath).
+      child: CineScaffold(
+        firstRunNote: false,
+        body: Scaffold(
         backgroundColor: t.colorPaper0,
         body: SafeArea(
           child: Stack(
@@ -385,16 +389,6 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                         children: [
                           Row(
                             children: [
-                              IconButton(
-                                tooltip: 'Back',
-                                onPressed: () => context.canPop()
-                                    ? context.pop()
-                                    : context.go(Routes.sources()),
-                                icon: Icon(
-                                  PhosphorRegular.arrowLeft,
-                                  color: t.colorInk100,
-                                ),
-                              ),
                               if (source?.iconUrl != null)
                                 SizedBox(
                                   width: 24,
@@ -615,6 +609,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

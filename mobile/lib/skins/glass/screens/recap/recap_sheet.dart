@@ -24,6 +24,7 @@ import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/copy/ai.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
@@ -299,7 +300,7 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
   }
 
   void _close() {
-    if (mounted) Navigator.of(context).maybePop();
+    if (mounted) skinBack(context, glass: true);
   }
 
   /// The saved page of the continue chapter when it is half read (glass 9.1.3 "Continue · Ch 142, p. 12"), else null.
@@ -326,7 +327,9 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     // The dive starts from this sheet's context (the navigator's own context sits above its overlay) and outlives the sheet: it
     // reads what it needs up front.
     final dive = enterReader(context, ref, loc, fromRect: from);
-    Navigator.of(context).pop();
+    // The full page (a cold deep link) is the only route: keep it beneath the reader.
+    final nav = Navigator.of(context);
+    if (nav.canPop()) nav.pop();
     await dive;
   }
 

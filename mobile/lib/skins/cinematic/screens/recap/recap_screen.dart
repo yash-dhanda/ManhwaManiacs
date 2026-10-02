@@ -24,11 +24,14 @@ import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/feedback.dart';
+import 'package:manhwamaniacs/skins/cinematic/hit.dart';
+import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart' show ReaderEntry;
 import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_announce.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_not_available_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart' show CineNoticeAction;
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
@@ -371,6 +374,15 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
             Expanded(
               child: Stack(children: [
                 Positioned.fill(child: scroll),
+                // Back in every phase (the error slate has no Close), centred on the skip button's line.
+                Positioned(
+                  top: top + 16 - cineHitMin(context) / 2,
+                  left: 8,
+                  child: SizedBox.square(
+                    dimension: cineHitMin(context),
+                    child: CineIconButton(label: 'Back', role: CineIconRole.back, variant: CineIconButtonVariant.onArt, onPressed: _close),
+                  ),
+                ),
                 Positioned(
                   top: top,
                   right: 16,

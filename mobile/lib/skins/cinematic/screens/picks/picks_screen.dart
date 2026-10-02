@@ -24,6 +24,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/picks/for_you_grid.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/genre_line.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/picks/picks_keys.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_layout.dart' show pickedAgo;
+import 'package:manhwamaniacs/skins/cinematic/shell/cine_scaffold.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -201,7 +202,10 @@ class _PicksScreenState extends ConsumerState<PicksScreen> {
     return CineKeys(
       group: picksKeyGroup,
       keys: picksKeys(focusAsk: _ask.requestFocus, ask: _submitField, step: (fwd) => focusStep(context, forward: fwd)),
-      child: Scaffold(
+      // The running head carries Back (to Discover when nothing is beneath).
+      child: CineScaffold(
+        firstRunNote: false,
+        body: Scaffold(
         backgroundColor: c.colorPaper0,
         body: SafeArea(
           child: CinePullToReprint(
@@ -213,6 +217,7 @@ class _PicksScreenState extends ConsumerState<PicksScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
