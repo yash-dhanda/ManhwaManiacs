@@ -145,6 +145,7 @@ class SkinGlass extends ConsumerStatefulWidget {
     this.size,
     this.rimTint,
     this.tint,
+    this.keepChild = false,
   })  : groupShapes = null,
         groupAxis = Axis.horizontal,
         groupGap = 8,
@@ -177,6 +178,7 @@ class SkinGlass extends ConsumerStatefulWidget {
         tierValue = null,
         glow = null,
         moving = false,
+        keepChild = false,
         size = null;
 
   final Widget child;
@@ -194,6 +196,10 @@ class SkinGlass extends ConsumerStatefulWidget {
   final Animation<double>? tierValue;
   final ValueListenable<GlassPressGlow?>? glow;
   final bool materialize;
+
+  /// Holds the child under a GlobalKey across tree-shape flips (materialize fade, solid/live flip), so a focused field keeps its
+  /// keyboard. Opt-in: a surface hosting a page would move that page's own GlobalKeys with it and collide with the next frame.
+  final bool keepChild;
 
   /// Holds the current settings while the surface moves (the library rebuilds geometry only at rest).
   final bool moving;
@@ -587,7 +593,7 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
       final dim = env.solid || twinKind != null ? 0.0 : dimFor(lb, highContrast: hc);
       final grad = gradFor(lb, bold: env.a11y.boldText);
       final content = GlassHost(
-        child: GlassTextAxes(rond: look.p.rond, grad: grad, child: grouped ? spec.child : KeyedSubtree(key: _childKey, child: spec.child)),
+        child: GlassTextAxes(rond: look.p.rond, grad: grad, child: grouped || !widget.keepChild ? spec.child : KeyedSubtree(key: _childKey, child: spec.child)),
       );
       final radius = BorderRadius.circular(shape.radiusFor(size));
       final tint = widget.rimTint;

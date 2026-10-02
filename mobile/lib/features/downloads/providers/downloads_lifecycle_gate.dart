@@ -141,8 +141,9 @@ class _DownloadsLifecycleGateState extends ConsumerState<DownloadsLifecycleGate>
             interval: interval,
             excludeOpen: openChapters,
           );
-      // The sweep deletes rows (and flips vanished ones to failed): lists must re-read.
-      controller.retryAfterStorageChange();
+      // The sweep deletes rows (and flips vanished ones to failed): lists must re-read. Not once this gate (and the
+      // container under it) is gone: the controller would read a disposed container.
+      if (mounted) controller.retryAfterStorageChange();
     } catch (_) {
       // Best-effort housekeeping — retried on the next launch/resume.
     }

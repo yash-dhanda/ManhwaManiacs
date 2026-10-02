@@ -103,7 +103,8 @@ Future<void> runSaveToFiles(BuildContext context, WidgetRef ref, {required Strin
     if (destination == ExportDestination.mediaStoreDownloads && !result.isEmpty) {
       await media.saveExport(seriesDirectory: result.directory, seriesFolderName: result.seriesFolderName);
       // The copy in MediaStore is the user's; the private staging copy would only double the size.
-      await result.directory.delete(recursive: true).then((_) {}, onError: (Object _) {});
+      // Not awaited: clean-up only, and the result dialog must not wait on the disk.
+      unawaited(result.directory.delete(recursive: true).then((_) {}, onError: (Object _) {}));
     }
   } catch (_) {
     failed = true;

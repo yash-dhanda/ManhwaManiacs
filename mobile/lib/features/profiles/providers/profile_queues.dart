@@ -11,16 +11,23 @@ import 'package:manhwamaniacs/features/profiles/providers/skin_outbox.dart';
 /// tokenless request says nothing). When either lands the profile list refreshes, so the picker and
 /// the boot check stop reading the old skin or step. True when something was sent.
 final profileQueuesFlushProvider = Provider<Future<bool> Function()>(
-  (ref) => () async {
-    if (ref.read(authControllerProvider) is! AuthAuthenticated) return false;
-    var sent = await ref.read(skinOutboxProvider).flush();
-    final active = ref.read(activeProfileProvider);
-    final store = ref.read(onboardingStoreProvider);
-    if (active != null && store.readPending() != null) {
-      sent = await store.flushPending(active.id, ref.read(onboardingRepositoryProvider)) || sent;
-    }
-    if (sent) await ref.read(profilesProvider.notifier).refresh();
-    return sent;
+  (ref) {
+    // A skin restart disposes the container while a flush is still awaiting the network.
+    var alive = true;
+    ref.onDispose(() => alive = false);
+    return () async {
+      if (ref.read(authControllerProvider) is! AuthAuthenticated) return false;
+      var sent = await ref.read(skinOutboxProvider).flush();
+      if (!alive) return sent;
+      final active = ref.read(activeProfileProvider);
+      final store = ref.read(onboardingStoreProvider);
+      if (active != null && store.readPending() != null) {
+        sent = await store.flushPending(active.id, ref.read(onboardingRepositoryProvider)) || sent;
+        if (!alive) return sent;
+      }
+      if (sent) await ref.read(profilesProvider.notifier).refresh();
+      return sent;
+    };
   },
   name: 'profileQueuesFlush',
 );

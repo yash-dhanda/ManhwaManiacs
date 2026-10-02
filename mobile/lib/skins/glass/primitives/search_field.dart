@@ -216,6 +216,7 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
                   excludeFromSemantics: true,
                   onTap: _wake,
                   child: SkinGlass(
+                    keepChild: true,
                     size: Size(width, h),
                     tier: GlassTierId.t3,
                     twin: widget.twin,

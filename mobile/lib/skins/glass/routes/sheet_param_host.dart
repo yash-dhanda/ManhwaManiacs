@@ -24,20 +24,46 @@ class _GlassSheetParamHostState extends State<GlassSheetParamHost> {
 
   String? get _open => _stack.isEmpty ? null : _stack.last.$1;
 
+  GoRouter? _router;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final router = GoRouter.maybeOf(context);
+    if (router != _router) {
+      _router?.routeInformationProvider.removeListener(_onLocation);
+      _router = router?..routeInformationProvider.addListener(_onLocation);
+    }
     final uri = _uri();
     final id = uri?.queryParameters['sheet'];
     if (id != null && id != _open) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _present(id));
     } else if (id == null && _stack.isNotEmpty) {
-      final all = [..._stack];
-      _stack.clear();
-      for (final (_, r) in all.reversed) {
-        if (r.isActive && r.navigator != null) r.navigator!.removeRoute(r);
-      }
+      _closeAll();
     }
+  }
+
+  /// The sheets sit on the root navigator, above every tab: going to another tab leaves this page offstage with its own location
+  /// unchanged, so the app's location (no `sheet` any more) is what closes them.
+  void _onLocation() {
+    if (_stack.isEmpty || !mounted) return;
+    final at = _router?.routeInformationProvider.value.uri;
+    if (at == null || at.queryParameters.containsKey('sheet')) return;
+    _closeAll();
+  }
+
+  void _closeAll() {
+    final all = [..._stack];
+    _stack.clear();
+    for (final (_, r) in all.reversed) {
+      if (r.isActive && r.navigator != null) r.navigator!.removeRoute(r);
+    }
+  }
+
+  @override
+  void dispose() {
+    _router?.routeInformationProvider.removeListener(_onLocation);
+    super.dispose();
   }
 
   Uri? _uri() {
