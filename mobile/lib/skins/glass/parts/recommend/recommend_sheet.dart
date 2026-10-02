@@ -85,14 +85,22 @@ void openRecommendSheet(WidgetRef ref, {String? sourceId, String? seriesKey, Str
 }
 
 /// "Recommend to…" for a series' menus (glass 9.3.4, E6): once the Circle has loaded with nobody taking recommendations it reads
-/// "Recommend to… (no one is taking recommendations yet)" and is disabled. Null while the `recommend` sheet is not registered.
+/// "Recommend to… (no one is taking recommendations yet)" and is disabled; while the Circle is still loading it reads "Recommend to…
+/// (loading your Circle)", disabled. Null while the `recommend` sheet is not registered.
 GlassMenuEntry? recommendMenuEntry(WidgetRef ref, {required String sourceId, required String seriesKey, String? title, SingleActivator? keyHint, VoidCallback? onSelected}) {
   if (!glassSheetRegistered('recommend')) return null;
-  final ms = ref.read(circleMembersProvider).valueOrNull;
+  final members = ref.read(circleMembersProvider);
+  final ms = members.valueOrNull;
+  // Still loading: disabled until the Circle answers (reading it here starts the load for the next open).
+  final loading = ms == null && !members.hasError;
   final none = ms != null && !ms.any((m) => m.shares.recommendations);
   return GlassMenuEntry(
-    label: none ? 'Recommend to… (no one is taking recommendations yet)' : 'Recommend to…',
-    enabled: !none,
+    label: none
+        ? 'Recommend to… (no one is taking recommendations yet)'
+        : loading
+            ? 'Recommend to… (loading your Circle)'
+            : 'Recommend to…',
+    enabled: !none && !loading,
     keyHint: keyHint,
     onSelected: onSelected ?? () => openRecommendSheet(ref, sourceId: sourceId, seriesKey: seriesKey, title: title),
   );

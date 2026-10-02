@@ -162,6 +162,15 @@ void main() {
     },
   );
 
+  testWidgets('one at a time: when the next chapter never loads, Read next falls back to opening it on its own', (t) async {
+    final rig = await pumpGlassReader(t, pages: 2, chapters: {'c3': readerChapter('c3', pages: 0, prev: 'c2')}, prefsValues: {'mm.reader-settings.device': '{"glass":{"chapters":"single"}}'});
+    await settleReader(t, ms: 1000);
+    t.state<GlassMangaReaderState>(find.byType(GlassMangaReader)).nextChapter();
+    await settleReader(t, ms: 2000);
+    expect(rig.at.path, '/reader/demo/k/c3');
+    await disposeGlassReader(t);
+  });
+
   testWidgets('SystemChrome: immersiveSticky on enter, edgeToEdge on exit; orientations widen then restore', (t) async {
     final rig = await pumpGlassReader(t);
     await settleReader(t, ms: 600);

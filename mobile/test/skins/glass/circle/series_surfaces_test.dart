@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
@@ -79,6 +82,16 @@ void main() {
     expect(find.text('Recommend to… (no one is taking recommendations yet)'), findsOneWidget);
   });
 
+  testWidgets('while the Circle is still loading the row says so and is disabled', (t) async {
+    final rig = await _page(t, _SlowMembers());
+    await t.tap(find.bySemanticsLabel('More').first);
+    await _settle(t);
+    expect(find.text('Recommend to… (loading your Circle)'), findsOneWidget);
+    await t.tap(find.text('Recommend to… (loading your Circle)'));
+    await _settle(t);
+    expect(_loc2(rig), isNot(contains('sheet=recommend')));
+  });
+
   testWidgets('shift+R on the series page recommends this series', (t) async {
     final rig = await _page(t, _repo());
     await t.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
@@ -96,4 +109,12 @@ void main() {
     expect(find.byKey(const ValueKey('series-reactions-c3'), skipOffstage: false), findsOneWidget);
     expect(find.byType(ChapterReactionSummary, skipOffstage: false), findsWidgets);
   });
+}
+
+/// A Circle whose members never answer.
+class _SlowMembers extends FakeCircleRepository {
+  _SlowMembers() : super(sharingValue: const Sharing(activity: true), reactionList: [_c3()]);
+
+  @override
+  Future<Result<List<CircleMember>>> members({String? sourceId, String? seriesKey}) => Completer<Result<List<CircleMember>>>().future;
 }

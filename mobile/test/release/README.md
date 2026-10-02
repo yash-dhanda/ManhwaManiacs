@@ -25,6 +25,9 @@ cd mobile && flutter test test/release      # about a minute
   then); off, nothing does; a profile switch or a boot mismatch never does.
 - Each profile boots its own skin: a mismatch at boot and a profile switch restart with no toast, no icon and no `PATCH`.
 - The library and the saved downloads are there after each restart, in both skins.
+- The other entry points of the switch, through the same real restart: Glass's profile form (the active profile's Skin row set
+  to Cinematic, through the alert), Glass onboarding's Look step (Cinematic restarts at Cinematic's Formats step) and Cinematic
+  onboarding's Edition step (Choose Glass); each keeps the session and sends the profile's `PATCH {skin}`.
 
 `nav_reader_release_test.dart`, on iOS:
 
@@ -33,5 +36,3 @@ cd mobile && flutter test test/release      # about a minute
 - Both reader entry points (library `ReaderScreen`, `SourceReaderScreen`) open in each skin; a single tap leaves the menu shut, a
   double tap opens it; the reader closes (edge swipe, then a pop) back to the Library.
 - Discover's genre AI grid hides an 18+ title while the gate is closed and shows it when open; its text is in the skin's face.
-
-Not covered here: the onboarding and profile-form entry points of the switch (their own tests in `test/skins/**`).

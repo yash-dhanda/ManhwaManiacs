@@ -1125,7 +1125,11 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _scheduleProgressSave(feedPosition);
     _scheduleScrollSave(scrollOffset, feedPosition);
     _maybeAutoNextChapter(atEnd);
-    if (widget.chapterMode == ReaderChapterMode.continuous) _maybeExtendFeed(feedPosition);
+    if (widget.chapterMode == ReaderChapterMode.continuous) {
+      _maybeExtendFeed(feedPosition);
+    } else {
+      _maybePreloadNeighbour(flatPage);
+    }
     _trackEngine();
     _prefetchUpcoming(flatPage);
     // Last, so the state carries what this pass started (a feed extension).
@@ -1254,6 +1258,17 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       _loadingPrevious = true;
       unawaited(onStart().whenComplete(() => _loadingPrevious = false));
     }
+  }
+
+  /// One at a time (no seams to extend into): at [kNeighbourPreloadAt] of the chapter the next chapter's manifest and first three
+  /// pages load through [armNeighbour] (glass 8.14), so the next-chapter card and the commit land on warm data. Once per chapter.
+  void _maybePreloadNeighbour(int flatPage) {
+    final pages = widget.feed.pages.length;
+    final chapter = widget.feed.chapters.lastOrNull?.id;
+    if (pages == 0 || widget.loadNeighbour == null || chapter == null || _preloadedFor == chapter) return;
+    if (flatPage / pages < kNeighbourPreloadAt) return;
+    _preloadedFor = chapter;
+    unawaited(armNeighbour(NeighbourDirection.next).then((_) {}, onError: (Object _) {}));
   }
 
   /// Warm the next few pages' decoded bitmaps ahead of the visible page so fast
@@ -1435,6 +1450,9 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   NeighbourPhase _neighbourPhase = NeighbourPhase.idle;
   final Map<NeighbourDirection, Future<NeighbourInfo>> _armed = {};
   final Map<NeighbourDirection, ReaderChapter> _armedChapter = {};
+
+  /// The chapter whose next neighbour [_maybePreloadNeighbour] already asked for.
+  String? _preloadedFor;
   double _pendingFling = 0;
   NeighbourDirection? _pendingDir;
   bool _cruiseWatch = false;
@@ -1604,6 +1622,10 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       _armedChapter[direction] = ch;
       final first = ch.pages.first;
       if (mounted) {
+        // The first three pages: the card waits on the first; the next two warm behind it.
+        for (final p in ch.pages.skip(1).take(2)) {
+          unawaited(precacheImage(_providerFor(p), context, onError: (_, __) {}));
+        }
         try {
           await precacheImage(_providerFor(first), context, onError: (_, __) {}).timeout(const Duration(seconds: 2));
         } catch (_) {}

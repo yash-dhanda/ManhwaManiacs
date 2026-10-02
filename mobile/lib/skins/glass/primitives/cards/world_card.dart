@@ -88,7 +88,9 @@ class GlassWorldCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // The card grows with large text (up to 60 px) so the reason line is not cut; the source badge sits beside the title, never on it.
     final extra = glassWorldCardExtra(context);
-    final badge = infoOnly ? null : Row(mainAxisSize: MainAxisSize.min, children: [GlassBadge.source(sourceName!, icon: sourceIcon), if (extraSources > 0) ...[const SizedBox(width: 4), GlassBadge.role('+$extraSources')]]);
+    final badge = infoOnly
+        ? null
+        : Row(mainAxisSize: MainAxisSize.min, children: [GlassBadge.source(sourceName!, icon: sourceIcon), if (extraSources > 0) ...[const SizedBox(width: 4), GlassBadge.role('+$extraSources')]]);
     final text = Expanded(
       child: ClipRect(
         child: SingleChildScrollView(
@@ -100,7 +102,10 @@ class GlassWorldCard extends StatelessWidget {
           if (badge == null)
             GlassLabel(title, role: gt.typeHeadline, maxLines: 2)
           else
-            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: GlassLabel(title, role: gt.typeHeadline, maxLines: 2)), const SizedBox(width: 4), badge]),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [Expanded(child: GlassLabel(title, role: gt.typeHeadline, maxLines: 2)), const SizedBox(width: 4), ConstrainedBox(constraints: const BoxConstraints(maxWidth: 96), child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.topRight, child: badge))],
+            ),
           GlassLabel(kind, role: gt.typeCaption1, color: gt.colorLabel3),
           GlassLabel(stats, role: gt.typeMono, size: 13, height: 16, color: gt.colorLabel2),
           if (tags.isNotEmpty)

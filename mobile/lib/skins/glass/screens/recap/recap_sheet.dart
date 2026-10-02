@@ -9,6 +9,9 @@ import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
+import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
+import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
 import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/recap/background_recaps.dart';
@@ -18,15 +21,21 @@ import 'package:manhwamaniacs/features/recap/recap_cache.dart';
 import 'package:manhwamaniacs/features/recap/recap_deck.dart';
 import 'package:manhwamaniacs/features/recap/sse.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
+import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
+import 'package:manhwamaniacs/skins/glass/copy/ai.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
+import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/machine_badge.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/thinking_orbit.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/icon_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/typed_headline.dart';
+import 'package:manhwamaniacs/skins/glass/screens/library/library_common.dart' show roleButtonIcon;
+import 'package:manhwamaniacs/skins/glass/screens/novel/speaker_bands.dart' show speakerHue;
 import 'package:manhwamaniacs/skins/glass/screens/recap/compact_recap.dart';
 import 'package:manhwamaniacs/skins/glass/screens/recap/recap_deck.dart';
 import 'package:manhwamaniacs/skins/glass/screens/recap/recap_footer.dart';
@@ -36,6 +45,24 @@ import 'package:manhwamaniacs/skins/glass/type.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 enum RecapPhaseG { opening, writing, ready, problem }
+
+/// "Continue · Ch 142, p. 12" (glass 9.1.3); the chapter and the page each only when known.
+String continueLabel(String chNo, int? page) {
+  final parts = [if (chNo.isNotEmpty) 'Ch $chNo', if (page != null) 'p. $page'];
+  return parts.isEmpty ? 'Continue' : 'Continue · ${parts.join(', ')}';
+}
+
+/// Who's who orbs take the speaker hue the novel reader tints this book's cast with (glass 9.1.3): the continue chapter's cast,
+/// matched by name case-insensitively; a name it does not list gets null (`g700`).
+Color? Function(String) recapCastHue(NovelAttribution a) {
+  final slots = {
+    for (final e in speakerSlots(a).entries) e.key.toLowerCase(): e.value.slot,
+  };
+  return (name) {
+    final slot = slots[name.toLowerCase()];
+    return slot == null ? null : speakerHue(slot);
+  };
+}
 
 /// The recap deck sheet's content (glass 9.1.3; route `recap`): header, the deck (or the compact card), the spoiler-guard footer and the
 /// pinned actions. `GET /ai/recap?shape=deck&scope=` streams through `deckReducer`; a cached deck opens at once; closing the sheet
@@ -71,6 +98,9 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
   bool _ocrTried = false;
   bool _offline = false;
   String? _title;
+
+  /// Why "Write it again" is off (`budget_exhausted`, `not_configured`, `rate_limited`), after the server refused a rewrite.
+  String? _rewriteBlocked;
 
   String get _to => widget.to ?? '';
   bool get _compact => widget.scope == 'chapter';
@@ -141,7 +171,17 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     if (mounted && !online) setState(() => _offline = true);
   }
 
-  Future<void> _open() async {
+  /// "Write it again" (glass 9.1.3): one ask; a refusal keeps the recap on screen and disables the button with the reason.
+  bool get _canRewrite =>
+      _phase == RecapPhaseG.ready && !_offline && _rewriteBlocked == null;
+
+  Future<void> _rewrite() async {
+    if (!_canRewrite) return;
+    await _open(fresh: true);
+  }
+
+  Future<void> _open({bool fresh = false}) async {
+    final before = (_deck, _savedAt);
     setState(() {
       _phase = RecapPhaseG.opening;
       _deck = const DeckState();
@@ -154,12 +194,24 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     try {
       open = await ref
           .read(recapRepositoryProvider)
-          .openDeck(_key, scope: widget.scope, cancel: token);
+          .openDeck(_key, scope: widget.scope, fresh: fresh, cancel: token);
     } on DioException {
       return;
     }
     if (!mounted) return;
     switch (open) {
+      case RecapNone(:final reason) when fresh && before.$1.done != null:
+        setState(() {
+          _deck = before.$1;
+          _savedAt = before.$2;
+          _phase = RecapPhaseG.ready;
+          _rewriteBlocked = switch (reason) {
+            'ai_budget_exhausted' => 'budget_exhausted',
+            'ai_not_configured' => 'not_configured',
+            'offline' || 'error' => null,
+            _ => reason,
+          };
+        });
       case RecapNone(:final reason):
         _problemFor(reason);
       case DeckStream(:final events):
@@ -239,6 +291,10 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
       _close();
       return true;
     }
+    if (k == LogicalKeyboardKey.keyR && _canRewrite) {
+      unawaited(_rewrite());
+      return true;
+    }
     return !_compact && (_deckKey.currentState?.handleKey(k) ?? false);
   }
 
@@ -246,23 +302,42 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     if (mounted) Navigator.of(context).maybePop();
   }
 
+  /// The saved page of the continue chapter when it is half read (glass 9.1.3 "Continue · Ch 142, p. 12"), else null.
+  int? _savedPage() {
+    final p = ref.read(sourceSeriesProgressProvider(
+        (sourceId: widget.sourceId, seriesId: widget.seriesKey),),)[_to];
+    return p == null || p.completed || p.page <= 1 ? null : p.page;
+  }
+
   Future<void> _continue([String? chapterKey]) async {
     final novel =
         isNovelSource(ref.read(contentModeScopeProvider), widget.sourceId) ??
             false;
     final at = chapterKey ?? _to;
+    final page = chapterKey == null ? _savedPage() : null;
+    final q = {if (page != null) 'page': page};
     final loc = novel
-        ? Routes.novel(widget.sourceId, widget.seriesKey, at)
-        : Routes.reader(widget.sourceId, widget.seriesKey, at);
+        ? Routes.novel(widget.sourceId, widget.seriesKey, at, q)
+        : Routes.reader(widget.sourceId, widget.seriesKey, at, q);
     final box = context.findRenderObject() as RenderBox?;
     final from = box != null && box.attached
         ? box.localToGlobal(Offset.zero) & box.size
         : const Rect.fromLTWH(0, 0, 1, 1);
-    final nav = Navigator.of(context);
-    final ctx = nav.context;
-    nav.pop();
-    if (ctx.mounted) await enterReader(ctx, ref, loc, fromRect: from);
+    // The dive starts from this sheet's context (the navigator's own context sits above its overlay) and outlives the sheet: it
+    // reads what it needs up front.
+    final dive = enterReader(context, ref, loc, fromRect: from);
+    Navigator.of(context).pop();
+    await dive;
   }
+
+  Color? Function(String) _castHue() => recapCastHue(ref
+          .watch(novelAttributionProvider((
+            sourceId: widget.sourceId,
+            seriesKey: widget.seriesKey,
+            chapterKey: _to,
+          ),),)
+          .valueOrNull ??
+      NovelAttribution.none,);
 
   SourceChapterSummary? _chapter(SourceSeriesDetailData? d, String key) =>
       d?.chapters.where((c) => c.id == key).firstOrNull;
@@ -297,6 +372,13 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
     _title = title;
     final now = ref.read(clockProvider)();
     final chNo = _n(_chapter(detail, _to)?.number);
+    // Watched so the label follows the server's answer; novels save a progress bucket, not a page, so only manga name it.
+    ref.watch(sourceSeriesProgressProvider(
+        (sourceId: widget.sourceId, seriesId: widget.seriesKey),),);
+    final novel =
+        isNovelSource(ref.watch(contentModeScopeProvider), widget.sourceId) ??
+            false;
+    final page = novel ? null : _savedPage();
     final wide = GlassFrame.of(context) != GlassFrameKind.phone;
     final startKey = _startFrom(detail);
     final startCh =
@@ -314,7 +396,8 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
       case RecapPhaseG.ready:
         body = _compact
             ? CompactRecap(deck: _deck)
-            : RecapDeckView(key: _deckKey, deck: _deck);
+            : RecapDeckView(
+                key: _deckKey, deck: _deck, castHue: novel ? _castHue() : null,);
     }
 
     final writing =
@@ -332,6 +415,21 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
               const SizedBox(width: 6),
               GlassText('PREVIOUSLY ON',
                   role: gt.typeCaption1, color: gt.colorMachine, onGlass: wide,),
+              const Spacer(),
+              if (_phase == RecapPhaseG.ready && !_offline)
+                GlassIconButton(
+                  key: const ValueKey('recap-rewrite'),
+                  icon: roleButtonIcon(GlassIconRole.refresh),
+                  label: 'Write it again',
+                  tooltip: _rewriteBlocked == null
+                      ? 'Write it again (uses one ask)'
+                      : null,
+                  disabledReason: _rewriteBlocked == null
+                      ? null
+                      : glassAiLines(_rewriteBlocked).short,
+                  onPressed:
+                      _canRewrite ? () => unawaited(_rewrite()) : null,
+                ),
             ],),
             const SizedBox(height: 4),
             Semantics(
@@ -363,7 +461,7 @@ class _RecapSheetState extends ConsumerState<RecapSheet> {
             if (_phase != RecapPhaseG.problem) ...[
               const SizedBox(height: 12),
               GlassButton(
-                  label: chNo.isEmpty ? 'Continue' : 'Continue · Ch $chNo',
+                  label: continueLabel(chNo, page),
                   variant: GlassButtonVariant.primary,
                   size: GlassButtonSize.large,
                   fullWidth: true,

@@ -78,3 +78,6 @@ double flingStep(double v, double dtMs) => v * math.pow(0.998, dtMs);
 /// Whether a chapter ends the strip (`continuous`, today's reader) or the strip holds one chapter and
 /// the neighbour is reached by a pull or a swipe (`single`).
 enum ReaderChapterMode { continuous, single }
+
+/// One at a time: the share of the chapter read when the next chapter starts loading (glass 8.14, "preload at 70 %").
+const double kNeighbourPreloadAt = 0.7;

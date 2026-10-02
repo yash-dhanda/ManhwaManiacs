@@ -1,7 +1,7 @@
 // ignore_for_file: require_trailing_commas
 import 'dart:ui' show Size;
 
-import 'package:flutter/widgets.dart' show Text;
+import 'package:flutter/widgets.dart' show FadeTransition, ScrollableState, Scrollable, Text, ValueKey;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
@@ -94,6 +94,28 @@ void main() {
     expect(l.player.seeks, isNotEmpty);
     await disposeGlassNovel(t);
     handle.dispose();
+  });
+
+  testWidgets('a follow jump of more than two viewports is a true 120 ms cross-fade: the old list fades over the new place', (t) async {
+    final l = await pumpGlassListen(t, pushed: false, size: const Size(390, 700));
+    await settle(t);
+    await l.startNarration();
+    l.novel.router.go('${l.novel.location}?sheet=player');
+    await settle(t, ms: 1200);
+    final pos = t.state<ScrollableState>(find.descendant(of: find.byType(GlassSentenceList), matching: find.byType(Scrollable))).position;
+    expect(pos.maxScrollExtent, greaterThan(pos.viewportDimension * 2), reason: 'the fixture chapter must be long enough to jump');
+    await t.runAsync(() => l.narration.seekToSegment(l.state.target!.audio.segments.length - 1));
+    await l.settle(ms: 16);
+    await t.pump(const Duration(milliseconds: 16));
+    final ghost = find.byKey(const ValueKey('follow-ghost'));
+    expect(ghost, findsOneWidget);
+    expect(pos.pixels, greaterThan(pos.viewportDimension), reason: 'the list is already at its new place under the fading copy');
+    await t.pump(const Duration(milliseconds: 60));
+    final o = t.widget<FadeTransition>(find.ancestor(of: ghost, matching: find.byType(FadeTransition)).first).opacity.value;
+    expect(o, inExclusiveRange(0, 1));
+    await t.pump(const Duration(milliseconds: 200));
+    expect(ghost, findsNothing);
+    await disposeGlassNovel(t);
   });
 
   testWidgets('the post-play card counts 5 s, waits for Play now with a screen reader, and honours autoPlayNext', (t) async {

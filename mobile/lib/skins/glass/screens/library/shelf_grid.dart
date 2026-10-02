@@ -54,7 +54,7 @@ class ShelfWave {
 
 /// What a shelf item needs from the page, bundled so the grid and the list pass one object.
 class ShelfUi {
-  ShelfUi({required this.select, required this.flip, required this.live, required this.wave, required this.focused, required this.downloaded, required this.gateOpen});
+  ShelfUi({required this.select, required this.flip, required this.live, required this.wave, required this.focused, required this.downloaded, required this.gateOpen, this.toolbarKey});
   final GlassSelectModeController<int> select;
   final FlipRegistry flip;
   final ValueNotifier<PinchState?> live;
@@ -62,6 +62,9 @@ class ShelfUi {
   final ValueNotifier<int?> focused;
   final Set<String> downloaded;
   final bool gateOpen;
+
+  /// The pinned toolbar: a pinch never paints rows above its bottom edge (they would show through it).
+  final GlobalKey? toolbarKey;
 }
 
 class _WaveTile extends ConsumerStatefulWidget {
@@ -307,30 +310,49 @@ class ShelfListRow extends ConsumerWidget {
 /// A pinch row: paints the live scale of the pinch around the fingers' midpoint while one is down (the rows are a lazy list, so each
 /// row computes where the midpoint sits in its own space).
 class _PinchRow extends StatelessWidget {
-  const _PinchRow({required this.live, required this.child});
-  final ValueNotifier<PinchState?> live;
+  const _PinchRow({required this.ui, required this.child});
+  final ShelfUi ui;
   final Widget child;
 
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<PinchState?>(
-        valueListenable: live,
+        valueListenable: ui.live,
         child: child,
         builder: (context, p, child) {
-          // Always a Transform (identity at rest): swapping the subtree's parent would remount every tile mid-gesture.
-          if (p == null) return Transform(transform: Matrix4.identity(), child: child);
+          // Always a ClipRect over a Transform (no clip and identity at rest): swapping the subtree's parent would remount every tile
+          // mid-gesture.
+          if (p == null) return ClipRect(clipBehavior: Clip.none, child: Transform(transform: Matrix4.identity(), child: child));
           final ro = context.findRenderObject();
           final origin = ro is RenderBox && ro.attached ? ro.localToGlobal(Offset.zero) : Offset.zero;
           final f = p.focal - origin;
           final s = p.scale.clamp(0.6, 1.6);
-          return Transform(
-            transform: Matrix4.identity()
-              ..translateByDouble(f.dx, f.dy, 0, 1)
-              ..scaleByDouble(s, s, 1, 1)
-              ..translateByDouble(-f.dx, -f.dy, 0, 1),
-            child: child,
+          final bar = ui.toolbarKey?.currentContext?.findRenderObject();
+          final top = bar is RenderBox && bar.attached ? bar.localToGlobal(Offset(0, bar.size.height)).dy - origin.dy : null;
+          return ClipRect(
+            clipBehavior: top == null ? Clip.none : Clip.hardEdge,
+            clipper: top == null ? null : _Below(top),
+            child: Transform(
+              transform: Matrix4.identity()
+                ..translateByDouble(f.dx, f.dy, 0, 1)
+                ..scaleByDouble(s, s, 1, 1)
+                ..translateByDouble(-f.dx, -f.dy, 0, 1),
+              child: child,
+            ),
           );
         },
       );
+}
+
+/// Everything below [top] (row-local), unbounded elsewhere.
+class _Below extends CustomClipper<Rect> {
+  const _Below(this.top);
+  final double top;
+
+  @override
+  Rect getClip(Size size) => Rect.fromLTRB(-1e5, top, 1e5, 1e5);
+
+  @override
+  bool shouldReclip(_Below old) => old.top != top;
 }
 
 /// The shelf's series as a sliver (glass 8.17): phones use the stored column count (List, 2-5), tablet and desktop frames
@@ -362,7 +384,7 @@ class SliverShelfGrid extends ConsumerWidget {
               ),
             );
           }
-          return SliverList.builder(itemCount: rows.length, itemBuilder: (context, i) => _PinchRow(live: ui.live, child: ShelfListRow(series: rows[i], ui: ui)));
+          return SliverList.builder(itemCount: rows.length, itemBuilder: (context, i) => _PinchRow(ui: ui, child: ShelfListRow(series: rows[i], ui: ui)));
         }
         final gap = phone ? 12.0 : 20.0;
         final cols = phone ? density.phone.columns : gridColumns(w, gridMin(density.wide, desktop: frame.index >= GlassFrameKind.desktop.index), gap);
@@ -385,7 +407,7 @@ class SliverShelfGrid extends ConsumerWidget {
         return SliverList.builder(
           itemCount: rowCount,
           itemBuilder: (context, r) => _PinchRow(
-            live: ui.live,
+            ui: ui,
             child: Padding(
               padding: EdgeInsets.only(bottom: gap),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [

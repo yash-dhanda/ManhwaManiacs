@@ -117,6 +117,7 @@ class NovelAttribution {
     required this.cast,
     this.textFingerprint,
     this.spans = const <NovelSpeakerSpan>[],
+    this.failed = false,
   });
 
   factory NovelAttribution.fromJson(Map<String, dynamic> json) {
@@ -157,6 +158,18 @@ class NovelAttribution {
     narratorVoiceId: null,
     cast: <NovelCastMember>[],
   );
+
+  /// [none] because the lookup failed (offline, server error), not because nobody was identified. Every reader treats it as
+  /// [none]; only a surface that names the cast (the Glass cast sheet) shows the error and a retry.
+  static const NovelAttribution unavailable = NovelAttribution(
+    attributed: false,
+    narrator: null,
+    narratorVoiceId: null,
+    cast: <NovelCastMember>[],
+    failed: true,
+  );
+
+  final bool failed;
 
   final bool attributed;
 

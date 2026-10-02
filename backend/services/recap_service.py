@@ -382,7 +382,14 @@ class _RecapMixin:
         return cached.title if cached else ""
 
     def recap(
-        self, source_id: str, series_key: str, to_key: str, *, shape: str, scope: str
+        self,
+        source_id: str,
+        series_key: str,
+        to_key: str,
+        *,
+        shape: str,
+        scope: str,
+        fresh: bool = False,
     ) -> RecapOutcome:
         """Everything that needs the database happens here, before any byte is
         sent; the returned stream never touches the request's session."""
@@ -393,7 +400,13 @@ class _RecapMixin:
         key = ai_desk.cache_key(
             "recap", shape, scope, source_id, series_key, rng["from_key"], rng["to_key"]
         )
-        row = ai_desk.cache_get(self._db, key) if info["cached"] else None
+        if fresh and info["cached"]:
+            # availability() reports a cached recap as available whatever the
+            # allowance; a rewrite spends a call, so it must check it.
+            reason = self._suggest.availability()["reason"]
+            if reason in ("not_configured", "budget_exhausted"):
+                return RecapOutcome(body={"available": False, "reason": reason})
+        row = ai_desk.cache_get(self._db, key) if info["cached"] and not fresh else None
         if row is not None:
             payload = json.loads(row.payload)
             return RecapOutcome(stream=self._stream(shape, scope, None, payload))

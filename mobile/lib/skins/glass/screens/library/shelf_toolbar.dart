@@ -46,9 +46,12 @@ class ShelfToolbarSpec {
 /// The Shelf toolbar (glass 8.17), pinned under the nav row with `edgeHard`: the search well "Search your library", the progress chips
 /// All, Reading, Not started, Completed and Favourites, "Filters" with its count, Sort and "Browse all".
 class ShelfToolbarDelegate extends SliverPersistentHeaderDelegate {
-  ShelfToolbarDelegate(this.spec, {required this.extent});
+  ShelfToolbarDelegate(this.spec, {required this.extent, this.boundary});
   final ShelfToolbarSpec spec;
   final double extent;
+
+  /// Keys the toolbar so the grid's pinch can clip at its bottom edge.
+  final GlobalKey? boundary;
 
   @override
   double get minExtent => extent;
@@ -59,7 +62,8 @@ class ShelfToolbarDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(ShelfToolbarDelegate old) => true;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => _Toolbar(spec: spec, stuck: overlapsContent || shrinkOffset > 0);
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
+      KeyedSubtree(key: boundary, child: _Toolbar(spec: spec, stuck: overlapsContent || shrinkOffset > 0));
 }
 
 class _Toolbar extends ConsumerWidget {

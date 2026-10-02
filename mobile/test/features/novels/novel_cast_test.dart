@@ -6,8 +6,15 @@
 /// back as a usable empty rather than as a crash in a reading app.
 library;
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_cast_provider.dart';
+import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+
+import 'support/fake_novels_repository.dart';
 
 void main() {
   group('NovelAttribution', () {
@@ -74,6 +81,24 @@ void main() {
 
       expect(got.gender, 'unknown');
       expect(got.voiceId, isNull);
+    });
+  });
+
+  group('novelAttributionProvider', () {
+    test('a failed lookup reads as none to every reader, flagged failed for the cast sheet', () async {
+      final repo = FakeNovelsRepository()
+        ..attributionResult = const Err(ApiError(statusCode: 500, code: 'internal', message: 'boom'));
+      final c = ProviderContainer(overrides: [novelsRepositoryProvider.overrideWithValue(repo)]);
+      addTearDown(c.dispose);
+      const key = (sourceId: 's', seriesKey: 'k', chapterKey: '1');
+      final got = await c.read(novelAttributionProvider(key).future);
+      expect(got.failed, isTrue);
+      expect(got.attributed, isFalse);
+      expect(got.cast, isEmpty);
+
+      repo.attributionResult = const Ok(NovelAttribution.none);
+      c.invalidate(novelAttributionProvider(key));
+      expect((await c.read(novelAttributionProvider(key).future)).failed, isFalse);
     });
   });
 

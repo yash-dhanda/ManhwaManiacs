@@ -10,10 +10,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show singleKeyShortcutsProvider;
 import 'package:manhwamaniacs/features/reader/engine/camera.dart';
+import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/ambient_glyphs.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/cruise_pill.dart' show slop10;
@@ -25,6 +27,7 @@ import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/neighbour_card.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
@@ -52,6 +55,7 @@ class GlassGuidedView extends ConsumerStatefulWidget {
     required this.onClose,
     this.onNextChapter,
     this.onPreviousChapter,
+    this.chapterLabelOf,
     this.lb = 1.0,
     this.tint,
     this.bottomInset = 16,
@@ -65,6 +69,9 @@ class GlassGuidedView extends ConsumerStatefulWidget {
   /// The view closed on [page]; [panelTop] is the framed panel's top as a fraction of the page (null for a whole page).
   final void Function(int page, double? panelTop) onClose;
   final VoidCallback? onNextChapter, onPreviousChapter;
+
+  /// "Chapter 144" for the next (true) or previous (false) chapter, shown on the card the edge pull raises.
+  final String Function(bool next)? chapterLabelOf;
 
   /// The lens's `Lb`: the maximum of the sample's bands it overlaps.
   final double lb;
@@ -98,6 +105,12 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
   double _over = 0;
   bool _armed = false;
   double _pinchScale = 1;
+
+  /// Past the last panel (or before the first) the pull raises the strip's next-chapter card (glass 9.4.3 "offers the next chapter
+  /// like the strip"): [_edge] is the pull shown, [_card] the direction once armed and [_cardInfo] the neighbour's pages and minutes.
+  final ValueNotifier<double> _edge = ValueNotifier(0);
+  NeighbourDirection? _card;
+  NeighbourInfo? _cardInfo;
   bool _pinching = false, _pinchLimit = false;
 
   ReaderEngine get _engine => widget.engine;
@@ -130,6 +143,7 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
     _anim.dispose();
     _fade.dispose();
     _focus.dispose();
+    _edge.dispose();
     super.dispose();
   }
 
@@ -297,6 +311,23 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
     }
   }
 
+  void _raiseCard({required bool next}) {
+    if ((next ? widget.onNextChapter : widget.onPreviousChapter) == null) return;
+    final dir = next ? NeighbourDirection.next : NeighbourDirection.previous;
+    setState(() {
+      _card = dir;
+      _cardInfo = null;
+    });
+    unawaited(_engine.armNeighbour(dir).then((info) {
+      if (mounted && _card == dir) setState(() => _cardInfo = info);
+    }, onError: (Object _) {},),);
+  }
+
+  void _dropCard() {
+    _edge.value = 0;
+    if (_card != null) setState(() => _card = null);
+  }
+
   /// Past the last panel a further next commits the next chapter on its first panel (before the first, the previous one).
   void _chapterEdge({required bool next}) {
     glassFire(ref, HapticEvent.chapterNext);
@@ -409,7 +440,9 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
         if (shown >= 48 && !_armed) {
           _armed = true;
           glassFire(ref, HapticEvent.chapterArm);
+          _raiseCard(next: atEnd);
         }
+        _edge.value = shown;
         setState(() => _pose = CameraPose(_to.scale, _to.dx + _over, _to.dy));
       }
     } else if (_horizontal == false && _drag.dy > 0 && !_overview) {
@@ -435,12 +468,14 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
       if (_over.abs() >= 72) {
         final next = widget.rtl ? _drag.dx > 0 : _drag.dx < 0;
         _over = 0;
+        _dropCard();
         _chapterEdge(next: next);
         return;
       }
       if (_over != 0) {
         _over = 0;
         _armed = false;
+        _dropCard();
         _go(_to, _lensTo);
         return;
       }
@@ -546,6 +581,23 @@ class GlassGuidedViewState extends ConsumerState<GlassGuidedView> with TickerPro
                   if (!_overview && _lensTo != null && !_finding && !_whole) ..._dimAndLens(),
                   if (_overview) ..._overviewLayer(),
                   _counter(context),
+                  if (_card != null)
+                    Positioned.fill(
+                      child: NeighbourCard(
+                        direction: _card!,
+                        label: widget.chapterLabelOf?.call(_card == NeighbourDirection.next) ?? '',
+                        info: _cardInfo,
+                        firstPage: _cardInfo == null || _cardInfo!.firstPageUrl.isEmpty ? null : ReaderPage(id: 'neighbour-first', number: 1, imageUrl: _cardInfo!.firstPageUrl),
+                        overscroll: _edge,
+                        zoom: kAlwaysDismissedAnimation,
+                        reduced: _reduced,
+                        onRead: () {
+                          final next = _card == NeighbourDirection.next;
+                          _dropCard();
+                          _chapterEdge(next: next);
+                        },
+                      ),
+                    ),
                 ],
               ),
             ),

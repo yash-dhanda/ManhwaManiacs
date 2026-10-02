@@ -107,7 +107,7 @@ const Map<MotionName, GlassMoveSpec> glassMotionTable = {
   MotionName.genreField: GlassMoveSpec(ms: 0, reduced: GlassReduced.frozen),
   MotionName.densityReflow: GlassMoveSpec(ms: 431, spring: GlassSprings.snappy, reduced: GlassReduced.instant),
   MotionName.pinFly: GlassMoveSpec(ms: 558, spring: GlassSprings.zoom, reduced: GlassReduced.instant),
-  MotionName.fanOpen: GlassMoveSpec(ms: 643, spring: GlassSprings.celebrate, reduced: GlassReduced.none),
+  MotionName.fanOpen: GlassMoveSpec(ms: 643, spring: GlassSprings.celebrate, reduced: GlassReduced.fade(150)),
   MotionName.drain: GlassMoveSpec(ms: 467, spring: GlassSprings.lens, reduced: GlassReduced.instant),
   MotionName.ambientDrift: GlassMoveSpec(ms: 1064, spring: GlassSprings.drift, reduced: GlassReduced.frozen),
   MotionName.lightFollow: GlassMoveSpec(ms: 0, spring: GlassSprings.track, reduced: GlassReduced.frozen),

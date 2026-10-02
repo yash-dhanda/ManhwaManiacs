@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/ai_notice.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/ai_stamp.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/ai/thinking_orbit.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/badge.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/cards/world_card.dart';
 
 import 'support.dart';
 
@@ -67,5 +69,22 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpWidget(primHost(AiStamp(generatedAt: now.subtract(const Duration(hours: 73)), now: now)));
     expect(find.text('Picked 3 days ago'), findsOneWidget);
+  });
+
+  testWidgets('a long world-card title wraps before the source badge instead of running under it', (tester) async {
+    await tester.pumpWidget(primHost(const GlassWorldCard.available(
+      cover: SizedBox(),
+      title: 'The Extraordinarily Long Title Of A Series That Never Ends',
+      kind: 'Manhwa · Ongoing',
+      stats: '120 ch · 8.4',
+      why: 'Because you read Solo Leveling',
+      source: 'MangaSource',
+      extraSources: 2,
+    ), size: const Size(834, 1194),),);
+    await tester.pump(const Duration(milliseconds: 300));
+    final title = tester.getRect(find.textContaining('Extraordinarily'));
+    final badge = tester.getRect(find.byType(GlassBadge).first);
+    expect(title.right, lessThanOrEqualTo(badge.left));
+    expect(tester.takeException(), isNull);
   });
 }

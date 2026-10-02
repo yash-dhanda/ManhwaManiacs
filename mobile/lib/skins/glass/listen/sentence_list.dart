@@ -6,6 +6,7 @@
 library;
 
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
@@ -44,7 +45,11 @@ class _GlassSentenceListState extends ConsumerState<GlassSentenceList> with Tick
   final GlobalKey _content = GlobalKey();
   final Map<int, GlobalKey> _keys = {};
   late final AnimationController _morph = AnimationController.unbounded(vsync: this, value: 1);
-  late final AnimationController _fade = AnimationController(vsync: this, duration: const Duration(milliseconds: 120), value: 1);
+  /// The jump's cross-fade (glass 4.10 Follow scroll, 120 ms): [_ghost] is the list as it was, fading out over the list already at
+  /// its new place.
+  late final AnimationController _fade = AnimationController(vsync: this, duration: const Duration(milliseconds: 120));
+  final GlobalKey _boundary = GlobalKey();
+  ui.Image? _ghost;
   List<Rect> _from = const [], _to = const [];
   int _active = -2;
   bool _decoupled = false;
@@ -67,6 +72,7 @@ class _GlassSentenceListState extends ConsumerState<GlassSentenceList> with Tick
     _scroll.dispose();
     _morph.dispose();
     _fade.dispose();
+    _ghost?.dispose();
     super.dispose();
   }
 
@@ -139,14 +145,30 @@ class _GlassSentenceListState extends ConsumerState<GlassSentenceList> with Tick
     if (_reduced) {
       _scroll.jumpTo(target);
     } else if (d.kind == FollowKind.jump) {
-      unawaited(_fade.reverse().whenComplete(() {
-        if (!mounted) return;
-        _scroll.jumpTo(target);
-        unawaited(_fade.forward());
-      }),);
+      _crossFadeTo(target);
     } else {
       unawaited(_scroll.animateTo(target, duration: Duration(milliseconds: gt.springSettle.ms), curve: SpringCurve(gt.springSettle)));
     }
+  }
+
+  void _crossFadeTo(double target) {
+    ui.Image? before;
+    final ro = _boundary.currentContext?.findRenderObject();
+    if (ro is RenderRepaintBoundary && ro.hasSize) {
+      try {
+        before = ro.toImageSync(pixelRatio: MediaQuery.devicePixelRatioOf(context));
+      } catch (_) {}
+    }
+    _scroll.jumpTo(target);
+    if (before == null) return;
+    _ghost?.dispose();
+    setState(() => _ghost = before);
+    _fade.value = 1;
+    unawaited(_fade.animateTo(0).whenComplete(() {
+      if (!mounted || _ghost != before) return;
+      setState(() => _ghost = null);
+      before!.dispose();
+    }),);
   }
 
   void _decouple() {
@@ -189,9 +211,8 @@ class _GlassSentenceListState extends ConsumerState<GlassSentenceList> with Tick
             if (n is ScrollUpdateNotification && n.dragDetails != null) _decouple();
             return false;
           },
-          child: AnimatedBuilder(
-            animation: _fade,
-            builder: (context, child) => Opacity(opacity: _fade.value, child: child),
+          child: RepaintBoundary(
+            key: _boundary,
             child: SingleChildScrollView(
               controller: _scroll,
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
@@ -230,6 +251,10 @@ class _GlassSentenceListState extends ConsumerState<GlassSentenceList> with Tick
             ),
           ),
         ),
+        if (_ghost != null)
+          Positioned.fill(
+            child: IgnorePointer(child: FadeTransition(opacity: _fade, child: RawImage(key: const ValueKey('follow-ghost'), image: _ghost, fit: BoxFit.fill))),
+          ),
         if (_decoupled)
           Positioned(
             left: 0,

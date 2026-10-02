@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/guided.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/guided_view.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/neighbour_card.dart';
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -46,6 +47,7 @@ void main() {
   late ReaderEngine engine;
   late List<(int, double?)> closed;
   var reduced = false;
+  var nexts = 0;
 
   Future<void> pump(WidgetTester t, {Map<int, List<Rect>>? panels, bool rtl = false, bool disableAnimations = false}) async {
     t.view.physicalSize = const Size(1170, 2532);
@@ -58,6 +60,7 @@ void main() {
     engine.ambient.seed('c1', panels: {for (final e in (panels ?? d.panels).entries) e.key: e.value});
     engine.ambient.pageCount = 4;
     closed = [];
+    nexts = 0;
     reduced = disableAnimations;
     await t.pumpWidget(
       ProviderScope(
@@ -68,7 +71,7 @@ void main() {
             textDirection: TextDirection.ltr,
             child: SkinGlassRoot(
               child: Material(
-                child: GlassGuidedView(engine: engine, chapter: d.chapter, rtl: rtl, initialPage: 1, onClose: (p, top) => closed.add((p, top)), onNextChapter: () {}),
+                child: GlassGuidedView(engine: engine, chapter: d.chapter, rtl: rtl, initialPage: 1, onClose: (p, top) => closed.add((p, top)), onNextChapter: () => nexts++, chapterLabelOf: (next) => next ? 'Chapter 2' : 'Chapter 0'),
               ),
             ),
           ),
@@ -220,5 +223,45 @@ void main() {
 
   test('the walk the view uses is the spec walk', () {
     expect(walkSteps(2.5 * 844, 844).length, 3);
+  });
+
+  testWidgets('past the last panel the pull raises the next-chapter card and a release past 72 commits', (t) async {
+    await pump(t);
+    for (var i = 0; i < 40 && nexts == 0; i++) {
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await t.pump(const Duration(milliseconds: 300));
+    }
+    expect(nexts, 1, reason: 'the keys walked to the last panel and one more committed');
+    expect(find.byType(NeighbourCard), findsNothing);
+    final g = await t.startGesture(const Offset(300, 400));
+    for (var i = 0; i < 34; i++) {
+      await g.moveBy(const Offset(-15, 0));
+      await t.pump(const Duration(milliseconds: 16));
+    }
+    expect(find.byType(NeighbourCard), findsOneWidget);
+    expect(find.text('Chapter 2'), findsOneWidget);
+    await g.up();
+    await t.pump(const Duration(milliseconds: 300));
+    expect(nexts, 2);
+    expect(find.byType(NeighbourCard), findsNothing);
+    await t.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('a short edge pull springs back and drops the card', (t) async {
+    await pump(t);
+    for (var i = 0; i < 40 && nexts == 0; i++) {
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await t.pump(const Duration(milliseconds: 300));
+    }
+    final g = await t.startGesture(const Offset(300, 400));
+    for (var i = 0; i < 8; i++) {
+      await g.moveBy(const Offset(-15, 0));
+      await t.pump(const Duration(milliseconds: 16));
+    }
+    await g.up();
+    await t.pump(const Duration(milliseconds: 600));
+    expect(nexts, 1);
+    expect(find.byType(NeighbourCard), findsNothing);
+    await t.pumpWidget(const SizedBox.shrink());
   });
 }

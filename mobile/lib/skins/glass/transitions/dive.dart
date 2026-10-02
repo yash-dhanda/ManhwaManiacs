@@ -19,15 +19,18 @@ final ValueNotifier<double> glassDiveProgress = ValueNotifier(0);
 Future<void> enterReader(BuildContext context, WidgetRef ref, String location, {required Rect fromRect}) {
   final done = Completer<void>();
   final overlay = Overlay.of(context, rootOverlay: true);
+  // Read now: a caller may be a sheet that closes while the dive runs, and its ref dies with it.
   final router = ref.read(skinRouterProvider);
+  final haptics = ref.read(glassHapticsProvider);
   late final OverlayEntry entry;
   entry = OverlayEntry(
     builder: (_) => _DiveOverlay(
       from: fromRect,
       onPush: () => unawaited(router.push<void>(location)),
       onLanded: () {
-        unawaited(ref.read(glassHapticsProvider).fire(HapticEvent.readerEnter));
-        glassSound(ref, SoundEvent.readerEnter);
+        unawaited(haptics.fire(HapticEvent.readerEnter));
+        // The landing cue needs the caller's ref; a closed sheet's dive lands silently.
+        if (context.mounted) glassSound(ref, SoundEvent.readerEnter);
       },
       onDone: () {
         entry.remove();

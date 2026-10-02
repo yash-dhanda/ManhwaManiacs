@@ -98,7 +98,7 @@ class CruiseDrag {
     dragging = false;
     onCommit(shown);
     unawaited(GlassMotion.play(MotionName.dematerialise, controller: hud, target: 0).whenComplete(() {
-      if (!dragging) portal.hide();
+      if (!dragging && portal.isShowing) portal.hide();
     }),);
     changed();
   }

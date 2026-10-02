@@ -115,16 +115,18 @@ def recap(
     to: ToQ,
     shape: Literal["prose", "deck"] = "prose",
     scope: Literal["series", "chapter"] = "series",
+    fresh: bool = False,
 ):
     """Server-Sent Events, or plain JSON ``{available: false, reason}`` when no
-    recap can be written (nothing is streamed then)."""
+    recap can be written (nothing is streamed then). ``fresh=1`` skips a cached
+    recap and writes it again (budget and rate limit apply as for a miss)."""
     if shape == "prose" and scope == "chapter":
         raise AppError(
             "A prose recap covers the series.", code="recap_bad_query", status_code=422
         )
     key = require_series_visible(library, source, series)
     outcome = _recap_service(db, library, suggest).recap(
-        source, key, to, shape=shape, scope=scope
+        source, key, to, shape=shape, scope=scope, fresh=fresh
     )
     if outcome.stream is None:
         return JSONResponse(outcome.body, headers=outcome.headers)
