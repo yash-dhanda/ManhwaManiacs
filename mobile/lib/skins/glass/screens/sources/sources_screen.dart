@@ -8,8 +8,8 @@ import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
-import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
@@ -58,6 +58,7 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
   final GlobalKey _pinnedAnchor = GlobalKey();
   _Chip _chip = _Chip.all;
   List<String> _visiblePins = const [];
+  List<String> _shownPins = const [];
 
   @override
   void initState() {
@@ -89,7 +90,8 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
 
   Future<void> _toggle(SourceSummary s) async {
     final wasPinned = ref.read(sourcePinsProvider).valueOrNull?.contains(s.id) ?? false;
-    final from = _rowKeys[s.id]?.currentContext?.findRenderObject();
+    // All-sources rows are keyed `all-<id>`; that is where a pin starts.
+    final from = (_rowKeys['all-${s.id}'] ?? _rowKeys[s.id])?.currentContext?.findRenderObject();
     final fromRect = from is RenderBox && from.hasSize ? from.localToGlobal(Offset.zero) & from.size : null;
     glassFire(ref, HapticEvent.select);
     try {
@@ -108,12 +110,16 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
     }
   }
 
+  /// [from]/[to] index the list on screen, which the filter may have narrowed.
   Future<void> _reorder(int from, int to) async {
     final pins = ref.read(sourcePinsProvider).valueOrNull?.pins ?? const <SourcePin>[];
-    final vis = [..._visiblePins];
-    if (from < 0 || from >= vis.length) return;
-    final id = vis.removeAt(from);
-    vis.insert(to.clamp(0, vis.length), id);
+    final shownNow = [..._shownPins];
+    if (from < 0 || from >= shownNow.length) return;
+    final id = shownNow.removeAt(from);
+    final at = to.clamp(0, shownNow.length);
+    final vis = [..._visiblePins]..remove(id);
+    // Next to the shown neighbour it was dropped beside.
+    vis.insert(at > 0 ? vis.indexOf(shownNow[at - 1]) + 1 : (shownNow.isEmpty ? 0 : vis.indexOf(shownNow.first)), id);
     final shown = _visiblePins.toSet();
     var k = 0;
     final next = [for (final p in pins) shown.contains(p.sourceId) ? vis[k++] : p.sourceId];
@@ -124,14 +130,22 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
     }
   }
 
+  Future<void> _unpinGone(String id) async {
+    try {
+      await ref.read(sourcePinsProvider.notifier).toggle(id);
+    } on AppError {
+      if (mounted) showGlassToast(ref, const GlassToastSpec("Couldn't update your pins", kind: GlassToastKind.error));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sourcesAsync = ref.watch(sourcesListProvider);
     final pinsState = ref.watch(sourcePinsProvider).valueOrNull;
     final pinsOk = pinsState?.synced ?? false;
-    final summary = ref.watch(sourceHealthSummaryProvider).valueOrNull;
     final query = _filter.text.trim().toLowerCase();
-    final gateOpen = ref.watch(matureContentProvider).valueOrNull ?? false;
+    // The persisted fallback: a slow or failed GET /settings must not read as 18+ off.
+    final gateOpen = ref.watch(matureGateOpenProvider);
     final scope = ref.watch(contentModeScopeProvider);
     final online = ref.watch(deviceOnlineProvider).valueOrNull ?? true;
     final wide = GlassFrame.of(context) != GlassFrameKind.phone;
@@ -161,18 +175,24 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
       if (!gateOpen) all = [for (final s in all) if (!s.mature) s];
       final byId = {for (final s in all) s.id: s};
       final pinnedRows = [for (final p in pinsState?.pins ?? const <SourcePin>[]) if (p.available && byId[p.sourceId] != null) byId[p.sourceId]!];
-      final gone = [for (final p in pinsState?.pins ?? const <SourcePin>[]) if (!p.available || byId[p.sourceId] == null) p];
+      // Gone means the server no longer lists it, not that this mode or the
+      // gate hides it: Unpin on a gone row deletes the pin for good.
+      final installed = {for (final s in all0) s.id};
+      final gone = [for (final p in pinsState?.pins ?? const <SourcePin>[]) if (!p.available || !installed.contains(p.sourceId)) p];
       bool matches(SourceSummary s) => query.isEmpty || s.name.toLowerCase().contains(query) || s.id.toLowerCase().contains(query);
       final trouble = sortWorstFirst([for (final s in all) if (s.health != null && (s.health!.status == SourceHealthStatus.failing || s.health!.status == SourceHealthStatus.dead)) s], (SourceSummary s) => s.health, (s) => s.name);
       _visiblePins = [for (final r in pinnedRows) r.id];
       final pinnedShown = [for (final r in pinnedRows) if (matches(r)) r];
+      _shownPins = [for (final r in pinnedShown) r.id];
       final allShown = switch (_chip) {
         _Chip.mature => [for (final s in all) if (s.mature && matches(s)) s],
         _Chip.trouble => [for (final s in trouble) if (matches(s)) s],
         _ => [for (final s in all) if (matches(s)) s],
       };
       final okCount = all.where((s) => s.health?.status == SourceHealthStatus.ok).length;
-      final working = gateOpen ? (summary?.ok ?? okCount) : okCount;
+      // Counted over the listed rows: the health summary spans both content
+      // modes, so it cannot be set against this mode's total.
+      final working = okCount;
       final offline = !online;
       final now = ref.read(clockProvider)();
       final updates = latestUpdateBySource(ref.watch(updatesProvider).valueOrNull?.notifications ?? const []);
@@ -232,7 +252,7 @@ class _GlassSourcesScreenState extends ConsumerState<GlassSourcesScreen> with Ti
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Row(children: [
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [GlassLabel(p.name, role: gt.typeHeadline, color: gt.colorLabel2), GlassLabel('No longer installed', role: gt.typeFootnote, color: gt.colorLabel2)])),
-                    GlassChip(label: 'Unpin', kind: GlassChipKind.assist, onPressed: () => unawaited(ref.read(sourcePinsProvider.notifier).toggle(p.sourceId).catchError((_) {}))),
+                    GlassChip(label: 'Unpin', kind: GlassChipKind.assist, onPressed: () => unawaited(_unpinGone(p.sourceId))),
                   ],),
                 ),
               const SizedBox(height: 16),

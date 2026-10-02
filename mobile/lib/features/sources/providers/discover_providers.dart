@@ -3,10 +3,12 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/request_limiter.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/library/providers/genre_weights_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart';
 import 'package:manhwamaniacs/features/sources/models/source_health.dart';
+import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/genre_index.dart';
@@ -15,16 +17,18 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 /// A source's genre list, fetched at most once per source per 24 h (P3).
+/// Only a success is kept: a failure throws, is not held alive, and the
+/// catalogue's pull to refresh retries it.
 final sourceGenresProvider = FutureProvider.autoDispose
     .family<List<SourceGenre>, String>((ref, sourceId) async {
-  final link = ref.keepAlive();
-  final timer = Timer(const Duration(hours: 24), link.close);
-  ref.onDispose(timer.cancel);
   final result = await ref.read(sourcesLimiterProvider).run(
         RequestPriority.p3,
         () => ref.read(sourcesRepositoryProvider).listGenres(sourceId),
       );
-  if (result.isErr) return const [];
+  if (result.isErr) throw result.error;
+  final link = ref.keepAlive();
+  final timer = Timer(const Duration(hours: 24), link.close);
+  ref.onDispose(timer.cancel);
   return result.value;
 });
 
@@ -69,19 +73,29 @@ final popularFirstPageProvider = FutureProvider.autoDispose
 });
 
 /// The genre tiles: union of the pinned sources' genres by profile weight.
+/// The available pins of the current content mode (Manga or Novels): what
+/// Discover's idle page builds from.
+final discoverPinsProvider = Provider.autoDispose<List<SourcePin>>((ref) {
+  final pins = ref.watch(sourcePinsProvider).valueOrNull?.pins ?? const [];
+  return ref.watch(contentModeScopeProvider).filter(
+    [
+      for (final p in pins)
+        if (p.available) p,
+    ],
+    (p) => p.sourceId,
+  );
+});
+
 final genreIndexProvider =
     FutureProvider.autoDispose<List<GenreEntry>>((ref) async {
-  final pins = ref.watch(sourcePinsProvider).valueOrNull?.pins ?? const [];
-  final live = [
-    for (final p in pins)
-      if (p.available) p,
-  ];
+  final live = ref.watch(discoverPinsProvider);
   final genres = <String, List<SourceGenre>>{};
   await Future.wait([
     for (final p in live)
       ref
           .watch(sourceGenresProvider(p.sourceId).future)
-          .then((g) => genres[p.sourceId] = g),
+          .then((g) => genres[p.sourceId] = g)
+          .catchError((Object _) => genres[p.sourceId] = const []),
   ]);
   final weights = await ref.watch(genreWeightsProvider(40).future);
   return buildGenreIndex(live, genres, weights);
@@ -89,11 +103,7 @@ final genreIndexProvider =
 
 final trendingProvider =
     FutureProvider.autoDispose<List<TrendingTitle>>((ref) async {
-  final pins = ref.watch(sourcePinsProvider).valueOrNull?.pins ?? const [];
-  final live = [
-    for (final p in pins)
-      if (p.available) p,
-  ];
+  final live = ref.watch(discoverPinsProvider);
   final pages = <String, List<SourceSeriesSummary>>{};
   await Future.wait([
     for (final p in live)

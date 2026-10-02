@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
@@ -122,6 +123,45 @@ void main() {
     await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
     h.dispose();
+  });
+
+  testWidgets('picking a genre sends its id and keeps the back stack', (tester) async {
+    final fake = FakeSources(
+      sources: [src('asura')],
+      series: items,
+      genres: const [SourceGenre(id: 'r', label: 'Romance')],
+    );
+    final router = GoRouter(routes: [
+      GoRoute(path: '/', builder: (_, __) => const Scaffold(body: Text('list'))),
+      GoRoute(
+        path: '/sources/:id',
+        builder: (_, s) => CatalogueScreen(
+          sourceId: s.pathParameters['id']!,
+          mode: s.uri.queryParameters['mode'],
+          genre: s.uri.queryParameters['genre'],
+          q: s.uri.queryParameters['q'],
+        ),
+      ),
+    ],);
+    await pumpScreen(tester, const SizedBox(), sources: fake, router: router);
+    unawaited(router.push('/sources/asura'));
+    await settle(tester, 800);
+    await tester.tap(find.text('Genre'));
+    await settle(tester);
+    await tester.tap(find.text('Romance'));
+    await settle(tester, 800);
+    expect(fake.genresSent.last, 'r');
+    expect(find.text('Genre: Romance'), findsOneWidget);
+    router.pop();
+    await settle(tester);
+    expect(find.text('list'), findsOneWidget);
+  });
+
+  testWidgets('a short page with more to come loads the next by itself', (tester) async {
+    final fake = FakeSources(sources: [src('asura')], series: [items.first], next: true);
+    await pumpScreen(tester, const CatalogueScreen(sourceId: 'asura'), sources: fake);
+    await settle(tester, 800);
+    expect(fake.seriesCalls, greaterThan(1));
   });
 }
 

@@ -96,6 +96,27 @@ class SourcePinsNotifier extends AsyncNotifier<SourcePinsState> {
     String? name,
     String? iconUrl,
     bool mature = false,
+  }) =>
+      _serial(
+        () => _toggle(sourceId, name: name, iconUrl: iconUrl, mature: mature),
+      );
+
+  /// Every write PUTs the whole set built from the state before it, so two
+  /// writes in flight would rebuild each other's sets (and could land out of
+  /// order). They run one at a time instead.
+  Future<void> _tail = Future<void>.value();
+
+  Future<void> _serial(Future<void> Function() write) {
+    final run = _tail.then((_) => write());
+    _tail = run.then<void>((_) {}, onError: (Object _) {});
+    return run;
+  }
+
+  Future<void> _toggle(
+    String sourceId, {
+    String? name,
+    String? iconUrl,
+    bool mature = false,
   }) async {
     var current = state.valueOrNull ?? const SourcePinsState();
     final repo = ref.read(sourcesRepositoryProvider);
@@ -143,7 +164,10 @@ class SourcePinsNotifier extends AsyncNotifier<SourcePinsState> {
 
   /// Write [orderedIds] (the FULL order, unavailable pins included) with one
   /// `PUT /sources/pins`. Optimistic; throws the [AppError] after rolling back.
-  Future<void> reorder(List<String> orderedIds) async {
+  Future<void> reorder(List<String> orderedIds) =>
+      _serial(() => _reorder(orderedIds));
+
+  Future<void> _reorder(List<String> orderedIds) async {
     final current = state.valueOrNull ?? const SourcePinsState();
     if (!current.synced) return;
     final byId = {for (final pin in current.pins) pin.sourceId: pin};

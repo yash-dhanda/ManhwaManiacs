@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
-import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
@@ -117,8 +117,28 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
   void _setQuery(SourceBrowseQuery Function(SourceBrowseQuery) f) => ref.read(sourceBrowseQueryProvider(_id).notifier).update(f);
 
   Future<RefreshResult> _doRefresh() async {
-    await ref.read(sourceBrowseProvider(_id).notifier).refresh();
-    return RefreshResult.changed;
+    if (ref.read(sourceGenresProvider(_id)).hasError) ref.invalidate(sourceGenresProvider(_id));
+    final ok = await ref.read(sourceBrowseProvider(_id).notifier).refresh();
+    if (!ok && mounted) showGlassToast(ref, const GlassToastSpec("Couldn't refresh this source", kind: GlassToastKind.error));
+    return ok ? RefreshResult.changed : RefreshResult.unchanged;
+  }
+
+  /// A page shorter than the viewport never scrolls, so it is checked after
+  /// each frame that could have grown or shrunk the grid.
+  void _fillViewport() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final p = _pos;
+      if (!mounted || p == null || !p.hasContentDimensions) return;
+      if (p.maxScrollExtent <= 0 || p.extentAfter < 600) unawaited(ref.read(sourceBrowseProvider(_id).notifier).loadMore());
+    });
+  }
+
+  Future<void> _togglePin(SourceSummary? s) async {
+    try {
+      await ref.read(sourcePinsProvider.notifier).toggle(_id, name: s?.name, iconUrl: s?.iconUrl, mature: s?.mature ?? false);
+    } on AppError catch (e) {
+      if (mounted) showGlassToast(ref, GlassToastSpec(e is ApiError && e.code == 'too_many_pins' ? 'You can pin up to $maxSourcePins sources' : "Couldn't update your pins", kind: GlassToastKind.error));
+    }
   }
 
   void _stepMode(List<SourceBrowseMode> modes, int d) {
@@ -140,8 +160,10 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
     final modes = ref.watch(sourceBrowseModesProvider(id)).valueOrNull ?? const <SourceBrowseMode>[];
     final genres = ref.watch(sourceGenresProvider(id)).valueOrNull ?? const [];
     final online = ref.watch(deviceOnlineProvider).valueOrNull ?? true;
-    final gateOpen = ref.watch(matureContentProvider).valueOrNull ?? false;
-    final state = browse.valueOrNull;
+    final gateOpen = ref.watch(matureGateOpenProvider);
+    // A value left over from the previous query (kept while the new one loads
+    // or fails) is not drawn under the new query's label.
+    final state = browse.valueOrNull?.answers(query) ?? false ? browse.valueOrNull : null;
     final err = browse.hasError ? browse.error : null;
     final code = err is ApiError ? err.code : null;
     final margin = GlassFrame.screenMargin(context);
@@ -150,7 +172,8 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
     final name = source?.name ?? id;
     final pinned = ref.watch(sourcePinsProvider).valueOrNull?.contains(id) ?? false;
     final fresh = glassFreshness(state?.cache, DateTime.now(), offline: !online && state != null);
-    final total = state?.total ?? 0;
+    final total = state?.countLabel ?? '0';
+    if (state != null && state.hasNext && !state.isLoadingMore && !state.loadMoreFailed && online) _fillViewport();
 
     Widget content;
     if (code == 'source_not_found' || (sources != null && source == null && err != null && !(gateOpen == false && false))) {
@@ -170,7 +193,7 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
       } else {
         content = CatalogueErrorLens(message: err is AppError ? err.userMessage : null, onRetry: () => ref.invalidate(sourceBrowseProvider(id)));
       }
-    } else if (state != null && state.items.isEmpty) {
+    } else if (state != null && state.items.isEmpty && !state.hasNext) {
       content = CatalogueEmptyLens(q: searching ? query.search : null);
     } else if (state != null) {
       final w = MediaQuery.sizeOf(context).width - 2 * margin;
@@ -225,7 +248,11 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
           sourceId: id,
           name: name,
           iconUrl: source?.iconUrl,
-          countLine: searching ? '$total results for “${query.search}”' : '$total series · ${modes.where((m) => m.id == query.sort).map((m) => m.label).firstOrNull ?? 'Latest'}',
+          countLine: searching ? '$total results for “${query.search}”' : [
+            '$total series',
+            // 'default' is the source's own order, which no mode names.
+            ...modes.where((m) => m.id == query.sort).map((m) => m.label),
+          ].join(' · '),
           freshness: fresh,
           health: source?.health,
         ),
@@ -277,10 +304,7 @@ class _GlassCatalogueScreenState extends ConsumerState<GlassCatalogueScreen> {
                 unawaited(Clipboard.setData(ClipboardData(text: id)));
                 showGlassToast(ref, const GlassToastSpec('Copied'));
               },),
-              GlassMenuEntry(label: pinned ? 'Unpin' : 'Pin', onSelected: () {
-                final s = source;
-                if (s != null) unawaited(ref.read(sourcePinsProvider.notifier).toggle(id, name: s.name, iconUrl: s.iconUrl, mature: s.mature).catchError((_) {}));
-              },),
+              GlassMenuEntry(label: pinned ? 'Unpin' : 'Pin', onSelected: () => unawaited(_togglePin(source))),
             ],
             refreshSliver: GlassPullToRefresh(controller: _refresh, onRefresh: _doRefresh),
             slivers: [SliverPadding(padding: const EdgeInsets.fromLTRB(0, 8, 0, 140), // GlassScaffold insets the slivers

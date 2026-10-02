@@ -1,12 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
 import 'package:manhwamaniacs/features/library/repositories/ask_repository.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_pull_to_reprint.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/genre_grid.dart';
 
 import 'harness.dart';
@@ -21,6 +23,7 @@ class _Pages extends AskRepository {
   _Pages() : super(Dio());
   final cursors = <String?>[];
   bool fail = false;
+  bool end = false;
 
   @override
   Future<Result<WorldGenrePage>> genrePage(String genre, {String? cursor, CancelToken? cancel}) async {
@@ -32,7 +35,7 @@ class _Pages extends AskRepository {
         if (n > 0) WorldItem(title: 'Title ${n * 10 - 1}', anilistId: n * 10 - 1),
         for (var i = n * 10; i < n * 10 + 10; i++) WorldItem(title: 'Title $i', anilistId: i),
       ],
-      nextCursor: '${n + 1}',
+      nextCursor: end ? null : '${n + 1}',
     ),);
   }
 }
@@ -99,5 +102,51 @@ void main() {
     await tester.tap(find.text('Retry'));
     await settle(tester);
     expect(find.text('Title 0'), findsWidgets);
+  });
+
+  testWidgets('pull to reprint works after the list has ended', (tester) async {
+    final pages = _Pages()..end = true;
+    await pumpScreen(
+      tester,
+      const GenreGridScreen(genre: 'Murim'),
+      extra: [
+        askRepositoryProvider.overrideWithValue(pages),
+        matureContentProvider.overrideWith(_MatureOff.new),
+      ],
+    );
+    await settle(tester, 800);
+    expect(pages.cursors, ['0']);
+    await tester.widget<CinePullToReprint>(find.byType(CinePullToReprint)).onRefresh();
+    await settle(tester);
+    expect(pages.cursors, ['0', '0']);
+    expect(find.text('Title 0'), findsWidgets);
+  });
+
+  testWidgets('a search opened from the grid is not left underneath it', (tester) async {
+    final router = GoRouter(initialLocation: '/search', routes: [
+      GoRoute(
+        path: '/search',
+        builder: (context, s) => Scaffold(
+          body: TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const GenreGridScreen(genre: 'Murim')),
+            ),
+            child: Text('at ${s.uri}'),
+          ),
+        ),
+      ),
+    ],);
+    await pumpScreen(tester, const SizedBox(), router: router, extra: [
+      askRepositoryProvider.overrideWithValue(_Pages()),
+      matureContentProvider.overrideWith(_MatureOff.new),
+    ],);
+    await settle(tester);
+    await tester.tap(find.text('at /search'));
+    await settle(tester, 800);
+    expect(find.byType(GenreGridScreen), findsOneWidget);
+    router.go('/search?q=Solo');
+    await settle(tester, 800);
+    expect(find.byType(GenreGridScreen), findsNothing);
+    expect(find.text('at /search?q=Solo'), findsOneWidget);
   });
 }

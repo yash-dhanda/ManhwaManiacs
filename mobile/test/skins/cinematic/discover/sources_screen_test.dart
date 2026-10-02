@@ -51,6 +51,20 @@ void main() {
     ]);
   });
 
+  testWidgets('a pinned row under All sources offers moves by its real place',
+      (tester) async {
+    final repo = FakeSources(sources: sources);
+    await pumpScreen(tester, const SourcesScreen(), sources: repo, pins: pins);
+    await settle(tester);
+    await tester.longPress(find.text('MANGADEX').last);
+    await settle(tester, 300);
+    await tester.tap(find.text('Move up'));
+    await settle(tester, 300);
+    expect(repo.replaced, [
+      ['mangadex', 'gone', 'asura'],
+    ]);
+  });
+
   testWidgets('pinned empty and no match states', (tester) async {
     await pumpScreen(tester, const SourcesScreen(),
         sources: FakeSources(sources: sources),);

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/models/source_pin.dart';
 import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart';
-import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/genre_index.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_health.dart';
@@ -48,15 +50,16 @@ class _DiscoverIdleState extends ConsumerState<DiscoverIdle> {
   @override
   Widget build(BuildContext context) {
     final t = context.cine;
-    final pins = [
-      for (final p in ref.watch(sourcePinsProvider).valueOrNull?.pins ??
-          const <SourcePin>[])
-        if (p.available) p,
-    ];
+    // Only the current content mode's sources (Manga or Novels).
+    final scope = ref.watch(contentModeScopeProvider);
+    final pins = ref.watch(discoverPinsProvider);
     final genres =
         ref.watch(genreIndexProvider).valueOrNull ?? const <GenreEntry>[];
     final trending = ref.watch(trendingProvider).valueOrNull ?? const [];
-    final sources = ref.watch(sourcesListProvider).valueOrNull ?? const [];
+    final sources = scope.filter(
+      ref.watch(sourcesListProvider).valueOrNull ?? const <SourceSummary>[],
+      (s) => s.id,
+    );
     final tablet = isTablet(context);
     var n = 0;
     String folio() => (++n).toString().padLeft(2, '0');
@@ -316,7 +319,10 @@ class _GenreTile extends ConsumerWidget {
     final cover = ref
         .watch(
           genreCoverProvider(
-            (sourceId: firstSource.sourceId, genre: genre.label),
+            (
+              sourceId: firstSource.sourceId,
+              genre: genre.idFor(firstSource.sourceId),
+            ),
           ),
         )
         .valueOrNull;
@@ -326,7 +332,12 @@ class _GenreTile extends ConsumerWidget {
       excludeSemantics: true,
       child: PressImpression(
         child: InkWell(
-          onTap: () => openGenre(context, ref, genre, pinned),
+          // The AI genre grid only knows manhwa; a novel genre goes
+          // straight to the sources that carry it.
+          onTap: () => ref.read(contentModeControllerProvider) ==
+                  ContentMode.novel
+              ? openGenreOnSources(context, ref, genre, pinned)
+              : openGenre(context, ref, genre, pinned),
           child: Stack(
             fit: StackFit.expand,
             children: [

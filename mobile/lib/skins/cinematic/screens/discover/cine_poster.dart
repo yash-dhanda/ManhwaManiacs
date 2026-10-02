@@ -28,10 +28,12 @@ class CineCover extends ConsumerWidget {
         coverRequestWidth(displayWidth, MediaQuery.devicePixelRatioOf(context));
     return CachedNetworkImage(
       imageUrl: coverUrlAtWidth(url!, w),
-      httpHeaders: apiImageHttpHeaders(
-        ref.watch(authTokenStoreProvider).token,
-        profileId: ref.watch(activeProfileProvider)?.id,
-      ),
+      httpHeaders: isApiResourceUrl(ref.watch(apiBaseUrlProvider), url!)
+          ? apiImageHttpHeaders(
+              ref.watch(authTokenStoreProvider).token,
+              profileId: ref.watch(activeProfileProvider)?.id,
+            )
+          : null,
       fit: fit,
       fadeInDuration: CineDur.beat,
       placeholder: (_, __) => ColoredBox(color: t.colorPaper1),

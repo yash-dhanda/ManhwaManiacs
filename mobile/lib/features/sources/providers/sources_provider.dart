@@ -53,6 +53,17 @@ class SourceBrowseQuery {
         sort: sort ?? this.sort,
         genre: genre == null ? this.genre : (genre.isEmpty ? null : genre),
       );
+
+  @override
+  bool operator ==(Object other) =>
+      other is SourceBrowseQuery &&
+      other.sourceId == sourceId &&
+      other.search == search &&
+      other.sort == sort &&
+      other.genre == genre;
+
+  @override
+  int get hashCode => Object.hash(sourceId, search, sort, genre);
 }
 
 final sourceBrowseQueryProvider =
@@ -81,7 +92,13 @@ class SourceBrowseState {
     this.isLoadingMore = false,
     this.loadMoreFailed = false,
     this.cache,
+    this.query,
   });
+
+  /// The query these items answer. A rebuild for a new query keeps the old
+  /// value attached while it loads or fails, so screens compare this with the
+  /// current query rather than drawing the old posters under the new label.
+  final SourceBrowseQuery? query;
 
   /// The `cache` block of the newest page fetched from page 1 / refresh.
   final Map<String, dynamic>? cache;
@@ -93,6 +110,15 @@ class SourceBrowseState {
   final bool isLoadingMore;
 
   bool get isEmpty => items.isEmpty;
+
+  /// Whether this value answers [current] (or does not say which query it is).
+  bool answers(SourceBrowseQuery current) => query == null || query == current;
+
+  /// The header count. Many connectors report the page size (or 0) as the
+  /// total, so while more pages remain a total no larger than what is loaded
+  /// reads as "N+".
+  String get countLabel =>
+      hasNext && total <= items.length ? '${items.length}+' : '$total';
 
   SourceBrowseState copyWith({
     List<SourceSeriesSummary>? items,
@@ -110,6 +136,7 @@ class SourceBrowseState {
         isLoadingMore: isLoadingMore ?? this.isLoadingMore,
         loadMoreFailed: loadMoreFailed ?? this.loadMoreFailed,
         cache: cache,
+        query: query,
       );
 }
 
@@ -127,26 +154,56 @@ class SourceBrowseNotifier
     // LibraryListNotifier/SearchListNotifier, which don't carry a `page`
     // field in their query either; a fresh query always restarts pagination.
     final query = ref.watch(sourceBrowseQueryProvider(sourceId));
-    final page = await _fetchPage(sourceId, query, 1);
+    final gen = ++_gen;
+    _emptyStreak = 0;
+    var page = await _fetchPage(sourceId, query, 1);
+    // The 18+ gate can empty a whole page while the source still has more;
+    // skip ahead a few pages rather than calling the catalogue empty.
+    for (var i = 0; i < _maxEmptySkips && page.items.isEmpty && page.hasNext; i++) {
+      if (gen != _gen) break;
+      final next = await _fetchPageResult(sourceId, query, page.page + 1);
+      if (next.isErr) break;
+      page = next.value;
+    }
     return SourceBrowseState(
       items: page.items,
-      total: page.total,
+      total: page.total < page.items.length ? page.items.length : page.total,
       page: page.page,
       hasNext: page.hasNext,
       cache: page.cache,
+      query: query,
     );
   }
 
+  static const _maxEmptySkips = 4;
+
+  /// Bumped by every [build]; a [loadMore] that started under an older query
+  /// drops its page instead of writing it over the new results.
+  int _gen = 0;
+
+  /// Pages in a row that added nothing (gated or repeated). Screens load more
+  /// on their own while a page is short, so a source that keeps answering
+  /// has_more with nothing new is cut off here rather than polled forever.
+  int _emptyStreak = 0;
+
   Future<void> loadMore() async {
     final current = state.valueOrNull;
-    if (current == null || !current.hasNext || current.isLoadingMore) return;
+    if (current == null ||
+        !current.hasNext ||
+        current.isLoadingMore ||
+        state.isLoading ||
+        current.query != ref.read(sourceBrowseQueryProvider(arg))) {
+      return;
+    }
+    final gen = _gen;
 
     state =
         AsyncData(current.copyWith(isLoadingMore: true, loadMoreFailed: false));
 
-    final query = ref.read(sourceBrowseQueryProvider(arg));
+    final query = current.query!;
     final nextPage = current.page + 1;
     final result = await _fetchPageResult(arg, query, nextPage);
+    if (gen != _gen) return;
 
     if (result.isErr) {
       // Leave existing items in place; just stop showing the loading spinner
@@ -157,17 +214,29 @@ class SourceBrowseNotifier
     }
 
     final page = result.value;
+    // Pages are cached independently, so neighbours can overlap.
+    final seen = {for (final s in current.items) s.id};
+    final items = [
+      ...current.items,
+      for (final s in page.items)
+        if (seen.add(s.id)) s,
+    ];
+    _emptyStreak = items.length == current.items.length ? _emptyStreak + 1 : 0;
     state = AsyncData(
       current.copyWith(
-        items: [...current.items, ...page.items],
+        items: items,
+        total: [current.total, page.total, items.length]
+            .reduce((a, b) => a > b ? a : b),
         page: page.page,
-        hasNext: page.hasNext,
+        hasNext: page.hasNext && _emptyStreak < _maxEmptySkips,
         isLoadingMore: false,
       ),
     );
   }
 
-  Future<void> refresh() async {
+  /// True when the source answered; on failure the previous grid stays (as
+  /// the AsyncError's value) and the caller tells the user.
+  Future<bool> refresh() async {
     // Keep the previous value attached so the AsyncValue stays *reloading*
     // rather than a fresh load; skipLoadingOnReload then keeps the grid on
     // screen (behind the RefreshIndicator spinner) instead of flashing the
@@ -176,6 +245,7 @@ class SourceBrowseNotifier
     // `refresh=true` asks the source itself, past the server's saved copy.
     _forceRefresh = true;
     state = await AsyncValue.guard(() => build(arg));
+    return !state.hasError;
   }
 
   bool _forceRefresh = false;

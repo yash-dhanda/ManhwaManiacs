@@ -66,7 +66,7 @@ class GlassCoverImage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final headers = withCredentials ? apiImageHttpHeaders(ref.watch(authTokenStoreProvider).token, profileId: ref.watch(activeProfileProvider)?.id) : null;
+    final headers = withCredentials && isApiResourceUrl(ref.watch(apiBaseUrlProvider), url) ? apiImageHttpHeaders(ref.watch(authTokenStoreProvider).token, profileId: ref.watch(activeProfileProvider)?.id) : null;
     final imageUrl = coverUrlAtWidth(url, coverRequestWidth(width, MediaQuery.devicePixelRatioOf(context)));
     return CachedNetworkImage(
       imageUrl: imageUrl,
