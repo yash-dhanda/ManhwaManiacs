@@ -18,10 +18,12 @@ import 'package:manhwamaniacs/features/reader/engine/chapter_end_physics.dart';
 import 'package:manhwamaniacs/features/reader/engine/cruise_engage.dart';
 import 'package:manhwamaniacs/features/reader/engine/engine_live.dart';
 import 'package:manhwamaniacs/features/reader/engine/lens_layout.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/panel_boxes.dart';
 import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_provider.dart';
@@ -38,6 +40,7 @@ import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_filter_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/auto_scroll_speed.dart';
@@ -263,7 +266,14 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   Timer? _scrollSaveTimer;
   Timer? _progressSaveTimer;
   Timer? _autoNextTimer;
-  Timer? _hideControlsTimer;
+  late final ReaderChromeIdle _idle = ReaderChromeIdle(
+    this,
+    visible: () => ref.read(readerUiProvider).controlsVisible,
+    hide: () => ref.read(readerUiProvider.notifier).setControlsVisible(false),
+    after: () => widget.autoHideAfter,
+    held: () => widget.options.chromeHeld?.call() ?? false,
+    off: () => widget.options.chromeIdleOff?.call() ?? false,
+  );
 
   // Scroll-driven state — published through the controller, never setState,
   // so a scroll rebuilds only the chrome and only when the state changed.
@@ -376,7 +386,16 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   /// that catches a fling ends that scroll before [_noteTouchDown] runs). It is stopping the scroll,
   /// never a tap.
   bool _touchCaughtScroll = false;
+
+  /// The strip is moving because of the reader's finger (a drag or the fling it started), not the app (auto-scroll,
+  /// tap-to-scroll, a jump). Only that motion makes a touch a scroll stop and starts the cooldown.
+  bool _userScroll = false;
+
+  /// When the last scroll the reader's finger made ended.
   DateTime _lastScrollEnd = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// The strip sat at its very bottom on the last scroll pass (the chapter end shows the menu once per arrival).
+  bool _atBottom = false;
   Offset? _tapDownPosition;
   int _consecutiveCenterTaps = 0;
   DateTime _lastCenterTapTime = DateTime.fromMillisecondsSinceEpoch(0);
@@ -629,7 +648,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _progressSaveTimer?.cancel();
     _autoNextTimer?.cancel();
     _autoNextTimer = null;
-    _hideControlsTimer?.cancel();
+    _idle.dispose();
     unawaited(_releaseWakelock());
     unawaited(_displayMode?.reset());
     unawaited(_syncVolumeKeyNav(false));
@@ -1125,6 +1144,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     _scheduleProgressSave(feedPosition);
     _scheduleScrollSave(scrollOffset, feedPosition);
     _maybeAutoNextChapter(atEnd);
+    _showMenuAtBottom(position);
     if (widget.chapterMode == ReaderChapterMode.continuous) {
       _maybeExtendFeed(feedPosition);
     } else {
@@ -1828,23 +1848,19 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   void _hideControls() {
     ref.read(readerUiProvider.notifier).setControlsVisible(false);
-    _hideControlsTimer?.cancel();
+    _idle.hold();
   }
 
-  void _scheduleHideControls() {
-    _hideControlsTimer?.cancel();
-    // How long the bars stay up is the design preset's call: Cinema retires
-    // them in 1.2s so the page owns the screen, everything else keeps the 3s
-    // the reader has always used.
-    _hideControlsTimer = Timer(
-      widget.autoHideAfter,
-      () {
-        if (mounted) {
-          ref.read(readerUiProvider.notifier).setControlsVisible(false);
-        }
-      },
-    );
+  /// Arriving at the very bottom of the strip (the chapter's end) shows the menu, so the next-chapter controls are
+  /// there, unless the profile turned 'Show menu at chapter end' off. The idle hides it again.
+  void _showMenuAtBottom(ScrollPosition position) {
+    final atBottom = position.maxScrollExtent > 0 && position.extentAfter < 1;
+    if (atBottom && !_atBottom && menuAtChapterEnd(ref.read(readerSettingsProvider))) _showControls();
+    _atBottom = atBottom;
   }
+
+  /// [widget.autoHideAfter] untouched, then the menu hides (see [ReaderChromeIdle]).
+  void _scheduleHideControls() => _idle.arm();
 
   // ── Tap handling ──────────────────────────────────────────────────────────
 
@@ -1854,7 +1870,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   void _noteTouchDown(PointerDownEvent _) {
     _touchCaughtScroll = _isScrolling ||
-        _velocity.velocity() != 0 ||
+        _userScroll ||
         DateTime.now().difference(_lastScrollEnd).inMilliseconds < _postScrollCooldownMs;
   }
 
@@ -2010,6 +2026,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (notification is ScrollStartNotification &&
         notification.dragDetails != null) {
       _isScrolling = true;
+      _userScroll = true;
       _dragging = true;
       _cruiseWatch = false;
       // A manual drag pauses auto-scroll and it stays paused.
@@ -2025,11 +2042,14 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     } else if (notification is ScrollEndNotification) {
       _isScrolling = false;
       _dragging = false;
-      _lastScrollEnd = DateTime.now();
+      if (_userScroll) _lastScrollEnd = DateTime.now();
+      _userScroll = false;
       widget.controller.topPull.value = 0;
       widget.controller.endPull.value = 0;
     } else if (notification is ScrollUpdateNotification) {
       _dragging = notification.dragDetails != null;
+      // A drag that takes over an app-driven scroll starts no new scroll.
+      if (_dragging) _userScroll = true;
       if (autoHide != null) {
         _trackAutoHide(notification.scrollDelta ?? 0, autoHide);
       }
@@ -2061,6 +2081,11 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   /// tap opens the menu.
   void _trackAutoHide(double delta, ReaderAutoHide autoHide) {
     if (delta == 0 || !autoHide.onScroll) return;
+    // At the very bottom a pull is the next-chapter gesture, and the chapter end has just shown the menu.
+    if (_atBottom) {
+      _downAccum = 0;
+      return;
+    }
     if (DateTime.now().isBefore(_suppressAutoHideUntil)) return;
     if (delta < 0) {
       _downAccum = 0;
@@ -2588,7 +2613,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   void hideChrome() => _hideControls();
 
   @override
-  void holdChrome() => _hideControlsTimer?.cancel();
+  void holdChrome() => _idle.hold();
 
   @override
   void scheduleHideChrome() {
@@ -3036,7 +3061,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       overrides: [readerEngineProvider.overrideWithValue(widget.controller)],
       child: NotificationListener<ScrollNotification>(
         onNotification: _onScrollNotification,
-        child: Listener(
+        child: _idle.wrap(Listener(
           // An ancestor of the strip, so the strip's own pointer-down (which catches a fling and
           // ends the scroll) has run by the time this one asks whether it was moving.
           behavior: HitTestBehavior.translucent,
@@ -3073,7 +3098,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
             ],
           ),),
         ),
-        ),
+        ),),
       ),
     );
   }

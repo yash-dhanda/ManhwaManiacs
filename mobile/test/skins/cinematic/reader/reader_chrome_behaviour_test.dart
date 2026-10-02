@@ -21,14 +21,14 @@ void main() {
   setUpAll(setUpShotCoverCache);
 
   group('auto-hide', () {
-    testWidgets('idle-hides after 3000 ms, not before', (tester) async {
+    testWidgets('idle-hides after 5000 ms, not before', (tester) async {
       await pumpReader(tester);
       await _wait(tester, 1000);
       expect(chromeVisible(tester), isTrue);
-      await _wait(tester, 1800);
-      expect(chromeVisible(tester), isTrue, reason: 'at 2.8 s');
+      await _wait(tester, 3800);
+      expect(chromeVisible(tester), isTrue, reason: 'at 4.8 s');
       await _wait(tester, 800);
-      expect(chromeVisible(tester), isFalse, reason: 'past 3 s');
+      expect(chromeVisible(tester), isFalse, reason: 'past 5 s');
       expect(find.byType(ReaderMicroProgress), findsOneWidget);
       await disposeReader(tester);
     });
@@ -97,7 +97,7 @@ void main() {
 
   testWidgets('the micro progress shows while hidden and not in cinema mode', (tester) async {
     await pumpReader(tester, prefsValues: {'mm.reader.prefs.cinema': true});
-    await _wait(tester, 4000);
+    await _wait(tester, 5600);
     expect(chromeVisible(tester), isFalse);
     await disposeReader(tester);
   });

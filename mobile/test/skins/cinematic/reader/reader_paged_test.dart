@@ -44,7 +44,7 @@ Future<void> key(WidgetTester tester, LogicalKeyboardKey k, {int ms = 600, bool 
 void main() {
   setUpAll(setUpShotCoverCache);
 
-  testWidgets('single layout mounts the paged view; taps 30 / 40 / 30 turn, a centre double tap toggles the chrome', (tester) async {
+  testWidgets('single layout mounts the paged view; taps 30 / 40 / 30 turn, a centre tap (or double tap) toggles the chrome', (tester) async {
     await pumpReader(tester, prefsValues: seedLayout('single'));
     await settleReader(tester, ms: 500);
     expect(find.byType(PagedReaderView), findsOneWidget);
@@ -56,9 +56,12 @@ void main() {
     expect(pageOf(tester), 1);
     final before = chromeVisible(tester);
     await tapSingle(tester);
-    expect(chromeVisible(tester), before, reason: 'a single centre tap leaves the chrome alone');
+    expect(chromeVisible(tester), isNot(before), reason: 'Open menu with Tap (default): a centre tap toggles the chrome');
+    await putReaderSettings(tester, {'menuOpen': 'doubleTap'});
+    await tapSingle(tester);
+    expect(chromeVisible(tester), isNot(before), reason: 'Double tap: a single centre tap leaves the chrome alone');
     await tapDouble(tester);
-    expect(chromeVisible(tester), isNot(before));
+    expect(chromeVisible(tester), before);
     expect(pageOf(tester), 1);
     await disposeReader(tester);
   });

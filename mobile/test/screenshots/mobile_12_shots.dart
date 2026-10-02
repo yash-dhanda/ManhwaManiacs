@@ -41,7 +41,7 @@ void mobile12Shots() {
   // Loading the art takes longer than the chrome's 3 s idle, so the chrome is brought back last.
   Future<void> showChrome(WidgetTester tester) async {
     if (find.byType(Scrollable).evaluate().isEmpty || chromeVisible(tester)) return;
-    await tapDouble(tester);
+    await tapMenu(tester);
   }
 
   Future<void> toEnd(WidgetTester tester) async {
@@ -117,7 +117,7 @@ void mobile12Shots() {
 
   testWidgets('mobile-12 reader hidden', (tester) async {
     await show(tester, 'reader-hidden', chrome: false, act: (t, rig, wide) async {
-      if (chromeVisible(t)) await tapDouble(t);
+      if (chromeVisible(t)) await tapMenu(t);
       await t.pump(const Duration(milliseconds: 400));
     });
   });

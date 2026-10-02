@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_reader_provider.dart';
@@ -198,6 +199,15 @@ Future<void> tapDouble(WidgetTester tester, [Offset at = const Offset(195, 422)]
   await tester.tapAt(at);
   await tester.pump(const Duration(milliseconds: 400));
   await tester.pump(const Duration(milliseconds: 300));
+}
+
+/// The tap that opens and closes the menu under the default 'Open menu with' (Tap): a single centre tap.
+Future<void> tapMenu(WidgetTester tester, [Offset at = const Offset(195, 422)]) => tapSingle(tester, at);
+
+/// Sets the profile's reader settings record (as Settings > Reading does), e.g. `{'menuOpen': 'doubleTap'}`.
+Future<void> putReaderSettings(WidgetTester tester, Map<String, dynamic> fields) async {
+  await ProviderScope.containerOf(tester.element(find.byType(MaterialApp))).read(readerSettingsProvider.notifier).put(fields);
+  await tester.pump();
 }
 
 /// Tears the reader down and lets its timers (retry back-off, toasts, idle hide) run out.

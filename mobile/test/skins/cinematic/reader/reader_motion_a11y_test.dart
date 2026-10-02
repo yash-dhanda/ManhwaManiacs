@@ -92,8 +92,8 @@ void main() {
     testWidgets('the chrome fades without the slide under reduced motion, and slides otherwise', (tester) async {
       await pumpReader(tester);
       await settleReader(tester, ms: 500);
-      await tapDouble(tester);
-      // tapDouble waits 700 ms: hidden. Bring it back and read the slide mid-way.
+      await tapMenu(tester);
+      // tapMenu waits 700 ms: hidden. Bring it back and read the slide mid-way.
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
       await tester.tapAt(const Offset(195, 422));
       await tester.pump(const Duration(milliseconds: 20));
@@ -104,7 +104,7 @@ void main() {
 
       await pumpReader(tester, reduced: true);
       await settleReader(tester, ms: 500);
-      await tapDouble(tester);
+      await tapMenu(tester);
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 350)));
       await tester.tapAt(const Offset(195, 422));
       await tester.pump(const Duration(milliseconds: 20));

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/storage/json_record.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_prefs.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
@@ -84,6 +85,8 @@ class ReaderSettingsBody extends ConsumerWidget {
     final android = defaultTargetPlatform == TargetPlatform.android;
     final apps = android || defaultTargetPlatform == TargetPlatform.iOS;
     const thisSeries = 'This series', allSeries = 'All series';
+    final record = ref.watch(readerSettingsProvider);
+    final menu = MenuOpen.of(record);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -180,8 +183,29 @@ class ReaderSettingsBody extends ConsumerWidget {
         _SwitchRow(title: 'Swipe sideways to change chapter', scope: allSeries, value: v.values.swipeChapter, onChanged: (x) => unawaited(w.glass({GlassReaderKeys.swipeChapter: x}))),
         const _Section('Taps'),
         _Row(
+          title: 'Open menu with',
+          scope: allSeries,
+          caption: 'Edge: a tap along the top or bottom of the page. Manga and novels.',
+          child: GlassSegmented<MenuOpen>(
+            segments: const [
+              GlassSegment(value: MenuOpen.tap, label: 'Tap'),
+              GlassSegment(value: MenuOpen.doubleTap, label: 'Double tap'),
+              GlassSegment(value: MenuOpen.edge, label: 'Edge'),
+            ],
+            selected: menu,
+            onSelected: (m) => unawaited(w.profile({'menuOpen': m.name})),
+          ),
+        ),
+        _SwitchRow(
+          title: 'Show menu at chapter end',
+          scope: allSeries,
+          value: menuAtChapterEnd(record),
+          onChanged: (x) => unawaited(w.profile({'menuAtChapterEnd': x})),
+        ),
+        _Row(
           title: 'Tap zones',
           scope: allSeries,
+          caption: menu.help,
           child: TapZonesDiagram(
             zones: p.tapZones ?? (p.rtl ? const ['next', 'menu', 'previous'] : const ['previous', 'menu', 'next']),
             custom: p.tapZones != null,

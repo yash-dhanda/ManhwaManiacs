@@ -33,6 +33,9 @@ import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_pace.dart';
 import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
 import 'package:manhwamaniacs/features/reader/engine/auto_scroll_model.dart' show novelPxPerSecond;
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
+import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/settings/providers/a11y_prefs_provider.dart';
@@ -185,6 +188,14 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
 
   TargetPlatform get _platform => Theme.of(context).platform;
   bool get _reduced => CineMotion.reduced(context);
+
+  late final ReaderChromeIdle _idle = ReaderChromeIdle(
+    this,
+    visible: () => _chrome,
+    hide: () => _setChrome(false),
+    held: () => _chromeScope.hasFocus || _editingProgress || _noteOpen || _listenUi.roomOpen,
+    off: () => _reduced,
+  );
   String get _prefsKey => novelSeriesPrefsKey(widget.sourceId, widget.seriesKey);
 
   void _repaint() {
@@ -250,6 +261,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
   void dispose() {
     _sub?.close();
     _speakerTimer?.cancel();
+    _idle.dispose();
     // Leaving the reader stops the narration and removes the notification.
     _narr
       ..onSkipNext = null
@@ -356,6 +368,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     if (visible == _chrome) return;
     if (!visible && _chromeScope.hasFocus) _surfaceFocus.requestFocus();
     setState(() => _chrome = visible);
+    visible ? _idle.arm() : _idle.hold();
     // The status bar comes with the chrome (at the start of its fade in) and leaves at the start
     // of its fade out.
     _applyUi(visible ? ReaderUiPhase.chromeShown : ReaderUiPhase.chromeHidden);
@@ -369,9 +382,22 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
 
   void _toggleChrome() => _setChrome(!_chrome);
 
+  final TapClassifier _menuTaps = TapClassifier(doubleTapWindow: const Duration(milliseconds: 300), doubleTapSlop: 24);
+
+  /// 'Open menu with' (Tap, Double tap, Top or bottom edge; Tap under a screen reader): true when this tap at
+  /// [position] in a page box of [size] opened or closed the chrome.
+  bool _menuTap(Offset position, Size size, {required bool inMenuZone}) {
+    final kind = _menuTaps.classify(position, DateTime.now());
+    final mode = MenuOpen.of(ref.read(readerSettingsProvider)).forScreenReader(MediaQuery.accessibleNavigationOf(context));
+    final edge = inMenuEdge(position, size, padding: MediaQuery.paddingOf(context));
+    if (!mode.toggles(kind, inMenuZone: inMenuZone, inEdge: edge)) return false;
+    _toggleChrome();
+    return true;
+  }
+
   bool get _canAutoHide => !_chromeScope.hasFocus && !MediaQuery.accessibleNavigationOf(context) && !_editingProgress;
 
-  void _maybeAutoHide() {}
+  void _maybeAutoHide() => _idle.arm();
 
   void _onScroll() {
     _ctl.onScrolled();
@@ -388,7 +414,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
       _upAccum += -delta;
       if (_upAccum >= 56 && !_chrome) _setChrome(true);
     }
-    if (atEnd && !_chrome) _setChrome(true);
+    if (atEnd && !_chrome && menuAtChapterEnd(ref.read(readerSettingsProvider))) _setChrome(true);
   }
 
   // ── NovelReadingSurface (scroll layout) ───────────────────────────────────
@@ -1115,7 +1141,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
                 label: chapter == null ? 'Chapter loading' : 'Chapter ${chapterNumberText(chapter.chapterNumber)}, ${s.chapterPercent} percent',
                 child: OpenChapterScope(
                   chapterId: (sourceId: widget.sourceId, seriesKey: widget.seriesKey, chapterKey: chapter?.chapterKey ?? widget.chapterKey),
-                  child: Stack(
+                  child: _idle.wrap(Stack(
                     fit: StackFit.expand,
                     children: [
                       Positioned.fill(child: body),
@@ -1129,7 +1155,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
                       if (_noteOpen) _noteField(stock),
                       if (!_ratingShown && series != null) _rating(series),
                     ],
-                  ),
+                  ),),
                 ),
               ),
             ),
@@ -1173,7 +1199,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
         onPointerCancel: (_) => _auto.running ? _auto.controller.touchUp() : null,
         child: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: () => _auto.running ? null : _toggleChrome(),
+        onTapUp: (d) => _auto.running ? null : _menuTap(d.localPosition, MediaQuery.sizeOf(context), inMenuZone: true),
         child: _SwipeChapter(
           enabled: ref.watch(novelSettingsProvider).novelSwipeChapter,
           onSwipe: (forward) {
@@ -1367,12 +1393,14 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
         _ctl.onPaged(i);
         _bucket.value = ref.read(novelReaderControllerProvider(_args)).readingBucket;
         if (i >= pages.length) {
+          // The chapter's end shows the menu, unless the profile turned it off.
+          if (!_chrome && menuAtChapterEnd(ref.read(readerSettingsProvider))) _setChrome(true);
           _ctl.markComplete();
           ref.read(completedThisSessionProvider.notifier).markCompleted(widget.sourceId, widget.seriesKey, chapter.chapterKey);
           cineFeedback(context, HapticEvent.chapterComplete, sound: SoundEvent.chapterComplete);
         }
       },
-      onMenu: _toggleChrome,
+      onMenu: _menuTap,
     );
   }
 

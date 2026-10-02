@@ -10,9 +10,11 @@ import 'package:manhwamaniacs/core/network/request_limiter.dart';
 import 'package:manhwamaniacs/core/platform/native_bridge.dart';
 import 'package:manhwamaniacs/core/utils/haptics.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_prefetch.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_zoom.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_provider.dart';
@@ -25,6 +27,7 @@ import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_filter_provider.dart' show ReaderColorMode;
+import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
@@ -111,7 +114,18 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
   int _view = 0;
   Offset _pan = Offset.zero;
   Size _stage = Size.zero;
-  Timer? _hideTimer, _saveTimer;
+  Timer? _saveTimer;
+  late final ReaderChromeIdle _idle = ReaderChromeIdle(
+    this,
+    visible: () => ref.read(readerUiProvider).controlsVisible,
+    hide: () {
+      ref.read(readerUiProvider.notifier).setControlsVisible(false);
+      _publish();
+    },
+    after: () => widget.autoHideAfter,
+    held: () => widget.options.chromeHeld?.call() ?? false,
+    off: () => widget.options.chromeIdleOff?.call() ?? false,
+  );
   (String, int)? _lastSaved;
   int? _pendingSave;
   final Set<String> _completed = {};
@@ -238,7 +252,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     WidgetsBinding.instance.removeObserver(this);
     _zoomAnim?.dispose();
     _fade?.dispose();
-    _hideTimer?.cancel();
+    _idle.dispose();
     _saveTimer?.cancel();
     _flushSave();
     unawaited(_releaseWakelock());
@@ -307,6 +321,8 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     _view = index;
     if (_zoom > 1) _resetZoom();
     if (widget.options.autoHide != null && ref.read(readerUiProvider).controlsVisible) _hideControls();
+    // The chapter's last page shows the menu (next-chapter controls), unless the profile turned it off.
+    if (index == _views.length - 1 && menuAtChapterEnd(ref.read(readerSettingsProvider))) _showControls();
     if (index > _creditsIndex) {
       // Past the credits: the next chapter opens (by the skin's Dip).
       if (!_sentinelFired && _hasNext) {
@@ -480,19 +496,11 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
 
   void _hideControls() {
     ref.read(readerUiProvider.notifier).setControlsVisible(false);
-    _hideTimer?.cancel();
+    _idle.hold();
     _publish();
   }
 
-  void _scheduleHide() {
-    _hideTimer?.cancel();
-    _hideTimer = Timer(widget.autoHideAfter, () {
-      if (mounted) {
-        ref.read(readerUiProvider.notifier).setControlsVisible(false);
-        _publish();
-      }
-    });
-  }
+  void _scheduleHide() => _idle.arm();
 
   // ── Turning ───────────────────────────────────────────────────────────────
 
@@ -806,7 +814,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
   @override
   void hideChrome() => _hideControls();
   @override
-  void holdChrome() => _hideTimer?.cancel();
+  void holdChrome() => _idle.hold();
   @override
   void scheduleHideChrome() {
     if (mounted) _scheduleHide();
@@ -1021,7 +1029,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     );
     return ProviderScope(
       overrides: [readerEngineProvider.overrideWithValue(widget.controller)],
-      child: Stack(
+      child: _idle.wrap(Stack(
         children: [
           Positioned.fill(child: stack),
           Positioned.fill(
@@ -1031,7 +1039,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
             ),
           ),
         ],
-      ),
+      ),),
     );
   }
 }

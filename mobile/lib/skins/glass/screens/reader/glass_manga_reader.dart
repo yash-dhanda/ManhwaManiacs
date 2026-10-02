@@ -23,10 +23,12 @@ import 'package:manhwamaniacs/features/ocr/controllers/ocr_run_controller.dart';
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/reader/engine/lens_layout.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/neighbour.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_sample.dart' show PageSample;
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
@@ -36,12 +38,12 @@ import 'package:manhwamaniacs/features/reader/engine/reader_layout.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_surface_slots.dart';
 import 'package:manhwamaniacs/features/reader/engine/seam.dart';
 import 'package:manhwamaniacs/features/reader/engine/swipe_neighbour.dart' show ReadingDirection, SwipeRelease;
-import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart' show kChapterSeamExtent;
 import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
 import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
@@ -354,7 +356,6 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     _seamChipTimer?.cancel();
     _wakeRelease?.cancel();
     _autoNext?.cancel();
-    _idleHide?.cancel();
     _tapsTimer?.cancel();
     _exclusion.clear();
     if (_wakeHeld) unawaited(_wakelock.disable());
@@ -1266,11 +1267,13 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         : _settings.values.tapToScroll
             ? stripScrollTapAction(info.position, info.size)
             : TapZoneAction.menu;
+    // 'Open menu with' (Tap, Double tap, Top or bottom edge; Tap under a screen reader). Pinch zooms.
+    final mode = MenuOpen.of(ref.read(readerSettingsProvider)).forScreenReader(accessible);
+    final edge = inMenuEdge(info.position, info.size, padding: MediaQuery.paddingOf(context));
+    if (mode.toggles(info.kind, inMenuZone: action == TapZoneAction.menu, inEdge: edge)) return _toggleChrome();
     switch (action) {
-      // A double tap opens or closes the chrome; a single touch here is too often the end of a scroll.
-      // Pinch zooms.
       case TapZoneAction.menu:
-        if (info.kind == TapKind.double) _toggleChrome();
+        break;
       case TapZoneAction.previous || TapZoneAction.next when paged:
         _turn(action == TapZoneAction.next ? 1 : -1);
       case TapZoneAction.previous || TapZoneAction.next:
@@ -1279,21 +1282,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     }
   }
 
-  Timer? _idleHide;
-
-  void _toggleChrome() {
-    _idleHide?.cancel();
-    if (engine.value.chromeVisible) {
-      engine.hideChrome();
-      return;
-    }
-    engine.showChrome();
-    if (MediaQuery.accessibleNavigationOf(context)) return;
-    _idleHide = Timer(const Duration(milliseconds: 3000), () {
-      // Never while a sheet, menu, popover, scrub or overlay holds the chrome.
-      if (mounted && _openSheet == null && !_menuOpen && !_goTo && !_scrubbing && !_dialogue && !_hitShown) engine.hideChrome();
-    });
-  }
+  void _toggleChrome() => engine.value.chromeVisible ? engine.hideChrome() : engine.showChrome();
 
   void _turn(int by) {
     final s = engine.value;
@@ -1494,6 +1483,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         rubberBandMax: 0.18,
         legacyWakeAndLock: false,
         lifecycleVolumeKeys: true,
+        // The engine's idle countdown never runs out while a sheet, menu, popover, scrub or overlay holds the chrome.
+        chromeHeld: () => _openSheet != null || _menuOpen || _goTo || _scrubbing || _dialogue || _hitShown,
+        chromeIdleOff: () => reducedMotion,
         pageStateBuilder: glassPageState,
         bandBuilder: GlassReaderBands(
           nextLabel: _nextId == null ? 'The next chapter' : chapterLabel(_nextId!),
@@ -1574,8 +1566,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     _lastLayout = layout;
     final column = desktop ? stripWithPanels(size.width, left: _leftPanel, right: _rightPanel) : null;
     final options = _options(v, column: column, accessibleNav: accessibleNav);
-    // Idle hide after 3,000 ms only when a tap opened the chrome (glass 8.14.2): the skin's timer, not the engine's.
-    const autoHideAfter = Duration(days: 1);
+    // The menu idles out (5 s untouched) on the engine's countdown, shared with Cinematic.
+    const autoHideAfter = kReaderChromeIdle;
 
     Widget chromeFor(BuildContext context, ReaderEngineState state) => LayoutBuilder(
           builder: (context, c) {
@@ -1844,7 +1836,10 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         onKeyEvent: _onKey,
         child: Semantics(
           container: true,
-          customSemanticsActions: locked ? {const CustomSemanticsAction(label: 'Unlock controls'): _doUnlock} : const {},
+          // Whatever opens the menu by touch, a screen reader reaches it here.
+          customSemanticsActions: locked
+              ? {const CustomSemanticsAction(label: 'Unlock controls'): _doUnlock}
+              : {CustomSemanticsAction(label: engine.value.chromeVisible ? 'Hide menu' : 'Show menu'): _toggleChrome},
           child: Material(
             type: MaterialType.transparency,
             child: ColoredBox(

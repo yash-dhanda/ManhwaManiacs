@@ -41,6 +41,9 @@ import 'package:manhwamaniacs/features/novels/utils/novel_progress.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
 import 'package:manhwamaniacs/features/profiles/models/mood.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
+import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
@@ -125,7 +128,7 @@ const double kNovelReadingLine = 0.38;
 /// Thresholds of E1: 24 px down hides, 56 px up shows, 3000 ms idle hides after a tap opened it, never in the first 800 ms of a
 /// chapter, never within 30 s of a hardware key.
 const double kChromeHideDown = 24, kChromeShowUp = 56;
-const Duration kChromeIdle = Duration(milliseconds: 3000), kChromeChapterGrace = Duration(milliseconds: 800), kChromeKeyGrace = Duration(seconds: 30);
+const Duration kChromeIdle = kReaderChromeIdle, kChromeChapterGrace = Duration(milliseconds: 800), kChromeKeyGrace = Duration(seconds: 30);
 
 /// A tap: down and up within 400 ms and 18 px (F1's `press.lift` uses the same 18 px; it fires at 150 ms).
 const Duration kTapMax = Duration(milliseconds: 400), kPressLift = Duration(milliseconds: 150);
@@ -274,7 +277,15 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
   double _lastPixels = 0, _downAccum = 0, _upAccum = 0;
   Duration _chapterStart = Duration.zero;
   Duration? _lastKey;
-  Timer? _idle, _pressLift, _rateTimer;
+  Timer? _pressLift, _rateTimer;
+  late final ReaderChromeIdle _idle = ReaderChromeIdle(
+    this,
+    visible: () => _chrome,
+    hide: () => _setChrome(false),
+    after: () => kChromeIdle,
+    held: () => !_canHide,
+    off: () => _reduced,
+  );
   int? _rateLeft;
   Offset? _downAt;
   Duration? _downTime;
@@ -355,7 +366,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       r();
     }
     _sub?.close();
-    _idle?.cancel();
+    _idle.dispose();
     _pressLift?.cancel();
     _rateTimer?.cancel();
     _keyboardMenu?.remove();
@@ -827,26 +838,38 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
     if (!visible && _chromeScope.hasFocus) _surfaceFocus.requestFocus();
     setState(() => _chrome = visible);
     unawaited(GlassMotion.play(visible ? MotionName.materialise : MotionName.dematerialise, controller: _chromeAnim, target: visible ? 1 : 0));
-    _idle?.cancel();
+    // Shown, it idles out after kChromeIdle untouched (never while [_canHide] is false: a sheet, menu, selection).
+    visible ? _idle.arm() : _idle.hold();
   }
 
-  /// A tap on the column toggles; after a tap opened it, 3000 ms idle hides it again.
+  /// A tap on the column toggles.
   void _toggleChrome() {
     if (_chrome) {
       _setChrome(false, force: _canHide);
       return;
     }
     _setChrome(true);
-    _idle?.cancel();
-    _idle = Timer(kChromeIdle, () {
-      if (mounted && _chrome) _setChrome(false);
-    });
+  }
+
+  /// Shows the chrome for a sheet opened from it; the idle waits for the sheet to close.
+  final TapClassifier _menuTaps = TapClassifier(doubleTapWindow: const Duration(milliseconds: 300), doubleTapSlop: 24);
+
+  /// 'Open menu with' (Tap, Double tap, Top or bottom edge; Tap under a screen reader): true when this tap at the
+  /// global [position] opened or closed the chrome.
+  bool _menuTap(Offset position, {required bool inMenuZone}) {
+    final kind = _menuTaps.classify(position, DateTime.now());
+    final mode = MenuOpen.of(ref.read(readerSettingsProvider)).forScreenReader(MediaQuery.accessibleNavigationOf(context));
+    final edge = inMenuEdge(position, MediaQuery.sizeOf(context), padding: MediaQuery.paddingOf(context));
+    if (!mode.toggles(kind, inMenuZone: inMenuZone, inEdge: edge)) return false;
+    _toggleChrome();
+    return true;
   }
 
   void _holdChrome() {
-    _idle?.cancel();
     if (!_chrome) _setChrome(true);
   }
+
+  bool _atBottom = false;
 
   void _onScroll() {
     _ctl.onScrolled();
@@ -864,6 +887,10 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       _upAccum += -delta;
       if (_upAccum >= kChromeShowUp && !_chrome) _setChrome(true);
     }
+    // Arriving at the chapter's end shows the menu (next-chapter controls), unless the profile turned it off.
+    final atBottom = _scroll.position.maxScrollExtent > 0 && _scroll.position.extentAfter < 1;
+    if (atBottom && !_atBottom && !_chrome && menuAtChapterEnd(ref.read(readerSettingsProvider))) _setChrome(true);
+    _atBottom = atBottom;
     final percent = _state.chapterPercent ~/ 5 * 5;
     if (percent != _semanticsPercent) setState(() => _semanticsPercent = percent);
   }
@@ -1692,17 +1719,19 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
       if (_paged) {
         final box = _viewportKey.currentContext?.findRenderObject();
         if (box is! RenderBox) return;
-        switch (tapBand(_values().tapZones, box.globalToLocal(e.position), box.size)) {
+        final band = tapBand(_values().tapZones, box.globalToLocal(e.position), box.size);
+        if (_menuTap(e.position, inMenuZone: band == PageTapAction.menu)) return;
+        switch (band) {
           case PageTapAction.back:
             _step(forward: false);
           case PageTapAction.forward:
             _step(forward: true);
           case PageTapAction.menu:
-            _toggleChrome();
+            break;
         }
         return;
       }
-      _toggleChrome();
+      _menuTap(e.position, inMenuZone: true);
     });
   }
 
@@ -1874,7 +1903,13 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         child: Focus(
           focusNode: _surfaceFocus,
           autofocus: true,
-          child: Semantics(container: true, label: label, child: OpenChapterScope(chapterId: _chapterKey, child: framed)),
+          child: Semantics(
+            container: true,
+            label: label,
+            // Whatever opens the menu by touch, a screen reader reaches it here.
+            customSemanticsActions: {CustomSemanticsAction(label: _chrome ? 'Hide menu' : 'Show menu'): _toggleChrome},
+            child: OpenChapterScope(chapterId: _chapterKey, child: _idle.wrap(framed)),
+          ),
         ),
       ),
     );
@@ -2243,6 +2278,7 @@ class GlassNovelReaderState extends ConsumerState<GlassNovelReader> with TickerP
         if (i >= pages.length) {
           _ctl.markComplete();
           _markFinished();
+          if (!_chrome && menuAtChapterEnd(ref.read(readerSettingsProvider))) _setChrome(true);
         }
         setState(() {});
       },

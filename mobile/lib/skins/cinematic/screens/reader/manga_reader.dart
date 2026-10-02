@@ -16,11 +16,13 @@ import 'package:manhwamaniacs/features/downloads/providers/series_download_statu
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
 import 'package:manhwamaniacs/features/ocr/providers/dialogue_jump_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
+import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
 import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
 import 'package:manhwamaniacs/features/reader/engine/page_turn.dart';
 import 'package:manhwamaniacs/features/reader/engine/paged_reader_view.dart';
 import 'package:manhwamaniacs/features/reader/engine/read_all_window.dart' show locateGlobalPage, chapterStarts, readAllFlag;
 import 'package:manhwamaniacs/features/reader/engine/reader_ambient.dart' show PanelsFound;
+import 'package:manhwamaniacs/features/reader/engine/reader_chrome_idle.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_state.dart';
@@ -28,7 +30,6 @@ import 'package:manhwamaniacs/features/reader/engine/reader_engine_view.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_layout.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_surface_slots.dart';
-import 'package:manhwamaniacs/features/reader/engine/tap_classifier.dart';
 import 'package:manhwamaniacs/features/reader/engine/zoom_math.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_feed.dart' show kChapterSeamExtent;
@@ -571,12 +572,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
     }
     final zones = resolveZones(prefs.tapZones, rtl: prefs.rtl);
     final step = zoneStep(zoneAction(info.position.dx, info.size.width, zones));
-    // The menu zone takes a double tap to open or close the chrome; a single tap there does nothing.
-    // Pinch zooms.
-    if (step == null) {
-      if (info.kind == TapKind.double) s.chromeVisible ? _engine.hideChrome() : _engine.showChrome();
-      return;
-    }
+    if (_menuTap(info, inMenuZone: step == null) || step == null) return;
     if (s.chromeVisible) _engine.hideChrome();
     _pagedStep(forward: step > 0);
   }
@@ -615,16 +611,26 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
     // Auto-scroll keeps running through a tap: the touch pauses it and the release resumes it
     // (the chrome stays hidden).
     if (s.autoScrolling) return;
-    switch (stripTap(info.position, info.size, tapToScroll: prefs.stripTaps == 'scroll', rtl: prefs.rtl)) {
-      // A double tap opens or closes the chrome; a single touch here is too often the end of a
-      // scroll. Pinch zooms.
+    final action = stripTap(info.position, info.size, tapToScroll: prefs.stripTaps == 'scroll', rtl: prefs.rtl);
+    if (_menuTap(info, inMenuZone: action == StripTap.toggleChrome)) return;
+    switch (action) {
       case StripTap.toggleChrome:
-        if (info.kind == TapKind.double) s.chromeVisible ? _engine.hideChrome() : _engine.showChrome();
+        break;
       case StripTap.scrollBack:
         _scrollBy(forward: false);
       case StripTap.scrollForward:
         _scrollBy(forward: true);
     }
+  }
+
+  /// 'Open menu with' (Tap, Double tap, Top or bottom edge; Tap under a screen reader): toggles the chrome when
+  /// this tap is the one that opens or closes it. Pinch zooms.
+  bool _menuTap(ReaderTapInfo info, {required bool inMenuZone}) {
+    final mode = MenuOpen.of(ref.read(readerSettingsProvider)).forScreenReader(MediaQuery.accessibleNavigationOf(context));
+    final edge = inMenuEdge(info.position, info.size, padding: MediaQuery.paddingOf(context));
+    if (!mode.toggles(info.kind, inMenuZone: inMenuZone, inEdge: edge)) return false;
+    _toggleChrome();
+    return true;
   }
 
   void _scrollBy({required bool forward}) => _engine.scrollByViewport(
@@ -1100,11 +1106,13 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
       pageHeroTag: (chapterId, page) => _heroFor?.chapter == chapterId && _heroFor?.page == page ? 'reader-page-$chapterId-$page' : null,
       pageEpoch: (chapterId, page) => _retryEpoch['$chapterId:$page'] ?? 0,
       lifecycleVolumeKeys: true,
+      chromeIdleOff: () => _reduced,
     );
 
     Widget chrome(BuildContext context, ReaderEngineState state) =>
         _chrome(context, state, prefs, series, tablet: tablet, landscape: landscape, reduced: reduced, paged: paged);
-    final autoHideAfter = accessible ? const Duration(days: 1) : const Duration(milliseconds: 3000);
+    // The menu idles out (5 s untouched); never under a screen reader or reduce motion (ReaderChromeIdle).
+    const autoHideAfter = kReaderChromeIdle;
     final Widget view;
     if (layout == ReaderLayout.guided) {
       final chapter = _chapterById(_carryChapterId ?? _id.chapterKey) ?? body.feed.chapters.first;
@@ -1117,7 +1125,6 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
         chromeBuilder: chrome,
         initialPage: _carryPage ?? body.initialPage,
         autoAdvance: settings.guidedAutoAdvance,
-        autoHideAfter: autoHideAfter,
         onSaveProgress: body.onSaveProgress,
         onPreviousChapter: body.onPreviousChapter,
         onNextChapter: body.onNextChapter,
@@ -1207,6 +1214,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
               child: Semantics(
                 container: true,
                 label: 'Chapter ${chapterNumberText(lastChapterSummary?.number)}, page ${_engine.value.page} of ${_engine.value.pageCount}',
+                // Whatever opens the menu by touch, a screen reader reaches it here.
+                customSemanticsActions: {CustomSemanticsAction(label: _engine.value.chromeVisible ? 'Hide menu' : 'Show menu'): _toggleChrome},
                 child: Stack(
                   children: [
                     Positioned.fill(child: view),
