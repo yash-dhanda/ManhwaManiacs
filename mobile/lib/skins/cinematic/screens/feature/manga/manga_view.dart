@@ -122,6 +122,9 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
       };
   }
 
+  /// The superscript count: the chapter tab's is live (the tabs are built once, the detail refreshes).
+  int? _countOf(FeatureTab tab) => tab.id == 'chapters' ? d.chapters.length : tab.count;
+
   int _initialIndex() {
     final i = _tabs.indexWhere((t) => t.id == widget.initialTab);
     return i < 0 ? 0 : i;
@@ -350,7 +353,7 @@ class _MangaFeatureViewState extends ConsumerState<MangaFeatureView>
                                     Tab(
                                       height: 48,
                                       text: '${_tabs[i].folio(i)} ${_tabs[i].label}'
-                                          '${_tabs[i].count != null ? superscript(_tabs[i].count!) : ''}',
+                                          '${_countOf(_tabs[i]) == null ? '' : superscript(_countOf(_tabs[i])!)}',
                                     ),
                               ],
                             ),

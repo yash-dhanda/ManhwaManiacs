@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/library/utils/cover_url.dart';
+import 'package:manhwamaniacs/features/profiles/utils/api_image_headers.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_date.dart';
+import 'package:manhwamaniacs/features/sources/utils/resume_order.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/cine_glyphs.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
@@ -28,22 +30,15 @@ ResumePoint resumePoint(FeatureData d, WidgetRef ref) {
   if (order.isEmpty) return (label: 'Read', chapter: null, sub: null);
   final progress =
       ref.watch(sourceSeriesProgressProvider((sourceId: d.sourceId, seriesId: d.seriesKey)));
-  String? lastKey;
-  DateTime? at;
-  for (final e in progress.entries) {
-    if (at == null || e.value.updatedAt.isAfter(at)) {
-      lastKey = e.key;
-      at = e.value.updatedAt;
-    }
-  }
+  final lastKey = lastTouchedKey(order, progress);
   String num(int i) => order[i].number?.toString().replaceAll(RegExp(r'\.0$'), '') ?? '${i + 1}';
   if (lastKey == null) return (label: 'Read', chapter: order.first.id, sub: 'CH ${num(0)}');
   final i = order.indexWhere((c) => c.id == lastKey);
   if (i < 0) return (label: 'Read', chapter: order.first.id, sub: 'CH ${num(0)}');
   final p = progress[lastKey]!;
   if (!p.completed) return (label: 'Continue', chapter: lastKey, sub: 'CH ${num(i)} · p.${p.page}');
-  if (i + 1 < order.length) {
-    return (label: 'Continue', chapter: order[i + 1].id, sub: 'CH ${num(i + 1)}');
+  if (nextUnreadAfter(order, i, progress) case final j?) {
+    return (label: 'Continue', chapter: order[j].id, sub: 'CH ${num(j)}');
   }
   return (label: 'All caught up', chapter: null, sub: null);
 }
@@ -96,6 +91,7 @@ class _FeatureCoverState extends State<FeatureCover> with SingleTickerProviderSt
         ? ColoredBox(color: t.colorPaper2)
         : Image.network(
             widget.url!,
+            headers: apiImageHeadersOf(context),
             fit: BoxFit.cover,
             errorBuilder: (c, e, s) => ColoredBox(color: t.colorPaper2),
           );

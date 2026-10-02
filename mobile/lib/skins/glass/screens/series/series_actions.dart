@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/source_page.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
+import 'package:manhwamaniacs/features/updates/utils/check_series.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass/follow_ring.dart';
@@ -109,14 +110,16 @@ class SeriesActionsLogic {
     final f = d.followed;
     if (f == null || !_online) return;
     fire(ref.read(glassHapticsProvider).fire(HapticEvent.favorite));
-    await ref.read(librarySeriesActionsProvider).setFavorite(f, favorite: !f.isFavorite);
+    final err = await ref.read(librarySeriesActionsProvider).setFavorite(f, favorite: !f.isFavorite);
+    if (err != null) showGlassToast(ref, GlassToastSpec(err.userMessage, kind: GlassToastKind.error));
     ref.invalidate(updatesProvider);
   }
 
   Future<void> notify() async {
     final f = d.followed;
     if (f == null || !_online) return;
-    await ref.read(libraryRepositoryProvider).patchSeries(f.id, notify: !f.notify);
+    final r = await ref.read(libraryRepositoryProvider).patchSeries(f.id, notify: !f.notify);
+    if (r.isErr) showGlassToast(ref, GlassToastSpec(r.error.userMessage, kind: GlassToastKind.error));
     ref.invalidate(updatesProvider);
   }
 }
@@ -219,7 +222,7 @@ Future<void> showSeriesMenu(BuildContext context, WidgetRef ref, GlassSeriesData
       GlassMenuEntry(label: 'Tags…', enabled: online, keyHint: const SingleActivator(LogicalKeyboardKey.keyT, shift: true), onSelected: () => openTagsSheet(context, d)),
       if (hasProgress) GlassMenuEntry(label: 'Previously on', onSelected: () => openPreviouslyOn(ref, d)),
       if (d.novel && d.readingOrder.isNotEmpty) GlassMenuEntry(label: 'Voices for this book', onSelected: () => ref.read(glassNarrationActionsProvider).openSheet('cast', extra: {'series': '${d.sourceId}:${d.seriesKey}', 'chapter': d.readingOrder.first.id})),
-      if (f != null) GlassMenuEntry(label: 'Check for new chapters', enabled: online, onSelected: () => fire(checkNewChapters(ref, f))),
+      if (f != null) GlassMenuEntry(label: 'Check for new chapters', enabled: online, onSelected: () => fire(checkNewChapters(ref, d, f))),
       if (f != null) GlassMenuEntry(label: 'Move to another source…', enabled: online, onSelected: () => openMoveSource(context, d)),
       if (f != null && gateOpen) GlassMenuEntry(label: 'Content rating…', separatorBefore: true, enabled: online, onSelected: () => _ratingMenu(context, ref, f, anchor)),
       // The Circle (mobile/43, glass 8.12, 8.13, 9.3.4, 9.3.6).
@@ -247,15 +250,14 @@ void openPreviouslyOn(WidgetRef ref, GlassSeriesData d) {
   unawaited(ref.read(skinRouterProvider).push<void>(Routes.recap(d.sourceId, d.seriesKey, {'to': to}), extra: const GlassNavExtra()));
 }
 
-Future<void> checkNewChapters(WidgetRef ref, FollowedSeries f) async {
-  final r = await ref.read(updatesRepositoryProvider).checkFollowed(f.id);
+Future<void> checkNewChapters(WidgetRef ref, GlassSeriesData d, FollowedSeries f) async {
+  final r = await checkSeriesForNew(ref, followedId: f.id, sourceId: d.sourceId, seriesKey: d.seriesKey);
   if (r.isErr) {
     showGlassToast(ref, GlassToastSpec(r.error.userMessage, kind: GlassToastKind.error));
     return;
   }
-  final n = r.value.newChaptersFound;
+  final n = r.value;
   showGlassToast(ref, GlassToastSpec(n > 0 ? 'Checked: $n new chapter${n == 1 ? '' : 's'}' : 'No new chapters'));
-  if (n > 0) ref.invalidate(updatesProvider);
 }
 
 void _statusMenu(BuildContext context, WidgetRef ref, FollowedSeries f, Rect anchor) => unawaited(showGlassMenu(

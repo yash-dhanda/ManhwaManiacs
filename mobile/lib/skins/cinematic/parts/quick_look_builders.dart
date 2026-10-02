@@ -55,8 +55,15 @@ String _chapterLabel(double? n) => n == null ? '' : ' ${n % 1 == 0 ? n.toInt() :
 String? continueChapterKey(FollowedSeries s) => s.readState?.chapterKey ?? (s.knownChapters.isEmpty ? null : s.knownChapters.first.key);
 
 /// The reader target of [chapterKey] for a source of [kind] (manga reader or novel reader).
-ReaderTarget readerTargetFor(String sourceId, String seriesKey, String chapterKey, {required bool novel}) =>
-    novel ? ReaderTarget.novel(sourceId, seriesKey, chapterKey) : ReaderTarget.manifest(sourceId, seriesKey, chapterKey);
+ReaderTarget readerTargetFor(String sourceId, String seriesKey, String chapterKey, {required bool novel, int? page}) =>
+    novel ? ReaderTarget.novel(sourceId, seriesKey, chapterKey) : ReaderTarget.manifest(sourceId, seriesKey, chapterKey, page: page);
+
+/// The saved page of an unfinished chapter (merged phone + server progress), or null for page 1. Passed on
+/// the route so a position from another device, or after the scroll cache is cleared, is not lost.
+int? savedPageOf(WidgetRef ref, String sourceId, String seriesKey, String chapterKey) {
+  final p = ref.read(sourceSeriesProgressProvider((sourceId: sourceId, seriesId: seriesKey)))[chapterKey];
+  return p == null || p.completed || p.page <= 1 ? null : p.page;
+}
 
 /// Whether the Circle has members to recommend to (`Recommend to…` renders only then).
 bool _hasCircle(WidgetRef ref) => (ref.read(circleMembersProvider).valueOrNull ?? const []).isNotEmpty;
@@ -66,7 +73,7 @@ bool _novel(WidgetRef ref, String sourceId) => isNovelSource(ref.read(contentMod
 /// Open the reader on [chapterKey] with [entry], warming the chapter first. Screens call
 /// `continueTo` (`recap/continue_to.dart`), which opens a recap first when the setting asks.
 void openReaderAt(BuildContext context, WidgetRef ref, String sourceId, String seriesKey, String chapterKey, {required ReaderEntry entry, bool replace = false}) {
-  final target = readerTargetFor(sourceId, seriesKey, chapterKey, novel: _novel(ref, sourceId));
+  final target = readerTargetFor(sourceId, seriesKey, chapterKey, novel: _novel(ref, sourceId), page: savedPageOf(ref, sourceId, seriesKey, chapterKey));
   readerPrefetchOf(ref).onPress(target);
   enterReader(context, target, entry: entry, replace: replace);
 }

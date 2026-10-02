@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' as keys show ShortcutRegistry, shortcutRegistryProvider;
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/novels/utils/toc_window.dart';
+import 'package:manhwamaniacs/features/profiles/utils/api_image_headers.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
@@ -166,7 +167,7 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
     c.tags = () => openTagsSheet(context, data);
     c.share = () => copySeriesLink(ref, data);
     c.recommend = glassSheetRegistered('recommend') ? () => openRecommendSheet(ref, sourceId: data.sourceId, seriesKey: data.seriesKey, title: data.title) : null;
-    c.toggleSort = () => chapters.setOrder(chapters.order == 'newest' ? 'oldest' : 'newest');
+    c.toggleSort = () => setChapterOrder(ref, data, chapters, chapters.order == 'newest' ? 'oldest' : 'newest');
     c.select = toggleSelect;
     c.focusGoTo = focusGoTo;
     c.more = () => openMenu(rectOf(bandKey.currentContext ?? context));
@@ -236,7 +237,7 @@ class SeriesPageState extends ConsumerState<GlassSeriesPage> {
     final url = resolveCover(ref, data.series.coverUrl);
     if (url.isEmpty) return;
     final rect = rectOf(coverKey.currentContext ?? context);
-    unawaited(Navigator.of(context, rootNavigator: true).push<void>(GlassImageViewerRoute<void>(image: NetworkImage(url), thumbRect: rect, description: 'Cover of ${data.title}')));
+    unawaited(Navigator.of(context, rootNavigator: true).push<void>(GlassImageViewerRoute<void>(image: NetworkImage(url, headers: apiImageHeadersOf(context)), thumbRect: rect, description: 'Cover of ${data.title}')));
   }
 
   /// Warm the Continue chapter's manifest once the sheet first settles.

@@ -48,6 +48,8 @@ void main() {
       (key: 'e', number: 4, completed: false),
     ];
     expect(chaptersUpTo(cs, 3).map((c) => c.key), ['b', 'd']);
+    // An unnumbered row (an extra, a notice) must not mean "up to infinity".
+    expect(chaptersUpTo(cs, null), isEmpty);
     expect(undoMarkReadKeys({'a'}, ['a', 'b']), ['b']);
     expect(chunksOf200(List.generate(450, (i) => i)).map((c) => c.length), [200, 200, 50]);
   });

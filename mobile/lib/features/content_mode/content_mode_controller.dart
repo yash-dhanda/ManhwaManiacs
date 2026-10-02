@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/novels/providers/novels_gate_provider.dar
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// The active profile's content mode.
 ///
@@ -86,10 +87,34 @@ class ContentModeController extends Notifier<ContentMode> {
 /// "it never does". Short-circuiting because with novels off there is nothing
 /// to scope, and a screen that reads this must not become the reason
 /// `/sources` is fetched at all.
+const _kSourceModes = 'source_modes_v1';
+
+/// The store, or null where none is wired (a test scope): remembering the index is a nicety.
+SharedPreferences? _prefsOrNull(Ref ref) {
+  try {
+    return ref.watch(sharedPrefsProvider);
+  } catch (_) {
+    return null;
+  }
+}
+
 final sourceModeIndexProvider = Provider.autoDispose<Map<String, ContentMode>>(
   (ref) {
     if (!ref.watch(novelsEnabledProvider)) return const {};
-    return buildSourceModeIndex(ref.watch(sourcesListProvider).valueOrNull);
+    final prefs = _prefsOrNull(ref);
+    final list = ref.watch(sourcesListProvider).valueOrNull;
+    if (list != null) {
+      final index = buildSourceModeIndex(list);
+      // Remembered for a cold start, a slow or failed `/sources`: without it every novel opened then
+      // rendered (and wired its commands) as a manga.
+      prefs?.setStringList(_kSourceModes, [for (final e in index.entries) '${e.key}=${e.value.name}']).ignore();
+      return index;
+    }
+    return {
+      for (final row in prefs?.getStringList(_kSourceModes) ?? const <String>[])
+        if (row.lastIndexOf('=') case final i when i > 0)
+          if (ContentMode.values.asNameMap()[row.substring(i + 1)] case final mode?) row.substring(0, i): mode,
+    };
   },
   name: 'sourceModeIndex',
 );

@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
+import 'package:manhwamaniacs/features/sources/utils/series_share_url.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
+import 'package:manhwamaniacs/features/updates/utils/check_series.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
@@ -33,9 +35,10 @@ Future<void> showFeatureOverflow(
     isScrollControlled: true,
     backgroundColor: cineOf(context).colorPaper2,
     builder: (ctx) => Consumer(
-      builder: (ctx, ref, _) {
+      // `sheetRef` only watches: the actions outlive the sheet (they pop it first), so they use the page's [ref].
+      builder: (ctx, sheetRef, _) {
         final f = d.followed;
-        final online = isOnline(ref);
+        final online = isOnline(sheetRef);
         final current = f?.matureOverride;
         void toast(String m) => featureToast(context, m);
 
@@ -118,9 +121,10 @@ Future<void> showFeatureOverflow(
                         radio(label, f.readingStatus == wire, online
                             ? () async {
                                 Navigator.pop(ctx);
-                                await ref
+                                final r = await ref
                                     .read(libraryRepositoryProvider)
                                     .patchSeries(f.id, readingStatus: wire);
+                                if (r.isErr) toast("Couldn't change the reading status.");
                                 ref.invalidate(updatesProvider);
                               }
                             : null,),
@@ -142,7 +146,9 @@ Future<void> showFeatureOverflow(
                       ? () async {
                           Navigator.pop(ctx);
                           toast('Checking ${d.title}.');
-                          await ref.read(updatesRepositoryProvider).checkFollowed(f.id);
+                          final r = await checkSeriesForNew(ref, followedId: f.id, sourceId: d.sourceId, seriesKey: d.seriesKey);
+                          final n = r.isOk ? r.value : 0;
+                          toast(r.isErr ? r.error.userMessage : n > 0 ? 'Found $n new chapter${n == 1 ? '' : 's'}.' : 'No new chapters.');
                         }
                       : null, disabledHint: kNeedsConnection,),
                 ],
@@ -159,8 +165,7 @@ Future<void> showFeatureOverflow(
                       : null, disabledHint: 'Moving needs a connection.',),
                 item('Share link', () async {
                   Navigator.pop(ctx);
-                  final base = ref.read(apiBaseUrlProvider);
-                  final url = '$base${Routes.feature(d.sourceId, d.seriesKey)}';
+                  final url = seriesShareUrl(ref.read(apiBaseUrlProvider), Routes.feature(d.sourceId, d.seriesKey));
                   try {
                     await SharePlus.instance.share(ShareParams(text: url));
                   } catch (_) {
@@ -174,8 +179,11 @@ Future<void> showFeatureOverflow(
                     online
                         ? () async {
                             Navigator.pop(ctx);
-                            await ref.read(updatesProvider.notifier).unfollow(f.id);
-                            toast('Removed ${d.title}.');
+                            final actions = ref.read(librarySeriesActionsProvider);
+                            final r = await actions.remove(f);
+                            if (!context.mounted) return;
+                            if (r.error != null) return toast(r.error!.userMessage);
+                            featureToast(context, 'Removed ${d.title}.', onUndo: () => unawaited(actions.restore(f, slots: r.slots)));
                           }
                         : null,
                     color: cineOf(context).colorProof,

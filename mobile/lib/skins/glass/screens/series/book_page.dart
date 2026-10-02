@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/novels/providers/novel_series_providers.d
 import 'package:manhwamaniacs/features/novels/utils/novel_book.dart';
 import 'package:manhwamaniacs/features/novels/utils/toc_window.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/profiles/utils/api_image_headers.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
@@ -177,7 +178,7 @@ void openBook(BuildContext context, WidgetRef ref, GlassSeriesData d, String cha
   final url = resolveCover(ref, d.series.coverUrl);
   GlassMotionEntry? e;
   if (!ref.read(glassMotionPrefsProvider).reduced) e = GlassMotion.recorder.begin(MotionName.bookOpen.label, kBookOpenDuration.inMilliseconds);
-  unawaited(ref.read(skinRouterProvider).push<void>(Routes.novel(d.sourceId, d.seriesKey, chapterKey), extra: bookOpenExtra(plateRect: plateRect, cover: url.isEmpty ? null : NetworkImage(url), paper: paper)));
+  unawaited(ref.read(skinRouterProvider).push<void>(Routes.novel(d.sourceId, d.seriesKey, chapterKey), extra: bookOpenExtra(plateRect: plateRect, cover: url.isEmpty ? null : NetworkImage(url, headers: apiImageHeadersOf(context)), paper: paper)));
   if (e != null) Future<void>.delayed(kBookOpenDuration, () => GlassMotion.recorder.end(e!));
 }
 
@@ -192,6 +193,7 @@ class BookContentsSliver extends ConsumerStatefulWidget {
 
 class _BookContentsSliverState extends ConsumerState<BookContentsSliver> {
   int? _start, _end;
+  Object? _basis;
 
   @override
   Widget build(BuildContext context) {
@@ -205,6 +207,13 @@ class _BookContentsSliverState extends ConsumerState<BookContentsSliver> {
     final focusKey = page.chapters.pulse ?? seriesResume(d.readingOrder, progress, novel: true).chapterKey;
     final focus = focusKey == null ? 0 : shown.indexWhere((c) => c.id == focusKey).clamp(0, shown.length - 1);
     final w = tocWindow(shown.length, focus);
+    // Show earlier/more widen the window around one list and one focus. A new order, a Go to (pulse) or a
+    // changed list starts from the fresh window: kept, the pinned edge could sit before the new start.
+    final basis = (page.chapters.order, focusKey, shown.length);
+    if (basis != _basis) {
+      _basis = basis;
+      _start = _end = null;
+    }
     final start = _start ?? w.start, end = _end ?? w.end;
     final sel = page.chapters.selection;
     final slice = shown.sublist(start, end);

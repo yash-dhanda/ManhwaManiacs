@@ -29,3 +29,22 @@ String seriesIdentityOf(String sourceId, String seriesKey) {
 /// same rule applied here (a library cache written before the field existed).
 String followIdentity(FollowedSeries series) =>
     series.seriesIdentity ?? seriesIdentityOf(series.sourceId, series.seriesKey);
+
+/// The follow in [rows] for the series [sourceId]/[seriesKey]: the exact key first, else the same
+/// series under a rotated key.
+FollowedSeries? followFor(Iterable<FollowedSeries> rows, String sourceId, String seriesKey) {
+  final id = seriesIdentityOf(sourceId, seriesKey);
+  FollowedSeries? same;
+  for (final f in rows) {
+    if (f.sourceId != sourceId) continue;
+    if (f.seriesKey == seriesKey) return f;
+    if (followIdentity(f) == id) same ??= f;
+  }
+  return same;
+}
+
+/// The current follow of the series a `/library/:id` route resolved to ([pinned]). The route's id
+/// dies on unfollow and an undo follows under a new one, so the cache is asked by series; [pinned]
+/// itself only while the cache has not loaded.
+FollowedSeries? pinnedFollow(FollowedSeries pinned, List<FollowedSeries>? cached) =>
+    cached == null ? pinned : followFor(cached, pinned.sourceId, pinned.seriesKey);

@@ -26,6 +26,7 @@ import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
+import 'package:manhwamaniacs/features/sources/utils/resume_order.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/phosphor.g.dart';
@@ -329,6 +330,7 @@ class _BookViewState extends ConsumerState<BookView> {
     final before = _completed();
     final marked = await _marks.markRead(chapters, previouslyCompleted: before);
     if (!mounted) return;
+    if (marked == null) return featureToast(context, "Couldn't mark them read. Try again.");
     feedback(ref, HapticEvent.select);
     featureToast(context, message, onUndo: () => unawaited(_marks.undoMarkRead(before, marked)));
   }
@@ -346,12 +348,13 @@ class _BookViewState extends ConsumerState<BookView> {
           for (final x in d.chapters)
             (key: x.id, number: x.number, completed: progress[x.id]?.completed ?? false),
         ];
-        final keys = chaptersUpTo(refs, c.number ?? double.infinity).map((r) => r.key).toSet();
+        final keys = {...chaptersUpTo(refs, c.number).map((r) => r.key), if (!(progress[c.id]?.completed ?? false)) c.id};
         final chapters = d.chapters.where((x) => keys.contains(x.id)).toList();
         await _markRead(chapters, 'Marked ${chapters.length} chapters read.');
       case 'unread':
         final deleted = await _marks.markUnread([c.id]);
         if (!mounted) return;
+        if (deleted == null) return featureToast(context, "Couldn't mark it unread. Try again.");
         feedback(ref, HapticEvent.select);
         featureToast(
           context,
@@ -404,20 +407,15 @@ class _BookViewState extends ConsumerState<BookView> {
       formatStatus(s.status)?.toUpperCase(),
     ].whereType<String>().join(' · ');
 
-    String? lastKey;
-    DateTime? at;
-    for (final e in progress.entries) {
-      if (at == null || e.value.updatedAt.isAfter(at)) {
-        lastKey = e.key;
-        at = e.value.updatedAt;
-      }
-    }
-    final resumeChapter = reading.isEmpty
-        ? null
-        : reading.firstWhere((c) => c.id == lastKey, orElse: () => reading.first);
+    // The newest-touched chapter; once it is finished, Continue moves on to the next unread one (as the
+    // manga page and Glass do) instead of reopening the chapter just read.
+    final lastKey = lastTouchedKey(reading, progress);
+    final li = lastKey == null ? -1 : reading.indexWhere((c) => c.id == lastKey);
+    final lastDone = li >= 0 && (progress[lastKey]?.completed ?? false);
+    final next = lastDone ? nextUnreadAfter(reading, li, progress) : null;
+    final resumeChapter = reading.isEmpty ? null : reading[next ?? (li < 0 ? 0 : li)];
     final p = resumeChapter == null ? null : progress[resumeChapter.id];
-    final caughtUp =
-        resumeChapter != null && reading.last.id == resumeChapter.id && (p?.completed ?? false);
+    final caughtUp = lastDone && next == null;
     _commands.continueReading =
         resumeChapter == null || caughtUp ? null : () => _continue(resumeChapter);
     _commands.listen = audio != null && narrated.isNotEmpty && resumeChapter != null
@@ -554,10 +552,10 @@ class _BookViewState extends ConsumerState<BookView> {
                             children: [Icon(PhosphorRegular.check, size: 18), SizedBox(width: 8), Text('All caught up')],
                           )
                         : Text(
-                            lastKey == null || p == null
+                            li < 0
                                 ? 'Start reading  │  CH ${reading.isEmpty ? '' : formatChapterNumber(reading.first.number ?? 1)}'
                                 : 'Continue  │  CH ${formatChapterNumber(resumeChapter?.number ?? 0)}'
-                                    '${p.pageCount > 0 ? ' · ${(p.page * 100 / p.pageCount).round()}%' : ''}',
+                                    '${p != null && p.pageCount > 0 ? ' · ${(p.page * 100 / p.pageCount).round()}%' : ''}',
                           ),
                   ),
                   const SizedBox(height: 8),
@@ -627,7 +625,11 @@ class _BookViewState extends ConsumerState<BookView> {
                     selecting: _selection.isActive,
                     onPick: _selection.isActive ? _selection.end : _selection.begin,
                     narratedOnly: _narratedOnly,
-                    onNarrated: (v) => setState(() => _narratedOnly = v),
+                    onNarrated: (v) => setState(() {
+                      _narratedOnly = v;
+                      // The window indexes the list it was taken on; the filter changes that list.
+                      _window = null;
+                    }),
                     onGoTo: _goTo,
                     wide: wide,
                     goToController: _goToCtl,

@@ -22,11 +22,13 @@ import 'package:manhwamaniacs/features/sources/models/source_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/chapter_sort_store.dart';
+import 'package:manhwamaniacs/features/sources/utils/resume_order.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/navigation.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/chapter_reaction_folio.dart';
+import 'package:manhwamaniacs/skins/cinematic/parts/quick_look_builders.dart' show savedPageOf;
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_segmented_control.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_feedback.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/downloads/run_summary_line.dart';
@@ -90,8 +92,8 @@ class ChapterMarks {
 
   void _refresh() => ref.invalidate(sourceSeriesServerProgressProvider(_key));
 
-  /// Marks [chapters] read. Returns the keys that were newly marked.
-  Future<List<String>> markRead(
+  /// Marks [chapters] read. Returns the keys that were newly marked, or null when the server refused.
+  Future<List<String>?> markRead(
     List<SourceChapterSummary> chapters, {
     required Set<String> previouslyCompleted,
   }) async {
@@ -99,9 +101,13 @@ class ChapterMarks {
     final rows = manualReadRows([
       for (final c in chapters)
         (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number, pageCount: c.pageCount, completed: false),
-    ]);
+    ], at: manualMarkStamp(ref.read(sourceSeriesProgressProvider(_key))),);
     for (final chunk in chunksOf200(rows)) {
-      await repo.saveProgressBatch(chunk);
+      final r = await repo.saveProgressBatch(chunk);
+      if (r.isErr) {
+        _refresh();
+        return null;
+      }
     }
     _refresh();
     return [for (final c in chapters) c.id];
@@ -117,8 +123,8 @@ class ChapterMarks {
     _refresh();
   }
 
-  /// Mark unread. Returns what was deleted, for the Undo.
-  Future<Map<String, SourceChapterProgress>> markUnread(List<String> keys) async {
+  /// Mark unread. Returns what was deleted, for the Undo, or null when the server refused.
+  Future<Map<String, SourceChapterProgress>?> markUnread(List<String> keys) async {
     // The merged (phone + server) positions, so an Undo re-posts rows that
     // exist only on the server too.
     final merged = ref.read(sourceSeriesProgressProvider(_key));
@@ -126,12 +132,14 @@ class ChapterMarks {
       for (final k in keys)
         if (merged[k] != null) k: merged[k]!,
     };
+    // Server first: the local position is dropped only once the server row is gone too.
+    for (final chunk in chunksOf200(keys)) {
+      final r = await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
+      if (r.isErr) return null;
+    }
     await ref
         .read(sourceProgressProvider.notifier)
         .forget(sourceId: d.sourceId, seriesId: d.seriesKey, chapterIds: keys);
-    for (final chunk in chunksOf200(keys)) {
-      await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
-    }
     _refresh();
     return prior;
   }
@@ -347,7 +355,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
   }
 
   void _open(SourceChapterSummary c) {
-    final target = ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id);
+    final target = ReaderTarget.manifest(d.sourceId, d.seriesKey, c.id, page: savedPageOf(ref, d.sourceId, d.seriesKey, c.id));
     readerPrefetchOf(ref).onPress(target);
     enterReader(context, target, entry: ReaderEntry.wipe);
   }
@@ -382,6 +390,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
     final before = _completed();
     final marked = await _marks.markRead(chapters, previouslyCompleted: before);
     if (!mounted) return;
+    if (marked == null) return featureToast(context, "Couldn't mark them read. Try again.");
     feedback(ref, HapticEvent.select);
     featureToast(context, message,
         onUndo: () => unawaited(_marks.undoMarkRead(before, marked)),);
@@ -390,6 +399,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
   Future<void> _markUnread(SourceChapterSummary c) async {
     final deleted = await _marks.markUnread([c.id]);
     if (!mounted) return;
+    if (deleted == null) return featureToast(context, "Couldn't mark it unread. Try again.");
     feedback(ref, HapticEvent.select);
     featureToast(
       context,
@@ -411,7 +421,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
           for (final x in d.chapters)
             (key: x.id, number: x.number, completed: progress[x.id]?.completed ?? false),
         ];
-        final keys = chaptersUpTo(refs, c.number ?? double.infinity).map((r) => r.key).toSet();
+        final keys = {...chaptersUpTo(refs, c.number).map((r) => r.key), if (!(progress[c.id]?.completed ?? false)) c.id};
         final chapters = d.chapters.where((x) => keys.contains(x.id)).toList();
         await _markRead(chapters, 'Marked ${chapters.length} chapters read.');
       case 'unread':

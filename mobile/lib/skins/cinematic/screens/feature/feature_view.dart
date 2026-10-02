@@ -53,6 +53,7 @@ class FeatureView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final key = (sourceId: sourceId, seriesId: seriesKey);
+    if (sourceKindPending(ref, sourceId)) return const FeatureGalley();
     final novel = isNovelSource(ref.watch(contentModeScopeProvider), sourceId);
     final detail = ref.watch(sourceSeriesDetailProvider(key));
     return detail.when(
