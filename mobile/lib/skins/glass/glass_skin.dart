@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:manhwamaniacs/core/logging/app_logger.dart';
+import 'package:manhwamaniacs/features/auth/providers/offline_edition_controller.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
 import 'package:manhwamaniacs/skins/glass/glass/liquid.dart';
@@ -13,6 +16,7 @@ import 'package:manhwamaniacs/skins/glass/orientation.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/recede.dart';
 import 'package:manhwamaniacs/skins/glass/router.dart';
+import 'package:manhwamaniacs/skins/glass/screens/system/route_error.dart';
 import 'package:manhwamaniacs/skins/glass/shell/focus_policy.dart';
 import 'package:manhwamaniacs/skins/glass/shell/global_keys.dart';
 import 'package:manhwamaniacs/skins/glass/shell/handoff_layer.dart';
@@ -91,6 +95,11 @@ class GlassSkin implements Skin {
 /// The Glass root under `MaterialApp.builder`: true black, the ambient field (z 0.5) behind the routes,
 /// the preference bridge, the phone orientation lock, the library scope with one `BackdropGroup`, and the
 /// motion-timings overlay above everything.
+Widget _glassErrorWidget(FlutterErrorDetails d) {
+  appLogger.e('A widget failed to build', d.exception, d.stack);
+  return GlassRouteError(error: d.exception);
+}
+
 class GlassRoot extends ConsumerStatefulWidget {
   const GlassRoot({super.key, required this.child});
   final Widget child;
@@ -117,9 +126,17 @@ class _GlassRootState extends ConsumerState<GlassRoot> {
     scrollFocusClearOfBands(node, _focusPolicy.bands);
   }
 
+  static int _roots = 0;
+  static ErrorWidgetBuilder? _flutterErrorBuilder;
+
   @override
   void initState() {
     super.initState();
+    // A widget that fails to build shows "Something broke" (glass 8.28), not Flutter's grey box. Counted: a restart builds the new root first.
+    if (kReleaseMode && _roots++ == 0) {
+      _flutterErrorBuilder = ErrorWidget.builder;
+      ErrorWidget.builder = _glassErrorWidget;
+    }
     FocusManager.instance.addListener(_onFocus);
     GlassMotion.isReduced = _reducedProbe;
     GlassMotion.recorder.attach();
@@ -128,6 +145,9 @@ class _GlassRootState extends ConsumerState<GlassRoot> {
 
   @override
   void dispose() {
+    if (kReleaseMode && --_roots == 0 && identical(ErrorWidget.builder, _glassErrorWidget)) {
+      ErrorWidget.builder = _flutterErrorBuilder ?? ErrorWidget.builder;
+    }
     FocusManager.instance.removeListener(_onFocus);
     // The static probe must not outlive the ref it reads (a later move would throw "Cannot use ref after the widget was disposed"). After a
     // skin restart the new root has already installed its own probe, which this check leaves alone.
@@ -138,6 +158,7 @@ class _GlassRootState extends ConsumerState<GlassRoot> {
   @override
   Widget build(BuildContext context) {
     final showTimings = ref.watch(glassShowMotionTimingsProvider);
+    ref.watch(glassOfflineRecoveryProvider);
     // The root sits above the Navigator: the dock, the toasts and any route without a Material inherit this rather than
     // Flutter's fallback (red 48 px monospace on a yellow double underline).
     return DefaultTextStyle(

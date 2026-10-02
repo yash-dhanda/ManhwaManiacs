@@ -102,8 +102,10 @@ class PendingLetters extends Notifier<List<PendingLetter>> with WidgetsBindingOb
 
   void _remove(PendingLetter p) => state = [for (final x in state) if (!identical(x, p)) x];
 
-  Future<void> flushPendingLetters() async {
-    await Future.wait([for (final p in [...state]) p.flush()]);
+  /// Sends every pending letter. [keepHeld] leaves the ones an open note sheet holds: a pause (switching apps to copy a link) must not
+  /// send them without the note the user is still writing; the sheet sends or flushes them itself.
+  Future<void> flushPendingLetters({bool keepHeld = false}) async {
+    await Future.wait([for (final p in [...state]) if (!(keepHeld && p.held)) p.flush()]);
   }
 
   /// Cancels every pending letter for an 18+ series.
@@ -115,7 +117,8 @@ class PendingLetters extends Notifier<List<PendingLetter>> with WidgetsBindingOb
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) unawaited(flushPendingLetters());
+    if (state == AppLifecycleState.paused) unawaited(flushPendingLetters(keepHeld: true));
+    if (state == AppLifecycleState.detached) unawaited(flushPendingLetters());
   }
 }
 

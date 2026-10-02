@@ -91,7 +91,7 @@ class MediaChannel(messenger: BinaryMessenger, private val context: Context) {
         val resolver = context.contentResolver
         val values = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, name)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.MIME_TYPE, java.net.URLConnection.guessContentTypeFromName(name) ?: "image/png")
             put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ManhwaManiacs")
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }

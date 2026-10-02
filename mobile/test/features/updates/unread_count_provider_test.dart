@@ -2,6 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/profiles/models/mood.dart';
+import 'package:manhwamaniacs/features/profiles/models/profile.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 import 'package:manhwamaniacs/features/updates/models/update_settings.dart';
 import 'package:manhwamaniacs/features/updates/providers/unread_count_provider.dart';
@@ -47,8 +50,35 @@ UpdateNotification _n(int id, String series) => UpdateNotification(
       isRead: false,
     );
 
+class _Switchable extends ActiveProfileNotifier {
+  @override
+  ActiveProfile? build() => const ActiveProfile(id: 1, name: 'A', avatarKey: null, mood: Mood.neutral);
+  void to(int id) => state = ActiveProfile(id: id, name: 'B', avatarKey: null, mood: Mood.neutral);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets("a profile switch re-reads the count at once, not on the next poll", (t) async {
+    SharedPreferences.setMockInitialValues({});
+    final repo = _Repo();
+    final c = ProviderContainer(overrides: [
+      sharedPrefsProvider.overrideWithValue(await SharedPreferences.getInstance()),
+      updatesRepositoryProvider.overrideWithValue(repo),
+      authenticatedAuthOverride(),
+      activeProfileProvider.overrideWith(_Switchable.new),
+    ],);
+    addTearDown(c.dispose);
+    c.listen(unreadNotificationCountProvider, (_, __) {});
+    await t.pump();
+    expect(c.read(unreadNotificationCountProvider), 3);
+    repo.count = 0;
+    (c.read(activeProfileProvider.notifier) as _Switchable).to(2);
+    c.read(unreadNotificationCountProvider);
+    await t.pump();
+    expect(c.read(unreadNotificationCountProvider), 0);
+    expect(repo.calls, 2);
+  });
 
   Future<(ProviderContainer, _Repo)> make({bool signedIn = true}) async {
     SharedPreferences.setMockInitialValues({});

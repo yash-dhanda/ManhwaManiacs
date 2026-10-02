@@ -13,6 +13,23 @@ void main() {
     expect(cineBackWinner([(token: a, priority: 2), (token: b, priority: 2)]), b);
   });
 
+  testWidgets('a select mode in a hidden branch (TickerMode off) does not take the back press', (t) async {
+    final hits = <String>[];
+    late ProviderContainer c;
+    await t.pumpWidget(ProviderScope(
+      child: Consumer(builder: (context, ref, _) {
+        c = ProviderScope.containerOf(context);
+        return TickerMode(
+          enabled: false,
+          child: CineModalBack(priority: CineBackPriority.selectMode, active: true, onBack: () => hits.add('select'), child: const SizedBox()),
+        );
+      },),
+    ),);
+    await t.pump();
+    expect(c.read(cineBackOrderProvider.notifier).handleBack(), isFalse);
+    expect(hits, isEmpty);
+  });
+
   test('priorities are the spec order', () {
     expect(CineBackPriority.selectMode, 1);
     expect(CineBackPriority.fullPlayer, 2);

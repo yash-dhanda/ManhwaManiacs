@@ -1,24 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manhwamaniacs/features/profiles/models/mood.dart';
-import 'package:manhwamaniacs/features/profiles/models/profile.dart';
-import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/shell/stop_press_banner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class _Switchable extends ActiveProfileNotifier {
-  @override
-  ActiveProfile? build() => const ActiveProfile(id: 1, name: 'One', avatarKey: null, mood: Mood.neutral);
-  void switchTo(int id) => state = ActiveProfile(id: id, name: 'P$id', avatarKey: null, mood: Mood.neutral);
-}
+import '../../../support/test_overrides.dart';
 
 void main() {
-  test('a stop-press dismissal belongs to the profile that dismissed it', () {
-    final c = ProviderContainer(overrides: [activeProfileProvider.overrideWith(_Switchable.new)]);
-    addTearDown(c.dispose);
-    final sub = c.listen(stopPressDismissedProvider, (_, __) {});
-    addTearDown(sub.close);
-    c.read(stopPressDismissedProvider.notifier).state = 900;
-    (c.read(activeProfileProvider.notifier) as _Switchable).switchTo(2);
-    expect(c.read(stopPressDismissedProvider), 0);
+  test('a dismissed stop press stays dismissed across launches, per profile', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    ProviderContainer launch() {
+      final c = ProviderContainer(overrides: [sharedPrefsProvider.overrideWithValue(prefs), activeProfileOverride()]);
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    launch().read(stopPressDismissedProvider.notifier).dismiss(42);
+    expect(launch().read(stopPressDismissedProvider), 42);
+    expect(prefs.getKeys().single, endsWith('.1'));
   });
 }

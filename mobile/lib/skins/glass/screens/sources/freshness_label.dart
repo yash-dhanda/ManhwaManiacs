@@ -1,3 +1,4 @@
+import 'package:manhwamaniacs/core/time/server_instant.dart';
 import 'package:manhwamaniacs/features/sources/utils/browse_freshness.dart' show FreshnessLabel;
 
 /// The glass freshness sentences over the `cache` block of `GET /sources/{id}/series`: "Updated 12 min ago", or "Saved copy · 2 h"
@@ -5,7 +6,7 @@ import 'package:manhwamaniacs/features/sources/utils/browse_freshness.dart' show
 FreshnessLabel? glassFreshness(Map<String, dynamic>? cache, DateTime now, {bool offline = false}) {
   if (cache == null) return null;
   final stale = cache['stale'] == true || cache['status'] == 'stale';
-  final at = cache['fetched_at'] is String ? DateTime.tryParse(cache['fetched_at'] as String) : null;
+  final at = serverInstant(cache['fetched_at']);
   final d = at == null ? null : now.difference(at);
   String? short, long;
   if (d != null) {

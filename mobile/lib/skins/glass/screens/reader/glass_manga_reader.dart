@@ -11,6 +11,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart' show singleKeyShortcutsProvider;
+import 'package:manhwamaniacs/core/platform/media_store.dart';
 import 'package:manhwamaniacs/core/platform/mm_platform.dart';
 import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart' show completedThisSessionProvider;
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
@@ -1181,12 +1182,16 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       return;
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
+      final media = ref.read(mediaStoreChannelProvider);
+      var saved = false;
       try {
-        await const MethodChannel('mm/media').invokeMethod<void>('saveImage', {'path': file.path, 'album': 'ManhwaManiacs'});
-        showGlassToast(ref, const GlassToastSpec('Saved to Pictures/ManhwaManiacs'));
-      } catch (_) {
-        showGlassToast(ref, const GlassToastSpec("Couldn't save that page", kind: GlassToastKind.error));
-      }
+        saved = await media.saveImage(await file.readAsBytes(), file.uri.pathSegments.last);
+      } catch (_) {}
+      if (!mounted) return;
+      showGlassToast(
+        ref,
+        saved ? const GlassToastSpec('Saved to Pictures/ManhwaManiacs') : const GlassToastSpec("Couldn't save that page", kind: GlassToastKind.error),
+      );
       return;
     }
     await shareReaderPage(file.path, anchor, onResult: (saved) => showGlassToast(ref, GlassToastSpec(saved ? 'Saved to Photos' : 'Shared')));

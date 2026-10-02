@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
@@ -16,15 +19,28 @@ String stopPressLine(int chapters, int series) {
   return '$c across $series series.';
 }
 
-/// The highest notification id the reader dismissed this session; a newer one shows it again.
-/// Per profile: ids are global rows, so another profile's dismissal must not hide this one's banner.
-final stopPressDismissedProvider = StateProvider<int>(
-  (ref) {
+/// The highest notification id the active profile dismissed, kept across launches; a newer one shows it again.
+final stopPressDismissedProvider = NotifierProvider<StopPressDismissed, int>(StopPressDismissed.new, name: 'stopPressDismissed');
+
+class StopPressDismissed extends Notifier<int> {
+  String? get _key {
+    final id = ref.read(activeProfileProvider)?.id;
+    return id == null ? null : 'cine.stopPressDismissed.$id';
+  }
+
+  @override
+  int build() {
     ref.watch(activeProfileProvider.select((p) => p?.id));
-    return 0;
-  },
-  name: 'stopPressDismissed',
-);
+    final k = _key;
+    return k == null ? 0 : ref.read(sharedPrefsProvider).getInt(k) ?? 0;
+  }
+
+  void dismiss(int maxId) {
+    state = maxId;
+    final k = _key;
+    if (k != null) unawaited(ref.read(sharedPrefsProvider).setInt(k, maxId));
+  }
+}
 
 enum StopPressPlacement { bottom, top }
 

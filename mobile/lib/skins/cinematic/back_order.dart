@@ -84,9 +84,16 @@ class _CineModalBackState extends ConsumerState<CineModalBack> {
   late final CineBackOrder _order = ref.read(cineBackOrderProvider.notifier);
   bool _alive = true;
 
+  /// False while the state sits in a hidden shell branch or under a covering route (`TickerMode` off): a back press there must not
+  /// be spent on a select mode the user cannot see.
+  bool _shown = true;
+
+  bool get _active => widget.active && _shown;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _shown = TickerMode.of(context);
     _sync();
   }
 
@@ -97,7 +104,7 @@ class _CineModalBackState extends ConsumerState<CineModalBack> {
   }
 
   void _sync() => Future.microtask(() {
-        if (_alive) _order.set(_token, widget.priority, active: widget.active, onBack: () => widget.onBack());
+        if (_alive) _order.set(_token, widget.priority, active: _active, onBack: () => widget.onBack());
       });
 
   @override
@@ -109,9 +116,9 @@ class _CineModalBackState extends ConsumerState<CineModalBack> {
 
   @override
   Widget build(BuildContext context) => PopScope(
-        canPop: !widget.active,
+        canPop: !_active,
         onPopInvokedWithResult: (didPop, _) {
-          if (didPop || !widget.active) return;
+          if (didPop || !_active) return;
           if (cineBackWinner(ref.read(cineBackOrderProvider)) == _token) widget.onBack();
         },
         child: widget.child,

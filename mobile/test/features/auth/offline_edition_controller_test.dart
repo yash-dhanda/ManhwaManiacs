@@ -107,6 +107,30 @@ void main() {
     expect(c.read(sessionOfflineProvider), isFalse);
   });
 
+  testWidgets('Glass recovery: an offline cold start clears once /health answers; failures alone do not mark offline', (t) async {
+    SharedPreferences.setMockInitialValues({});
+    final failures = StreamController<AppError>.broadcast(sync: true);
+    addTearDown(failures.close);
+    final c = ProviderContainer(overrides: [
+      sharedPrefsProvider.overrideWithValue(await SharedPreferences.getInstance()),
+      authenticatedAuthOverride(),
+      activeProfileOverride(),
+      networkFailureStreamProvider.overrideWithValue(failures.stream),
+      serverProbeProvider.overrideWithValue(() async => true),
+      progressOutboxControllerProvider.overrideWith((ref) => _Progress(ref, 0)),
+      bookmarkOutboxControllerProvider.overrideWith((ref) => _Marks(0)),
+    ],);
+    addTearDown(c.dispose);
+    c.read(glassOfflineRecoveryProvider);
+    failures.add(const TimeoutError());
+    expect(c.read(sessionOfflineProvider), isFalse);
+
+    c.read(sessionOfflineProvider.notifier).markOffline();
+    await t.pump(const Duration(seconds: 15));
+    await t.pump();
+    expect(c.read(sessionOfflineProvider), isFalse);
+  });
+
   test('syncedMessage wording', () {
     expect(syncedMessage(3, 2), 'Synced 3 reads and 2 bookmarks.');
     expect(syncedMessage(1, 1), 'Synced 1 read and 1 bookmark.');

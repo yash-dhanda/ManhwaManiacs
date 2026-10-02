@@ -1,3 +1,5 @@
+import 'package:manhwamaniacs/core/time/server_instant.dart';
+
 class FreshnessLabel {
   const FreshnessLabel({required this.text, required this.stale});
 
@@ -10,9 +12,7 @@ class FreshnessLabel {
 FreshnessLabel? browseFreshness(Map<String, dynamic>? cache, DateTime now) {
   if (cache == null) return null;
   final stale = cache['stale'] == true || cache['status'] == 'stale';
-  final at = cache['fetched_at'] is String
-      ? DateTime.tryParse(cache['fetched_at'] as String)
-      : null;
+  final at = serverInstant(cache['fetched_at']);
   final ago = at == null ? null : _bucket(now.difference(at));
   if (stale) {
     return FreshnessLabel(

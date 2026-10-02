@@ -47,7 +47,7 @@ Duration offlinePollDelay(int attempt) =>
 /// Backend unreachable mid-session (cinematic 8.32): the first failure while signed in marks the
 /// session offline and polls `/health`; the first answer marks it online, bumps
 /// [backOnlineEpochProvider] and flushes the outboxes. Only the Cinematic root reads this
-/// provider, so legacy shows nothing new.
+/// provider; Glass reads [glassOfflineRecoveryProvider].
 final offlineEditionControllerProvider = Provider<OfflineEditionController>(
   (ref) {
     final c = OfflineEditionController(ref);
@@ -57,9 +57,20 @@ final offlineEditionControllerProvider = Provider<OfflineEditionController>(
   name: 'offlineEditionController',
 );
 
+/// Glass: only the recovery half. Glass has its own failure capsule, but an offline cold start (cached identity) still needs `/health`
+/// polling to clear [sessionOfflineProvider], or the session stays "Offline" until restart.
+final glassOfflineRecoveryProvider = Provider<OfflineEditionController>(
+  (ref) {
+    final c = OfflineEditionController(ref, followFailures: false);
+    ref.onDispose(c.dispose);
+    return c;
+  },
+  name: 'glassOfflineRecovery',
+);
+
 class OfflineEditionController {
-  OfflineEditionController(this._ref) {
-    _sub = _ref.read(networkFailureStreamProvider).listen(_onFailure);
+  OfflineEditionController(this._ref, {bool followFailures = true}) {
+    if (followFailures) _sub = _ref.read(networkFailureStreamProvider).listen(_onFailure);
     _ref.listen<bool>(sessionOfflineProvider, (_, offline) {
       if (offline) _startPolling();
     });

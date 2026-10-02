@@ -27,4 +27,9 @@ void main() {
     expect(glassFreshness({'fetched_at': at(const Duration(days: 3))}, now)!.text, 'Updated 3 d ago');
     expect(glassFreshness(null, now), isNull);
   });
+
+  test('naive server UTC (no designator) is read as UTC, not local', () {
+    expect(glassFreshness({'fetched_at': '2026-10-01T11:48:00'}, now)!.text, 'Updated 12 min ago');
+    expect(glassFreshness({'fetched_at': '2026-10-01T11:48:00'}, now.toLocal())!.text, 'Updated 12 min ago');
+  });
 }

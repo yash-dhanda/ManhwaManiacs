@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/features/downloads/utils/auto_download.dart';
+import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
@@ -254,7 +254,7 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
     return ValueListenableBuilder<int>(
       valueListenable: GlassMenuBack.open,
       builder: (context, menus, child) => PopScope(
-      canPop: widget.navigationShell.currentIndex == 0 && menus == 0 && backParentOf(widget.location, glass: true) == null,
+      canPop: widget.navigationShell.currentIndex == 0 && menus == 0 && backParentOf(widget.location, glass: true) == null && !plan.overlayOpen,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (GlassMenuBack.closeTop()) return;

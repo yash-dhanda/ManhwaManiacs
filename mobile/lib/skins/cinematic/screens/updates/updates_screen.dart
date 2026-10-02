@@ -127,6 +127,7 @@ class _UpdatesScreenState extends ConsumerState<UpdatesScreen> with SingleTicker
 
   /// An admin's check: start it, then read the run every 2 s so the deck counts live.
   Future<AppError?> _adminCheck() async {
+    final container = ProviderScope.containerOf(context, listen: false);
     final repo = ref.read(updatesRepositoryProvider);
     final started = await repo.triggerCheck();
     if (started.isErr) return started.error;
@@ -149,7 +150,7 @@ class _UpdatesScreenState extends ConsumerState<UpdatesScreen> with SingleTicker
       }
     }
     await _notifier.refresh();
-    ref.invalidate(recentRunsProvider);
+    container.invalidate(recentRunsProvider);
     return null;
   }
 

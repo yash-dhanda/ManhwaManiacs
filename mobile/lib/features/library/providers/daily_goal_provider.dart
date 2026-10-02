@@ -48,6 +48,14 @@ const Object _keep = Object();
 class DailyGoalNotifier extends Notifier<DailyGoalState> {
   StreamSubscription<StreakEvent>? _sub;
 
+  /// The local day [state] counts; a different day on resume or seed starts again from that day's own figure.
+  String _day = '';
+
+  static String _today() {
+    final n = DateTime.now();
+    return '${n.year.toString().padLeft(4, '0')}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
+  }
+
   @override
   DailyGoalState build() {
     final profile = ref.read(activeProfileProvider);
@@ -56,21 +64,35 @@ class DailyGoalNotifier extends Notifier<DailyGoalState> {
     var seconds = 0;
     if (profile != null) {
       final day = ref.read(streakDayStoreProvider).read(profile.id);
-      final n = DateTime.now();
-      final today = '${n.year.toString().padLeft(4, '0')}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
-      if (day != null && day.day == today) seconds = day.todaySeconds;
+      if (day != null && day.day == _today()) seconds = day.todaySeconds;
     }
+    _day = _today();
     _sub?.cancel();
     _sub = ref.read(streakEventsProvider).stream.listen((e) {
-      if (e is StreakToday) state = state.copyWith(todaySeconds: e.seconds);
+      if (e is StreakToday) {
+        _day = _today();
+        state = state.copyWith(todaySeconds: e.seconds);
+      }
     });
-    ref.onDispose(() => _sub?.cancel());
+    // Keep-alive: past local midnight yesterday's minutes must not count for today.
+    final life = AppLifecycleListener(onResume: () {
+      if (_day != _today()) ref.invalidateSelf();
+    });
+    ref.onDispose(() {
+      _sub?.cancel();
+      life.dispose();
+    });
     return DailyGoalState(goalMinutes: goal, todaySeconds: seconds);
   }
 
   /// Raises today's seconds to at least [seconds] (the statistics payload knows today's total on a cold start).
   void seedToday(int seconds) {
-    if (seconds > state.todaySeconds) state = state.copyWith(todaySeconds: seconds);
+    if (_day != _today()) {
+      _day = _today();
+      state = state.copyWith(todaySeconds: seconds);
+    } else if (seconds > state.todaySeconds) {
+      state = state.copyWith(todaySeconds: seconds);
+    }
   }
 
   /// `PATCH /profiles/{id} {daily_goal_minutes}`, optimistic. Returns the error when it failed, after rolling back: the caller

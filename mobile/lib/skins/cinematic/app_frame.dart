@@ -288,7 +288,7 @@ class _CineAppFrameState extends ConsumerState<CineAppFrame> {
                               chapters: banner.chapters,
                               series: banner.series,
                               onRead: () => router.go('/updates'),
-                              onDismiss: () => ref.read(stopPressDismissedProvider.notifier).state = banner.maxId,
+                              onDismiss: () => ref.read(stopPressDismissedProvider.notifier).dismiss(banner.maxId),
                             ),
                           ),
                         ),
