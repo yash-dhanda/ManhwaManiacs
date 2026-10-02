@@ -183,6 +183,18 @@ class _ReaderPageImageState extends ConsumerState<ReaderPageImage> {
   }
 
   @override
+  void didUpdateWidget(covariant ReaderPageImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The list reuses this element for another page when the feed shifts (a chapter prepended or released): the size
+    // listener still on the old image would report that image's size against the new page's index.
+    if (oldWidget.imageUrl != widget.imageUrl || oldWidget.localFile?.path != widget.localFile?.path) {
+      _detachSizeListener();
+      _sizeReported = false;
+      _listenForIntrinsicSize();
+    }
+  }
+
+  @override
   void dispose() {
     _detachSizeListener();
     super.dispose();

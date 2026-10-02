@@ -523,7 +523,10 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     final old = _cachedMetrics ?? _metricsForFeed(before);
     _cachedMetrics = null;
 
-    final run = _survivingRun(before, after);
+    // Pinned on the chapter being read (or the nearest one that survived): a chapter re-resolved mid-window with another
+    // page count splits the run, and pinning whichever piece came first re-estimated everything between it and the reader,
+    // throwing them chapters back or forward.
+    final run = _survivingRun(before, after, near: _position.chapterIndex);
     if (run == null) {
       // Nothing carried over — a caller replaced the feed wholesale. Start the
       // geometry over rather than guessing what moved.
@@ -606,9 +609,19 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   /// re-added costs only a re-measure.
   static ({int oldStart, int newStart, int length})? _survivingRun(
     ReaderFeed before,
-    ReaderFeed after,
-  ) {
+    ReaderFeed after, {
+    int? near,
+  }) {
     ({int oldStart, int newStart, int length})? best;
+    var bestDistance = 1 << 30;
+    // Chapters between [near] (an index into [before]) and the run: 0 when the run holds it.
+    int distance(int start, int length) {
+      if (near == null) return 0;
+      if (near < start) return start - near;
+      final end = start + length - 1;
+      return near > end ? near - end : 0;
+    }
+
     for (var o = 0; o < before.chapters.length; o++) {
       for (var n = 0; n < after.chapters.length; n++) {
         var length = 0;
@@ -623,8 +636,11 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         }
         // A run of nothing but empty chapters pins no page, so it can carry no
         // correction — that is no run at all.
-        if (pages > 0 && length > (best?.length ?? 0)) {
+        if (pages == 0) continue;
+        final d = distance(o, length);
+        if (d < bestDistance || (d == bestDistance && length > (best?.length ?? 0))) {
           best = (oldStart: o, newStart: n, length: length);
+          bestDistance = d;
         }
       }
     }
@@ -1482,6 +1498,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   String? _preloadedFor;
   double _pendingFling = 0;
   NeighbourDirection? _pendingDir;
+  String? _pendingChapterId;
   bool _cruiseWatch = false;
   bool _dragging = false;
   double? _autoPx;
@@ -1676,6 +1693,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (ch == null || cb == null) return;
     _pendingFling = velocity;
     _pendingDir = direction;
+    _pendingChapterId = ch.id;
     _armed.clear();
     _armedChapter.clear();
     _wheelReset?.cancel();
@@ -1690,16 +1708,28 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   }
 
   /// The new chapter arrived: start it at its top (next) or bottom (previous) and carry the momentum.
+  ///
+  /// Only once the feed holds the committed chapter: any other feed change (a Read-all slide, a re-resolved chapter) arriving
+  /// first used to take the pending swap and throw the reader to the top or the bottom of the whole feed.
   void _afterNeighbourSwap(ReaderFeed before) {
     final dir = _pendingDir;
-    if (dir == null) return;
+    final id = _pendingChapterId;
+    if (dir == null || id == null || !widget.feed.contains(id) || before.contains(id)) return;
     final v = _pendingFling;
     _pendingDir = null;
+    _pendingChapterId = null;
     _pendingFling = 0;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) return;
+      final i = widget.feed.indexOfChapter(id);
+      if (i < 0) return;
       final p = _scrollController.position;
-      p.jumpTo(dir == NeighbourDirection.next ? p.minScrollExtent : p.maxScrollExtent);
+      final start = widget.feed.startOfChapter(i);
+      final end = start + widget.feed.chapters[i].pages.length;
+      final target = dir == NeighbourDirection.next
+          ? (i == 0 ? p.minScrollExtent : _metrics.offsetToPage(start + 1))
+          : (end >= widget.feed.length ? p.maxScrollExtent : _metrics.offsetToPage(end + 1) - p.viewportDimension);
+      p.jumpTo(target.clamp(p.minScrollExtent, p.maxScrollExtent));
       if (v != 0) continueFling(v);
     });
   }

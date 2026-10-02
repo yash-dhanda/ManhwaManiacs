@@ -267,9 +267,9 @@ void main() {
         extra: [
           circleSeriesProvider.overrideWith(
             (ref, k) async => const CircleSeriesData(
-              readers: [CircleReader(member: CircleMemberRef(profileId: 1, name: 'Asha'), chapterKey: 'c2', chapterNumber: 2)],
+              readers: [CircleReader(member: CircleMemberRef(profileId: 2, name: 'Asha'), chapterKey: 'c2', chapterNumber: 2)],
               chapters: [
-                CircleChapterReactions(chapterKey: 'c2', chapterNumber: 2, by: [ReactionBy(profileId: 1, name: 'Asha', kind: ReactionKind.chefsKiss)]),
+                CircleChapterReactions(chapterKey: 'c2', chapterNumber: 2, by: [ReactionBy(profileId: 2, name: 'Asha', kind: ReactionKind.chefsKiss)]),
               ],
             ),
           ),

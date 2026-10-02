@@ -495,6 +495,55 @@ void main() {
       );
     });
 
+    /// "Scrolling, it suddenly jumps 2-3 chapters back": a chapter behind the reader re-resolved with another page count
+    /// (the downloaded copy answering where the network did) while the next chapter loads in, page heights unknown. The
+    /// surviving chapters split into two runs of equal length, and the first one won: everything between it and the reader
+    /// was re-estimated and the reader landed somewhere else.
+    testWidgets('a chapter behind the reader changing length while the next one loads keeps the page under the thumb',
+        (tester) async {
+      final prefs = await _freshPrefs();
+      await tester.binding.setSurfaceSize(const Size(430, 932));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final saved = <(String, int)>[];
+      Widget reader(ReaderFeed feed) => _wrap(
+            prefs,
+            ReaderContent(
+              feed: feed,
+              scrollStorageKey: '1',
+              onSaveProgress: (chapter, page) async {
+                saved.add((chapter.id, page));
+              },
+              onBack: () {},
+              onOpenSeries: () {},
+            ),
+          );
+
+      await tester.pumpWidget(reader(ReaderFeed.of([_chapter('1'), _chapter('2'), _chapter('3')])));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Scroll down across the 1|2 and 2|3 boundaries into chapter 3.
+      final controller = _listController(tester);
+      for (final f in [0.3, 0.6, 0.85]) {
+        controller.jumpTo(controller.position.maxScrollExtent * f);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+      }
+      final where = saved.last;
+      expect(where.$1, '3', reason: 'the test has to start inside chapter 3');
+
+      await tester.pumpWidget(reader(ReaderFeed.of([_chapter('1'), _chapter('2', pages: 5), _chapter('3'), _unsizedChapter('4')])));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      controller.jumpTo(controller.offset + 1);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(saved.last, where, reason: 'a chapter behind the reader changing length must not move the reader');
+    });
+
     /// The same slide again, with the geometry handed in from outside.
     ///
     /// Supplying [ReaderContent.pageExtents] is what every other extents test
