@@ -154,6 +154,7 @@ _RELEASE_NOTES: list[ChangelogEntry] = [
             "Continue and chapter lists now open half-read chapters (manga and novels) at the saved page, and move on to the next chapter once one is finished",
             "Mark read and Mark unread tell you when the server did not save them instead of pretending they worked, and Undo works reliably",
             "Downloads: automatic new-chapter downloads run in Glass, wait for Wi-Fi in the queue, and pick up again when you come back online",
+            "Manga and manhwa reader: scrolling no longer suddenly jumps a few chapters back or to the end of the series, in both looks",
             "Many other fixes: Home stays fresh after reading and never mixes up profiles, covers load in the app again, browse and genre pages page correctly, Circle letters and notes are more reliable, and each profile keeps its own settings",
         ],
     ),
