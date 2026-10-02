@@ -56,8 +56,12 @@ class _GlassDownloadsFeedState extends ConsumerState<GlassDownloadsFeed> {
       paused: paused,
       onToggle: () {
         final c = ref.read(downloadQueueControllerProvider.notifier);
-        if (paused) {
+        if (q.pauseReason == DownloadQueuePauseReason.userPaused) {
           c.resume();
+        } else if (paused) {
+          // A cap, free-space or background pause: resume() only lifts a user pause. Re-check the
+          // guards instead; one that still applies pauses again with its reason.
+          c.retryAfterStorageChange();
         } else {
           c.pause();
         }

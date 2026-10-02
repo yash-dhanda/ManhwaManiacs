@@ -8,8 +8,8 @@ void main() {
     final m = glassStorageMeter(profileBytes: (1.2 * gb).round(), appDownloadBytes: (1.2 * gb).round() + (3.4 * gb).round(), capBytes: 10 * gb, deviceFree: 40 * gb)!;
     expect(m.capMarker, 1.0);
     expect(m.profileFraction + m.otherFraction + m.freeFraction, closeTo(1, 1e-9));
-    expect(m.label, '1.2 GB of 10 GB');
-    expect(m.semanticsValue, '1.2 GB of 10 GB used: this profile 1.2 GB, other app data 3.4 GB, 5.4 GB free');
+    expect(m.label, '4.6 GB of 10 GB');
+    expect(m.semanticsValue, '4.6 GB of 10 GB used: this profile 1.2 GB, other app data 3.4 GB, 5.4 GB free');
   });
 
   test('capped: free is floored at 0 when the cap is over-full', () {

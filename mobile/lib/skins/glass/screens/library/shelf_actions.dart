@@ -6,6 +6,8 @@ import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart' show contentModeScopeProvider;
 import 'package:manhwamaniacs/features/downloads/models/chapter_selection.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart' show DownloadKind;
+import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
+import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart' show Collection;
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
@@ -155,7 +157,9 @@ class GlassShelfActions {
   List<KnownChapter> _chapters(SeriesDetail d) => d.chapters.isNotEmpty ? d.chapters : d.knownChapters;
 
   /// Keys each `markRead` run posted, by series id, so its Undo deletes only what was not completed before.
-  final Map<int, List<String>> _marked = {};
+  /// Series id -> its identity and the keys [markRead] posted. The identity is kept here because
+  /// the series may have left the (filtered) shelf by the time Undo runs.
+  final Map<int, ({String sourceId, String seriesKey, List<String> keys})> _marked = {};
 
   /// Every not-yet-completed chapter of each series, posted `manual: true` in chunks of 200 (`POST /reader/progress/batch`).
   Future<BulkResult> markRead(Set<int> ids, {BulkCancel? cancel}) async {
@@ -181,7 +185,7 @@ class GlassShelfActions {
             return Err(r.error);
           }
         }
-        _marked[s.id] = [for (final k in todo) k.key];
+        _marked[s.id] = (sourceId: s.sourceId, seriesKey: s.seriesKey, keys: [for (final k in todo) k.key]);
       }
       ok++;
       return const Ok(null);
@@ -194,11 +198,11 @@ class GlassShelfActions {
   /// `DELETE /reader/progress` of only the keys the last [markRead] posted for [ids].
   Future<void> undoMarkRead(Set<int> ids) async {
     final reader = _c.read(readerRepositoryProvider);
-    for (final s in rowsOf(ids)) {
-      final keys = _marked.remove(s.id);
-      if (keys == null) continue;
-      for (final chunk in chunksOf200(keys)) {
-        await reader.deleteProgress(sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKeys: chunk);
+    for (final id in ids) {
+      final m = _marked.remove(id);
+      if (m == null) continue;
+      for (final chunk in chunksOf200(m.keys)) {
+        await reader.deleteProgress(sourceId: m.sourceId, seriesKey: m.seriesKey, chapterKeys: chunk);
       }
     }
     _c.invalidate(shelfProvider);
@@ -268,8 +272,9 @@ class GlassShelfActions {
     final detail = await _c.read(sourceSeriesDetailProvider((sourceId: s.sourceId, seriesId: s.seriesKey)).future);
     final ordered = sortSeriesChapters(detail.chapters, numberOf: (c) => c.number, order: SeriesChapterSortOrder.oldest);
     final readNumber = s.readState?.chapterNumber;
+    final saved = await savedOrQueuedChapterKeys(_c.read(downloadsStoreProvider), (sourceId: s.sourceId, seriesKey: s.seriesKey));
     final keys = nextUnreadUndownloadedKeys([
-      for (final c in ordered) (key: c.id, number: c.number, title: c.title, isRead: readNumber != null && c.number != null && c.number! <= readNumber, isDownloaded: false),
+      for (final c in ordered) (key: c.id, number: c.number, title: c.title, isRead: readNumber != null && c.number != null && c.number! <= readNumber, isDownloaded: saved.contains(c.id)),
     ]);
     final byKey = {for (final c in ordered) c.id: c};
     await _c.read(downloadQueueControllerProvider.notifier).enqueueChapters([

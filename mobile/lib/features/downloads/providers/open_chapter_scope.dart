@@ -22,11 +22,10 @@ import 'package:manhwamaniacs/features/downloads/services/retention_maintenance.
 /// screens pass the window in [feedChapterIds] and republish it on every
 /// slide; a single-chapter reader passes nothing and claims just its route.
 ///
-/// Also clears the read-then-expire stamp of each chapter as it ENTERS the
-/// claim: "re-reading cancels it" (spec §3) — a chapter finished long enough
-/// ago to be due for deletion must not vanish out from under a deliberate
-/// re-read, and in a re-read of a finished series that is every neighbour
-/// the window pulls in, not only the one the route opened at. A no-op when
+/// Also clears the read-then-expire stamp of the route's chapter: "re-reading
+/// cancels it" (spec §3). Neighbours the feed pulls in are only protected by
+/// the claim, never un-stamped: the previous chapter is prepended the moment a
+/// chapter opens at page 1. A no-op when
 /// there is no active scope, or when a chapter was never downloaded (nothing
 /// to protect or un-stamp in either case).
 class OpenChapterScope extends ConsumerStatefulWidget {
@@ -103,9 +102,10 @@ class _OpenChapterScopeState extends ConsumerState<OpenChapterScope> {
 
     final store = ref.read(downloadsStoreProvider);
     if (store == null) return;
-    for (final id in ids) {
-      if (_unstamped.add(id)) unawaited(store.clearReadStamp(id));
-    }
+    // Only the chapter the reader was OPENED at is a deliberate re-read. The feed's neighbours
+    // are protected by the claim while on screen; un-stamping them too wiped the chapter just
+    // finished every time the next one opened (the feed prepends it), so nothing ever expired.
+    if (_unstamped.add(widget.chapterId)) unawaited(store.clearReadStamp(widget.chapterId));
   }
 
   /// Empties [currentlyOpenChaptersProvider] if it still holds [claim] —

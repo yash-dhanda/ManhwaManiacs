@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/providers/mature_stamper.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
+import 'package:manhwamaniacs/features/library/utils/followed_series_cache.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart' show sharedPrefsProvider;
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 /// Where a row sat in each shelf that was on screen when it was taken out, so
@@ -101,7 +104,26 @@ class LibrarySeriesActions {
       return (error: result.error, slots: _noSlots);
     }
     _ref.invalidate(continueReadingProvider);
+    await _editOfflineCache(drop: series.id);
     return (error: null, slots: slots);
+  }
+
+  /// The offline follow cache only ever grows by merging, so a removal (and an undo's new row,
+  /// which has a new id) has to be written into it here or the offline shelf keeps the old row.
+  Future<void> _editOfflineCache({required int drop, FollowedSeries? add}) async {
+    try {
+      final scope = _ref.read(activeDownloadsScopeIdProvider);
+      if (scope == null) return;
+      final prefs = _ref.read(sharedPrefsProvider);
+      final key = followedSeriesCacheKeyFor(scope);
+      await writeCachedFollowedSeries(prefs, key, [
+        for (final s in readCachedFollowedSeries(prefs, key))
+          if (s.id != drop && s.id != add?.id) s,
+        if (add != null) add,
+      ]);
+    } catch (_) {
+      // No preferences in this container: nothing cached to fix.
+    }
   }
 
   /// Undo of [remove]: re-follow, and put the row back in the slots it was
@@ -127,13 +149,16 @@ class LibrarySeriesActions {
     if (restored.isFavorite != series.isFavorite ||
         restored.readingStatus != series.readingStatus ||
         restored.notify != series.notify ||
-        restored.matureOverride != series.matureOverride) {
+        restored.matureOverride != series.matureOverride ||
+        restored.sortOrder != series.sortOrder) {
       final patched = await repo.patchSeries(
         restored.id,
         isFavorite: series.isFavorite,
         readingStatus: series.readingStatus,
         notify: series.notify,
         matureOverride: series.matureOverride,
+        // The re-follow lands at the end of a manual order; put it back where it was.
+        sortOrder: series.sortOrder,
       );
       // A failed patch still leaves the series back in the library, which is
       // what the undo was for; only the metadata is off, and a refresh will
@@ -143,6 +168,7 @@ class LibrarySeriesActions {
 
     _remember(restored, slots);
     _ref.invalidate(continueReadingProvider);
+    await _editOfflineCache(drop: series.id, add: restored);
     return null;
   }
 

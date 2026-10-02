@@ -4,6 +4,7 @@ import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.d
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/providers/mature_gate_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
+import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 
 /// One chapter's on-device download state, for driving a
 /// [SeriesChapterDownloadAction] — the badge or button on a chapter row.
@@ -98,3 +99,16 @@ final seriesActiveChapterProgressProvider = Provider.autoDispose
   ),
   name: 'seriesActiveChapterProgress',
 );
+
+/// Chapter keys of [series] already saved or on their way (queued, downloading, complete and still
+/// on disk): what a "download next N" planner must skip, since [DownloadsStore.ensureQueued] leaves
+/// those rows alone and would otherwise be counted as queued again.
+Future<Set<String>> savedOrQueuedChapterKeys(DownloadsStore? store, SeriesIdentity series) async {
+  if (store == null) return const {};
+  final rows = await store.listChapters();
+  final vanished = await store.vanishedChapterKeys(series);
+  return {
+    for (final c in rows)
+      if (c.sourceId == series.sourceId && c.seriesKey == series.seriesKey && c.state != DownloadChapterState.failed && !vanished.contains(c.chapterKey)) c.chapterKey,
+  };
+}

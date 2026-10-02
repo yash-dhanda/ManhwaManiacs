@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/pagination.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/library/models/collection.dart';
 import 'package:manhwamaniacs/features/library/models/collection_detail.dart';
 import 'package:manhwamaniacs/features/library/models/continue_reading_item.dart';
@@ -20,6 +21,7 @@ import 'package:manhwamaniacs/features/library/models/tag.dart';
 import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
+import 'package:manhwamaniacs/features/library/utils/followed_series_cache.dart';
 import 'package:manhwamaniacs/features/library/utils/library_preferences.dart';
 import 'package:manhwamaniacs/features/library/utils/smart_shelf.dart';
 import 'package:manhwamaniacs/features/reader/models/reader_chapter.dart';
@@ -272,6 +274,26 @@ void main() {
       addTearDown(container.dispose);
       return container;
     }
+
+    test('a first page that is not the whole library never shrinks the offline cache', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final key = followedSeriesCacheKeyFor('u1p1');
+      await writeCachedFollowedSeries(prefs, key, [for (var i = 1; i <= 30; i++) _series(i)]);
+      final container = ProviderContainer(
+        overrides: [
+          libraryRepositoryProvider.overrideWithValue(_FakeLibraryRepository({
+            1: PagedResult(items: [for (var i = 1; i <= 20; i++) _series(i)], total: 30, page: 1, perPage: 20, hasNext: true),
+          }),),
+          sharedPrefsProvider.overrideWithValue(prefs),
+          activeDownloadsScopeIdProvider.overrideWithValue('u1p1'),
+        ],
+      );
+      addTearDown(container.dispose);
+      await container.read(libraryListProvider.future);
+      await Future<void>.delayed(Duration.zero);
+      expect(readCachedFollowedSeries(prefs, key), hasLength(30));
+    });
 
     test('loads first page and appends on loadMore', () async {
       final fakeRepo = _FakeLibraryRepository({

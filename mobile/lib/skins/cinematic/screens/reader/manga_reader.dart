@@ -140,7 +140,6 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
   final PaceTracker _pace = PaceTracker();
   final ValueNotifier<double> _swipeDx = ValueNotifier<double>(0);
   final DateTime _openedAt = DateTime.now();
-  late final NextChapterAutoQueue _autoQueue = NextChapterAutoQueue();
   late final HudHold _brightnessHud = HudHold(_repaint);
   late final HudHold _speedHud = HudHold(_repaint);
 
@@ -1026,17 +1025,7 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
     final footerMode = nextExists && !autoNext ? CreditsMode.full : (nextExists ? CreditsMode.compact : CreditsMode.full);
     final footerExtent = (nextExists ? (autoNext ? 260.0 : 980.0) : 920.0) * math.max(1.0, scale);
 
-    // The engine also owns the next-chapter auto-queue for the manifest reader (the source
-    // reader screen already queues its own).
-    if (_id.origin == ReaderOrigin.manifest) {
-      _autoQueue.maybeQueue(
-        ref,
-        sourceId: _id.sourceId,
-        seriesKey: _id.seriesKey,
-        routeChapterId: _id.chapterKey,
-        nextChapterId: nextSummary?.id ?? feedLast?.nextChapterId,
-      );
-    }
+    // The next-chapter auto-queue lives in the reader screens (library and source), not here.
     _syncSwipeable(prefs);
     final settings = ref.watch(readerSettingsProvider);
     _ambient.sync(

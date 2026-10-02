@@ -76,6 +76,7 @@ class NextChapterAutoQueue {
             seriesKey: seriesKey,
             chapterKey: nextId,
           ),
+          automatic: true,
         );
   }
 }

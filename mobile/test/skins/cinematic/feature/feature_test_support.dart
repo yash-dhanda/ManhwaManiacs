@@ -182,7 +182,7 @@ class RecordingQueue extends DownloadQueueController {
   final Recorder rec;
 
   @override
-  Future<void> enqueueChapters(Iterable<ChapterQueueRequest> chapters) async {
+  Future<void> enqueueChapters(Iterable<ChapterQueueRequest> chapters, {bool automatic = false}) async {
     rec.enqueued.add(chapters.toList());
   }
 
@@ -193,6 +193,7 @@ class RecordingQueue extends DownloadQueueController {
     String? title,
     String? seriesTitle,
     DownloadKind kind = DownloadKind.manga,
+    bool automatic = false,
   }) async {
     rec.enqueued.add([(id: id, chapterNumber: chapterNumber, title: title, seriesTitle: seriesTitle, kind: kind)]);
   }

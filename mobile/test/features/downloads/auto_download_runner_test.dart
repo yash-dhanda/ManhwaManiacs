@@ -28,7 +28,10 @@ class _Queue extends DownloadQueueController {
   @override
   DownloadQueueState build() => const DownloadQueueState();
   @override
-  Future<void> enqueueChapters(Iterable<ChapterQueueRequest> chapters) async => queued.add(chapters.toList());
+  Future<void> enqueueChapters(Iterable<ChapterQueueRequest> chapters, {bool automatic = false}) async => queued.add(chapters.toList());
+  static Set<String> auto = {};
+  @override
+  Set<String> autoQueuedKeys() => auto;
 }
 
 class _Updates extends UpdatesNotifier {
@@ -87,6 +90,7 @@ Future<ProviderContainer> make({required bool switchOn}) async {
   final store = _Store();
   when(() => store.listChapters(includeNarration: any(named: 'includeNarration'), hideMature: any(named: 'hideMature'))).thenAnswer((_) async => <SavedChapter>[]);
   _Queue.queued.clear();
+  _Queue.auto = {};
   final c = ProviderContainer(
     overrides: [
       sharedPrefsProvider.overrideWithValue(prefs),
@@ -116,6 +120,13 @@ void main() {
     expect(await on.read(autoDownloadRunnerProvider).run(), 6);
     expect(_Queue.queued.single.map((r) => r.id.chapterKey), ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']);
     expect(_Queue.queued.single.first.seriesTitle, 'Series One');
+  });
+
+  test('a chapter auto-queued before (then removed or cancelled) is not queued again', () async {
+    final on = await make(switchOn: true);
+    _Queue.auto = {'src s1 c1', 'src s1 c2'};
+    expect(await on.read(autoDownloadRunnerProvider).run(), 4);
+    expect(_Queue.queued.single.map((r) => r.id.chapterKey), ['c3', 'c4', 'c5', 'c6']);
   });
 
   testWidgets('the trigger reports the count on open and again on resume', (tester) async {

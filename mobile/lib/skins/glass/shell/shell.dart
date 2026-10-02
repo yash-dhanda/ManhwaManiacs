@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/skins/back_parent.dart';
+import 'package:manhwamaniacs/features/downloads/utils/auto_download.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/motion_names.g.dart';
@@ -15,6 +16,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/menu.dart' show GlassMenuBa
 import 'package:manhwamaniacs/skins/glass/primitives/new_chapters_capsule.dart' show GlassCapsuleHost;
 import 'package:manhwamaniacs/skins/glass/primitives/overlay_queue.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/recede.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast_host.dart';
 import 'package:manhwamaniacs/skins/glass/routes/route_table.dart';
 import 'package:manhwamaniacs/skins/glass/screens/downloads/downloads_feed.dart';
@@ -196,7 +198,10 @@ class _GlassShellState extends ConsumerState<GlassShell> with SingleTickerProvid
       onNotification: _onScroll,
       child: FadeTransition(opacity: _fade, child: widget.navigationShell),
     );
-    content = GlassDownloadsFeed(child: GlassRecede(child: GlassDiveScope(child: Padding(padding: EdgeInsets.only(left: leftPad), child: content))));
+    content = AutoDownloadTrigger(
+      onQueued: (n) => showGlassToast(ref, GlassToastSpec(queuedNewChaptersLine(n))),
+      child: GlassDownloadsFeed(child: GlassRecede(child: GlassDiveScope(child: Padding(padding: EdgeInsets.only(left: leftPad), child: content)))),
+    );
 
     final sheetUp = (_recede?.count.value ?? 0) > 0;
     final hidden = hidesDock(path) || sheetLarge || sheetUp || keyboard || ref.watch(recommendOrbsUpProvider) || ref.watch(glassSearchOpenProvider);

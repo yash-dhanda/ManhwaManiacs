@@ -276,6 +276,19 @@ def test_events_recording_rules(client, H, world, db_session, seed_follow):
     assert kinds == ["finished_chapter", "finished_series"]
 
 
+def test_finished_series_announced_once_across_unfollow_undo(client, H, world, db_session, seed_follow):
+    share(client, H, world, "c")
+    f = seed_follow(world["u2"], world["c"], source_id=SRC, series_key=X, title="Ex")
+    client.patch(f"/library/series/{f.id}", json={"reading_status": "completed"}, headers=H("c"))
+    # Remove from library, then Undo: re-follow and re-patch "completed".
+    assert client.delete(f"/library/follow/{f.id}", headers=H("c")).status_code == 204
+    g = seed_follow(world["u2"], world["c"], source_id=SRC, series_key=X, title="Ex")
+    client.patch(f"/library/series/{g.id}", json={"reading_status": "completed"}, headers=H("c"))
+    db_session.expire_all()
+    kinds = [e.kind for e in db_session.execute(select(CircleEvent)).scalars()]
+    assert kinds.count("finished_series") == 1
+
+
 def test_delete_activity(client, H, world):
     share(client, H, world, "c")
     push(client, H, "c")

@@ -168,6 +168,25 @@ void main() {
     });
   });
 
+  group('staging and collisions', () {
+    test('a fresh export holds only the chapters passed this time', () async {
+      final one = await saveChapter(chapterKey: '1', chapterNumber: 1, pages: [_jpeg(1)]);
+      final five = await saveChapter(chapterKey: '5', chapterNumber: 5, pages: [_jpeg(5)]);
+      await exporter.export(store: store, seriesLabel: 'Solo Leveling', chapters: [one], format: ChapterExportFormat.images, fresh: true);
+      final r = await exporter.export(store: store, seriesLabel: 'Solo Leveling', chapters: [five], format: ChapterExportFormat.images, fresh: true);
+      expect(r.directory.listSync().map((e) => p.basename(e.path)).toList(), ['Chapter 5']);
+    });
+
+    test('chapters sharing a label do not overwrite each other', () async {
+      final a = await saveChapter(chapterKey: '50a', chapterNumber: 50, pages: [_jpeg(1)]);
+      final b = await saveChapter(chapterKey: '50b', chapterNumber: 50, pages: [_png(2)]);
+      final r = await exporter.export(store: store, seriesLabel: 'Solo Leveling', chapters: [a, b], format: ChapterExportFormat.cbz);
+      final names = r.directory.listSync().map((e) => p.basename(e.path)).toList()..sort();
+      expect(names, ['Chapter 50 (2).cbz', 'Chapter 50.cbz']);
+      expect(r.chapterCount, 2);
+    });
+  });
+
   group('cbz export', () {
     test('produces a real ZIP holding the pages in order', () async {
       final chapter = await saveChapter(
