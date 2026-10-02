@@ -13,10 +13,11 @@ import 'package:manhwamaniacs/skins/glass/motion.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_row.dart';
+import 'package:manhwamaniacs/skins/glass/shell/shell_providers.dart' show glassDevRoutesProvider;
 import 'package:manhwamaniacs/skins/glass/skin_glass.dart';
 import 'package:manhwamaniacs/skins/glass/type.dart';
 
-/// The calibration page (`mobile/25`), reachable from Diagnostics in every build.
+/// The calibration page (`mobile/25`): a development page, linked from Diagnostics in debug builds only ([glassDevRoutesProvider]).
 const String kGlassCalibrationRoute = '/dev/glass/calibration';
 
 /// The jank colour (glass 8.25.12).
@@ -140,7 +141,8 @@ class _DiagnosticsSectionState extends ConsumerState<DiagnosticsSection> {
           _row('diag-layers', 'Glass layers on screen', layers.text, color: layers.over ? gt.colorWarning : null),
         ],),
         SettingsGroup(header: 'Development', children: [
-          SettingsRow(id: 'diag-calibration', title: 'Glass calibration', caret: true, onTap: () => GoRouter.of(context).push(kGlassCalibrationRoute)),
+          if (kDebugMode && ref.watch(glassDevRoutesProvider))
+            SettingsRow(id: 'diag-calibration', title: 'Glass calibration', caret: true, onTap: () => GoRouter.of(context).push(kGlassCalibrationRoute)),
           SettingsSwitchRow(
             id: 'diag-motion-timings',
             title: 'Show motion timings',
