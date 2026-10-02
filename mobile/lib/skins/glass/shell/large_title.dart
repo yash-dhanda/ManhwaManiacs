@@ -37,6 +37,8 @@ class _GlassLargeTitleState extends ConsumerState<GlassLargeTitle> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || ModalRoute.of(context)?.isCurrent == false) return;
       final primary = FocusManager.instance.primaryFocus;
+      // A text field being typed in (search over this branch's route, say) is never stolen from.
+      if (primary?.context?.findAncestorWidgetOfExactType<EditableText>() != null) return;
       final scope = FocusScope.of(context);
       final inside = primary != null && primary != scope && primary.ancestors.contains(scope);
       if (!inside) _focus.requestFocus();

@@ -36,7 +36,8 @@ class GlassResultCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            Expanded(child: GlassLabel(title, role: gt.typeFootnote, wght: 600, maxLines: 2)),
+            // The title opens the series too (the poster's semantics already name it).
+            Expanded(child: GestureDetector(behavior: HitTestBehavior.opaque, excludeFromSemantics: true, onTap: onTap, child: GlassLabel(title, role: gt.typeFootnote, wght: 600, maxLines: 2))),
           ],
         ),
       );

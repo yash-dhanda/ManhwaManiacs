@@ -396,13 +396,19 @@ GoRouter buildGlassRouter(Ref ref) {
         path: ScreenId.discover.path,
         name: _nameOf(ScreenId.discover),
         parentNavigatorKey: rootKey,
-        pageBuilder: (context, state) => CustomTransitionPage<void>(
-          key: state.pageKey,
-          transitionDuration: kGlassSearchDuration,
-          reverseTransitionDuration: kGlassSearchDuration,
-          child: const SizedBox.shrink(),
-          transitionsBuilder: (context, animation, secondary, child) => GlassRouteFrame(routeKey: _keyOf(state), child: SkinBackFallback(glass: true, child: GlassSearchPage(animation: animation))),
-        ),
+        // Non-opaque so the shell stays painted behind the blur; the page is the route's child, so the route's pointer and
+        // focus gating cover it while it closes.
+        pageBuilder: (context, state) {
+          final reduced = ref.read(glassMotionPrefsProvider).reduced;
+          return CustomTransitionPage<void>(
+            key: state.pageKey,
+            opaque: false,
+            transitionDuration: reduced ? kGlassSearchFade : kGlassSearchOpen,
+            reverseTransitionDuration: reduced ? kGlassSearchFade : kGlassSearchClose,
+            child: GlassRouteFrame(routeKey: _keyOf(state), child: const SkinBackFallback(glass: true, child: GlassSearchPage())),
+            transitionsBuilder: (context, animation, secondary, child) => child,
+          );
+        },
       ),
       _seriesRoute(ScreenId.feature, rootKey, (s) => GlassFeatureScreen(sourceId: s.pathParameters['sourceId']!, seriesKey: s.pathParameters['seriesKey']!, chapter: s.uri.queryParameters['chapter'], sheet: s.uri.queryParameters['sheet'], velocity: s.extra is GlassNavExtra ? (s.extra! as GlassNavExtra).velocity : null)),
       GoRoute(

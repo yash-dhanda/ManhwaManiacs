@@ -5,8 +5,8 @@ import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// The index field (§7.4): Bodoni Moda Italic while empty, Roman once it holds
-/// a query; a `spot` cursor; a rule that becomes a 2 px `spot` underline on
-/// focus. The typed hint sits behind the field while it is empty and unfocused.
+/// a query; a `spot` cursor (no rule or underline under the text: owner rule).
+/// The typed hint sits behind the field while it is empty and unfocused.
 class IndexField extends StatefulWidget {
   const IndexField({
     super.key,
@@ -121,18 +121,6 @@ class _IndexFieldState extends State<IndexField> {
                     variant: CineButtonVariant.quiet,
                   ),
               ],
-            ),
-          ],
-        ),
-        Stack(
-          children: [
-            Container(height: 1, color: t.colorRule2),
-            AnimatedContainer(
-              duration: cineReduced(context) ? CineDur.reduced : CineDur.line,
-              curve: CineCurves.settle,
-              height: 2,
-              width: focused ? MediaQuery.sizeOf(context).width : 0,
-              color: t.colorSpot,
             ),
           ],
         ),

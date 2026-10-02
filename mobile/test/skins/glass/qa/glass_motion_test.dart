@@ -128,8 +128,8 @@ void main() {
 // G1: every screen under Reduce Motion (the OS flag alone, then the in-app switch alone) settles with no ticker running except the
 // allowed ones (14.1): static-opacity progress pulses, the Liquid spinner and thinking orbit's 1.2 s pulses, a user-started cruise.
 /// What may still tick at rest under Reduce Motion (14.1): the text caret's fade in an autofocused field on the auth and profile
-/// forms, and Wrapped's story clock (its capsule is a progress indicator, not decoration). Nothing else.
-const _allowedTickers = {ScreenId.login: 1, ScreenId.register: 1, ScreenId.profiles: 1, ScreenId.profileNew: 1, ScreenId.annual: 1};
+/// forms and in Search's field (focused as it opens, so the keyboard rises), and Wrapped's story clock (its capsule is a progress indicator, not decoration). Nothing else.
+const _allowedTickers = {ScreenId.discover: 1, ScreenId.login: 1, ScreenId.register: 1, ScreenId.profiles: 1, ScreenId.profileNew: 1, ScreenId.annual: 1};
 
 void screenMotionTests() {
   for (final mode in const ['os', 'app']) {

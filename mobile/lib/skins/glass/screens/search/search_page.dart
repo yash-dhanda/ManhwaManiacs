@@ -22,8 +22,10 @@ import 'package:manhwamaniacs/features/sources/providers/discover_providers.dart
 import 'package:manhwamaniacs/features/sources/providers/source_pins_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/discover_scope.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
+import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
+import 'package:manhwamaniacs/skins/glass/glass_scroll_behavior.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/chip_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -41,6 +43,8 @@ import 'package:manhwamaniacs/skins/glass/screens/search/search_idle.dart';
 import 'package:manhwamaniacs/skins/glass/screens/search/search_keys.dart';
 import 'package:manhwamaniacs/skins/glass/screens/search/search_states.dart';
 import 'package:manhwamaniacs/skins/glass/screens/search/tier_capsule.dart';
+import 'package:manhwamaniacs/skins/glass/shell/search_orb.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
 
 /// The Discover body of `/search` (glass 8.9), placed above the bottom field by the shell's search page.
 class GlassSearchBody extends ConsumerStatefulWidget {
@@ -78,7 +82,7 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
 
   String? _uriScope() {
     try {
-      return GoRouter.of(context).state.uri.queryParameters['scope'];
+      return GoRouterState.of(context).uri.queryParameters['scope'];
     } catch (_) {
       return null;
     }
@@ -105,12 +109,8 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
     final q = _q;
     Future.microtask(() {
       if (!mounted) return;
+      // Recents are recorded by the page on submit or pick, not here: every debounced prefix used to land in Recent.
       ref.read(searchQueryProvider.notifier).state = q.length >= 2 ? q : '';
-      if (q.length >= 2) {
-        unawaited(writeRecentSearch(ref.read(sharedPrefsProvider), q, profileId: ref.read(activeProfileProvider)?.id, gateOpen: ref.read(matureGateOpenProvider)).then((_) {
-          if (mounted) setState(() {});
-        }),);
-      }
     });
     _order = const [];
     _announced.clear();
@@ -189,6 +189,7 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
     final margin = GlassFrame.screenMargin(context);
     final bottom = 50 + 21 + MediaQuery.viewInsetsOf(context).bottom + 28;
     final online = ref.watch(deviceOnlineProvider).valueOrNull ?? true;
+    final reduced = ref.watch(glassReducedProvider);
     final children = <Widget>[
       Padding(
         padding: const EdgeInsets.only(bottom: 8),
@@ -211,7 +212,10 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
         query: _q,
         recent: readRecentSearches(prefs, profileId: pid),
         askAvailable: ref.watch(suggestAvailabilityProvider).valueOrNull?.available ?? false,
-        onSearch: (t) => GoRouter.of(context).replace<void>(Uri(path: '/search', queryParameters: {'q': t, if (_rawScope != null) 'scope': _rawScope}).toString()),
+        onSearch: (t) {
+          // The page owns the query (its field feeds this body); the URL only follows it.
+          if (!GlassSearchPage.run(context, t)) GoRouter.of(context).replace<void>(Uri(path: '/search', queryParameters: {'q': t, if (_rawScope != null) 'scope': _rawScope}).toString());
+        },
         onRemove: (t) async {
           final left = readRecentSearchEntries(prefs, profileId: pid).where((e) => e.q != t).toList();
           await clearRecentSearches(prefs, profileId: pid);
@@ -225,6 +229,8 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
       children.add(NovelTextResults(query: _q));
     } else if (scope == GlassDiscoverScope.dialogue) {
       children.add(_DialogueInline(query: _q));
+    } else if (scope == GlassDiscoverScope.library) {
+      children.add(_ShelfHits(query: _q));
     } else if (!online) {
       children.addAll(_offline());
     } else {
@@ -239,8 +245,9 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
         children: [
           ListView(
             controller: _scroll,
+            keyboardDismissBehavior: glassKeyboardDismiss,
             padding: EdgeInsets.fromLTRB(margin, MediaQuery.paddingOf(context).top + 56, margin, bottom),
-            children: children,
+            children: [for (var i = 0; i < children.length; i++) glassSearchStagger(context, i, children[i], reduced: reduced)],
           ),
           if (jump != null) Positioned(right: 0, top: MediaQuery.paddingOf(context).top + 120, bottom: bottom, child: jump),
         ],
@@ -282,7 +289,6 @@ class _GlassSearchBodyState extends ConsumerState<GlassSearchBody> {
     if (result == null) return ([const SearchLoadingSkeleton()], null);
 
     var groups = List<SourceSearchGroup>.of(ref.watch(visibleSearchGroupsProvider));
-    if (scope == GlassDiscoverScope.library) groups = [for (final g in groups) if (g.isLocal) g];
     if (scope == GlassDiscoverScope.sources) groups = [for (final g in groups) if (!g.isLocal) g];
 
     final pins = ref.watch(pinnedSourceIdsProvider);
@@ -393,4 +399,39 @@ class _DialogueInline extends ConsumerWidget {
       },
     );
   }
+}
+
+/// The Library scope: the profile's own shelf, from `GET /library/search` (the source search no longer has a local group).
+final glassShelfSearchProvider = FutureProvider.autoDispose.family<List<FollowedSeries>, String>((ref, q) async {
+  final r = await ref.watch(libraryRepositoryProvider).search(q, perPage: 30);
+  if (!r.isOk) throw r.error;
+  return r.value.items;
+});
+
+class _ShelfHits extends ConsumerWidget {
+  const _ShelfHits({required this.query});
+  final String query;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ref.watch(glassShelfSearchProvider(query)).when(
+        loading: () => const SearchLoadingSkeleton(),
+        error: (e, _) => SearchErrorLens(onRetry: () => ref.invalidate(glassShelfSearchProvider(query))),
+        data: (hits) => hits.isEmpty
+            ? SearchEmptyLens(q: query)
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final s in hits)
+                    GlassTap(
+                      label: s.title,
+                      onTap: () => ref.read(skinRouterProvider).go(Routes.featureByFollow(s.id)),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(GlassGlyph28.books.regular, size: 18, color: gt.colorLabel3),
+                        const SizedBox(width: 10),
+                        Flexible(child: GlassLabel(s.title, role: gt.typeBody)),
+                      ],),
+                    ),
+                ],
+              ),
+      );
 }

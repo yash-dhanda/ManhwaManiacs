@@ -35,8 +35,7 @@ class QuotaMeter extends StatelessWidget {
                       color: warn ? gt.colorWarning : null,
                       meniscus: false,),),),
           const SizedBox(width: 8),
-          ExcludeSemantics(
-              child: GlassText(text, role: gt.typeCaption1, color: color),),
+          Flexible(child: ExcludeSemantics(child: GlassText(text, role: gt.typeCaption1, color: color))),
         ],
       ),
     );
@@ -80,13 +79,15 @@ class AskControls extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // The button and the quota share a line while they fit, and stack when they don't (large text, a countdown).
-        Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 12,
-          runSpacing: 8,
-          children: [
+        // A Wrap, not a Row: with the disabled reason showing, the Ask button and the quota meter overflowed 390 pt.
+        SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
+            children: [
             KeyedSubtree(
               key: buttonKey,
               child: GlassButton(
@@ -104,7 +105,8 @@ class AskControls extends ConsumerWidget {
             ),
             if (remaining != null && remaining! <= kQuotaShow)
               QuotaMeter(remaining: remaining!),
-          ],
+            ],
+          ),
         ),
         if (!novels) sw('Only my sources', onlyMine, onOnlyMine),
         sw('Use my taste', useTaste, onUseTaste),

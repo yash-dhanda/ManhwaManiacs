@@ -107,6 +107,16 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
     widget.onSubmitted?.call(v);
   }
 
+  /// Focuses the field, or reopens the keyboard when the field already has focus (a plain requestFocus is a no-op then).
+  void _wake() {
+    final editable = _node.context?.findAncestorStateOfType<EditableTextState>();
+    if (editable != null) {
+      editable.requestKeyboard();
+    } else {
+      _node.requestFocus();
+    }
+  }
+
   Widget _lead(bool onGlass) {
     switch (widget.status) {
       case GlassSearchStatus.searching:
@@ -199,17 +209,16 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
           builder: (context, c) {
             final cancel = v == GlassSearchVariant.bottom;
             final w = c.hasBoundedWidth ? c.maxWidth : 320.0;
-            Widget glassFor(double width) => GlassPressable(
-                  hoverGlow: false,
-                  onTap: () => _node.requestFocus(),
-                  noSemantics: true,
-                  minHit: false,
-                  forceStates: widget.forceStates,
-                  builder: (context, info) => SkinGlass(
+            // A plain tap target, not a GlassPressable: the pressable won the gesture arena on pointer-up, so taps never reached
+            // the TextField and a focused field with its keyboard down could not get it back.
+            Widget glassFor(double width) => GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  excludeFromSemantics: true,
+                  onTap: _wake,
+                  child: SkinGlass(
                     size: Size(width, h),
                     tier: GlassTierId.t3,
                     twin: widget.twin,
-                    glow: info.glow,
                     debugLabel: 'GlassSearchField',
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -247,8 +256,11 @@ class _GlassSearchFieldState extends ConsumerState<GlassSearchField> {
                 onVerticalDragStart: (_) => _drag = 0,
                 onVerticalDragUpdate: (d) => _drag += d.delta.dy,
                 onVerticalDragEnd: (d) {
-                  FocusScope.of(context).unfocus();
-                  if (project(_drag, d.velocity.pixelsPerSecond.dy) > 80) widget.onCollapse?.call();
+                  // Only a real pull down dismisses: an upward or jittery drag keeps the keyboard.
+                  final p = project(_drag, d.velocity.pixelsPerSecond.dy);
+                  if (p <= 24) return;
+                  _node.unfocus();
+                  if (p > 80) widget.onCollapse?.call();
                 },
                 child: row,
               );
