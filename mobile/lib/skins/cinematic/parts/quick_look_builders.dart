@@ -21,7 +21,9 @@ import 'package:manhwamaniacs/features/library/models/world_item.dart';
 import 'package:manhwamaniacs/features/library/providers/library_series_actions.dart';
 import 'package:manhwamaniacs/features/library/utils/mark_read.dart';
 import 'package:manhwamaniacs/features/library/utils/series_chapter_sort.dart';
+import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/recap/models/recap_origin.dart';
+import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -51,8 +53,8 @@ Widget _cover(WidgetRef ref, String? url, String title) => CineImage(url: _abs(r
 
 String _chapterLabel(double? n) => n == null ? '' : ' ${n % 1 == 0 ? n.toInt() : n}';
 
-/// The chapter `Continue` opens for a followed series: the furthest one opened, else the first.
-String? continueChapterKey(FollowedSeries s) => s.readState?.chapterKey ?? (s.knownChapters.isEmpty ? null : s.knownChapters.first.key);
+/// The chapter `Continue` opens for a followed series: the one after a finished furthest chapter, the furthest one opened, else the first.
+String? continueChapterKey(FollowedSeries s) => s.readState?.resumeKey ?? (s.knownChapters.isEmpty ? null : s.knownChapters.first.key);
 
 /// The reader target of [chapterKey] for a source of [kind] (manga reader or novel reader).
 /// [page] is the saved page (manga) or progress bucket (novel) of a half-read chapter.
@@ -122,7 +124,16 @@ Future<void> _markRead(BuildContext context, WidgetRef ref, HomeContinueItem ite
   if (context.mounted) cineFeedback(context, HapticEvent.select, sound: SoundEvent.select);
   toasts.undo(
     'Marked chapter${_chapterLabel(r.chapterNumber)} read.',
-    onUndo: () => unawaited(repo.deleteProgress(sourceId: r.sourceId, seriesKey: r.seriesKey, chapterKeys: [r.chapterKey])),
+    onUndo: () => unawaited(() async {
+      // Progress never rewinds, so the forced read is deleted and the row's own place written back
+      // (an unopened NEXT row had none to restore).
+      await repo.deleteProgress(sourceId: r.sourceId, seriesKey: r.seriesKey, chapterKeys: [r.chapterKey]);
+      if (r.pageCount > 0 && r.lastPage > 0) {
+        await repo.saveProgressBatch([
+          ProgressPush(sourceId: r.sourceId, seriesKey: r.seriesKey, chapterKey: r.chapterKey, chapterNumber: r.chapterNumber, lastPage: r.lastPage, pageCount: r.pageCount, lastReadAt: r.lastReadAt, manual: true),
+        ]);
+      }
+    }()),
   );
 }
 
@@ -232,8 +243,9 @@ Future<void> openFollowedQuickLook(BuildContext context, WidgetRef ref, HomeSeri
 }
 
 /// A world or source pick: Open, Not for me, and for information-only titles Search my sources and
-/// Read on {site}. [onNotForMe] lets the rail drop the poster (it fades over 240 ms).
-Future<void> openPickQuickLook(BuildContext context, WidgetRef ref, HomePickItem item, {required ReaderEntry entry, VoidCallback? onNotForMe, Object? heroTag}) {
+/// Read on {site}. [onNotForMe] lets the rail drop the poster (it fades over 240 ms). [canDismiss]
+/// false (the reader's own follows) leaves Not for me out.
+Future<void> openPickQuickLook(BuildContext context, WidgetRef ref, HomePickItem item, {required ReaderEntry entry, VoidCallback? onNotForMe, Object? heroTag, bool canDismiss = true}) {
   final container = ProviderScope.containerOf(context, listen: false);
   final w = item.world;
   final title = item.title;
@@ -244,7 +256,7 @@ Future<void> openPickQuickLook(BuildContext context, WidgetRef ref, HomePickItem
     if (!info && _hasCircle(ref)) QuickLookId.recommend: () => unawaited(showPassItOnSheet(context, sourceId: w?.available.first.sourceId ?? item.source!.sourceId, seriesKey: w?.available.first.seriesKey ?? item.source!.id, title: title, coverUrl: w?.coverUrl ?? item.source?.coverUrl)),
     // More like this: the feature page's tab (an item on the reader's sources only).
     if (!info) QuickLookId.moreLikeThis: () => context.push(featureMoreLikeThis(w?.available.first.sourceId ?? item.source!.sourceId, w?.available.first.seriesKey ?? item.source!.id)),
-    QuickLookId.notForMe: () async {
+    if (canDismiss) QuickLookId.notForMe: () async {
       final ai = ref.read(aiRepositoryProvider);
       final src = item.source;
       final res = await ai.sendFeedback(

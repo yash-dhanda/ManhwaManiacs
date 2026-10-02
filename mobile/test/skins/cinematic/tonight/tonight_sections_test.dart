@@ -1,7 +1,17 @@
 // ignore_for_file: require_trailing_commas, directives_ordering, avoid_redundant_argument_values
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
+import 'package:manhwamaniacs/features/home/models/home_feed.dart';
+import 'package:manhwamaniacs/features/ai/providers/ai_providers.dart';
+import 'package:manhwamaniacs/features/ai/providers/suggested_tags_provider.dart';
+import 'package:manhwamaniacs/features/ai/repositories/ai_repository.dart';
 import 'package:manhwamaniacs/features/home/utils/continue_hidden.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/tonight/tonight_screen.dart';
@@ -92,6 +102,42 @@ void main() {
     toast.onAction!();
     await settleTonight(t, by: const Duration(milliseconds: 300));
     expect(rig.rec.deleted.single.keys, ['c142']);
+    // Undo puts the reader's place back: page 28 of 40, not completed.
+    final back = rig.rec.pushedRows.last;
+    expect((rig.rec.pushedRows.length, back.chapterKey, back.lastPage, back.pageCount, back.isCompleted), (2, 'c142', 28, 40, false));
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('a Continue cutting takes its folio format from its own source, not the cover story', (t) async {
+    final j = jsonDecode(File('test/fixtures/home/ready.json').readAsStringSync()) as Map<String, dynamic>..['cover'] = null;
+    await pumpTonight(t, view: viewOf(HomeFeed.fromJson(j)), size: _tall, prefs: _stamp, extra: [
+      contentModeScopeProvider.overrideWith((ref) => const ContentModeScope(mode: ContentMode.novel, index: {'shelf': ContentMode.novel}, novelsEnabled: true)),
+    ]);
+    await settleTonight(t, by: const Duration(seconds: 3));
+    expect(find.text('70% · CH 142'), findsOneWidget);
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Not for me hides the pick by identity, and restoring it brings the poster back', (t) async {
+    await pumpTonight(t, feed: 'ready', size: _tall, prefs: _stamp, extra: [aiRepositoryProvider.overrideWithValue(_OkAi())]);
+    await settleTonight(t, by: const Duration(seconds: 3));
+    await t.longPress(find.text('Harbor of Small Lights').first);
+    await settleTonight(t, by: const Duration(seconds: 1));
+    await t.tap(find.text('Not for me'));
+    await settleTonight(t, by: const Duration(seconds: 1));
+    expect(find.text('Harbor of Small Lights'), findsNothing);
+    final dismissed = _container(t).read(dismissedPicksProvider.notifier);
+    dismissed.restore(_container(t).read(dismissedPicksProvider).single);
+    await settleTonight(t, by: const Duration(seconds: 1));
+    expect(find.text('Harbor of Small Lights'), findsWidgets);
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('first picks are the reader\'s own follows: Quick look has no Not for me', (t) async {
+    await _pump(t, 'onboarded');
+    await t.longPress(find.text('NOT STARTED').first);
+    await settleTonight(t, by: const Duration(seconds: 1));
+    expect(find.text('Not for me'), findsNothing);
     await t.pumpWidget(const SizedBox());
   });
 
@@ -156,4 +202,12 @@ void main() {
       await t.pumpWidget(const SizedBox());
     }
   });
+}
+
+class _OkAi implements AiRepository {
+  @override
+  Future<Result<void>> sendFeedback({required String signal, int? anilistId, String? sourceId, String? seriesKey, String? tag}) async => const Ok(null);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

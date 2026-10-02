@@ -16,6 +16,8 @@ class ReadState {
     this.latestNumber,
     this.newCount,
     this.lastReadAt,
+    this.continueKey,
+    this.continueNumber,
   });
 
   /// Whether this profile has opened any chapter of the series.
@@ -43,6 +45,14 @@ class ReadState {
   /// When the furthest chapter was last read, where the server sends it (else the LIST column shows `—`).
   final DateTime? lastReadAt;
 
+  /// The chapter after [chapterKey] once that one is finished (null while it is mid-read or last).
+  final String? continueKey;
+  final double? continueNumber;
+
+  /// Where Continue goes: past a finished furthest chapter, else the furthest one.
+  String? get resumeKey => continueKey ?? chapterKey;
+  double? get resumeNumber => continueKey != null ? continueNumber : chapterNumber;
+
   factory ReadState.fromJson(Map<String, dynamic> json) => ReadState(
         started: json['started'] as bool? ?? false,
         chapterKey: json['chapter_key'] as String?,
@@ -52,6 +62,8 @@ class ReadState {
         latestNumber: (json['latest_number'] as num?)?.toDouble(),
         newCount: (json['new_count'] as num?)?.toInt(),
         lastReadAt: serverInstant(json['last_read_at']),
+        continueKey: json['continue_key'] as String?,
+        continueNumber: (json['continue_number'] as num?)?.toDouble(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -63,5 +75,7 @@ class ReadState {
         'latest_number': latestNumber,
         'new_count': newCount,
         if (lastReadAt != null) 'last_read_at': lastReadAt!.toIso8601String(),
+        if (continueKey != null) 'continue_key': continueKey,
+        if (continueNumber != null) 'continue_number': continueNumber,
       };
 }

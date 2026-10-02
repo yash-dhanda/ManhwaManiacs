@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/dashboard_providers.dart';
 import 'package:manhwamaniacs/features/library/providers/library_list_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
@@ -67,6 +68,10 @@ class LibraryReadState {
     }
     if (_ref.exists(continueReadingProvider)) {
       _ref.invalidate(continueReadingProvider);
+    }
+    // Tonight / Home stays alive under the reader; its cover and Continue rail point at the old chapter.
+    if (_ref.exists(homeFeedProvider)) {
+      unawaited(_ref.read(homeFeedProvider.notifier).refresh(skipCache: false));
     }
   }
 }

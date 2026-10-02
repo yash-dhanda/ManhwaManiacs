@@ -70,8 +70,12 @@ bool _listEq(List<String> a, List<String> b) {
 final homeFeedProvider = AsyncNotifierProvider.autoDispose<HomeFeedController, HomeFeedView>(HomeFeedController.new, name: 'homeFeed');
 
 class HomeFeedController extends AutoDisposeAsyncNotifier<HomeFeedView> {
+  /// Bumped by every [build]: a refresh that outlives a profile, mode or gate change is dropped.
+  int _gen = 0;
+
   @override
   Future<HomeFeedView> build() {
+    _gen++;
     final link = ref.keepAlive();
     final timer = Timer(const Duration(minutes: 10), link.close);
     ref.onDispose(timer.cancel);
@@ -81,17 +85,22 @@ class HomeFeedController extends AutoDisposeAsyncNotifier<HomeFeedView> {
     return _load(refresh: false);
   }
 
-  /// Refetches (skipping the server's composed cache); the previous feed stays until it settles.
-  Future<void> refresh() async {
-    state = await AsyncValue.guard(() => _load(refresh: true));
+  /// Refetches (skipping the server's composed cache unless [skipCache] is false); the previous
+  /// feed stays until it settles.
+  Future<void> refresh({bool skipCache = true}) async {
+    final gen = _gen;
+    final next = await AsyncValue.guard(() => _load(refresh: skipCache));
+    if (gen == _gen) state = next;
   }
 
   /// A pull to refresh (glass 8.8): refetches with `refresh=1`, writes the new view and reports whether
   /// anything changed (`generatedAt` or any section's item identities). `refresh()` stays as it is.
   Future<HomeRefreshOutcome> refreshFromServer() async {
     final before = state.valueOrNull?.feed;
+    final gen = _gen;
     try {
       final view = await _load(refresh: true);
+      if (gen != _gen) return (changed: false, error: null);
       state = AsyncData(view);
       final AppError? error = switch (view.state) {
         HomeFeedState.unavailable => const NetworkError(message: 'home unavailable'),
@@ -169,11 +178,11 @@ class HomeFeedController extends AutoDisposeAsyncNotifier<HomeFeedView> {
       inMode: scope.novelsEnabled ? (id) => scope.modeOf(id) == scope.mode : null,
     );
     if (inputs.allFailed) return (state: HomeFeedState.unavailable, feed: null, origin: HomeFeedOrigin.local, offline: false, retryAfter: retryAfter);
-    return _view(applyAtRisk(composeLocalFeed(inputs, now), now), HomeFeedOrigin.local);
+    return _view(applyAtRisk(composeLocalFeed(inputs, now), now), HomeFeedOrigin.local, retryAfter: retryAfter);
   }
 
-  HomeFeedView _view(HomeFeed feed, HomeFeedOrigin origin) {
+  HomeFeedView _view(HomeFeed feed, HomeFeedOrigin origin, {Duration? retryAfter}) {
     final empty = feed.cover == null && !feed.sections.any((s) => s.hasItems);
-    return (state: empty ? HomeFeedState.empty : HomeFeedState.ready, feed: feed, origin: origin, offline: false, retryAfter: null);
+    return (state: empty ? HomeFeedState.empty : HomeFeedState.ready, feed: feed, origin: origin, offline: false, retryAfter: retryAfter);
   }
 }

@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_cast.dart';
 import 'package:manhwamaniacs/features/recap/background_recaps.dart';
@@ -49,6 +51,24 @@ class _Online implements NetworkConnectivity {
 
 void main() {
   setUpAll(loadAppFonts);
+
+  test('a Continue target reads its reader off the source, whichever row built it', () {
+    const scope = ContentModeScope(mode: ContentMode.novel, index: {'n': ContentMode.novel, 'm': ContentMode.manga}, novelsEnabled: true);
+    expect(const HomeContinueTarget(sourceId: 'n', seriesKey: 'k', chapterKey: 'c1').ofKind(scope).readerLocation, startsWith('/novel'));
+    expect(const HomeContinueTarget(sourceId: 'm', seriesKey: 'k', chapterKey: 'c1').ofKind(scope).readerLocation, startsWith('/reader'));
+  });
+
+  testWidgets('a recap opens up to the continue chapter, not the last finished one', (t) async {
+    final rig = await pumpGlassShell(t, settle: false);
+    await t.pump(const Duration(milliseconds: 600));
+    final ref = t.element(find.byWidgetPredicate((w) => w is ConsumerWidget || w is ConsumerStatefulWidget).first) as WidgetRef;
+    unawaited(openRecapFor(ref, const HomeContinueTarget(sourceId: 's', seriesKey: 'k', chapterKey: 'c11', recap: RecapAvailability(available: true, toKey: 'c10'))));
+    await t.pump(const Duration(milliseconds: 300));
+    final cfg = rig.router.routerDelegate.currentConfiguration;
+    final last = cfg.last;
+    expect((last is ImperativeRouteMatch ? last.matches.uri : cfg.uri).queryParameters['to'], 'c11');
+    await pumpFor(t, 1200);
+  });
 
   test('the deck maths: depth 0.94 and 0.89, dim 40 and 60 percent, the swipe threshold', () {
     expect(deckScale(0), 1);
@@ -149,6 +169,19 @@ void main() {
     expect(ready.single.title, isNotEmpty);
     expect(GlassHaptics.debugLog.map((e) => e.event.toString()).join(), contains('recapReady'));
     await ctl.close();
+  });
+
+  testWidgets('the recap offer opens on the current page instead of pushing another Home', (t) async {
+    final rig = await pumpGlassShell(t, settle: false, extra: [clockProvider.overrideWithValue(() => DateTime(2026, 10, 1, 12))]);
+    await t.pump(const Duration(milliseconds: 600));
+    registerOfferSheet();
+    final el = t.element(find.byWidgetPredicate((w) => w is ConsumerWidget || w is ConsumerStatefulWidget).first);
+    unawaited(continueSeries(el, el as WidgetRef, HomeContinueTarget(sourceId: 's', seriesKey: 'k', chapterKey: 'c2', recap: const RecapAvailability(available: true, toKey: 'c1'), lastReadAt: DateTime(2026, 9, 10, 12)), Rect.zero));
+    await t.pump(const Duration(milliseconds: 300));
+    final cfg = rig.router.routerDelegate.currentConfiguration;
+    expect(cfg.last, isNot(isA<ImperativeRouteMatch>()));
+    expect(cfg.uri.queryParameters['sheet'], 'offer');
+    await pumpFor(t, 1200);
   });
 
   testWidgets('the offer asks, Show recap opens the deck, the switch writes skipSeries', (t) async {

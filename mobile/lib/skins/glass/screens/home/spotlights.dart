@@ -111,23 +111,24 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
     if (l != null) {
       final rs = l.series.readState;
       final days = l.lastReadAt == null ? 7 : now.difference(l.lastReadAt!).inDays;
-      final ch = rs?.chapterNumber;
+      final ch = rs?.resumeNumber;
       return SpotlightSpec(
         kind: SpotlightKind.previouslyOn,
         title: l.series.title,
         meta: 'Paused ${days < 1 ? 7 : days} days',
         primaryLabel: ch == null ? 'Continue' : 'Continue Ch ${_n(ch)}',
         primary: SpotlightAction.continueReading,
-        secondaryLabel: 'Previously on',
+        // Only a recap that exists: an unavailable one opens on a dead-end notice.
+        secondaryLabel: (l.recap?.available ?? false) ? 'Previously on' : null,
         sourceId: l.series.sourceId,
         seriesKey: l.series.seriesKey,
         coverUrl: l.series.coverUrl,
         palette: l.palette,
         ambient: l.ambient,
         recap: l.recap,
-        target: rs?.chapterKey == null
+        target: rs?.resumeKey == null
             ? null
-            : HomeContinueTarget(sourceId: l.series.sourceId, seriesKey: l.series.seriesKey, chapterKey: rs!.chapterKey!, chapterNumber: ch, recap: l.recap, lastReadAt: l.lastReadAt),
+            : HomeContinueTarget(sourceId: l.series.sourceId, seriesKey: l.series.seriesKey, chapterKey: rs!.resumeKey!, chapterNumber: ch, recap: l.recap, lastReadAt: l.lastReadAt),
       );
     }
     for (final c in cont) {
@@ -159,13 +160,14 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
   if (caughtUp || (!cont.any((c) => c.newCount >= 1) && fresh.isEmpty && !(cover != null && (cover.reason == HomeCoverReason.inProgress || cover.reason == HomeCoverReason.newChapters)))) {
     final picked0 = items(HomeSectionType.picked).whereType<HomePickItem>().firstOrNull;
     final base = prev ?? aiSpec ?? (picked0 == null ? null : _fromPick(picked0, SpotlightKind.because, meta: _worldMeta(picked0))) ?? (cover == null ? null : _fromCover(cover, SpotlightKind.caughtUp, meta: '', action: SpotlightAction.openSeries, label: 'Start reading'));
+    final recapOk = prev?.recap?.available ?? false;
     if (base != null) {
       add(SpotlightSpec(
         kind: SpotlightKind.caughtUp,
         title: "You're caught up",
         meta: 'Nothing new on your shelf',
-        primaryLabel: prev != null ? 'Previously on' : 'Start reading',
-        primary: prev != null ? SpotlightAction.previouslyOn : base.primary,
+        primaryLabel: recapOk ? 'Previously on' : (prev?.primaryLabel ?? 'Start reading'),
+        primary: recapOk ? SpotlightAction.previouslyOn : base.primary,
         sourceId: base.sourceId,
         seriesKey: base.seriesKey,
         coverUrl: base.coverUrl,
@@ -187,12 +189,13 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
       // The server's cover story is this row's new chapter: it knows the chapter key to open.
       add(_fromCover(cover, SpotlightKind.nextUp, meta: _coverMeta(cover)));
     } else if (n != null) {
-      final ch = n.row.chapterNumber == null ? null : n.row.chapterNumber! + 1;
+      // The row is the chapter Continue opens (the server already moves it past a finished one).
+      final ch = n.row.chapterNumber;
       add(SpotlightSpec(
         kind: SpotlightKind.nextUp,
         title: n.row.title ?? n.row.seriesKey,
-        meta: 'Ch ${_n(ch)} is new · ${_kind(false)}',
-        primaryLabel: 'Continue Ch ${_n(ch)}',
+        meta: '${n.newCount == 1 ? '1 new chapter' : '${n.newCount} new chapters'} · ${_kind(false)}',
+        primaryLabel: ch == null ? 'Continue' : 'Continue Ch ${_n(ch)}',
         primary: SpotlightAction.continueReading,
         sourceId: n.row.sourceId,
         seriesKey: n.row.seriesKey,
@@ -230,7 +233,7 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
     if (u != null) {
       final rs = u.series.readState;
       final n = rs?.newCount ?? 0;
-      final next = rs?.chapterNumber == null ? rs?.latestNumber : rs!.chapterNumber! + 1;
+      final next = rs?.resumeNumber;
       add(SpotlightSpec(
         kind: SpotlightKind.newest,
         title: u.series.title,
@@ -243,9 +246,9 @@ List<SpotlightSpec> composeSpotlights(HomeFeedView view, {required DateTime now,
         palette: u.palette,
         ambient: u.ambient,
         recap: u.recap,
-        target: rs?.chapterKey == null
+        target: rs?.resumeKey == null
             ? null
-            : HomeContinueTarget(sourceId: u.series.sourceId, seriesKey: u.series.seriesKey, chapterKey: rs!.chapterKey!, chapterNumber: next, recap: u.recap, lastReadAt: rs.lastReadAt),
+            : HomeContinueTarget(sourceId: u.series.sourceId, seriesKey: u.series.seriesKey, chapterKey: rs!.resumeKey!, chapterNumber: next, recap: u.recap, lastReadAt: rs.lastReadAt),
       ),);
     }
   }

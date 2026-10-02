@@ -473,6 +473,17 @@ void main() {
     expect(revealed.any((k) => k.endsWith(':home.greeting')), isTrue);
     expect(revealed.any((k) => k.endsWith(':tonight:genres')), isTrue);
   });
+
+  homeTest('a 429 answered by another 429 keeps retrying', (t) async {
+    final repo = FakeHomeRepo(() async => const Err(ApiError(statusCode: 429, code: 'rate_limited', message: 'busy', retryAfter: Duration(seconds: 2))));
+    await pumpHome(t, repo);
+    final first = repo.calls.length;
+    for (var i = 0; i < 20; i++) {
+      await t.pump(const Duration(milliseconds: 300));
+    }
+    expect(repo.calls.length, greaterThanOrEqualTo(first + 2));
+    await t.pumpWidget(const SizedBox());
+  });
 }
 
 class _Sharing extends SharingNotifier {

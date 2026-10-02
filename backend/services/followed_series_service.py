@@ -18,7 +18,7 @@ from typing import Annotated, Any, NamedTuple
 from urllib.parse import quote
 
 from fastapi import Depends
-from sqlalchemy import and_, delete, func, literal as sa_literal, or_, select, tuple_
+from sqlalchemy import and_, case, delete, func, literal as sa_literal, or_, select, tuple_
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session, defer
 
@@ -139,6 +139,7 @@ def _reading_state(
     progress_keys: list[str],
     progress_number: float | None,
     identify: Callable[[str], str] | None = None,
+    completed_keys: list[str] | None = None,
 ) -> dict[str, Any]:
     """Where a started series stands: the furthest chapter opened, of how many.
 
@@ -197,6 +198,16 @@ def _reading_state(
             position=max(positions),
             new_count=total - max(positions),
         )
+        # Where Continue goes: past the furthest chapter once it is finished,
+        # like the continue strip, so a poster's Continue never reopens it.
+        done = {same(k) for k in completed_keys or () if k}
+        if same(furthest["key"]) in done and max(positions) < total:
+            nxt = ordered[max(positions)]
+            n = nxt.get("number")
+            state.update(
+                continue_key=nxt["key"],
+                continue_number=n if isinstance(n, (int, float)) else None,
+            )
     return state
 
 
@@ -1043,6 +1054,9 @@ class FollowedSeriesService:
                         FollowedSeries.known_chapters,
                         func.json_group_array(ChapterProgress.chapter_key),
                         func.max(ChapterProgress.chapter_number),
+                        func.json_group_array(
+                            case((ChapterProgress.is_completed.is_(True), ChapterProgress.chapter_key))
+                        ),
                     )
                     .join(
                         ChapterProgress,
@@ -1057,8 +1071,8 @@ class FollowedSeriesService:
                     .group_by(FollowedSeries.id)
                 )
             )
-            for followed_id, known, keys, number in self._db.execute(stmt).all():
-                found[followed_id] = [known, _loads(keys) or [], number]
+            for followed_id, known, keys, number, done in self._db.execute(stmt).all():
+                found[followed_id] = [known, _loads(keys) or [], number, _loads(done) or []]
 
         drifting = self._drifting(rows)
         if drifting:
@@ -1069,13 +1083,16 @@ class FollowedSeriesService:
                 ChapterProgress.series_key,
                 ChapterProgress.chapter_key,
                 ChapterProgress.chapter_number,
+                ChapterProgress.is_completed,
             ):
                 for follow in owners:
                     entry = found.get(follow.id)
                     if entry is None:
-                        entry = found[follow.id] = [None, [], None]
+                        entry = found[follow.id] = [None, [], None, []]
                         lists_missing.append(follow.id)
                     entry[1].append(progress.chapter_key)
+                    if progress.is_completed:
+                        entry[3].append(progress.chapter_key)
                     entry[2] = _max_number(entry[2], progress.chapter_number)
             if lists_missing:
                 for followed_id, known in self._db.execute(
@@ -1089,14 +1106,14 @@ class FollowedSeriesService:
 
         drifting_ids = {f.id for owners in drifting.values() for f in owners}
         by_id = {row.id: row for row in rows}
-        for followed_id, (known, keys, number) in found.items():
+        for followed_id, (known, keys, number, done) in found.items():
             identify = (
                 partial(chapter_identity, by_id[followed_id].source_id)
                 if followed_id in drifting_ids
                 else None
             )
             states[followed_id] = _reading_state(
-                _loads(known) or [], keys, number, identify
+                _loads(known) or [], keys, number, identify, done
             )
         return states
 

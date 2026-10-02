@@ -33,8 +33,9 @@ class GreetingSubline {
   String get text => riskLine ?? [if (newChapters != null) newChapters!, if (streakLabel != null) streakLabel!].join(' · ');
 }
 
-GreetingSubline greetingSubline({required int unread, required HomeStreak streak, required DateTime now}) {
-  final atRisk = computeAtRisk(streak, now);
+GreetingSubline greetingSubline({required int unread, required HomeStreak streak, required DateTime now, bool readToday = false}) {
+  // [readToday]: this device already counted reading today, which the feed's lastActiveDate may not show yet.
+  final atRisk = !readToday && computeAtRisk(streak, now);
   if (atRisk) return GreetingSubline(atRisk: true, streakDays: streak.currentDays, riskLine: 'Read one chapter to keep your ${streak.currentDays}-day streak');
   return GreetingSubline(
     newChapters: unread > 0 ? (unread == 1 ? '1 new chapter' : '$unread new chapters') : null,

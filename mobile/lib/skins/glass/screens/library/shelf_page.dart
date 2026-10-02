@@ -88,7 +88,22 @@ class _GlassShelfPageState extends ConsumerState<GlassShelfPage> {
     Future.microtask(() {
       if (!mounted) return;
       _offBridge = bridgeLibrarySelection(ref, _select);
-      final q = _routeParams();
+    });
+  }
+
+  String? _appliedQuery;
+
+  /// Applies `?reading_status=`, `?sort=`… whenever the route's query changes, not only on the first
+  /// visit: every library location shares one kept-alive page, so a later "See all" reuses this State.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final q = _routeParams();
+    final key = q.toString();
+    if (key == _appliedQuery) return;
+    _appliedQuery = key;
+    Future.microtask(() {
+      if (!mounted) return;
       if (q.isNotEmpty) ref.read(shelfQueryProvider.notifier).applyRoute(q);
       final cur = ref.read(shelfQueryProvider).q;
       if (cur.isNotEmpty) _search.text = cur;

@@ -36,12 +36,17 @@ class PostersSection extends ConsumerStatefulWidget {
 }
 
 class _PostersSectionState extends ConsumerState<PostersSection> {
-  final Set<int> _fading = {}, _gone = {};
+  /// Picks fading out after Not for me, by pick id (never by index: a reprint or re-rank reuses this
+  /// State). Once faded, [dismissedPicksProvider] hides them, so Undo brings them back.
+  final Set<String> _fading = {};
   final GlobalKey _railKey = GlobalKey();
   bool _landed = false;
   int _landTries = 0;
 
   HomeSection get _s => widget.plan.section;
+
+  /// The reader's own follows (first picks, the AI-off shelf fallback): never "Not for me".
+  bool get _ownShelf => _s.type == HomeSectionType.firstPicks || (_s.type == HomeSectionType.picked && _s.fallback == 'shelf');
 
   /// The visible items with their index in the section (the Hero tag key).
   List<(int, Object)> get _items {
@@ -49,20 +54,22 @@ class _PostersSectionState extends ConsumerState<PostersSection> {
     final dismissed = ref.watch(dismissedPicksProvider);
     return [
       for (var i = 0; i < _s.items.length; i++)
-        if (!_gone.contains(i) && !_dismissedItem(_s.items[i], dismissed)) (i, _s.items[i]),
+        if (!_dismissedItem(_s.items[i], dismissed)) (i, _s.items[i]),
     ];
   }
 
-  bool _dismissedItem(Object it, Set<String> dismissed) {
-    if (it is! HomePickItem) return false;
+  static String? _pickKey(Object it) {
+    if (it is! HomePickItem) return null;
     final w = it.world;
-    return dismissed.contains(w != null ? pickId(w) : 's${it.source!.sourceId}:${it.source!.id}');
+    return w != null ? pickId(w) : 's${it.source!.sourceId}:${it.source!.id}';
   }
 
-  void _notForMe(int i) {
-    setState(() => _fading.add(i));
-    Timer(const Duration(milliseconds: 240), () {
-      if (mounted) setState(() => _gone.add(i));
+  bool _dismissedItem(Object it, Set<String> dismissed) => dismissed.contains(_pickKey(it));
+
+  void _notForMe(String id) {
+    setState(() => _fading.add(id));
+    Timer(const Duration(milliseconds: 300), () {
+      if (mounted) setState(() => _fading.remove(id));
     });
   }
 
@@ -165,7 +172,7 @@ class _PostersSectionState extends ConsumerState<PostersSection> {
     } else {
       poster = const SizedBox.shrink();
     }
-    return AnimatedOpacity(opacity: _fading.contains(index) ? 0 : 1, duration: const Duration(milliseconds: 240), child: poster);
+    return AnimatedOpacity(opacity: _fading.contains(_pickKey(item)) ? 0 : 1, duration: const Duration(milliseconds: 240), child: poster);
   }
 
   Widget _seriesPoster(BuildContext context, int index, HomeSeriesItem item, (String, String)? tag, FocusNode? node) {
@@ -220,7 +227,7 @@ class _PostersSectionState extends ConsumerState<PostersSection> {
     final hidden = slotKey != null && ref.watch(cineFlightProvider).hides(slotKey);
     Widget slot(Widget child) => slotKey == null ? child : KeyedSubtree(key: flightSlotKey(slotKey), child: Opacity(opacity: hidden ? 0 : 1, child: child));
     return slot(CineQuickLookTarget(
-      onOpen: () => unawaited(openPickQuickLook(context, ref, item, entry: widget.env.entry, heroTag: tag, onNotForMe: () => _notForMe(index))),
+      onOpen: () => unawaited(openPickQuickLook(context, ref, item, entry: widget.env.entry, heroTag: tag, onNotForMe: () => _notForMe(_pickKey(item)!), canDismiss: !_ownShelf)),
       child: CinePoster(
         title: item.title,
         url: coverAbs(ref, w?.coverUrl ?? item.source?.coverUrl),

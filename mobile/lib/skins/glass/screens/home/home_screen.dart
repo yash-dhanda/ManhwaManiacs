@@ -73,6 +73,7 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
   Offset? _rippleAt;
   bool _rippled = false;
   Timer? _rateTimer;
+  bool _limited = false;
 
   @override
   void initState() {
@@ -190,7 +191,9 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
   void _rateLimit(Duration wait) {
     final n = wait.inSeconds.clamp(1, 3600);
     ref.read(glassRateLimitProvider.notifier).state = GlassRateLimit('Sources are busy. Retrying in $n s', n);
-    glassFire(ref, HapticEvent.warning);
+    // One warning per busy spell, not one per retry.
+    if (!_limited) glassFire(ref, HapticEvent.warning);
+    _limited = true;
     _rateTimer?.cancel();
     _rateTimer = Timer(wait, () {
       if (!mounted) return;
@@ -219,13 +222,13 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
               ref.read(wrappedOriginProvider.notifier).state = from;
               unawaited(ref.read(skinRouterProvider).push<void>(Routes.annual(s.year ?? ref.read(clockProvider)().year)));
             case SpotlightAction.previouslyOn:
-              if (s.hasSeries) unawaited(openRecap(ref, s.sourceId!, s.seriesKey!, s.target?.recap?.toKey ?? s.recap?.toKey ?? s.target?.chapterKey ?? '', from: from));
+              if (s.hasSeries) unawaited(openRecap(ref, s.sourceId!, s.seriesKey!, s.target?.chapterKey ?? s.recap?.toKey ?? '', from: from));
           }
         },
         onSecondary: (s, from) {
           if (!s.hasSeries) return;
           if (s.secondaryIsRecap) {
-            unawaited(openRecap(ref, s.sourceId!, s.seriesKey!, s.target?.recap?.toKey ?? s.recap?.toKey ?? s.target?.chapterKey ?? '', from: from));
+            unawaited(openRecap(ref, s.sourceId!, s.seriesKey!, s.target?.chapterKey ?? s.recap?.toKey ?? '', from: from));
           } else {
             unawaited(openSeries(ref, s.sourceId!, s.seriesKey!, from: from));
           }
@@ -264,6 +267,14 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
   Widget build(BuildContext context) {
     final view = ref.watch(homeFeedProvider);
     final fv = view.valueOrNull;
+    // Armed whenever a 429 view shows and no retry is pending: also for a feed that landed before
+    // Home first built, and for a retry answered by another 429.
+    final wait = fv?.retryAfter;
+    if (wait != null && !(_rateTimer?.isActive ?? false)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !(_rateTimer?.isActive ?? false) && ref.read(homeFeedProvider).valueOrNull?.retryAfter != null) _rateLimit(wait);
+      });
+    }
     final now = ref.watch(clockProvider)();
     final hidden = ref.watch(continueHiddenProvider);
     final profile = ref.watch(activeProfileProvider);
@@ -283,7 +294,10 @@ class _GlassHomeScreenState extends ConsumerState<GlassHomeScreen> with WidgetsB
         (ModalRoute.of(context)?.isCurrent ?? true);
     ref.listen<AsyncValue<HomeFeedView>>(homeFeedProvider, (prev, next) {
       final v = next.valueOrNull;
-      if (v?.retryAfter != null && prev?.valueOrNull?.retryAfter == null) _rateLimit(v!.retryAfter!);
+      if (v != null && v.retryAfter == null) {
+        _rateTimer?.cancel();
+        _limited = false;
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _syncAccessory();
       });

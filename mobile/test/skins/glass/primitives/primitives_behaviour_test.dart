@@ -249,6 +249,17 @@ void main() {
     expect(find.text('Up next · Ch 143'), findsOneWidget);
   });
 
+  testWidgets('the Continue stack prints a decimal chapter as is and an unknown one as no number', (tester) async {
+    await tester.pumpWidget(primHost(Column(children: [
+      GlassContinueStack(cover: const ColoredBox(color: Color(0xFF223344)), title: 'A', chapter: 12.5, page: 5, pageCount: 40, onContinue: () {}),
+      GlassContinueStack(cover: const ColoredBox(color: Color(0xFF223344)), title: 'B', chapter: null, page: 5, pageCount: 40, onContinue: () {}),
+    ],),),);
+    await pumpFor(tester, 400);
+    expect(find.text('Ch 12.5 · p. 5 of 40'), findsOneWidget);
+    expect(find.text('p. 5 of 40'), findsOneWidget);
+    expect(find.textContaining('Ch 0'), findsNothing);
+  });
+
   testWidgets('no chip, poster, card or rail arrow creates live glass; a selected chip is a content twin', (tester) async {
     await tester.pumpWidget(primHost(Column(children: [
       GlassChip(label: 'Reading', selected: true, onPressed: () {}),

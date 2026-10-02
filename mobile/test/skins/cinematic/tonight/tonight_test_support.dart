@@ -52,7 +52,7 @@ class FakeHomeFeed extends HomeFeedController {
   }
 
   @override
-  Future<void> refresh() async => refreshed++;
+  Future<void> refresh({bool skipCache = true}) async => refreshed++;
 }
 
 class TonightRig {

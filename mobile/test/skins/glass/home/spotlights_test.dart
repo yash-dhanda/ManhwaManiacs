@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
+import 'package:manhwamaniacs/features/library/models/read_state.dart';
 import 'package:manhwamaniacs/skins/glass/screens/home/spotlights.dart';
 
 import '../../../features/home/home_fixtures.dart';
@@ -83,5 +87,37 @@ void main() {
 
   test('empty state yields no cards without a pick', () {
     expect(composeSpotlights(view(const HomeFeed(headline: 'x', deck: ''), state: HomeFeedState.empty), now: now), isEmpty);
+  });
+
+  Map<String, dynamic> raw(String name) => jsonDecode(File('test/fixtures/home/$name.json').readAsStringSync()) as Map<String, dynamic>;
+
+  test('Next up from a Continue row labels the chapter it opens', () {
+    final j = raw('ready')..['cover'] = null;
+    final s = composeSpotlights(view(HomeFeed.fromJson(j)), now: now).firstWhere((e) => e.kind == SpotlightKind.nextUp);
+    expect(s.primaryLabel, 'Continue Ch 142');
+    expect(s.target!.chapterKey, 'c142');
+  });
+
+  test('Where were we without a recap offers no Previously on', () {
+    final j = raw('ready');
+    for (final sec in j['sections'] as List) {
+      if ((sec as Map)['type'] == 'where_were_we') {
+        for (final i in sec['items'] as List) {
+          (i as Map)['recap'] = {'available': false, 'reason': 'no_dialogue'};
+        }
+      }
+    }
+    final p = composeSpotlights(view(HomeFeed.fromJson(j)), now: now).where((e) => e.kind == SpotlightKind.previouslyOn);
+    expect(p, isNotEmpty);
+    for (final e in p) {
+      expect(e.secondaryLabel, isNull);
+    }
+  });
+
+  test('a finished furthest chapter resumes at the next one', () {
+    final r = ReadState.fromJson({'started': true, 'chapter_key': 'c10', 'chapter_number': 10, 'total': 13, 'continue_key': 'c11', 'continue_number': 11});
+    expect((r.resumeKey, r.resumeNumber), ('c11', 11.0));
+    final mid = ReadState.fromJson({'started': true, 'chapter_key': 'c10', 'chapter_number': 10, 'total': 13});
+    expect((mid.resumeKey, mid.resumeNumber), ('c10', 10.0));
   });
 }

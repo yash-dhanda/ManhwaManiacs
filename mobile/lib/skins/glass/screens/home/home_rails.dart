@@ -55,6 +55,9 @@ class HomeCircleCard {
 class HomeRailSpec {
   const HomeRailSpec({required this.id, required this.kind, required this.title, required this.items, this.subtitle, this.state = HomeSectionState.ready, this.ai = false, this.seeAll, this.generatedAt, this.fallbackNote, this.seedTitle, this.thinking = false});
 
+  /// Machine-picked cards: badged, and thrown away as "Not interested". Not the AI-off shelf fallback (the reader's own follows).
+  bool get machine => ai && fallbackNote != 'shelf';
+
   final String id;
   final HomeRailKind kind;
   final String title;
@@ -88,9 +91,9 @@ HomePoster _fromSeries(HomeSeriesItem i, {String? badge, String? caption}) => Ho
       caption: caption,
       hasProgress: i.series.readState?.started ?? false,
       readNumber: i.series.readState?.chapterNumber,
-      target: i.series.readState?.chapterKey == null || !(i.series.readState?.started ?? false)
+      target: i.series.readState?.resumeKey == null || !(i.series.readState?.started ?? false)
           ? null
-          : HomeContinueTarget(sourceId: i.series.sourceId, seriesKey: i.series.seriesKey, chapterKey: i.series.readState!.chapterKey!, chapterNumber: i.series.readState!.chapterNumber, recap: i.recap, lastReadAt: i.series.readState!.lastReadAt),
+          : HomeContinueTarget(sourceId: i.series.sourceId, seriesKey: i.series.seriesKey, chapterKey: i.series.readState!.resumeKey!, chapterNumber: i.series.readState!.resumeNumber, recap: i.recap, lastReadAt: i.series.readState!.lastReadAt),
     );
 
 String? _topGenre(HomeRailSpec r) {
@@ -159,7 +162,9 @@ List<HomeRailSpec> composeHomeRails(
     if (s == null) return null;
     final unavailable = s.state == HomeSectionState.unavailable;
     if (s.items.isEmpty && !unavailable) return null;
-    return HomeRailSpec(id: id, kind: HomeRailKind.ai, title: title, subtitle: subtitle, items: s.items.whereType<HomePickItem>().toList(), state: s.state, ai: true, seeAll: seeAll, generatedAt: s.generatedAt, fallbackNote: s.fallback, seedTitle: s.seed?.title);
+    // The AI-off fallback is the reader's own favourites: its own title ([HomeRailSpec.machine] drops the badges and "Not interested").
+    final shelf = s.fallback == 'shelf';
+    return HomeRailSpec(id: id, kind: HomeRailKind.ai, title: shelf && s.title.isNotEmpty ? s.title : title, subtitle: shelf ? null : subtitle, items: s.items.whereType<HomePickItem>().toList(), state: s.state, ai: true, seeAll: seeAll, generatedAt: s.generatedAt, fallbackNote: s.fallback, seedTitle: s.seed?.title);
   }
 
   // 1

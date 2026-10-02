@@ -45,14 +45,14 @@ class HomeAiRail extends ConsumerWidget {
     final dismissed = ref.watch(dismissedPicksProvider);
     final items = [
       for (final i in rail.items.whereType<HomePickItem>())
-        if (!(rail.ai && dismissed.contains(pickId(worldOf(i))))) i,
+        if (!(rail.machine && dismissed.contains(pickId(worldOf(i))))) i,
     ];
     final state = rail.ai
         ? aiState(loading: rail.thinking, available: !rail.unavailable, reason: env.aiReason ?? 'not_configured', generatedAt: rail.generatedAt, now: env.now)
         : (state: AiSurfaceState.ready, reason: null);
     final key = railRevealKey(ref, rail.id);
-    final badge = rail.ai ? const MachineBadge() : null;
-    Widget cardFor(int i) => AiPickCard(item: items[i], ai: rail.ai, env: env, railId: rail.id);
+    final badge = rail.machine ? const MachineBadge() : null;
+    Widget cardFor(int i) => AiPickCard(item: items[i], ai: rail.machine, env: env, railId: rail.id);
     final h = posterCardHeight(context, extra: 28);
     if (state.state == AiSurfaceState.thinking) {
       return GlassRail(title: rail.title, revealKey: key, screenId: kHomeScreenId, itemCount: 0, itemBuilder: (_, __) => const SizedBox.shrink(), itemHeight: h, state: GlassRailState.loading, aiSkeleton: true, skeletonCount: 4, titleLeading: const ThinkingOrbit());
@@ -64,7 +64,7 @@ class HomeAiRail extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            HomeRailHeader(title: rail.title, railId: rail.id, leading: const MachineBadge()),
+            HomeRailHeader(title: rail.title, railId: rail.id, leading: badge),
             Padding(padding: EdgeInsets.fromLTRB(GlassFrame.contentMargin(context), 8, GlassFrame.contentMargin(context), 0), child: notice),
           ],
         );

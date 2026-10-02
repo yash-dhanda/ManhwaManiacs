@@ -1,5 +1,9 @@
 // ignore_for_file: require_trailing_commas, avoid_redundant_argument_values, library_private_types_in_public_api, directives_ordering
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/library/providers/library_read_state.dart';
+import 'package:manhwamaniacs/skins/glass/screens/home/home_data.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
@@ -30,10 +34,12 @@ class _FakeHome implements HomeRepository {
   _FakeHome(this.answer);
   Result<HomeFeed> Function() answer;
   final calls = <({String? kind, int tz, bool refresh})>[];
+  Future<void>? hold;
 
   @override
   Future<Result<HomeFeed>> fetch({required String? contentKind, required int tzOffsetMinutes, bool refresh = false}) async {
     calls.add((kind: contentKind, tz: tzOffsetMinutes, refresh: refresh));
+    if (hold != null) await hold;
     return answer();
   }
 }
@@ -59,9 +65,11 @@ class _FakeLib implements LibraryRepository {
   @override
   Future<Result<WorldRecommendations>> worldRecommendations({int seeds = 5, int perSeed = 10}) async => _r<WorldRecommendations>(null);
 
+  int lists = 0;
+
   @override
   Future<Result<PagedResult<FollowedSeries>>> listSeries({int page = 1, int perPage = 40, String? sort, String? search, String? readingStatus, bool? isFavorite, List<int>? tagIds, bool? newOnly,}) async =>
-      _r(followed == null ? null : PagedResult(items: followed!, total: followed!.length, page: 1, perPage: perPage, hasNext: false));
+      lists++ < 0 ? throw StateError('') : _r(followed == null ? null : PagedResult(items: followed!, total: followed!.length, page: 1, perPage: perPage, hasNext: false));
 
   @override
   Future<Result<LibraryStatistics>> statistics() async => _r<LibraryStatistics>(null);
@@ -140,5 +148,50 @@ void main() {
     expect(r.changed, isFalse);
     expect(r.error, isNotNull);
     expect(c.read(homeFeedProvider).value, isNotNull);
+  });
+
+  test('a refresh started under one profile never lands on the next', () async {
+    final home = _FakeHome(() => Ok(loadHome('ready')));
+    final c = await container(home, _FakeLib());
+    final sub = c.listen(homeFeedProvider, (_, __) {});
+    addTearDown(sub.close);
+    await c.read(homeFeedProvider.future);
+    final gate = Completer<void>();
+    home.hold = gate.future;
+    final stale = c.read(homeFeedProvider.notifier).refresh();
+    home.hold = null;
+    home.answer = () => Ok(loadHome('caught-up'));
+    (c.read(activeProfileProvider.notifier) as _Switchable).switchTo(2);
+    final b = await c.read(homeFeedProvider.future);
+    home.answer = () => Ok(loadHome('ready'));
+    gate.complete();
+    await stale;
+    expect(homeFeedChanged(c.read(homeFeedProvider).value!.feed, b.feed), isFalse);
+  });
+
+  test('closing a reader refetches a live home feed', () async {
+    final home = _FakeHome(() => Ok(loadHome('ready')));
+    final c = await container(home, _FakeLib());
+    final sub = c.listen(homeFeedProvider, (_, __) {});
+    addTearDown(sub.close);
+    await c.read(homeFeedProvider.future);
+    c.read(libraryReadStateProvider).refresh();
+    await Future<void>.delayed(Duration.zero);
+    expect(home.calls, hasLength(2));
+  });
+
+  test("Glass Home's followed list re-reads with every new feed", () async {
+    var name = 'ready';
+    final home = _FakeHome(() => Ok(loadHome(name)));
+    final lib = _FakeLib(followed: const []);
+    final c = await container(home, lib);
+    final sub = c.listen(homeFollowedProvider, (_, __) {});
+    addTearDown(sub.close);
+    await c.read(homeFollowedProvider.future);
+    final before = lib.lists;
+    name = 'caught-up';
+    await c.read(homeFeedProvider.notifier).refreshFromServer();
+    await c.read(homeFollowedProvider.future);
+    expect(lib.lists, greaterThan(before));
   });
 }
