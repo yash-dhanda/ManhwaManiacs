@@ -64,6 +64,9 @@ class _DownloadsLifecycleGateState extends ConsumerState<DownloadsLifecycleGate>
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
       if (results.any((r) => r != ConnectivityResult.none)) {
         _flushOutbox();
+        // Back online (or onto Wi-Fi): queued rows held while offline, or auto rows held off
+        // Wi-Fi, start again. The pass re-checks every guard itself.
+        if (mounted) ref.read(downloadQueueControllerProvider.notifier).resumePendingOnLaunch();
       }
     });
     // At launch the session is usually not known yet (auth restores after the

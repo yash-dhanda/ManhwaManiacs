@@ -281,10 +281,6 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     ref.listen<StorageCap>(storageCapProvider, (previous, next) {
       if (previous != next) retryAfterStorageChange();
     });
-    // Back online (or onto Wi-Fi): queued rows held by either start again.
-    ref.listen<AsyncValue<bool>>(networkOnlineChangesProvider, (previous, next) {
-      if ((next.valueOrNull ?? false) && _foreground && !_userPaused) unawaited(_kick());
-    });
     return const DownloadQueueState();
   }
 
