@@ -138,4 +138,12 @@ void main() {
     expect(f.kind, FeedKind.finishedChapter);
     expect(f.createdAt!.isUtc, isTrue);
   });
+
+  test('a note is limited in code points, as the server counts', () {
+    const flag = '\u{1F1EE}\u{1F1F3}'; // one grapheme, two code points
+    final full = 'a' * 138 + flag;
+    expect(noteLength(full), 140);
+    final over = noteLimit.formatEditUpdate(TextEditingValue(text: full), TextEditingValue(text: '$full$flag'));
+    expect(over.text, full);
+  });
 }

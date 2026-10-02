@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/circle/utils/reaction_kinds.dart';
 import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart';
+import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/motion.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/circle_poll_scope.dart';
 import 'package:manhwamaniacs/skins/cinematic/parts/pass_it_on_sheet.dart';
@@ -48,7 +49,7 @@ class CircleTab extends ConsumerWidget {
         ],),
       );
     }
-    final rows = d == null ? const <CircleRow>[] : circleRows(d, openKey: chapterKey, openNumber: chapterNumber, completedOpen: done);
+    final rows = d == null ? const <CircleRow>[] : circleRows(d, openKey: chapterKey, openNumber: chapterNumber, completedOpen: done, selfId: ref.watch(activeProfileProvider)?.id);
     if (rows.isEmpty) {
       return Padding(padding: EdgeInsets.all(c.space4), child: CineRoleText('Nobody in your circle has read this yet.', c.typeCaption, color: c.colorInk60));
     }

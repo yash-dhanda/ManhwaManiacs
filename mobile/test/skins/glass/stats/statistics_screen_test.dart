@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/skins/glass/parts/streak/streak_ui.dart';
 import 'package:manhwamaniacs/skins/glass/screens/stats/statistics_screen.dart';
 
 import '../../../support/numbers_fixtures.dart';
@@ -39,6 +41,20 @@ void main() {
     expect(repo.statisticsDays, contains(365));
     expect(find.text('Chapters per week'), findsOneWidget);
     expect(find.bySemanticsLabel('Reading heatmap'), findsWidgets);
+    await t.pump(const Duration(minutes: 11));
+  });
+
+  testWidgets('a streak share intent set before the data lands is consumed once it does', (t) async {
+    final repo = FakeNumbers()..gate = Completer<void>();
+    final rig = await pumpStats(t, repo, settle: false);
+    rig.container.read(statsShareIntentProvider.notifier).state = 'streak';
+    await t.pump(const Duration(milliseconds: 300));
+    expect(rig.container.read(statsShareIntentProvider), 'streak');
+    repo.gate!.complete();
+    for (var i = 0; i < 6; i++) {
+      await t.pump(const Duration(milliseconds: 300));
+    }
+    expect(rig.container.read(statsShareIntentProvider), isNull);
     await t.pump(const Duration(minutes: 11));
   });
 

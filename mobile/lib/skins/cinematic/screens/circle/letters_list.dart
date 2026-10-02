@@ -75,8 +75,22 @@ class _LettersListState extends ConsumerState<LettersList> {
   final Set<int> _ready = {}; // unfolded, eligible for the read rule
   final Map<int, Timer> _timers = {};
 
+  ScrollPosition? _outer;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The tablet aside does not scroll itself: what is on screen is its ancestor's viewport, re-checked as that scrolls.
+    final next = widget.scrollable ? null : Scrollable.maybeOf(context)?.position;
+    if (next != _outer) {
+      _outer?.removeListener(_check);
+      _outer = next?..addListener(_check);
+    }
+  }
+
   @override
   void dispose() {
+    _outer?.removeListener(_check);
     for (final t in _timers.values) {
       t.cancel();
     }
@@ -84,7 +98,7 @@ class _LettersListState extends ConsumerState<LettersList> {
   }
 
   double _fraction(int id) {
-    final v = _viewport.currentContext?.findRenderObject() as RenderBox?;
+    final v = (widget.scrollable ? _viewport.currentContext : Scrollable.maybeOf(context)?.context)?.findRenderObject() as RenderBox?;
     final b = _keys[id]?.currentContext?.findRenderObject() as RenderBox?;
     if (v == null || b == null || !v.hasSize || !b.hasSize || !b.attached) return 0;
     return visibleFraction(b.localToGlobal(Offset.zero) & b.size, v.localToGlobal(Offset.zero) & v.size);

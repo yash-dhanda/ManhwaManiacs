@@ -13,6 +13,7 @@ import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/screens/you/orb_lift.dart';
 import 'package:manhwamaniacs/skins/glass/screens/you/you_lists.dart';
 import 'package:manhwamaniacs/skins/glass/screens/you/you_screen.dart';
+import 'package:manhwamaniacs/skins/skins.dart';
 
 import '../../../screenshots/support/shot_harness.dart';
 import '../shell/shell_rig.dart';
@@ -64,6 +65,14 @@ void main() {
     expect(find.text('Your 2026 in chapters'), findsOneWidget);
     await pumpYou(t, now: DateTime(2027, 1, 31));
     expect(find.text('Your 2026 in chapters'), findsOneWidget);
+  });
+
+  m40Test('the Wrapped card pushes, so closing it returns to You', (t) async {
+    final rig = await pumpYou(t, now: DateTime(2026, 12));
+    await scrollTo(t, 'Your 2026 in chapters');
+    await t.tap(find.text('Your 2026 in chapters'));
+    await m40Settle(t, 600);
+    expect(rig.container.read(skinRouterProvider).canPop(), isTrue);
   });
 
   m40Test('a profile that does not share sees the Read together line', (t) async {

@@ -95,9 +95,11 @@ class CircleRepositoryImpl implements CircleRepository {
       });
 
   @override
-  Future<Result<void>> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note}) => _run(() async {
+  Future<Result<void>> sendLetter({required List<int> toProfileIds, required String sourceId, required String seriesKey, String? note, int? asProfileId}) => _run(() async {
         final n = note?.trim();
-        await _dio.post<void>('/circle/letters', data: {'to_profile_ids': toProfileIds, 'source_id': sourceId, 'series_key': seriesKey, if (n != null && n.isNotEmpty) 'note': n});
+        await _dio.post<void>('/circle/letters',
+            data: {'to_profile_ids': toProfileIds, 'source_id': sourceId, 'series_key': seriesKey, if (n != null && n.isNotEmpty) 'note': n},
+            options: asProfileId == null ? null : Options(headers: {'X-Profile-Id': '$asProfileId'}),);
       });
 
   @override

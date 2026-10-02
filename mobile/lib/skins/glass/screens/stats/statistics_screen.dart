@@ -155,7 +155,7 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
   }
 
   void _openWrapped(Rect? origin) {
-    final year = int.tryParse(widget.year ?? '') ?? DateTime.now().year;
+    final year = int.tryParse(widget.year ?? '') ?? annualDefaultYear(DateTime.now(), ref.read(annualIndexProvider).valueOrNull);
     ref.read(wrappedOriginProvider.notifier).state = origin;
     unawaited(ref.read(skinRouterProvider).push<void>(Routes.annual(year)));
   }
@@ -179,8 +179,10 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
       );
 
   Future<void> _shareRange() async {
-    final s = _last;
-    if (s == null || !mounted) return;
+    // The current range's own payload, gated like the bar button (not [_last], which may be another range's).
+    final load = ref.read(numbersStatisticsProvider(_days)).valueOrNull;
+    final s = load?.data;
+    if (s == null || load!.offline || !s.hasReadingHistory || !mounted) return;
     await openShare(context, ref, _rangeSpec(s));
   }
 
@@ -198,6 +200,10 @@ class _GlassStatisticsScreenState extends ConsumerState<GlassStatisticsScreen> {
     final load = async.valueOrNull;
     final s = load?.data;
     if (s != null) _last = s;
+    // The intent set before a fresh push lands while the payload is still loading: consume it once data is here.
+    if (s != null && ref.read(statsShareIntentProvider) == 'streak') {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _consumeShareIntent());
+    }
     ref.listen(statsShareIntentProvider, (_, v) {
       if (v == 'streak') WidgetsBinding.instance.addPostFrameCallback((_) => _consumeShareIntent());
     });
@@ -328,7 +334,7 @@ class _Content extends ConsumerWidget {
     final s = load.data;
     final genres = ref.watch(genreWeightsProvider(8)).valueOrNull ?? const [];
     final annual = ref.watch(annualIndexProvider).valueOrNull;
-    final y = int.tryParse(year ?? '') ?? now.year;
+    final y = int.tryParse(year ?? '') ?? annualDefaultYear(now, annual);
     final coverUrl = s.shareable?.topSeries.firstOrNull?.coverUrl;
     final last7 = s.daily.length > 7 ? s.daily.sublist(s.daily.length - 7) : s.daily;
     ShareSpec stat(String id, String label, String numeral, String unit, String ctx) => ShareSpec.stat(id: id, eyebrow: label, numeral: numeral, unit: unit, contextLine: ctx, coverUrl: coverUrl);

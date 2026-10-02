@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heroine/heroine.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/keyboard/shortcut_registry.dart';
+import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/utils/presence.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -111,8 +112,14 @@ void main() {
     expect(visibleText(), contains('Aarav read chapters 140–152 of Solo Leveling'));
     await unmount(t);
 
-    await pumpCircle(t, circleFake(members: const [], feed: const []));
+    await pumpCircle(t, circleFake(members: const [], feed: const [])..letterList = const []);
     expect(find.text('Your Circle is quiet'), findsOneWidget);
+    await unmount(t);
+
+    // A letter from someone who doesn't share keeps the tabs, so it can be read.
+    await pumpCircle(t, circleFake(members: const [], feed: const []));
+    expect(find.text('Your Circle is quiet'), findsNothing);
+    expect(find.textContaining('Letters'), findsWidgets);
     await unmount(t);
 
     await pumpCircle(t, circleFake(fail: const ApiError(statusCode: 500, code: 'server_error', message: 'x')));
@@ -137,6 +144,23 @@ void main() {
     await t.sendKeyEvent(LogicalKeyboardKey.bracketLeft);
     await settle(t, 400);
     expect(rig.router.routerDelegate.currentConfiguration.uri.queryParameters['tab'], 'activity');
+    await unmount(t);
+  });
+
+  testWidgets('activity keeps paging: every new page asks again for the next', (t) async {
+    final repo = _Pages(circleFake());
+    await pumpCircle(t, repo);
+    await settle(t);
+    expect(repo.cursors, containsAllInOrder(['p2', 'p3']));
+    await unmount(t);
+  });
+
+  testWidgets('friend sheet: no Recommend button when they take no recommendations', (t) async {
+    final page = aaravPage();
+    final repo = circleFake(page: MemberPage(profile: page.profile, now: page.now, reading: page.reading));
+    await pumpCircle(t, repo, start: '/circle/2');
+    await settle(t);
+    expect(find.text('Recommend something to Aarav'), findsNothing);
     await unmount(t);
   });
 
@@ -175,4 +199,18 @@ void main() {
     expect(circleTabOf('nope'), CircleTab.activity);
     expect(presenceLabel(const CircleMember(profileId: 1, name: 'Kai', streak: CircleStreak(currentDays: 12)), PresenceState.away), 'Kai, away, 12-day streak');
   });
+}
+
+/// Pages p2 then p3, then the end.
+class _Pages extends CircleFake {
+  _Pages(CircleFake base) : super(membersList: base.membersList, feedItems: base.feedItems, letterList: base.letterList, memberPage: base.memberPage, sharingValue: base.sharingValue, shared: base.shared);
+  final cursors = <String>[];
+
+  @override
+  Future<Result<FeedPage>> feed({String? cursor, int limit = 50, String? kind, int? profileId}) async {
+    if (profileId != null) return super.feed(profileId: profileId);
+    if (cursor == null) return Ok(FeedPage(items: feedItems, nextCursor: 'p2'));
+    cursors.add(cursor);
+    return Ok(FeedPage(nextCursor: cursor == 'p2' ? 'p3' : null));
+  }
 }

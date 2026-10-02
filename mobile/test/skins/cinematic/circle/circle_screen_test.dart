@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart' show Size;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
@@ -45,6 +46,12 @@ void main() {
     expect(find.text('Sharing settings'), findsOneWidget);
   });
 
+  testWidgets('nobody shares but a letter came: the LETTERS tab is there', (tester) async {
+    await pumpCircle(tester, FakeCircleRepository().._letters([letter(1)]));
+    await settle(tester);
+    expect(find.text('LETTERS'), findsOneWidget);
+  });
+
   testWidgets('an error shows the correction', (tester) async {
     await pumpCircle(tester, FakeCircleRepository()..failWith = const ApiError(statusCode: 500, code: 'x', message: 'x'));
     await settle(tester);
@@ -57,6 +64,14 @@ void main() {
     await settle(tester);
     expect(find.text('LETTERS'), findsOneWidget);
     expect(find.text('2'), findsWidgets);
+  });
+
+  testWidgets('wide aside: only letters on screen turn read', (tester) async {
+    final repo = _repo().._letters([for (var i = 1; i <= 8; i++) letter(i)]);
+    await pumpCircle(tester, repo, size: const Size(1200, 800));
+    await settle(tester, 4000);
+    final read = repo.log.where((l) => l.startsWith('patchLetter') && l.endsWith(' read')).length;
+    expect(read, lessThan(8));
   });
 }
 

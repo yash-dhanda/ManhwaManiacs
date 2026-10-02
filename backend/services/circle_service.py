@@ -147,6 +147,15 @@ def patch_sharing(
             profile.share_activity_since = utcnow() if value else None
         setattr(profile, col, value)
     if changes.get("excluded_series") is not None:
+        # The list is replaced whole: rows that stay keep their title and position.
+        kept = {
+            (h.source_id, h.series_key): (h.title, h.created_at)
+            for h in db.scalars(
+                select(CircleHiddenSeries).where(
+                    CircleHiddenSeries.profile_id == profile.id
+                )
+            )
+        }
         db.execute(
             delete(CircleHiddenSeries).where(CircleHiddenSeries.profile_id == profile.id)
         )
@@ -157,6 +166,7 @@ def patch_sharing(
             if (source_id, series_key) in seen:
                 continue
             seen.add((source_id, series_key))
+            old_title, old_at = kept.get((source_id, series_key), (None, None))
             db.add(
                 CircleHiddenSeries(
                     user_id=profile.user_id,
@@ -164,8 +174,9 @@ def patch_sharing(
                     source_id=source_id,
                     series_key=series_key,
                     title=entry.get("title")
+                    or old_title
                     or _title_for(db, profile, source_id, series_key),
-                    created_at=utcnow(),
+                    created_at=old_at or utcnow(),
                 )
             )
     db.commit()

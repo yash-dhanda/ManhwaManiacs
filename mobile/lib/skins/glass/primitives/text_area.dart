@@ -33,6 +33,7 @@ class GlassTextArea extends ConsumerStatefulWidget {
     this.forceStates = GlassWidgetStates.none,
     this.showCounter = true,
     this.imeAction,
+    this.inputFormatters,
   });
 
   final TextEditingController? controller;
@@ -55,6 +56,9 @@ class GlassTextArea extends ConsumerStatefulWidget {
 
   /// Overrides the software keyboard's action (For you keeps a newline key while Enter from a hardware keyboard asks).
   final TextInputAction? imeAction;
+
+  /// Extra formatters (a letter note's code-point limit).
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   ConsumerState<GlassTextArea> createState() => _GlassTextAreaState();
@@ -122,6 +126,7 @@ class _GlassTextAreaState extends ConsumerState<GlassTextArea> {
         decoration: InputDecoration.collapsed(hintText: widget.hint, hintStyle: base.copyWith(color: inHost ? gt.colorLabel2 : gt.colorLabel3)),
         onChanged: widget.onChanged,
         maxLength: max,
+        inputFormatters: widget.inputFormatters,
         buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
       ),),
     );

@@ -45,6 +45,14 @@ void main() {
     expect(note(s, a(ext: true), now: next).whereType<StreakFlare>(), hasLength(1));
   });
 
+  test("the new day's first answer flares when it is already true", () {
+    final s = Mem();
+    note(s, a(ext: true));
+    final next = DateTime(2026, 9, 30, 9);
+    expect(note(s, a(ext: true, days: 7), now: next).whereType<StreakFlare>().single.currentDays, 7);
+    expect(note(s, a(ext: true), now: next), isEmpty);
+  });
+
   test('the goal crossing fires once', () {
     final s = Mem();
     expect(note(s, a(secs: 500), goal: 10).whereType<GoalMet>(), isEmpty);

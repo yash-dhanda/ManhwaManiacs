@@ -10,6 +10,8 @@ import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
 import 'package:manhwamaniacs/features/circle/providers/circle_providers.dart';
 import 'package:manhwamaniacs/features/circle/store/reaction_outbox.dart';
 import 'package:manhwamaniacs/features/circle/utils/letters_deferred.dart' show pendingLettersProvider;
+import 'package:manhwamaniacs/features/collections/providers/collection_detail_provider.dart' show librarySeriesPickerProvider;
+import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recommend/letter_schedule.dart';
 import 'package:manhwamaniacs/skins/glass/parts/recommend/recommend_orbs.dart';
@@ -69,6 +71,24 @@ void main() {
     final orb = t.getSemantics(find.bySemanticsLabel('Aarav'));
     expect(orb.getSemanticsData().flagsCollection.isToggled, Tristate.isFalse);
     h.dispose();
+  });
+
+  testWidgets('the pick step searches the whole library, past its first page', (t) async {
+    await t.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => t.binding.setSurfaceSize(null));
+    FollowedSeries f(int i) => FollowedSeries(id: i, sourceId: 's', seriesKey: 'k$i', title: 'Series $i', coverUrl: '', isFavorite: false, readingStatus: 'unread', notify: false, sortOrder: 0, contentRating: 'safe', rating: 'safe', chapterCount: 1, createdAt: DateTime(2024), updatedAt: DateTime(2024));
+    await t.pumpWidget(primHost(
+      Navigator(onGenerateRoute: (_) => MaterialPageRoute<void>(builder: (_) => const RecommendSheetBody(to: 2))),
+      align: false,
+      overrides: [
+        circleRepositoryProvider.overrideWithValue(FakeCircleRepository(membersList: _members())),
+        librarySeriesPickerProvider.overrideWith((ref) async => [for (var i = 0; i < 30; i++) f(i)]),
+      ],
+    ),);
+    await pumpFor(t, 300);
+    await t.enterText(find.byType(EditableText), 'series 27');
+    await pumpFor(t, 300);
+    expect(find.text('Series 27'), findsWidgets);
   });
 
   testWidgets('to= preselects the friend (the pick step from the friend sheet)', (t) async {

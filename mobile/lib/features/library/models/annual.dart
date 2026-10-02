@@ -1,3 +1,4 @@
+import 'package:manhwamaniacs/core/time/server_instant.dart';
 import 'package:manhwamaniacs/features/library/models/shareable.dart';
 import 'package:manhwamaniacs/features/sources/models/source_genre.dart'
     show GenreWeight;
@@ -71,8 +72,9 @@ class Annual {
     return Annual(
       year: (json['year'] as num?)?.toInt() ?? DateTime.now().year,
       partial: json['partial'] == true,
-      since: DateTime.tryParse(json['since'] as String? ?? ''),
-      until: DateTime.tryParse(json['until'] as String? ?? ''),
+      // Naive UTC on the wire; read as an instant, shown in local time.
+      since: serverInstant(json['since'])?.toLocal(),
+      until: serverInstant(json['until'])?.toLocal(),
       recordedDays: (json['recorded_days'] as num?)?.toInt() ?? 0,
       secondsRead: (json['seconds_read'] as num?)?.toInt() ?? 0,
       chaptersRead: (json['chapters_read'] as num?)?.toInt() ?? 0,
@@ -96,9 +98,7 @@ class Annual {
       topSources: _maps(json['top_sources'])
           .map(AnnualSource.fromJson)
           .toList(growable: false),
-      circle: circleRaw is List
-          ? _maps(circleRaw).map(CircleMember.fromJson).toList(growable: false)
-          : null,
+      circle: _circle(circleRaw),
       topVoices: _maps(json['top_voices'])
           .map(AnnualVoice.fromJson)
           .where((v) => v.name.isNotEmpty)
@@ -189,6 +189,38 @@ class AnnualVoice {
         name: (json['name'] as String? ?? '').trim(),
         seconds: (json['seconds'] as num?)?.toInt() ?? 0,
       );
+}
+
+/// `circle` is the backend's `annual_block`: `{overlaps: [{member, series,
+/// both}], with: [...]}`. Folded into one [CircleMember] per profile whose
+/// [CircleMember.finishedTogether] holds the `both == finished` titles. A list
+/// (older snapshots) is still read as members.
+List<CircleMember>? _circle(Object? raw) {
+  if (raw is List) {
+    return _maps(raw).map(CircleMember.fromJson).toList(growable: false);
+  }
+  if (raw is! Map) return null;
+  final byId = <int, Map<String, dynamic>>{};
+  final finished = <int, List<String>>{};
+  for (final o in _maps(raw['overlaps'])) {
+    final m = o['member'];
+    if (m is! Map<String, dynamic>) continue;
+    final id = (m['profile_id'] as num?)?.toInt() ?? 0;
+    byId.putIfAbsent(id, () => m);
+    final list = finished.putIfAbsent(id, () => []);
+    final series = o['series'];
+    final title = series is Map ? (series['title'] as String? ?? '').trim() : '';
+    if (o['both'] == 'finished' && title.isNotEmpty) list.add(title);
+  }
+  return [
+    for (final e in byId.entries)
+      CircleMember(
+        profileId: e.key,
+        name: e.value['name'] as String? ?? '',
+        avatarKey: e.value['avatar_key'] as String?,
+        finishedTogether: finished[e.key] ?? const [],
+      ),
+  ];
 }
 
 Iterable<Map<String, dynamic>> _maps(Object? raw) =>

@@ -155,7 +155,8 @@ class AnnualCoverPage extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           CineRoleText(
-            issueLine(issue, a.until ?? env.now),
+            // until is exclusive: a finished year ends on 31 December.
+            issueLine(issue, a.until?.subtract(const Duration(milliseconds: 1)) ?? env.now),
             t.typeFolio,
             color: CineColors.ink60,
           ),

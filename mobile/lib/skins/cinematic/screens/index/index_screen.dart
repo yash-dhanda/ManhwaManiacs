@@ -15,6 +15,8 @@ import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/library/providers/bookmarks_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/device_online_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/intelligence_providers.dart';
+import 'package:manhwamaniacs/features/library/providers/numbers_providers.dart';
+import 'package:manhwamaniacs/features/library/utils/numbers_rules.dart';
 import 'package:manhwamaniacs/features/novels/providers/narration_jobs_provider.dart';
 import 'package:manhwamaniacs/features/ocr/providers/ocr_providers.dart';
 import 'package:manhwamaniacs/features/settings/models/app_version.dart';
@@ -108,7 +110,7 @@ class _IndexScreenState extends ConsumerState<IndexScreen> {
     final info = ref.watch(packageInfoProvider);
     final jobs = ref.watch(activeNarrationJobsProvider);
     final ocr = ref.watch(ocrFeatureVisibleProvider) && isOcrVisible(scope.mode, novelsEnabled: scope.novelsEnabled);
-    final year = DateTime.now().year;
+    final year = annualDefaultYear(DateTime.now(), ref.watch(annualIndexProvider).valueOrNull);
     var n = 0;
     Widget row(String label, {String? value, bool loading = false, VoidCallback? onTap, Widget? leading}) =>
         IndexRow(label: label, value: value, loading: loading, onTap: onTap, leading: leading, index: n++, playLeaders: _play);

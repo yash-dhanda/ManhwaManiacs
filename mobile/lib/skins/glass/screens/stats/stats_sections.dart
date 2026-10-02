@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
+import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
 import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/utils/reading_stats.dart';
@@ -338,6 +340,11 @@ class MostRead extends ConsumerWidget {
       );
 }
 
+/// A novel chapter opens in the novel reader, everything else in the manga reader.
+String sessionRoute(ContentModeScope scope, RecentSession s) => scope.novelsEnabled && scope.modeOf(s.sourceId) == ContentMode.novel
+    ? Routes.novel(s.sourceId, s.seriesKey, s.chapterKey)
+    : Routes.reader(s.sourceId, s.seriesKey, s.chapterKey);
+
 class RecentSessions extends ConsumerWidget {
   const RecentSessions({super.key, required this.sessions});
   final List<RecentSession> sessions;
@@ -351,7 +358,7 @@ class RecentSessions extends ConsumerWidget {
                 for (final s in sessions.take(6))
                   _Row(
                     label: '${s.title ?? s.seriesKey}, chapter ${_ch(s)}, ${plural(s.pagesRead, 'page')}, ${fmtDuration(s.secondsRead)}',
-                    onTap: () => unawaited(ref.read(skinRouterProvider).push<void>(Routes.reader(s.sourceId, s.seriesKey, s.chapterKey))),
+                    onTap: () => unawaited(ref.read(skinRouterProvider).push<void>(sessionRoute(ref.read(contentModeScopeProvider), s))),
                     leading: SizedBox(width: 48, child: GlassLabel(_time(s.startedAt), role: gt.typeMono, color: gt.colorLabel2)),
                     title: s.title ?? s.seriesKey,
                     subtitle: 'Ch ${_ch(s)} · ${plural(s.pagesRead, 'page')} · ${fmtDuration(s.secondsRead)}',
@@ -452,7 +459,9 @@ class WrappedEntryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final title = wrappedTitle(annual) == WrappedTitle.soFar ? 'Your $year so far' : 'Your $year in chapters';
+    // [annual] is the current year's payload; a picked past year is a finished one.
+    final current = annual.year == year ? annual : null;
+    final title = current != null && wrappedTitle(current) == WrappedTitle.soFar ? 'Your $year so far' : 'Your $year in chapters';
     final years = annual.availableYears;
     return Builder(
       builder: (context) => GlassSlab(
@@ -475,7 +484,7 @@ class WrappedEntryCard extends ConsumerWidget {
                 children: [
                   GlassLabel('$year', role: gt.typeDisplay, color: gt.colorLabel1),
                   GlassLabel(title, role: gt.typeTitle3, color: gt.colorLabel1, maxLines: 2),
-                  if (annual.recordedDays < 30) GlassLabel('${plural(annual.recordedDays, 'day')} recorded so far', role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 2),
+                  if (current != null && current.recordedDays < 30) GlassLabel('${plural(annual.recordedDays, 'day')} recorded so far', role: gt.typeFootnote, color: gt.colorLabel2, maxLines: 2),
                 ],
               ),
             ),

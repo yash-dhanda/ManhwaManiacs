@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/circle/models/circle_models.dart';
@@ -170,13 +169,13 @@ class _PassItOnBodyState extends ConsumerState<PassItOnBody> {
           minLines: 2,
           keyboardType: TextInputType.multiline,
           textCapitalization: TextCapitalization.sentences,
-          inputFormatters: [LengthLimitingTextInputFormatter(140)],
+          inputFormatters: [noteLimit],
           style: CineText.literal(context, CineFace.newsreader, 17, 28, italic: true).copyWith(color: c.colorInk100),
           cursorColor: c.colorSpot,
           decoration: InputDecoration.collapsed(hintText: 'Add a line…', hintStyle: CineText.literal(context, CineFace.newsreader, 17, 28, italic: true).copyWith(color: c.colorInk45)),
           buildCounter: (context, {required currentLength, required isFocused, maxLength}) => Padding(
             padding: EdgeInsets.only(top: c.space1),
-            child: Align(alignment: Alignment.centerRight, child: CineRoleText('$currentLength / 140', c.typeFolio, color: currentLength >= 130 ? c.colorInk100 : c.colorInk45)),
+            child: Align(alignment: Alignment.centerRight, child: CineRoleText('${noteLength(_note.text)} / $kLetterNoteMax', c.typeFolio, color: noteLength(_note.text) >= 130 ? c.colorInk100 : c.colorInk45)),
           ),
           onChanged: (_) => setState(() {}),
         ),

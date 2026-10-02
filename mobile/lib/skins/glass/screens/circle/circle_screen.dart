@@ -182,7 +182,8 @@ class _CircleScreenState extends ConsumerState<CircleScreen> {
       slivers.add(box(const GlassSkeletonGroup(label: 'Loading your Circle', child: PresenceArcSkeleton())));
     }
 
-    final membersEmpty = members.hasValue && members.value!.isEmpty;
+    // Letters arrive from senders who don't share activity: with any, the tabs stay so they can be read.
+    final membersEmpty = members.hasValue && members.value!.isEmpty && (ref.watch(lettersProvider).valueOrNull ?? const <Letter>[]).isEmpty;
     if (offline && !members.hasValue) {
       slivers.add(box(CircleOffline(onRetry: () async {
         ref.invalidate(circleMembersProvider);
@@ -305,7 +306,7 @@ class _CircleScreenState extends ConsumerState<CircleScreen> {
       ..addAll([for (final d in days) for (final e in d.entries) e.item.id]);
     return activitySlivers(
       days: days,
-      hasMore: s.hasMore,
+      feed: s,
       onLoadMore: () => unawaited(ref.read(circleFeedProvider(null).notifier).loadMore()),
       focusOf: _rows.focusOf,
       reactOf: _rows.reactOf,

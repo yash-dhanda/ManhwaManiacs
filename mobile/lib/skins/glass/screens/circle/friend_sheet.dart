@@ -20,7 +20,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/poster.dart' show GlassCove
 import 'package:manhwamaniacs/skins/glass/primitives/press.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/profile_orb.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/skeleton.dart';
-import 'package:manhwamaniacs/skins/glass/screens/circle/activity_list.dart' show ActivitySkeletonRow;
+import 'package:manhwamaniacs/skins/glass/screens/circle/activity_list.dart' show ActivitySkeletonRow, loadMoreSliver;
 import 'package:manhwamaniacs/skins/glass/screens/circle/activity_row.dart';
 import 'package:manhwamaniacs/skins/glass/screens/circle/circle_actions.dart';
 import 'package:manhwamaniacs/skins/glass/screens/circle/circle_orb.dart';
@@ -107,7 +107,7 @@ List<Widget> friendSlivers(BuildContext context, WidgetRef ref, int profileId) {
               style: roleStyle(context, gt.typeFootnote).copyWith(color: gt.colorBloom), textScaler: TextScaler.noScaling,),
           ),
         const SizedBox(height: 16),
-        GlassButton(label: 'Recommend something to $name', onPressed: () => openRecommendSheet(ref, toProfileId: profileId)),
+        if (p.shares.recommendations) GlassButton(label: 'Recommend something to $name', onPressed: () => openRecommendSheet(ref, toProfileId: profileId)),
       ],),
     ),),
   ];
@@ -138,7 +138,7 @@ List<Widget> friendSlivers(BuildContext context, WidgetRef ref, int profileId) {
     out.add(box(const CircleEmpty(CircleEmpty.activity)));
   } else {
     out.add(SliverList.list(children: [for (final e in collapseReads(f.items, utcOffset: DateTime.now().timeZoneOffset)) ActivityRow(key: ValueKey('m${e.item.id}'), entry: e)]));
-    if (f.hasMore) out.add(box(_MoreOnBuild(onBuild: () => unawaited(ref.read(memberFeedProvider(profileId).notifier).loadMore()))));
+    if (f.hasMore) out.add(loadMoreSliver(f, () => unawaited(ref.read(memberFeedProvider(profileId).notifier).loadMore())));
   }
   if (p.reactions.isNotEmpty) {
     out
@@ -226,24 +226,6 @@ class _TheirReaction extends ConsumerWidget {
       ),
     );
   }
-}
-
-class _MoreOnBuild extends StatefulWidget {
-  const _MoreOnBuild({required this.onBuild});
-  final VoidCallback onBuild;
-  @override
-  State<_MoreOnBuild> createState() => _MoreOnBuildState();
-}
-
-class _MoreOnBuildState extends State<_MoreOnBuild> {
-  @override
-  void initState() {
-    super.initState();
-    scheduleMicrotask(widget.onBuild);
-  }
-
-  @override
-  Widget build(BuildContext context) => const ActivitySkeletonRow(index: 1);
 }
 
 /// A friend (`/circle/:profileId`, ScreenId `circleMember`) inside its sheet or 560 px window: one scroll view of

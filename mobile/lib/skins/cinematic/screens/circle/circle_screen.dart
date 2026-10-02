@@ -143,7 +143,8 @@ class _CircleScreenState extends ConsumerState<CircleScreen> with SingleTickerPr
     final offline = !online || (membersAsync.hasError && membersAsync.error is NetworkError);
     final wide = MediaQuery.sizeOf(context).width >= 900;
     final dup = duplicateMemberNames(members ?? const []);
-    final quiet = members != null && members.isEmpty;
+    // Letters arrive from senders who don't share activity: with any, the tabs stay so they can be read.
+    final quiet = members != null && members.isEmpty && (ref.watch(lettersProvider).valueOrNull ?? const <Letter>[]).isEmpty;
     final viewerShares = sharing?.activity ?? false;
 
     // [rule] off when a notice follows: it brings its own heavy rule, and two made an empty band.
