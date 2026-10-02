@@ -56,6 +56,7 @@ class ChapterManifest {
       sourceId: sourceId,
       previousChapterId: prev,
       nextChapterId: next,
+      chapterNumber: chapterNumber,
       pages: pages
           .map(
             (page) => ReaderPage(

@@ -13,7 +13,8 @@ import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 /// data the user didn't ask to spend — via the same on-device queue a manual
 /// "Download" tap uses (spec §3).
 ///
-/// One instance per reader screen; fires at most once per route chapter.
+/// One instance per reader screen; fires at most once per next chapter, so a continuous feed that
+/// reads on through several seams keeps saving one chapter ahead of what it has loaded.
 class NextChapterAutoQueue {
   /// [saveNextEnabled] is the per-profile "Save the next chapter while I read" switch (default
   /// on); null reads `saveNextProvider`, which is what `mobile/17` wired.
@@ -29,15 +30,14 @@ class NextChapterAutoQueue {
     WidgetRef ref, {
     required String sourceId,
     required String seriesKey,
-    required String routeChapterId,
     required String? nextChapterId,
   }) {
     // Guarded on the id being *known*, not merely on the chapter having
     // been shown: a downloaded chapter paints from disk before anything
     // knows what comes next, and the eager queue must still fire once the
     // neighbours land rather than being marked done against a null.
-    if (nextChapterId != null && _prefetchedFor != routeChapterId) {
-      _prefetchedFor = routeChapterId;
+    if (nextChapterId != null && _prefetchedFor != nextChapterId) {
+      _prefetchedFor = nextChapterId;
       // Deferred past this build, like every other one-shot side effect
       // triggered from a build method in this codebase (see
       // OpenChapterScope._claim) — reading providers is safe mid-build,

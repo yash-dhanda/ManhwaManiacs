@@ -17,6 +17,29 @@ void main() {
       );
     });
 
+    test('resolveInitialScrollTop drops a saved scroll that is off the requested page', () {
+      expect(
+        resolveInitialScrollTop(
+          savedScroll: 120,
+          initialPage: 20,
+          pageCount: 30,
+          estimatedOffsetToPage: 4000,
+          savedScrollWindow: (start: 3200, end: 4200),
+        ),
+        4000,
+      );
+      expect(
+        resolveInitialScrollTop(
+          savedScroll: 4100,
+          initialPage: 20,
+          pageCount: 30,
+          estimatedOffsetToPage: 4000,
+          savedScrollWindow: (start: 3200, end: 4200),
+        ),
+        4100,
+      );
+    });
+
     test('readerFitModeToBoxFit maps persisted fit modes', () {
       expect(readerFitModeToBoxFit(ReaderFitMode.width), BoxFit.fitWidth);
       expect(readerFitModeToBoxFit(ReaderFitMode.height), BoxFit.fitHeight);

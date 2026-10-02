@@ -308,7 +308,7 @@ class _CineNovelReaderState extends ConsumerState<CineNovelReader> with TickerPr
     final far = next.furtherElsewhere;
     if (far != null && far != prev?.furtherElsewhere) {
       final n = far.chapterNumber;
-      final label = n == null ? 'a later chapter' : 'CH ${chapterNumberText(n)}, ${chapterPercent(far.bucket, 100)}%';
+      final label = n == null ? 'a later chapter' : 'CH ${chapterNumberText(n)}, ${far.percent}%';
       toasts.action(
         "You're further ahead on another device ($label). Jump there?",
         label: 'Jump',

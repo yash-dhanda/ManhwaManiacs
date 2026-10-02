@@ -21,6 +21,7 @@ import 'package:manhwamaniacs/features/novels/utils/novel_snippet.dart';
 import 'package:manhwamaniacs/features/novels/utils/speaker_slots.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
+import 'package:manhwamaniacs/features/reader/utils/further_elsewhere.dart';
 import 'package:manhwamaniacs/features/reader/utils/reading_clock.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_progress_provider.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
@@ -88,10 +89,16 @@ enum NovelNextState { none, loading, ready, failed }
 
 /// The reader is behind another device: the chapter and bucket the server holds.
 class NovelFurtherAhead {
-  const NovelFurtherAhead({required this.chapterKey, required this.chapterNumber, required this.bucket});
+  const NovelFurtherAhead({required this.chapterKey, required this.chapterNumber, required this.bucket, this.buckets = 100});
   final String chapterKey;
   final double? chapterNumber;
   final int bucket;
+
+  /// The row's bucket count (`page_count`): fewer than 100 for a chapter under 100 paragraphs.
+  final int buckets;
+
+  /// How far through the chapter the other device is, for the toast.
+  int get percent => chapterPercent(bucket, buckets);
 
   @override
   bool operator ==(Object other) => other is NovelFurtherAhead && other.chapterKey == chapterKey && other.bucket == bucket;
@@ -233,6 +240,11 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
   final List<ProviderSubscription<Object?>> _subs = [];
   ProviderSubscription<Object?>? _prefetchSub;
   int _furthestSent = 0;
+  bool _completedSent = false;
+
+  /// Reading time on the open chapter so far: the clock hands out deltas since the last save, and
+  /// a pace sample needs the chapter's whole time.
+  int _chapterSeconds = 0;
   bool _scrolledToEnd = false;
   bool _autoNextTriggered = false;
   bool _disposed = false;
@@ -515,9 +527,10 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
   }
 
   void _push(NovelProgressPosition position) {
-    final push = nextProgressPush(position, _furthestSent);
+    final push = nextProgressPush(position, _furthestSent, completedSent: _completedSent);
     if (push == null) return;
     _furthestSent = push.bucket;
+    _completedSent |= push.completed;
     unawaited(_saveProgress(push));
   }
 
@@ -529,9 +542,10 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
     if (chapter == null) return;
     final store = _downloadsStore;
     final spent = _clock.elapsed(DateTime.now());
+    _chapterSeconds += spent;
     // A finished chapter feeds the profile's reading pace (auto-scroll's measured wpm).
     if (position.completed) {
-      unawaited(_pace.recordCompletion(chapterKey: chapter.chapterKey, wordCount: chapter.wordCount, timeSpentSeconds: spent));
+      unawaited(_pace.recordCompletion(chapterKey: chapter.chapterKey, wordCount: chapter.wordCount, timeSpentSeconds: _chapterSeconds));
     }
     await _progressOutbox.save(
       ProgressPush(
@@ -637,6 +651,8 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
     _progressTimer = null;
     _autoNextTriggered = false;
     _furthestSent = 0;
+    _completedSent = false;
+    _chapterSeconds = 0;
     _scrolledToEnd = false;
     _pendingRestoreParagraph = null;
     _pagedAnchorSet = false;
@@ -726,13 +742,10 @@ class NovelReaderController extends AutoDisposeFamilyNotifier<NovelReaderState, 
     if (chapter == null || k.sourceId != chapter.sourceId || k.seriesKey != chapter.seriesKey) return;
     final rows = await ref.read(readerRepositoryProvider).seriesProgress(sourceId: k.sourceId, seriesKey: k.seriesKey);
     if (_disposed || rows.isErr) return;
-    ReadingProgress? far;
-    for (final r in rows.value) {
-      if ((r.chapterNumber ?? -1) > (far?.chapterNumber ?? -1)) far = r;
-    }
-    final here = state.chapter?.chapterNumber ?? -1;
-    if (far == null || far.chapterKey == chapter.chapterKey || (far.chapterNumber ?? -1) <= here) return;
-    state = state.copyWith(furtherElsewhere: NovelFurtherAhead(chapterKey: far.chapterKey, chapterNumber: far.chapterNumber, bucket: far.lastPage));
+    final far = furtherElsewhere(rows.value,
+        hereKey: chapter.chapterKey, here: chapter.chapterNumber, own: ref.read(progressOutboxControllerProvider).ownFurthest(k.sourceId, k.seriesKey),);
+    if (far == null) return;
+    state = state.copyWith(furtherElsewhere: NovelFurtherAhead(chapterKey: far.chapterKey, chapterNumber: far.chapterNumber, bucket: far.lastPage, buckets: far.pageCount > 0 ? far.pageCount : 100));
   }
 
   /// The reader dismissed or took the jump offer.

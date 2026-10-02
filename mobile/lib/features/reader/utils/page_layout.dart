@@ -84,8 +84,17 @@ double resolveInitialScrollTop({
   required int initialPage,
   required int pageCount,
   required double estimatedOffsetToPage,
+  ({double start, double end})? savedScrollWindow,
 }) {
-  if (savedScroll != null) return savedScroll;
+  // The saved offset keeps sub-page precision, but only while it is still on
+  // the page the route asked for. It is written only while the route's chapter
+  // is the anchor, so a read across a seam or on another device leaves it
+  // stale while `?page=` moves on.
+  final onRequestedPage = savedScroll != null &&
+      (initialPage <= 1 ||
+          savedScrollWindow == null ||
+          (savedScroll >= savedScrollWindow.start && savedScroll < savedScrollWindow.end));
+  if (onRequestedPage) return savedScroll;
   if (initialPage > 1 && pageCount > 0) return estimatedOffsetToPage;
   return 0;
 }

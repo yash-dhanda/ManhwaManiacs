@@ -46,6 +46,7 @@ Future<_RecordingQueue> _run(
   required bool wifiOnly,
   required bool onWifi,
   int calls = 1,
+  List<String> nexts = const ['c2'],
 }) async {
   SharedPreferences.setMockInitialValues({
     'settings_wifi_only_downloads': wifiOnly,
@@ -64,14 +65,15 @@ Future<_RecordingQueue> _run(
       ],
       child: Consumer(
         builder: (context, ref, _) {
-          for (var i = 0; i < calls; i++) {
-            autoQueue.maybeQueue(
-              ref,
-              sourceId: 'src',
-              seriesKey: 'series',
-              routeChapterId: 'c1',
-              nextChapterId: 'c2',
-            );
+          for (final next in nexts) {
+            for (var i = 0; i < calls; i++) {
+              autoQueue.maybeQueue(
+                ref,
+                sourceId: 'src',
+                seriesKey: 'series',
+                nextChapterId: next,
+              );
+            }
           }
           return const SizedBox();
         },
@@ -115,5 +117,10 @@ void main() {
       calls: 2,
     );
     expect(queue.enqueued, hasLength(1));
+  });
+
+  testWidgets('reading on across seams queues each new next chapter', (tester) async {
+    final queue = await _run(tester, scope: 'u1p1', wifiOnly: false, onWifi: false, nexts: ['c2', 'c3']);
+    expect(queue.enqueued.map((c) => c.chapterKey), ['c2', 'c3']);
   });
 }

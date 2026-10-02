@@ -75,6 +75,8 @@ class FakeNarrationPlayer implements NarrationPlayer {
     seeks.add(position);
     _pos = position;
     _position.add(position);
+    // Like just_audio: a seek takes a finished player out of `completed`.
+    if (_processing == NarrationProcessing.completed) setProcessing(NarrationProcessing.ready);
   }
 
   @override

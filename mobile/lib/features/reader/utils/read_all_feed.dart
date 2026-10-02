@@ -46,6 +46,11 @@ ReaderChapter failedChapterPlaceholder(String key, {required String seriesKey, S
 /// Whether [chapter] is a failed chapter's placeholder.
 bool isFailedChapter(ReaderChapter chapter) => chapter.pages.length == 1 && chapter.pages.first.id.startsWith(kFailedPagePrefix);
 
+/// [save] with failed-chapter placeholders dropped: scrolling past a `couldn't load` notice is not
+/// reading it, and its one placeholder page would otherwise file the chapter as completed.
+Future<void> Function(ReaderChapter, int) skipFailedChapters(Future<void> Function(ReaderChapter, int) save) =>
+    (chapter, page) => isFailedChapter(chapter) ? Future<void>.value() : save(chapter, page);
+
 /// The read-all feed (cinematic 8.14.4-8.14.6, mobile/13 A6): the first chapter is on screen at
 /// once from its own manifest, and windows of up to [window] chapter keys in series order fill in
 /// behind it, each window one batch call through the [limiter] (6 starts per 60 s; a 429 pauses

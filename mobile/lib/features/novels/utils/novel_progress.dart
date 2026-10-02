@@ -132,10 +132,17 @@ NovelProgressPosition completedProgress(int paragraphCount) {
 /// refuse it anyway (furthest-wins), but sending it is a pointless write and
 /// would rewind the OPTIMISTIC local state the series screen reads back.
 /// `null` means "nothing new to say".
+///
+/// Completion is news of its own: the last bucket is often sent unfinished
+/// first (its first paragraph crosses the reading line before the end), and
+/// the completed push that follows carries the same bucket. [completedSent]
+/// says whether this chapter's completion has already gone out.
 NovelProgressPosition? nextProgressPush(
   NovelProgressPosition position,
-  int furthestSent,
-) {
+  int furthestSent, {
+  bool completedSent = false,
+}) {
+  if (position.completed && !completedSent) return position;
   if (position.bucket <= furthestSent) return null;
   return position;
 }

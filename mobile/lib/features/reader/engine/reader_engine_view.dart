@@ -942,6 +942,13 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
             initialPage: widget.initialPage.clamp(1, feed.length),
             pageCount: feed.length,
             estimatedOffsetToPage: _metrics.offsetToPage(targetFlat + 1),
+            // Where a saved offset can sit and still be reading the requested
+            // page: its top up to a screen above (the reading line sits below
+            // the viewport top), down to the next page's start.
+            savedScrollWindow: (
+              start: _metrics.offsetToPage(targetFlat + 1) - _scrollController.position.viewportDimension,
+              end: targetFlat + 1 >= feed.length ? double.infinity : _metrics.offsetToPage(targetFlat + 2),
+            ),
           );
     _maybeReportStaleAnchor();
 

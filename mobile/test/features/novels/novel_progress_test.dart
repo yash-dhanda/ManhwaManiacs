@@ -143,7 +143,9 @@ void main() {
       expect(done.completed, isTrue);
       // Sent once: a second Next, or the close after it, has nothing to add.
       expect(nextProgressPush(done, 12), isNotNull);
-      expect(nextProgressPush(done, 45), isNull);
+      expect(nextProgressPush(done, 45, completedSent: true), isNull);
+      // The last bucket already went out unfinished: completion still has to.
+      expect(nextProgressPush(done, 45), isNotNull);
     });
 
     test('a chapter of one screen can still be finished', () {

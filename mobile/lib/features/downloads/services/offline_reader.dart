@@ -79,6 +79,7 @@ Future<ReaderChapter?> buildOfflineReaderChapter(
       pages: pages,
       sourceId: id.sourceId,
       seriesTitle: chapter.seriesTitle,
+      chapterNumber: chapter.chapterNumber,
     );
   } on ApiError {
     rethrow;
@@ -118,6 +119,7 @@ Future<ReaderChapter> overlayLocalPages(
       seriesTitle: chapter.seriesTitle,
       previousChapterId: chapter.previousChapterId,
       nextChapterId: chapter.nextChapterId,
+      chapterNumber: chapter.chapterNumber,
       pages: [
         for (final page in chapter.pages)
           paths.containsKey(page.number) ? page.withLocalFile(paths[page.number]!) : page,

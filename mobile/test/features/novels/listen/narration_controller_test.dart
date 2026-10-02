@@ -141,6 +141,20 @@ void main() {
     await sub.cancel();
   });
 
+  test('seeking back after the end and finishing again announces the end again', () async {
+    await h.startAndSettle(listenTarget());
+    final events = <NarrationEnded>[];
+    final sub = h.controller.ended.listen(events.add);
+    h.player.finish();
+    await h.settle();
+    await h.controller.seekToSegment(0);
+    await h.controller.play();
+    h.player.finish();
+    await h.settle();
+    expect(events, hasLength(2));
+    await sub.cancel();
+  });
+
   test('play from the end restarts; stop releases the player and clears the lock screen', () async {
     await h.startAndSettle(listenTarget());
     h.player.finish();

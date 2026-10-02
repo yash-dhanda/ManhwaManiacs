@@ -15,6 +15,7 @@ import 'package:manhwamaniacs/core/platform/mm_platform.dart';
 import 'package:manhwamaniacs/features/circle/utils/spoiler_guard.dart' show completedThisSessionProvider;
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
+import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/series_download_status_provider.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/store/bookmarks_dao.dart';
@@ -44,12 +45,15 @@ import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_prefs_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_ui_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
+import 'package:manhwamaniacs/features/reader/utils/further_elsewhere.dart';
 import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_wakelock.dart';
 import 'package:manhwamaniacs/features/sources/providers/source_reader_provider.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
+import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/cruise_controller.dart';
 import 'package:manhwamaniacs/skins/glass/ambient/glass_ambient_bridge.dart';
@@ -221,12 +225,16 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
       ..add(engine.seamEvents.listen(_onSeam))
       ..add(engine.neighbourEvents.listen(_onNeighbour))
       // The spoiler guard unseals a chapter's reactions as soon as it is finished here (glass 9.3, mobile/43).
-      ..add(engine.chapterCompleted.listen((c) => ref.read(completedThisSessionProvider.notifier).markCompleted(c.sourceId, c.seriesKey, c.chapterKey)));
+      ..add(engine.chapterCompleted.listen((c) => ref.read(completedThisSessionProvider.notifier).markCompleted(c.sourceId, c.seriesKey, c.chapterKey)))
+      // A save the server did not advance: another device may be further on (the toast in _onEngine).
+      ..add(ref.read(progressOutboxControllerProvider).notAdvanced.listen((k) => unawaited(_checkFurther(k))));
     engine.addListener(_onEngine);
     _attachCruise();
     if (widget.q != null) unawaited(_prepareHitLens(widget.q!));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // The strip's zoom lives in an app-wide provider: a reader opens unzoomed, never at the last one's pinch.
+      ref.read(readerUiProvider.notifier).setZoom(1.0);
       glassFire(ref, HapticEvent.readerEnter);
       _syncWake();
       final sheet = _sheetParam();
@@ -408,8 +416,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     return 'Ch ${n == n.roundToDouble() ? n.round() : n}';
   }
 
-  String? get _nextId => _body.feed.chapters.lastOrNull?.nextChapterId ?? _neighbourInList(_body.feed.chapters.lastOrNull?.id, 1);
-  String? get _previousId => _body.feed.chapters.firstOrNull?.previousChapterId ?? _neighbourInList(_body.feed.chapters.firstOrNull?.id, -1);
+  String? get _currentId => engine.value.chapterId.isEmpty ? _id.chapterKey : engine.value.chapterId;
+  String? get _nextId => feedNeighbour(_body.feed.chapters, _currentId, 1) ?? _neighbourInList(_currentId, 1);
+  String? get _previousId => feedNeighbour(_body.feed.chapters, _currentId, -1) ?? _neighbourInList(_currentId, -1);
 
   /// The series list's neighbour of [id] (oldest first) when the manifest did not name one.
   String? _neighbourInList(String? id, int by) {
@@ -533,6 +542,20 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   }
 
   FurtherElsewhere? _furtherShown;
+  String? _lastLayoutKey;
+  int? _carryPage;
+
+  Future<void> _checkFurther(({String sourceId, String seriesKey}) k) async {
+    if (k.sourceId != sourceId || k.seriesKey != seriesKey) return;
+    final outbox = ref.read(progressOutboxControllerProvider);
+    final rows = await ref.read(readerRepositoryProvider).seriesProgress(sourceId: k.sourceId, seriesKey: k.seriesKey);
+    if (!mounted || rows.isErr) return;
+    final here = _currentId;
+    if (here == null) return;
+    final far = furtherElsewhere(rows.value, hereKey: here, here: _chapter(here)?.chapterNumber ?? _numberOf(here), own: outbox.ownFurthest(k.sourceId, k.seriesKey));
+    if (far == null) return;
+    engine.reportServerProgress(chapterKey: far.chapterKey, chapterNumber: far.chapterNumber, lastPage: far.lastPage, advanced: false);
+  }
 
   /// The chapter last announced. A chapter change says "Chapter 144" once, politely; a page change says nothing (glass 14.5).
   String? _announcedChapter;
@@ -847,12 +870,15 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
   /// page key so the `State` and the engine survive (the pages cross-fade, no route animation).
   void _switchTo(String? chapterKey) {
     if (chapterKey == null) return;
+    final i = _body.feed.chapters.indexWhere((c) => c.id == chapterKey);
+    if (i >= 0) {
+      engine.seekToChapter(i);
+      return;
+    }
     if (widget.readAll) {
-      final i = _body.feed.chapters.indexWhere((c) => c.id == chapterKey);
-      if (i >= 0) {
-        engine.seekToChapter(i);
-        return;
-      }
+      // Outside the loaded window: restart Read-all there rather than dropping into the plain reader.
+      _router?.replace<void>(Routes.readAll(sourceId, seriesKey, {'from': chapterKey}));
+      return;
     }
     _keepResolved(chapterKey);
     _replace(chapterKey);
@@ -1562,6 +1588,13 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
     final portraitPhone = size.shortestSide < 600 && size.height >= size.width;
     final layout = widget.readAll ? 'strip' : v.prefs.layout;
     final isPaged = layout == 'single' || layout == 'double';
+    // A layout switch mounts a fresh view: it opens where the reader is, not where the route opened.
+    final layoutKey = isPaged ? 'paged' : 'strip';
+    if (_lastLayoutKey != null && layoutKey != _lastLayoutKey) {
+      _carryPage = engine.value.page;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _carryPage = null);
+    }
+    _lastLayoutKey = layoutKey;
     if (_lastLayout != null && _lastLayout != layout) _showTapsOverlay();
     _lastLayout = layout;
     final column = desktop ? stripWithPanels(size.width, left: _leftPanel, right: _rightPanel) : null;
@@ -1597,7 +1630,7 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         slideCurve: const Cubic(0.2, 0.9, 0.3, 1),
         reducedMotion: reducedMotion,
         reducedDuration: const Duration(milliseconds: 160),
-        initialPage: _body.initialPage,
+        initialPage: _carryPage ?? _body.initialPage,
         onEvent: _onEvent,
         bookmarkAnchors: _body.bookmarkAnchors,
         onSaveProgress: _body.onSaveProgress,
@@ -1623,8 +1656,8 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         scrollStorageKey: _body.scrollStorageKey,
         onBack: _leave,
         onOpenSeries: openSeries,
-        initialPage: _body.initialPage,
-        initialAnchor: _body.initialAnchor,
+        initialPage: _carryPage ?? _body.initialPage,
+        initialAnchor: _carryPage != null ? (page: _carryPage!, fraction: 0.0) : _body.initialAnchor,
         showBookmark: _body.showBookmark,
         onSaveProgress: _body.onSaveProgress,
         onAddBookmark: _body.onAddBookmark,
@@ -2051,4 +2084,16 @@ Future<void> _sharePage(String path, Rect anchor, {required void Function(bool s
     if (r.status != ShareResultStatus.success) return;
     onResult(r.raw == 'com.apple.UIKit.activity.SaveToCameraRoll');
   } catch (_) {}
+}
+
+/// The chapter [by] steps from [currentId] in the feed, or the manifest's neighbour of [currentId]
+/// when the feed has not loaded it. Measured from the chapter being read, never from the feed's
+/// edges: a continuous feed prepends and appends neighbours as soon as you near a seam.
+@visibleForTesting
+String? feedNeighbour(List<ReaderChapter> chapters, String? currentId, int by) {
+  final i = chapters.indexWhere((c) => c.id == currentId);
+  if (i < 0) return null;
+  final j = i + by;
+  if (j >= 0 && j < chapters.length) return chapters[j].id;
+  return by > 0 ? chapters[i].nextChapterId : chapters[i].previousChapterId;
 }

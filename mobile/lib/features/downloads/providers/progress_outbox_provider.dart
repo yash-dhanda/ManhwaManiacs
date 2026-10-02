@@ -9,7 +9,10 @@ import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/downloads/utils/progress_outbox_batch.dart';
 import 'package:manhwamaniacs/features/downloads/utils/progress_outbox_priority.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
+import 'package:manhwamaniacs/features/reader/utils/further_elsewhere.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Saves reading progress the offline-safe way: write locally first, flush
 /// to the server later. Every call resolves immediately regardless of
@@ -76,12 +79,40 @@ class ProgressOutboxController {
     final store = ref.read(downloadsStoreProvider);
     if (store == null) return;
     await store.enqueueProgress(push.stampedAt(DateTime.now().toUtc()));
+    _recordOwn(push);
     _queuedSinceRead++;
     final hold = _holdFlushUntil;
     if (hold == null || DateTime.now().isAfter(hold)) return flush();
     // Still offline as far as this controller knows, so the row simply waits.
     // Folding what has piled up meanwhile is what keeps the next read cheap.
     if (_queuedSinceRead >= kProgressOutboxCompactRows) await _compact(store);
+  }
+
+  /// This device's own furthest push in a series (kept on the device, per scope), so the reader never
+  /// offers the reader's own earlier progress back as `further ahead on another device`.
+  OwnFurthest? ownFurthest(String sourceId, String seriesKey) {
+    final v = _prefs()?.getString(_ownKey(sourceId, seriesKey))?.split('|');
+    if (v == null || v.length != 2) return null;
+    final n = double.tryParse(v[0]), p = int.tryParse(v[1]);
+    return n == null || p == null ? null : (number: n, page: p);
+  }
+
+  void _recordOwn(ProgressPush push) {
+    final n = push.chapterNumber;
+    if (n == null) return;
+    final cur = ownFurthest(push.sourceId, push.seriesKey);
+    if (cur != null && (cur.number > n || (cur.number == n && cur.page >= push.lastPage))) return;
+    unawaited(_prefs()?.setString(_ownKey(push.sourceId, push.seriesKey), '$n|${push.lastPage}'));
+  }
+
+  String _ownKey(String sourceId, String seriesKey) => 'progress.ownFurthest.${_activeScopeId()}.$sourceId.$seriesKey';
+
+  SharedPreferences? _prefs() {
+    try {
+      return ref.read(sharedPrefsProvider);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Drains every pending push for the active scope. Failures leave the

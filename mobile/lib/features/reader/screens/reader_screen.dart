@@ -20,6 +20,7 @@ import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_chapter_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/reader/providers/series_reading_order_provider.dart';
+import 'package:manhwamaniacs/features/reader/utils/read_all_feed.dart' show skipFailedChapters;
 import 'package:manhwamaniacs/features/reader/utils/reader_anchor.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_controller.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_factory.dart';
@@ -28,6 +29,7 @@ import 'package:manhwamaniacs/features/reader/utils/reading_clock.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_content.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_error_state.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_skeleton.dart';
+import 'package:manhwamaniacs/skins/contract.g.dart' as contract show Routes;
 
 /// The manifest-driven reader for a followed series' chapter — the one
 /// reader every non-source-browsing entry point (series detail, continue
@@ -299,7 +301,7 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
   Future<void> Function(ReaderChapter, int) _trackSaves(
     Future<void> Function(ReaderChapter chapter, int page) save,
   ) =>
-      (chapter, page) => _lastSave = save(chapter, page);
+      skipFailedChapters((chapter, page) => _lastSave = save(chapter, page));
 
   ReaderFeedController _buildController() {
     final factory = ref.read(readerFeedFactoryProvider);
@@ -327,6 +329,11 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
     if (mounted) setState(() {});
   }
 
+  /// An edge prompt stays in Read-all when the reader is in Read-all.
+  String _edgeLocation(String chapterKey) => widget.readAllOrder != null
+      ? contract.Routes.readAll(widget.sourceId, widget.seriesKey, {'from': chapterKey})
+      : RoutePaths.reader(widget.sourceId, widget.seriesKey, chapterKey);
+
   String? get _prev => widget.resolved.prev ?? widget.neighbours?.prev;
   String? get _next => widget.resolved.next ?? widget.neighbours?.next;
 
@@ -335,9 +342,11 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
   /// store had none to stamp.
   double? _chapterNumberOf(ReaderChapter chapter) {
     if (chapter.id == widget.chapterKey) {
-      return widget.resolved.chapterNumber ?? widget.neighbours?.chapterNumber;
+      return widget.resolved.chapterNumber ?? widget.neighbours?.chapterNumber ?? chapter.chapterNumber;
     }
-    return _numbers[chapter.id];
+    // Read-all windows build chapters from batch manifests that never pass
+    // through _loadChapter, so the chapter's own number is the fallback.
+    return _numbers[chapter.id] ?? chapter.chapterNumber;
   }
 
   /// Chapter numbers learned while extending the feed. Progress needs the
@@ -457,10 +466,10 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
         // ends of the series, or a chapter that would not load. Crossing a
         // loaded boundary is scrolling, and never navigation.
         onPreviousChapter: beforeFeed != null
-            ? () => context.go(RoutePaths.reader(sourceId, seriesKey, beforeFeed))
+            ? () => context.go(_edgeLocation(beforeFeed))
             : null,
         onNextChapter: beyondFeed != null
-            ? () => context.go(RoutePaths.reader(sourceId, seriesKey, beyondFeed))
+            ? () => context.go(_edgeLocation(beyondFeed))
             : null,
         onReachedFeedEnd: _controller.extendForward,
         onReachedFeedStart: _controller.extendBackward,
