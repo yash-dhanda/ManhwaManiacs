@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/list_row.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/switch.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/toast.dart';
+import 'package:manhwamaniacs/skins/glass/shell/purge.dart' show glassPurgeProbeProvider;
 
 /// Where the gate writes: `settings` binds to the active profile's value through the shared setter (`PUT /settings` with the
 /// profile header, then the gate invalidation list), `form` writes a form value only.
@@ -76,6 +77,9 @@ class _GlassMatureGateState extends ConsumerState<GlassMatureGate> {
     });
     if (err != null) {
       showGlassToast(ref, const GlassToastSpec("Couldn't change this setting", kind: GlassToastKind.error));
+    } else if (!v) {
+      // Closing the active profile's gate runs the Glass 18+ purge, as the profile form and a profile switch do (glass 8.0.8).
+      ref.read(glassPurgeProbeProvider)();
     }
   }
 
@@ -101,8 +105,18 @@ class _GlassMatureGateState extends ConsumerState<GlassMatureGate> {
       );
     }
     final async = _settings ? ref.watch(matureContentProvider) : null;
-    final value = _settings ? (async!.valueOrNull ?? false) : widget.value;
-    final loading = _pending || (_settings && async!.isLoading && async.valueOrNull == null);
+    if (async != null && async.hasError && !async.isLoading && !_pending) {
+      return GlassListRow(
+        title: title,
+        subtitle: "Couldn't read this setting",
+        enabled: false,
+        trailing: GlassButton(label: 'Retry', size: GlassButtonSize.small, variant: GlassButtonVariant.plain, onPressed: () => ref.invalidate(matureContentProvider)),
+      );
+    }
+    // Only a settled value is shown as the profile's: a refresh after a profile switch still carries the previous profile's.
+    final fresh = async is AsyncData<bool>;
+    final value = _settings ? (fresh && (async.valueOrNull ?? false)) : widget.value;
+    final loading = _pending || (_settings && !fresh);
     return GlassListRow(
       title: title,
       subtitle: subtitle,

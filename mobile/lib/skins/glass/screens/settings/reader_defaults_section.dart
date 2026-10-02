@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/novels/providers/novel_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/engine/menu_open.dart';
+import 'package:manhwamaniacs/features/reader/models/reader_prefs.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_profile_settings.dart';
 import 'package:manhwamaniacs/features/reader/utils/glass_reader_values.dart';
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
@@ -15,9 +16,9 @@ import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/hold_to_confirm.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/stepper.dart';
+import 'package:manhwamaniacs/skins/glass/screens/reader/reader_settings_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_common.dart';
 import 'package:manhwamaniacs/skins/glass/screens/settings/settings_row.dart';
-import 'package:manhwamaniacs/skins/glass/type.dart';
 
 /// Direction control of the manga group: Vertical is the strip layout, the other two open Single paged in that direction (glass 8.14.1).
 enum MangaDirection { ltr, rtl, vertical }
@@ -100,6 +101,9 @@ class _MangaGroup extends ConsumerWidget {
     final apps = platform == TargetPlatform.android || platform == TargetPlatform.iOS;
     final android = platform == TargetPlatform.android;
     final sd = r.seriesDefaults;
+    final zones = ReaderPrefs.resolve(r, null).tapZones;
+    // The reader resolves the profile key first and falls back to the device K07 (GlassReaderValueSet).
+    final lock = r.glass.data.containsKey(GlassReaderKeys.lockControls) ? r.glass.boolOf(GlassReaderKeys.lockControls, false) : dev.lockControls;
     String pct(double v) => '${(v * 100).round()}%';
     Future<void> glass(Map<String, dynamic> f) => n.put(glassPatch(r, f));
     return SettingsGroup(id: 'reading-manga', header: 'Manga', footer: _scope, children: [
@@ -136,7 +140,14 @@ class _MangaGroup extends ConsumerWidget {
         id: 'reader-tap-zones',
         title: 'Tap zones',
         caption: 'Tap a band to cycle Previous, Menu, Next. ${MenuOpen.of(r).help}',
-        child: _TapZones(config: dev.tapZones ?? TapZoneConfig.defaultFor(dev.direction), custom: dev.tapZones != null, onChanged: (c) => unawaited(devN.setTapZones(c))),
+        // The profile tapZone.* keys the Glass reader resolves (ReaderPrefs), shown with the reader sheet's own diagram.
+        child: TapZonesDiagram(
+          zones: zones ?? (sd.direction == 'rtl' ? const ['next', 'menu', 'previous'] : const ['previous', 'menu', 'next']),
+          custom: zones != null,
+          onChanged: (z) => unawaited(n.put(z == null
+              ? {'tapZone.left': null, 'tapZone.center': null, 'tapZone.right': null}
+              : {'tapZone.left': z[0], 'tapZone.center': z[1], 'tapZone.right': z[2]},),),
+        ),
       ),
       SettingsSegmentedBlock<String>(
         id: 'reader-chapters',
@@ -149,7 +160,7 @@ class _MangaGroup extends ConsumerWidget {
       SettingsSwitchRow(id: 'reader-cinema', title: 'Cinema mode by default', value: r.cinema, onChanged: (v) => unawaited(n.put({'cinema': v}))),
       if (apps) SettingsSwitchRow(id: 'reader-keep-awake', title: 'Keep screen awake', value: r.glassKeepAwake, onChanged: (v) => unawaited(glass({GlassReaderKeys.keepAwake: v}))),
       SettingsSwitchRow(id: 'reader-auto-next', title: 'Auto next chapter', value: r.autoNextChapter, onChanged: (v) => unawaited(n.put({'autoNextChapter': v}))),
-      SettingsSwitchRow(id: 'reader-lock', title: 'Lock reader controls', caption: 'Tap the centre 5 times to unlock', value: dev.lockControls, onChanged: (v) => unawaited(devN.setLockControls(v))),
+      SettingsSwitchRow(id: 'reader-lock', title: 'Lock reader controls', caption: 'Tap the centre 5 times to unlock', value: lock, onChanged: (v) => unawaited(glass({GlassReaderKeys.lockControls: v}))),
       if (android) SettingsSwitchRow(id: 'reader-volume-keys', title: 'Volume keys turn pages', value: dev.volumeKeyNavigation, onChanged: (v) => unawaited(devN.setVolumeKeyNavigation(v))),
       if (android)
         SettingsBlock(
@@ -165,59 +176,6 @@ class _MangaGroup extends ConsumerWidget {
         id: 'reader-reset',
         child: Padding(padding: const EdgeInsets.all(16), child: HoldToConfirm(label: 'Reset reader settings', fallbackLabel: 'Reset', onConfirm: () => unawaited(_reset(ref)))),
       ),
-    ],);
-  }
-}
-
-class _TapZones extends StatelessWidget {
-  const _TapZones({required this.config, required this.custom, required this.onChanged});
-  final TapZoneConfig config;
-  final bool custom;
-  final ValueChanged<TapZoneConfig?> onChanged;
-
-  static String label(TapZoneAction a) => switch (a) {
-        TapZoneAction.advance => 'Next',
-        TapZoneAction.retreat => 'Previous',
-        TapZoneAction.toggle => 'Menu',
-      };
-
-  static TapZoneAction next(TapZoneAction a) => switch (a) {
-        TapZoneAction.retreat => TapZoneAction.toggle,
-        TapZoneAction.toggle => TapZoneAction.advance,
-        TapZoneAction.advance => TapZoneAction.retreat,
-      };
-
-  @override
-  Widget build(BuildContext context) {
-    Widget band(String name, TapZoneAction a, TapZoneConfig Function(TapZoneAction) apply) => Expanded(
-          child: Semantics(
-            button: true,
-            label: '$name band: ${label(a)}',
-            excludeSemantics: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onChanged(apply(next(a))),
-              child: Container(
-                height: 72,
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: gt.colorFill2, borderRadius: BorderRadius.circular(10)),
-                child: GlassText(label(a), role: gt.typeFootnote),
-              ),
-            ),
-          ),
-        );
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        band('Left', config.left, (a) => config.copyWith(left: a)),
-        band('Centre', config.center, (a) => config.copyWith(center: a)),
-        band('Right', config.right, (a) => config.copyWith(right: a)),
-      ],),
-      if (custom)
-        GestureDetector(
-          onTap: () => onChanged(null),
-          child: Padding(padding: const EdgeInsets.only(top: 8), child: GlassText('Reset to automatic', role: gt.typeFootnote, color: gt.colorIris400)),
-        ),
     ],);
   }
 }

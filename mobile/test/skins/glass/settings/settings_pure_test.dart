@@ -64,7 +64,9 @@ void main() {
     final all = visibleSettingsSections(platform: TargetPlatform.android, admin: true, keyboardSeen: true, wide: true);
     expect([for (final s in all) s.section.slug], ['appearance', 'reading-manga', 'content', 'circle', 'ai', 'feedback', 'notifications', 'security', 'storage', 'backup', 'server', 'diagnostics', 'keyboard']);
     final phone = visibleSettingsSections(platform: TargetPlatform.iOS, admin: false, keyboardSeen: true, wide: false);
-    expect([for (final s in phone) s.section.slug], isNot(contains('notifications')));
+    // Notifications holds each profile's own switch, so everyone sees it; backup stays admin-only.
+    expect([for (final s in phone) s.section.slug], contains('notifications'));
+    expect([for (final s in phone) s.section.slug], isNot(contains('backup')));
     expect([for (final s in phone) s.section.slug], isNot(contains('keyboard')));
     // mobile/40 built the last sections.
     expect(sectionsBuiltLater, isEmpty);

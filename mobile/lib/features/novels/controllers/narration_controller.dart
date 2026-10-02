@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
+import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
+import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio.dart';
 import 'package:manhwamaniacs/features/novels/models/novel_audio_format.dart';
 import 'package:manhwamaniacs/features/novels/providers/listen_session_outbox_provider.dart';
@@ -234,6 +236,14 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
           )
         : ShakeDetector(onShake: _onShake, source: ref.read(accelerometerSourceProvider));
     ref.listen(listenSettingsValueProvider, (_, __) => _syncShake());
+    try {
+      // Signing out (a server switch signs out too) ends the previous account's narration and its media session.
+      ref.listen<bool>(authControllerProvider.select((a) => a is AuthUnauthenticated), (was, out) {
+        if (out && !(was ?? false)) unawaited(stop());
+      });
+    } catch (_) {
+      // No auth in this tree (a test).
+    }
     _sleep.state.addListener(_onSleepState);
     try {
       WidgetsBinding.instance.addObserver(this);

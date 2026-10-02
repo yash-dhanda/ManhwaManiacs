@@ -22,7 +22,9 @@ final matureGateOpenProvider = Provider<bool>(
   (ref) {
     final scope = _soft(() => ref.watch(activeDownloadsScopeIdProvider));
     final prefs = _soft<SharedPreferences>(() => ref.read(sharedPrefsProvider));
-    final live = _soft(() => ref.watch(matureContentProvider).valueOrNull);
+    // Only a settled value: while it reloads (a profile switch) or after it fails, Riverpod keeps the
+    // previous profile's value, which must not open this scope's gate or be saved under its key.
+    final live = _soft(() => switch (ref.watch(matureContentProvider)) { AsyncData(:final value) => value, _ => null });
     if (scope == null || prefs == null) return live ?? false;
     final key = matureGatePrefsKey(scope);
     if (live != null) {

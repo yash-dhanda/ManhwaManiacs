@@ -11,7 +11,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # backend/core/config.py -> parents[2] == repo root
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -25,7 +25,26 @@ SETTINGS_PATH = (
     else REPO_ROOT / "config" / "settings.json"
 )
 
+# Fallback only: the reported version is the release name from the Flutter pubspec.
 APP_VERSION = "0.1.0"
+
+
+def _release_version() -> str:
+    """``x.y.z`` of ``version: x.y.z+b`` in the Flutter pubspec.
+
+    Web, Android, iOS and this backend ship as one release, so the backend reports
+    the same name ``/app/version`` does, from the same file (``MM_PUBSPEC_PATH``,
+    mounted read-only by the deploy).
+    """
+    path = Path(os.environ.get("MM_PUBSPEC_PATH", str(REPO_ROOT / "mobile" / "pubspec.yaml")))
+    try:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip().startswith("version:"):
+                name = line.split(":", 1)[1].strip().strip("'\"").partition("+")[0].strip()
+                return name or APP_VERSION
+    except OSError:
+        pass
+    return APP_VERSION
 
 
 class Settings(BaseModel):
@@ -44,7 +63,7 @@ class Settings(BaseModel):
     mature_content_enabled: bool = False
 
     # Runtime-only (not persisted in settings.json).
-    version: str = APP_VERSION
+    version: str = Field(default_factory=_release_version)
     db_path: str = str(REPO_ROOT / "backend" / "manhwamaniacs.db")
     cors_origins: list[str] = [
         "http://localhost:3000",
@@ -430,6 +449,7 @@ def get_settings() -> Settings:
         # presence rather than truthiness.
         data["trusted_client_ip_header"] = client_ip_header_override.strip()
 
+    data.pop("version", None)  # runtime-only: always the release's own
     return Settings(**data)
 
 

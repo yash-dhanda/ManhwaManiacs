@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/platform/mm_platform.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
+import 'package:manhwamaniacs/features/settings/providers/a11y_prefs_provider.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -93,16 +94,27 @@ class GlassInAppPrefsController extends Notifier<GlassInAppPrefs> {
 
   String _key(String k) => 'mm.a11y.p${ref.read(activeProfileProvider)?.id ?? 0}.$k';
 
+  A11yPrefs? _shared({required bool watch}) {
+    try {
+      return watch ? ref.watch(a11yPrefsProvider) : ref.read(a11yPrefsProvider);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// The four switches live in the shared `mm.boot.a11y` record (Settings in both skins, the palette and this renderer read
+  /// and write the same one); the old Glass-only `mm.a11y.p*` keys are read only when that record cannot be built.
   @override
   GlassInAppPrefs build() {
     ref.watch(activeProfileProvider.select((p) => p?.id));
+    final a = _shared(watch: true);
     final p = _prefs;
     if (p == null) return const GlassInAppPrefs();
     return GlassInAppPrefs(
-      reduceMotion: p.getBool(_key(kGlassKeyReduceMotion)) ?? false,
-      hyperlegible: p.getBool(_key(kGlassKeyHyperlegible)) ?? false,
-      solidGlass: p.getBool(_key(kGlassKeySolidGlass)) ?? false,
-      increaseContrast: p.getBool(_key(kGlassKeyIncreaseContrast)) ?? false,
+      reduceMotion: a != null ? a.motion == 'reduced' : (p.getBool(_key(kGlassKeyReduceMotion)) ?? false),
+      hyperlegible: a != null ? a.legible : (p.getBool(_key(kGlassKeyHyperlegible)) ?? false),
+      solidGlass: a != null ? a.solid : (p.getBool(_key(kGlassKeySolidGlass)) ?? false),
+      increaseContrast: a != null ? a.contrast : (p.getBool(_key(kGlassKeyIncreaseContrast)) ?? false),
       lightFollowsDevice: p.getBool(kGlassKeyLightFollowsDevice) ?? true,
     );
   }
@@ -112,10 +124,16 @@ class GlassInAppPrefsController extends Notifier<GlassInAppPrefs> {
     unawaited(_prefs?.setBool(perDevice ? key : _key(key), v));
   }
 
-  void setReduceMotion(bool v) => _set(kGlassKeyReduceMotion, v, state.copyWith(reduceMotion: v));
-  void setHyperlegible(bool v) => _set(kGlassKeyHyperlegible, v, state.copyWith(hyperlegible: v));
-  void setSolidGlass(bool v) => _set(kGlassKeySolidGlass, v, state.copyWith(solidGlass: v));
-  void setIncreaseContrast(bool v) => _set(kGlassKeyIncreaseContrast, v, state.copyWith(increaseContrast: v));
+  void _setShared(GlassInAppPrefs next, Future<void> Function(A11yPrefsNotifier n) write) {
+    state = next;
+    if (_shared(watch: false) == null) return;
+    unawaited(write(ref.read(a11yPrefsProvider.notifier)));
+  }
+
+  void setReduceMotion(bool v) => _setShared(state.copyWith(reduceMotion: v), (n) => n.setMotion(v ? 'reduced' : 'system'));
+  void setHyperlegible(bool v) => _setShared(state.copyWith(hyperlegible: v), (n) => n.setLegible(v));
+  void setSolidGlass(bool v) => _setShared(state.copyWith(solidGlass: v), (n) => n.setSolid(v));
+  void setIncreaseContrast(bool v) => _setShared(state.copyWith(increaseContrast: v), (n) => n.setContrast(v));
   void setLightFollowsDevice(bool v) =>
       _set(kGlassKeyLightFollowsDevice, v, state.copyWith(lightFollowsDevice: v), perDevice: true);
 }

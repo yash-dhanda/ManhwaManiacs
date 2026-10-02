@@ -8,6 +8,7 @@ import 'package:manhwamaniacs/core/platform/app_icon_switcher.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_lifecycle_gate.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/cinematic_skin.dart';
+import 'package:manhwamaniacs/skins/skin_audio.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
 
 /// The app root for every skin: the skin owns theme, router, overlay style and wrapper.
@@ -33,6 +34,9 @@ class _SkinAppState extends ConsumerState<SkinApp> {
     final router = ref.watch(skinRouterProvider);
     // Keeps the window's display-mode preference in step with the user's setting.
     ref.watch(highRefreshRateSyncProvider);
+    // Binds SkinAudio to the running skin and the active (user, profile) from the first frame, and rebinds on a
+    // switch: every cue site plays through SkinAudio.instance, which stays silent until bound.
+    ref.watch(skinAudioProvider);
     final themed = skin.theme(ref);
 
     return MaterialApp.router(

@@ -84,7 +84,7 @@ class _Switch implements ServerSwitch {
   @override
   Future<AppError?> confirm(String u) async => null;
   @override
-  Future<void> reset() async {}
+  Future<AppError?> reset() async => null;
 }
 
 Future<void> _reveal(WidgetTester t, Finder f) async {

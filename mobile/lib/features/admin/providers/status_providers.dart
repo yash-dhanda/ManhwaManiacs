@@ -51,6 +51,13 @@ final backendHealthProvider = StreamProvider.autoDispose<BackendPoll>((ref) asyn
   }
 });
 
+/// One `GET /health` (public) for the backend's own version, as About shows it.
+final serverVersionProvider = FutureProvider.autoDispose<String?>((ref) async {
+  final r = await ref.watch(dioProvider).get<Map<String, dynamic>>('/health');
+  final v = r.data?['version'];
+  return v is String && v.isNotEmpty ? v : null;
+});
+
 /// `GET /updates/settings`.
 final updateSettingsProvider = FutureProvider.autoDispose<UpdateSettings>((ref) async {
   final r = await ref.read(updatesRepositoryProvider).getSettings();

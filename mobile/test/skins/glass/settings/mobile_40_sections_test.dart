@@ -63,17 +63,21 @@ class _Switch extends ServerSwitch {
   }
 
   @override
-  Future<void> reset() async => didReset = true;
+  Future<AppError?> reset() async {
+    didReset = true;
+    return null;
+  }
 }
 
 void main() {
   setUpAll(loadAppFonts);
 
   group('Notifications', () {
-    m40Test('a non-admin sees the Administrators only lens', (t) async {
+    m40Test('a non-admin sees only their own profile switch', (t) async {
       await pumpSection(t, '/settings/notifications', admin: false);
-      expect(find.text('Administrators only'), findsOneWidget);
-      expect(find.text('Back'), findsOneWidget);
+      expect(find.text('Notify me about new chapters'), findsOneWidget);
+      expect(find.text('Send new-chapter notifications'), findsNothing);
+      expect(find.text('Administrators only'), findsNothing);
     });
 
     m40Test('the schedule strip, the switches, the stepper and the overdue form', (t) async {
@@ -84,6 +88,7 @@ void main() {
       expect(find.text('Check for new chapters automatically'), findsOneWidget);
       expect(find.text('Check when the server starts'), findsOneWidget);
       expect(find.text('Notify me about new chapters'), findsOneWidget);
+      expect(find.text('Send new-chapter notifications'), findsOneWidget);
       expect(find.text('Source catalogue cache', skipOffstage: false), findsOneWidget);
 
       await pumpSection(t, '/settings/notifications', extra: [updateSettingsProvider.overrideWith((ref) async => m40UpdateSettings(lastRun: DateTime.now().subtract(const Duration(minutes: 37))))]);

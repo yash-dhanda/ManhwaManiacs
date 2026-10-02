@@ -1,5 +1,6 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/config/env.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/features/auth/providers/auth_controller.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profile_scope.dart';
@@ -35,8 +36,17 @@ class ServerSwitch {
     return _ref.read(settingsActionsProvider).saveApiUrl(normalisedUrl);
   }
 
-  /// Back to the built-in default address.
-  Future<void> reset() => _ref.read(settingsActionsProvider).resetApiUrl();
+  /// Back to the built-in default address. When that changes the server it signs out and drops
+  /// the profile caches first, exactly like [confirm]; then the saved override is cleared so the
+  /// next cold start boots against the same default. Null on success.
+  Future<AppError?> reset() async {
+    if (!isSame(Env.defaultApiUrl)) {
+      final err = await confirm(Env.defaultApiUrl);
+      if (err != null) return err;
+    }
+    await _ref.read(settingsActionsProvider).resetApiUrl();
+    return null;
+  }
 }
 
 String normaliseAddress(String url) => url.trim().toLowerCase().replaceFirst(RegExp(r'/+$'), '');

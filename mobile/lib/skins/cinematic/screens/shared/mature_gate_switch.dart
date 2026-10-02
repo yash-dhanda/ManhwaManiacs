@@ -86,7 +86,15 @@ class MatureGateSwitch extends ConsumerWidget {
       ],);
     }
     final state = ref.watch(matureContentProvider);
-    final on = state.valueOrNull ?? false;
+    if (state.hasError && !state.isLoading) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const CineSettingsRow(label: label, description: "Couldn't read this setting.", control: CineSwitch(value: false, onChanged: null), disabled: true),
+        CineButton(label: 'Retry', variant: CineButtonVariant.link, onPressed: () => ref.invalidate(matureContentProvider)),
+      ],);
+    }
+    // Only a settled value is the profile's: a refresh after a profile switch still carries the previous profile's.
+    final fresh = state is AsyncData<bool>;
+    final on = fresh && (state.valueOrNull ?? false);
     return CineSettingsRow(
       label: label,
       description: description,
@@ -96,7 +104,7 @@ class MatureGateSwitch extends ConsumerWidget {
         label: label,
         value: on,
         errorLine: "Couldn't change this setting.",
-        onChanged: state.isLoading && !state.hasValue
+        onChanged: !fresh
             ? null
             : (v) async {
                 final notifier = ref.read(matureContentProvider.notifier);

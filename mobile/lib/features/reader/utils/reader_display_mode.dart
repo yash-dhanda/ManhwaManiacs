@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/platform/native_bridge.dart';
 import 'package:manhwamaniacs/features/settings/models/reader_defaults.dart';
+import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 
 /// A read-only view of the device's current and available display modes, used
 /// by the diagnostics screen to verify the refresh-rate selector actually took
@@ -57,7 +59,11 @@ abstract class ReaderDisplayMode {
 }
 
 class PlatformReaderDisplayMode implements ReaderDisplayMode {
-  const PlatformReaderDisplayMode();
+  const PlatformReaderDisplayMode({this.restoreAppMode});
+
+  /// Re-asserts the app-wide display-mode preference after [reset]: the window has one preferred-mode attribute, and the
+  /// reader's auto reset would otherwise leave the whole app at the panel default (60 Hz) until the next resume.
+  final Future<void> Function()? restoreAppMode;
 
   bool get _supported => !kIsWeb && Platform.isAndroid;
 
@@ -91,6 +97,7 @@ class PlatformReaderDisplayMode implements ReaderDisplayMode {
     } catch (_) {
       // ignore — nothing to restore if the platform refused the request.
     }
+    await restoreAppMode?.call();
   }
 
   @override
@@ -145,6 +152,8 @@ DisplayMode? pickMode(
 }
 
 final readerDisplayModeProvider = Provider<ReaderDisplayMode>(
-  (_) => const PlatformReaderDisplayMode(),
+  (ref) => PlatformReaderDisplayMode(
+    restoreAppMode: () => ref.read(nativeBridgeProvider).setHighRefreshRateEnabled(ref.read(preferencesProvider).highRefreshRate),
+  ),
   name: 'readerDisplayMode',
 );
