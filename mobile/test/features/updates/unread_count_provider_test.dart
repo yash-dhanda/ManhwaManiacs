@@ -59,7 +59,7 @@ class _Switchable extends ActiveProfileNotifier {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets("a profile switch re-reads the count at once, not on the next poll", (t) async {
+  testWidgets('a profile switch re-reads the count at once, not on the next poll', (t) async {
     SharedPreferences.setMockInitialValues({});
     final repo = _Repo();
     final c = ProviderContainer(overrides: [

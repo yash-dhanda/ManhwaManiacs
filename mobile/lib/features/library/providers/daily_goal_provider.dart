@@ -77,7 +77,7 @@ class DailyGoalNotifier extends Notifier<DailyGoalState> {
     // Keep-alive: past local midnight yesterday's minutes must not count for today.
     final life = AppLifecycleListener(onResume: () {
       if (_day != _today()) ref.invalidateSelf();
-    });
+    },);
     ref.onDispose(() {
       _sub?.cancel();
       life.dispose();

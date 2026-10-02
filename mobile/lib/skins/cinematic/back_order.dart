@@ -93,7 +93,7 @@ class _CineModalBackState extends ConsumerState<CineModalBack> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _shown = TickerMode.of(context);
+    _shown = TickerMode.valuesOf(context).enabled;
     _sync();
   }
 

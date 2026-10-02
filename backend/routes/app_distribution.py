@@ -139,6 +139,25 @@ class Changelog(BaseModel):
 # consume the exact same source of truth.
 _RELEASE_NOTES: list[ChangelogEntry] = [
     ChangelogEntry(
+        version="4.1.0",
+        build=57,
+        date="October 2026",
+        highlights=[
+            "Search in Glass works end to end: Recent and Trending show up, Library searches your shelf, and Describe goes to Picks. Opening search has a new animation: the search button grows into the search bar over a softly blurred background",
+            "The You tab in Glass is now a real screen; the old developer page is gone",
+            "The Cinematic and Glass previews when picking a look are now smooth live previews instead of a choppy slideshow",
+            "Glass layout and text fixes: large text no longer cuts off or overflows, the bars at the top and bottom edges are thinner so more of the page shows, and buttons are never cut off",
+            "Glass runs smoother: less blur work while scrolling, freezes fixed, and with Reduce Motion or Low Power on it uses a solid look instead of glass effects",
+            "Glass features that were missing: the rewritten recap, Continue opens at the page you stopped on, character colours in novels, and the next chapter loads ahead",
+            "Back works everywhere: on a page opened from a link or after switching looks, Back goes to the page above instead of closing the app",
+            "Reader menu: choose how it opens (Tap, Double tap or Edge) in Settings, it hides on its own after 5 seconds, and it shows itself at the end of a chapter",
+            "Continue and chapter lists now open half-read chapters (manga and novels) at the saved page, and move on to the next chapter once one is finished",
+            "Mark read and Mark unread tell you when the server did not save them instead of pretending they worked, and Undo works reliably",
+            "Downloads: automatic new-chapter downloads run in Glass, wait for Wi-Fi in the queue, and pick up again when you come back online",
+            "Many other fixes: Home stays fresh after reading and never mixes up profiles, covers load in the app again, browse and genre pages page correctly, Circle letters and notes are more reliable, and each profile keeps its own settings",
+        ],
+    ),
+    ChangelogEntry(
         version="4.0.1",
         build=57,
         date="October 2026",

@@ -250,7 +250,10 @@ void main() {
       _expectLanded(rig, SkinId.glass, '/library');
       expect(find.text(_glassToast), findsNothing);
 
-      await rig.container.read(activeProfileProvider.notifier).select(rig.api.items[1]);
+      // A later profile switch restarts through the picker's own flow (the boot check judges only the boot profile).
+      rig.router.go(Routes.profiles());
+      await settle(t, ms: 1500);
+      await t.tap(find.text('Aarav').first);
       await pumpUntil(t, () => rig.boots == 3);
       await settle(t, ms: 3000);
       expect(rig.skins.last, SkinId.cinematic, reason: "Aarav's profile says Cinematic");

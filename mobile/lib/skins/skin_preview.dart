@@ -99,7 +99,7 @@ class _SkinPreviewState extends State<SkinPreview> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     final bg = _glass ? GlassColors.g50 : CineColors.paper0;
     final mq = MediaQuery.maybeOf(context);
-    final body = RepaintBoundary(child: _glass ? const _GlassBody() : const _CineBody());
+    final body = RepaintBoundary(child: _glass ? const _PvGlassBody() : const _CineBody());
     // The page scrolls between its fixed bars; the content is one cached layer that only moves.
     final page = ClipRect(
       child: AnimatedBuilder(
@@ -136,9 +136,9 @@ class _SkinPreviewState extends State<SkinPreview> with SingleTickerProviderStat
                       child: ColoredBox(
                         color: bg,
                         child: Column(children: [
-                          if (_glass) const _GlassTop() else const _CineTop(),
+                          if (_glass) const _PvGlassTop() else const _CineTop(),
                           Expanded(child: page),
-                          if (_glass) const _GlassDock() else const _CineTabs(),
+                          if (_glass) const _PvGlassDock() else const _CineTabs(),
                         ],),
                       ),
                     ),
@@ -276,7 +276,7 @@ class _CineBody extends StatelessWidget {
                       child: Text('Continue', style: _t(_archivo, 15, 600, CineColors.paper0)),
                     ),
                     const SizedBox(width: 14),
-                    Text('CH 143 · 9 MIN', style: _t(_mono, 12, 500, CineColors.ink80)),
+                    Flexible(child: Text('CH 143 · 9 MIN', maxLines: 1, softWrap: false, overflow: TextOverflow.clip, style: _t(_mono, 12, 500, CineColors.ink80))),
                   ],),
                 ],),
               ),
@@ -326,8 +326,8 @@ class _CineBody extends StatelessWidget {
 
 const _flex = 'GoogleSansFlexMM';
 
-class _GlassTop extends StatelessWidget {
-  const _GlassTop();
+class _PvGlassTop extends StatelessWidget {
+  const _PvGlassTop();
 
   @override
   Widget build(BuildContext context) => Container(
@@ -349,8 +349,8 @@ class _GlassTop extends StatelessWidget {
       );
 }
 
-class _GlassDock extends StatelessWidget {
-  const _GlassDock();
+class _PvGlassDock extends StatelessWidget {
+  const _PvGlassDock();
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -373,8 +373,8 @@ class _GlassDock extends StatelessWidget {
       );
 }
 
-class _GlassTitle extends StatelessWidget {
-  const _GlassTitle(this.label);
+class _PvGlassTitle extends StatelessWidget {
+  const _PvGlassTitle(this.label);
   final String label;
 
   @override
@@ -384,8 +384,8 @@ class _GlassTitle extends StatelessWidget {
       );
 }
 
-class _GlassBody extends StatelessWidget {
-  const _GlassBody();
+class _PvGlassBody extends StatelessWidget {
+  const _PvGlassBody();
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -430,7 +430,7 @@ class _GlassBody extends StatelessWidget {
                 decoration: BoxDecoration(color: i == 0 ? GlassColors.label1 : GlassColors.label4, borderRadius: BorderRadius.circular(3)),
               ),
           ],),
-          const _GlassTitle('Continue reading'),
+          const _PvGlassTitle('Continue reading'),
           Row(children: [
             for (final (i, (title, p)) in const [('Paper Tiger', 0.7), ('Saltglass', 0.35), ('Iron Orchard', 0.9)].indexed) ...[
               if (i > 0) const SizedBox(width: 12),
@@ -454,7 +454,7 @@ class _GlassBody extends StatelessWidget {
               ),
             ],
           ],),
-          const _GlassTitle('New chapters'),
+          const _PvGlassTitle('New chapters'),
           Container(
             decoration: BoxDecoration(color: GlassColors.surface1, borderRadius: BorderRadius.circular(22)),
             padding: const EdgeInsets.symmetric(horizontal: 14),

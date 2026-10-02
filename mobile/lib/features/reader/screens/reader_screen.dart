@@ -424,12 +424,12 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
     // at chapter 30 sends the reader thirty minutes backwards.
     final beforeFeed = _controller.previousBeforeFeed;
     final beyondFeed = _controller.nextBeyondFeed;
+    // One chapter past what the feed holds, so reading on across seams keeps saving ahead.
     _autoQueue.maybeQueue(
       ref,
       sourceId: sourceId,
       seriesKey: seriesKey,
-      routeChapterId: widget.chapterKey,
-      nextChapterId: widget.resolved.chapter.nextChapterId ?? widget.neighbours?.next,
+      nextChapterId: beyondFeed ?? widget.resolved.chapter.nextChapterId ?? widget.neighbours?.next,
     );
 
     return OpenChapterScope(
