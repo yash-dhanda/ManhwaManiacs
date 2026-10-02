@@ -136,6 +136,7 @@ class GlassPrefsBridge extends ConsumerStatefulWidget {
 
 class _GlassPrefsBridgeState extends ConsumerState<GlassPrefsBridge> {
   bool _osReduceTransparency = false;
+  bool _lowPower = false;
   double _contrastLevel = 0;
   final _subs = <StreamSubscription<Object?>>[];
 
@@ -145,6 +146,10 @@ class _GlassPrefsBridgeState extends ConsumerState<GlassPrefsBridge> {
     final mm = ref.read(mmPlatformProvider);
     _subs.add(mm.reduceTransparencyChanges.listen((v) => setState(() => _osReduceTransparency = v)));
     _subs.add(mm.contrastLevelChanges.listen((v) => setState(() => _contrastLevel = v)));
+    _subs.add(mm.lowPowerChanges.listen((v) => setState(() => _lowPower = v)));
+    unawaited(mm.lowPower().then((v) {
+      if (mounted && v != _lowPower) setState(() => _lowPower = v);
+    }),);
     unawaited(mm.reduceTransparency().then((v) {
       if (mounted && v != _osReduceTransparency) setState(() => _osReduceTransparency = v);
     }),);
@@ -167,7 +172,8 @@ class _GlassPrefsBridgeState extends ConsumerState<GlassPrefsBridge> {
     final motion = GlassMotionPrefs(reduced: MediaQuery.disableAnimationsOf(context) || inApp.reduceMotion);
     final assistive = MediaQuery.accessibleNavigationOf(context);
     final a11y = GlassA11y(
-      solid: _osReduceTransparency || inApp.solidGlass,
+      // Reduce Motion and Low Power also drop refraction and blur to the tinted solid path: no backdrop reads, no light sensor.
+      solid: _osReduceTransparency || inApp.solidGlass || motion.reduced || _lowPower,
       increaseContrast: MediaQuery.highContrastOf(context) || _contrastLevel >= 0.5 || inApp.increaseContrast,
       boldText: MediaQuery.boldTextOf(context),
       legible: inApp.hyperlegible,

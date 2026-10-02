@@ -112,7 +112,16 @@ class _GlassLoginScreenState extends ConsumerState<GlassLoginScreen> with Ticker
     final err = await ref.read(authControllerProvider.notifier).login(username: username, password: _pass.text, remember: _remember);
     if (!mounted) return;
     if (err == null) {
-      await _success(username);
+      try {
+        await _success(username);
+      } catch (_) {
+        // Signed in but the hand-off threw: release the redirect hold so the guard takes the user home, never a dead form.
+        if (mounted) {
+          _hold.state = false;
+          setState(() => _pending = false);
+        }
+        rethrow;
+      }
       return;
     }
     _hold.state = false;

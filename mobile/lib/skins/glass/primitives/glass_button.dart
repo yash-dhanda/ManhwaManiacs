@@ -290,7 +290,8 @@ class _GlassButtonState extends ConsumerState<GlassButton> with GlassLitState {
               AnimatedOpacity(
                 opacity: loading ? 1 : 0,
                 duration: loading ? fadeIn.duration : fadeOut.duration,
-                child: GlassDots(color: labelColor),
+                // Muted when not loading: the hidden dots repeated forever in every button, so no Glass screen ever went idle.
+                child: TickerMode(enabled: loading, child: GlassDots(color: labelColor)),
               ),
             ],
           );

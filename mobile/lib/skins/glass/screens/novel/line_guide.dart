@@ -1,6 +1,8 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/skins/glass/prefs.dart';
 
 /// The line guide (G9): two frosted bands (`BackdropFilter` blur 6 with the paper at 55 %) above and below the current line band (two
 /// body lines tall). Drag the band or tap above or below it to move it one band. A scrim, not a `SkinGlass` layer.
@@ -26,9 +28,14 @@ class _NovelLineGuideState extends State<NovelLineGuide> {
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) {
         final h = c.maxHeight;
         final top = (_top ??= widget.initialTop ?? h * 0.38 - _band / 2).clamp(0.0, h - _band);
+        // Solid glass (Reduce Motion, Low Power, Reduce Transparency): the paper tint without the blur.
         Widget frost() => ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: kLineGuideBlur, sigmaY: kLineGuideBlur),
+              child: Consumer(
+                builder: (context, ref, child) => BackdropFilter(
+                  enabled: !ref.watch(glassA11yProvider.select((a) => a.solid)),
+                  filter: ImageFilter.blur(sigmaX: kLineGuideBlur, sigmaY: kLineGuideBlur),
+                  child: child,
+                ),
                 child: ColoredBox(color: widget.paper.withValues(alpha: kLineGuideFill)),
               ),
             );

@@ -268,6 +268,19 @@ void main() {
     await pumpFor(tester, 900);
   });
 
+  testWidgets('a sheet closing by its button while another route is pushed over it still leaves (no invisible barrier)', (tester) async {
+    final h = OverlayHost(tester);
+    await h.pump();
+    final a = await _open(tester, h);
+    a.buttonDismiss();
+    await tester.pump(const Duration(milliseconds: 16));
+    final b = _route();
+    h.push(b);
+    await pumpFor(tester, 900);
+    expect(a.isActive, isFalse, reason: 'the closed sheet was removed from under the new route');
+    expect(b.isCurrent, isTrue);
+  });
+
   testWidgets('predictive back scales the sheet 1 -> 0.94 and lifts it 12 px by progress', (tester) async {
     final h = OverlayHost(tester);
     await h.pump(platform: TargetPlatform.android);
@@ -314,10 +327,12 @@ void main() {
     final a = await _open(tester, h);
     a.sheetController.animateTo(const SheetOffset(1)).ignore();
     await pumpFor(tester, 500);
+    final lower = tester.state(find.byKey(const ValueKey('glass-sheet-surface')));
     final b = _route();
     h.push(b);
     await tester.pump();
     await pumpFor(tester, 520);
+    expect(identical(tester.state(find.byKey(const ValueKey('glass-sheet-surface')).first), lower), isTrue, reason: 'the lower sheet recedes without being rebuilt');
     final s = tester.widget<Transform>(find.byKey(const ValueKey('glass-sheet-under-scale')));
     expect(s.transform.storage[0], closeTo(0.9165, 0.001));
     final dim = tester.widget<ColoredBox>(find.byKey(const ValueKey('glass-sheet-under-dim')));

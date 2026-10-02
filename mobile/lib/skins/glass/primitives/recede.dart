@@ -116,6 +116,7 @@ class GlassRecede extends ConsumerWidget {
     final scope = GlassRecedeScope.maybeOf(context);
     if (scope == null) return child;
     final reduced = ref.watch(glassMotionPrefsProvider.select((m) => m.reduced));
+    final solid = ref.watch(glassA11yProvider.select((a) => a.solid));
     return ListenableBuilder(
       listenable: Listenable.merge([scope.sheetProgress, scope.windowProgress]),
       child: child,
@@ -129,7 +130,8 @@ class GlassRecede extends ConsumerWidget {
         );
         Widget stacked = Stack(fit: StackFit.passthrough, children: [child!, Positioned.fill(child: overlay)]);
         if (reduced) return stacked;
-        final blur = _max(8 * p, 8 * w);
+        // Solid (Low Power): the scale and dim without the full-screen blur pass.
+        final blur = solid ? 0.0 : _max(8 * p, 8 * w);
         if (blur > 0.01) {
           stacked = ImageFiltered(
             key: const ValueKey('glass-recede-blur'),

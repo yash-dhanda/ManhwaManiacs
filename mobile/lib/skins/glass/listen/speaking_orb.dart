@@ -66,10 +66,16 @@ class _GlassSpeakingOrbState extends ConsumerState<GlassSpeakingOrb> with Ticker
   late final NarrationController _narr = ref.read(narrationControllerProvider.notifier);
   NarrationLevel? _level;
 
-  @override
-  void initState() {
-    super.initState();
-    _ticker.start();
+  /// The pulse and the speaker hue run only while narration plays: an always-on ticker kept the full player (and every glass
+  /// pass under it) rendering at the display rate while paused.
+  void _syncTicker(bool run) {
+    if (run && !_ticker.isActive) {
+      _last = Duration.zero;
+      _ticker.start();
+    } else if (!run && _ticker.isActive) {
+      _ticker.stop();
+      _scale.value = 1;
+    }
   }
 
   @override
@@ -121,6 +127,7 @@ class _GlassSpeakingOrbState extends ConsumerState<GlassSpeakingOrb> with Ticker
   Widget build(BuildContext context) {
     final s = ref.watch(narrationControllerProvider);
     final t = s.target;
+    _syncTicker(t != null && s.isPlaying);
     _level = ref.watch(glassNarrationLevelProvider).valueOrNull;
     if (t == null) return SizedBox(width: widget.size, height: widget.size);
     final narrator = ref.watch(glassNarratorProvider(t.key));

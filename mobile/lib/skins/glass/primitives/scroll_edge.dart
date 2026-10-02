@@ -6,6 +6,32 @@ import 'package:manhwamaniacs/skins/glass/primitives/scrim.dart';
 
 enum GlassEdge { top, bottom }
 
+/// True while any vertical scroll view moves faster than [kGlassFastScrollPx] per update (a fling). The soft edges drop their
+/// backdrop blur then: their content changes every frame, the blur under a 72 % plateau is invisible at that speed, and two
+/// full-width blur passes per frame are the cost of every scroll.
+final ValueNotifier<bool> glassFastScroll = ValueNotifier(false);
+const double kGlassFastScrollPx = 8;
+
+/// Installed once at the Glass root: feeds [glassFastScroll] from every scroll notification below it.
+class GlassFastScrollListener extends StatelessWidget {
+  const GlassFastScrollListener({super.key, required this.child});
+  final Widget child;
+
+  static bool _on(ScrollNotification n) {
+    if (n.metrics.axis != Axis.vertical) return false;
+    if (n is ScrollUpdateNotification) {
+      final fast = (n.scrollDelta ?? 0).abs() >= kGlassFastScrollPx;
+      if (fast != glassFastScroll.value) glassFastScroll.value = fast;
+    } else if (n is ScrollEndNotification && glassFastScroll.value) {
+      glassFastScroll.value = false;
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) => NotificationListener<ScrollNotification>(onNotification: _on, child: child);
+}
+
 /// The soft scroll edge (glass 7.32, `edgeSoft`, owner revision 2026-10-02): a tint, never a blur band, only as tall as the
 /// status bar (or home indicator) plus its bar group, then a short 16 px fade, so content reads right up to the bars. `Color(0xB8000000)`
 /// (0.72) from the screen edge to the far edge of the bar group ([plateau]: top safe-top + 52, or safe-top + 104 while a toast shows;

@@ -1,7 +1,9 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/features/ocr/models/page_text.dart';
+import 'package:manhwamaniacs/skins/glass/prefs.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/segmented.dart';
 import 'package:manhwamaniacs/skins/glass/screens/reader/page_tint_chrome.dart';
@@ -17,20 +19,21 @@ bool isReaderTabletFrame(Size s) => s.shortestSide >= 600 && s.width < 1024;
 
 /// A side panel: content-layer `materialThick` (`#131317` at 0.84, blur 36), radius 26, 12 px from the window edges, never Liquid
 /// Glass; its rim takes the page tint.
-class ReaderPanelSurface extends StatelessWidget {
+class ReaderPanelSurface extends ConsumerWidget {
   const ReaderPanelSurface({super.key, required this.label, required this.child, this.tint});
   final String label;
   final Widget child;
   final Color? tint;
 
   @override
-  Widget build(BuildContext context) => Semantics(
+  Widget build(BuildContext context, WidgetRef ref) => Semantics(
         container: true,
         label: label,
         explicitChildNodes: true,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(26),
           child: BackdropFilter(
+            enabled: !ref.watch(glassA11yProvider.select((a) => a.solid)),
             filter: ImageFilter.blur(sigmaX: 36, sigmaY: 36),
             child: DecoratedBox(
               decoration: BoxDecoration(

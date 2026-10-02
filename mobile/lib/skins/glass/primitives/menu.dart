@@ -479,7 +479,7 @@ class _MenuOverlayState extends ConsumerState<_MenuOverlay> with SingleTickerPro
     });
   }
 
-  List<Widget> _context(bool reduced) => [
+  List<Widget> _context(bool reduced, bool solid) => [
         Positioned.fill(
           child: IgnorePointer(
             child: GlassScrimMark(
@@ -489,6 +489,7 @@ class _MenuOverlayState extends ConsumerState<_MenuOverlay> with SingleTickerPro
                 builder: (context, _) {
                   final t = _t.value.clamp(0.0, 1.0);
                   return BackdropFilter(
+                    enabled: !solid && t > 0,
                     filter: ui.ImageFilter.blur(sigmaX: 12 * t, sigmaY: 12 * t),
                     child: ColoredBox(key: const ValueKey('glass-dim-context'), color: GlassColors.dimContext.withValues(alpha: GlassColors.dimContext.a * t)),
                   );
@@ -544,7 +545,7 @@ class _MenuOverlayState extends ConsumerState<_MenuOverlay> with SingleTickerPro
       children: [
         // The barrier: a tap outside closes (the dim of a context menu is drawn under the preview).
         Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: _close, child: const SizedBox.expand())),
-        if (spec.preview != null) ..._context(reduced),
+        if (spec.preview != null) ..._context(reduced, ref.watch(glassA11yProvider.select((a) => a.solid))),
         AnimatedBuilder(
           animation: _t,
           builder: (context, _) {

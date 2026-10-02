@@ -60,6 +60,10 @@ class _GlassEffectsLayerState extends ConsumerState<GlassEffectsLayer>
       vsync: this, duration: const Duration(milliseconds: 615),);
   final List<_Flight> _flights = [];
 
+  /// A melt is followed by a restart, which replaces this layer. If none comes (the caller unmounted, the restart threw), the
+  /// screen would stay black for good: undo the melt.
+  Timer? _meltWatchdog;
+
   late final GlassEffectsController _controller = ref.read(glassEffectsProvider);
 
   @override
@@ -71,8 +75,10 @@ class _GlassEffectsLayerState extends ConsumerState<GlassEffectsLayer>
   @override
   void dispose() {
     if (_controller._layer == this) _controller._layer = null;
+    _meltWatchdog?.cancel();
     for (final f in _flights) {
       f.controller.dispose();
+      if (!f.done.isCompleted) f.done.complete();
     }
     _meltC.dispose();
     super.dispose();
@@ -87,16 +93,21 @@ class _GlassEffectsLayerState extends ConsumerState<GlassEffectsLayer>
     unawaited(
       GlassMotion.play(MotionName.zoom, controller: c, target: 1)
           .whenComplete(() {
+        // Completed first: an awaiting caller (the sign-in hand-off holds the redirect) must not hang on an unmounted layer.
+        if (!f.done.isCompleted) f.done.complete();
         if (!mounted) return;
         setState(() => _flights.remove(f));
         c.dispose();
-        f.done.complete();
       }),
     );
     return f.done.future;
   }
 
   Future<void> _melt() async {
+    _meltWatchdog?.cancel();
+    _meltWatchdog = Timer(const Duration(seconds: 5), () {
+      if (mounted && _meltC.value > 0) unawaited(_unmelt());
+    });
     if (_reduced) {
       _meltC.duration = const Duration(milliseconds: 200);
       await _meltC.forward();
@@ -108,6 +119,8 @@ class _GlassEffectsLayerState extends ConsumerState<GlassEffectsLayer>
   }
 
   Future<void> _unmelt() async {
+    _meltWatchdog?.cancel();
+    rematerializeAllGlass();
     await _meltC.animateBack(0, duration: const Duration(milliseconds: 200));
   }
 

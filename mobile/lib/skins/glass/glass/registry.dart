@@ -54,7 +54,8 @@ class GlassRegistryState {
   /// Surfaces that render solid because three layers stack over them (glass 2.4.2 rule 7).
   final Set<int> forcedSolid;
 
-  Iterable<GlassRegistration> get _counted => entries.where((e) => !e.exempt);
+  /// Forced-solid surfaces stay registered but read no backdrop, so they are not counted.
+  Iterable<GlassRegistration> get _counted => entries.where((e) => !e.exempt && !forcedSolid.contains(e.id));
   int get layers => _counted.where((e) => !e.scrim).length;
   int get shapes => _counted.where((e) => !e.scrim).fold(0, (n, e) => n + e.shapes);
   int get scrims => _counted.where((e) => e.scrim).length;
@@ -142,6 +143,16 @@ class GlassRegistryController extends Notifier<GlassRegistryState> {
           }
         }
       }
+    }
+    // The per-frame budget is enforced, not only warned about: past 6 layers or 8 shapes the lowest, oldest surfaces render
+    // solid (no backdrop read) so a stack of sheets, menus and toasts never multiplies the blur passes of a frame.
+    final counted = [for (final (e, _) in live) if (!e.exempt && !forced.contains(e.id)) e]
+      ..sort((a, b) => a.kind != b.kind ? b.kind.index - a.kind.index : b.id - a.id);
+    var layers = 0, shapes = 0;
+    for (final e in counted) {
+      layers++;
+      shapes += e.shapes;
+      if (layers > kGlassLayerBudget || shapes > kGlassShapeBudget) forced.add(e.id);
     }
     if (!setEquals(forced, state.forcedSolid)) {
       state = GlassRegistryState(entries: state.entries, forcedSolid: forced);

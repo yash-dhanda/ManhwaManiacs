@@ -4,7 +4,11 @@ import android.app.Activity
 import android.app.UiModeManager
 import android.graphics.Rect
 import android.media.AudioManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.PowerManager
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -28,13 +32,25 @@ class MmPlatformChannel(messenger: BinaryMessenger, private val activity: Activi
 
     private var contrastListener: Any? = null
 
+    /** Battery Saver on or off (`power.lowPowerChanged`): Glass drops its refraction and blur to tinted solid while it is on. */
+    private val powerReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            channel.invokeMethod("power.lowPowerChanged", mapOf("value" to lowPower()))
+        }
+    }
+
+    private fun lowPower(): Boolean =
+        (activity.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isPowerSaveMode ?: false
+
     init {
         channel.setMethodCallHandler { call, result -> handle(call, result) }
         registerContrastListener()
+        activity.registerReceiver(powerReceiver, IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED))
     }
 
     fun dispose() {
         channel.setMethodCallHandler(null)
+        runCatching { activity.unregisterReceiver(powerReceiver) }
         if (Build.VERSION.SDK_INT >= 34) {
             (contrastListener as? UiModeManager.ContrastChangeListener)?.let {
                 (activity.getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager)?.removeContrastChangeListener(it)
@@ -115,6 +131,7 @@ class MmPlatformChannel(messenger: BinaryMessenger, private val activity: Activi
                         ?.contrast?.toDouble() ?: 0.0
                 } else 0.0
             )
+            "power.lowPower" -> result.success(lowPower())
             "audio.isMusicActive" -> result.success(
                 (activity.getSystemService(Context.AUDIO_SERVICE) as? AudioManager)?.isMusicActive ?: false
             )

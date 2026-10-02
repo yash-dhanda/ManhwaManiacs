@@ -24,13 +24,15 @@ double lightAngleForHover(double xFraction) => kLightAngleRest + _range * (xFrac
 final glassHoverLightProvider = StateProvider<double?>((ref) => null);
 
 /// The live light angle in radians. Auto-dispose: the sensor runs only while a Glass surface listens,
-/// at 30 Hz, low-passed with alpha 0.15, pinned at 135 degrees under reduced motion, with the
+/// at 30 Hz, low-passed with alpha 0.15, pinned at 135 degrees under reduced motion or solid glass, with the
 /// "Light follows the device" preference off, and while the app is not resumed.
 final glassLightAngleProvider = StreamProvider.autoDispose<double>((ref) {
   final reduced = ref.watch(glassMotionPrefsProvider.select((m) => m.reduced));
   final follows = ref.watch(glassInAppPrefsProvider.select((p) => p.lightFollowsDevice));
   final hover = ref.watch(glassHoverLightProvider);
-  if (reduced || !follows) return Stream.value(kLightAngleRest);
+  // Solid (Low Power, Reduce Transparency, Solid glass) too: no accelerometer rebuilding every surface for a rim highlight.
+  final solid = ref.watch(glassA11yProvider.select((a) => a.solid));
+  if (reduced || solid || !follows) return Stream.value(kLightAngleRest);
   if (hover != null) return Stream.value(lightAngleForHover(hover));
 
   // One shared accelerometer subscription (core/platform/gravity.dart) feeds the light and the genre field.

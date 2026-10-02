@@ -57,7 +57,18 @@ class GlassDragOwner extends ConsumerStatefulWidget {
 class _GlassDragOwnerState extends ConsumerState<GlassDragOwner> {
   late final GlassDragOwnerRegistry _registry = ref.read(glassDragOwnerRegistryProvider);
 
+  /// False in an offstage tab branch or under an opaque route (both mute tickers): a hidden pager or rail there kept its full-screen
+  /// rect and swallowed the back swipe of the page on top.
+  bool _onstage = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _onstage = TickerMode.valuesOf(context).enabled;
+  }
+
   Rect _rect() {
+    if (!_onstage || !mounted) return Rect.zero;
     final ro = context.findRenderObject();
     return ro is RenderBox && ro.hasSize && ro.attached ? ro.localToGlobal(Offset.zero) & ro.size : Rect.zero;
   }

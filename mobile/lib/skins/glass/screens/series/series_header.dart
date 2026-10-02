@@ -72,9 +72,10 @@ class SeriesBand extends ConsumerWidget {
         children: [
           if (cover.isNotEmpty)
             ExcludeSemantics(
-              child: Opacity(
-                opacity: 0.6,
-                child: ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 36, sigmaY: 36, tileMode: TileMode.decal), child: Transform.scale(scale: 1.4, child: HomeCoverImage(url: cover))),
+              // The 60 % fade folded into the blur's filter: one offscreen pass instead of a blur layer inside an opacity layer.
+              child: ImageFiltered(
+                imageFilter: ImageFilter.compose(outer: _fade60, inner: ImageFilter.blur(sigmaX: 36, sigmaY: 36, tileMode: TileMode.decal)),
+                child: Transform.scale(scale: 1.4, child: HomeCoverImage(url: cover)),
               ),
             ),
           const DecoratedBox(
@@ -369,3 +370,5 @@ class GenreFlight extends ConsumerWidget {
 bool followPending(WidgetRef ref) => ref.watch(updatesProvider.select((s) => s.valueOrNull?.actionPending ?? false));
 
 String resolveCover(WidgetRef ref, String url) => url.isEmpty ? url : resolveApiResourceUrl(ref.read(apiBaseUrlProvider), url);
+
+const ColorFilter _fade60 = ColorFilter.matrix(<double>[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0.6, 0]);

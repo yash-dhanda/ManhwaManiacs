@@ -18,6 +18,7 @@ import 'package:manhwamaniacs/skins/glass/glass/sweep.dart';
 import 'package:manhwamaniacs/skins/glass/glass/tier_math.dart';
 import 'package:manhwamaniacs/skins/glass/physics/glass_physics.dart';
 import 'package:manhwamaniacs/skins/glass/prefs.dart';
+import 'package:manhwamaniacs/skins/glass/primitives/scroll_edge.dart' show GlassFastScrollListener;
 import 'package:manhwamaniacs/skins/glass/tokens.g.dart';
 
 export 'package:manhwamaniacs/skins/glass/glass/axes.dart';
@@ -427,7 +428,9 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
     final wantsTwin = widget.twin != null || inHost || (widget.groupShapes?.every((s) => s.twin != null) ?? false);
     final solid = !wantsTwin && (a11y.solid || forcedSolid);
     final live = !wantsTwin && !solid;
-    _syncRegistration(live, budget?.exempt ?? false);
+    // A surface the registry forced solid stays registered: unregistering cleared its force, it went live, re-registered and was
+    // forced again, a three-frame rebuild loop of every stacked surface.
+    _syncRegistration(!wantsTwin && !a11y.solid, budget?.exempt ?? false);
 
     final env = _Env(
       live: live,
@@ -483,13 +486,6 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
   }
 
   Widget _buildGroup(BuildContext context, List<SkinGlassShape> specs, _Env env) {
-    final children = <Widget>[];
-    for (var i = 0; i < specs.length; i++) {
-      if (i > 0) children.add(SizedBox(width: widget.groupAxis == Axis.horizontal ? widget.groupGap : 0, height: widget.groupAxis == Axis.vertical ? widget.groupGap : 0));
-      final shape = _buildShape(context, specs[i], specs[i].size, env, grouped: true);
-      final off = widget.groupOffsets;
-      children.add(off != null && i < off.length ? Transform.translate(offset: off[i], child: shape) : shape);
-    }
     final aligns = widget.groupAligns;
     final Widget flex;
     if (aligns != null) {
@@ -500,6 +496,14 @@ class SkinGlassState extends ConsumerState<SkinGlass> with TickerProviderStateMi
         child: Stack(children: [for (var i = 0; i < shapes.length; i++) Align(alignment: aligns[i], child: shapes[i])]),
       );
     } else {
+      // Built only here: an aligned group (the dock, the nav row) used to build every shape twice per frame and drop one copy.
+      final children = <Widget>[];
+      for (var i = 0; i < specs.length; i++) {
+        if (i > 0) children.add(SizedBox(width: widget.groupAxis == Axis.horizontal ? widget.groupGap : 0, height: widget.groupAxis == Axis.vertical ? widget.groupGap : 0));
+        final shape = _buildShape(context, specs[i], specs[i].size, env, grouped: true);
+        final off = widget.groupOffsets;
+        children.add(off != null && i < off.length ? Transform.translate(offset: off[i], child: shape) : shape);
+      }
       flex = Flex(direction: widget.groupAxis, mainAxisSize: MainAxisSize.min, children: children);
     }
     final live = env.live && specs.every((s) => s.twin == null);
@@ -788,7 +792,7 @@ class SkinGlassRoot extends ConsumerWidget {
     return glassAccessibilityScope(
       reduceMotion: reduced,
       child: BackdropGroup(
-        child: GlassMetricsWatcher(child: GlassLightHover(child: child)),
+        child: GlassFastScrollListener(child: GlassMetricsWatcher(child: GlassLightHover(child: child))),
       ),
     );
   }
@@ -797,3 +801,10 @@ class SkinGlassRoot extends ConsumerWidget {
 
 /// Dematerialises every mounted glass surface at once (350 ms; the skin melt, glass 4.10). Completes when they are all gone.
 Future<void> dematerializeAllGlass() => Future.wait([for (final s in SkinGlassState._mounted.toList()) s.dematerialize()]);
+
+/// Brings them back (a melt undone).
+void rematerializeAllGlass() {
+  for (final s in SkinGlassState._mounted.toList()) {
+    if (!s._disposed) s._mat.forward();
+  }
+}

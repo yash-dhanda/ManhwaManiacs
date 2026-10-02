@@ -112,7 +112,10 @@ Widget _hub(GoRouterState s, LibrarySection section, {bool browse = false}) {
 /// push and predictive-back card). Readers enter instantly (the Dive carries the entrance) and swipe only from a 20 px edge strip;
 /// takeovers have no transition and no back swipe.
 Page<void> glassPage(GoRouterState state, Widget child, {bool reader = false, bool takeover = false, LocalKey? pageKey}) {
-  final key = pageKey ?? state.pageKey;
+  // A hub section pushed over a live hub (the series sheet's Bookmarks, the poster menu's Collections) keeps go_router's unique key:
+  // two pages under the hub's constant key were a duplicate GlobalKey, and the Library tab under it was torn out of the tree.
+  final pushed = pageKey == kGlassLibraryHubKey && !state.pageKey.value.startsWith('/');
+  final key = pushed ? state.pageKey : pageKey ?? state.pageKey;
   final body = GlassRouteFrame(routeKey: (key as ValueKey<String>).value, sheetHost: (c) => GlassSheetParamHost(child: c), child: child);
   if (takeover) return NoTransitionPage<void>(key: key, child: body);
   if (defaultTargetPlatform == TargetPlatform.android) {

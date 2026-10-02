@@ -95,13 +95,24 @@ class GlassSwipePageRoute<T> extends PageRoute<T> with CupertinoRouteTransitionM
     final wrapped = _GlassBackGestureDetector<T>(
       edgeOnly: edgeOnly,
       enabledCallback: () => _enabled(this, canSwipe),
-      onStart: () => _GlassBackGestureController<T>(navigator: navigator!, controller: controller!, ref: _refOf(context)),
+      onStart: () => _gesture = _GlassBackGestureController<T>(route: this, navigator: navigator!, controller: controller!, ref: _refOf(context)),
       child: child,
     );
     return GlassPushTransition(animation: animation, secondaryAnimation: secondaryAnimation, isGesture: popGestureInProgress, child: wrapped);
   }
 
   static ProviderContainer _refOf(BuildContext context) => ProviderScope.containerOf(context);
+
+  _GlassBackGestureController<T>? _gesture;
+
+  /// A route removed while its swipe is still open (a `go` or redirect mid-drag, or during the release spring, whose status
+  /// listener never fires once the controller is disposed) would leave the navigator in a user gesture for good: every route
+  /// ignores pointers and the app looks frozen. Close it.
+  @override
+  void dispose() {
+    _gesture?.stopLater();
+    super.dispose();
+  }
 }
 
 typedef _Enabled = bool Function();
@@ -119,6 +130,24 @@ class _GlassBackGestureDetector<T> extends StatefulWidget {
 
 class _GlassBackGestureDetectorState<T> extends State<_GlassBackGestureDetector<T>> {
   _GlassBackGestureController<T>? _controller;
+
+  /// Unmounted mid-drag (its recognizer is gone, so no end or cancel will come): settle the page, or just close the gesture
+  /// when the route is no longer the top one.
+  @override
+  void dispose() {
+    final c = _controller;
+    _controller = null;
+    if (c != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (c.route.isCurrent && c.route.isActive) {
+          c.end(0, 1);
+        } else {
+          c.stop();
+        }
+      });
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -197,12 +226,27 @@ class _OwnerAwareDragRecognizer extends HorizontalDragGestureRecognizer {
 }
 
 class _GlassBackGestureController<T> {
-  _GlassBackGestureController({required this.navigator, required this.controller, required this.ref}) {
+  _GlassBackGestureController({required this.route, required this.navigator, required this.controller, required this.ref}) {
     navigator.didStartUserGesture();
     _crossed = controller.value < 0.5;
   }
 
+  final GlassSwipePageRoute<T> route;
   final NavigatorState navigator;
+  bool _open = true;
+
+  /// Ends the navigator's user gesture once.
+  void stop() {
+    if (!_open) return;
+    _open = false;
+    if (route._gesture == this) route._gesture = null;
+    if (navigator.mounted && navigator.userGestureInProgress) navigator.didStopUserGesture();
+  }
+
+  void stopLater() {
+    if (_open) WidgetsBinding.instance.addPostFrameCallback((_) => stop());
+  }
+
   final AnimationController controller;
   final ProviderContainer ref;
   late bool _crossed;
@@ -236,13 +280,13 @@ class _GlassBackGestureController<T> {
       late AnimationStatusListener l;
       l = (s) {
         if (s == AnimationStatus.completed || s == AnimationStatus.dismissed) {
-          navigator.didStopUserGesture();
+          stop();
           controller.removeStatusListener(l);
         }
       };
       controller.addStatusListener(l);
     } else {
-      navigator.didStopUserGesture();
+      stop();
     }
   }
 }

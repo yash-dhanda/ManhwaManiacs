@@ -168,6 +168,24 @@ abstract final class GlassMotion {
 
   static GlassMotionRecorder recorder = GlassMotionRecorder.instance;
 
+  /// Letter-blur layers allowed per frame, app-wide (Cinematic's `claimBlur`). Each `ImageFiltered` is its own offscreen pass; two
+  /// letter reveals blur ~15 letters each for 345 ms. Letters past the cap rise and fade unblurred.
+  static const int blurCap = 12;
+  static int _blurUsed = 0;
+  static bool _blurReset = false;
+
+  /// Takes one of this frame's [blurCap] blur layers; false once they are spent.
+  static bool claimBlur() {
+    if (!_blurReset) {
+      _blurReset = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _blurUsed = 0;
+        _blurReset = false;
+      });
+    }
+    return _blurUsed++ < blurCap;
+  }
+
   static GlassMoveSpec _spec(MotionName name) {
     final spec = glassMotionTable[name];
     assert(spec != null, 'GlassMotion: $name has no entry in the motion table (glass 4.10)');

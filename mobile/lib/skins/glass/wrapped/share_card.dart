@@ -315,7 +315,8 @@ Future<Uint8List> renderShareCard(BuildContext context, ShareSpec spec, ShareFor
       () async {
         final p = provider(u);
         try {
-          await precacheImage(p, context);
+          // Bounded: a stalled cover fetch left Share and Save disabled for good.
+          await precacheImage(p, context).timeout(const Duration(seconds: 8));
           images[u] = p;
         } catch (_) {
           // A cover that fails becomes a #1A1A20 box; the card still renders.
