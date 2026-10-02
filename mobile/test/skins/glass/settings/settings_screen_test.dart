@@ -40,7 +40,7 @@ void main() {
     for (final s in ['Settings', 'Appearance and skin', 'Reader', 'Content (18+)', 'Circle and privacy', 'AI and recaps', 'Sound and haptics', 'Security', 'Storage', 'Diagnostics', 'About']) {
       expect(find.text(s, skipOffstage: false), findsWidgets, reason: s);
     }
-    expect(find.text('Notifications', skipOffstage: false), findsNothing);
+    expect(find.text('Notifications', skipOffstage: false), findsOneWidget, reason: 'everyone has a per-profile Notify me switch');
     expect(find.text('Backup', skipOffstage: false), findsNothing);
     expect(find.text('Search settings'), findsOneWidget);
     expect(find.text('Settings save as you change them. Switching skin restarts the app.', skipOffstage: false), findsOneWidget);

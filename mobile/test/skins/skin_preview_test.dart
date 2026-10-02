@@ -31,7 +31,7 @@ AnimationController controllerOf(WidgetTester t) => (t.state(find.byType(SkinPre
 Finder _private(String name) => find.byWidgetPredicate((w) => w.runtimeType.toString() == name);
 
 /// The scrolled content's top, in miniature px.
-double contentTop(WidgetTester t, String skin) => t.getTopLeft(_private(skin == 'glass' ? '_GlassBody' : '_CineBody')).dy;
+double contentTop(WidgetTester t, String skin) => t.getTopLeft(_private(skin == 'glass' ? '_PvGlassBody' : '_CineBody')).dy;
 
 List<Rect> paragraphs(WidgetTester t, Finder under) => [
       for (final e in find.descendant(of: under, matching: find.byType(RichText)).evaluate())
@@ -118,7 +118,7 @@ void main() {
             expect(r.size.width, lessThanOrEqualTo(390 - 32), reason: '${r.text.toPlainText()} is wider than the page');
             expect(r.textSize.width, lessThanOrEqualTo(r.size.width + 0.5), reason: '${r.text.toPlainText()} is clipped');
           }
-          for (final section in [_private(skin == 'glass' ? '_GlassBody' : '_CineBody'), _private(skin == 'glass' ? '_GlassTop' : '_CineTop'), _private(skin == 'glass' ? '_GlassDock' : '_CineTabs')]) {
+          for (final section in [_private(skin == 'glass' ? '_PvGlassBody' : '_CineBody'), _private(skin == 'glass' ? '_PvGlassTop' : '_CineTop'), _private(skin == 'glass' ? '_PvGlassDock' : '_CineTabs')]) {
             final rects = paragraphs(t, section);
             for (var i = 0; i < rects.length; i++) {
               for (var j = i + 1; j < rects.length; j++) {

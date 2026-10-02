@@ -14,7 +14,7 @@ import '../downloads/downloads_rig.dart' show settle;
 import 'settings_rig.dart';
 
 AnimationController preview(WidgetTester t, {String skin = 'cinematic'}) =>
-    (t.state(find.descendant(of: find.byKey(Key('edition-preview-$skin'), skipOffstage: false), matching: find.byType(SkinPreview), skipOffstage: false).first) as dynamic).controller as AnimationController;
+    (t.state(find.descendant(of: find.byKey(Key('edition-preview-$skin'), skipOffstage: false), matching: find.byType(SkinPreview), matchRoot: true, skipOffstage: false).first) as dynamic).controller as AnimationController;
 
 
 Future<void> pumpPicker(WidgetTester t, {bool glass = false, bool reduced = false, Size size = const Size(390, 844)}) =>
@@ -40,12 +40,13 @@ void main() {
 
     testWidgets('the preview stops while another route covers the page', (t) async {
       await pumpPicker(t);
+      final c = preview(t);
       final nav = Navigator.of(t.element(find.byType(SkinPreview).first));
       nav.push(MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('on top'))));
       await settle(t, ms: 1200);
-      final at = preview(t).value;
+      final at = c.value;
       await t.pump(const Duration(seconds: 2));
-      expect(preview(t).value, at);
+      expect(c.value, at);
     });
 
     test('no PNG frames are bundled any more', () {

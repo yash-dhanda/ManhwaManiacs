@@ -84,7 +84,7 @@ void main() {
   m40Test('admin rows hide for a non-admin; Server shows on phones; Shortcuts only on wider frames', (t) async {
     await pumpYou(t, admin: false);
     expect(find.text('@yash'), findsOneWidget);
-    expect(find.text('Notifications', skipOffstage: false), findsNothing);
+    expect(find.text('Notifications', skipOffstage: false), findsOneWidget, reason: 'everyone has a per-profile Notify me switch');
     expect(find.text('Backup', skipOffstage: false), findsNothing);
     expect(find.text('System status', skipOffstage: false), findsNothing);
     expect(find.text('Members', skipOffstage: false), findsNothing);

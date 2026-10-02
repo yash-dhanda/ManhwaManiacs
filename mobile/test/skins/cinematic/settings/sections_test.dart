@@ -345,7 +345,7 @@ void main() {
       await pumpSettings(tester, path: '/settings/about');
       expect(find.text('APP VERSION'), findsOneWidget);
       expect(find.text('SERVER'), findsOneWidget);
-      expect(find.text('3.5.0 (57)'), findsNWidgets(2));
+      expect(find.text('3.5.0 (57)'), findsOneWidget, reason: 'SERVER shows the backend version from /health');
       expect(find.text("What's new"), findsOneWidget);
       expect(find.text('Licenses'), findsOneWidget);
       expect(find.byKey(const Key('app-update-card')), findsOneWidget);

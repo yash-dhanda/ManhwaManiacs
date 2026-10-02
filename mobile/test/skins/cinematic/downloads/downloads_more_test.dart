@@ -55,7 +55,8 @@ class FakeMedia extends MediaStoreChannel {
 }
 
 ChapterExportResult exported({int chapters = 12, int pages = 480, int skipped = 2}) => ChapterExportResult(
-      directory: Directory.systemTemp,
+      // Its own folder: an Android export deletes its staging copy once MediaStore has it.
+      directory: Directory.systemTemp.createTempSync('mm-export-'),
       seriesFolderName: 'Solo Leveling',
       format: ChapterExportFormat.cbz,
       chapterCount: chapters,

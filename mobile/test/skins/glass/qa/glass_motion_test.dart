@@ -17,6 +17,10 @@ import '../motion_names_test.dart' show motionTableRows;
 import 'package:manhwamaniacs/skins/glass/glass/ambient_field.dart';
 import 'glass_qa_screens.dart';
 
+/// The in-app Reduce Motion switch: the shared `mm.boot.a11y` record (both skins' Settings), for the signed-in profile and
+/// the device; the old Glass-only `mm.a11y.p1.reduceMotion` key is still read where that record cannot be built.
+const _appReduced = <String, Object>{'mm.a11y.p1.reduceMotion': true, 'mm.boot.a11y.u1p1': '{"motion":"reduced"}', 'mm.boot.a11y.device': '{"motion":"reduced"}'};
+
 String _norm(String s) => s.toLowerCase().replaceAll(RegExp('[^a-z]'), '');
 
 /// The planned number of a Duration cell: the first "settle N ms" in it (a cell such as "40 ms spacing, settle 431 ms each" plans the
@@ -95,7 +99,7 @@ void main() {
       addTearDown(sensor.close);
       final rig = await pumpGlassQa(t, s,
           reduced: mode == 'os',
-          prefs: mode == 'app' ? const {'mm.a11y.p1.reduceMotion': true} : const {},
+          prefs: mode == 'app' ? _appReduced : const {},
           extra: [gravitySensorProvider.overrideWithValue(() => sensor.stream)]);
       final sub = rig.shell.container.listen(glassLightAngleProvider, (_, __) {});
       for (var i = 0; i < 20; i++) {
@@ -137,7 +141,7 @@ void screenMotionTests() {
       if (s.id == ScreenId.reader || s.id == ScreenId.readAll || s.id == ScreenId.novel) continue;
       glassQaWidgets('reduced ($mode) ${s.id.id}: nothing animates at rest', (t) async {
         final rig = await pumpGlassQa(t, s,
-            reduced: mode == 'os', prefs: mode == 'app' ? const {'mm.a11y.p1.reduceMotion': true} : const {});
+            reduced: mode == 'os', prefs: mode == 'app' ? _appReduced : const {});
         await t.pump(const Duration(seconds: 2));
         await t.pump(const Duration(seconds: 2));
         final n = t.binding.transientCallbackCount;

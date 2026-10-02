@@ -68,7 +68,7 @@ Map<String, dynamic> statisticsJson({
     'range': {
       'days': days,
       'since': '2026-08-30T00:00:00',
-      'until': '2026-09-29T00:00:00',
+      'until': '2026-09-29T12:00:00Z', // midday UTC: the same calendar day in every test time zone
       'timezone_offset_minutes': 330,
       'session_cap_seconds': 1800,
     },
@@ -226,7 +226,7 @@ Map<String, dynamic> annualJson({
       'year': year,
       'partial': partial,
       'since': '$year-01-01T00:00:00',
-      'until': '$year-09-29T00:00:00',
+      'until': '$year-09-29T12:00:00Z',
       'recorded_days': recordedDays,
       'seconds_read': 212 * 3600,
       'chapters_read': 4812,

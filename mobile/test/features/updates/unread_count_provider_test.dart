@@ -68,7 +68,6 @@ void main() {
       authenticatedAuthOverride(),
       activeProfileProvider.overrideWith(_Switchable.new),
     ],);
-    addTearDown(c.dispose);
     c.listen(unreadNotificationCountProvider, (_, __) {});
     await t.pump();
     expect(c.read(unreadNotificationCountProvider), 3);
@@ -78,6 +77,9 @@ void main() {
     await t.pump();
     expect(c.read(unreadNotificationCountProvider), 0);
     expect(repo.calls, 2);
+    // Disposed in the body: the poll timer must be cancelled before the pending-timer check.
+    c.dispose();
+    await t.pump(const Duration(seconds: 1));
   });
 
   Future<(ProviderContainer, _Repo)> make({bool signedIn = true}) async {

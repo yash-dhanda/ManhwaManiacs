@@ -210,6 +210,8 @@ void main() {
       await _settle(t, 900);
       final router = rig.container.read(skinRouterProvider);
       expect(router.routerDelegate.currentConfiguration.uri.toString(), '/');
+      // The switch's toasts and refreshes run out before the tree goes.
+      await _settle(t, 15000);
     });
   });
 

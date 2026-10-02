@@ -25,6 +25,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../support/test_overrides.dart';
 import '../shell/shell_rig.dart' show shellTestOverrides;
 
+/// The in-app Reduce Motion switch: the shared `mm.boot.a11y` record (both skins' Settings), for the signed-in profile and
+/// the device; the old Glass-only `mm.a11y.p1.reduceMotion` key is still read where that record cannot be built.
+const _appReduced = <String, Object>{'mm.a11y.p1.reduceMotion': true, 'mm.boot.a11y.u1p1': '{"motion":"reduced"}', 'mm.boot.a11y.device': '{"motion":"reduced"}'};
+
 /// mobile/45 M with the flag on: the real switch (`switchSkinFrom` from Cinematic, `runSkinSwitch` from Glass) through the real
 /// `SkinBoot.read` at the restart.
 
@@ -163,7 +167,7 @@ void main() {
   });
 
   testWidgets('Reduce Motion: the melt is a 200 ms fade to black', (t) async {
-    final rig = await _pump(t, start: SkinId.glass, route: '/settings/diagnostics', prefs0: const {'mm.a11y.p1.reduceMotion': true});
+    final rig = await _pump(t, start: SkinId.glass, route: '/settings/diagnostics', prefs0: _appReduced);
     final (ref, ctx) = await _ref(t);
     unawaited(runSkinSwitch(ctx, ref, SkinId.cinematic));
     await t.pump();

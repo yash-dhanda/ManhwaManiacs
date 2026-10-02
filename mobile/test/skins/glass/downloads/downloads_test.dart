@@ -100,7 +100,8 @@ void main() {
     final gs = [savedSeries('series-1', 'Solo Leveling', 3)];
     await pumpLibrary(t, FakeLib(), start: '/downloads', extra: downloadOverrides(gs, app: 3 * 40 * _mb + 1024 * _mb));
     final node = t.getSemantics(find.bySemanticsLabel('Storage'));
-    expect(node.value, '120 MB of 10 GB used: this profile 120 MB, other app data 1 GB, 8.9 GB free');
+    // The capped caption counts what the cap counts: everything the app keeps on the device.
+    expect(node.value, '1.1 GB of 10 GB used: this profile 120 MB, other app data 1 GB, 8.9 GB free');
   });
 
   testWidgets('removing a series drains its card on springDismiss', (t) async {
