@@ -11,6 +11,7 @@ HENTAIERA_SITE = HentaiFamilySite(
     site_base="https://hentaiera.com",
     reader_segment="view",
     image_host_suffix="hentaiera.com",
+    search_param="key",
 )
 
 HentaiEraConnector = build_hentai_family_connector(HENTAIERA_SITE)

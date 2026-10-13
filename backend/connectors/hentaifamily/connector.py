@@ -117,8 +117,16 @@ class HentaiFamilyConnector(SourceConnector):
         query: str | None = None,
     ) -> tuple[str, int]:
         if query:
-            return search_listing_path(query, page, sort=sort), SEARCH_PAGE_SIZE
-        return home_listing_path(page, sort=sort), HOME_PAGE_SIZE
+            return (
+                search_listing_path(query, page, sort=sort, param=self._site.search_param),
+                SEARCH_PAGE_SIZE,
+            )
+        return (
+            home_listing_path(
+                page, sort=sort, explicit_first_page=self._site.explicit_first_page
+            ),
+            HOME_PAGE_SIZE,
+        )
 
     def _fetch_listing(
         self,
@@ -266,6 +274,8 @@ def build_hentai_family_connector(site: HentaiFamilySite) -> type[HentaiFamilyCo
             "SOURCE_TYPE": site.source_id,
             "DISPLAY_NAME": site.display_name,
             "DESCRIPTION": description,
+            # branding.connector_icon_url reads this for the favicon.
+            "SITE_BASE": site.site_base,
             "__module__": __name__,
         },
     )

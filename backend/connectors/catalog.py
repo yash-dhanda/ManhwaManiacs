@@ -741,6 +741,12 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     # self-hosted under /wp-content/uploads/WP-manga/data/. Yaoi doujinshi,
     # mostly oneshots.
     _site("hentaisyaoi", "HentaiSyaoi", "hentaisyaoi.com", mature=True, use_cf=False),
+    # Added 2026-10-13 (3.5.0). Stock Madara under /manhwa/, adult webtoons
+    # throughout, hence mature. Page images are served from cdn.manhwahub.to;
+    # the subdomain match would already cover it, but it is named so the
+    # allowlist says where the bytes come from. The old ``manhwahub`` id
+    # (manhwahub.net, pruned 2026-07-27) stays retired in excluded.py.
+    _site("manhwahubto", "ManhwaHub.to", "manhwahub.to", url_segment="manhwa", mature=True, extra_image_hosts=frozenset({"cdn.manhwahub.to"})),
     # Probed alongside those two on 2026-09-05 and DELIBERATELY NOT ADDED:
     #   hentai4free.net - fingerprints as Madara from the outside (104
     #               "madara" and 588 "wp-manga" markers, /hentai/ segment, and
@@ -771,5 +777,6 @@ HANDCRAFTED_CONNECTORS: frozenset[str] = frozenset({
     "18porncomic", "3hentai", "8muses", "akuma", "asmhentai", "aurorascans", "beehentai",
     "baozimh", "comicasura", "comicsvalley", "comicland", "doujins", "ehentai", "elftoon", "flamescans",
     "freeadultcomix", "galaxymanga", "hentai20", "hentaifox", "hentaiera",
+    "hentairox", "comicporn",
     "webtoons", "weebcentral", "tapas",
 })

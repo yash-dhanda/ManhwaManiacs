@@ -743,6 +743,23 @@ def test_kokomangas_and_mangaowl_sit_behind_the_18_plus_gate() -> None:
         assert cfg.mature is True, source_id
 
 
+def test_manhwahubto_is_an_adult_manhwa_segment_line() -> None:
+    """Added 3.5.0; verified end to end from the VPS 2026-10-13.
+
+    Page images come from cdn.manhwahub.to, so the proxy allowlist has to
+    accept it, and the old ``manhwahub`` id (manhwahub.net) stays retired.
+    """
+    cfg = _config("manhwahubto")
+    assert cfg is not None
+    assert cfg.mature is True
+    assert cfg.url_segment == "manhwa"
+    assert cfg.base_url == "https://manhwahub.to"
+    connector = create_connector("manhwahubto")
+    assert connector.is_mature is True
+    assert host_matches_allowlist("cdn.manhwahub.to", connector.allowed_image_hosts)
+    assert "manhwahub" not in {cfg.source_id for cfg in MADARA_CATALOG}
+
+
 def test_catalog_source_ids_stay_unique() -> None:
     """Two configs with one source_id would silently drop a source.
 

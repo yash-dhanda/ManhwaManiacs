@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en" class="hide-age-modal">
+<head><title>Searching: fantasia - HentaiEra</title></head>
+<body>
+<div class="micromodal micromodal-slide age-limit-modal" id="age-limit-modal" aria-hidden="false">
+ <div class="micromodal-overlay" tabindex="-1">
+ <div class="micromodal-container custom-scrollbar" role="dialog" aria-modal="true" aria-labelledby="age-limit-title">
+ <div class="micromodal-content">
+ <div class="micromodal-body">
+ <div class="micromodal-hero">
+ <h4 class="micromodal-title" id="age-limit-title">
+ Adults only! <span class="age-confirm">Confirm your age.</span>
+ </h4>
+ <img src="https://hentaiera.com/images/adult_logo.png" alt="Character" class="inline-icon" style="width: 150px; height: auto; margin-bottom: 30px;">
+ <div class="micromodal-hero-actions">
+ <button class="btn btn-primary" type="button" onclick="closeModal()">
+ I am 18 years or older – Continue
+ </button>
+ <a class="btn btn-secondary" href="https://google.com">
+ I'm not 18 – Leave
+ </a>
+ </div>
+ <div class="micromodal-text-content">
+ <p>
+ You are visiting this site from the United States (VA). This site is reserved for adults aged 18 and over.
+ </p>
+ <p>
+ This site offers fictional drawn artwork focusing on adult related fantasy mainly origination from Japan.
+ </p>
+ <p>
+ HentaiEra.com <span class="color-bold">does not create or sell</span> any of the artwork featured on this website.
+ </p>
+ <p>
+ Links may redirect to external sites containing explicit content and may require age verification.
+ </p>
+ <p>
+ This site is labeled RTA and can be blocked using parental control tools. <br>
+ <a class="color-primary" href="/rta/" id="rtaLink">
+ Click here to learn how to block this site.
+ </a>
+ </p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+</div>
+<div class="outer_un">
+ <div class="user_notify">
+ <div class="notify_header">
+ <div class="notify_text">Notifications <span style="display:none;" class="allntf">0</span></div>
+ <span class="separator"></span>
+ </div>
+ <div class="notify_body">
+ <div class="notify_loading"><span class="text"><i class="fa fa-fw fa-spin fa-spinner"></i>Loading...</span></div>
+ <div class="notify_nonew"><span class="text"><i class="fa fa-info-circle"></i> No new notifications</span></div>
+ <ul id="get-list-view"></ul>
+ </div>
+ <div class="notify_footer">
+ <span class="separator"></span>
+ <button id="ra_ntf">Mark all as read</button>
+ </div>
+ </div>
+</div>
+<nav class="navbar navbar-inverse">
+<div class="nav_first">
+ <div class="nav_wrap">
+ <div class="nav_left">
+ <div class="navbar-header">
+ <button type="button" class="navbar-toggle collapsed" id="nav_btn">
+ <span class="sr-only">Toggle navigation</span>
+ <span class="icon-bar"></span>
+ <span class="icon-bar"></span>
+ <span class="icon-bar"></span>
+ </button>
+ <div class="logo">
+ <a href="/"><img src="/images/logo.png" alt="logo" width="59" height="44"></a>
+ </div>
+ <div class="search_mobile">
+ <form class="smobile" action="/search/?key=fantasia">
+ <input type="text" name="key" class="form-control" placeholder="Search">
+ <button class="btn btn-default" type="submit">
+ <i class="glyphicon glyphicon-search"></i>
+ </button>
+ </form>
+ </div>
+ </div>
+ <div class="search_div">
+ <form class="navbar-form navbar-left sdesktop" action="/search/?key=fantasia">
+ <div class="input-group">
+ <input type="text" name="key" class="form-control" placeholder="">
+ <button class="btn btn-default" type="submit">
+ <i class="glyphicon glyphicon-search"></i>
+ </button>
+ </div>
+ </form>
+ </div>
+ <div class="drop_div">
+ <a id="a_drop" class="a_drop" href="#"><i class="glyphicon glyphicon-chevron-down"></i></a>
+ <div id="dropdown_menu">
+ <ul>
+ <li class="active"><a href="/">Home</a></li>
+ <li><a href="/random/">Random</a></li>
+ <li><a href="/tags/">Tags</a></li>
+ <li><a href="/parodies/">Parodies</a></li>
+ <li><a href="/artists/">Artists</a></li>
+ <li><a href="/characters/">Characters</a></li>
+ <li><a href="/groups/">Groups</a></li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ <div class="nav_right">
+ <ul class="nav navbar-nav navbar-right navright">
+ <li><a class="adsc" target="_blank" rel="nofollow noopener" href="https://discord.gg/KTrBh8KavQ"><span class="discord"></span> Discord</a></li>
+ <li><a class="" href="/login/"><i class="fa fa-sign-in" aria-hidden="true"></i> Login</a></li>
+ <li><a class="" href="/register/"><i class="fa fa-user" aria-hidden="true"></i> Register</a></li> </ul>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ <div class="nav_second ns_dtop">
+ <div class="nav_wrap">
+ <div class="navbar_links">
+ <ul class="nav navbar-nav navleft">
+ <li><a href="/random/"><i class="fa fa-random"></i> Random</a></li>
+ <li class='li_first'><a class="" href="/tags/">Tags</a></li>
+ <li ><a class="" href="/parodies/">Parodies</a></li>
+ <li ><a class="" href="/artists/">Artists</a></li>
+ <li ><a class="" href="/characters/">Characters</a></li>
+ <li ><a class="" href="/groups/">Groups</a></li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ <div class="nav_second ns_mob">
+ <div class="nav_wrap">
+ <div class="navbar_links">
+ <ul class="nav navbar-nav navleft">
+ <li><a href="/random/"><i class="fa fa-random"></i> Random</a></li>
+ <li class='li_first'><a class="" href="/tags/">Tags</a></li>
+ <li ><a class="" href="/parodies/">Parodies</a></li>
+ <li ><a class="" href="/artists/">Artists</a></li>
+ <li ><a class="" href="/characters/">Characters</a></li>
+ <li ><a class="" href="/groups/">Groups</a></li>
+ <li class="mob_li"><a class="adsc" target="_blank" rel="nofollow noopener" href="https://discord.gg/KTrBh8KavQ"><span class="discord"></span> Discord</a></li>
+ <li class="mob_li"><a class="" href="/login/"><i class="fa fa-sign-in"></i> Login</a></li>
+ <li class="mob_li"><a class="" href="/register/"><i class="fa fa-user"></i> Register</a></li> </ul>
+ </div>
+ </div>
+ </div>
+</nav>
+<div class="container">
+ <div class="ablocktop">
+ </div>
+<form action="/search/" method="get"><div class="cs_mb cres mobile_hidden">
+ <div class="iph_lnd_f">
+ <div class="iph_lnd_s">
+ <div class="inputs">
+ <div class="linp">
+ <input value="fantasia" type="text" name="key" placeholder="use a comma (,) after each tag.." size="50" maxlength="200" />
+ </div>
+ <input class="gos btn btn-primary" type="submit" name="apply" value="Search" />
+ </div>
+ <div class="btns">
+ <ul>
+ <li><a class="btn btn-primary" id="cats_toggle" href="#">Categories <i class="fa fa-arrow-down"></i></a></li>
+ <li><a class="btn btn-primary" id="langs_toggle" href="#">Languages <i class="fa fa-arrow-down"></i></a></li>
+ <li><a class="btn btn-primary sort_by" id="sort_toggle" href="#">Sort <i class="fa fa-arrow-down"></i></a></li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ <div id="sort_buttons">
+ <ul class="sort_mt">
+ <li onclick="toggle_filter('latest')" id="a_latest" ><input type="hidden" name="lt" id="am_latest" value="0" />Latest</li>
+ <li onclick="toggle_filter('popular')" id="a_popular" ><input type="hidden" name="pp" id="am_popular" value="0" />Popular</li>
+ <li onclick="toggle_filter('downloaded')" id="a_downloaded" ><input type="hidden" name="dl" id="am_downloaded" value="0" />Downloaded</li>
+ <li onclick="toggle_filter('toprated')" id="a_toprated" ><input type="hidden" name="tr" id="am_toprated" value="0" />Top Rated</li>
+ </ul>
+ </div>
+ <div id="cats_buttons">
+ <ul class="cats_mt">
+ <li onclick="toggle_category('manga')" id="a_manga" class="manga "><input type="hidden" name="mg" id="am_manga" value="1" />Manga</li>
+ <li onclick="toggle_category('doujinshi')" id="a_doujinshi" class="doujinshi "><input type="hidden" name="dj" id="am_doujinshi" value="1" />Doujinshi</li>
+ <li onclick="toggle_category('western')" id="a_western" class="western "><input type="hidden" name="ws" id="am_western" value="1" />Western</li>
+ <li onclick="toggle_category('imageset')" id="a_imageset" class="imageset "><input type="hidden" name="is" id="am_imageset" value="1" />Image Set</li>
+ <li onclick="toggle_category('artistcg')" id="a_artistcg" class="artistcg "><input type="hidden" name="ac" id="am_artistcg" value="1" />Artist CG</li>
+ <li onclick="toggle_category('gamecg')" id="a_gamecg" class="gamecg "><input type="hidden" name="gc" id="am_gamecg" value="1" />Game CG</li>
+ </ul>
+ </div>
+ <div id="langs_buttons">
+ <ul class="langs_mt">
+ <li onclick="toggle_lang('english')" id="a_english" class="en "><input type="hidden" name="en" id="am_english" value="1" /><div class="g_flag flag-us"></div> English</li>
+ <li onclick="toggle_lang('japanese')" id="a_japanese" class="jp "><input type="hidden" name="jp" id="am_japanese" value="1" /><div class="g_flag flag-jp"></div> 日本語</li>
+ <li onclick="toggle_lang('spanish')" id="a_spanish" class="es "><input type="hidden" name="es" id="am_spanish" value="1" /><div class="g_flag flag-es"></div> Español</li>
+ <li onclick="toggle_lang('french')" id="a_french" class="fr "><input type="hidden" name="fr" id="am_french" value="1" /><div class="g_flag flag-fr"></div> Français</li>
+ <li onclick="toggle_lang('korean')" id="a_korean" class="kr "><input type="hidden" name="kr" id="am_korean" value="1" /><div class="g_flag flag-kr"></div> 한국어</li>
+ <li onclick="toggle_lang('german')" id="a_german" class="de "><input type="hidden" name="de" id="am_german" value="1" /><div class="g_flag flag-de"></div> Deutsch</li>
+ <li onclick="toggle_lang('russian')" id="a_russian" class="ru "><input type="hidden" name="ru" id="am_russian" value="1" /><div class="g_flag flag-ru"></div> Pусский</li>
+ </ul>
+ </div>
+ </div>
+ </form>
+ <form action="/search/" method="get"><div class="index_search cres desktop_shown"><ul class="top">
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" onclick="cat_switch('mg')" class="mg " id="mg">Manga</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" onclick="cat_switch('dj')" class="dj " id="dj">Doujinshi</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" onclick="cat_switch('ws')" class="ws " id="ws">Western</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" onclick="cat_switch('is')" class="is " id="is">Image Set</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" onclick="cat_switch('ac')" class="ac " id="ac">Artist CG</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" onclick="cat_switch('gc')" class="gc " id="gc">Game CG</button></li>
+ <div class="clear"></div>
+ </ul>
+ <ul class="middle">
+ <li class="col-md-6 col-sm-6 col-lg-7"><input value="fantasia" class="d_search" value="" type="text" name="key" placeholder="You can search here by tag, parody, artist, characters, etc..." size="50" maxlength="200" /></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="submit" name="search" id="search"><i class="glyphicon glyphicon-search"></i>Search</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button onclick="top.location.href='/'; return false" type="button" name="clear_filter" id="clear_filter">Clear Filter</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-1 m_filter">
+ <button type="button" name="filter" id="filter"><i class="fa fa-arrow-down"></i><span>Latest</span></button>
+ <ul class="filter_drop" id="filter_drop">
+ <li><button type="button" onclick="filter_switch('lt')" class="lt" id="lt">Latest</button></li>
+ <li><button type="button" onclick="filter_switch('dl')" class="dl" id="dl">Downloaded</button></li>
+ <li><button type="button" onclick="filter_switch('pp')" class="pp" id="pp">Popular</button></li>
+ <li><button type="button" onclick="filter_switch('tr')" class="tr" id="tr">Top Rated</button></li>
+ </ul>
+ </li>
+ <div class="clear"></div>
+ </ul>
+ <ul class="bottom">
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" class="en " onclick="lang_switch('en')" id="en"><div class="g_flag flag-us"></div>English</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" class="jp " onclick="lang_switch('jp')" id="jp"><div class="g_flag flag-jp"></div>日本語</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" class="es " onclick="lang_switch('es')" id="es"><div class="g_flag flag-es"></div>Español</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" class="fr " onclick="lang_switch('fr')" id="fr"><div class="g_flag flag-fr"></div>Français</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" class="kr " onclick="lang_switch('kr')" id="kr"><div class="g_flag flag-kr"></div>한국어</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" class="de " onclick="lang_switch('de')" id="de"><div class="g_flag flag-de"></div>Deutsch</button></li>
+ <li class="col-md-6 col-sm-6 col-lg-2"><button type="button" class="ru " onclick="lang_switch('ru')" id="ru"><div class="g_flag flag-ru"></div>Pусский</button></li>
+ <div class="clear"></div>
+ </ul>
+ <input type="hidden" name="mg" id="a_mg" value="1" />
+ <input type="hidden" name="dj" id="a_dj" value="1" />
+ <input type="hidden" name="ws" id="a_ws" value="1" />
+ <input type="hidden" name="is" id="a_is" value="1" />
+ <input type="hidden" name="ac" id="a_ac" value="1" />
+ <input type="hidden" name="gc" id="a_gc" value="1" />
+ <input type="hidden" name="en" id="a_en" value="1" />
+ <input type="hidden" name="jp" id="a_jp" value="1" />
+ <input type="hidden" name="es" id="a_es" value="1" />
+ <input type="hidden" name="fr" id="a_fr" value="1" />
+ <input type="hidden" name="kr" id="a_kr" value="1" />
+ <input type="hidden" name="de" id="a_de" value="1" />
+ <input type="hidden" name="ru" id="a_ru" value="1" />
+ <input type="hidden" name="lt" id="a_lt" value="0" />
+ <input type="hidden" name="dl" id="a_dl" value="0" />
+ <input type="hidden" name="pp" id="a_pp" value="0" />
+ <input type="hidden" name="tr" id="a_tr" value="0" />
+ </div>
+</form>
+<div class="row galleries noflex"> 
+<h2 class='search_title'>Searching for <span class='search_key'>"fantasia"</span> (115) results found.</h2><div class="thumbs_container"><div class="thumb" data-tags="120 192"data-groups="28088"data-languages="1"data-categories="3">
+ <div class="thumbnail">
+ <div class="cat_text cat_gamecg">
+ <a href="/category/game-cg/"><h3 class="gallery_cat">Game CG</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/973843/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m7.hentaiera.com/022/2evwludsyi/thumb.jpg" alt="[Kajiyasu] Seeding Fantasia ~5 Pregnant Princesses~" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/973843/">[Kajiyasu] Seeding Fantasia ~5 Pregnant Princesses~</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/japanese/"><div class="g_flag flag-jp"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">277</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="15 140 192 485"data-artists="16429"data-languages="2 3"data-categories="1">
+ <div class="thumbnail">
+ <div class="cat_text cat_doujinshi">
+ <a href="/category/doujinshi/"><h3 class="gallery_cat">Doujinshi</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/971662/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m7.hentaiera.com/022/9apbmi5hfr/thumb.jpg" alt="Hypno App Fantasia (Hypno App x Time Stop Fantasia) (English)[Fan No Hitori]" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/971662/">Hypno App Fantasia (Hypno App x Time Stop Fantasia) (English)[Fan No Hitori]</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/translated/"><div class="g_flag flag-us"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">163</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="15 34 35"data-artists="1557"data-groups="887"data-languages="1"data-categories="3">
+ <div class="thumbnail">
+ <div class="cat_text cat_gamecg">
+ <a href="/category/game-cg/"><h3 class="gallery_cat">Game CG</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/963723/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/022/2lyhu1exrv/thumb.jpg" alt="[Studio e.go!] Castle Fantasia Seimataisen renewal" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/963723/">[Studio e.go!] Castle Fantasia Seimataisen renewal</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/japanese/"><div class="g_flag flag-jp"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">261</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="9 15 16 21 33 49 60 61 62 64 85 120 140 145 147 154 175 183 190 192 207 214 225 229 255 260 277 278 289 594 595 641"data-parodies="10"data-artists="16429"data-languages="3 6"data-categories="4">
+ <div class="thumbnail">
+ <div class="cat_text cat_manga">
+ <a href="/category/manga/"><h3 class="gallery_cat">Manga</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/958029/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/022/8tah7f42sb/thumb.jpg" alt="[Fan no Hitori] HYPNO .APP FANTASIA [Spanish] [NILG]" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/958029/">[Fan no Hitori] HYPNO .APP FANTASIA [Spanish] [NILG]</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/spanish/"><div class="g_flag flag-es"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">109</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="7 9 15 16 21 24 47 139 210 229 260 278 329 753"data-artists="16429"data-languages="3 6"data-categories="4">
+ <div class="thumbnail">
+ <div class="cat_text cat_manga">
+ <a href="/category/manga/"><h3 class="gallery_cat">Manga</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/958010/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/022/4djrfp21i7/thumb.jpg" alt="[Fan no Hitori] TIME STOP FANTASIA Kouhen (COMIC Unreal 2020-12 Vol. 88) [Spanish] [milkoc] [Digital]" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/958010/">[Fan no Hitori] TIME STOP FANTASIA Kouhen (COMIC Unreal 2020-12 Vol. 88) [Spanish] [milkoc] [Digital]</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/spanish/"><div class="g_flag flag-es"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">19</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="9 15 16 24 54 85 100 229"data-parodies="14"data-artists="29386"data-characters="327"data-languages="3 7"data-categories="1">
+ <div class="thumbnail">
+ <div class="cat_text cat_doujinshi">
+ <a href="/category/doujinshi/"><h3 class="gallery_cat">Doujinshi</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/943749/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/021/qt5ly8ej3i/thumb.jpg" alt="(Reitaisai 19) [Cross Country. (Kurokan)] Bakunyuu Fantasia | 폭유 판타지아 (Touhou Project) [Korean] [상마갤 일간핫산]" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/943749/">(Reitaisai 19) [Cross Country. (Kurokan)] Bakunyuu Fantasia | 폭유 판타지아 (Touhou Project) [Korean] [상마갤 일간핫산]</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/korean/"><div class="g_flag flag-kr"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">26</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="5 9 15 21 24 182 210 229 260 267 278"data-artists="16429"data-languages="3 8"data-categories="1">
+ <div class="thumbnail">
+ <div class="cat_text cat_doujinshi">
+ <a href="/category/doujinshi/"><h3 class="gallery_cat">Doujinshi</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/939595/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/021/te5y8hvcfi/thumb.jpg" alt="[Fan No Hitori] Time Stop Fantasia (Hypno App x Time Stop Fantasia) (Francais)" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/939595/">[Fan No Hitori] Time Stop Fantasia (Hypno App x Time Stop Fantasia) (Francais)</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/french/"><div class="g_flag flag-fr"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">16</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="1 3 5 7 9 15 16 21 24 26 39 47 54 139 167 182 210 229 260 267 278 329 594 606 753 868 4037 8260"data-artists="16429"data-languages="2 3"data-categories="1">
+ <div class="thumbnail">
+ <div class="cat_text cat_doujinshi">
+ <a href="/category/doujinshi/"><h3 class="gallery_cat">Doujinshi</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/934320/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/021/1xpfh3j7uc/thumb.jpg" alt="[Fan No Hitori] Time Stop Fantasia (Hypno App x Time Stop Fantasia) (English)" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/934320/">[Fan No Hitori] Time Stop Fantasia (Hypno App x Time Stop Fantasia) (English)</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/translated/"><div class="g_flag flag-us"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">67</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="19 53 56 83 139 147 240 774"data-parodies="62"data-artists="31993"data-characters="289 290 577"data-languages="2"data-categories="5">
+ <div class="thumbnail">
+ <div class="cat_text cat_western">
+ <a href="/category/western/"><h3 class="gallery_cat">Western</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/914645/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/021/uo51l0gaqb/thumb.jpg" alt="[Giorunog (Doujinsak)] Giantess Fantasia 2" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/914645/">[Giorunog (Doujinsak)] Giantess Fantasia 2</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/english/"><div class="g_flag flag-us"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">62</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="409 8774"data-parodies="3597"data-languages="2"data-categories="5">
+ <div class="thumbnail">
+ <div class="cat_text cat_western">
+ <a href="/category/western/"><h3 class="gallery_cat">Western</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/908320/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/021/bvdc6gj1ha/thumb.jpg" alt="Fantasia Fap Material" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/908320/">Fantasia Fap Material</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/english/"><div class="g_flag flag-us"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">39</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="15 16 21 35 57 66 67 77 78 85 95 105 175 226 595"data-parodies="14 2795 3084 3495 3673 4859"data-characters="1134 11752 12316 13800"data-languages="1"data-categories="2">
+ <div class="thumbnail">
+ <div class="cat_text cat_imageset">
+ <a href="/category/image-set/"><h3 class="gallery_cat">Image Set</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/901968/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/021/v5p6yibn0g/thumb.jpg" alt="[Pixiv/Twitter] HikuHiku (18057239)" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/901968/">[Pixiv/Twitter] HikuHiku (18057239)</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/japanese/"><div class="g_flag flag-jp"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">140</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="17727"data-artists="9881"data-languages="3 7"data-categories="4">
+ <div class="thumbnail">
+ <div class="cat_text cat_manga">
+ <a href="/category/manga/"><h3 class="gallery_cat">Manga</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/895445/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/020/i4drcufpm7/thumb.jpg" alt="[Kanemaki Thomas] Brave of Fantasia (COMIC BAVEL 2015-08) [Korean] [Digital]" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/895445/">[Kanemaki Thomas] Brave of Fantasia (COMIC BAVEL 2015-08) [Korean] [Digital]</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/korean/"><div class="g_flag flag-kr"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">25</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="175 260 4037"data-parodies="10"data-artists="16429"data-languages="3 6"data-categories="1">
+ <div class="thumbnail">
+ <div class="cat_text cat_doujinshi">
+ <a href="/category/doujinshi/"><h3 class="gallery_cat">Doujinshi</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/877281/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/020/h4zkv73eig/thumb.jpg" alt="[Fan No Hitori] Hypno App x Time Stop Fantasia Store Purchase Bonus (Spanish)" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/877281/">[Fan No Hitori] Hypno App x Time Stop Fantasia Store Purchase Bonus (Spanish)</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/spanish/"><div class="g_flag flag-es"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">8</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="83 240 241 339 480 774"data-parodies="62"data-artists="31993"data-characters="289 290 576 728"data-languages="2"data-categories="5">
+ <div class="thumbnail">
+ <div class="cat_text cat_western">
+ <a href="/category/western/"><h3 class="gallery_cat">Western</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/860129/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/020/afkorbdelx/thumb.jpg" alt="Doujinsak - Giantess Fantasia (English)" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/860129/">Doujinsak - Giantess Fantasia (English)</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/english/"><div class="g_flag flag-us"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">43</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="15 16 24 39 54 85 189 4037"data-parodies="14"data-artists="29386"data-characters="327"data-groups="20146"data-languages="1"data-categories="1">
+ <div class="thumbnail">
+ <div class="cat_text cat_doujinshi">
+ <a href="/category/doujinshi/"><h3 class="gallery_cat">Doujinshi</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/854260/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/020/cba38qsjyz/thumb.jpg" alt="(Reitaisai 19) [Cross Country. (Kurokan)] Bakunyuu Fantasia (Touhou Project)" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/854260/">(Reitaisai 19) [Cross Country. (Kurokan)] Bakunyuu Fantasia (Touhou Project)</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/japanese/"><div class="g_flag flag-jp"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">25</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-artists="2139"data-groups="1267"data-languages="3 10"data-categories="1">
+ <div class="thumbnail">
+ <div class="cat_text cat_doujinshi">
+ <a href="/category/doujinshi/"><h3 class="gallery_cat">Doujinshi</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/845820/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/020/alryu6pg43/thumb.jpg" alt="[JACK-POT (Jyura)] Necro Fantasia [Russian] [﻿REPTILOID TEAM] [Digital]" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/845820/">[JACK-POT (Jyura)] Necro Fantasia [Russian] [﻿REPTILOID TEAM] [Digital]</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/russian/"><div class="g_flag flag-ru"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">50</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="9 22 24 54 83 287"data-parodies="251"data-artists="22095"data-characters="17418"data-groups="17989"data-languages="3 6"data-categories="1">
+ <div class="thumbnail">
+ <div class="cat_text cat_doujinshi">
+ <a href="/category/doujinshi/"><h3 class="gallery_cat">Doujinshi</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/833888/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m6.hentaiera.com/020/5egc317x2t/thumb.jpg" alt="(C99) [OrangeMaru (YD)] Mousou Diary | Diario de Fantasia (THE iDOLM@STER: Shiny Colors) [Spanish] [V1smoth7]" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/833888/">(C99) [OrangeMaru (YD)] Mousou Diary | Diario de Fantasia (THE iDOLM@STER: Shiny Colors) [Spanish] [V1smoth7]</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/spanish/"><div class="g_flag flag-es"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">26</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="24 175 190"data-parodies="10"data-artists="16429"data-languages="2 3"data-categories="1">
+ <div class="thumbnail">
+ <div class="cat_text cat_doujinshi">
+ <a href="/category/doujinshi/"><h3 class="gallery_cat">Doujinshi</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/800425/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m5.hentaiera.com/019/zcun7apio1/thumb.jpg" alt="[Fan no Hitori] HYPNO .APP FANTASIA - Last Chapter [English] [Colorized] [Hen_Colorist]" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/800425/">[Fan no Hitori] HYPNO .APP FANTASIA - Last Chapter [English] [Colorized] [Hen_Colorist]</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/translated/"><div class="g_flag flag-us"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">26</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="15 83 140 175 260 641 13996"data-artists="16429"data-languages="2 3"data-categories="1">
+ <div class="thumbnail">
+ <div class="cat_text cat_doujinshi">
+ <a href="/category/doujinshi/"><h3 class="gallery_cat">Doujinshi</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/790064/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m5.hentaiera.com/019/lt9p6frwgk/thumb.jpg" alt="[Fan No Hitori][Colorized][English]Hypno App x Time Stop Fantasia Store Purchase Bonus" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/790064/">[Fan No Hitori][Colorized][English]Hypno App x Time Stop Fantasia Store Purchase Bonus</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/translated/"><div class="g_flag flag-us"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">7</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div><div class="thumb" data-tags="15 21 47 175 260 641"data-artists="16429"data-languages="3 7"data-categories="4">
+ <div class="thumbnail">
+ <div class="cat_text cat_manga">
+ <a href="/category/manga/"><h3 class="gallery_cat">Manga</h3></a>
+ </div>
+ <div class="inner_thumb">
+ <a href="/gallery/781818/"><img class="lazy preloader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 70 70'%3E%3C/svg%3E" data-src="https://m5.hentaiera.com/019/ksefjp8ltd/thumb.jpg" alt="[Fan No Hitori] Book "Hypno App x Time Stop Fantasia" Store Purchase Bonus| "히프노 어플 x 타임 스톱 판차지아" 점포조기구입특전" /></a>
+ </div>
+ <div class="g_text">
+ <h2 class="gallery_title"><a href="/gallery/781818/">[Fan No Hitori] Book "Hypno App x Time Stop Fantasia" Store Purchase Bonus| "히프노 어플 x 타임 스톱 판차지아" 점포조기구입특전</a></h2>
+ </div>
+ <div class="lang_pages">
+ <a href="/language/korean/"><div class="g_flag flag-kr"></div></a>
+ <div class="g_pages">
+ <span class="inside_p">8</span>
+ </div>
+ <div class="clear"></div>
+ </div>
+ </div>
+ </div></div><ul class='pagination'><li class='page-item disabled'><a class='page-link' href='#' tabindex='-1'>Previous</a></li><li class='page-item active'><a class='page-link' href='#'>1</a></li><li class='page-item'><a class='page-link' href='//hentaiera.com/search/?key=fantasia&lt=&pp=&dl=&tr=&mg=&dj=&ws=&is=&ac=&gc=&en=&jp=&es=&fr=&kr=&de=&ru=&page=2'>2</a></li><li class='page-item'><a class='page-link' href='//hentaiera.com/search/?key=fantasia&lt=&pp=&dl=&tr=&mg=&dj=&ws=&is=&ac=&gc=&en=&jp=&es=&fr=&kr=&de=&ru=&page=3'>3</a></li><li class='page-item'><a class='page-link' href='//hentaiera.com/search/?key=fantasia&lt=&pp=&dl=&tr=&mg=&dj=&ws=&is=&ac=&gc=&en=&jp=&es=&fr=&kr=&de=&ru=&page=4'>4</a></li><li class='page-item'><a class='page-link' href='//hentaiera.com/search/?key=fantasia&lt=&pp=&dl=&tr=&mg=&dj=&ws=&is=&ac=&gc=&en=&jp=&es=&fr=&kr=&de=&ru=&page=5'>5</a></li><li class='page-item'><a class='page-link' href='//hentaiera.com/search/?key=fantasia&lt=&pp=&dl=&tr=&mg=&dj=&ws=&is=&ac=&gc=&en=&jp=&es=&fr=&kr=&de=&ru=&page=6'>6</a></li><li class='page-item'><a class='page-link' href='//hentaiera.com/search/?key=fantasia&lt=&pp=&dl=&tr=&mg=&dj=&ws=&is=&ac=&gc=&en=&jp=&es=&fr=&kr=&de=&ru=&page=2'>Next</a></li></ul></div>
+<div class="bcx">
+</div>
+</div>
+<div id="footer_bar">
+ <div class="wrap">
+ <h3>HentaiEra - Free Hentai Manga, Doujinshi and Comic Porn.</h3> <p>HentaiEra has a massive amount of hentai galleries including hentai manga, doujinshi, porn comics, image sets and more. We have translations in 7 different languages that you can easily filter by using the big search box at the top of the site. You can save your favorites, download and comment any gallery you want by simply creating a free account. HentaiEra can be accessed on any mobile or tablet device with it's smart responsive design. Every character featured on this website is over the age of 18, all content is fictional drawn art. Please do not hesitate to contact us if you have any feedback or concerns.</p>
+ </div>
+</div>
+<div id="bar">
+ <div class="wrap">
+ <div class="bar_align">
+ <ul>
+ <a href="/">Home</a>
+ <a href="/random/">Random</a>
+ <a href="/tos/">TOS</a>
+ <a href="/contact/">Contact</a>
+ <a href="https://theporndude.com" target="blank" rel="nofollow noopener">PornDude</a>
+ <a href="https://hentaifox.tv" target="blank" rel="noopener">Hentai Porn</a>
+ <a href="https://hentaizap.com" target="blank" rel="noopener">Hentai Manga</a>
+ <a href="https://hentaienvy.com" target="blank" rel="noopener">Hentai Doujin</a>
+ <a href="https://nhentai.xxx" target="blank" rel="nofollow noopener">nHentai</a>
+ </ul>
+ </div>
+ </div>
+ </div>
+</div>
+<div class="stealth"></div>
+<div id="slider" class="slider_wrapper slider_notransition" style="max-width: 426px;right: 0px;">
+ <div id="slider_video_container" playsinline webkit-playsinline>
+ <video id="slider_video" autoplay loop muted playsinline>
+ <source id="slider_source" src="https://hentaiera.com/6151206435.mp4" type="video/mp4">
+ </video>
+ <div id="slider_close" class="slider_close">
+ <div id="slider_close_text" class="slider_close_text">Close ad</div>
+ </div>
+ <div id="slider_replay_button" style="display: none;">
+ </div>
+ <div id="slider_mute_button">
+ </div>
+ <div class="progress_slider_wrapper">
+ <div id="slider_progress" class="slider_progressbar" style="width: 0%;">
+ </div>
+ </div>
+ </div>
+</div>
+<div class="tracker">
+</div>
+</body>
+</html>

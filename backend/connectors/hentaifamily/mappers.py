@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import json
 import re
 from dataclasses import dataclass
 from urllib.parse import quote
@@ -24,6 +25,12 @@ TITLE_TAG_RE = re.compile(r"<title>([^<]+?)\s*-\s*", re.I)
 PAGE_COUNT_RE = re.compile(r'id="load_pages"[^>]+value="(\d+)"', re.I)
 THUMB_PAGE_RE = re.compile(r'data-src="(https://[^"]+/(\d+)t\.jpg)"', re.I)
 READER_IMAGE_RE = re.compile(r'data-src="(https://[^"]+\.(?:webp|png|jpg|jpeg))"', re.I)
+# Per-page "type,width,height" map the reader script ships on the gallery
+# page, e.g. ``g_th = $.parseJSON('{"1":"j,1151,900","2":"w,1280,1811"}')``.
+# Older galleries are all jpg and even new ones mix jpg into webp, so guessing
+# one extension 404s those pages.
+PAGE_TYPES_RE = re.compile(r"g_th\s*=\s*\$\.parseJSON\('(\{[^']*\})'\)")
+PAGE_TYPE_EXTENSIONS = {"j": "jpg", "p": "png", "b": "bmp", "g": "gif", "w": "webp"}
 TAG_LINK_RE = re.compile(
     r'<a[^>]+class="tag[^"]*"[^>]*>([^<]+)</a>',
     re.I,
@@ -37,6 +44,14 @@ class HentaiFamilySite:
     site_base: str
     reader_segment: str  # ``g`` (hentaifox) or ``view`` (hentaiera)
     image_host_suffix: str  # e.g. hentaifox.com
+    # The search box's query parameter. hentaifox reads ``q``; hentaiera,
+    # hentairox and comicporn read ``key`` and silently ignore ``q``, which
+    # answers every search with the unfiltered latest listing.
+    search_param: str = "q"
+    # hentairox and comicporn serve a sectioned front page at ``/`` (10-30
+    # mixed cards, no pager); the paginated latest listing starts at
+    # ``/?page=1``. hentaifox and hentaiera list it at ``/`` directly.
+    explicit_first_page: bool = False
 
 
 def _clean_text(value: str) -> str:
@@ -44,7 +59,9 @@ def _clean_text(value: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def home_listing_path(page: int, *, sort: str | None = None) -> str:
+def home_listing_path(
+    page: int, *, sort: str | None = None, explicit_first_page: bool = False
+) -> str:
     params: list[str] = []
     if sort == "popular":
         params.append("sort=popular")
@@ -52,15 +69,17 @@ def home_listing_path(page: int, *, sort: str | None = None) -> str:
         params.append("sort=new")
     elif sort in {"rating", "top_rated"}:
         params.append("sort=rating")
-    if page > 1:
+    if page > 1 or explicit_first_page:
         params.append(f"page={page}")
     if not params:
         return "/"
     return f"/?{'&'.join(params)}"
 
 
-def search_listing_path(query: str, page: int, *, sort: str | None = None) -> str:
-    params = [f"q={quote(query)}"]
+def search_listing_path(
+    query: str, page: int, *, sort: str | None = None, param: str = "q"
+) -> str:
+    params = [f"{param}={quote(query)}"]
     if page > 1:
         params.append(f"page={page}")
     if sort == "popular":
@@ -147,6 +166,10 @@ def parse_series_detail(document: str, *, gallery_id: str) -> Series | None:
     title = _clean_text(title_match.group(1))
     page_count = _page_count(document)
     media_base = _media_base(document)
+    if page_count <= 0 and media_base is None:
+        # No page count and no thumbs: not a gallery page at all (a
+        # Cloudflare interstitial or an error page that still has an <h1>).
+        return None
     cover_url = f"{media_base}cover.jpg" if media_base else None
     tags = tuple(_clean_text(name) for name in TAG_LINK_RE.findall(document))
     return Series(
@@ -175,12 +198,32 @@ def parse_chapters(document: str, *, gallery_id: str) -> list[Chapter]:
     ]
 
 
+def _page_extensions(document: str) -> dict[int, str]:
+    match = PAGE_TYPES_RE.search(document)
+    if match is None:
+        return {}
+    try:
+        raw = json.loads(match.group(1))
+    except ValueError:
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+    extensions: dict[int, str] = {}
+    for number, spec in raw.items():
+        ext = PAGE_TYPE_EXTENSIONS.get(str(spec).split(",", 1)[0])
+        if ext and str(number).isdigit():
+            extensions[int(number)] = ext
+    return extensions
+
+
 def parse_gallery_pages_from_detail(document: str, *, gallery_id: str) -> list[Page]:
-    """Build page URLs from gallery detail thumbs (webp by default)."""
+    """Build page URLs from gallery detail thumbs, typed by the ``g_th`` map
+    when the page ships one and webp otherwise."""
     page_count = _page_count(document)
     media_base = _media_base(document)
     if page_count <= 0 or not media_base:
         return []
+    extensions = _page_extensions(document)
     pages: list[Page] = []
     for number in range(1, page_count + 1):
         pages.append(
@@ -188,7 +231,7 @@ def parse_gallery_pages_from_detail(document: str, *, gallery_id: str) -> list[P
                 id=make_page_id(gallery_id, number),
                 chapter_id=gallery_id,
                 number=number,
-                remote_url=f"{media_base}{number}.webp",
+                remote_url=f"{media_base}{number}.{extensions.get(number, 'webp')}",
             )
         )
     return pages

@@ -25,6 +25,8 @@ from connectors.harimanga.connector import HariMangaConnector
 from connectors.hentai20.connector import Hentai20Connector
 from connectors.hentaifox import HentaiFoxConnector
 from connectors.hentaiera import HentaiEraConnector
+from connectors.hentairox import HentaiRoxConnector
+from connectors.comicporn import ComicPornConnector
 from connectors.hentaihand.connector import HentaiHandConnector
 from connectors.asurascans.connector import AsuraScansConnector
 from connectors.base import SourceConnector
@@ -116,6 +118,8 @@ _CONFIGLESS_CONNECTORS: set[str] = {
     Hentai20Connector.SOURCE_TYPE,
     HentaiFoxConnector.SOURCE_TYPE,
     HentaiEraConnector.SOURCE_TYPE,
+    HentaiRoxConnector.SOURCE_TYPE,
+    ComicPornConnector.SOURCE_TYPE,
     HentaiHandConnector.SOURCE_TYPE,
     HariMangaConnector.SOURCE_TYPE,
     EightMusesConnector.SOURCE_TYPE,
@@ -269,6 +273,8 @@ def _register_builtin_connectors() -> None:
         (Hentai20Connector.SOURCE_TYPE, Hentai20Connector),
         (HentaiFoxConnector.SOURCE_TYPE, HentaiFoxConnector),
         (HentaiEraConnector.SOURCE_TYPE, HentaiEraConnector),
+        (HentaiRoxConnector.SOURCE_TYPE, HentaiRoxConnector),
+        (ComicPornConnector.SOURCE_TYPE, ComicPornConnector),
         (HentaiHandConnector.SOURCE_TYPE, HentaiHandConnector),
         (HariMangaConnector.SOURCE_TYPE, HariMangaConnector),
         (EightMusesConnector.SOURCE_TYPE, EightMusesConnector),
