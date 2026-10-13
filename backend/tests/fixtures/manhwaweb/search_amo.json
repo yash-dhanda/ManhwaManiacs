@@ -1,0 +1,165 @@
+{
+ "data": [
+  {
+   "_id": "teamo_1747080624029",
+   "real_id": "teamo_1747080624029",
+   "_plataforma": "manhwas.net",
+   "_imagen": "https://img2mw.xyz/manhwas/teamo_1747080624029/cover_1788390088019nozrlprz.webp",
+   "_status": "finalizado",
+   "_categoris": [
+    1,
+    2,
+    5,
+    9,
+    14,
+    18,
+    22,
+    30,
+    42
+   ],
+   "_numero_cap": 50,
+   "_tipo": "manhwa",
+   "_erotico": "si",
+   "_demografi": "seinen",
+   "the_real_name": "¿Te amo?",
+   "name_esp": "¿Te amo?"
+  },
+  {
+   "_id": "quieres-que-seamos-amigos-para-siempre_1779574515713",
+   "real_id": "quieres-que-seamos-amigos-para-siempre_1779574515713",
+   "_plataforma": "manual",
+   "_imagen": "https://img1mw.xyz/extras/sin_portada.jpg",
+   "_status": "publicandose",
+   "_categoris": [
+    2,
+    4,
+    17,
+    26
+   ],
+   "_numero_cap": 1,
+   "_tipo": "manhwa",
+   "_erotico": "si",
+   "_demografi": "josei",
+   "the_real_name": "¿QUIERES QUE SEAMOS AMIGOS PARA SIEMPRE?",
+   "name_esp": "¿QUIERES QUE SEAMOS AMIGOS PARA SIEMPRE?"
+  },
+  {
+   "_id": "Noryangjin_1678406821786",
+   "_plataforma": "toptoon",
+   "_imagen": "https://img1mw.xyz/manhwas/Noryangjin_1678406821786/cover_17845332632776vosks26.webp",
+   "_status": "finalizado",
+   "_categoris": [
+    1,
+    2,
+    15
+   ],
+   "_numero_cap": 101,
+   "name_esp": "¿Estudiamos en Noryangjin?",
+   "the_real_name": "¿Estudiamos en Noryangjin?",
+   "_erotico": "si",
+   "_tipo": "manhwa",
+   "_demografi": "seinen",
+   "real_id": "Noryangjin_1678406821786"
+  },
+  {
+   "_id": "desde-cuando-empezamos-a-salir_1689102939993",
+   "_plataforma": "manhwas.net",
+   "_imagen": "https://img1mw.xyz/manhwas/desde-cuando-empezamos-a-salir_1689102939993/cover_178542603675239mj0fo9.webp",
+   "_status": "finalizado",
+   "_categoris": [
+    2,
+    6,
+    7,
+    18
+   ],
+   "_numero_cap": 55,
+   "the_real_name": "¿Desde cuando empezamos a salir?",
+   "name_esp": "¿Desde cuando empezamos a salir?",
+   "_tipo": "manhwa",
+   "_erotico": "si",
+   "_demografi": "seinen",
+   "real_id": "desde-cuando-empezamos-a-salir_1689102939993"
+  },
+  {
+   "_id": "yo-y-mis-sobrinas_1747865354070",
+   "real_id": "yo-y-mis-sobrinas_1747865354070",
+   "_plataforma": "manual",
+   "_imagen": "https://img2mw.xyz/manhwas/yo-y-mis-sobrinas_1747865354070/cover_1784860969014b6urjztx.webp",
+   "_status": "finalizado",
+   "_categoris": [
+    1,
+    2,
+    3,
+    6,
+    15,
+    29,
+    30,
+    42
+   ],
+   "_numero_cap": 93,
+   "_tipo": "manhwa",
+   "_erotico": "si",
+   "_demografi": "seinen",
+   "the_real_name": "Yo y mis sobrinas",
+   "name_esp": "Yo y mis sobrinas"
+  },
+  {
+   "_id": "vamos-a-escaparnos_1749664194662",
+   "real_id": "vamos-a-escaparnos_1749664194662",
+   "_plataforma": "manual",
+   "_imagen": "https://img2mw.xyz/manhwas/vamos-a-escaparnos_1749664194662/cover_1781444848623goubqwbo.webp",
+   "_status": "publicandose",
+   "_categoris": [
+    1,
+    2,
+    6,
+    18
+   ],
+   "_numero_cap": 77,
+   "_tipo": "manhwa",
+   "_erotico": "si",
+   "_demografi": "seinen",
+   "the_real_name": "Vamos a Escaparnos",
+   "name_esp": "Vamos a Escaparnos"
+  },
+  {
+   "_id": "una-pizca-de-amor_1778293823283",
+   "real_id": "una-pizca-de-amor_1778293823283",
+   "_plataforma": "manual",
+   "_imagen": "https://img1mw.xyz/extras/sin_portada.jpg",
+   "_status": "finalizado",
+   "_categoris": [
+    1,
+    2,
+    18,
+    27
+   ],
+   "_numero_cap": 5,
+   "_tipo": "manhwa",
+   "_erotico": "si",
+   "_demografi": "shojo",
+   "the_real_name": "Una pizca de amor",
+   "name_esp": "Una pizca de amor"
+  },
+  {
+   "_id": "te-amo-muchisimo_1788496044392",
+   "real_id": "te-amo-muchisimo_1788496044392",
+   "_plataforma": "manual",
+   "_imagen": "https://manhwaweb.com/assets/waifus/00000.jpg",
+   "_status": "publicandose",
+   "_categoris": [
+    1,
+    2,
+    8,
+    30
+   ],
+   "_numero_cap": 0,
+   "_tipo": "manhwa",
+   "_erotico": "si",
+   "_demografi": "seinen",
+   "the_real_name": "Te amo muchísimo",
+   "name_esp": "Te amo muchisimo"
+  }
+ ],
+ "next": true
+}

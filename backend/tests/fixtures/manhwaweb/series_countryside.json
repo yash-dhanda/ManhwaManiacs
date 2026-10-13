@@ -1,0 +1,132 @@
+{
+ "_id": "countryside_1681701042099",
+ "_link": "https://www.lezhin.com/ko/comic/countryside",
+ "_name": "시골에서 같이 살까?",
+ "_chapters": [],
+ "_plataforma": "lezhin",
+ "_creation": "2023-04-17T03:12:04.982Z",
+ "_imagen": "https://ccdn.lezhin.com/v2/comics/5916841638428672/images/tall.webp?updated=1673934405510&width=420",
+ "_status": "pausado",
+ "_categoris": [
+  {
+   "6": "Harem"
+  },
+  {
+   "12": "Ejercito"
+  },
+  {
+   "17": "Amigos de la infancia"
+  }
+ ],
+ "_sinopsis": "Después de ser dado de baja del ejército, Jung-woo trabaja como administrador de una casa compartida en su ciudad natal. Por casualidad, se reencuentra con sus amigos de la infancia que lo acosaron de niño nuevamente. \"¿Podemos cambiar algo aquí...?\"",
+ "_numero_cap": 25,
+ "_extras": {
+  "autores": [
+   "LonWatanuki&simejirow",
+   "군게"
+  ],
+  "hiatus": true,
+  "hiatus_imagenes": [
+   "https://ccdn.lezhin.com/v2/comics/5916841638428672/episodes/5207823527772160/images/cover.jpg?updated=1691305372108&width=156"
+  ],
+  "hiatus_text": "Información de fin de temporada"
+ },
+ "the_real_name": "¿Viviremos Juntos en el Campo?",
+ "chapters_esp": [],
+ "chapters_raw": [],
+ "__v": 41,
+ "link_esp": "https://www.manhwas.net/manga/viviremos-juntos-en-el-campo",
+ "name_esp": "¿Viviremos Juntos en el Campo?",
+ "name_raw": "Shall we live together in the country?",
+ "status_esp": "publicandose",
+ "numero_cap_esp": 25,
+ "link_raw": "https://manhwas.men/manga/shall-we-live-together-in-the-country-raw",
+ "status_raw": "publicandose",
+ "_erotico": "si",
+ "_tipo": "manhwa",
+ "_demografi": "seinen",
+ "grupos": [],
+ "chapters": [
+  {
+   "chapter": 11,
+   "img": [
+    "https://ccdn.lezhin.com/v2/comics/5916841638428672/episodes/6384241089511424/images/cover.jpg?updated=1678078368150&width=156"
+   ],
+   "link": "https://manhwaweb.com/leer/countryside_1681701042099-11_01",
+   "create": 1708669806462,
+   "versions": [
+    {
+     "link": "https://manhwaweb.com/leer/countryside_1681701042099-11_01",
+     "joint": [],
+     "create": 1708669806462
+    }
+   ]
+  },
+  {
+   "chapter": 12,
+   "img": [
+    "https://ccdn.lezhin.com/v2/comics/5916841638428672/episodes/4574157321601024/images/cover.jpg?updated=1678931871448&width=156"
+   ],
+   "link": "https://manhwaweb.com/leer/countryside_1681701042099-12_01",
+   "create": 1708669806462,
+   "versions": [
+    {
+     "link": "https://manhwaweb.com/leer/countryside_1681701042099-12_01",
+     "joint": [],
+     "create": 1708669806462
+    }
+   ]
+  },
+  {
+   "chapter": 13,
+   "img": [
+    "https://ccdn.lezhin.com/v2/comics/5916841638428672/episodes/4836615206535168/images/cover.jpg?updated=1680497524370&width=156"
+   ],
+   "link": "https://manhwaweb.com/leer/countryside_1681701042099-13_01",
+   "create": 1708669806462,
+   "versions": [
+    {
+     "link": "https://manhwaweb.com/leer/countryside_1681701042099-13_01",
+     "joint": [],
+     "create": 1708669806462
+    }
+   ]
+  },
+  {
+   "chapter": 14,
+   "img": [
+    "https://ccdn.lezhin.com/v2/comics/5916841638428672/episodes/5146226153291776/images/cover.jpg?updated=1680913986189&width=156"
+   ],
+   "link": "https://manhwaweb.com/leer/countryside_1681701042099-14_01",
+   "create": 1708669806462,
+   "versions": [
+    {
+     "link": "https://manhwaweb.com/leer/countryside_1681701042099-14_01",
+     "joint": [],
+     "create": 1708669806462
+    }
+   ]
+  }
+ ],
+ "real_id": "countryside_1681701042099",
+ "popularidad": 32168,
+ "base": "img1mw.xyz",
+ "artista": [
+  {
+   "_id": "1789770346281mryzg",
+   "name": "군게"
+  }
+ ],
+ "autor": [
+  {
+   "_id": "1789770345788ycqyj",
+   "name": "LonWatanuki&simejirow"
+  }
+ ],
+ "oficial_esp": [],
+ "oficial_raw": [],
+ "others_name": [
+  "Shall we live together in the country?",
+  "시골에서 같이 살까?"
+ ]
+}

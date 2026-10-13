@@ -1,0 +1,170 @@
+{
+ "_id": "teamo_1747080624029",
+ "real_id": "teamo_1747080624029",
+ "_chapters": [],
+ "_plataforma": "manhwas.net",
+ "_creation": "2025-05-12T20:10:24.029Z",
+ "_imagen": "https://img2mw.xyz/manhwas/teamo_1747080624029/cover_1788390088019nozrlprz.webp",
+ "_status": "finalizado",
+ "_categoris": [
+  {
+   "1": "Drama"
+  },
+  {
+   "2": "Romance"
+  },
+  {
+   "5": "Venganza"
+  },
+  {
+   "9": "Mujer casada"
+  },
+  {
+   "14": "Relacion secreta"
+  },
+  {
+   "18": "Comedia"
+  },
+  {
+   "22": "Amigos con derechos"
+  },
+  {
+   "30": "Ecchi"
+  },
+  {
+   "42": "Recuentos de la vida"
+  }
+ ],
+ "_sinopsis": "El pasatiempo de un hombre es acostarse con empleadas y obligarlas a renunciar una por una. Apunta a una nueva mujer en la oficina para el mismo juego, pero cuando una chica impredecible y loca comienza a jugar con sus planes, las cosas se salen de control.",
+ "_numero_cap": 50,
+ "_extras": {
+  "autores": [],
+  "hiatus": false,
+  "hiatus_imagenes": []
+ },
+ "_tipo": "manhwa",
+ "_erotico": "si",
+ "_demografi": "seinen",
+ "the_real_name": "¿Te amo?",
+ "numero_cap_esp": 50,
+ "link_esp": "https://m440.in/manga/but-i-love-you",
+ "name_esp": "¿Te amo?",
+ "chapters_esp": [],
+ "name_raw": "But I Love You",
+ "chapters_raw": [],
+ "chapters": [
+  {
+   "chapter": 1,
+   "img": [],
+   "link": "https://manhwaweb.com/leer/teamo_1747080624029-1",
+   "create": 1747080635807,
+   "versions": [
+    {
+     "link": "https://manhwaweb.com/leer/teamo_1747080624029-1",
+     "joint": [],
+     "create": 1747080635807
+    }
+   ]
+  },
+  {
+   "chapter": 2,
+   "img": [],
+   "link": "https://manhwaweb.com/leer/teamo_1747080624029-2",
+   "create": 1747080635807,
+   "versions": [
+    {
+     "link": "https://manhwaweb.com/leer/teamo_1747080624029-2",
+     "joint": [],
+     "create": 1747080635807
+    }
+   ]
+  },
+  {
+   "chapter": 3,
+   "img": [],
+   "link": "https://manhwaweb.com/leer/teamo_1747080624029-3",
+   "create": 1747080635808,
+   "versions": [
+    {
+     "link": "https://manhwaweb.com/leer/teamo_1747080624029-3",
+     "joint": [],
+     "create": 1747080635808
+    }
+   ]
+  },
+  {
+   "chapter": 4,
+   "img": [],
+   "link": "https://manhwaweb.com/leer/teamo_1747080624029-4",
+   "create": 1747080635808,
+   "versions": [
+    {
+     "link": "https://manhwaweb.com/leer/teamo_1747080624029-4",
+     "joint": [],
+     "create": 1747080635808
+    }
+   ]
+  },
+  {
+   "chapter": 49,
+   "img": [],
+   "link": "https://manhwaweb.com/leer/teamo_1747080624029-49",
+   "create": 1775650413232,
+   "versions": [
+    {
+     "link": "https://manhwaweb.com/leer/teamo_1747080624029-49",
+     "joint": [
+      {
+       "_id": 17201792174435,
+       "tipo": "uploader",
+       "name": "capa sin heroe"
+      }
+     ],
+     "create": 1775650413232
+    }
+   ]
+  },
+  {
+   "chapter": 50,
+   "img": [],
+   "link": "https://manhwaweb.com/leer/teamo_1747080624029-50",
+   "create": 1775815753075,
+   "versions": [
+    {
+     "link": "https://manhwaweb.com/leer/teamo_1747080624029-50",
+     "joint": [
+      {
+       "_id": 17201792174435,
+       "tipo": "uploader",
+       "name": "capa sin heroe"
+      }
+     ],
+     "create": 1775815753075
+    }
+   ]
+  }
+ ],
+ "grupos": [
+  {
+   "code": {
+    "_id": 17201792174435,
+    "tipo": "uploader",
+    "name": "capa sin heroe",
+    "banner": "https://manhwaweb.com/assets/banners/banner.jpg"
+   },
+   "date": 0
+  }
+ ],
+ "__v": 48,
+ "popularidad": 7047,
+ "_name": "그래도 좋아",
+ "base": "img2mw.xyz",
+ "artista": [],
+ "autor": [],
+ "oficial_esp": [],
+ "oficial_raw": [],
+ "others_name": [
+  "But I Love You",
+  "그래도 좋아"
+ ]
+}
