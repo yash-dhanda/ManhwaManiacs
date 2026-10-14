@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/home/models/home_feed.dart';
 import 'package:manhwamaniacs/features/home/providers/home_feed_provider.dart';
@@ -149,7 +150,7 @@ class _TonightFeedState extends ConsumerState<TonightFeed> {
     unawaited(openCineLightbox(
       context,
       heroTag: (cv.sourceId, cv.seriesKey),
-      image: CachedNetworkImageProvider(url, headers: headers),
+      image: CachedNetworkImageProvider(url, headers: headers, cacheManager: CoverCacheManager.instance),
       title: cv.title,
       folio: 'COVER · 720 × 1080',
     ),);

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_lightbox.dart';
 
 /// The cover Lightbox of the series page: mobile/05's `openCineLightbox` (the cover `Hero` flies
@@ -14,7 +15,7 @@ Future<void> showCoverLightbox(
     openCineLightbox(
       context,
       heroTag: heroTag ?? 'cover-$imageUrl',
-      image: CachedNetworkImageProvider(imageUrl, headers: headers),
+      image: CachedNetworkImageProvider(imageUrl, headers: headers, cacheManager: CoverCacheManager.instance),
       title: title,
       folio: 'COVER · 720 × 1080',
     );

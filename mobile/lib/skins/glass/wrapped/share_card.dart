@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:manhwamaniacs/features/library/models/annual.dart';
 import 'package:manhwamaniacs/features/library/models/library_statistics.dart';
 import 'package:manhwamaniacs/features/library/utils/wrapped_cards.dart';
@@ -111,7 +112,7 @@ final glassShareImageProvider = Provider<ImageProvider Function(String url)>(
     final base = ref.watch(apiBaseUrlProvider);
     final token = ref.watch(authTokenStoreProvider).token;
     final profileId = ref.watch(activeProfileProvider)?.id;
-    return (url) => CachedNetworkImageProvider(coverUrlAtWidth(resolveApiResourceUrl(base, url), coverRequestWidth(112, 3)), headers: apiImageHttpHeaders(token, profileId: profileId));
+    return (url) => CachedNetworkImageProvider(coverUrlAtWidth(resolveApiResourceUrl(base, url), coverRequestWidth(112, 3)), headers: apiImageHttpHeaders(token, profileId: profileId), cacheManager: CoverCacheManager.instance);
   },
   name: 'glassShareImage',
 );

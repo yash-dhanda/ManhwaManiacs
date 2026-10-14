@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from connectors.models import Chapter, Page, PaginatedSeriesList, Series
@@ -178,6 +178,34 @@ def series_detail_to_series(payload: dict[str, Any], *, chapter_count: int | Non
     if not isinstance(series, dict):
         return None
     return series_item_to_series(series, chapter_count=chapter_count)
+
+
+def chapter_is_locked(item: dict[str, Any], *, now: datetime | None = None) -> bool:
+    """Whether Asura is still holding this chapter back as paid early access.
+
+    The newest chapters of a series are listed with ``is_locked`` (and
+    ``is_premium`` / ``unlock_time``) set, but their pages are not served: the
+    page endpoint answers with an empty ``pages`` list. Listing such a chapter
+    gives the reader a row that can only fail -- "Download failed" on the
+    newest chapter, indistinguishable from a real fault -- so the connector
+    leaves it out until it opens.
+
+    A lock that carries an ``unlock_time`` already in the past is treated as
+    open (the listing can be a cache behind the clock); one without any
+    ``unlock_time`` is treated as still locked.
+    """
+    if item.get("is_locked") is not True:
+        return False
+    raw = item.get("unlock_time")
+    if not isinstance(raw, str) or not raw.strip():
+        return True
+    try:
+        unlock_at = datetime.fromisoformat(raw.strip().replace("Z", "+00:00"))
+    except ValueError:
+        return True
+    if unlock_at.tzinfo is None:
+        unlock_at = unlock_at.replace(tzinfo=timezone.utc)
+    return unlock_at > (now or datetime.now(timezone.utc))
 
 
 def chapter_item_to_chapter(item: dict[str, Any], *, series_id: str) -> Chapter:

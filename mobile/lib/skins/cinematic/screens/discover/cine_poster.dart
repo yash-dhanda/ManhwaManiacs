@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
@@ -34,6 +35,7 @@ class CineCover extends ConsumerWidget {
               profileId: ref.watch(activeProfileProvider)?.id,
             )
           : null,
+      cacheManager: CoverCacheManager.instance,
       fit: fit,
       fadeInDuration: CineDur.beat,
       placeholder: (_, __) => ColoredBox(color: t.colorPaper1),

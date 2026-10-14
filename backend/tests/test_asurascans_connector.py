@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from connectors.asurascans.connector import AsuraScansConnector
-from connectors.asurascans.mappers import chapter_pages_to_pages
+from connectors.asurascans.mappers import chapter_is_locked, chapter_pages_to_pages
 from connectors.registry import create_connector, list_installed_connectors
 from services.browse_service import _serialize_page
 
@@ -105,6 +106,52 @@ def test_chapter_page_serialization_preserves_every_page(fixture_name: str):
     assert len(serialized) == len(raw_pages)
     assert [item["number"] for item in serialized] == list(range(1, len(raw_pages) + 1))
     assert all(item["image_url"].startswith("/sources/asurascans/pages/") for item in serialized)
+
+
+_BEFORE_UNLOCK = datetime(2026, 6, 30, 12, 0, tzinfo=timezone.utc)
+_AFTER_UNLOCK = datetime(2026, 7, 1, 12, 0, tzinfo=timezone.utc)
+
+
+def test_early_access_chapter_is_locked_until_its_unlock_time():
+    # Real row from the fixture: chapter 169, is_locked + is_premium, unlocks 2026-06-30T23:04Z.
+    locked = _load("chapter_list.json")["data"][0]
+    assert locked["number"] == 169 and locked["is_locked"] is True
+
+    assert chapter_is_locked(locked, now=_BEFORE_UNLOCK) is True
+    # Once the clock passes unlock_time the listing may still say locked; trust the clock.
+    assert chapter_is_locked(locked, now=_AFTER_UNLOCK) is False
+
+
+def test_locked_without_an_unlock_time_stays_locked():
+    assert chapter_is_locked({"is_locked": True}, now=_AFTER_UNLOCK) is True
+    assert chapter_is_locked({"is_locked": True, "unlock_time": "garbage"}) is True
+    assert chapter_is_locked({"is_locked": True, "unlock_time": None}) is True
+
+
+def test_unlocked_and_unflagged_chapters_are_not_locked():
+    free = _load("chapter_list.json")["data"][1]
+    assert free["is_locked"] is False
+    assert chapter_is_locked(free) is False
+    assert chapter_is_locked({"number": 1}) is False
+    # is_premium alone (a paid chapter that is already open) is not a lock.
+    assert chapter_is_locked({"is_premium": True, "is_locked": False}) is False
+
+
+def test_get_chapters_leaves_out_chapters_still_in_early_access(
+    asurascans_connector: AsuraScansConnector,
+):
+    payload = _load("chapter_list.json")
+    # The fixture's lock has since expired by wall clock; push it into the future.
+    payload["data"][0]["unlock_time"] = "2999-01-01T00:00:00Z"
+    total = len(payload["data"])
+
+    with patch.object(asurascans_connector._http, "get_json", return_value=payload):
+        chapters = asurascans_connector.get_chapters("return-of-the-mount-hua-sect")
+
+    numbers = [chapter.number for chapter in chapters]
+    assert 169 not in numbers
+    assert len(chapters) == total - 1
+    assert numbers[-1] == 168  # newest readable chapter is now the last (ascending order)
 
 
 @pytest.mark.integration
