@@ -10,6 +10,7 @@ from connectors.asurascans.mappers import (
     API_BASE,
     PAGE_SIZE,
     chapter_identity as _chapter_identity,
+    chapter_is_locked,
     chapter_item_to_chapter,
     chapter_pages_to_pages,
     page_id_chapter_id,
@@ -273,7 +274,7 @@ class AsuraScansConnector(SourceConnector):
         chapters = [
             chapter_item_to_chapter(item, series_id=series_id)
             for item in data
-            if isinstance(item, dict)
+            if isinstance(item, dict) and not chapter_is_locked(item)
         ]
         chapters.sort(key=lambda chapter: chapter.number if chapter.number is not None else 0)
         self._log_request(

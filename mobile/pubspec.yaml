@@ -44,6 +44,9 @@ dependencies:
   # Image caching
   cached_network_image: ^3.3.1
   flutter_cache_manager: ^3.3.1
+  # Already resolved (flutter_cache_manager's File type); the cover cache's
+  # FileSystem needs it by name. Pure Dart: no new native build input.
+  file: ^7.0.0
 
   # App/device info
   package_info_plus: ^8.0.0
