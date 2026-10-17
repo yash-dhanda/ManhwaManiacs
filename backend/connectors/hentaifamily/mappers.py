@@ -52,6 +52,9 @@ class HentaiFamilySite:
     # mixed cards, no pager); the paginated latest listing starts at
     # ``/?page=1``. hentaifox and hentaiera list it at ``/`` directly.
     explicit_first_page: bool = False
+    # hentaifox ignores ``?page=N`` on the latest listing (every page is page 1);
+    # its pager is ``/page/N/``.
+    path_paging: bool = False
 
 
 def _clean_text(value: str) -> str:
@@ -60,7 +63,11 @@ def _clean_text(value: str) -> str:
 
 
 def home_listing_path(
-    page: int, *, sort: str | None = None, explicit_first_page: bool = False
+    page: int,
+    *,
+    sort: str | None = None,
+    explicit_first_page: bool = False,
+    path_paging: bool = False,
 ) -> str:
     params: list[str] = []
     if sort == "popular":
@@ -69,11 +76,13 @@ def home_listing_path(
         params.append("sort=new")
     elif sort in {"rating", "top_rated"}:
         params.append("sort=rating")
-    if page > 1 or explicit_first_page:
+    base = "/"
+    if path_paging:
+        if page > 1:
+            base = f"/page/{page}/"
+    elif page > 1 or explicit_first_page:
         params.append(f"page={page}")
-    if not params:
-        return "/"
-    return f"/?{'&'.join(params)}"
+    return f"{base}?{'&'.join(params)}" if params else base
 
 
 def search_listing_path(

@@ -944,3 +944,13 @@ def test_a_site_with_only_a_load_more_button_still_has_a_next_page():
     assert mapper._extract_total_pages(ajax, 1) == 2
     assert mapper._extract_total_pages(ajax, 2) == 3
     assert mapper._extract_total_pages("<div>no pager</div>", 1) == 1
+
+
+def test_hentaifox_pages_by_path_not_query():
+    """hentaifox answers ``/?page=2`` with page 1 again; its pager is ``/page/N/``."""
+    from connectors.hentaifamily.mappers import home_listing_path
+
+    assert home_listing_path(1, path_paging=True) == "/"
+    assert home_listing_path(2, path_paging=True) == "/page/2/"
+    assert home_listing_path(3, sort="popular", path_paging=True) == "/page/3/?sort=popular"
+    assert home_listing_path(2) == "/?page=2"

@@ -123,7 +123,10 @@ class HentaiFamilyConnector(SourceConnector):
             )
         return (
             home_listing_path(
-                page, sort=sort, explicit_first_page=self._site.explicit_first_page
+                page,
+                sort=sort,
+                explicit_first_page=self._site.explicit_first_page,
+                path_paging=self._site.path_paging,
             ),
             HOME_PAGE_SIZE,
         )
