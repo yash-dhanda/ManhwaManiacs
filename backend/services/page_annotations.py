@@ -13,6 +13,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from core.errors import AppError
@@ -47,7 +48,7 @@ def resolve_pages(reader: Any, source_id: str, series_key: str, chapter_key: str
         return None
 
 
-def _upsert(
+def _upsert_once(
     db: Session, source_id: str, series_key: str, chapter_key: str,
     pages: list[dict[str, Any]], reports: dict[int, dict[str, Any]],
 ) -> None:
@@ -84,6 +85,18 @@ def _upsert(
         for name, value in fields.items():
             setattr(row, name, value)
     db.commit()
+
+
+def _upsert(
+    db: Session, source_id: str, series_key: str, chapter_key: str,
+    pages: list[dict[str, Any]], reports: dict[int, dict[str, Any]],
+) -> None:
+    """Two readers reporting the same page race to insert its row; the loser retries as an update."""
+    try:
+        _upsert_once(db, source_id, series_key, chapter_key, pages, reports)
+    except IntegrityError:
+        db.rollback()
+        _upsert_once(db, source_id, series_key, chapter_key, pages, reports)
 
 
 def store_tints(
