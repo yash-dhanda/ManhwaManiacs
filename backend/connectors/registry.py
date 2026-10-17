@@ -26,6 +26,13 @@ from connectors.hentai20.connector import Hentai20Connector
 from connectors.hentaifox import HentaiFoxConnector
 from connectors.hentaiera import HentaiEraConnector
 from connectors.hentairox import HentaiRoxConnector
+from connectors.hentaiforce.connector import HentaiForceConnector
+from connectors.hentaipaw.connector import HentaiPawConnector
+from connectors.manga18club.connector import Manga18ClubConnector
+from connectors.manga18fx.connector import Manga18fxConnector
+from connectors.manhwaweb.connector import ManhwaWebConnector
+from connectors.mxshm.connector import MxshmConnector
+from connectors.rouman5.connector import Rouman5Connector
 from connectors.comicporn import ComicPornConnector
 from connectors.hentaihand.connector import HentaiHandConnector
 from connectors.asurascans.connector import AsuraScansConnector
@@ -119,6 +126,13 @@ _CONFIGLESS_CONNECTORS: set[str] = {
     HentaiFoxConnector.SOURCE_TYPE,
     HentaiEraConnector.SOURCE_TYPE,
     HentaiRoxConnector.SOURCE_TYPE,
+    HentaiForceConnector.SOURCE_TYPE,
+    HentaiPawConnector.SOURCE_TYPE,
+    Manga18ClubConnector.SOURCE_TYPE,
+    Manga18fxConnector.SOURCE_TYPE,
+    ManhwaWebConnector.SOURCE_TYPE,
+    MxshmConnector.SOURCE_TYPE,
+    Rouman5Connector.SOURCE_TYPE,
     ComicPornConnector.SOURCE_TYPE,
     HentaiHandConnector.SOURCE_TYPE,
     HariMangaConnector.SOURCE_TYPE,
@@ -274,6 +288,13 @@ def _register_builtin_connectors() -> None:
         (HentaiFoxConnector.SOURCE_TYPE, HentaiFoxConnector),
         (HentaiEraConnector.SOURCE_TYPE, HentaiEraConnector),
         (HentaiRoxConnector.SOURCE_TYPE, HentaiRoxConnector),
+        (HentaiForceConnector.SOURCE_TYPE, HentaiForceConnector),
+        (HentaiPawConnector.SOURCE_TYPE, HentaiPawConnector),
+        (Manga18ClubConnector.SOURCE_TYPE, Manga18ClubConnector),
+        (Manga18fxConnector.SOURCE_TYPE, Manga18fxConnector),
+        (ManhwaWebConnector.SOURCE_TYPE, ManhwaWebConnector),
+        (MxshmConnector.SOURCE_TYPE, MxshmConnector),
+        (Rouman5Connector.SOURCE_TYPE, Rouman5Connector),
         (ComicPornConnector.SOURCE_TYPE, ComicPornConnector),
         (HentaiHandConnector.SOURCE_TYPE, HentaiHandConnector),
         (HariMangaConnector.SOURCE_TYPE, HariMangaConnector),

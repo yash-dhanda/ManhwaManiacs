@@ -130,7 +130,7 @@ class MadaraHtml:
     ) -> PaginatedSeriesList:
         size = page_size or self._cfg.page_size
         items = self._parse_cards(html_text, self._browse_card_split, "page-item-detail")
-        total_pages = self._extract_total_pages(html_text)
+        total_pages = self._extract_total_pages(html_text, page)
         total = total_pages * size
         if page == total_pages:
             total = (total_pages - 1) * size + len(items)
@@ -169,7 +169,7 @@ class MadaraHtml:
                         canonical_path=self.series_id_to_path(series_id),
                     )
                 )
-        total_pages = self._extract_total_pages(html_text)
+        total_pages = self._extract_total_pages(html_text, page)
         if total_pages <= 1:
             total = len(items)
             has_more = False
@@ -398,12 +398,25 @@ class MadaraHtml:
     def _clean_text(self, value: str) -> str:
         return html.unescape(re.sub(r"\s+", " ", value)).strip()
 
-    def _extract_total_pages(self, html_text: str) -> int:
+    #: A next link, or the theme's ajax "load more" button, with no numbered
+    #: pager: the site has a page after this one and does not say how many.
+    _MORE_MARKERS = (
+        'class="next page-numbers"',
+        'class="next"',
+        "navigation-ajax",
+        "load-ajax",
+    )
+
+    def _extract_total_pages(self, html_text: str, page: int = 1) -> int:
         pages = [int(value) for value in self._listing_page_re.findall(html_text)]
         if pages:
             return max(pages)
-        if 'class="next page-numbers"' in html_text or 'class="next"' in html_text:
-            return 2
+        if any(marker in html_text for marker in self._MORE_MARKERS):
+            # One past the page being read, not a flat 2: page 2 of such a
+            # site says "more" too, and a flat 2 ended its browse there.
+            # manhwahub.to loads further series with a button and has no
+            # numbered pager, so it stopped after page 1.
+            return page + 1
         return 1
 
     @staticmethod

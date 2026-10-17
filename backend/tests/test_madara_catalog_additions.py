@@ -931,3 +931,16 @@ def test_image_fetch_headers_carry_referer_and_browser_user_agent() -> None:
 def test_image_allowlist_rejects_lookalike_hosts(bad_host: str) -> None:
     allowed = create_connector("mangasushi").allowed_image_hosts
     assert not host_matches_allowlist(bad_host, allowed)
+
+
+def test_a_site_with_only_a_load_more_button_still_has_a_next_page():
+    """manhwahub.to has no numbered pager, only an ajax "load more" button, so
+    its browse stopped after page 1; page 2 of such a site says "more" too."""
+    from connectors.madara.mappers import MadaraHtml  # noqa: PLC0415
+
+    mapper = MadaraHtml.__new__(MadaraHtml)
+    mapper._listing_page_re = __import__("re").compile(r"/page/(\d+)/")
+    ajax = '<div class="navigation-ajax"><a class="load-ajax">Load more</a></div>'
+    assert mapper._extract_total_pages(ajax, 1) == 2
+    assert mapper._extract_total_pages(ajax, 2) == 3
+    assert mapper._extract_total_pages("<div>no pager</div>", 1) == 1
