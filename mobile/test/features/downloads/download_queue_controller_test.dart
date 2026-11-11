@@ -413,7 +413,7 @@ void main() {
     var pausedOnce = false;
     final container = buildContainer(
       readerRepository: _ScriptedReaderRepository(
-        () async => Ok(_manifestWithPages(6)),
+        () async => Ok(_manifestWithPages(kPageFetchConcurrency * 3)),
       ),
       pageFetcher: _ScriptedPageFetcher(
         (url) async {
@@ -442,14 +442,17 @@ void main() {
     final held = await store.getChapter(_id);
     // Held, not dropped and not falsely completed.
     expect(held!.state, DownloadChapterState.downloading);
-    expect(await store.existingPageNumbers(held.rowId), {1, 2});
+    expect(
+      await store.existingPageNumbers(held.rowId),
+      {for (var n = 1; n <= kPageFetchConcurrency; n++) n},
+    );
 
     controller.resume();
     await controller.debugWaitUntilIdle();
 
     expect((await store.getChapter(_id))!.state, DownloadChapterState.complete);
-    // The two pages already on disk were never re-fetched.
-    expect(requested, hasLength(6));
+    // The first chunk's pages already on disk were never re-fetched.
+    expect(requested, hasLength(kPageFetchConcurrency * 3));
   });
 
   test('a user pause outlives a trip to the home screen', () async {

@@ -283,10 +283,9 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      // Today's behaviour plus one step, not the maximum.
       expect(
         container.read(downloadConcurrencyProvider),
-        DownloadConcurrency.two,
+        DownloadConcurrency.ten,
       );
 
       await container
@@ -310,8 +309,8 @@ void main() {
     });
 
     test('an unreadable or absent value falls back to the default', () {
-      expect(DownloadConcurrency.fromWire(null), DownloadConcurrency.two);
-      expect(DownloadConcurrency.fromWire('nine'), DownloadConcurrency.two);
+      expect(DownloadConcurrency.fromWire(null), DownloadConcurrency.ten);
+      expect(DownloadConcurrency.fromWire('nine'), DownloadConcurrency.ten);
       expect(DownloadConcurrency.one.chapters, 1);
       expect(DownloadConcurrency.three.chapters, 3);
     });
@@ -369,9 +368,9 @@ void main() {
     test(
         'the ceiling is the request gate, not the setting times the page '
         'concurrency', () async {
-      // The number that actually bounds the blast radius. Three chapters each
-      // asking for kPageFetchConcurrency pages is six; the shared gate is what
-      // makes the truth four.
+      // The number that actually bounds the blast radius. Ten chapters each
+      // asking for kPageFetchConcurrency pages is sixty; the shared gate is
+      // what makes the truth kQueueRequestConcurrency.
       var open = 0;
       var peak = 0;
       void track(int delta) {
@@ -384,17 +383,17 @@ void main() {
       final container = buildContainer(
         readerRepository: repo,
         pageFetcher: fetcher,
-        concurrency: DownloadConcurrency.three,
+        concurrency: DownloadConcurrency.ten,
       );
 
       final controller =
           container.read(downloadQueueControllerProvider.notifier);
-      await controller.enqueueChapters(_queueRequests(6));
+      await controller.enqueueChapters(_queueRequests(12));
       await controller.debugWaitUntilIdle();
 
       expect(peak, lessThanOrEqualTo(kQueueRequestConcurrency));
       expect(
-        DownloadConcurrency.three.chapters * kPageFetchConcurrency,
+        DownloadConcurrency.ten.chapters * kPageFetchConcurrency,
         greaterThan(kQueueRequestConcurrency),
         reason: 'otherwise this test proves nothing about the gate',
       );
