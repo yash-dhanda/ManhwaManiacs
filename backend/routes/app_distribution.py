@@ -139,6 +139,17 @@ class Changelog(BaseModel):
 # consume the exact same source of truth.
 _RELEASE_NOTES: list[ChangelogEntry] = [
     ChangelogEntry(
+        version="1.0.1",
+        build=59,
+        date="November 2026",
+        highlights=[
+            "Downloads are much faster: ten chapters download at the same time by default (you can lower it in Settings), six pages of each at once, and the server now keeps up. Asura chapters that took minutes arrive in seconds",
+            "Asura Scans loads again: its image server started blocking the app and every page said it could not load. Pages now open",
+            "Rawkuma chapters have pages again and HentaiRox lists galleries again",
+            "DoujinHQ and YaoiHub are gone because their sites no longer exist; your follows and progress on them are kept",
+        ],
+    ),
+    ChangelogEntry(
         version="1.0.0",
         build=58,
         date="October 2026",
