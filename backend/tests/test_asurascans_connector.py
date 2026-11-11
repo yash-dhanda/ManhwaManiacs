@@ -173,3 +173,23 @@ def test_asurascans_sequential_live_requests():
 def test_create_asurascans_connector():
     connector = create_connector("asurascans")
     assert connector.source_type == "asurascans"
+
+
+def test_images_go_through_the_browser_fingerprint_client():
+    """cdn.asurascans.com answers a plain client with a Cloudflare challenge."""
+    from connectors.asurascans.connector import AsuraScansConnector
+
+    class FakeImageClient:
+        def __init__(self) -> None:
+            self.urls: list[str] = []
+
+        def get_bytes(self, url: str):
+            self.urls.append(url)
+            return "image/webp", b"RIFFxxxxWEBP"
+
+    connector = AsuraScansConnector()
+    fake = FakeImageClient()
+    connector._image_http = fake  # type: ignore[assignment]
+    url = "https://cdn.asurascans.com/asura-images/chapters/x/1/a.webp?v=1"
+    assert connector.fetch_proxied_image(url) == ("image/webp", b"RIFFxxxxWEBP")
+    assert fake.urls == [url]

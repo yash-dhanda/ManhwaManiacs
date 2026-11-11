@@ -23,10 +23,14 @@ from connectors.asurascans.mappers import (
 )
 from connectors.base import SourceConnector
 from connectors.http.cache import TTLCache
+from connectors.http.cf_client import CfSyncHttpClient
 from connectors.http.client import ConnectorHttpError, SyncConnectorHttpClient
 from connectors.models import BrowseMode, Chapter, Page, PaginatedSeriesList, Series
 
 logger = logging.getLogger(__name__)
+
+
+IMAGE_BASE = "https://cdn.asurascans.com"
 
 
 class AsuraScansConnector(SourceConnector):
@@ -43,6 +47,7 @@ class AsuraScansConnector(SourceConnector):
 
     def __init__(self) -> None:
         self._http = SyncConnectorHttpClient(API_BASE)
+        self._image_http: CfSyncHttpClient | None = None
         self._series_cache: TTLCache[Series] = TTLCache(ttl_seconds=300.0)
         self._chapter_list_cache: TTLCache[list[Chapter]] = TTLCache(ttl_seconds=180.0)
         self._page_cache: TTLCache[list[Page]] = TTLCache(ttl_seconds=600.0)
@@ -70,6 +75,19 @@ class AsuraScansConnector(SourceConnector):
     @property
     def allowed_image_hosts(self) -> frozenset[str]:
         return frozenset({"asurascans.com", "asuracomic.net"})
+
+    def fetch_proxied_image(self, url: str) -> tuple[str, bytes] | None:
+        """Fetch page images and covers with a browser TLS fingerprint.
+
+        cdn.asurascans.com started answering a plain client with a Cloudflare
+        "Just a moment..." 403, so every page of every chapter came back as a
+        502 from the image proxy and the reader said the page did not load.
+        The same request through curl_cffi's Chrome impersonation gets the
+        image.
+        """
+        if self._image_http is None:
+            self._image_http = CfSyncHttpClient(IMAGE_BASE)
+        return self._image_http.get_bytes(url)
 
     def _log_request(
         self,
