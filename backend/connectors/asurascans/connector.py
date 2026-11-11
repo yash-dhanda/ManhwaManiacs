@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from typing import Any
 from connectors.ids import fully_unquote
 
@@ -47,7 +48,9 @@ class AsuraScansConnector(SourceConnector):
 
     def __init__(self) -> None:
         self._http = SyncConnectorHttpClient(API_BASE)
-        self._image_http: CfSyncHttpClient | None = None
+        # One browser-fingerprint client per worker thread: a curl_cffi session
+        # is not safe to share, and the image proxy runs on a threadpool.
+        self._image_local = threading.local()
         self._series_cache: TTLCache[Series] = TTLCache(ttl_seconds=300.0)
         self._chapter_list_cache: TTLCache[list[Chapter]] = TTLCache(ttl_seconds=180.0)
         self._page_cache: TTLCache[list[Page]] = TTLCache(ttl_seconds=600.0)
@@ -85,9 +88,13 @@ class AsuraScansConnector(SourceConnector):
         The same request through curl_cffi's Chrome impersonation gets the
         image.
         """
-        if self._image_http is None:
-            self._image_http = CfSyncHttpClient(IMAGE_BASE)
-        return self._image_http.get_bytes(url)
+        client = getattr(self._image_local, "client", None)
+        if client is None:
+            # min_interval=0: this is a CDN, not the site; spacing image bytes
+            # 0.21 s apart capped every download at about 5 pages a second.
+            client = CfSyncHttpClient(IMAGE_BASE, min_interval=0.0)
+            self._image_local.client = client
+        return client.get_bytes(url)
 
     def _log_request(
         self,

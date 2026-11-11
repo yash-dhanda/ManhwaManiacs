@@ -28,6 +28,11 @@ services:
       - MM_DB_PATH=/data/manhwamaniacs.db
       - MM_SETTINGS_PATH=/data/settings.json
       - MM_COOKIE_SECURE=true
+      # The page-image proxy is charged to the `sources` bucket, which was 60 a
+      # minute per IP: one page a second, so ten chapters of downloads took
+      # minutes however many the phone asked for. 1500 a minute (25 a second)
+      # lets the phone's request gate (24 open) run full. Private app, 4 vCPU.
+      - MM_RATE_LIMIT_SOURCES=1500/minute
       # OPEN, and deliberately so: the owner wants anyone who finds the site
       # to be able to sign up, and re-confirmed that on 2026-09-06 when an
       # audit flagged it. Do not "fix" this back to closed.

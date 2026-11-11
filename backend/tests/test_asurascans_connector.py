@@ -189,7 +189,7 @@ def test_images_go_through_the_browser_fingerprint_client():
 
     connector = AsuraScansConnector()
     fake = FakeImageClient()
-    connector._image_http = fake  # type: ignore[assignment]
+    connector._image_local.client = fake
     url = "https://cdn.asurascans.com/asura-images/chapters/x/1/a.webp?v=1"
     assert connector.fetch_proxied_image(url) == ("image/webp", b"RIFFxxxxWEBP")
     assert fake.urls == [url]
