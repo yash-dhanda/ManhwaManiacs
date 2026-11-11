@@ -19,6 +19,14 @@ LISTING_CARD_RE = re.compile(
     r'class="(?:g_title|gallery_title)"><a[^>]*>([^<]+)</a>',
     re.S | re.I,
 )
+# hentairox's current front page: ``hr-home-card`` articles, thumbnail in a plain
+# ``src`` (no ``data-src``), title in the caption link.
+LISTING_CARD_V2_RE = re.compile(
+    r'class="hr-home-card__cover"\s+href="(/gallery/(\d+)/)"[^>]*>\s*'
+    r'<img[^>]+src="([^"]+)".*?'
+    r'hr-home-card__title"><a[^>]*>([^<]+)</a>',
+    re.S | re.I,
+)
 NEXT_PAGE_RE = re.compile(r"page-link['\"][^>]*>\s*Next", re.I)
 TITLE_H1_RE = re.compile(r'<h1[^>]*>([^<]+)', re.I)
 TITLE_TAG_RE = re.compile(r"<title>([^<]+?)\s*-\s*", re.I)
@@ -127,7 +135,8 @@ def parse_series_list(
 ) -> PaginatedSeriesList:
     seen: set[str] = set()
     items: list[Series] = []
-    for _href, gallery_id, thumb_url, title in LISTING_CARD_RE.findall(document):
+    cards = LISTING_CARD_RE.findall(document) or LISTING_CARD_V2_RE.findall(document)
+    for _href, gallery_id, thumb_url, title in cards:
         if gallery_id in seen:
             continue
         seen.add(gallery_id)

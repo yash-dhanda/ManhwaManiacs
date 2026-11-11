@@ -137,3 +137,20 @@ def test_blocked_gallery_returns_empty(connector: HentaiRoxConnector):
         assert connector.get_series("2") is None
         assert connector.get_chapters("2") == []
         assert connector.get_chapter_pages("2") == []
+
+
+def test_new_front_page_cards_are_listed():
+    """hentairox's front page moved to ``hr-home-card`` articles with a plain ``src``."""
+    from connectors.hentaifamily.mappers import parse_series_list
+
+    card = (
+        '<article class="hr-home-card"><div class="hr-home-card__media">'
+        '<a class="hr-home-card__cover" href="/gallery/872599/" aria-label="Open X">'
+        ' <img src="https://m11.hentairox.com/033/abc/thumb.jpg" alt="" loading="lazy"></a></div>'
+        '<div class="hr-home-card__caption"><h2 class="hr-home-card__title">'
+        '<a href="/gallery/872599/">Zelda Vore - Chapter 18</a></h2></div></article>'
+    )
+    out = parse_series_list(card * 2, page=1, page_size=20)
+    assert [i.id for i in out.items] == ["872599"]
+    assert out.items[0].title == "Zelda Vore - Chapter 18"
+    assert out.items[0].cover_url.endswith("/033/abc/cover.jpg")
