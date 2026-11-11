@@ -567,3 +567,18 @@ def test_transport_failure_still_propagates(connector: RawkumaConnector):
     ):
         with pytest.raises(ConnectorHttpError):
             connector.get_series_list(1)
+
+
+def test_cdn_rawkuma_com_page_images_are_pages():
+    """Page images moved to cdn.rawkuma.com; the reader found none of them."""
+    from connectors.rawkuma.mappers import is_page_image_url, parse_chapter_pages
+
+    assert is_page_image_url("https://cdn.rawkuma.com/images/s/x/1/1.jpg")
+    assert not is_page_image_url("https://ads.example/?ref=cdn.rawkuma.com")
+    html = (
+        '<section data-image-data="1">'
+        '<img src="https://cdn.rawkuma.com/images/s/x/1/1.jpg" alt="p1" />'
+        '<img src="https://cdn.rawkuma.com/images/s/x/1/2.jpg" alt="p2" />'
+        "</section>"
+    )
+    assert [p.number for p in parse_chapter_pages(html, "x/chapter-1.1")] == [1, 2]

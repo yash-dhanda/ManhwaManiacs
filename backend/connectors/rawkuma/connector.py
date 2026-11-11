@@ -118,7 +118,7 @@ class RawkumaConnector(SourceConnector):
         # rawkuma.net serves cover art out of /wp-content/uploads/; page
         # images come from the site's own CDN, which uses two subdomains
         # (kuma.kyut.dev and rcdn.kyut.dev) across the catalog.
-        return frozenset({"rawkuma.net", "kyut.dev"})
+        return frozenset({"rawkuma.net", "kyut.dev", "rawkuma.com"})
 
     def list_browse_modes(self) -> list[BrowseMode]:
         return list(BROWSE_MODES)

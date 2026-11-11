@@ -535,11 +535,11 @@ PAGE_SECTION_RE = re.compile(
 )
 PAGE_IMG_RE = re.compile(r"<img[^>]+src=[\"']([^\"']+)[\"']", re.I)
 
-#: Rawkuma serves page images off two hosts, both under kyut.dev
-#: (kuma.kyut.dev and rcdn.kyut.dev). Anything else inside the reader section
+#: Rawkuma serves page images off kyut.dev (kuma.kyut.dev and rcdn.kyut.dev)
+#: and, since late 2026, cdn.rawkuma.com. Anything else inside the reader section
 #: is theme chrome -- a banner, a spacer, a house ad -- and must not be handed
 #: to the reader as a page, which would shift every page number after it.
-PAGE_HOST_SUFFIX = "kyut.dev"
+PAGE_HOST_SUFFIXES = ("kyut.dev", "cdn.rawkuma.com")
 
 
 def is_page_image_url(url: str) -> bool:
@@ -549,7 +549,7 @@ def is_page_image_url(url: str) -> bool:
     substring test would accept ``https://ads.example/?ref=kyut.dev``.
     """
     host = (urlparse(url).hostname or "").lower()
-    return host == PAGE_HOST_SUFFIX or host.endswith(f".{PAGE_HOST_SUFFIX}")
+    return any(host == s or host.endswith(f".{s}") for s in PAGE_HOST_SUFFIXES)
 
 
 def parse_chapter_pages(html: str, chapter_id: str) -> list[Page]:
