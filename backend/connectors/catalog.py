@@ -616,7 +616,6 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     # ``{series}/ajax/chapters/`` is the only route to them - it works. Page
     # images are lazyloaded from cdn.doujinhq.club, so the extractor reads
     # data-src and the allowlist needs that host.
-    _site("doujinhq", "DoujinHQ", "www.doujinhq.club", url_segment="dj", mature=True, use_cf=False, extra_image_hosts=frozenset({"cdn.doujinhq.club"})),
     # Added 2026-09-05. Stock Madara sitting behind Cloudflare -- every hit
     # from the VPS comes back with a cf-ray -- so it keeps the impersonating
     # client. Yaoi/yuri/hentai webtoons, hence mature. Page images live on
@@ -624,7 +623,6 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     # host-derived allowlist already covers them. LiteSpeed Cache lazyloads
     # them, but the extractor already reads data-src and trims the whitespace
     # this install leaves inside the attribute value.
-    _site("yaoihub", "YaoiHub", "yaoihub.org", mature=True),
     # Added 2026-09-05 after an end-to-end probe from the VPS. Two independent
     # English BL/yaoi smut Madara installs (themes/madara plus a child theme)
     # that cleared browse, wp-manga-search-manga, detail, chapter and page
