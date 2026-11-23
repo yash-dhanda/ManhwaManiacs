@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart' show DioException;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/network/network_connectivity.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
@@ -64,7 +66,12 @@ class DownloadQueueState {
     this.activeChapterCount = 0,
     this.queueRevision = 0,
     this.pacedUntil,
+    this.heldReasons = const {},
   });
+
+  /// Chapters the queue is leaving alone for now, with the line the Downloads screens show in place of "Waiting" (an early-access
+  /// chapter: "Opens at 7:45 PM"). Not failures: the rows stay queued and the chapters after them go on.
+  final Map<ChapterIdentity, String> heldReasons;
 
   /// When the 30 s cool-down after the bulk bucket refused a request ends; null when the queue is not being paced. Read by the
   /// Glass Queue tab's "Waiting n s: the server is pacing downloads" countdown.
@@ -127,6 +134,7 @@ class DownloadQueueState {
     int? queueRevision,
     DateTime? pacedUntil,
     bool clearPacedUntil = false,
+    Map<ChapterIdentity, String>? heldReasons,
   }) {
     return DownloadQueueState(
       isDownloading: isDownloading ?? this.isDownloading,
@@ -138,6 +146,7 @@ class DownloadQueueState {
       activeChapterCount: activeChapterCount ?? this.activeChapterCount,
       queueRevision: queueRevision ?? this.queueRevision,
       pacedUntil: clearPacedUntil ? null : (pacedUntil ?? this.pacedUntil),
+      heldReasons: heldReasons ?? this.heldReasons,
     );
   }
 }
@@ -150,6 +159,9 @@ enum _ChapterOutcome {
   pausedCap,
   pausedUser,
   pausedBackground,
+
+  /// An early-access chapter that is not open yet: left queued, no try spent, the rest of the queue goes on.
+  held,
 }
 
 /// The foreground-only download queue engine (spec §3): fetch manifest,
@@ -238,6 +250,25 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   /// null when it is free. Set by [_blockBulkWindows].
   DateTime? _bulkWindowBlockedUntil;
 
+  /// Until when the server asked for quiet after a page answered 429, or null. One instant for the whole queue: the limit is
+  /// per client, so every page fetch in flight waits on it instead of each running into the same 429 in turn.
+  DateTime? _rateLimitedUntil;
+
+  /// Early-access chapters left alone until their instant (plus [kLockRetryGrace]), by chapter. In memory only: the row has no
+  /// place for a "not before" and a migration is not worth it, so a restart simply asks for the chapter once more, which
+  /// answers 423 again and re-arms the hold.
+  final Map<ChapterIdentity, ({DateTime until, String reason})> _held = {};
+  Timer? _holdTimer;
+
+  /// The clock, the sleeper and the timer factory behind every wait this queue does on purpose — **test-only** seams, so a test
+  /// can move time itself.
+  @visibleForTesting
+  DateTime Function() clock = DateTime.now;
+  @visibleForTesting
+  Future<void> Function(Duration) sleep = Future<void>.delayed;
+  @visibleForTesting
+  Timer Function(Duration, void Function()) createTimer = Timer.new;
+
   /// Awaits the current processing pass, if one is running — **test-only**.
   /// Production callers must never await the queue draining: `enqueueChapter`
   /// et al. are deliberately fire-and-forget so the UI stays responsive while
@@ -256,6 +287,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     //
     // `listen`, never `watch`, here and below: a rebuild would reset the
     // pause flag, the in-flight bookkeeping and the prefetched windows.
+    ref.onDispose(() => _holdTimer?.cancel());
     ref.listen<DownloadsStore?>(downloadsStoreProvider, (previous, next) {
       if (next == null || identical(previous, next)) return;
       if (!_foreground || _userPaused) return;
@@ -703,6 +735,8 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
         final auto = autoQueuedKeys();
         runnable = [for (final c in pending) if (!auto.contains(autoQueuedKey(c.identity))) c];
       }
+      _pruneHolds(pending);
+      runnable = [for (final c in runnable) if (!_held.containsKey(c.identity)) c];
       if (!network.online || runnable.isEmpty) {
         state = state.copyWith(
           isDownloading: false,
@@ -879,6 +913,8 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     if (_cancelledRowIds.contains(chapter.rowId)) {
       return _ChapterOutcome.cancelled;
     }
+    // Held by the window answer of this very pass, after the batch was already chosen.
+    if (_held.containsKey(chapter.identity)) return _ChapterOutcome.held;
 
     // Prose takes a different fetch and a different blob shape, but the same
     // row, the same retry bound and the same completeness guard — see
@@ -912,10 +948,16 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
             ),
       );
       if (manifestResult.isErr) {
+        final error = manifestResult.error;
+        // Early access: not this chapter's failure and not the user's to fix. Its turn comes when it opens.
+        if (error is ApiError && error.isChapterLocked) {
+          _hold(chapter.identity, error.lockedUntil, error.message);
+          return _ChapterOutcome.held;
+        }
         return _recordChapterFailure(
           store,
           chapter,
-          manifestResult.error.userMessage,
+          error.userMessage,
         );
       }
       manifest = manifestResult.value;
@@ -1274,7 +1316,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
       if (row.kind.isNovelSide) continue;
       if (row.sourceId != head.sourceId) continue;
       if (row.seriesKey != head.seriesKey) continue;
-      if (_manifestWindow.containsKey(row.identity)) continue;
+      if (_manifestWindow.containsKey(row.identity) || _held.containsKey(row.identity)) continue;
       if (keys.contains(row.chapterKey)) continue;
       keys.add(row.chapterKey);
       if (keys.length >= _manifestWindowSize) break;
@@ -1306,7 +1348,11 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     if (window.maxChapters >= kMinManifestWindowChapters) {
       _manifestWindowSize = window.maxChapters;
     }
-    if (window.manifests.isEmpty) {
+    for (final entry in window.locked.entries) {
+      _hold((sourceId: head.sourceId, seriesKey: head.seriesKey, chapterKey: entry.key), entry.value, window.errors[entry.key] ?? 'Not open yet');
+    }
+    // A window of nothing but early-access chapters is the server working, not a useless answer.
+    if (window.manifests.isEmpty && window.locked.isEmpty) {
       _blockBulkWindows();
       return;
     }
@@ -1328,6 +1374,47 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     final cap = details['max_chapters'];
     if (cap is num && cap >= floor) return cap.toInt();
     return null;
+  }
+
+  /// Leaves an early-access chapter alone until it opens: [lockedUntil] plus [kLockRetryGrace] (the device clock and the
+  /// server's rarely agree to the second), or [kLockedUnknownRetry] when the source named no time. The reason line is the
+  /// opening time on this phone's clock, or the server's own words when there is none.
+  void _hold(ChapterIdentity id, DateTime? lockedUntil, String serverMessage) {
+    final now = clock();
+    var until = lockedUntil == null ? now.add(kLockedUnknownRetry) : lockedUntil.add(kLockRetryGrace);
+    // A source clock that runs ahead of this one must not turn the hold into a tight retry loop.
+    if (!until.isAfter(now)) until = now.add(kLockRetryGrace);
+    _held[id] = (until: until, reason: lockedUntil == null ? serverMessage : 'Opens at ${localOpenTime(lockedUntil)}');
+    _publishHolds();
+    _armHoldTimer();
+  }
+
+  /// Drops holds that have run out, and those of chapters no longer waiting in the queue (cancelled, deleted).
+  void _pruneHolds(List<SavedChapter> pending) {
+    if (_held.isEmpty) return;
+    final now = clock();
+    final waiting = {for (final c in pending) c.identity};
+    final before = _held.length;
+    _held.removeWhere((id, h) => !h.until.isAfter(now) || !waiting.contains(id));
+    if (_held.length != before) _publishHolds();
+    _armHoldTimer();
+  }
+
+  void _publishHolds() {
+    state = state.copyWith(heldReasons: {for (final e in _held.entries) e.key: e.value.reason});
+  }
+
+  /// One wake-up at the earliest hold's end, because a queue with nothing else to do idles and nothing would ask again.
+  void _armHoldTimer() {
+    _holdTimer?.cancel();
+    _holdTimer = null;
+    if (_held.isEmpty) return;
+    final next = _held.values.map((h) => h.until).reduce((a, b) => a.isBefore(b) ? a : b);
+    final wait = next.difference(clock());
+    _holdTimer = createTimer(wait.isNegative ? Duration.zero : wait, () {
+      _holdTimer = null;
+      if (_foreground && !_userPaused) unawaited(_kick());
+    });
   }
 
   /// Rests the `bulk` bucket after a window came back useless.
@@ -1397,13 +1484,8 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     if (reportsProgress) _reportPageProgress(done: done, total: pages.length);
 
     for (var i = 0; i < missing.length; i += kPageFetchConcurrency) {
-      if (_cancelledRowIds.contains(rowId)) return _ChapterOutcome.cancelled;
-      if (_userPaused) return _ChapterOutcome.pausedUser;
-      // Backgrounding pauses "before the next network call" (see setForeground): pages already on disk
-      // stay, and the next pass after the app returns fetches the rest.
-      if (!_foreground) return _ChapterOutcome.pausedBackground;
-      if (await _isBelowFreeSpaceFloor()) return _ChapterOutcome.pausedFloor;
-      if (await _isAtOrOverCap()) return _ChapterOutcome.pausedCap;
+      final stop = await _pageStop(rowId);
+      if (stop != null) return stop;
 
       final chunk = missing.skip(i).take(kPageFetchConcurrency);
       await Future.wait(
@@ -1424,7 +1506,25 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
           }
         }),
       );
+      // A rate-limit wait that a stop condition cut short left its pages missing: say why, rather than letting the
+      // chapter count it as a failed try.
+      if (_rateLimitedUntil != null) {
+        final stopped = await _pageStop(rowId);
+        if (stopped != null) return stopped;
+      }
     }
+    return null;
+  }
+
+  /// The reason the pages of [rowId] must not be fetched right now, or null.
+  Future<_ChapterOutcome?> _pageStop(int rowId) async {
+    if (_cancelledRowIds.contains(rowId)) return _ChapterOutcome.cancelled;
+    if (_userPaused) return _ChapterOutcome.pausedUser;
+    // Backgrounding pauses "before the next network call" (see setForeground): pages already on disk
+    // stay, and the next pass after the app returns fetches the rest.
+    if (!_foreground) return _ChapterOutcome.pausedBackground;
+    if (await _isBelowFreeSpaceFloor()) return _ChapterOutcome.pausedFloor;
+    if (await _isAtOrOverCap()) return _ChapterOutcome.pausedCap;
     return null;
   }
 
@@ -1432,15 +1532,57 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     state = state.copyWith(pagesDone: done, pageTotal: total);
   }
 
+  /// How long the server asked for quiet, when [error] is a 429 from a page fetch (the dio client maps it to an [ApiError]
+  /// carrying `Retry-After`); null for any other failure. Capped at [kRateLimitMaxWait], [kRateLimitDefaultWait] when it said nothing.
+  Duration? _rateLimitWait(Object error) {
+    final cause = error is DioException ? (error.error ?? error) : error;
+    if (cause is! ApiError || cause.statusCode != 429) return null;
+    final asked = cause.retryAfter ?? kRateLimitDefaultWait;
+    return asked > kRateLimitMaxWait ? kRateLimitMaxWait : asked;
+  }
+
+  void _pauseForRateLimit(Duration wait) {
+    final until = clock().add(wait);
+    final current = _rateLimitedUntil;
+    if (current != null && !until.isAfter(current)) return;
+    _rateLimitedUntil = until;
+    // The Downloads screen already words this as "the server is pacing downloads".
+    state = state.copyWith(pacedUntil: until);
+  }
+
+  /// Sleeps out the server's rate-limit pause, looking up every [kRateLimitWaitSlice] so a cancel, a pause, the app leaving the
+  /// foreground, or the disk filling up ends the wait at once. Returns false when it was cut short.
+  Future<bool> _waitOutRateLimit(int rowId) async {
+    var slices = 0;
+    while (true) {
+      final until = _rateLimitedUntil;
+      if (until == null) return true;
+      final left = until.difference(clock());
+      if (left <= Duration.zero) {
+        if (identical(_rateLimitedUntil, until)) _rateLimitedUntil = null;
+        return true;
+      }
+      if (_cancelledRowIds.contains(rowId) || _userPaused || !_foreground) return false;
+      // The disk checks cost a platform call and a sum over the store, so every few slices rather than every one.
+      if (slices++ % 4 == 3 && (await _isBelowFreeSpaceFloor() || await _isAtOrOverCap())) return false;
+      await sleep(left < kRateLimitWaitSlice ? left : kRateLimitWaitSlice);
+    }
+  }
+
   /// Returns whether the page ended up on disk.
+  ///
+  /// A 429 is the server saying "not yet", not a broken page: it waits what the server asked for (shared with every other
+  /// page in flight, see [_rateLimitedUntil]) and the first one per page does not use up a try.
   Future<bool> _fetchOnePageWithRetry(
     DownloadsStore store,
     int rowId, {
     required int number,
     required String url,
   }) async {
+    var freeRateLimitRetry = true;
     for (var attempt = 1; attempt <= kMaxPageRetries; attempt++) {
       try {
+        if (!await _waitOutRateLimit(rowId)) return false;
         // Only the fetch is inside the gate. Holding a slot across the blob
         // write would let SQLite contention — the thing the write is already
         // serialised by — narrow the network ceiling as well.
@@ -1450,7 +1592,18 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
         if (bytes.isEmpty) throw StateError('Empty page response');
         await store.savePage(rowId: rowId, pageNumber: number, bytes: bytes);
         return true;
-      } catch (_) {
+      } catch (error) {
+        final limited = _rateLimitWait(error);
+        if (limited != null) {
+          _pauseForRateLimit(limited);
+          if (freeRateLimitRetry) {
+            freeRateLimitRetry = false;
+            attempt--;
+            continue;
+          }
+          if (attempt >= kMaxPageRetries) return false;
+          continue; // the wait happens at the top of the next try
+        }
         if (attempt >= kMaxPageRetries) return false; // leaves the page missing;
         // markCompleteIfAllPagesPresent will correctly refuse to complete,
         // so the chapter is retried (not silently marked done) next pass.

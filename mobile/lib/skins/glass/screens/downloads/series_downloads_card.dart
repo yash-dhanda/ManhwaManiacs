@@ -74,7 +74,7 @@ String seriesSummary(DownloadedSeriesGroup g) {
           warn: true,
         );
       }
-      if (c.state == DownloadChapterState.queued) return (text: audio ? 'Fetching the audio…' : (novel ? 'Fetching the text…' : 'Waiting'), warn: false);
+      if (c.state == DownloadChapterState.queued) return (text: q.heldReasons[c.identity] ?? (audio ? 'Fetching the audio…' : (novel ? 'Fetching the text…' : 'Waiting')), warn: false);
       if (audio) return (text: 'Saving the audio…', warn: false);
       if (novel) return (text: 'Saving the text…', warn: false);
       return (text: lead && q.pageTotal > 0 ? 'Saving ${q.pagesDone}/${q.pageTotal}' : 'Saving…', warn: false);

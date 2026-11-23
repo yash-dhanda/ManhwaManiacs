@@ -399,11 +399,11 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
         final beforeFeed = feedController.previousBeforeFeed;
         final beyondFeed = feedController.nextBeyondFeed;
         // One chapter past what the feed holds, so reading on across seams keeps saving ahead.
-        _autoQueue.maybeQueue(
-          ref,
+        _autoQueue.arm(
           sourceId: widget.sourceId,
           seriesKey: widget.seriesId,
           nextChapterId: beyondFeed ?? nextChapterId,
+          afterChapterId: feedController.feed.chapters.lastOrNull?.id ?? widget.chapterId,
         );
 
         return OpenChapterScope(
@@ -475,14 +475,17 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
                 .then((bookmark) => bookmark != null),
             onReachedFeedEnd: feedController.extendForward,
             onReachedFeedStart: feedController.extendBackward,
-            onSaveProgress: (chapter, page) => _lastSave = _saveProgress(
-              chapter,
-              page,
-              outbox: progressOutbox,
-              localProgress: localProgress,
-              downloadsStore: downloadsStore,
-              container: container,
-            ),
+            onSaveProgress: (chapter, page) {
+              _autoQueue.readTo(ref, chapterId: chapter.id, page: page, pageCount: chapter.pages.length);
+              return _lastSave = _saveProgress(
+                chapter,
+                page,
+                outbox: progressOutbox,
+                localProgress: localProgress,
+                downloadsStore: downloadsStore,
+                container: container,
+              );
+            },
             onBack: () => context.go(
               RoutePaths.sourceSeriesDetail(widget.sourceId, widget.seriesId),
             ),

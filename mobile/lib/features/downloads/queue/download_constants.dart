@@ -98,3 +98,17 @@ const int kMinManifestWindowChapters = 2;
 /// than the per-chapter path it replaces, aimed at the tightest bucket we
 /// have, which is exactly the shape that drew a real multi-minute 429 before.
 const Duration kBulkWindowCooldown = Duration(seconds: 30);
+
+/// How long a page fetch that got a 429 without a `Retry-After` waits before trying again, and the
+/// longest it will wait however long the server asks: the bucket refills within a minute, and
+/// waiting longer than this would leave the queue looking stuck.
+const Duration kRateLimitDefaultWait = Duration(seconds: 5);
+const Duration kRateLimitMaxWait = Duration(seconds: 30);
+
+/// How often a rate-limit wait looks up from sleeping to see whether the queue was cancelled,
+/// paused, backgrounded or filled the disk meanwhile.
+const Duration kRateLimitWaitSlice = Duration(milliseconds: 500);
+
+/// How long an early-access chapter whose source named no opening time is left alone before the
+/// queue asks for it again.
+const Duration kLockedUnknownRetry = Duration(minutes: 10);

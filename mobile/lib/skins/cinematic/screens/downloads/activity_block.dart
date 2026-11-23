@@ -173,6 +173,7 @@ class _ActivityBlockState extends ConsumerState<ActivityBlock> {
             QueueRows(
               rows: queue,
               paused: pausedNow,
+              heldReasons: state.heldReasons,
               onRetry: (r) => unawaited(_q.retryChapter(r.identity)),
               onRemove: (r) => unawaited(_q.cancelChapter(r.identity)),
             ),

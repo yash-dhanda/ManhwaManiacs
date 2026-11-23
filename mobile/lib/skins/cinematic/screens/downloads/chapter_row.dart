@@ -61,7 +61,7 @@ class DownloadChapterRow extends ConsumerWidget {
         ? 'REMOVING…'
         : switch (chapter.state) {
             DownloadChapterState.complete => 'SAVED · ${formatMb(chapter.bytes)}',
-            DownloadChapterState.queued => 'QUEUED',
+            DownloadChapterState.queued => q.heldReasons[chapter.identity]?.toUpperCase() ?? 'QUEUED',
             DownloadChapterState.downloading => 'DOWNLOADING',
             DownloadChapterState.failed => 'FAILED — ${chapter.error ?? 'unknown error'}',
           };

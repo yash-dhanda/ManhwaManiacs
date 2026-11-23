@@ -432,11 +432,11 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
     final beforeFeed = _controller.previousBeforeFeed;
     final beyondFeed = _controller.nextBeyondFeed;
     // One chapter past what the feed holds, so reading on across seams keeps saving ahead.
-    _autoQueue.maybeQueue(
-      ref,
+    _autoQueue.arm(
       sourceId: sourceId,
       seriesKey: seriesKey,
       nextChapterId: beyondFeed ?? widget.resolved.chapter.nextChapterId ?? widget.neighbours?.next,
+      afterChapterId: _controller.feed.chapters.lastOrNull?.id ?? widget.chapterKey,
     );
 
     return OpenChapterScope(
@@ -481,6 +481,7 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
         onReachedFeedEnd: _controller.extendForward,
         onReachedFeedStart: _controller.extendBackward,
         onSaveProgress: _trackSaves((chapter, page) async {
+          _autoQueue.readTo(ref, chapterId: chapter.id, page: page, pageCount: chapter.pages.length);
           final isCompleted = page >= chapter.pageCount;
           // Local-first (spec §3): every save writes to the on-device outbox
           // and is flushed best-effort — the reader never blocks on, or loses
