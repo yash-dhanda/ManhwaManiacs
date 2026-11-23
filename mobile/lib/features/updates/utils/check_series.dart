@@ -7,17 +7,8 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 
 /// "Check for new chapters" on a series page: runs the check for [followedId] and, when it found
 /// any, refetches the follow cache and the page's own chapter list ([sourceId]/[seriesKey], the key
-/// the page was opened with). Returns how many new chapters it found.
-Future<Result<int>> checkSeriesForNew(WidgetRef ref, {required int followedId, required String sourceId, required String seriesKey}) {
-  final repo = ref.read(updatesRepositoryProvider);
-  return _check(repo, followedId, () {
-    ref.invalidate(updatesProvider);
-    ref.invalidate(sourceSeriesDetailProvider((sourceId: sourceId, seriesId: seriesKey)));
-  });
-}
-
-/// The same check for a caller that may leave its screen while it runs (the check takes seconds): a
-/// [WidgetRef] throws once its widget is disposed, a container does not.
+/// the page was opened with). Returns how many new chapters it found. Takes a container, not a
+/// `WidgetRef`: the check takes seconds and a `WidgetRef` throws once its widget is disposed.
 Future<Result<int>> checkSeriesForNewIn(ProviderContainer container, {required int followedId, required String sourceId, required String seriesKey}) {
   final repo = container.read(updatesRepositoryProvider);
   return _check(repo, followedId, () {

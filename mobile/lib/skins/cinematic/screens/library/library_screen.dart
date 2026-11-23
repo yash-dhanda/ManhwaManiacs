@@ -127,7 +127,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
   // ---- helpers -------------------------------------------------------------------------------
 
   ShelfQueryNotifier get _q => ref.read(shelfQueryProvider.notifier);
-  ShelfActions get _actions => ShelfActions(context, ref);
+  ShelfActions get _actions => ShelfActions(context);
 
   List<FocusNode> _ensureNodes(int n) {
     while (_nodes.length < n) {

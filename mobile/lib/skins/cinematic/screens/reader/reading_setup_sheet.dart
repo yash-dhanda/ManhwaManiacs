@@ -109,10 +109,12 @@ class _ReadingSetupBodyState extends ConsumerState<ReadingSetupBody> with Single
     final ok = await showCineConfirm(context, title: 'Restore every reader setting to its default?', confirmLabel: 'Restore defaults', destructive: true);
     if (!ok || !mounted) return;
     cineFeedback(context, HapticEvent.deleteConfirm);
-    final prefs = ref.read(sharedPrefsProvider);
-    final device = ref.read(readerDefaultsProvider.notifier);
-    await ref.read(readerSeriesPrefsProvider.notifier).reset();
-    await ref.read(readerSettingsProvider.notifier).reset();
+    // The resets take a while and the sheet can be closed meanwhile, which kills its `ref`.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final prefs = container.read(sharedPrefsProvider);
+    final device = container.read(readerDefaultsProvider.notifier);
+    await container.read(readerSeriesPrefsProvider.notifier).reset();
+    await container.read(readerSettingsProvider.notifier).reset();
     // The device seed the migration left would otherwise bring the old profile defaults back.
     await prefs.setString(kReaderPrefsSeedKey, '{}');
     await device.setKeepScreenAwake(false);
@@ -121,9 +123,9 @@ class _ReadingSetupBodyState extends ConsumerState<ReadingSetupBody> with Single
     await device.setRefreshRate(ReaderRefreshRate.auto);
     await device.setAutoNextChapter(true);
     await prefs.remove('mm.reader.device.stripWidthPx');
-    ref.invalidate(stripWidthProvider);
-    ref.invalidate(readerSettingsProvider);
-    if (mounted) ref.read(cineToastsProvider.notifier).info('Reader settings reset.');
+    container.invalidate(stripWidthProvider);
+    container.invalidate(readerSettingsProvider);
+    container.read(cineToastsProvider.notifier).info('Reader settings reset.');
   }
 
   @override

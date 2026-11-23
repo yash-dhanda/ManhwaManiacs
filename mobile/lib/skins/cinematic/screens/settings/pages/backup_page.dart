@@ -144,8 +144,9 @@ class _BackupPageState extends ConsumerState<BackupPage> {
           line: 'A restore is staged. It applies the next time the server starts; the current database is kept.',
           actions: [
             CineBannerAction('Cancel staged restore', () async {
-              await ref.read(backupRepositoryProvider).cancelPendingRestore();
-              ref.invalidate(backupStatusProvider);
+              final container = ProviderScope.containerOf(context, listen: false);
+              await container.read(backupRepositoryProvider).cancelPendingRestore();
+              container.invalidate(backupStatusProvider);
             }),
           ],
         ),

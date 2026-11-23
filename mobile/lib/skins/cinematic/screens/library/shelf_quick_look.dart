@@ -57,7 +57,7 @@ Future<void> openShelfQuickLook(
       QuickLookAction('status', 'Status', CineIconRole.edit, onSelected: () => unawaited(showStatusSheet(context, title: s.title, current: s.readingStatus, onPick: (v) => unawaited(actions.setStatus(s, v))))),
       QuickLookAction('notify', s.notify ? 'Turn off notifications' : 'Notify', CineIconRole.notify, onSelected: () => unawaited(actions.notify(s))),
       QuickLookAction(QuickLookId.addToCollection, 'Add to collection', CineIconRole.collections, onSelected: () => unawaited(showAddToShelfSheet(context, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title))),
-      QuickLookAction(QuickLookId.downloadNext, 'Download next 5', CineIconRole.download, onSelected: () => unawaited(downloadNextFive(context, ref, s))),
+      QuickLookAction(QuickLookId.downloadNext, 'Download next 5', CineIconRole.download, onSelected: () => unawaited(downloadNextFive(context, ProviderScope.containerOf(context, listen: false), s))),
       if (moveIndex != null && onMove != null)
         for (final m in CineMove.values)
           QuickLookAction('move-${m.name}', m.label, CineIconRole.sort, disabled: m.target(moveIndex, moveCount) == null, onSelected: () {

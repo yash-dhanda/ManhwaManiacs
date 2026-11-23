@@ -105,7 +105,7 @@ class _PageActionsBodyState extends ConsumerState<PageActionsBody> {
     setState(() => _busy = true);
     final t = widget.target;
     final b = await addBookmarkAtPage(
-      ref,
+      ProviderScope.containerOf(context, listen: false),
       sourceId: t.sourceId,
       seriesKey: t.seriesKey,
       chapterKey: t.chapter.id,

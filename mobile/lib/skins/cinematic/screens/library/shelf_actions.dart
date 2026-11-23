@@ -31,11 +31,8 @@ Result<void> _void<T>(Result<T> r) => r.isErr ? Err(r.error) : const Ok(null);
 /// Reads go through the [ProviderContainer], not the screen's `ref`, so a bulk run that outlives
 /// the screen (the reader navigated away) still finishes and never touches a disposed element.
 class ShelfActions {
-  ShelfActions(this.context, this.ref) : _c = ProviderScope.containerOf(context, listen: false);
+  ShelfActions(this.context) : _c = ProviderScope.containerOf(context, listen: false);
   final BuildContext context;
-
-  /// Only for `downloadNextFive`, which takes a `WidgetRef`.
-  final WidgetRef ref;
   final ProviderContainer _c;
 
   CineToastsNotifier get _toasts => _c.read(cineToastsProvider.notifier);
@@ -238,7 +235,7 @@ class ShelfActions {
     if (context.mounted) cineFeedback(context, HapticEvent.downloadStart);
     final o = await runBulk<FollowedSeries>(rows, (s) async {
       try {
-        await downloadNextFive(context, ref, s, haptic: false);
+        await downloadNextFive(context, _c, s, haptic: false);
         return const Ok(null);
       } catch (e) {
         return Err(e is AppError ? e : UnknownError(message: e.toString(), cause: e));

@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/network/cover_auto_retry.dart';
 import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -57,7 +58,7 @@ class GlassPosterMeta {
 /// The cover, arriving: opacity 0 to 1 over `curveFadeIn` and scale 1.02 to 1 on `springSnappy`. It asks the
 /// cover proxy for a right-sized image with the session credentials, like every cover in the app (the
 /// data layer's helpers, not a Cinematic widget).
-class GlassCoverImage extends ConsumerWidget {
+class GlassCoverImage extends ConsumerStatefulWidget {
   const GlassCoverImage({super.key, required this.url, this.width, this.withCredentials = true});
   final String url;
 
@@ -66,10 +67,38 @@ class GlassCoverImage extends ConsumerWidget {
   final bool withCredentials;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final headers = withCredentials && isApiResourceUrl(ref.watch(apiBaseUrlProvider), url) ? apiImageHttpHeaders(ref.watch(authTokenStoreProvider).token, profileId: ref.watch(activeProfileProvider)?.id) : null;
-    final imageUrl = coverUrlAtWidth(url, coverRequestWidth(width, MediaQuery.devicePixelRatioOf(context)));
+  ConsumerState<GlassCoverImage> createState() => _GlassCoverImageState();
+}
+
+class _GlassCoverImageState extends ConsumerState<GlassCoverImage> {
+  CoverAutoRetry? _autoRetry;
+  int _reloads = 0;
+
+  @override
+  void didUpdateWidget(GlassCoverImage old) {
+    super.didUpdateWidget(old);
+    if (old.url != widget.url) _autoRetry?.reset();
+  }
+
+  @override
+  void dispose() {
+    _autoRetry?.dispose();
+    super.dispose();
+  }
+
+  void _failed(String url, Object error) => (_autoRetry ??= CoverAutoRetry(() {
+        if (mounted) setState(() => _reloads++);
+      }))
+      .failed(url, error);
+
+  @override
+  Widget build(BuildContext context) {
+    final url = widget.url;
+    final headers = widget.withCredentials && isApiResourceUrl(ref.watch(apiBaseUrlProvider), url) ? apiImageHttpHeaders(ref.watch(authTokenStoreProvider).token, profileId: ref.watch(activeProfileProvider)?.id) : null;
+    final imageUrl = coverUrlAtWidth(url, coverRequestWidth(widget.width, MediaQuery.devicePixelRatioOf(context)));
     return CachedNetworkImage(
+      // A new key reloads a cover that failed once (see [CoverAutoRetry]).
+      key: ValueKey(_reloads),
       imageUrl: imageUrl,
       httpHeaders: headers,
       cacheManager: CoverCacheManager.instance,
@@ -77,7 +106,10 @@ class GlassCoverImage extends ConsumerWidget {
       fadeInDuration: Duration.zero,
       imageBuilder: (context, image) => _Arrival(child: Image(image: image, fit: BoxFit.cover)),
       placeholder: (_, __) => ColoredBox(color: gt.colorSurface2),
-      errorWidget: (_, __, ___) => ColoredBox(color: gt.colorSurface2, child: const Center(child: GlyphIcon(GlassGlyph.imageBroken, size: 24, color: GlassColors.g600))),
+      errorWidget: (_, __, error) {
+        _failed(url, error);
+        return ColoredBox(color: gt.colorSurface2, child: const Center(child: GlyphIcon(GlassGlyph.imageBroken, size: 24, color: GlassColors.g600)));
+      },
     );
   }
 }

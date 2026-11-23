@@ -168,14 +168,15 @@ Future<void> openCuttingQuickLook(BuildContext context, WidgetRef ref, HomeConti
 }
 
 /// The next five unread chapters of a followed series, queued for download.
-Future<void> downloadNextFive(BuildContext context, WidgetRef ref, FollowedSeries s, {bool haptic = true}) async {
+///
+/// Takes a container, not a `WidgetRef`: the series list the poster sat on can be left while the
+/// chapter list loads (and a bulk run calls this once per series), which kills its `ref`.
+Future<void> downloadNextFive(BuildContext context, ProviderContainer container, FollowedSeries s, {bool haptic = true}) async {
   final key = (sourceId: s.sourceId, seriesId: s.seriesKey);
-  // Everything `ref` is needed for is taken before the first await: the series list the poster sat
-  // on can be left while the chapter list loads, and `ref` is dead then.
-  final store = ref.read(downloadsStoreProvider);
-  final novel = _novel(ref, s.sourceId);
-  final queue = ref.read(downloadQueueControllerProvider.notifier);
-  final detail = await ref.read(sourceSeriesDetailProvider(key).future);
+  final store = container.read(downloadsStoreProvider);
+  final novel = isNovelSource(container.read(contentModeScopeProvider), s.sourceId) ?? false;
+  final queue = container.read(downloadQueueControllerProvider.notifier);
+  final detail = await container.read(sourceSeriesDetailProvider(key).future);
   // Where the server says the reader is (the same readState Glass plans from), not the device-local
   // Sources-tab map, which the library reader never writes; saved or queued chapters are skipped.
   final readNumber = s.readState?.chapterNumber;
@@ -223,7 +224,7 @@ Future<void> openFollowedQuickLook(BuildContext context, WidgetRef ref, HomeSeri
         cineFeedback(context, HapticEvent.favorite, sound: SoundEvent.favorite);
       }
     },
-    QuickLookId.downloadNext: () => unawaited(downloadNextFive(context, ref, s)),
+    QuickLookId.downloadNext: () => unawaited(downloadNextFive(context, ProviderScope.containerOf(context, listen: false), s)),
     QuickLookId.unfollow: () async {
       final actionsProvider = ref.read(librarySeriesActionsProvider);
       final toasts = ref.read(cineToastsProvider.notifier);

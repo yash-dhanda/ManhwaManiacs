@@ -224,8 +224,9 @@ class _ImageCache extends ConsumerWidget {
           label: 'Clear image cache',
           variant: CineButtonVariant.quiet,
           onPressed: () async {
+            final container = ProviderScope.containerOf(context, listen: false);
             await ref.read(settingsActionsProvider).clearImageCache();
-            ref.read(cineToastsProvider.notifier).info('Image cache cleared.');
+            container.read(cineToastsProvider.notifier).info('Image cache cleared.');
           },
         ),
       ],

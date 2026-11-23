@@ -108,10 +108,12 @@ class MatureGateSwitch extends ConsumerWidget {
             ? null
             : (v) async {
                 final notifier = ref.read(matureContentProvider.notifier);
+                // The save is a network call; `ref` throws if the page is left meanwhile.
+                final container = ProviderScope.containerOf(context, listen: false);
                 if (!v) {
                   final err = await notifier.setEnabled(false);
                   if (err != null) throw err;
-                  ref.read(cineToastsProvider.notifier).info(matureHiddenToast(active.name));
+                  container.read(cineToastsProvider.notifier).info(matureHiddenToast(active.name));
                   return;
                 }
                 await openCineCertificateDialog(

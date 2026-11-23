@@ -15,9 +15,10 @@ import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// Saves a bookmark on [page] (with its note field opening after) and returns it; the reader's
-/// own `bookmark()` measures the spot on screen, this one is for a page named by number.
+/// own `bookmark()` measures the spot on screen, this one is for a page named by number. Takes a
+/// container: the save is a network call and a `WidgetRef` throws if the caller was left meanwhile.
 Future<Bookmark?> addBookmarkAtPage(
-  WidgetRef ref, {
+  ProviderContainer container, {
   required String sourceId,
   required String seriesKey,
   required String chapterKey,
@@ -26,7 +27,7 @@ Future<Bookmark?> addBookmarkAtPage(
   String? seriesTitle,
   double? chapterNumber,
 }) async {
-  final b = await ref.read(bookmarkOutboxControllerProvider).create(
+  final b = await container.read(bookmarkOutboxControllerProvider).create(
         id: (sourceId: sourceId, seriesKey: seriesKey, chapterKey: chapterKey),
         media: BookmarkMedia.manga,
         anchorIndex: page,
@@ -35,7 +36,7 @@ Future<Bookmark?> addBookmarkAtPage(
         seriesTitle: seriesTitle,
         chapterNumber: chapterNumber,
       );
-  ref.invalidate(bookmarksProvider);
+  container.invalidate(bookmarksProvider);
   return b;
 }
 
@@ -69,7 +70,7 @@ class _NotesTabState extends ConsumerState<NotesTab> {
     final s = widget.engine.value;
     final page = widget.engine.pageAtReadingLine();
     final b = await addBookmarkAtPage(
-      ref,
+      ProviderScope.containerOf(context, listen: false),
       sourceId: widget.sourceId,
       seriesKey: widget.seriesKey,
       chapterKey: widget.chapterKey,
