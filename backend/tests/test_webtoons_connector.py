@@ -117,6 +117,36 @@ def test_get_series_list_paginates_client_side(webtoons_connector: WebtoonsConne
     assert {i.id for i in page1.items}.isdisjoint({i.id for i in page2.items})
 
 
+def test_browse_modes_send_the_sites_sort_order(webtoons_connector: WebtoonsConnector):
+    assert [m.id for m in webtoons_connector.list_browse_modes()] == [
+        "default",
+        "popular",
+        "latest",
+        "canvas",
+    ]
+    browse = _load("browse.html")
+    captured: list[tuple[str, dict | None]] = []
+
+    def fake(path: str, *, params=None):
+        captured.append((path, params))
+        return browse
+
+    with patch.object(webtoons_connector._http, "get_text", side_effect=fake):
+        webtoons_connector.get_series_list(1)  # default: no param, as before
+        webtoons_connector.get_series_list(1, sort="popular")
+        webtoons_connector.get_series_list(2, sort="latest")  # a cached catalog, sliced
+        webtoons_connector.get_series_list(1, sort="latest")
+        webtoons_connector.browse_by_genre("romance", 1, sort="latest")
+        webtoons_connector.browse_by_genre("romance", 1)
+    assert captured == [
+        ("/en/originals", None),
+        ("/en/originals", {"sortOrder": "MANA"}),
+        ("/en/originals", {"sortOrder": "UPDATE"}),
+        ("/en/genres/romance", {"sortOrder": "UPDATE"}),
+        ("/en/genres/romance", None),
+    ]
+
+
 def test_search_series_uses_search_endpoint(webtoons_connector: WebtoonsConnector):
     search = _load("search.html")
     captured: list[tuple[str, dict | None]] = []

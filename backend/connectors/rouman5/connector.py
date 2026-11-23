@@ -37,7 +37,7 @@ from connectors.base import SourceConnector
 from connectors.http.cache import TTLCache
 from connectors.http.cf_client import is_cloudflare_challenge
 from connectors.http.client import ConnectorHttpError, SyncConnectorHttpClient
-from connectors.models import Chapter, Page, PaginatedSeriesList, Series
+from connectors.models import BrowseMode, Chapter, Page, PaginatedSeriesList, Series
 
 logger = logging.getLogger(__name__)
 
@@ -75,9 +75,12 @@ def _chapter_re(book_id: str) -> re.Pattern[str]:
     )
 
 
-def listing_path(page: int, query: str | None = None) -> str:
+def listing_path(page: int, query: str | None = None, *, sort: str | None = None) -> str:
     """Upstream path for app page ``page`` (1-based; the site is 0-based)."""
     upstream = max(page, 1) - 1
+    if sort == "new" and not query:
+        # "新上架": works added in the last 30 days, newest first.
+        return f"/books/new?page={upstream}" if upstream else "/books/new"
     if query:
         path = f"/search?term={quote(query)}"
         return f"{path}&page={upstream}" if upstream else path
@@ -298,9 +301,11 @@ class Rouman5Connector(SourceConnector):
     def _book_id(key: str) -> str:
         return key.strip().strip("/").removeprefix("books/").split("/", 1)[0]
 
-    def _listing(self, page: int, query: str | None = None) -> PaginatedSeriesList:
+    def _listing(
+        self, page: int, query: str | None = None, *, sort: str | None = None
+    ) -> PaginatedSeriesList:
         page = max(page, 1)
-        path = listing_path(page, query)
+        path = listing_path(page, query, sort=sort)
         document = self._fetch_html(path)
         if document is None:
             return PaginatedSeriesList(items=[], page=page, page_size=PAGE_SIZE, api_has_more=False)
@@ -327,8 +332,19 @@ class Rouman5Connector(SourceConnector):
 
     # --- catalog ------------------------------------------------------------
 
+    def list_browse_modes(self) -> list[BrowseMode]:
+        # /books is the site's "recently updated" list ("最近更新" on its home
+        # page links to it); /books/new is its 30-day "newly added" list. The
+        # only popularity ordering is inside /books/new, so there is no
+        # catalogue-wide ``popular``.
+        return [
+            BrowseMode(id="default", label="Browse"),
+            BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="new", label="New"),
+        ]
+
     def get_series_list(self, page: int, *, sort: str | None = None) -> PaginatedSeriesList:
-        return self._listing(page)
+        return self._listing(page, sort=sort)
 
     def search_series(self, query: str, page: int, *, sort: str | None = None) -> PaginatedSeriesList:
         normalized = query.strip()

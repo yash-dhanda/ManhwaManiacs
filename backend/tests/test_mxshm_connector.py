@@ -74,6 +74,26 @@ def test_browse_learns_cdn_host(connector: MxshmConnector):
     assert not host_matches_allowlist("jjmhw9.top.evil.com", connector.allowed_image_hosts)
 
 
+def test_browse_modes_and_their_requests(connector: MxshmConnector):
+    assert [m.id for m in connector.list_browse_modes()] == ["default", "latest", "new"]
+    fake, calls = _route(
+        {"/booklist": _load("booklist_p1.html"), "/update": _load("update_p1.html")}
+    )
+    with patch.object(connector._http, "get_text", side_effect=fake):
+        for sort in (None, "default", "new"):
+            connector.get_series_list(1, sort=sort)
+        latest = connector.get_series_list(2, sort="latest")
+    assert calls == [
+        ("/booklist", {"page": "1"}),
+        ("/booklist", {"page": "1"}),
+        ("/booklist", {"page": "1"}),
+        ("/update", {"page": "2"}),
+    ]
+    # /update's cards parse with the same mapper and its pager continues.
+    assert len(latest.items) == 22
+    assert latest.has_more is True
+
+
 def test_search(connector: MxshmConnector):
     fake, calls = _route({"/search": _load("search.html")})
     with patch.object(connector._http, "get_text", side_effect=fake):

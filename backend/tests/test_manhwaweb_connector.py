@@ -71,11 +71,20 @@ def test_browse_requests_adult_shelf_and_maps_cards(connector: ManhwaWebConnecto
 
 
 def test_browse_modes_map_to_order_items(connector: ManhwaWebConnector):
+    assert [m.id for m in connector.list_browse_modes()] == ["popular", "new", "alphabetical"]
     fake, calls = _route({"/manhwa/library": _load("library_end.json")})
     with patch.object(connector._http, "get_json_value", side_effect=fake):
-        connector.get_series_list(3, sort="latest")
-    assert calls[0][1]["order_item"] == "creacion"
-    assert calls[0][1]["page"] == 2
+        for sort in ("popular", "new", "latest", "alphabetical", None):
+            connector.get_series_list(3, sort=sort)
+    assert [c[1]["order_item"] for c in calls] == [
+        "popularidad",
+        "creacion",
+        "creacion",  # the retired ``latest`` id still sends what it always sent
+        "alfabetico",
+        "popularidad",
+    ]
+    assert all(c[1]["page"] == 2 for c in calls)
+    assert connector.LEGACY_SORT_ALIASES == {"latest": "new"}
 
 
 def test_end_of_catalogue_is_empty():

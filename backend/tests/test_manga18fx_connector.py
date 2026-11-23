@@ -55,6 +55,8 @@ def _mock_site(connector: Manga18fxConnector, calls: list[tuple[str, dict]] | No
             return _load("browse_page1.html")
         if path == "/page/2":
             return _load("browse_page2.html")
+        if path == "/hot-manga":
+            return _load("hot_manga.html")
         if path == "/search":
             return _load("search_boss.html")
         if path == f"/manga/{SERIES}":
@@ -112,6 +114,41 @@ def test_page_two_is_a_different_slice(connector: Manga18fxConnector):
     assert [path for path, _ in calls] == ["/", "/page/2"]
     assert page2.page == 2
     assert {s.id for s in page1.items}.isdisjoint({s.id for s in page2.items})
+
+
+def test_browse_modes_are_default_popular_latest():
+    assert [m.id for m in Manga18fxConnector().list_browse_modes()] == [
+        "default",
+        "popular",
+        "latest",
+    ]
+
+
+def test_latest_and_default_are_the_home_page_listing(connector: Manga18fxConnector):
+    calls: list[tuple[str, dict]] = []
+    with _mock_site(connector, calls):
+        for sort in (None, "default", "latest"):
+            connector.get_series_list(1, sort=sort)
+        connector.get_series_list(2, sort="latest")
+    assert [path for path, _ in calls] == ["/", "/", "/", "/page/2"]
+
+
+def test_popular_is_the_hot_manga_listing_and_pages_with_page_param(connector: Manga18fxConnector):
+    calls: list[tuple[str, dict]] = []
+    with _mock_site(connector, calls):
+        page1 = connector.get_series_list(1, sort="popular")
+        connector.get_series_list(2, sort="popular")
+    assert calls == [("/hot-manga", {}), ("/hot-manga", {"page": 2})]
+    assert page1.items
+
+
+def test_hot_listing_titles_come_from_the_heading_anchor():
+    listing = parse_series_list(_load("hot_manga.html"), page=2)
+    assert len(listing.items) == 6
+    assert all(item.title and item.cover_url for item in listing.items)
+    assert listing.items[0].id == "im-the-only-man-on-the-military-base-raw"
+    assert listing.items[0].title == "I\u2019m the Only Man on the Military Base Raw"
+    assert listing.has_more is True
 
 
 def test_search_sends_q_and_page_and_matches(connector: Manga18fxConnector):

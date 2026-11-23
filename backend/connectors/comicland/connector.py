@@ -42,6 +42,12 @@ class ComicLandConnector(SourceConnector):
     """Browse and read mature comics from ComicLand (comicland.org)."""
 
     SOURCE_TYPE = "comicland"
+    #: ``latest`` has always been the plain ``/comics`` listing, which the API
+    #: serves oldest-first (ids ascending) and ignores every sort parameter. The
+    #: only true ordering it offers is "newest added", read from the tail of
+    #: that listing (see ``_newest_first_listing``), which is ``new``. There is
+    #: no "recently updated" listing, so ``latest`` is retired in favour of it.
+    LEGACY_SORT_ALIASES = {"latest": "new"}
     DISPLAY_NAME = "ComicLand"
     DESCRIPTION = (
         "Browse and read comics from ComicLand. "
@@ -62,6 +68,7 @@ class ComicLandConnector(SourceConnector):
         self._page_cache: TTLCache[list[Page]] = TTLCache(ttl_seconds=600.0)
         self._detail_cache: TTLCache[dict[str, Any]] = TTLCache(ttl_seconds=300.0)
         self._popular_cache: TTLCache[list[Series]] = TTLCache(ttl_seconds=300.0)
+        self._size_cache: TTLCache[int] = TTLCache(ttl_seconds=300.0)
 
     @property
     def source_type(self) -> str:
@@ -133,6 +140,63 @@ class ComicLandConnector(SourceConnector):
         payload = self._get_data(path, params=params)
         return series_list_to_paginated(payload, page=page)
 
+    def _has_item_at(self, offset: int) -> bool:
+        payload = self._get_data("/comics", params={"offset": offset, "limit": 1})
+        return bool(series_list_to_paginated(payload, page=1, page_size=1).items)
+
+    def _catalogue_size(self) -> int:
+        """Number of series in ``/comics`` (the API reports no total).
+
+        Offsets past the end answer an empty list, so the size is the first
+        empty offset, found by doubling then bisecting (about a dozen one-item
+        requests), and remembered for a few minutes.
+        """
+        cached = self._size_cache.get("size")
+        if cached is not None:
+            return cached
+        if not self._has_item_at(0):
+            size = 0
+        else:
+            present, absent = 0, 1024
+            while self._has_item_at(absent):
+                present, absent = absent, absent * 2
+            while absent - present > 1:
+                mid = (present + absent) // 2
+                if self._has_item_at(mid):
+                    present = mid
+                else:
+                    absent = mid
+            size = absent
+        self._size_cache.set("size", size)
+        return size
+
+    def _newest_first_listing(self, page: int) -> PaginatedSeriesList:
+        """``/comics`` newest-added first.
+
+        The endpoint is ordered by id ascending and takes no sort, so page N of
+        the descending view is the Nth window counted back from the end, read
+        with one real request and listed in the order the API gave it, last
+        first.
+        """
+        if page < 1:
+            page = 1
+        size = self._catalogue_size()
+        end = size - (page - 1) * PAGE_SIZE
+        if end <= 0:
+            return PaginatedSeriesList(items=[], page=page, page_size=PAGE_SIZE, total=size)
+        start = max(end - PAGE_SIZE, 0)
+        payload = self._get_data(
+            "/comics", params={"offset": start, "limit": end - start}
+        )
+        window = series_list_to_paginated(payload, page=page, page_size=PAGE_SIZE)
+        return PaginatedSeriesList(
+            items=list(reversed(window.items)),
+            page=page,
+            page_size=PAGE_SIZE,
+            total=size,
+            api_has_more=start > 0,
+        )
+
     def _popular_listing(self, page: int) -> PaginatedSeriesList:
         if page < 1:
             page = 1
@@ -149,7 +213,9 @@ class ComicLandConnector(SourceConnector):
         if page < 1:
             page = 1
         mode = (sort or "latest").strip().lower()
-        if mode in ("", "default", "latest", "new", "recommend"):
+        if mode in ("", "default", "latest", "new"):
+            listing = self._newest_first_listing(page)
+        elif mode == "recommend":
             listing = self._listing(page, path="/comics")
         elif mode in ("popular", "top_rated"):
             listing = self._popular_listing(page)

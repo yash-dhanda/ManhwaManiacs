@@ -6,6 +6,8 @@ from unittest.mock import patch
 
 import pytest
 
+from connectors.http.client import ConnectorHttpError
+
 from connectors.flamescans.connector import FlameScansConnector
 from connectors.flamescans.mappers import (
     chapter_pages_to_pages,
@@ -74,12 +76,68 @@ def test_search_filters_titles(flamescans_connector: FlameScansConnector):
     assert listing.items[0].title == "The Ancient Sovereign of Eternity"
 
 
-def test_popular_sort_orders_by_chapter_count(flamescans_connector: FlameScansConnector):
+def _fetch_by_sort(connector: FlameScansConnector, sort: str | None, calls: list[str]):
     catalog = _load_json("series_list.json")
+    browse = _load_text("browse_ranking.html")
 
+    def fake_text(path: str, **_kwargs):
+        calls.append(path)
+        return browse
+
+    with (
+        patch.object(connector._http, "get_json_value", return_value=catalog),
+        patch.object(connector._http, "get_text", side_effect=fake_text),
+    ):
+        return connector.get_series_list(1, sort=sort)
+
+
+def test_browse_modes_order(flamescans_connector: FlameScansConnector):
+    assert [m.id for m in flamescans_connector.list_browse_modes()] == [
+        "latest",
+        "popular",
+        "new",
+        "alphabetical",
+    ]
+
+
+def test_popular_follows_the_sites_popularity_rank(flamescans_connector: FlameScansConnector):
+    calls: list[str] = []
+    listing = _fetch_by_sort(flamescans_connector, "popular", calls)
+    assert [i.id for i in listing.items] == ["23", "138", "149"]
+    assert calls == ["/browse"]
+
+
+def test_new_follows_the_sites_creation_time(flamescans_connector: FlameScansConnector):
+    calls: list[str] = []
+    listing = _fetch_by_sort(flamescans_connector, "new", calls)
+    assert [i.id for i in listing.items] == ["149", "138", "23"]
+    assert calls == ["/browse"]
+
+
+def test_latest_and_alphabetical_need_no_ranking_page(flamescans_connector: FlameScansConnector):
+    calls: list[str] = []
+    latest = _fetch_by_sort(flamescans_connector, "latest", calls)
+    default = _fetch_by_sort(flamescans_connector, None, calls)
+    alpha = _fetch_by_sort(flamescans_connector, "alphabetical", calls)
+    assert [i.id for i in latest.items] == [i.id for i in default.items] == ["138", "23", "149"]
+    assert [i.id for i in alpha.items] == ["149", "138", "23"]
+    assert calls == []
+
+
+def test_popular_without_ranking_data_is_an_error_not_a_fake(flamescans_connector: FlameScansConnector):
+    catalog = _load_json("series_list.json")
+    with (
+        patch.object(flamescans_connector._http, "get_json_value", return_value=catalog),
+        patch.object(flamescans_connector._http, "get_text", return_value="<html></html>"),
+        pytest.raises(ConnectorHttpError),
+    ):
+        flamescans_connector.get_series_list(1, sort="popular")
+
+
+def test_chapter_count_sort_is_still_accepted(flamescans_connector: FlameScansConnector):
+    catalog = _load_json("series_list.json")
     with patch.object(flamescans_connector._http, "get_json_value", return_value=catalog):
-        listing = flamescans_connector.get_series_list(1, sort="popular")
-
+        listing = flamescans_connector.get_series_list(1, sort="chapters")
     assert listing.items[0].id == "23"
     assert listing.items[0].chapter_count == 495
 

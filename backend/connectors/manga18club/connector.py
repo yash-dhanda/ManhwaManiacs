@@ -66,8 +66,11 @@ HTML_HEADERS = {
 
 #: Mode id -> (label, ``order_by`` value; ``None`` = the site default).
 BROWSE_MODES: dict[str, tuple[str, str | None]] = {
-    "default": ("Latest", None),
-    "popular": ("Most Views", "views"),
+    "default": ("Browse", None),
+    "popular": ("Popular", "views"),
+    # The site's own default order, requested explicitly. It has no
+    # "newly added" ordering (``order_by`` offers only lastest, name, views).
+    "latest": ("Latest", "lastest"),
 }
 
 # --- markup -------------------------------------------------------------------

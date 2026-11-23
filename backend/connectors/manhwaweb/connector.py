@@ -42,7 +42,16 @@ BROWSER_USER_AGENT = (
 )
 
 #: Browse mode -> the library's ``order_item`` (all served descending).
-SORTS = {"popular": "popularidad", "latest": "creacion", "alphabetical": "alfabetico"}
+#: ``creacion`` is series CREATION time (the ids embed it and match the site's
+#: own "new manhwa" shelf), i.e. ``new``. The site has no paginated "recently
+#: updated" library order, so there is no ``latest``; the id is still accepted
+#: (it always meant ``creacion``) and ``LEGACY_SORT_ALIASES`` maps it to ``new``.
+SORTS = {
+    "popular": "popularidad",
+    "new": "creacion",
+    "latest": "creacion",
+    "alphabetical": "alfabetico",
+}
 
 #: Library-card ``_categoris`` ids, from the filter menu in the site's own JS
 #: bundle. Ids the menu does not name are dropped rather than guessed.
@@ -206,6 +215,7 @@ class ManhwaWebConnector(SourceConnector):
     """Browse and read the adult catalogue of ManhwaWeb (Spanish)."""
 
     SOURCE_TYPE = "manhwaweb"
+    LEGACY_SORT_ALIASES = {"latest": "new"}
     DISPLAY_NAME = "ManhwaWeb"
     DESCRIPTION = (
         "Browse and read adult manhwa in Spanish from ManhwaWeb. "
@@ -261,7 +271,7 @@ class ManhwaWebConnector(SourceConnector):
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="popular", label="Popular"),
-            BrowseMode(id="latest", label="Recently Added"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="alphabetical", label="A-Z"),
         ]
 

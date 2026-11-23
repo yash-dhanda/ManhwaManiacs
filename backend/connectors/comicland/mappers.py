@@ -14,7 +14,7 @@ CDN_HOST = "cdn.comicland.org"
 PAGE_SIZE = 20
 
 _BROWSE_MODES: tuple[BrowseMode, ...] = (
-    BrowseMode(id="latest", label="Latest"),
+    BrowseMode(id="new", label="New"),
     BrowseMode(id="popular", label="Popular"),
     BrowseMode(id="ongoing", label="Ongoing"),
     BrowseMode(id="official", label="Official"),

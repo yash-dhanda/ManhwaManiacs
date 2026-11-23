@@ -144,7 +144,30 @@ def _cases():
     from connectors.mangatown import mappers as town
     from connectors.manhwa18 import mappers as m18
     from connectors.manhwa18net import mappers as m18net
+    from connectors.fanfox import mappers as fanfox
+    from connectors.manhwaweb import connector as manhwaweb
     from connectors.omegascans import mappers as omega
+
+    def captured_request(source_id):
+        """The connector's own first upstream request for ``sort`` (HTTP stubbed)."""
+        from connectors.registry import create_connector
+
+        def request_for(sort):
+            connector = create_connector(source_id)
+            seen: list = []
+            if source_id == "freeadultcomix":
+                connector._fetch_html = lambda path: seen.append(path) or "<html></html>"
+            else:  # comicland: fake catalogue of 30, every request recorded
+                def fake(path, *, params=None):
+                    seen.append((path, dict(params or {})))
+                    return {"code": 0, "data": {"list": []}}
+
+                connector._http.get_json = fake
+                connector._size_cache.set("size", 30)
+            connector.get_series_list(2, sort=sort)
+            return seen
+
+        return request_for
 
     def asura_req(sort):
         return asura._API_SORT.get(sort, sort)
@@ -160,7 +183,11 @@ def _cases():
         ("guazimanhua", "hits", "popular", lambda s: guazi.browse_params(s, 1)),
         ("hentaihand", "popularity", "popular", lambda s: hentaihand.browse_params(s, 1)),
         ("mangabuddy", "newest", "new", buddy.explicit_sort),
+        ("comicland", "latest", "new", captured_request("comicland")),
+        ("fanfox", "news", "new", lambda s: fanfox.listing_path(2, sort=s)),
+        ("freeadultcomix", "latest", "new", captured_request("freeadultcomix")),
         ("mangadex", "updated", "latest", dex_req),
+        ("manhwaweb", "latest", "new", lambda s: manhwaweb.SORTS[s]),
         ("mangatown", "hot", "popular", lambda s: town.listing_path(1, sort=s)),
         ("manhwa18", "trending", "popular", lambda s: m18._BROWSE_BY_ID[s]),
         ("manhwa18net", "top", "popular", lambda s: m18net.browse_params(s, 1)),

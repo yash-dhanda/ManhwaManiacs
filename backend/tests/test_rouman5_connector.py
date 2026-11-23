@@ -52,6 +52,26 @@ def test_browse_maps_zero_based_pages(connector: Rouman5Connector):
     assert "towm85.xyz" in connector.allowed_image_hosts
 
 
+def test_browse_modes_and_their_requests(connector: Rouman5Connector):
+    assert [m.id for m in connector.list_browse_modes()] == ["default", "latest", "new"]
+    with patch.object(connector, "_fetch_html", return_value=_fixture("books_new_page2.html")) as fetch:
+        new_page2 = connector.get_series_list(2, sort="new")
+        connector.get_series_list(1, sort="new")
+        for sort in (None, "default", "latest"):
+            connector.get_series_list(3, sort=sort)
+    assert [call.args[0] for call in fetch.call_args_list] == [
+        "/books/new?page=1",
+        "/books/new",
+        "/books?page=2",
+        "/books?page=2",
+        "/books?page=2",
+    ]
+    # /books/new cards share the browse card markup; its pager continues.
+    assert len(new_page2.items) == 24
+    assert all(item.title and item.cover_url for item in new_page2.items)
+    assert new_page2.has_more is True
+
+
 def test_search_uses_term(connector: Rouman5Connector):
     with patch.object(connector, "_fetch_html", return_value=_fixture("search.html")) as fetch:
         listing = connector.search_series("教授", 1)

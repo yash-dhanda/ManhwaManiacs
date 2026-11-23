@@ -7,12 +7,16 @@ from dataclasses import replace
 from typing import Any
 from connectors.base import SourceConnector
 from connectors.demonicscans.mappers import (
+    ADVANCED_ORDERS,
+    ADVANCED_PATH,
     PAGE_SIZE,
     SEARCH_PATH,
     SITE_BASE,
+    advanced_params,
     chapter_id_to_reader_path,
     listing_path,
     page_id_chapter_id,
+    parse_advanced_list,
     parse_chapter_pages,
     parse_chapters,
     parse_search_results,
@@ -98,6 +102,7 @@ class DemonicScansConnector(SourceConnector):
             BrowseMode(id="default", label="Latest"),
             BrowseMode(id="popular", label="Popular"),
             BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="new", label="New"),
         ]
 
     def _log_request(
@@ -123,11 +128,29 @@ class DemonicScansConnector(SourceConnector):
     def _normalize_chapter_id(self, chapter_id: str) -> str:
         return fully_unquote(chapter_id).strip().strip("/")
 
+    def _advanced_listing(self, page: int, sort: str) -> PaginatedSeriesList:
+        params = advanced_params(page, sort)
+        try:
+            html = self._http.get_text(ADVANCED_PATH, params=params)
+        except ConnectorHttpError as exc:
+            self._log_request("browse", ADVANCED_PATH, params=params, status="error", detail=str(exc))
+            raise
+        listing = parse_advanced_list(html, page=page)
+        self._log_request(
+            "browse",
+            ADVANCED_PATH,
+            params=params,
+            status="ok",
+            detail=f"page={page} sort={sort!r} count={len(listing.items)} has_more={listing.has_more}",
+        )
+        return listing
+
     def get_series_list(self, page: int, *, sort: str | None = None) -> PaginatedSeriesList:
         if page < 1:
             page = 1
-        mode = "popular" if sort == "popular" else "latest"
-        path = listing_path(page, kind=mode)
+        if sort in ADVANCED_ORDERS:
+            return self._advanced_listing(page, sort)
+        path = listing_path(page, kind="latest")
         try:
             html = self._http.get_text(path)
         except ConnectorHttpError as exc:

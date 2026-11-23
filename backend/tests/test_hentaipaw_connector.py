@@ -119,6 +119,32 @@ def test_browse_and_search_requests() -> None:
     ]
 
 
+def test_browse_modes_and_their_requests() -> None:
+    connector, http = _connector(
+        {
+            "/": _fixture("home.html"),
+            "/articles/rank": _fixture("home_page2.html"),
+        }
+    )
+    assert [m.id for m in connector.list_browse_modes()] == ["default", "popular", "new"]
+    # default keeps the home page as-is (ranking strip + newest); new is the
+    # newest list alone, from the same request.
+    assert len(connector.get_series_list(1, sort="default").items) == 40
+    new = connector.get_series_list(1, sort="new")
+    assert len(new.items) == 30
+    assert new.items[0].id != ARTICLE
+    connector.get_series_list(2, sort="new")
+    connector.get_series_list(1, sort="popular")
+    connector.get_series_list(2, sort="popular")
+    assert http.calls == [
+        ("/", None),
+        ("/", None),
+        ("/", {"page": 2}),
+        ("/articles/rank", {"t": "weekly"}),
+        ("/articles/rank", {"t": "weekly", "page": 2}),
+    ]
+
+
 def test_series_chapters_pages_and_find_page_share_fetches() -> None:
     connector, http = _connector(
         {

@@ -21,6 +21,7 @@ from connectors.http.client import ConnectorHttpError
 from connectors.http.redirect_policy import host_matches_allowlist
 from connectors.rawkuma.connector import RawkumaConnector, _is_not_found
 from connectors.rawkuma.mappers import (
+    GENRE_TERM_IDS,
     is_page_image_url,
     listing_params,
     page_id_chapter_id,
@@ -144,14 +145,82 @@ def test_each_browse_mode_requests_a_distinct_rest_ordering():
 
 
 def test_browse_modes_canonical_order_and_latest_is_recently_updated(connector):
-    assert [m.id for m in connector.list_browse_modes()] == ["default", "latest", "new", "title"]
+    assert [m.id for m in connector.list_browse_modes()] == [
+        "default",
+        "popular",
+        "latest",
+        "new",
+        "title",
+    ]
     assert listing_params(2, sort="latest")["orderby"] == "modified"
     assert listing_params(2, sort="new")["orderby"] == "date"
 
 
 def test_unknown_sort_falls_back_to_default_rather_than_leaking_upstream():
+    # ``popular`` is not a REST ordering (it has its own admin-ajax path), so
+    # it must never reach the REST params either.
     assert listing_params(1, sort="popular")["orderby"] == "modified"
+    assert listing_params(1, sort="rating")["orderby"] == "modified"
     assert listing_params(1, sort=None)["orderby"] == "modified"
+
+
+def test_popular_posts_the_library_search_form_with_the_anonymous_nonce(connector):
+    gets: list[tuple[str, dict | None]] = []
+    posts: list[tuple[str, dict, dict | None]] = []
+
+    def fake_get(path, *, params=None):
+        gets.append((path, params))
+        return _text("ajax_nonce.html")
+
+    def fake_post(path, *, data=None, extra_headers=None):
+        posts.append((path, data, extra_headers))
+        return _text("ajax_popular_page2.html")
+
+    with (
+        patch.object(connector._http, "get_text", side_effect=fake_get),
+        patch.object(connector._http, "post_text", side_effect=fake_post),
+    ):
+        page2 = connector.get_series_list(2, sort="popular")
+        connector.browse_by_genre("action", 3, sort="popular")
+    assert gets == [("/wp-admin/admin-ajax.php", {"type": "search_form", "action": "get_nonce"})]
+    assert posts[0][0] == "/wp-admin/admin-ajax.php?action=advanced_search"
+    assert posts[0][1]["orderby"] == "popular"
+    assert posts[0][1]["order"] == "desc"
+    assert posts[0][1]["page"] == "2"
+    assert posts[0][1]["nonce"] == "16a4a500fe"
+    assert posts[0][1]["genre"] == "[]"
+    assert posts[1][1]["page"] == "3"
+    assert posts[1][1]["genre"] == '["action"]'
+    assert "action" in GENRE_TERM_IDS
+    # cards carry the same slug ids and titles the REST listing uses
+    assert len(page2.items) == 6
+    assert all(item.id and item.title and item.cover_url for item in page2.items)
+    assert page2.items[0].canonical_path == f"/manga/{page2.items[0].id}/"
+    assert page2.has_more is True
+
+
+def test_popular_refreshes_a_stale_nonce_once_and_never_fakes_an_empty_page(connector):
+    nonces = iter(["stale00000", "fresh11111"])
+
+    def fake_get(path, *, params=None):
+        return f"<input type='hidden' name='search_nonce' value='{next(nonces)}'>"
+
+    def fake_post(path, *, data=None, extra_headers=None):
+        return _text("ajax_popular_page2.html") if data["nonce"] == "fresh11111" else "0"
+
+    with (
+        patch.object(connector._http, "get_text", side_effect=fake_get),
+        patch.object(connector._http, "post_text", side_effect=fake_post),
+    ):
+        assert len(connector.get_series_list(1, sort="popular").items) == 6
+
+    fresh = RawkumaConnector()
+    with (
+        patch.object(fresh._http, "get_text", return_value=_text("ajax_nonce.html")),
+        patch.object(fresh._http, "post_text", return_value="0"),
+        pytest.raises(ConnectorHttpError),
+    ):
+        fresh.get_series_list(1, sort="popular")
 
 
 def test_genre_browse_filters_by_wordpress_term_id():
