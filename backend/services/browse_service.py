@@ -34,7 +34,7 @@ from database.models import SourceSeriesCache
 from database.session import get_db
 from connectors.base import ChapterLockedError, SourceConnector
 from connectors.branding import series_page_url
-from connectors.http import swallowed
+from connectors.http import egress, swallowed
 from connectors.http.client import (
     ConnectorHttpError,
     ResponseTooLargeError,
@@ -83,29 +83,54 @@ _IMAGE_POOL_KEEPALIVE_EXPIRY_SECONDS = 60.0
 _IMAGE_FETCH_DEADLINE_SECONDS = 60.0
 
 _image_http_client: Any = None
+# The same client, configured with the alternate-egress proxy, for the sources
+# routed through it (connectors/http/egress.py). Kept apart from the direct one
+# so a routed source's images can never leave directly and nobody else's ever
+# go through the second server. Created lazily, like the direct one.
+_proxied_image_http_client: Any = None
 _image_client_lock = threading.Lock()
+
+
+def _build_image_client(**extra: Any) -> Any:
+    import httpx
+
+    return httpx.Client(
+        follow_redirects=False,
+        timeout=30.0,
+        limits=httpx.Limits(
+            max_connections=_IMAGE_POOL_MAX_CONNECTIONS,
+            max_keepalive_connections=_IMAGE_POOL_MAX_KEEPALIVE,
+            keepalive_expiry=_IMAGE_POOL_KEEPALIVE_EXPIRY_SECONDS,
+        ),
+        **extra,
+    )
 
 
 def _image_client() -> Any:
     """Return the process-wide pooled client used for image/cover GETs."""
     global _image_http_client
-    import httpx
 
     client = _image_http_client
     if client is not None and not client.is_closed:
         return client
     with _image_client_lock:
         if _image_http_client is None or _image_http_client.is_closed:
-            _image_http_client = httpx.Client(
-                follow_redirects=False,
-                timeout=30.0,
-                limits=httpx.Limits(
-                    max_connections=_IMAGE_POOL_MAX_CONNECTIONS,
-                    max_keepalive_connections=_IMAGE_POOL_MAX_KEEPALIVE,
-                    keepalive_expiry=_IMAGE_POOL_KEEPALIVE_EXPIRY_SECONDS,
-                ),
-            )
+            _image_http_client = _build_image_client()
         return _image_http_client
+
+
+def _proxied_image_client() -> Any:
+    """The pooled image client that goes out through the alternate-egress proxy."""
+    global _proxied_image_http_client
+
+    client = _proxied_image_http_client
+    if client is not None and not client.is_closed:
+        return client
+    with _image_client_lock:
+        if _proxied_image_http_client is None or _proxied_image_http_client.is_closed:
+            # An explicit proxy also overrides HTTPS_PROXY from the environment.
+            _proxied_image_http_client = _build_image_client(proxy=egress.proxy_url())
+        return _proxied_image_http_client
 
 
 def _image_stream(method: str, url: str, **kwargs: Any):
@@ -116,6 +141,11 @@ def _image_stream(method: str, url: str, **kwargs: Any):
     redirect tests assert against.
     """
     return _image_client().stream(method, url, **kwargs)
+
+
+def _proxied_image_stream(method: str, url: str, **kwargs: Any):
+    """``_image_stream`` for a source routed through the alternate egress."""
+    return _proxied_image_client().stream(method, url, **kwargs)
 
 
 # Federated search fan-out tuning. The fan-out is I/O bound across dozens of
@@ -284,7 +314,10 @@ def _search_connector(source_id: str) -> SourceConnector:
     if cached is not None and type(cached) is type(connector):
         return cached
     try:
-        scoped = type(connector)()
+        # Built outside create_connector, so it must name its source itself or
+        # a routed source's search would go out direct.
+        with egress.constructing_source(source_id):
+            scoped = type(connector)()
     except Exception:  # pragma: no cover - connector needs constructor config
         logger.debug("federated_search source=%s has no search-scoped instance", source_id)
         return connector
@@ -788,6 +821,17 @@ class BrowseService:
     @staticmethod
     def _raise_source_connector_error(source_id: str, exc: Exception) -> None:
         """Map upstream connector failures to client-facing browse errors."""
+        if egress.is_proxy_failure(source_id, exc):
+            # The second server, not the site: say so in the log (host:port
+            # only) and give the client the same 502 it gets for any source
+            # it cannot reach. The message names nothing of our topology.
+            egress.log_proxy_failure(source_id, exc)
+            raise AppError(
+                "Could not reach the source site.",
+                code="source_unreachable",
+                status_code=502,
+                details={"source_id": source_id},
+            ) from exc
         if isinstance(exc, ConnectorHttpError):
             if exc.status_code == 403:
                 message = (
@@ -1659,6 +1703,8 @@ class BrowseService:
         except ResponseTooLargeError as exc:
             raise self._too_large(url, max_bytes) from exc
         except ConnectorHttpError as exc:
+            if egress.is_proxy_failure(connector.source_type, exc):
+                self._raise_source_connector_error(connector.source_type, exc)
             raise AppError(
                 "Failed to fetch remote image.",
                 code="remote_fetch_failed",
@@ -1678,7 +1724,8 @@ class BrowseService:
             # enforce hotlink protection — bare GETs often return 403.
             # Streamed with a hard byte ceiling: a hostile upstream must not
             # be able to buffer an unbounded body into this process.
-            with _image_stream(
+            routed = egress.proxy_for_source(connector.source_type) is not None
+            with (_proxied_image_stream if routed else _image_stream)(
                 "GET",
                 url,
                 timeout=30.0,
@@ -1711,6 +1758,8 @@ class BrowseService:
                         )
                 media_type = response.headers.get("content-type", "image/jpeg")
         except httpx.HTTPError as exc:
+            if egress.is_proxy_failure(connector.source_type, exc):
+                self._raise_source_connector_error(connector.source_type, exc)
             raise AppError(
                 "Failed to fetch remote image.",
                 code="remote_fetch_failed",

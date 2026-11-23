@@ -86,6 +86,16 @@ services:
       # is placed on the box by hand: ops/vps/.env, one line,
       # DEEPSEEK_API_KEY=..., then `docker compose ... up -d backend`.
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      # Alternate egress (docs/VPS_OPERATIONS.md "Routing blocked sources
+      # through a second server"): a forward proxy on another server that the
+      # listed sources' outbound requests go through, for sources that refuse
+      # this box's datacenter address. The proxy URL carries its password, so
+      # like the key above it comes from the untracked ops/vps/.env, never from
+      # this file. Both empty = off, and toonily/weebcentral stay unregistered.
+      # Read once at boot: edit ops/vps/.env, then `docker compose ... up -d
+      # backend`.
+      - MM_ALT_EGRESS_PROXY=${MM_ALT_EGRESS_PROXY:-}
+      - MM_ALT_EGRESS_SOURCES=${MM_ALT_EGRESS_SOURCES:-}
     volumes:
       - /srv/manhwamaniacs/data:/data
       # APK / IPA drop-in (populated by the mobile build pipeline — 1c). Dirs

@@ -19,6 +19,7 @@ from urllib.parse import urljoin, urlparse
 from curl_cffi import CurlOpt
 from curl_cffi.requests import Session
 
+from connectors.http import egress
 from connectors.http.client import RETRYABLE_STATUS, ConnectorHttpError
 from connectors.http.redirect_policy import (
     allowed_redirect_hosts,
@@ -101,7 +102,18 @@ class FacSyncHttpClient:
         self._headers = request_headers
         self._redirect_hosts = allowed_redirect_hosts(self._base_url)
         self._impersonate = impersonate
-        self._resolve_entries = resolve_entries if resolve_entries is not None else build_resolve_entries()
+        # Fixed at construction: ``refresh_dns`` rebuilds the session long after
+        # the registry's construction context is gone.
+        self._proxy_kwargs = egress.curl_kwargs()
+        # Behind the alternate-egress proxy the proxy resolves the host, so the
+        # pinned addresses (and the DoH lookup that finds them, which would be
+        # a direct request made on this source's behalf) are skipped.
+        if self._proxy_kwargs:
+            self._resolve_entries = []
+        else:
+            self._resolve_entries = (
+                resolve_entries if resolve_entries is not None else build_resolve_entries()
+            )
         self._session = self._make_session()
 
     def _make_session(self) -> Session:
@@ -109,12 +121,14 @@ class FacSyncHttpClient:
         if self._resolve_entries:
             curl_options[CurlOpt.RESOLVE] = list(self._resolve_entries)
         if curl_options:
-            return Session(impersonate=self._impersonate, curl_options=curl_options)
-        return Session(impersonate=self._impersonate)
+            return Session(
+                impersonate=self._impersonate, curl_options=curl_options, **self._proxy_kwargs
+            )
+        return Session(impersonate=self._impersonate, **self._proxy_kwargs)
 
     def refresh_dns(self) -> None:
         """Re-resolve hosts and rebuild the session (call after connect failures)."""
-        self._resolve_entries = build_resolve_entries()
+        self._resolve_entries = [] if self._proxy_kwargs else build_resolve_entries()
         try:
             self._session.close()
         except Exception:

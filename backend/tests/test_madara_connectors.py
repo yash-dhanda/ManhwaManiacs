@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from connectors.base import SourceConnector
-from connectors.excluded import EXCLUDED_CONNECTORS
+from connectors.excluded import inactive_connectors
 from connectors.http.client import ConnectorHttpError
 from connectors.madara.mappers import MadaraHtml
 from connectors.madara.sites import MADARA_SITES
@@ -96,7 +96,7 @@ _MADARA_SAMPLE_IDS = [
     for cfg in MADARA_SITES
     if cfg.url_segment == "manga"
     and not cfg.mature
-    and cfg.source_id not in EXCLUDED_CONNECTORS
+    and cfg.source_id not in inactive_connectors()
 ][::8]  # ~15 connectors
 
 
@@ -124,12 +124,12 @@ def test_madara_factory_connector_contract(source_id: str) -> None:
 
 
 def test_madara_sites_registered() -> None:
-    from connectors.excluded import EXCLUDED_CONNECTORS
+    from connectors.excluded import inactive_connectors
     from connectors.registry import list_connector_types
 
     registered = set(list_connector_types())
     for cfg in MADARA_SITES:
-        if cfg.source_id in EXCLUDED_CONNECTORS:
+        if cfg.source_id in inactive_connectors():
             continue
         assert cfg.source_id in registered, f"{cfg.source_id} missing from registry"
 

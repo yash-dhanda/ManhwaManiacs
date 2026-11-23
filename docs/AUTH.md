@@ -149,6 +149,17 @@ brute-force/abuse backstop, not a precise cluster-wide quota.
 | `MM_RATE_LIMIT_IMAGES` | `600/minute` | Cover and page-image proxy bucket: one request per image, so a chapter is one per page. |
 | `MM_RATE_LIMIT_IMPORT` | `5/minute` | Backup-restore-upload bucket. |
 
+### Alternate egress (second-server proxy)
+
+Both are read once at boot (a change needs a restart) and from the environment
+only, never from `settings.json`. See
+[VPS_OPERATIONS.md](VPS_OPERATIONS.md#routing-blocked-sources-through-a-second-server).
+
+| Var | Default | Purpose |
+| --- | --- | --- |
+| `MM_ALT_EGRESS_PROXY` | unset (off) | `http://` or `https://` forward-proxy URL **with an explicit port**, e.g. `http://user:pass@203.0.113.7:38128`. Contains a credential: never logged or returned by any API (only `host:port` is). SOCKS is rejected; a malformed value stops the boot. |
+| `MM_ALT_EGRESS_SOURCES` | unset | Comma-separated source ids routed through that proxy (`toonily,weebcentral`). No effect without the proxy. Ids that are not registered sources are ignored with one warning. |
+
 ### Deploy paths & CORS (pre-existing)
 
 | Var | Default | Purpose |

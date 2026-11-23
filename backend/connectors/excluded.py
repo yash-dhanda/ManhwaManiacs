@@ -8,9 +8,15 @@ of the source's cached rows: ``services.source_cache_service`` sweeps every
 cache table for source ids the registry no longer knows, on the next boot and
 daily after that. Nothing else to do — and nothing to undo either, since a line
 removed from here simply refetches.
+
+The same holds for :data:`ALT_EGRESS_ONLY_CONNECTORS` below: with alternate
+egress off they are unregistered, so their cached rows are swept on the next
+boot; with it on they are registered and left alone.
 """
 
 from __future__ import annotations
+
+from connectors.http.egress import routed_source_ids
 
 EXCLUDED_CONNECTORS: frozenset[str] = frozenset({
     # --- External / never catalogued ----------------------------------------
@@ -35,6 +41,16 @@ EXCLUDED_CONNECTORS: frozenset[str] = frozenset({
     # www.cmanhua.com now serves the stock "IIS Windows Server" placeholder,
     # so there is no origin left to fix a connector against.
     "cmanhua",
+})
+
+
+#: Sources that work, but only from an address other than the production VPS's.
+#: Registered if and only if alternate egress is configured AND the id is in
+#: ``MM_ALT_EGRESS_SOURCES`` (see :func:`inactive_connectors`); otherwise they
+#: stay unregistered exactly like :data:`EXCLUDED_CONNECTORS`, which is what
+#: keeps a deployment without the second server free of sources that can only
+#: error.
+ALT_EGRESS_ONLY_CONNECTORS: frozenset[str] = frozenset({
     # Deregistered 2026-09-05 after an end-to-end probe from the VPS. Weeb
     # Central itself is healthy from here -- browse, search, detail and
     # chapters all pass in about two seconds -- but two of the four CDN zones
@@ -55,16 +71,37 @@ EXCLUDED_CONNECTORS: frozenset[str] = frozenset({
     # on a blocked zone, and 7 of 20 on the Popularity page were. So the
     # default catalogue is unreadable here, and the connector cannot tell a
     # readable series from an unreadable one until the reader is already open
-    # on broken images. Delete this line the day the deployment reads from
-    # residential egress; the connector and its fixtures are untouched and
-    # still pass.
+    # on broken images.
+    #
+    # Moved here from EXCLUDED_CONNECTORS when alternate egress landed: it
+    # registers only when MM_ALT_EGRESS_PROXY is set and "weebcentral" is in
+    # MM_ALT_EGRESS_SOURCES, which sends its requests (page images included)
+    # out of a second server. That is the "residential egress" this entry was
+    # waiting for in spirit, but a second DATACENTER address is not guaranteed
+    # to be let through either -- the entry is here so the operator can try it,
+    # and if the same two zones answer the proxy with a block page, take it
+    # back out of MM_ALT_EGRESS_SOURCES. The connector and its fixtures are
+    # untouched and still pass.
     "weebcentral",
     # Connector WORKS (catalog.py "toonily", Madara /serie/; verified from a
     # non-VPS IP on 2026-11-23) but toonily.com blocks the production VPS's
-    # datacenter IP, so from there it can only error. Waiting on the
-    # alternate-egress routing for blocked sources; remove this line then.
+    # datacenter IP, so direct from there it can only error. Needs a second
+    # server's egress; see MM_ALT_EGRESS_PROXY. It stays 18+ whether or not it
+    # is registered (RETIRED_MATURE_SOURCES below, and the catalogue entry's
+    # mature=True once installed).
     "toonily",
 })
+
+
+def inactive_connectors() -> frozenset[str]:
+    """Every source id that must NOT register in this process.
+
+    :data:`EXCLUDED_CONNECTORS` always, plus each alternate-egress-only source
+    that is not routed through the proxy right now. Settings are read once per
+    process, so this answers the same for the life of one and a change needs a
+    restart.
+    """
+    return EXCLUDED_CONNECTORS | (ALT_EGRESS_ONLY_CONNECTORS - routed_source_ids())
 
 
 #: Adult source ids whose connector is no longer registered: removed from

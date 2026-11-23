@@ -1,5 +1,6 @@
-"""Toonily is stock Madara (/serie/ segment). It is NOT registered -- see
-``connectors.excluded`` -- so these tests build the class directly."""
+"""Toonily is stock Madara (/serie/ segment). It registers only through the
+alternate egress (``connectors.excluded.ALT_EGRESS_ONLY_CONNECTORS``), so these
+tests build the class directly."""
 
 from __future__ import annotations
 
@@ -8,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from connectors.catalog import MADARA_CATALOG
-from connectors.excluded import EXCLUDED_CONNECTORS
+from connectors.excluded import ALT_EGRESS_ONLY_CONNECTORS, EXCLUDED_CONNECTORS
 from connectors.madara.factory import build_madara_connector_class, madara_connector_classes
 from connectors.registry import list_installed_connectors
 
@@ -21,8 +22,9 @@ def toonily():
     return build_madara_connector_class(config)()
 
 
-def test_toonily_is_excluded_from_the_registry():
-    assert "toonily" in EXCLUDED_CONNECTORS
+def test_toonily_is_not_registered_without_the_alternate_egress():
+    assert "toonily" in ALT_EGRESS_ONLY_CONNECTORS
+    assert "toonily" not in EXCLUDED_CONNECTORS
     assert all(c.SOURCE_TYPE != "toonily" for c in madara_connector_classes(MADARA_CATALOG))
     assert "toonily" not in {d.source_type for d in list_installed_connectors(include_mature=True)}
 

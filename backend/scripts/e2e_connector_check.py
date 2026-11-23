@@ -784,6 +784,14 @@ def main() -> None:
     # local_filesystem needs config; skip in the live web check
     ids = [i for i in ids if i != "local_filesystem"]
 
+    # A routed source is checked through the same proxy its connector uses (the
+    # registry builds the clients, and the image stage runs the production
+    # fetch), so say which ones that applies to: it is the line to look for.
+    from connectors.http import egress
+
+    routed = sorted(egress.routed_source_ids() & set(ids))
+    if routed:
+        print(f"Alternate egress via {egress.endpoint()} for: {', '.join(routed)}", flush=True)
     print(f"Checking {len(ids)} connectors "
           f"(workers={args.workers}, timeout={args.timeout}s, mature={args.mature}, "
           f"images={args.images})...",

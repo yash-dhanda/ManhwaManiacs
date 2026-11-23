@@ -286,9 +286,9 @@ def test_connector_contract(case: ConnectorContractCase) -> None:
     # The contract exercises the live registry, so a deregistered source has
     # nothing to instantiate. Its fixtures and parser tests stay put — this
     # skips only the registry-dependent half.
-    from connectors.excluded import EXCLUDED_CONNECTORS
+    from connectors.excluded import inactive_connectors
 
-    if case.source_type in EXCLUDED_CONNECTORS:
+    if case.source_type in inactive_connectors():
         pytest.skip(f"{case.source_type} is deregistered (see connectors/excluded.py)")
     validate_connector_contract(case)
 

@@ -11,7 +11,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 
 # backend/core/config.py -> parents[2] == repo root
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -342,6 +342,19 @@ class Settings(BaseModel):
     # deployment with no CDN in front). See core.rate_limit.client_ip.
     trusted_client_ip_header: str = "cf-connecting-ip"
 
+    # Alternate egress (connectors/http/egress.py): a forward proxy on a second
+    # server that selected sources' outbound requests go through, for sources
+    # that refuse the production VPS's datacenter address. EMPTY MEANS OFF.
+    # MM_ALT_EGRESS_PROXY is an http:// or https:// URL with an explicit port
+    # and usually a credential (http://user:pass@203.0.113.7:3128), so it is a
+    # SecretStr: repr, model_dump and logs show a mask, never the value. It is
+    # validated at load and a malformed value stops the boot rather than
+    # quietly falling back to direct egress. MM_ALT_EGRESS_SOURCES lists the
+    # source ids routed through it; with no proxy it has no effect. Environment
+    # only -- neither is read from settings.json. Read once per process.
+    alt_egress_proxy: SecretStr = SecretStr("")
+    alt_egress_sources: tuple[str, ...] = ()
+
 
 @lru_cache
 def get_settings() -> Settings:
@@ -459,6 +472,17 @@ def get_settings() -> Settings:
         # Empty is meaningful here ("no trusted header"), so this one tests for
         # presence rather than truthiness.
         data["trusted_client_ip_header"] = client_ip_header_override.strip()
+
+    # Alternate egress. Environment only: a credential has no business in
+    # settings.json, which is persisted and served back by the settings API.
+    # Validated HERE, not in a pydantic validator, because a ValidationError
+    # prints the rejected input -- the credential -- into the boot log.
+    data.pop("alt_egress_proxy", None)
+    data.pop("alt_egress_sources", None)
+    from connectors.http.egress import parse_proxy_url, parse_source_ids
+
+    data["alt_egress_proxy"] = SecretStr(parse_proxy_url(os.getenv("MM_ALT_EGRESS_PROXY")))
+    data["alt_egress_sources"] = parse_source_ids(os.getenv("MM_ALT_EGRESS_SOURCES"))
 
     data.pop("version", None)  # runtime-only: always the release's own
     return Settings(**data)

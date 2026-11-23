@@ -12,6 +12,7 @@ from typing import Any
 
 import httpx
 
+from connectors.http import egress
 from connectors.http.redirect_policy import (
     allowed_redirect_hosts,
     redirect_rejection_reason,
@@ -235,6 +236,9 @@ class SyncConnectorHttpClient:
             headers=request_headers,
             follow_redirects=True,
             event_hooks={"response": [self._guard_redirect, self._bound_body]},
+            # Only for a source routed through the alternate egress; an
+            # explicit proxy also overrides the HTTPS_PROXY environment.
+            **egress.httpx_kwargs(),
         )
 
     def _guard_redirect(self, response: httpx.Response) -> None:

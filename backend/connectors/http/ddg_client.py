@@ -19,6 +19,7 @@ from connectors.http.client import (
     read_capped,
     resolve_body_cap,
 )
+from connectors.http import egress
 from connectors.http.redirect_policy import (
     allowed_redirect_hosts,
     send_with_redirect_validation,
@@ -71,7 +72,7 @@ class DdgSyncHttpClient:
             request_headers.update(headers)
         self._headers = request_headers
         self._redirect_hosts = allowed_redirect_hosts(self._base_url)
-        self._session = Session(impersonate=impersonate)
+        self._session = Session(impersonate=impersonate, **egress.curl_kwargs())
         domain = self._base_url.removeprefix("https://").removeprefix("http://").split("/")[0]
         # gallery-dl/kemono pattern: any __ddg2_ value satisfies the JS check screen.
         self._session.cookies.set(

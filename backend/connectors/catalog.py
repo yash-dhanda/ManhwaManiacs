@@ -256,10 +256,11 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     ),
     # Toonily: stock Madara, /serie/ segment, page images on tnlycdn.com
     # (hotlink-protected, needs the site Referer -- MadaraConnector sends it).
-    # NOT registered: toonily.com blocks the production VPS's datacenter IP, so
-    # "toonily" is in EXCLUDED_CONNECTORS until blocked sources are routed
-    # through the alternate egress. The factory skips excluded ids; tests build
-    # the class directly with build_madara_connector_class.
+    # NOT registered by default: toonily.com blocks the production VPS's
+    # datacenter IP, so "toonily" is in ALT_EGRESS_ONLY_CONNECTORS and the
+    # factory skips it unless MM_ALT_EGRESS_PROXY is set and it is listed in
+    # MM_ALT_EGRESS_SOURCES. Tests build the class directly with
+    # build_madara_connector_class.
     _site(
         "toonily",
         "Toonily",
