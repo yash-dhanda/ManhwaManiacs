@@ -849,3 +849,82 @@ def test_a_routed_client_sends_through_the_proxy_with_its_credential(monkeypatch
         client.close()
     finally:
         proxy.close()
+
+
+def test_get_settings_does_not_load_the_connector_registry():
+    # Migrations and scripts read settings; they must not depend on every
+    # connector importing and registering cleanly.
+    import subprocess
+    import sys
+
+    code = (
+        "import sys\n"
+        "from core.config import get_settings\n"
+        "get_settings()\n"
+        "bad = [m for m in ('connectors.registry', 'connectors.http.egress') "
+        "if m in sys.modules]\n"
+        "sys.exit(1 if bad else 0)\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, timeout=60
+    )
+    assert result.returncode == 0, result.stderr
+
+
+# --- the proxy's address stays out of anything a client can read --------------
+
+
+def _proxy_down_outcomes():
+    return {
+        ROUTED: _curl_connect_to_proxy_failure(),
+        OTHER: ConnectorHttpError("Failed to connect to origin.example port 443"),
+    }
+
+
+@pytest.mark.parametrize(
+    "make",
+    [_httpx_connect_failure, _curl_proxy_failure, _curl_connect_to_proxy_failure],
+)
+def test_a_federated_search_error_for_a_routed_source_names_nothing_of_the_proxy(
+    monkeypatch, db_session, make
+):
+    from services.source_health import load_states
+
+    _configure(monkeypatch)
+    service = BrowseService(mature_enabled=True, db=db_session)
+    exc = make()
+
+    class _Descriptor:
+        source_type = ROUTED
+        name = "Routed"
+        icon_url = None
+        mature = False
+
+    from services.source_health import SourceHealthState
+
+    group, _score = service._build_source_group(
+        _Descriptor(),
+        exc,
+        query_norm="q",
+        tokens=["q"],
+        health=SourceHealthState(source_id=ROUTED, status="unknown", consecutive_failures=0),
+        gate_open=True,
+    )
+    service._merge_health({ROUTED: exc})
+    stored = load_states(db_session)[ROUTED].last_error
+
+    for message in (group["error"], stored):
+        assert message == "Could not reach the source site."
+        assert "203.0.113.7" not in message and "3128" not in message
+        assert PASSWORD not in message
+
+
+def test_a_direct_sources_search_error_keeps_its_own_text(monkeypatch, db_session):
+    from services.source_health import load_states
+
+    _configure(monkeypatch)
+    outcomes = _proxy_down_outcomes()
+    BrowseService(mature_enabled=True, db=db_session)._merge_health(outcomes)
+    stored = load_states(db_session)
+    assert stored[OTHER].last_error == "Failed to connect to origin.example port 443"
+    assert stored[ROUTED].last_error == "Could not reach the source site."

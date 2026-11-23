@@ -97,6 +97,9 @@ class AsuraScansConnector(SourceConnector):
             message += f" detail={detail}"
         logger.info(message)
 
+    #: Ids advertised before the canonical popular/latest/new set. ``new`` sends the API's ``updated`` ordering, which is what the old id sent.
+    LEGACY_SORT_ALIASES = {"updated": "new"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="default", label="All"),

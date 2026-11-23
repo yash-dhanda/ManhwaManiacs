@@ -36,7 +36,12 @@ class TTLCache(Generic[T]):
             return None
         expires_at, value = entry
         if time.monotonic() > expires_at:
-            self._entries.pop(key, None)
+            # Removed under the lock the sweep and eviction in ``set`` hold, so
+            # they never see the dict change under them. Only the entry that
+            # was read is dropped: a writer may have replaced it since.
+            with self._lock:
+                if self._entries.get(key) is entry:
+                    del self._entries[key]
             return None
         return value
 
@@ -49,15 +54,18 @@ class TTLCache(Generic[T]):
             self._entries[key] = (now + self._ttl, value)
             if now >= self._next_sweep:
                 self._next_sweep = now + self._ttl
-                for stale in [k for k, (exp, _) in self._entries.items() if now > exp]:
-                    del self._entries[stale]
+                for stale in [
+                    k for k, (exp, _) in list(self._entries.items()) if now > exp
+                ]:
+                    self._entries.pop(stale, None)
             if self._max_entries is not None:
                 while len(self._entries) > self._max_entries:
-                    del self._entries[next(iter(self._entries))]
+                    self._entries.pop(next(iter(self._entries)), None)
 
     def pop(self, key: str) -> None:
         """Drop a cached entry so the next lookup refetches."""
-        self._entries.pop(key, None)
+        with self._lock:
+            self._entries.pop(key, None)
 
     def get_or_set(self, key: str, factory: Callable[[], T]) -> T:
         cached = self.get(key)
@@ -68,4 +76,5 @@ class TTLCache(Generic[T]):
         return value
 
     def clear(self) -> None:
-        self._entries.clear()
+        with self._lock:
+            self._entries.clear()

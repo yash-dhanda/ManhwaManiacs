@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import ClassVar
 
 from connectors.models import (
     BrowseMode,
@@ -119,6 +120,13 @@ class SourceConnector(ABC):
         itself; return ``None`` to let ``BrowseService`` use its default client.
         """
         return None
+
+    #: Sort ids this connector no longer advertises but still accepts, mapped to
+    #: the advertised id that sends the SAME upstream request. The browse cache
+    #: keys on the canonical id, so an older client's id shares its row (and its
+    #: stale fallback) instead of going upstream uncached. An old id with no
+    #: exact twin is left out: it stays served live.
+    LEGACY_SORT_ALIASES: ClassVar[dict[str, str]] = {}
 
     def list_browse_modes(self) -> list[BrowseMode]:
         """Return catalog views this connector supports (popular, latest, etc.)."""

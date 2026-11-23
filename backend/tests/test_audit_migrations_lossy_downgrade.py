@@ -38,7 +38,7 @@ from alembic.config import Config
 
 import database.session as dbs
 
-_HEAD = "0027_notification_locked_until"
+_HEAD = "0028_drop_stale_latest_browse_rows"
 _BEFORE_0010 = "0009_reading_session_duration"
 _BEFORE_0002 = "0001_source_native"
 

@@ -23,6 +23,7 @@ from fastapi import Depends
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from connectors.http import egress
 from connectors.ids import fully_unquote
 from connectors.registry import list_installed_connectors
 from core.config import get_settings
@@ -113,9 +114,10 @@ def _loads(value: str | None) -> list[dict[str, Any]]:
 _HEALTH_TRANSPORT = "The source could not be reached."
 _HEALTH_REFUSED = "The source refused the request."
 _HEALTH_BROKE = "The source answered, but not in a way we could read."
+_PROXY_UNREACHABLE = "Could not reach the source site."
 
 
-def _health_failure(exc: BaseException) -> str | None:
+def _health_failure(exc: BaseException, source_id: str | None = None) -> str | None:
     """What this exception says about the SOURCE, or None if it says nothing.
 
     Three things a sweep failure can mean, and only one of them is the site
@@ -138,6 +140,10 @@ def _health_failure(exc: BaseException) -> str | None:
         # A raw transport failure the browse layer mapped to its 502 is still a
         # transport failure, not a source that answered unreadably.
         if isinstance(exc.__cause__, OSError):
+            return _HEALTH_TRANSPORT
+        # A down alternate-egress proxy arrives the same way but its cause is
+        # a ConnectorHttpError: also the transport, not a page we misread.
+        if egress.is_proxy_failure(source_id, exc.__cause__):
             return _HEALTH_TRANSPORT
         # Everything else an AppError can be here came from the upstream
         # request itself.
@@ -649,13 +655,19 @@ class UpdateService:
                     # the commit below re-raised, the run row was never
                     # finalised, and one bad row 500'd the whole sweep.
                     self._db.rollback()
-                    row.last_error = str(exc)[:500]
+                    # The one thing kept out of it: a down alternate-egress
+                    # proxy's own text names the second server's address.
+                    row.last_error = (
+                        _PROXY_UNREACHABLE
+                        if egress.is_proxy_failure(row.source_id, exc)
+                        else str(exc)[:500]
+                    )
                     # last_error above is per-(user, profile) and only ever
                     # shown to its owner. source_health is GLOBAL and served to
                     # everyone, so it gets a classified, fixed phrase instead:
                     # an upstream exception string can carry a full URL with
                     # query parameters, and this instance has four accounts.
-                    kind = _health_failure(exc)
+                    kind = _health_failure(exc, row.source_id)
                     if kind is not None:
                         failed_sources.setdefault(row.source_id, kind)
                     logger.warning(

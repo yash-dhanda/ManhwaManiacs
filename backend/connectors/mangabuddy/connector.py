@@ -150,6 +150,9 @@ class MangaBuddyConnector(SourceConnector):
         # same image URL answers 403 with no Referer and 200 with one.
         return {"Referer": f"{SITE_BASE}/", "User-Agent": BROWSER_USER_AGENT}
 
+    #: Ids advertised before the canonical popular/latest/new set. ``new`` is sent as the site's ``newest``.
+    LEGACY_SORT_ALIASES = {"newest": "new"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         return list_browse_modes()
 

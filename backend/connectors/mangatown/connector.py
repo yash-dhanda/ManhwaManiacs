@@ -148,6 +148,9 @@ class MangaTownConnector(SourceConnector):
         """
         return {"Referer": IMAGE_REFERER}
 
+    #: Ids advertised before the canonical popular/latest/new set. Both read ``/hot``. ``updated`` has no twin (the site's directory ordered by last chapter time is not ``/latest``) and stays served live.
+    LEGACY_SORT_ALIASES = {"hot": "popular"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         return [BrowseMode(id=mode_id, label=label) for mode_id, label in BROWSE_MODE_LABELS]
 

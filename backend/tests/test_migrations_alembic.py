@@ -23,7 +23,7 @@ from database.models import Base
 from database.session import run_alembic_migrations
 
 _BASELINE = "0001_source_native"
-_HEAD = "0027_notification_locked_until"
+_HEAD = "0028_drop_stale_latest_browse_rows"
 
 # Every revision, oldest first. A new migration is added here deliberately —
 # the point of the guard is that revisions arrive on purpose, not that there is
@@ -56,6 +56,7 @@ _REVISIONS = [
     "0025_circle_core.py",
     "0026_circle_social.py",
     "0027_notification_locked_until.py",
+    "0028_drop_stale_latest_browse_rows.py",
 ]
 
 # Every ORM-mapped table the baseline must create (spec §3).
@@ -931,3 +932,41 @@ def test_circle_social_migration_backfills_collection_rows(tmp_path):
         "cached": (1, 10, "Cached Title", "http://c/c.jpg"),
         "bare": (1, 10, "bare", None),
     }
+
+
+# --- 0028_drop_stale_latest_browse_rows -----------------------------------
+
+
+def test_0028_deletes_browse_rows_cached_under_latest_and_keeps_the_rest(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'browse.db'}")
+    _upgrade_to(engine, "0027_notification_locked_until")
+    with engine.begin() as conn:
+        for source, sort in (
+            ("mangadex", "latest"),
+            ("mangadex", "popular"),
+            ("toonily", "latest"),
+            ("toonily", ""),
+        ):
+            conn.execute(
+                text(
+                    "INSERT INTO source_browse_cache (source_id, sort, genre,"
+                    " page, payload, fetched_at) VALUES (:s, :o, '', 1, '{}',"
+                    " '2026-11-23')"
+                ),
+                {"s": source, "o": sort},
+            )
+        conn.execute(
+            text(
+                "INSERT INTO source_browse_cache (source_id, sort, genre, page,"
+                " payload, fetched_at) VALUES ('mangadex', 'latest', 'action',"
+                " 2, '{}', '2026-11-23')"
+            )
+        )
+
+    _upgrade_to(engine, "head")
+
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text("SELECT source_id, sort FROM source_browse_cache ORDER BY 1, 2")
+        ).all()
+    assert rows == [("mangadex", "popular"), ("toonily", "")]

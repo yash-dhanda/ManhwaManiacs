@@ -115,6 +115,9 @@ class Manhwa18Connector(SourceConnector):
         # observed) — matched as subdomains of the one allowlisted domain.
         return frozenset({"manhwa18.cc"})
 
+    #: Ids advertised before the canonical popular/latest/new set. Both are ``/webtoons?orderby=trending``.
+    LEGACY_SORT_ALIASES = {"trending": "popular"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         return browse_modes()
 

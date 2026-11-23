@@ -186,6 +186,9 @@ class Manhwa18NetConnector(SourceConnector):
         media_type, body = self._http.get_bytes(url)
         return _sniff_image_media_type(body, media_type), body
 
+    #: Ids advertised before the canonical popular/latest/new set. Both send ``sort=top``.
+    LEGACY_SORT_ALIASES = {"top": "popular"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         return list_browse_modes()
 

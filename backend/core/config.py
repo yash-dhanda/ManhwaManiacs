@@ -479,7 +479,7 @@ def get_settings() -> Settings:
     # prints the rejected input -- the credential -- into the boot log.
     data.pop("alt_egress_proxy", None)
     data.pop("alt_egress_sources", None)
-    from connectors.http.egress import parse_proxy_url, parse_source_ids
+    from core.egress_config import parse_proxy_url, parse_source_ids
 
     data["alt_egress_proxy"] = SecretStr(parse_proxy_url(os.getenv("MM_ALT_EGRESS_PROXY")))
     data["alt_egress_sources"] = parse_source_ids(os.getenv("MM_ALT_EGRESS_SOURCES"))

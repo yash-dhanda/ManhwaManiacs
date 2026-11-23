@@ -139,6 +139,9 @@ class GuaziManhuaConnector(SourceConnector):
         # connector deliberately ships no image_fetch_headers override.
         return frozenset({IMAGE_HOST_SUFFIX})
 
+    #: Ids advertised before the canonical popular/latest/new set. Both pairs share a ``sort`` value in ``BROWSE_MODES``.
+    LEGACY_SORT_ALIASES = {"update": "latest", "hits": "popular"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         return list_browse_modes()
 

@@ -250,8 +250,13 @@ def _redact_urls(text: str) -> str:
     return _URL_IN_TEXT.sub("<url>", text).strip()
 
 
-def _search_error_message(exc: BaseException) -> str:
+def _search_error_message(exc: BaseException, source_id: str | None = None) -> str:
     """One-line, client-safe reason a source contributed nothing."""
+    if egress.is_proxy_failure(source_id, exc):
+        # The curl text names the proxy's host and port, and this message is
+        # stored on the GLOBAL source_health row every account can read. The
+        # phrase is the one the 502 path gives for the same failure.
+        return "Could not reach the source site."
     if isinstance(exc, TimeoutError):
         return "Timed out."
     if isinstance(exc, ConnectorHttpError) and exc.status_code == 403:
@@ -681,13 +686,15 @@ class BrowseService:
         visible -- the alternative is a page route that fails until something
         happens to have browsed the series.
 
-        Only a SHUT gate pays for the lookup, which also keeps it off the
-        reader's bulk-manifest fan-out for every caller who is allowed the
-        content anyway; the lock is there because that fan-out calls this on
-        worker threads that would otherwise share one Session.
+        An OPEN gate still looks: a series tagged as sexualised depictions of
+        minors is withheld from every caller, so this cannot be skipped for
+        the ones allowed adult content. The lock is there because the reader's
+        bulk-manifest fan-out calls this on worker threads that would
+        otherwise share one Session.
         """
-        if self._gate_open() or self._db is None:
+        if self._db is None:
             return
+        gate_open = self._gate_open()
         with self._db_lock:
             row = self._db.execute(
                 select(SourceSeriesCache)
@@ -701,12 +708,13 @@ class BrowseService:
             ).scalar_one_or_none()
         if row is None:
             return
+        genres = _loads_genres(row.genres)
         rating = resolve_series_rating(
-            row.content_rating,
-            _loads_genres(row.genres),
-            source_mature=connector.is_mature,
+            row.content_rating, genres, source_mature=connector.is_mature
         )
-        if hidden_by_gate(rating, gate_open=False):
+        if has_prohibited_tag(genres) or (
+            not gate_open and hidden_by_gate(rating, gate_open=False)
+        ):
             raise AppError(
                 "Chapter not found.",
                 code="chapter_not_found",
@@ -1181,7 +1189,7 @@ class BrowseService:
             return stored
         results = {
             source_id: (
-                _search_error_message(outcome)
+                _search_error_message(outcome, source_id)
                 if isinstance(outcome, BaseException)
                 else None
             )
@@ -1226,7 +1234,7 @@ class BrowseService:
             return group, 0.0
         if isinstance(outcome, BaseException):
             group["status"] = "error"
-            group["error"] = _search_error_message(outcome)
+            group["error"] = _search_error_message(outcome, source_id)
             logger.warning(
                 "federated_search source=%s query=%r failed: %r", source_id, query_norm, outcome
             )

@@ -47,6 +47,7 @@ from core.content_rating import (
     TRACKER_RATING_MATURE,
     has_prohibited_tag,
     hidden_by_gate,
+    is_prohibited_text,
     rating_from_genres,
     resolve_series_rating,
     serialized_series_rating,
@@ -188,7 +189,12 @@ _RESIZE_FAILURE_NO_GAIN = "no_downscale"
 #: must re-raise these rather than treat them as a connector outage: a gate
 #: refusing a series is an ANSWER, and answering it with the cached row is the
 #: exact disclosure the gate exists to prevent.
-_GATE_ERROR_CODES = frozenset({"source_not_found", "series_not_found"})
+#: ``content_not_available`` is the refusal of a genre or phrase that names a
+#: prohibited tag: the same answer for every caller, so an old row is no
+#: substitute for it.
+_GATE_ERROR_CODES = frozenset(
+    {"source_not_found", "series_not_found", "content_not_available"}
+)
 
 
 def _item_prohibited(item: dict[str, Any]) -> bool:
@@ -448,13 +454,20 @@ class SourceCacheService:
         whether anyone had loaded that grid before.
 
         Cheap on the hot path: a grid is dozens of covers, and an OPEN gate
-        hides nothing, so the extra row is only ever read when the gate is
-        shut. An absent series row is not a refusal -- unknown stays visible,
-        the same as everywhere else this rule is applied.
+        hides nothing on its rating, so with the gate open only the genres
+        column is read -- for the one rule no gate lifts, a prohibited tag.
+        An absent series row is not a refusal -- unknown stays visible, the
+        same as everywhere else this rule is applied.
         """
         gate = getattr(self._browse, "_gate_open", None)
         if callable(gate) and gate():
-            return False
+            genres = self._db.execute(
+                select(SourceSeriesCache.genres).where(
+                    SourceSeriesCache.source_id == source_id,
+                    SourceSeriesCache.series_key == fully_unquote(series_key),
+                )
+            ).scalar_one_or_none()
+            return has_prohibited_tag(_loads(genres) or [])
         row = self._db.get(SourceSeriesCache, (source_id, fully_unquote(series_key)))
         return row is not None and self._rating_hides(row)
 
@@ -515,8 +528,15 @@ class SourceCacheService:
         # whether *this* caller may see the source is not. No network involved.
         self._browse.ensure_visible(source_id)
 
-        sort_key = _normalize_sort(sort)
         genre_key = _normalize_genre(genre)
+        # Before any cache lookup: a connector whose genre list comes from the
+        # network may still advertise a prohibited genre, so the facet check
+        # below would let a row stored under it through.
+        if is_prohibited_text(genre_key):
+            raise AppError(
+                "Nothing found.", code="content_not_available", status_code=404
+            )
+        sort_key = self._canonical_sort(source_id, _normalize_sort(sort))
         reason = self._uncacheable_facet(source_id, sort_key, genre_key)
         if reason is not None:
             logger.info(
@@ -568,6 +588,8 @@ class SourceCacheService:
                 apply_gate=False,
             )
         except (AppError, Exception) as exc:  # noqa: BLE001 - cache must degrade
+            if isinstance(exc, AppError) and exc.code in _GATE_ERROR_CODES:
+                raise
             if row is not None:
                 logger.warning(
                     "browse_cache: connector failed for %s (sort=%r genre=%r "
@@ -957,6 +979,21 @@ class SourceCacheService:
         return row
 
     # --- browse-listing cache internals --------------------------------
+
+    def _canonical_sort(self, source_id: str, sort_key: str) -> str:
+        """The advertised id a legacy ``sort`` stands for, else ``sort_key``.
+
+        Done before the facet check and the cache key so an id a connector
+        still accepts but no longer advertises shares the canonical id's row
+        (and its stale fallback) rather than being served live every time.
+        """
+        if not sort_key:
+            return sort_key
+        resolve = getattr(self._browse, "_get_connector", None)
+        if not callable(resolve):
+            return sort_key
+        aliases = getattr(resolve(source_id), "LEGACY_SORT_ALIASES", None) or {}
+        return aliases.get(sort_key, sort_key)
 
     def _uncacheable_facet(
         self, source_id: str, sort_key: str, genre_key: str

@@ -81,6 +81,9 @@ class MangaDexConnector(SourceConnector):
         # domain.
         return frozenset({"mangadex.org", "mangadex.network"})
 
+    #: Ids advertised before the canonical popular/latest/new set. Both order by ``latestUploadedChapter``.
+    LEGACY_SORT_ALIASES = {"updated": "latest"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="latest", label="Latest"),

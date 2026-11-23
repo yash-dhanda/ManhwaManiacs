@@ -81,6 +81,9 @@ class AuroraScansConnector(SourceConnector):
     def image_fetch_headers(self) -> dict[str, str]:
         return {"Referer": f"{SITE_BASE}/"}
 
+    #: Ids advertised before the canonical popular/latest/new set. ``resolve_sort`` maps both to the API's ``popular``.
+    LEGACY_SORT_ALIASES = {"top_rated": "popular"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         # Canonical order: default (latest) first, then popular, latest, new.
         # ``top_rated`` was dropped as an exact duplicate of ``popular`` (see
