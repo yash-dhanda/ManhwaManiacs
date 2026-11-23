@@ -4,8 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
+import 'package:manhwamaniacs/core/time/lock_countdown.dart';
 import 'package:manhwamaniacs/core/time/locked_until.dart';
-import 'package:manhwamaniacs/shared/widgets/lock_countdown.dart';
 
 /// A chapter that answered `chapter_locked` (HTTP 423): early access, listed
 /// for everyone and opened to paying members first.

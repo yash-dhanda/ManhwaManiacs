@@ -5,7 +5,7 @@ import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/up_next_provider.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/utils/all_followed.dart';
-import 'package:manhwamaniacs/features/reader/widgets/chapter_locked_flow.dart';
+import 'package:manhwamaniacs/features/reader/engine/chapter_locked_flow.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';

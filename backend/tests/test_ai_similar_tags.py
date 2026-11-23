@@ -101,16 +101,23 @@ def test_exactly_one_form(client, as_user, seeded, anilist, query):
 def test_slow_desk_answers_without_why_then_serves_the_cache(client, as_user, seeded, anilist, paid, monkeypatch):
     monkeypatch.setattr(ai_series_service, "WAIT_SECONDS", 0.05)
     paid.answer = why_for(range(10, 22))
-    paid.delay = 0.4
+    # The claim is "the answer does not wait for the desk". The desk is slow by
+    # a wide margin, not by 50 ms: at 0.4 s against a 0.35 s budget this was a
+    # race with the runner, and a loaded CI machine lost it (0.51 s).
+    paid.delay = 2.0
     t0 = time.monotonic()
-    first = similar(client, as_user, seeded, source=SRC, series="s").json()
-    assert time.monotonic() - t0 < 0.35
-    assert first["available"] is True and first["reason"] == "ok" and first["basis"] == "ai"
-    assert first["items"] and all(i["why"] is None for i in first["items"])
-    for _ in range(100):
-        if not ai_desk._RUNNING:
-            break
-        time.sleep(0.05)
+    try:
+        first = similar(client, as_user, seeded, source=SRC, series="s").json()
+        assert time.monotonic() - t0 < 1.0
+        assert first["available"] is True and first["reason"] == "ok" and first["basis"] == "ai"
+        assert first["items"] and all(i["why"] is None for i in first["items"])
+    finally:
+        # Drained whatever the assertions said: a desk job left running writes
+        # its answer into the next test, which then fails for this one's reason.
+        for _ in range(200):
+            if not ai_desk._RUNNING:
+                break
+            time.sleep(0.05)
     second = similar(client, as_user, seeded, source=SRC, series="s").json()
     assert all(i["why"] for i in second["items"]) and len(paid.seen) == 1
 

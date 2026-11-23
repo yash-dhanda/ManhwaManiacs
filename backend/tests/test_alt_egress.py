@@ -500,10 +500,14 @@ def test_the_search_scoped_instance_is_routed_as_well(monkeypatch, recorded):
 def test_a_client_rebuilt_later_keeps_its_sources_route(monkeypatch, recorded):
     """mangahub swaps its chapter client on every spent nonce -- long after the
     registry's construction context is gone."""
+    from connectors.mangahub.connector import MangaHubConnector
+
     _configure(monkeypatch, sources="mangahub")
     httpx_rec, _ = recorded
-    monkeypatch.setattr(registry, "_INSTANCE_CACHE", {})
-    connector = registry.create_connector("mangahub")
+    # mangahub is deregistered (its chapters open with no pages), so the class
+    # is built the way the registry would build it rather than through it.
+    with egress.constructing_source("mangahub"):
+        connector = MangaHubConnector()
     assert httpx_rec.calls[-1]["proxy"] == PROXY
     httpx_rec.calls.clear()
     connector._build_client({"x-mhub-access": "n"})

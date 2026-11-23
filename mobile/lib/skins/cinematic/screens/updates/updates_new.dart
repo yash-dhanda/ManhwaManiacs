@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/core/time/lock_countdown.dart';
 import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/features/updates/utils/notification_grouping.dart';
-import 'package:manhwamaniacs/shared/widgets/lock_countdown.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';

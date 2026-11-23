@@ -2,8 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
+import 'package:manhwamaniacs/core/time/lock_countdown.dart';
 import 'package:manhwamaniacs/core/time/locked_until.dart';
-import 'package:manhwamaniacs/shared/widgets/lock_countdown.dart';
 
 void main() {
   late DateTime now;

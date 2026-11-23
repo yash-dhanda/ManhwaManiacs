@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/time/locked_until.dart';
+import 'package:manhwamaniacs/features/reader/engine/chapter_locked_flow.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
 import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
-import 'package:manhwamaniacs/features/reader/widgets/chapter_locked_flow.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';

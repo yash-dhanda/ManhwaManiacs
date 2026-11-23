@@ -30,6 +30,7 @@ import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart
 import 'package:manhwamaniacs/shared/providers/core_providers.dart' show sharedPrefsProvider;
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
+import 'package:sqflite/sqflite.dart' show DatabaseException;
 
 /// Why the queue isn't actively fetching right now.
 enum DownloadQueuePauseReason {
@@ -261,6 +262,10 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   final Map<ChapterIdentity, ({DateTime until, String reason})> _held = {};
   Timer? _holdTimer;
 
+  /// Set when the owner is gone (profile switch, sign-out, container teardown). The store it read is closed with it, so no pass
+  /// starts or goes on, and no wait or timer of the queue's acts, after this.
+  bool _disposed = false;
+
   /// For a chapter whose instant has passed yet still answers 423 (the source is late, or this clock runs ahead): the instant it
   /// named and the wait before it is asked again, doubling per answer. Cleared when the chapter opens or names another instant.
   final Map<ChapterIdentity, ({DateTime instant, Duration wait})> _lockBackoff = {};
@@ -292,7 +297,11 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     //
     // `listen`, never `watch`, here and below: a rebuild would reset the
     // pause flag, the in-flight bookkeeping and the prefetched windows.
-    ref.onDispose(() => _holdTimer?.cancel());
+    ref.onDispose(() {
+      _disposed = true;
+      _holdTimer?.cancel();
+      _holdTimer = null;
+    });
     ref.listen<DownloadsStore?>(downloadsStoreProvider, (previous, next) {
       if (next == null || identical(previous, next)) return;
       if (!_foreground || _userPaused) return;
@@ -641,6 +650,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
       state = state.copyWith(queueRevision: state.queueRevision + 1);
 
   Future<void> _kick() {
+    if (_disposed) return Future<void>.value();
     if (_loopRunning) {
       // The running pass may already have read an empty queue and be about to
       // exit; it runs once more instead of stranding whatever was just queued.
@@ -653,7 +663,10 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
         do {
           _kickPending = false;
           await _processLoop();
-        } while (_kickPending);
+        } while (_kickPending && !_disposed);
+      } catch (e) {
+        // A pass that ran into its owner going away (disposed, or the store closed underneath it) just ends.
+        if (!_disposed && !_isClosedStoreError(e)) rethrow;
       } finally {
         _loopRunning = false;
       }
@@ -662,8 +675,11 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     return run;
   }
 
+  bool _isClosedStoreError(Object error) => error is DatabaseException && error.isDatabaseClosedError();
+
   Future<void> _processLoop() async {
     while (true) {
+      if (_disposed) return;
       if (_userPaused) {
         state = state.copyWith(
           isDownloading: false,
@@ -1439,12 +1455,12 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   void _armHoldTimer() {
     _holdTimer?.cancel();
     _holdTimer = null;
-    if (_held.isEmpty) return;
+    if (_held.isEmpty || _disposed) return;
     final next = _held.values.map((h) => h.until).reduce((a, b) => a.isBefore(b) ? a : b);
     final wait = next.difference(clock());
     _holdTimer = createTimer(wait.isNegative ? Duration.zero : wait, () {
       _holdTimer = null;
-      if (_foreground && !_userPaused) unawaited(_kick());
+      if (!_disposed && _foreground && !_userPaused) unawaited(_kick());
     });
   }
 
@@ -1551,6 +1567,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   Future<_ChapterOutcome?> _pageStop(int rowId) async {
     if (_cancelledRowIds.contains(rowId)) return _ChapterOutcome.cancelled;
     if (_userPaused) return _ChapterOutcome.pausedUser;
+    if (_disposed) return _ChapterOutcome.pausedBackground;
     // Backgrounding pauses "before the next network call" (see setForeground): pages already on disk
     // stay, and the next pass after the app returns fetches the rest.
     if (!_foreground) return _ChapterOutcome.pausedBackground;
@@ -1593,10 +1610,11 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
         if (identical(_rateLimitedUntil, until)) _rateLimitedUntil = null;
         return true;
       }
-      if (_cancelledRowIds.contains(rowId) || _userPaused || !_foreground) return false;
+      if (_cancelledRowIds.contains(rowId) || _userPaused || !_foreground || _disposed) return false;
       // The disk checks cost a platform call and a sum over the store, so every few slices rather than every one.
       if (slices++ % 4 == 3 && (await _isBelowFreeSpaceFloor() || await _isAtOrOverCap())) return false;
       await sleep(left < kRateLimitWaitSlice ? left : kRateLimitWaitSlice);
+      if (_disposed) return false;
     }
   }
 

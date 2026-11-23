@@ -12,6 +12,7 @@ import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart'
 import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.dart';
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/features/library/providers/library_read_state.dart';
+import 'package:manhwamaniacs/features/reader/engine/chapter_locked_flow.dart';
 import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
@@ -26,7 +27,6 @@ import 'package:manhwamaniacs/features/reader/utils/reader_feed_controller.dart'
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_factory.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_series_navigation.dart';
 import 'package:manhwamaniacs/features/reader/utils/reading_clock.dart';
-import 'package:manhwamaniacs/features/reader/widgets/chapter_locked_flow.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_content.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_error_state.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_skeleton.dart';

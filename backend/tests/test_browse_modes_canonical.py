@@ -21,13 +21,20 @@ def _ids(source: str) -> list[str]:
         ("ehentai", ["latest", "popular", "new", "english"]),
         ("doujins", ["latest", "popular", "new"]),
         ("akuma", ["latest", "new", "english"]),
-        ("8muses", ["default", "popular", "latest", "new"]),
         ("mangafreak", ["default", "popular", "latest", "all"]),
         ("comicasura", ["latest", "popular", "rating", "name_asc", "name_desc"]),
     ],
 )
 def test_advertised_ids_and_order(source, expected):
     assert _ids(source) == expected
+
+
+def test_8muses_advertised_ids_and_order():
+    # Deregistered (its browse returns no series), so built directly.
+    from connectors.eightmuses.connector import EightMusesConnector
+
+    ids = [m.id for m in EightMusesConnector().list_browse_modes()]
+    assert ids == ["default", "popular", "latest", "new"]
 
 
 def test_nhentai_new_uses_the_latest_feed_and_popular_its_own():

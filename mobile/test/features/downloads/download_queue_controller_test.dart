@@ -1112,7 +1112,9 @@ void main() {
       DateTime? limitedAt;
       final calls = <(String, DateTime)>[];
       final container = buildContainer(
-        readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(4))),
+        // Two more pages than one chunk holds: the first chunk is already in flight when the 429 lands, so the pause is seen by
+        // the pages after it (and by the retry of the refused one).
+        readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(kPageFetchConcurrency + 2))),
         pageFetcher: _ScriptedPageFetcher((url) async {
           calls.add((url, now));
           if (limitedAt == null && url.contains('/1/image')) {
@@ -1128,7 +1130,7 @@ void main() {
 
       final t0 = limitedAt!;
       expect((await harness.storeFor('u1p1').getChapter(_id))!.state, DownloadChapterState.complete);
-      final late = [for (final c in calls) if (c.$1.contains('/3/') || c.$1.contains('/4/') || calls.indexOf(c) > 1 && c.$1.contains('/1/')) c];
+      final late = calls.skip(kPageFetchConcurrency).toList();
       expect(late, hasLength(3));
       for (final c in late) {
         expect(c.$2.difference(t0), greaterThanOrEqualTo(const Duration(seconds: 2)), reason: c.$1);

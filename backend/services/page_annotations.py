@@ -51,7 +51,6 @@ def resolve_pages(reader: Any, source_id: str, series_key: str, chapter_key: str
 def _upsert_once(
     db: Session, source_id: str, series_key: str, chapter_key: str,
     pages: list[dict[str, Any]], reports: dict[int, dict[str, Any]],
-    *, _retry: bool = True,
 ) -> None:
     by_number = {p["number"]: p for p in pages}
     wanted = {
@@ -85,24 +84,20 @@ def _upsert_once(
         row.updated_at = now
         for name, value in fields.items():
             setattr(row, name, value)
-    try:
-        db.commit()
-    except IntegrityError:
-        # Two readers reporting the same new page (the phone and the web, or
-        # one autosave twice) both saw no row. The winner's row is there now:
-        # redo the merge once against it. The report is fire-and-forget, so
-        # the rollback loses nothing but this call's own pending rows.
-        db.rollback()
-        if not _retry:
-            raise
-        _upsert(db, source_id, series_key, chapter_key, pages, reports, _retry=False)
+    db.commit()
 
 
 def _upsert(
     db: Session, source_id: str, series_key: str, chapter_key: str,
     pages: list[dict[str, Any]], reports: dict[int, dict[str, Any]],
 ) -> None:
-    """Two readers reporting the same page race to insert its row; the loser retries as an update."""
+    """Two readers reporting the same page race to insert its row; the loser retries as an update.
+
+    The phone and the web, or one autosave twice, both see no row and both
+    insert. The winner's row is there by the time the loser's commit fails, so
+    one more pass against it is an update. The report is fire-and-forget: the
+    rollback loses nothing but this call's own pending rows.
+    """
     try:
         _upsert_once(db, source_id, series_key, chapter_key, pages, reports)
     except IntegrityError:
