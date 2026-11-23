@@ -1,5 +1,10 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/types/api";
+import {
+  chapterLockFromBatchError,
+  chapterLockFromError,
+  type ChapterLock,
+} from "@/lib/chapter-lock";
 import { manifestToChapterContent, readerApi, type ChapterManifest } from "./api";
 import {
   keyBefore,
@@ -80,6 +85,12 @@ export interface StripFetchResult {
    * fifty chapters deep should not have to press anything.
    */
   retryAfterMs?: number;
+  /**
+   * Set when the run stopped at a chapter in early access, with the instant it
+   * opens (null if the source did not say). The strip shows a countdown for it
+   * instead of a failure; `error` still carries the server's own sentence.
+   */
+  lock?: ChapterLock | null;
 }
 
 /** How long to wait out a rate-limited window before trying it again. */
@@ -160,6 +171,7 @@ export function linkedChapterSource(
             chapters,
             error: fetchErrorMessage(cause),
             retryAfterMs: retryDelayFor(cause),
+            lock: chapterLockFromError(cause),
           };
         }
       }
@@ -266,6 +278,7 @@ export function bulkChapterSource(
       // reader has crossed before must not cost the source a single request.
       const missing = keys.filter((key) => cached(key) === undefined);
       const failures = new Map<string, string>();
+      const locks = new Map<string, ChapterLock>();
 
       if (missing.length > 0) {
         try {
@@ -289,6 +302,8 @@ export function bulkChapterSource(
               );
             } else if (item.error) {
               failures.set(item.chapter_key, item.error.message);
+              const lock = chapterLockFromBatchError(item.error);
+              if (lock) locks.set(item.chapter_key, lock);
             }
           }
         } catch (cause) {
@@ -298,6 +313,7 @@ export function bulkChapterSource(
             chapters: [],
             error: fetchErrorMessage(cause),
             retryAfterMs: retryDelayFor(cause),
+            lock: chapterLockFromError(cause),
           };
         }
       }
@@ -309,6 +325,7 @@ export function bulkChapterSource(
           return {
             chapters,
             error: failures.get(key) ?? "That chapter did not load.",
+            lock: locks.get(key) ?? null,
           };
         }
         chapters.push(chapter);

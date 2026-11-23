@@ -1105,6 +1105,7 @@ export function useReaderEngine(
     layout: readingMode === "continuous" ? "strip" : readingMode,
     status,
     error: error ?? null,
+    errorLock: listFailed ? null : strip.lock,
     chapter: chapter
       ? {
           sourceId: chapter.sourceId,
@@ -1189,6 +1190,7 @@ export function useReaderEngine(
               })
             : null,
         error: strip.nextError,
+        lock: strip.nextLock,
         retry: strip.retryNext,
       },
       paged: {

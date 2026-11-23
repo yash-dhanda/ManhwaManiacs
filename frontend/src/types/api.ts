@@ -55,4 +55,9 @@ export interface RequestOptions {
   query?: Record<string, string | number | boolean | undefined | null>;
   signal?: AbortSignal;
   headers?: Record<string, string>;
+  /**
+   * Let the request outlive the page. Only for small writes sent as the page is
+   * going away (the browser caps a keepalive body at 64 KB).
+   */
+  keepalive?: boolean;
 }

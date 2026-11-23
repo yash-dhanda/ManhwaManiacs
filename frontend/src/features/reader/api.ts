@@ -35,7 +35,13 @@ export interface BulkManifestItem {
   /** Byte-identical to what `GET /reader/chapter/manifest` serves, or null. */
   manifest: ChapterManifest | null;
   /** Exactly one of `manifest` / `error` is non-null. */
-  error: { code: string; status: number; message: string } | null;
+  error: {
+    code: string;
+    status: number;
+    message: string;
+    /** `chapter_locked` only: when it opens (ISO-8601 UTC), or null if unknown. */
+    locked_until?: string | null;
+  } | null;
 }
 
 /**
@@ -156,7 +162,9 @@ export const readerApi = {
     }),
 
   saveProgress: (ref: ChapterId, body: Omit<ProgressPush, "source_id" | "series_key" | "chapter_key">) =>
-    http.post<ReadingProgress>("/reader/progress", toPush(ref, body)),
+    // keepalive: the last report is flushed as the tab hides or closes, and a
+    // plain fetch can be aborted by the unload; the body is a few hundred bytes.
+    http.post<ReadingProgress>("/reader/progress", toPush(ref, body), { keepalive: true }),
 
   /** Offline-sync flush of queued progress pushes. */
   saveProgressBatch: (pushes: ProgressPush[]) =>

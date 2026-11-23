@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { ChapterLock } from "@/lib/chapter-lock";
 import type { StripEdge } from "../use-chapter-strip";
 
 /**
@@ -10,7 +11,7 @@ import type { StripEdge } from "../use-chapter-strip";
  */
 export interface ReaderSurfaceSlots {
   loading(): ReactNode;
-  error(message: string, retry: () => void): ReactNode;
+  error(message: string, retry: () => void, lock?: ChapterLock | null): ReactNode;
   empty(): ReactNode;
   /** Wraps the strip's head, rows and tail (the legacy column padding). */
   stripFrame(children: ReactNode): ReactNode;
@@ -30,6 +31,7 @@ export interface ReaderSurfaceSlots {
     hasMore: boolean;
     href: string | null;
     error: string | null;
+    lock?: ChapterLock | null;
     retry: () => void;
   }): ReactNode;
   /** RD5. Painted inside the page box until the image has decoded (may be null). */

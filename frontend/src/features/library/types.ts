@@ -20,6 +20,8 @@ export interface KnownChapter {
   published_at: string | null;
   /** Only present on the cache-backed detail chapter list. */
   page_count?: number | null;
+  /** Early access: the instant the chapter opens to everyone (UTC), or null/absent. */
+  locked_until?: string | null;
 }
 
 /**

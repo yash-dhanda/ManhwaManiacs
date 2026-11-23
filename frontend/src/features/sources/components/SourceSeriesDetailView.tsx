@@ -56,6 +56,8 @@ import {
 } from "./SourceSeriesDetailSkeleton";
 import { CoverImage } from "@/components/ui/cover-image";
 import { chapterDateLabel, chapterUploadedAt } from "../chapter-date";
+import { isLocked, opensInLabel } from "@/lib/chapter-lock";
+import { useMinuteClock } from "@/lib/use-minute-clock";
 
 /**
  * The poster: capped at `max-w-[200px]` below `lg`, then the 220px grid column.
@@ -196,14 +198,19 @@ function MangaSeriesDetailView({
    */
   // Display order, not listing order: shift-click ranges over the rows as they
   // are on screen, and this list sorts newest-first by default.
+  // A chapter in early access cannot be fetched, so it is never offered to the
+  // saver: it would only come back as a failure in the run summary.
+  const clock = useMinuteClock();
   const pickerRows = useMemo(
     () =>
-      sortedChapters.map((chapter) => ({
-        key: chapter.id,
-        number: chapter.number,
-        read: progressMap[chapter.id]?.completed ?? false,
-      })),
-    [progressMap, sortedChapters],
+      sortedChapters
+        .filter((chapter) => clock === null || !isLocked(chapter.locked_until, clock))
+        .map((chapter) => ({
+          key: chapter.id,
+          number: chapter.number,
+          read: progressMap[chapter.id]?.completed ?? false,
+        })),
+    [clock, progressMap, sortedChapters],
   );
 
   const saver = useMangaChapterSaver({
@@ -505,7 +512,8 @@ function MangaSeriesDetailView({
               // When the source says this chapter went up. Serialized as
               // `release_date` on this live listing; the followed-series list
               // normalises the same value to `published_at`.
-              const uploaded = chapterDateLabel(chapterUploadedAt(chapter));
+              const opensIn = opensInLabel(chapter.locked_until, clock);
+              const uploaded = opensIn ?? chapterDateLabel(chapterUploadedAt(chapter));
               let progressText: string | null;
               if (progress && completed) {
                 progressText = pageCount > 0 ? `${pageCount}/${pageCount} pages` : "Read";
@@ -537,7 +545,7 @@ function MangaSeriesDetailView({
                   onClick={(event) => {
                     if (!picker.selecting) return;
                     event.preventDefault();
-                    picker.pick(chapter.id, event.shiftKey);
+                    if (opensIn === null) picker.pick(chapter.id, event.shiftKey);
                   }}
                   aria-pressed={picker.selecting ? picked : undefined}
                   onMouseEnter={() => hoverIntent.enter(chapter.id)}
@@ -555,7 +563,10 @@ function MangaSeriesDetailView({
                   )}
                 >
                   {picker.selecting ? (
-                    <ChapterCheckbox checked={picked} disabled={downloadState === "saved"} />
+                    <ChapterCheckbox
+                      checked={picked}
+                      disabled={downloadState === "saved" || opensIn !== null}
+                    />
                   ) : null}
                   <div className="min-w-0 flex-1">
                     <div>
@@ -573,7 +584,9 @@ function MangaSeriesDetailView({
                         </p>
                       )}
                       {uploaded != null && (
-                        <p className="text-xs text-muted">{uploaded}</p>
+                        <p className={cn("text-xs", opensIn ? "text-primary" : "text-muted")}>
+                          {uploaded}
+                        </p>
                       )}
                     </div>
                   </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { ChapterLockedTail } from "./ChapterLockedNotice";
+import type { ChapterLock } from "@/lib/chapter-lock";
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
@@ -936,6 +938,8 @@ interface StripTailProps {
   hasMore: boolean;
   /** Why the next chapter did not arrive, if it did not. */
   error: string | null;
+  /** Set when the next chapter is in early access rather than broken. */
+  lock?: ChapterLock | null;
   onRetry?: () => void;
   label: string | null;
   href: string | null;
@@ -952,12 +956,13 @@ interface StripTailProps {
 export function StripTail({
   hasMore,
   error,
+  lock,
   onRetry,
   label,
   href,
 }: StripTailProps) {
   if (error && href) {
-    return (
+    const failure = (
       <div className="mx-auto flex w-full max-w-3xl justify-center px-4 pb-10 pt-4">
         <div className="glass-card reader-end-card-enter flex w-full max-w-md flex-col items-center gap-3 rounded-2xl px-6 py-5 text-center shadow-glass">
           <span className="text-[11px] font-semibold uppercase tracking-widest text-muted">
@@ -981,6 +986,15 @@ export function StripTail({
           </div>
         </div>
       </div>
+    );
+    if (!lock) return failure;
+    return (
+      <ChapterLockedTail
+        lock={lock}
+        label={label}
+        retry={onRetry ?? (() => {})}
+        fallback={failure}
+      />
     );
   }
 

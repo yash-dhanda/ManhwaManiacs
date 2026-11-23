@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { chapterIndexOf, shouldExtendAhead, type StripChapter, type StripWindow } from "./strip";
 import type { StripSource } from "./strip-source";
 import { readerDebug } from "./debug";
+import type { ChapterLock } from "@/lib/chapter-lock";
 
 export interface ChapterStripInput {
   /** The chapter the strip opens on — its first, and the anchor for its scroll. */
@@ -35,6 +36,9 @@ export interface ChapterStripState {
   error: string | null;
   /** Why the chapter after the strip's tail did not arrive, if it did not. */
   nextError: string | null;
+  /** Set when the entry / next chapter is in early access rather than broken. */
+  lock: ChapterLock | null;
+  nextLock: ChapterLock | null;
   /** What lies just before the strip's head, and just past its tail. */
   head: StripEdge;
   tail: StripEdge;
@@ -49,9 +53,10 @@ export interface ChapterStripState {
 interface TailFailure {
   error: string | null;
   retryAfterMs: number | null;
+  lock: ChapterLock | null;
 }
 
-const NO_FAILURE: TailFailure = { error: null, retryAfterMs: null };
+const NO_FAILURE: TailFailure = { error: null, retryAfterMs: null, lock: null };
 
 /** Identity of the strip currently loaded: which chapter, which attempt. */
 interface StripIdentity {
@@ -108,6 +113,7 @@ export function useChapterStrip({
 }: ChapterStripInput): ChapterStripState {
   const [chapters, setChapters] = useState<readonly StripChapter[]>([]);
   const [entryError, setEntryError] = useState<string | null>(null);
+  const [entryLock, setEntryLock] = useState<ChapterLock | null>(null);
   const [next, setNext] = useState<TailFailure>(NO_FAILURE);
   const [loadingPrevious, setLoadingPrevious] = useState(false);
   const [identity, setIdentity] = useState<StripIdentity>({
@@ -122,6 +128,7 @@ export function useChapterStrip({
     setIdentity({ entryChapterKey, attempt: 0 });
     setChapters([]);
     setEntryError(null);
+    setEntryLock(null);
     setNext(NO_FAILURE);
     setLoadingPrevious(false);
   }
@@ -162,6 +169,7 @@ export function useChapterStrip({
       if (cancelled) return;
       if (result.chapters.length === 0) {
         setEntryError(result.error ?? "That chapter did not load.");
+        setEntryLock(result.lock ?? null);
         return;
       }
       setChapters(result.chapters);
@@ -194,25 +202,30 @@ export function useChapterStrip({
     if (inFlightRef.current === token) return;
     inFlightRef.current = token;
 
-    let cancelled = false;
+    // The result is judged by which strip asked, not by whether this effect run
+    // is still the current one: the run is torn down on every active-chapter or
+    // chapter-list change, but the token above keeps the next run from asking
+    // again, so a result dropped here would never be re-requested.
+    const identityAtRequest = identity;
     readerDebug("strip-extend", { keys, activeChapterKey });
     void sourceRef.current
       .fetch(keys)
       .then((result) => {
-        if (cancelled) return;
+        if (identityRef.current !== identityAtRequest) return;
         if (result.chapters.length > 0) {
           setChapters((previous) => appendChapters(previous, result.chapters));
         }
         if (result.error) {
-          setNext({ error: result.error, retryAfterMs: result.retryAfterMs ?? null });
+          setNext({
+            error: result.error,
+            retryAfterMs: result.retryAfterMs ?? null,
+            lock: result.lock ?? null,
+          });
         }
       })
       .finally(() => {
         if (inFlightRef.current === token) inFlightRef.current = "";
       });
-    return () => {
-      cancelled = true;
-    };
   }, [activeChapterKey, chapters, identity, next.error, ready, stripWindow.ahead]);
 
   /**
@@ -229,6 +242,7 @@ export function useChapterStrip({
   const retryNext = useCallback(() => setNext(NO_FAILURE), []);
   const reload = useCallback(() => {
     setEntryError(null);
+    setEntryLock(null);
     setNext(NO_FAILURE);
     setIdentity((previous) => ({
       entryChapterKey: previous.entryChapterKey,
@@ -268,6 +282,8 @@ export function useChapterStrip({
     isLoading: chapters.length === 0 && entryError === null,
     error: entryError,
     nextError: next.error,
+    lock: entryLock,
+    nextLock: next.lock,
     head: { chapterKey: headKey, label: source.edgeLabel(chapters, "previous") },
     tail: { chapterKey: tailKey, label: source.edgeLabel(chapters, "next") },
     retryNext,

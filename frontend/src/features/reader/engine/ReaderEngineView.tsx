@@ -38,7 +38,7 @@ export function ReaderEngineView({
   const { state, surface, commands, extras } = engine;
 
   if (state.status === "loading") return <>{slots.loading()}</>;
-  if (state.status === "error") return <>{slots.error(state.error ?? "", extras.onRetry)}</>;
+  if (state.status === "error") return <>{slots.error(state.error ?? "", extras.onRetry, state.errorLock ?? null)}</>;
   if (state.status === "empty") return <>{slots.empty()}</>;
 
   const body = (

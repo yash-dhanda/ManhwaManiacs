@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Bell, BellOff, ChevronRight, Search, TriangleAlert } from "lucide-react";
+import { Bell, BellOff, ChevronRight, Clock, Search, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChapterCountdown } from "@/components/ui/chapter-countdown";
 import { EmptyState } from "@/components/ui/empty-state";
 import { OfflineState } from "@/components/ui/offline-state";
 import { HeroHeading } from "@/components/premium/HeroHeading";
@@ -17,6 +19,7 @@ import {
   useChapterLinksReady,
   type ChapterHref,
 } from "@/features/novels/use-chapter-href";
+import { isLocked } from "@/lib/chapter-lock";
 import { formatUtcDateTime } from "@/lib/utc-time";
 import { apiErrorMessage, resolveViewState } from "@/lib/view-state";
 import { ApiError } from "@/types/api";
@@ -42,7 +45,7 @@ function formatWhen(value: string | null): string {
   return formatUtcDateTime(value);
 }
 
-function NotificationRow({
+export function NotificationRow({
   item,
   seriesTitle,
   onRead,
@@ -56,6 +59,10 @@ function NotificationRow({
   chapterHref: ChapterHref;
 }) {
   const readerHref = chapterHref(notificationChapterRef(item));
+  // Re-render when the countdown reaches zero: the instant alone decides, so
+  // the read action comes back from the clock with no refetch.
+  const [now, setNow] = useState(() => Date.now());
+  const locked = isLocked(item.locked_until, now);
   return (
     <div
       className={`rounded-xl border border-border/40 bg-white/[0.02] p-3 transition-colors hover:border-primary/30 ${
@@ -73,12 +80,21 @@ function NotificationRow({
           </p>
         </div>
         <div className="flex gap-2">
-          <Link
-            href={readerHref}
-            className="inline-flex h-8 items-center rounded-lg bg-surface-2 px-3 text-sm font-medium text-fg hover:bg-border"
-          >
-            Read
-          </Link>
+          {locked ? (
+            // A status, not a button: early access answers "Chapter not found"
+            // until the instant, so a link here would be a dead one.
+            <span className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/50 px-3 text-sm font-medium text-muted">
+              <Clock className="size-3.5" aria-hidden />
+              <ChapterCountdown lockedUntil={item.locked_until} onUnlocked={() => setNow(Date.now())} />
+            </span>
+          ) : (
+            <Link
+              href={readerHref}
+              className="inline-flex h-8 items-center rounded-lg bg-surface-2 px-3 text-sm font-medium text-fg hover:bg-border"
+            >
+              Read
+            </Link>
+          )}
           {!item.is_read ? (
             <Button
               size="sm"
