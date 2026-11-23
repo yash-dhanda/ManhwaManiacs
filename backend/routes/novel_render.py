@@ -27,6 +27,7 @@ import json
 import os
 from typing import Annotated
 
+import anyio
 from fastapi import (
     APIRouter,
     Depends,
@@ -39,6 +40,7 @@ from fastapi import (
 )
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from core.auth import tokens_equal
@@ -255,35 +257,64 @@ async def complete_render(
     """
     from services.novel_render_queue import _held
 
-    job = _held(db, job_id, worker_id)
+    # This handler is async only because the upload parts are read with
+    # ``await``. Everything that touches SQLite or the disk goes to a worker
+    # thread instead: a commit waits out ``busy_timeout`` (5 s) whenever the
+    # update sweep or a progress batch holds the write lock, and an fsync
+    # waits on the disk -- on the loop thread either one stalls every request
+    # the process is serving. The calls stay sequential, so the request's
+    # ``Session`` is never used from two threads at once.
+    job = await run_in_threadpool(_held, db, job_id, worker_id)
     if job is None or job.status not in ("planning", "rendering"):
         raise StarletteHTTPException(status_code=409, detail="lease_lost")
 
     audio_path, timing_path = chapter_paths(
         job.source_id, job.series_key, job.chapter_key
     )
-    audio_path.parent.mkdir(parents=True, exist_ok=True)
+    await run_in_threadpool(audio_path.parent.mkdir, parents=True, exist_ok=True)
     audio_tmp = audio_path.with_suffix(audio_path.suffix + ".tmp")
     timing_tmp = timing_path.with_suffix(timing_path.suffix + ".tmp")
 
     try:
         written = await _spool(audio, audio_tmp)
         await _spool(timing, timing_tmp)
-        os.replace(timing_tmp, timing_path)
-        os.replace(audio_tmp, audio_path)
+        await run_in_threadpool(_publish, timing_tmp, timing_path, audio_tmp, audio_path)
     except StarletteHTTPException:
         raise
     except OSError as exc:
-        fail(db, job_id, worker_id, "upload_failed", str(exc), retryable=True)
-        db.commit()
+        await run_in_threadpool(_record_upload_failure, db, job_id, worker_id, exc)
         raise StarletteHTTPException(status_code=500, detail="upload_failed") from exc
     finally:
-        for leftover in (audio_tmp, timing_tmp):
-            try:
-                leftover.unlink(missing_ok=True)
-            except OSError:
-                pass
+        # Shielded: a client that hangs up cancels this task, and a cancelled
+        # ``await`` here would skip the cleanup that keeps a half-written
+        # ``.tmp`` off the data volume.
+        with anyio.CancelScope(shield=True):
+            await run_in_threadpool(_discard, audio_tmp, timing_tmp)
 
+    await run_in_threadpool(_finish, db, job_id, worker_id, audio_path)
+    return {"available": True, "bytes": written}
+
+
+def _publish(timing_tmp, timing_path, audio_tmp, audio_path) -> None:
+    """Timing first: audio without a map plays, a map without audio does not."""
+    os.replace(timing_tmp, timing_path)
+    os.replace(audio_tmp, audio_path)
+
+
+def _record_upload_failure(db: Session, job_id: str, worker_id: str, exc: OSError) -> None:
+    fail(db, job_id, worker_id, "upload_failed", str(exc), retryable=True)
+    db.commit()
+
+
+def _discard(*leftovers) -> None:
+    for leftover in leftovers:
+        try:
+            leftover.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+def _finish(db: Session, job_id: str, worker_id: str, audio_path) -> None:
     try:
         m4a_path(audio_path).unlink(missing_ok=True)
     except OSError:
@@ -293,14 +324,19 @@ async def complete_render(
 
     complete(db, job_id, worker_id)
     db.commit()
-    return {"available": True, "bytes": written}
 
 
 async def _spool(upload: UploadFile, target) -> int:
     """Stream one part to disk, refusing anything implausible."""
+    return await run_in_threadpool(_spool_blocking, upload.file, target)
+
+
+def _spool_blocking(source, target) -> int:
+    """The write and the fsync, on a worker thread (``source`` is the part's
+    spooled temp file, which is already a plain blocking file object)."""
     total = 0
     with target.open("wb") as handle:
-        while chunk := await upload.read(_CHUNK):
+        while chunk := source.read(_CHUNK):
             total += len(chunk)
             if total > _MAX_UPLOAD:
                 raise StarletteHTTPException(status_code=413, detail="too_large")

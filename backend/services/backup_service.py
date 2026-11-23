@@ -126,14 +126,21 @@ def create_backup_snapshot(*, include_cache: bool = False) -> Path:
     # connection would have produced, minus the side effect of that
     # connection *creating* db_path on the way past.
     origin = read_only_uri(source) if source.exists() else "file::memory:"
-    connection = sqlite3.connect(origin, uri=True)
     try:
-        connection.execute("VACUUM INTO ?", (str(snapshot_path),))
-    finally:
-        connection.close()
+        connection = sqlite3.connect(origin, uri=True)
+        try:
+            connection.execute("VACUUM INTO ?", (str(snapshot_path),))
+        finally:
+            connection.close()
 
-    if not include_cache:
-        _drop_cache_rows(snapshot_path)
+        if not include_cache:
+            _drop_cache_rows(snapshot_path)
+    except BaseException:
+        # The caller only owns the directory once it has the path, so a
+        # failure here (a full disk above all) would otherwise strand a
+        # partial snapshot on the data volume.
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        raise
     return snapshot_path
 
 

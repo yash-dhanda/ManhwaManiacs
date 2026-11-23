@@ -22,7 +22,6 @@ from pydantic import BaseModel
 from starlette.background import BackgroundTask
 
 from core.backup_restore import has_pending_restore, retained_copy_hint
-from core.errors import AppError
 from core.rate_limit import import_limit, limiter
 from services.auth_service import require_admin_user
 from services.backup_service import (
@@ -98,16 +97,21 @@ def import_backup(file: UploadFile, request: Request, response: Response) -> Res
     # is a rename. Across filesystems it is a copy, so a crash midway leaves a
     # half-written file sitting exactly where the next boot looks for a
     # restore to apply.
-    with tempfile.NamedTemporaryFile(
-        delete=False, prefix=".mm-upload-", suffix=".db", dir=spool_dir()
-    ) as tmp:
-        shutil.copyfileobj(file.file, tmp)
-        tmp_path = Path(tmp.name)
-
+    #
+    # Whatever goes wrong from here on removes the spool file: it lives on the
+    # data volume, and after a full disk a leftover partial copy is what keeps
+    # every SQLite write failing until someone deletes it by hand.
+    tmp_path: Path | None = None
     try:
+        with tempfile.NamedTemporaryFile(
+            delete=False, prefix=".mm-upload-", suffix=".db", dir=spool_dir()
+        ) as tmp:
+            tmp_path = Path(tmp.name)
+            shutil.copyfileobj(file.file, tmp)
         stage_restore(tmp_path)
-    except AppError:
-        tmp_path.unlink(missing_ok=True)
+    except BaseException:
+        if tmp_path is not None:
+            tmp_path.unlink(missing_ok=True)
         raise
 
     return RestoreStaged(

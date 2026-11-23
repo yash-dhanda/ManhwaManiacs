@@ -13,6 +13,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from core.errors import AppError
@@ -50,6 +51,7 @@ def resolve_pages(reader: Any, source_id: str, series_key: str, chapter_key: str
 def _upsert(
     db: Session, source_id: str, series_key: str, chapter_key: str,
     pages: list[dict[str, Any]], reports: dict[int, dict[str, Any]],
+    *, _retry: bool = True,
 ) -> None:
     by_number = {p["number"]: p for p in pages}
     wanted = {
@@ -83,7 +85,17 @@ def _upsert(
         row.updated_at = now
         for name, value in fields.items():
             setattr(row, name, value)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Two readers reporting the same new page (the phone and the web, or
+        # one autosave twice) both saw no row. The winner's row is there now:
+        # redo the merge once against it. The report is fire-and-forget, so
+        # the rollback loses nothing but this call's own pending rows.
+        db.rollback()
+        if not _retry:
+            raise
+        _upsert(db, source_id, series_key, chapter_key, pages, reports, _retry=False)
 
 
 def store_tints(

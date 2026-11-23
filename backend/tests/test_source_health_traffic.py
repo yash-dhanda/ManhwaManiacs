@@ -376,7 +376,8 @@ def test_background_actors_do_not_record_through_this_path(
     use_connector(_Connector(fail=ConnectorHttpError("blocked", status_code=403)))
     db = session_factory()
     try:
-        with pytest.raises(ConnectorHttpError):
+        # Mapped to the client-facing 502 now, but still not recorded here.
+        with pytest.raises(AppError):
             BrowseService(mature_enabled=True, db=db).get_chapters(SRC, SERIES)
     finally:
         db.close()

@@ -7,6 +7,8 @@ import json
 import logging
 import re
 import threading
+import time
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from itertools import zip_longest
@@ -20,7 +22,9 @@ from sqlalchemy.orm import Session
 
 from core.config import get_settings
 from core.content_rating import (
+    has_prohibited_tag,
     hidden_by_gate,
+    is_prohibited_text,
     resolve_mature_gate,
     resolve_series_rating,
 )
@@ -28,10 +32,14 @@ from core.errors import AppError
 from core.profile_context import ProfileContext, resolve_profile_context
 from database.models import SourceSeriesCache
 from database.session import get_db
-from connectors.base import SourceConnector
+from connectors.base import ChapterLockedError, SourceConnector
 from connectors.branding import series_page_url
 from connectors.http import swallowed
-from connectors.http.client import ConnectorHttpError
+from connectors.http.client import (
+    ConnectorHttpError,
+    ResponseTooLargeError,
+    body_byte_cap,
+)
 from connectors.ids import fully_unquote
 from connectors.models import Chapter, Page, PaginatedSeriesList, Series
 from connectors.registry import (
@@ -69,6 +77,10 @@ logger = logging.getLogger(__name__)
 _IMAGE_POOL_MAX_CONNECTIONS = 64
 _IMAGE_POOL_MAX_KEEPALIVE = 32
 _IMAGE_POOL_KEEPALIVE_EXPIRY_SECONDS = 60.0
+# Wall-clock budget for one proxied image body. The client's 30s timeout is per
+# socket read, so an upstream trickling a byte at a time never trips it and
+# would hold this request thread (and a pool slot) indefinitely.
+_IMAGE_FETCH_DEADLINE_SECONDS = 60.0
 
 _image_http_client: Any = None
 _image_client_lock = threading.Lock()
@@ -369,7 +381,48 @@ def _serialize_chapter(chapter: Chapter, source_id: str) -> dict[str, object]:
         "number": chapter.number,
         "page_count": chapter.page_count,
         "release_date": chapter.release_date,
+        "locked_until": chapter.locked_until,
     }
+
+
+def chapter_locked_error(
+    connector: SourceConnector, source_id: str, chapter_id: str, locked_until: str | None
+) -> AppError:
+    """A chapter the source lists but is not serving yet, as clients see it.
+
+    Its own code, not ``chapter_not_found``: the chapter exists, the update
+    feed has just announced it, and "not found" sends the reader hunting for a
+    broken source. ``details.locked_until`` is what a client counts down to.
+    The message carries the time as well, for a build that predates the code
+    and can only show the sentence.
+
+    423 rather than 403 or 404 -- nothing about the caller's session is wrong,
+    and clients treat those two as "sign in again" and "gone".
+    """
+    name = connector.display_name
+    opens = None
+    if locked_until:
+        try:
+            opens = datetime.strptime(locked_until, "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            locked_until = None
+    if opens is not None:
+        message = (
+            f"Early access on {name}. This chapter opens to everyone at "
+            f"{opens:%H:%M} UTC on {opens.day} {opens:%b}."
+        )
+    else:
+        message = f"This chapter is locked on {name} and is not open to everyone yet."
+    return AppError(
+        message,
+        code="chapter_locked",
+        status_code=423,
+        details={
+            "source_id": source_id,
+            "chapter_id": chapter_id,
+            "locked_until": locked_until,
+        },
+    )
 
 
 def _serialize_page(page: Page, source_id: str) -> dict[str, object]:
@@ -426,13 +479,33 @@ def _row_visible(series: Series, *, gate_open: bool, source_mature: bool) -> boo
 
     Takes the gate as an argument rather than reading it off the service
     because the federated fan-out is handed its gate by the route.
+
+    A row tagged as sexualised depictions of minors is not a gate question:
+    it is withheld whatever the gate says.
     """
+    if has_prohibited_tag(series.genres):
+        return False
     return not hidden_by_gate(
         resolve_series_rating(
             series.content_rating, series.genres, source_mature=source_mature
         ),
         gate_open=gate_open,
     )
+
+
+def _refuse_prohibited(*phrases: str | None) -> None:
+    """Refuse a genre or search phrase that names a prohibited tag.
+
+    Before any request leaves for the source: the answer is the same for every
+    caller and every source, so there is nothing to fetch. Worded as "not
+    found", like a genre the source never had.
+    """
+    if any(is_prohibited_text(phrase) for phrase in phrases):
+        raise AppError(
+            "Nothing found.",
+            code="content_not_available",
+            status_code=404,
+        )
 
 
 def _genre_key(value: str) -> str:
@@ -696,6 +769,22 @@ class BrowseService:
                 self._traffic_failed(source_id, exc, noted)
                 raise
 
+    @contextmanager
+    def _map_source_errors(self, source_id: str):
+        """Turn a connector's transport failure into the client-facing 502.
+
+        Applied OUTSIDE ``_observe_traffic`` so the failure is counted against
+        source health first and mapped second. Only ``ConnectorHttpError`` and
+        ``OSError`` are touched: the gate's 404s, ``chapter_not_found`` and
+        ``chapter_locked`` are ``AppError``s (or ``ChapterLockedError``, handled
+        by its own clause) and pass through unchanged -- ``SourceCacheService``
+        tells a gate refusal from an outage by exactly those codes.
+        """
+        try:
+            yield
+        except (ConnectorHttpError, OSError) as exc:
+            self._raise_source_connector_error(source_id, exc)
+
     @staticmethod
     def _raise_source_connector_error(source_id: str, exc: Exception) -> None:
         """Map upstream connector failures to client-facing browse errors."""
@@ -873,7 +962,11 @@ class BrowseService:
 
     def list_genres(self, source_id: str) -> list[dict[str, str]]:
         connector = self._get_connector(source_id)
-        return [{"id": mode.id, "label": mode.label} for mode in connector.list_genres()]
+        return [
+            {"id": mode.id, "label": mode.label}
+            for mode in connector.list_genres()
+            if not (is_prohibited_text(mode.id) or is_prohibited_text(mode.label))
+        ]
 
     def list_series(
         self,
@@ -909,6 +1002,7 @@ class BrowseService:
         genre_keys: set[str] | None = None
         if normalized_sort == "default":
             normalized_sort = None
+        _refuse_prohibited(normalized_genre, normalized_query)
 
         try:
             if normalized_genre and normalized_query:
@@ -1215,7 +1309,8 @@ class BrowseService:
         sources_deferred = visible_total - sources_queried
 
         outcomes: dict[str, PaginatedSeriesList | BaseException] = {}
-        if normalized_query and descriptors:
+        # A phrase naming a prohibited tag is sent to no source at all.
+        if normalized_query and descriptors and not is_prohibited_text(normalized_query):
             outcomes = await self._fan_out_search(
                 normalized_query,
                 [descriptor.source_type for descriptor in descriptors],
@@ -1348,7 +1443,7 @@ class BrowseService:
 
     def get_series(self, source_id: str, series_id: str) -> dict[str, object]:
         connector = self._get_connector(source_id)
-        with self._observe_traffic(source_id) as noted:
+        with self._map_source_errors(source_id), self._observe_traffic(source_id) as noted:
             series = connector.get_series(fully_unquote(series_id))
         if series is None:
             # The reader still gets a 404 either way; health only hears about
@@ -1373,7 +1468,7 @@ class BrowseService:
     def get_chapters(self, source_id: str, series_id: str) -> list[dict[str, object]]:
         connector = self._get_connector(source_id)
         series_id = fully_unquote(series_id)
-        with self._observe_traffic(source_id) as noted:
+        with self._map_source_errors(source_id), self._observe_traffic(source_id) as noted:
             series = connector.get_series(series_id)
             if series is None:
                 raise AppError(
@@ -1418,7 +1513,14 @@ class BrowseService:
         connector = self._get_connector(source_id)
         normalized_chapter_id = _normalize_source_chapter_id(chapter_id)
         self._require_visible_chapter(source_id, normalized_chapter_id, connector)
-        pages = connector.get_chapter_pages(normalized_chapter_id)
+        try:
+            pages = connector.get_chapter_pages(normalized_chapter_id)
+        except ChapterLockedError as exc:
+            raise chapter_locked_error(
+                connector, source_id, normalized_chapter_id, exc.locked_until
+            ) from exc
+        except (ConnectorHttpError, OSError) as exc:
+            self._raise_source_connector_error(source_id, exc)
         if not pages:
             raise AppError(
                 "Chapter not found.",
@@ -1440,7 +1542,7 @@ class BrowseService:
         # The series page and its chapter list are the same evidence here as in
         # ``get_chapters``; the page fetch below is not, since one chapter's
         # images failing says nothing about whether the site is up.
-        with self._observe_traffic(source_id) as noted:
+        with self._map_source_errors(source_id), self._observe_traffic(source_id) as noted:
             series = connector.get_series(series_id)
             if series is None:
                 raise AppError(
@@ -1463,7 +1565,14 @@ class BrowseService:
                 status_code=404,
             )
 
-        pages = connector.get_chapter_pages(normalized_chapter_id)
+        try:
+            pages = connector.get_chapter_pages(normalized_chapter_id)
+        except ChapterLockedError as exc:
+            raise chapter_locked_error(
+                connector, source_id, normalized_chapter_id, exc.locked_until
+            ) from exc
+        except (ConnectorHttpError, OSError) as exc:
+            self._raise_source_connector_error(source_id, exc)
         chapter_index = chapters.index(chapter)
         previous_chapter_id = chapters[chapter_index - 1].id if chapter_index > 0 else None
         next_chapter_id = (
@@ -1487,7 +1596,8 @@ class BrowseService:
     def resolve_page_image(self, source_id: str, page_id: str) -> tuple[str, bytes]:
         connector = self._get_connector(source_id)
         normalized_page_id = fully_unquote(page_id).strip()
-        page = connector.find_page(normalized_page_id)
+        with self._map_source_errors(source_id):
+            page = connector.find_page(normalized_page_id)
         if page is None:
             raise AppError(
                 "Page not found.",
@@ -1499,7 +1609,8 @@ class BrowseService:
 
     def resolve_series_cover(self, source_id: str, series_id: str) -> tuple[str, bytes]:
         connector = self._get_connector(source_id)
-        series = connector.get_series(fully_unquote(series_id))
+        with self._map_source_errors(source_id):
+            series = connector.get_series(fully_unquote(series_id))
         if series is None or not series.cover_url:
             raise AppError(
                 "Cover not found.",
@@ -1539,7 +1650,14 @@ class BrowseService:
         max_bytes = get_settings().image_proxy_max_bytes
 
         try:
-            proxied = connector.fetch_proxied_image(url)
+            # The ceiling goes down with the call: a connector-handled fetch
+            # used to read the whole body before the length check below could
+            # run, which is the unbounded buffer the streamed branch exists to
+            # prevent.
+            with body_byte_cap(max_bytes):
+                proxied = connector.fetch_proxied_image(url)
+        except ResponseTooLargeError as exc:
+            raise self._too_large(url, max_bytes) from exc
         except ConnectorHttpError as exc:
             raise AppError(
                 "Failed to fetch remote image.",
@@ -1579,10 +1697,18 @@ class BrowseService:
                 if declared.isdigit() and int(declared) > max_bytes:
                     raise self._too_large(url, max_bytes)
                 body = bytearray()
+                deadline = time.monotonic() + _IMAGE_FETCH_DEADLINE_SECONDS
                 for chunk in response.iter_bytes():
                     body.extend(chunk)
                     if len(body) > max_bytes:
                         raise self._too_large(url, max_bytes)
+                    if time.monotonic() > deadline:
+                        raise AppError(
+                            "Remote image took too long to arrive.",
+                            code="remote_fetch_failed",
+                            status_code=502,
+                            details={"url": url, "reason": "deadline exceeded"},
+                        )
                 media_type = response.headers.get("content-type", "image/jpeg")
         except httpx.HTTPError as exc:
             raise AppError(

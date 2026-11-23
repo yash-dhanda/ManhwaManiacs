@@ -8,7 +8,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from core.rate_limit import limiter, sources_limit
+from core.rate_limit import images_limit, limiter, sources_limit
 from database.session import get_db
 from connectors.registry import list_installed_connectors
 from services import cover_colour
@@ -407,7 +407,7 @@ def get_source_chapters(
 
 
 @router.get("/{source_id}/series/{series_id:path}/cover")
-@limiter.limit(sources_limit)
+@limiter.limit(images_limit)
 def get_source_series_cover(
     source_id: str,
     series_id: str,
@@ -524,7 +524,7 @@ def get_source_chapter_pages(
 
 
 @router.get("/{source_id}/pages/{page_id:path}/image")
-@limiter.limit(sources_limit)
+@limiter.limit(images_limit)
 def get_source_page_image(
     source_id: str,
     page_id: str,

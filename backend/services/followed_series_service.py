@@ -20,6 +20,7 @@ from urllib.parse import quote
 from fastapi import Depends
 from sqlalchemy import and_, case, delete, func, literal as sa_literal, or_, select, tuple_
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, defer
 
 from connectors.ids import fully_unquote
@@ -128,6 +129,7 @@ def _known_chapters(chapters: list[dict[str, Any]]) -> str:
                 "number": c.get("number"),
                 "title": c.get("title"),
                 "published_at": c.get("release_date"),
+                "locked_until": c.get("locked_until"),
             }
             for c in chapters
         ]
@@ -653,7 +655,31 @@ class FollowedSeriesService:
                 "Series not found.", code="series_not_found", status_code=404
             )
         self._db.add(row)
-        self._db.commit()
+        try:
+            self._db.commit()
+        except IntegrityError:
+            # The existence check above ran before an upstream fetch of several
+            # seconds, so a double-tapped Follow (or the web and the phone) can
+            # have created the same follow meanwhile. It exists, which is what
+            # was asked for: hand it back instead of a 500. Rolling back is safe
+            # here -- this call owns its transaction and has written nothing but
+            # this row. Anything else that violated a constraint re-raises.
+            self._db.rollback()
+            winner = self._db.execute(
+                self._scope(
+                    select(FollowedSeries).where(
+                        FollowedSeries.source_id == source_id,
+                        FollowedSeries.series_key == series_key,
+                    )
+                )
+            ).scalar_one_or_none()
+            if winner is None:
+                raise
+            if self._hidden(winner):
+                raise AppError(
+                    "Series not found.", code="series_not_found", status_code=404
+                ) from None
+            return self._serialize_with_state(winner)
         self._home_stale()
         self._db.refresh(row)
         if meta or chapters:

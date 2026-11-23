@@ -249,3 +249,160 @@ def test_page_image_gets_etag_304_but_keeps_private_cache_control(stubbed_proxy)
     )
     assert second.status_code == 304
     assert second.headers["x-content-type-options"] == "nosniff"
+
+
+# ---------------------------------------------------------------------------
+# Connector-handled fetches obey the same ceiling, while the body is read
+# ---------------------------------------------------------------------------
+
+
+class _CountingStream:
+    """An upstream body that records how much of it the client pulled."""
+
+    def __init__(self, total: int, chunk: int):
+        import httpx
+
+        self.total, self.chunk, self.sent = total, chunk, 0
+        self.stream = self._make(httpx)
+
+    def _make(self, httpx):
+        outer = self
+
+        class _Stream(httpx.SyncByteStream):
+            def __iter__(self):
+                while outer.sent < outer.total:
+                    piece = min(outer.chunk, outer.total - outer.sent)
+                    outer.sent += piece
+                    yield b"x" * piece
+
+        return _Stream()
+
+
+def _http_client_serving(counting: _CountingStream, *, declare: bool = False):
+    import httpx
+
+    from connectors.http.client import SyncConnectorHttpClient
+
+    def handler(request):  # noqa: ANN001
+        headers = {"content-type": "image/jpeg"}
+        if declare:
+            headers["content-length"] = str(counting.total)
+        return httpx.Response(200, headers=headers, stream=counting.stream)
+
+    client = SyncConnectorHttpClient("https://example.com", min_interval=0)
+    client._client = httpx.Client(
+        base_url="https://example.com",
+        transport=httpx.MockTransport(handler),
+        follow_redirects=True,
+    )
+    return client
+
+
+class _StreamingConnector(_FakeConnector):
+    def __init__(self, http):
+        super().__init__(frozenset({"example.com"}))
+        self._http = http
+
+    def fetch_proxied_image(self, url):
+        return self._http.get_bytes(url)
+
+
+def test_connector_fetch_stops_reading_once_the_cap_is_passed(service, tiny_cap):
+    counting = _CountingStream(total=10_000_000, chunk=4)
+    connector = _StreamingConnector(_http_client_serving(counting))
+    with patch("services.outbound_security.is_public_address", return_value=True):
+        with pytest.raises(AppError) as exc_info:
+            service._fetch_url("https://example.com/x", connector)
+    assert exc_info.value.code == "image_too_large"
+    assert exc_info.value.status_code == 502
+    # The cap plus the chunk that crossed it, not the 10 MB upstream.
+    assert counting.sent <= tiny_cap + 4
+
+
+def test_connector_fetch_refuses_a_declared_length_before_reading(service, tiny_cap):
+    counting = _CountingStream(total=1_000, chunk=100)
+    connector = _StreamingConnector(_http_client_serving(counting, declare=True))
+    with patch("services.outbound_security.is_public_address", return_value=True):
+        with pytest.raises(AppError) as exc_info:
+            service._fetch_url("https://example.com/x", connector)
+    assert exc_info.value.code == "image_too_large"
+    assert counting.sent == 0
+
+
+def test_connector_fetch_within_the_cap_is_returned_whole(service, tiny_cap):
+    counting = _CountingStream(total=10, chunk=3)
+    connector = _StreamingConnector(_http_client_serving(counting))
+    with patch("services.outbound_security.is_public_address", return_value=True):
+        media_type, data = service._fetch_url("https://example.com/x", connector)
+    assert (media_type, data) == ("image/jpeg", b"x" * 10)
+
+
+class _CurlStream:
+    """Just enough of a curl_cffi streaming response."""
+
+    def __init__(self, total, chunk, headers=None):
+        self.status_code = 200
+        self.reason = "OK"
+        self.headers = {"content-type": "image/jpeg", **(headers or {})}
+        self.total, self.chunk, self.sent, self.closed = total, chunk, 0, False
+
+    def iter_content(self):
+        while self.sent < self.total:
+            piece = min(self.chunk, self.total - self.sent)
+            self.sent += piece
+            yield b"x" * piece
+
+    def close(self):
+        self.closed = True
+
+    @property
+    def content(self):  # the unbounded path; a capped fetch must never use it
+        raise AssertionError("whole body buffered")
+
+
+@pytest.mark.parametrize("module", ["cf_client", "ddg_client"])
+def test_curl_clients_stream_and_stop_at_the_cap(module):
+    import importlib
+
+    from connectors.http.client import ResponseTooLargeError
+
+    mod = importlib.import_module(f"connectors.http.{module}")
+    cls = getattr(mod, "CfSyncHttpClient" if module == "cf_client" else "DdgSyncHttpClient")
+    client = cls("https://example.com", min_interval=0)
+    stream = _CurlStream(total=10_000_000, chunk=4)
+    calls = []
+
+    class _Session:
+        def get(self, url, **kwargs):
+            calls.append(kwargs)
+            return stream
+
+    client._session = _Session()
+    with pytest.raises(ResponseTooLargeError):
+        client.get_bytes("https://example.com/x.jpg", max_bytes=10)
+    assert stream.sent <= 10 + 4
+    assert stream.closed
+    assert calls[0]["stream"] is True
+    assert calls[0]["allow_redirects"] is False
+    assert len(calls) == 1  # too large is not retried
+
+
+@pytest.mark.parametrize("module", ["cf_client", "ddg_client"])
+def test_curl_clients_refuse_a_declared_length_without_reading(module):
+    import importlib
+
+    from connectors.http.client import ResponseTooLargeError
+
+    mod = importlib.import_module(f"connectors.http.{module}")
+    cls = getattr(mod, "CfSyncHttpClient" if module == "cf_client" else "DdgSyncHttpClient")
+    client = cls("https://example.com", min_interval=0)
+    stream = _CurlStream(total=100, chunk=10, headers={"content-length": "100"})
+
+    class _Session:
+        def get(self, url, **kwargs):
+            return stream
+
+    client._session = _Session()
+    with pytest.raises(ResponseTooLargeError):
+        client.get_bytes("https://example.com/x.jpg", max_bytes=10)
+    assert stream.sent == 0 and stream.closed

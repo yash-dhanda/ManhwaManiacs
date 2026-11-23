@@ -22,6 +22,8 @@ Two things are gated, by two signals:
 
 from __future__ import annotations
 
+import re
+
 from typing import TYPE_CHECKING
 
 from sqlalchemy import case, func, literal
@@ -57,6 +59,38 @@ MATURE_CONTENT_RATINGS: frozenset[str] = frozenset(
 TRACKER_RATING_MATURE = "mature"
 TRACKER_RATING_SAFE = "safe"
 TRACKER_RATING_UNKNOWN = "unknown"
+
+#: Tags that mark sexualised depictions of minors.
+#:
+#: This is not the 18+ gate and it is not a preference. Several adult sources
+#: publish these as ordinary genres, and two connectors listed them as browse
+#: categories. Browse, search, the series page and the metadata cache withhold
+#: a row carrying one from every caller whatever their settings
+#: (``services.browse_service``, ``services.source_cache_service``), the genres
+#: are not offered, and a search for the words is refused. For the surfaces
+#: that only know the 18+ gate, such a row always resolves to mature, which no
+#: "not 18+" override can lift.
+#: Matched on whole words of a normalised tag ("Lolicon", "oppai loli",
+#: "shota-con"), never on substrings, so "Lolita fashion" or a title containing
+#: "shotgun" is untouched.
+PROHIBITED_TAG_WORDS: frozenset[str] = frozenset(
+    {"lolicon", "loli", "lolis", "shotacon", "shota", "shotas", "toddlercon"}
+)
+
+_TAG_WORD = re.compile(r"[a-z0-9]+")
+
+
+def is_prohibited_text(value: object) -> bool:
+    """Whether a tag, genre id or search phrase names a prohibited tag."""
+    if not isinstance(value, str):
+        return False
+    text = value.casefold().replace("shota-con", "shotacon").replace("loli-con", "lolicon")
+    return any(word in PROHIBITED_TAG_WORDS for word in _TAG_WORD.findall(text))
+
+
+def has_prohibited_tag(genres: tuple[str, ...] | list[str] | None) -> bool:
+    """Whether any of a series' genres is a prohibited tag."""
+    return any(is_prohibited_text(genre) for genre in genres or ())
 
 
 def is_mature_rating(content_rating: str | None) -> bool:
@@ -165,6 +199,9 @@ def resolve_series_rating(
     (serialized as ``rating: "unknown"``) so the client can badge it and offer
     the one-tap override that writes rule 1.
     """
+    # Before the override on purpose: no "not 18+" makes this content safe.
+    if has_prohibited_tag(genres):
+        return TRACKER_RATING_MATURE
     if mature_override is not None:
         return TRACKER_RATING_MATURE if mature_override else TRACKER_RATING_SAFE
     rating = content_rating or rating_from_genres(genres)

@@ -23,7 +23,7 @@ from database.models import Base
 from database.session import run_alembic_migrations
 
 _BASELINE = "0001_source_native"
-_HEAD = "0026_circle_social"
+_HEAD = "0027_notification_locked_until"
 
 # Every revision, oldest first. A new migration is added here deliberately —
 # the point of the guard is that revisions arrive on purpose, not that there is
@@ -55,6 +55,7 @@ _REVISIONS = [
     "0024_reader_page_annotations.py",
     "0025_circle_core.py",
     "0026_circle_social.py",
+    "0027_notification_locked_until.py",
 ]
 
 # Every ORM-mapped table the baseline must create (spec §3).

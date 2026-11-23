@@ -299,6 +299,16 @@ class Settings(BaseModel):
     rate_limit_bootstrap_status: str = "30/minute;240/hour"
     rate_limit_import: str = "5/minute"
     rate_limit_sources: str = "60/minute"
+    # The cover and page-image proxies get their own bucket
+    # (MM_RATE_LIMIT_IMAGES). They shared ``sources`` at 60/minute, and a
+    # request there is one image, not one page of a catalogue: a single
+    # 80-page chapter is 80 requests, and the reader prefetches ahead while the
+    # app saves the next chapter four pages at a time. Reading alone ran past
+    # the limit, the 429s showed as broken pages that loaded on a second tap,
+    # and the next chapter's download failed outright. Ten a second per client
+    # address covers two readers behind one NAT with a download running, and
+    # still bounds what one address can make this server pull from a source.
+    rate_limit_images: str = "600/minute"
     # The bulk window endpoints (POST /reader/chapters/manifest, POST
     # /novels/chapters) get their own, much tighter bucket: one request there
     # costs up to ``*_bulk_max_chapters`` upstream scrapes, so it is worth
@@ -436,6 +446,7 @@ def get_settings() -> Settings:
         ("MM_RATE_LIMIT_BOOTSTRAP_STATUS", "rate_limit_bootstrap_status"),
         ("MM_RATE_LIMIT_IMPORT", "rate_limit_import"),
         ("MM_RATE_LIMIT_SOURCES", "rate_limit_sources"),
+        ("MM_RATE_LIMIT_IMAGES", "rate_limit_images"),
         ("MM_RATE_LIMIT_BULK", "rate_limit_bulk"),
         ("MM_RATE_LIMIT_OCR", "rate_limit_ocr"),
         ("MM_RATE_LIMIT_SUGGEST", "rate_limit_suggest"),

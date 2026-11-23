@@ -127,7 +127,7 @@ def test_list_asurascans_browse_modes():
     assert response.status_code == 200
     modes = response.json()
     assert any(mode["id"] == "popular" for mode in modes)
-    assert any(mode["id"] == "updated" for mode in modes)
+    assert [mode["id"] for mode in modes][:4] == ["default", "popular", "latest", "new"]
 
 
 def test_list_asurascans_series_with_sort():

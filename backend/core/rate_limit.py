@@ -139,6 +139,16 @@ def sources_limit() -> str:
     return get_settings().rate_limit_sources
 
 
+def images_limit() -> str:
+    """Limit for the cover and page-image proxies.
+
+    Its own bucket because the unit is different: ``sources`` counts catalogue
+    and chapter-list requests, of which a person makes a few a minute, while a
+    chapter is one request per page. Sized in ``Settings.rate_limit_images``
+    (MM_RATE_LIMIT_IMAGES)."""
+    return get_settings().rate_limit_images
+
+
 def bulk_limit() -> str:
     """Limit for the bulk *window* endpoints (POST /reader/chapters/manifest,
     POST /novels/chapters).

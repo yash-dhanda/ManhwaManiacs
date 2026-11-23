@@ -118,7 +118,8 @@ details}` envelope with a `Retry-After` header. Buckets (all env-configurable):
 | auth | `POST /auth/login` | `MM_RATE_LIMIT_AUTH` | `10/minute` |
 | register | `POST /auth/register` — its own tighter bucket, the invite-code brute-force surface | `MM_RATE_LIMIT_REGISTER` | `5/minute;30/hour` |
 | bootstrap-status | `GET /auth/bootstrap-status` — unauthenticated, announces exactly when the bootstrap window is open | `MM_RATE_LIMIT_BOOTSTRAP_STATUS` | `30/minute;240/hour` |
-| sources | `GET /sources/{id}/series` (browse/search), cover + page image proxies | `MM_RATE_LIMIT_SOURCES` | `60/minute` |
+| sources | `GET /sources/{id}/series` (browse/search), series, chapter lists and page lists | `MM_RATE_LIMIT_SOURCES` | `60/minute` |
+| images | cover + page image proxies | `MM_RATE_LIMIT_IMAGES` | `600/minute` |
 | import | `POST /backup/import` (backing key is legacy-named `rate_limit_import`) | `MM_RATE_LIMIT_IMPORT` | `5/minute` |
 
 Set `MM_RATE_LIMIT_ENABLED=false` to disable limiting entirely (e.g. for load
@@ -144,7 +145,8 @@ brute-force/abuse backstop, not a precise cluster-wide quota.
 | `MM_RATE_LIMIT_AUTH` | `10/minute` | Login bucket. |
 | `MM_RATE_LIMIT_REGISTER` | `5/minute;30/hour` | Register bucket. |
 | `MM_RATE_LIMIT_BOOTSTRAP_STATUS` | `30/minute;240/hour` | Bootstrap-status polling bucket. |
-| `MM_RATE_LIMIT_SOURCES` | `60/minute` | Source browse/search/image bucket. |
+| `MM_RATE_LIMIT_SOURCES` | `60/minute` | Source browse/search/series/chapter-list bucket. |
+| `MM_RATE_LIMIT_IMAGES` | `600/minute` | Cover and page-image proxy bucket: one request per image, so a chapter is one per page. |
 | `MM_RATE_LIMIT_IMPORT` | `5/minute` | Backup-restore-upload bucket. |
 
 ### Deploy paths & CORS (pre-existing)

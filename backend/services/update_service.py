@@ -81,6 +81,18 @@ def _bool(value: Any) -> bool:
     return bool(value)
 
 
+def _locked_until(value: Any) -> str | None:
+    """A chapter's ``locked_until`` as the notification column holds it.
+
+    Connectors write a short ISO instant; anything else -- a missing key on a
+    chapter dict from a cache row written before the field existed, a value too
+    long for the column -- is "not locked", never a failed sweep.
+    """
+    if isinstance(value, str) and 0 < len(value) <= 32:
+        return value
+    return None
+
+
 def _loads(value: str | None) -> list[dict[str, Any]]:
     if not value:
         return []
@@ -123,6 +135,10 @@ def _health_failure(exc: BaseException) -> str | None:
     if code in {"series_not_found", "source_not_found"}:
         return None
     if isinstance(exc, AppError):
+        # A raw transport failure the browse layer mapped to its 502 is still a
+        # transport failure, not a source that answered unreadably.
+        if isinstance(exc.__cause__, OSError):
+            return _HEALTH_TRANSPORT
         # Everything else an AppError can be here came from the upstream
         # request itself.
         return _HEALTH_REFUSED if (exc.status_code or 0) == 403 else _HEALTH_BROKE
@@ -314,6 +330,7 @@ class UpdateService:
             "chapter_number": row.chapter_number,
             "is_read": _bool(row.is_read),
             "created_at": row.created_at.isoformat() if row.created_at else None,
+            "locked_until": row.locked_until,
         }
 
     def mark_notification_read(self, notification_id: int) -> dict[str, Any]:
@@ -879,6 +896,7 @@ class UpdateService:
                             chapter_key=key,
                             chapter_title=str(c.get("title") or c["id"]),
                             chapter_number=c.get("number"),
+                            locked_until=_locked_until(c.get("locked_until")),
                         )
                     )
 
@@ -889,6 +907,7 @@ class UpdateService:
                         "number": c.get("number"),
                         "title": c.get("title"),
                         "published_at": c.get("release_date"),
+                        "locked_until": c.get("locked_until"),
                     }
                     for c in live
                 ]
