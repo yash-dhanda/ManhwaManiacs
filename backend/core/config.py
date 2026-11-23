@@ -11,7 +11,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 
 # backend/core/config.py -> parents[2] == repo root
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -299,6 +299,19 @@ class Settings(BaseModel):
     rate_limit_bootstrap_status: str = "30/minute;240/hour"
     rate_limit_import: str = "5/minute"
     rate_limit_sources: str = "60/minute"
+    # The cover and page-image proxies get their own bucket
+    # (MM_RATE_LIMIT_IMAGES). They shared ``sources`` at 60/minute, and a
+    # request there is one image, not one page of a catalogue: a single
+    # 80-page chapter is 80 requests, and the reader prefetches ahead while the
+    # app saves the next chapter four pages at a time. Reading alone ran past
+    # the limit, the 429s showed as broken pages that loaded on a second tap,
+    # and the next chapter's download failed outright.
+    #
+    # 1500 a minute (25 a second) is the figure production already ran the
+    # shared bucket at (MM_RATE_LIMIT_SOURCES in ops/vps/docker-compose.yml):
+    # it lets the phone's download gate, 24 requests open, run full. This
+    # makes it the default for images wherever that override is not set.
+    rate_limit_images: str = "1500/minute"
     # The bulk window endpoints (POST /reader/chapters/manifest, POST
     # /novels/chapters) get their own, much tighter bucket: one request there
     # costs up to ``*_bulk_max_chapters`` upstream scrapes, so it is worth
@@ -331,6 +344,19 @@ class Settings(BaseModel):
     # empty string to fall back to X-Forwarded-For / the socket peer (e.g. a
     # deployment with no CDN in front). See core.rate_limit.client_ip.
     trusted_client_ip_header: str = "cf-connecting-ip"
+
+    # Alternate egress (connectors/http/egress.py): a forward proxy on a second
+    # server that selected sources' outbound requests go through, for sources
+    # that refuse the production VPS's datacenter address. EMPTY MEANS OFF.
+    # MM_ALT_EGRESS_PROXY is an http:// or https:// URL with an explicit port
+    # and usually a credential (http://user:pass@203.0.113.7:3128), so it is a
+    # SecretStr: repr, model_dump and logs show a mask, never the value. It is
+    # validated at load and a malformed value stops the boot rather than
+    # quietly falling back to direct egress. MM_ALT_EGRESS_SOURCES lists the
+    # source ids routed through it; with no proxy it has no effect. Environment
+    # only -- neither is read from settings.json. Read once per process.
+    alt_egress_proxy: SecretStr = SecretStr("")
+    alt_egress_sources: tuple[str, ...] = ()
 
 
 @lru_cache
@@ -436,6 +462,7 @@ def get_settings() -> Settings:
         ("MM_RATE_LIMIT_BOOTSTRAP_STATUS", "rate_limit_bootstrap_status"),
         ("MM_RATE_LIMIT_IMPORT", "rate_limit_import"),
         ("MM_RATE_LIMIT_SOURCES", "rate_limit_sources"),
+        ("MM_RATE_LIMIT_IMAGES", "rate_limit_images"),
         ("MM_RATE_LIMIT_BULK", "rate_limit_bulk"),
         ("MM_RATE_LIMIT_OCR", "rate_limit_ocr"),
         ("MM_RATE_LIMIT_SUGGEST", "rate_limit_suggest"),
@@ -448,6 +475,17 @@ def get_settings() -> Settings:
         # Empty is meaningful here ("no trusted header"), so this one tests for
         # presence rather than truthiness.
         data["trusted_client_ip_header"] = client_ip_header_override.strip()
+
+    # Alternate egress. Environment only: a credential has no business in
+    # settings.json, which is persisted and served back by the settings API.
+    # Validated HERE, not in a pydantic validator, because a ValidationError
+    # prints the rejected input -- the credential -- into the boot log.
+    data.pop("alt_egress_proxy", None)
+    data.pop("alt_egress_sources", None)
+    from core.egress_config import parse_proxy_url, parse_source_ids
+
+    data["alt_egress_proxy"] = SecretStr(parse_proxy_url(os.getenv("MM_ALT_EGRESS_PROXY")))
+    data["alt_egress_sources"] = parse_source_ids(os.getenv("MM_ALT_EGRESS_SOURCES"))
 
     data.pop("version", None)  # runtime-only: always the release's own
     return Settings(**data)

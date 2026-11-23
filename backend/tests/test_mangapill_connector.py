@@ -410,3 +410,51 @@ def test_non_404_errors_still_raise(connector):
             connector.get_chapter_pages(CHAPTER_KEY)
         with pytest.raises(ConnectorHttpError):
             connector.get_series_list(1, sort="all")
+
+
+def test_browse_modes_canonical_order(connector):
+    assert [m.id for m in connector.list_browse_modes()] == [
+        "default", "popular", "latest", "new", "all", "manhua", "ongoing", "completed", "oneshot",
+    ]
+
+
+def test_latest_alias_matches_default_request(connector):
+    for sort in (None, "default", "latest"):
+        connector._latest_cache = type(connector._latest_cache)(ttl_seconds=1.0)
+        with patch.object(
+            connector._http, "get_text", return_value=_load("latest_chapters.html")
+        ) as get_text:
+            connector.get_series_list(1, sort=sort)
+        assert get_text.call_args.args[0] == "/chapters"
+
+
+def test_popular_reads_home_trending_strip(connector):
+    with patch.object(
+        connector._http, "get_text", return_value=_load("home_trending.html")
+    ) as get_text:
+        listing = connector.get_series_list(1, sort="popular")
+    assert get_text.call_args.args[0] == "/"
+    assert [s.title for s in listing.items][:2] == ["Berserk", "One Piece"]
+    assert len(listing.items) == 10
+
+
+def test_new_reads_recently_added_page(connector):
+    with patch.object(
+        connector._http, "get_text", return_value=_load("mangas_new.html")
+    ) as get_text:
+        listing = connector.get_series_list(1, sort="new")
+        page2 = connector.get_series_list(2, sort="new")
+    assert get_text.call_args.args[0] == "/mangas/new"
+    assert listing.items[0].id == "10543/katsuyoku-no-ouroboros"
+    assert page2.items == []
+
+
+def test_old_filter_modes_keep_their_requests(connector):
+    expected = {"all": ("type", "manga"), "manhua": ("type", "manhua"),
+                "ongoing": ("status", "publishing"), "completed": ("status", "finished"),
+                "oneshot": ("type", "one-shot")}
+    for sort, (key, value) in expected.items():
+        with patch.object(connector._http, "get_text", return_value="<html></html>") as g:
+            connector.get_series_list(2, sort=sort)
+        params = g.call_args.kwargs["params"]
+        assert params[key] == value and params["page"] == 2

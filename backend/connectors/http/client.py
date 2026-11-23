@@ -5,10 +5,14 @@ from __future__ import annotations
 import json
 import threading
 import time
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from typing import Any
 
 import httpx
 
+from connectors.http import egress
 from connectors.http.redirect_policy import (
     allowed_redirect_hosts,
     redirect_rejection_reason,
@@ -99,6 +103,85 @@ def is_retryable(exc: BaseException | None) -> bool:
     return status in RETRYABLE_STATUS
 
 
+class ResponseTooLargeError(ConnectorHttpError):
+    """A body went past the byte ceiling the caller set; reading stopped there.
+
+    Never retried: a second attempt streams the same oversize body again.
+    """
+
+    def __init__(self, max_bytes: int) -> None:
+        super().__init__(
+            f"Response body exceeds {max_bytes} bytes.", retryable=False
+        )
+        self.max_bytes = max_bytes
+
+
+#: The byte ceiling for the body ``get_bytes`` is about to read, set by the
+#: image proxy around a connector's ``fetch_proxied_image``. A context variable
+#: because that hook is implemented by ~10 connectors, each of which calls
+#: ``get_bytes`` its own way; the proxy sets the ceiling once and every one of
+#: them inherits it. ``None`` means "no ceiling" (a catalog or ebook download).
+_body_cap: ContextVar[int | None] = ContextVar("connector_body_cap", default=None)
+
+
+@contextmanager
+def body_byte_cap(max_bytes: int | None) -> Iterator[None]:
+    """Cap every ``get_bytes`` made inside this block that names no cap itself."""
+    token = _body_cap.set(max_bytes)
+    try:
+        yield
+    finally:
+        _body_cap.reset(token)
+
+
+def resolve_body_cap(max_bytes: int | None) -> int | None:
+    return max_bytes if max_bytes is not None else _body_cap.get()
+
+
+def read_capped(chunks: Iterable[bytes], declared: str | None, max_bytes: int) -> bytes:
+    """Collect a streamed body, giving up the moment it passes ``max_bytes``.
+
+    ``declared`` is the ``Content-Length`` header: an honest oversize upstream
+    is refused before a byte is read. A dishonest or chunked one is stopped by
+    the running total, so at most one chunk past the ceiling is ever held.
+    """
+    if declared and declared.strip().isdigit() and int(declared) > max_bytes:
+        raise ResponseTooLargeError(max_bytes)
+    body = bytearray()
+    for chunk in chunks:
+        body.extend(chunk)
+        if len(body) > max_bytes:
+            raise ResponseTooLargeError(max_bytes)
+    return bytes(body)
+
+
+class _DeadlineStream(httpx.SyncByteStream):
+    """A response body that gives up once its wall-clock budget is spent.
+
+    httpx's timeouts apply to each socket read, not to the request, so a host
+    that sends a byte every few seconds is never "slow" by their measure and
+    one fetch can run for hours. This raises ``httpx.ReadTimeout`` between
+    chunks once the budget is gone, which the callers' retry loops already
+    treat like any other timeout.
+    """
+
+    def __init__(self, inner: httpx.SyncByteStream, budget: float) -> None:
+        self._inner = inner
+        self._deadline = time.monotonic() + budget
+        self._budget = budget
+
+    def __iter__(self) -> Iterator[bytes]:
+        for chunk in self._inner:
+            yield chunk
+            if time.monotonic() > self._deadline:
+                raise httpx.ReadTimeout(
+                    f"Response body not complete within {self._budget:.0f}s."
+                )
+
+    def close(self) -> None:
+        self._inner.close()
+
+
 class SyncConnectorHttpClient:
     """Sync HTTP client with retries for connector implementations."""
 
@@ -113,9 +196,17 @@ class SyncConnectorHttpClient:
         user_agent: str = DEFAULT_USER_AGENT,
         headers: dict[str, str] | None = None,
         extra_redirect_hosts: frozenset[str] | set[str] | None = None,
+        total_timeout: float | None = None,
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout
+        # Wall-clock budget for one response body, per attempt. ``timeout`` is
+        # per socket read; this is what stops a trickle (see ``_DeadlineStream``).
+        # Scaled from it so the connectors that raised ``timeout`` for a big
+        # download (an EPUB, the Gutenberg catalog) get proportionally longer.
+        self._total_timeout = (
+            total_timeout if total_timeout is not None else max(4 * timeout, 60.0)
+        )
         self._max_retries = max_retries
         self._min_interval = min_interval
         # How many requests may leave together before the interval applies.
@@ -144,7 +235,10 @@ class SyncConnectorHttpClient:
             timeout=self._timeout,
             headers=request_headers,
             follow_redirects=True,
-            event_hooks={"response": [self._guard_redirect]},
+            event_hooks={"response": [self._guard_redirect, self._bound_body]},
+            # Only for a source routed through the alternate egress; an
+            # explicit proxy also overrides the HTTPS_PROXY environment.
+            **egress.httpx_kwargs(),
         )
 
     def _guard_redirect(self, response: httpx.Response) -> None:
@@ -155,6 +249,10 @@ class SyncConnectorHttpClient:
         reason = redirect_rejection_reason(target, self._redirect_hosts)
         if reason:
             raise ConnectorHttpError(f"Redirect blocked ({reason}).")
+
+    def _bound_body(self, response: httpx.Response) -> None:
+        """Put a wall-clock budget on the body that is about to be read."""
+        response.stream = _DeadlineStream(response.stream, self._total_timeout)  # type: ignore[assignment]
 
     def _rate_limit(self) -> None:
         """Space requests out, allowing up to ``burst`` of them to go at once.
@@ -378,21 +476,47 @@ class SyncConnectorHttpClient:
             message, status_code=status_of(last_error)
         ) from last_error
 
-    def get_bytes(self, url: str) -> tuple[str, bytes]:
+    def get_bytes(
+        self, url: str, *, max_bytes: int | None = None
+    ) -> tuple[str, bytes]:
+        """GET a binary resource; with a ceiling, stream it and stop at the ceiling.
+
+        ``max_bytes`` (or the ceiling an enclosing ``body_byte_cap`` set) turns
+        a hostile upstream's endless body into a ``ResponseTooLargeError`` after
+        about one chunk past it, instead of the whole thing buffered here.
+        """
+        max_bytes = resolve_body_cap(max_bytes)
         last_error: Exception | None = None
 
         for attempt in range(self._max_retries):
             self._rate_limit()
             try:
-                response = self._client.get(url)
-                if response.status_code in RETRYABLE_STATUS:
-                    raise ConnectorHttpError(
-                        f"Retryable HTTP {response.status_code}",
-                        status_code=response.status_code,
+                if max_bytes is None:
+                    response = self._client.get(url)
+                    if response.status_code in RETRYABLE_STATUS:
+                        raise ConnectorHttpError(
+                            f"Retryable HTTP {response.status_code}",
+                            status_code=response.status_code,
+                        )
+                    response.raise_for_status()
+                    media_type = response.headers.get("content-type", "image/jpeg").split(";")[0]
+                    return media_type, response.content
+                with self._client.stream("GET", url) as response:
+                    if response.status_code in RETRYABLE_STATUS:
+                        raise ConnectorHttpError(
+                            f"Retryable HTTP {response.status_code}",
+                            status_code=response.status_code,
+                        )
+                    response.raise_for_status()
+                    media_type = response.headers.get("content-type", "image/jpeg").split(";")[0]
+                    body = read_capped(
+                        response.iter_bytes(),
+                        response.headers.get("content-length"),
+                        max_bytes,
                     )
-                response.raise_for_status()
-                media_type = response.headers.get("content-type", "image/jpeg").split(";")[0]
-                return media_type, response.content
+                return media_type, body
+            except ResponseTooLargeError:
+                raise
             except (httpx.HTTPError, ConnectorHttpError) as exc:
                 last_error = exc
                 if not is_retryable(exc):

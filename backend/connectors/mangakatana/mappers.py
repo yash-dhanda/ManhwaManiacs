@@ -40,7 +40,8 @@ FILTER_MARKER = 1
 
 SORT_TO_ORDER: dict[str, str] = {
     "default": "latest",  # Recently Updated -> site's "Latest update"
-    "latest": "new",  # Latest -> site's "New manga" (newest catalog additions)
+    "latest": "latest",  # Latest -> site's "Latest update" (recently updated)
+    "new": "new",  # New -> site's "New manga" (newest catalog additions)
     "popular": "numc",  # Popular -> "Number of chapters" (no popularity metric exists)
     "rating": "az",  # Top Rated -> "A-Z" (no rating metric exists)
 }

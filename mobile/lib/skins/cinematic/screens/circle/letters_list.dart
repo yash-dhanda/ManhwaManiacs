@@ -22,13 +22,17 @@ final unfoldedLettersProvider = StateProvider<Set<int>>((ref) => <int>{}, name: 
 
 /// Letter actions shared by the Circle's tab and aside and Tonight's `Sent to you`.
 class LetterActions {
-  LetterActions(this.context, this.ref);
+  LetterActions(this.context, this.ref) : _container = ProviderScope.containerOf(context, listen: false);
   final BuildContext context;
   final WidgetRef ref;
 
+  /// What the calls use after an await: a letter patch is a network call and the list may be left
+  /// meanwhile, which kills [ref] but not the container.
+  final ProviderContainer _container;
+
   Future<bool> _patch(Letter l, LetterState to) async {
-    final ok = await ref.read(lettersProvider.notifier).patch(l.id, to);
-    if (!ok) ref.read(cineToastsProvider.notifier).error("Couldn't update the letter.");
+    final ok = await _container.read(lettersProvider.notifier).patch(l.id, to);
+    if (!ok) _container.read(cineToastsProvider.notifier).error("Couldn't update the letter.");
     return ok;
   }
 
@@ -44,7 +48,7 @@ class LetterActions {
   }
 
   Future<void> keep(Letter l) async {
-    if (await _patch(l, LetterState.kept)) ref.read(cineToastsProvider.notifier).info('Kept. It stays in Sent to you.');
+    if (await _patch(l, LetterState.kept)) _container.read(cineToastsProvider.notifier).info('Kept. It stays in Sent to you.');
   }
 
   Future<void> dismiss(Letter l) => _patch(l, LetterState.dismissed);

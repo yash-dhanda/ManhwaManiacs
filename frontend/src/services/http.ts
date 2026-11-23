@@ -74,7 +74,7 @@ async function send(
   options: RequestOptions,
   accept: string,
 ): Promise<Response> {
-  const { method = "GET", body, query, signal, headers } = options;
+  const { method = "GET", body, query, signal, headers, keepalive } = options;
 
   // Attach the active reading profile so the backend scopes reads and enforces
   // mutations per-profile. The id lives in client state (zustand); reading it
@@ -93,6 +93,7 @@ async function send(
     response = await fetch(buildUrl(path, query), {
       method,
       signal,
+      keepalive,
       // Send the httpOnly `mm_session` cookie on every request so authenticated
       // routes see the session. The web client holds no token — the cookie is
       // the credential.

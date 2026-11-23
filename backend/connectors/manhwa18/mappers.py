@@ -21,6 +21,7 @@ from __future__ import annotations
 import html as html_lib
 import re
 
+from connectors.release_dates import normalize_release_date
 from connectors.models import BrowseMode, Chapter, Page, PaginatedSeriesList, Series
 
 SITE_BASE = "https://manhwa18.cc"
@@ -123,8 +124,8 @@ UNKNOWN_VALUES = frozenset({"", "updating", "n/a", "-", "unknown"})
 #: same first cards come back with and without the parameter), so they are
 #: exposed as their own modes rather than as sorts that would silently no-op.
 BROWSE_MODES: tuple[tuple[str, str, str, str | None], ...] = (
-    ("default", "Latest Updates", "/webtoons", "latest"),
-    ("trending", "Trending", "/webtoons", "trending"),
+    ("latest", "Latest Updates", "/webtoons", "latest"),
+    ("popular", "Popular", "/webtoons", "trending"),
     ("rating", "Top Rated", "/webtoons", "rating"),
     ("alphabetical", "A-Z", "/webtoons", "alphabet"),
     ("raw", "Raw", "/raw", None),
@@ -132,6 +133,16 @@ BROWSE_MODES: tuple[tuple[str, str, str, str | None], ...] = (
 )
 
 _BROWSE_BY_ID = {mode_id: (path, order) for mode_id, _, path, order in BROWSE_MODES}
+# Ids advertised before the canonical popular/latest/new set (2026-11-23).
+# ``default`` and ``trending`` were exact duplicates of ``latest`` and
+# ``popular`` (same /webtoons orderby) and are no longer listed, but clients,
+# saved preferences and cached browse keys may still send them.
+_BROWSE_BY_ID["default"] = _BROWSE_BY_ID["latest"]
+_BROWSE_BY_ID["trending"] = _BROWSE_BY_ID["popular"]
+# No ``new`` (recently added) mode: /webtoons accepts only orderby=latest|
+# trending|rating|alphabet; any other value answers the site's unsorted
+# default, whose first cards have no monotone creation/first-chapter order
+# (probed 2026-11-23, 8 series), so it is not offered as one.
 
 #: The site's own genre menu, rendered identically into every page's footer.
 #: Hardcoded deliberately: it is static site navigation, and fetching a page
@@ -212,12 +223,12 @@ def chapter_path(chapter_key: str) -> str:
 
 def listing_path(mode: str | None, page: int) -> str:
     """Path for a catalog view. Page 1 is spelled ``/1`` like the site's pager."""
-    path, _order = _BROWSE_BY_ID.get(mode or "default", _BROWSE_BY_ID["default"])
+    path, _order = _BROWSE_BY_ID.get(mode or "latest", _BROWSE_BY_ID["latest"])
     return f"{path}/{max(page, 1)}"
 
 
 def listing_params(mode: str | None) -> dict[str, str] | None:
-    _path, order = _BROWSE_BY_ID.get(mode or "default", _BROWSE_BY_ID["default"])
+    _path, order = _BROWSE_BY_ID.get(mode or "latest", _BROWSE_BY_ID["latest"])
     return {"orderby": order} if order else None
 
 
@@ -395,7 +406,9 @@ def parse_chapters(html_text: str, series_key: str) -> list[Chapter]:
                 # The series page publishes no per-chapter page count; the
                 # connector backfills it from cache once a chapter is opened.
                 page_count=0,
-                release_date=_optional(time_match.group(1)) if time_match else None,
+                # The site prints "21 Nov 2026"; clients only read ISO. A chapter
+                # under a day old shows a new.gif instead of a date -> None.
+                release_date=normalize_release_date(clean_text(time_match.group(1))) if time_match else None,
             )
         )
     # The site lists newest first; the reader wants oldest first.

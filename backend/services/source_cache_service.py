@@ -36,6 +36,7 @@ from typing import Annotated, Any
 
 from fastapi import Depends
 from sqlalchemy import delete, func, select, tuple_
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 
 from connectors.base import SourceConnector
@@ -44,7 +45,9 @@ from core.config import get_settings
 from core.connector_directory import known_source_ids
 from core.content_rating import (
     TRACKER_RATING_MATURE,
+    has_prohibited_tag,
     hidden_by_gate,
+    is_prohibited_text,
     rating_from_genres,
     resolve_series_rating,
     serialized_series_rating,
@@ -186,7 +189,18 @@ _RESIZE_FAILURE_NO_GAIN = "no_downscale"
 #: must re-raise these rather than treat them as a connector outage: a gate
 #: refusing a series is an ANSWER, and answering it with the cached row is the
 #: exact disclosure the gate exists to prevent.
-_GATE_ERROR_CODES = frozenset({"source_not_found", "series_not_found"})
+#: ``content_not_available`` is the refusal of a genre or phrase that names a
+#: prohibited tag: the same answer for every caller, so an old row is no
+#: substitute for it.
+_GATE_ERROR_CODES = frozenset(
+    {"source_not_found", "series_not_found", "content_not_available"}
+)
+
+
+def _item_prohibited(item: dict[str, Any]) -> bool:
+    """A serialized listing row tagged as sexualised depictions of minors."""
+    genres = item.get("genres")
+    return has_prohibited_tag(genres if isinstance(genres, (list, tuple)) else None)
 
 
 def _normalize_sort(sort: str | None) -> str:
@@ -405,15 +419,21 @@ class SourceCacheService:
         # A browse stand-in that cannot report a gate is treated as SHUT, the
         # same way ``_rating_hides`` treats it: the safe direction to fail.
         gate_open = bool(callable(gate) and gate())
-        if gate_open:
-            return payload
+        # The prohibited-tag rule is not the gate's to waive: it is applied
+        # with the gate open as well. Only the 18+ rule is skipped then.
         visible = [
             item
             for item in items
             if not (
                 isinstance(item, dict)
-                and hidden_by_gate(
-                    serialized_series_rating(item), gate_open=False
+                and (
+                    _item_prohibited(item)
+                    or (
+                        not gate_open
+                        and hidden_by_gate(
+                            serialized_series_rating(item), gate_open=False
+                        )
+                    )
                 )
             )
         ]
@@ -434,18 +454,28 @@ class SourceCacheService:
         whether anyone had loaded that grid before.
 
         Cheap on the hot path: a grid is dozens of covers, and an OPEN gate
-        hides nothing, so the extra row is only ever read when the gate is
-        shut. An absent series row is not a refusal -- unknown stays visible,
-        the same as everywhere else this rule is applied.
+        hides nothing on its rating, so with the gate open only the genres
+        column is read -- for the one rule no gate lifts, a prohibited tag.
+        An absent series row is not a refusal -- unknown stays visible, the
+        same as everywhere else this rule is applied.
         """
         gate = getattr(self._browse, "_gate_open", None)
         if callable(gate) and gate():
-            return False
+            genres = self._db.execute(
+                select(SourceSeriesCache.genres).where(
+                    SourceSeriesCache.source_id == source_id,
+                    SourceSeriesCache.series_key == fully_unquote(series_key),
+                )
+            ).scalar_one_or_none()
+            return has_prohibited_tag(_loads(genres) or [])
         row = self._db.get(SourceSeriesCache, (source_id, fully_unquote(series_key)))
         return row is not None and self._rating_hides(row)
 
     def _rating_hides(self, row: SourceSeriesCache) -> bool:
         """Whether this caller's 18+ gate hides ``row`` on its own rating."""
+        if has_prohibited_tag(_loads(row.genres) or []):
+            # Not a gate question: hidden from everyone.
+            return True
         gate = getattr(self._browse, "_gate_open", None)
         # A browse stand-in that cannot report a gate is treated as SHUT: the
         # rating rule then still applies, which is the safe direction to fail.
@@ -498,8 +528,15 @@ class SourceCacheService:
         # whether *this* caller may see the source is not. No network involved.
         self._browse.ensure_visible(source_id)
 
-        sort_key = _normalize_sort(sort)
         genre_key = _normalize_genre(genre)
+        # Before any cache lookup: a connector whose genre list comes from the
+        # network may still advertise a prohibited genre, so the facet check
+        # below would let a row stored under it through.
+        if is_prohibited_text(genre_key):
+            raise AppError(
+                "Nothing found.", code="content_not_available", status_code=404
+            )
+        sort_key = self._canonical_sort(source_id, _normalize_sort(sort))
         reason = self._uncacheable_facet(source_id, sort_key, genre_key)
         if reason is not None:
             logger.info(
@@ -551,6 +588,8 @@ class SourceCacheService:
                 apply_gate=False,
             )
         except (AppError, Exception) as exc:  # noqa: BLE001 - cache must degrade
+            if isinstance(exc, AppError) and exc.code in _GATE_ERROR_CODES:
+                raise
             if row is not None:
                 logger.warning(
                     "browse_cache: connector failed for %s (sort=%r genre=%r "
@@ -878,8 +917,35 @@ class SourceCacheService:
         row = self._db.get(SourceSeriesCache, (source_id, series_key))
         is_new = row is None
         if row is None:
-            row = SourceSeriesCache(source_id=source_id, series_key=series_key)
-            self._db.add(row)
+            # The lookup above ran outside SQLite's write lock and the caller's
+            # upstream fetch took seconds since, so a second request for the
+            # same series can have inserted it meanwhile (the reader opening
+            # while the series page prefetches its manifest). A plain ORM add
+            # makes the loser trip the primary key at commit -- a 500 for a
+            # read that had its data in hand. ``DO NOTHING`` leaves the
+            # transaction usable (a SAVEPOINT would not: see
+            # ``ProgressService._insert_progress``), and the loser merges onto
+            # the winner's row, exactly as if its lookup had run a moment later.
+            row = self._db.scalars(
+                sqlite_insert(SourceSeriesCache)
+                .values(source_id=source_id, series_key=series_key)
+                .on_conflict_do_nothing(
+                    index_elements=[
+                        SourceSeriesCache.source_id,
+                        SourceSeriesCache.series_key,
+                    ]
+                )
+                .returning(SourceSeriesCache)
+            ).one_or_none()
+            if row is None:
+                is_new = False
+                row = self._db.get(SourceSeriesCache, (source_id, series_key))
+            if row is None:
+                # Evicted again between the two statements; nothing left to
+                # conflict with, so the plain insert is safe.
+                is_new = True
+                row = SourceSeriesCache(source_id=source_id, series_key=series_key)
+                self._db.add(row)
 
         if meta:
             row.title = str(meta.get("title") or row.title or "")
@@ -903,6 +969,7 @@ class SourceCacheService:
                         "published_at": c.get("release_date")
                         or c.get("published_at"),
                         "page_count": c.get("page_count"),
+                        "locked_until": c.get("locked_until"),
                     }
                     for c in chapters
                 ]
@@ -912,6 +979,21 @@ class SourceCacheService:
         return row
 
     # --- browse-listing cache internals --------------------------------
+
+    def _canonical_sort(self, source_id: str, sort_key: str) -> str:
+        """The advertised id a legacy ``sort`` stands for, else ``sort_key``.
+
+        Done before the facet check and the cache key so an id a connector
+        still accepts but no longer advertises shares the canonical id's row
+        (and its stale fallback) rather than being served live every time.
+        """
+        if not sort_key:
+            return sort_key
+        resolve = getattr(self._browse, "_get_connector", None)
+        if not callable(resolve):
+            return sort_key
+        aliases = getattr(resolve(source_id), "LEGACY_SORT_ALIASES", None) or {}
+        return aliases.get(sort_key, sort_key)
 
     def _uncacheable_facet(
         self, source_id: str, sort_key: str, genre_key: str

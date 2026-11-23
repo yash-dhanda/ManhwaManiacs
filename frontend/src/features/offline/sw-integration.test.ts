@@ -115,15 +115,15 @@ describe("install and activate", () => {
   it("warms the installed app's start_url", async () => {
     await harness.dispatchInstall();
     await harness.dispatchActivate();
-    const pages = harness.cacheFor(`mm-pages-${RUNTIME_VERSION}`);
-    expect(await pages?.match("/library")).toBeTruthy();
+    const shell = harness.cacheFor(`mm-shell-${RUNTIME_VERSION}`);
+    expect(await shell?.match("/library")).toBeTruthy();
   });
 
   it("warms /downloads, the one page the offline fallback links to", async () => {
     await harness.dispatchInstall();
     await harness.dispatchActivate();
-    const pages = harness.cacheFor(`mm-pages-${RUNTIME_VERSION}`);
-    expect(await pages?.match("/downloads")).toBeTruthy();
+    const shell = harness.cacheFor(`mm-shell-${RUNTIME_VERSION}`);
+    expect(await shell?.match("/downloads")).toBeTruthy();
   });
 
   it("drops a superseded generation but never another profile's downloads", async () => {
@@ -1065,6 +1065,7 @@ describe("skin messages and per-skin offline fallback", () => {
     route(harness, DOCUMENT_URL, { body: "<html>old</html>", headers: { "content-type": "text/html" } });
     await boot();
     await harness.dispatchMessage({ type: "mm-offline/save-chapter", payload: savePayload(ALICE) });
+    await harness.dispatchFetch({ url: `${ORIGIN}/library`, mode: "navigate" });
     expect(harness.cacheFor(`mm-pages-${RUNTIME_VERSION}`)).toBeTruthy();
     route(harness, DOCUMENT_URL, { body: "<html>new</html>", headers: { "content-type": "text/html" } });
     harness.fetched.length = 0;
@@ -1085,5 +1086,374 @@ describe("skin messages and per-skin offline fallback", () => {
     await harness.dispatchMessage({ type: "skin-changed", skin: "glass" });
     const hit = await harness.cacheFor(ALICE_CACHE)?.match(DOCUMENT_URL);
     expect(await hit?.text()).toBe("<html>old</html>");
+  });
+});
+
+describe("saved page images across viewport widths", () => {
+  // The reader bakes a width derived from the viewport into every page URL
+  // (`?w=`), so the same page is asked for under a different URL after a
+  // rotation, a resize or a zoom than the one it was saved under.
+  const SAVED_ONE = `${PAGE_ONE}?w=1170`;
+  const SAVED_TWO = `${PAGE_TWO}?w=1170`;
+
+  async function savePortrait(): Promise<void> {
+    route(harness, SAVED_ONE, { body: "page-one-bytes", headers: { "content-type": "image/jpeg" } });
+    route(harness, SAVED_TWO, { body: "page-two-bytes", headers: { "content-type": "image/jpeg" } });
+    await boot();
+    await harness.dispatchMessage({
+      type: "mm-offline/save-chapter",
+      payload: { ...savePayload(ALICE), imageUrls: [SAVED_ONE, SAVED_TWO] },
+    });
+    harness.offline = true;
+  }
+
+  it("serves a page saved in portrait to a landscape reader", async () => {
+    await savePortrait();
+    const outcome = await harness.dispatchFetch({
+      url: `${PAGE_ONE}?w=2304`,
+      destination: "image",
+    });
+    expect(await outcome.response?.text()).toBe("page-one-bytes");
+  });
+
+  it("serves it to a zoomed reader that asks with no width at all", async () => {
+    await savePortrait();
+    const outcome = await harness.dispatchFetch({ url: PAGE_TWO, destination: "image" });
+    expect(await outcome.response?.text()).toBe("page-two-bytes");
+  });
+
+  it("still keys the chapter manifest by its query", async () => {
+    await savePortrait();
+    const other = await harness.dispatchFetch({
+      url:
+        `${API_BASE}/reader/chapter/manifest` +
+        `?source=${SOURCE}&series=${encodeURIComponent(SERIES)}&chapter=${encodeURIComponent("ch/51")}`,
+    });
+    expect(other.response?.type).toBe("error");
+    const same = await harness.dispatchFetch({ url: PAYLOAD });
+    expect(await same.response?.text()).toBe(CHAPTER_BODY);
+  });
+});
+
+describe("an interrupted save", () => {
+  it("is recorded as partial when a write throws, and the pages are told", async () => {
+    await boot();
+    harness.failPut = (cacheName, url) => cacheName === ALICE_CACHE && url === PAYLOAD;
+    await harness.dispatchMessage({
+      type: "mm-offline/save-chapter",
+      payload: savePayload(ALICE),
+    });
+
+    const index = await readIndex(harness, ALICE_CACHE);
+    expect(index?.entries[KEY].status).toBe("partial");
+
+    const states = harness.clients[0].messages.filter(
+      (message) => (message as { type?: string }).type === "mm-offline/state",
+    ) as Array<{ state: { entries: Array<{ key: string; status: string }> } }>;
+    const last = states[states.length - 1];
+    expect(last.state.entries.find((entry) => entry.key === KEY)?.status).toBe("partial");
+  });
+
+  it("is reported partial, not saving, by a worker that is not running it", async () => {
+    await boot();
+    await harness.dispatchMessage({
+      type: "mm-offline/save-chapter",
+      payload: savePayload(ALICE),
+    });
+    // The worker was killed mid-save: the entry on disk still says "saving".
+    const cache = harness.cacheFor(ALICE_CACHE);
+    const stored = await readIndex(harness, ALICE_CACHE);
+    stored!.entries[KEY].status = "saving";
+    await cache!.put(
+      `${ORIGIN}/__mm-offline/index.json`,
+      new Response(JSON.stringify(stored)),
+    );
+
+    const restarted = createHarness({ storage: harness.storage });
+    await restarted.dispatchMessage({
+      type: "mm-offline/set-scope",
+      scope: ALICE,
+      apiBase: API_BASE,
+    });
+    const reply = await restarted.dispatchMessage({ type: "mm-offline/get-state" });
+    const state = reply.state as { entries: Array<{ key: string; status: string }> };
+    expect(state.entries.find((entry) => entry.key === KEY)?.status).toBe("partial");
+  });
+
+  it("keeps a save that is really running as saving", async () => {
+    route(harness, PAGE_TWO, { hang: true });
+    await boot();
+    const saving = harness.dispatchMessage({
+      type: "mm-offline/save-chapter",
+      payload: savePayload(ALICE),
+    });
+    for (let turn = 0; turn < 20; turn += 1) await new Promise((r) => setTimeout(r, 0));
+    const reply = await harness.dispatchMessage({ type: "mm-offline/get-state" });
+    const state = reply.state as { entries: Array<{ key: string; status: string }> };
+    expect(state.entries.find((entry) => entry.key === KEY)?.status).toBe("saving");
+    await harness.dispatchMessage({ type: "mm-offline/cancel-save", key: KEY });
+    void saving;
+  });
+});
+
+describe("the offline fallback's Downloads link", () => {
+  async function visitOtherPages(count: number): Promise<void> {
+    for (let index = 0; index < count; index += 1) {
+      const url = `${ORIGIN}/series/${index}`;
+      route(harness, url, { body: `series ${index}` });
+      await harness.dispatchFetch({ url, mode: "navigate" });
+    }
+  }
+
+  it("still opens after the document cache has turned over", async () => {
+    await boot();
+    await visitOtherPages(61);
+    harness.offline = true;
+    const outcome = await harness.dispatchFetch({ url: `${ORIGIN}/downloads`, mode: "navigate" });
+    expect(await outcome.response?.text()).toBe("<html>downloads</html>");
+  });
+
+  it("still opens after storage pressure drops the disposable caches", async () => {
+    await boot();
+    harness.estimate = { usage: 9_999_000_000, quota: 10_000_000_000 };
+    await harness.dispatchMessage({ type: "mm-offline/sweep", scope: ALICE });
+    expect(await harness.storage.has(`mm-pages-${RUNTIME_VERSION}`)).toBe(false);
+
+    harness.offline = true;
+    const outcome = await harness.dispatchFetch({ url: `${ORIGIN}/library`, mode: "navigate" });
+    expect(await outcome.response?.text()).toBe("<html>library</html>");
+  });
+
+  it("serves the copy from the last visit, not the one from activation", async () => {
+    await boot();
+    route(harness, "/downloads", { body: "<html>downloads v2</html>" });
+    await harness.dispatchFetch({ url: `${ORIGIN}/downloads`, mode: "navigate" });
+    await harness.storage.delete(`mm-pages-${RUNTIME_VERSION}`);
+
+    harness.offline = true;
+    const outcome = await harness.dispatchFetch({ url: `${ORIGIN}/downloads`, mode: "navigate" });
+    expect(await outcome.response?.text()).toBe("<html>downloads v2</html>");
+  });
+
+  it("is refreshed in place when the skin changes, and kept when offline", async () => {
+    await boot();
+    route(harness, "/downloads", { body: "<html>downloads glass</html>" });
+    await harness.dispatchMessage({ type: "skin-changed", skin: "glass" });
+    harness.offline = true;
+    const outcome = await harness.dispatchFetch({ url: `${ORIGIN}/downloads`, mode: "navigate" });
+    expect(await outcome.response?.text()).toBe("<html>downloads glass</html>");
+
+    await harness.dispatchMessage({ type: "skin-changed", skin: "legacy" });
+    const kept = await harness.dispatchFetch({ url: `${ORIGIN}/downloads`, mode: "navigate" });
+    expect(await kept.response?.text()).toBe("<html>downloads glass</html>");
+  });
+
+  it("does not stand in for a page that was never warmed", async () => {
+    await boot();
+    harness.offline = true;
+    const outcome = await harness.dispatchFetch({ url: `${ORIGIN}/downloads/other`, mode: "navigate" });
+    expect(await outcome.response?.text()).toBe("<h1>cinematic</h1>");
+  });
+});
+
+describe("a cache write never decides the response", () => {
+  const STATIC_URL = `${ORIGIN}/_next/static/chunks/app.abc123.js`;
+
+  it("serves a build asset the cache has no room for", async () => {
+    route(harness, STATIC_URL, { body: "chunk" });
+    await boot();
+    harness.failPut = (cacheName) => cacheName === `mm-static-${RUNTIME_VERSION}`;
+    const outcome = await harness.dispatchFetch({ url: STATIC_URL });
+    expect(outcome.error).toBeNull();
+    expect(outcome.response?.status).toBe(200);
+    expect(await outcome.response?.text()).toBe("chunk");
+  });
+
+  it("serves a stale-while-revalidate answer the cache has no room for", async () => {
+    const listUrl = `${API_BASE}/library/series?limit=20`;
+    route(harness, listUrl, { body: '["fresh"]' });
+    await boot();
+    harness.failPut = (cacheName) => cacheName === ALICE_API_CACHE;
+    const outcome = await harness.dispatchFetch({ url: listUrl });
+    expect(outcome.error).toBeNull();
+    expect(outcome.response?.type).not.toBe("error");
+    expect(await outcome.response?.text()).toBe('["fresh"]');
+  });
+});
+
+describe("activation does not wait on a stalled connection", () => {
+  it("settles within the warm-fetch bound when the warm fetches never answer", async () => {
+    vi.useFakeTimers();
+    try {
+      route(harness, "/library", { hang: true });
+      route(harness, "/downloads", { hang: true });
+      await harness.dispatchInstall();
+
+      let settled = false;
+      const activation = harness.dispatchActivate().then(() => {
+        settled = true;
+      });
+      await vi.advanceTimersByTimeAsync(5_500);
+      expect(settled).toBe(true);
+      await activation;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("still deletes superseded caches and claims clients first", async () => {
+    vi.useFakeTimers();
+    try {
+      await harness.storage.open("mm-shell-v1");
+      route(harness, "/library", { hang: true });
+      route(harness, "/downloads", { hang: true });
+      await harness.dispatchInstall();
+      const activation = harness.dispatchActivate();
+      await vi.advanceTimersByTimeAsync(5_500);
+      await activation;
+      expect(await harness.cacheNames()).not.toContain("mm-shell-v1");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("a saved chapter keeps the build files it renders with", () => {
+  const CHUNK_X = `${ORIGIN}/_next/static/chunks/x.js`;
+  const CHUNK_Y = `${ORIGIN}/_next/static/chunks/y.js`;
+  const STATIC_CACHE = `mm-static-${RUNTIME_VERSION}`;
+  const READER_HTML =
+    '<html><head><script src="/_next/static/chunks/x.js" async=""></script></head><body>' +
+    '<script>self.__next_f.push([1,"[\\"static/chunks/y.js\\"]"])</script></body></html>';
+
+  const KEY_TWO = `chapter:${SOURCE}:${SERIES}:ch/51`;
+  const PAGE_THREE = `${API_BASE}/sources/${SOURCE}/pages/p3/image`;
+  const PAYLOAD_TWO = `${PAYLOAD}2`;
+  const DOCUMENT_TWO = `${ORIGIN}/reader/${SOURCE}/${encodeURIComponent(SERIES)}/ch/51`;
+
+  function secondPayload() {
+    return {
+      ...savePayload(ALICE),
+      key: KEY_TWO,
+      chapterKey: "ch/51",
+      title: "Chapter 51",
+      documentUrl: DOCUMENT_TWO,
+      payloadUrl: PAYLOAD_TWO,
+      payloadJson: CHAPTER_BODY,
+      imageUrls: [PAGE_THREE],
+      extraUrls: [],
+    };
+  }
+
+  beforeEach(() => {
+    route(harness, DOCUMENT_URL, { body: READER_HTML, headers: { "content-type": "text/html" } });
+    route(harness, DOCUMENT_TWO, { body: READER_HTML, headers: { "content-type": "text/html" } });
+    route(harness, PAGE_THREE, { body: "page-three-bytes", headers: { "content-type": "image/jpeg" } });
+    route(harness, CHUNK_X, { body: "chunk-x", headers: { "content-type": "text/javascript" } });
+    route(harness, CHUNK_Y, { body: "chunk-y", headers: { "content-type": "text/javascript" } });
+  });
+
+  async function save(payload = savePayload(ALICE)): Promise<void> {
+    await harness.dispatchMessage({ type: "mm-offline/save-chapter", payload });
+  }
+
+  async function offlineChunk(url: string): Promise<string | null> {
+    const outcome = await harness.dispatchFetch({ url });
+    return outcome.response && outcome.response.type !== "error" && outcome.response.ok
+      ? outcome.response.text()
+      : null;
+  }
+
+  it("serves both chunks with the build's own cache gone", async () => {
+    await boot();
+    await save();
+    await harness.storage.delete(STATIC_CACHE);
+    harness.offline = true;
+
+    expect(await offlineChunk(CHUNK_X)).toBe("chunk-x");
+    expect(await offlineChunk(CHUNK_Y)).toBe("chunk-y");
+    // Only what the document named, and a build's own query does not matter.
+    expect(await offlineChunk(`${ORIGIN}/_next/static/chunks/z.js`)).toBeNull();
+    expect(await offlineChunk(`${CHUNK_X}?dpl=abc`)).toBe("chunk-x");
+  });
+
+  it("serves a saved build file when the server no longer has it", async () => {
+    await boot();
+    await save();
+    harness.routes.delete(CHUNK_X);
+    expect(await offlineChunk(CHUNK_X)).toBe("chunk-x");
+  });
+
+  it("copies from the build cache instead of downloading a file twice", async () => {
+    await boot();
+    await harness.dispatchFetch({ url: CHUNK_X });
+    harness.fetched.length = 0;
+    await save();
+    expect(harness.fetched).not.toContain(CHUNK_X);
+    expect(harness.fetched).toContain(CHUNK_Y);
+    expect(await harness.cacheFor(ALICE_CACHE)?.match(CHUNK_X)).toBeTruthy();
+  });
+
+  it("records them as the chapter's own, without counting them as pages", async () => {
+    await boot();
+    await save();
+    const index = await readIndex(harness, ALICE_CACHE);
+    const entry = index!.entries[KEY];
+    expect(entry.urls).toEqual(expect.arrayContaining([CHUNK_X, CHUNK_Y]));
+    expect(entry.pageCount).toBe(2);
+    expect(entry.savedPages).toBe(2);
+    expect(entry.failed).toBe(0);
+    expect(entry.status).toBe("ready");
+  });
+
+  it("does not hold the chapter back when a build file cannot be fetched", async () => {
+    harness.routes.delete(CHUNK_Y);
+    await boot();
+    await save();
+    const index = await readIndex(harness, ALICE_CACHE);
+    expect(index!.entries[KEY].status).toBe("ready");
+    expect(index!.entries[KEY].failed).toBe(0);
+  });
+
+  it("picks them up when the chapter is saved again", async () => {
+    harness.routes.delete(CHUNK_Y);
+    await boot();
+    await save();
+    expect(await harness.cacheFor(ALICE_CACHE)?.match(CHUNK_Y)).toBeUndefined();
+
+    route(harness, CHUNK_Y, { body: "chunk-y" });
+    await save();
+    expect(await harness.cacheFor(ALICE_CACHE)?.match(CHUNK_Y)).toBeTruthy();
+    const index = await readIndex(harness, ALICE_CACHE);
+    expect(index!.entries[KEY].urls).toEqual(expect.arrayContaining([CHUNK_X, CHUNK_Y]));
+  });
+
+  it("keeps a shared file until the last chapter that lists it is removed", async () => {
+    await boot();
+    await save();
+    await save(secondPayload());
+    await harness.storage.delete(STATIC_CACHE);
+    harness.offline = true;
+
+    await harness.dispatchMessage({ type: "mm-offline/remove-chapter", scope: ALICE, key: KEY });
+    expect(await offlineChunk(CHUNK_X)).toBe("chunk-x");
+    expect(await offlineChunk(CHUNK_Y)).toBe("chunk-y");
+
+    await harness.dispatchMessage({ type: "mm-offline/remove-chapter", scope: ALICE, key: KEY_TWO });
+    expect(await offlineChunk(CHUNK_X)).toBeNull();
+    expect(await offlineChunk(CHUNK_Y)).toBeNull();
+  });
+
+  it("does not hand one profile's saved build files to another", async () => {
+    await boot();
+    await save();
+    await harness.storage.delete(STATIC_CACHE);
+    await harness.dispatchMessage(
+      { type: "mm-offline/set-scope", scope: BOB, apiBase: API_BASE },
+      "client-b",
+    );
+    harness.offline = true;
+    const outcome = await harness.dispatchFetch({ url: CHUNK_X, clientId: "client-b" });
+    expect(outcome.response?.type ?? "error").toBe("error");
   });
 });

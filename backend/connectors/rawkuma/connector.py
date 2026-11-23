@@ -11,7 +11,15 @@ from connectors.http.cache import TTLCache
 from connectors.http.client import ConnectorHttpError, SyncConnectorHttpClient
 from connectors.models import BrowseMode, Chapter, Page, PaginatedSeriesList, Series
 from connectors.rawkuma.mappers import (
+    AJAX_NONCE_PARAMS,
+    AJAX_PATH,
+    AJAX_SEARCH_PARAMS,
     BROWSE_MODES,
+    GENRE_TERM_IDS,
+    POPULAR_SORT,
+    ajax_search_form,
+    parse_ajax_listing,
+    parse_ajax_nonce,
     GENRE_TERMS,
     PAGE_SIZE,
     REST_MANGA_PATH,
@@ -90,6 +98,7 @@ class RawkumaConnector(SourceConnector):
         )
         self._page_cache: TTLCache[list[Page]] = TTLCache(ttl_seconds=600.0)
         self._page_count_cache: TTLCache[int] = TTLCache(ttl_seconds=1800.0)
+        self._nonce_cache: TTLCache[str] = TTLCache(ttl_seconds=1800.0)
 
     # -- descriptor ------------------------------------------------------
 
@@ -179,7 +188,60 @@ class RawkumaConnector(SourceConnector):
         )
         return listing
 
+    def _search_nonce(self, *, refresh: bool = False) -> str:
+        if not refresh:
+            cached = self._nonce_cache.get("nonce")
+            if cached is not None:
+                return cached
+        document = self._http.get_text(AJAX_PATH, params=AJAX_NONCE_PARAMS)
+        nonce = parse_ajax_nonce(document)
+        if nonce is None:
+            raise ConnectorHttpError("Rawkuma search nonce was not served.")
+        self._nonce_cache.set("nonce", nonce)
+        return nonce
+
+    def _popular_listing(
+        self, page: int, *, operation: str, genre: str | None = None
+    ) -> PaginatedSeriesList:
+        """The library's own "Popular" order (``orderby=popular``).
+
+        Goes through the theme's ``admin-ajax`` ``advanced_search`` POST, which
+        answers a results fragment and needs the page's anonymous nonce; a
+        stale nonce answers no cards, so one fresh nonce is tried before giving
+        up. An empty first page is an error, never a silent substitute order.
+        """
+        genre_slug = genre if genre in GENRE_TERM_IDS else None  # unknown genres are dropped, as on REST
+        listing = None
+        for refresh in (False, True):
+            nonce = self._search_nonce(refresh=refresh)
+            try:
+                document = self._http.post_text(
+                    f"{AJAX_PATH}?action={AJAX_SEARCH_PARAMS['action']}",
+                    data=ajax_search_form(
+                        page, orderby="popular", nonce=nonce, genre_slug=genre_slug
+                    ),
+                    extra_headers={"Referer": f"{SITE_BASE}/library/"},
+                )
+            except ConnectorHttpError as exc:
+                self._log(operation, AJAX_PATH, status="error", detail=str(exc))
+                raise
+            listing = parse_ajax_listing(document, page=page, page_size=PAGE_SIZE)
+            if listing.items or page > 1:
+                break
+        self._log(
+            operation,
+            AJAX_PATH,
+            params={"orderby": "popular", "page": page},
+            status="ok",
+            detail=f"count={len(listing.items)} has_more={listing.has_more}",
+        )
+        if not listing.items and page == 1:
+            raise ConnectorHttpError("Rawkuma popular listing came back empty.")
+        return listing
+
     def get_series_list(self, page: int, *, sort: str | None = None) -> PaginatedSeriesList:
+        if sort == POPULAR_SORT:
+            return self._popular_listing(max(1, page), operation="browse")
         return self._rest_listing(
             max(1, page), operation="browse", sort=normalize_sort(sort)
         )
@@ -191,6 +253,10 @@ class RawkumaConnector(SourceConnector):
         *,
         sort: str | None = None,
     ) -> PaginatedSeriesList:
+        if sort == POPULAR_SORT:
+            return self._popular_listing(
+                max(1, page), operation="genre", genre=genre.strip().lower()
+            )
         return self._rest_listing(
             max(1, page),
             operation="genre",

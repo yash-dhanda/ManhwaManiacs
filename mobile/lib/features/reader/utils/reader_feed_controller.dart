@@ -204,7 +204,11 @@ class ReaderFeedController extends ChangeNotifier {
   /// optional.
   Future<void> extendBackward() => _extend(forward: false);
 
-  Future<void> _extend({required bool forward}) async {
+  /// [extendForward] for an explicit retry (the band's "Try again", the countdown's one automatic retry): the failure
+  /// backoff is for scrolling that keeps drawing the same failure, and would make a retry the reader asked for a no-op.
+  Future<void> retryForward() => _extend(forward: true, explicit: true);
+
+  Future<void> _extend({required bool forward, bool explicit = false}) async {
     if (_disposed) return;
     if (forward ? _extendingForward : _extendingBackward) return;
 
@@ -212,6 +216,7 @@ class ReaderFeedController extends ChangeNotifier {
     final targetId = forward ? _nextIdAfter(edge) : _prevIdBefore(edge);
     if (targetId == null || _feed.contains(targetId)) return;
 
+    if (explicit) _retryAfter.remove(targetId);
     final retryAt = _retryAfter[targetId];
     if (retryAt != null && _clock().isBefore(retryAt)) return;
 
@@ -223,6 +228,11 @@ class ReaderFeedController extends ChangeNotifier {
     try {
       final chapter = await _loadOrNull(targetId);
       if (_disposed) return;
+      // The other direction runs concurrently and may have moved the feed (and trimmed this end) while
+      // this fetch was out; a result for a neighbour the edge no longer has would splice a gap into the
+      // feed. Not a failure either: the chapter loaded fine, it just is not next to anything any more.
+      final edgeNow = forward ? _feed.chapters.last.id : _feed.chapters.first.id;
+      if ((forward ? _nextIdAfter(edgeNow) : _prevIdBefore(edgeNow)) != targetId) return;
       if (chapter == null || chapter.pages.isEmpty) {
         _noteFailure(targetId);
         return;

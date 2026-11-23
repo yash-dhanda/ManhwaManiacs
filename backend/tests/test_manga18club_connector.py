@@ -110,7 +110,14 @@ def test_page_two_and_most_views_are_different_requests(connector: Manga18ClubCo
     assert calls == [("/list-manga/1", {}), ("/list-manga/2", {}), ("/list-manga/1", {"order_by": "views"})]
     assert {s.id for s in page1.items}.isdisjoint({s.id for s in page2.items})
     assert popular.items[0].id == SERIES
-    assert [m.id for m in connector.list_browse_modes()] == ["default", "popular"]
+    assert [m.id for m in connector.list_browse_modes()] == ["default", "popular", "latest"]
+
+
+def test_latest_asks_for_the_sites_default_order_explicitly(connector: Manga18ClubConnector):
+    calls: list[tuple[str, dict]] = []
+    with _mock_site(connector, calls):
+        connector.get_series_list(2, sort="latest")
+    assert calls == [("/list-manga/2", {"order_by": "lastest"})]
 
 
 def test_search_sends_the_query_and_reads_its_two_page_pager(connector: Manga18ClubConnector):

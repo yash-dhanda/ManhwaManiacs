@@ -719,3 +719,12 @@ def test_card_with_no_title_markup_falls_back_to_the_slug():
     (series,) = parse_series_cards(_card("<div></div>"))
 
     assert series.title == "Nano-Machine"
+
+
+def test_browse_modes_canonical_ids(connector: NovelCoolConnector):
+    # Popular is deliberately absent: /category/popular.html is a novel chart.
+    assert [m.id for m in connector.list_browse_modes()] == [
+        "default", "latest", "new", "ongoing", "completed",
+    ]
+    assert connector.list_browse_modes()[1].label == "Latest"
+    assert connector.list_browse_modes()[2].label == "New"

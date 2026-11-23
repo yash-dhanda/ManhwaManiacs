@@ -220,7 +220,14 @@ class MxshmConnector(SourceConnector):
                 self._image_hosts = self._image_hosts | hosts
 
     def list_browse_modes(self) -> list[BrowseMode]:
-        return [BrowseMode(id="default", label="Latest")]
+        # /booklist is newest-ADDED first (ids descend); /update is ordered by
+        # latest chapter. /rank is four unpaginated top-10 tabs, so there is no
+        # real ``popular`` listing.
+        return [
+            BrowseMode(id="default", label="Browse"),
+            BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="new", label="New"),
+        ]
 
     def _fetch_html(self, path: str, *, params: dict[str, str] | None = None) -> str | None:
         """GET a page, or None on HTTP failure or a Cloudflare interstitial."""
@@ -242,10 +249,10 @@ class MxshmConnector(SourceConnector):
         return listing
 
     def get_series_list(self, page: int, *, sort: str | None = None) -> PaginatedSeriesList:
-        del sort  # one catalogue order (newest book first)
         page = max(page, 1)
+        path = "/update" if sort == "latest" else "/booklist"
         listing = self._listing(
-            self._fetch_html("/booklist", params={"page": str(page)}), page=page, paginated=True
+            self._fetch_html(path, params={"page": str(page)}), page=page, paginated=True
         )
         logger.info("mxshm browse page=%d count=%d", page, len(listing.items))
         return listing

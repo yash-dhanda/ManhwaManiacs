@@ -139,6 +139,34 @@ class Changelog(BaseModel):
 # consume the exact same source of truth.
 _RELEASE_NOTES: list[ChangelogEntry] = [
     ChangelogEntry(
+        version="1.0.3",
+        build=61,
+        date="November 2026",
+        highlights=[
+            "Popular, Latest and New reach more sources: Fanfox, Webtoons, Flame Comics, Demonic Scans, Rawkuma, Manga18FX, Manga18.club, MxShm, Rouman5, HentaiPaw, ManhwaWeb and FreeAdultComix now offer the ones their sites have. A source only shows an ordering its site can really give",
+            "Demonic Scans: Latest was skipping the forty most recently updated series and starting on the second page. It starts at the top now, and Popular is the site's real most-viewed list",
+            "ComicLand listed its oldest series first. It now opens on the newest",
+            "Covers that fail to load try once more by themselves two seconds later instead of staying blank until you leave and come back",
+            "Leaving a screen while it was still saving or checking something could log an error behind the scenes on about twenty screens in both looks (series actions, chapter marks and their Undo, bookmarks, reading setup, storage, members, security and backup settings). Those now finish quietly",
+        ],
+    ),
+    ChangelogEntry(
+        version="1.0.2",
+        build=60,
+        date="November 2026",
+        highlights=[
+            "Early access chapters now say when they open. Asura lists a chapter six hours before everyone can read it; Updates shows a countdown where Read used to be, the reader shows the same countdown and opens the chapter by itself when it reaches zero, and chapter lists show the time left. No more \"Chapter not found\" on a chapter you were just told about",
+            "The \"Something broke on this page\" screen no longer takes over when the page is fine. It was appearing for small background errors and going away on Try again; it is now kept for real display failures, and the rest are listed under Diagnostics in Settings",
+            "Fewer taps on Retry: a page that fails to load tries again by itself twice before asking, short server hiccups are retried in the background, and the next chapter is saved once you are most of the way through the current one so it no longer competes with the pages you are reading",
+            "Reading progress: turning from a short chapter into the next one in page-by-page mode could mark the new chapter as read at a page you had not reached. Fixed",
+            "Downloads: cancelling the whole queue no longer downloads chapters you had just cancelled, the queue stops when the app goes to the background and says so correctly when you come back, and an early access chapter waits in the queue until it opens instead of failing",
+            "Read aloud: if the audio drops mid-chapter you now get a retry instead of a spinner that never ends, and Stop or Pause is respected while the next chapter is still loading",
+            "Popular, Latest and New are offered on every source that has them, under the same names everywhere. On some sources Latest used to mean newly added series; it now always means recently updated, and New is newly added",
+            "Source fixes: 18PornComic's Popular works and its chapters are in the right order, AllPornComic chapters have numbers and dates and its search goes past the first page, Hentai20 browse goes past the first page, Manhwa18.net pages on its second image server load",
+            "Sign out works straight away when the server cannot be reached, and creating a profile can no longer make two copies if the server is busy",
+        ],
+    ),
+    ChangelogEntry(
         version="1.0.1",
         build=59,
         date="November 2026",

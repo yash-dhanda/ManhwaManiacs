@@ -29,6 +29,7 @@ ISSUE_NUMBER_RE = re.compile(r"issue\s*(\d+(?:\.\d+)?)", re.I)
 SORT_PARAMS: dict[str, str | None] = {
     "default": None,
     "latest": "date",
+    "new": "date",  # gallery site: the album date is the only date
     "popular": "like",
     "rating": "like",
 }

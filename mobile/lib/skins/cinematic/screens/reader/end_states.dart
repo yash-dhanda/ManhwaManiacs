@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/library/providers/up_next_provider.dart';
 import 'package:manhwamaniacs/features/library/repositories/library_repository.dart';
 import 'package:manhwamaniacs/features/library/utils/all_followed.dart';
+import 'package:manhwamaniacs/features/reader/engine/chapter_locked_flow.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
@@ -162,6 +164,40 @@ class NextFailedNotice extends StatelessWidget {
         headline: "$label didn't load.",
         primary: CineNoticeAction('Try again', onRetry),
         quiet: CineNoticeAction('Open it on its own →', onOpen),
+      ),
+    );
+  }
+}
+
+/// The next chapter is early access on its source (cinematic 8.14.11): `EARLY ACCESS`, "Chapter 143 opens in 3:27:14" and
+/// when that is on this clock, with `Open it on its own →`. No `Try again` while the count runs; at zero the strip asks once more
+/// after a short grace, and a chapter still shut shows the server's message with `Try again`.
+class NextLockedNotice extends StatelessWidget {
+  const NextLockedNotice({super.key, required this.label, required this.lockedUntil, required this.message, required this.onRetry, required this.onOpen});
+
+  final String label, message;
+  final DateTime? lockedUntil;
+  final VoidCallback onRetry, onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.cine;
+    return Padding(
+      padding: EdgeInsets.all(c.space4),
+      child: ChapterLockedFlow(
+        lockedUntil: lockedUntil,
+        retry: onRetry,
+        builder: (context, phase, left) {
+          final counting = phase == ChapterLockPhase.counting;
+          return CineNotice(
+            tone: CineNoticeTone.caution,
+            kicker: 'EARLY ACCESS',
+            headline: counting ? '$label opens in ${formatCountdown(left)}' : (phase == ChapterLockPhase.opening ? '$label is opening.' : message),
+            deck: counting && lockedUntil != null ? 'Open to everyone at ${localOpenTime(lockedUntil!)}.' : null,
+            primary: phase == ChapterLockPhase.expired ? CineNoticeAction('Try again', onRetry) : null,
+            quiet: CineNoticeAction('Open it on its own →', onOpen),
+          );
+        },
       ),
     );
   }

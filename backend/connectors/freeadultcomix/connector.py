@@ -33,6 +33,9 @@ class FreeAdultComixConnector(SourceConnector):
     """Browse and read comics from FreeAdultComix (WordPress gallery catalog)."""
 
     SOURCE_TYPE = "freeadultcomix"
+    #: The home page is the newest posts (one post is one comic, never
+    #: "updated"), which is ``new``; ``latest`` always sent the same request.
+    LEGACY_SORT_ALIASES = {"latest": "new"}
     DISPLAY_NAME = "FreeAdultComix"
     DESCRIPTION = (
         "Browse and read adult comics from FreeAdultComix. "
@@ -86,7 +89,7 @@ class FreeAdultComixConnector(SourceConnector):
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="default", label="Latest"),
-            BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="new", label="New"),
         ]
 
     def list_genres(self) -> list[BrowseMode]:

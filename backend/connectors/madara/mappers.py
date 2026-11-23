@@ -8,13 +8,40 @@ from typing import Any
 
 from connectors.madara.config import MadaraSiteConfig
 from connectors.models import Chapter, Page, PaginatedSeriesList, Series
+from connectors.release_dates import normalize_release_date
 from connectors.titles import normalize_chapter_title
 
+# Chapter numbers for sites whose URL segment is not ``chapter-N`` (allporncomic:
+# ``15-breaking-boundaries``, ``15-5-christimas-special``). The row label leads
+# with the site's own ordinal -- "15.5 . Christimas Special - Chapter 15.5" --
+# which is the position in the series and what the number must sort by (a
+# label can say "Chapter 15" on ordinal 16: measured 2026-11-23).
+_LABEL_ORDINAL_RE = re.compile(r"^(\d+(?:\.\d+)?)\s*\.\s")
+_LABEL_CHAPTER_RE = re.compile(r"\bchapter\s+(\d+(?:\.\d+)?)", re.I)
+_SEGMENT_LEADING_RE = re.compile(r"^(\d+)(?:-(\d{1,2}))?-[a-z]", re.I)
+# The date sits in ``<span class="chapter-release-date"><i>September 9, 2026</i>``
+# or, for a chapter under a day old, in the title of its "new" tag:
+# ``<a title="3 minutes ago" class="c-new-tag">``.
+_RELEASE_DATE_RE = re.compile(
+    r'class="chapter-release-date"[^>]*>(.*?)</span>', re.S | re.I
+)
+_RELEASE_TITLE_RE = re.compile(r'title="([^"]+)"', re.I)
+_THEME_ASSET_RE = re.compile(r"/wp-content/assets/\d+\.(?:png|jpe?g|gif|webp)(?:\?.*)?$", re.I)
+_PAGE_OF_RE = re.compile(r"Page\s+\d+\s+of\s+(\d+)", re.I)
+_ANY_PAGE_LINK_RE = re.compile(r'href="[^"]*?/page/(\d+)/\?', re.I)
+
+# Canonical ids (2026-11-23): ``latest`` = most recently UPDATED (Madara's
+# default order, so no m_orderby is sent), ``new`` = most recently ADDED
+# (m_orderby=new-manga), ``popular`` = most viewed. Until then ``latest`` sent
+# new-manga, i.e. the list the clients now ask for as ``new``; ``default`` and
+# ``latest`` are now the same request. Verified live on allporncomic.com that
+# page 1 of ``new-manga`` differs from the default and that page 2 continues it.
 SORT_TO_ORDER: dict[str, str] = {
     "default": "latest",
-    "latest": "new-manga",
+    "latest": "latest",
+    "new": "new-manga",
     "popular": "views",
-    "rating": "ratings",
+    "rating": "rating",  # stock value; "ratings" is unknown to the site and fell back to new-manga (probed 2026-11-23)
 }
 
 
@@ -169,7 +196,10 @@ class MadaraHtml:
                         canonical_path=self.series_id_to_path(series_id),
                     )
                 )
-        total_pages = self._extract_total_pages(html_text, page)
+        total_pages = max(
+            self._extract_total_pages(html_text, page),
+            self._extract_search_pages(html_text),
+        )
         if total_pages <= 1:
             total = len(items)
             has_more = False
@@ -295,33 +325,85 @@ class MadaraHtml:
         chapters: list[Chapter] = []
         seen: set[str] = set()
 
-        def _add(chapter_id: str, title: str) -> None:
+        def _add(chapter_id: str, title: str, block: str = "") -> None:
             if not chapter_id.startswith(prefix):
                 return
             if chapter_id in seen:
                 return
             seen.add(chapter_id)
-            normalized_title = (
-                normalize_chapter_title(self._clean_text(title))
-                or self._clean_text(title)
-            )
+            cleaned = self._clean_text(title)
+            normalized_title = normalize_chapter_title(cleaned) or cleaned
+            number = self.parse_chapter_number(chapter_id)
+            key = self.chapter_id_sort_key(chapter_id)
+            ordinal = _LABEL_ORDINAL_RE.match(cleaned)
+            if ordinal:
+                # The site's ordinal beats a segment guess whenever both exist
+                # and is the only number when the segment has none.
+                number = float(ordinal.group(1))
+                key = self._number_key(number)
+            elif number is None:
+                number = self._fallback_number(chapter_id, cleaned)
+                if number is not None:
+                    key = self._number_key(number)
             chapters.append(
                 Chapter(
                     id=chapter_id,
                     series_id=series_id,
                     title=normalized_title,
-                    number=self.parse_chapter_number(chapter_id),
+                    number=number,
                     page_count=0,
+                    release_date=self._release_date(block),
                 )
             )
+            keys[chapter_id] = key
 
-        for chapter_id, title in self._chapter_link.findall(html_text):
-            _add(chapter_id, title)
+        keys: dict[str, tuple[int, int, int]] = {}
+        for block in re.findall(
+            r'<li class="wp-manga-chapter[^"]*">.*?</li>', html_text, re.S | re.I
+        ):
+            link = self._chapter_link.search(block)
+            if link:
+                _add(link.group(1), link.group(2), block)
         if not chapters:
             for chapter_id, title in self._chapter_item_link.findall(html_text):
                 _add(chapter_id, title)
-        chapters.sort(key=lambda ch: self.chapter_id_sort_key(ch.id))
+        # Pages list newest first. Reversing before the stable sort makes a
+        # chapter whose key ties (or cannot be read) land oldest-first too,
+        # which is the order every connector returns.
+        chapters.reverse()
+        chapters.sort(key=lambda ch: keys[ch.id])
         return chapters
+
+    @staticmethod
+    def _number_key(number: float) -> tuple[int, int, int]:
+        major = int(number)
+        return (major, int(round((number - major) * 10)), 0)
+
+    def _fallback_number(self, chapter_id: str, label: str) -> float | None:
+        match = _LABEL_CHAPTER_RE.search(label)
+        if match:
+            return float(match.group(1))
+        segment = chapter_id.rsplit("/", 1)[-1]
+        match = _SEGMENT_LEADING_RE.match(segment)
+        if match:
+            return float(f"{match.group(1)}.{match.group(2)}" if match.group(2) else match.group(1))
+        return None
+
+    @staticmethod
+    def _release_date(block: str) -> str | None:
+        if not block:
+            return None
+        span = _RELEASE_DATE_RE.search(block)
+        if not span:
+            return None
+        inner = span.group(1)
+        text = re.sub(r"<[^>]+>", " ", inner).strip()
+        value = normalize_release_date(html.unescape(text))
+        if value is None:
+            title = _RELEASE_TITLE_RE.search(inner)
+            if title:
+                value = normalize_release_date(html.unescape(title.group(1)))
+        return value
 
     def parse_chapter_pages(self, html_text: str, chapter_id: str) -> list[Page]:
         image_urls: list[str] = []
@@ -345,6 +427,11 @@ class MadaraHtml:
                     if cleaned and cleaned not in image_urls:
                         image_urls.append(cleaned)
 
+        # Theme assets are not pages: toonily.com appends
+        # /wp-content/assets/999.png (a site credit) to every chapter
+        # (seen on 8 of 8 chapters sampled, 2026-11-23). Chapter images live
+        # under /wp-content/uploads/ or on a CDN host.
+        image_urls = [u for u in image_urls if not _THEME_ASSET_RE.search(u)]
         pages: list[Page] = []
         for index, remote_url in enumerate(image_urls, start=1):
             pages.append(
@@ -397,6 +484,20 @@ class MadaraHtml:
 
     def _clean_text(self, value: str) -> str:
         return html.unescape(re.sub(r"\s+", " ", value)).strip()
+
+    @staticmethod
+    def _extract_search_pages(html_text: str) -> int:
+        """Page count of a WordPress search result.
+
+        Its pager links are ``/page/2/?s=..&post_type=wp-manga`` -- no
+        ``/{segment}/`` in them -- so the listing regex found none and every
+        search reported has_more=False after page 1 (allporncomic: "Page 1 of
+        3" in the markup, 2026-11-23). The "Page X of Y" label is read first,
+        the link numbers second.
+        """
+        pages = [int(v) for v in _PAGE_OF_RE.findall(html_text)]
+        pages += [int(v) for v in _ANY_PAGE_LINK_RE.findall(html_text)]
+        return max(pages) if pages else 1
 
     #: A next link, or the theme's ajax "load more" button, with no numbered
     #: pager: the site has a page after this one and does not say how many.

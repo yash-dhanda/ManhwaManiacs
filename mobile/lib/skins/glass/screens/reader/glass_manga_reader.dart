@@ -1520,8 +1520,9 @@ class GlassMangaReaderState extends ConsumerState<GlassMangaReader> with TickerP
         pageStateBuilder: glassPageState,
         bandBuilder: GlassReaderBands(
           nextLabel: _nextId == null ? 'The next chapter' : chapterLabel(_nextId!),
+          nextChapterId: _nextId,
           previousLabel: _previousId == null ? 'The previous chapter' : chapterLabel(_previousId!),
-          onRetryNeighbour: () => _body.onReachedFeedEnd?.call(),
+          onRetryNeighbour: () => (_body.onRetryFeedEnd ?? _body.onReachedFeedEnd)?.call(),
           onOpenNext: () => _switchTo(_nextId),
           onDownloadNext: _downloadNextTen,
           readAll: widget.readAll,

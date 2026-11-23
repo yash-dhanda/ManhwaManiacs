@@ -1,4 +1,5 @@
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/features/library/models/ambient.dart';
 
 class SourceSeriesSummary {
@@ -87,6 +88,7 @@ class SourceChapterSummary {
     this.number,
     required this.pageCount,
     this.releaseDate,
+    this.lockedUntil,
   });
 
   final String id;
@@ -101,6 +103,12 @@ class SourceChapterSummary {
   /// cannot read. Same reason as `KnownChapter.publishedAt`.
   final String? releaseDate;
 
+  /// When an early-access chapter opens to everyone (UTC), or null. Locked only while this is in the future by the device
+  /// clock, so a cached list stops saying "locked" by itself.
+  final DateTime? lockedUntil;
+
+  bool isLocked([DateTime? now]) => isLockedAt(lockedUntil, now);
+
   factory SourceChapterSummary.fromJson(Map<String, dynamic> json) => SourceChapterSummary(
         id: json['id'] as String,
         sourceId: json['source_id'] as String,
@@ -109,5 +117,6 @@ class SourceChapterSummary {
         number: json['number'] != null ? (json['number'] as num).toDouble() : null,
         pageCount: json['page_count'] as int,
         releaseDate: json['release_date'] as String?,
+        lockedUntil: lockedUntilOf(json['locked_until']),
       );
 }

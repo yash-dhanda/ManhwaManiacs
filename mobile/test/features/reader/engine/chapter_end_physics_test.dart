@@ -162,6 +162,51 @@ void main() {
     await _finish(tester);
   });
 
+  testWidgets('a neighbour armed from one chapter is not served after the feed moved to another without a commit', (tester) async {
+    tester.view
+      ..physicalSize = const Size(390, 844)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final engine = ReaderEngine();
+    addTearDown(engine.dispose);
+    final feed = ValueNotifier<ReaderFeed>(ReaderFeed.of([_chapter('5')]));
+    await tester.pumpWidget(ProviderScope(
+      overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+      child: MaterialApp(
+        home: ValueListenableBuilder<ReaderFeed>(
+          valueListenable: feed,
+          builder: (context, f, _) => ReaderEngineView(
+            key: const ValueKey('one-view'),
+            controller: engine,
+            slots: _slots,
+            autoHideAfter: const Duration(seconds: 30),
+            chromeBuilder: (context, state) => const SizedBox.shrink(),
+            feed: f,
+            scrollStorageKey: 'k',
+            onBack: () {},
+            onOpenSeries: () {},
+            chapterMode: ReaderChapterMode.single,
+            // The neighbour of whatever chapter the feed ends on.
+            loadNeighbour: (d) async => _chapter('${int.parse(f.chapters.last.id) + 1}'),
+            onReplaceChapter: (_) {},
+          ),
+        ),
+      ),
+    ),);
+    await tester.pump();
+    final first = await tester.runAsync(() => engine.armNeighbour(NeighbourDirection.next));
+    expect(first!.chapter.chapterKey, '6');
+
+    // The chrome's Next button or the chapter list opens chapter 6 itself: no pull, so no commit.
+    feed.value = ReaderFeed.of([_chapter('6')]);
+    await tester.pump();
+    final second = await tester.runAsync(() => engine.armNeighbour(NeighbourDirection.next));
+    expect(second!.chapter.chapterKey, '7');
+    await _finish(tester);
+  });
+
   testWidgets('one at a time loads the next chapter once, at 70 % of this one', (tester) async {
     final loads = <NeighbourDirection>[];
     await _pump(tester, pages: 10, loads: loads);

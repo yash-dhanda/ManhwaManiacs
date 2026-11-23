@@ -118,7 +118,8 @@ details}` envelope with a `Retry-After` header. Buckets (all env-configurable):
 | auth | `POST /auth/login` | `MM_RATE_LIMIT_AUTH` | `10/minute` |
 | register | `POST /auth/register` — its own tighter bucket, the invite-code brute-force surface | `MM_RATE_LIMIT_REGISTER` | `5/minute;30/hour` |
 | bootstrap-status | `GET /auth/bootstrap-status` — unauthenticated, announces exactly when the bootstrap window is open | `MM_RATE_LIMIT_BOOTSTRAP_STATUS` | `30/minute;240/hour` |
-| sources | `GET /sources/{id}/series` (browse/search), cover + page image proxies | `MM_RATE_LIMIT_SOURCES` | `60/minute` |
+| sources | `GET /sources/{id}/series` (browse/search), series, chapter lists and page lists | `MM_RATE_LIMIT_SOURCES` | `60/minute` |
+| images | cover + page image proxies | `MM_RATE_LIMIT_IMAGES` | `1500/minute` |
 | import | `POST /backup/import` (backing key is legacy-named `rate_limit_import`) | `MM_RATE_LIMIT_IMPORT` | `5/minute` |
 
 Set `MM_RATE_LIMIT_ENABLED=false` to disable limiting entirely (e.g. for load
@@ -144,8 +145,20 @@ brute-force/abuse backstop, not a precise cluster-wide quota.
 | `MM_RATE_LIMIT_AUTH` | `10/minute` | Login bucket. |
 | `MM_RATE_LIMIT_REGISTER` | `5/minute;30/hour` | Register bucket. |
 | `MM_RATE_LIMIT_BOOTSTRAP_STATUS` | `30/minute;240/hour` | Bootstrap-status polling bucket. |
-| `MM_RATE_LIMIT_SOURCES` | `60/minute` | Source browse/search/image bucket. |
+| `MM_RATE_LIMIT_SOURCES` | `60/minute` | Source browse/search/series/chapter-list bucket. |
+| `MM_RATE_LIMIT_IMAGES` | `1500/minute` | Cover and page-image proxy bucket: one request per image, so a chapter is one per page. |
 | `MM_RATE_LIMIT_IMPORT` | `5/minute` | Backup-restore-upload bucket. |
+
+### Alternate egress (second-server proxy)
+
+Both are read once at boot (a change needs a restart) and from the environment
+only, never from `settings.json`. See
+[VPS_OPERATIONS.md](VPS_OPERATIONS.md#routing-blocked-sources-through-a-second-server).
+
+| Var | Default | Purpose |
+| --- | --- | --- |
+| `MM_ALT_EGRESS_PROXY` | unset (off) | `http://` or `https://` forward-proxy URL **with an explicit port**, e.g. `http://user:pass@203.0.113.7:38128`. Contains a credential: never logged or returned by any API (only `host:port` is). SOCKS is rejected; a malformed value stops the boot. |
+| `MM_ALT_EGRESS_SOURCES` | unset | Comma-separated source ids routed through that proxy (`toonily,weebcentral`). No effect without the proxy. Ids that are not registered sources are ignored with one warning. |
 
 ### Deploy paths & CORS (pre-existing)
 

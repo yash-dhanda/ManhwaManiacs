@@ -91,7 +91,13 @@ def _upsert(
     db: Session, source_id: str, series_key: str, chapter_key: str,
     pages: list[dict[str, Any]], reports: dict[int, dict[str, Any]],
 ) -> None:
-    """Two readers reporting the same page race to insert its row; the loser retries as an update."""
+    """Two readers reporting the same page race to insert its row; the loser retries as an update.
+
+    The phone and the web, or one autosave twice, both see no row and both
+    insert. The winner's row is there by the time the loser's commit fails, so
+    one more pass against it is an update. The report is fire-and-forget: the
+    rollback loses nothing but this call's own pending rows.
+    """
     try:
         _upsert_once(db, source_id, series_key, chapter_key, pages, reports)
     except IntegrityError:

@@ -102,3 +102,60 @@ def test_search_paginates_by_path_like_elftoon():
         ("/page/2/", {"s": "love", "post_type": "wp-manga"}),
     ]
     assert not {item.id for item in first.items} & {item.id for item in second.items}
+
+
+def test_browse_has_more_with_entity_encoded_pager():
+    """Live pager (2026-11-23) is ``?order=update&#038;page=3``; the shared
+    parser missed it and reported has_more=False on every page of 58."""
+    from connectors.hentai20.connector import Hentai20Connector
+
+    connector = Hentai20Connector()
+    html = _fixture("hentai20_browse_page2_trimmed.html")
+    with patch.object(connector._http, "get_text", return_value=html):
+        listing = connector.get_series_list(2)
+    assert listing.has_more is True
+    assert listing.page == 2
+
+
+def test_browse_modes_canonical_order_and_requests():
+    from connectors.hentai20.connector import Hentai20Connector
+
+    connector = Hentai20Connector()
+    assert [m.id for m in connector.list_browse_modes()] == ["latest", "popular", "new", "rating"]
+    expected = {
+        None: "update", "default": "update", "latest": "update",
+        "popular": "popular", "new": "latest", "rating": "rating",
+    }
+    html = _fixture("hentai20_browse_page2_trimmed.html")
+    for sort, order in expected.items():
+        with patch.object(connector._http, "get_text", return_value=html) as mock_get:
+            connector.get_series_list(1, sort=sort)
+        assert mock_get.call_args.kwargs["params"]["order"] == order, sort
+
+
+def test_chapter_dates_are_iso_and_failures_follow_convention():
+    from connectors.http import swallowed
+    from connectors.http.client import ConnectorHttpError
+    import pytest
+
+    connector = Hentai20Connector()
+    html = _fixture("series_detail.html")
+    with patch.object(connector._http, "get_text", return_value=html):
+        chapters = connector.get_chapters("10000-ways-to-eliminate-players")
+    assert chapters
+    for chapter in chapters:
+        assert chapter.release_date is None or (
+            len(chapter.release_date) == 10 and chapter.release_date[4] == "-"
+        ), chapter.release_date
+
+    err = ConnectorHttpError("blocked", status_code=403)
+    other = Hentai20Connector()
+    with patch.object(other._http, "get_text", side_effect=err):
+        with swallowed.capture() as noted:
+            assert other.get_series("x") is None
+            assert other.get_chapters("x") == []
+        with pytest.raises(ConnectorHttpError):
+            other.get_chapter_pages("x-chapter-1")
+    assert noted == [err, err]
+    with patch.object(other._http, "get_text", side_effect=ConnectorHttpError("nf", status_code=404)):
+        assert other.get_chapter_pages("x-chapter-1") == []

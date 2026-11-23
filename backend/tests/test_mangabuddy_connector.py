@@ -97,6 +97,27 @@ def test_normalize_sort_maps_browse_modes_and_rejects_unknowns():
     assert normalize_sort("nonsense") == "latest"
 
 
+def test_browse_modes_canonical_order_and_requests():
+    modes = [m.id for m in MangaBuddyConnector().list_browse_modes()]
+    assert modes == [
+        "default", "popular", "latest", "new",
+        "views_today", "views_7days", "views", "rating", "chapters",
+    ]
+    expected = {
+        None: "latest", "default": "latest", "popular": "popular",
+        "latest": "latest", "new": "newest", "newest": "newest",
+        "views_today": "views_today", "views_7days": "views_7days",
+        "views": "views", "rating": "rating", "chapters": "chapters",
+    }
+    for sort, api_sort in expected.items():
+        params = search_params("", page=2, sort=sort)
+        assert params["sort"] == api_sort, sort
+        assert params["page"] == 2
+    # Searches still send no sort unless one was chosen.
+    assert "sort" not in search_params("solo", page=1, sort="default")
+    assert search_params("solo", page=1, sort="new")["sort"] == "newest"
+
+
 def test_normalize_genre_accepts_known_slugs_only():
     assert normalize_genre("action") == "action"
     assert normalize_genre("Action") == "action"

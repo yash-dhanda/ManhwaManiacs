@@ -180,32 +180,66 @@ def series_detail_to_series(payload: dict[str, Any], *, chapter_count: int | Non
     return series_item_to_series(series, chapter_count=chapter_count)
 
 
-def chapter_is_locked(item: dict[str, Any], *, now: datetime | None = None) -> bool:
-    """Whether Asura is still holding this chapter back as paid early access.
+def lock_instant(value: object) -> str | None:
+    """An Asura timestamp as ``Chapter.locked_until`` spells one, else None.
 
-    The newest chapters of a series are listed with ``is_locked`` (and
-    ``is_premium`` / ``unlock_time``) set, but their pages are not served: the
-    page endpoint answers with an empty ``pages`` list. Listing such a chapter
-    gives the reader a row that can only fail -- "Download failed" on the
-    newest chapter, indistinguishable from a real fault -- so the connector
-    leaves it out until it opens.
-
-    A lock that carries an ``unlock_time`` already in the past is treated as
-    open (the listing can be a cache behind the clock); one without any
-    ``unlock_time`` is treated as still locked.
+    ``2026-11-23T14:15:24.018266Z`` in, ``2026-11-23T14:15:24Z`` out. Parsed
+    rather than passed through so that what is stored is always an instant a
+    client can read: a value this cannot parse is no lock at all, and the
+    chapter then behaves as it did before any of this existed.
     """
-    if item.get("is_locked") is not True:
-        return False
-    raw = item.get("unlock_time")
-    if not isinstance(raw, str) or not raw.strip():
-        return True
+    if not isinstance(value, str) or not value.strip():
+        return None
     try:
-        unlock_at = datetime.fromisoformat(raw.strip().replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
     except ValueError:
-        return True
-    if unlock_at.tzinfo is None:
-        unlock_at = unlock_at.replace(tzinfo=timezone.utc)
-    return unlock_at > (now or datetime.now(timezone.utc))
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def chapter_locked_until(item: dict[str, Any]) -> str | None:
+    """When an early-access chapter opens to everyone; None for an open one.
+
+    Asura marks the early-access window with ``is_premium`` and keeps
+    ``early_access_until`` on the row for good afterwards (every chapter
+    released since the scheme began still carries its long-past instant), so
+    the flag decides and the instant only says when.
+
+    The list has also been seen spelling it ``is_locked`` / ``unlock_time``,
+    the way the chapter payload does; that was what the first fix for this
+    read, and by 2026-11-23 the list no longer sent it, so an early-access
+    chapter was listed, announced and then "not found". Both spellings are
+    read. An explicit ``is_locked: false`` wins over ``is_premium``.
+
+    Such a chapter used to be left out of the list until it opened. It is
+    listed now, carrying this instant, because the clients count down to it.
+    """
+    explicit = item.get("is_locked")
+    if explicit is False:
+        return None
+    if explicit is True:
+        return lock_instant(item.get("unlock_time")) or lock_instant(
+            item.get("early_access_until")
+        )
+    if not item.get("is_premium"):
+        return None
+    return lock_instant(item.get("early_access_until"))
+
+
+def chapter_pages_lock(payload: dict[str, Any]) -> tuple[bool, str | None]:
+    """Whether a chapter payload is the locked one, and when it unlocks.
+
+    A locked chapter answers 200 with ``is_locked: true``, an ``unlock_time``
+    and a ``chapter`` object that has no ``pages`` at all.
+    """
+    data = payload.get("data")
+    if not isinstance(data, dict) or data.get("is_locked") is not True:
+        return False, None
+    chapter = data.get("chapter")
+    fallback = chapter.get("early_access_until") if isinstance(chapter, dict) else None
+    return True, lock_instant(data.get("unlock_time")) or lock_instant(fallback)
 
 
 def chapter_item_to_chapter(item: dict[str, Any], *, series_id: str) -> Chapter:
@@ -221,6 +255,7 @@ def chapter_item_to_chapter(item: dict[str, Any], *, series_id: str) -> Chapter:
         number=chapter_number,
         page_count=int(item.get("page_count") or 0),
         release_date=str(item.get("published_at")) if item.get("published_at") else None,
+        locked_until=chapter_locked_until(item),
     )
 
 

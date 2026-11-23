@@ -265,3 +265,87 @@ def test_cancel_pending_restore_clears_the_staged_file(client, tmp_path):
 # are covered against the full app in tests/test_auth_enforcement.py. The tests
 # above run under the suite's default-admin auto-auth and exercise backup
 # *mechanics* only.
+
+
+# ── a full disk must not leave spool files behind ────────────────────────────
+
+
+def _enospc(*_args, **_kwargs):
+    import errno
+
+    raise OSError(errno.ENOSPC, "No space left on device")
+
+
+def _spool_leftovers(directory: Path) -> list[Path]:
+    return sorted(
+        p for pattern in (".mm-upload-*", ".mm-export-*") for p in directory.glob(pattern)
+    )
+
+
+def test_a_failed_upload_copy_leaves_no_spool_file(real_db_path, tmp_path, monkeypatch):
+    monkeypatch.setattr("routes.backup.shutil.copyfileobj", _enospc)
+    app = FastAPI()
+    register_error_handlers(app)
+    app.include_router(backup_router)
+    upload = tmp_path / "uploaded.db"
+    _make_real_db(upload)
+    with TestClient(app, raise_server_exceptions=False) as lenient:
+        with upload.open("rb") as handle:
+            response = lenient.post(
+                "/backup/import",
+                files={"file": ("backup.db", handle, "application/octet-stream")},
+            )
+    assert response.status_code == 500
+    assert _spool_leftovers(backup_service.spool_dir()) == []
+
+
+def test_a_failed_validation_that_is_not_an_apperror_leaves_no_spool_file(
+    real_db_path, tmp_path, monkeypatch
+):
+    def _boom(_path):
+        raise RuntimeError("validator crashed")
+
+    monkeypatch.setattr("routes.backup.stage_restore", _boom)
+    app = FastAPI()
+    register_error_handlers(app)
+    app.include_router(backup_router)
+    upload = tmp_path / "uploaded.db"
+    _make_real_db(upload)
+    with TestClient(app, raise_server_exceptions=False) as lenient:
+        with upload.open("rb") as handle:
+            lenient.post(
+                "/backup/import",
+                files={"file": ("backup.db", handle, "application/octet-stream")},
+            )
+    assert _spool_leftovers(backup_service.spool_dir()) == []
+
+
+@pytest.mark.parametrize("step", ["_drop_cache_rows", "VACUUM"])
+def test_a_failed_snapshot_removes_its_export_directory(real_db_path, monkeypatch, step):
+    if step == "_drop_cache_rows":
+        monkeypatch.setattr(backup_service, "_drop_cache_rows", _enospc)
+    else:
+        real_connect = sqlite3.connect
+
+        class _Conn:
+            def __init__(self, inner):
+                self._inner = inner
+
+            def execute(self, sql, *args):
+                if sql.startswith("VACUUM INTO"):
+                    # What a full disk does midway: the file exists, partly written.
+                    Path(args[0][0]).write_bytes(b"partial")
+                    _enospc()
+                return self._inner.execute(sql, *args)
+
+            def close(self):
+                self._inner.close()
+
+        monkeypatch.setattr(
+            backup_service.sqlite3,
+            "connect",
+            lambda *a, **k: _Conn(real_connect(*a, **k)),
+        )
+    with pytest.raises(OSError):
+        backup_service.create_backup_snapshot()
+    assert _spool_leftovers(backup_service.spool_dir()) == []

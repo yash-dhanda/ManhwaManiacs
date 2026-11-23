@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/features/downloads/models/chapter_identity.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
 import 'package:manhwamaniacs/features/downloads/utils/download_mark.dart';
@@ -12,11 +13,14 @@ import 'package:manhwamaniacs/skins/cinematic/type.dart';
 
 /// The expanded queue under Activity: one row per chapter still owed (queued, running, failed).
 class QueueRows extends StatelessWidget {
-  const QueueRows({super.key, required this.rows, required this.onRetry, required this.onRemove, this.paused = false});
+  const QueueRows({super.key, required this.rows, required this.onRetry, required this.onRemove, this.paused = false, this.heldReasons = const {}});
   final List<SavedChapter> rows;
   final void Function(SavedChapter) onRetry;
   final void Function(SavedChapter) onRemove;
   final bool paused;
+
+  /// Early-access chapters the queue is leaving alone, with the line that replaces "Waiting" ("Opens at 7:45 PM").
+  final Map<ChapterIdentity, String> heldReasons;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +53,7 @@ class QueueRows extends StatelessWidget {
                         padding: EdgeInsets.only(bottom: c.space2),
                         child: CineRoleText(
                           switch (r.state) {
-                            DownloadChapterState.queued => 'Waiting',
+                            DownloadChapterState.queued => heldReasons[r.identity] ?? 'Waiting',
                             DownloadChapterState.downloading => 'Downloading',
                             DownloadChapterState.failed => 'Failed — ${r.error ?? 'unknown error'}',
                             DownloadChapterState.complete => 'Saved',

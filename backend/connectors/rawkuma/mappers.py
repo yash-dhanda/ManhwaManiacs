@@ -58,13 +58,25 @@ PAGE_SIZE = 24
 #: serve rather than aliasing a fake "popular" onto one of them.
 SORT_TO_REST: dict[str, tuple[str, str]] = {
     "default": ("modified", "desc"),  # latest chapter uploads
-    "latest": ("date", "desc"),  # newest series added to the catalog
+    "latest": ("modified", "desc"),  # recently updated (same as default)
+    "new": ("date", "desc"),  # newest series added to the catalog
     "title": ("title", "asc"),  # A-Z
 }
 
+#: ``popular`` is the one ordering REST cannot do: the library page's own
+#: "Popular" sort goes through the theme's ``admin-ajax`` ``advanced_search``
+#: action (a nonce-guarded POST that answers an HTML fragment), so it has its
+#: own request path in the connector.
+AJAX_PATH = "/wp-admin/admin-ajax.php"
+AJAX_NONCE_PARAMS = {"type": "search_form", "action": "get_nonce"}
+AJAX_SEARCH_PARAMS = {"action": "advanced_search"}
+POPULAR_SORT = "popular"
+
 BROWSE_MODES: tuple[BrowseMode, ...] = (
     BrowseMode(id="default", label="Latest Updates"),
-    BrowseMode(id="latest", label="Newly Added"),
+    BrowseMode(id=POPULAR_SORT, label="Popular"),
+    BrowseMode(id="latest", label="Latest"),
+    BrowseMode(id="new", label="New"),
     BrowseMode(id="title", label="A-Z"),
 )
 
@@ -187,6 +199,70 @@ def listing_params(
         if term_id is not None:
             params["genre"] = term_id
     return params
+
+
+_NONCE_RE = re.compile(r"name=['\"]search_nonce['\"]\s+value=['\"]([0-9a-zA-Z]+)['\"]")
+_AJAX_CARD_RE = re.compile(
+    r'<a href="https://rawkuma\.net/manga/(?P<slug>[^/"?#]+)/"[^>]*>\s*'
+    r'<img[^>]*?\ssrc="(?P<cover>[^"]+)"[^>]*?\salt="(?P<title>[^"]*)"',
+    re.S,
+)
+_AJAX_PAGE_RE = re.compile(r"addSingularFilter'\]\('page',\s*'(\d+)'")
+
+
+def parse_ajax_nonce(document: str) -> str | None:
+    match = _NONCE_RE.search(document or "")
+    return match.group(1) if match else None
+
+
+def ajax_search_form(
+    page: int, *, orderby: str, nonce: str, genre_slug: str | None = None
+) -> dict[str, str]:
+    """The form the library page POSTs for one results page (anonymous)."""
+    return {
+        "nonce": nonce,
+        "page": str(max(1, page)),
+        "orderby": orderby,
+        "order": "desc",
+        "query": "",
+        "inclusion": "OR",
+        "exclusion": "OR",
+        "genre": json.dumps([genre_slug] if genre_slug else []),  # the form takes slugs, not term ids
+        "genre_exclude": "[]",
+        "author": "[]",
+        "artist": "[]",
+        "type": "[]",
+        "status": "[]",
+        "project": "0",
+    }
+
+
+def parse_ajax_listing(
+    document: str, *, page: int, page_size: int = PAGE_SIZE
+) -> PaginatedSeriesList:
+    """Cards from the ``advanced_search`` fragment; the pager names later pages."""
+    items: list[Series] = []
+    seen: set[str] = set()
+    for match in _AJAX_CARD_RE.finditer(document or ""):
+        slug = match.group("slug")
+        if slug in seen:
+            continue
+        seen.add(slug)
+        items.append(
+            Series(
+                id=slug,
+                title=clean_text(match.group("title")) or slug,
+                canonical_path=series_id_to_path(slug),
+                cover_url=html_lib.unescape(match.group("cover")).strip() or None,
+            )
+        )
+    highest = max((int(n) for n in _AJAX_PAGE_RE.findall(document or "")), default=0)
+    return PaginatedSeriesList(
+        items=items,
+        page=page,
+        page_size=page_size,
+        api_has_more=bool(items) and highest > page,
+    )
 
 
 # --------------------------------------------------------------------------

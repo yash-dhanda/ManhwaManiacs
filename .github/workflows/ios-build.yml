@@ -24,17 +24,16 @@ jobs:
     uses: ./.github/workflows/tests.yml
 
   build-ios:
-    needs: tests
-    # Build even when the suite is red. `needs` alone would skip this job, and a
-    # failing test would then cost a Mac build nobody can reproduce locally —
-    # there is no Mac in this project. So: always build and upload the artifact,
-    # and let only the release step care about the verdict.
-    if: always()
+    # Runs ALONGSIDE the suite, not after it. The suite takes about 45 minutes
+    # and the Mac build about 20; chained, a build reached the phone more than
+    # an hour after the push for no reason, since the build needs nothing the
+    # tests produce. It still builds when the suite is red, as before: a failing
+    # test must not cost a Mac build nobody can reproduce locally (there is no
+    # Mac in this project). Only the `publish` job below cares about the verdict.
     runs-on: macos-latest
-    # Needed to publish the .ipa as a release asset (see the last step for why a
-    # release rather than just an artifact).
-    permissions:
-      contents: write
+    outputs:
+      name: ${{ steps.ver.outputs.name }}
+      number: ${{ steps.ver.outputs.number }}
     defaults:
       run:
         working-directory: mobile
@@ -193,42 +192,6 @@ jobs:
           done
           echo "purpose strings present"
 
-      - name: Publish the .ipa as a release asset
-        # THE GATE: a release is what reaches the phone, so it requires a green
-        # suite. The build above ran regardless, so a red run still leaves a
-        # downloadable artifact for anyone who wants to inspect it — it just
-        # never becomes an update SideStore will offer.
-        if: needs.tests.result == 'success'
-        # GitHub requires authentication to download a workflow *artifact*, even
-        # on a public repo — so the NAS could not fetch a build without a PAT
-        # minted and stored as root. Release assets on a public repo are
-        # anonymously downloadable, which lets ops/fetch-ios-build.sh run with no
-        # credentials at all.
-        #
-        # One release per build number, so /releases/latest always resolves to
-        # the newest build and the fetch script needs no tag bookkeeping. The
-        # build number is monotonic (1000 + run_number), so tags never collide.
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          TAG="ios-build-${{ steps.ver.outputs.number }}"
-          gh release create "$TAG" \
-            --repo "${{ github.repository }}" \
-            --target "${{ github.sha }}" \
-            --title "iOS ${{ steps.ver.outputs.name }} (build ${{ steps.ver.outputs.number }})" \
-            --notes "Unsigned iOS build for SideStore sideloading. Commit ${{ github.sha }}." \
-            build/ios/iphoneos/ManhwaManiacs.ipa \
-            build/ios/iphoneos/ios-build.json
-          # Podfile.lock rides along when pod install produced one, so it can be
-          # retrieved and committed without a token either. Uploaded separately,
-          # and guarded, because a missing lockfile must not fail a build that
-          # otherwise succeeded. (Kept array-free: the runner's /bin/bash is 3.2,
-          # where an empty "${arr[@]}" is an unbound-variable error under set -u.)
-          if [ -f ios/Podfile.lock ]; then
-            gh release upload "$TAG" ios/Podfile.lock --repo "${{ github.repository }}"
-          fi
-
       - name: Upload Podfile.lock
         # There is no Mac in this project, so the ONLY way to obtain a real
         # Podfile.lock is to let the cloud runner generate one and hand it back.
@@ -242,3 +205,61 @@ jobs:
           name: ios-podfile-lock
           path: mobile/ios/Podfile.lock
           if-no-files-found: warn
+
+  publish:
+    # THE GATE: a release is what reaches the phone, so it requires a green
+    # suite AND a finished build. A red suite still leaves the .ipa downloadable
+    # from the run's artifacts for anyone who wants to inspect it; it just never
+    # becomes an update SideStore will offer.
+    needs: [tests, build-ios]
+    if: needs.tests.result == 'success' && needs.build-ios.result == 'success'
+    runs-on: ubuntu-latest
+    # Needed to publish the .ipa as a release asset.
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch the built .ipa
+        uses: actions/download-artifact@v4
+        with:
+          name: ManhwaManiacs-ipa
+          path: dist
+
+      - name: Fetch Podfile.lock
+        # Only there when pod install produced one; its absence must not fail a
+        # release that otherwise succeeded.
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-podfile-lock
+          path: dist-lock
+
+      - name: Publish the .ipa as a release asset
+        # GitHub requires authentication to download a workflow *artifact*, even
+        # on a public repo — so the NAS could not fetch a build without a PAT
+        # minted and stored as root. Release assets on a public repo are
+        # anonymously downloadable, which lets ops/fetch-ios-build.sh run with no
+        # credentials at all.
+        #
+        # One release per build number, so /releases/latest always resolves to
+        # the newest build and the fetch script needs no tag bookkeeping. The
+        # build number is monotonic (1000 + run_number), so tags never collide.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ls -la dist
+          test -f dist/ManhwaManiacs.ipa
+          test -f dist/ios-build.json
+          TAG="ios-build-${{ needs.build-ios.outputs.number }}"
+          gh release create "$TAG" \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "iOS ${{ needs.build-ios.outputs.name }} (build ${{ needs.build-ios.outputs.number }})" \
+            --notes "Unsigned iOS build for SideStore sideloading. Commit ${{ github.sha }}." \
+            dist/ManhwaManiacs.ipa \
+            dist/ios-build.json
+          # Podfile.lock rides along when pod install produced one, so it can be
+          # retrieved and committed without a token either.
+          if [ -f dist-lock/Podfile.lock ]; then
+            gh release upload "$TAG" dist-lock/Podfile.lock --repo "${{ github.repository }}"
+          fi

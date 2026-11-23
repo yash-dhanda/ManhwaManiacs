@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/app/app_restart.dart';
+import 'package:manhwamaniacs/core/error/error_log.dart';
 import 'package:manhwamaniacs/core/error/fatal_error.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/cinematic/app_frame.dart';
@@ -44,7 +45,10 @@ Future<void> _pump(WidgetTester t, {required bool release, Widget page = const S
 }
 
 void main() {
-  tearDown(() => appFatalError.value = null);
+  tearDown(() {
+    appFatalError.value = null;
+    appErrorLog.clear();
+  });
 
   testWidgets('with releaseErrorWidget a child that throws renders the CORRECTION line', (t) async {
     await _pump(t, release: true, page: const Scaffold(body: Column(children: [Text('above'), _Boom()])));
@@ -107,5 +111,57 @@ void main() {
     expect(_builds, 2);
     expect(appFatalError.value, isNull);
     await t.pumpWidget(const SizedBox());
+  });
+
+  group('release policy for what escaped', () {
+    FlutterErrorDetails details(Object e, String lib, {bool silent = false}) =>
+        FlutterErrorDetails(exception: e, stack: StackTrace.current, library: lib, silent: silent);
+
+    Future<void> report(WidgetTester t, FlutterErrorDetails d) async {
+      FlutterError.onError!(d);
+      await t.pump();
+      // The test binding records what reaches the previous handler; the policy is what is asserted.
+      t.takeException();
+    }
+
+    testWidgets('a silent image error, a gesture error and an async StateError stay quiet and are recorded', (t) async {
+      await _pump(t, release: true);
+      await report(t, details(const FormatException('img'), 'image resource service', silent: true));
+      expect(appFatalError.value, isNull);
+      await report(t, details(StateError('tap'), 'gesture'));
+      expect(appFatalError.value, isNull);
+      expect(PlatformDispatcher.instance.onError!(StateError('late'), StackTrace.current), isTrue);
+      expect(appFatalError.value, isNull);
+      final log = appErrorLog.entries;
+      expect(log.map((e) => e.type), ['StateError', 'StateError', 'FormatException']);
+      expect(log.map((e) => e.source), ['async', 'gesture', 'image resource service']);
+      expect(log.first.stackTop, isNotEmpty);
+      await t.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('a silent error of a screen-breaking library, and a dispose that throws, stay quiet', (t) async {
+      await _pump(t, release: true);
+      await report(t, details(StateError('r'), 'rendering library', silent: true));
+      expect(appFatalError.value, isNull);
+      await report(
+        t,
+        FlutterErrorDetails(
+          exception: StateError('d'),
+          library: 'widgets library',
+          context: ErrorDescription('while finalizing the widget tree'),
+        ),
+      );
+      expect(appFatalError.value, isNull);
+      await t.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('a rendering error still raises the notice, with its type beside the REF', (t) async {
+      await _pump(t, release: true);
+      await report(t, details(StateError('layout'), 'rendering library'));
+      expect(appFatalError.value, isNotNull);
+      await t.pump(const Duration(milliseconds: 2000));
+      expect(find.textContaining('· StateError'), findsOneWidget);
+      await t.pumpWidget(const SizedBox());
+    });
   });
 }

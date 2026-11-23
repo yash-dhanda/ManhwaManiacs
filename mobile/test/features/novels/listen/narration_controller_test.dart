@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
 import 'package:manhwamaniacs/features/novels/providers/listen_settings_provider.dart';
+import 'package:manhwamaniacs/features/novels/services/narration_player.dart' show NarrationProcessing;
 import 'package:manhwamaniacs/features/novels/utils/shake_detector.dart';
 import 'package:manhwamaniacs/features/novels/utils/sleep_timer.dart';
 import 'package:manhwamaniacs/skins/skin_audio.dart';
@@ -71,6 +72,51 @@ void main() {
     await h.controller.retry();
     await h.settle();
     expect(h.state.status, NarrationStatus.playing);
+  });
+
+  test('a playback error after the load fails the session, closes the listen session, and retry resumes from the last position', () async {
+    await h.startAndSettle(listenTarget());
+    h.player
+      ..tick(12000)
+      ..setProcessing(NarrationProcessing.buffering);
+    await h.settle();
+    expect(h.state.status, NarrationStatus.buffering);
+    // just_audio leaves `playing` true and the processing state where it was.
+    final timersBefore = h.timers.length;
+    h.player.emitError();
+    await h.settle();
+    expect(h.state.status, NarrationStatus.failed);
+    // The listen session was paused, like any pause: its close timer is armed.
+    expect(h.timers.length, timersBefore + 1);
+    expect(h.state.failure, isNotNull);
+    expect(h.state.active, isFalse);
+
+    // The dead player may still report a state change (iOS settles to idle after an error). It must
+    // not talk the session back out of "failed", or the retry the user needs disappears.
+    h.player.setProcessing(NarrationProcessing.ready);
+    await h.settle();
+    expect(h.state.status, NarrationStatus.failed);
+    expect(h.state.failure, isNotNull);
+
+    final failed = h.player;
+    await h.controller.retry();
+    await h.settle();
+    expect(h.players.length, 2);
+    expect(h.player, isNot(same(failed)));
+    expect(h.player.seeks, [const Duration(milliseconds: 12000)]);
+    expect(h.state.status, NarrationStatus.playing);
+  });
+
+  test('an error from a player a newer start replaced does not fail the new session', () async {
+    await h.startAndSettle(listenTarget());
+    final old = h.player;
+    await h.startAndSettle(listenTarget(chapter: 'c13'));
+    expect(h.players.length, 2);
+    old.emitError();
+    await h.settle();
+    expect(h.state.status, NarrationStatus.playing);
+    expect(h.state.failure, isNull);
+    expect(h.state.key?.chapterKey, 'c13');
   });
 
   test('position ticks move the active segment; a stale map moves nothing', () async {

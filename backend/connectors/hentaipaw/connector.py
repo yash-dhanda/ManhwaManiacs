@@ -100,6 +100,18 @@ def page_id_article_id(page_id: str) -> str | None:
     return article_id
 
 
+#: The ranking page's window for ``popular`` (``daily``/``weekly``/``monthly``/``all_time``).
+POPULAR_RANK_WINDOW = "weekly"
+_NEW_SECTION_MARKER = "New Hentai Manga"
+
+
+def _without_ranking_strip(html: str) -> str:
+    """Home page 1 leads with a 10-card "Daily Ranking" strip before the newest
+    list; ``new`` is the newest list alone. Later pages have no strip."""
+    start = html.find(_NEW_SECTION_MARKER)
+    return html[start:] if start > 0 else html
+
+
 def parse_listing(html: str, *, page: int) -> PaginatedSeriesList:
     """Cards from a home or search page; ``has_more`` from the pager links."""
     items: list[Series] = []
@@ -256,7 +268,14 @@ class HentaiPawConnector(SourceConnector):
         return frozenset({IMAGE_HOST_SUFFIX})
 
     def list_browse_modes(self) -> list[BrowseMode]:
-        return [BrowseMode(id="default", label="Latest")]
+        # Home is the newest-ADDED galleries (an article is one gallery that is
+        # never "updated"), so that ordering is ``new``; ``popular`` is the
+        # site's weekly ranking page. There is no separate "latest" ordering.
+        return [
+            BrowseMode(id="default", label="Latest"),
+            BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="new", label="New"),
+        ]
 
     def _get(self, path: str, params: dict[str, Any] | None = None) -> str | None:
         try:
@@ -269,9 +288,16 @@ class HentaiPawConnector(SourceConnector):
         return PaginatedSeriesList(items=[], page=page, page_size=PAGE_SIZE, api_has_more=False)
 
     def get_series_list(self, page: int, *, sort: str | None = None) -> PaginatedSeriesList:
-        del sort  # the site exposes one chronological listing
         page = max(page, 1)
+        if sort == "popular":
+            params: dict[str, Any] = {"t": POPULAR_RANK_WINDOW}
+            if page > 1:
+                params["page"] = page
+            html = self._get("/articles/rank", params)
+            return parse_listing(html, page=page) if html else self._empty(page)
         html = self._get("/", {"page": page} if page > 1 else None)
+        if html and sort == "new":
+            html = _without_ranking_strip(html)
         return parse_listing(html, page=page) if html else self._empty(page)
 
     def search_series(

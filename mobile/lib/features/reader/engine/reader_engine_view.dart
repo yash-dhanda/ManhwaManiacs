@@ -8,6 +8,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter/scheduler.dart' show SchedulerBinding;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/core/platform/native_bridge.dart';
 import 'package:manhwamaniacs/core/platform/system_ui.dart';
@@ -355,6 +356,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
   var _staleAnchorReported = false;
   var _autoNextTriggered = false;
   var _wakelockEnabled = false;
+  Future<void>? _wakelockEnabling;
   var _lockInitialized = false;
   var _prefetchedThrough = 0;
   var _volumeKeyNavEnabled = false;
@@ -478,6 +480,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     }
     widget.controller.sampler.coverPalette = widget.coverPalette;
     if (!identical(oldWidget.feed, widget.feed)) {
+      _dropStaleNeighbours(oldWidget.feed);
       _reconcileFeed(oldWidget.feed, widget.feed);
       _afterNeighbourSwap(oldWidget.feed);
     }
@@ -786,8 +789,16 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     if (wakelock == null || !widget.options.legacyWakeAndLock) return;
 
     if (enabled && !_wakelockEnabled) {
-      await wakelock.enable();
+      // Recorded before the platform round trip: a reader closed during it must still know to release.
       _wakelockEnabled = true;
+      final enabling = _wakelockEnabling = wakelock.enable();
+      try {
+        await enabling;
+      } catch (error, stackTrace) {
+        // Called without an await from a post-frame callback: a throw would be an uncaught async error.
+        _wakelockEnabled = false;
+        appLogger.w('wakelock enable failed', error, stackTrace);
+      }
       return;
     }
 
@@ -841,8 +852,17 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
 
   Future<void> _releaseWakelock() async {
     if (!_wakelockEnabled) return;
-    await _wakelock?.disable();
     _wakelockEnabled = false;
+    // An enable still in flight lands first, so the disable is the last word and the screen can sleep again.
+    try {
+      await _wakelockEnabling;
+    } catch (_) {}
+    try {
+      await _wakelock?.disable();
+    } catch (error, stackTrace) {
+      // Unawaited in dispose: nothing is left to handle it, and the screen sleeps on its own at worst.
+      appLogger.w('wakelock disable failed', error, stackTrace);
+    }
   }
 
   void _syncRefreshRate(ReaderRefreshRate rate) {
@@ -1654,16 +1674,35 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     });
   }
 
+  /// Bumped whenever the armed neighbours are thrown away, so a load still in flight cannot put its chapter back.
+  int _armEpoch = 0;
+
+  /// A neighbour is the chapter beside the feed's edge when it was armed. Reaching another chapter without the pull
+  /// (the chrome's Next, the chapter list, a key) leaves the old one cached, and the next pull would replace the route
+  /// with the chapter already open. A pending commit is the pull itself landing: [commitNeighbour] already cleared the
+  /// cache and [_afterNeighbourSwap] needs its pending state untouched.
+  void _dropStaleNeighbours(ReaderFeed before) {
+    if (_pendingChapterId != null) return;
+    if (before.chapters.firstOrNull?.id == widget.feed.chapters.firstOrNull?.id &&
+        before.chapters.lastOrNull?.id == widget.feed.chapters.lastOrNull?.id) {
+      return;
+    }
+    _armEpoch++;
+    _armed.clear();
+    _armedChapter.clear();
+  }
+
   @override
   Future<NeighbourInfo> armNeighbour(NeighbourDirection direction) => _armed[direction] ??= _loadNeighbour(direction);
 
   Future<NeighbourInfo> _loadNeighbour(NeighbourDirection direction) async {
+    final epoch = _armEpoch;
     try {
       final load = widget.loadNeighbour;
       if (load == null) throw StateError('no loadNeighbour');
       final ch = await load(direction);
       if (ch == null || ch.pages.isEmpty) throw StateError('no ${direction.name} chapter');
-      _armedChapter[direction] = ch;
+      if (epoch == _armEpoch) _armedChapter[direction] = ch;
       final first = ch.pages.first;
       if (mounted) {
         // The first three pages: the card waits on the first; the next two warm behind it.
@@ -1681,7 +1720,7 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
         minutes: neighbourMinutes(ch.pages.length),
       );
     } catch (_) {
-      unawaited(_armed.remove(direction));
+      if (epoch == _armEpoch) unawaited(_armed.remove(direction));
       rethrow;
     }
   }

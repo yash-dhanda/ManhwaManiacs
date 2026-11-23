@@ -181,18 +181,28 @@ class VoiceSamplePlayer extends Notifier<SampleState> {
       _cache.remove(_cache.keys.first);
     }
     final engine = _engine;
+    // This request's own resume: `_resume` belongs to whichever request is current, so a request that
+    // was replaced while it awaited must never consume the newer one's.
+    Future<void> Function()? resume;
     try {
-      _resume = await ref.read(narrationControllerProvider.notifier).pauseForSample();
+      resume = await ref.read(narrationControllerProvider.notifier).pauseForSample();
+      if (token != _token) {
+        // Replaced before the session began: nothing to end, only its own pause to undo.
+        await resume();
+        return;
+      }
+      _resume = resume;
       await _session.begin();
       await engine.init();
       if (token != _token) {
-        await _finish();
+        // `stop()` already settled this request's resume unless it is still held.
+        if (identical(_resume, resume)) await _finish();
         return;
       }
       _handle = await engine.play('voice-sample-$voiceId.ogg', bytes);
     } catch (e, st) {
       appLogger.w('Voice sample failed to play', e, st);
-      await _finish();
+      if (resume != null && identical(_resume, resume)) await _finish();
       if (token == _token) state = SampleState(voiceId: voiceId, failed: true);
       return;
     }

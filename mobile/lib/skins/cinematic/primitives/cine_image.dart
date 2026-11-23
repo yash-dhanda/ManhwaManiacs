@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/network/cover_auto_retry.dart';
 import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:manhwamaniacs/core/network/request_limiter.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
@@ -101,12 +102,31 @@ class _CineImageState extends ConsumerState<CineImage> {
   Completer<void>? _cancel;
   bool _granted = false;
   int _gen = 0;
+  CoverAutoRetry? _autoRetry;
+  int _reloads = 0;
+
+  @override
+  void didUpdateWidget(CineImage old) {
+    super.didUpdateWidget(old);
+    if (old.url != widget.url) _autoRetry?.reset();
+  }
 
   @override
   void dispose() {
     _gen++;
     _abort();
+    _autoRetry?.dispose();
     super.dispose();
+  }
+
+  /// A remote cover that failed gets one reload (a new key makes `Image` resolve its provider
+  /// again; the limiter slot and the cache key are untouched).
+  void _failed(String url, Object error) {
+    if (CineImage.isLocal(url)) return;
+    (_autoRetry ??= CoverAutoRetry(() {
+      if (mounted) setState(() => _reloads++);
+    }))
+        .failed(url, error);
   }
 
   void _abort() {
@@ -171,6 +191,7 @@ class _CineImageState extends ConsumerState<CineImage> {
       return Stack(fit: StackFit.expand, children: [
         ColoredBox(color: c.colorPaper1, child: const SizedBox.expand()),
         Image(
+          key: ValueKey(_reloads),
           image: p,
           fit: widget.fit,
           alignment: widget.alignment,
@@ -179,7 +200,10 @@ class _CineImageState extends ConsumerState<CineImage> {
             if (frame == null && !sync) return CinePlate(title: widget.title, flicker: true, index: widget.flickerIndex);
             return CineRackImage(skip: sync, child: child);
           },
-          errorBuilder: (_, __, ___) => CinePlate(title: widget.title, error: true),
+          errorBuilder: (_, e, __) {
+            _failed(url, e);
+            return CinePlate(title: widget.title, error: true);
+          },
         ),
       ],);
     },);

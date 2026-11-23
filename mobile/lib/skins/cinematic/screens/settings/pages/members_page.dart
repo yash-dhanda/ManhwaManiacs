@@ -55,6 +55,8 @@ class _MembersPageState extends ConsumerState<MembersPage> {
   }
 
   Future<void> _delete(Account a) async {
+    // The confirm outlives a page that is left meanwhile, which kills its `ref`.
+    final container = ProviderScope.containerOf(context, listen: false);
     final ok = await showCineConfirm(
       context,
       title: 'Delete @${a.username}?',
@@ -63,11 +65,11 @@ class _MembersPageState extends ConsumerState<MembersPage> {
       destructive: true,
       typedUsername: a.username,
       onConfirm: () async {
-        final r = await ref.read(adminRepositoryProvider).deleteAccount(a.id);
+        final r = await container.read(adminRepositoryProvider).deleteAccount(a.id);
         if (r.isErr) throw r.error;
       },
     );
-    if (ok) ref.invalidate(membersProvider);
+    if (ok) container.invalidate(membersProvider);
   }
 
   @override

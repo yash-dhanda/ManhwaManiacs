@@ -104,7 +104,7 @@ class _BookViewState extends ConsumerState<BookView> {
   String? _goToCaption;
 
   FeatureData get d => widget.data;
-  ChapterMarks get _marks => ChapterMarks(ref, d);
+  ChapterMarks get _marks => ChapterMarks(ProviderScope.containerOf(context, listen: false), d);
 
   @override
   void initState() {
@@ -334,11 +334,15 @@ class _BookViewState extends ConsumerState<BookView> {
 
   Future<void> _markRead(List<SourceChapterSummary> chapters, String message) async {
     final before = _completed();
-    final marked = await _marks.markRead(chapters, previouslyCompleted: before);
+    // Taken before the await: the Undo below runs after the page may be gone.
+    final marks = _marks;
+    final marked = await marks.markRead(chapters, previouslyCompleted: before);
     if (!mounted) return;
     if (marked == null) return markFailedToast(context);
     feedback(ref, HapticEvent.select);
-    featureToast(context, message, onUndo: () => unawaited(undoOrToast(context, _marks.undoMarkRead(before, marked))));
+    // The Undo runs from the app's messenger, after this page may be gone: its `context` getter throws then.
+    final ctx = context;
+    featureToast(context, message, onUndo: () => unawaited(undoOrToast(ctx, marks.undoMarkRead(before, marked))));
   }
 
   Future<void> _rowMenu(SourceChapterSummary c) async {
@@ -358,14 +362,16 @@ class _BookViewState extends ConsumerState<BookView> {
         final chapters = d.chapters.where((x) => keys.contains(x.id)).toList();
         await _markRead(chapters, 'Marked ${chapters.length} chapters read.');
       case 'unread':
-        final deleted = await _marks.markUnread([c.id]);
+        final marks = _marks;
+        final deleted = await marks.markUnread([c.id]);
         if (!mounted) return;
         if (deleted == null) return markFailedToast(context);
         feedback(ref, HapticEvent.select);
+        final ctx = context;
         featureToast(
           context,
           'Marked chapter${_num(c)} unread.',
-          onUndo: () => unawaited(undoOrToast(context, _marks.undoMarkUnread(deleted, {c.id: c.number}))),
+          onUndo: () => unawaited(undoOrToast(ctx, marks.undoMarkUnread(deleted, {c.id: c.number}))),
         );
       case 'download':
         _startRun([c]);

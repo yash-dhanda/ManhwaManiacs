@@ -133,14 +133,18 @@ def _mock_demonicscans(connector: SourceConnector):
     def fake_get_text(path: str, *, params=None):
         if path == "/search.php":
             return search
-        if path == "/lastupdates.php?list=2":
+        if path == "/lastupdates.php?list=1":
             return latest
-        if path == "/lastupdates.php?list=3":
+        if path == "/lastupdates.php?list=2":
             return latest_page2
         if path == "/":
             return popular
         if path == "/advanced.php?list=2":
             return advanced
+        if path == "/advanced.php":
+            # Popular and New: the catalogue ordered server-side.
+            name = "advanced_views_page1.html" if "VIEWS" in str((params or {}).get("orderby")) else "advanced_new_page2.html"
+            return (fixtures / name).read_text(encoding="utf-8")
         if path.startswith("/manga/"):
             return series_detail
         if path.startswith("/title/"):
@@ -240,7 +244,8 @@ CASES: list[ConnectorContractCase] = [
         expected_title_substring="Tales of Demons and Gods",
         expected_image_host_substring="demoniclibs.com",
         expected_latest_first_id="Tales-of-Demons-and-Gods",
-        expected_popular_first_id="Pick-Me-Up",
+        # Top of the catalogue ordered by views (advanced.php), not the home page.
+        expected_popular_first_id="Martial-Peak",
         expected_page2_first_id="Some-Other-Series",
         expected_search_ids=("Tales-of-Demons-and-Gods",),
         decimal_chapter_ids=("Tales-of-Demons-and-Gods:522.1",),
@@ -286,9 +291,9 @@ def test_connector_contract(case: ConnectorContractCase) -> None:
     # The contract exercises the live registry, so a deregistered source has
     # nothing to instantiate. Its fixtures and parser tests stay put — this
     # skips only the registry-dependent half.
-    from connectors.excluded import EXCLUDED_CONNECTORS
+    from connectors.excluded import inactive_connectors
 
-    if case.source_type in EXCLUDED_CONNECTORS:
+    if case.source_type in inactive_connectors():
         pytest.skip(f"{case.source_type} is deregistered (see connectors/excluded.py)")
     validate_connector_contract(case)
 

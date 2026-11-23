@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:dio/dio.dart' show DioException, DioExceptionType, RequestOptions;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/retention_policy.dart';
@@ -134,6 +137,22 @@ class _FixedDeviceStorageInfo implements DeviceStorageInfo {
 
   @override
   Future<int?> freeSpaceBytes() async => bytes;
+}
+
+/// Free space that is only known once the test says so, holding the loop between its queue read and its claim.
+class _GatedDeviceStorageInfo implements DeviceStorageInfo {
+  final Completer<void> gate = Completer<void>();
+  final Completer<void> asked = Completer<void>();
+
+  @override
+  Future<int?> totalSpaceBytes() async => null;
+
+  @override
+  Future<int?> freeSpaceBytes() async {
+    if (!asked.isCompleted) asked.complete();
+    await gate.future;
+    return 10 * 1024 * 1024 * 1024;
+  }
 }
 
 void main() {
@@ -379,6 +398,32 @@ void main() {
     expect((await store.getChapter(_id))!.state, DownloadChapterState.queued);
   });
 
+  test('a chapter cancelled while the loop waits on the free-space check is never fetched', () async {
+    final repo = _ScriptedReaderRepository(() async => Ok(_manifestWithPages(2)));
+    var fetchCount = 0;
+    final storage = _GatedDeviceStorageInfo();
+    final container = buildContainer(
+      readerRepository: repo,
+      pageFetcher: _ScriptedPageFetcher((url) async {
+        fetchCount++;
+        return [1];
+      }),
+      deviceStorageInfo: storage,
+    );
+    final controller = container.read(downloadQueueControllerProvider.notifier);
+
+    await controller.enqueueChapter(id: _id);
+    await storage.asked.future; // the loop has read the queue and is waiting on the disk
+
+    await controller.cancelChapter(_id);
+    storage.gate.complete();
+    await controller.debugWaitUntilIdle();
+
+    expect(repo.calls, 0, reason: 'a cancelled chapter must not even fetch its manifest');
+    expect(fetchCount, 0);
+    expect(await harness.storeFor('u1p1').getChapter(_id), isNull);
+  });
+
   test('a backgrounded app pauses the queue instead of downloading', () async {
     var fetchCount = 0;
     final container = buildContainer(
@@ -404,6 +449,75 @@ void main() {
     await controller.debugWaitUntilIdle();
 
     expect(fetchCount, 2);
+  });
+
+  test('backgrounding mid-chapter stops fetching; returning resumes with no stale pause reason', () async {
+    late DownloadQueueController controller;
+    final requested = <String>[];
+    var backgrounded = false;
+    final container = buildContainer(
+      readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(6))),
+      pageFetcher: _ScriptedPageFetcher(
+        (url) async {
+          if (!backgrounded) {
+            backgrounded = true;
+            controller.setForeground(false);
+          }
+          return [1];
+        },
+        onFetch: requested.add,
+      ),
+    );
+    controller = container.read(downloadQueueControllerProvider.notifier);
+
+    await controller.enqueueChapter(id: _id);
+    await controller.debugWaitUntilIdle();
+
+    expect(requested, hasLength(kPageFetchConcurrency), reason: 'no network call after the app left');
+    var state = container.read(downloadQueueControllerProvider);
+    expect(state.pauseReason, DownloadQueuePauseReason.backgrounded);
+    expect(state.isDownloading, isFalse);
+
+    controller.setForeground(true);
+    await controller.debugWaitUntilIdle();
+
+    expect(requested, hasLength(6));
+    state = container.read(downloadQueueControllerProvider);
+    expect(state.pauseReason, DownloadQueuePauseReason.none);
+    expect((await harness.storeFor('u1p1').getChapter(_id))!.state, DownloadChapterState.complete);
+  });
+
+  test('coming back while the pass is still running shows downloading, not backgrounded', () async {
+    late DownloadQueueController controller;
+    final gate = Completer<void>();
+    var first = true;
+    final container = buildContainer(
+      readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(2))),
+      pageFetcher: _ScriptedPageFetcher((url) async {
+        if (first) {
+          first = false;
+          controller.setForeground(false);
+          await gate.future;
+        }
+        return [1];
+      }),
+    );
+    controller = container.read(downloadQueueControllerProvider.notifier);
+
+    await controller.enqueueChapter(id: _id);
+    while (first) {
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
+    expect(container.read(downloadQueueControllerProvider).pauseReason, DownloadQueuePauseReason.backgrounded);
+
+    controller.setForeground(true);
+    final state = container.read(downloadQueueControllerProvider);
+    expect(state.pauseReason, DownloadQueuePauseReason.none);
+    expect(state.isDownloading, isTrue);
+
+    gate.complete();
+    await controller.debugWaitUntilIdle();
+    expect((await harness.storeFor('u1p1').getChapter(_id))!.state, DownloadChapterState.complete);
   });
 
   test('pause holds the queue mid-chapter; resume finishes what it started',
@@ -906,6 +1020,277 @@ void main() {
       );
     });
   });
+
+  group('rate limiting and early access', () {
+    // Time the queue waits on is moved by the test, never slept.
+    late DateTime now;
+    late List<Duration> slept;
+
+    DioException tooMany(Duration? retryAfter) => DioException(
+          requestOptions: RequestOptions(),
+          type: DioExceptionType.badResponse,
+          error: ApiError(statusCode: 429, code: 'rate_limited', message: 'slow down', retryAfter: retryAfter),
+        );
+
+    DownloadQueueController controllerFor(ProviderContainer container) {
+      final c = container.read(downloadQueueControllerProvider.notifier);
+      c.clock = () => now;
+      c.sleep = (d) async {
+        slept.add(d);
+        now = now.add(d);
+      };
+      return c;
+    }
+
+    setUp(() {
+      now = DateTime.utc(2026, 11, 23, 18);
+      slept = [];
+    });
+
+    test('a 429 with Retry-After waits it out and the chapter still completes, unfailed', () async {
+      var first = true;
+      final container = buildContainer(
+        readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(1))),
+        pageFetcher: _ScriptedPageFetcher((url) async {
+          if (first) {
+            first = false;
+            throw tooMany(const Duration(seconds: 2));
+          }
+          return [1];
+        }),
+      );
+      final controller = controllerFor(container);
+      await controller.enqueueChapter(id: _id);
+      await controller.debugWaitUntilIdle();
+
+      final chapter = (await harness.storeFor('u1p1').getChapter(_id))!;
+      expect(chapter.state, DownloadChapterState.complete);
+      expect(chapter.retryCount, 0);
+      expect(slept.fold<Duration>(Duration.zero, (a, b) => a + b), greaterThanOrEqualTo(const Duration(seconds: 2)));
+    });
+
+    test('without Retry-After a 429 waits the default, and a long one is capped', () async {
+      final waits = <Duration?>[null, const Duration(minutes: 5)];
+      final container = buildContainer(
+        readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(1))),
+        pageFetcher: _ScriptedPageFetcher((url) async {
+          if (waits.isNotEmpty) throw tooMany(waits.removeAt(0));
+          return [1];
+        }),
+      );
+      final controller = controllerFor(container);
+      final start = now;
+      await controller.enqueueChapter(id: _id);
+      await controller.debugWaitUntilIdle();
+
+      expect((await harness.storeFor('u1p1').getChapter(_id))!.state, DownloadChapterState.complete);
+      // 5 s default, then the 30 s cap (the second 429 counts as a try but the wait is still honoured).
+      expect(now.difference(start), greaterThanOrEqualTo(kRateLimitDefaultWait + kRateLimitMaxWait));
+      expect(now.difference(start), lessThan(kRateLimitDefaultWait + kRateLimitMaxWait + const Duration(seconds: 2)));
+    });
+
+    test('only the first 429 of a page is free: a page that keeps being refused still fails the chapter', () async {
+      final repo = _ScriptedReaderRepository(() async => Ok(_manifestWithPages(1)));
+      var calls = 0;
+      final container = buildContainer(
+        readerRepository: repo,
+        pageFetcher: _ScriptedPageFetcher((url) async {
+          calls++;
+          throw tooMany(const Duration(seconds: 1));
+        }),
+      );
+      final controller = controllerFor(container);
+      await controller.enqueueChapter(id: _id);
+      await controller.debugWaitUntilIdle();
+
+      // Per pass: the free first refusal plus kMaxPageRetries counted ones; the chapter then gets its own bounded passes.
+      expect(calls, (kMaxPageRetries + 1) * kMaxChapterManifestRetries);
+      expect((await harness.storeFor('u1p1').getChapter(_id))!.state, DownloadChapterState.failed);
+    }, timeout: const Timeout(Duration(seconds: 20)),);
+
+    test('one 429 pauses every page in flight, not just the one that got it', () async {
+      DateTime? limitedAt;
+      final calls = <(String, DateTime)>[];
+      final container = buildContainer(
+        // Two more pages than one chunk holds: the first chunk is already in flight when the 429 lands, so the pause is seen by
+        // the pages after it (and by the retry of the refused one).
+        readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(kPageFetchConcurrency + 2))),
+        pageFetcher: _ScriptedPageFetcher((url) async {
+          calls.add((url, now));
+          if (limitedAt == null && url.contains('/1/image')) {
+            limitedAt = now;
+            throw tooMany(const Duration(seconds: 2));
+          }
+          return [1];
+        }),
+      );
+      final controller = controllerFor(container);
+      await controller.enqueueChapter(id: _id);
+      await controller.debugWaitUntilIdle();
+
+      final t0 = limitedAt!;
+      expect((await harness.storeFor('u1p1').getChapter(_id))!.state, DownloadChapterState.complete);
+      final late = calls.skip(kPageFetchConcurrency).toList();
+      expect(late, hasLength(3));
+      for (final c in late) {
+        expect(c.$2.difference(t0), greaterThanOrEqualTo(const Duration(seconds: 2)), reason: c.$1);
+      }
+    });
+
+    test('pausing during a rate-limit wait ends it at once and does not count as a failed try', () async {
+      var calls = 0;
+      final container = buildContainer(
+        readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(1))),
+        pageFetcher: _ScriptedPageFetcher((url) async {
+          calls++;
+          throw tooMany(const Duration(seconds: 30));
+        }),
+      );
+      final controller = controllerFor(container);
+      controller.sleep = (d) async {
+        slept.add(d);
+        now = now.add(d);
+        controller.pause();
+      };
+      await controller.enqueueChapter(id: _id);
+      await controller.debugWaitUntilIdle();
+
+      expect(slept, hasLength(1));
+      expect(calls, 1);
+      expect(container.read(downloadQueueControllerProvider).pauseReason, DownloadQueuePauseReason.userPaused);
+      final chapter = (await harness.storeFor('u1p1').getChapter(_id))!;
+      expect(chapter.retryCount, 0);
+      expect(chapter.state, isNot(DownloadChapterState.failed));
+    });
+
+    group('an early-access chapter', () {
+      const locked = (sourceId: 'asura', seriesKey: 'solo-leveling', chapterKey: 'c1');
+      const open = (sourceId: 'asura', seriesKey: 'solo-leveling', chapterKey: 'c2');
+
+      ({_KeyedReaderRepository repo, DownloadQueueController controller, ProviderContainer container, List<(Duration, void Function())> timers}) setUpQueue(
+        DateTime? opensAt,
+      ) {
+        final repo = _KeyedReaderRepository((key) async {
+          if (key == 'c1' && !_KeyedReaderRepository.opened) {
+            return Err(ApiError(
+              statusCode: 423,
+              code: 'chapter_locked',
+              message: 'This chapter is in early access.',
+              details: {'locked_until': opensAt?.toUtc().toIso8601String()},
+            ),);
+          }
+          return Ok(_manifestWithPages(1));
+        });
+        _KeyedReaderRepository.opened = false;
+        final container = buildContainer(readerRepository: repo, pageFetcher: _ScriptedPageFetcher((url) async => [1]));
+        final controller = controllerFor(container);
+        final timers = <(Duration, void Function())>[];
+        controller.createTimer = (d, cb) {
+          timers.add((d, cb));
+          return Timer(const Duration(days: 1), () {})..cancel();
+        };
+        return (repo: repo, controller: controller, container: container, timers: timers);
+      }
+
+      test('is skipped until its instant, the chapter after it downloads, and it is fetched once the instant has passed', () async {
+        final opensAt = now.add(const Duration(hours: 1, minutes: 45));
+        final q = setUpQueue(opensAt);
+        await q.controller.enqueueChapters([
+          (id: locked, chapterNumber: 1.0, title: null, seriesTitle: 'S', kind: DownloadKind.manga),
+          (id: open, chapterNumber: 2.0, title: null, seriesTitle: 'S', kind: DownloadKind.manga),
+        ]);
+        await q.controller.debugWaitUntilIdle();
+
+        final store = harness.storeFor('u1p1');
+        expect((await store.getChapter(open))!.state, DownloadChapterState.complete);
+        final held = (await store.getChapter(locked))!;
+        expect(held.state, DownloadChapterState.queued, reason: 'not a failure the user has to act on');
+        expect(held.retryCount, 0);
+        expect(q.container.read(downloadQueueControllerProvider).heldReasons[locked], 'Opens at ${localOpenTime(opensAt)}');
+        expect(q.repo.byKey['c1'], 1);
+
+        // Still locked: another pass does not ask again.
+        now = now.add(const Duration(hours: 1));
+        q.controller.resumePendingOnLaunch();
+        await q.controller.debugWaitUntilIdle();
+        expect(q.repo.byKey['c1'], 1);
+
+        // The hold's own wake-up is armed for the instant plus the grace.
+        expect(q.timers, isNotEmpty);
+        expect(q.timers.first.$1, const Duration(hours: 1, minutes: 45) + kLockRetryGrace);
+
+        _KeyedReaderRepository.opened = true;
+        now = opensAt.add(kLockRetryGrace).add(const Duration(seconds: 1));
+        q.timers.last.$2();
+        await q.controller.debugWaitUntilIdle();
+
+        expect(q.repo.byKey['c1'], 2);
+        expect((await store.getChapter(locked))!.state, DownloadChapterState.complete);
+        expect(q.container.read(downloadQueueControllerProvider).heldReasons, isEmpty);
+      });
+
+      test('a chapter still locked after its instant is asked for on a doubling backoff, with the server\'s message', () async {
+        final q = setUpQueue(now.subtract(const Duration(minutes: 5)));
+        await q.controller.enqueueChapter(id: locked);
+        await q.controller.debugWaitUntilIdle();
+        expect(q.repo.byKey['c1'], 1);
+        expect(q.container.read(downloadQueueControllerProvider).heldReasons[locked], 'This chapter is in early access.');
+
+        var step = const Duration(seconds: 30);
+        var asked = 1;
+        for (var i = 0; i < 8; i++) {
+          expect(q.timers.last.$1, step, reason: 'wake-up $i');
+          now = now.add(step - const Duration(seconds: 1));
+          q.controller.resumePendingOnLaunch();
+          await q.controller.debugWaitUntilIdle();
+          expect(q.repo.byKey['c1'], asked, reason: 'not asked before the backoff ends');
+          now = now.add(const Duration(seconds: 1));
+          q.timers.last.$2();
+          await q.controller.debugWaitUntilIdle();
+          asked++;
+          expect(q.repo.byKey['c1'], asked);
+          expect(q.container.read(downloadQueueControllerProvider).heldReasons[locked], 'This chapter is in early access.');
+          step = step * 2 > kLockedUnknownRetry ? kLockedUnknownRetry : step * 2;
+        }
+        expect(step, kLockedUnknownRetry);
+        expect(q.timers.last.$1, kLockedUnknownRetry, reason: 'capped');
+      });
+
+      test('with no instant from the source the reason is the server\'s message and it is left alone for a while', () async {
+        final q = setUpQueue(null);
+        await q.controller.enqueueChapter(id: locked);
+        await q.controller.debugWaitUntilIdle();
+
+        expect(q.container.read(downloadQueueControllerProvider).heldReasons[locked], 'This chapter is in early access.');
+        now = now.add(kLockedUnknownRetry - const Duration(minutes: 1));
+        q.controller.resumePendingOnLaunch();
+        await q.controller.debugWaitUntilIdle();
+        expect(q.repo.byKey['c1'], 1);
+      });
+    });
+  });
+}
+
+/// A reader repository whose manifest answer depends on the chapter key, counting calls per key.
+class _KeyedReaderRepository extends _ScriptedReaderRepository {
+  _KeyedReaderRepository(this._byKey) : super(() async => throw UnimplementedError());
+
+  final Future<Result<ChapterManifest>> Function(String key) _byKey;
+  final Map<String, int> byKey = {};
+
+  /// Flipped by a test to say the locked chapter has opened.
+  static bool opened = false;
+
+  // The queue asks for a window first; "no window" sends it down the single-chapter path these tests are about.
+  @override
+  Future<Result<ChapterManifestWindow>> manifestWindow({required String sourceId, required String seriesKey, required List<String> chapterKeys}) async =>
+      const Err(NetworkError(message: 'no windows here'));
+
+  @override
+  Future<Result<ChapterManifest>> manifest({required String sourceId, required String seriesKey, required String chapterKey}) {
+    byKey[chapterKey] = (byKey[chapterKey] ?? 0) + 1;
+    return _byKey(chapterKey);
+  }
 }
 
 class _FixedRetentionIntervalNotifier extends RetentionIntervalNotifier {

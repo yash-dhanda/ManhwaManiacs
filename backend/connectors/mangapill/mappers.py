@@ -104,6 +104,12 @@ CHAPTER_NUMBER_RE = re.compile(r"(\d+(?:\.\d+)?)")
 #: endpoint except ``default``, which reads ``/chapters``.
 BROWSE_MODES: dict[str, tuple[str, dict[str, str]]] = {
     "default": ("Latest Updates", {}),
+    # ``popular`` = the home page's "Trending Mangas" strip (10 series, one
+    # page); ``latest`` = ``default`` (the /chapters feed); ``new`` =
+    # /mangas/new (the 50 most recently added series, one page).
+    "popular": ("Popular", {}),
+    "latest": ("Latest", {}),
+    "new": ("New", {}),
     "all": ("All Manga", {"type": "manga"}),
     "manhua": ("Manhua", {"type": "manhua"}),
     "ongoing": ("Ongoing", {"status": "publishing"}),
@@ -112,6 +118,11 @@ BROWSE_MODES: dict[str, tuple[str, dict[str, str]]] = {
 }
 
 LATEST_MODE = "default"
+POPULAR_MODE = "popular"
+NEW_MODE = "new"
+HOME_PATH = "/"
+NEW_PATH = "/mangas/new"
+TRENDING_MARKER = "Trending Mangas"
 
 #: MangaPill's genre vocabulary, as linked from its own series pages.
 GENRES: tuple[str, ...] = (
@@ -135,7 +146,7 @@ def list_genres() -> list[BrowseMode]:
 
 
 def normalize_sort(sort: str | None) -> str:
-    if not sort:
+    if not sort or sort == "latest":
         return LATEST_MODE
     return sort if sort in BROWSE_MODES else LATEST_MODE
 
@@ -283,6 +294,14 @@ def parse_latest_cards(html: str) -> list[Series]:
             )
         )
     return items
+
+
+def parse_trending_cards(html: str) -> list[Series]:
+    """Series in the home page's trailing "Trending Mangas" strip."""
+    index = html.find(TRENDING_MARKER)
+    if index < 0:
+        return []
+    return parse_series_cards(html[index:])
 
 
 def parse_series_list(html: str, *, page: int) -> PaginatedSeriesList:

@@ -63,7 +63,13 @@ Future<ServerCheck> checkServer(
   required Dio Function(String baseUrl) dioFor,
 }) async {
   final url = input.trim().replaceFirst(RegExp(r'/+$'), '');
-  if (!await isOnline()) return const ServerCheck.offline();
+  // A connectivity plugin that throws (some Android builds) must not leave Setup on its spinner:
+  // read as online, and the `/health` probe below classifies a real failure itself.
+  var online = true;
+  try {
+    online = await isOnline();
+  } catch (_) {}
+  if (!online) return const ServerCheck.offline();
   if (releaseBuild && url.toLowerCase().startsWith('http://')) {
     return const ServerCheck.httpInRelease();
   }

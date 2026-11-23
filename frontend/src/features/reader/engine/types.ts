@@ -1,3 +1,4 @@
+import type { ChapterLock } from "@/lib/chapter-lock";
 import type { ReadingPercentStore } from "@/features/novels/reading-percent";
 import type { TapZone, TapZoneConfig } from "../keymap";
 import type { StripChapter, StripPosition } from "../strip";
@@ -25,6 +26,8 @@ export interface ReaderEngineState {
   layout: "strip" | "single" | "double";
   status: "loading" | "ready" | "error" | "empty";
   error: string | null;
+  /** Set with `error` when the chapter is in early access rather than broken. */
+  errorLock?: ChapterLock | null;
   chapter: {
     sourceId: string;
     seriesKey: string;
@@ -98,6 +101,8 @@ export interface SurfaceBindings {
     hasMore: boolean;
     href: string | null;
     error: string | null;
+    /** Set with `error` when the next chapter is in early access. */
+    lock?: ChapterLock | null;
     retry(): void;
   };
   paged: {

@@ -1,3 +1,5 @@
+import 'package:manhwamaniacs/core/time/locked_until.dart';
+
 /// Unified error type for the ManhwaManiacs mobile client.
 ///
 /// Maps 1-to-1 with the backend's `{ code, message, details? }` contract,
@@ -29,6 +31,18 @@ final class ApiError extends AppError {
   bool get isNotFound => statusCode == 404;
   bool get isUnauthorized => statusCode == 401;
   bool get isServerError => statusCode >= 500;
+
+  /// An early-access chapter (HTTP 423): real, listed, but not open to this
+  /// reader yet. Not a missing chapter and not a session problem.
+  bool get isChapterLocked => code == 'chapter_locked';
+
+  /// When a locked chapter opens to everyone (`details.locked_until`), or null
+  /// when the source did not say. Always null for any other error.
+  DateTime? get lockedUntil {
+    if (!isChapterLocked) return null;
+    final d = details;
+    return d is Map ? lockedUntilOf(d['locked_until']) : null;
+  }
 
   @override
   String get userMessage => message;

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/models/saved_chapter.dart';
@@ -72,7 +73,11 @@ class _WindowingReaderRepository implements ReaderRepository {
     this.brokenKeys = const {},
     this.windowFails = false,
     this.everyKeyBroken = false,
+    this.lockedKeys = const {},
   });
+
+  /// Early-access chapters, by key, with the instant each opens: reported as `chapter_locked` items.
+  final Map<String, DateTime> lockedKeys;
 
   final int maxChapters;
 
@@ -130,12 +135,18 @@ class _WindowingReaderRepository implements ReaderRepository {
         maxChapters: maxChapters,
         manifests: {
           for (final key in chapterKeys)
-            if (!broken.contains(key))
+            if (!broken.contains(key) && !lockedKeys.containsKey(key))
               key: _manifest(int.parse(key.split('-').last)),
         },
         errors: {
           for (final key in chapterKeys)
             if (broken.contains(key)) key: 'Chapter not found.',
+          for (final key in chapterKeys)
+            if (lockedKeys.containsKey(key)) key: 'Early access.',
+        },
+        locked: {
+          for (final key in chapterKeys)
+            if (lockedKeys.containsKey(key)) key: lockedKeys[key],
         },
       ),
     );
@@ -414,6 +425,28 @@ void main() {
         (await store.getChapter(_id(3)))!.state,
         DownloadChapterState.complete,
       );
+    });
+  });
+
+  group('early access in a window', () {
+    test('a locked chapter is held, not failed or asked for again, and its neighbours land', () async {
+      final opensAt = DateTime.now().toUtc().add(const Duration(hours: 2));
+      final repository = _WindowingReaderRepository(lockedKeys: {'ch-3': opensAt});
+      final container = buildContainer(readerRepository: repository);
+      final controller = container.read(downloadQueueControllerProvider.notifier);
+
+      await controller.enqueueChapters(series(5));
+      await controller.debugWaitUntilIdle();
+
+      final store = harness.storeFor('u1p1');
+      for (final n in [1, 2, 4, 5]) {
+        expect((await store.getChapter(_id(n)))!.state, DownloadChapterState.complete, reason: 'chapter $n');
+      }
+      final held = (await store.getChapter(_id(3)))!;
+      expect(held.state, DownloadChapterState.queued);
+      expect(held.retryCount, 0);
+      expect(repository.singles, isNot(contains('ch-3')));
+      expect(container.read(downloadQueueControllerProvider).heldReasons[_id(3)], 'Opens at ${localOpenTime(opensAt)}');
     });
   });
 

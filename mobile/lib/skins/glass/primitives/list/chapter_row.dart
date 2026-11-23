@@ -1,6 +1,7 @@
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/chapter_meta.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/list/row_shell.dart';
@@ -19,6 +20,7 @@ class GlassChapterRow extends ConsumerWidget {
     this.secondaryTitle,
     this.date,
     this.now,
+    this.lockedUntil,
     this.pageCount,
     this.progress,
     this.read = false,
@@ -43,6 +45,10 @@ class GlassChapterRow extends ConsumerWidget {
 
   /// The clock for [date]; defaults to now.
   final DateTime? now;
+
+  /// When an early-access chapter opens to everyone. While it is ahead the date slot reads "Opens in 3 h 27 min" and the row
+  /// dims; it stays pressable (the reader explains the wait). Minute granularity, refreshed on rebuild.
+  final DateTime? lockedUntil;
   final int? pageCount;
 
   /// Pages read of [pageCount] while in progress.
@@ -72,7 +78,7 @@ class GlassChapterRow extends ConsumerWidget {
     final numLabel = chapterNumberLabel(number);
     final name = title ?? (number == null ? 'Chapter' : 'Chapter $numLabel');
     final bits = <String>[
-      if (date != null) chapterDateLabel(date!, now ?? DateTime.now()),
+      if (isLockedAt(lockedUntil, now)) 'Opens in ${compactRemaining(lockRemaining(lockedUntil!, now))}' else if (date != null) chapterDateLabel(date!, now ?? DateTime.now()),
       if (inProgress) '$progress/$pageCount' else if (pageCount != null) '$pageCount pages',
       if (read) 'Read',
     ];

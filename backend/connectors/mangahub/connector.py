@@ -49,6 +49,7 @@ from dataclasses import replace
 from typing import Any
 
 from connectors.base import SourceConnector
+from connectors.http import egress
 from connectors.http.cache import TTLCache
 from connectors.http.client import ConnectorHttpError, SyncConnectorHttpClient
 from connectors.ids import fully_unquote
@@ -114,6 +115,9 @@ class MangaHubConnector(SourceConnector):
     MATURE = False
 
     def __init__(self) -> None:
+        # The chapter client is rebuilt on every spent nonce, long after the
+        # registry's construction context is gone, so remember whose it is.
+        self._egress_source = egress.current_source()
         self._http = self._build_client()
         # ``chapter`` needs a rotating access header and SyncConnectorHttpClient
         # fixes its headers at construction, so the gated query gets its own
@@ -132,16 +136,16 @@ class MangaHubConnector(SourceConnector):
         self._page_count_cache: TTLCache[int] = TTLCache(ttl_seconds=600.0)
         self._genre_cache: TTLCache[list[BrowseMode]] = TTLCache(ttl_seconds=3600.0)
 
-    @staticmethod
-    def _build_client(extra_headers: dict[str, str] | None = None) -> SyncConnectorHttpClient:
+    def _build_client(self, extra_headers: dict[str, str] | None = None) -> SyncConnectorHttpClient:
         headers = dict(API_HEADERS)
         if extra_headers:
             headers.update(extra_headers)
-        return SyncConnectorHttpClient(
-            API_BASE,
-            user_agent=BROWSER_USER_AGENT,
-            headers=headers,
-        )
+        with egress.constructing_source(self._egress_source):
+            return SyncConnectorHttpClient(
+                API_BASE,
+                user_agent=BROWSER_USER_AGENT,
+                headers=headers,
+            )
 
     # --- descriptor ---------------------------------------------------------
 

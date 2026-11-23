@@ -129,6 +129,7 @@ class EHentaiConnector(SourceConnector):
         return [
             BrowseMode(id="latest", label="Latest"),
             BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="english", label="English Only"),
         ]
 

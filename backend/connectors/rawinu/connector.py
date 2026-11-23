@@ -113,7 +113,8 @@ class RawInuConnector(SourceConnector):
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="default", label="Latest Updates"),
-            BrowseMode(id="popular", label="Most Viewed"),
+            BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="latest", label="Latest"),
             BrowseMode(id="alpha", label="A-Z"),
         ]
 

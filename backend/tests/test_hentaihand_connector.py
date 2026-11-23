@@ -278,3 +278,17 @@ def test_connector_contract():
             mock=_mock_hentaihand,
         )
     )
+
+
+def test_browse_modes_canonical_order_and_legacy_aliases():
+    from connectors.hentaihand.mappers import browse_params, list_browse_modes
+
+    assert [m.id for m in list_browse_modes()] == [
+        "default", "popular", "latest", "new", "favorites", "pages", "title",
+    ]
+    expected = {None: "uploaded_at", "default": "uploaded_at", "popular": "popularity",
+                "popularity": "popularity", "latest": "uploaded_at", "new": "uploaded_at",
+                "favorites": "favorites", "pages": "pages", "title": "title"}
+    for sort, value in expected.items():
+        params = browse_params(sort, 2)
+        assert params["sort"] == value and params["page"] == 2, sort

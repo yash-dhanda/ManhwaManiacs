@@ -185,3 +185,66 @@ def test_a_missing_series_alone_leaves_health_untouched(
     assert SRC not in load_states(db_session), (
         "the source answered correctly and was still marked unhealthy"
     )
+
+
+# --- a down alternate-egress proxy is a transport failure -------------------
+
+
+def test_a_proxy_failure_is_classified_as_transport_not_unreadable(monkeypatch):
+    import httpx
+
+    from connectors.http.client import ConnectorHttpError
+    from core.config import get_settings
+
+    monkeypatch.setenv("MM_ALT_EGRESS_PROXY", "http://mm:pw@203.0.113.7:3128")
+    monkeypatch.setenv("MM_ALT_EGRESS_SOURCES", SRC)
+    get_settings.cache_clear()
+    try:
+        cause = ConnectorHttpError("[Errno 111] Connection refused")
+        cause.__cause__ = httpx.ConnectError("[Errno 111] Connection refused")
+        mapped = AppError("Could not reach the source site.", code="source_unreachable", status_code=502)
+        mapped.__cause__ = cause
+
+        assert us._health_failure(mapped, SRC) == us._HEALTH_TRANSPORT
+        # Without the source id (or for a direct source) it is the old answer.
+        assert us._health_failure(mapped) == us._HEALTH_BROKE
+        assert us._health_failure(mapped, "somewhere-else") == us._HEALTH_BROKE
+    finally:
+        get_settings.cache_clear()
+
+
+def test_a_sweep_with_the_proxy_down_records_transport_and_hides_the_proxy(
+    db_session, acct, seed_follow, monkeypatch
+):
+    import httpx
+
+    from connectors.http.client import ConnectorHttpError
+    from core.config import get_settings
+    from database.models import FollowedSeries
+    from sqlalchemy import select
+
+    monkeypatch.setenv("MM_ALT_EGRESS_PROXY", "http://mm:pw@203.0.113.7:3128")
+    monkeypatch.setenv("MM_ALT_EGRESS_SOURCES", SRC)
+    get_settings.cache_clear()
+    try:
+        uid, pid = acct
+        seed_follow(uid, pid, source_id=SRC, series_key="s1")
+
+        def proxy_down(svc, row):
+            cause = ConnectorHttpError(
+                "Failed to connect to 203.0.113.7 port 3128 after 0 ms"
+            )
+            cause.__cause__ = httpx.ConnectError("refused")
+            raise AppError(
+                "Failed to connect to 203.0.113.7 port 3128 after 0 ms",
+                code="source_unreachable",
+                status_code=502,
+            ) from cause
+
+        _sweep(db_session, uid, pid, monkeypatch, effect=proxy_down)
+
+        assert load_states(db_session)[SRC].last_error == us._HEALTH_TRANSPORT
+        last_error = db_session.execute(select(FollowedSeries.last_error)).scalar_one()
+        assert "203.0.113.7" not in last_error and "3128" not in last_error
+    finally:
+        get_settings.cache_clear()

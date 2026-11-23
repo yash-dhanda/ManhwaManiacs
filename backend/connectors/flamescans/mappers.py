@@ -187,13 +187,60 @@ def paginate_series(
     )
 
 
-def sort_series_items(items: list[dict[str, Any]], sort: str | None) -> list[dict[str, Any]]:
+def parse_browse_ranking(html_text: str) -> dict[str, dict[str, int]]:
+    """``{series id: {"rank": popularityRank, "added": time}}`` from ``/browse``.
+
+    ``/api/series`` carries neither popularity nor dates, but the browse page's
+    embedded catalog does: ``popularityRank`` is the site's own popularity
+    ranking (1 = most popular) and ``time`` is when the series was created.
+    Novels (``novel_id`` rows without a ``series_id``) are not series here.
+    """
+    props = parse_next_data(html_text) or {}
+    rows = props.get("series")
+    ranking: dict[str, dict[str, int]] = {}
+    if not isinstance(rows, list):
+        return ranking
+    for row in rows:
+        if not isinstance(row, dict) or row.get("series_id") is None:
+            continue
+        entry: dict[str, int] = {}
+        rank, added = row.get("popularityRank"), row.get("time")
+        if isinstance(rank, int) and not isinstance(rank, bool):
+            entry["rank"] = rank
+        if isinstance(added, int) and not isinstance(added, bool):
+            entry["added"] = added
+        ranking[str(row["series_id"]).strip()] = entry
+    return ranking
+
+
+def sort_series_items(
+    items: list[dict[str, Any]],
+    sort: str | None,
+    ranking: dict[str, dict[str, int]] | None = None,
+) -> list[dict[str, Any]]:
+    """Order the ``/api/series`` catalog (already newest-chapter first).
+
+    ``popular`` follows the site's popularity rank and ``new`` its creation
+    time (both from ``ranking``, see :func:`parse_browse_ranking`); a series the
+    ranking does not know goes last in API order.
+    """
     key = (sort or "latest").strip().lower()
     if key in {"alphabetical", "title", "az"}:
         return sorted(items, key=lambda item: str(item.get("label") or item.get("title") or "").lower())
-    if key in {"popular", "chapters"}:
+    if key == "chapters":
         return sorted(items, key=lambda item: _chapter_count(item.get("chapter_count")), reverse=True)
-    # API already returns an activity-ish order; keep it for latest/default.
+    if key in {"popular", "new"} and ranking is not None:
+        field = "rank" if key == "popular" else "added"
+
+        def position(item: dict[str, Any]) -> float:
+            value = ranking.get(str(item.get("id")), {}).get(field)
+            if value is None:
+                return float("inf")
+            return float(value) if key == "popular" else -float(value)
+
+        return sorted(items, key=position)
+    # API already returns newest-chapter-first (it matches the site's Latest
+    # rail); keep it for latest/default.
     return list(items)
 
 

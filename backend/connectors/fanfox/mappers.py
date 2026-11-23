@@ -34,9 +34,15 @@ IMAGE_HOSTS = frozenset({"mfcdn.net", "mangafox.me", "fanfox.net"})
 
 #: The directory's own sort links are bare query flags: ``/directory/?latest``.
 #: The empty string is the site default (no flag at all).
+#: ``default`` is the site's "Popularity" order, so ``popular`` sends no flag
+#: either. ``?latest`` is ordered by last update; ``?news`` by series id
+#: descending, i.e. newly ADDED series, which is ``new`` (``news`` stays an
+#: accepted alias of it).
 SORT_TO_FLAG: dict[str, str] = {
     "default": "",
+    "popular": "",
     "latest": "latest",
+    "new": "news",
     "news": "news",
     "rating": "rating",
     "az": "az",

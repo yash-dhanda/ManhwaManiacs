@@ -53,8 +53,9 @@ DEFAULT_SORT = "latest"
 #: answers 400; its front end swallows that into an empty grid.
 BROWSE_MODES: tuple[tuple[str, str], ...] = (
     ("default", "Latest Updates"),
-    ("popular", "Most Followed"),
-    ("newest", "Recently Added"),
+    ("popular", "Popular"),
+    ("latest", "Latest"),
+    ("new", "New"),
     ("views_today", "Trending Today"),
     ("views_7days", "Trending This Week"),
     ("views", "Most Viewed"),
@@ -62,7 +63,14 @@ BROWSE_MODES: tuple[tuple[str, str], ...] = (
     ("chapters", "Most Chapters"),
 )
 
-_VALID_SORTS = frozenset(mode_id for mode_id, _ in BROWSE_MODES if mode_id != "default")
+#: Canonical browse ids that are spelled differently by the site's API.
+#: ``new`` is the canonical "recently added" id; ``newest`` is the site's own
+#: sort id (and the id this connector used to advertise), still accepted.
+_SORT_ALIASES = {"new": "newest"}
+
+_VALID_SORTS = frozenset(
+    {mode_id for mode_id, _ in BROWSE_MODES if mode_id != "default"} | {"newest"}
+)
 
 #: Genre slugs the site exposes, captured from its own genre payload.
 GENRES: tuple[tuple[str, str], ...] = (
@@ -161,7 +169,9 @@ def explicit_sort(sort: str | None) -> str | None:
     cleaned = (sort or "").strip()
     if not cleaned or cleaned == "default":
         return None
-    return cleaned if cleaned in _VALID_SORTS else None
+    if cleaned not in _VALID_SORTS:
+        return None
+    return _SORT_ALIASES.get(cleaned, cleaned)
 
 
 def normalize_sort(sort: str | None) -> str:

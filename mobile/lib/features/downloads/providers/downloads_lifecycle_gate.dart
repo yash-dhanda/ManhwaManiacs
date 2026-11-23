@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/downloads/providers/bookmark_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/currently_open_chapter_provider.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
@@ -123,13 +124,20 @@ class _DownloadsLifecycleGateState extends ConsumerState<DownloadsLifecycleGate>
   /// the backfilled rows leave in the same flush rather than waiting for the
   /// next trigger.
   Future<void> _backfillThenFlushProgress() async {
-    // Both read now, while this state is certainly mounted.
-    final backfill = ref.read(sourceProgressBackfillProvider);
-    final outbox = ref.read(progressOutboxControllerProvider);
-    final stamper = ref.read(matureStamperProvider);
-    await stamper.restampMissing();
-    await backfill.run();
-    await outbox.flush();
+    // Callers do not await this (launch, resume, scope change): a throw from the stamper or the
+    // backfill would be an uncaught async error. Each trigger repeats the pass, so a failed one is
+    // simply retried.
+    try {
+      // Both read now, while this state is certainly mounted.
+      final backfill = ref.read(sourceProgressBackfillProvider);
+      final outbox = ref.read(progressOutboxControllerProvider);
+      final stamper = ref.read(matureStamperProvider);
+      await stamper.restampMissing();
+      await backfill.run();
+      await outbox.flush();
+    } catch (error, stackTrace) {
+      appLogger.w('progress backfill/flush failed', error, stackTrace);
+    }
   }
 
   Future<void> _sweep() async {

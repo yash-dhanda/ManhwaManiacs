@@ -42,7 +42,8 @@ from core.config import get_settings
 from connectors.coffeemanga.connector import CoffeeMangaConnector
 from connectors.eightmuses.connector import EightMusesConnector
 from connectors.local_filesystem.connector import LocalFilesystemConnector
-from connectors.excluded import EXCLUDED_CONNECTORS
+from connectors.excluded import inactive_connectors
+from connectors.http import egress
 from connectors.madara.factory import madara_connector_classes
 from connectors.madara.sites import MADARA_SITES
 from connectors.mangabuddy.connector import MangaBuddyConnector
@@ -316,7 +317,8 @@ def _register_builtin_connectors() -> None:
         (StandardEbooksConnector.SOURCE_TYPE, StandardEbooksConnector),
         *((cls.SOURCE_TYPE, cls) for cls in _MADARA_CONNECTOR_CLASSES),
     )
-    if "1stkissmanga" not in EXCLUDED_CONNECTORS:
+    inactive = inactive_connectors()
+    if "1stkissmanga" not in inactive:
         builtins = (
             *builtins[: builtins.index((EightMusesConnector.SOURCE_TYPE, EightMusesConnector)) + 1],
             (FirstKissMangaConnector.SOURCE_TYPE, FirstKissMangaConnector),
@@ -324,7 +326,7 @@ def _register_builtin_connectors() -> None:
         )
     failures: list[str] = []
     for source_type, connector_cls in builtins:
-        if source_type in EXCLUDED_CONNECTORS:
+        if source_type in inactive:
             continue
         try:
             register_connector(source_type, connector_cls)
@@ -358,6 +360,7 @@ def validate_registry(*, require_browsable: set[str] | frozenset[str] | None = N
 def log_registered_connectors(target_logger: logging.Logger | None = None) -> None:
     """Log every connector in the active registry."""
     active_logger = target_logger or logger
+    egress.log_startup_status(set(_REGISTRY), active_logger)
     active_logger.info("Registered connectors:")
     for descriptor in list_installed_connectors():
         flags: list[str] = []
@@ -419,10 +422,12 @@ def create_connector(source_type: str, **config: Any) -> SourceConnector:
         cached = _INSTANCE_CACHE.get(source_type)
         if cached is not None:
             return cached
-        instance = connector_cls()
+        with egress.constructing_source(source_type):
+            instance = connector_cls()
         _INSTANCE_CACHE[source_type] = instance
         return instance
-    return connector_cls(**config)
+    with egress.constructing_source(source_type):
+        return connector_cls(**config)
 
 
 def get_connector(source_type: str, **config: Any) -> SourceConnector:

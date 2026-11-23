@@ -14,8 +14,12 @@ from curl_cffi.requests import Session
 from connectors.http.client import (
     RETRYABLE_STATUS,
     ConnectorHttpError,
+    ResponseTooLargeError,
     is_retryable,
+    read_capped,
+    resolve_body_cap,
 )
+from connectors.http import egress
 from connectors.http.redirect_policy import (
     allowed_redirect_hosts,
     send_with_redirect_validation,
@@ -68,7 +72,7 @@ class DdgSyncHttpClient:
             request_headers.update(headers)
         self._headers = request_headers
         self._redirect_hosts = allowed_redirect_hosts(self._base_url)
-        self._session = Session(impersonate=impersonate)
+        self._session = Session(impersonate=impersonate, **egress.curl_kwargs())
         domain = self._base_url.removeprefix("https://").removeprefix("http://").split("/")[0]
         # gallery-dl/kemono pattern: any __ddg2_ value satisfies the JS check screen.
         self._session.cookies.set(
@@ -314,8 +318,15 @@ class DdgSyncHttpClient:
         url: str,
         *,
         extra_headers: dict[str, str] | None = None,
+        max_bytes: int | None = None,
     ) -> tuple[str, bytes]:
-        """GET a binary resource (e.g. CDN image) and return content-type + body."""
+        """GET a binary resource (e.g. CDN image) and return content-type + body.
+
+        With a ceiling (``max_bytes``, or the one an enclosing ``body_byte_cap``
+        set) the body is streamed and abandoned the moment it passes it, rather
+        than buffered whole before anyone can look at its size.
+        """
+        max_bytes = resolve_body_cap(max_bytes)
         if not url.startswith("http://") and not url.startswith("https://"):
             url = self._resolve_url(url)
         last_error: Exception | None = None
@@ -326,12 +337,14 @@ class DdgSyncHttpClient:
 
         for attempt in range(self._max_retries):
             self._rate_limit()
+            response = None
             try:
                 response = self._session.get(
                     url,
                     headers=headers,
                     timeout=self._timeout,
                     allow_redirects=False,
+                    **({"stream": True} if max_bytes is not None else {}),
                 )
                 if response.status_code in RETRYABLE_STATUS:
                     raise ConnectorHttpError(
@@ -344,7 +357,16 @@ class DdgSyncHttpClient:
                         status_code=response.status_code,
                     )
                 media_type = response.headers.get("content-type", "image/jpeg").split(";")[0]
-                return media_type, response.content
+                if max_bytes is None:
+                    return media_type, response.content
+                body = read_capped(
+                    response.iter_content(),
+                    response.headers.get("content-length"),
+                    max_bytes,
+                )
+                return media_type, body
+            except ResponseTooLargeError:
+                raise
             except (ConnectorHttpError, OSError) as exc:
                 last_error = exc
                 # Deterministic 4xx: same answer next time, so stop paying
@@ -354,6 +376,11 @@ class DdgSyncHttpClient:
                 if attempt + 1 >= self._max_retries:
                     break
                 time.sleep(0.5 * (2**attempt))
+            finally:
+                # A capped fetch is a live stream; abandoning it early (too
+                # large, a bad status) must release the curl handle.
+                if response is not None and max_bytes is not None:
+                    response.close()
 
         message = str(last_error) if last_error else "Unknown HTTP error"
         status_code = (

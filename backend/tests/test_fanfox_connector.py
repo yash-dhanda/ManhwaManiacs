@@ -126,6 +126,12 @@ def test_listing_and_search_paths():
     assert listing_path(3) == "/directory/3.html"
     assert listing_path(1, sort="rating") == "/directory/?rating"
     assert listing_path(2, genre="action", sort="latest") == "/directory/action/2.html?latest"
+    # canonical modes, and every previously advertised id keeps its request
+    assert listing_path(1, sort="popular") == listing_path(1) == "/directory/"
+    assert listing_path(2, sort="new") == "/directory/2.html?news"
+    assert listing_path(1, sort="news") == "/directory/?news"
+    assert listing_path(1, sort="latest") == "/directory/?latest"
+    assert listing_path(1, sort="az") == "/directory/?az"
     assert search_params("solo leveling", 1) == {"title": "solo leveling"}
     assert search_params("solo leveling", 3) == {"title": "solo leveling", "page": 3}
 
@@ -463,3 +469,16 @@ def test_search_requests_the_allowed_endpoint(search_html):
     assert not path.endswith(".php")
     assert get_text.call_args.kwargs["params"] == {"title": "solo leveling"}
     assert listing.items[0].id == SERIES_KEY
+
+
+def test_browse_modes_are_canonical_and_news_is_an_alias_of_new():
+    connector = FanFoxConnector()
+    assert [m.id for m in connector.list_browse_modes()] == [
+        "default",
+        "popular",
+        "latest",
+        "new",
+        "rating",
+        "az",
+    ]
+    assert connector.LEGACY_SORT_ALIASES == {"news": "new"}

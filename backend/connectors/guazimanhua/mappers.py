@@ -114,13 +114,18 @@ CHAPTER_NUMBER_RE = re.compile(r"(\d+(?:\.\d+)?)")
 #: what the site's own "全部" chip does.
 BROWSE_MODES: dict[str, tuple[str, str | None]] = {
     "default": ("All Comics", None),
-    "update": ("Recently Updated", "update"),
-    "hits": ("Most Popular", "hits"),
+    "popular": ("Popular", "hits"),
+    "latest": ("Latest", "update"),
+    "update": ("Recently Updated", "update"),  # legacy alias of ``latest``
+    "hits": ("Most Popular", "hits"),  # legacy alias of ``popular``
     "daily": ("Trending Today", "daily"),
     "score": ("Top Rated", "score"),
 }
 
 DEFAULT_MODE = "default"
+
+#: Accepted as ``sort`` but no longer advertised (exact duplicates of canonical ids).
+_LEGACY_MODE_IDS = frozenset({"update", "hits"})
 
 #: Genre id -> (Chinese label, ``cid``), read from the site's own filter chips.
 #: The labels stay in Chinese because the catalogue is Chinese-language and the
@@ -154,7 +159,11 @@ GENRES: dict[str, tuple[str, int]] = {
 
 
 def list_browse_modes() -> list[BrowseMode]:
-    return [BrowseMode(id=key, label=label) for key, (label, _sort) in BROWSE_MODES.items()]
+    return [
+        BrowseMode(id=key, label=label)
+        for key, (label, _sort) in BROWSE_MODES.items()
+        if key not in _LEGACY_MODE_IDS
+    ]
 
 
 def list_genres() -> list[BrowseMode]:

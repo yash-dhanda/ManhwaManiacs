@@ -85,11 +85,14 @@ class ComicAsuraConnector(SourceConnector):
     def image_fetch_headers(self) -> dict[str, str]:
         return {"Referer": f"{SITE_BASE}/"}
 
+    #: Ids advertised before the canonical popular/latest/new set. ``popular`` is sent as the site's ``sort=bookmark``.
+    LEGACY_SORT_ALIASES = {"bookmark": "popular"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="popular", label="Popular"),
             BrowseMode(id="rating", label="Top Rated"),
-            BrowseMode(id="bookmark", label="Bookmarks"),
             BrowseMode(id="name_asc", label="Name A-Z"),
             BrowseMode(id="name_desc", label="Name Z-A"),
         ]

@@ -1,3 +1,4 @@
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/core/time/server_instant.dart';
 
 /// One new-chapter notification
@@ -13,6 +14,7 @@ class UpdateNotification {
     this.chapterNumber,
     required this.isRead,
     this.createdAt,
+    this.lockedUntil,
   });
 
   final int id;
@@ -25,6 +27,10 @@ class UpdateNotification {
   final bool isRead;
   final DateTime? createdAt;
 
+  /// When an early-access chapter opens to everyone (UTC); null when open, unknown or from an older server. Whether it is
+  /// still locked is [isLockedAt]'s question, asked at render time.
+  final DateTime? lockedUntil;
+
   factory UpdateNotification.fromJson(Map<String, dynamic> json) =>
       UpdateNotification(
         id: json['id'] as int,
@@ -36,5 +42,6 @@ class UpdateNotification {
         chapterNumber: (json['chapter_number'] as num?)?.toDouble(),
         isRead: json['is_read'] as bool,
         createdAt: serverInstant(json['created_at']),
+        lockedUntil: lockedUntilOf(json['locked_until']),
       );
 }

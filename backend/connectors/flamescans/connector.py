@@ -14,6 +14,7 @@ from connectors.flamescans.mappers import (
     filter_series_items,
     page_id_chapter_id,
     paginate_series,
+    parse_browse_ranking,
     parse_chapter_id,
     parse_next_data,
     series_detail_to_series,
@@ -48,6 +49,7 @@ class FlameScansConnector(SourceConnector):
             },
         )
         self._catalog_cache: TTLCache[list[dict[str, Any]]] = TTLCache(ttl_seconds=300.0)
+        self._ranking_cache: TTLCache[dict[str, dict[str, int]]] = TTLCache(ttl_seconds=300.0)
         self._series_cache: TTLCache[Series] = TTLCache(ttl_seconds=300.0)
         self._chapter_list_cache: TTLCache[list[Chapter]] = TTLCache(ttl_seconds=180.0)
         self._page_cache: TTLCache[list[Page]] = TTLCache(ttl_seconds=600.0)
@@ -84,6 +86,7 @@ class FlameScansConnector(SourceConnector):
         return [
             BrowseMode(id="latest", label="Latest"),
             BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="alphabetical", label="A–Z"),
         ]
 
@@ -99,6 +102,15 @@ class FlameScansConnector(SourceConnector):
     def _catalog(self) -> list[dict[str, Any]]:
         return self._catalog_cache.get_or_set("catalog", self._fetch_catalog)
 
+    def _fetch_ranking(self) -> dict[str, dict[str, int]]:
+        ranking = parse_browse_ranking(self._http.get_text("/browse"))
+        if not ranking:
+            raise ConnectorHttpError("Flame Comics browse page carried no ranking data.")
+        return ranking
+
+    def _ranking(self) -> dict[str, dict[str, int]]:
+        return self._ranking_cache.get_or_set("ranking", self._fetch_ranking)
+
     def _listing(
         self,
         page: int,
@@ -108,7 +120,10 @@ class FlameScansConnector(SourceConnector):
     ) -> PaginatedSeriesList:
         if page < 1:
             page = 1
-        items = filter_series_items(sort_series_items(self._catalog(), sort), query)
+        ranked = (sort or "").strip().lower() in {"popular", "new"}
+        items = filter_series_items(
+            sort_series_items(self._catalog(), sort, self._ranking() if ranked else None), query
+        )
         series_items: list[Series] = []
         for entry in items:
             series = series_list_item_to_series(entry)

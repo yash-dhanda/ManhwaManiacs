@@ -57,6 +57,24 @@ route calls it any more; nothing to register a folder against). The exact
 live list drifts as sources go up/down — check `registry.py` or `GET /sources`
 rather than trusting a hardcoded table here.
 
+### Sources that block the production VPS
+
+Some sources refuse the VPS's datacenter IP and work from elsewhere. If the
+connector is sound, the fix is the egress, not the code: an operator-run forward
+proxy on a second server (`MM_ALT_EGRESS_PROXY`) carries every request for the
+sources listed in `MM_ALT_EGRESS_SOURCES`. `toonily` and `weebcentral` are kept
+in `ALT_EGRESS_ONLY_CONNECTORS` (`connectors/excluded.py`) and register only
+when the proxy is configured and they are listed; a source that is dead for any
+other reason stays in `EXCLUDED_CONNECTORS`. Setup and limits are in
+[VPS_OPERATIONS.md](VPS_OPERATIONS.md#routing-blocked-sources-through-a-second-server).
+
+New connectors need nothing special: the registry tells each HTTP client which
+source it is being built for (`connectors/http/egress.py`), so a connector built
+through `create_connector` is routed automatically when its id is listed. A
+connector that builds an HTTP client *after* its constructor must remember
+`egress.current_source()` and rebuild under `egress.constructing_source(...)`
+(see `MangaHubConnector._build_client`).
+
 Register a new connector by adding it to `connectors/registry.py`:
 
 ```python

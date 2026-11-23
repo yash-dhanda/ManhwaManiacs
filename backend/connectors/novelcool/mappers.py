@@ -79,8 +79,8 @@ _SINGLE_PAGE_STEMS: dict[str, str] = {
 #: latest 77/80, new 50/50, completed 34/40, default 22/40, ongoing 22/40.
 BROWSE_MODES: tuple[tuple[str, str], ...] = (
     ("default", "Top Rated"),
-    ("latest", "Latest Releases"),
-    ("new", "Newly Added"),
+    ("latest", "Latest"),
+    ("new", "New"),
     ("ongoing", "Ongoing"),
     ("completed", "Completed"),
 )

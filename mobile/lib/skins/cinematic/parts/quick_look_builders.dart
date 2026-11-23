@@ -113,10 +113,11 @@ void openPick(BuildContext context, HomePickItem item) {
 Future<void> _markRead(BuildContext context, WidgetRef ref, HomeContinueItem item) async {
   final r = item.row;
   final repo = ref.read(readerRepositoryProvider);
+  // Taken before the await: the poster's screen can be left while the save runs, and `ref` is dead then.
+  final toasts = ref.read(cineToastsProvider.notifier);
   final done = await repo.saveProgressBatch(manualReadRows([
     (sourceId: r.sourceId, seriesKey: r.seriesKey, chapterKey: r.chapterKey, chapterNumber: r.chapterNumber, pageCount: r.pageCount, completed: false),
   ]),);
-  final toasts = ref.read(cineToastsProvider.notifier);
   if (done.isErr) {
     toasts.error("Couldn't mark it read.");
     return;
@@ -167,13 +168,19 @@ Future<void> openCuttingQuickLook(BuildContext context, WidgetRef ref, HomeConti
 }
 
 /// The next five unread chapters of a followed series, queued for download.
-Future<void> downloadNextFive(BuildContext context, WidgetRef ref, FollowedSeries s, {bool haptic = true}) async {
+///
+/// Takes a container, not a `WidgetRef`: the series list the poster sat on can be left while the
+/// chapter list loads (and a bulk run calls this once per series), which kills its `ref`.
+Future<void> downloadNextFive(BuildContext context, ProviderContainer container, FollowedSeries s, {bool haptic = true}) async {
   final key = (sourceId: s.sourceId, seriesId: s.seriesKey);
-  final detail = await ref.read(sourceSeriesDetailProvider(key).future);
+  final store = container.read(downloadsStoreProvider);
+  final novel = isNovelSource(container.read(contentModeScopeProvider), s.sourceId) ?? false;
+  final queue = container.read(downloadQueueControllerProvider.notifier);
+  final detail = await container.read(sourceSeriesDetailProvider(key).future);
   // Where the server says the reader is (the same readState Glass plans from), not the device-local
   // Sources-tab map, which the library reader never writes; saved or queued chapters are skipped.
   final readNumber = s.readState?.chapterNumber;
-  final saved = await savedOrQueuedChapterKeys(ref.read(downloadsStoreProvider), (sourceId: s.sourceId, seriesKey: s.seriesKey));
+  final saved = await savedOrQueuedChapterKeys(store, (sourceId: s.sourceId, seriesKey: s.seriesKey));
   final ordered = sortSeriesChapters(detail.chapters, numberOf: (c) => c.number, order: SeriesChapterSortOrder.oldest);
   final byKey = {for (final c in ordered) c.id: c};
   final unread = [
@@ -183,9 +190,8 @@ Future<void> downloadNextFive(BuildContext context, WidgetRef ref, FollowedSerie
       byKey[k]!,
   ];
   if (unread.isEmpty) return;
-  final novel = _novel(ref, s.sourceId);
   if (haptic && context.mounted) cineFeedback(context, HapticEvent.downloadStart);
-  await ref.read(downloadQueueControllerProvider.notifier).enqueueChapters([
+  await queue.enqueueChapters([
     for (final c in unread)
       (
         id: (sourceId: s.sourceId, seriesKey: s.seriesKey, chapterKey: c.id),
@@ -210,18 +216,19 @@ Future<void> openFollowedQuickLook(BuildContext context, WidgetRef ref, HomeSeri
     QuickLookId.addToCollection: () => unawaited(showAddToShelfSheet(context, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title)),
     if (_hasCircle(ref)) QuickLookId.recommend: () => unawaited(showPassItOnSheet(context, sourceId: s.sourceId, seriesKey: s.seriesKey, title: s.title, coverUrl: s.coverUrl)),
     QuickLookId.favourite: () async {
+      final toasts = ref.read(cineToastsProvider.notifier);
       final err = await ref.read(librarySeriesActionsProvider).setFavorite(s, favorite: !s.isFavorite);
       if (err != null) {
-        ref.read(cineToastsProvider.notifier).error("Couldn't update the favourite.");
+        toasts.error("Couldn't update the favourite.");
       } else if (context.mounted) {
         cineFeedback(context, HapticEvent.favorite, sound: SoundEvent.favorite);
       }
     },
-    QuickLookId.downloadNext: () => unawaited(downloadNextFive(context, ref, s)),
+    QuickLookId.downloadNext: () => unawaited(downloadNextFive(context, ProviderScope.containerOf(context, listen: false), s)),
     QuickLookId.unfollow: () async {
       final actionsProvider = ref.read(librarySeriesActionsProvider);
-      final removed = await actionsProvider.remove(s);
       final toasts = ref.read(cineToastsProvider.notifier);
+      final removed = await actionsProvider.remove(s);
       if (removed.error != null) {
         toasts.error("Couldn't remove ${s.title}.");
         return;
@@ -286,8 +293,9 @@ Future<void> openPickQuickLook(BuildContext context, WidgetRef ref, HomePickItem
         QuickLookAction('search-my-sources', 'Search my sources', CineIconRole.search, onSelected: () => context.go(Routes.discover({'q': title}))),
         if (site != null)
           QuickLookAction('read-on', 'Read on ${site.site} ↗', CineIconRole.external, onSelected: () async {
+            final toasts = ref.read(cineToastsProvider.notifier);
             final ok = await launchUrl(Uri.parse(site.url), mode: LaunchMode.externalApplication).catchError((Object _) => false);
-            if (!ok) ref.read(cineToastsProvider.notifier).error("Couldn't open ${site.url}");
+            if (!ok) toasts.error("Couldn't open ${site.url}");
           },),
       ],
     ],
@@ -338,8 +346,9 @@ Future<void> openWorldQuickLook(BuildContext context, WidgetRef ref, WorldItem w
         QuickLookAction('search-my-sources', 'Search my sources', CineIconRole.search, onSelected: () => context.go(Routes.discover({'q': w.title}))),
         if (site != null)
           QuickLookAction('read-on', 'Read on ${site.site} ↗', CineIconRole.external, onSelected: () async {
+            final toasts = ref.read(cineToastsProvider.notifier);
             final ok = await launchUrl(Uri.parse(site.url), mode: LaunchMode.externalApplication).catchError((Object _) => false);
-            if (!ok) ref.read(cineToastsProvider.notifier).error("Couldn't open ${site.url}");
+            if (!ok) toasts.error("Couldn't open ${site.url}");
           },),
       ],
     ],

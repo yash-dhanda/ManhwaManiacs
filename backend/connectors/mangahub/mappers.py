@@ -78,9 +78,10 @@ SORT_TO_MOD: dict[str, str] = {
 }
 
 BROWSE_MODES: tuple[BrowseMode, ...] = (
-    BrowseMode(id="default", label="Popular"),
-    BrowseMode(id="latest", label="Latest Updates"),
-    BrowseMode(id="new", label="Newly Added"),
+    BrowseMode(id="default", label="Browse"),
+    BrowseMode(id="popular", label="Popular"),
+    BrowseMode(id="latest", label="Latest"),
+    BrowseMode(id="new", label="New"),
     BrowseMode(id="alphabetical", label="A-Z"),
     BrowseMode(id="completed", label="Completed"),
 )

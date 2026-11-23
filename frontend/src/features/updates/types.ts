@@ -24,6 +24,12 @@ export interface UpdateNotification {
   chapter_number: number | null;
   is_read: boolean;
   created_at: string | null;
+  /**
+   * When an early-access chapter opens to everyone (ISO-8601 UTC, `Z`), or
+   * null/absent when it is open. Absent on rows an older backend produced.
+   * Judge it with `isLocked` against the clock — never trust it as a flag.
+   */
+  locked_until?: string | null;
 }
 
 export interface UpdateRun {

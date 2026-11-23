@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import ClassVar
 
 from connectors.models import (
     BrowseMode,
@@ -12,6 +13,19 @@ from connectors.models import (
     PaginatedSeriesList,
     Series,
 )
+
+
+class ChapterLockedError(Exception):
+    """The source lists this chapter but does not serve its pages yet.
+
+    Raised by ``get_chapter_pages`` in place of the empty list that reads as
+    "no such chapter". ``locked_until`` is when it opens to everyone, as
+    ``Chapter.locked_until`` spells it, or None when the source does not say.
+    """
+
+    def __init__(self, locked_until: str | None = None) -> None:
+        super().__init__("Chapter is locked at the source.")
+        self.locked_until = locked_until
 
 
 class SourceConnector(ABC):
@@ -106,6 +120,13 @@ class SourceConnector(ABC):
         itself; return ``None`` to let ``BrowseService`` use its default client.
         """
         return None
+
+    #: Sort ids this connector no longer advertises but still accepts, mapped to
+    #: the advertised id that sends the SAME upstream request. The browse cache
+    #: keys on the canonical id, so an older client's id shares its row (and its
+    #: stale fallback) instead of going upstream uncached. An old id with no
+    #: exact twin is left out: it stays served live.
+    LEGACY_SORT_ALIASES: ClassVar[dict[str, str]] = {}
 
     def list_browse_modes(self) -> list[BrowseMode]:
         """Return catalog views this connector supports (popular, latest, etc.)."""

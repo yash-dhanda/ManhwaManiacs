@@ -85,6 +85,8 @@ def page_id_number(page_id: str) -> int | None:
 #: query is spliced into the path rather than passed through httpx params.
 BROWSE_MODES: dict[str, tuple[str, str]] = {
     "default": ("/directory", ""),
+    # Canonical alias of ``hot`` ("Hot Manga" is the site's popular listing).
+    "popular": ("/hot", ""),
     "latest": ("/latest", ""),
     "hot": ("/hot", ""),
     "updated": ("/directory", "last_chapter_time.za"),
@@ -94,9 +96,8 @@ BROWSE_MODES: dict[str, tuple[str, str]] = {
 
 BROWSE_MODE_LABELS: list[tuple[str, str]] = [
     ("default", "Most Viewed"),
-    ("hot", "Hot Manga"),
-    ("latest", "Latest Releases"),
-    ("updated", "Recently Updated"),
+    ("popular", "Popular"),
+    ("latest", "Latest"),
     ("rating", "Top Rated"),
     ("alphabetical", "A-Z"),
 ]
@@ -127,7 +128,6 @@ GENRES: tuple[tuple[str, str], ...] = (
     ("romance", "Romance"),
     ("school_life", "School Life"),
     ("sci_fi", "Sci-fi"),
-    ("shotacon", "Shotacon"),
     ("slice_of_life", "Slice of Life"),
     ("smut", "Smut"),
     ("sports", "Sports"),

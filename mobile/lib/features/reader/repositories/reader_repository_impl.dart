@@ -2,6 +2,7 @@ import 'dart:ui' show Rect;
 
 import 'package:dio/dio.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/network/interceptors/busy_retry_interceptor.dart' show kConnectionRetryOnlyExtraKey;
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
@@ -57,6 +58,9 @@ class ReaderRepositoryImpl implements ReaderRepository, ReaderAnalysisReports {
           'series_key': seriesKey,
           'chapter_keys': chapterKeys,
         },
+        // Read-only despite the POST (it only builds download plans), but it costs the server a window
+        // of upstream scrapes, so only a connection that never got through is repeated.
+        options: Options(extra: {kConnectionRetryOnlyExtraKey: true}),
       );
       return Ok(ChapterManifestWindow.fromJson(r.data ?? const {}));
     } on DioException catch (e) {

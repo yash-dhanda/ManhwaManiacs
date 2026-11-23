@@ -1167,6 +1167,30 @@ void main() {
       expect(controller.feed.chapters.map((c) => c.id), ['1', '2', '3']);
     });
 
+    test('an extension that lands after the edge moved is dropped, not spliced onto the new edge', () async {
+      final gate = Completer<void>();
+      final controller = ReaderFeedController(
+        anchor: _chapter('2'),
+        order: ['1', '2', '3', '4', '5', '6'],
+        loadChapter: (id) async {
+          if (id == '1') await gate.future;
+          return _chapter(id);
+        },
+      );
+      addTearDown(controller.dispose);
+      await controller.extendForward();
+      await controller.extendForward();
+      expect(controller.feed.chapters.map((c) => c.id), ['2', '3', '4']);
+
+      final backward = controller.extendBackward();
+      await controller.extendForward();
+      expect(controller.feed.chapters.map((c) => c.id), ['3', '4', '5']);
+
+      gate.complete();
+      await backward;
+      expect(controller.feed.chapters.map((c) => c.id), ['3', '4', '5'], reason: 'chapter 1 no longer touches the feed');
+    });
+
     test('a source that refuses is not asked again on the next scroll frame',
         () async {
       var attempts = 0;
@@ -1195,6 +1219,51 @@ void main() {
       now = now.add(const Duration(seconds: 3));
       await controller.extendForward();
       expect(attempts, 2, reason: 'backed off, not given up');
+    });
+
+    test('an explicit retry asks again inside the failure backoff; passive extension does not', () async {
+      var attempts = 0;
+      final now = DateTime(2026);
+      final controller = ReaderFeedController(
+        anchor: _chapter('2'),
+        order: ['2', '3'],
+        clock: () => now,
+        loadChapter: (_) async {
+          attempts++;
+          return null;
+        },
+      );
+      addTearDown(controller.dispose);
+
+      await controller.extendForward();
+      await controller.extendForward();
+      expect(attempts, 1, reason: 'backing off');
+
+      await controller.retryForward();
+      expect(attempts, 2, reason: 'the reader asked');
+      await controller.extendForward();
+      expect(attempts, 2, reason: 'and the backoff is back for scrolling');
+    });
+
+    test('an explicit retry does not start a second extension while one is out', () async {
+      final gate = Completer<void>();
+      var attempts = 0;
+      final controller = ReaderFeedController(
+        anchor: _chapter('2'),
+        order: ['2', '3'],
+        loadChapter: (id) async {
+          attempts++;
+          await gate.future;
+          return _chapter(id);
+        },
+      );
+      addTearDown(controller.dispose);
+      final first = controller.extendForward();
+      final retry = controller.retryForward();
+      gate.complete();
+      await Future.wait([first, retry]);
+      expect(attempts, 1);
+      expect(controller.feed.chapters, hasLength(2));
     });
 
     test('the way out of a run points past the FEED, not past the anchor',

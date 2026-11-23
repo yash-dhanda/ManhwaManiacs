@@ -44,6 +44,8 @@ import { READING_STATUSES } from "../url-state";
 import type { SeriesDetail } from "../types";
 import { CoverImage } from "@/components/ui/cover-image";
 import { chapterDateLabel, chapterUploadedAt } from "@/features/sources/chapter-date";
+import { isLocked, opensInLabel } from "@/lib/chapter-lock";
+import { useMinuteClock } from "@/lib/use-minute-clock";
 
 /**
  * The poster: capped at `max-w-[220px]`, and 220px wide from `lg` up. Both a
@@ -145,14 +147,19 @@ export function SeriesDetailView({ seriesId }: SeriesDetailViewProps) {
   const saver = isNovel === true ? novelSaver : mangaSaver;
   // Display order, not listing order: shift-click ranges over the rows as they
   // are on screen, and this list's sort is remembered per series.
+  // A chapter in early access cannot be fetched, so it is never offered to the
+  // saver: it would only come back as a failure in the run summary.
+  const clock = useMinuteClock();
   const pickerRows = useMemo(
     () =>
-      orderedChapters.map((chapter) => ({
-        key: chapter.key,
-        number: chapter.number,
-        read: series?.progress[chapter.key]?.is_completed ?? false,
-      })),
-    [orderedChapters, series],
+      orderedChapters
+        .filter((chapter) => clock === null || !isLocked(chapter.locked_until, clock))
+        .map((chapter) => ({
+          key: chapter.key,
+          number: chapter.number,
+          read: series?.progress[chapter.key]?.is_completed ?? false,
+        })),
+    [clock, orderedChapters, series],
   );
   const picker = useChapterPicker({
     sourceId,
@@ -462,7 +469,8 @@ export function SeriesDetailView({ seriesId }: SeriesDetailViewProps) {
                 // cached chapter list as `published_at`; absent for the sources
                 // that publish no date at all, in which case the row simply
                 // does not carry one.
-                const uploaded = chapterDateLabel(chapterUploadedAt(chapter));
+                const opensIn = opensInLabel(chapter.locked_until, clock);
+                const uploaded = opensIn ?? chapterDateLabel(chapterUploadedAt(chapter));
                 const picked = picker.isSelected(chapter.key);
                 return (
                   <Link
@@ -476,7 +484,7 @@ export function SeriesDetailView({ seriesId }: SeriesDetailViewProps) {
                     onClick={(event) => {
                       if (!picker.selecting) return;
                       event.preventDefault();
-                      picker.pick(chapter.key, event.shiftKey);
+                      if (opensIn === null) picker.pick(chapter.key, event.shiftKey);
                     }}
                     aria-pressed={picker.selecting ? picked : undefined}
                     // `cv-row`: a row scrolled out of view skips layout and
@@ -490,7 +498,7 @@ export function SeriesDetailView({ seriesId }: SeriesDetailViewProps) {
                     {picker.selecting ? (
                       <ChapterCheckbox
                         checked={picked}
-                        disabled={downloadState === "saved"}
+                        disabled={downloadState === "saved" || opensIn !== null}
                       />
                     ) : null}
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/5 font-mono text-xs tabular-nums text-muted transition-colors group-hover:bg-primary/20 group-hover:text-primary">
@@ -509,7 +517,9 @@ export function SeriesDetailView({ seriesId }: SeriesDetailViewProps) {
                             : chapter.key)}
                       </p>
                       <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted">
-                        {uploaded ? <span>{uploaded}</span> : null}
+                        {uploaded ? (
+                          <span className={cn(opensIn && "text-primary")}>{uploaded}</span>
+                        ) : null}
                         {inProgress && chapter.page_count ? (
                           <span>
                             {progress!.last_page}/{chapter.page_count} pages

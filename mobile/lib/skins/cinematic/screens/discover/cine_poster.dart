@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/network/cover_auto_retry.dart';
 import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -9,7 +10,7 @@ import 'package:manhwamaniacs/skins/cinematic/screens/discover/cine_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
 /// A cover image with the session's credentials, radius 0.
-class CineCover extends ConsumerWidget {
+class CineCover extends ConsumerStatefulWidget {
   const CineCover({
     super.key,
     required this.url,
@@ -22,24 +23,55 @@ class CineCover extends ConsumerWidget {
   final double? displayWidth;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CineCover> createState() => _CineCoverState();
+}
+
+class _CineCoverState extends ConsumerState<CineCover> {
+  CoverAutoRetry? _autoRetry;
+  int _reloads = 0;
+
+  @override
+  void didUpdateWidget(CineCover old) {
+    super.didUpdateWidget(old);
+    if (old.url != widget.url) _autoRetry?.reset();
+  }
+
+  @override
+  void dispose() {
+    _autoRetry?.dispose();
+    super.dispose();
+  }
+
+  void _failed(String url, Object error) => (_autoRetry ??= CoverAutoRetry(() {
+        if (mounted) setState(() => _reloads++);
+      }))
+      .failed(url, error);
+
+  @override
+  Widget build(BuildContext context) {
     final t = context.cine;
-    if (url == null || url!.isEmpty) return ColoredBox(color: t.colorPaper1);
+    final url = widget.url;
+    if (url == null || url.isEmpty) return ColoredBox(color: t.colorPaper1);
     final w =
-        coverRequestWidth(displayWidth, MediaQuery.devicePixelRatioOf(context));
+        coverRequestWidth(widget.displayWidth, MediaQuery.devicePixelRatioOf(context));
     return CachedNetworkImage(
-      imageUrl: coverUrlAtWidth(url!, w),
-      httpHeaders: isApiResourceUrl(ref.watch(apiBaseUrlProvider), url!)
+      // A new key reloads a cover that failed once (see [CoverAutoRetry]).
+      key: ValueKey(_reloads),
+      imageUrl: coverUrlAtWidth(url, w),
+      httpHeaders: isApiResourceUrl(ref.watch(apiBaseUrlProvider), url)
           ? apiImageHttpHeaders(
               ref.watch(authTokenStoreProvider).token,
               profileId: ref.watch(activeProfileProvider)?.id,
             )
           : null,
       cacheManager: CoverCacheManager.instance,
-      fit: fit,
+      fit: widget.fit,
       fadeInDuration: CineDur.beat,
       placeholder: (_, __) => ColoredBox(color: t.colorPaper1),
-      errorWidget: (_, __, ___) => ColoredBox(color: t.colorPaper1),
+      errorWidget: (_, __, error) {
+        _failed(url, error);
+        return ColoredBox(color: t.colorPaper1);
+      },
     );
   }
 }

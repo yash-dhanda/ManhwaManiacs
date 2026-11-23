@@ -86,6 +86,19 @@ def test_list_series_uses_home_path(freeadultcomix_connector: FreeAdultComixConn
     assert len(listing.items) == 24
 
 
+def test_browse_modes_are_default_and_new_with_latest_kept_as_alias(
+    freeadultcomix_connector: FreeAdultComixConnector,
+):
+    assert [m.id for m in freeadultcomix_connector.list_browse_modes()] == ["default", "new"]
+    assert freeadultcomix_connector.LEGACY_SORT_ALIASES == {"latest": "new"}
+    html = (FIXTURES / "home_listing.html").read_text(encoding="utf-8")
+    with patch.object(freeadultcomix_connector, "_fetch_html", return_value=html) as mock_fetch:
+        for sort in (None, "default", "new", "latest"):
+            freeadultcomix_connector.get_series_list(1, sort=sort)
+        freeadultcomix_connector.get_series_list(3, sort="latest")
+    assert [c.args[0] for c in mock_fetch.call_args_list] == ["/", "/", "/", "/", "/page/3/"]
+
+
 def test_search_series_uses_search_path(freeadultcomix_connector: FreeAdultComixConnector):
     html = (FIXTURES / "search_listing.html").read_text(encoding="utf-8")
     with patch.object(freeadultcomix_connector, "_fetch_html", return_value=html) as mock_fetch:

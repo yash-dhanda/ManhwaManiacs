@@ -124,10 +124,12 @@ class AtAGlance extends ConsumerWidget {
                           ? null
                           : () async {
                               feedback(ref, HapticEvent.select);
-                              await ref
+                              // The page can be left while the patch is in flight; `ref` is dead then.
+                              final container = ProviderScope.containerOf(context, listen: false);
+                              await container
                                   .read(libraryRepositoryProvider)
                                   .patchSeries(f.id, readingStatus: wire);
-                              ref.invalidate(updatesProvider);
+                              container.invalidate(updatesProvider);
                             },
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
@@ -202,8 +204,10 @@ class AtAGlance extends ConsumerWidget {
                   onAccept: () => unawaited(accept(tag)),
                   onReject: () async {
                     feedback(ref, HapticEvent.select);
+                    // The page can be left while the rejection is in flight; `ref` is dead then.
+                    final container = ProviderScope.containerOf(context, listen: false);
                     await rejectSuggestedTag(ref, d.sourceId, d.seriesKey, tag);
-                    ref.invalidate(suggestedTagsProvider(key));
+                    container.invalidate(suggestedTagsProvider(key));
                   },
                 ),
             ],

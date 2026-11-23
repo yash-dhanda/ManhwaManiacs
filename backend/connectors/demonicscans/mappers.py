@@ -404,11 +404,11 @@ def page_id_chapter_id(page_id: str) -> str | None:
 
 def listing_path(page: int, *, kind: str) -> str:
     if kind == "latest":
-        safe_page = max(page, 1)
-        # DemonicScans uses `list` as the paging cursor for updates.
-        # page 1 -> list=2, page 2 -> list=3, ...
-        list_value = min(4, safe_page + 1)
-        return f"/lastupdates.php?list={list_value}"
+        # `list` is the 1-based page of the updates feed. This used to send
+        # page 1 to list=2 and cap at 4, which skipped the forty most recently
+        # updated series altogether: list=1 and list=2 share no series
+        # (checked live, 2026-11-23).
+        return f"/lastupdates.php?list={max(page, 1)}"
     if kind == "popular":
         return "/"
     if kind == "search":
@@ -416,6 +416,53 @@ def listing_path(page: int, *, kind: str) -> str:
         list_value = min(4, safe_page + 1)
         return f"/advanced.php?list={list_value}"
     return "/"
+
+
+#: ``/advanced.php`` is the site's filterable catalogue: ``list`` is the 1-based
+#: page, ``orderby`` one of "VIEWS DESC" (Top Views), "ID DESC" (Recently
+#: added), "NAME ASC". Its cards are not the thumb cards of the home/updates
+#: pages, so they have their own parser below.
+ADVANCED_PATH = "/advanced.php"
+ADVANCED_PAGE_SIZE = 56
+ADVANCED_ORDERS = {"popular": "VIEWS DESC", "new": "ID DESC"}
+
+ADVANCED_CARD_RE = re.compile(
+    r'<div class="advanced-element">\s*'
+    r'<a href="(?P<href>/manga/[^"]+)"[^>]*?\btitle="(?P<title>[^"]*)"[^>]*>\s*'
+    r'<img[^>]+src="(?P<cover>[^"]+)"',
+    re.I | re.S,
+)
+_ADVANCED_NEXT_RE = re.compile(r"<li>\s*Next\s*</li>", re.I)
+
+
+def advanced_params(page: int, sort: str) -> dict[str, Any]:
+    return {"list": max(page, 1), "status": "all", "orderby": ADVANCED_ORDERS[sort]}
+
+
+def parse_advanced_list(html_text: str, *, page: int) -> PaginatedSeriesList:
+    items: list[Series] = []
+    seen: set[str] = set()
+    for match in ADVANCED_CARD_RE.finditer(html_text):
+        series_id = _series_id_from_href(match.group("href"))
+        if not series_id or series_id in seen:
+            continue
+        seen.add(series_id)
+        items.append(
+            Series(
+                id=series_id,
+                title=_clean_text(match.group("title")) or series_id.replace("-", " "),
+                cover_url=urljoin(SITE_BASE, _clean_text(match.group("cover"))),
+                canonical_path=f"/manga/{series_id}",
+            )
+        )
+    has_more = bool(items) and _ADVANCED_NEXT_RE.search(html_text) is not None
+    return PaginatedSeriesList(
+        items=items,
+        page=page,
+        page_size=ADVANCED_PAGE_SIZE,
+        total=(page - 1) * ADVANCED_PAGE_SIZE + len(items) + (ADVANCED_PAGE_SIZE if has_more else 0),
+        api_has_more=has_more,
+    )
 
 
 def listing_params(page: int) -> dict[str, Any]:

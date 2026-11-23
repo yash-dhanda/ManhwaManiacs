@@ -88,8 +88,9 @@ class GalaxyMangaConnector(SourceConnector):
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="default", label="Recently Updated"),
-            BrowseMode(id="latest", label="Latest"),
             BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="rating", label="A-Z"),
         ]
 

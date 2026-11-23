@@ -15,6 +15,11 @@ abstract class NarrationPlayer {
   /// Emits `(playing, processing)` on every change.
   Stream<({bool playing, NarrationProcessing processing})> get stateStream;
 
+  /// Playback errors after the load succeeded (a dropped connection, a later range request that
+  /// answers 401 or 404). `just_audio` keeps `playing` and the processing state at their last values
+  /// then, so [stateStream] never says anything went wrong.
+  Stream<Object> get errors;
+
   Duration get position;
   bool get playing;
   NarrationProcessing get processing;
@@ -55,6 +60,15 @@ class JustAudioNarrationPlayer implements NarrationPlayer {
   @override
   Stream<({bool playing, NarrationProcessing processing})> get stateStream =>
       _p.playerStateStream.map((s) => (playing: s.playing, processing: _map(s.processingState)));
+
+  // `just_audio` reports these only as errors on `playbackEventStream`, never on `playerStateStream`.
+  @override
+  Stream<Object> get errors => _p.playbackEventStream.transform(
+        StreamTransformer<PlaybackEvent, Object>.fromHandlers(
+          handleData: (_, __) {},
+          handleError: (e, _, sink) => sink.add(e),
+        ),
+      );
 
   @override
   Duration get position => _p.position;

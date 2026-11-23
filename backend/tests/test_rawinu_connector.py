@@ -175,8 +175,10 @@ def test_each_browse_mode_requests_a_distinct_sort(rawinu: RawInuConnector):
         return _load("browse_page1.html")
 
     with patch.object(rawinu._http, "get_text", side_effect=fake_get_text):
+        # ``latest`` is the canonical twin of ``default`` (same last_update view).
         for mode in rawinu.list_browse_modes():
-            rawinu.get_series_list(1, sort=mode.id)
+            if mode.id != "latest":
+                rawinu.get_series_list(1, sort=mode.id)
 
     pairs = [(p["sort"], p["sort_type"]) for p in captured]
     assert len(set(pairs)) == len(pairs) == 3
@@ -616,3 +618,19 @@ def test_all_image_hosts_are_inside_the_proxy_allowlist(rawinu: RawInuConnector)
     for url in urls:
         host = url.split("://", 1)[1].split("/", 1)[0]
         assert any(host == a or host.endswith("." + a) for a in allowed), host
+
+
+def test_browse_modes_canonical_order_and_requests(rawinu: RawInuConnector):
+    assert [m.id for m in rawinu.list_browse_modes()] == ["default", "popular", "latest", "alpha"]
+    expected = {None: ("last_update", "DESC"), "latest": ("last_update", "DESC"),
+                "popular": ("views", "DESC"), "alpha": ("name", "ASC")}
+    for sort, pair in expected.items():
+        captured: list[dict] = []
+
+        def fake_get_text(path: str, *, params=None, _c=captured):
+            _c.append(params)
+            return _load("browse_page1.html")
+
+        with patch.object(rawinu._http, "get_text", side_effect=fake_get_text):
+            rawinu.get_series_list(2, sort=sort)
+        assert (captured[0]["sort"], captured[0]["sort_type"]) == pair, sort

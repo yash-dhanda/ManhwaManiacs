@@ -1113,6 +1113,13 @@ class UpdateNotification(Base):
     chapter_number: Mapped[float | None] = mapped_column(Float)
     is_read: Mapped[bool] = mapped_column(Integer, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    #: When the announced chapter opens to everyone, as the source said at the
+    #: moment it was announced (``Chapter.locked_until``: an ISO-8601 UTC
+    #: instant ending in ``Z``); NULL for a chapter that was open. Kept as the
+    #: string the client reads, since nothing here ever compares it -- a
+    #: client's own clock decides whether the lock is still on, so a row that
+    #: outlives its lock stops saying "locked" by itself.
+    locked_until: Mapped[str | None] = mapped_column(String(32))
 
     followed_series: Mapped[FollowedSeries] = relationship(
         back_populates="notifications"

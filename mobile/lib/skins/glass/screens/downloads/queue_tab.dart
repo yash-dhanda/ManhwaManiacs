@@ -166,7 +166,7 @@ class _QueueRow extends ConsumerWidget {
     final st = ref.watch(downloadQueueControllerProvider);
     final lead = st.currentChapter == c.identity;
     final text = switch (c.state) {
-      DownloadChapterState.queued => c.kind.isAudio ? 'Fetching the audio…' : (c.kind.isNovel ? 'Fetching the text…' : 'Waiting'),
+      DownloadChapterState.queued => st.heldReasons[c.identity] ?? (c.kind.isAudio ? 'Fetching the audio…' : (c.kind.isNovel ? 'Fetching the text…' : 'Waiting')),
       DownloadChapterState.downloading => c.kind.isNovelSide ? (c.kind.isAudio ? 'Fetching the audio…' : 'Fetching the text…') : (lead && st.pageTotal > 0 ? 'page ${st.pagesDone} of ${st.pageTotal}' : 'Downloading'),
       DownloadChapterState.failed => 'Failed: ${c.error ?? 'unknown error'}',
       DownloadChapterState.complete => 'Saved',

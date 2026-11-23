@@ -50,6 +50,11 @@ class _MemoryOutboxStore extends Fake implements DownloadsStore {
   }
 }
 
+class _ThrowingBackfill extends Fake implements SourceProgressBackfill {
+  @override
+  Future<void> run() => Future.error(StateError('backfill failed'));
+}
+
 class _Repo extends Mock implements ReaderRepository {}
 
 class _Bookmarks extends Fake implements BookmarkOutboxController {
@@ -82,7 +87,7 @@ void main() {
   final readAt = DateTime.utc(2026, 9, 20, 20, 46, 12);
 
   Future<({ProviderContainer container, List<List<ProgressPush>> sent})>
-      pumpGate(WidgetTester tester, {required String? scope}) async {
+      pumpGate(WidgetTester tester, {required String? scope, List<Override> extra = const []}) async {
     SharedPreferences.setMockInitialValues(
       testPrefsDefaults({
         sourceProgressStorageKey(1): jsonEncode({
@@ -124,6 +129,7 @@ void main() {
         bookmarkOutboxControllerProvider.overrideWithValue(_Bookmarks()),
         retentionMaintenanceProvider.overrideWithValue(_Retention()),
         downloadQueueControllerProvider.overrideWith(_IdleQueue.new),
+        ...extra,
       ],
     );
     addTearDown(container.dispose);
@@ -177,5 +183,11 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(sent.expand((batch) => batch), hasLength(1));
+  });
+
+  testWidgets('a backfill that throws is logged, not raised as an uncaught error', (tester) async {
+    await pumpGate(tester, scope: 'u1p1', extra: [sourceProgressBackfillProvider.overrideWithValue(_ThrowingBackfill())]);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
   });
 }

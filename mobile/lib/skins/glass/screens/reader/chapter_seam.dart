@@ -1,5 +1,9 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
+import 'package:manhwamaniacs/features/reader/engine/chapter_locked_flow.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_engine_options.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glass_button.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/glyphs.dart';
@@ -125,6 +129,7 @@ class GlassReaderBands {
   const GlassReaderBands({
     required this.nextLabel,
     required this.previousLabel,
+    this.nextChapterId,
     required this.onRetryNeighbour,
     required this.onOpenNext,
     required this.onDownloadNext,
@@ -140,12 +145,34 @@ class GlassReaderBands {
   final Duration? backoff;
   final bool readAll;
 
+  /// The chapter the next band is for; a lock held for any other chapter is not its lock.
+  final String? nextChapterId;
+
   Widget build(BuildContext context, BandKind kind, {String? from, String? to, Duration? retryIn}) => switch (kind) {
         BandKind.seam => GlassChapterSeam(from: from, to: to, slim: readAll),
         BandKind.top => GlassChapterSeam(from: null, to: from),
         BandKind.topLoading => _Waiting(text: '$previousLabel is on its way'),
         BandKind.nextLoading => _Waiting(text: '$nextLabel is on its way'),
-        BandKind.nextFailed => StripCard(
+        BandKind.nextFailed => Consumer(
+            builder: (context, ref, _) {
+              final lock = ref.watch(readerLockedForProvider(nextChapterId));
+              return lock == null ? _nextFailedCard() : GlassNextLocked(label: nextLabel, lockedUntil: lock.lockedUntil, message: lock.message, onRetry: onRetryNeighbour, onOpen: onOpenNext);
+            },
+          ),
+        BandKind.offlineEnd => StripCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GlassText('$nextLabel needs a connection', role: gt.typeHeadline, color: gt.colorLabel1, textAlign: TextAlign.center),
+                const SizedBox(height: 12),
+                GlassButton(label: 'Download next 10 when online', onPressed: onDownloadNext, variant: GlassButtonVariant.plain, twin: GlassTwin.content, size: GlassButtonSize.small),
+              ],
+            ),
+          ),
+        BandKind.rateLimited => const _Waiting(text: 'The source is rate-limiting; pages will keep loading', warning: true),
+      };
+
+  Widget _nextFailedCard() => StripCard(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -162,19 +189,57 @@ class GlassReaderBands {
                 ),
               ],
             ),
-          ),
-        BandKind.offlineEnd => StripCard(
+          );
+}
+
+/// The next chapter is early access on its source: "Chapter 371 opens in 3:27:14" in place of a retry that cannot work yet. At
+/// zero the strip asks again once after the grace; if the chapter is still shut the server's message and Try again take over.
+class GlassNextLocked extends StatelessWidget {
+  const GlassNextLocked({super.key, required this.label, required this.lockedUntil, required this.message, required this.onRetry, required this.onOpen});
+  final String label, message;
+  final DateTime? lockedUntil;
+  final VoidCallback onRetry, onOpen;
+
+  @override
+  Widget build(BuildContext context) => ChapterLockedFlow(
+        lockedUntil: lockedUntil,
+        retry: onRetry,
+        builder: (context, phase, left) {
+          final counting = phase == ChapterLockPhase.counting;
+          return StripCard(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                GlassText('$nextLabel needs a connection', role: gt.typeHeadline, color: gt.colorLabel1, textAlign: TextAlign.center),
-                const SizedBox(height: 12),
-                GlassButton(label: 'Download next 10 when online', onPressed: onDownloadNext, variant: GlassButtonVariant.plain, twin: GlassTwin.content, size: GlassButtonSize.small),
+                Semantics(
+                  liveRegion: !counting,
+                  label: counting ? '$label. Early access. Opens in ${spokenRemaining(left)}' : null,
+                  excludeSemantics: counting,
+                  child: GlassText(
+                    counting ? '$label opens in ${formatCountdown(left)}' : (phase == ChapterLockPhase.opening ? '$label is opening' : message),
+                    role: gt.typeHeadline,
+                    color: gt.colorLabel1,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                if (counting && lockedUntil != null) ...[
+                  const SizedBox(height: 4),
+                  GlassText('Open to everyone at ${localOpenTime(lockedUntil!)}', role: gt.typeFootnote, color: gt.colorLabel2, textAlign: TextAlign.center),
+                ],
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    if (phase == ChapterLockPhase.expired) GlassButton(label: 'Try again', onPressed: onRetry, twin: GlassTwin.content, size: GlassButtonSize.small),
+                    GlassButton(label: 'Open it on its own', onPressed: onOpen, variant: GlassButtonVariant.plain, twin: GlassTwin.content, size: GlassButtonSize.small),
+                  ],
+                ),
               ],
             ),
-          ),
-        BandKind.rateLimited => const _Waiting(text: 'The source is rate-limiting; pages will keep loading', warning: true),
-      };
+          );
+        },
+      );
 }
 
 class _Waiting extends StatelessWidget {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -41,15 +42,23 @@ void main() {
   late NarrationHarness h;
   late _FakeEngine engine;
   late List<String> session;
+  Completer<void>? beginGate;
 
   Future<void> setUpHarness() async {
     engine = _FakeEngine();
     session = [];
+    beginGate = null;
     h = await NarrationHarness.create(
       extra: [
         sampleEngineProvider.overrideWithValue(engine),
         voiceSampleSessionProvider.overrideWithValue((
-          begin: () async => session.add('begin'),
+          begin: () async {
+            session.add('begin');
+            // Holds only the first call that finds a gate, like a slow audio-session switch.
+            final gate = beginGate;
+            beginGate = null;
+            if (gate != null) await gate.future;
+          },
           end: () async => session.add('end'),
         ),),
       ],
@@ -130,6 +139,37 @@ void main() {
       await player().stop();
       await h.settle();
       expect(h.player.playing, isTrue);
+    });
+  });
+
+  testWidgets('a superseded sample does not resume narration under the one that replaced it', (tester) async {
+    await tester.runAsync(setUpHarness);
+    addTearDown(h.dispose);
+    await tester.runAsync(() async {
+      await h.startAndSettle(listenTarget());
+      expect(h.player.playing, isTrue);
+      final release = Completer<void>();
+      beginGate = release;
+      final a = player().play('a');
+      await h.settle();
+      final b = player().play('b');
+      await h.settle();
+      expect(state().isPlaying('b'), isTrue);
+      expect(h.player.playing, isFalse);
+      // A's audio-session switch finally answers, after B took over.
+      release.complete();
+      await a;
+      await b;
+      await h.settle();
+      expect(state().isPlaying('b'), isTrue);
+      expect(h.player.playing, isFalse);
+      expect(engine.log.where((l) => l.startsWith('play')), ['play voice-sample-b.ogg']);
+
+      final playsBefore = h.player.calls.where((c) => c == 'play').length;
+      await player().stop();
+      await h.settle();
+      expect(h.player.playing, isTrue);
+      expect(h.player.calls.where((c) => c == 'play').length, playsBefore + 1);
     });
   });
 

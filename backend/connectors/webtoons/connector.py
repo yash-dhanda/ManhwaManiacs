@@ -49,6 +49,11 @@ from connectors.webtoons.mappers import (
 
 logger = logging.getLogger(__name__)
 
+#: Browse mode -> the listing's ``sortOrder`` (Originals and genre pages).
+#: ``MANA`` is the site's own default order (popularity); ``UPDATE`` is most
+#: recently updated first. The site offers no newly-added ordering.
+SORT_ORDERS = {"popular": "MANA", "latest": "UPDATE"}
+
 # Episode-list pages are fetched in bounded parallel batches. WEBTOON paginates
 # a long series into ten-episode pages, so a 114-episode title used to cost
 # twelve strictly sequential round trips (measured 8.0s from the VPS). The
@@ -152,6 +157,8 @@ class WebtoonsConnector(SourceConnector):
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="default", label="Originals"),
+            BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="latest", label="Latest"),
             BrowseMode(id="canvas", label="Canvas"),
         ]
 
@@ -184,11 +191,13 @@ class WebtoonsConnector(SourceConnector):
             if slug is not None:
                 self._slug_cache.set(item.id, slug)
 
-    def _load_catalog(self, path: str, cache_key: str) -> list[Series]:
+    def _load_catalog(
+        self, path: str, cache_key: str, params: dict[str, str] | None = None
+    ) -> list[Series]:
         cached = self._catalog_cache.get(cache_key)
         if cached is not None:
             return cached
-        html = self._http.get_text(path)
+        html = self._http.get_text(path, params=params) if params else self._http.get_text(path)
         items = parse_series_cards(html)
         if items:
             self._remember_slugs(items)
@@ -242,14 +251,19 @@ class WebtoonsConnector(SourceConnector):
 
     def get_series_list(self, page: int, *, sort: str | None = None) -> PaginatedSeriesList:
         page = max(page, 1)
+        params: dict[str, str] | None = None
         if sort == "canvas":
             path = canvas_path()
             cache_key = "canvas"
         else:
             path = originals_path()
             cache_key = "originals"
+            order = SORT_ORDERS.get(sort or "")
+            if order:
+                params = {"sortOrder": order}
+                cache_key = f"originals:{order}"
         try:
-            catalog = self._load_catalog(path, cache_key)
+            catalog = self._load_catalog(path, cache_key, params)
         except ConnectorHttpError as exc:
             self._log("browse", path, status="error", detail=str(exc))
             raise
@@ -272,8 +286,13 @@ class WebtoonsConnector(SourceConnector):
         page = max(page, 1)
         slug = fully_unquote(genre).strip().strip("/")
         path = genre_path(slug)
+        order = SORT_ORDERS.get(sort or "")
         try:
-            catalog = self._load_catalog(path, f"genre:{slug}")
+            catalog = self._load_catalog(
+                path,
+                f"genre:{slug}:{order}" if order else f"genre:{slug}",
+                {"sortOrder": order} if order else None,
+            )
         except ConnectorHttpError as exc:
             self._log("genre", path, status="error", detail=str(exc))
             raise

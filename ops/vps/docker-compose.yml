@@ -32,6 +32,10 @@ services:
       # minute per IP: one page a second, so ten chapters of downloads took
       # minutes however many the phone asked for. 1500 a minute (25 a second)
       # lets the phone's request gate (24 open) run full. Private app, 4 vCPU.
+      #
+      # Page images and covers have since moved to their own bucket
+      # (MM_RATE_LIMIT_IMAGES), whose default is this same 1500. This line is
+      # kept so the catalogue routes stay as they have been running here.
       - MM_RATE_LIMIT_SOURCES=1500/minute
       # OPEN, and deliberately so: the owner wants anyone who finds the site
       # to be able to sign up, and re-confirmed that on 2026-09-06 when an
@@ -91,6 +95,16 @@ services:
       # is placed on the box by hand: ops/vps/.env, one line,
       # DEEPSEEK_API_KEY=..., then `docker compose ... up -d backend`.
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      # Alternate egress (docs/VPS_OPERATIONS.md "Routing blocked sources
+      # through a second server"): a forward proxy on another server that the
+      # listed sources' outbound requests go through, for sources that refuse
+      # this box's datacenter address. The proxy URL carries its password, so
+      # like the key above it comes from the untracked ops/vps/.env, never from
+      # this file. Both empty = off, and toonily/weebcentral stay unregistered.
+      # Read once at boot: edit ops/vps/.env, then `docker compose ... up -d
+      # backend`.
+      - MM_ALT_EGRESS_PROXY=${MM_ALT_EGRESS_PROXY:-}
+      - MM_ALT_EGRESS_SOURCES=${MM_ALT_EGRESS_SOURCES:-}
     volumes:
       - /srv/manhwamaniacs/data:/data
       # APK / IPA drop-in (populated by the mobile build pipeline — 1c). Dirs

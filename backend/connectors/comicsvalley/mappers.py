@@ -54,7 +54,9 @@ READ_ONLINE_RE = re.compile(
 
 SORT_TO_ORDER: dict[str, str] = {
     "default": "latest",
-    "latest": "new-manga",
+    # ``latest`` = recently updated (same as default); ``new`` = recently added.
+    "latest": "latest",
+    "new": "new-manga",
     "popular": "views",
     "rating": "ratings",
 }

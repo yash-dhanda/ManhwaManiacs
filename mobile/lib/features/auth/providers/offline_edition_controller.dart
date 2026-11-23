@@ -84,6 +84,11 @@ class OfflineEditionController {
   int _syncs = 0;
   bool _disposed = false;
 
+  /// True while a `/health` probe is in flight. The probe's own failed request is reported on the
+  /// failure stream (synchronously), which lands in [_onFailure] while [_timer] is null; without this
+  /// it would start a second chain per probe and the timers would double every round.
+  bool _probing = false;
+
   bool get polling => _timer != null;
 
   void _onFailure(AppError _) {
@@ -93,7 +98,7 @@ class OfflineEditionController {
   }
 
   void _startPolling() {
-    if (_timer != null || _disposed) return;
+    if (_timer != null || _probing || _disposed) return;
     _attempt = 0;
     _schedule();
   }
@@ -102,7 +107,13 @@ class OfflineEditionController {
     _timer = Timer(offlinePollDelay(_attempt++), () async {
       _timer = null;
       if (_disposed) return;
-      final up = await _ref.read(serverProbeProvider)();
+      _probing = true;
+      final bool up;
+      try {
+        up = await _ref.read(serverProbeProvider)();
+      } finally {
+        _probing = false;
+      }
       if (_disposed) return;
       if (up) {
         await _backOnline();
@@ -134,6 +145,7 @@ class OfflineEditionController {
   void dispose() {
     _disposed = true;
     _timer?.cancel();
+    _timer = null;
     _sub?.cancel();
   }
 }

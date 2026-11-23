@@ -107,8 +107,9 @@ class ElfToonConnector(SourceConnector):
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="default", label="Latest"),
-            BrowseMode(id="latest", label="New"),
             BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="rating", label="Top Rated"),
         ]
 

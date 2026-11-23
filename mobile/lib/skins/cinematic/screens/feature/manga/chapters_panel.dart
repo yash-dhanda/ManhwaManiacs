@@ -92,17 +92,20 @@ void featureToast(BuildContext context, String message,
 /// both send the same requests: Mark read (`manual: true` rows, 200 a time),
 /// Mark unread (`DELETE` keys) and their Undos.
 class ChapterMarks {
-  ChapterMarks(this.ref, this.d);
-  final WidgetRef ref;
+  ChapterMarks(this.container, this.d);
+
+  /// A container, not a `ref`: these calls take seconds and their Undo outlives the page, whose
+  /// `ref` throws once it is disposed.
+  final ProviderContainer container;
   final FeatureData d;
 
   SourceSeriesRef get _key => (sourceId: d.sourceId, seriesId: d.seriesKey);
 
-  void _refresh() => ref.invalidate(sourceSeriesServerProgressProvider(_key));
+  void _refresh() => container.invalidate(sourceSeriesServerProgressProvider(_key));
 
   Future<bool> _delete(List<String> keys) async {
     for (final chunk in chunksOf200(keys)) {
-      final r = await ref.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
+      final r = await container.read(readerRepositoryProvider).deleteProgress(sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKeys: chunk);
       if (r.isErr) return false;
     }
     return true;
@@ -110,7 +113,7 @@ class ChapterMarks {
 
   Future<bool> _post(List<ProgressPush> rows) async {
     for (final chunk in chunksOf200(rows)) {
-      final r = await ref.read(readerRepositoryProvider).saveProgressBatch(chunk);
+      final r = await container.read(readerRepositoryProvider).saveProgressBatch(chunk);
       if (r.isErr) return false;
     }
     return true;
@@ -124,7 +127,7 @@ class ChapterMarks {
     final rows = manualReadRows([
       for (final c in chapters)
         (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id, chapterNumber: c.number, pageCount: c.pageCount, completed: false),
-    ], at: manualMarkStamp(ref.read(sourceSeriesProgressProvider(_key))),);
+    ], at: manualMarkStamp(container.read(sourceSeriesProgressProvider(_key))),);
     final ok = await _post(rows);
     _refresh();
     return ok ? [for (final c in chapters) c.id] : null;
@@ -144,14 +147,14 @@ class ChapterMarks {
   Future<Map<String, SourceChapterProgress>?> markUnread(List<String> keys) async {
     // The merged (phone + server) positions, so an Undo re-posts rows that
     // exist only on the server too.
-    final merged = ref.read(sourceSeriesProgressProvider(_key));
+    final merged = container.read(sourceSeriesProgressProvider(_key));
     final prior = {
       for (final k in keys)
         if (merged[k] != null) k: merged[k]!,
     };
     final ok = await _delete(keys);
     if (ok) {
-      await ref
+      await container
           .read(sourceProgressProvider.notifier)
           .forget(sourceId: d.sourceId, seriesId: d.seriesKey, chapterIds: keys);
     }
@@ -178,7 +181,7 @@ class ChapterMarks {
         ),
     ];
     if (!await _post(rows)) return false;
-    await ref.read(sourceProgressProvider.notifier).restoreRecords(
+    await container.read(sourceProgressProvider.notifier).restoreRecords(
           sourceId: d.sourceId,
           seriesId: d.seriesKey,
           records: deleted,
@@ -189,7 +192,7 @@ class ChapterMarks {
 
   /// A bookmark at page 1 of [c], through the bookmark outbox.
   Future<bool> bookmarkStart(SourceChapterSummary c, {BookmarkMedia media = BookmarkMedia.manga}) async {
-    final b = await ref.read(bookmarkOutboxControllerProvider).create(
+    final b = await container.read(bookmarkOutboxControllerProvider).create(
           id: (sourceId: d.sourceId, seriesKey: d.seriesKey, chapterKey: c.id),
           media: media,
           anchorIndex: 1,
@@ -274,7 +277,7 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
 
   FeatureData get d => widget.data;
   String? get _profileId => ref.read(activeProfileProvider)?.id.toString();
-  ChapterMarks get _marks => ChapterMarks(ref, d);
+  ChapterMarks get _marks => ChapterMarks(ProviderScope.containerOf(context, listen: false), d);
   SourceSeriesRef get _pkey => (sourceId: d.sourceId, seriesId: d.seriesKey);
 
   String get order =>
@@ -401,23 +404,29 @@ class _ChaptersPanelState extends ConsumerState<ChaptersPanel> {
 
   Future<void> _markRead(List<SourceChapterSummary> chapters, String message) async {
     final before = _completed();
-    final marked = await _marks.markRead(chapters, previouslyCompleted: before);
+    // Taken before the await: the Undo below runs after the page may be gone.
+    final marks = _marks;
+    final marked = await marks.markRead(chapters, previouslyCompleted: before);
     if (!mounted) return;
     if (marked == null) return markFailedToast(context);
     feedback(ref, HapticEvent.select);
+    // The Undo runs from the app's messenger, after this page may be gone: its `context` getter throws then.
+    final ctx = context;
     featureToast(context, message,
-        onUndo: () => unawaited(undoOrToast(context, _marks.undoMarkRead(before, marked))),);
+        onUndo: () => unawaited(undoOrToast(ctx, marks.undoMarkRead(before, marked))),);
   }
 
   Future<void> _markUnread(SourceChapterSummary c) async {
-    final deleted = await _marks.markUnread([c.id]);
+    final marks = _marks;
+    final deleted = await marks.markUnread([c.id]);
     if (!mounted) return;
     if (deleted == null) return markFailedToast(context);
     feedback(ref, HapticEvent.select);
+    final ctx = context;
     featureToast(
       context,
       'Marked chapter${_num(c)} unread.',
-      onUndo: () => unawaited(undoOrToast(context, _marks.undoMarkUnread(deleted, {c.id: c.number}))),
+      onUndo: () => unawaited(undoOrToast(ctx, marks.undoMarkUnread(deleted, {c.id: c.number}))),
     );
   }
 

@@ -89,6 +89,11 @@ export interface SourceChapterSummary {
   number: number | null;
   page_count: number;
   release_date: string | null;
+  /**
+   * When an early-access chapter opens to everyone (ISO-8601 UTC); null or
+   * absent when it is open. Judge it with `isLocked` against the clock.
+   */
+  locked_until?: string | null;
 }
 
 /**

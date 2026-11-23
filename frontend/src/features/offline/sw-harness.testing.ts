@@ -73,10 +73,17 @@ interface MatchOptions {
 
 type Fetcher = (request: RequestLike) => Promise<Response>;
 
+/** Decides whether a `put` into `cacheName` for `url` throws (e.g. a full disk). */
+type PutFailure = (cacheName: string, url: string) => boolean;
+
 class FakeCache {
   readonly entries = new Map<string, StoredResponse>();
 
-  constructor(private readonly fetcher: Fetcher) {}
+  constructor(
+    private readonly fetcher: Fetcher,
+    private readonly name: string,
+    private readonly failPut: () => PutFailure | null,
+  ) {}
 
   async match(request: RequestLike, options?: MatchOptions): Promise<Response | undefined> {
     const key = urlOf(request);
@@ -95,6 +102,9 @@ class FakeCache {
   }
 
   async put(request: RequestLike, response: Response): Promise<void> {
+    if (this.failPut()?.(this.name, urlOf(request))) {
+      throw new DOMException("The quota has been exceeded.", "QuotaExceededError");
+    }
     // Stored as text, so a cached entry can be handed out many times without
     // the body-already-consumed problem a real Response would have.
     const headers: Record<string, string> = {};
@@ -124,15 +134,18 @@ class FakeCache {
   }
 }
 
-class FakeCacheStorage {
+export class FakeCacheStorage {
   readonly caches = new Map<string, FakeCache>();
 
-  constructor(private readonly fetcher: Fetcher) {}
+  constructor(
+    private readonly fetcher: Fetcher,
+    private readonly failPut: () => PutFailure | null = () => null,
+  ) {}
 
   async open(name: string): Promise<FakeCache> {
     const existing = this.caches.get(name);
     if (existing) return existing;
-    const created = new FakeCache(this.fetcher);
+    const created = new FakeCache(this.fetcher, name, this.failPut);
     this.caches.set(name, created);
     return created;
   }
@@ -151,6 +164,11 @@ class FakeCacheStorage {
 }
 
 export interface RouteResult {
+  /**
+   * Never answers. Only the request's own abort signal ends it, as a real
+   * stalled connection behaves.
+   */
+  hang?: boolean;
   status?: number;
   body?: string;
   headers?: Record<string, string>;
@@ -169,6 +187,8 @@ export interface Harness {
   /** Every URL the worker asked the network for, in order. */
   fetched: string[];
   offline: boolean;
+  /** Make `cache.put` throw `QuotaExceededError` where this returns true. */
+  failPut: PutFailure | null;
   estimate: { usage: number; quota: number } | null;
   clients: HarnessClient[];
   cacheNames(): Promise<string[]>;
@@ -195,23 +215,44 @@ export interface FetchOutcome {
   error: unknown;
 }
 
-export function createHarness(): Harness {
+/**
+ * `storage` hands a second worker instance the Cache Storage a first one left
+ * behind, which is what a restarted worker finds: everything on disk, nothing
+ * in memory.
+ */
+export function createHarness(options: { storage?: FakeCacheStorage } = {}): Harness {
   const routes = new Map<string, RouteResult>();
   const fetched: string[] = [];
   const listeners = new Map<string, (event: unknown) => void>();
-  const storage = new FakeCacheStorage((request) => fakeFetch(request));
+  const storage =
+    options.storage ??
+    new FakeCacheStorage(
+      (request) => fakeFetch(request),
+      () => harness.failPut ?? null,
+    );
 
   const harness: Partial<Harness> & { offline: boolean } = {
     offline: false,
+    failPut: null,
     estimate: { usage: 1_000, quota: 10_000_000_000 },
     clients: [{ id: "client-a", messages: [] }],
   };
 
-  async function fakeFetch(request: RequestLike): Promise<Response> {
+  async function fakeFetch(
+    request: RequestLike,
+    init?: { signal?: AbortSignal },
+  ): Promise<Response> {
     const url = urlOf(request);
     fetched.push(url);
     if (harness.offline) throw new TypeError("Failed to fetch");
     const route = routes.get(url);
+    if (route?.hang) {
+      return new Promise<Response>((_resolve, reject) => {
+        const abort = () => reject(new DOMException("The operation was aborted.", "AbortError"));
+        if (init?.signal?.aborted) abort();
+        else init?.signal?.addEventListener("abort", abort);
+      });
+    }
     if (!route) return new Response("not found", { status: 404 });
     const headers = {
       "content-length": String((route.body ?? "").length),
@@ -287,6 +328,12 @@ export function createHarness(): Harness {
     },
     set offline(value: boolean) {
       harness.offline = value;
+    },
+    get failPut() {
+      return harness.failPut ?? null;
+    },
+    set failPut(value: PutFailure | null) {
+      harness.failPut = value;
     },
     get estimate() {
       return harness.estimate ?? null;

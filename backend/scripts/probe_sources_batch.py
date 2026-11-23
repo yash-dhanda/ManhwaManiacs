@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from connectors.excluded import EXCLUDED_CONNECTORS
+from connectors.excluded import inactive_connectors
 from connectors.registry import create_connector
 
 SOURCES = [
@@ -144,7 +144,7 @@ def main() -> None:
         "unknown": [],
     }
     for sid in SOURCES:
-        if sid in EXCLUDED_CONNECTORS:
+        if sid in inactive_connectors():
             results["excluded"].append(sid)
             continue
         try:

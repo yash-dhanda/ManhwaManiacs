@@ -92,6 +92,7 @@ class FanFoxConnector(SourceConnector):
     """Browse and read manga from Manga Fox."""
 
     SOURCE_TYPE = "fanfox"
+    LEGACY_SORT_ALIASES = {"news": "new"}
     DISPLAY_NAME = "Manga Fox"
     DESCRIPTION = (
         "Browse and read manga, manhwa, and manhua from Manga Fox (fanfox.net), "
@@ -170,8 +171,9 @@ class FanFoxConnector(SourceConnector):
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="default", label="Browse"),
-            BrowseMode(id="latest", label="Latest Updates"),
-            BrowseMode(id="news", label="New Series"),
+            BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="rating", label="Top Rated"),
             BrowseMode(id="az", label="A-Z"),
         ]

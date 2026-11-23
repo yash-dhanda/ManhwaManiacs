@@ -110,11 +110,16 @@ def item_error(source_id: str, exc: BaseException) -> dict[str, Any]:
     poor place to publish one.
     """
     if isinstance(exc, AppError):
-        return {
+        error: dict[str, Any] = {
             "code": exc.code,
             "status": exc.status_code,
             "message": exc.message,
         }
+        if exc.code == "chapter_locked" and isinstance(exc.details, dict):
+            # The one failure a client acts on by its details: it counts down
+            # to this instant and asks again when it passes.
+            error["locked_until"] = exc.details.get("locked_until")
+        return error
 
     from services.browse_service import BrowseService
 

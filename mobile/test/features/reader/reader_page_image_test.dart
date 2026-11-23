@@ -1,8 +1,11 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
+// ignore: depend_on_referenced_packages
+import 'package:file/local.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_page_image.dart';
@@ -297,7 +300,8 @@ void main() {
         final outer = tester.widget<Image>(
           find.byWidgetPredicate(
             (widget) =>
-                widget is Image && widget.key == ValueKey('local:${file.path}:0'),
+                widget is Image &&
+                widget.key == ValueKey('local:${file.path}:0'),
           ),
         );
         // Downsampled to the display size, not the blob's native size.
@@ -318,4 +322,160 @@ void main() {
       },
     );
   });
+
+  group('ReaderPageImage automatic retry', () {
+    late Directory dir;
+    late File png;
+
+    setUp(() {
+      dir = Directory.systemTemp.createTempSync('rpi');
+      png = File('${dir.path}/p.png')..writeAsBytesSync(buildPng(4, 6));
+    });
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    Widget page(_ScriptedCache cache, {VoidCallback? onBroken}) {
+      final url = 'http://x.test/p${_urlSeq++}.png';
+      return _harness(
+        width: 90,
+        child: ReaderPageImage(
+          imageUrl: url,
+          alt: 'page',
+          aspectRatio: 2 / 3,
+          fitMode: ReaderFitMode.width,
+          backgroundColor: ReaderColors.bg,
+          cornerRadius: 0,
+          cacheManager: cache,
+          brokenBuilder: (context, retry) {
+            onBroken?.call();
+            return TextButton(onPressed: retry, child: const Text('BROKEN'));
+          },
+        ),
+      );
+    }
+
+    testWidgets(
+        'fails twice then loads with no tap and never shows the broken state',
+        (tester) async {
+      final cache = _ScriptedCache([
+        const HttpExceptionWithStatus(502, 'bad'),
+        const HttpExceptionWithStatus(429, 'slow'),
+      ], png,);
+      var broken = 0;
+      await tester.pumpWidget(page(cache, onBroken: () => broken++));
+      await _realWait(tester, 50);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1600));
+      await _realWait(tester, 50);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 4100));
+      for (var i = 0;
+          i < 20 && find.byType(ReaderLoadedPageImage).evaluate().isEmpty;
+          i++) {
+        await _realWait(tester, 100);
+        await tester.pump();
+      }
+      expect(cache.calls, 3);
+      expect(broken, 0);
+      expect(find.text('BROKEN'), findsNothing);
+      expect(find.byType(ReaderLoadedPageImage), findsOneWidget);
+    });
+
+    testWidgets('three failures show the broken state, whose Retry still works',
+        (tester) async {
+      final cache = _ScriptedCache(
+          [const HttpExceptionWithStatus(502, 'bad')], png,
+          failForever: true,);
+      await tester.pumpWidget(page(cache));
+      Future<void> settle() async {
+        await _realWait(tester, 50);
+        await tester.pump();
+      }
+
+      await settle();
+      expect(find.text('BROKEN'), findsNothing);
+      await tester.pump(const Duration(milliseconds: 1600));
+      await settle();
+      expect(find.text('BROKEN'), findsNothing);
+      await tester.pump(const Duration(milliseconds: 4100));
+      await settle();
+      expect(cache.calls, 3);
+      expect(find.text('BROKEN'), findsOneWidget);
+
+      cache.failForever = false;
+      await tester.tap(find.text('BROKEN'));
+      await tester.pump();
+      for (var i = 0;
+          i < 20 && find.byType(ReaderLoadedPageImage).evaluate().isEmpty;
+          i++) {
+        await _realWait(tester, 100);
+        await tester.pump();
+      }
+      expect(cache.calls, 4);
+      expect(find.byType(ReaderLoadedPageImage), findsOneWidget);
+    });
+
+    testWidgets('404, 410 and 423 go straight to the broken state',
+        (tester) async {
+      for (final status in [404, 410, 423]) {
+        final cache = _ScriptedCache(
+            [HttpExceptionWithStatus(status, 'no')], png,
+            failForever: true,);
+        await tester.pumpWidget(page(cache));
+        await _realWait(tester, 50);
+        await tester.pump();
+        expect(find.text('BROKEN'), findsOneWidget, reason: '$status');
+        await tester.pump(const Duration(seconds: 10));
+        expect(cache.calls, 1, reason: '$status');
+        await tester.pumpWidget(const SizedBox());
+      }
+    });
+
+    testWidgets(
+        'disposing mid-wait leaves no pending timer and no further load',
+        (tester) async {
+      final cache = _ScriptedCache(
+          [const HttpExceptionWithStatus(502, 'bad')], png,
+          failForever: true,);
+      await tester.pumpWidget(page(cache));
+      await _realWait(tester, 50);
+      await tester.pump();
+      expect(find.text('BROKEN'), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      // The harness fails the test if a Timer is still pending when it ends.
+      expect(cache.calls, 1);
+    });
+  });
+}
+
+/// Lets real time pass (file reads and decodes run outside the test's fake clock).
+Future<void> _realWait(WidgetTester tester, int ms) async {
+  await tester.runAsync(() => Future<void>.delayed(Duration(milliseconds: ms)));
+}
+
+// Each test needs its own URL: the global ImageCache keys on it, not on the cache manager.
+int _urlSeq = 0;
+
+/// A cache manager whose downloads fail with the scripted errors in order, then succeed with [file]
+/// (or keep failing with the last error while [failForever]).
+class _ScriptedCache implements BaseCacheManager {
+  _ScriptedCache(this.errors, this.file, {this.failForever = false});
+  final List<Object> errors;
+  final File file;
+  bool failForever;
+  int calls = 0;
+
+  @override
+  Stream<FileResponse> getFileStream(String url,
+      {String? key,
+      Map<String, String>? headers,
+      bool withProgress = false,}) async* {
+    final i = calls++;
+    if (failForever) throw errors[i < errors.length ? i : errors.length - 1];
+    if (i < errors.length) throw errors[i];
+    yield FileInfo(const LocalFileSystem().file(file.path), FileSource.Online,
+        DateTime.now().add(const Duration(days: 1)), url,);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

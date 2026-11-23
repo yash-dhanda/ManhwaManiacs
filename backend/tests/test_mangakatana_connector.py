@@ -87,7 +87,7 @@ def test_each_browse_mode_requests_a_distinct_order_value(
 
     with patch.object(mangakatana_connector._http, "get_text", side_effect=fake_get_text):
         mangakatana_connector.get_series_list(1, sort="default")
-        mangakatana_connector.get_series_list(1, sort="latest")
+        mangakatana_connector.get_series_list(1, sort="new")
         mangakatana_connector.get_series_list(1, sort="popular")
         mangakatana_connector.get_series_list(1, sort="rating")
 
@@ -281,3 +281,27 @@ def test_non_image_bytes_are_not_promoted_to_an_image_type(
 
     assert media_type == "application/octet-stream"
     assert not media_type.startswith("image/")
+
+
+def test_browse_modes_canonical_order_and_requests(
+    mangakatana_connector: MangaKatanaConnector,
+):
+    assert [m.id for m in mangakatana_connector.list_browse_modes()] == [
+        "default", "popular", "latest", "new", "rating",
+    ]
+    expected = {
+        None: "latest", "default": "latest", "popular": "numc",
+        "latest": "latest", "new": "new", "rating": "az",
+    }
+    for sort, order in expected.items():
+        captured: list[dict] = []
+
+        def fake_get_text(path: str, *, params=None, _c=captured):
+            _c.append({"path": path, **(params or {})})
+            return "<html></html>"
+
+        with patch.object(mangakatana_connector._http, "get_text", side_effect=fake_get_text):
+            mangakatana_connector.get_series_list(2, sort=sort)
+        assert captured[0]["order"] == order, sort
+        assert captured[0]["filter"] == 1
+        assert captured[0]["path"].endswith("/2"), captured[0]["path"]

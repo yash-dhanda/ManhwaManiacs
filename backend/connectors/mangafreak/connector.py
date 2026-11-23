@@ -71,6 +71,7 @@ class MangaFreakConnector(SourceConnector):
     #: own size, which the parser encodes.
     _BROWSE_MODES = {
         "default": ("/Latest_Releases/{page}", parse_latest_releases),
+        "latest": ("/Latest_Releases/{page}", parse_latest_releases),
         "popular": ("/Genre/All/{page}", parse_ranking),
         "all": ("/Mangalist/All/{page}", parse_mangalist),
     }
@@ -115,6 +116,7 @@ class MangaFreakConnector(SourceConnector):
         return [
             BrowseMode(id="default", label="Latest Releases"),
             BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="latest", label="Latest"),
             BrowseMode(id="all", label="All Manga (A-Z)"),
         ]
 

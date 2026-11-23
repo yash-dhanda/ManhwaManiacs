@@ -27,7 +27,10 @@ SEARCH_PAGE_SIZE = 10
 # Themesia /manga/ filter form ``order`` values.
 SORT_TO_ORDER: dict[str, str] = {
     "default": "update",
-    "latest": "latest",
+    # Canonical ids: ``latest`` = recently updated, ``new`` = recently added.
+    # The site's own "latest" order is Latest *Added*; it is now ``new``.
+    "latest": "update",
+    "new": "latest",
     "popular": "popular",
     "rating": "rating",
 }

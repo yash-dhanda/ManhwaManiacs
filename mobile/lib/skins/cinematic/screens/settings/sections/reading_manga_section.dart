@@ -40,6 +40,8 @@ class ReadingMangaSection extends ConsumerWidget {
           (i) => n.put({'tapZone.$side': _tapValues[i]}),
         );
 
+    // The resets take a while and the page can be left meanwhile, which kills its `ref`.
+    final container = ProviderScope.containerOf(context, listen: false);
     Future<void> reset() async {
       final ok = await showCineConfirm(
         context,
@@ -53,8 +55,8 @@ class ReadingMangaSection extends ConsumerWidget {
       await devN.setLockControls(false);
       await devN.setVolumeKeyNavigation(false);
       await devN.setRefreshRate(ReaderRefreshRate.auto);
-      await ref.read(stripWidthProvider.notifier).set(680);
-      ref.read(cineToastsProvider.notifier).info('Reader settings reset.');
+      await container.read(stripWidthProvider.notifier).set(680);
+      container.read(cineToastsProvider.notifier).info('Reader settings reset.');
     }
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

@@ -5,6 +5,7 @@ import { ImageOff } from "lucide-react";
 import type { ReactNode } from "react";
 import type { ReaderSurfaceSlots } from "../engine/slots";
 import { StripHead, StripTail } from "./ReaderControls";
+import { ChapterLockedNotice } from "./ChapterLockedNotice";
 
 /**
  * The legacy reader's surface decorations, moved verbatim out of the engine
@@ -33,7 +34,14 @@ export function createLegacySurfaceSlots(seriesHref: string): ReaderSurfaceSlots
     ),
 
     // RD2
-    error: (message, retry) => <LegacyError message={message} retry={retry} seriesHref={seriesHref} />,
+    error: (message, retry, lock) => (
+      <ChapterLockedNotice
+        lock={lock}
+        retry={retry}
+        seriesHref={seriesHref}
+        fallback={<LegacyError message={message} retry={retry} seriesHref={seriesHref} />}
+      />
+    ),
 
     // RD3
     empty: () => (
@@ -64,8 +72,15 @@ export function createLegacySurfaceSlots(seriesHref: string): ReaderSurfaceSlots
     ),
 
     // RD9
-    tail: ({ edge, hasMore, href, error, retry }) => (
-      <StripTail hasMore={hasMore} error={error} onRetry={retry} label={edge.label} href={href} />
+    tail: ({ edge, hasMore, href, error, lock, retry }) => (
+      <StripTail
+        hasMore={hasMore}
+        error={error}
+        lock={lock}
+        onRetry={retry}
+        label={edge.label}
+        href={href}
+      />
     ),
 
     // RD5: the reserved box is filled by `pageBoxClass` (the reader backdrop).

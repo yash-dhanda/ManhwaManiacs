@@ -141,6 +141,9 @@ class OmegaScansConnector(SourceConnector):
         # protection later.
         return {"Referer": f"{SITE_BASE}/"}
 
+    #: Ids advertised before the canonical popular/latest/new set. Both order by ``created_at`` descending.
+    LEGACY_SORT_ALIASES = {"added": "new"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         return list(BROWSE_MODES)
 

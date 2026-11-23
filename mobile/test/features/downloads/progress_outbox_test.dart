@@ -4,6 +4,7 @@ import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/downloads/providers/downloads_scope.dart';
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
+import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/downloads/utils/progress_outbox_batch.dart';
 import 'package:manhwamaniacs/features/reader/models/reading_progress.dart';
 import 'package:manhwamaniacs/features/reader/repositories/reader_repository.dart';
@@ -11,6 +12,11 @@ import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../support/downloads_test_support.dart';
+
+class _ThrowingStore extends Fake implements DownloadsStore {
+  @override
+  Future<void> enqueueProgress(ProgressPush push) => Future.error(StateError('store closed'));
+}
 
 class _ScriptedReaderRepository extends Mock implements ReaderRepository {}
 
@@ -103,6 +109,17 @@ void main() {
       addTearDown(container.dispose);
       return container;
     }
+
+    test('save() completes normally when the store throws', () async {
+      final repo = _ScriptedReaderRepository();
+      final container = ProviderContainer(overrides: [
+        downloadsStoreProvider.overrideWithValue(_ThrowingStore()),
+        readerRepositoryProvider.overrideWithValue(repo),
+      ],);
+      addTearDown(container.dispose);
+      await container.read(progressOutboxControllerProvider).save(_push());
+      verifyNever(() => repo.saveProgressBatch(any()));
+    });
 
     test('save() writes locally then flushes immediately on success',
         () async {

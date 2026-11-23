@@ -107,6 +107,7 @@ class DoujinsConnector(SourceConnector):
         return [
             BrowseMode(id="latest", label="Latest"),
             BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="new", label="New"),
         ]
 
     def _fetch_html(self, path: str) -> str:

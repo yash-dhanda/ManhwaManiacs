@@ -124,6 +124,9 @@ class HentaiHandConnector(SourceConnector):
         # cdn.hentaihand.com; the suffix covers that subdomain and the apex.
         return frozenset({IMAGE_HOST_SUFFIX})
 
+    #: Ids advertised before the canonical popular/latest/new set. Both send ``sort=popularity``.
+    LEGACY_SORT_ALIASES = {"popularity": "popular"}
+
     def list_browse_modes(self) -> list[BrowseMode]:
         return list_browse_modes()
 

@@ -90,6 +90,7 @@ class AkumaConnector(SourceConnector):
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="english", label="English Only"),
         ]
 

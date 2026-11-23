@@ -469,6 +469,89 @@ class TestCompleteAndFail:
         assert found.available is True
         assert found.total_ms == 1234
 
+    def test_the_blocking_work_does_not_run_on_the_event_loop(
+        self, worker, db_session, monkeypatch
+    ):
+        """DB commits and fsync park the thread they run on for as long as
+        SQLite's write lock is held elsewhere; on the loop thread that is the
+        whole process."""
+        import os
+        import threading
+
+        import routes.novel_render as novel_render
+        import services.novel_render_queue as queue_module
+
+        job_id = self._claim(worker, db_session)
+        seen: dict[str, int] = {}
+
+        real_paths = novel_render.chapter_paths
+
+        def paths(*args):
+            # Called directly in the endpoint body: this IS the loop thread.
+            seen["loop"] = threading.get_ident()
+            return real_paths(*args)
+
+        def spy(name, real):
+            def wrapper(*args, **kwargs):
+                seen[name] = threading.get_ident()
+                return real(*args, **kwargs)
+
+            return wrapper
+
+        monkeypatch.setattr(novel_render, "chapter_paths", paths)
+        monkeypatch.setattr(novel_render, "complete", spy("complete", novel_render.complete))
+        monkeypatch.setattr(queue_module, "_held", spy("held", queue_module._held))
+        monkeypatch.setattr(os, "fsync", spy("fsync", os.fsync))
+        monkeypatch.setattr(os, "replace", spy("replace", os.replace))
+
+        response = worker.post(
+            "/novels/render/complete",
+            data={"job_id": job_id, "worker_id": WORKER},
+            files={
+                "audio": ("c.opus", b"OggS" + b"\0" * 400, "audio/ogg"),
+                "timing": ("c.timing.json", b"{}", "application/json"),
+            },
+            headers={"X-Render-Token": TOKEN},
+        )
+
+        assert response.status_code == 200
+        assert {"loop", "complete", "held", "fsync", "replace"} <= seen.keys()
+        for name in ("complete", "held", "fsync", "replace"):
+            assert seen[name] != seen["loop"], f"{name} ran on the event loop"
+
+    def test_an_oversize_part_is_413_and_leaves_nothing_behind(
+        self, worker, db_session, tmp_path, monkeypatch
+    ):
+        import routes.novel_render as novel_render
+
+        job_id = self._claim(worker, db_session)
+        monkeypatch.setattr(novel_render, "_MAX_UPLOAD", 100)
+        response = worker.post(
+            "/novels/render/complete",
+            data={"job_id": job_id, "worker_id": WORKER},
+            files={
+                "audio": ("c.opus", b"x" * 500, "audio/ogg"),
+                "timing": ("c.timing.json", b"{}", "application/json"),
+            },
+            headers={"X-Render-Token": TOKEN},
+        )
+        assert response.status_code == 413
+        assert list((tmp_path / "audio").rglob("*.tmp")) == []
+        assert list((tmp_path / "audio").rglob("*.opus")) == []
+
+    def test_a_worker_that_lost_its_lease_gets_409(self, worker, db_session):
+        job_id = self._claim(worker, db_session)
+        response = worker.post(
+            "/novels/render/complete",
+            data={"job_id": job_id, "worker_id": "someone-else"},
+            files={
+                "audio": ("c.opus", b"OggS", "audio/ogg"),
+                "timing": ("c.timing.json", b"{}", "application/json"),
+            },
+            headers={"X-Render-Token": TOKEN},
+        )
+        assert response.status_code == 409
+
     def test_no_tmp_files_are_left_behind(self, worker, db_session, tmp_path):
         job_id = self._claim(worker, db_session)
         worker.post(

@@ -167,6 +167,9 @@
   /** The chapter payload endpoint: `/reader/chapter/manifest?source=&series=&chapter=`. */
   var CHAPTER_MANIFEST_PATH = "/reader/chapter/manifest";
 
+  /** Where the Next.js build publishes its content-hashed files. */
+  var BUILD_ASSET_PREFIX = "/_next/static/";
+
   /** Same-origin path prefixes safe to serve cache-first. */
   var IMMUTABLE_PREFIXES = [
     // Content-hashed by the Next.js build — the URL changes when the bytes do,
@@ -392,6 +395,59 @@
       if (path.indexOf(IMMUTABLE_PREFIXES[i]) === 0) return true;
     }
     return false;
+  }
+
+  /** A file of the Next.js build — the paths a saved chapter's document loads. */
+  function isBuildAssetPath(path) {
+    return isNonEmptyString(path) && path.indexOf(BUILD_ASSET_PREFIX) === 0;
+  }
+
+  /**
+   * The build files a document needs, as same-origin `/_next/static/...` paths.
+   *
+   * A saved chapter's HTML is only a shell: the scripts and styles that make it
+   * render are separate files, and they live in a cache that is trimmed and is
+   * dropped whole when the runtime generation moves. Naming them lets a save
+   * keep them with the chapter.
+   *
+   * Two spellings are read. Tags and preloads carry the full path. The flight
+   * data inlined for hydration (`self.__next_f.push(...)`) names the route's
+   * chunks WITHOUT the prefix — `"static/chunks/…js"`, escaped as `\"static/…\"`
+   * inside its string — and those are the files that were never loaded when a
+   * chapter is queued without the reader having been opened on this build.
+   *
+   * The query is dropped: it only records how the file was asked for (a
+   * deployment id), the name is content-hashed, and serving ignores it. Another
+   * origin's files are not ours to keep. This reads text and assumes nothing
+   * about `assetPrefix` or `basePath`; the app sets neither.
+   */
+  function extractBuildAssets(html, origin) {
+    var found = [];
+    var seen = {};
+    if (!isNonEmptyString(html)) return found;
+    function add(path) {
+      if (seen[path] === true) return;
+      seen[path] = true;
+      found.push(path);
+    }
+
+    var full = /(https?:\/\/[^\/\s"'<>\\]+)?(\/_next\/static\/[^\s"'<>\\?#]+)/g;
+    var match;
+    while ((match = full.exec(html)) !== null) {
+      if (match[1] && (!isNonEmptyString(origin) || match[1].toLowerCase() !== origin.toLowerCase())) {
+        continue;
+      }
+      add(match[2]);
+    }
+
+    // The opening quote is part of the match, not a lookbehind, which older
+    // Safari cannot parse — and one syntax error here would take the whole
+    // worker with it.
+    var bare = /["'](static\/(?:chunks|css|media)\/[^\s"'<>\\?#]+)/g;
+    while ((match = bare.exec(html)) !== null) {
+      add("/_next/" + match[1]);
+    }
+    return found;
   }
 
   function isInternalKey(path) {
@@ -621,6 +677,8 @@
     isPageImagePath: isPageImagePath,
     isChapterManifestPath: isChapterManifestPath,
     isImmutableAssetPath: isImmutableAssetPath,
+    isBuildAssetPath: isBuildAssetPath,
+    extractBuildAssets: extractBuildAssets,
     isInternalKey: isInternalKey,
     classifyRequest: classifyRequest,
     isCacheableResponse: isCacheableResponse,

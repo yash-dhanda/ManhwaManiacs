@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TypeVar
 
 from connectors.base import SourceConnector
-from connectors.excluded import EXCLUDED_CONNECTORS
+from connectors.excluded import inactive_connectors
 from connectors.madara.config import MadaraSiteConfig
 from connectors.madara.connector import MadaraConnector
 
@@ -50,10 +50,11 @@ def madara_connector_classes(
     """Build connector classes for every config (deduped by source_id)."""
     seen: set[str] = set()
     classes: list[type[SourceConnector]] = []
+    inactive = inactive_connectors()
     for config in configs:
         if config.source_id in seen:
             continue
-        if config.source_id in EXCLUDED_CONNECTORS:
+        if config.source_id in inactive:
             continue
         seen.add(config.source_id)
         classes.append(build_madara_connector_class(config))

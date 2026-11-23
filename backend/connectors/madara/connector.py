@@ -132,9 +132,11 @@ class MadaraConnector(SourceConnector):
 
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
-            BrowseMode(id="default", label="Latest"),
-            BrowseMode(id="latest", label="New"),
+            # ``latest`` replaces the old "default" + "latest" pair, which are
+            # now the same request (see SORT_TO_ORDER); "default" still works.
+            BrowseMode(id="latest", label="Latest"),
             BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="rating", label="Top Rated"),
         ]
 
@@ -217,7 +219,21 @@ class MadaraConnector(SourceConnector):
             return self.get_series_list(page, sort=sort)
         path = "/"
         params = self._html.search_params(normalized, page=page)
-        html = self._http.get_text(path, params=params)
+        if page > 1:
+            # WordPress core serves search pages at /page/N/?s=..., which is
+            # also what its own pager links to. ``paged=N`` on "/" works on
+            # some installs (allporncomic) and 404s on others (toonily.com,
+            # 2026-11-23), so the path form goes first and ``paged`` is the
+            # fallback for an install without pretty permalinks.
+            path_params = {k: v for k, v in params.items() if k != "paged"}
+            try:
+                html = self._http.get_text(f"/page/{page}/", params=path_params)
+            except ConnectorHttpError as exc:
+                if exc.status_code != 404:
+                    raise
+                html = self._http.get_text(path, params=params)
+        else:
+            html = self._http.get_text(path, params=params)
         return self._html.parse_search_results(
             html, page=page, query=normalized
         )

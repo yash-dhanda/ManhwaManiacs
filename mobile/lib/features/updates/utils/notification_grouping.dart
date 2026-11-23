@@ -1,9 +1,18 @@
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/features/library/models/ambient.dart';
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/updates/models/update_notification.dart';
 
 /// One new chapter inside a [SeriesUpdate].
-typedef UpdateChapter = ({int notificationId, String chapterKey, double? chapterNumber, String title, bool read});
+///
+/// [lockedUntil] is the instant an early-access chapter opens to everyone; ask [UpdateChapterLock.isLocked] rather than
+/// comparing it, so every screen reads the same clock the same way.
+typedef UpdateChapter = ({int notificationId, String chapterKey, double? chapterNumber, String title, bool read, DateTime? lockedUntil});
+
+extension UpdateChapterLock on UpdateChapter {
+  /// Still shut at [now] (default: the device clock).
+  bool isLocked([DateTime? now]) => isLockedAt(lockedUntil, now);
+}
 
 /// The new chapters of one series on one day.
 class SeriesUpdate {
@@ -101,7 +110,7 @@ List<UpdateDay> groupNotifications(
             final f = by[e.key];
             final chapters = [
               for (final n in rows)
-                (notificationId: n.id, chapterKey: n.chapterKey, chapterNumber: n.chapterNumber, title: n.chapterTitle, read: n.isRead),
+                (notificationId: n.id, chapterKey: n.chapterKey, chapterNumber: n.chapterNumber, title: n.chapterTitle, read: n.isRead, lockedUntil: n.lockedUntil),
             ]..sort((a, b) {
                 final x = a.chapterNumber, y = b.chapterNumber;
                 if (x != null && y != null && x != y) return x.compareTo(y);

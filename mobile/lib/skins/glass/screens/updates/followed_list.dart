@@ -35,7 +35,7 @@ class GlassFollowedList extends ConsumerWidget {
               // The row's own "More actions" menu already carries Unfollow: no second dots button.
               showMore: false,
               trailing: [
-                SwipeAction(id: 'unfollow', label: 'Unfollow', glyph: roleIcon(GlassIconRole.following), tone: SwipeTone.danger, destructive: true, run: () => _unfollow(ref, s)),
+                SwipeAction(id: 'unfollow', label: 'Unfollow', glyph: roleIcon(GlassIconRole.following), tone: SwipeTone.danger, destructive: true, run: () => _unfollow(ProviderScope.containerOf(context, listen: false), s)),
               ],
               child: Builder(builder: (context) {
                 return GlassRowShell(
@@ -75,7 +75,7 @@ class GlassFollowedList extends ConsumerWidget {
                         twin: GlassTwin.content,
                         onPressed: () => unawaited(showGlassMenu(context, anchor: globalRectOf(context), title: s.title, entries: [
                           if (onCheck != null) GlassMenuEntry(label: 'Check this series now', run: () => onCheck!(s)),
-                          GlassMenuEntry(label: 'Unfollow', destructive: true, onSelected: () => unawaited(_unfollow(ref, s))),
+                          GlassMenuEntry(label: 'Unfollow', destructive: true, onSelected: () => unawaited(_unfollow(ProviderScope.containerOf(context, listen: false), s))),
                         ],),),
                       ),
                     ],),
@@ -86,17 +86,18 @@ class GlassFollowedList extends ConsumerWidget {
         ],),
       );
 
-  Future<void> _unfollow(WidgetRef ref, FollowedSeries s) async {
-    final actions = ref.read(librarySeriesActionsProvider);
+  /// A container, not a `ref`: the unfollow is a network call and the list may be left meanwhile.
+  Future<void> _unfollow(ProviderContainer container, FollowedSeries s) async {
+    final actions = container.read(librarySeriesActionsProvider);
     final removed = await actions.remove(s);
     if (removed.error != null) {
-      showGlassToast(ref, GlassToastSpec("Couldn't unfollow ${s.title}", kind: GlassToastKind.error));
+      container.read(glassToastProvider.notifier).show(GlassToastSpec("Couldn't unfollow ${s.title}", kind: GlassToastKind.error));
       return;
     }
-    ref.read(updatesProvider.notifier).forgetFollowed(s.id);
-    showGlassToast(ref, GlassToastSpec('Unfollowed ${s.title}', undo: () => unawaited(() async {
+    container.read(updatesProvider.notifier).forgetFollowed(s.id);
+    container.read(glassToastProvider.notifier).show(GlassToastSpec('Unfollowed ${s.title}', undo: () => unawaited(() async {
       await actions.restore(s, slots: removed.slots);
-      await ref.read(updatesProvider.notifier).refresh();
+      await container.read(updatesProvider.notifier).refresh();
     }()),),);
   }
 }

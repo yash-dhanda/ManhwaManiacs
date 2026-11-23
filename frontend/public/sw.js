@@ -75,6 +75,25 @@ var SHELL_ASSETS = [
  */
 var WARM_DOCUMENTS = ["/library", "/downloads"];
 
+/**
+ * Where the warm documents are KEPT: the shell cache, not the document cache.
+ *
+ * The document cache is trimmed FIFO at MAX_PAGE_ENTRIES and is the first thing
+ * `ensureRoom` drops whole under storage pressure, so a document that has to be
+ * there for the offline fallback's only link could be gone after sixty ordinary
+ * page loads. The shell cache is neither trimmed nor disposable, and it is
+ * already the home of the other thing the offline page depends on. Entries are
+ * keyed by bare path, refreshed on every successful navigation to them, and
+ * dropped with the rest of the shell when RUNTIME_VERSION moves.
+ */
+
+/**
+ * How long a warm fetch may take. Activation waits on them, and the page's
+ * `controllerchange` reload waits on activation, so an unbounded fetch on a
+ * stalled connection is a blank page for as long as the connection hangs.
+ */
+var WARM_TIMEOUT_MS = 5000;
+
 /** Parallel image fetches per save. Enough to saturate a NAS, not to drown it. */
 var SAVE_CONCURRENCY = 4;
 
@@ -263,27 +282,48 @@ self.addEventListener("activate", function onActivate(event) {
         }),
       );
       await self.clients.claim();
-      await warmDocuments();
       await broadcastState();
+      await warmDocuments();
     })(),
   );
 });
 
-/** Best-effort: put the launch documents in the document cache. */
+/**
+ * Best-effort: put the launch documents in the shell cache.
+ *
+ * In parallel and under one deadline, so the whole step is bounded by
+ * WARM_TIMEOUT_MS however many documents there are. The timer is cleared only
+ * once the body is stored, because an abort also cuts a body that stalls after
+ * its headers.
+ */
 async function warmDocuments() {
-  var cache = await caches.open(policy.pagesCacheName());
-  for (var i = 0; i < WARM_DOCUMENTS.length; i += 1) {
-    var url = WARM_DOCUMENTS[i];
-    try {
-      var response = await fetch(url, { credentials: "include" });
-      if (policy.isCacheableResponse(response)) {
-        await cache.put(url, response);
+  var cache = await caches.open(policy.shellCacheName());
+  await Promise.all(
+    WARM_DOCUMENTS.map(async function warm(url) {
+      var controller = new AbortController();
+      var timer = setTimeout(function expire() {
+        controller.abort();
+      }, WARM_TIMEOUT_MS);
+      try {
+        var response = await fetch(url, { credentials: "include", signal: controller.signal });
+        if (policy.isCacheableResponse(response)) {
+          await cache.put(url, response);
+        }
+      } catch {
+        // Offline or stalled at activate time is normal, and one failure must
+        // not stop the rest; the first successful navigation fills these in.
+      } finally {
+        clearTimeout(timer);
       }
-    } catch {
-      // Offline at activate time is normal, and one failure must not stop the
-      // rest; the first successful navigation fills these in anyway.
-    }
-  }
+    }),
+  );
+}
+
+/** The warm document `request` is a navigation to, as its bare path, or null. */
+function warmPathOf(request) {
+  var url = new URL(request.url);
+  if (url.origin !== self.location.origin) return null;
+  return WARM_DOCUMENTS.indexOf(url.pathname) === -1 ? null : url.pathname;
 }
 
 // --- Fetch -----------------------------------------------------------------
@@ -339,7 +379,7 @@ function dispatch(event, request, strategy, context) {
     case "navigation":
       return handleNavigation(event, request, context);
     case "static":
-      return handleStatic(request);
+      return handleStatic(event, request, context);
     case "api-swr":
       return handleApiSwr(event, request, context);
     case "api-offline-fallback":
@@ -377,6 +417,19 @@ async function readSkin() {
 // page cache and refresh every saved chapter document in place.
 async function refreshAfterSkinChange() {
   await caches.delete(policy.pagesCacheName());
+  // The warm documents carry the old skin's markup too, and they are all the
+  // offline fallback has to offer, so they are refreshed in place — and the old
+  // copy is kept when there is no network, exactly like a saved document.
+  var shell = await caches.open(policy.shellCacheName());
+  for (var w = 0; w < WARM_DOCUMENTS.length; w += 1) {
+    if (!(await shell.match(WARM_DOCUMENTS[w], { ignoreVary: true }))) continue;
+    try {
+      var warmed = await fetch(WARM_DOCUMENTS[w], { credentials: "include" });
+      if (policy.isCacheableResponse(warmed)) await shell.put(WARM_DOCUMENTS[w], warmed);
+    } catch {
+      // Offline: keep the old copy.
+    }
+  }
   var names = await caches.keys();
   for (var i = 0; i < names.length; i += 1) {
     var parsed = policy.parseCacheName(names[i]);
@@ -409,6 +462,19 @@ async function handleNavigation(event, request, context) {
           });
         }),
       );
+      // The warm documents are also kept where trimming cannot reach them.
+      var warmPath = warmPathOf(request);
+      if (warmPath !== null) {
+        var warmCopy = response.clone();
+        event.waitUntil(
+          caches
+            .open(policy.shellCacheName())
+            .then(function storeWarm(shell) {
+              return shell.put(warmPath, warmCopy);
+            })
+            .catch(noop),
+        );
+      }
     }
     return response;
   } catch {
@@ -437,6 +503,15 @@ async function handleNavigation(event, request, context) {
 
     var skin = await readSkin();
     var shell = await caches.open(policy.shellCacheName());
+
+    // Then the launch documents, which the document cache may have lost to
+    // trimming or to storage pressure. Without this the offline page's only
+    // link would lead straight back to the offline page.
+    var warmPath = warmPathOf(request);
+    if (warmPath !== null) {
+      var warm = await shell.match(warmPath, { ignoreVary: true });
+      if (warm) return warm;
+    }
     var wanted =
       skin === "legacy" ? OFFLINE_URL : skin === "glass" ? OFFLINE_URL_GLASS : OFFLINE_URL_CINEMATIC;
     var fallback =
@@ -451,14 +526,40 @@ async function handleNavigation(event, request, context) {
 }
 
 /** Cache first: these URLs are content-hashed, so a hit cannot be stale. */
-async function handleStatic(request) {
+async function handleStatic(event, request, context) {
   var cache = await caches.open(policy.staticCacheName());
   var hit = await cache.match(request, { ignoreVary: true });
   if (hit) return hit;
-  var response = await fetch(request);
+
+  // Cache-first stays as it is; the saved copy answers only when the network
+  // cannot. A chapter keeps the build files it renders with (see `runSave`),
+  // and those are exactly the files the build cache has lost to trimming or to
+  // a runtime generation bump, or that a newer deploy no longer serves. The
+  // names are content-hashed, so a copy from any build is the right bytes.
+  var response;
+  try {
+    response = await fetch(request);
+  } catch (failure) {
+    var kept = await matchSaved(request, context.scope, true);
+    if (kept) return kept;
+    throw failure;
+  }
+  if (!response.ok) {
+    var replacement = await matchSaved(request, context.scope, true);
+    if (replacement) return replacement;
+  }
   if (policy.isCacheableResponse(response)) {
-    await cache.put(request, response.clone());
-    await trimCache(cache, MAX_STATIC_ENTRIES);
+    // Stored behind the response, never before it: a full disk must cost the
+    // next visit one request, not turn this good answer into a network error.
+    var copy = response.clone();
+    event.waitUntil(
+      cache
+        .put(request, copy)
+        .then(function trim() {
+          return trimCache(cache, MAX_STATIC_ENTRIES);
+        })
+        .catch(noop),
+    );
   }
   return response;
 }
@@ -543,9 +644,16 @@ async function handleApiSwr(event, request, context) {
   var revalidate = fetch(request)
     .then(function store(response) {
       if (policy.isCacheableResponse(response)) {
-        return storeApi(cache, request, response.clone()).then(function pass() {
-          return response;
-        });
+        // A failed store (a full disk) must not turn a good answer into null,
+        // which below reads as "the network is down".
+        return storeApi(cache, request, response.clone()).then(
+          function pass() {
+            return response;
+          },
+          function unstored() {
+            return response;
+          },
+        );
       }
       return response;
     })
@@ -596,6 +704,15 @@ async function handleApiOfflineFallback(event, request, context) {
 async function handleSavedFirst(request, context) {
   var hit = await matchSaved(request, context.scope);
   if (hit) return hit;
+  // The reader bakes a viewport-derived `?w=` into every page URL, so the same
+  // page is asked for under another URL after a rotation, a resize or a zoom
+  // than the one it was saved under. The query carries only that width for a
+  // page image, so ignoring it cannot answer one page with another — unlike
+  // the manifest, which stays keyed by its query (see `matchSaved`).
+  if (policy.isPageImagePath(policy.apiPath(request.url, context.apiBase))) {
+    hit = await matchSaved(request, context.scope, true);
+    if (hit) return hit;
+  }
   return fetch(request);
 }
 
@@ -718,6 +835,17 @@ async function readIndex(scope) {
   var stored = await readJson(cache, policy.INDEX_KEY);
   if (!stored || typeof stored !== "object" || !stored.entries) return emptyIndex();
   if (stored.retentionMs === undefined) stored.retentionMs = policy.DEFAULT_RETENTION_MS;
+  // Whether a save is running lives only in `activeSaves`, in memory. An entry
+  // that says "saving" with no save behind it was cut off — the worker was
+  // stopped mid-save, or the write that would have settled it failed — and
+  // shown as saving it would spin forever with nothing for cancel to cancel.
+  // Reported as partial, the UI offers to resume it, and resuming skips every
+  // page already stored.
+  for (var key in stored.entries) {
+    if (!Object.prototype.hasOwnProperty.call(stored.entries, key)) continue;
+    var entry = stored.entries[key];
+    if (entry && entry.status === "saving" && !activeSaves.has(key)) entry.status = "partial";
+  }
   return stored;
 }
 
@@ -758,13 +886,27 @@ async function saveChapter(payload) {
   if (activeSaves.has(payload.key)) return { ok: true, reason: "already-running" };
 
   activeSaves.set(payload.key, { cancelled: false });
+  var failure = null;
   try {
     await runSave(payload, cacheName);
+  } catch (cause) {
+    failure = cause;
   } finally {
     activeSaves.delete(payload.key);
   }
-  await broadcastState();
-  return { ok: true };
+  if (failure !== null) {
+    // A write threw (a full disk above all) with the entry still saying
+    // "saving". Nothing else would ever settle it, so say "partial" — the state
+    // the UI already knows how to resume — and say it best-effort: the same
+    // write may be what just failed.
+    await mutateIndex(scope, function interrupted(draft) {
+      var entry = draft.entries[payload.key];
+      if (entry && entry.status === "saving") entry.status = "partial";
+      return draft;
+    }).catch(noop);
+  }
+  await broadcastState().catch(noop);
+  return failure === null ? { ok: true } : { ok: false, reason: "save-failed" };
 }
 
 async function runSave(payload, cacheName) {
@@ -800,9 +942,20 @@ async function runSave(payload, cacheName) {
           : "manga",
       pageCount: payload.imageUrls.length,
       payloadUrl: payload.payloadUrl,
-      urls: targets.map(function url(target) {
-        return target.url;
-      }),
+      urls: targets
+        .map(function url(target) {
+          return target.url;
+        })
+        // Build files recorded by an earlier save stay owned until this one has
+        // read the document again; dropping them here would orphan them if it
+        // is cut off first.
+        .concat(
+          ((existing && existing.urls) || []).filter(function carried(old) {
+            return !targets.some(function same(target) {
+              return target.url === old;
+            });
+          }),
+        ),
       savedPages: 0,
       bytes: 0,
       status: "saving",
@@ -827,6 +980,40 @@ async function runSave(payload, cacheName) {
         headers: { "Content-Type": "application/json" },
       }),
     );
+  }
+
+  /**
+   * The build files the document names, added to the work as soon as it is read.
+   *
+   * Spliced in at the cursor so they are fetched before the images rather than
+   * after them: a save that pauses or is cut off part-way should have kept what
+   * the pages need to render before it kept more of the pages. Each is recorded
+   * in the entry's `urls` so the chapter owns it like everything else it stored.
+   */
+  async function adoptBuildAssets(html) {
+    var fresh = [];
+    var paths = policy.extractBuildAssets(html, self.location.origin);
+    for (var p = 0; p < paths.length; p += 1) {
+      var url = self.location.origin + paths[p];
+      var known = false;
+      for (var t = 0; t < targets.length; t += 1) {
+        if (targets[t].url === url) known = true;
+      }
+      if (!known) fresh.push({ url: url, kind: "static" });
+    }
+    if (fresh.length === 0) return;
+    // Each worker advances the cursor once more than it finds work, so by the
+    // time the document has been read it can be past the end of the list.
+    cursor = Math.min(cursor, targets.length);
+    targets.splice.apply(targets, [cursor, 0].concat(fresh));
+    await mutateIndex(scope, function record(draft) {
+      var entry = draft.entries[payload.key];
+      if (!entry) return draft;
+      for (var f = 0; f < fresh.length; f += 1) {
+        if (entry.urls.indexOf(fresh[f].url) === -1) entry.urls.push(fresh[f].url);
+      }
+      return draft;
+    });
   }
 
   var cursor = 0;
@@ -866,21 +1053,30 @@ async function runSave(payload, cacheName) {
         // Resuming a save that was interrupted: what is already stored counts.
         bytes += policy.responseSize(existing.headers);
         if (target.kind === "image") savedPages += 1;
+        if (target.kind === "document") await adoptBuildAssets(await existing.text());
       } else {
         try {
-          var response = await fetch(target.url, {
-            credentials: "include",
-            headers: requestHeaders(payload, target),
-          });
+          var local = target.kind === "static" ? await matchBuildCache(target.url) : null;
+          var response =
+            local ||
+            (await fetch(target.url, {
+              credentials: "include",
+              headers: requestHeaders(payload, target),
+            }));
           if (policy.isCacheableResponse(response)) {
             var copy = response.clone();
+            var markup = target.kind === "document" ? response.clone() : null;
             await cache.put(target.url, response);
             bytes += policy.responseSize(copy.headers);
             if (target.kind === "image") savedPages += 1;
+            if (markup) await adoptBuildAssets(await markup.text());
           } else if (target.kind === "image") {
             failed += 1;
           }
         } catch {
+          // Only a missing page makes a chapter partial. The document and the
+          // build files are best-effort: one that did not arrive is fetched
+          // again when the chapter is saved again, and costs nothing until then.
           if (target.kind === "image") failed += 1;
         }
       }
@@ -910,6 +1106,18 @@ async function runSave(payload, cacheName) {
         : "ready";
 
   await publishProgress(scope, payload.key, savedPages, bytes, status, failed);
+}
+
+/**
+ * A build file already held by the build cache, so saving does not download it
+ * a second time. Ignores the query: the entry was stored under whatever the
+ * browser asked for, a deployment id included, and the name is the identity.
+ */
+async function matchBuildCache(url) {
+  var name = policy.staticCacheName();
+  if (!(await caches.has(name))) return null;
+  var cache = await caches.open(name);
+  return (await cache.match(url, { ignoreVary: true, ignoreSearch: true })) || null;
 }
 
 /**
@@ -1008,9 +1216,21 @@ async function removeChapter(scope, key) {
   var control = activeSaves.get(key);
   if (control) control.cancelled = true;
 
+  // Chapters of one build list the same build files, so a URL goes only when
+  // no other entry still lists it. Removing one chapter must not break another
+  // that was saved to be read with no network.
+  var shared = {};
+  for (var other in index.entries) {
+    if (other === key || !Object.prototype.hasOwnProperty.call(index.entries, other)) continue;
+    var kept = index.entries[other];
+    var theirs = (kept.urls || []).concat(kept.payloadUrl ? [kept.payloadUrl] : []);
+    for (var k = 0; k < theirs.length; k += 1) shared[theirs[k]] = true;
+  }
+
   var cache = await caches.open(cacheName);
   var urls = (entry.urls || []).concat(entry.payloadUrl ? [entry.payloadUrl] : []);
   for (var i = 0; i < urls.length; i += 1) {
+    if (shared[urls[i]] === true) continue;
     await cache.delete(urls[i], { ignoreVary: true });
   }
   await mutateIndex(scope, function drop(draft) {
@@ -1156,6 +1376,9 @@ async function handleMessage(event, data) {
     case "mm-offline/cancel-save": {
       var control = activeSaves.get(data.key);
       if (control) control.cancelled = true;
+      // With nothing running there is nothing to cancel, but a page still
+      // showing "saving" for a cut-off save deserves the corrected state.
+      else await broadcastState();
       reply({ ok: true });
       return;
     }

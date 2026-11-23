@@ -39,7 +39,7 @@ from connectors.base import SourceConnector
 from connectors.http.cache import TTLCache
 from connectors.http.client import ConnectorHttpError, SyncConnectorHttpClient
 from connectors.ids import fully_unquote
-from connectors.models import Chapter, Page, PaginatedSeriesList, Series
+from connectors.models import BrowseMode, Chapter, Page, PaginatedSeriesList, Series
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +63,11 @@ HTML_HEADERS = {
 
 CARD_SPLIT = '<div class="thumb-manga">'
 CARD_LINK_RE = re.compile(r'<a href="/manga/([^"/?#]+)" title="([^"]*)"')
+#: The "hot" listing's cards carry no ``title`` attribute on the cover link; the
+#: title is the text of the heading anchor instead.
+CARD_HEADING_RE = re.compile(
+    r'<h3 class="tt">\s*<a href="/manga/([^"/?#]+)"[^>]*>(.*?)</a>', re.S
+)
 CARD_IMG_RE = re.compile(r'<img[^>]*data-src="([^"]+)"')
 #: A pager with an enabled "next" arrow. On the last page the arrow renders as
 #: ``<li class="next disabled"><span>`` with no anchor.
@@ -144,7 +149,7 @@ def parse_series_list(html: str, *, page: int) -> PaginatedSeriesList:
     items: list[Series] = []
     seen: set[str] = set()
     for chunk in html.split(CARD_SPLIT)[1:]:
-        link = CARD_LINK_RE.search(chunk)
+        link = CARD_LINK_RE.search(chunk) or CARD_HEADING_RE.search(chunk)
         if link is None or link.group(1) in seen:
             continue
         slug = link.group(1)
@@ -327,9 +332,19 @@ class Manga18fxConnector(SourceConnector):
 
     # --- catalog --------------------------------------------------------------
 
+    def list_browse_modes(self) -> list[BrowseMode]:
+        # The site has no "newly added" listing: the home page is ordered by
+        # latest chapter and /hot-manga is its weekly most-popular list.
+        return [
+            BrowseMode(id="default", label="Browse"),
+            BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="latest", label="Latest"),
+        ]
+
     def get_series_list(self, page: int, *, sort: str | None = None) -> PaginatedSeriesList:
-        del sort
         page = max(page, 1)
+        if sort == "popular":
+            return self._listing("browse", "/hot-manga", {"page": page} if page > 1 else None, page)
         return self._listing("browse", "/" if page == 1 else f"/page/{page}", None, page)
 
     def search_series(self, query: str, page: int, *, sort: str | None = None) -> PaginatedSeriesList:

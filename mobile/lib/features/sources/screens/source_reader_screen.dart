@@ -11,6 +11,7 @@ import 'package:manhwamaniacs/features/downloads/providers/open_chapter_scope.da
 import 'package:manhwamaniacs/features/downloads/providers/progress_outbox_provider.dart';
 import 'package:manhwamaniacs/features/downloads/store/downloads_store.dart';
 import 'package:manhwamaniacs/features/library/providers/library_read_state.dart';
+import 'package:manhwamaniacs/features/reader/engine/chapter_locked_flow.dart';
 import 'package:manhwamaniacs/features/reader/engine/next_chapter_auto_queue.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
 import 'package:manhwamaniacs/features/reader/models/bookmark.dart';
@@ -125,14 +126,31 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
     }
   }
 
+  /// A chapter that loaded is not early access any more: its lock must not keep speaking for the strip's edge.
+  void _clearLockOf(String chapterId) {
+    if (!mounted) return;
+    final signal = ref.read(readerLockedNextProvider.notifier);
+    if (signal.state?.chapterKey == chapterId) signal.state = null;
+  }
+
   /// Loads a chapter for the feed through the same disk-first provider the
   /// anchor came through, so a downloaded chapter continues into another
   /// downloaded chapter with no network at all.
   Future<ReaderChapter?> _loadChapter(String chapterId) async {
     try {
-      return await _readAlive(sourceReaderChapterProvider(_keyFor(chapterId)));
+      final chapter = await _readAlive(sourceReaderChapterProvider(_keyFor(chapterId)));
+      _clearLockOf(chapterId);
+      return chapter;
     } catch (e) {
       // A seam that cannot be crossed leaves the edge prompt as the way over.
+      final lock = chapterLockOf(e);
+      // Another chapter's failure leaves this one's lock alone; a chapter's own failure for another reason clears its lock.
+      if (mounted) {
+        final signal = ref.read(readerLockedNextProvider.notifier);
+        if (lock != null || signal.state?.chapterKey == chapterId) {
+          signal.state = lock == null ? null : (chapterKey: chapterId, lockedUntil: lock.lockedUntil, message: lock.message, sourceId: lock.sourceId);
+        }
+      }
       final wait = rateLimitWait(e);
       if (wait != null && mounted) {
         ref.read(readerRateLimitedUntilProvider.notifier).state = DateTime.now().add(wait);
@@ -392,11 +410,11 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
         final beforeFeed = feedController.previousBeforeFeed;
         final beyondFeed = feedController.nextBeyondFeed;
         // One chapter past what the feed holds, so reading on across seams keeps saving ahead.
-        _autoQueue.maybeQueue(
-          ref,
+        _autoQueue.arm(
           sourceId: widget.sourceId,
           seriesKey: widget.seriesId,
           nextChapterId: beyondFeed ?? nextChapterId,
+          afterChapterId: feedController.feed.chapters.lastOrNull?.id ?? widget.chapterId,
         );
 
         return OpenChapterScope(
@@ -467,15 +485,19 @@ class _SourceReaderScreenState extends ConsumerState<SourceReaderScreen> {
                 )
                 .then((bookmark) => bookmark != null),
             onReachedFeedEnd: feedController.extendForward,
+            onRetryFeedEnd: feedController.retryForward,
             onReachedFeedStart: feedController.extendBackward,
-            onSaveProgress: (chapter, page) => _lastSave = _saveProgress(
-              chapter,
-              page,
-              outbox: progressOutbox,
-              localProgress: localProgress,
-              downloadsStore: downloadsStore,
-              container: container,
-            ),
+            onSaveProgress: (chapter, page) {
+              _autoQueue.readTo(ref, chapterId: chapter.id, page: page, pageCount: chapter.pages.length);
+              return _lastSave = _saveProgress(
+                chapter,
+                page,
+                outbox: progressOutbox,
+                localProgress: localProgress,
+                downloadsStore: downloadsStore,
+                container: container,
+              );
+            },
             onBack: () => context.go(
               RoutePaths.sourceSeriesDetail(widget.sourceId, widget.seriesId),
             ),

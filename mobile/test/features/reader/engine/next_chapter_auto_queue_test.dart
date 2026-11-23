@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,43 +40,50 @@ class _FixedConnectivity implements NetworkConnectivity {
   Future<bool> isOnline() async => true;
 }
 
-/// Pumps a widget that calls [NextChapterAutoQueue.maybeQueue] [calls] times
-/// for route chapter `c1`, then lets the deferred queue run.
-Future<_RecordingQueue> _run(
+class _GatedConnectivity implements NetworkConnectivity {
+  final Completer<bool> wifi = Completer<bool>();
+
+  @override
+  Future<bool> isOnWifi() => wifi.future;
+  @override
+  Future<bool> isOnline() async => true;
+}
+
+/// Pumps a widget that arms [NextChapterAutoQueue] for route chapter `c1` (next `c2`) and hands back
+/// its `ref`, so a test can report the reader's position.
+class _Reader {
+  _Reader(this.queue, this.autoQueue);
+  final _RecordingQueue queue;
+  final NextChapterAutoQueue autoQueue;
+  late WidgetRef ref;
+
+  void readTo(String chapter, int page, int count) => autoQueue.readTo(ref, chapterId: chapter, page: page, pageCount: count);
+}
+
+Future<_Reader> _open(
   WidgetTester tester, {
   required String? scope,
   required bool wifiOnly,
   required bool onWifi,
-  int calls = 1,
-  List<String> nexts = const ['c2'],
+  String? next = 'c2',
 }) async {
   SharedPreferences.setMockInitialValues({
     'settings_wifi_only_downloads': wifiOnly,
   });
   final prefs = await SharedPreferences.getInstance();
-  final queue = _RecordingQueue();
-  final autoQueue = NextChapterAutoQueue();
+  final reader = _Reader(_RecordingQueue(), NextChapterAutoQueue());
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         sharedPrefsProvider.overrideWithValue(prefs),
         activeDownloadsScopeIdProvider.overrideWithValue(scope),
-        networkConnectivityProvider
-            .overrideWithValue(_FixedConnectivity(onWifi: onWifi)),
-        downloadQueueControllerProvider.overrideWith(() => queue),
+        networkConnectivityProvider.overrideWithValue(_FixedConnectivity(onWifi: onWifi)),
+        downloadQueueControllerProvider.overrideWith(() => reader.queue),
       ],
       child: Consumer(
         builder: (context, ref, _) {
-          for (final next in nexts) {
-            for (var i = 0; i < calls; i++) {
-              autoQueue.maybeQueue(
-                ref,
-                sourceId: 'src',
-                seriesKey: 'series',
-                nextChapterId: next,
-              );
-            }
-          }
+          reader.ref = ref;
+          reader.autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: next, afterChapterId: 'c1');
           return const SizedBox();
         },
       ),
@@ -82,45 +91,184 @@ Future<_RecordingQueue> _run(
   );
   await tester.pump();
   await tester.pump();
-  return queue;
+  return reader;
 }
 
+Future<void> _settle(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump();
+}
+
+const _c2 = (sourceId: 'src', seriesKey: 'series', chapterKey: 'c2');
+
 void main() {
+  testWidgets('nothing is queued on open, however long the wait', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    await tester.pump(const Duration(minutes: 1));
+    expect(r.queue.enqueued, isEmpty);
+  });
+
+  testWidgets('it is queued once the read share crosses the neighbour preload mark', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    r.readTo('c1', 1, 10);
+    r.readTo('c1', 6, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued, isEmpty);
+    r.readTo('c1', 7, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued, [_c2]);
+  });
+
+  testWidgets('only once, however much more is read', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    r.readTo('c1', 7, 10);
+    r.readTo('c1', 8, 10);
+    await _settle(tester);
+    r.readTo('c1', 10, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued, hasLength(1));
+  });
+
+  testWidgets('a chapter of a few pages still gets its next chapter queued', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    r.readTo('c1', 1, 3);
+    await _settle(tester);
+    expect(r.queue.enqueued, isEmpty);
+    r.readTo('c1', 3, 3);
+    await _settle(tester);
+    expect(r.queue.enqueued, [_c2]);
+  });
+
+  testWidgets('progress in another chapter of the feed queues nothing', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    r.readTo('c0', 10, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued, isEmpty);
+  });
+
+  testWidgets('no next chapter known: nothing is queued', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true, next: null);
+    r.readTo('c1', 10, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued, isEmpty);
+  });
+
   testWidgets('no downloads scope: nothing is queued', (tester) async {
-    final queue =
-        await _run(tester, scope: null, wifiOnly: false, onWifi: true);
-    expect(queue.enqueued, isEmpty);
+    final r = await _open(tester, scope: null, wifiOnly: false, onWifi: true);
+    r.readTo('c1', 10, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued, isEmpty);
   });
 
   testWidgets('Wi-Fi only and not on Wi-Fi: nothing is queued', (tester) async {
-    final queue =
-        await _run(tester, scope: 'u1p1', wifiOnly: true, onWifi: false);
-    expect(queue.enqueued, isEmpty);
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: true, onWifi: false);
+    r.readTo('c1', 10, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued, isEmpty);
   });
 
-  testWidgets('otherwise the next chapter is queued exactly once',
-      (tester) async {
-    final queue =
-        await _run(tester, scope: 'u1p1', wifiOnly: true, onWifi: true);
-    expect(queue.enqueued, [
-      (sourceId: 'src', seriesKey: 'series', chapterKey: 'c2'),
-    ]);
-  });
-
-  testWidgets('a second call for the same route chapter queues nothing more',
-      (tester) async {
-    final queue = await _run(
-      tester,
-      scope: 'u1p1',
-      wifiOnly: false,
-      onWifi: false,
-      calls: 2,
-    );
-    expect(queue.enqueued, hasLength(1));
+  testWidgets('Wi-Fi only and on Wi-Fi: it is queued', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: true, onWifi: true);
+    r.readTo('c1', 10, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued, [_c2]);
   });
 
   testWidgets('reading on across seams queues each new next chapter', (tester) async {
-    final queue = await _run(tester, scope: 'u1p1', wifiOnly: false, onWifi: false, nexts: ['c2', 'c3']);
-    expect(queue.enqueued.map((c) => c.chapterKey), ['c2', 'c3']);
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: false);
+    r.readTo('c1', 10, 10);
+    await _settle(tester);
+    // The feed grew to hold c2; the next chapter past it is c3, saved once c2 is read far enough.
+    r.autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: 'c3', afterChapterId: 'c2');
+    r.readTo('c2', 3, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued.map((c) => c.chapterKey), ['c2']);
+    r.readTo('c2', 8, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued.map((c) => c.chapterKey), ['c2', 'c3']);
+  });
+
+  testWidgets('a short chapter read to the mark after the feed already appended its successor still queues that successor', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    // The feed appended c2 and the rebuild armed c3 after it, before c1 (6 pages) reached 70 %.
+    r.autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: 'c3', afterChapterId: 'c2');
+    r.readTo('c1', 5, 6);
+    await _settle(tester);
+    expect(r.queue.enqueued.map((c) => c.chapterKey), ['c2']);
+    r.readTo('c1', 6, 6);
+    r.readTo('c2', 5, 6);
+    await _settle(tester);
+    expect(r.queue.enqueued.map((c) => c.chapterKey), ['c2', 'c3'], reason: 'each once');
+    r.autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: 'c3', afterChapterId: 'c2');
+    r.readTo('c2', 6, 6);
+    await _settle(tester);
+    expect(r.queue.enqueued, hasLength(2));
+  });
+
+  testWidgets('a chapter opened at its last page queues its successor even after a rebuild moved the target on', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    r.autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: 'c3', afterChapterId: 'c2');
+    r.readTo('c1', 1, 1);
+    await _settle(tester);
+    expect(r.queue.enqueued.map((c) => c.chapterKey), ['c2']);
+  });
+
+  testWidgets('what is armed is bounded', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    for (var i = 0; i < 100; i++) {
+      r.autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: 'n$i', afterChapterId: 'a$i');
+    }
+    r.readTo('c1', 10, 10); // c1 was evicted long ago
+    r.readTo('a0', 10, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued, isEmpty);
+    r.readTo('a99', 10, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued.map((c) => c.chapterKey), ['n99']);
+  });
+
+  testWidgets('leaving the reader while the Wi-Fi check is out raises no error', (tester) async {
+    SharedPreferences.setMockInitialValues({'settings_wifi_only_downloads': true});
+    final prefs = await SharedPreferences.getInstance();
+    final connectivity = _GatedConnectivity();
+    final queue = _RecordingQueue();
+    final autoQueue = NextChapterAutoQueue();
+    late WidgetRef ref;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPrefsProvider.overrideWithValue(prefs),
+          activeDownloadsScopeIdProvider.overrideWithValue('u1p1'),
+          networkConnectivityProvider.overrideWithValue(connectivity),
+          downloadQueueControllerProvider.overrideWith(() => queue),
+        ],
+        child: Consumer(
+          builder: (context, r, _) {
+            ref = r;
+            autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: 'c2', afterChapterId: 'c1');
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    autoQueue.readTo(ref, chapterId: 'c1', page: 10, pageCount: 10);
+    await tester.pump();
+    await tester.pump();
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    connectivity.wifi.complete(true);
+    await tester.pump();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a position reported after the reader is gone raises no error and queues nothing', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    await tester.pumpWidget(const SizedBox.shrink());
+    r.readTo('c1', 10, 10);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(r.queue.enqueued, isEmpty);
   });
 }

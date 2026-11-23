@@ -248,8 +248,15 @@ class AuthController extends Notifier<AuthState> {
 
   /// Explicit, user-initiated sign-out: revoke the session server-side, then
   /// clear locally. The local token is cleared regardless of the server result.
+  ///
+  /// The revoke is bounded: against an unreachable host the client waits its connect and receive
+  /// timeouts (15 s and 30 s), and Sign out must not look dead for that long. Past the bound the
+  /// session is dropped here and the server's copy simply lapses.
   Future<void> logout() async {
-    await ref.read(authRepositoryProvider).logout();
+    await ref.read(authRepositoryProvider).logout().timeout(
+          const Duration(seconds: 3),
+          onTimeout: () => const Ok<void>(null),
+        );
     await _signOutLocally();
   }
 

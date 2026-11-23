@@ -192,6 +192,8 @@ class SessionsList extends ConsumerWidget {
     final now = DateTime.now();
 
     Future<void> revoke(UserSession s) async {
+      // The confirm outlives a page that is left meanwhile, which kills its `ref`.
+      final container = ProviderScope.containerOf(context, listen: false);
       final label = sessionDeviceLabel(s.userAgent);
       final ok = await showCineConfirm(
         context,
@@ -200,11 +202,11 @@ class SessionsList extends ConsumerWidget {
         confirmLabel: 'Sign out',
         destructive: true,
         onConfirm: () async {
-          final r = await ref.read(authRepositoryProvider).revokeSession(s.id);
+          final r = await container.read(authRepositoryProvider).revokeSession(s.id);
           if (r.isErr) throw r.error;
         },
       );
-      if (ok) ref.invalidate(authSessionsProvider);
+      if (ok) container.invalidate(authSessionsProvider);
     }
 
     return SettingsAsync<List<UserSession>>(

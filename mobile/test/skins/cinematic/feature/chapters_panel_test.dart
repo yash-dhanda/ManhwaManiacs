@@ -1,6 +1,7 @@
 // ignore_for_file: require_trailing_commas, directives_ordering
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/sources/models/source_chapter_progress.dart';
 import 'package:manhwamaniacs/features/sources/models/source_series.dart';
@@ -87,6 +88,31 @@ void main() {
     await tester.tap(find.text('Undo'));
     await tester.pump();
     expect(r.rec.deleted.single.keys, ['c201']);
+  });
+
+  testWidgets('an Undo that outlives the page still runs and raises nothing', (tester) async {
+    final (:rig, :router) = await pumpFeatureRouter(
+      tester,
+      routes: [
+        GoRoute(path: '/', builder: (c, s) => Scaffold(body: TextButton(onPressed: () => c.push('/page'), child: const Text('go')))),
+        GoRoute(path: '/page', builder: (c, s) => Scaffold(body: MangaFeatureView(data: fixtureData('manga-long')))),
+      ],
+    );
+    await tester.tap(find.text('go'));
+    await frames(tester, 500);
+    await tester.drag(find.byType(NestedScrollView), const Offset(0, -600));
+    await frames(tester);
+    await _menu(tester, 'Mark read');
+    expect(find.text('Marked chapter 201 read.'), findsOneWidget);
+
+    // The toast lives on the app's messenger: the reader backs out and then taps Undo.
+    router.pop();
+    await frames(tester, 500);
+    expect(find.byType(MangaFeatureView), findsNothing);
+    await tester.tap(find.text('Undo'));
+    await frames(tester, 300);
+    expect(tester.takeException(), isNull);
+    expect(rig.rec.deleted.single.keys, ['c201']);
   });
 
   testWidgets('Mark read up to here sends manual rows in chunks of 200', (tester) async {

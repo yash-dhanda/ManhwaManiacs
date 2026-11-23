@@ -2,6 +2,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/features/setup/utils/server_check.dart';
 
@@ -45,6 +46,18 @@ void main() {
       () async => expect(
           await run('https://h', () async => _json('{}'), online: false),
           isA<ServerCheckOffline>()));
+  test('a connectivity check that throws is treated as online and /health decides', () async {
+    final ok = await checkServer('https://h.example',
+        releaseBuild: false,
+        isOnline: () async => throw PlatformException(code: 'x'),
+        dioFor: (_) => _dio(() async => _json('{"name":"ManhwaManiacs"}')));
+    expect(ok, isA<ServerCheckOk>());
+    final down = await checkServer('https://h.example',
+        releaseBuild: false,
+        isOnline: () async => throw PlatformException(code: 'x'),
+        dioFor: (_) => _dio(() async => throw const SocketException('no route')));
+    expect(down, isA<ServerCheckUnreachable>());
+  });
   test(
       'http in release',
       () async => expect(

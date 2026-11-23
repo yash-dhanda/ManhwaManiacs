@@ -470,7 +470,9 @@ def test_browse_modes_map_to_distinct_endpoints(connector: MangaFreakConnector):
         return _load("genre_action_page1.html")
 
     with patch.object(connector._http, "get_text", side_effect=fake_get_text):
-        for mode in (m.id for m in connector.list_browse_modes()):
+        # ``latest`` is the canonical twin of ``default`` (same feed), so it
+        # is exercised separately below rather than in the distinct-path check.
+        for mode in (m.id for m in connector.list_browse_modes() if m.id != "latest"):
             connector.get_series_list(1, sort=mode)
         connector.browse_by_genre("Action", 2)
 

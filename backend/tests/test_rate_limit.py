@@ -197,6 +197,7 @@ def sources_client(client, monkeypatch):
     from services.reader_service import get_reader_service
 
     monkeypatch.setenv("MM_RATE_LIMIT_SOURCES", "2/minute")
+    monkeypatch.setenv("MM_RATE_LIMIT_IMAGES", "2/minute")
     get_settings.cache_clear()
     client.app.dependency_overrides[get_browse_service] = _StubBrowse
     client.app.dependency_overrides[get_reader_service] = _StubReader
@@ -231,6 +232,34 @@ def test_expensive_source_routes_are_rate_limited(sources_client, path):
     limited = sources_client.get(path, headers=headers)
     assert limited.status_code == 429, path
     assert limited.json()["code"] == "rate_limited"
+
+
+@pytest.mark.rate_limit
+def test_images_have_their_own_bucket_sized_for_a_chapter(sources_client, monkeypatch):
+    """A chapter is one request per page. On the ``sources`` bucket, reading a
+    long chapter ran past the limit by itself and the pages came back broken."""
+    monkeypatch.setenv("MM_RATE_LIMIT_IMAGES", "5/minute")
+    get_settings.cache_clear()
+    headers = {"CF-Connecting-IP": "203.0.113.201"}
+    image = "/sources/mangadex/pages/p1/image"
+    cover = "/sources/mangadex/series/solo-leveling/cover"
+
+    # Five pages on a "2/minute" sources bucket: all served.
+    assert [sources_client.get(image, headers=headers).status_code for _ in range(5)] == [200] * 5
+    assert sources_client.get(image, headers=headers).status_code == 429
+    # Pages did not spend the catalogue bucket, nor the cover route's own count.
+    assert sources_client.get("/sources/mangadex/series/solo", headers=headers).status_code == 200
+    assert sources_client.get(cover, headers=headers).status_code == 200
+
+
+def test_the_default_image_bucket_covers_a_long_chapter_with_the_next_one_saving():
+    from limits import parse_many
+
+    get_settings.cache_clear()
+    (limit,) = parse_many(get_settings().rate_limit_images)
+    per_minute = limit.amount * 60 / limit.get_expiry()
+    # Two 120-page chapters inside a minute, with room for a second reader.
+    assert per_minute >= 480
 
 
 # --- the OCR upload carries a bucket ---------------------------------------

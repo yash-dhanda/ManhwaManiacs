@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart' show BaseCacheManager, HttpExceptionWithStatus;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
@@ -82,6 +84,12 @@ class ReaderLoadedPageImage extends StatelessWidget {
   }
 }
 
+/// Waits before the first and second automatic reload of a page that failed to download. A hiccup
+/// (a 429 from the image bucket, a 502, a socket the OS dropped) is usually gone within seconds, so
+/// the reader never needs to see "didn't load" for it; the second wait is longer to outlast a
+/// rate-limit window. After both, the broken-page state and its manual Retry take over.
+const List<Duration> kPageAutoRetryDelays = [Duration(milliseconds: 1500), Duration(seconds: 4)];
+
 class ReaderPageImage extends ConsumerStatefulWidget {
   const ReaderPageImage({
     super.key,
@@ -102,6 +110,7 @@ class ReaderPageImage extends ConsumerStatefulWidget {
     this.localFile,
     this.declaredWidth,
     this.declaredHeight,
+    this.cacheManager,
   });
 
   final String imageUrl;
@@ -159,22 +168,59 @@ class ReaderPageImage extends ConsumerStatefulWidget {
   final int? declaredWidth;
   final int? declaredHeight;
 
+  /// Replaces the default image cache manager; tests use it to script download failures.
+  @visibleForTesting
+  final BaseCacheManager? cacheManager;
+
   @override
   ConsumerState<ReaderPageImage> createState() => _ReaderPageImageState();
 }
 
 class _ReaderPageImageState extends ConsumerState<ReaderPageImage> {
   int _retryToken = 0;
+  int _autoRetries = 0;
+  Timer? _autoRetryTimer;
   ImageStream? _sizeStream;
   ImageStreamListener? _sizeListener;
   bool _sizeReported = false;
   String? _checkedLocalPath;
   bool _localFileExists = false;
 
-  void _retry() => setState(() {
+  void _retry() {
+    // A tap takes over: whatever automatic reload was waiting is dropped, and a page the person
+    // had to retry by hand does not start another automatic cycle behind their back.
+    _autoRetryTimer?.cancel();
+    _autoRetryTimer = null;
+    _autoRetries = kPageAutoRetryDelays.length;
+    setState(() {
+      _retryToken++;
+      _checkedLocalPath = null;
+    });
+  }
+
+  /// Whether a failed download is worth reloading by itself: not when the server said the page does
+  /// not exist (404/410) or is locked (423), which no wait fixes.
+  bool _worthAutoRetry(Object error) {
+    if (error is HttpExceptionWithStatus) {
+      final c = error.statusCode;
+      if (c == 404 || c == 410 || c == 423) return false;
+    }
+    return _autoRetries < kPageAutoRetryDelays.length;
+  }
+
+  /// Arms the next automatic reload (idempotent while one is pending: the error builder runs on
+  /// every rebuild). The timer dies with the widget, so a long page list leaves none behind.
+  void _scheduleAutoRetry() {
+    if (_autoRetryTimer != null) return;
+    _autoRetryTimer = Timer(kPageAutoRetryDelays[_autoRetries], () {
+      _autoRetryTimer = null;
+      if (!mounted) return;
+      setState(() {
+        _autoRetries++;
         _retryToken++;
-        _checkedLocalPath = null;
       });
+    });
+  }
 
   @override
   void didChangeDependencies() {
@@ -192,10 +238,16 @@ class _ReaderPageImageState extends ConsumerState<ReaderPageImage> {
       _sizeReported = false;
       _listenForIntrinsicSize();
     }
+    if (oldWidget.imageUrl != widget.imageUrl) {
+      _autoRetryTimer?.cancel();
+      _autoRetryTimer = null;
+      _autoRetries = 0;
+    }
   }
 
   @override
   void dispose() {
+    _autoRetryTimer?.cancel();
     _detachSizeListener();
     super.dispose();
   }
@@ -236,7 +288,7 @@ class _ReaderPageImageState extends ConsumerState<ReaderPageImage> {
       null,
       localFile != null
           ? FileImage(localFile) as ImageProvider
-          : CachedNetworkImageProvider(widget.imageUrl, headers: headers),
+          : CachedNetworkImageProvider(widget.imageUrl, headers: headers, cacheManager: widget.cacheManager),
     );
 
     final stream = provider.resolve(createLocalImageConfiguration(context));
@@ -372,6 +424,7 @@ class _ReaderPageImageState extends ConsumerState<ReaderPageImage> {
       key: ValueKey('${widget.imageUrl}:$_retryToken'),
       imageUrl: widget.imageUrl,
       httpHeaders: headers,
+      cacheManager: widget.cacheManager,
       fit: _boxFit,
       memCacheWidth: decodeWidth,
       width: widget.layoutAxis == Axis.vertical &&
@@ -396,7 +449,11 @@ class _ReaderPageImageState extends ConsumerState<ReaderPageImage> {
       fadeInDuration: Duration.zero,
       fadeOutDuration: Duration.zero,
       placeholder: (_, __) => _loadingBox(),
-      errorWidget: (_, __, ___) => _brokenPageBox(),
+      errorWidget: (_, __, error) {
+        if (!_worthAutoRetry(error)) return _brokenPageBox();
+        _scheduleAutoRetry();
+        return _loadingBox();
+      },
       // The raw provider CachedNetworkImage hands back, wrapped in the same
       // ResizeImage key its own memCacheWidth produced — equal keys, one
       // decode, one cache entry.

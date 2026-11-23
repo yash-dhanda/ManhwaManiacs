@@ -61,9 +61,14 @@ void warmContinue(WidgetRef ref, GlassSeriesData d, String? chapterKey) {
 
 /// Follow, unfollow with Undo, favourite and notify (glass 8.12 Actions).
 class SeriesActionsLogic {
-  SeriesActionsLogic(this.context, this.ref, this.d, {this.ring, this.bandKey, this.followKey});
+  SeriesActionsLogic(this.context, this.ref, this.d, {this.ring, this.bandKey, this.followKey}) : _c = ProviderScope.containerOf(context, listen: false);
   final BuildContext context;
   final WidgetRef ref;
+
+  /// What the actions use once a network call is under way: the page can be left meanwhile, which
+  /// kills [ref] but not the container.
+  final ProviderContainer _c;
+  void _toast(GlassToastSpec spec) => _c.read(glassToastProvider.notifier).show(spec);
   final GlassSeriesData d;
   final GlassFollowRingController? ring;
   final GlobalKey? bandKey, followKey;
@@ -74,28 +79,27 @@ class SeriesActionsLogic {
     if (!_online) return;
     final f = d.followed;
     if (f == null) {
-      final err = await ref.read(updatesProvider.notifier).followSeries(sourceId: d.sourceId, seriesKey: d.seriesKey);
+      final err = await _c.read(updatesProvider.notifier).followSeries(sourceId: d.sourceId, seriesKey: d.seriesKey);
       if (err != null) {
-        showGlassToast(ref, GlassToastSpec(err is ApiError && err.code == 'follow_limit_reached' ? "You're following 1,000 series, the limit for a profile." : err.userMessage, kind: GlassToastKind.error));
+        _toast(GlassToastSpec(err is ApiError && err.code == 'follow_limit_reached' ? "You're following 1,000 series, the limit for a profile." : err.userMessage, kind: GlassToastKind.error));
         return;
       }
-      fire(ref.read(glassHapticsProvider).fire(HapticEvent.followAdd));
+      fire(_c.read(glassHapticsProvider).fire(HapticEvent.followAdd));
       _ring();
-      final added = ref.read(updatesProvider).valueOrNull?.followed.where((x) => x.sourceId == d.sourceId && x.seriesKey == d.seriesKey).firstOrNull;
-      showGlassToast(
-        ref,
-        GlassToastSpec('Added ${d.title} to your library. New chapters will notify you.', undo: added == null ? null : () => fire(ref.read(updatesProvider.notifier).unfollow(added.id))),
+      final added = _c.read(updatesProvider).valueOrNull?.followed.where((x) => x.sourceId == d.sourceId && x.seriesKey == d.seriesKey).firstOrNull;
+      _toast(
+        GlassToastSpec('Added ${d.title} to your library. New chapters will notify you.', undo: added == null ? null : () => fire(_c.read(updatesProvider.notifier).unfollow(added.id))),
       );
     } else {
-      final actions = ref.read(librarySeriesActionsProvider);
+      final actions = _c.read(librarySeriesActionsProvider);
       final r = await actions.remove(f);
-      ref.invalidate(updatesProvider);
+      _c.invalidate(updatesProvider);
       if (r.error != null) {
-        showGlassToast(ref, GlassToastSpec(r.error!.userMessage, kind: GlassToastKind.error));
+        _toast(GlassToastSpec(r.error!.userMessage, kind: GlassToastKind.error));
         return;
       }
-      fire(ref.read(glassHapticsProvider).fire(HapticEvent.followRemove));
-      showGlassToast(ref, GlassToastSpec('Removed ${d.title} from your library.', undo: () => fire(actions.restore(f, slots: r.slots).then((_) => ref.invalidate(updatesProvider)))));
+      fire(_c.read(glassHapticsProvider).fire(HapticEvent.followRemove));
+      _toast(GlassToastSpec('Removed ${d.title} from your library.', undo: () => fire(actions.restore(f, slots: r.slots).then((_) => _c.invalidate(updatesProvider)))));
     }
   }
 
@@ -110,18 +114,18 @@ class SeriesActionsLogic {
   Future<void> favorite() async {
     final f = d.followed;
     if (f == null || !_online) return;
-    fire(ref.read(glassHapticsProvider).fire(HapticEvent.favorite));
-    final err = await ref.read(librarySeriesActionsProvider).setFavorite(f, favorite: !f.isFavorite);
-    if (err != null) showGlassToast(ref, GlassToastSpec(err.userMessage, kind: GlassToastKind.error));
-    ref.invalidate(updatesProvider);
+    fire(_c.read(glassHapticsProvider).fire(HapticEvent.favorite));
+    final err = await _c.read(librarySeriesActionsProvider).setFavorite(f, favorite: !f.isFavorite);
+    if (err != null) _toast(GlassToastSpec(err.userMessage, kind: GlassToastKind.error));
+    _c.invalidate(updatesProvider);
   }
 
   Future<void> notify() async {
     final f = d.followed;
     if (f == null || !_online) return;
-    final r = await ref.read(libraryRepositoryProvider).patchSeries(f.id, notify: !f.notify);
-    if (r.isErr) showGlassToast(ref, GlassToastSpec(r.error.userMessage, kind: GlassToastKind.error));
-    ref.invalidate(updatesProvider);
+    final r = await _c.read(libraryRepositoryProvider).patchSeries(f.id, notify: !f.notify);
+    if (r.isErr) _toast(GlassToastSpec(r.error.userMessage, kind: GlassToastKind.error));
+    _c.invalidate(updatesProvider);
   }
 }
 
@@ -223,7 +227,7 @@ Future<void> showSeriesMenu(BuildContext context, WidgetRef ref, GlassSeriesData
       GlassMenuEntry(label: 'Tags…', enabled: online, keyHint: const SingleActivator(LogicalKeyboardKey.keyT, shift: true), onSelected: () => openTagsSheet(context, d)),
       if (hasProgress) GlassMenuEntry(label: 'Previously on', onSelected: () => openPreviouslyOn(ref, d)),
       if (d.novel && d.readingOrder.isNotEmpty) GlassMenuEntry(label: 'Voices for this book', onSelected: () => ref.read(glassNarrationActionsProvider).openSheet('cast', extra: {'series': '${d.sourceId}:${d.seriesKey}', 'chapter': d.readingOrder.first.id})),
-      if (f != null) GlassMenuEntry(label: 'Check for new chapters', enabled: online, onSelected: () => fire(checkNewChapters(ref, d, f))),
+      if (f != null) GlassMenuEntry(label: 'Check for new chapters', enabled: online, onSelected: () => fire(checkNewChapters(ProviderScope.containerOf(context, listen: false), d, f))),
       if (f != null) GlassMenuEntry(label: 'Move to another source…', enabled: online, onSelected: () => openMoveSource(context, d)),
       if (f != null && gateOpen) GlassMenuEntry(label: 'Content rating…', separatorBefore: true, enabled: online, onSelected: () => _ratingMenu(context, ref, f, anchor)),
       // The Circle (mobile/43, glass 8.12, 8.13, 9.3.4, 9.3.6).
@@ -251,14 +255,17 @@ void openPreviouslyOn(WidgetRef ref, GlassSeriesData d) {
   unawaited(ref.read(skinRouterProvider).push<void>(Routes.recap(d.sourceId, d.seriesKey, {'to': to}), extra: const GlassNavExtra()));
 }
 
-Future<void> checkNewChapters(WidgetRef ref, GlassSeriesData d, FollowedSeries f) async {
-  final r = await checkSeriesForNew(ref, followedId: f.id, sourceId: d.sourceId, seriesKey: d.seriesKey);
+/// Takes a container, not a `ref`: the check takes seconds and the page may be left meanwhile, which
+/// kills its `ref` but not the container.
+Future<void> checkNewChapters(ProviderContainer container, GlassSeriesData d, FollowedSeries f) async {
+  void toast(GlassToastSpec spec) => container.read(glassToastProvider.notifier).show(spec);
+  final r = await checkSeriesForNewIn(container, followedId: f.id, sourceId: d.sourceId, seriesKey: d.seriesKey);
   if (r.isErr) {
-    showGlassToast(ref, GlassToastSpec(r.error.userMessage, kind: GlassToastKind.error));
+    toast(GlassToastSpec(r.error.userMessage, kind: GlassToastKind.error));
     return;
   }
   final n = r.value;
-  showGlassToast(ref, GlassToastSpec(n > 0 ? 'Checked: $n new chapter${n == 1 ? '' : 's'}' : 'No new chapters'));
+  toast(GlassToastSpec(n > 0 ? 'Checked: $n new chapter${n == 1 ? '' : 's'}' : 'No new chapters'));
 }
 
 void _statusMenu(BuildContext context, WidgetRef ref, FollowedSeries f, Rect anchor) => unawaited(showGlassMenu(
@@ -271,13 +278,15 @@ void _statusMenu(BuildContext context, WidgetRef ref, FollowedSeries f, Rect anc
             label: label,
             checked: f.readingStatus == v,
             onSelected: () async {
-              final r = await ref.read(libraryRepositoryProvider).patchSeries(f.id, readingStatus: v);
+              // The call takes a moment and the page may be left meanwhile, which kills its `ref`.
+              final container = ProviderScope.containerOf(context, listen: false);
+              final r = await container.read(libraryRepositoryProvider).patchSeries(f.id, readingStatus: v);
               if (r.isErr) {
-                showGlassToast(ref, const GlassToastSpec("Couldn't change the reading status", kind: GlassToastKind.error));
+                container.read(glassToastProvider.notifier).show(const GlassToastSpec("Couldn't change the reading status", kind: GlassToastKind.error));
                 if (context.mounted) _statusMenu(context, ref, f, anchor);
                 return;
               }
-              ref.invalidate(updatesProvider);
+              container.invalidate(updatesProvider);
             },
           ),
       ],
@@ -299,9 +308,10 @@ void _collectionMenu(BuildContext context, WidgetRef ref, GlassSeriesData d, Rec
       GlassMenuEntry(
         label: c.name,
         onSelected: () async {
-          final r = await ref.read(libraryRepositoryProvider).addSeriesToCollection(c.id, sourceId: d.sourceId, seriesKey: d.seriesKey);
-          showGlassToast(ref, GlassToastSpec(r.isErr ? "Couldn't add it to ${c.name}" : 'Added to ${c.name}', kind: r.isErr ? GlassToastKind.error : GlassToastKind.info));
-          ref.invalidate(collectionsProvider);
+          final container = ProviderScope.containerOf(context, listen: false);
+          final r = await container.read(libraryRepositoryProvider).addSeriesToCollection(c.id, sourceId: d.sourceId, seriesKey: d.seriesKey);
+          container.read(glassToastProvider.notifier).show(GlassToastSpec(r.isErr ? "Couldn't add it to ${c.name}" : 'Added to ${c.name}', kind: r.isErr ? GlassToastKind.error : GlassToastKind.info));
+          container.invalidate(collectionsProvider);
         },
       ),
     GlassMenuEntry(label: 'New collection', separatorBefore: cols.isNotEmpty, onSelected: () => unawaited(ref.read(skinRouterProvider).push<void>(Routes.collections({'sheet': 'collection-new'})))),

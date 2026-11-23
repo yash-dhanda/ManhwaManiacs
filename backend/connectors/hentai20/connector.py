@@ -25,10 +25,12 @@ from connectors.elftoon.mappers import (
     search_path,
     series_id_to_path,
 )
+from connectors.http import swallowed
 from connectors.http.cache import TTLCache
 from connectors.http.cf_client import CfSyncHttpClient
 from connectors.http.client import ConnectorHttpError, SyncConnectorHttpClient
 from connectors.ids import fully_unquote
+from connectors.release_dates import normalize_release_date
 from connectors.models import BrowseMode, Chapter, Page, PaginatedSeriesList, Series
 
 logger = logging.getLogger(__name__)
@@ -135,9 +137,9 @@ class Hentai20Connector(SourceConnector):
 
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
-            BrowseMode(id="default", label="Latest"),
-            BrowseMode(id="latest", label="New"),
+            BrowseMode(id="latest", label="Latest"),
             BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="rating", label="Top Rated"),
         ]
 
@@ -174,6 +176,12 @@ class Hentai20Connector(SourceConnector):
     def _enrich_chapters(self, chapters: list[Chapter]) -> list[Chapter]:
         out: list[Chapter] = []
         for chapter in chapters:
+            # The site prints "October 1, 2026"; clients only read ISO. Applied
+            # here (idempotent on an ISO value) rather than in the shared
+            # Themesia parser.
+            iso = normalize_release_date(chapter.release_date)
+            if iso != chapter.release_date:
+                chapter = replace(chapter, release_date=iso)
             cached = self._chapter_page_count_cache.get(chapter.id)
             if cached is not None and cached > 0:
                 out.append(replace(chapter, page_count=cached))
@@ -185,12 +193,17 @@ class Hentai20Connector(SourceConnector):
         if page < 1:
             page = 1
         path = listing_path()
-        params = listing_params(page=page, sort=sort)
+        params = listing_params(page=page, sort=sort)  # elftoon.SORT_TO_ORDER maps latest->update, new->latest
         try:
             html = self._http.get_text(path, params=params)
         except ConnectorHttpError as exc:
             self._log("browse", path, params=params, status="error", detail=str(exc))
             raise
+        # WordPress writes the pager links as ``?order=update&#038;page=3``. The
+        # shared Themesia parser looks for ``[?&]page=N``, finds none, and so
+        # reported has_more=False on EVERY page (measured 2026-11-23: page 1
+        # of 58 answered total=30, has_more=False; pages 2/3/10/40 likewise).
+        html = html.replace("&#038;", "&").replace("&amp;", "&")
         listing = parse_series_list(html, page=page, page_size=PAGE_SIZE)
         self._log(
             "browse",
@@ -247,6 +260,8 @@ class Hentai20Connector(SourceConnector):
             html = self._http.get_text(path)
         except ConnectorHttpError as exc:
             self._log("detail", path, status="error", detail=str(exc))
+            if not _is_not_found(exc):
+                swallowed.note(exc)
             return None
         series = parse_series_detail(html, api_key)
         if series is None:
@@ -291,6 +306,8 @@ class Hentai20Connector(SourceConnector):
             html = self._http.get_text(path)
         except ConnectorHttpError as exc:
             self._log("chapters", path, status="error", detail=str(exc))
+            if not _is_not_found(exc):
+                swallowed.note(exc)
             return []
         chapters = parse_chapters(html, api_key)
         self._chapter_list_cache.set(api_key, chapters)
@@ -314,9 +331,13 @@ class Hentai20Connector(SourceConnector):
             html = self._http.get_text(path)
         except ConnectorHttpError as exc:
             self._log("pages", path, status="error", detail=str(exc))
-            return []
+            if _is_not_found(exc):
+                return []
+            # Not "Chapter not found": let BrowseService answer 502.
+            raise
         pages = parse_chapter_pages(html, api_key)
-        self._page_cache.set(api_key, pages)
+        if pages:  # an empty parse is not cached for ten minutes
+            self._page_cache.set(api_key, pages)
         self._remember_page_count(api_key, len(pages))
         self._log("pages", path, status="ok", detail=f"count={len(pages)}")
         return pages

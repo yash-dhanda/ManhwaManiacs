@@ -1,3 +1,5 @@
+import 'package:manhwamaniacs/core/time/locked_until.dart';
+
 /// One entry in a followed series' known-chapter snapshot / live chapter
 /// list (`backend/services/followed_series_service.py`).
 class KnownChapter {
@@ -7,6 +9,7 @@ class KnownChapter {
     this.title,
     this.publishedAt,
     this.pageCount,
+    this.lockedUntil,
   });
 
   final String key;
@@ -22,12 +25,18 @@ class KnownChapter {
   /// Only present on the cache-backed detail chapter list.
   final int? pageCount;
 
+  /// When an early-access chapter opens to everyone (UTC); null when open or unknown.
+  final DateTime? lockedUntil;
+
+  bool isLocked([DateTime? now]) => isLockedAt(lockedUntil, now);
+
   factory KnownChapter.fromJson(Map<String, dynamic> json) => KnownChapter(
         key: json['key'] as String,
         number: (json['number'] as num?)?.toDouble(),
         title: json['title'] as String?,
         publishedAt: json['published_at'] as String?,
         pageCount: (json['page_count'] as num?)?.toInt(),
+        lockedUntil: lockedUntilOf(json['locked_until']),
       );
 
   /// Round-trips through [KnownChapter.fromJson] — the write half of the
@@ -39,5 +48,6 @@ class KnownChapter {
         'title': title,
         'published_at': publishedAt,
         'page_count': pageCount,
+        if (lockedUntil != null) 'locked_until': lockedUntil!.toUtc().toIso8601String(),
       };
 }

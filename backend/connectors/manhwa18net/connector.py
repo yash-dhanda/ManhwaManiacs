@@ -160,7 +160,12 @@ class Manhwa18NetConnector(SourceConnector):
     def allowed_image_hosts(self) -> frozenset[str]:
         # Covers and page images alike come from min.manhwa18.net; the suffix
         # covers that subdomain and the apex, which serves the site's assets.
-        return frozenset({IMAGE_HOST_SUFFIX})
+        # cdn.pornwa.us: a second page-image host (31 of 99 page URLs across 6
+        # chapters of 3 series, 2026-11-23, e.g. secret-class). It was refused
+        # by the allowlist, so those chapters opened with broken pages. Not
+        # fetchable from the probe sandbox, so its Referer needs and bytes are
+        # unverified -- fetch_proxied_image sends the site Referer to every host.
+        return frozenset({IMAGE_HOST_SUFFIX, "pornwa.us"})
 
     def fetch_proxied_image(self, url: str) -> tuple[str, bytes] | None:
         """Fetch a page image and label it by its actual bytes.
@@ -180,6 +185,9 @@ class Manhwa18NetConnector(SourceConnector):
         """
         media_type, body = self._http.get_bytes(url)
         return _sniff_image_media_type(body, media_type), body
+
+    #: Ids advertised before the canonical popular/latest/new set. Both send ``sort=top``.
+    LEGACY_SORT_ALIASES = {"top": "popular"}
 
     def list_browse_modes(self) -> list[BrowseMode]:
         return list_browse_modes()

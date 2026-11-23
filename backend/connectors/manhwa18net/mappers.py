@@ -77,12 +77,17 @@ SCRIPT_RE = re.compile(r"<script\b.*?</script>", re.S | re.I)
 #: Mode id -> (label, ``sort`` query value). ``None`` sends no ``sort`` at all,
 #: which is the site's own default ordering (most recently updated).
 BROWSE_MODES: dict[str, tuple[str, str | None]] = {
-    "default": ("Latest Updates", None),
+    "latest": ("Latest Updates", None),
+    "popular": ("Most Popular", "top"),
     "new": ("Newly Added", "new"),
-    "top": ("Most Popular", "top"),
 }
 
-DEFAULT_MODE = "default"
+DEFAULT_MODE = "latest"
+
+#: Ids advertised before the canonical set (2026-11-23): exact duplicates of
+#: ``latest`` and ``popular`` (same request), no longer listed but still
+#: accepted for saved preferences and cached browse keys.
+LEGACY_MODE_ALIASES: dict[str, str] = {"default": "latest", "top": "popular"}
 
 #: The site's own genre vocabulary, read from the ``genres`` prop that
 #: ``/tim-kiem`` publishes. Hard-coded so ``list_genres`` costs no request.
@@ -128,6 +133,7 @@ def list_genres() -> list[BrowseMode]:
 def normalize_sort(sort: str | None) -> str:
     if not sort:
         return DEFAULT_MODE
+    sort = LEGACY_MODE_ALIASES.get(sort, sort)
     return sort if sort in BROWSE_MODES else DEFAULT_MODE
 
 

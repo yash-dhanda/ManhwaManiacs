@@ -78,7 +78,15 @@ class ProgressOutboxController {
   Future<void> save(ProgressPush push) async {
     final store = ref.read(downloadsStoreProvider);
     if (store == null) return;
-    await store.enqueueProgress(push.stampedAt(DateTime.now().toUtc()));
+    try {
+      await store.enqueueProgress(push.stampedAt(DateTime.now().toUtc()));
+    } catch (error, stackTrace) {
+      // Callers fire this without awaiting (every page turn), so a throw here would surface as an
+      // uncaught async error mid-read: a store closed by a profile switch, a locked database.
+      // The position is lost for this turn only; the next page turn writes a newer one.
+      appLogger.w('progress save failed', error, stackTrace);
+      return;
+    }
     _recordOwn(push);
     _queuedSinceRead++;
     final hold = _holdFlushUntil;

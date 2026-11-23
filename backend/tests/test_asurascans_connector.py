@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 
 from connectors.asurascans.connector import AsuraScansConnector
-from connectors.asurascans.mappers import chapter_is_locked, chapter_pages_to_pages
+from connectors.asurascans.mappers import chapter_locked_until, chapter_pages_to_pages
 from connectors.registry import create_connector, list_installed_connectors
 from services.browse_service import _serialize_page
 
@@ -73,6 +73,34 @@ def test_list_series_page_2_uses_offset(asurascans_connector: AsuraScansConnecto
     assert captured[1]["offset"] == 20
     assert captured[1]["sort"] == "popular"
 
+def test_browse_modes_canonical_order(asurascans_connector: AsuraScansConnector):
+    assert [m.id for m in asurascans_connector.list_browse_modes()] == [
+        "default", "popular", "latest", "new", "trending", "rating",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("sort", "expected"),
+    [
+        (None, None),
+        ("default", None),
+        ("popular", "popular"),
+        ("latest", "latest"),
+        ("new", "updated"),
+        ("updated", "updated"),
+        ("trending", "trending"),
+        ("rating", "rating"),
+    ],
+)
+def test_browse_sort_requests(asurascans_connector: AsuraScansConnector, sort, expected):
+    payload = _load("series_list.json")
+    with patch.object(asurascans_connector._http, "get_json", return_value=payload) as mock_get:
+        asurascans_connector.get_series_list(2, sort=sort)
+    params = mock_get.call_args.kwargs["params"]
+    assert params.get("sort") == expected
+    assert params["offset"] == 20
+
+
 @pytest.mark.parametrize("fixture_name", ["chapter_pages.json", "chapter_pages_mount.json"])
 def test_chapter_page_extraction_preserves_every_page(fixture_name: str):
     """Regression: extraction must emit exactly one page per source payload entry.
@@ -108,50 +136,57 @@ def test_chapter_page_serialization_preserves_every_page(fixture_name: str):
     assert all(item["image_url"].startswith("/sources/asurascans/pages/") for item in serialized)
 
 
-_BEFORE_UNLOCK = datetime(2026, 6, 30, 12, 0, tzinfo=timezone.utc)
-_AFTER_UNLOCK = datetime(2026, 7, 1, 12, 0, tzinfo=timezone.utc)
-
-
-def test_early_access_chapter_is_locked_until_its_unlock_time():
+def test_early_access_chapter_carries_its_unlock_time():
     # Real row from the fixture: chapter 169, is_locked + is_premium, unlocks 2026-06-30T23:04Z.
     locked = _load("chapter_list.json")["data"][0]
     assert locked["number"] == 169 and locked["is_locked"] is True
 
-    assert chapter_is_locked(locked, now=_BEFORE_UNLOCK) is True
-    # Once the clock passes unlock_time the listing may still say locked; trust the clock.
-    assert chapter_is_locked(locked, now=_AFTER_UNLOCK) is False
+    unlock = datetime.fromisoformat(locked["unlock_time"].replace("Z", "+00:00"))
+    assert chapter_locked_until(locked) == unlock.astimezone(timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
 
 
-def test_locked_without_an_unlock_time_stays_locked():
-    assert chapter_is_locked({"is_locked": True}, now=_AFTER_UNLOCK) is True
-    assert chapter_is_locked({"is_locked": True, "unlock_time": "garbage"}) is True
-    assert chapter_is_locked({"is_locked": True, "unlock_time": None}) is True
+def test_the_list_spelling_asura_sends_now_is_read_too():
+    # 2026-11-23: no ``is_locked`` on list rows any more, only these two.
+    row = {"number": 370, "is_premium": True, "early_access_until": "2026-11-23T14:15:24.018266Z"}
+    assert chapter_locked_until(row) == "2026-11-23T14:15:24Z"
+
+
+def test_locked_without_a_readable_unlock_time_has_no_instant():
+    # Still listed; the reader says "locked" without a countdown when its pages are asked for.
+    assert chapter_locked_until({"is_locked": True}) is None
+    assert chapter_locked_until({"is_locked": True, "unlock_time": "garbage"}) is None
+    assert chapter_locked_until({"is_locked": True, "unlock_time": None}) is None
 
 
 def test_unlocked_and_unflagged_chapters_are_not_locked():
     free = _load("chapter_list.json")["data"][1]
     assert free["is_locked"] is False
-    assert chapter_is_locked(free) is False
-    assert chapter_is_locked({"number": 1}) is False
+    assert chapter_locked_until(free) is None
+    assert chapter_locked_until({"number": 1}) is None
     # is_premium alone (a paid chapter that is already open) is not a lock.
-    assert chapter_is_locked({"is_premium": True, "is_locked": False}) is False
+    assert chapter_locked_until(
+        {"is_premium": True, "is_locked": False, "early_access_until": "2999-01-01T00:00:00Z"}
+    ) is None
 
 
-def test_get_chapters_leaves_out_chapters_still_in_early_access(
+def test_get_chapters_lists_early_access_chapters_with_their_unlock_time(
     asurascans_connector: AsuraScansConnector,
 ):
+    """They used to be left out until they opened. The clients count down to
+    the instant now, so the chapter is listed and says when."""
     payload = _load("chapter_list.json")
-    # The fixture's lock has since expired by wall clock; push it into the future.
     payload["data"][0]["unlock_time"] = "2999-01-01T00:00:00Z"
     total = len(payload["data"])
 
     with patch.object(asurascans_connector._http, "get_json", return_value=payload):
         chapters = asurascans_connector.get_chapters("return-of-the-mount-hua-sect")
 
-    numbers = [chapter.number for chapter in chapters]
-    assert 169 not in numbers
-    assert len(chapters) == total - 1
-    assert numbers[-1] == 168  # newest readable chapter is now the last (ascending order)
+    assert len(chapters) == total
+    assert chapters[-1].number == 169  # ascending order: the newest is last
+    assert chapters[-1].locked_until == "2999-01-01T00:00:00Z"
+    assert all(chapter.locked_until is None for chapter in chapters[:-1])
 
 
 @pytest.mark.integration

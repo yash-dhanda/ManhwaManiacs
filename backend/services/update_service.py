@@ -23,6 +23,7 @@ from fastapi import Depends
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from connectors.http import egress
 from connectors.ids import fully_unquote
 from connectors.registry import list_installed_connectors
 from core.config import get_settings
@@ -81,6 +82,18 @@ def _bool(value: Any) -> bool:
     return bool(value)
 
 
+def _locked_until(value: Any) -> str | None:
+    """A chapter's ``locked_until`` as the notification column holds it.
+
+    Connectors write a short ISO instant; anything else -- a missing key on a
+    chapter dict from a cache row written before the field existed, a value too
+    long for the column -- is "not locked", never a failed sweep.
+    """
+    if isinstance(value, str) and 0 < len(value) <= 32:
+        return value
+    return None
+
+
 def _loads(value: str | None) -> list[dict[str, Any]]:
     if not value:
         return []
@@ -101,9 +114,10 @@ def _loads(value: str | None) -> list[dict[str, Any]]:
 _HEALTH_TRANSPORT = "The source could not be reached."
 _HEALTH_REFUSED = "The source refused the request."
 _HEALTH_BROKE = "The source answered, but not in a way we could read."
+_PROXY_UNREACHABLE = "Could not reach the source site."
 
 
-def _health_failure(exc: BaseException) -> str | None:
+def _health_failure(exc: BaseException, source_id: str | None = None) -> str | None:
     """What this exception says about the SOURCE, or None if it says nothing.
 
     Three things a sweep failure can mean, and only one of them is the site
@@ -123,6 +137,14 @@ def _health_failure(exc: BaseException) -> str | None:
     if code in {"series_not_found", "source_not_found"}:
         return None
     if isinstance(exc, AppError):
+        # A raw transport failure the browse layer mapped to its 502 is still a
+        # transport failure, not a source that answered unreadably.
+        if isinstance(exc.__cause__, OSError):
+            return _HEALTH_TRANSPORT
+        # A down alternate-egress proxy arrives the same way but its cause is
+        # a ConnectorHttpError: also the transport, not a page we misread.
+        if egress.is_proxy_failure(source_id, exc.__cause__):
+            return _HEALTH_TRANSPORT
         # Everything else an AppError can be here came from the upstream
         # request itself.
         return _HEALTH_REFUSED if (exc.status_code or 0) == 403 else _HEALTH_BROKE
@@ -314,6 +336,7 @@ class UpdateService:
             "chapter_number": row.chapter_number,
             "is_read": _bool(row.is_read),
             "created_at": row.created_at.isoformat() if row.created_at else None,
+            "locked_until": row.locked_until,
         }
 
     def mark_notification_read(self, notification_id: int) -> dict[str, Any]:
@@ -632,13 +655,19 @@ class UpdateService:
                     # the commit below re-raised, the run row was never
                     # finalised, and one bad row 500'd the whole sweep.
                     self._db.rollback()
-                    row.last_error = str(exc)[:500]
+                    # The one thing kept out of it: a down alternate-egress
+                    # proxy's own text names the second server's address.
+                    row.last_error = (
+                        _PROXY_UNREACHABLE
+                        if egress.is_proxy_failure(row.source_id, exc)
+                        else str(exc)[:500]
+                    )
                     # last_error above is per-(user, profile) and only ever
                     # shown to its owner. source_health is GLOBAL and served to
                     # everyone, so it gets a classified, fixed phrase instead:
                     # an upstream exception string can carry a full URL with
                     # query parameters, and this instance has four accounts.
-                    kind = _health_failure(exc)
+                    kind = _health_failure(exc, row.source_id)
                     if kind is not None:
                         failed_sources.setdefault(row.source_id, kind)
                     logger.warning(
@@ -879,6 +908,7 @@ class UpdateService:
                             chapter_key=key,
                             chapter_title=str(c.get("title") or c["id"]),
                             chapter_number=c.get("number"),
+                            locked_until=_locked_until(c.get("locked_until")),
                         )
                     )
 
@@ -889,6 +919,7 @@ class UpdateService:
                         "number": c.get("number"),
                         "title": c.get("title"),
                         "published_at": c.get("release_date"),
+                        "locked_until": c.get("locked_until"),
                     }
                     for c in live
                 ]
