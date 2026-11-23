@@ -139,6 +139,31 @@ class Changelog(BaseModel):
 # consume the exact same source of truth.
 _RELEASE_NOTES: list[ChangelogEntry] = [
     ChangelogEntry(
+        version="1.0.1",
+        build=59,
+        date="November 2026",
+        highlights=[
+            "Downloads are much faster: ten chapters download at the same time by default (you can lower it in Settings), six pages of each at once, and the server now keeps up. Asura chapters that took minutes arrive in seconds",
+            "Asura Scans loads again: its image server started blocking the app and every page said it could not load. Pages now open",
+            "Rawkuma chapters have pages again and HentaiRox lists galleries again",
+            "DoujinHQ and YaoiHub are gone because their sites no longer exist; your follows and progress on them are kept",
+        ],
+    ),
+    ChangelogEntry(
+        version="1.0.0",
+        build=58,
+        date="October 2026",
+        highlights=[
+            "The whole app in one release: both looks (Cinematic and Glass), the reader, downloads, Circle, Picks and everything from the 3.x versions, now named 1.0.0",
+            "Covers are kept on your phone for good once you have seen them, so the Sources, Discover and series screens fill in at once instead of reloading each time. Clear them any time in Settings",
+            "Asura Scans: chapters that are still early access are left out of the list until they unlock, so you no longer get downloads that fail",
+            "Ten more 18+ sources: Manga18FX, Manga18.club, ManhwaWeb (Spanish), MxShm (Chinese), Rouman5 (Chinese), HentaiForce, HentaiPaw, HentaiRox, ComicPorn and ManhwaHub.to",
+            "Dead sources are gone: MangaHub, MangaFree, MangaHe, Milftoon, ComicsValley, ElfToon, GalaxyManga, Baozimh and 8Muses either could not be reached or opened chapters with no pages. Your follows and progress on them are kept",
+            "HentaiFox browse now moves on to page 2 and beyond instead of showing the first page again, and search works on HentaiRox, ComicPorn and HentaiEra",
+            "Fixed a rare server error when two readers reported the same page tint at the same moment",
+        ],
+    ),
+    ChangelogEntry(
         version="4.1.0",
         build=57,
         date="October 2026",

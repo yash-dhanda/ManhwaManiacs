@@ -41,6 +41,15 @@ EXCLUDED_CONNECTORS: frozenset[str] = frozenset({
     # www.cmanhua.com now serves the stock "IIS Windows Server" placeholder,
     # so there is no origin left to fix a connector against.
     "cmanhua",
+    # Deregistered 2026-10-18 after an end-to-end sweep from the VPS: browse, first
+    # chapter list and a middle chapter's pages. Each one errors, returns nothing,
+    # or opens chapters with zero readable pages.
+    "8muses",  # browse returns no series
+    "baozimh",  # 403 on the API from this egress
+    "comicsvalley",  # 522, origin down
+    "elftoon",  # redirects off its own domain
+    "galaxymanga",  # TLS certificate does not verify
+    "mangahub",  # 3865 chapters listed but every chapter opens with 0 pages
 })
 
 
@@ -180,6 +189,17 @@ RETIRED_MATURE_SOURCES: frozenset[str] = frozenset({
     "manhwa68",
     "manhwatoon",
     "rawdex",
+    # 2026-10-18 -- end-to-end sweep from the VPS.
+    "8muses",
+    "comicsvalley",
+    "comicsvalleycom",
+    "doujinhq",
+    "elftoon",
+    "galaxymanga",
+    "mangafree",
+    "mangahe",
+    "milftoon",
+    "yaoihub",
     "toonizy",
     "hentaisco",
     "lilymanga",

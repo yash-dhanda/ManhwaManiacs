@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 
@@ -18,6 +19,7 @@ final authedCoverProvider =
     final resolved = coverUrlAtWidth(resolveApiResourceUrl(base, url),
         width == null ? null : coverRequestWidth(width, 3),);
     return CachedNetworkImageProvider(resolved,
-        headers: apiImageHttpHeaders(token, profileId: profileId),);
+        headers: apiImageHttpHeaders(token, profileId: profileId),
+        cacheManager: CoverCacheManager.instance,);
   };
 });

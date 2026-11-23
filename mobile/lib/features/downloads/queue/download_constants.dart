@@ -12,7 +12,7 @@ const int kFreeSpaceFloorBytes = 1536 * 1024 * 1024;
 /// [DownloadConcurrency]: two multiplying knobs is how a user arrives at a
 /// number neither of them looks like. Chapter parallelism is the one that is
 /// exposed; this one stays where the auth gate put it.
-const int kPageFetchConcurrency = 2;
+const int kPageFetchConcurrency = 6;
 
 /// The hard ceiling on requests the download queue has open against the
 /// user's server at once — manifests, novel text and page images together,
@@ -41,7 +41,7 @@ const int kPageFetchConcurrency = 2;
 /// is spaced upstream by the server no matter what this app does. Page bytes
 /// come from CDNs on a pooled client with no such spacing — which is precisely
 /// why they need a ceiling here.
-const int kQueueRequestConcurrency = 4;
+const int kQueueRequestConcurrency = 24;
 
 /// Consecutive manifest-fetch failures before a chapter is marked
 /// [DownloadChapterState.failed] rather than retried again on this pass.

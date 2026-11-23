@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:manhwamaniacs/core/network/request_limiter.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
@@ -79,7 +79,7 @@ class CineImage extends ConsumerStatefulWidget {
   @visibleForTesting
   static Future<bool> Function(String url) cacheProbe = (url) async {
     try {
-      return await DefaultCacheManager().getFileFromCache(url) != null;
+      return await CoverCacheManager.instance.getFileFromCache(url) != null;
     } catch (_) {
       return false;
     }
@@ -87,7 +87,7 @@ class CineImage extends ConsumerStatefulWidget {
 
   @visibleForTesting
   static ImageProvider Function(String url, Map<String, String>? headers) providerBuilder =
-      (url, headers) => CachedNetworkImageProvider(url, headers: headers);
+      (url, headers) => CachedNetworkImageProvider(url, headers: headers, cacheManager: CoverCacheManager.instance);
 
   static bool isLocal(String url) => url.startsWith('assets/') || url.startsWith('file:') || url.startsWith('data:') || url.startsWith('/');
 

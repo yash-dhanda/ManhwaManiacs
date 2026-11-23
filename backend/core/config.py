@@ -305,10 +305,13 @@ class Settings(BaseModel):
     # 80-page chapter is 80 requests, and the reader prefetches ahead while the
     # app saves the next chapter four pages at a time. Reading alone ran past
     # the limit, the 429s showed as broken pages that loaded on a second tap,
-    # and the next chapter's download failed outright. Ten a second per client
-    # address covers two readers behind one NAT with a download running, and
-    # still bounds what one address can make this server pull from a source.
-    rate_limit_images: str = "600/minute"
+    # and the next chapter's download failed outright.
+    #
+    # 1500 a minute (25 a second) is the figure production already ran the
+    # shared bucket at (MM_RATE_LIMIT_SOURCES in ops/vps/docker-compose.yml):
+    # it lets the phone's download gate, 24 requests open, run full. This
+    # makes it the default for images wherever that override is not set.
+    rate_limit_images: str = "1500/minute"
     # The bulk window endpoints (POST /reader/chapters/manifest, POST
     # /novels/chapters) get their own, much tighter bucket: one request there
     # costs up to ``*_bulk_max_chapters`` upstream scrapes, so it is worth

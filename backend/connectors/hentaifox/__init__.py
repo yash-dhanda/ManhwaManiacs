@@ -11,6 +11,7 @@ HENTAIFOX_SITE = HentaiFamilySite(
     site_base="https://hentaifox.com",
     reader_segment="g",
     image_host_suffix="hentaifox.com",
+    path_paging=True,
 )
 
 HentaiFoxConnector = build_hentai_family_connector(HENTAIFOX_SITE)

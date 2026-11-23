@@ -1,12 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// Reads and clears the on-disk image cache used by `cached_network_image`
-/// (via `flutter_cache_manager`'s [DefaultCacheManager]) throughout the app
-/// — reader pages, covers, thumbnails. Behind an interface so Settings
-/// widgets/providers can be tested without touching the real filesystem.
+/// Reads and clears the on-disk image caches used by `cached_network_image`
+/// throughout the app: reader pages and thumbnails (`flutter_cache_manager`'s
+/// [DefaultCacheManager], in the temp directory) and covers
+/// ([CoverCacheManager], kept in the application-support directory). Behind an
+/// interface so Settings widgets/providers can be tested without touching the
+/// real filesystem.
 abstract interface class ImageCacheService {
   /// Total bytes currently used by the on-disk image cache.
   Future<int> getCacheSizeBytes();
@@ -19,8 +22,11 @@ class ImageCacheServiceImpl implements ImageCacheService {
   const ImageCacheServiceImpl();
 
   @override
-  Future<int> getCacheSizeBytes() async {
-    final dir = await _cacheDirectory();
+  Future<int> getCacheSizeBytes() async =>
+      await _directorySize(await _cacheDirectory()) +
+      await _directorySize(await _coverDirectory());
+
+  Future<int> _directorySize(Directory? dir) async {
     if (dir == null || !dir.existsSync()) return 0;
     var total = 0;
     await for (final entity in dir.list(recursive: true, followLinks: false)) {
@@ -38,6 +44,16 @@ class ImageCacheServiceImpl implements ImageCacheService {
   @override
   Future<void> clear() async {
     await DefaultCacheManager().emptyCache();
+    await CoverCacheManager.instance.emptyCache();
+  }
+
+  Future<Directory?> _coverDirectory() async {
+    try {
+      final support = await getApplicationSupportDirectory();
+      return Directory('${support.path}/${CoverCacheManager.cacheKey}');
+    } on MissingPlatformDirectoryException {
+      return null;
+    }
   }
 
   Future<Directory?> _cacheDirectory() async {

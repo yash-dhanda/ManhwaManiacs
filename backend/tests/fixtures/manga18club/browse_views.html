@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+      <meta name="language" content="en-us">
+      <meta name="csrf_test_name" content="f307c65fe8cc61b62e0e85545a0e03af">
+      <title>Manga List</title>
+      <meta name="title" content="Manga List">
+      <meta name="description" content="Read Manga Online with High Quality at Manga18.Club">
+      <meta name="keywords" content="List Manga - Manga18.Club">
+      <meta property="og:type" content="website">
+      <meta property="og:url" content="https://manga18.club/">
+      <meta property="og:title" content="Manga List">
+      <meta property="og:description" content="Read Manga Online with High Quality at Manga18.Club">
+      <meta name="twitter:site" content="Manga18">
+      <meta property="twitter:card" content="summary_large_image">
+      <meta property="twitter:url" content="https://manga18.club/">
+      <meta property="twitter:title" content="Manga List">
+      <meta property="twitter:description" content="Read Manga Online with High Quality at Manga18.Club">
+            <meta property="twitter:image" content="https://manga18.club/manga18.png">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+       </head>
+   <body style="background: url('https://manga18.club/bg.jpeg');">
+      <div id="fb-root"></div>
+      <div id="xtop"></div>
+      <div class="iedu_header" id="menu_fixed">
+      <div class="header_desktop hidden-xs">
+         <div class="iedu_header__center">
+            <div class="container">
+               <div class="iedu_center__content">
+                  <div class="logo">
+                     <a href="/"><img src="/logo18.png" alt="" style="height: 65px !important;" class="img-responsive"></a>
+                  </div>
+                  <div class="header_search">
+                     <input type="text" name="search" placeholder="Search..." class="search_complete">
+                     <button type="submit" id='btnSearch'><span class="lnr lnr-magnifier"></span></button>
+                  </div>
+                  <div class="header_center__right">
+                     <ul>
+                        <li class="guest-nav"><a href="/login">Login</a></li>
+                        <li class="guest-nav iedu_register"><a href="/register">Register</a></li>
+                        <li class="user-nav" style="position:relative;">
+                           <div href="#" class="bell-trigger"><i class="ti-bell"></i><span class="notify_count" style="display:none;">0</span></div>
+                           <div id="notifications" class="notif-dropdown">
+                              <div class="notif-header">
+                                <h4>Notifications</h4>
+                                <a href="#" class="notif-mark-read">Mark all read</a>
+                              </div>
+                              <div class="notif-body">
+                                <ul></ul>
+                                <div class="notif-empty">No notifications</div>
+                              </div>
+                              <div class="notif-footer">
+                                <a href="/notification">View all notifications</a>
+                              </div>
+                           </div>
+                        </li>
+                        <li class="user-nav">
+                           <div class="user_login">
+                              <div class="user_name"><i class="lnr lnr-user"></i> User</div>
+                           </div>
+                           <div class="header_list header_loginBox">
+                              <ul>
+                                 <li><a href="/profile"><i class="lnr lnr-user"></i> Profile</a></li>
+                                 <li><a href="/logout"><i class="lnr lnr-exit"></i> Logout</a></li>
+                              </ul>
+                           </div>
+                        </li>
+                     </ul>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <div class="mg_menu header-bottom">
+            <div class="container">
+               <ul>
+                  <li>
+                     <a href="/" title="Read Manga Online For Free"><span class="lnr lnr-home"></span>&nbsp;&nbsp;Home</a>
+                  </li>
+                  <li>
+                     <a href="/list-manga" title="Manga List">Manga List</a>
+                  </li>
+                 <li>
+                     <a href="https://manga18.us" title="Manga List">Webtoon Hot</a>
+                  </li>
+                  <li>
+                     <a href="https://manhwas.me" title="Manga List">Tumanhwas Espanol</a>
+                  </li>
+                  <li>
+                     <a href="https://hanman18.com" title="Manga List">China Toptoon/Toomics</a>
+                  </li>
+                   <li>
+                     <a href="https://18porncomic.com" title="Manga List">Porn Comic</a>
+                  </li>
+                  <div class="sub-menu" style="display: none;">
+                     <div class="container" style="background-color: white;">
+                        <ul>
+                                                     <li>
+                              <a href="https://manga18.club/manga-list/action" title="Action Manga"><i class="icofont-caret-right"></i> Action</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/mecha" title="Action Manga"><i class="icofont-caret-right"></i> Mecha</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/18" title="Action Manga"><i class="icofont-caret-right"></i> 18+</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/mystery" title="Action Manga"><i class="icofont-caret-right"></i> Mystery</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/adult" title="Action Manga"><i class="icofont-caret-right"></i> Adult</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/one-shot" title="Action Manga"><i class="icofont-caret-right"></i> One shot</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/anime" title="Action Manga"><i class="icofont-caret-right"></i> Anime</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/psychological" title="Action Manga"><i class="icofont-caret-right"></i> Psychological</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/comedy" title="Action Manga"><i class="icofont-caret-right"></i> Comedy</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/romance" title="Action Manga"><i class="icofont-caret-right"></i> Romance</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/comic" title="Action Manga"><i class="icofont-caret-right"></i> Comic</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/school-life" title="Action Manga"><i class="icofont-caret-right"></i> School Life</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/doujinshi" title="Action Manga"><i class="icofont-caret-right"></i> Doujinshi</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/sci-fi" title="Action Manga"><i class="icofont-caret-right"></i> Sci-fi</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/drama" title="Action Manga"><i class="icofont-caret-right"></i> Drama</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/seinen" title="Action Manga"><i class="icofont-caret-right"></i> Seinen</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Ecchi" title="Action Manga"><i class="icofont-caret-right"></i> Ecchi</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Shoujo" title="Action Manga"><i class="icofont-caret-right"></i> Shoujo</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Fantasy" title="Action Manga"><i class="icofont-caret-right"></i> Fantasy</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/shojou-ai" title="Action Manga"><i class="icofont-caret-right"></i> Shojou Ai</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Gender-Bender" title="Action Manga"><i class="icofont-caret-right"></i> Gender Bender</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Shounen" title="Action Manga"><i class="icofont-caret-right"></i> Shounen</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Harem" title="Action Manga"><i class="icofont-caret-right"></i> Harem</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/shounen-ai" title="Action Manga"><i class="icofont-caret-right"></i> Shounen Ai</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/historical" title="Action Manga"><i class="icofont-caret-right"></i> Historical</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/slice-of-life" title="Action Manga"><i class="icofont-caret-right"></i> Slice of Life</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Horror" title="Action Manga"><i class="icofont-caret-right"></i> Horror</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Smut" title="Action Manga"><i class="icofont-caret-right"></i> Smut</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Josei" title="Action Manga"><i class="icofont-caret-right"></i> Josei</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Sports" title="Action Manga"><i class="icofont-caret-right"></i> Sports</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/live-action" title="Action Manga"><i class="icofont-caret-right"></i> Live action</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/supernatural" title="Action Manga"><i class="icofont-caret-right"></i> Supernatural</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Manhua" title="Action Manga"><i class="icofont-caret-right"></i> Manhua</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Tragedy" title="Action Manga"><i class="icofont-caret-right"></i> Tragedy</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Manhwa" title="Action Manga"><i class="icofont-caret-right"></i> Manhwa</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Adventure" title="Action Manga"><i class="icofont-caret-right"></i> Adventure</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Martial-art" title="Action Manga"><i class="icofont-caret-right"></i> Martial Art</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Yaoi" title="Action Manga"><i class="icofont-caret-right"></i> Yaoi</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Mature" title="Action Manga"><i class="icofont-caret-right"></i> Mature</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/raw" title="Action Manga"><i class="icofont-caret-right"></i> Raw</a>
+                           </li>
+                                                    <li>
+                              <a href="https://manga18.club/manga-list/Uncensored" title="Action Manga"><i class="icofont-caret-right"></i> Uncensored</a>
+                           </li>
+                                                 </ul>
+                     </div>
+                  </div>
+               </ul>
+            </div>
+         </div>
+      </div>
+      <div class="header-manga mb-header">
+         <div class="top-header">
+            <div class="menu-ico">
+               <i class="ti-align-left"></i>
+               <i class="icofont-close close-menu" style="display: block;"></i>
+            </div>
+            <div class="logo">
+               <a title="Read Manga Online in English Free" href="/">
+               <img src="/logo18.png?v=1.1" style="height: 65px !important;" alt="" alt="Read Manga Online For Free">
+               </a>
+            </div>
+            <div class="bell-ico user-nav-mb" style="position:relative;margin-right:8px;">
+               <a href="#" class="bell-trigger-mb" style="color:#fff;font-size:20px;position:relative;">
+                  <i class="ti-bell"></i><span class="notify_count_mb" style="display:none;background:#ff523a;color:#fff;border-radius:50%;padding:1px 5px;font-size:9px;position:absolute;top:-5px;right:-8px;">0</span>
+               </a>
+               <div id="notifications-mb" class="notif-dropdown">
+                  <div class="notif-header">
+                    <h4>Notifications</h4>
+                    <a href="#" class="notif-mark-read-mb">Mark all read</a>
+                  </div>
+                  <div class="notif-body">
+                    <ul></ul>
+                    <div class="notif-empty">No notifications</div>
+                  </div>
+                  <div class="notif-footer">
+                    <a href="/notification">View all notifications</a>
+                  </div>
+               </div>
+            </div>
+            <div class="search-ico">
+               <i class="lnr lnr-magnifier open-search"></i>
+               <i class="ti-close close-search" style="display: none;"></i>
+            </div>
+         </div>
+         <div class="under-header">
+            <div class="header-menu" style="display: block;">
+               <ul>
+               <li>
+                  <a href="/" title="Read Manga Online in English Free">Home</a>
+               </li>
+               <li>
+                  <a href="https://manga18.club/list-manga" title="Manga List">Manga List</a>
+               </li>
+               <li>
+                     <a href="https://manga18.us" title="Manga List">Webtoon Hot</a>
+                  </li>
+                  <li>
+                     <a href="https://manhwas.me" title="Manga List">Tumanhwas Espanol</a>
+                  </li>
+                   <li>
+                     <a href="https://hanman18.com" title="Manga List">China Toptoon/Toomics</a>
+                  </li>
+                  <li>
+                     <a href="https://18porncomic.com" title="Manga List">Porn Comic</a>
+                  </li>
+               <div class="user-block guest-nav-mb">
+                  <div class="guest-option">
+                     <a href="/login">Sign In</a>
+                     <a href="/register">Sign Up</a>
+                  </div>
+               </div>
+               <div class="user-block user-nav-mb">
+                  <div class="guest-option">
+                     <div class="user_name">Hello User<br><br></div>
+                      <a href="/profile">Profile</a>
+                      <a href="/bookmarks">Bookmark</a>
+                      <a href="/history">History</a>
+                      <a href="/logout">Logout</a>
+                  </div>
+               </div>
+            </div>
+             <div id="searchmb" class="header-search header-mb-search ng-scope" style="display: none;" ng-controller="livesearch">
+                  <form action="/list-manga" method="get" class="ng-pristine ng-valid">
+                     <input name="search" type="text" style="font-size: 16px !important;" placeholder="Search..." autocomplete="off" class="search_complete2">
+                     <button type="submit">
+                     <i class="lnr lnr-magnifier"></i>
+                     </button>
+                  </form>
+               </div>
+         </div>
+      </div>
+      <div class="clear" style="clear: both;"> </div>
+  <div class="mg-main">
+    <div class="mg_update">
+      <div class="container">
+      </div>
+      </div>
+      </div><div class="mg_grid">
+    <div class="section_breadcrumb">
+      <div class="container">
+        <div class="section_breadcrumb-content">
+          <ol class="breadcrumb">
+            <li><a href="/">Home</a></li>
+                        <li class="active">Manga List</li>
+                      </ol>
+        </div>
+      </div>
+    </div>
+    <div class="grid_main">
+      <div class="container">
+        <div class="divads" style="text-align: center;">
+                                 </div>
+        <div class="row">
+          <div class="col-md-9 col-sm-12 col-xs-12">
+            <div class="grid_content">
+              <div class="grid_head">
+                                <h5><span>Manga List</span></h5>
+                <div class="mg_desc">
+                  <p>3296 RESULTS</p>
+                </div>
+              </div>
+              <div class="section_list">
+                <span>Order By &nbsp;</span>
+                <ul>
+                  <li ><a href="https://manga18.club/list-manga?order_by=lastest">Latest</a></li>
+                  <li ><a href="https://manga18.club/list-manga?order_by=name">A-Z</a></li>
+                  <li class="active"><a href="https://manga18.club/list-manga?order_by=views">Most Views</a></li>
+                </ul>
+              </div>
+              <div class="recoment_box">
+                <div class="row">
+                                                      <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/secret-class" title="Secret Class"><img src="https://cdn.manga18.club/manga/secret-class/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/secret-class">Secret Class</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/secret-class/chapter-320">Chapter 320</a></div>
+                            <div class="chapter_time"><span>4 days ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/secret-class/chapter-319">Chapter 319</a></div>
+                            <div class="chapter_time"><span>1 week ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/secret-class-raw" title="Secret Class RAW"><img src="https://cdn.manga18.club/manga/secret-class-raw/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/secret-class-raw">Secret Class RAW</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/secret-class-raw/chapter-320">Chapter 320</a></div>
+                            <div class="chapter_time"><span>2 days ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/secret-class-raw/chapter-319">Chapter 319</a></div>
+                            <div class="chapter_time"><span>1 week ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/a-wonderful-new-world" title="A WONDERFUL NEW WORLD"><img src="https://cdn.manga18.club/manga/a-wonderful-new-world/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/a-wonderful-new-world">A WONDERFUL NEW WORLD</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/a-wonderful-new-world/chapter-262">Chapter 262</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/a-wonderful-new-world/chapter-261">Chapter 261</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/the-hole-is-open" title="The Hole is Open"><img src="https://cdn.manga18.club/manga/the-hole-is-open/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/the-hole-is-open">The Hole is Open</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/the-hole-is-open/chap-152">Chapter 152</a></div>
+                            <div class="chapter_time"><span>10 months ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/the-hole-is-open/chapter-151">Chapter 151</a></div>
+                            <div class="chapter_time"><span>10 months ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/landlords-little-daughter" title="Landlord's Little Daughter"><img src="https://cdn.manga18.club/manga/landlords-little-daughter/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/landlords-little-daughter">Landlord's Little Daughter</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/landlords-little-daughter/chapter-345-5">Chapter 345.5</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/landlords-little-daughter/chapter-345">Chapter 345</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/stepmothers-friends" title="Stepmother's Friends"><img src="https://cdn.manga18.club/manga/stepmothers-friends/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/stepmothers-friends">Stepmother's Friends</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/stepmothers-friends/chapter-147">Chapter 147</a></div>
+                            <div class="chapter_time"><span>3 years ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/stepmothers-friends/chapter-146">Chapter 146</a></div>
+                            <div class="chapter_time"><span>3 years ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/milf-hunting-in-another-world" title="MILF Hunting In Another World"><img src="https://cdn.manga18.club/manga/milf-hunting-in-another-world/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/milf-hunting-in-another-world">MILF Hunting In Another World</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/milf-hunting-in-another-world/chapter-138">Chapter 138</a></div>
+                            <div class="chapter_time"><span>3 days ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/milf-hunting-in-another-world/chapter-137">Chapter 137</a></div>
+                            <div class="chapter_time"><span>1 week ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/circles-raw" title="Circles Raw"><img src="https://cdn.manga18.club/manga/circles-raw/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/circles-raw">Circles Raw</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/circles-raw/215-5">Chapter 215.5</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/circles-raw/215">Chapter 215</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/boarding-diary-2" title="Boarding Diary"><img src="https://cdn.manga18.club/manga/boarding-diary-2/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/boarding-diary-2">Boarding Diary</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/boarding-diary-2/chapter-130-5">Chapter 130.5</a></div>
+                            <div class="chapter_time"><span>3 years ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/boarding-diary-2/chapter-130">Chapter 130</a></div>
+                            <div class="chapter_time"><span>3 years ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/milf-hunting-in-another-world-r" title="MILF Hunting In Another World Raw"><img src="https://cdn.manga18.club/manga/milf-hunting-in-another-world-r/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/milf-hunting-in-another-world-r">MILF Hunting In Another World Raw</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/milf-hunting-in-another-world-r/chapter-139">Chapter 139</a></div>
+                            <div class="chapter_time"><span>6 days ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/milf-hunting-in-another-world-r/chapter-138">Chapter 138</a></div>
+                            <div class="chapter_time"><span>1 week ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/secret-class-uncensored" title="Secret Class Uncensored"><img src="https://cdn.manga18.club/manga/secret-class-uncensored/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/secret-class-uncensored">Secret Class Uncensored</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/secret-class-uncensored/chapter-171">Chapter 171</a></div>
+                            <div class="chapter_time"><span>1 month ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/secret-class-uncensored/chapter-170">Chapter 170</a></div>
+                            <div class="chapter_time"><span>1 month ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/wireless-onahole-raw" title="Wireless Onahole Raw"><img src="https://cdn.manga18.club/manga/wireless-onahole-raw/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/wireless-onahole-raw">Wireless Onahole Raw</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/wireless-onahole-raw/chapter-125">Chapter 125</a></div>
+                            <div class="chapter_time"><span>3 days ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/wireless-onahole-raw/chapter-124">Chapter 124</a></div>
+                            <div class="chapter_time"><span>1 week ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/the-shop-of-pleasure-raw" title="The Shop of Pleasure Raw"><img src="https://cdn.manga18.club/manga/the-shop-of-pleasure-raw/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/the-shop-of-pleasure-raw">The Shop of Pleasure Raw</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/the-shop-of-pleasure-raw/chapter-151">Chapter 151</a></div>
+                            <div class="chapter_time"><span>10 months ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/the-shop-of-pleasure-raw/chapter-150">Chapter 150</a></div>
+                            <div class="chapter_time"><span>10 months ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/sextudy-group" title="Sextudy Group"><img src="https://cdn.manga18.club/manga/sextudy-group/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/sextudy-group">Sextudy Group</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/sextudy-group/chapter-110">Chapter 110</a></div>
+                            <div class="chapter_time"><span>2 years ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/sextudy-group/chapter-109">Chapter 109</a></div>
+                            <div class="chapter_time"><span>2 years ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/circles" title="Circles"><img src="https://cdn.manga18.club/manga/circles/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/circles">Circles</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/circles/chap-215-5">Chapter 215.5</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/circles/chapter-215">Chapter 215</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/silent-war" title="SILENT WAR"><img src="https://cdn.manga18.club/manga/silent-war/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/silent-war">SILENT WAR</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/silent-war/chapter-160-5">Chapter 160.5</a></div>
+                            <div class="chapter_time"><span>4 years ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/silent-war/chapter-160">Chapter 160</a></div>
+                            <div class="chapter_time"><span>4 years ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/sex-stopwatch" title="Sex Stopwatch"><img src="https://cdn.manga18.club/manga/sex-stopwatch/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/sex-stopwatch">Sex Stopwatch</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/sex-stopwatch/chap-156">Chapter 156</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/sex-stopwatch/chapter-155">Chapter 155</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/the-owner-of-a-building-" title="The Owner Of A Building"><img src="https://cdn.manga18.club/manga/the-owner-of-a-building-/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/the-owner-of-a-building-">The Owner Of A Building</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/the-owner-of-a-building-/chapter-156-5">Chapter 156.5</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/the-owner-of-a-building-/chap-156">Chapter 156</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/wonderful-new-world-raw" title="A WONDERFUL NEW WORLD RAW"><img src="https://cdn.manga18.club/manga/wonderful-new-world-raw/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/wonderful-new-world-raw">A WONDERFUL NEW WORLD RAW</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/wonderful-new-world-raw/chap-262">Chapter 262</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/wonderful-new-world-raw/chap-261">Chapter 261</a></div>
+                            <div class="chapter_time"><span>1 year ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                    <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="story_item">
+                      <div class="story_images">
+                        <a href="https://manga18.club/manhwa/madam-raw" title="Madam Raw"><img src="https://cdn.manga18.club/manga/madam-raw/cover/cover_thumb_2.webp" alt="" class="img-responsive"></a>
+                      </div>
+                      <div class="mg_info">
+                        <div class="mg_name">
+                          <a href="https://manga18.club/manhwa/madam-raw">Madam Raw</a>
+                        </div>
+                        <div class="mg_chapter">
+                                                    <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/madam-raw/chapter-188">Chapter 188</a></div>
+                            <div class="chapter_time"><span>3 months ago</span></div>
+                          </div>
+                                                                            <div class="item">
+                            <div class="chapter_count"><a href="/manhwa/madam-raw/chapter-187">Chapter 187</a></div>
+                            <div class="chapter_time"><span>3 months ago</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                                                    </div>
+              </div>
+              <div class="section_pagination">
+                <ul class="pagination">
+                <li class="active"><a href="/list-manga/1">1</a></li>
+            <li class=""><a href="/list-manga/2">2</a></li>
+                <li><a href="/list-manga/2">&rsaquo;</a></li>
+        <li><a href="/list-manga/165">&raquo;</a></li>
+    </ul>
+              </div>
+              <div class="divads" style="">
+                                                              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-12 col-xs-12">
+                                             <div class="mg_block">
+              <div class="section_title">
+                <h5>Browse Manga by Genres</h5>
+              </div>
+              <div class="grid_cate">
+                <ul>
+                                 <li><a href="https://manga18.club/manga-list/action">Action</a></li>
+                                 <li><a href="https://manga18.club/manga-list/mecha">Mecha</a></li>
+                                 <li><a href="https://manga18.club/manga-list/18">18+</a></li>
+                                 <li><a href="https://manga18.club/manga-list/mystery">Mystery</a></li>
+                                 <li><a href="https://manga18.club/manga-list/adult">Adult</a></li>
+                                 <li><a href="https://manga18.club/manga-list/one-shot">One shot</a></li>
+                                 <li><a href="https://manga18.club/manga-list/anime">Anime</a></li>
+                                 <li><a href="https://manga18.club/manga-list/psychological">Psychological</a></li>
+                                 <li><a href="https://manga18.club/manga-list/comedy">Comedy</a></li>
+                                 <li><a href="https://manga18.club/manga-list/romance">Romance</a></li>
+                                 <li><a href="https://manga18.club/manga-list/comic">Comic</a></li>
+                                 <li><a href="https://manga18.club/manga-list/school-life">School Life</a></li>
+                                 <li><a href="https://manga18.club/manga-list/doujinshi">Doujinshi</a></li>
+                                 <li><a href="https://manga18.club/manga-list/sci-fi">Sci-fi</a></li>
+                                 <li><a href="https://manga18.club/manga-list/drama">Drama</a></li>
+                                 <li><a href="https://manga18.club/manga-list/seinen">Seinen</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Ecchi">Ecchi</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Shoujo">Shoujo</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Fantasy">Fantasy</a></li>
+                                 <li><a href="https://manga18.club/manga-list/shojou-ai">Shojou Ai</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Gender-Bender">Gender Bender</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Shounen">Shounen</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Harem">Harem</a></li>
+                                 <li><a href="https://manga18.club/manga-list/shounen-ai">Shounen Ai</a></li>
+                                 <li><a href="https://manga18.club/manga-list/historical">Historical</a></li>
+                                 <li><a href="https://manga18.club/manga-list/slice-of-life">Slice of Life</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Horror">Horror</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Smut">Smut</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Josei">Josei</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Sports">Sports</a></li>
+                                 <li><a href="https://manga18.club/manga-list/live-action">Live action</a></li>
+                                 <li><a href="https://manga18.club/manga-list/supernatural">Supernatural</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Manhua">Manhua</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Tragedy">Tragedy</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Manhwa">Manhwa</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Adventure">Adventure</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Martial-art">Martial Art</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Yaoi">Yaoi</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Mature">Mature</a></li>
+                                 <li><a href="https://manga18.club/manga-list/raw">Raw</a></li>
+                                 <li><a href="https://manga18.club/manga-list/Uncensored">Uncensored</a></li>
+                                </ul>
+              </div>
+            </div>
+                                                          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="iedu_footer">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-5 col-sm-4 col-xs-12">
+        <div class="footer_left">
+          <div class="logo">
+            <a href="https://manga18.club/"><img src="/logo18.png?v=1.1" style="height: 65px !important;" alt="" class="img-responsive"></a>
+          </div>
+          <p>All content on https://manga18.club and https://manga18.us is collected on the internet. So there are any issues regarding selling rights, please contact me directly at the email address <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d8bbb7b6acb9bbac98b5b9b6bfb9e9e0f6bbb4adba">[email&#160;protected]</a> If your request is reasonable we will remove it immediately. Sincerely thank you !!</p>
+          <p class="footer">Page rendered in <strong>0.0104</strong> seconds. </p>
+        </div>
+      </div>
+      <div class="col-sm-7 col-sm-8 col-xs-12">
+        <div class="footer_right">
+          <div class="footer_block">
+            <div class="footer_title">
+              <h5>Manga List</h5>
+            </div>
+            <div class="footer_cate">
+              <ul>
+                <li><a href="/18usc.html">18 U.S.C. 2257 Compliance Statement</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<span href="#" id="back_to_top" title="Back to top" >↑</span>
+</body>
+</html>

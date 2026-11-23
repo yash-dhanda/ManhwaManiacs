@@ -318,7 +318,6 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     # challenge; the per-series ajax/chapters/ endpoint returned 60 chapters
     # and every cover is on mangafree.info itself. Mature: the catalogue is
     # uncensored 18+ manhwa throughout.
-    _site("mangafree", "MangaFree", "mangafree.info", mature=True),
     # Added 2026-09-05 after end-to-end probes from the VPS egress. Stock
     # Madara (wp-content/themes/madara plus a child theme), cleared
     # browse/search/detail/chapters/pages/image-bytes on the plain
@@ -393,7 +392,6 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     # the allowlist therefore needs. This install re-serves 8muses-sourced
     # scans, so expect heavy title overlap with the eightmuses connector; that
     # one targets a different backend, so this is not a duplicate.
-    _site("milftoon", "Milftoon", "milftoon.xxx", url_segment="comics", mature=True, extra_image_hosts=frozenset({"himg.nl"})),
     #
     # Also probed 2026-09-05 in the same sweep and DELIBERATELY NOT ADDED.
     # All three are live and reachable from the VPS; none is a catalog line:
@@ -463,7 +461,6 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     # same operator - comic-genre/comic-tag taxonomies, western/Indian 3DX
     # library, and .com slugs 302 on .net. The display name carries the TLD
     # because the operator brands both sites "Comics Valley".
-    _site("comicsvalleycom", "ComicsValley (.com)", "comicsvalley.com", url_segment="adult-comics", mature=True),
     # Stock Madara on url_segment "porncomic" (/manga/ 404s). admin-ajax
     # answers manga_get_chapters with 400, so the connector settles on the
     # relative ``{series}/ajax/chapters/`` shape after one probe, exactly like
@@ -500,7 +497,6 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     #               may derive a slug from a title for this source.
     _site("manga18free", "Manga18Free", "manga18free.com", mature=True, use_cf=False),
     _site("mangaforfree", "MangaForFree", "mangaforfree.com", mature=True, use_cf=False),
-    _site("mangahe", "MangaHe", "mangahe.com", mature=True, use_cf=False),
     # Probed in the same pass 2026-09-05 and DELIBERATELY NOT ADDED. All four
     # are reachable from the VPS; none of them is a catalog line:
     #   magustoon.org - not Madara at all (bespoke SSR JS app: /auth/signin,
@@ -641,7 +637,6 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     # ``{series}/ajax/chapters/`` is the only route to them - it works. Page
     # images are lazyloaded from cdn.doujinhq.club, so the extractor reads
     # data-src and the allowlist needs that host.
-    _site("doujinhq", "DoujinHQ", "www.doujinhq.club", url_segment="dj", mature=True, use_cf=False, extra_image_hosts=frozenset({"cdn.doujinhq.club"})),
     # Added 2026-09-05. Stock Madara sitting behind Cloudflare -- every hit
     # from the VPS comes back with a cf-ray -- so it keeps the impersonating
     # client. Yaoi/yuri/hentai webtoons, hence mature. Page images live on
@@ -649,7 +644,6 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     # host-derived allowlist already covers them. LiteSpeed Cache lazyloads
     # them, but the extractor already reads data-src and trims the whitespace
     # this install leaves inside the attribute value.
-    _site("yaoihub", "YaoiHub", "yaoihub.org", mature=True),
     # Added 2026-09-05 after an end-to-end probe from the VPS. Two independent
     # English BL/yaoi smut Madara installs (themes/madara plus a child theme)
     # that cleared browse, wp-manga-search-manga, detail, chapter and page
@@ -762,6 +756,12 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
     # self-hosted under /wp-content/uploads/WP-manga/data/. Yaoi doujinshi,
     # mostly oneshots.
     _site("hentaisyaoi", "HentaiSyaoi", "hentaisyaoi.com", mature=True, use_cf=False),
+    # Added 2026-10-13 (3.5.0). Stock Madara under /manhwa/, adult webtoons
+    # throughout, hence mature. Page images are served from cdn.manhwahub.to;
+    # the subdomain match would already cover it, but it is named so the
+    # allowlist says where the bytes come from. The old ``manhwahub`` id
+    # (manhwahub.net, pruned 2026-07-27) stays retired in excluded.py.
+    _site("manhwahubto", "ManhwaHub.to", "manhwahub.to", url_segment="manhwa", mature=True, extra_image_hosts=frozenset({"cdn.manhwahub.to"})),
     # Probed alongside those two on 2026-09-05 and DELIBERATELY NOT ADDED:
     #   hentai4free.net - fingerprints as Madara from the outside (104
     #               "madara" and 588 "wp-manga" markers, /hentai/ segment, and
@@ -792,5 +792,6 @@ HANDCRAFTED_CONNECTORS: frozenset[str] = frozenset({
     "18porncomic", "3hentai", "8muses", "akuma", "asmhentai", "aurorascans", "beehentai",
     "baozimh", "comicasura", "comicsvalley", "comicland", "doujins", "ehentai", "elftoon", "flamescans",
     "freeadultcomix", "galaxymanga", "hentai20", "hentaifox", "hentaiera",
+    "hentairox", "comicporn",
     "webtoons", "weebcentral", "tapas",
 })

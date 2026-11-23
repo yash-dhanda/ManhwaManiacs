@@ -4,19 +4,18 @@
 /// talks to the same server over the same connection, so the number that
 /// matters is "how hard does this device push", not "who is signed in".
 ///
-/// Deliberately a short ladder rather than a free number. The ceiling is not
-/// the phone's, it is the server's: the backend rate-limits the page-image
-/// proxy on its `sources` bucket, holds one connector instance per source with
-/// a shared 0.21 s `min_interval`, and sizes its own upstream fan-out at 4
-/// workers (`services/bulk_fetch.py`, whose comment names the reason — "the
-/// box has 2 vCPU and these threads each hold an upstream socket"). Three is
-/// the point past which more chapters stop buying throughput and only buy
-/// queueing, because [kQueueRequestConcurrency] is the real ceiling and two
-/// chapters already saturate it.
+/// Deliberately a short ladder rather than a free number. The shared request
+/// gate ([kQueueRequestConcurrency]) is the real ceiling on what is open
+/// against the server at once; the ladder only decides how many chapters
+/// compete for it. The page-image rate limit was raised from 60 to 1500 a
+/// minute and the box has 4 vCPU, so ten chapters keep the gate full instead
+/// of leaving it idle between a chapter's manifest and its pages.
 enum DownloadConcurrency {
   one(1),
   two(2),
-  three(3);
+  three(3),
+  five(5),
+  ten(10);
 
   const DownloadConcurrency(this.chapters);
 
@@ -25,17 +24,17 @@ enum DownloadConcurrency {
 
   String get label => switch (this) {
         DownloadConcurrency.one => '1 chapter',
-        DownloadConcurrency.two => '2 chapters (default)',
+        DownloadConcurrency.two => '2 chapters',
         DownloadConcurrency.three => '3 chapters',
+        DownloadConcurrency.five => '5 chapters',
+        DownloadConcurrency.ten => '10 chapters (fastest, default)',
       };
 
-  /// [two] rather than [one]: one step up from the strictly-serial behaviour
-  /// every build before this one had, which is a real speed-up the request
-  /// asked for, while leaving the top of the ladder as something the user
-  /// opts into rather than inherits.
+  /// [ten]: the owner asked for ten chapters at full speed. Anyone who wants a
+  /// gentler queue can step down in Settings.
   static DownloadConcurrency fromWire(String? value) =>
       DownloadConcurrency.values.firstWhere(
         (option) => option.name == value,
-        orElse: () => DownloadConcurrency.two,
+        orElse: () => DownloadConcurrency.ten,
       );
 }

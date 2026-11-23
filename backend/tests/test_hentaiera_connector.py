@@ -57,3 +57,15 @@ def test_get_chapters_and_pages(hentaiera_connector: HentaiEraConnector):
 def test_create_hentaiera_connector():
     connector = create_connector("hentaiera")
     assert isinstance(connector, HentaiEraConnector)
+
+
+def test_search_uses_key_parameter(hentaiera_connector: HentaiEraConnector):
+    # hentaiera ignores ``q`` and answers it with the unfiltered latest listing.
+    html = (FIXTURES / "search_listing.html").read_text(encoding="utf-8")
+
+    with patch.object(hentaiera_connector, "_fetch_html", return_value=html) as mock_fetch:
+        listing = hentaiera_connector.search_series("fantasia", 1)
+
+    mock_fetch.assert_called_once_with("/search/?key=fantasia")
+    assert len(listing.items) == 20
+    assert sum("fantasia" in item.title.lower() for item in listing.items) >= 15

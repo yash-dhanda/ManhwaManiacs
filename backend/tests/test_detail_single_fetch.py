@@ -26,8 +26,6 @@ from connectors.registry import create_connector
 CASES = [
     ("comicasura", "some-series"),
     ("demonicscans", "Some-Series"),
-    ("elftoon", "some-series"),
-    ("galaxymanga", "some-series"),
     ("hentai20", "some-series"),
     ("mangakatana", "some-series.12345"),
 ]

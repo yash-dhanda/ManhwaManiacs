@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
+import 'package:manhwamaniacs/core/network/cover_cache_manager.dart';
 import 'package:manhwamaniacs/features/profiles/providers/profiles_providers.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
@@ -71,6 +72,7 @@ class GlassCoverImage extends ConsumerWidget {
     return CachedNetworkImage(
       imageUrl: imageUrl,
       httpHeaders: headers,
+      cacheManager: CoverCacheManager.instance,
       fit: BoxFit.cover,
       fadeInDuration: Duration.zero,
       imageBuilder: (context, image) => _Arrival(child: Image(image: image, fit: BoxFit.cover)),

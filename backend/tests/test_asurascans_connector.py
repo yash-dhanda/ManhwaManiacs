@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from connectors.asurascans.connector import AsuraScansConnector
-from connectors.asurascans.mappers import chapter_pages_to_pages
+from connectors.asurascans.mappers import chapter_locked_until, chapter_pages_to_pages
 from connectors.registry import create_connector, list_installed_connectors
 from services.browse_service import _serialize_page
 
@@ -135,6 +136,59 @@ def test_chapter_page_serialization_preserves_every_page(fixture_name: str):
     assert all(item["image_url"].startswith("/sources/asurascans/pages/") for item in serialized)
 
 
+def test_early_access_chapter_carries_its_unlock_time():
+    # Real row from the fixture: chapter 169, is_locked + is_premium, unlocks 2026-06-30T23:04Z.
+    locked = _load("chapter_list.json")["data"][0]
+    assert locked["number"] == 169 and locked["is_locked"] is True
+
+    unlock = datetime.fromisoformat(locked["unlock_time"].replace("Z", "+00:00"))
+    assert chapter_locked_until(locked) == unlock.astimezone(timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+
+
+def test_the_list_spelling_asura_sends_now_is_read_too():
+    # 2026-11-23: no ``is_locked`` on list rows any more, only these two.
+    row = {"number": 370, "is_premium": True, "early_access_until": "2026-11-23T14:15:24.018266Z"}
+    assert chapter_locked_until(row) == "2026-11-23T14:15:24Z"
+
+
+def test_locked_without_a_readable_unlock_time_has_no_instant():
+    # Still listed; the reader says "locked" without a countdown when its pages are asked for.
+    assert chapter_locked_until({"is_locked": True}) is None
+    assert chapter_locked_until({"is_locked": True, "unlock_time": "garbage"}) is None
+    assert chapter_locked_until({"is_locked": True, "unlock_time": None}) is None
+
+
+def test_unlocked_and_unflagged_chapters_are_not_locked():
+    free = _load("chapter_list.json")["data"][1]
+    assert free["is_locked"] is False
+    assert chapter_locked_until(free) is None
+    assert chapter_locked_until({"number": 1}) is None
+    # is_premium alone (a paid chapter that is already open) is not a lock.
+    assert chapter_locked_until(
+        {"is_premium": True, "is_locked": False, "early_access_until": "2999-01-01T00:00:00Z"}
+    ) is None
+
+
+def test_get_chapters_lists_early_access_chapters_with_their_unlock_time(
+    asurascans_connector: AsuraScansConnector,
+):
+    """They used to be left out until they opened. The clients count down to
+    the instant now, so the chapter is listed and says when."""
+    payload = _load("chapter_list.json")
+    payload["data"][0]["unlock_time"] = "2999-01-01T00:00:00Z"
+    total = len(payload["data"])
+
+    with patch.object(asurascans_connector._http, "get_json", return_value=payload):
+        chapters = asurascans_connector.get_chapters("return-of-the-mount-hua-sect")
+
+    assert len(chapters) == total
+    assert chapters[-1].number == 169  # ascending order: the newest is last
+    assert chapters[-1].locked_until == "2999-01-01T00:00:00Z"
+    assert all(chapter.locked_until is None for chapter in chapters[:-1])
+
+
 @pytest.mark.integration
 def test_asurascans_sequential_live_requests():
     connector = AsuraScansConnector()
@@ -154,3 +208,23 @@ def test_asurascans_sequential_live_requests():
 def test_create_asurascans_connector():
     connector = create_connector("asurascans")
     assert connector.source_type == "asurascans"
+
+
+def test_images_go_through_the_browser_fingerprint_client():
+    """cdn.asurascans.com answers a plain client with a Cloudflare challenge."""
+    from connectors.asurascans.connector import AsuraScansConnector
+
+    class FakeImageClient:
+        def __init__(self) -> None:
+            self.urls: list[str] = []
+
+        def get_bytes(self, url: str):
+            self.urls.append(url)
+            return "image/webp", b"RIFFxxxxWEBP"
+
+    connector = AsuraScansConnector()
+    fake = FakeImageClient()
+    connector._image_local.client = fake
+    url = "https://cdn.asurascans.com/asura-images/chapters/x/1/a.webp?v=1"
+    assert connector.fetch_proxied_image(url) == ("image/webp", b"RIFFxxxxWEBP")
+    assert fake.urls == [url]

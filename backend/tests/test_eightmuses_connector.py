@@ -7,7 +7,6 @@ import pytest
 
 from connectors.eightmuses.connector import EightMusesConnector
 from connectors.eightmuses.mappers import parse_chapters, parse_chapter_pages, parse_publishers
-from connectors.registry import create_connector
 
 
 FIXTURES = Path(__file__).parent / "fixtures" / "eightmuses"
@@ -100,7 +99,8 @@ def test_leaf_album_parses_single_complete_chapter():
     assert chapters[0].page_count == 2
 
 
-def test_create_8muses_connector():
-    connector = create_connector("8muses")
+def test_8muses_connector_identity():
+    # Deregistered 2026-10-18 (browse returns no series); the class and fixtures stay.
+    connector = EightMusesConnector()
     assert connector.source_type == "8muses"
     assert connector.is_mature is True

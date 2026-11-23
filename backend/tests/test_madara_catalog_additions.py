@@ -743,6 +743,23 @@ def test_kokomangas_and_mangaowl_sit_behind_the_18_plus_gate() -> None:
         assert cfg.mature is True, source_id
 
 
+def test_manhwahubto_is_an_adult_manhwa_segment_line() -> None:
+    """Added 3.5.0; verified end to end from the VPS 2026-10-13.
+
+    Page images come from cdn.manhwahub.to, so the proxy allowlist has to
+    accept it, and the old ``manhwahub`` id (manhwahub.net) stays retired.
+    """
+    cfg = _config("manhwahubto")
+    assert cfg is not None
+    assert cfg.mature is True
+    assert cfg.url_segment == "manhwa"
+    assert cfg.base_url == "https://manhwahub.to"
+    connector = create_connector("manhwahubto")
+    assert connector.is_mature is True
+    assert host_matches_allowlist("cdn.manhwahub.to", connector.allowed_image_hosts)
+    assert "manhwahub" not in {cfg.source_id for cfg in MADARA_CATALOG}
+
+
 def test_catalog_source_ids_stay_unique() -> None:
     """Two configs with one source_id would silently drop a source.
 
@@ -914,3 +931,26 @@ def test_image_fetch_headers_carry_referer_and_browser_user_agent() -> None:
 def test_image_allowlist_rejects_lookalike_hosts(bad_host: str) -> None:
     allowed = create_connector("mangasushi").allowed_image_hosts
     assert not host_matches_allowlist(bad_host, allowed)
+
+
+def test_a_site_with_only_a_load_more_button_still_has_a_next_page():
+    """manhwahub.to has no numbered pager, only an ajax "load more" button, so
+    its browse stopped after page 1; page 2 of such a site says "more" too."""
+    from connectors.madara.mappers import MadaraHtml  # noqa: PLC0415
+
+    mapper = MadaraHtml.__new__(MadaraHtml)
+    mapper._listing_page_re = __import__("re").compile(r"/page/(\d+)/")
+    ajax = '<div class="navigation-ajax"><a class="load-ajax">Load more</a></div>'
+    assert mapper._extract_total_pages(ajax, 1) == 2
+    assert mapper._extract_total_pages(ajax, 2) == 3
+    assert mapper._extract_total_pages("<div>no pager</div>", 1) == 1
+
+
+def test_hentaifox_pages_by_path_not_query():
+    """hentaifox answers ``/?page=2`` with page 1 again; its pager is ``/page/N/``."""
+    from connectors.hentaifamily.mappers import home_listing_path
+
+    assert home_listing_path(1, path_paging=True) == "/"
+    assert home_listing_path(2, path_paging=True) == "/page/2/"
+    assert home_listing_path(3, sort="popular", path_paging=True) == "/page/3/?sort=popular"
+    assert home_listing_path(2) == "/?page=2"

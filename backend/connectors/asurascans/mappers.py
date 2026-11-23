@@ -206,7 +206,23 @@ def chapter_locked_until(item: dict[str, Any]) -> str | None:
     ``early_access_until`` on the row for good afterwards (every chapter
     released since the scheme began still carries its long-past instant), so
     the flag decides and the instant only says when.
+
+    The list has also been seen spelling it ``is_locked`` / ``unlock_time``,
+    the way the chapter payload does; that was what the first fix for this
+    read, and by 2026-11-23 the list no longer sent it, so an early-access
+    chapter was listed, announced and then "not found". Both spellings are
+    read. An explicit ``is_locked: false`` wins over ``is_premium``.
+
+    Such a chapter used to be left out of the list until it opened. It is
+    listed now, carrying this instant, because the clients count down to it.
     """
+    explicit = item.get("is_locked")
+    if explicit is False:
+        return None
+    if explicit is True:
+        return lock_instant(item.get("unlock_time")) or lock_instant(
+            item.get("early_access_until")
+        )
     if not item.get("is_premium"):
         return None
     return lock_instant(item.get("early_access_until"))
