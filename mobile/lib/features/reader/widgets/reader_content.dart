@@ -55,6 +55,7 @@ class ReaderContent extends ConsumerStatefulWidget implements ReaderFrameBody {
     this.onPreviousChapter,
     this.onNextChapter,
     this.onReachedFeedEnd,
+    this.onRetryFeedEnd,
     this.onReachedFeedStart,
     this.pageExtents,
     this.bookmarkAnchors = const {},
@@ -135,6 +136,10 @@ class ReaderContent extends ConsumerStatefulWidget implements ReaderFrameBody {
   /// which is what keeps that mode exactly as it was.
   @override
   final Future<void> Function()? onReachedFeedEnd;
+
+  @override
+  final Future<void> Function()? onRetryFeedEnd;
+
   @override
   final Future<void> Function()? onReachedFeedStart;
 

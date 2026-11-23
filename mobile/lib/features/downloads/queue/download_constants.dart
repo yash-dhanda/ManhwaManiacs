@@ -112,3 +112,7 @@ const Duration kRateLimitWaitSlice = Duration(milliseconds: 500);
 /// How long an early-access chapter whose source named no opening time is left alone before the
 /// queue asks for it again.
 const Duration kLockedUnknownRetry = Duration(minutes: 10);
+
+/// The first wait before a locked chapter whose instant has already passed is asked for again;
+/// it doubles per answer up to [kLockedUnknownRetry].
+const Duration kLockedLateRetry = Duration(seconds: 30);

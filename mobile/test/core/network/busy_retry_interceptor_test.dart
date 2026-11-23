@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/network/interceptors/busy_retry_interceptor.dart';
 import 'package:manhwamaniacs/core/network/interceptors/error_interceptor.dart';
+import 'package:manhwamaniacs/core/network/network_failures.dart';
 
 class _Adapter implements HttpClientAdapter {
   _Adapter(this.status, this.code, {this.retryAfter});
@@ -93,7 +94,7 @@ const _ok = 'ok';
 DioException _dioErr(DioExceptionType t, [Object? error]) => DioException(requestOptions: RequestOptions(), type: t, error: error);
 
 void main() {
-  for (final status in [502, 503, 504]) {
+  for (final status in [502, 503]) {
     test('a GET $status recovers on the second attempt', () async {
       final m = _scripted([_Status(status, code: status == 503 ? 'other' : 'x'), _ok]);
       final r = await m.dio.get<dynamic>('/x');
@@ -112,8 +113,6 @@ void main() {
     'connectionError': _dioErr(DioExceptionType.connectionError),
     'connection closed HttpException': _dioErr(DioExceptionType.unknown, const HttpException('Connection closed before full header was received')),
     'connection reset SocketException': _dioErr(DioExceptionType.unknown, const SocketException('Connection reset by peer')),
-    'connectionTimeout': _dioErr(DioExceptionType.connectionTimeout),
-    'receiveTimeout': _dioErr(DioExceptionType.receiveTimeout),
   }.entries) {
     test('${e.key} recovers on the second attempt', () async {
       final m = _scripted([e.value, _ok]);
@@ -122,10 +121,72 @@ void main() {
     });
   }
 
-  test('a timeout is retried once only', () async {
-    final m = _scripted([_dioErr(DioExceptionType.receiveTimeout)]);
+  test('no timeout is retried, and neither is a 504', () async {
+    for (final t in [DioExceptionType.connectionTimeout, DioExceptionType.receiveTimeout, DioExceptionType.sendTimeout]) {
+      final m = _scripted([_dioErr(t), _ok]);
+      await _get(m.dio);
+      expect(m.adapter.calls, 1, reason: '$t');
+    }
+    final m = _scripted([const _Status(504), _ok]);
+    await _get(m.dio);
+    expect(m.adapter.calls, 1);
+  });
+
+  test('a dropped connection is repeated once only', () async {
+    final m = _scripted([_dioErr(DioExceptionType.connectionError)]);
     await _get(m.dio);
     expect(m.adapter.calls, 2);
+  });
+
+  test('one failing GET reports once and keeps its error type and message', () async {
+    final seen = <AppError>[];
+    final sub = networkFailures.listen(seen.add);
+    final m = _scripted([DioException(requestOptions: RequestOptions(), type: DioExceptionType.connectionError, message: 'refused', error: const SocketException('refused'))]);
+    final e = await _get(m.dio);
+    await sub.cancel();
+    expect(m.adapter.calls, 2);
+    expect(seen, hasLength(1));
+    expect(e, isA<NetworkError>());
+    expect((e! as NetworkError).message, 'refused');
+    expect((e as NetworkError).cause, isA<SocketException>());
+  });
+
+  test('a request that opts out is never repeated', () async {
+    for (final status in [502, 503]) {
+      final m = _scripted([_Status(status), _ok]);
+      await m.dio.get<dynamic>('/x', options: Options(extra: {kNoAutoRetryExtraKey: true})).then<void>((_) {}, onError: (_) {});
+      expect(m.adapter.calls, 1, reason: '$status');
+    }
+    final r = _scripted([const _Status(429, code: 'rate_limited', retryAfter: '0'), _ok]);
+    await r.dio.get<dynamic>('/x', options: Options(extra: {kNoAutoRetryExtraKey: true})).then<void>((_) {}, onError: (_) {});
+    expect(r.adapter.calls, 1);
+    final c = _scripted([_dioErr(DioExceptionType.connectionError), _ok]);
+    await c.dio.get<dynamic>('/x', options: Options(extra: {kNoAutoRetryExtraKey: true})).then<void>((_) {}, onError: (_) {});
+    expect(c.adapter.calls, 1);
+  });
+
+  test('withoutAutoRetry opts out every request started inside it', () async {
+    final m = _scripted([const _Status(502), _ok]);
+    await withoutAutoRetry(() => m.dio.get<dynamic>('/x')).then<void>((_) {}, onError: (_) {});
+    expect(m.adapter.calls, 1);
+    final n = _scripted([const _Status(502), _ok]);
+    expect((await n.dio.get<dynamic>('/x')).statusCode, 200);
+    expect(n.adapter.calls, 2);
+  });
+
+  test('connection-only repeats a dropped connection but no status', () async {
+    final opts = Options(extra: {kConnectionRetryOnlyExtraKey: true});
+    final a = _scripted([_dioErr(DioExceptionType.connectionError), _ok]);
+    expect((await a.dio.post<dynamic>('/x', options: opts)).statusCode, 200);
+    expect(a.adapter.calls, 2);
+    for (final status in [502, 503, 504, 429]) {
+      final b = _scripted([_Status(status, retryAfter: '0'), _ok]);
+      await b.dio.post<dynamic>('/x', options: opts).then<void>((_) {}, onError: (_) {});
+      expect(b.adapter.calls, 1, reason: '$status');
+    }
+    final c = _scripted([_dioErr(DioExceptionType.receiveTimeout), _ok]);
+    await c.dio.post<dynamic>('/x', options: opts).then<void>((_) {}, onError: (_) {});
+    expect(c.adapter.calls, 1);
   });
 
   test('a POST without the opt-in is not retried, with it is', () async {

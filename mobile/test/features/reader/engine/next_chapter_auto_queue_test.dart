@@ -188,6 +188,45 @@ void main() {
     expect(r.queue.enqueued.map((c) => c.chapterKey), ['c2', 'c3']);
   });
 
+  testWidgets('a short chapter read to the mark after the feed already appended its successor still queues that successor', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    // The feed appended c2 and the rebuild armed c3 after it, before c1 (6 pages) reached 70 %.
+    r.autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: 'c3', afterChapterId: 'c2');
+    r.readTo('c1', 5, 6);
+    await _settle(tester);
+    expect(r.queue.enqueued.map((c) => c.chapterKey), ['c2']);
+    r.readTo('c1', 6, 6);
+    r.readTo('c2', 5, 6);
+    await _settle(tester);
+    expect(r.queue.enqueued.map((c) => c.chapterKey), ['c2', 'c3'], reason: 'each once');
+    r.autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: 'c3', afterChapterId: 'c2');
+    r.readTo('c2', 6, 6);
+    await _settle(tester);
+    expect(r.queue.enqueued, hasLength(2));
+  });
+
+  testWidgets('a chapter opened at its last page queues its successor even after a rebuild moved the target on', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    r.autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: 'c3', afterChapterId: 'c2');
+    r.readTo('c1', 1, 1);
+    await _settle(tester);
+    expect(r.queue.enqueued.map((c) => c.chapterKey), ['c2']);
+  });
+
+  testWidgets('what is armed is bounded', (tester) async {
+    final r = await _open(tester, scope: 'u1p1', wifiOnly: false, onWifi: true);
+    for (var i = 0; i < 100; i++) {
+      r.autoQueue.arm(sourceId: 'src', seriesKey: 'series', nextChapterId: 'n$i', afterChapterId: 'a$i');
+    }
+    r.readTo('c1', 10, 10); // c1 was evicted long ago
+    r.readTo('a0', 10, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued, isEmpty);
+    r.readTo('a99', 10, 10);
+    await _settle(tester);
+    expect(r.queue.enqueued.map((c) => c.chapterKey), ['n99']);
+  });
+
   testWidgets('leaving the reader while the Wi-Fi check is out raises no error', (tester) async {
     SharedPreferences.setMockInitialValues({'settings_wifi_only_downloads': true});
     final prefs = await SharedPreferences.getInstance();

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/network/interceptors/busy_retry_interceptor.dart' show withoutAutoRetry;
 import 'package:manhwamaniacs/core/network/network_connectivity.dart';
 import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
@@ -259,6 +260,10 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   /// answers 423 again and re-arms the hold.
   final Map<ChapterIdentity, ({DateTime until, String reason})> _held = {};
   Timer? _holdTimer;
+
+  /// For a chapter whose instant has passed yet still answers 423 (the source is late, or this clock runs ahead): the instant it
+  /// named and the wait before it is asked again, doubling per answer. Cleared when the chapter opens or names another instant.
+  final Map<ChapterIdentity, ({DateTime instant, Duration wait})> _lockBackoff = {};
 
   /// The clock, the sleeper and the timer factory behind every wait this queue does on purpose — **test-only** seams, so a test
   /// can move time itself.
@@ -941,11 +946,13 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     var manifest = _manifestWindow.remove(chapter.identity);
     if (manifest == null) {
       final manifestResult = await _gate.run(
-        () => ref.read(readerRepositoryProvider).manifest(
+        () => withoutAutoRetry(
+            () => ref.read(readerRepositoryProvider).manifest(
               sourceId: chapter.sourceId,
               seriesKey: chapter.seriesKey,
               chapterKey: chapter.chapterKey,
             ),
+          ),
       );
       if (manifestResult.isErr) {
         final error = manifestResult.error;
@@ -962,6 +969,7 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
       }
       manifest = manifestResult.value;
     }
+    _lockBackoff.remove(chapter.identity);
     if (manifest.pageCount <= 0 || manifest.pages.isEmpty) {
       return _recordChapterFailure(store, chapter, 'This chapter has no pages.');
     }
@@ -1053,11 +1061,13 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   }) async {
     final text = textIdentity(chapter.identity);
     final timing = await _gate.run(
-      () => ref.read(novelsRepositoryProvider).audio(
+      () => withoutAutoRetry(
+          () => ref.read(novelsRepositoryProvider).audio(
             sourceId: text.sourceId,
             seriesKey: text.seriesKey,
             chapterKey: text.chapterKey,
           ),
+        ),
     );
     if (timing.isErr) {
       return _recordChapterFailure(store, chapter, timing.error.userMessage);
@@ -1079,12 +1089,14 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     late Result<List<int>> result;
     while (true) {
       result = await _gate.run(
-        () => ref.read(novelsRepositoryProvider).audioBytes(
+        () => withoutAutoRetry(
+            () => ref.read(novelsRepositoryProvider).audioBytes(
               sourceId: text.sourceId,
               seriesKey: text.seriesKey,
               chapterKey: text.chapterKey,
               format: novelAudioFormatFor(platform),
             ),
+          ),
       );
       final error = result.isErr ? result.error : null;
       final preparing = error is ApiError && error.statusCode == 503 && error.code == 'audio_preparing';
@@ -1155,11 +1167,13 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     var novel = _novelWindow.remove(chapter.identity);
     if (novel == null) {
       final result = await _gate.run(
-        () => ref.read(novelsRepositoryProvider).chapter(
+        () => withoutAutoRetry(
+            () => ref.read(novelsRepositoryProvider).chapter(
               sourceId: chapter.sourceId,
               seriesKey: chapter.seriesKey,
               chapterKey: chapter.chapterKey,
             ),
+          ),
       );
       if (result.isErr) {
         return _recordChapterFailure(store, chapter, result.error.userMessage);
@@ -1241,11 +1255,13 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     }
     if (keys.length < kMinNovelWindowChapters) return;
 
-    final result = await ref.read(novelsRepositoryProvider).chapterWindow(
+    final result = await withoutAutoRetry(
+        () => ref.read(novelsRepositoryProvider).chapterWindow(
           sourceId: head.sourceId,
           seriesKey: head.seriesKey,
           chapterKeys: keys,
-        );
+        ),
+      );
 
     if (result.isErr) {
       final error = result.error;
@@ -1323,11 +1339,13 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     }
     if (keys.length < kMinManifestWindowChapters) return;
 
-    final result = await ref.read(readerRepositoryProvider).manifestWindow(
+    final result = await withoutAutoRetry(
+        () => ref.read(readerRepositoryProvider).manifestWindow(
           sourceId: head.sourceId,
           seriesKey: head.seriesKey,
           chapterKeys: keys,
-        );
+        ),
+      );
 
     if (result.isErr) {
       final error = result.error;
@@ -1378,22 +1396,35 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
 
   /// Leaves an early-access chapter alone until it opens: [lockedUntil] plus [kLockRetryGrace] (the device clock and the
   /// server's rarely agree to the second), or [kLockedUnknownRetry] when the source named no time. The reason line is the
-  /// opening time on this phone's clock, or the server's own words when there is none.
+  /// opening time on this phone's clock, or the server's own words when there is none. An instant that has already passed
+  /// (the source is late, or this clock runs ahead) is no time to wait for: the chapter is asked for again after a wait that
+  /// starts at [kLockedLateRetry] and doubles up to [kLockedUnknownRetry], under the server's own words.
   void _hold(ChapterIdentity id, DateTime? lockedUntil, String serverMessage) {
     final now = clock();
     var until = lockedUntil == null ? now.add(kLockedUnknownRetry) : lockedUntil.add(kLockRetryGrace);
-    // A source clock that runs ahead of this one must not turn the hold into a tight retry loop.
-    if (!until.isAfter(now)) until = now.add(kLockRetryGrace);
-    _held[id] = (until: until, reason: lockedUntil == null ? serverMessage : 'Opens at ${localOpenTime(lockedUntil)}');
+    var reason = lockedUntil == null ? serverMessage : 'Opens at ${localOpenTime(lockedUntil)}';
+    if (lockedUntil != null && !until.isAfter(now)) {
+      final before = _lockBackoff[id];
+      final wait = before == null || before.instant != lockedUntil
+          ? kLockedLateRetry
+          : (before.wait * 2 > kLockedUnknownRetry ? kLockedUnknownRetry : before.wait * 2);
+      _lockBackoff[id] = (instant: lockedUntil, wait: wait);
+      until = now.add(wait);
+      reason = serverMessage;
+    } else {
+      _lockBackoff.remove(id);
+    }
+    _held[id] = (until: until, reason: reason);
     _publishHolds();
     _armHoldTimer();
   }
 
   /// Drops holds that have run out, and those of chapters no longer waiting in the queue (cancelled, deleted).
   void _pruneHolds(List<SavedChapter> pending) {
+    final waiting = {for (final c in pending) c.identity};
+    _lockBackoff.removeWhere((id, _) => !waiting.contains(id));
     if (_held.isEmpty) return;
     final now = clock();
-    final waiting = {for (final c in pending) c.identity};
     final before = _held.length;
     _held.removeWhere((id, h) => !h.until.isAfter(now) || !waiting.contains(id));
     if (_held.length != before) _publishHolds();

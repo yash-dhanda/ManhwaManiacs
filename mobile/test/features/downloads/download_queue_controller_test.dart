@@ -1224,6 +1224,33 @@ void main() {
         expect(q.container.read(downloadQueueControllerProvider).heldReasons, isEmpty);
       });
 
+      test('a chapter still locked after its instant is asked for on a doubling backoff, with the server\'s message', () async {
+        final q = setUpQueue(now.subtract(const Duration(minutes: 5)));
+        await q.controller.enqueueChapter(id: locked);
+        await q.controller.debugWaitUntilIdle();
+        expect(q.repo.byKey['c1'], 1);
+        expect(q.container.read(downloadQueueControllerProvider).heldReasons[locked], 'This chapter is in early access.');
+
+        var step = const Duration(seconds: 30);
+        var asked = 1;
+        for (var i = 0; i < 8; i++) {
+          expect(q.timers.last.$1, step, reason: 'wake-up $i');
+          now = now.add(step - const Duration(seconds: 1));
+          q.controller.resumePendingOnLaunch();
+          await q.controller.debugWaitUntilIdle();
+          expect(q.repo.byKey['c1'], asked, reason: 'not asked before the backoff ends');
+          now = now.add(const Duration(seconds: 1));
+          q.timers.last.$2();
+          await q.controller.debugWaitUntilIdle();
+          asked++;
+          expect(q.repo.byKey['c1'], asked);
+          expect(q.container.read(downloadQueueControllerProvider).heldReasons[locked], 'This chapter is in early access.');
+          step = step * 2 > kLockedUnknownRetry ? kLockedUnknownRetry : step * 2;
+        }
+        expect(step, kLockedUnknownRetry);
+        expect(q.timers.last.$1, kLockedUnknownRetry, reason: 'capped');
+      });
+
       test('with no instant from the source the reason is the server\'s message and it is left alone for a while', () async {
         final q = setUpQueue(null);
         await q.controller.enqueueChapter(id: locked);

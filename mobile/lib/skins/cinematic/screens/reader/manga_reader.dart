@@ -1367,8 +1367,8 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
       retryIn: retryIn,
       nextFailed: (ctx) => Consumer(
         builder: (context, ref, _) {
-          final lock = ref.watch(readerLockedNextProvider);
-          void retry() => unawaited(_body.onReachedFeedEnd?.call());
+          final lock = ref.watch(readerLockedForProvider(next?.id));
+          void retry() => unawaited((_body.onRetryFeedEnd ?? _body.onReachedFeedEnd)?.call());
           void open() {
             if (next != null) _goToChapter(next.id);
           }

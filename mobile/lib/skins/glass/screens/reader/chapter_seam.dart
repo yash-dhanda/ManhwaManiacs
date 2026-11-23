@@ -129,6 +129,7 @@ class GlassReaderBands {
   const GlassReaderBands({
     required this.nextLabel,
     required this.previousLabel,
+    this.nextChapterId,
     required this.onRetryNeighbour,
     required this.onOpenNext,
     required this.onDownloadNext,
@@ -144,6 +145,9 @@ class GlassReaderBands {
   final Duration? backoff;
   final bool readAll;
 
+  /// The chapter the next band is for; a lock held for any other chapter is not its lock.
+  final String? nextChapterId;
+
   Widget build(BuildContext context, BandKind kind, {String? from, String? to, Duration? retryIn}) => switch (kind) {
         BandKind.seam => GlassChapterSeam(from: from, to: to, slim: readAll),
         BandKind.top => GlassChapterSeam(from: null, to: from),
@@ -151,7 +155,7 @@ class GlassReaderBands {
         BandKind.nextLoading => _Waiting(text: '$nextLabel is on its way'),
         BandKind.nextFailed => Consumer(
             builder: (context, ref, _) {
-              final lock = ref.watch(readerLockedNextProvider);
+              final lock = ref.watch(readerLockedForProvider(nextChapterId));
               return lock == null ? _nextFailedCard() : GlassNextLocked(label: nextLabel, lockedUntil: lock.lockedUntil, message: lock.message, onRetry: onRetryNeighbour, onOpen: onOpenNext);
             },
           ),

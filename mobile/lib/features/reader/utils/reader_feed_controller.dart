@@ -204,7 +204,11 @@ class ReaderFeedController extends ChangeNotifier {
   /// optional.
   Future<void> extendBackward() => _extend(forward: false);
 
-  Future<void> _extend({required bool forward}) async {
+  /// [extendForward] for an explicit retry (the band's "Try again", the countdown's one automatic retry): the failure
+  /// backoff is for scrolling that keeps drawing the same failure, and would make a retry the reader asked for a no-op.
+  Future<void> retryForward() => _extend(forward: true, explicit: true);
+
+  Future<void> _extend({required bool forward, bool explicit = false}) async {
     if (_disposed) return;
     if (forward ? _extendingForward : _extendingBackward) return;
 
@@ -212,6 +216,7 @@ class ReaderFeedController extends ChangeNotifier {
     final targetId = forward ? _nextIdAfter(edge) : _prevIdBefore(edge);
     if (targetId == null || _feed.contains(targetId)) return;
 
+    if (explicit) _retryAfter.remove(targetId);
     final retryAt = _retryAfter[targetId];
     if (retryAt != null && _clock().isBefore(retryAt)) return;
 

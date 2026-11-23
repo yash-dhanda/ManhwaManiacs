@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
+import 'package:manhwamaniacs/features/reader/providers/reader_signals_provider.dart';
 import 'package:manhwamaniacs/features/sources/models/source.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/end_states.dart';
@@ -116,5 +117,15 @@ void main() {
     await t.pump(const Duration(seconds: 1));
     await tick(t, const Duration(seconds: 5));
     expect(retries, 1);
+  });
+
+  test('the strip band uses a lock only when it is held for the next chapter itself', () {
+    final c = ProviderContainer();
+    addTearDown(c.dispose);
+    expect(c.read(readerLockedForProvider('c371')), isNull);
+    c.read(readerLockedNextProvider.notifier).state = (chapterKey: 'c9', lockedUntil: open, message: 'm', sourceId: 's');
+    expect(c.read(readerLockedForProvider('c371')), isNull, reason: 'another chapter\'s lock');
+    expect(c.read(readerLockedForProvider(null)), isNull);
+    expect(c.read(readerLockedForProvider('c9')), isNotNull);
   });
 }

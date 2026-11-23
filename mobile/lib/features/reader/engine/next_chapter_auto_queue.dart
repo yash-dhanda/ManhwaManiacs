@@ -27,13 +27,15 @@ class NextChapterAutoQueue {
 
   final bool Function()? saveNextEnabled;
 
-  /// What reading far enough into [_afterChapterId] queues. Re-armed on every build, so it follows
-  /// the feed as it grows.
-  ({String sourceId, String seriesKey, String nextId, String afterChapterId})? _armed;
+  /// What reading far enough into a chapter queues, by that chapter's id. Re-armed on every build, so it follows the feed as
+  /// it grows; a chapter's entry stays until it is queued, because the feed appends the next chapter (and the rebuild
+  /// re-arms one further on) before a short chapter has been read to the preload mark. Bounded: the oldest goes first.
+  final Map<String, ({String sourceId, String seriesKey, String nextId})> _armed = {};
 
-  /// Guards the eager next-chapter queue so it fires once per chapter shown,
-  /// not on every unrelated rebuild of the screen.
-  String? _prefetchedFor;
+  /// The chapters already queued, so each fires once however often the screen rebuilds. Bounded like [_armed].
+  final Set<String> _queued = {};
+
+  static const int _kRemembered = 16;
 
   /// Says which chapter to save once [afterChapterId] (the last chapter the feed holds) has been
   /// read to [kNeighbourPreloadAt]. Queues nothing itself.
@@ -46,21 +48,30 @@ class NextChapterAutoQueue {
     required String? nextChapterId,
     required String afterChapterId,
   }) {
-    _armed = nextChapterId == null ? null : (sourceId: sourceId, seriesKey: seriesKey, nextId: nextChapterId, afterChapterId: afterChapterId);
+    if (nextChapterId == null || _queued.contains(nextChapterId)) return;
+    _armed.remove(afterChapterId);
+    _armed[afterChapterId] = (sourceId: sourceId, seriesKey: seriesKey, nextId: nextChapterId);
+    while (_armed.length > _kRemembered) {
+      _armed.remove(_armed.keys.first);
+    }
   }
 
-  /// The reader is on [page] (1-based) of [pageCount] pages of [chapterId]: queues the armed next
-  /// chapter when that is the chapter it was armed for and the read share has reached the preload mark.
+  /// The reader is on [page] (1-based) of [pageCount] pages of [chapterId]: queues the chapter armed after it
+  /// when the read share has reached the preload mark.
   void readTo(
     WidgetRef ref, {
     required String chapterId,
     required int page,
     required int pageCount,
   }) {
-    final armed = _armed;
-    if (armed == null || armed.afterChapterId != chapterId || pageCount <= 0) return;
-    if (page / pageCount < kNeighbourPreloadAt || _prefetchedFor == armed.nextId) return;
-    _prefetchedFor = armed.nextId;
+    final armed = _armed[chapterId];
+    if (armed == null || pageCount <= 0) return;
+    if (page / pageCount < kNeighbourPreloadAt) return;
+    _armed.remove(chapterId);
+    if (!_queued.add(armed.nextId)) return;
+    while (_queued.length > _kRemembered) {
+      _queued.remove(_queued.first);
+    }
     unawaited(_queue(ref, sourceId: armed.sourceId, seriesKey: armed.seriesKey, nextId: armed.nextId));
   }
 

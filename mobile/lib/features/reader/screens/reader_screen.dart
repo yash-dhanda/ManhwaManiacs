@@ -378,6 +378,13 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
     }
   }
 
+  /// A chapter that loaded is not early access any more: its lock must not keep speaking for the strip's edge.
+  void _clearLockOf(String chapterKey) {
+    if (!mounted) return;
+    final signal = ref.read(readerLockedNextProvider.notifier);
+    if (signal.state?.chapterKey == chapterKey) signal.state = null;
+  }
+
   /// Loads a chapter for the feed through the SAME disk-first provider the
   /// anchor came through, so a downloaded chapter continues into another
   /// downloaded chapter with no network involved at all.
@@ -387,14 +394,17 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
         resolvedReaderChapterProvider(_keyFor(chapterKey)),
       );
       _numbers[chapterKey] = resolved.chapterNumber;
+      _clearLockOf(chapterKey);
       return resolved.chapter;
     } catch (e) {
       // A seam that cannot be crossed leaves the edge prompt as the way over.
       final lock = chapterLockOf(e);
-      // Cleared by any other failure so a stale "opens in" never speaks for a chapter that failed for another reason.
+      // Another chapter's failure leaves this one's lock alone; a chapter's own failure for another reason clears its lock.
       if (mounted) {
-        ref.read(readerLockedNextProvider.notifier).state =
-            lock == null ? null : (chapterKey: chapterKey, lockedUntil: lock.lockedUntil, message: lock.message, sourceId: lock.sourceId);
+        final signal = ref.read(readerLockedNextProvider.notifier);
+        if (lock != null || signal.state?.chapterKey == chapterKey) {
+          signal.state = lock == null ? null : (chapterKey: chapterKey, lockedUntil: lock.lockedUntil, message: lock.message, sourceId: lock.sourceId);
+        }
       }
       final wait = rateLimitWait(e);
       if (wait != null && mounted) {
@@ -479,6 +489,7 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
             ? () => context.go(_edgeLocation(beyondFeed))
             : null,
         onReachedFeedEnd: _controller.extendForward,
+        onRetryFeedEnd: _controller.retryForward,
         onReachedFeedStart: _controller.extendBackward,
         onSaveProgress: _trackSaves((chapter, page) async {
           _autoQueue.readTo(ref, chapterId: chapter.id, page: page, pageCount: chapter.pages.length);

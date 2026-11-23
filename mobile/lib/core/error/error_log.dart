@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -31,6 +33,11 @@ class ErrorLog extends ChangeNotifier {
   /// Newest first.
   List<LoggedError> get entries => List.unmodifiable(_entries);
 
+  bool _notifyScheduled = false;
+  bool _disposed = false;
+
+  /// Listeners hear of it a microtask later, once, however many errors arrived: the hook can run while the tree is locked
+  /// (finalizing), where a listening screen's `setState` would assert.
   void record(String source, Object error, StackTrace? stack) {
     final lines = (stack?.toString() ?? '').split('\n').where((l) => l.trim().isNotEmpty).take(stackLines).join('\n');
     _entries.insert(
@@ -38,7 +45,18 @@ class ErrorLog extends ChangeNotifier {
       LoggedError(time: DateTime.now(), source: source, type: error.runtimeType.toString(), message: '$error', stackTop: lines),
     );
     if (_entries.length > capacity) _entries.removeRange(capacity, _entries.length);
-    notifyListeners();
+    if (_notifyScheduled) return;
+    _notifyScheduled = true;
+    scheduleMicrotask(() {
+      _notifyScheduled = false;
+      if (!_disposed) notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 
   void clear() {

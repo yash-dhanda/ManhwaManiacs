@@ -69,6 +69,7 @@ class UpdateChapterChip extends StatelessWidget {
     return LockCountdown(
       lockedUntil: until,
       unlocked: (_) => chip(base),
+      mergeSemantics: true,
       builder: (_, left) => chip('$base · ${compactRemaining(left)}', opacity: 0.55),
     );
   }

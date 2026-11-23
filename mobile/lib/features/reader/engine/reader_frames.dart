@@ -25,6 +25,9 @@ abstract interface class ReaderFrameBody {
   VoidCallback? get onPreviousChapter;
   VoidCallback? get onNextChapter;
   Future<void> Function()? get onReachedFeedEnd;
+
+  /// Asking again for the chapter after the feed on purpose (not because the reader scrolled there).
+  Future<void> Function()? get onRetryFeedEnd;
   Future<void> Function()? get onReachedFeedStart;
   ReaderPageExtents? get pageExtents;
   Map<String, List<ReaderAnchor>> get bookmarkAnchors;

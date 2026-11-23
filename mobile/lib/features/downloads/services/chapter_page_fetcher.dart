@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/network/interceptors/busy_retry_interceptor.dart' show kNoAutoRetryExtraKey;
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 
 /// Fetches one manifest page's raw bytes. Split out from [DownloadQueueController]
@@ -19,7 +20,8 @@ class DioChapterPageFetcher implements ChapterPageFetcher {
   Future<List<int>> fetchPageBytes(String url) async {
     final response = await _dio.get<List<int>>(
       url,
-      options: Options(responseType: ResponseType.bytes),
+      // The queue waits and retries pages itself (shared 429 wait, Cancel / Pause between tries).
+      options: Options(responseType: ResponseType.bytes, extra: {kNoAutoRetryExtraKey: true}),
     );
     return response.data ?? const [];
   }

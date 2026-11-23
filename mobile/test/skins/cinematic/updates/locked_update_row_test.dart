@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/features/updates/utils/notification_grouping.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/rows/cine_row.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/updates/updates_new.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 
@@ -86,5 +88,28 @@ void main() {
     await t.pump();
     expect(find.text('Read from 370'), findsOneWidget);
     expect(find.textContaining('Opens in'), findsNothing);
+  });
+
+  testWidgets('a locked folio keeps its chapter label and tap action and adds the opens-in words', (t) async {
+    final handle = t.ensureSemantics();
+    await overrideClock(t, group(until: open));
+    final node = t.getSemantics(find.byKey(const ValueKey('folio-2')));
+    expect(node.label, contains('CH 370'));
+    expect(node.label, contains('Opens in 1 minute'));
+    expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+    expect(node.getSemanticsData().flagsCollection.isButton, isTrue);
+    handle.dispose();
+  });
+
+  testWidgets('the menu\'s Read from is enabled once the countdown has ended, with no rebuild from the screen', (t) async {
+    var taps = 0;
+    await overrideClock(t, group(until: open), onReadFrom: () => taps++);
+    now = now.add(const Duration(seconds: 3));
+    await t.pump(const Duration(seconds: 3));
+    await t.longPress(find.byType(CineRowShell));
+    await t.pump(const Duration(milliseconds: 500));
+    await t.tap(find.text('Read from 370').last);
+    await t.pump(const Duration(milliseconds: 500));
+    expect(taps, 1);
   });
 }

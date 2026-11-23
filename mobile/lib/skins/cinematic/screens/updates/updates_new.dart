@@ -18,9 +18,10 @@ import 'package:manhwamaniacs/skins/cinematic/type.dart';
 /// What stands where "Read from 141" would: `Opens in 3:27:14`, a status and not a button (early access on its source). When
 /// the count reaches zero the real button takes its place with no refetch.
 class LockedReadFrom extends StatelessWidget {
-  const LockedReadFrom({super.key, required this.lockedUntil, required this.unlocked});
+  const LockedReadFrom({super.key, required this.lockedUntil, required this.unlocked, this.onUnlocked});
   final DateTime lockedUntil;
   final WidgetBuilder unlocked;
+  final VoidCallback? onUnlocked;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +29,7 @@ class LockedReadFrom extends StatelessWidget {
     return LockCountdown(
       lockedUntil: lockedUntil,
       unlocked: unlocked,
+      onUnlocked: onUnlocked,
       builder: (context, left) => ConstrainedBox(
         constraints: BoxConstraints(minHeight: cineHitMin(context)),
         child: Align(
@@ -109,6 +111,10 @@ class UpdateGroupRow extends StatefulWidget {
 class _UpdateGroupRowState extends State<UpdateGroupRow> {
   final Set<int> _done = {};
 
+  /// First unread chapters whose countdown ended while this row was on screen: `widget.now` is the screen's snapshot and
+  /// does not move until it rebuilds.
+  final Set<int> _opened = {};
+
   void _typed(int id, Set<int> all) {
     _done.add(id);
     if (_done.containsAll(all)) widget.onTyped(all);
@@ -122,6 +128,7 @@ class _UpdateGroupRowState extends State<UpdateGroupRow> {
     return LockCountdown(
       lockedUntil: until,
       unlocked: (_) => folio(null),
+      mergeSemantics: true,
       builder: (_, left) => folio('opens in ${compactRemaining(left)}'),
     );
   }
@@ -142,7 +149,7 @@ class _UpdateGroupRowState extends State<UpdateGroupRow> {
       height: 72,
       child: Hero(tag: tag, child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: c.colorRule2)), child: CineImage(url: widget.coverUrl, title: g.title))),
     );
-    final firstLocked = first != null && first.isLocked(widget.now);
+    final firstLocked = first != null && first.isLocked(widget.now) && !_opened.contains(first.notificationId);
     Widget body = Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Semantics(button: true, label: 'Open ${g.title}', excludeSemantics: true, onTap: widget.onOpenSeries, child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: widget.onOpenSeries, child: cover)),
       SizedBox(width: c.space4),
@@ -178,7 +185,13 @@ class _UpdateGroupRowState extends State<UpdateGroupRow> {
             SizedBox(height: c.space2),
             Wrap(spacing: 8, children: [
               if (first.lockedUntil != null)
-                LockedReadFrom(lockedUntil: first.lockedUntil!, unlocked: (_) => readFromButton(readFrom!))
+                LockedReadFrom(
+                  lockedUntil: first.lockedUntil!,
+                  unlocked: (_) => readFromButton(readFrom!),
+                  onUnlocked: () {
+                    if (mounted) setState(() => _opened.add(first.notificationId));
+                  },
+                )
               else
                 readFromButton(readFrom!),
               CineButton(label: 'Mark read', variant: CineButtonVariant.quiet, size: CineButtonSize.sm, onPressed: widget.enabled ? widget.onMarkRead : null, disabledReason: 'Needs a connection.'),
@@ -222,7 +235,8 @@ class _Folio extends StatelessWidget {
     final hit = cineHitMin(context);
     return Semantics(
       button: true,
-      label: hint == null ? label : '$label, $hint',
+      // With a hint the countdown around it adds the opens-in words.
+      label: label,
       excludeSemantics: true,
       onTap: onTap,
       child: CinePressable(

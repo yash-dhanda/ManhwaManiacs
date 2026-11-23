@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
@@ -23,6 +24,18 @@ void main() {
     await t.pump(const Duration(hours: 3, minutes: 27, seconds: 14));
     await t.pump(const Duration(seconds: 1));
     expect(find.text('Ch 370'), findsOneWidget);
+  });
+
+  testWidgets('a locked chip keeps its button semantics and chapter label and adds the opens-in words', (t) async {
+    final handle = t.ensureSemantics();
+    var taps = 0;
+    await pump(t, UpdateChapterChip(chapter: chapter(until: open), onPressed: () => taps++));
+    final data = t.getSemantics(find.byType(UpdateChapterChip)).getSemanticsData();
+    expect(data.label, contains('Ch 370'));
+    expect(data.label, contains('Opens in 3 hours 28 minutes'));
+    expect(data.hasAction(SemanticsAction.tap), isTrue);
+    expect(data.flagsCollection.isButton, isTrue);
+    handle.dispose();
   });
 
   testWidgets('an open chapter chip is untouched', (t) async {

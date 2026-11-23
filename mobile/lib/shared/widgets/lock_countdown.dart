@@ -30,6 +30,7 @@ class LockCountdown extends ConsumerStatefulWidget {
     this.unlocked,
     this.onUnlocked,
     this.clock,
+    this.mergeSemantics = false,
   });
 
   final DateTime lockedUntil;
@@ -43,6 +44,11 @@ class LockCountdown extends ConsumerStatefulWidget {
   /// Called once, when the countdown reaches zero (or at once, after the first frame, if it already had).
   final VoidCallback? onUnlocked;
   final DateTime Function()? clock;
+
+  /// False (the default) for a status line the countdown replaces entirely ("Opens in 3:27:14"): its words are the whole label.
+  /// True when [builder] draws something with semantics of its own (a chapter folio or chip, a button): those are kept, and the
+  /// opens-in words are added to them rather than replacing them.
+  final bool mergeSemantics;
 
   /// The words a screen reader gets: "Opens in 3 hours 27 minutes". It moves
   /// by the minute, not the second, so the reader is not interrupted by a
@@ -111,10 +117,10 @@ class _LockCountdownState extends ConsumerState<LockCountdown> {
   Widget build(BuildContext context) {
     final remaining = _remaining;
     if (remaining == Duration.zero && widget.unlocked != null) return widget.unlocked!(context);
-    return Semantics(
-      label: LockCountdown.semanticsLabel(remaining),
-      excludeSemantics: true,
-      child: widget.builder(context, remaining),
-    );
+    final label = LockCountdown.semanticsLabel(remaining);
+    if (widget.mergeSemantics) {
+      return MergeSemantics(child: Semantics(label: label, child: widget.builder(context, remaining)));
+    }
+    return Semantics(label: label, excludeSemantics: true, child: widget.builder(context, remaining));
   }
 }
