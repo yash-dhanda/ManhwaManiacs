@@ -139,6 +139,18 @@ class Changelog(BaseModel):
 # consume the exact same source of truth.
 _RELEASE_NOTES: list[ChangelogEntry] = [
     ChangelogEntry(
+        version="1.0.3",
+        build=61,
+        date="November 2026",
+        highlights=[
+            "Popular, Latest and New reach more sources: Fanfox, Webtoons, Flame Comics, Demonic Scans, Rawkuma, Manga18FX, Manga18.club, MxShm, Rouman5, HentaiPaw, ManhwaWeb and FreeAdultComix now offer the ones their sites have. A source only shows an ordering its site can really give",
+            "Demonic Scans: Latest was skipping the forty most recently updated series and starting on the second page. It starts at the top now, and Popular is the site's real most-viewed list",
+            "ComicLand listed its oldest series first. It now opens on the newest",
+            "Covers that fail to load try once more by themselves two seconds later instead of staying blank until you leave and come back",
+            "Leaving a screen while it was still saving or checking something could log an error behind the scenes on about twenty screens in both looks (series actions, chapter marks and their Undo, bookmarks, reading setup, storage, members, security and backup settings). Those now finish quietly",
+        ],
+    ),
+    ChangelogEntry(
         version="1.0.2",
         build=60,
         date="November 2026",
