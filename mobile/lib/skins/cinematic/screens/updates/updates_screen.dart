@@ -129,14 +129,18 @@ class _UpdatesScreenState extends ConsumerState<UpdatesScreen> with SingleTicker
   Future<AppError?> _adminCheck() async {
     final container = ProviderScope.containerOf(context, listen: false);
     final repo = ref.read(updatesRepositoryProvider);
+    // Read before the first await: the screen can be left while the check runs.
+    final every = ref.read(updateRunPollIntervalProvider);
     final started = await repo.triggerCheck();
     if (started.isErr) return started.error;
+    if (!_alive) return null;
+    final notifier = _notifier;
     if (started.value.queued) {
       final runs = await repo.listRuns(limit: 1);
+      if (!_alive) return null;
       final id = runs.isOk && runs.value.isNotEmpty ? runs.value.first.id : null;
       final total = _last?.followed.length ?? 0;
       if (id != null) {
-        final every = ref.read(updateRunPollIntervalProvider);
         for (var i = 0; i < 300; i++) {
           final r = await repo.getRun(id);
           if (!_alive) return null;
@@ -149,7 +153,7 @@ class _UpdatesScreenState extends ConsumerState<UpdatesScreen> with SingleTicker
         }
       }
     }
-    await _notifier.refresh();
+    await notifier.refresh();
     container.invalidate(recentRunsProvider);
     return null;
   }
@@ -204,15 +208,17 @@ class _UpdatesScreenState extends ConsumerState<UpdatesScreen> with SingleTicker
 
   Future<void> _unfollow(FollowedSeries s) async {
     final actions = ref.read(librarySeriesActionsProvider);
+    // Taken before the await: the toasts outlive this screen, `ref` does not.
+    final toasts = _toasts;
     final removed = await actions.remove(s);
     if (removed.error != null) {
-      _toasts.error("Couldn't remove ${s.title}.");
+      toasts.error("Couldn't remove ${s.title}.");
       return;
     }
     if (mounted) cineFeedback(context, HapticEvent.followRemove);
-    _toasts.action('Removed ${s.title}.', label: 'Undo', onAction: () async {
+    toasts.action('Removed ${s.title}.', label: 'Undo', onAction: () async {
       final err = await actions.restore(s, slots: removed.slots);
-      if (err != null) _toasts.error("Couldn't undo that.");
+      if (err != null) toasts.error("Couldn't undo that.");
     },);
   }
 

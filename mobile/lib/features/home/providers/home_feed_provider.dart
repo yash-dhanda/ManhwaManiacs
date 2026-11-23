@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart';
@@ -90,7 +91,17 @@ class HomeFeedController extends AutoDisposeAsyncNotifier<HomeFeedView> {
   Future<void> refresh({bool skipCache = true}) async {
     final gen = _gen;
     final next = await AsyncValue.guard(() => _load(refresh: skipCache));
-    if (gen == _gen) state = next;
+    if (gen != _gen) return;
+    // This runs after every reader exit: one failed refetch (a throw, or a server answer with nothing
+    // to compose a feed from) must not turn a feed that was fine into the error notice. The last
+    // good feed stays; the next refresh tries again.
+    final failed = next.hasError || next.value?.state == HomeFeedState.unavailable;
+    final previous = state.valueOrNull;
+    if (failed && previous != null && previous.state != HomeFeedState.unavailable) {
+      appLogger.w('home feed refresh failed', next.error, next.stackTrace);
+      return;
+    }
+    state = next;
   }
 
   /// A pull to refresh (glass 8.8): refetches with `refresh=1`, writes the new view and reports whether

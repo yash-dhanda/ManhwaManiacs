@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show SchedulerBinding, SchedulerPhase;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/core/network/request_limiter.dart';
 import 'package:manhwamaniacs/core/platform/native_bridge.dart';
@@ -302,9 +303,10 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
       final enabling = _wakelockEnabling = _wakelock?.enable();
       try {
         await enabling;
-      } catch (_) {
+      } catch (error, stackTrace) {
+        // Called without an await from a post-frame callback: a throw would be an uncaught async error.
         _wakelockOn = false;
-        rethrow;
+        appLogger.w('wakelock enable failed', error, stackTrace);
       }
     } else if (!on) {
       await _releaseWakelock();
@@ -318,7 +320,12 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     try {
       await _wakelockEnabling;
     } catch (_) {}
-    await _wakelock?.disable();
+    try {
+      await _wakelock?.disable();
+    } catch (error, stackTrace) {
+      // Unawaited in dispose: nothing is left to handle it, and the screen sleeps on its own at worst.
+      appLogger.w('wakelock disable failed', error, stackTrace);
+    }
   }
 
   void _syncRate(ReaderRefreshRate rate) {

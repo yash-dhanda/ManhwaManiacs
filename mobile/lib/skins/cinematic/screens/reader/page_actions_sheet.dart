@@ -124,8 +124,10 @@ class _PageActionsBodyState extends ConsumerState<PageActionsBody> {
 
   Future<void> _saveNote(String v) async {
     final b = _saved;
+    // `ref` is dead once the sheet closes mid-save; the container is not.
+    final container = ProviderScope.containerOf(context, listen: false);
     if (b != null && v.trim().isNotEmpty) await ref.read(bookmarkOutboxControllerProvider).setNote(b, v);
-    ref.invalidate(bookmarksProvider);
+    container.invalidate(bookmarksProvider);
     widget.close();
   }
 

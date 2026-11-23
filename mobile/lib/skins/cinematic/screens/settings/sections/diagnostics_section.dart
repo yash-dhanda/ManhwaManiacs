@@ -7,6 +7,7 @@ import 'package:manhwamaniacs/app/display/high_refresh_rate.dart';
 import 'package:manhwamaniacs/core/diagnostics/debug_overlays.dart';
 import 'package:manhwamaniacs/core/diagnostics/diagnostics_snapshot.dart';
 import 'package:manhwamaniacs/core/diagnostics/performance_monitor.dart';
+import 'package:manhwamaniacs/core/error/error_log.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_display_mode.dart';
 import 'package:manhwamaniacs/features/settings/providers/settings_provider.dart';
 import 'package:manhwamaniacs/skins/cinematic/overlays/stop_the_press.dart';
@@ -113,6 +114,21 @@ class _DiagnosticsSectionState extends ConsumerState<DiagnosticsSection> {
       CineCreditsRow(label: 'Live images', value: '${cache.live}'),
       CineCreditsRow(label: 'Cached images', value: '${cache.cached} / ${cache.maxCached}'),
       CineCreditsRow(label: 'Memory used', value: cache.memoryLabel),
+      const SettingsKicker('RECENT ERRORS'),
+      ListenableBuilder(
+        listenable: ref.watch(errorLogProvider),
+        builder: (context, _) {
+          final errors = ref.read(errorLogProvider).entries;
+          if (errors.isEmpty) return const SettingsCaption('Nothing has gone wrong quietly since the app started.');
+          // Errors that did not take over the screen, newest first, with the type and the top of the stack.
+          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            for (final e in errors)
+              SettingsCaption(
+                '${e.time.toIso8601String().substring(11, 19)} · ${e.source} · ${e.type}\n${e.message}\n${e.stackTop}',
+              ),
+          ],);
+        },
+      ),
       const SettingsKicker('DEVELOPER'),
       switchRow('grid', 'Show the layout grid', ref.watch(layoutGridOverlayProvider), (v) => ref.read(layoutGridOverlayProvider.notifier).state = v,
           description: 'Resets when the app restarts.',),

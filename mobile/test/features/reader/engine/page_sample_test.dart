@@ -53,4 +53,12 @@ void main() {
     expect(a, b);
     expect(a.hashCode, b.hashCode);
   });
+
+  test('a buffer shorter than width x height x 4 is sampled as far as it goes', () async {
+    final full = img((x, y) => 0xFFFFFF);
+    final s = await samplePageRgba(Uint8List.sublistView(full, 0, full.length ~/ 2), 64, 64);
+    expect(s.lTop, greaterThan(0.9));
+    final none = await samplePageRgba(Uint8List(0), 64, 64);
+    expect(none.tint, isNull);
+  });
 }

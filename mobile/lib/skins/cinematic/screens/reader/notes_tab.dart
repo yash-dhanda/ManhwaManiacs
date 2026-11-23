@@ -88,8 +88,10 @@ class _NotesTabState extends ConsumerState<NotesTab> {
     final b = _editing;
     setState(() => _editing = null);
     if (b == null) return;
+    // `ref` is dead once the tab is left mid-save; the container is not.
+    final container = ProviderScope.containerOf(context, listen: false);
     if (value.trim().isNotEmpty) await ref.read(bookmarkOutboxControllerProvider).setNote(b, value);
-    ref.invalidate(bookmarksProvider);
+    container.invalidate(bookmarksProvider);
   }
 
   @override

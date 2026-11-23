@@ -51,9 +51,13 @@ class _FakeReaderWakelock implements ReaderWakelock {
   /// 'enable' / 'enabled' (it returned) / 'disable', in the order they happened.
   final events = <String>[];
 
+  /// When set, both calls fail the way a platform channel does.
+  Object? failWith;
+
   @override
   Future<void> enable() async {
     enableCalls++;
+    if (failWith != null) throw failWith!;
     events.add('enable');
     await enableGate?.future;
     events.add('enabled');
@@ -62,6 +66,7 @@ class _FakeReaderWakelock implements ReaderWakelock {
   @override
   Future<void> disable() async {
     disableCalls++;
+    if (failWith != null) throw failWith!;
     events.add('disable');
   }
 }
@@ -312,6 +317,34 @@ void main() {
 
       expect(wakelock.events.last, 'disable', reason: 'the screen must be free to sleep again');
       expect(wakelock.events.indexOf('disable'), greaterThan(wakelock.events.indexOf('enabled')));
+    });
+
+    testWidgets('a wakelock the platform refuses raises nothing, on open or on close', (tester) async {
+      final prefs = await _freshPrefs({_keepScreenAwakeKey: true});
+      final wakelock = _FakeReaderWakelock()..failWith = StateError('no wakelock');
+      await tester.binding.setSurfaceSize(const Size(430, 932));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _wrap(
+          prefs,
+          ReaderContent(
+            feed: ReaderFeed.single(_tallChapter()),
+            scrollStorageKey: '1',
+            onBack: () {},
+            onOpenSeries: () {},
+          ),
+          wakelock: wakelock,
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(wakelock.enableCalls, 1);
+      expect(tester.takeException(), isNull);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('auto-next fires when autoNextChapter is enabled', (tester) async {

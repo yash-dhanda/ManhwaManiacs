@@ -256,7 +256,9 @@ class _LightboxState extends State<_Lightbox> with TickerProviderStateMixin {
         tag: widget.heroTag,
         createRectTween: (a, b) => RectTween(begin: a, end: b),
         child: Stack(fit: StackFit.expand, children: [
-          Image(image: widget.image, fit: BoxFit.contain),
+          // The poster that was already on screen; if it fails the full cover (or its own failure
+          // caption) is all there is, and an error here must not reach the global handler.
+          Image(image: widget.image, fit: BoxFit.contain, errorBuilder: (context, e, st) => const SizedBox.shrink()),
           if (widget.fullImage != null && !_failed)
             Image(
               image: widget.fullImage!,

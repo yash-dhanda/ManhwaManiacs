@@ -28,6 +28,10 @@ Future<PageSample?> decodePageSample(ImageProvider provider) async {
     final bytes = await image.toByteData();
     if (bytes == null) return null;
     return await samplePageInIsolate(bytes.buffer.asUint8List(), image.width, image.height);
+  } catch (_) {
+    // Called from a timer every ~600 ms while scrolling: a throw here would be an uncaught async
+    // error. No sample just leaves the tint where it was.
+    return null;
   } finally {
     image.dispose();
   }

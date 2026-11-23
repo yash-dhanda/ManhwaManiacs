@@ -92,10 +92,14 @@ Future<PageSample> samplePageRgba(Uint8List rgba, int width, int height) async {
   final mean = List<List<double>>.generate(2, (_) => [0, 0, 0]);
   final counts = [0, 0];
   final argb = <int>[];
+  rows:
   for (var y = 0; y < height; y++) {
     final band = y < q ? 0 : (y < height - q ? 1 : 2);
     for (var x = 0; x < width; x++) {
       final i = (y * width + x) * 4;
+      // A buffer shorter than the size the image reports (a truncated decode) is sampled as far as
+      // it goes rather than thrown out whole.
+      if (i + 3 >= rgba.length) break rows;
       final r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
       bands[band].add(_lum(r, g, b));
       argb.add(0xFF000000 | (r << 16) | (g << 8) | b);

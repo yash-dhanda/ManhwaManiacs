@@ -8,6 +8,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter/scheduler.dart' show SchedulerBinding;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/core/network/api_image.dart';
 import 'package:manhwamaniacs/core/platform/native_bridge.dart';
 import 'package:manhwamaniacs/core/platform/system_ui.dart';
@@ -793,9 +794,10 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
       final enabling = _wakelockEnabling = wakelock.enable();
       try {
         await enabling;
-      } catch (_) {
+      } catch (error, stackTrace) {
+        // Called without an await from a post-frame callback: a throw would be an uncaught async error.
         _wakelockEnabled = false;
-        rethrow;
+        appLogger.w('wakelock enable failed', error, stackTrace);
       }
       return;
     }
@@ -855,7 +857,12 @@ class _ReaderEngineViewState extends ConsumerState<ReaderEngineView>
     try {
       await _wakelockEnabling;
     } catch (_) {}
-    await _wakelock?.disable();
+    try {
+      await _wakelock?.disable();
+    } catch (error, stackTrace) {
+      // Unawaited in dispose: nothing is left to handle it, and the screen sleeps on its own at worst.
+      appLogger.w('wakelock disable failed', error, stackTrace);
+    }
   }
 
   void _syncRefreshRate(ReaderRefreshRate rate) {

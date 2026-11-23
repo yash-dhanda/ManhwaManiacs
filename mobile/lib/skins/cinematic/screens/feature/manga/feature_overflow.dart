@@ -30,6 +30,9 @@ Future<void> showFeatureOverflow(
   bool sourceIsDown = false,
   bool book = false,
 }) {
+  // The actions below run after the sheet is gone and seconds into a network call, by which time the
+  // page may be left: its `ref` throws then, the container does not.
+  final container = ProviderScope.containerOf(context, listen: false);
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -40,15 +43,17 @@ Future<void> showFeatureOverflow(
         final f = d.followed;
         final online = isOnline(sheetRef);
         final current = f?.matureOverride;
-        void toast(String m) => featureToast(context, m);
+        void toast(String m) {
+          if (context.mounted) featureToast(context, m);
+        }
 
         Future<void> setOverride({bool? value, bool clear = false}) async {
           Navigator.pop(ctx);
-          final err = await ref
+          final err = await container
               .read(librarySeriesActionsProvider)
               .setMatureOverride(f!, value: value, clear: clear);
           if (err != null) return toast("Couldn't update this series.");
-          ref.invalidate(updatesProvider);
+          container.invalidate(updatesProvider);
           toast(
             clear
                 ? "Using the source's rating."
@@ -121,11 +126,11 @@ Future<void> showFeatureOverflow(
                         radio(label, f.readingStatus == wire, online
                             ? () async {
                                 Navigator.pop(ctx);
-                                final r = await ref
+                                final r = await container
                                     .read(libraryRepositoryProvider)
                                     .patchSeries(f.id, readingStatus: wire);
                                 if (r.isErr) toast("Couldn't change the reading status.");
-                                ref.invalidate(updatesProvider);
+                                container.invalidate(updatesProvider);
                               }
                             : null,),
                     ],
@@ -146,7 +151,7 @@ Future<void> showFeatureOverflow(
                       ? () async {
                           Navigator.pop(ctx);
                           toast('Checking ${d.title}.');
-                          final r = await checkSeriesForNew(ref, followedId: f.id, sourceId: d.sourceId, seriesKey: d.seriesKey);
+                          final r = await checkSeriesForNewIn(container, followedId: f.id, sourceId: d.sourceId, seriesKey: d.seriesKey);
                           final n = r.isOk ? r.value : 0;
                           toast(r.isErr ? r.error.userMessage : n > 0 ? 'Found $n new chapter${n == 1 ? '' : 's'}.' : 'No new chapters.');
                         }
@@ -179,7 +184,7 @@ Future<void> showFeatureOverflow(
                     online
                         ? () async {
                             Navigator.pop(ctx);
-                            final actions = ref.read(librarySeriesActionsProvider);
+                            final actions = container.read(librarySeriesActionsProvider);
                             final r = await actions.remove(f);
                             if (!context.mounted) return;
                             if (r.error != null) return toast(r.error!.userMessage);

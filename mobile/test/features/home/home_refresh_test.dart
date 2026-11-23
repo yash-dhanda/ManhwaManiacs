@@ -169,6 +169,39 @@ void main() {
     expect(homeFeedChanged(c.read(homeFeedProvider).value!.feed, b.feed), isFalse);
   });
 
+  test('a refresh that throws keeps the feed that was showing', () async {
+    var mode = 'ok';
+    final home = _FakeHome(() => mode == 'throw' ? throw StateError('boom') : Ok(loadHome('ready')));
+    final c = await container(home, _FakeLib());
+    final sub = c.listen(homeFeedProvider, (_, __) {});
+    addTearDown(sub.close);
+    final before = await c.read(homeFeedProvider.future);
+    mode = 'throw';
+    await c.read(homeFeedProvider.notifier).refresh();
+    expect(c.read(homeFeedProvider).hasError, isFalse);
+    expect(c.read(homeFeedProvider).value, same(before));
+  });
+
+  test('a refresh the server cannot answer keeps the feed that was showing', () async {
+    var down = false;
+    final home = _FakeHome(() => down ? const Err(ApiError(statusCode: 500, code: 'x', message: 'down')) : Ok(loadHome('ready')));
+    final c = await container(home, _FakeLib(fail: true), pinsFail: true);
+    final sub = c.listen(homeFeedProvider, (_, __) {});
+    addTearDown(sub.close);
+    final before = await c.read(homeFeedProvider.future);
+    down = true;
+    await c.read(homeFeedProvider.notifier).refresh();
+    expect(c.read(homeFeedProvider).value, same(before));
+  });
+
+  test('a first load that throws is still an error (nothing to keep)', () async {
+    final home = _FakeHome(() => throw StateError('boom'));
+    final c = await container(home, _FakeLib());
+    final sub = c.listen(homeFeedProvider, (_, __) {});
+    addTearDown(sub.close);
+    await expectLater(c.read(homeFeedProvider.future), throwsA(isA<StateError>()));
+  });
+
   test('closing a reader refetches a live home feed', () async {
     final home = _FakeHome(() => Ok(loadHome('ready')));
     final c = await container(home, _FakeLib());

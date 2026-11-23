@@ -6,6 +6,7 @@ import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart
 import 'package:manhwamaniacs/features/library/models/followed_series.dart';
 import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/features/sources/utils/series_content_kind.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/toasts.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_states.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/book/book_view.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/feature/feature_data.dart';
@@ -56,7 +57,15 @@ class FeatureView extends ConsumerWidget {
     if (sourceKindPending(ref, sourceId)) return const FeatureGalley();
     final novel = isNovelSource(ref.watch(contentModeScopeProvider), sourceId);
     final detail = ref.watch(sourceSeriesDetailProvider(key));
+    // A refetch (after "Check for new chapters", a pull) that fails must not replace a page that
+    // already loaded with "Couldn't load this series": keep it and say so in a toast.
+    ref.listen(sourceSeriesDetailProvider(key), (prev, next) {
+      if (next is AsyncError && next.hasValue && prev is! AsyncError) {
+        ref.read(cineToastsProvider.notifier).error("Couldn't refresh this series.");
+      }
+    });
     return detail.when(
+      skipError: detail.hasValue,
       loading: () => novel ?? false ? const BookGalley() : const FeatureGalley(),
       error: (e, _) {
         if (_notFound(e)) return FeatureNotAvailable(title: followed?.title);

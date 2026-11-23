@@ -49,13 +49,13 @@ class CineErrorScreen extends StatelessWidget {
                   ),
                   SizedBox(height: c.space6),
                   Semantics(
-                    label: 'Reference ${report!.ref}',
+                    label: 'Reference ${report!.ref}, ${report!.error.runtimeType}',
                     excludeSemantics: true,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       constraints: const BoxConstraints(minHeight: 20),
                       decoration: BoxDecoration(border: Border.all(color: c.colorInk30)),
-                      child: CineLit('REF ${report!.ref}', CineFace.plexMono, 12, 16, color: c.colorInk100),
+                      child: CineLit('REF ${report!.ref} · ${report!.error.runtimeType}', CineFace.plexMono, 12, 16, color: c.colorInk100),
                     ),
                   ),
                 ],),

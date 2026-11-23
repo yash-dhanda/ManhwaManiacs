@@ -6,11 +6,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:just_audio/just_audio.dart' show PlayerException, PlayerInterruptedException;
 import 'package:manhwamaniacs/app/app_restart.dart';
 import 'package:manhwamaniacs/core/diagnostics/debug_overlays.dart';
 import 'package:manhwamaniacs/core/error/app_error.dart';
+import 'package:manhwamaniacs/core/error/error_log.dart';
 import 'package:manhwamaniacs/core/error/fatal_error.dart';
 import 'package:manhwamaniacs/core/logging/app_logger.dart';
 import 'package:manhwamaniacs/features/auth/models/auth_state.dart';
@@ -40,6 +43,7 @@ import 'package:manhwamaniacs/skins/cinematic/system_bars.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/transitions.dart';
 import 'package:manhwamaniacs/skins/skins.dart';
+import 'package:sqflite/sqflite.dart' show DatabaseException;
 
 /// Tracks whether the Lightbox is the top route of the root navigator (installed on the router).
 class CineTopRouteObserver extends NavigatorObserver {
@@ -80,7 +84,47 @@ final CineTopRouteObserver cineTopRouteObserver = CineTopRouteObserver();
 bool _isBuildError(FlutterErrorDetails d) =>
     d.library == 'widgets library' && (d.context?.toDescription().startsWith('building') ?? false);
 
-bool _benign(Object e) => e is AppError || e is DioException || e is SocketException || e is TimeoutException;
+/// Routine I/O failures: the network, the disk, the database and the platform channels fail
+/// like this in normal use and say nothing about the screen. `package:http` is only a transitive
+/// dependency, so its `ClientException` is matched by name.
+bool _benign(Object e) =>
+    e is AppError ||
+    e is DioException ||
+    e is SocketException ||
+    e is TimeoutException ||
+    e is HttpException ||
+    e is TlsException ||
+    e is NetworkImageLoadException ||
+    e is PlatformException ||
+    e is MissingPluginException ||
+    e is FileSystemException ||
+    e is DatabaseException ||
+    e is PlayerException ||
+    e is PlayerInterruptedException ||
+    e.runtimeType.toString() == 'ClientException';
+
+/// Libraries whose errors come from a handler or a loader that threw while the screen itself stayed
+/// intact (a gesture callback, a late image error, a post-frame callback, a platform message).
+const _handlerLibraries = {
+  'image resource service',
+  'gesture',
+  'services library',
+  'scheduler library',
+  'foundation library',
+  'animation library',
+};
+
+/// Whether a framework-reported error probably means the screen itself is broken: layout and paint
+/// failures, and non-build widgets-library errors. A `dispose` that throws leaves the tree fine.
+bool _breaksTheScreen(FlutterErrorDetails d) {
+  if (d.silent) return false;
+  if (_benign(d.exception)) return false;
+  final lib = d.library;
+  if (_handlerLibraries.contains(lib)) return false;
+  if (_isBuildError(d)) return false;
+  if (lib == 'widgets library' && (d.context?.toDescription().contains('finalizing the widget tree') ?? false)) return false;
+  return true;
+}
 
 /// The error hooks of the Cinematic root, reference counted: a restart builds the new frame before
 /// the old one is disposed, so a per-instance "previous handler" would restore the wrong one. The
@@ -108,16 +152,22 @@ abstract final class _ErrorHooks {
     FlutterError.onError = (details) {
       appLogger.e('Flutter error', details.exception, details.stack);
       // A widget that fails to build is already replaced by `CineBrokenPart`; the notice is for
-      // everything else that escaped.
-      if (_release && !_benign(details.exception) && !_isBuildError(details)) {
+      // layout and paint failures and the other widget-tree errors. The rest is kept in the error
+      // log on the Diagnostics screen instead.
+      if (_release && _breaksTheScreen(details)) {
         appFatalError.value = FatalErrorReport(details.exception, details.stack);
+      } else if (!_isBuildError(details)) {
+        appErrorLog.record(details.library ?? 'flutter', details.exception, details.stack);
       }
       prevError?.call(details);
     };
     final prevDispatcher = _onDispatcherError;
     PlatformDispatcher.instance.onError = (error, stack) {
-      appLogger.e('Uncaught error', error, stack);
-      if (!_benign(error)) appFatalError.value = FatalErrorReport(error, stack);
+      appLogger.e('Uncaught error (${error.runtimeType})', error, stack);
+      // An uncaught async error (a stray future, a handler that threw) almost never leaves the page
+      // broken; a full-screen notice over a working screen only teaches "Try again". It is logged
+      // with its type and stack and kept in the error log.
+      appErrorLog.record('async', error, stack);
       return prevDispatcher?.call(error, stack) ?? true;
     };
   }
