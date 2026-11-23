@@ -80,36 +80,7 @@ class DownloadsStore {
   }) async {
     final db = await database;
     final existing = await _getRow(db, id);
-    if (existing != null) {
-      final state = DownloadChapterState.fromWire(
-        existing[DownloadsSchema.colState]! as String,
-      );
-      final existingKind =
-          DownloadKind.fromWire(existing[DownloadsSchema.colKind] as String?);
-      var vanished = false;
-      if (state == DownloadChapterState.complete && !existingKind.isAudio) {
-        final dropped = await pruneVanishedPages(
-          db: db,
-          blobStore: await blobStore,
-          chapterRowId: existing[DownloadsSchema.colId]! as int,
-          scopeId: scopeId,
-        );
-        vanished = dropped > 0;
-      }
-      if (state == DownloadChapterState.failed || vanished) {
-        await db.update(
-          DownloadsSchema.savedChapters,
-          {
-            DownloadsSchema.colState: DownloadChapterState.queued.wire,
-            DownloadsSchema.colRetryCount: 0,
-            DownloadsSchema.colError: null,
-          },
-          where: '${DownloadsSchema.colId} = ?',
-          whereArgs: [existing[DownloadsSchema.colId]],
-        );
-      }
-      return existing[DownloadsSchema.colId]! as int;
-    }
+    if (existing != null) return _reuseExisting(db, existing);
 
     // A pin is on the series, not on the chapters that happened to exist
     // when it was set: retention filters row by row, so a chapter downloaded
@@ -125,7 +96,7 @@ class DownloadsStore {
     );
 
     final stamp = await resolveStamp(id.sourceId, id.seriesKey);
-    return db.insert(DownloadsSchema.savedChapters, {
+    final inserted = await db.insert(DownloadsSchema.savedChapters, {
       DownloadsSchema.colMature: stamp,
       DownloadsSchema.colScopeId: scopeId,
       DownloadsSchema.colSourceId: id.sourceId,
@@ -143,7 +114,49 @@ class DownloadsStore {
       DownloadsSchema.colRetryCount: 0,
       DownloadsSchema.colError: null,
       DownloadsSchema.colKind: kind.wire,
-    });
+    }, conflictAlgorithm: ConflictAlgorithm.ignore,);
+    if (inserted != 0) return inserted;
+
+    // Another request for the same chapter (the launch auto-download against the reader's next-chapter
+    // queue, ten unawaited "download next" taps) inserted between the read above and this insert. The
+    // unique key made this one a no-op, so the winner's row is the one that was already there.
+    final raced = await _getRow(db, id);
+    if (raced == null) {
+      throw StateError('download row for ${id.chapterKey} was neither inserted nor found');
+    }
+    return _reuseExisting(db, raced);
+  }
+
+  /// The "already there" half of [ensureQueued].
+  Future<int> _reuseExisting(Database db, Map<String, Object?> existing) async {
+    final state = DownloadChapterState.fromWire(
+      existing[DownloadsSchema.colState]! as String,
+    );
+    final existingKind =
+        DownloadKind.fromWire(existing[DownloadsSchema.colKind] as String?);
+    var vanished = false;
+    if (state == DownloadChapterState.complete && !existingKind.isAudio) {
+      final dropped = await pruneVanishedPages(
+        db: db,
+        blobStore: await blobStore,
+        chapterRowId: existing[DownloadsSchema.colId]! as int,
+        scopeId: scopeId,
+      );
+      vanished = dropped > 0;
+    }
+    if (state == DownloadChapterState.failed || vanished) {
+      await db.update(
+        DownloadsSchema.savedChapters,
+        {
+          DownloadsSchema.colState: DownloadChapterState.queued.wire,
+          DownloadsSchema.colRetryCount: 0,
+          DownloadsSchema.colError: null,
+        },
+        where: '${DownloadsSchema.colId} = ?',
+        whereArgs: [existing[DownloadsSchema.colId]],
+      );
+    }
+    return existing[DownloadsSchema.colId]! as int;
   }
 
   /// Chapters waiting for or mid-download, oldest first — the durable queue.

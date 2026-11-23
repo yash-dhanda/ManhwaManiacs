@@ -127,7 +127,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     off: () => widget.options.chromeIdleOff?.call() ?? false,
   );
   (String, int)? _lastSaved;
-  int? _pendingSave;
+  (ReaderChapter, int)? _pendingSave;
   final Set<String> _completed = {};
   final Map<String, List<ReaderAnchor>> _saved = {};
   bool _bookmarkPending = false;
@@ -151,6 +151,7 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
   // Native services.
   StreamSubscription<VolumeKeyDirection>? _volumeSub;
   bool _volumeOn = false, _wakelockOn = false;
+  Future<void>? _wakelockEnabling;
   ReaderRefreshRate? _rate;
   ReaderWakelock? _wakelock;
   ReaderDisplayMode? _displayMode;
@@ -225,8 +226,34 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     if (old.options.doubleTapWindow != widget.options.doubleTapWindow || old.options.doubleTapSlop != widget.options.doubleTapSlop) {
       _classifier = _newClassifier();
     }
-    if (old.spec.layout != widget.spec.layout || old.chapter != widget.chapter) _relayout();
+    if (old.chapter.id != widget.chapter.id) {
+      _openChapter();
+    } else if (old.spec.layout != widget.spec.layout || old.chapter != widget.chapter) {
+      _relayout();
+    }
     _publish();
+  }
+
+  /// A different chapter in the same view (Glass reuses one reader across chapter changes): the page being
+  /// read still belongs to the chapter it was read in, so its pending save goes out against that chapter
+  /// first, and the new chapter opens at its own start, not at the old page or on the credits.
+  void _openChapter() {
+    _saveTimer?.cancel();
+    _flushSave();
+    _learned.clear();
+    _completed.clear();
+    _sentinelFired = false;
+    _further = null;
+    _pan = Offset.zero;
+    // The provider is not writable mid-build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _zoom > 1) _resetZoom();
+    });
+    _views = _computeViews();
+    _view = _viewIndexOfPage(widget.initialPage.clamp(1, _pageCount));
+    final old = _pc;
+    _pc = PageController(initialPage: _view);
+    WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
   }
 
   /// Recompute the views and stay on the page being read (a layout switch keeps the page).
@@ -270,8 +297,15 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
     // Glass owns keep-awake through the same wakelock (legacyWakeAndLock false), as ReaderEngineView does.
     if (!widget.options.legacyWakeAndLock) return;
     if (on && !_wakelockOn) {
-      await _wakelock?.enable();
+      // Recorded before the platform round trip: a reader closed during it must still know to release.
       _wakelockOn = true;
+      final enabling = _wakelockEnabling = _wakelock?.enable();
+      try {
+        await enabling;
+      } catch (_) {
+        _wakelockOn = false;
+        rethrow;
+      }
     } else if (!on) {
       await _releaseWakelock();
     }
@@ -279,8 +313,12 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
 
   Future<void> _releaseWakelock() async {
     if (!_wakelockOn) return;
-    await _wakelock?.disable();
     _wakelockOn = false;
+    // An enable still in flight lands first, so the disable is the last word and the screen can sleep again.
+    try {
+      await _wakelockEnabling;
+    } catch (_) {}
+    await _wakelock?.disable();
   }
 
   void _syncRate(ReaderRefreshRate rate) {
@@ -353,19 +391,21 @@ class _PagedReaderViewState extends ConsumerState<PagedReaderView> with TickerPr
 
   void _scheduleSave() {
     if (widget.onSaveProgress == null) return;
-    _pendingSave = _progressPage;
+    _pendingSave = (_chapter, _progressPage);
     _saveTimer?.cancel();
     _saveTimer = Timer(const Duration(milliseconds: 500), _flushSave);
   }
 
   void _flushSave() {
     final save = widget.onSaveProgress;
-    final page = _pendingSave;
-    if (save == null || page == null) return;
+    final pending = _pendingSave;
+    if (save == null || pending == null) return;
     _pendingSave = null;
-    if (page <= 0 || _lastSaved == (_chapter.id, page)) return;
-    _lastSaved = (_chapter.id, page);
-    unawaited(save(_chapter, page));
+    // The chapter the page was read in, not whichever one the widget shows when the timer fires.
+    final (chapter, page) = pending;
+    if (page <= 0 || _lastSaved == (chapter.id, page)) return;
+    _lastSaved = (chapter.id, page);
+    unawaited(save(chapter, page));
   }
 
   /// A page's real size, learned when it decodes (a manifest carries none): a wide page changes

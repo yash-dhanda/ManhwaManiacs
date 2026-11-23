@@ -61,22 +61,34 @@ class NextChapterAutoQueue {
     required String seriesKey,
     required String nextId,
   }) async {
-    if (ref.read(activeDownloadsScopeIdProvider) == null) return;
-    // The per-profile "Save the next chapter while I read" switch (default on).
-    if (!(saveNextEnabled?.call() ?? ref.read(saveNextProvider))) return;
-
-    if (ref.read(preferencesProvider).wifiOnlyDownloads) {
-      final onWifi = await ref.read(networkConnectivityProvider).isOnWifi();
-      if (!onWifi) return;
+    // Everything the widget's ref is needed for is read before the first await: leaving the reader during the
+    // connectivity call disposes it, and a later read throws into the zone (a fatal-error overlay in a release build).
+    final DownloadQueueController queue;
+    final bool wifiOnly;
+    final NetworkConnectivity connectivity;
+    try {
+      if (ref.read(activeDownloadsScopeIdProvider) == null) return;
+      // The per-profile "Save the next chapter while I read" switch (default on).
+      if (!(saveNextEnabled?.call() ?? ref.read(saveNextProvider))) return;
+      wifiOnly = ref.read(preferencesProvider).wifiOnlyDownloads;
+      connectivity = ref.read(networkConnectivityProvider);
+      queue = ref.read(downloadQueueControllerProvider.notifier);
+    } catch (_) {
+      return; // the screen is already gone
     }
 
-    await ref.read(downloadQueueControllerProvider.notifier).enqueueChapter(
-          id: (
-            sourceId: sourceId,
-            seriesKey: seriesKey,
-            chapterKey: nextId,
-          ),
-          automatic: true,
-        );
+    try {
+      if (wifiOnly && !await connectivity.isOnWifi()) return;
+      await queue.enqueueChapter(
+        id: (
+          sourceId: sourceId,
+          seriesKey: seriesKey,
+          chapterKey: nextId,
+        ),
+        automatic: true,
+      );
+    } catch (_) {
+      // Best effort, like the auto-download poll: a failed connectivity check or queue write saves nothing.
+    }
   }
 }

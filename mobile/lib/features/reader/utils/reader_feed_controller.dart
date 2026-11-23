@@ -223,6 +223,11 @@ class ReaderFeedController extends ChangeNotifier {
     try {
       final chapter = await _loadOrNull(targetId);
       if (_disposed) return;
+      // The other direction runs concurrently and may have moved the feed (and trimmed this end) while
+      // this fetch was out; a result for a neighbour the edge no longer has would splice a gap into the
+      // feed. Not a failure either: the chapter loaded fine, it just is not next to anything any more.
+      final edgeNow = forward ? _feed.chapters.last.id : _feed.chapters.first.id;
+      if ((forward ? _nextIdAfter(edgeNow) : _prevIdBefore(edgeNow)) != targetId) return;
       if (chapter == null || chapter.pages.isEmpty) {
         _noteFailure(targetId);
         return;

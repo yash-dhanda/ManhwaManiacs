@@ -11,15 +11,15 @@ import 'package:manhwamaniacs/features/reader/models/reader_page.dart';
 import 'package:manhwamaniacs/shared/providers/core_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-ReaderChapter chapter({int pages = 6, Set<int> wide = const {}}) => ReaderChapter(
-      id: 'c1',
+ReaderChapter chapter({int pages = 6, Set<int> wide = const {}, String id = 'c1'}) => ReaderChapter(
+      id: id,
       seriesId: 's',
       sourceId: 'demo',
       title: 'Chapter 1',
       pageCount: pages,
       pages: [
         for (var n = 1; n <= pages; n++)
-          ReaderPage(id: 'c1-$n', number: n, imageUrl: 'http://example.test/p/$n', width: wide.contains(n) ? 1600 : 800, height: 1200),
+          ReaderPage(id: '$id-$n', number: n, imageUrl: 'http://example.test/p/$n', width: wide.contains(n) ? 1600 : 800, height: 1200),
       ],
     );
 
@@ -171,6 +171,51 @@ void main() {
     r.spec.value = const ReaderLayoutSpec(layout: ReaderLayout.single);
     await tester.pumpAndSettle();
     expect(r.engine.value.page, 4);
+  });
+
+  testWidgets('an in-place chapter swap saves the old page against the old chapter and opens the new one at its start', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final engine = ReaderEngine();
+    addTearDown(engine.dispose);
+    final current = ValueNotifier<ReaderChapter>(chapter(id: 'c6'));
+    final saves = <(String, int)>[];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+        child: MaterialApp(
+          home: ValueListenableBuilder<ReaderChapter>(
+            valueListenable: current,
+            builder: (context, ch, _) => PagedReaderView(
+              controller: engine,
+              chapter: ch,
+              spec: const ReaderLayoutSpec(layout: ReaderLayout.single),
+              autoHideAfter: const Duration(days: 1),
+              chromeBuilder: (context, state) => const SizedBox.shrink(),
+              onNextChapter: () => current.value = chapter(id: 'c7', pages: 20),
+              onSaveProgress: (c, p) async => saves.add((c.id, p)),
+              options: ReaderEngineOptions(creditsBuilder: (context, chapter, next, mode) => const SizedBox(height: 100, child: Text('CREDITS'))),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    turnTo(engine, 6);
+    await tester.pump();
+    engine.pageBy(forward: true); // credits
+    await tester.pumpAndSettle();
+    engine.pageBy(forward: true); // past the credits: the host swaps the chapter inside the save window
+    await tester.pumpAndSettle();
+    expect(current.value.id, 'c7');
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(saves, [('c6', 6)]);
+    expect(engine.value.chapterId, 'c7');
+    expect(engine.value.page, 1);
+    expect(engine.value.atEnd, isFalse);
   });
 
   testWidgets('end: credits after the last page, then the next chapter', (tester) async {

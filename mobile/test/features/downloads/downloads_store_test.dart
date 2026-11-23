@@ -41,6 +41,20 @@ void main() {
     await harness.dispose();
   });
 
+  group('ensureQueued', () {
+    test('two concurrent requests for one chapter share one row', () async {
+      final store = harness.storeFor('u1p1');
+
+      final ids = await Future.wait([
+        store.ensureQueued(id: _chapter),
+        store.ensureQueued(id: _chapter),
+      ]);
+
+      expect(ids[0], ids[1]);
+      expect(await store.listChapters(), hasLength(1));
+    });
+  });
+
   group('scope isolation', () {
     test("profile A's downloads are invisible to profile B", () async {
       final storeA = harness.storeFor('u1p1');

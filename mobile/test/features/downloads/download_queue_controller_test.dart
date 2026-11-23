@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -134,6 +135,22 @@ class _FixedDeviceStorageInfo implements DeviceStorageInfo {
 
   @override
   Future<int?> freeSpaceBytes() async => bytes;
+}
+
+/// Free space that is only known once the test says so, holding the loop between its queue read and its claim.
+class _GatedDeviceStorageInfo implements DeviceStorageInfo {
+  final Completer<void> gate = Completer<void>();
+  final Completer<void> asked = Completer<void>();
+
+  @override
+  Future<int?> totalSpaceBytes() async => null;
+
+  @override
+  Future<int?> freeSpaceBytes() async {
+    if (!asked.isCompleted) asked.complete();
+    await gate.future;
+    return 10 * 1024 * 1024 * 1024;
+  }
 }
 
 void main() {
@@ -379,6 +396,32 @@ void main() {
     expect((await store.getChapter(_id))!.state, DownloadChapterState.queued);
   });
 
+  test('a chapter cancelled while the loop waits on the free-space check is never fetched', () async {
+    final repo = _ScriptedReaderRepository(() async => Ok(_manifestWithPages(2)));
+    var fetchCount = 0;
+    final storage = _GatedDeviceStorageInfo();
+    final container = buildContainer(
+      readerRepository: repo,
+      pageFetcher: _ScriptedPageFetcher((url) async {
+        fetchCount++;
+        return [1];
+      }),
+      deviceStorageInfo: storage,
+    );
+    final controller = container.read(downloadQueueControllerProvider.notifier);
+
+    await controller.enqueueChapter(id: _id);
+    await storage.asked.future; // the loop has read the queue and is waiting on the disk
+
+    await controller.cancelChapter(_id);
+    storage.gate.complete();
+    await controller.debugWaitUntilIdle();
+
+    expect(repo.calls, 0, reason: 'a cancelled chapter must not even fetch its manifest');
+    expect(fetchCount, 0);
+    expect(await harness.storeFor('u1p1').getChapter(_id), isNull);
+  });
+
   test('a backgrounded app pauses the queue instead of downloading', () async {
     var fetchCount = 0;
     final container = buildContainer(
@@ -404,6 +447,75 @@ void main() {
     await controller.debugWaitUntilIdle();
 
     expect(fetchCount, 2);
+  });
+
+  test('backgrounding mid-chapter stops fetching; returning resumes with no stale pause reason', () async {
+    late DownloadQueueController controller;
+    final requested = <String>[];
+    var backgrounded = false;
+    final container = buildContainer(
+      readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(6))),
+      pageFetcher: _ScriptedPageFetcher(
+        (url) async {
+          if (!backgrounded) {
+            backgrounded = true;
+            controller.setForeground(false);
+          }
+          return [1];
+        },
+        onFetch: requested.add,
+      ),
+    );
+    controller = container.read(downloadQueueControllerProvider.notifier);
+
+    await controller.enqueueChapter(id: _id);
+    await controller.debugWaitUntilIdle();
+
+    expect(requested, hasLength(kPageFetchConcurrency), reason: 'no network call after the app left');
+    var state = container.read(downloadQueueControllerProvider);
+    expect(state.pauseReason, DownloadQueuePauseReason.backgrounded);
+    expect(state.isDownloading, isFalse);
+
+    controller.setForeground(true);
+    await controller.debugWaitUntilIdle();
+
+    expect(requested, hasLength(6));
+    state = container.read(downloadQueueControllerProvider);
+    expect(state.pauseReason, DownloadQueuePauseReason.none);
+    expect((await harness.storeFor('u1p1').getChapter(_id))!.state, DownloadChapterState.complete);
+  });
+
+  test('coming back while the pass is still running shows downloading, not backgrounded', () async {
+    late DownloadQueueController controller;
+    final gate = Completer<void>();
+    var first = true;
+    final container = buildContainer(
+      readerRepository: _ScriptedReaderRepository(() async => Ok(_manifestWithPages(2))),
+      pageFetcher: _ScriptedPageFetcher((url) async {
+        if (first) {
+          first = false;
+          controller.setForeground(false);
+          await gate.future;
+        }
+        return [1];
+      }),
+    );
+    controller = container.read(downloadQueueControllerProvider.notifier);
+
+    await controller.enqueueChapter(id: _id);
+    while (first) {
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
+    expect(container.read(downloadQueueControllerProvider).pauseReason, DownloadQueuePauseReason.backgrounded);
+
+    controller.setForeground(true);
+    final state = container.read(downloadQueueControllerProvider);
+    expect(state.pauseReason, DownloadQueuePauseReason.none);
+    expect(state.isDownloading, isTrue);
+
+    gate.complete();
+    await controller.debugWaitUntilIdle();
+    expect((await harness.storeFor('u1p1').getChapter(_id))!.state, DownloadChapterState.complete);
   });
 
   test('pause holds the queue mid-chapter; resume finishes what it started',

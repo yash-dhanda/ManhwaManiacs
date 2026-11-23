@@ -149,6 +149,7 @@ enum _ChapterOutcome {
   pausedFloor,
   pausedCap,
   pausedUser,
+  pausedBackground,
 }
 
 /// The foreground-only download queue engine (spec §3): fetch manifest,
@@ -341,13 +342,18 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     if (store == null) return;
     _markAutomatic([for (final c in chapters) c.id], automatic: automatic);
     for (final chapter in chapters) {
-      await store.ensureQueued(
-        id: chapter.id,
-        chapterNumber: chapter.chapterNumber,
-        title: chapter.title,
-        seriesTitle: chapter.seriesTitle,
-        kind: chapter.kind,
-      );
+      // One row that cannot be written must not drop the rest of the batch or skip the kick below.
+      try {
+        await store.ensureQueued(
+          id: chapter.id,
+          chapterNumber: chapter.chapterNumber,
+          title: chapter.title,
+          seriesTitle: chapter.seriesTitle,
+          kind: chapter.kind,
+        );
+      } catch (_) {
+        // That chapter simply is not queued; the next "Download" tap retries it.
+      }
     }
     _bumpRevision();
     unawaited(_kick());
@@ -449,6 +455,11 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     _foreground = foreground;
     if (foreground) {
       if (_userPaused) return;
+      // A pass that was still winding down when the app left keeps running into this return (the kick below
+      // only marks it to go round again), so the state it was shown in is put back here.
+      if (_loopRunning) {
+        state = state.copyWith(isDownloading: true, pauseReason: DownloadQueuePauseReason.none);
+      }
       unawaited(_kick());
     } else {
       if (_userPaused) return;
@@ -706,16 +717,33 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
       // change takes effect on the next batch instead of disturbing chapters
       // already in flight.
       final width = ref.read(downloadConcurrencyProvider).chapters;
-      final batch = runnable.take(width).toList();
-      final lead = batch.first;
+      final taken = runnable.take(width).toList();
 
       // Claimed before the priming awaits below, not after: a cancel that
       // lands in that gap must be deferred to this loop like any other, or it
       // deletes a row the batch is about to start writing into.
-      _inFlightRowIds.addAll(batch.map((chapter) => chapter.rowId));
-      for (final chapter in batch) {
+      _inFlightRowIds.addAll(taken.map((chapter) => chapter.rowId));
+      for (final chapter in taken) {
         _inFlightMature[chapter.rowId] = chapter.mature ?? false;
       }
+
+      // The queue was read before the free-space, cap and network awaits above, and a cancel that landed
+      // during them found nothing claimed and deleted its row on the spot. Those rows are gone: drop them
+      // here rather than fetch manifests and pages for chapters the user cancelled. From the claim on, a
+      // cancel is deferred, so this check cannot be overtaken.
+      final batch = <SavedChapter>[];
+      for (final chapter in taken) {
+        final row = await store.getChapter(chapter.identity);
+        if (row != null && row.rowId == chapter.rowId) {
+          batch.add(chapter);
+        } else {
+          _inFlightRowIds.remove(chapter.rowId);
+          _inFlightMature.remove(chapter.rowId);
+          _cancelledRowIds.remove(chapter.rowId);
+        }
+      }
+      if (batch.isEmpty) continue;
+      final lead = batch.first;
 
       // Windows are primed here, on the loop, with nothing else in flight —
       // never from inside a worker. Two workers on the same series would
@@ -798,6 +826,9 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
   DownloadQueuePauseReason? _stopReason(List<_ChapterOutcome> outcomes) {
     if (outcomes.contains(_ChapterOutcome.pausedUser)) {
       return DownloadQueuePauseReason.userPaused;
+    }
+    if (outcomes.contains(_ChapterOutcome.pausedBackground)) {
+      return DownloadQueuePauseReason.backgrounded;
     }
     if (outcomes.contains(_ChapterOutcome.pausedFloor)) {
       return DownloadQueuePauseReason.freeSpaceFloor;
@@ -1368,6 +1399,9 @@ class DownloadQueueController extends Notifier<DownloadQueueState> {
     for (var i = 0; i < missing.length; i += kPageFetchConcurrency) {
       if (_cancelledRowIds.contains(rowId)) return _ChapterOutcome.cancelled;
       if (_userPaused) return _ChapterOutcome.pausedUser;
+      // Backgrounding pauses "before the next network call" (see setForeground): pages already on disk
+      // stay, and the next pass after the app returns fetches the rest.
+      if (!_foreground) return _ChapterOutcome.pausedBackground;
       if (await _isBelowFreeSpaceFloor()) return _ChapterOutcome.pausedFloor;
       if (await _isAtOrOverCap()) return _ChapterOutcome.pausedCap;
 

@@ -1167,6 +1167,30 @@ void main() {
       expect(controller.feed.chapters.map((c) => c.id), ['1', '2', '3']);
     });
 
+    test('an extension that lands after the edge moved is dropped, not spliced onto the new edge', () async {
+      final gate = Completer<void>();
+      final controller = ReaderFeedController(
+        anchor: _chapter('2'),
+        order: ['1', '2', '3', '4', '5', '6'],
+        loadChapter: (id) async {
+          if (id == '1') await gate.future;
+          return _chapter(id);
+        },
+      );
+      addTearDown(controller.dispose);
+      await controller.extendForward();
+      await controller.extendForward();
+      expect(controller.feed.chapters.map((c) => c.id), ['2', '3', '4']);
+
+      final backward = controller.extendBackward();
+      await controller.extendForward();
+      expect(controller.feed.chapters.map((c) => c.id), ['3', '4', '5']);
+
+      gate.complete();
+      await backward;
+      expect(controller.feed.chapters.map((c) => c.id), ['3', '4', '5'], reason: 'chapter 1 no longer touches the feed');
+    });
+
     test('a source that refuses is not asked again on the next scroll frame',
         () async {
       var attempts = 0;

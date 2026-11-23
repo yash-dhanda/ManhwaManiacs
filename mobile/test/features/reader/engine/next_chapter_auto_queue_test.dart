@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,6 +36,15 @@ class _FixedConnectivity implements NetworkConnectivity {
 
   @override
   Future<bool> isOnWifi() async => onWifi;
+  @override
+  Future<bool> isOnline() async => true;
+}
+
+class _GatedConnectivity implements NetworkConnectivity {
+  final Completer<bool> wifi = Completer<bool>();
+
+  @override
+  Future<bool> isOnWifi() => wifi.future;
   @override
   Future<bool> isOnline() async => true;
 }
@@ -122,5 +133,38 @@ void main() {
   testWidgets('reading on across seams queues each new next chapter', (tester) async {
     final queue = await _run(tester, scope: 'u1p1', wifiOnly: false, onWifi: false, nexts: ['c2', 'c3']);
     expect(queue.enqueued.map((c) => c.chapterKey), ['c2', 'c3']);
+  });
+
+  testWidgets('leaving the reader while the Wi-Fi check is out raises no error', (tester) async {
+    SharedPreferences.setMockInitialValues({'settings_wifi_only_downloads': true});
+    final prefs = await SharedPreferences.getInstance();
+    final connectivity = _GatedConnectivity();
+    final queue = _RecordingQueue();
+    final autoQueue = NextChapterAutoQueue();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPrefsProvider.overrideWithValue(prefs),
+          activeDownloadsScopeIdProvider.overrideWithValue('u1p1'),
+          networkConnectivityProvider.overrideWithValue(connectivity),
+          downloadQueueControllerProvider.overrideWith(() => queue),
+        ],
+        child: Consumer(
+          builder: (context, ref, _) {
+            autoQueue.maybeQueue(ref, sourceId: 'src', seriesKey: 'series', nextChapterId: 'c2');
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    connectivity.wifi.complete(true);
+    await tester.pump();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
   });
 }
