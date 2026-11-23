@@ -516,3 +516,22 @@ def test_genre_browse_uses_the_genre_query(api: FakeApi):
     assert "genreManga(" in api.queries[0]
     assert f"offset:{PAGE_SIZE}" in api.queries[0]
     assert len(listing.items) == 24
+
+
+def test_browse_modes_canonical_order_and_mods(api: FakeApi):
+    api.default = _load("search_popular_p1.json")
+    connector = _connector_with(api)
+    assert [m.id for m in connector.list_browse_modes()] == [
+        "default", "popular", "latest", "new", "alphabetical", "completed",
+    ]
+    expected = {
+        None: "POPULAR", "default": "POPULAR", "popular": "POPULAR",
+        "latest": "LATEST", "updated": "LATEST", "new": "NEW",
+        "alphabetical": "ALPHABET", "completed": "COMPLETED",
+    }
+    for sort, mod in expected.items():
+        api.queries.clear()
+        with patch.object(SyncConnectorHttpClient, "get_json", api):
+            connector.get_series_list(2, sort=sort)
+        assert f"mod:{mod}" in api.queries[0], sort
+        assert f"offset:{PAGE_SIZE}" in api.queries[0]

@@ -137,10 +137,16 @@ def test_title_sort_returns_a_genuinely_different_ordering():
 def test_each_browse_mode_requests_a_distinct_rest_ordering():
     orderings = [
         (listing_params(1, sort=mode)["orderby"], listing_params(1, sort=mode).get("order"))
-        for mode in ("default", "latest", "title")
+        for mode in ("default", "new", "title")
     ]
     assert orderings == [("modified", "desc"), ("date", "desc"), ("title", "asc")]
     assert len(set(orderings)) == 3
+
+
+def test_browse_modes_canonical_order_and_latest_is_recently_updated(connector):
+    assert [m.id for m in connector.list_browse_modes()] == ["default", "latest", "new", "title"]
+    assert listing_params(2, sort="latest")["orderby"] == "modified"
+    assert listing_params(2, sort="new")["orderby"] == "date"
 
 
 def test_unknown_sort_falls_back_to_default_rather_than_leaking_upstream():

@@ -11,8 +11,12 @@ from connectors.http.cache import TTLCache
 from connectors.http.client import ConnectorHttpError, SyncConnectorHttpClient
 from connectors.mangapill.mappers import (
     IMAGE_CDN_HOST,
+    HOME_PATH,
     LATEST_MODE,
+    NEW_MODE,
+    NEW_PATH,
     PAGE_SIZE,
+    POPULAR_MODE,
     SITE_BASE,
     browse_params,
     chapter_path,
@@ -26,8 +30,10 @@ from connectors.mangapill.mappers import (
     parse_chapter_pages,
     parse_chapters,
     parse_latest_cards,
+    parse_series_cards,
     parse_series_detail,
     parse_series_list,
+    parse_trending_cards,
     search_params,
     series_path,
     slice_latest,
@@ -229,7 +235,26 @@ class MangaPillConnector(SourceConnector):
         mode = normalize_sort(sort)
         if mode == LATEST_MODE:
             return self._latest(page)
+        if mode == POPULAR_MODE:
+            return self._single_fetch(HOME_PATH, parse_trending_cards, page)
+        if mode == NEW_MODE:
+            return self._single_fetch(NEW_PATH, parse_series_cards, page)
         return self._listing("browse", browse_params(mode, page), page=page)
+
+    def _single_fetch(self, path: str, parse: Any, page: int) -> PaginatedSeriesList:
+        """A listing that exists as one document: fetch once, slice per page."""
+        cached = self._latest_cache.get(path)
+        if cached is None:
+            try:
+                html = self._http.get_text(path)
+            except ConnectorHttpError as exc:
+                self._log("browse", path, status="error", detail=str(exc))
+                raise
+            cached = parse(html)
+            if cached:
+                self._latest_cache.set(path, cached)
+            self._log("browse", path, status="ok", detail=f"series={len(cached)}")
+        return slice_latest(cached, page=page)
 
     def _latest(self, page: int) -> PaginatedSeriesList:
         """``/chapters`` is one un-paginated document; fetch once, slice often."""

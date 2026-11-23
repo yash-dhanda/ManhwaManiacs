@@ -292,3 +292,15 @@ def test_connector_contract():
             mock=_mock_guazimanhua,
         )
     )
+
+
+def test_browse_modes_canonical_order_and_legacy_aliases():
+    from connectors.guazimanhua.mappers import browse_params, list_browse_modes
+
+    assert [m.id for m in list_browse_modes()] == ["default", "popular", "latest", "daily", "score"]
+    expected = {None: None, "default": None, "popular": "hits", "hits": "hits",
+                "latest": "update", "update": "update", "daily": "daily", "score": "score"}
+    for sort, value in expected.items():
+        params = browse_params(sort, 2)
+        assert params.get("sort") == value, sort
+        assert params["page"] == 2

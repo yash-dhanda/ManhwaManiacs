@@ -14,6 +14,19 @@ from connectors.models import (
 )
 
 
+class ChapterLockedError(Exception):
+    """The source lists this chapter but does not serve its pages yet.
+
+    Raised by ``get_chapter_pages`` in place of the empty list that reads as
+    "no such chapter". ``locked_until`` is when it opens to everyone, as
+    ``Chapter.locked_until`` spells it, or None when the source does not say.
+    """
+
+    def __init__(self, locked_until: str | None = None) -> None:
+        super().__init__("Chapter is locked at the source.")
+        self.locked_until = locked_until
+
+
 class SourceConnector(ABC):
     """Abstract connector for discovering series, chapters, and pages."""
 

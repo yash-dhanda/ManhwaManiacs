@@ -72,6 +72,34 @@ def test_list_series_page_2_uses_offset(asurascans_connector: AsuraScansConnecto
     assert captured[1]["offset"] == 20
     assert captured[1]["sort"] == "popular"
 
+def test_browse_modes_canonical_order(asurascans_connector: AsuraScansConnector):
+    assert [m.id for m in asurascans_connector.list_browse_modes()] == [
+        "default", "popular", "latest", "new", "trending", "rating",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("sort", "expected"),
+    [
+        (None, None),
+        ("default", None),
+        ("popular", "popular"),
+        ("latest", "latest"),
+        ("new", "updated"),
+        ("updated", "updated"),
+        ("trending", "trending"),
+        ("rating", "rating"),
+    ],
+)
+def test_browse_sort_requests(asurascans_connector: AsuraScansConnector, sort, expected):
+    payload = _load("series_list.json")
+    with patch.object(asurascans_connector._http, "get_json", return_value=payload) as mock_get:
+        asurascans_connector.get_series_list(2, sort=sort)
+    params = mock_get.call_args.kwargs["params"]
+    assert params.get("sort") == expected
+    assert params["offset"] == 20
+
+
 @pytest.mark.parametrize("fixture_name", ["chapter_pages.json", "chapter_pages_mount.json"])
 def test_chapter_page_extraction_preserves_every_page(fixture_name: str):
     """Regression: extraction must emit exactly one page per source payload entry.

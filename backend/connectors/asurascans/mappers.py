@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from connectors.models import Chapter, Page, PaginatedSeriesList, Series
@@ -180,6 +180,52 @@ def series_detail_to_series(payload: dict[str, Any], *, chapter_count: int | Non
     return series_item_to_series(series, chapter_count=chapter_count)
 
 
+def lock_instant(value: object) -> str | None:
+    """An Asura timestamp as ``Chapter.locked_until`` spells one, else None.
+
+    ``2026-11-23T14:15:24.018266Z`` in, ``2026-11-23T14:15:24Z`` out. Parsed
+    rather than passed through so that what is stored is always an instant a
+    client can read: a value this cannot parse is no lock at all, and the
+    chapter then behaves as it did before any of this existed.
+    """
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def chapter_locked_until(item: dict[str, Any]) -> str | None:
+    """When an early-access chapter opens to everyone; None for an open one.
+
+    Asura marks the early-access window with ``is_premium`` and keeps
+    ``early_access_until`` on the row for good afterwards (every chapter
+    released since the scheme began still carries its long-past instant), so
+    the flag decides and the instant only says when.
+    """
+    if not item.get("is_premium"):
+        return None
+    return lock_instant(item.get("early_access_until"))
+
+
+def chapter_pages_lock(payload: dict[str, Any]) -> tuple[bool, str | None]:
+    """Whether a chapter payload is the locked one, and when it unlocks.
+
+    A locked chapter answers 200 with ``is_locked: true``, an ``unlock_time``
+    and a ``chapter`` object that has no ``pages`` at all.
+    """
+    data = payload.get("data")
+    if not isinstance(data, dict) or data.get("is_locked") is not True:
+        return False, None
+    chapter = data.get("chapter")
+    fallback = chapter.get("early_access_until") if isinstance(chapter, dict) else None
+    return True, lock_instant(data.get("unlock_time")) or lock_instant(fallback)
+
+
 def chapter_item_to_chapter(item: dict[str, Any], *, series_id: str) -> Chapter:
     number = item.get("number")
     chapter_number = float(number) if number is not None else None
@@ -193,6 +239,7 @@ def chapter_item_to_chapter(item: dict[str, Any], *, series_id: str) -> Chapter:
         number=chapter_number,
         page_count=int(item.get("page_count") or 0),
         release_date=str(item.get("published_at")) if item.get("published_at") else None,
+        locked_until=chapter_locked_until(item),
     )
 
 

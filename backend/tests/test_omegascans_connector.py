@@ -155,10 +155,12 @@ def test_every_browse_mode_requests_a_distinct_order_pair(connector: OmegaScansC
     looking fine in the UI.
     """
     seen: set[tuple[str, str]] = set()
-    for mode in connector.list_browse_modes():
+    # ``default`` is documented as the same view as ``latest`` (Latest Updates).
+    modes = [m for m in connector.list_browse_modes() if m.id != "default"]
+    for mode in modes:
         params = listing_params(page=1, sort=mode.id)
         seen.add((params["orderBy"], params["order"]))
-    assert len(seen) == len(connector.list_browse_modes())
+    assert len(seen) == len(modes)
     assert ("latest", "desc") in seen
     assert ("total_views", "desc") in seen
     assert ("title", "asc") in seen
@@ -607,3 +609,19 @@ def test_genres_are_fetched_once(connector: OmegaScansConnector):
         connector.list_genres()
         connector.list_genres()
     assert calls == ["/tags"]
+
+
+def test_browse_modes_canonical_order_and_legacy_aliases(connector: OmegaScansConnector):
+    assert [m.id for m in connector.list_browse_modes()] == [
+        "default", "popular", "latest", "new", "rating", "alphabetical",
+    ]
+    expected = {
+        None: ("latest", "desc"), "default": ("latest", "desc"),
+        "popular": ("total_views", "desc"), "latest": ("latest", "desc"),
+        "new": ("created_at", "desc"), "added": ("created_at", "desc"),
+        "rating": ("rating", "desc"), "alphabetical": ("title", "asc"),
+    }
+    for sort, pair in expected.items():
+        params = listing_params(page=2, sort=sort)
+        assert (params["orderBy"], params["order"]) == pair, sort
+        assert params["page"] == 2

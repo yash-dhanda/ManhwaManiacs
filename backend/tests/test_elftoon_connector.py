@@ -35,7 +35,18 @@ def elftoon_connector() -> ElfToonConnector:
 def test_listing_params_use_themesia_order():
     assert listing_params(page=1, sort="default") == {"order": "update"}
     assert listing_params(page=2, sort="popular") == {"order": "popular", "page": 2}
-    assert listing_params(page=1, sort="latest") == {"order": "latest"}
+    # Canonical: ``latest`` = recently updated, ``new`` = Themesia's "latest" (added).
+    assert listing_params(page=1, sort="latest") == {"order": "update"}
+    assert listing_params(page=1, sort="new") == {"order": "latest"}
+    assert listing_params(page=1, sort="rating") == {"order": "rating"}
+
+
+def test_browse_modes_canonical_order():
+    from connectors.elftoon.connector import ElfToonConnector
+
+    assert [m.id for m in ElfToonConnector().list_browse_modes()] == [
+        "default", "popular", "latest", "new", "rating",
+    ]
 
 
 def test_parse_series_list_from_fixture():

@@ -90,8 +90,9 @@ class EightMusesConnector(SourceConnector):
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="default", label="Views"),
-            BrowseMode(id="latest", label="Date"),
-            BrowseMode(id="popular", label="Likes"),
+            BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="new", label="New"),
         ]
 
     def _normalize_series_id(self, series_id: str) -> str:

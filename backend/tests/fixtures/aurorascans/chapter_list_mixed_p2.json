@@ -1,0 +1,40 @@
+{
+ "data": [
+  {
+   "id": 44470,
+   "slug": "chapter-0.5",
+   "number": 0.5,
+   "title": null,
+   "cover": null,
+   "price": 0,
+   "isFree": true,
+   "becameFreeAt": null,
+   "publishStatus": "PUBLIC",
+   "commentCount": 0,
+   "createdAt": "2026-04-18T09:57:56.605Z",
+   "discountedPrice": 0,
+   "discountPercentage": 0,
+   "requiresPurchase": false
+  },
+  {
+   "id": 44469,
+   "slug": "chapter-0",
+   "number": 0,
+   "title": null,
+   "cover": null,
+   "price": 0,
+   "isFree": true,
+   "becameFreeAt": null,
+   "publishStatus": "PUBLIC",
+   "commentCount": 0,
+   "createdAt": "2026-04-18T09:57:53.693Z",
+   "discountedPrice": 0,
+   "discountPercentage": 0,
+   "requiresPurchase": false
+  }
+ ],
+ "totalItems": 116,
+ "totalPages": 2,
+ "current": 2,
+ "next": null
+}

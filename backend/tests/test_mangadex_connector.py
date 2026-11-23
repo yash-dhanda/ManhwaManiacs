@@ -132,3 +132,31 @@ def test_get_chapters_and_pages(mangadex_connector: MangaDexConnector):
 def test_create_mangadex_connector():
     connector = create_connector("mangadex")
     assert connector.source_type == "mangadex"
+
+
+def test_browse_modes_canonical_order(mangadex_connector: MangaDexConnector):
+    assert [m.id for m in mangadex_connector.list_browse_modes()] == [
+        "latest", "popular", "new", "rating", "year",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("sort", "order_key"),
+    [
+        (None, "order[latestUploadedChapter]"),
+        ("default", "order[latestUploadedChapter]"),
+        ("updated", "order[latestUploadedChapter]"),
+        ("latest", "order[latestUploadedChapter]"),
+        ("popular", "order[followedCount]"),
+        ("new", "order[createdAt]"),
+        ("rating", "order[rating]"),
+        ("year", "order[year]"),
+    ],
+)
+def test_browse_sort_requests(mangadex_connector: MangaDexConnector, sort, order_key):
+    payload = _load("manga_list.json")
+    with patch.object(mangadex_connector._http, "get_json", return_value=payload) as mock_get:
+        mangadex_connector.get_series_list(2, sort=sort)
+    params = mock_get.call_args.kwargs["params"]
+    assert [k for k in params if k.startswith("order[")] == [order_key]
+    assert params["offset"] == 100 or params["offset"] > 0

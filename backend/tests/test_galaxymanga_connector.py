@@ -74,7 +74,7 @@ def test_browse_uses_order_params(galaxymanga_connector: GalaxyMangaConnector):
     with patch.object(galaxymanga_connector._http, "get_text", side_effect=fake_get_text):
         galaxymanga_connector.get_series_list(1)
         galaxymanga_connector.get_series_list(2, sort="popular")
-        galaxymanga_connector.get_series_list(1, sort="latest")
+        galaxymanga_connector.get_series_list(1, sort="new")
         galaxymanga_connector.get_series_list(1, sort="rating")
 
     assert captured[0] == ("/manga/", {"order": "update"})
@@ -166,3 +166,13 @@ def test_parse_helpers_directly():
     pages = parse_chapter_pages(_load("chapter_1.html"), "predatory-marriage-chapter-1")
     assert len(pages) == 19
     assert pages[0].id == "predatory-marriage-chapter-1:1"
+
+
+def test_browse_modes_canonical_order_and_latest_alias(galaxymanga_connector):
+    assert [m.id for m in galaxymanga_connector.list_browse_modes()] == [
+        "default", "popular", "latest", "new", "rating",
+    ]
+    from connectors.galaxymanga.mappers import listing_params
+
+    assert listing_params(page=1, sort="latest") == {"order": "update"}
+    assert listing_params(page=1, sort="new") == {"order": "latest"}

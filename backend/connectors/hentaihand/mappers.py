@@ -50,7 +50,12 @@ PAGE_ID_SEPARATOR = ":"
 #: id ascending, i.e. it opens on 2016 uploads, which reads as a dead source.
 BROWSE_MODES: dict[str, tuple[str, str]] = {
     "default": ("Latest", "uploaded_at"),
-    "popularity": ("Trending", "popularity"),
+    # Gallery site: the upload date is the only date, so it is both the
+    # most recently updated and the most recently added ordering.
+    "popular": ("Popular", "popularity"),
+    "latest": ("Latest", "uploaded_at"),
+    "new": ("New", "uploaded_at"),
+    "popularity": ("Trending", "popularity"),  # legacy alias of ``popular``
     "favorites": ("Most Favorited", "favorites"),
     "pages": ("Longest", "pages"),
     "title": ("By Title", "title"),
@@ -94,7 +99,11 @@ GENRES: dict[str, tuple[str, int]] = {
 
 
 def list_browse_modes() -> list[BrowseMode]:
-    return [BrowseMode(id=key, label=label) for key, (label, _sort) in BROWSE_MODES.items()]
+    return [
+        BrowseMode(id=key, label=label)
+        for key, (label, _sort) in BROWSE_MODES.items()
+        if key != "popularity"
+    ]
 
 
 def list_genres() -> list[BrowseMode]:

@@ -315,7 +315,10 @@ class Manhwa18Connector(SourceConnector):
             html_text = self._http.get_text(path)
         except ConnectorHttpError as exc:
             self._log_request("pages", path, status="error", detail=str(exc))
-            return []
+            if _is_not_found(exc):
+                return []
+            # Not "Chapter not found": let BrowseService answer 502.
+            raise
 
         pages = parse_chapter_pages(html_text, chapter_key)
         if pages:

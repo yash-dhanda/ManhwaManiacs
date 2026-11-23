@@ -58,13 +58,15 @@ PAGE_SIZE = 24
 #: serve rather than aliasing a fake "popular" onto one of them.
 SORT_TO_REST: dict[str, tuple[str, str]] = {
     "default": ("modified", "desc"),  # latest chapter uploads
-    "latest": ("date", "desc"),  # newest series added to the catalog
+    "latest": ("modified", "desc"),  # recently updated (same as default)
+    "new": ("date", "desc"),  # newest series added to the catalog
     "title": ("title", "asc"),  # A-Z
 }
 
 BROWSE_MODES: tuple[BrowseMode, ...] = (
     BrowseMode(id="default", label="Latest Updates"),
-    BrowseMode(id="latest", label="Newly Added"),
+    BrowseMode(id="latest", label="Latest"),
+    BrowseMode(id="new", label="New"),
     BrowseMode(id="title", label="A-Z"),
 )
 

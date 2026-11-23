@@ -106,3 +106,17 @@ def test_chapter_pages(comicasura_connector: ComicAsuraConnector):
     assert pages[0].remote_url.endswith("/176/0.webp")
     assert pages[2].remote_url.endswith("/176/2.webp")
     assert comicasura_connector.find_page(pages[0].id) == pages[0]
+
+
+def test_browse_modes_canonical_order_and_legacy_aliases():
+    from connectors.comicasura.connector import ComicAsuraConnector
+    from connectors.comicasura.mappers import listing_path
+
+    assert [m.id for m in ComicAsuraConnector().list_browse_modes()] == [
+        "latest", "popular", "rating", "name_asc", "name_desc",
+    ]
+    assert listing_path(2, sort="popular") == listing_path(2, sort="bookmark")
+    assert "sort=bookmark" in listing_path(2, sort="popular")
+    assert "sort=rating" in listing_path(2, sort="rating")
+    assert "sort=name_asc" in listing_path(1, sort="name_asc")
+    assert "sort=" in listing_path(1, sort="latest")

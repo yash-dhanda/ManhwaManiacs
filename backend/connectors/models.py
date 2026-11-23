@@ -32,6 +32,17 @@ class Chapter:
     folder_path: str | None = None
     archive_path: str | None = None
     release_date: str | None = None
+    #: When a chapter the source lists but does not serve yet opens to
+    #: everyone: an ISO-8601 UTC instant ending in ``Z``, else None.
+    #:
+    #: AsuraScans publishes a chapter to paying members six hours before
+    #: everyone else, and lists it for both. Without this the update sweep
+    #: announced it, the reader asked for its pages, got none, and said
+    #: "Chapter not found" about a chapter the owner had just been told
+    #: existed. Clients compare it with their own clock -- a chapter is locked
+    #: only while this is in the future -- so a cached list that outlives the
+    #: lock needs no refresh to stop saying so.
+    locked_until: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

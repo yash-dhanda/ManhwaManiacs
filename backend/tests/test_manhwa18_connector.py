@@ -227,7 +227,7 @@ def test_chapter_release_dates_are_read_when_present() -> None:
     chapters = parse_chapters(_load("series_detail.html"), SERIES_KEY)
     dated = [chapter for chapter in chapters if chapter.release_date]
     assert len(dated) > 200
-    assert chapters[0].release_date == "18 Mar 2021"
+    assert chapters[0].release_date == "2021-03-18"  # site prints "18 Mar 2021"
 
 
 def test_chapter_rows_for_other_series_are_ignored() -> None:
@@ -520,3 +520,41 @@ def test_series_and_chapter_keys_round_trip_through_normalization(
         connector.get_series(SERIES_KEY)
 
     assert calls == [f"/webtoon/{SERIES_KEY}"]
+
+
+def test_browse_modes_canonical_order_and_legacy_ids(connector: Manhwa18Connector) -> None:
+    assert [m.id for m in connector.list_browse_modes()] == [
+        "latest", "popular", "rating", "alphabetical", "raw", "completed",
+    ]
+    expected = {
+        None: ("/webtoons/1", {"orderby": "latest"}),
+        "default": ("/webtoons/1", {"orderby": "latest"}),
+        "latest": ("/webtoons/1", {"orderby": "latest"}),
+        "popular": ("/webtoons/1", {"orderby": "trending"}),
+        "trending": ("/webtoons/1", {"orderby": "trending"}),
+        "rating": ("/webtoons/1", {"orderby": "rating"}),
+        "alphabetical": ("/webtoons/1", {"orderby": "alphabet"}),
+        "raw": ("/raw/1", None),
+        "completed": ("/completed/1", None),
+    }
+    for sort, want in expected.items():
+        seen: list = []
+
+        def fake(path, *, params=None):
+            seen.append((path, params))
+            return _load("browse_page1.html")
+
+        with patch.object(connector._http, "get_text", side_effect=fake):
+            connector.get_series_list(1, sort=sort)
+        assert seen[0] == want, sort
+
+
+def test_chapter_pages_failure_propagates_but_404_is_empty(connector: Manhwa18Connector) -> None:
+    import pytest
+    from connectors.http.client import ConnectorHttpError
+
+    with patch.object(connector._http, "get_text", side_effect=ConnectorHttpError("boom", status_code=502)):
+        with pytest.raises(ConnectorHttpError):
+            connector.get_chapter_pages("some-series/chapter-1")
+    with patch.object(connector._http, "get_text", side_effect=ConnectorHttpError("nf", status_code=404)):
+        assert connector.get_chapter_pages("some-series/chapter-1") == []

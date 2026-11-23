@@ -8,6 +8,7 @@ import re
 from urllib.parse import quote
 
 from connectors.models import Chapter, Page, PaginatedSeriesList, Series
+from connectors.release_dates import normalize_release_date
 from connectors.titles import normalize_chapter_title
 
 SITE_BASE = "https://18porncomic.com"
@@ -45,20 +46,32 @@ GENRE_CATALOG: tuple[tuple[str, str], ...] = (
     ("milf", "MILF"),
     ("netorare", "Netorare"),
     ("incest", "Incest"),
-    ("lolicon", "Lolicon"),
-    ("shotacon", "Shotacon"),
     ("ahegao", "Ahegao"),
     ("anal", "Anal"),
     ("blowjob", "Blowjob"),
 )
 
+# The row's date follows the link as ``<p class="chapter_info">24-09-2024</p>``
+# -- day first (a field of 31 and none above 12 in the second slot across 1,100
+# rows on 2026-11-23). The group is optional so a row without one still lists.
 CHAPTER_LINK_RE = re.compile(
     r'<a[^>]+href="(?:https?://[^"]+)?/comic/([^/]+)/([^"#?]+)"[^>]*class="chapter_num"[^>]*>'
-    r"\s*#\s*([^<]+)</a>",
+    r"\s*#\s*([^<]+)</a>"
+    r'(?:\s*<p[^>]*class="chapter_info"[^>]*>\s*(\d{1,2}-\d{1,2}-\d{4})\s*</p>)?',
     re.I | re.S,
 )
 CHAPTER_SEGMENT_NUMBER_RE = re.compile(r"chapter-(\d+)", re.I)
-CHAPTER_LABEL_NUMBER_RE = re.compile(r"chapter\s+(\d+)", re.I)
+# "Chapter 129.5", "Chapter 2A" (a lettered part: A is the chapter, B the next
+# part), but not "Chapter 2 - Hindi" (the number ends at the space).
+CHAPTER_LABEL_NUMBER_RE = re.compile(
+    r"chapter\s+(\d+(?:\.\d+)?)(?:([a-z])(?![a-z0-9]))?", re.I
+)
+# The site's own ordinal on translated editions: "1.5 . Savita Bhabhi - ...
+# Chapter 1 - Hindi". Parts of one comic that share "Chapter 1" in the label
+# and are told apart only by this prefix.
+CHAPTER_ORDINAL_RE = re.compile(r"^(\d+(?:\.\d+)?)\s*\.\s")
+# "No author yet" placeholders the site prints in info_value cells.
+_PLACEHOLDER_VALUES = frozenset({"updating", "unknown", "n/a", "none", "-"})
 
 SLIDES_PATH_RE = re.compile(r"slides_p_path\s*=\s*\[(.*?)\];", re.S)
 ENCODED_URL_RE = re.compile(r'"([A-Za-z0-9+/=]+)"')
@@ -76,11 +89,25 @@ INFO_VALUE_RE = re.compile(
 GENRE_LINK_RE = re.compile(r'href="https?://[^"]+/manga-list/[^"]+">([^<]+)</a>', re.I)
 
 
-def genre_listing_path(genre: str, page: int) -> str:
+# The site's own sort links read ``?order_by=lastest|name|views`` (sic). The
+# connector used to send ``sort=views``, which the site ignores: measured
+# 2026-11-23, ``/list-manga?sort=views`` returned the same 20 series as the
+# unsorted page, so "Popular" was a second copy of "Latest". ``order_by=views``
+# gives a different first page, on /list-manga, /manga-list/<genre> and with
+# ``search=`` alike.
+_ORDER_BY = {"popular": "views", "name": "name", "alphabetical": "name"}
+
+
+def _order_param(sort: str | None) -> str | None:
+    value = _ORDER_BY.get((sort or "").strip().lower())
+    return f"order_by={value}" if value else None
+
+
+def genre_listing_path(genre: str, page: int, *, sort: str | None = None) -> str:
     slug = genre.strip().lower().replace(" ", "-")
-    if page <= 1:
-        return f"/manga-list/{slug}"
-    return f"/manga-list/{slug}/{page}"
+    path = f"/manga-list/{slug}" if page <= 1 else f"/manga-list/{slug}/{page}"
+    order = _order_param(sort)
+    return f"{path}?{order}" if order else path
 
 
 def listing_path(page: int, *, sort: str | None = None, query: str | None = None) -> str:
@@ -88,8 +115,9 @@ def listing_path(page: int, *, sort: str | None = None, query: str | None = None
     params: list[str] = []
     if query:
         params.append(f"search={quote(query)}")
-    if sort == "popular":
-        params.append("sort=views")
+    order = _order_param(sort)
+    if order:
+        params.append(order)
     if params:
         return f"{path}?{'&'.join(params)}"
     return path
@@ -134,6 +162,8 @@ def _parse_info_label(block: str, label: str) -> str | None:
     if not match:
         return None
     value = _clean_text(match.group(1))
+    if value.casefold() in _PLACEHOLDER_VALUES:
+        return None
     return value or None
 
 
@@ -181,7 +211,11 @@ def parse_series_list(document: str, *, page: int) -> PaginatedSeriesList:
 
     page_numbers = [int(value) for value in PAGINATION_RE.findall(document)]
     total_pages = max(page_numbers) if page_numbers else max(page, 1)
-    total = total_pages * PAGE_SIZE if total_pages > 1 else len(items)
+    if page >= total_pages:
+        # The last page is the one place the real count is known.
+        total = (total_pages - 1) * PAGE_SIZE + len(items)
+    else:
+        total = total_pages * PAGE_SIZE
     return PaginatedSeriesList(
         items=items,
         page=page,
@@ -207,34 +241,53 @@ def parse_series_detail(document: str, *, series_id: str) -> Series | None:
         id=series_id,
         title=title,
         chapter_count=len(chapters),
-        description=og.get("description"),
+        description=(og.get("description") or "").strip() or None,
         cover_url=_absolute_url(og.get("image")),
         author=author,
         artist=artist,
         status=status,
         genres=genres,
-        latest_chapter=chapters[0].title if chapters else None,
+        latest_chapter=chapters[-1].title if chapters else None,
     )
 
 
 def _chapter_number(segment: str, label: str) -> float | None:
+    # The site's own "1.5 . ..." ordinal wins: it is what puts a translated
+    # edition between chapters 1 and 2 instead of on top of chapter 1.
+    ordinal = CHAPTER_ORDINAL_RE.match(label)
+    if ordinal:
+        return float(ordinal.group(1))
+    label_match = CHAPTER_LABEL_NUMBER_RE.search(label)
+    if label_match:
+        number = float(label_match.group(1))
+        part = label_match.group(2)
+        if part:
+            # "Chapter 2A" / "2B": two halves of chapter 2. They shared 2.0,
+            # and a number shared by two keys makes "next chapter" and furthest-
+            # wins progress pick one of them; A keeps n, B is n.1, C n.2.
+            number += (ord(part.lower()) - ord("a")) * 0.1
+        return number
     segment_match = CHAPTER_SEGMENT_NUMBER_RE.search(segment)
     if segment_match:
         return float(segment_match.group(1))
     if segment.isdigit():
         return float(segment)
-    label_match = CHAPTER_LABEL_NUMBER_RE.search(label)
-    if label_match:
-        return float(label_match.group(1))
     if segment.lower() == "english":
         return 1.0
     return None
 
 
 def parse_chapters(document: str, *, series_id: str) -> list[Chapter]:
+    """Chapters oldest first, the order every other connector returns.
+
+    The page lists them newest first and this used to sort them that way too
+    (explicitly, descending). The clients treat the list as reading order --
+    ``readingOrder.reversed`` for "newest first", prev/next from the neighbours
+    -- so on this source "next chapter" went back one.
+    """
     chapters: list[Chapter] = []
     seen: set[str] = set()
-    for slug, segment, label in CHAPTER_LINK_RE.findall(document):
+    for slug, segment, label, raw_date in CHAPTER_LINK_RE.findall(document):
         if slug != series_id:
             continue
         segment = segment.strip().strip("/")
@@ -253,14 +306,14 @@ def parse_chapters(document: str, *, series_id: str) -> list[Chapter]:
                 title=normalize_chapter_title(clean_label or segment),
                 number=number,
                 page_count=0,
+                release_date=normalize_release_date(raw_date, day_first=True),
             )
         )
+    # Document order is newest first; reversing it first makes the stable sort
+    # below break ties oldest first as well.
+    chapters.reverse()
     chapters.sort(
-        key=lambda item: (
-            item.number is None,
-            -(item.number or 0.0),
-            item.title.casefold(),
-        ),
+        key=lambda item: (item.number is None, item.number if item.number is not None else 0.0),
     )
     return chapters
 

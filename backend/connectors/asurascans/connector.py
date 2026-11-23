@@ -11,6 +11,7 @@ from connectors.asurascans.mappers import (
     PAGE_SIZE,
     chapter_identity as _chapter_identity,
     chapter_item_to_chapter,
+    chapter_pages_lock,
     chapter_pages_to_pages,
     page_id_chapter_id,
     parse_chapter_id,
@@ -20,12 +21,18 @@ from connectors.asurascans.mappers import (
     series_item_to_series,
     series_list_to_paginated,
 )
-from connectors.base import SourceConnector
+from connectors.base import ChapterLockedError, SourceConnector
 from connectors.http.cache import TTLCache
 from connectors.http.client import ConnectorHttpError, SyncConnectorHttpClient
 from connectors.models import BrowseMode, Chapter, Page, PaginatedSeriesList, Series
 
 logger = logging.getLogger(__name__)
+
+# Canonical ``new`` (most recently added series). The API's only real orderings
+# are ``popular`` and ``latest`` (pinned first, then newest chapter); any other
+# value falls back to creation order, which is what the legacy ``updated`` id
+# has always requested. ``updated``/``trending`` stay accepted as-is.
+_API_SORT = {"new": "updated"}
 
 
 class AsuraScansConnector(SourceConnector):
@@ -94,8 +101,8 @@ class AsuraScansConnector(SourceConnector):
         return [
             BrowseMode(id="default", label="All"),
             BrowseMode(id="popular", label="Popular"),
-            BrowseMode(id="updated", label="Recently Updated"),
             BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="trending", label="Trending"),
             BrowseMode(id="rating", label="Top Rated"),
         ]
@@ -116,7 +123,7 @@ class AsuraScansConnector(SourceConnector):
         if search:
             params["search"] = search
         if sort and sort != "default":
-            params["sort"] = sort
+            params["sort"] = _API_SORT.get(sort, sort)
         return params
 
     def _normalize_series_id(self, series_id: str) -> str:
@@ -321,6 +328,22 @@ class AsuraScansConnector(SourceConnector):
             )
             return []
 
+        locked, locked_until = chapter_pages_lock(payload)
+        if locked:
+            # Early access: the chapter exists and Asura is serving it to
+            # members only. Said as what it is rather than as the empty list
+            # below, which every caller reads as "no such chapter". Raised
+            # before anything is cached, so the first request after the unlock
+            # gets the pages.
+            self._log_request(
+                "pages",
+                path,
+                status="locked",
+                parsed_id=chapter_id,
+                detail=f"until={locked_until}",
+            )
+            raise ChapterLockedError(locked_until)
+
         pages = chapter_pages_to_pages(chapter_id, payload)
         self._log_request(
             "pages",
@@ -335,7 +358,14 @@ class AsuraScansConnector(SourceConnector):
         chapter_id = page_id_chapter_id(page_id)
         if chapter_id is None:
             return None
-        for page in self.get_chapter_pages(chapter_id):
+        try:
+            pages = self.get_chapter_pages(chapter_id)
+        except ChapterLockedError:
+            # A page id only exists for a chapter that served pages, so this is
+            # a chapter that locked again. To the image route that is a page
+            # that is not there.
+            return None
+        for page in pages:
             if page.id == page_id:
                 return page
         return None

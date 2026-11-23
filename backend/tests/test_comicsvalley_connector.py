@@ -143,3 +143,17 @@ def test_fetch_proxied_image_uses_host_referer():
         cover_url,
         extra_headers={"Referer": "https://comicsvalley.net/"},
     )
+
+
+def test_browse_modes_canonical_order_and_orders():
+    from connectors.comicsvalley.connector import ComicsValleyConnector
+    from connectors.comicsvalley.mappers import normalize_sort
+
+    assert [m.id for m in ComicsValleyConnector().list_browse_modes()] == [
+        "default", "popular", "latest", "new", "rating",
+    ]
+    assert normalize_sort(None) == "latest"
+    assert normalize_sort("latest") == "latest"
+    assert normalize_sort("new") == "new-manga"
+    assert normalize_sort("popular") == "views"
+    assert normalize_sort("rating") == "ratings"

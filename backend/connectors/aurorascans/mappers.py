@@ -55,12 +55,20 @@ def make_page_id(chapter_id: str, page_number: int) -> str:
     return f"{chapter_id}:{page_number}"
 
 
+_BLOCK_BREAK_RE = re.compile(r"</p\s*>|<br\s*/?>", re.I)
+_NUMERIC_TITLE_RE = re.compile(r"^\d+(?:\.\d+)?$")
+
+
 def _strip_html(value: str | None) -> str | None:
     if not value:
         return None
-    text = re.sub(r"<[^>]+>", " ", value)
+    # Paragraph ends become blank lines before the tags go, so a multi-paragraph
+    # synopsis keeps its paragraphs instead of running together.
+    text = _BLOCK_BREAK_RE.sub("\n\n", value)
+    text = re.sub(r"<[^>]+>", " ", text)
     text = html.unescape(text)
-    text = re.sub(r"\s+", " ", text).strip()
+    paragraphs = [re.sub(r"[^\S\n]+", " ", part).strip() for part in text.split("\n")]
+    text = "\n\n".join(part for part in paragraphs if part)
     return text or None
 
 
@@ -160,11 +168,20 @@ def chapter_item_to_chapter(item: dict[str, Any], *, series_slug: str) -> Chapte
         return None
     number = item.get("number")
     chapter_number = float(number) if isinstance(number, (int, float)) else 0.0
+    label = f"{int(chapter_number) if chapter_number == int(chapter_number) else chapter_number}"
     title = item.get("title")
-    if isinstance(title, str) and title.strip():
+    # The API's ``title`` is whatever the uploader typed: null for most
+    # chapters, and for many a bare "67" or "2.1" (measured 2026-11-23 on
+    # snake-immortal, whose 67 of 116 titles are null and the rest mostly
+    # numerals). A bare numeral is a worse label than the fallback.
+    if (
+        isinstance(title, str)
+        and title.strip()
+        and not _NUMERIC_TITLE_RE.match(title.strip())
+    ):
         chapter_title = title.strip()
     else:
-        chapter_title = f"Chapter {int(chapter_number) if chapter_number == int(chapter_number) else chapter_number}"
+        chapter_title = f"Chapter {label}"
     return Chapter(
         id=make_chapter_id(series_slug, slug),
         series_id=series_slug,
@@ -175,8 +192,14 @@ def chapter_item_to_chapter(item: dict[str, Any], *, series_slug: str) -> Chapte
     )
 
 
+def payload_requires_purchase(payload: dict[str, Any]) -> bool:
+    """A chapter payload the API answers 200 with an empty ``images`` list
+    and ``requiresPurchase: true`` (coin chapters, measured 2026-11-23)."""
+    return payload.get("requiresPurchase") is True
+
+
 def chapter_pages_to_pages(chapter_id: str, payload: dict[str, Any]) -> list[Page]:
-    if payload.get("requiresPurchase") is True:
+    if payload_requires_purchase(payload):
         return []
     images = payload.get("images") or []
     pages: list[Page] = []

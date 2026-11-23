@@ -59,6 +59,11 @@ EXCLUDED_CONNECTORS: frozenset[str] = frozenset({
     # residential egress; the connector and its fixtures are untouched and
     # still pass.
     "weebcentral",
+    # Connector WORKS (catalog.py "toonily", Madara /serie/; verified from a
+    # non-VPS IP on 2026-11-23) but toonily.com blocks the production VPS's
+    # datacenter IP, so from there it can only error. Waiting on the
+    # alternate-egress routing for blocked sources; remove this line then.
+    "toonily",
 })
 
 

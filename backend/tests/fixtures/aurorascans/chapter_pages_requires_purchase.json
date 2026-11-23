@@ -1,0 +1,52 @@
+{
+ "id": 96326,
+ "slug": "chapter-114",
+ "number": 114,
+ "title": null,
+ "content": null,
+ "cover": null,
+ "publishStatus": "PUBLIC",
+ "price": 50,
+ "discountedPrice": 50,
+ "discountPercentage": 0,
+ "isFree": false,
+ "becameFreeAt": null,
+ "requiresPurchase": true,
+ "images": [],
+ "totalImages": 0,
+ "navigation": {
+  "prev": {
+   "slug": "chapter-113",
+   "number": 113
+  },
+  "next": null
+ },
+ "series": {
+  "slug": "snake-immortal:-the-tale-of-a-snake's-cultivation-to-immortality",
+  "title": "Snake Immortal: The Tale of a Snake's Cultivation to Immortality",
+  "cover": "https://media.qimanga.com/file/qiscans/upload/rezo/2025/08/29/032ccd5a-fe14-49c8-8d1d-f589cc7a27fc.webp",
+  "type": "MANHUA",
+  "status": "ONGOING",
+  "description": "<p>In a village, an old snake inadvertently swallowed a cultivator's human-shaped pill, gaining intelligence and setting off on the path of cultivation. With only a brief decade to live, the snake does not fear the passing of time but makes the most of every moment.</p><p>This is the tale of an old snake's journey to immortality.</p>",
+  "genres": [
+   {
+    "name": "Action",
+    "slug": "action"
+   },
+   {
+    "name": "Adventure",
+    "slug": "adventure"
+   },
+   {
+    "name": "Fantasy",
+    "slug": "fantasy"
+   },
+   {
+    "name": "Martial Arts",
+    "slug": "martial-arts"
+   }
+  ],
+  "settings": null
+ },
+ "createdAt": "2026-11-23T09:52:48.913Z"
+}

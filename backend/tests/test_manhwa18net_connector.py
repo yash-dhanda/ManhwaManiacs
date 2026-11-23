@@ -309,3 +309,28 @@ def test_connector_contract():
             mock=_mock_manhwa18net,
         )
     )
+
+
+def test_browse_modes_canonical_order_and_legacy_ids():
+    from connectors.manhwa18net.mappers import browse_params, list_browse_modes
+
+    assert [m.id for m in list_browse_modes()] == ["latest", "popular", "new"]
+    expected = {
+        None: None, "default": None, "latest": None,
+        "popular": "top", "top": "top", "new": "new", "bogus": None,
+    }
+    for sort, value in expected.items():
+        assert browse_params(sort, 2).get("sort") == value, sort
+        assert browse_params(sort, 2)["page"] == 2
+
+
+def test_second_page_image_host_is_allowed():
+    """secret-class chapters list page URLs on cdn.pornwa.us (31 of 99 sampled
+    URLs, 2026-11-23); with only min.manhwa18.net allowed the proxy refused them."""
+    from connectors.http.redirect_policy import host_matches_allowlist
+    from connectors.manhwa18net.connector import Manhwa18NetConnector
+
+    hosts = Manhwa18NetConnector().allowed_image_hosts
+    assert host_matches_allowlist("cdn.pornwa.us", hosts)
+    assert host_matches_allowlist("min.manhwa18.net", hosts)
+    assert not host_matches_allowlist("evil-pornwa.us", hosts)

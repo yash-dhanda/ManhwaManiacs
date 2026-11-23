@@ -88,8 +88,8 @@ class ComicAsuraConnector(SourceConnector):
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
             BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="popular", label="Popular"),
             BrowseMode(id="rating", label="Top Rated"),
-            BrowseMode(id="bookmark", label="Bookmarks"),
             BrowseMode(id="name_asc", label="Name A-Z"),
             BrowseMode(id="name_desc", label="Name Z-A"),
         ]

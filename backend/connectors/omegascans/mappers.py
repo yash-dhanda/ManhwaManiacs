@@ -56,7 +56,8 @@ SORT_TO_ORDER: dict[str, tuple[str, str]] = {
     "default": ("latest", "desc"),      # Latest Updates -- the reader's home view
     "latest": ("latest", "desc"),
     "popular": ("total_views", "desc"),
-    "added": ("created_at", "desc"),
+    "new": ("created_at", "desc"),
+    "added": ("created_at", "desc"),  # legacy id for ``new``
     "alphabetical": ("title", "asc"),
     "rating": ("rating", "desc"),
 }
@@ -64,7 +65,8 @@ SORT_TO_ORDER: dict[str, tuple[str, str]] = {
 BROWSE_MODES: tuple[BrowseMode, ...] = (
     BrowseMode(id="default", label="Latest Updates"),
     BrowseMode(id="popular", label="Popular"),
-    BrowseMode(id="added", label="Recently Added"),
+    BrowseMode(id="latest", label="Latest"),
+    BrowseMode(id="new", label="New"),
     BrowseMode(id="rating", label="Top Rated"),
     BrowseMode(id="alphabetical", label="A-Z"),
 )

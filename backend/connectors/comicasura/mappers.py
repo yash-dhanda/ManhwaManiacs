@@ -120,6 +120,9 @@ def listing_path(
         params["page"] = str(page)
     if search:
         params["name"] = search
+    if sort == "popular":
+        # The site's only popularity signal is its bookmark count.
+        sort = "bookmark"
     if sort and sort not in {"default", "latest"}:
         params["sort"] = sort
     elif sort == "latest":

@@ -97,6 +97,7 @@ class DemonicScansConnector(SourceConnector):
         return [
             BrowseMode(id="default", label="Latest"),
             BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="latest", label="Latest"),
         ]
 
     def _log_request(

@@ -6,6 +6,7 @@ import logging
 from dataclasses import replace
 
 from connectors.base import SourceConnector
+from connectors.http import swallowed
 from connectors.http.cache import TTLCache
 from connectors.http.client import ConnectorHttpError, SyncConnectorHttpClient
 from connectors.ids import fully_unquote
@@ -28,6 +29,25 @@ from connectors.porncomic18.mappers import (
 logger = logging.getLogger(__name__)
 
 HTML_HEADERS = {"Accept": "text/html,application/xhtml+xml"}
+
+# What the site's order_by understands (see mappers._ORDER_BY): ``popular`` is
+# views, ``name`` is A-Z, anything else is the site's default (newest update).
+_KNOWN_SORTS = {None, "default", "latest", "popular", "name"}
+
+
+def _is_missing(exc: ConnectorHttpError) -> bool:
+    """The site said "no such page" (a 404/410).
+
+    Not "Redirect blocked": the guard also refuses redirects to off-site or
+    non-public hosts, which is a failure worth surfacing, and an unknown path
+    on this site redirects to its own home page (measured 2026-11-23 from a
+    sandbox whose DNS cannot satisfy the guard's public-address check, so the
+    real production answer to a missing page is the home page, parsed as no
+    series / no chapters / no pages).
+    """
+    return exc.status_code in (404, 410)
+
+
 BROWSER_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
@@ -87,9 +107,15 @@ class PornComic18Connector(SourceConnector):
 
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
-            BrowseMode(id="default", label="Latest"),
-            BrowseMode(id="latest", label="New"),
+            # ``latest`` is the site's default order (newest update first), so
+            # it replaces the old "default" + "latest" pair (identical lists);
+            # both ids still resolve. There is NO "new" (recently added)
+            # order: order_by accepts only lastest|name|views and any other
+            # value silently returns the views order (probed 2026-11-23 with
+            # nine values), so none is advertised.
+            BrowseMode(id="latest", label="Latest"),
             BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="name", label="A-Z"),
         ]
 
     def _normalize_series_id(self, series_id: str) -> str:
@@ -118,7 +144,8 @@ class PornComic18Connector(SourceConnector):
     ) -> PaginatedSeriesList:
         if page < 1:
             page = 1
-        path = genre_listing_path(genre, page)
+        normalized_sort = sort if sort in _KNOWN_SORTS else None
+        path = genre_listing_path(genre, page, sort=normalized_sort)
         document = self._fetch_html(path)
         listing = parse_series_list(document, page=page)
         logger.info(
@@ -147,7 +174,7 @@ class PornComic18Connector(SourceConnector):
     def get_series_list(self, page: int, *, sort: str | None = None) -> PaginatedSeriesList:
         if page < 1:
             page = 1
-        normalized_sort = sort if sort in {None, "default", "latest", "popular"} else None
+        normalized_sort = sort if sort in _KNOWN_SORTS else None
         if normalized_sort == "default":
             normalized_sort = None
         path = listing_path(page, sort=normalized_sort)
@@ -168,7 +195,7 @@ class PornComic18Connector(SourceConnector):
         normalized = query.strip()
         if not normalized:
             return self.get_series_list(page, sort=sort)
-        normalized_sort = sort if sort in {None, "default", "latest", "popular"} else None
+        normalized_sort = sort if sort in _KNOWN_SORTS else None
         if normalized_sort == "default":
             normalized_sort = None
         path = listing_path(page, sort=normalized_sort, query=normalized)
@@ -190,7 +217,9 @@ class PornComic18Connector(SourceConnector):
             return cached
         try:
             document = self._fetch_html(series_id_to_path(series_id))
-        except ConnectorHttpError:
+        except ConnectorHttpError as exc:
+            if not _is_missing(exc):
+                swallowed.note(exc)
             return None
         series = parse_series_detail(document, series_id=series_id)
         if series is None:
@@ -200,34 +229,45 @@ class PornComic18Connector(SourceConnector):
 
     def get_chapters(self, series_id: str) -> list[Chapter]:
         series_id = self._normalize_series_id(series_id)
-        return self._enrich_chapters(
-            self._chapter_list_cache.get_or_set(
-                series_id,
-                lambda: self._fetch_chapters(series_id),
-            )
-        )
+        chapters = self._chapter_list_cache.get(series_id)
+        if chapters is None:
+            chapters = self._fetch_chapters(series_id)
+            # Never cache an empty list: it is a failure (noted below) or a
+            # series with nothing yet, and the cache would keep either for
+            # three minutes.
+            if chapters:
+                self._chapter_list_cache.set(series_id, chapters)
+        return self._enrich_chapters(chapters)
 
     def _fetch_chapters(self, series_id: str) -> list[Chapter]:
         try:
             document = self._fetch_html(series_id_to_path(series_id))
-        except ConnectorHttpError:
+        except ConnectorHttpError as exc:
+            if not _is_missing(exc):
+                swallowed.note(exc)
             return []
         return parse_chapters(document, series_id=series_id)
 
     def get_chapter_pages(self, chapter_id: str) -> list[Page]:
         chapter_id = self._normalize_chapter_id(chapter_id)
-        pages = self._page_cache.get_or_set(
-            chapter_id,
-            lambda: self._fetch_chapter_pages(chapter_id),
-        )
-        self._chapter_page_count_cache.set(chapter_id, len(pages))
+        pages = self._page_cache.get(chapter_id)
+        if pages is None:
+            pages = self._fetch_chapter_pages(chapter_id)
+            if pages:
+                self._page_cache.set(chapter_id, pages)
+        if pages:
+            self._chapter_page_count_cache.set(chapter_id, len(pages))
         return pages
 
     def _fetch_chapter_pages(self, chapter_id: str) -> list[Page]:
         try:
             document = self._fetch_html(chapter_id_to_path(chapter_id))
-        except ConnectorHttpError:
-            return []
+        except ConnectorHttpError as exc:
+            if _is_missing(exc):
+                return []
+            # The site failing is not "Chapter not found": let BrowseService
+            # map it to a 502 instead of a 404 about a chapter that exists.
+            raise
         return parse_chapter_pages(document, chapter_id=chapter_id)
 
     def find_page(self, page_id: str) -> Page | None:

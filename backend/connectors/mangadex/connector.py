@@ -25,7 +25,10 @@ MANGA_SORT_ORDERS: dict[str, dict[str, str]] = {
     "default": {"order[latestUploadedChapter]": "desc"},
     "updated": {"order[latestUploadedChapter]": "desc"},
     "popular": {"order[followedCount]": "desc"},
-    "latest": {"order[createdAt]": "desc"},
+    # Canonical ids: ``latest`` = recently updated, ``new`` = recently added.
+    # (``latest`` used to mean createdAt; that ordering is now ``new``.)
+    "latest": {"order[latestUploadedChapter]": "desc"},
+    "new": {"order[createdAt]": "desc"},
     "rating": {"order[rating]": "desc"},
     "year": {"order[year]": "desc"},
 }
@@ -80,9 +83,9 @@ class MangaDexConnector(SourceConnector):
 
     def list_browse_modes(self) -> list[BrowseMode]:
         return [
-            BrowseMode(id="updated", label="Recently Updated"),
-            BrowseMode(id="popular", label="Popular"),
             BrowseMode(id="latest", label="Latest"),
+            BrowseMode(id="popular", label="Popular"),
+            BrowseMode(id="new", label="New"),
             BrowseMode(id="rating", label="Top Rated"),
             BrowseMode(id="year", label="Newest Year"),
         ]

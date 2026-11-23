@@ -437,3 +437,62 @@ def test_madara_upgrades_http_image_urls_to_https():
     assert pages
     assert pages[0].remote_url.startswith("https://")
 
+
+
+def test_madara_modes_canonical_and_requests():
+    """Canonical ids: latest = updated (no m_orderby), new = new-manga."""
+    from connectors.madara.factory import build_madara_connector_class
+    from connectors.catalog import MADARA_CATALOG
+
+    cls = build_madara_connector_class(next(c for c in MADARA_CATALOG if c.source_id == "allporncomic"))
+    conn = cls()
+    assert [m.id for m in conn.list_browse_modes()] == ["latest", "popular", "new", "rating"]
+    html = conn._html
+    expected = {
+        None: {}, "default": {}, "latest": {},
+        "new": {"m_orderby": "new-manga"},
+        "popular": {"m_orderby": "views"},
+        "rating": {"m_orderby": "rating"},
+    }
+    for sort, params in expected.items():
+        assert html.listing_params(sort=sort, page=1) == params, sort
+
+
+def _allporncomic():
+    from pathlib import Path
+    from connectors.catalog import MADARA_CATALOG
+    from connectors.madara.factory import build_madara_connector_class
+
+    cls = build_madara_connector_class(next(c for c in MADARA_CATALOG if c.source_id == "allporncomic"))
+    return cls(), Path(__file__).parent / "fixtures" / "madara"
+
+
+def test_allporncomic_chapter_numbers_dates_and_order():
+    """Real rows (2026-11-23). Segments are ``15-breaking-boundaries`` (no
+    ``chapter-N``) so every number was None; the label's leading ordinal
+    ("15.5 . ...") is the number, dates are "September 9, 2026" or, for a new
+    chapter, the new-tag title "3 minutes ago"."""
+    conn, fx = _allporncomic()
+    html = (fx / "allporncomic_chapter_rows.html").read_text(encoding="utf-8")
+    chapters = conn._html.parse_chapters(html, "breaking-boundaries-mandologicab")
+    assert [c.number for c in chapters] == [1.0, 14.0, 15.0]
+    assert chapters[1].release_date == "2026-09-09"
+    assert chapters[0].release_date == "2023-02-18"
+    # newest row carries only the relative "x minutes ago" new-tag title
+    assert chapters[2].release_date is not None and len(chapters[2].release_date) == 10
+
+    bl = conn._html.parse_chapters(html, "bucket-list-himeros3d")
+    assert [c.number for c in bl] == [15.0, 15.5]
+
+    tt = conn._html.parse_chapters(html, "trick-or-treat-pegasus-smithb")
+    # ordinal 16 even though its label says "Chapter 15"; 0.1 sorts first
+    assert [c.number for c in tt] == [0.1, 15.0, 16.0]
+
+
+def test_allporncomic_search_reports_more_pages():
+    """Search pager links are ``/page/2/?s=..`` and "Page 1 of 3"; the listing
+    regex saw none, so search stopped after page 1."""
+    conn, fx = _allporncomic()
+    html = (fx / "allporncomic_search_page1_trimmed.html").read_text(encoding="utf-8")
+    listing = conn._html.parse_search_results(html, page=1, query="office")
+    assert listing.items and listing.has_more is True

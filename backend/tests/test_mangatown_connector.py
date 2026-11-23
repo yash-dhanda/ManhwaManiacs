@@ -455,3 +455,30 @@ def test_image_hosts_and_referer_cover_both_cdns(connector: MangaTownConnector):
     assert "mangahere.org" in hosts  # zjcdn.* page images
     assert "mangahere.com" in hosts  # fmcdn.* covers
     assert connector.image_fetch_headers()["Referer"] == "https://www.mangatown.com/"
+
+
+def test_browse_modes_canonical_ids_and_legacy_aliases(connector: MangaTownConnector):
+    assert [m.id for m in connector.list_browse_modes()] == [
+        "default", "popular", "latest", "rating", "alphabetical",
+    ]
+    html = _load("directory_p1.html")
+    expected = {
+        None: "/directory/2.htm",
+        "default": "/directory/2.htm",
+        "popular": "/hot/2.htm",
+        "hot": "/hot/2.htm",
+        "latest": "/latest/2.htm",
+        "updated": "/directory/2.htm?last_chapter_time.za",
+        "rating": "/directory/2.htm?rating.za",
+        "alphabetical": "/directory/2.htm?name.az",
+    }
+    for sort, path in expected.items():
+        seen: list[str] = []
+
+        def fake_get_text(p: str, *, params=None, _seen=seen):
+            _seen.append(p)
+            return html
+
+        with patch.object(connector._http, "get_text", side_effect=fake_get_text):
+            connector.get_series_list(2, sort=sort)
+        assert seen == [path], sort

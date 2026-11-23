@@ -1,0 +1,56 @@
+{
+ "data": [
+  {
+   "id": 96326,
+   "slug": "chapter-114",
+   "number": 114,
+   "title": null,
+   "cover": null,
+   "price": 50,
+   "isFree": false,
+   "becameFreeAt": null,
+   "publishStatus": "PUBLIC",
+   "commentCount": 0,
+   "createdAt": "2026-11-23T09:52:48.913Z",
+   "discountedPrice": 50,
+   "discountPercentage": 0,
+   "requiresPurchase": true
+  },
+  {
+   "id": 37005,
+   "slug": "chapter-67",
+   "number": 67,
+   "title": "67",
+   "cover": "",
+   "price": 0,
+   "isFree": true,
+   "becameFreeAt": null,
+   "publishStatus": "PUBLIC",
+   "commentCount": 0,
+   "createdAt": "2025-12-19T23:36:52.018Z",
+   "discountedPrice": 0,
+   "discountPercentage": 0,
+   "requiresPurchase": false
+  },
+  {
+   "id": 44484,
+   "slug": "chapter-13-the-quest-for-the-perfect-body",
+   "number": 13,
+   "title": "- The Quest for the Perfect Body",
+   "cover": null,
+   "price": 0,
+   "isFree": true,
+   "becameFreeAt": null,
+   "publishStatus": "PUBLIC",
+   "commentCount": 1,
+   "createdAt": "2026-04-18T09:59:04.448Z",
+   "discountedPrice": 0,
+   "discountPercentage": 0,
+   "requiresPurchase": false
+  }
+ ],
+ "totalItems": 116,
+ "totalPages": 2,
+ "current": 1,
+ "next": 2
+}

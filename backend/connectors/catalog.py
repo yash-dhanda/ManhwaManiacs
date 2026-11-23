@@ -18,6 +18,7 @@ def _site(
     mature: bool = False,
     use_cf: bool = True,
     extra_image_hosts: frozenset[str] = frozenset(),
+    page_size: int = 20,
 ) -> MadaraSiteConfig:
     return MadaraSiteConfig(
         source_id=source_id,
@@ -28,6 +29,7 @@ def _site(
         mature=mature,
         use_cf=use_cf,
         extra_image_hosts=extra_image_hosts,
+        page_size=page_size,
     )
 
 
@@ -248,6 +250,24 @@ MADARA_CATALOG: tuple[MadaraSiteConfig, ...] = (
         mature=True,
         use_cf=False,
         extra_image_hosts=frozenset({"cdn.allporncomic.com"}),
+        # 24 cards per listing page (counted 2026-11-23); the default 20 made
+        # the reported total and last-page count wrong.
+        page_size=24,
+    ),
+    # Toonily: stock Madara, /serie/ segment, page images on tnlycdn.com
+    # (hotlink-protected, needs the site Referer -- MadaraConnector sends it).
+    # NOT registered: toonily.com blocks the production VPS's datacenter IP, so
+    # "toonily" is in EXCLUDED_CONNECTORS until blocked sources are routed
+    # through the alternate egress. The factory skips excluded ids; tests build
+    # the class directly with build_madara_connector_class.
+    _site(
+        "toonily",
+        "Toonily",
+        "toonily.com",
+        url_segment="serie",
+        mature=True,
+        extra_image_hosts=frozenset({"tnlycdn.com"}),
+        page_size=18,  # 18 cards per listing page (counted 2026-11-23)
     ),
     _site("apcomics", "APComics", "apcomics.org", mature=True, use_cf=False),
     _site("cocomic", "CoComic", "cocomic.co", mature=True, use_cf=False),
