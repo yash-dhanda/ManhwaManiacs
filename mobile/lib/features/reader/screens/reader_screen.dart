@@ -26,6 +26,7 @@ import 'package:manhwamaniacs/features/reader/utils/reader_feed_controller.dart'
 import 'package:manhwamaniacs/features/reader/utils/reader_feed_factory.dart';
 import 'package:manhwamaniacs/features/reader/utils/reader_series_navigation.dart';
 import 'package:manhwamaniacs/features/reader/utils/reading_clock.dart';
+import 'package:manhwamaniacs/features/reader/widgets/chapter_locked_flow.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_content.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_error_state.dart';
 import 'package:manhwamaniacs/features/reader/widgets/reader_skeleton.dart';
@@ -389,6 +390,12 @@ class _ManifestReaderBodyState extends ConsumerState<_ManifestReaderBody> {
       return resolved.chapter;
     } catch (e) {
       // A seam that cannot be crossed leaves the edge prompt as the way over.
+      final lock = chapterLockOf(e);
+      // Cleared by any other failure so a stale "opens in" never speaks for a chapter that failed for another reason.
+      if (mounted) {
+        ref.read(readerLockedNextProvider.notifier).state =
+            lock == null ? null : (chapterKey: chapterKey, lockedUntil: lock.lockedUntil, message: lock.message, sourceId: lock.sourceId);
+      }
       final wait = rateLimitWait(e);
       if (wait != null && mounted) {
         ref.read(readerRateLimitedUntilProvider.notifier).state = DateTime.now().add(wait);

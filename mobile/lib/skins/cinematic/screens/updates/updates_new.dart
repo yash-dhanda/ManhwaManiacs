@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/features/updates/utils/notification_grouping.dart';
+import 'package:manhwamaniacs/shared/widgets/lock_countdown.dart';
 import 'package:manhwamaniacs/skins/cinematic/focus_ring.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_badge.dart';
@@ -12,6 +14,31 @@ import 'package:manhwamaniacs/skins/cinematic/primitives/typed_headline.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/hub/hub_kit.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
+
+/// What stands where "Read from 141" would: `Opens in 3:27:14`, a status and not a button (early access on its source). When
+/// the count reaches zero the real button takes its place with no refetch.
+class LockedReadFrom extends StatelessWidget {
+  const LockedReadFrom({super.key, required this.lockedUntil, required this.unlocked});
+  final DateTime lockedUntil;
+  final WidgetBuilder unlocked;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.cine;
+    return LockCountdown(
+      lockedUntil: lockedUntil,
+      unlocked: unlocked,
+      builder: (context, left) => ConstrainedBox(
+        constraints: BoxConstraints(minHeight: cineHitMin(context)),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          widthFactor: 1,
+          child: CineRoleText('Opens in ${formatCountdown(left)}', c.typeFolio, color: c.colorInk60),
+        ),
+      ),
+    );
+  }
+}
 
 /// `CH 141`, `CH 141.5`; `NEW` for a chapter the source does not number.
 String updateFolio(UpdateChapter c) {
@@ -87,6 +114,18 @@ class _UpdateGroupRowState extends State<UpdateGroupRow> {
     if (_done.containsAll(all)) widget.onTyped(all);
   }
 
+  /// A locked chapter's folio dims and says when it opens; once the instant passes the plain folio is back. It stays tappable:
+  /// the reader answers with its own early-access state.
+  Widget _lockAware(UpdateChapter ch, Widget Function(String? hint) folio) {
+    final until = ch.lockedUntil;
+    if (until == null) return folio(null);
+    return LockCountdown(
+      lockedUntil: until,
+      unlocked: (_) => folio(null),
+      builder: (_, left) => folio('opens in ${compactRemaining(left)}'),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
@@ -97,11 +136,13 @@ class _UpdateGroupRowState extends State<UpdateGroupRow> {
     final freshIds = {for (final ch in g.chapters) if (widget.fresh.contains(ch.notificationId)) ch.notificationId};
     final ago = g.newestAt == null ? '' : ' · ${agoWords(g.newestAt!, widget.now)}';
     final readFrom = first == null ? null : 'Read from ${updateFolio(first).replaceFirst('CH ', '')}';
+    Widget readFromButton(String label) => CineButton(label: label, variant: CineButtonVariant.split, size: CineButtonSize.sm, onPressed: widget.enabled ? widget.onReadFrom : null, disabledReason: 'Needs a connection.');
     final cover = SizedBox(
       width: 48,
       height: 72,
       child: Hero(tag: tag, child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: c.colorRule2)), child: CineImage(url: widget.coverUrl, title: g.title))),
     );
+    final firstLocked = first != null && first.isLocked(widget.now);
     Widget body = Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Semantics(button: true, label: 'Open ${g.title}', excludeSemantics: true, onTap: widget.onOpenSeries, child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: widget.onOpenSeries, child: cover)),
       SizedBox(width: c.space4),
@@ -119,20 +160,27 @@ class _UpdateGroupRowState extends State<UpdateGroupRow> {
           ],),
           Wrap(spacing: 8, children: [
             for (final ch in g.chapters)
-              _Folio(
-                key: ValueKey('folio-${ch.notificationId}'),
-                label: updateFolio(ch),
-                read: ch.read,
-                typed: freshIds.contains(ch.notificationId),
-                onDone: () => _typed(ch.notificationId, freshIds),
-                onTap: widget.enabled ? () => widget.onFolio(ch) : null,
+              _lockAware(
+                ch,
+                (hint) => _Folio(
+                  key: ValueKey('folio-${ch.notificationId}'),
+                  label: updateFolio(ch),
+                  read: ch.read,
+                  typed: freshIds.contains(ch.notificationId),
+                  onDone: () => _typed(ch.notificationId, freshIds),
+                  onTap: widget.enabled ? () => widget.onFolio(ch) : null,
+                  hint: hint,
+                ),
               ),
           ],),
           CineRoleText('${widget.sourceName}$ago', c.typeCaption, color: c.colorInk45, maxLines: 1, overflow: TextOverflow.ellipsis),
           if (first != null) ...[
             SizedBox(height: c.space2),
             Wrap(spacing: 8, children: [
-              CineButton(label: readFrom!, variant: CineButtonVariant.split, size: CineButtonSize.sm, onPressed: widget.enabled ? widget.onReadFrom : null, disabledReason: 'Needs a connection.'),
+              if (first.lockedUntil != null)
+                LockedReadFrom(lockedUntil: first.lockedUntil!, unlocked: (_) => readFromButton(readFrom!))
+              else
+                readFromButton(readFrom!),
               CineButton(label: 'Mark read', variant: CineButtonVariant.quiet, size: CineButtonSize.sm, onPressed: widget.enabled ? widget.onMarkRead : null, disabledReason: 'Needs a connection.'),
             ],),
           ],
@@ -143,7 +191,7 @@ class _UpdateGroupRowState extends State<UpdateGroupRow> {
       minHeight: 104,
       focusNode: widget.focusNode,
       menu: [
-        if (first != null) CineMenuEntry<Object?>(label: readFrom!, disabled: !widget.enabled, onSelected: widget.onReadFrom),
+        if (first != null) CineMenuEntry<Object?>(label: readFrom!, disabled: !widget.enabled || firstLocked, onSelected: widget.onReadFrom),
         if (first != null) CineMenuEntry<Object?>(label: 'Mark read', disabled: !widget.enabled, onSelected: widget.onMarkRead),
         CineMenuEntry<Object?>(label: 'Open series', onSelected: widget.onOpenSeries),
       ],
@@ -157,8 +205,11 @@ class _UpdateGroupRowState extends State<UpdateGroupRow> {
 
 /// One chapter folio: a button with its own 44 pt / 48 dp box; a fresh one types itself.
 class _Folio extends StatelessWidget {
-  const _Folio({super.key, required this.label, required this.read, required this.typed, required this.onDone, required this.onTap});
+  const _Folio({super.key, required this.label, required this.read, required this.typed, required this.onDone, required this.onTap, this.hint});
   final String label;
+
+  /// "opens in 3 h 27 min" for a chapter that is not open yet; the folio is dimmed with it.
+  final String? hint;
   final bool read, typed;
   final VoidCallback onDone;
   final VoidCallback? onTap;
@@ -166,11 +217,12 @@ class _Folio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
-    final style = CineText.style(context, c.typeFolio).copyWith(color: read ? c.colorInk45 : c.colorInk100);
+    final dim = read || hint != null;
+    final style = CineText.style(context, c.typeFolio).copyWith(color: dim ? c.colorInk45 : c.colorInk100);
     final hit = cineHitMin(context);
     return Semantics(
       button: true,
-      label: label,
+      label: hint == null ? label : '$label, $hint',
       excludeSemantics: true,
       onTap: onTap,
       child: CinePressable(
@@ -182,7 +234,10 @@ class _Folio extends StatelessWidget {
             widthFactor: 1,
             child: DecoratedBox(
               decoration: BoxDecoration(border: Border(bottom: BorderSide(color: st.hovered || st.focused ? c.colorInk100 : const Color(0x00000000)))),
-              child: typed ? TypedHeadline(label, style: style, onDone: onDone) : CineRoleText(label, c.typeFolio, color: read ? c.colorInk45 : c.colorInk100),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                typed ? TypedHeadline(label, style: style, onDone: onDone) : CineRoleText(label, c.typeFolio, color: dim ? c.colorInk45 : c.colorInk100),
+                if (hint != null) CineRoleText(hint!, c.typeCaption, color: c.colorInk45),
+              ],),
             ),
           ),
         ),

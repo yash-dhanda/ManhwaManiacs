@@ -112,9 +112,9 @@ void main() {
   });
 
   test('folio words', () {
-    expect(updateFolio((notificationId: 1, chapterKey: 'c', chapterNumber: 141, title: '', read: false)), 'CH 141');
-    expect(updateFolio((notificationId: 1, chapterKey: 'c', chapterNumber: 14.5, title: '', read: false)), 'CH 14.5');
-    expect(updateFolio((notificationId: 1, chapterKey: 'c', chapterNumber: null, title: '', read: false)), 'NEW');
+    expect(updateFolio((notificationId: 1, chapterKey: 'c', chapterNumber: 141, title: '', read: false, lockedUntil: null)), 'CH 141');
+    expect(updateFolio((notificationId: 1, chapterKey: 'c', chapterNumber: 14.5, title: '', read: false, lockedUntil: null)), 'CH 14.5');
+    expect(updateFolio((notificationId: 1, chapterKey: 'c', chapterNumber: null, title: '', read: false, lockedUntil: null)), 'NEW');
   });
 }
 

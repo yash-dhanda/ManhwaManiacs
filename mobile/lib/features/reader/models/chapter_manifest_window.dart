@@ -1,3 +1,4 @@
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/features/reader/models/chapter_manifest.dart';
 
 /// One `POST /reader/chapters/manifest` answer — the download plans for a
@@ -19,6 +20,7 @@ class ChapterManifestWindow {
     required this.maxChapters,
     required this.manifests,
     required this.errors,
+    this.locked = const {},
   });
 
   /// The server's own stride, echoed on every success so a download paces
@@ -37,9 +39,14 @@ class ChapterManifestWindow {
   /// fall back to the single-chapter path, which owns the retry bound.
   final Map<String, String> errors;
 
+  /// The chapters among [errors] that are early access (`chapter_locked`), by requested key, with when each opens (null when
+  /// the source did not say). They stay in [errors] too, with the server's message: the queue must not retry them at once.
+  final Map<String, DateTime?> locked;
+
   factory ChapterManifestWindow.fromJson(Map<String, dynamic> json) {
     final manifests = <String, ChapterManifest>{};
     final errors = <String, String>{};
+    final locked = <String, DateTime?>{};
     for (final raw in (json['items'] as List<dynamic>? ?? const [])) {
       if (raw is! Map) continue;
       final item = Map<String, dynamic>.from(raw);
@@ -63,11 +70,13 @@ class ChapterManifestWindow {
       errors[key] = error is Map && error['message'] is String
           ? error['message'] as String
           : 'This chapter could not be fetched.';
+      if (error is Map && error['code'] == 'chapter_locked') locked[key] = lockedUntilOf(error['locked_until']);
     }
     return ChapterManifestWindow(
       maxChapters: (json['max_chapters'] as num?)?.toInt() ?? 0,
       manifests: manifests,
       errors: errors,
+      locked: locked,
     );
   }
 }

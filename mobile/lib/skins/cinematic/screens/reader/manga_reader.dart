@@ -1365,11 +1365,18 @@ class _CineMangaReaderState extends ConsumerState<CineMangaReader> with WidgetsB
       nextLabel: chapterFolio(next?.number),
       loadingPrevious: false,
       retryIn: retryIn,
-      nextFailed: (ctx) => NextFailedNotice(
-        label: 'Chapter ${chapterNumberText(next?.number)}',
-        onRetry: () => unawaited(_body.onReachedFeedEnd?.call()),
-        onOpen: () {
-          if (next != null) _goToChapter(next.id);
+      nextFailed: (ctx) => Consumer(
+        builder: (context, ref, _) {
+          final lock = ref.watch(readerLockedNextProvider);
+          void retry() => unawaited(_body.onReachedFeedEnd?.call());
+          void open() {
+            if (next != null) _goToChapter(next.id);
+          }
+
+          final label = 'Chapter ${chapterNumberText(next?.number)}';
+          return lock == null
+              ? NextFailedNotice(label: label, onRetry: retry, onOpen: open)
+              : NextLockedNotice(label: label, lockedUntil: lock.lockedUntil, message: lock.message, onRetry: retry, onOpen: open);
         },
       ),
       offlineEnd: (ctx) => OfflineEndNotice(onBackToDownloads: () => context.go(Routes.downloads())),

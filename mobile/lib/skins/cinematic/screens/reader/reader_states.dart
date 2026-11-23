@@ -2,15 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manhwamaniacs/core/error/not_available.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
+import 'package:manhwamaniacs/features/reader/widgets/chapter_locked_flow.dart';
+import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/cinematic/hit.dart';
 import 'package:manhwamaniacs/skins/cinematic/icons/icon_roles.g.dart';
-import 'package:manhwamaniacs/skins/cinematic/motion.dart' show CineFlicker;
+import 'package:manhwamaniacs/skins/cinematic/motion.dart' show CineFlicker, CineRuleDraw, CineRuleKind;
+import 'package:manhwamaniacs/skins/cinematic/primitives/cine_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_icon_button.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_not_available_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_notice.dart';
 import 'package:manhwamaniacs/skins/cinematic/primitives/cine_progress.dart';
+import 'package:manhwamaniacs/skins/cinematic/primitives/layout/cine_measure.dart';
 import 'package:manhwamaniacs/skins/cinematic/screens/reader/reader_series.dart';
 import 'package:manhwamaniacs/skins/cinematic/tokens.g.dart';
 import 'package:manhwamaniacs/skins/cinematic/type.dart';
@@ -117,6 +122,19 @@ class ReaderFailureView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.cine;
+    final lock = chapterLockOf(failure.error);
+    if (lock != null) {
+      return _ground(
+        context,
+        onBack: failure.back,
+        SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: c.space4),
+            child: SingleChildScrollView(child: CineChapterLocked(lock: lock, retry: failure.retry, back: failure.back)),
+          ),
+        ),
+      );
+    }
     final kind = failure.error == null ? null : notAvailableKind(failure.error!);
     final Widget notice;
     if (kind != null) {
@@ -179,6 +197,85 @@ class ReadAllListFailureView extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// A chapter that is early access on its source (the reader's `423`): `EARLY ACCESS`, the ticking
+/// `Opens in 3:27:14`, when that is on this device's clock, and `Go to the series`. No `Try again` while the
+/// count runs; at zero the chapter is asked for once more after a short grace, and if it is still shut the
+/// server's own words and `Try again` take over. With no instant the source gave none, so the server's message
+/// stands with both actions.
+class CineChapterLocked extends ConsumerWidget {
+  const CineChapterLocked({super.key, required this.lock, required this.retry, required this.back});
+
+  final ChapterLock lock;
+  final VoidCallback retry, back;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final id = lock.sourceId;
+    final sources = ref.watch(sourcesListProvider).valueOrNull ?? const [];
+    final name = id == null ? null : sources.where((s) => s.id == id).map((s) => s.name).firstOrNull;
+    return ChapterLockedFlow(
+      lockedUntil: lock.lockedUntil,
+      retry: retry,
+      builder: (context, phase, left) => switch (phase) {
+        ChapterLockPhase.counting => _LockedBody(
+            headline: 'Opens in ${formatCountdown(left)}',
+            semanticsHeadline: 'Opens in ${spokenRemaining(left)}',
+            deck: '${name ?? 'The source'} opens this chapter to everyone at ${localOpenTime(lock.lockedUntil!)}.',
+            quiet: CineNoticeAction('Go to the series', back),
+          ),
+        ChapterLockPhase.opening => _LockedBody(
+            headline: 'Opening now',
+            deck: 'Asking for the chapter.',
+            quiet: CineNoticeAction('Go to the series', back),
+          ),
+        ChapterLockPhase.expired => _LockedBody(
+            headline: lock.message,
+            primary: CineNoticeAction('Try again', retry),
+            quiet: CineNoticeAction('Go to the series', back),
+          ),
+      },
+    );
+  }
+}
+
+class _LockedBody extends StatelessWidget {
+  const _LockedBody({required this.headline, this.semanticsHeadline, this.deck, this.primary, this.quiet});
+  final String headline;
+  final String? semanticsHeadline, deck;
+  final CineNoticeAction? primary, quiet;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.cine;
+    final top = MediaQuery.sizeOf(context).height * 0.15;
+    return Padding(
+      padding: EdgeInsets.only(top: top),
+      child: Semantics(
+        container: true,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(height: c.ruleHeavy.width, child: const CineRuleDraw(kind: CineRuleKind.heavy)),
+          SizedBox(height: c.space4),
+          CineRoleText('EARLY ACCESS', c.typeKicker, color: c.colorSpot),
+          SizedBox(height: c.space2),
+          // Set whole, not typed: a headline that changes every second must not retype itself.
+          Semantics(header: true, headingLevel: 1, label: semanticsHeadline, excludeSemantics: semanticsHeadline != null, child: CineRoleText(headline, c.typeSubhead)),
+          if (deck != null) ...[
+            SizedBox(height: c.space3),
+            CineMeasure(ch: 48, style: CineText.style(context, c.typeDeck), child: CineRoleText(deck!, c.typeDeck, color: c.colorInk60)),
+          ],
+          if (primary != null || quiet != null) ...[
+            SizedBox(height: c.space6),
+            Wrap(spacing: c.space4, runSpacing: c.space2, crossAxisAlignment: WrapCrossAlignment.center, children: [
+              if (primary != null) CineButton(label: primary!.label, onPressed: primary!.onPressed),
+              if (quiet != null) CineButton(label: quiet!.label, variant: CineButtonVariant.quiet, onPressed: quiet!.onPressed),
+            ],),
+          ],
+        ],),
       ),
     );
   }

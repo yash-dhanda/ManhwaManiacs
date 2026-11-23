@@ -113,6 +113,7 @@ UpdateNotification _copy(UpdateNotification n, {required bool read}) => UpdateNo
       chapterNumber: n.chapterNumber,
       isRead: read,
       createdAt: n.createdAt,
+      lockedUntil: n.lockedUntil,
     );
 
 /// A notification for `shelfSeries(seriesId)`.

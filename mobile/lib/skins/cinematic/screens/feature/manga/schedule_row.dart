@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/features/downloads/models/download_chapter_state.dart';
 import 'package:manhwamaniacs/features/downloads/queue/download_queue_controller.dart';
 import 'package:manhwamaniacs/features/downloads/utils/download_mark.dart';
@@ -171,8 +172,11 @@ class _ScheduleRowState extends State<ScheduleRow> {
     );
     final failed = mark is MarkFailed;
     final date = chapterDateLabel(c.releaseDate);
+    // Early access: where the date would be, when it opens. Minute granularity; a rebuild refreshes it, and once the instant
+    // passes the date is back by itself.
+    final locked = c.isLocked();
     final caption = [
-      if (date != null) date,
+      if (locked) 'OPENS IN ${compactRemaining(lockRemaining(c.lockedUntil!)).toUpperCase()}' else if (date != null) date,
       if (c.pageCount > 0) '${c.pageCount} PAGES',
     ].join(' · ');
     final text = read ? t.colorInk45 : t.colorInk100;

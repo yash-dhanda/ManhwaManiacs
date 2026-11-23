@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/time/clock.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode.dart';
 import 'package:manhwamaniacs/features/content_mode/content_mode_controller.dart' show contentModeScopeProvider;
 import 'package:manhwamaniacs/features/library/utils/bulk_runner.dart';
@@ -10,6 +11,7 @@ import 'package:manhwamaniacs/features/library/utils/relative_read_time.dart';
 import 'package:manhwamaniacs/features/updates/providers/updates_provider.dart';
 import 'package:manhwamaniacs/features/updates/utils/notification_grouping.dart';
 import 'package:manhwamaniacs/shared/providers/repository_providers.dart';
+import 'package:manhwamaniacs/shared/widgets/lock_countdown.dart';
 import 'package:manhwamaniacs/skins/contract.g.dart';
 import 'package:manhwamaniacs/skins/glass/icons/icon_roles.g.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/cards/slab.dart';
@@ -31,6 +33,45 @@ String updateSummary(SeriesUpdate g) {
   final nums = [for (final c in g.chapters) if (c.chapterNumber != null) c.chapterNumber!]..sort();
   final range = nums.isEmpty ? '' : (nums.first == nums.last ? ' · Ch ${_n(nums.first)}' : ' · Ch ${_n(nums.first)}–${_n(nums.last)}');
   return '${g.chapters.length} new$range';
+}
+
+/// "Opens in 3:27:14": the status that stands in for the next chapter while it is early access, gone (no refetch) once the
+/// instant passes.
+class LockedOpensIn extends StatelessWidget {
+  const LockedOpensIn({super.key, required this.lockedUntil});
+  final DateTime lockedUntil;
+
+  @override
+  Widget build(BuildContext context) => LockCountdown(
+        lockedUntil: lockedUntil,
+        unlocked: (_) => const SizedBox.shrink(),
+        builder: (context, left) => Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: GlassLabel('Opens in ${formatCountdown(left)}', role: gt.typeFootnote, wght: 600, color: gt.colorLabel2),
+        ),
+      );
+}
+
+/// One chapter chip of a group. A chapter that is not open yet dims and says when ("Ch 370 · 3 h 27 min"); it stays pressable,
+/// because the reader explains the wait itself.
+class UpdateChapterChip extends StatelessWidget {
+  const UpdateChapterChip({super.key, required this.chapter, required this.onPressed});
+  final UpdateChapter chapter;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = chapter;
+    final base = c.chapterNumber == null ? c.title : 'Ch ${_n(c.chapterNumber)}';
+    Widget chip(String label, {double opacity = 1}) => Opacity(opacity: opacity, child: GlassChip(label: label, selected: !c.read, kind: GlassChipKind.assist, onPressed: onPressed));
+    final until = c.lockedUntil;
+    if (until == null) return chip(base);
+    return LockCountdown(
+      lockedUntil: until,
+      unlocked: (_) => chip(base),
+      builder: (_, left) => chip('$base · ${compactRemaining(left)}', opacity: 0.55),
+    );
+  }
 }
 
 /// The notification groups of [days], one card per series (glass 8.21), under day headers.
@@ -127,10 +168,11 @@ class UpdateCard extends ConsumerWidget {
                       if (!read) ...[const SizedBox(width: 8), DecoratedBox(decoration: BoxDecoration(color: gt.colorIris400, shape: BoxShape.circle), child: const SizedBox.square(dimension: 8))],
                     ],),
                     GlassLabel(updateSummary(g), role: gt.typeFootnote, color: read ? gt.colorLabel3 : gt.colorIris400),
+                    if (g.firstUnread?.lockedUntil != null) LockedOpensIn(lockedUntil: g.firstUnread!.lockedUntil!),
                     const SizedBox(height: 8),
                     Wrap(spacing: 8, runSpacing: 8, children: [
                       for (final c in g.chapters.take(6))
-                        GlassChip(label: c.chapterNumber == null ? c.title : 'Ch ${_n(c.chapterNumber)}', selected: !c.read, kind: GlassChipKind.assist, onPressed: () => unawaited(openChapter(c))),
+                        UpdateChapterChip(chapter: c, onPressed: () => unawaited(openChapter(c))),
                     ],),
                   ],),
                 ),

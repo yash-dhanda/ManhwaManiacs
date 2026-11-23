@@ -264,6 +264,7 @@ class ChapterRowsSliver extends ConsumerWidget {
           number: c.number,
           title: c.title.isEmpty ? null : c.title,
           date: c.releaseDate == null ? null : DateTime.tryParse(c.releaseDate!),
+          lockedUntil: c.lockedUntil,
           pageCount: c.pageCount > 0 ? c.pageCount : null,
           progress: p != null && !p.completed ? p.page : null,
           read: read,

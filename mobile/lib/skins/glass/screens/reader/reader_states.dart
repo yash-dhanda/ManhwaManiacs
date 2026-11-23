@@ -2,8 +2,12 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manhwamaniacs/core/error/not_available.dart';
+import 'package:manhwamaniacs/core/time/locked_until.dart';
 import 'package:manhwamaniacs/features/reader/engine/reader_frames.dart';
+import 'package:manhwamaniacs/features/reader/widgets/chapter_locked_flow.dart';
+import 'package:manhwamaniacs/features/sources/providers/sources_provider.dart';
 import 'package:manhwamaniacs/skins/back_parent.dart';
 import 'package:manhwamaniacs/skins/glass/frame.dart';
 import 'package:manhwamaniacs/skins/glass/primitives/common.dart';
@@ -113,7 +117,10 @@ class GlassReaderFailure extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Widget lens;
-    if (gated) {
+    final lock = chapterLockOf(failure.error);
+    if (lock != null) {
+      lens = GlassChapterLocked(lock: lock, retry: failure.retry, back: failure.back);
+    } else if (gated) {
       lens = GlassObjectLens(
         situation: LensSituation.unavailable,
         title: "This isn't available on this profile",
@@ -146,5 +153,51 @@ class GlassReaderFailure extends StatelessWidget {
       );
     }
     return _withBack(context, ColoredBox(color: const Color(0xFF000000), child: Center(child: lens)));
+  }
+}
+
+/// A chapter that is early access on its source (the reader's `423`): "Opens in 3:27:14" with when that is on this device's
+/// clock and Go to series. No Try again while the count runs; at zero the chapter is asked for once more after a short grace, and
+/// if it is still shut the server's own words and Try again take over. With no instant, the message stands with both actions.
+class GlassChapterLocked extends ConsumerWidget {
+  const GlassChapterLocked({super.key, required this.lock, required this.retry, required this.back});
+  final ChapterLock lock;
+  final VoidCallback retry, back;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final id = lock.sourceId;
+    final sources = ref.watch(sourcesListProvider).valueOrNull ?? const [];
+    final name = id == null ? null : sources.where((s) => s.id == id).map((s) => s.name).firstOrNull;
+    return ChapterLockedFlow(
+      lockedUntil: lock.lockedUntil,
+      retry: retry,
+      builder: (context, phase, left) => switch (phase) {
+        ChapterLockPhase.counting => Semantics(
+            label: 'Early access. Opens in ${spokenRemaining(left)}',
+            excludeSemantics: true,
+            child: GlassObjectLens(
+              situation: LensSituation.unavailable,
+              title: 'Opens in ${formatCountdown(left)}',
+              description: '${name ?? 'The source'} opens this chapter to everyone at ${localOpenTime(lock.lockedUntil!)}.',
+              primary: LensAction('Go to series', back),
+            ),
+          ),
+        ChapterLockPhase.opening => GlassObjectLens(
+            situation: LensSituation.unavailable,
+            title: 'Opening now',
+            description: 'Asking for the chapter.',
+            primary: LensAction('Go to series', back),
+          ),
+        ChapterLockPhase.expired => GlassObjectLens(
+            situation: LensSituation.loadError,
+            title: 'Early access',
+            description: lock.message,
+            tone: GlassLensTone.error,
+            primary: LensAction('Try again', retry),
+            secondary: LensAction('Go to series', back),
+          ),
+      },
+    );
   }
 }
