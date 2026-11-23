@@ -93,6 +93,39 @@ void main() {
     expect(c.read(offlineEditionControllerProvider).polling, isFalse);
   });
 
+  testWidgets('the probe\'s own failed request does not multiply the polling timers', (t) async {
+    SharedPreferences.setMockInitialValues({});
+    final failures = StreamController<AppError>.broadcast(sync: true);
+    addTearDown(failures.close);
+    var probes = 0;
+    final c = ProviderContainer(overrides: [
+      sharedPrefsProvider.overrideWithValue(await SharedPreferences.getInstance()),
+      authenticatedAuthOverride(),
+      activeProfileOverride(),
+      networkFailureStreamProvider.overrideWithValue(failures.stream),
+      // Like the real probe: the failed request is reported on the failure stream, then false.
+      serverProbeProvider.overrideWithValue(() async {
+        probes++;
+        failures.add(const TimeoutError());
+        return false;
+      }),
+      progressOutboxControllerProvider.overrideWith((ref) => _Progress(ref, 0)),
+      bookmarkOutboxControllerProvider.overrideWith((ref) => _Marks(0)),
+    ],);
+    addTearDown(c.dispose);
+    final ctl = c.read(offlineEditionControllerProvider);
+    failures.add(const TimeoutError());
+
+    // 15, 45, 105, 165, 225, 285 s.
+    await t.pump(const Duration(seconds: 300));
+    expect(probes, 6);
+
+    c.dispose();
+    expect(ctl.polling, isFalse);
+    await t.pump(const Duration(seconds: 300));
+    expect(probes, 6);
+  });
+
   test('a failure while signed out does nothing', () async {
     SharedPreferences.setMockInitialValues({});
     final failures = StreamController<AppError>.broadcast(sync: true);

@@ -40,6 +40,9 @@ class _FakeProfilesRepository implements ProfilesRepository {
   final List<String> calls = [];
   final List<String?> updateSkins = [];
 
+  /// When set, `update` answers with this instead of applying the change.
+  AppError? updateError;
+
   @override
   Future<Result<List<Profile>>> list() async {
     calls.add('list');
@@ -79,6 +82,7 @@ class _FakeProfilesRepository implements ProfilesRepository {
   }) async {
     calls.add('update');
     updateSkins.add(skin);
+    if (updateError != null) return Err(updateError!);
     final updated = _profile(
       id: id,
       name: name ?? 'Reader',
@@ -250,6 +254,26 @@ void main() {
       expect(error, isNull);
       expect(repo.calls, containsAllInOrder(['create', 'update']));
       expect(repo.updateSkins, ['glass']);
+    });
+
+    test('create does not report failure when only the edition PATCH fails (the profile exists)', () async {
+      final repo = _FakeProfilesRepository([_profile(id: 1)])
+        ..updateError = const ApiError(statusCode: 503, code: 'db_busy', message: 'busy');
+      final container = await _container(repo: repo);
+      addTearDown(container.dispose);
+      await container.read(profilesProvider.future);
+
+      final error = await container.read(profilesProvider.notifier).create(
+            name: 'Weekend',
+            avatarKey: 'amber',
+            mood: Mood.comedy,
+            skin: 'glass',
+          );
+      // A failure here would re-enable Save and a second tap would POST a duplicate.
+      expect(error, isNull);
+      expect(repo.calls.where((c) => c == 'create'), hasLength(1));
+      final list = await container.read(profilesProvider.future);
+      expect(list.where((p) => p.name == 'Weekend'), hasLength(1));
     });
 
     test('the first selection after a sign-out drops the kept-alive Circle caches', () async {

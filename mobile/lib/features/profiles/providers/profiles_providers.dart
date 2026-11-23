@@ -74,8 +74,9 @@ class ProfilesNotifier extends AsyncNotifier<List<Profile>> {
     if (skin != null) {
       final r = await ref.read(profilesRepositoryProvider).update(result.value.id, skin: skin);
       if (r.isErr) {
-        await refresh();
-        return r.error;
+        // The profile exists now: reporting failure would re-enable Save and a second tap would
+        // POST a duplicate (names are not unique). The edition can be changed from the profile later.
+        appLogger.w('Profile ${result.value.id} created, but saving its edition failed: ${r.error}');
       }
     }
     await refresh();

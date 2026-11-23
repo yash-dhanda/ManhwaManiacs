@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:fake_async/fake_async.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -88,6 +89,9 @@ class _FakeAuthRepository implements AuthRepository {
   Result<AuthResponse>? registerResult;
   int logoutCalls = 0;
 
+  /// An unreachable host: the revoke never answers (the real client waits 15-45 s).
+  bool hangOnLogout = false;
+
   /// Stands in for an unreachable host on a live LAN: the SYN is blackholed, so
   /// the call neither succeeds nor fails — it just never returns.
   bool hangOnMe = false;
@@ -126,6 +130,7 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   Future<Result<void>> logout() async {
     logoutCalls++;
+    if (hangOnLogout) return Completer<Result<void>>().future;
     return const Ok(null);
   }
 
@@ -630,6 +635,24 @@ void main() {
       expect(storage.token, isNull);
       expect(container.read(authTokenStoreProvider).token, isNull);
       // No leftover identity for the next account's cold start to restore.
+      expect(prefs.getString(_cachedUserKey), isNull);
+    });
+
+    test('logout against an unreachable server signs out locally within the revoke bound', () async {
+      final storage = _FakeStorage()..token = 'tok';
+      final repo = _FakeAuthRepository(meResult: Ok(_user))..hangOnLogout = true;
+      final (container, prefs) = await _containerWithPrefs(repo, storage);
+      await container.read(authControllerProvider.notifier).restored;
+      expect(container.read(authControllerProvider), isA<AuthAuthenticated>());
+
+      fakeAsync((async) {
+        container.read(authControllerProvider.notifier).logout();
+        async.elapse(const Duration(seconds: 4));
+        expect(repo.logoutCalls, 1);
+        expect(container.read(authControllerProvider), isA<AuthUnauthenticated>());
+      });
+      await Future<void>.delayed(Duration.zero);
+      expect(storage.token, isNull);
       expect(prefs.getString(_cachedUserKey), isNull);
     });
 
