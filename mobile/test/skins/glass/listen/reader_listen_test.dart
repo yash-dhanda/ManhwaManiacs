@@ -3,9 +3,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/services.dart' show LogicalKeyboardKey;
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manhwamaniacs/core/utils/result.dart';
 import 'package:manhwamaniacs/features/novels/controllers/narration_controller.dart';
+import 'package:manhwamaniacs/features/novels/providers/novel_chapter_provider.dart' show resolvedNovelChapterProvider;
 import 'package:manhwamaniacs/skins/glass/listen/audiobook_sheet.dart';
 import 'package:manhwamaniacs/skins/glass/listen/glass_narration_host.dart';
 import 'package:manhwamaniacs/skins/glass/listen/listen_row.dart';
@@ -97,6 +99,62 @@ void main() {
     await disposeGlassNovel(t);
   });
 
+  testWidgets('a Stop while the next chapter is still being built is not undone when it arrives', (t) async {
+    final gate = Completer<void>();
+    final l = await pumpGlassListen(t, pushed: false, extra: [_heldChapter({'2': gate.future})]);
+    await settle(t);
+    await l.startNarration();
+    expect(l.players, hasLength(1));
+    final actions = l.container.read(glassNarrationActionsProvider);
+    unawaited(actions.changeChapter(next: true));
+    await settle(t, ms: 200);
+    await t.runAsync(actions.stopWithUndo);
+    await settle(t, ms: 200);
+    expect(l.state.active, isFalse);
+    gate.complete();
+    await settle(t, ms: 500);
+    await l.settle(ms: 300);
+    expect(l.state.active, isFalse);
+    expect(l.players, hasLength(1));
+    await disposeGlassNovel(t);
+  });
+
+  testWidgets('next (slow) then previous (fast): the later tap wins', (t) async {
+    final gate = Completer<void>();
+    final l = await pumpGlassListen(t, pushed: false, extra: [_heldChapter({'3': gate.future})]);
+    await settle(t);
+    await t.runAsync(() => l.narration.start(_chapterTarget('2')));
+    await l.settle();
+    final actions = l.container.read(glassNarrationActionsProvider);
+    unawaited(actions.changeChapter(next: true));
+    await settle(t, ms: 200);
+    unawaited(actions.changeChapter(next: false));
+    await settle(t);
+    await l.settle(ms: 300);
+    expect(l.state.key?.chapterKey, '1');
+    gate.complete();
+    await settle(t, ms: 500);
+    await l.settle(ms: 300);
+    expect(l.state.key?.chapterKey, '1');
+    await disposeGlassNovel(t);
+  });
+
+  testWidgets('a next chapter that cannot be built says so instead of doing nothing', (t) async {
+    final l = await pumpGlassListen(t, pushed: false, extra: [
+      resolvedNovelChapterProvider.overrideWith((ref, key) async {
+        if (key.chapterKey == '2') throw StateError('offline');
+        return novelChapterFor(key.chapterKey);
+      }),
+    ]);
+    await settle(t);
+    await l.startNarration();
+    unawaited(l.container.read(glassNarrationActionsProvider).changeChapter(next: true));
+    await settle(t);
+    expect(find.text("Audio couldn't be loaded."), findsOneWidget);
+    expect(l.state.key?.chapterKey, '1');
+    await disposeGlassNovel(t);
+  });
+
   testWidgets('stopping from the row and Undo resume at the same position', (t) async {
     final l = await pumpGlassListen(t, pushed: false);
     await settle(t);
@@ -152,3 +210,19 @@ void main() {
     await disposeGlassNovel(t);
   });
 }
+
+/// The chapter text of every chapter, each held back until its future (when [holds] names one) completes.
+Override _heldChapter(Map<String, Future<void>> holds) => resolvedNovelChapterProvider.overrideWith((ref, key) async {
+      final hold = holds[key.chapterKey];
+      if (hold != null) await hold;
+      return novelChapterFor(key.chapterKey);
+    });
+
+NarrationTarget _chapterTarget(String chapter) => NarrationTarget(
+      key: (sourceId: kNovelSource, seriesKey: kNovelSeries, chapterKey: chapter),
+      audio: listenAudioFixture(),
+      paragraphs: novelChapterFor(chapter).paragraphs,
+      bookTitle: 'Omniscient Reader',
+      chapterNumber: 12,
+      chapterTitle: 'The Tower',
+    );

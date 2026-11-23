@@ -119,6 +119,10 @@ class GlassNarrationActions {
   GlassNarrationActions(this._ref);
   final Ref _ref;
 
+  /// Bumped by every chapter request and every stop, pause or toggle: a request that finds it moved
+  /// after its awaits has been overtaken (a later tap, a Stop) and must not start anything.
+  int _req = 0;
+
   NarrationController get _n => _ref.read(narrationControllerProvider.notifier);
   NarrationState get state => _ref.read(narrationControllerProvider);
 
@@ -171,15 +175,24 @@ class GlassNarrationActions {
     );
   }
 
-  /// Reads [key] aloud from [startMs]; false when it has no audio.
-  Future<bool> startChapter(NovelChapterKey key, {int startMs = 0, bool play = true, List<String>? paragraphs, String? bookTitle, double? chapterNumber, String? chapterTitle}) async {
+  /// Reads [key] aloud from [startMs]; false when it has no audio, or when a later request or a stop overtook this one.
+  Future<bool> startChapter(NovelChapterKey key, {int startMs = 0, bool play = true, List<String>? paragraphs, String? bookTitle, double? chapterNumber, String? chapterTitle}) =>
+      _startChapter(++_req, _n.generation, key, startMs: startMs, play: play, paragraphs: paragraphs, bookTitle: bookTitle, chapterNumber: chapterNumber, chapterTitle: chapterTitle);
+
+  /// [gen] is this request's `_req`; [epoch] the controller's generation when it began, which also moves on stops that bypass these
+  /// actions (sign-out, the lock screen's stop, the other skin's reader exit).
+  Future<bool> _startChapter(int gen, int epoch, NovelChapterKey key, {int startMs = 0, bool play = true, List<String>? paragraphs, String? bookTitle, double? chapterNumber, String? chapterTitle}) async {
     final t = await buildTarget(key, paragraphs: paragraphs, bookTitle: bookTitle, chapterNumber: chapterNumber, chapterTitle: chapterTitle);
     if (t == null) return false;
+    if (gen != _req || epoch != _n.generation) return false;
     await _n.start(t, startMs: startMs, play: play);
     return true;
   }
 
-  Future<void> toggle() => _n.toggle();
+  Future<void> toggle() {
+    _req++;
+    return _n.toggle();
+  }
 
   /// The neighbouring chapter of the one narrating, when it has audio (`next` true: the following one).
   Future<NovelChapterKey?> neighbour({required bool next}) async {
@@ -197,14 +210,22 @@ class GlassNarrationActions {
 
   /// The reader's novel controller, when mounted, moves the page; the host moves the voice.
   Future<void> changeChapter({required bool next}) async {
+    final gen = ++_req;
+    final epoch = _n.generation;
     final target = await neighbour(next: next);
-    if (target == null) return;
-    await startChapter(target);
+    if (target == null || gen != _req) return;
+    try {
+      await _startChapter(gen, epoch, target);
+    } catch (e) {
+      // Offline or rate limited while building: the tap must not vanish silently.
+      if (gen == _req) _toast(GlassToastSpec(e is AppError ? listenErrorText(e) : "Audio couldn't be loaded.", kind: GlassToastKind.error));
+    }
   }
 
   /// A downward drag past 40 px or the menu's "Hide": stops with the toast "Stopped reading aloud" and an Undo that resumes at the same
   /// position (10 s draining rim, glass 7.12).
   Future<void> stopWithUndo() async {
+    _req++;
     final t = state.target;
     if (t == null) return;
     final at = _n.position.value;
@@ -214,6 +235,7 @@ class GlassNarrationActions {
 
   /// Pauses first, then hides with an Undo that resumes (`Semantics(onDismiss:)`).
   Future<void> pauseWithUndo(VoidCallback hide) async {
+    _req++;
     final was = state.isPlaying;
     if (was) await _n.pause();
     hide();
@@ -256,10 +278,12 @@ class GlassNarrationHost extends NarrationListenBridge {
   @override
   Future<void> playFrom(int para) async {
     final actions = _r.read(glassNarrationActionsProvider);
+    // Taken before the first await: a Stop or a later request while the audio loads overtakes this one.
+    final gen = ++actions._req, epoch = actions._n.generation;
     final playable = await _r.read(playableNovelAudioProvider(_c.key).future);
-    if (playable == null) return;
+    if (playable == null || gen != actions._req) return;
     final seg = playable.audio.segments.where((s) => s.paragraph >= para).firstOrNull;
-    await actions.startChapter(_c.key, startMs: seg?.startMs ?? 0, paragraphs: _c.paragraphs, bookTitle: _c.bookTitle, chapterNumber: _c.chapterNumber, chapterTitle: _c.chapterTitle);
+    await actions._startChapter(gen, epoch, _c.key, startMs: seg?.startMs ?? 0, paragraphs: _c.paragraphs, bookTitle: _c.bookTitle, chapterNumber: _c.chapterNumber, chapterTitle: _c.chapterTitle);
   }
 }
 

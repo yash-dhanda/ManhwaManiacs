@@ -294,6 +294,11 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
 
   // ── Loading ───────────────────────────────────────────────────────────────
 
+  /// Changes whenever a chapter session starts or narration stops. A caller that builds a target
+  /// across awaits captures it first and skips [start] when it moved, so a Stop, a sign-out or a
+  /// newer start that happened meanwhile is not undone.
+  int get generation => _loadToken;
+
   /// Read [target] aloud from [startMs], replacing whatever was playing.
   Future<void> start(NarrationTarget target, {int startMs = 0, bool play = true}) async {
     final token = ++_loadToken;
@@ -372,7 +377,14 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
     _subs
       ..add(player.positionStream.listen(_onPosition))
       ..add(player.bufferedStream.listen((d) => buffered.value = d.inMilliseconds))
-      ..add(player.stateStream.listen(_onPlayerState));
+      ..add(player.stateStream.listen(_onPlayerState))
+      ..add(player.errors.listen((e) {
+        // The player keeps reporting playing and buffering after an error, so nothing else would end the session.
+        appLogger.w('Narration playback failed', e);
+        if (token != _loadToken) return;
+        _sessions.pause();
+        _fail(token, "Audio couldn't be loaded.");
+      },),);
     state = state.copyWith(status: NarrationStatus.paused, clearFailure: true);
     _publish();
     if (_playWhenReady) await play();
@@ -439,6 +451,9 @@ class NarrationController extends Notifier<NarrationState> with WidgetsBindingOb
   void _onPlayerState(({bool playing, NarrationProcessing processing}) s) {
     final t = state.target;
     if (t == null) return;
+    // A player that failed can still report state (iOS settles to idle after an error). Only a new
+    // load leaves "failed": letting it through would swap the retry for a spinner or a dead Play.
+    if (state.status == NarrationStatus.failed) return;
     final NarrationStatus status;
     if (s.processing == NarrationProcessing.completed) {
       status = NarrationStatus.completed;

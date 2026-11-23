@@ -8,6 +8,7 @@ class FakeNarrationPlayer implements NarrationPlayer {
   final _position = StreamController<Duration>.broadcast();
   final _buffered = StreamController<Duration>.broadcast();
   final _state = StreamController<({bool playing, NarrationProcessing processing})>.broadcast();
+  final _errors = StreamController<Object>.broadcast();
 
   final List<String> calls = [];
   final List<Duration> seeks = [];
@@ -29,6 +30,8 @@ class FakeNarrationPlayer implements NarrationPlayer {
   Stream<Duration> get bufferedStream => _buffered.stream;
   @override
   Stream<({bool playing, NarrationProcessing processing})> get stateStream => _state.stream;
+  @override
+  Stream<Object> get errors => _errors.stream;
   @override
   Duration get position => _pos;
   @override
@@ -113,6 +116,9 @@ class FakeNarrationPlayer implements NarrationPlayer {
     _playing = false;
     _state.add((playing: false, processing: NarrationProcessing.completed));
   }
+
+  /// A playback error after the load succeeded: like just_audio, the state keeps its last values.
+  void emitError([Object error = 'playback failed']) => _errors.add(error);
 
   void setProcessing(NarrationProcessing p) {
     _processing = p;
